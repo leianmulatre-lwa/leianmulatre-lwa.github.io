@@ -5,15 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#c6924c" />
   <title>Big LWA</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=26" />
 </head>
 <body>
   <main id="app" class="app-shell" aria-live="polite">
+
     <section id="loginView" class="view login-view is-active" aria-label="Big LWA login">
-      <img class="room-bg" src="assets/room-login-reference.png" alt="" />
+      <div id="wallSlot" class="wall-slot" role="img" aria-label="wall gif board"></div>
+      <div class="veil" aria-hidden="true"></div>
       <div class="login-projection">
         <p class="eyebrow">big lwa</p>
-        <h1>welcome back</h1>
+        <h1 class="wa">welcome back</h1>
         <p>our room is better with light.</p>
         <form id="loginForm" class="login-form">
           <label>handle <input id="loginHandle" autocomplete="username" value="leian" /></label>
@@ -24,51 +26,71 @@
     </section>
 
     <section id="roomView" class="view room-view" aria-label="Big LWA profile room">
-      <img id="roomBg" class="room-bg" src="assets/room-profile-base.png" alt="" />
-      <div id="auraLayer" class="aura-layer" aria-hidden="true"></div>
-      <div id="bannerLayer" class="banner-layer" aria-hidden="true"></div>
+      <header class="room-search" id="roomSearch">
+        <span class="brand"><span class="brand-mark">B</span><span>big lwa</span></span>
+        <label class="search-shell"><span aria-hidden="true">⌕</span><input id="archiveSearch" type="search" placeholder="search the archive · rooms · finds · people" spellcheck="false" autocomplete="off" /><kbd>/</kbd></label>
+        <nav class="top-actions">
+          <span id="topUser" class="signed-in-as">@leian</span>
+          <button id="signOut" class="sign-out" type="button">sign out</button>
+        </nav>
+      </header>
 
-      <section id="profileProjection" class="profile-projection" aria-label="Profile projection">
-        <div class="projection-topline">
-          <span class="signal-dot"></span><span class="signal-dot"></span><span class="signal-dot"></span>
-          <span class="projection-label">PROFILE / LIVE</span>
-        </div>
-        <div class="profile-core">
-          <div class="avatar-shell">
-            <div id="avatar" class="avatar" aria-label="profile image placeholder">LS</div>
-            <button id="editProfile" class="tiny-button" type="button">edit profile</button>
+      <img id="roomBg" class="room-bg" src="assets/home-bg.png" alt="" />
+      <div id="auraLayer" class="aura-layer" aria-hidden="true"></div>
+      <span class="wall-tag">hd wall · active</span>
+
+      <img class="projector" src="assets/projector-stool.webp" alt="" aria-hidden="true" />
+      <div id="screenBoard" class="screen-board" aria-hidden="true"></div>
+
+      <section id="profileProjection" class="profile-projection browser" aria-label="Projection browser">
+        <div class="br-tabs" id="tabBar" role="tablist"></div>
+        <div class="br-addr" aria-hidden="true"><span class="lock">◉ https://</span><span id="addrText">room.biglwa/desk</span></div>
+        <div id="tabBody" class="tab-body">
+          <div class="projection-topline">
+            <span class="signal-dot"></span><span class="signal-dot"></span><span class="signal-dot"></span>
+            <span class="projection-label">PROFILE / LIVE</span>
           </div>
-          <div class="identity">
-            <div class="name-row">
-              <h2 id="displayName">Leian Stanley</h2>
-              <span id="moodBadge" class="mood-badge">mood: making</span>
+          <div class="profile-core">
+            <div class="avatar-shell">
+              <div id="avatar" class="avatar" aria-label="profile image placeholder">LS</div>
             </div>
-            <p id="handleText" class="handle">@leian</p>
-            <p id="bioText" class="bio">researcher, creator, entrepreneur, analyst.</p>
-            <div class="rank-line">
-              <span>REALNESS</span>
-              <div class="rank-track"><span id="rankFill"></span></div>
-              <strong id="rankLabel">statement</strong>
-              <span class="editor-badge">editor</span>
+            <div class="identity">
+              <div class="name-row">
+                <h2 id="displayName">Leian Stanley</h2>
+                <span id="moodBadge" class="mood-badge">mood: making</span>
+              </div>
+              <p id="handleText" class="handle">@leian</p>
+              <p id="bioText" class="bio">researcher, creator, entrepreneur, analyst.</p>
+              <div class="rank-line">
+                <span>REALNESS</span>
+                <div class="rank-track"><span id="rankFill"></span></div>
+                <strong id="rankLabel">statement</strong>
+                <span class="editor-badge">editor</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="metrics">
-          <div><strong id="followersMetric">113k</strong><span>followers</span></div>
-          <div><strong id="viewsMetric">1.1m</strong><span>monthly views</span></div>
-          <div><strong>08</strong><span>rooms mapped</span></div>
-        </div>
-        <div class="sound-strip" aria-label="Imported soundtrack">
-          <button id="removeTrack" class="track-x" type="button" title="remove soundtrack">×</button>
-          <div class="waveform" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <div class="metrics">
+            <div><strong id="followersMetric">113k</strong><span>followers</span></div>
+            <div><strong id="viewsMetric">1.1m</strong><span>monthly views</span></div>
+            <div><strong>08</strong><span>rooms mapped</span></div>
           </div>
-          <span id="trackLabel">imported track</span>
+          <div class="sound-strip" aria-label="Imported soundtrack">
+            <button id="removeTrack" class="track-x" type="button" title="remove soundtrack">×</button>
+            <div class="waveform" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <span id="trackLabel">imported track</span>
+          </div>
         </div>
+        <div id="tabPlaceholder" class="tab-placeholder" hidden></div>
       </section>
 
+      <div id="wallDoor" class="wall-door" role="group" tabindex="0" aria-label="control panel door">
+        <span class="door-avatar" id="doorAvatar">LS</span>
+        <button type="button" class="door-title" id="doorCustomise">customize profile</button>
+      </div>
+
       <aside id="controlPanel" class="control-panel" aria-label="Edit profile control panel" aria-hidden="true">
-        <img class="panel-frame" src="assets/control-panel-frame.png" alt="" />
         <div class="panel-ui">
           <header class="panel-header">
             <div><span class="eyebrow">CONTROL PANEL</span><h2>edit profile</h2></div>
@@ -83,11 +105,9 @@
               <label>mood <input id="moodInput" value="making" /></label>
             </section>
             <section class="control-group">
-              <h3>banner + aura</h3>
-              <label class="file-label">upload banner <input id="bannerInput" type="file" accept="image/*,video/*" /></label>
+              <h3>aura</h3>
               <label class="file-label">upload aura <input id="auraInput" type="file" accept="image/*" /></label>
               <label>aura strength <input id="auraStrength" type="range" min="0" max="100" value="28" /></label>
-              <label>banner opacity <input id="bannerOpacity" type="range" min="0" max="100" value="38" /></label>
               <label>profile opacity <input id="profileOpacity" type="range" min="45" max="100" value="96" /></label>
             </section>
             <section class="control-group">
@@ -106,6 +126,10 @@
               </label>
               <label>soundtrack label <input id="trackInput" value="imported track" /></label>
             </section>
+            <section class="control-group">
+              <h3>wallpaper</h3>
+              <label class="file-label">change background <input id="bgUpload" type="file" accept="image/*" /></label>
+            </section>
           </div>
           <footer class="panel-actions">
             <button id="resetProfile" class="secondary" type="button">reset</button>
@@ -114,18 +138,19 @@
         </div>
       </aside>
 
-      <nav class="typewriter-nav" aria-label="Room navigation">
+      <nav class="typewriter-nav" aria-label="Room navigation and tab shortcuts">
         <button class="nav-key is-selected" data-page="desktop">D</button>
         <button class="nav-key" data-page="feed">F</button>
         <button class="nav-key" data-page="connect">C</button>
         <button class="nav-key" data-page="map">M</button>
-        <button class="nav-key" data-page="camera">C</button>
-        <button class="nav-key" data-page="diary">D</button>
+        <button class="nav-key" data-page="camera">K</button>
+        <button class="nav-key" data-page="diary">Y</button>
         <button class="nav-key" data-page="stream">S</button>
-        <button class="nav-key" data-page="logout">L</button>
+        <button class="nav-key power" data-page="logout">L</button>
       </nav>
-      <div id="toast" class="toast" role="status"></div>
     </section>
+
+    <div id="toast" class="toast" role="status"></div>
   </main>
   <script src="app.js"></script>
 </body>

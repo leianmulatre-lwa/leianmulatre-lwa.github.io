@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BIG LWA — Direction Preview</title>
+<style>
+  :root{
+    --paper:#f5dca4; --paper-2:#f8e8be; --wood:#633918; --brass:#a66c19; --ink:#2f210f;
+    --shoji:#f0d890; --honey:#f0c078; --amber:#d8a860; --rust:#d89048; --umber:#241305;
+    --machine:#606048; --graphite:#484848; --chrome:#f0f0f0;
+    --live:#12bfae; --red:#9e2417; --yellow:#c99c1a; --green:#2e6a38;
+    --ease-out:cubic-bezier(.2,.86,.19,1); --ease-snap:cubic-bezier(.2,.8,.2,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--umber);color:var(--paper);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:2.2rem 1.4rem 6rem}
+  h1,h2,h3{line-height:1.05;margin:0}
+  .eyebrow{font-family:Consolas,ui-monospace,monospace;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--honey)}
+  header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;border-bottom:1px solid rgba(240,200,120,.28);padding-bottom:1rem;margin-bottom:2.4rem}
+  header.top h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(1.6rem,4vw,2.6rem);color:var(--paper-2);font-weight:400}
+  section{margin:3rem 0}
+  .sec-title{display:flex;align-items:baseline;gap:.8rem;margin-bottom:1.1rem}
+  .sec-title h2{font-family:Georgia,serif;font-weight:400;font-size:1.5rem;color:var(--chrome)}
+  .sec-title .eyebrow{font-size:.62rem}
+
+  /* palette */
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.6rem}
+  .sw{border:1px solid rgba(240,240,240,.18);border-radius:6px;overflow:hidden;transform:translateZ(0)}
+  .sw .chip{height:64px}
+  .sw .meta{padding:.45rem .55rem;font:10px Consolas,monospace;color:var(--paper-2);letter-spacing:.04em}
+  .sw .meta b{display:block;font-size:11px;margin-bottom:2px}
+  .sw.ink .meta{color:#2f210f}.sw.umber .meta{color:var(--paper)}
+
+  /* type */
+  .type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+  .type-card{border:1px solid rgba(240,200,120,.25);border-radius:8px;padding:1.1rem 1.2rem;background:rgba(245,220,164,.045)}
+  .type-card .label{font:700 .62rem Consolas,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--honey)}
+  .displayserif{font-family:Georgia,serif;font-size:2rem;color:var(--paper-2)}
+  .ui-sans{font-family:'Segoe UI',system-ui,sans-serif;font-size:1rem;color:var(--paper)}
+  .mono{font-family:Consolas,ui-monospace,monospace;font-size:.86rem;color:var(--honey)}
+
+  /* stage */
+  .stage-shell{margin-top:.6rem}
+  .stage{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;border:1px solid rgba(240,200,120,.35);
+    background:#241305 url('../assets/room-profile-base.png') center/cover no-repeat}
+  .stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(90deg,transparent 0 12.5%,rgba(240,200,120,.05) 12.5% 12.70%),
+      repeating-linear-gradient(0deg,transparent 0 12.5%,rgba(240,200,120,.05) 12.5% 12.70%)}
+  .stage .gridtag{position:absolute;right:8px;bottom:6px;font:9px Consolas,monospace;color:rgba(240,200,120,.75);letter-spacing:.1em}
+  .whiteboard{position:absolute;left:22%;top:3.2%;width:68%;height:28.3%;border:1px dashed rgba(240,240,240,.55);border-radius:6px;
+    display:grid;place-items:center;font:700 .6rem Consolas,monospace;letter-spacing:.18em;color:rgba(240,240,240,.92);
+    background:linear-gradient(165deg,rgba(240,216,176,.16),rgba(240,192,120,.03));text-shadow:0 1px 2px rgba(0,0,0,.4)}
+  .banner-zone{position:absolute;left:26%;top:21%;width:50%;height:5.6%;border-left:3px solid var(--live);border-right:3px solid var(--live);
+    background:repeating-linear-gradient(90deg,rgba(18,191,174,0) 0 30px,rgba(18,191,174,.32) 30px 31px);
+    color:rgba(18,191,174,.95);font:700 9px Consolas,monospace;display:flex;align-items:center;justify-content:flex-end;padding:0 6px;letter-spacing:.1em}
+  .signal-block{position:absolute;left:2%;top:6%;display:flex;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .dot.red{background:var(--red)}.dot.yellow{background:var(--yellow)}.dot.green{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .projector{position:absolute;left:3%;top:46%;width:9%;aspect-ratio:2.6;border-radius:6px;background:linear-gradient(180deg,var(--graphite),#20201c);
+    display:grid;place-items:center;font:700 .56rem Consolas,monospace;letter-spacing:.08em;color:var(--chrome);box-shadow:inset 0 0 0 1px rgba(240,240,240,.14)}
+  .lens{width:38%;height:56%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#dffdfa,var(--live) 70%,#0a6a5e);
+    animation:lenspulse 2.4s ease-in-out infinite}
+  @keyframes lenspulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+  .keystrip{position:absolute;left:34.3%;top:72.2%;width:28.5%;display:flex;gap:1.2%;pointer-events:none}
+  .keycap{aspect-ratio:1;border-radius:50%;border:2px solid rgba(70,35,13,.9);
+    background:radial-gradient(circle at 40% 34%,#b1592d,#551207);color:#f4dba1;display:grid;place-items:center;
+    font:800 clamp(.5rem,.8vw,.8rem) Consolas,monospace;box-shadow:inset 0 2px 2px rgba(255,211,130,.4),0 2px 2px rgba(0,0,0,.4)}
+  .cp-rail{position:absolute;left:0.5%;top:20%;width:22%;height:74%;border:1px dashed rgba(18,191,174,.5);border-radius:8px;display:grid;place-items:center;
+    font:620 .62rem Consolas,monospace;color:rgba(18,191,174,.9);text-align:center;letter-spacing:.12em;
+    background:linear-gradient(170deg,rgba(18,191,174,.08),transparent);transform:translateX(-135%);transition:transform .65s var(--ease-out);pointer-events:none}
+  .cp-rail.on{transform:translateX(0)}
+  .stage-actions{display:flex;gap:.7rem;margin-top:1rem;align-items:center}
+  .stage-actions button{border:1px solid #593312;background:linear-gradient(#d8a85a,#9c641e);color:var(--ink);font-family:'Segoe UI',sans-serif;font-weight:700;
+    border-radius:6px;padding:.55rem 1rem;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.35),0 2px 0 #4c2a10;transition:transform .12s var(--ease-snap),box-shadow .12s}
+  .stage-actions button:active{transform:translateY(2px);box-shadow:inset 0 1px rgba(255,255,255,.25),0 0 0 #4c2a10}
+  .hint{font:11px Consolas,monospace;color:rgba(240,200,120,.7)}
+
+  /* card deck concept */
+  .deck{position:relative;height:430px;perspective:1200px}
+  .card{position:absolute;inset:0 auto 0 0;width:min(78%,560px);height:400px;border-radius:12px;padding:1.3rem 1.4rem;
+    display:flex;flex-direction:column;gap:.9rem;border:1px solid rgba(240,200,120,.28);
+    background:linear-gradient(165deg,var(--paper-2),var(--shoji) 55%,var(--honey));
+    color:var(--ink);box-shadow:0 24px 60px rgba(0,0,0,.5),0 4px 0 rgba(36,19,5,.35);
+    opacity:0;transform:translateY(26px) rotateX(8deg);transform-origin:50% 100%;transition:transform .5s var(--ease-out),opacity .4s ease;will-change:transform,opacity}
+  .card.in{opacity:1;transform:translateY(0) rotateX(0)}
+  .card .k-eyebrow{display:flex;justify-content:space-between;align-items:center;font:700 .6rem Consolas,monospace;letter-spacing:.16em;color:var(--rust)}
+  .card .k-eyebrow .live{display:flex;gap:.35rem;align-items:center;color:var(--live);font-weight:800}
+  .card .k-eyebrow .live i{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live);animation:lenspulse 1.6s infinite}
+  .k-title{font-family:Georgia,serif;font-size:2rem;line-height:1.02;font-weight:400}
+  .k-body{font-size:.92rem;color:rgba(47,33,15,.85);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .k-tags{display:flex;flex-wrap:wrap;gap:.4rem}
+  .tag{border:1px solid rgba(83,49,17,.4);background:rgba(248,226,178,.55);padding:.2rem .5rem;border-radius:99px;font:700 .62rem Consolas,monospace}
+  .k-meta{display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(93,54,18,.28);padding-top:.7rem;margin-top:auto;font:700 .64rem Consolas,monospace}
+  .k-meta .archive{border:1px solid var(--live);color:var(--live);border-radius:6px;padding:.32rem .6rem;cursor:pointer;background:transparent;font-family:inherit;font-weight:800;transition:background .15s}
+  .k-meta .archive:hover{background:rgba(18,191,174,.12)}
+  .deck-side{position:absolute;right:0;top:40px;bottom:0;width:min(20%,150px);display:flex;flex-direction:column;justify-content:center;gap:.5rem}
+  .deck-side .thumb{border:1px solid rgba(240,200,120,.22);border-radius:6px;aspect-ratio:16/10;background:linear-gradient(150deg,var(--machine),#20201c);
+    opacity:.55;transform:translateX(0);transition:opacity .25s,transform .25s;font:8px Consolas,monospace;color:var(--chrome);display:grid;place-items:center}
+  .deck-side .thumb:hover{opacity:1;transform:translateX(-6px)}
+
+  /* motion lexicon */
+  .motion-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+  .motion-card{border:1px solid rgba(240,200,120,.22);border-radius:8px;padding:1rem;background:rgba(245,220,164,.04)}
+  .motion-card h3{font:700 .64rem Consolas,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--honey);margin-bottom:.5rem}
+  .motion-card .spec{font:11px Consolas,monospace;color:rgba(240,200,120,.72);margin:.35rem 0 .6rem}
+  .demo{height:44px;position:relative;border:1px solid rgba(240,200,120,.16);border-radius:6px;overflow:hidden}
+  .demo .bar{position:absolute;top:0;bottom:0;left:0;width:34%;background:linear-gradient(90deg,var(--live),#0a6a5e);transform:translateX(-108%)}
+  .ragent{background:linear-gradient(90deg,var(--rust),var(--amber))}
+  .demo.play .bar{animation:rail .7s var(--ease-out) forwards}
+  @keyframes rail{to{transform:translateX(190%)}}
+  .demo.play .ragent{animation:keypress .3s ease}
+  @keyframes keypress{0%{transform:translateY(0)}40%{transform:translateY(6px)}100%{transform:translateY(0)}}
+  .demo.play .glowbar{animation:glow .8s var(--ease-snap)}
+  .glowbar{position:absolute;top:0;bottom:0;left:0;width:80%;background:radial-gradient(closest-side,var(--live),transparent);opacity:0}
+  @keyframes glow{0%{opacity:0}30%{opacity:.9}100%{opacity:0}}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+    .deck-side .thumb{animation:none}
+  }
+  @media (max-width:720px){.deck-side{display:none}.card{width:100%}}
+  footer{margin-top:4rem;border-top:1px solid rgba(240,200,120,.22);padding-top:1rem;font:11px Consolas,monospace;color:rgba(240,200,120,.6);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Big LWA — direction preview</h1>
+    <div class="eyebrow">archive · research · deck · room</div>
+  </header>
+
+  <section id="palette">
+    <div class="sec-title"><span class="eyebrow">01</span><h2>Palette — sampled from your assets</h2></div>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <section id="type">
+    <div class="sec-title"><span class="eyebrow">02</span><h2>Three voices, one room</h2></div>
+    <div class="type-grid">
+      <div class="type-card"><div class="label">Display · serif (identity)</div><div class="displayserif">Archivist in a warm room</div></div>
+      <div class="type-card"><div class="label">UI · clean sans (contemporary)</div><div class="ui-sans">Profile, inputs, buttons, captions — Segoe UI / system-ui</div></div>
+      <div class="type-card"><div class="label">Machine · mono (system text)</div><div class="mono">PROFILE / LIVE · SIGNAL 01 · room 08 · @leian</div></div>
+    </div>
+  </section>
+
+  <section id="stage">
+    <div class="sec-title"><span class="eyebrow">03</span><h2>The room — one diorama, one stage</h2></div>
+    <div class="stage-shell">
+      <div class="stage">
+        <div class="signal-block"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <div class="projector">LENS<div class="lens"></div></div>
+        <div class="banner-zone">banner layer</div>
+        <div class="whiteboard">WHITEBOARD / PROFILE</div>
+        <div class="keystrip">
+          <span class="keycap">D</span><span class="keycap">F</span><span class="keycap">C</span><span class="keycap">M</span><span class="keycap">K</span><span class="keycap">Y</span><span class="keycap">S</span><span class="keycap">L</span>
+        </div>
+        <div class="cp-rail" id="cpRail">CONTROL<br/>PANEL<br/>ON THE RAIL</div>
+        <span class="gridtag">1920 × 1080 · 8px cell · wall 22–90% × 3–31% · measured from art</span>
+      </div>
+      <div class="stage-actions">
+        <button id="slidePanel" type="button">EDIT PROFILE → slide panel in</button>
+        <span class="hint">panel animates via transform: translateX only — never layout. respects prefers-reduced-motion.</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="deck">
+    <div class="sec-title"><span class="eyebrow">04</span><h2>Archivist deck — gen-z / tiktok card stack</h2></div>
+    <div class="deck">
+      <div class="card" id="card1">
+        <div class="k-eyebrow"><span>CARD 01 / RESEARCH FIND</span><span class="live"><i></i>ARCHIVE LIVE</span></div>
+        <div class="k-title">Shōji light, kept by hand</div>
+        <div class="k-body">Film still loop ref for the room's projection logic. Source keeps the original link + attribution; the card holds the tag spine and the capture.</div>
+        <div class="k-tags"><span class="tag">#room</span><span class="tag">#light-logic</span><span class="tag">#bts</span></div>
+        <div class="k-meta"><span>SRC · archival-film.tif · 00:08</span><button class="archive">archive +</button></div>
+      </div>
+      <div class="deck-side">
+        <div class="thumb">reel 01</div><div class="thumb">clip 02</div><div class="thumb">note 03</div>
+      </div>
+    </div>
+    <div class="stage-actions">
+      <button id="nextCard" type="button">next card →</button>
+      <span class="hint">cards stagger in 80ms apart, transform/opacity only, loop-safe for a FYP-style deck.</span>
+    </div>
+  </section>
+
+  <section id="motion">
+    <div class="sec-title"><span class="eyebrow">05</span><h2>Motion lexicon — animation-friendly proof</h2></div>
+    <div class="motion-grid">
+      <div class="motion-card"><h3>Rail slide</h3><div class="spec">translateX · .65s var(--ease-out)</div><div class="demo"><div class="bar"></div></div></div>
+      <div class="motion-card"><h3>Key press</h3><div class="spec">translateY 6px · .3s snap, no blur</div><div class="demo"><div class="bar ragent"></div></div></div>
+      <div class="motion-card"><h3>Lens glow</h3><div class="spec">opacity pulse · 1.6–2.4s on/off</div><div class="demo"><div class="glowbar"></div></div></div>
+      <div class="motion-card"><h3>Card in</h3><div class="spec">stagger 80ms · opacity + translateY</div><div class="demo"><div class="bar" style="width:22%"></div></div></div>
+    </div>
+    <div class="stage-actions">
+      <button id="runMotions" type="button">run lexicon →</button>
+      <span class="hint">everything here animates transform or opacity only — cheap, compositor-safe, reproducible on low-end phones (tiktok-scroll friendly).</span>
+    </div>
+  </section>
+
+  <footer>
+    <span>BIG LWA · canonical direction preview</span>
+    <span>tokens derive from measured asset palette · stage locks to 1920×1080</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var swatchData = [
+    {n:'shoji / paper', c:'#f5dca4', t:'--paper'}, {n:'warm ivory', c:'#f8e8be', t:'--paper-2'},
+    {n:'honey', c:'#f0c078', t:'--honey'}, {n:'brass', c:'#a66c19', t:'--brass'},
+    {n:'amber', c:'#d8a860', t:'--amber'}, {n:'rust', c:'#d89048', t:'--rust'},
+    {n:'wood', c:'#633918', t:'--wood'}, {n:'ink', c:'#2f210f', t:'--ink'},
+    {n:'umber', c:'#241305', t:'--umber'}, {n:'machine', c:'#606048', t:'--machine'},
+    {n:'chrome', c:'#f0f0f0', t:'--chrome'}, {n:'lens teal', c:'#12bfae', t:'--live'},
+    {n:'signal red', c:'#9e2417', t:'--red'}, {n:'signal yellow', c:'#c99c1a', t:'--yellow'}, {n:'signal green', c:'#2e6a38', t:'--green'}
+  ];
+  var sw = document.getElementById('swatches');
+  swatchData.forEach(function(s){
+    var d = document.createElement('div'); d.className = 'sw' + (s.n==='ink'||s.n==='umber'?' umber':'');
+    d.innerHTML = '<div class="chip" style="background:'+s.c+'"></div><div class="meta"><b>'+s.n+'</b>'+s.c+' · '+s.t+'</div>';
+    sw.appendChild(d);
+  });
+
+  document.getElementById('slidePanel').addEventListener('click', function(){
+    var rail = document.getElementById('cpRail');
+    var on = rail.classList.toggle('on');
+    this.textContent = on ? 'retract panel ←' : 'EDIT PROFILE → slide panel in';
+  });
+
+  document.getElementById('nextCard').addEventListener('click', function(){
+    var c1 = document.getElementById('card1');
+    c1.classList.remove('in');
+    setTimeout(function(){ c1.classList.add('in'); c1.querySelector('.k-title').textContent = 'Next find: the keycap navigation'; }, 140);
+  });
+
+  document.getElementById('runMotions').addEventListener('click', function(){
+    document.querySelectorAll('.demo').forEach(function(d){ d.classList.remove('play'); void d.offsetWidth; d.classList.add('play'); });
+  });
+
+  // stagger the initial card in once on load (after a beat so it's visible)
+  setTimeout(function(){ document.getElementById('card1').classList.add('in'); }, 250);
+})();
+</script>
+</body>
+</html>

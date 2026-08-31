@@ -10,7 +10,7 @@ This repo was rebuilt from the latest preserved Big LWA visual assets and UI dec
 - Profile information lives on the main whiteboard/projection surface.
 - The screen beside the whiteboard is the **Control Panel**.
 - **Edit Profile** mechanically slides the Control Panel into the room on its rail system.
-- Banner, Aura, profile identity, Realness, soundtrack label, opacity and projection controls live inside the Control Panel.
+- Aura, profile identity, Realness, soundtrack label, opacity and projection controls live inside the Control Panel.
 - Changes preview live; **Save Profile** stores the local prototype state and retracts the Control Panel.
 - The Control Panel can disappear completely in normal profile-view mode.
 - Typewriter keys are the navigation metaphor.

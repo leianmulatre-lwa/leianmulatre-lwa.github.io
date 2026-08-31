@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#c6924c" />
   <title>Big LWA</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=26" />
 </head>
 <body>
   <main id="app" class="app-shell" aria-live="polite">
@@ -26,7 +26,6 @@
     <section id="roomView" class="view room-view" aria-label="Big LWA profile room">
       <img id="roomBg" class="room-bg" src="assets/room-profile-base.png" alt="" />
       <div id="auraLayer" class="aura-layer" aria-hidden="true"></div>
-      <div id="bannerLayer" class="banner-layer" aria-hidden="true"></div>
 
       <section id="profileProjection" class="profile-projection" aria-label="Profile projection">
         <div class="projection-topline">
@@ -83,11 +82,9 @@
               <label>mood <input id="moodInput" value="making" /></label>
             </section>
             <section class="control-group">
-              <h3>banner + aura</h3>
-              <label class="file-label">upload banner <input id="bannerInput" type="file" accept="image/*,video/*" /></label>
+              <h3>aura</h3>
               <label class="file-label">upload aura <input id="auraInput" type="file" accept="image/*" /></label>
               <label>aura strength <input id="auraStrength" type="range" min="0" max="100" value="28" /></label>
-              <label>banner opacity <input id="bannerOpacity" type="range" min="0" max="100" value="38" /></label>
               <label>profile opacity <input id="profileOpacity" type="range" min="45" max="100" value="96" /></label>
             </section>
             <section class="control-group">
