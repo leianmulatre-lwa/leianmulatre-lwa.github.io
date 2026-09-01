@@ -10,8 +10,8 @@ button,input,textarea,select{font:inherit;color:inherit}button,input,textarea,se
 .app-shell,.view{position:fixed;inset:0}.view{display:none;overflow:hidden}.view.is-active{display:block}
 .room-bg{position:absolute;left:0;top:9%;bottom:0;width:100%;z-index:3;opacity:1;object-fit:cover;object-position:50% 0%}
 
-/* ---------- login / wall rotation ---------- */
-.wall-slot{position:absolute;inset:0;background:url("assets/login-wall.png") center/cover no-repeat}
+/* ---------- login (single fixed wallpaper) ---------- */
+.wall-slot{position:absolute;inset:0;background:url("assets/login-wall.png") center/cover no-repeat !important}
 .login-view .veil{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 55% at 50% 46%,transparent 30%,rgba(36,19,5,.55) 100%)}
 .login-view:after,.room-view:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 42%,transparent 35%,rgba(42,22,5,.10) 100%)}
 .login-projection{position:absolute;z-index:2;left:28%;top:15%;width:44%;min-height:37%;display:grid;place-content:center;text-align:center;padding:2.5rem;
