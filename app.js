@@ -23,19 +23,33 @@ const auth = getAuth(firebaseApp);
 const $ = (s) => document.querySelector(s);
 const root = document.documentElement;
 const loginBackgrounds = [
-  new URL('./assets/login-wall.png',import.meta.url).href,
   new URL('./assets/login-pink-city.gif',import.meta.url).href,
   new URL('./assets/login-future-city.gif',import.meta.url).href,
   new URL('./assets/login-cherry-lake.gif',import.meta.url).href,
   new URL('./assets/login-night-city.gif',import.meta.url).href
 ];
 function selectLoginBackground(){
-  const wall=$('#wallSlot');
-  if(!wall)return;
-  const chosen=loginBackgrounds[Math.floor(Math.random()*loginBackgrounds.length)];
-  wall.style.backgroundImage=`url("${chosen}")`;
+  const media=$('#loginMedia');
+  if(!media)return;
+  const last=Number(sessionStorage.getItem('biglwa-login-background'));
+  const options=loginBackgrounds.map((_,index)=>index).filter(index=>index!==last);
+  const chosenIndex=options[Math.floor(Math.random()*options.length)];
+  sessionStorage.setItem('biglwa-login-background',String(chosenIndex));
+  media.style.backgroundImage=`url("${loginBackgrounds[chosenIndex]}")`;
 }
 selectLoginBackground();
+function layoutLoginMediaInFrame(){
+  const media=$('#loginMedia');
+  if(!media)return;
+  const w=innerWidth,h=innerHeight,scale=Math.max(w/1905,h/826);
+  const renderedWidth=1905*scale,renderedHeight=826*scale;
+  const offsetX=(w-renderedWidth)/2,offsetY=(h-renderedHeight)/2;
+  media.style.left=(offsetX+359*scale)+'px';
+  media.style.top=(offsetY+31*scale)+'px';
+  media.style.width=(1184*scale)+'px';
+  media.style.height=(647*scale)+'px';
+}
+layoutLoginMediaInFrame();
 const defaults = {
   displayName:'Leian Stanley', handle:'leian', bio:'researcher, creator, entrepreneur, analyst.', mood:'making',
   rank:'statement', track:'imported track', auraStrength:100, profileOpacity:100, projectionGlow:22,
@@ -355,4 +369,7 @@ onAuthStateChanged(auth,user=>{
   }
 });
 window.addEventListener('popstate',()=>showRoute(window.location.pathname,{replace:true}));
-window.addEventListener('resize',layoutAuraInRoomCrop);
+window.addEventListener('resize',()=>{
+  layoutAuraInRoomCrop();
+  layoutLoginMediaInFrame();
+});

@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#c6924c" />
   <title>Big LWA</title>
-  <link rel="stylesheet" href="styles.css?v=59" />
+  <link rel="stylesheet" href="styles.css?v=60" />
 </head>
 <body>
   <main id="app" class="app-shell" aria-live="polite">
 
     <section id="loginView" class="view login-view is-active" aria-label="Big LWA login">
-      <div id="wallSlot" class="wall-slot" role="img" aria-label="wall gif board"></div>
+      <div id="wallSlot" class="wall-slot" role="img" aria-label="framed wall with rotating artwork">
+        <div id="loginMedia" class="login-media" aria-hidden="true"></div>
+      </div>
       <div class="veil" aria-hidden="true"></div>
       <div class="login-projection">
         <button class="theme-toggle login-theme-toggle" type="button" aria-label="Switch color mode">☾</button>
@@ -171,6 +173,6 @@
 
     <div id="toast" class="toast" role="status"></div>
   </main>
-  <script type="module" src="app.js?v=11"></script>
+  <script type="module" src="app.js?v=12"></script>
 </body>
 </html>
