@@ -16,12 +16,21 @@
       <div class="login-projection">
         <p class="eyebrow">big lwa</p>
         <h1 class="wa">welcome back</h1>
-        <p>our room is better with light.</p>
+        <p id="authTagline">our room is better with light.</p>
+        <div class="auth-switch" role="tablist" aria-label="Account access">
+          <button id="loginMode" class="is-active" type="button" role="tab" aria-selected="true">log in</button>
+          <button id="signupMode" type="button" role="tab" aria-selected="false">create account</button>
+        </div>
         <form id="loginForm" class="login-form">
-          <label>handle <input id="loginHandle" autocomplete="username" value="leian" /></label>
-          <label>passkey <input type="password" autocomplete="current-password" value="biglwa" /></label>
-          <button type="submit">enter room</button>
+          <label class="signup-only" hidden>handle <input id="loginHandle" autocomplete="nickname" maxlength="24" /></label>
+          <label>email <input id="loginEmail" type="email" autocomplete="email" required /></label>
+          <label>passkey <input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required /></label>
+          <button id="authSubmit" type="submit">enter room</button>
         </form>
+        <div class="auth-meta">
+          <button id="forgotPassword" type="button">forgot passkey?</button>
+          <span id="authMessage" role="alert" aria-live="polite"></span>
+        </div>
       </div>
     </section>
 
@@ -158,6 +167,6 @@
 
     <div id="toast" class="toast" role="status"></div>
   </main>
-  <script src="app.js?v=7"></script>
+  <script type="module" src="app.js?v=8"></script>
 </body>
 </html>

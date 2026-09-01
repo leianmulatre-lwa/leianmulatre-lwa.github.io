@@ -1,12 +1,44 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile
+} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+  authDomain: 'biglwa.firebaseapp.com',
+  projectId: 'biglwa',
+  storageBucket: 'biglwa.firebasestorage.app',
+  messagingSenderId: '83232670555',
+  appId: '1:83232670555:web:e04927b20458390b3b507e'
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+
 const $ = (s) => document.querySelector(s);
 const root = document.documentElement;
-const authKey = 'biglwa-signed-in';
 const defaults = {
   displayName:'Leian Stanley', handle:'leian', bio:'researcher, creator, entrepreneur, analyst.', mood:'making',
   rank:'statement', track:'imported track', auraStrength:100, profileOpacity:100, projectionGlow:22,
   panelOpacity:100, softBlur:true, roomShadows:true, auraUrl:'', auraX:0, auraY:0, auraScale:100, bg:0, bgCustom:'', bgX:0, bgY:0, bgScale:100
 };
-let state = {...defaults, ...JSON.parse(localStorage.getItem('biglwa-profile') || '{}')};
+let currentUser = null;
+let state = {...defaults};
+let authMode = 'login';
+const profileKey = () => currentUser ? `biglwa-profile:${currentUser.uid}` : '';
+function loadProfile(){
+  const saved=profileKey()&&localStorage.getItem(profileKey());
+  state={...defaults,...(saved?JSON.parse(saved):{})};
+  if(currentUser?.displayName&&!saved){
+    state.handle=currentUser.displayName;
+    state.displayName=currentUser.displayName;
+  }
+}
 
 function activate(view){
   document.querySelectorAll('.view').forEach(v => v.classList.remove('is-active'));
@@ -121,19 +153,37 @@ function roomBoot(){
   showToast('room connected');
 }
 function logout(){
-  sessionStorage.removeItem(authKey);
   closePanel();
   const rv=$('#roomView');
   rv.classList.remove('entered','screen-on');
-  activate('#loginView');
-  routeTo('/login');
+  signOut(auth).catch(()=>showToast('could not sign out'));
 }
-$('#loginForm').addEventListener('submit',(e)=>{
+$('#loginForm').addEventListener('submit',async(e)=>{
   e.preventDefault();
-  sessionStorage.setItem(authKey,'true');
-  activate('#roomView');
-  routeTo('/room');
-  roomBoot();
+  const email=$('#loginEmail').value.trim();
+  const password=$('#loginPassword').value;
+  const handle=$('#loginHandle').value.trim().replace(/^@/,'');
+  const submit=$('#authSubmit');
+  setAuthMessage('');
+  submit.disabled=true;
+  try{
+    if(authMode==='signup'){
+      if(!/^[a-zA-Z0-9._-]{2,24}$/.test(handle))throw new Error('Handle must be 2–24 letters, numbers, dots, dashes, or underscores.');
+      const credential=await createUserWithEmailAndPassword(auth,email,password);
+      await updateProfile(credential.user,{displayName:handle});
+      currentUser=credential.user;
+      state={...defaults,displayName:handle,handle};
+      localStorage.setItem(profileKey(),JSON.stringify(state));
+      render();
+      showRoute('/room',{replace:true});
+    }else{
+      await signInWithEmailAndPassword(auth,email,password);
+    }
+  }catch(error){
+    setAuthMessage(authErrorMessage(error),true);
+  }finally{
+    submit.disabled=false;
+  }
 });
 $('#resetFlow')?.addEventListener('click',logout);
 
@@ -167,8 +217,8 @@ function readControls(){
 function liveUpdate(){readControls();render()}
 function fileToData(input,key){const f=input.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state[key]=r.result;render();showToast(key==='auraUrl'?'aura loaded':'uploaded')};r.readAsDataURL(f)}
 
-$('#saveProfile').addEventListener('click',()=>{readControls();localStorage.setItem('biglwa-profile',JSON.stringify(state));render();closePanel();showToast('profile saved · wall sealed')});
-$('#resetProfile').addEventListener('click',()=>{state={...defaults};localStorage.removeItem('biglwa-profile');render();showToast('profile reset')});
+$('#saveProfile').addEventListener('click',()=>{readControls();if(profileKey())localStorage.setItem(profileKey(),JSON.stringify(state));render();closePanel();showToast('profile saved · wall sealed')});
+$('#resetProfile').addEventListener('click',()=>{state={...defaults};if(profileKey())localStorage.removeItem(profileKey());render();showToast('profile reset')});
 ['nameInput','handleInput','bioInput','moodInput','rankSelect','trackInput','auraStrength','auraX','auraY','auraScale','profileOpacity','projectionGlow','panelOpacity','bgX','bgY','bgScale','softBlur','roomShadows'].forEach(id=>$('#'+id).addEventListener('input',liveUpdate));
 $('#auraInput').addEventListener('change',e=>fileToData(e.currentTarget,'auraUrl'));
 $('#removeTrack').addEventListener('click',()=>{state.track='';render();showToast('soundtrack removed')});
@@ -193,8 +243,7 @@ document.addEventListener('keydown',e=>{
 });
 
 function showRoute(path,{replace=false}={}){
-  const signedIn=sessionStorage.getItem(authKey)==='true';
-  const room=path==='/room'&&signedIn;
+  const room=path==='/room'&&Boolean(currentUser);
   if(room){
     activate('#roomView');
     routeTo('/room',{replace});
@@ -207,15 +256,63 @@ function showRoute(path,{replace=false}={}){
   }
 }
 
+function setAuthMessage(message,isError=false){
+  const el=$('#authMessage');
+  el.textContent=message;
+  el.classList.toggle('is-error',isError);
+}
+function authErrorMessage(error){
+  const messages={
+    'auth/email-already-in-use':'That email already has a room. Try logging in.',
+    'auth/invalid-credential':'That email or passkey does not match.',
+    'auth/invalid-email':'Enter a valid email address.',
+    'auth/weak-password':'Use a passkey with at least 6 characters.',
+    'auth/too-many-requests':'Too many attempts. Please wait and try again.',
+    'auth/network-request-failed':'Connection lost. Check your internet and try again.'
+  };
+  return messages[error?.code]||error?.message||'Account access failed. Please try again.';
+}
+function setAuthMode(mode){
+  authMode=mode;
+  const signup=mode==='signup';
+  $('#loginForm').classList.toggle('is-signup',signup);
+  document.querySelectorAll('.signup-only').forEach(el=>el.hidden=!signup);
+  $('#loginHandle').required=signup;
+  $('#loginPassword').autocomplete=signup?'new-password':'current-password';
+  $('#authSubmit').textContent=signup?'create room':'enter room';
+  $('#authTagline').textContent=signup?'claim your light in the room.':'our room is better with light.';
+  $('#forgotPassword').hidden=signup;
+  $('#loginMode').classList.toggle('is-active',!signup);
+  $('#signupMode').classList.toggle('is-active',signup);
+  $('#loginMode').setAttribute('aria-selected',String(!signup));
+  $('#signupMode').setAttribute('aria-selected',String(signup));
+  setAuthMessage('');
+}
+$('#loginMode').addEventListener('click',()=>setAuthMode('login'));
+$('#signupMode').addEventListener('click',()=>setAuthMode('signup'));
+$('#forgotPassword').addEventListener('click',async()=>{
+  const email=$('#loginEmail').value.trim();
+  if(!email){setAuthMessage('Enter your email first.',true);return}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    setAuthMessage('Reset link sent. Check your email.');
+  }catch(error){setAuthMessage(authErrorMessage(error),true)}
+});
+
 render();
 selectPage('desktop');
-const requestedRoute=new URLSearchParams(window.location.search).get('route');
-const signedIn=sessionStorage.getItem(authKey)==='true';
-const initialPath=requestedRoute==='room'||window.location.pathname==='/room'
-  ?'/room'
-  :window.location.pathname==='/login'
-    ?'/login'
-    :signedIn?'/room':'/login';
-showRoute(initialPath,{replace:true});
+setAuthMode('login');
+onAuthStateChanged(auth,user=>{
+  currentUser=user;
+  if(user){
+    loadProfile();
+    render();
+    showRoute('/room',{replace:true});
+  }else{
+    state={...defaults};
+    render();
+    showRoute('/login',{replace:true});
+  }
+});
 window.addEventListener('popstate',()=>showRoute(window.location.pathname,{replace:true}));
 window.addEventListener('resize',layoutAuraInRoomCrop);
