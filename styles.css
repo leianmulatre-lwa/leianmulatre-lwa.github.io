@@ -44,7 +44,7 @@ button,input,textarea,select{font:inherit;color:inherit}button,input,textarea,se
 .sign-out:active{transform:translateY(1px)}
 
 /* ---------- room layers ---------- */
-.aura-layer{position:absolute;left:0;top:9%;right:0;bottom:0;z-index:2;background-size:cover;background-position:center;background-repeat:no-repeat;opacity:var(--aura-strength);pointer-events:none}
+.aura-layer{position:absolute;left:0;top:9%;right:0;bottom:0;z-index:2;background-image:url("assets/nunnn.png");background-size:cover;background-position:center;background-repeat:no-repeat;opacity:var(--aura-strength);pointer-events:none}
 .wall-embed{position:absolute;z-index:2;left:19%;top:8%;width:62%;height:52%;background-position:center;background-size:cover;pointer-events:none}
 .wall-tag{position:absolute;right:1.4%;top:3.5%;z-index:4;font:700 .6rem ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--live);opacity:.9;text-transform:uppercase}
 

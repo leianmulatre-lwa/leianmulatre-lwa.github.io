@@ -30,7 +30,7 @@ function render(){
   const inits=(state.displayName||'?').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
   $('#avatar').textContent=inits;$('#doorAvatar').textContent=inits;
   $('#trackLabel').textContent=state.track || 'no soundtrack';
-  $('#auraLayer').style.backgroundImage=state.auraUrl?`url("${state.auraUrl}")`:'none';
+  $('#auraLayer').style.backgroundImage=state.auraUrl?`url("${state.auraUrl}")`:'url("assets/nunnn.png")';
   $('#roomView').classList.toggle('no-blur',!state.softBlur);
   $('#roomView').classList.toggle('no-shadow',!state.roomShadows);
   setVars();
