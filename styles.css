@@ -12,12 +12,13 @@ button,input,textarea,select{font:inherit;color:inherit}button,input,textarea,se
 .room-bg{z-index:5}
 
 /* ---------- login (fixed room frame, rotating artwork clipped to its center opening) ---------- */
-.wall-slot{position:absolute;z-index:0;inset:0;overflow:hidden;background:#050301 url("assets/login-wall.png") center/cover no-repeat}
-.login-media{position:absolute;overflow:hidden;background:#000 center/cover no-repeat;pointer-events:none}
+.wall-slot{position:absolute;z-index:0;inset:0;overflow:hidden;background:#050301}
+.login-media{position:absolute;z-index:0;overflow:hidden;background:#000 center/cover no-repeat;pointer-events:none}
 .login-media::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(18,9,3,.05),rgba(18,9,3,.12))}
-.login-view .veil{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 55% at 50% 46%,transparent 30%,rgba(36,19,5,.55) 100%)}
-.login-view:after,.room-view:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 42%,transparent 35%,rgba(42,22,5,.10) 100%)}
-.login-projection{position:absolute;z-index:2;left:28%;top:15%;width:44%;min-height:37%;display:grid;place-content:center;text-align:center;padding:2.5rem;
+.login-frame{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none}
+.login-view .veil{position:absolute;z-index:2;inset:0;pointer-events:none;background:radial-gradient(60% 55% at 50% 46%,transparent 30%,rgba(36,19,5,.55) 100%)}
+.login-view:after,.room-view:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 42%,transparent 35%,rgba(42,22,5,.10) 100%)}
+.login-projection{position:absolute;z-index:3;left:28%;top:15%;width:44%;min-height:37%;display:grid;place-content:center;text-align:center;padding:2.5rem;
   color:var(--paper-2);background:linear-gradient(170deg,rgba(36,19,5,.62),rgba(36,19,5,.34));border:1px solid rgba(240,200,120,.32);
   border-radius:14px;backdrop-filter:blur(4px);box-shadow:0 30px 70px rgba(0,0,0,.4)}
 .theme-toggle{border:1px solid rgba(240,200,120,.38);background:rgba(36,19,5,.45);color:var(--paper-2);border-radius:50%;width:2rem;height:2rem;display:grid;place-items:center;cursor:pointer}
