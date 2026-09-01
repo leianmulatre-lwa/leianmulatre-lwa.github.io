@@ -2,128 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#c6924c" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex" />
   <title>Big LWA</title>
-  <link rel="stylesheet" href="styles.css?v=37" />
+  <script>
+    // GitHub Pages serves this file for extensionless routes such as /login.
+    // Keep one canonical login implementation so the route cannot drift.
+    const route = window.location.pathname.replace(/\/+$/, "");
+    if (route === "/login" || route === "/room") {
+      window.location.replace("/?route=" + route.slice(1));
+    }
+  </script>
 </head>
 <body>
-  <main id="app" class="app-shell" aria-live="polite">
-    <section id="loginView" class="view login-view is-active" aria-label="Big LWA login">
-      <img class="room-bg" src="assets/room-login-reference.png" alt="" />
-      <div class="login-projection">
-        <p class="eyebrow">big lwa</p>
-        <h1>welcome back</h1>
-        <p>our room is better with light.</p>
-        <form id="loginForm" class="login-form">
-          <label>handle <input id="loginHandle" autocomplete="username" value="leian" /></label>
-          <label>passkey <input type="password" autocomplete="current-password" value="biglwa" /></label>
-          <button type="submit">enter room</button>
-        </form>
-      </div>
-    </section>
-
-    <section id="roomView" class="view room-view" aria-label="Big LWA profile room">
-      <img id="roomBg" class="room-bg" src="assets/room-profile-base.png" alt="" />
-      <div id="auraLayer" class="aura-layer" aria-hidden="true"></div>
-
-      <section id="profileProjection" class="profile-projection" aria-label="Profile projection">
-        <div class="projection-topline">
-          <span class="signal-dot"></span><span class="signal-dot"></span><span class="signal-dot"></span>
-          <span class="projection-label">PROFILE / LIVE</span>
-        </div>
-        <div class="profile-core">
-          <div class="avatar-shell">
-            <div id="avatar" class="avatar" aria-label="profile image placeholder">LS</div>
-            <button id="editProfile" class="tiny-button" type="button">edit profile</button>
-          </div>
-          <div class="identity">
-            <div class="name-row">
-              <h2 id="displayName">Leian Stanley</h2>
-              <span id="moodBadge" class="mood-badge">mood: making</span>
-            </div>
-            <p id="handleText" class="handle">@leian</p>
-            <p id="bioText" class="bio">researcher, creator, entrepreneur, analyst.</p>
-            <div class="rank-line">
-              <span>REALNESS</span>
-              <div class="rank-track"><span id="rankFill"></span></div>
-              <strong id="rankLabel">statement</strong>
-              <span class="editor-badge">editor</span>
-            </div>
-          </div>
-        </div>
-        <div class="metrics">
-          <div><strong id="followersMetric">113k</strong><span>followers</span></div>
-          <div><strong id="viewsMetric">1.1m</strong><span>monthly views</span></div>
-          <div><strong>08</strong><span>rooms mapped</span></div>
-        </div>
-        <div class="sound-strip" aria-label="Imported soundtrack">
-          <button id="removeTrack" class="track-x" type="button" title="remove soundtrack">×</button>
-          <div class="waveform" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-          <span id="trackLabel">imported track</span>
-        </div>
-      </section>
-
-      <aside id="controlPanel" class="control-panel" aria-label="Edit profile control panel" aria-hidden="true">
-        <img class="panel-frame" src="assets/control-panel-frame.png" alt="" />
-        <div class="panel-ui">
-          <header class="panel-header">
-            <div><span class="eyebrow">CONTROL PANEL</span><h2>edit profile</h2></div>
-            <button id="closePanel" class="panel-close" type="button" aria-label="Close edit profile">×</button>
-          </header>
-          <div class="panel-scroll">
-            <section class="control-group">
-              <h3>identity</h3>
-              <label>display name <input id="nameInput" value="Leian Stanley" /></label>
-              <label>handle <input id="handleInput" value="leian" /></label>
-              <label>bio <textarea id="bioInput" rows="3">researcher, creator, entrepreneur, analyst.</textarea></label>
-              <label>mood <input id="moodInput" value="making" /></label>
-            </section>
-            <section class="control-group">
-              <h3>aura</h3>
-              <label class="file-label">upload aura <input id="auraInput" type="file" accept="image/*" /></label>
-              <label>aura strength <input id="auraStrength" type="range" min="0" max="100" value="28" /></label>
-              <label>profile opacity <input id="profileOpacity" type="range" min="45" max="100" value="96" /></label>
-            </section>
-            <section class="control-group">
-              <h3>projection</h3>
-              <label>projection glow <input id="projectionGlow" type="range" min="0" max="100" value="22" /></label>
-              <label>control panel opacity <input id="panelOpacity" type="range" min="55" max="100" value="96" /></label>
-              <label class="toggle-row"><span>soft blur</span><input id="softBlur" type="checkbox" checked /></label>
-              <label class="toggle-row"><span>room shadows</span><input id="roomShadows" type="checkbox" checked /></label>
-            </section>
-            <section class="control-group">
-              <h3>status</h3>
-              <label>realness
-                <select id="rankSelect">
-                  <option>007</option><option>kiki</option><option selected>statement</option><option>legend</option><option>icon</option>
-                </select>
-              </label>
-              <label>soundtrack label <input id="trackInput" value="imported track" /></label>
-            </section>
-          </div>
-          <footer class="panel-actions">
-            <button id="resetProfile" class="secondary" type="button">reset</button>
-            <button id="saveProfile" type="button">save profile</button>
-          </footer>
-        </div>
-      </aside>
-
-      <nav class="typewriter-nav" aria-label="Room navigation">
-        <button class="nav-key is-selected" data-page="desktop">D</button>
-        <button class="nav-key" data-page="feed">F</button>
-        <button class="nav-key" data-page="connect">C</button>
-        <button class="nav-key" data-page="map">M</button>
-        <button class="nav-key" data-page="camera">C</button>
-        <button class="nav-key" data-page="diary">D</button>
-        <button class="nav-key" data-page="stream">S</button>
-        <button class="nav-key" data-page="logout">L</button>
-      </nav>
-      <div id="toast" class="toast" role="status"></div>
-    </section>
-  </main>
-  <script src="app.js"></script>
+  <p><a href="/">Return to Big LWA</a></p>
 </body>
 </html>
