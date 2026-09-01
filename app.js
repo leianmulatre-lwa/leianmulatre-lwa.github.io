@@ -22,6 +22,20 @@ const auth = getAuth(firebaseApp);
 
 const $ = (s) => document.querySelector(s);
 const root = document.documentElement;
+const loginBackgrounds = [
+  new URL('./assets/login-wall.png',import.meta.url).href,
+  new URL('./assets/login-pink-city.gif',import.meta.url).href,
+  new URL('./assets/login-future-city.gif',import.meta.url).href,
+  new URL('./assets/login-cherry-lake.gif',import.meta.url).href,
+  new URL('./assets/login-night-city.gif',import.meta.url).href
+];
+function selectLoginBackground(){
+  const wall=$('#wallSlot');
+  if(!wall)return;
+  const chosen=loginBackgrounds[Math.floor(Math.random()*loginBackgrounds.length)];
+  wall.style.backgroundImage=`url("${chosen}")`;
+}
+selectLoginBackground();
 const defaults = {
   displayName:'Leian Stanley', handle:'leian', bio:'researcher, creator, entrepreneur, analyst.', mood:'making',
   rank:'statement', track:'imported track', auraStrength:100, profileOpacity:100, projectionGlow:22,
@@ -30,6 +44,7 @@ const defaults = {
 let currentUser = null;
 let state = {...defaults};
 let authMode = 'login';
+let theme = localStorage.getItem('biglwa-theme') || (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
 const profileKey = () => currentUser ? `biglwa-profile:${currentUser.uid}` : '';
 function loadProfile(){
   const saved=profileKey()&&localStorage.getItem(profileKey());
@@ -162,13 +177,19 @@ $('#loginForm').addEventListener('submit',async(e)=>{
   e.preventDefault();
   const email=$('#loginEmail').value.trim();
   const password=$('#loginPassword').value;
+  const passwordConfirm=$('#loginPasswordConfirm').value;
   const handle=$('#loginHandle').value.trim().replace(/^@/,'');
   const submit=$('#authSubmit');
   setAuthMessage('');
   submit.disabled=true;
   try{
-    if(authMode==='signup'){
+    if(authMode==='recover'){
+      await sendPasswordResetEmail(auth,email);
+      setAuthMode('recovery-sent');
+    }else if(authMode==='signup'){
       if(!/^[a-zA-Z0-9._-]{2,24}$/.test(handle))throw new Error('Handle must be 2–24 letters, numbers, dots, dashes, or underscores.');
+      if(password.length<8||!/[a-zA-Z]/.test(password)||!/\d/.test(password))throw new Error('Passkey must be at least 8 characters with a letter and number.');
+      if(password!==passwordConfirm)throw new Error('Passkeys do not match.');
       const credential=await createUserWithEmailAndPassword(auth,email,password);
       await updateProfile(credential.user,{displayName:handle});
       currentUser=credential.user;
@@ -266,6 +287,8 @@ function authErrorMessage(error){
     'auth/email-already-in-use':'That email already has a room. Try logging in.',
     'auth/invalid-credential':'That email or passkey does not match.',
     'auth/invalid-email':'Enter a valid email address.',
+    'auth/configuration-not-found':'Account access is not enabled yet. Turn on Email/Password in Firebase Authentication.',
+    'auth/operation-not-allowed':'Email/Password sign-in is not enabled in Firebase yet.',
     'auth/weak-password':'Use a passkey with at least 6 characters.',
     'auth/too-many-requests':'Too many attempts. Please wait and try again.',
     'auth/network-request-failed':'Connection lost. Check your internet and try again.'
@@ -275,32 +298,49 @@ function authErrorMessage(error){
 function setAuthMode(mode){
   authMode=mode;
   const signup=mode==='signup';
+  const recovery=mode==='recover';
+  const sent=mode==='recovery-sent';
+  $('#loginForm').hidden=sent;
   $('#loginForm').classList.toggle('is-signup',signup);
+  $('#loginForm').classList.toggle('is-recovery',recovery);
   document.querySelectorAll('.signup-only').forEach(el=>el.hidden=!signup);
   $('#loginHandle').required=signup;
+  $('#loginPasswordConfirm').required=signup;
+  $('#passwordLabel').hidden=recovery;
+  $('#loginPassword').required=!recovery;
   $('#loginPassword').autocomplete=signup?'new-password':'current-password';
-  $('#authSubmit').textContent=signup?'create room':'enter room';
-  $('#authTagline').textContent=signup?'claim your light in the room.':'our room is better with light.';
-  $('#forgotPassword').hidden=signup;
+  $('#authSubmit').textContent=recovery?'send recovery link':signup?'create room':'enter room';
+  $('#authTagline').textContent=sent?'check your inbox for the recovery door.':recovery?'we will send a secure recovery link.':signup?'claim your light in the room.':'our room is better with light.';
+  $('#forgotPassword').hidden=mode!=='login';
+  $('#backToLogin').hidden=!recovery&&!sent;
+  $('.auth-switch').hidden=recovery||sent;
   $('#loginMode').classList.toggle('is-active',!signup);
   $('#signupMode').classList.toggle('is-active',signup);
   $('#loginMode').setAttribute('aria-selected',String(!signup));
   $('#signupMode').setAttribute('aria-selected',String(signup));
-  setAuthMessage('');
+  setAuthMessage(sent?'Recovery email sent. Use its link to choose a new passkey.':'');
 }
 $('#loginMode').addEventListener('click',()=>setAuthMode('login'));
 $('#signupMode').addEventListener('click',()=>setAuthMode('signup'));
-$('#forgotPassword').addEventListener('click',async()=>{
-  const email=$('#loginEmail').value.trim();
-  if(!email){setAuthMessage('Enter your email first.',true);return}
-  try{
-    await sendPasswordResetEmail(auth,email);
-    setAuthMessage('Reset link sent. Check your email.');
-  }catch(error){setAuthMessage(authErrorMessage(error),true)}
-});
+$('#forgotPassword').addEventListener('click',()=>setAuthMode('recover'));
+$('#backToLogin').addEventListener('click',()=>setAuthMode('login'));
+
+function applyTheme(){
+  root.dataset.theme=theme;
+  document.querySelectorAll('.theme-toggle').forEach(button=>{
+    button.textContent=theme==='dark'?'☀':'☾';
+    button.setAttribute('aria-label',theme==='dark'?'Switch to light mode':'Switch to dark mode');
+  });
+}
+document.querySelectorAll('.theme-toggle').forEach(button=>button.addEventListener('click',()=>{
+  theme=theme==='dark'?'light':'dark';
+  localStorage.setItem('biglwa-theme',theme);
+  applyTheme();
+}));
 
 render();
 selectPage('desktop');
+applyTheme();
 setAuthMode('login');
 onAuthStateChanged(auth,user=>{
   currentUser=user;

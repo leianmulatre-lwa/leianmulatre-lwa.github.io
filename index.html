@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#c6924c" />
   <title>Big LWA</title>
-  <link rel="stylesheet" href="styles.css?v=58" />
+  <link rel="stylesheet" href="styles.css?v=59" />
 </head>
 <body>
   <main id="app" class="app-shell" aria-live="polite">
@@ -14,6 +14,7 @@
       <div id="wallSlot" class="wall-slot" role="img" aria-label="wall gif board"></div>
       <div class="veil" aria-hidden="true"></div>
       <div class="login-projection">
+        <button class="theme-toggle login-theme-toggle" type="button" aria-label="Switch color mode">☾</button>
         <p class="eyebrow">big lwa</p>
         <h1 class="wa">welcome back</h1>
         <p id="authTagline">our room is better with light.</p>
@@ -22,13 +23,15 @@
           <button id="signupMode" type="button" role="tab" aria-selected="false">create account</button>
         </div>
         <form id="loginForm" class="login-form">
-          <label class="signup-only" hidden>handle <input id="loginHandle" autocomplete="nickname" maxlength="24" /></label>
+          <label id="handleLabel" class="signup-only" hidden>handle <input id="loginHandle" autocomplete="nickname" maxlength="24" /></label>
           <label>email <input id="loginEmail" type="email" autocomplete="email" required /></label>
-          <label>passkey <input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required /></label>
+          <label id="passwordLabel">passkey <input id="loginPassword" type="password" autocomplete="current-password" minlength="8" required /></label>
+          <label id="confirmLabel" class="signup-only" hidden>confirm passkey <input id="loginPasswordConfirm" type="password" autocomplete="new-password" minlength="8" /></label>
           <button id="authSubmit" type="submit">enter room</button>
         </form>
         <div class="auth-meta">
           <button id="forgotPassword" type="button">forgot passkey?</button>
+          <button id="backToLogin" type="button" hidden>← back to login</button>
           <span id="authMessage" role="alert" aria-live="polite"></span>
         </div>
       </div>
@@ -40,6 +43,7 @@
         <label class="search-shell"><span aria-hidden="true">⌕</span><input id="archiveSearch" type="search" placeholder="search the archive · rooms · finds · people" spellcheck="false" autocomplete="off" /><kbd>/</kbd></label>
         <nav class="top-actions">
           <span id="topUser" class="signed-in-as">@leian</span>
+          <button class="theme-toggle" type="button" aria-label="Switch color mode">☾</button>
           <button id="signOut" class="sign-out" type="button">sign out</button>
         </nav>
       </header>
@@ -167,6 +171,6 @@
 
     <div id="toast" class="toast" role="status"></div>
   </main>
-  <script type="module" src="app.js?v=8"></script>
+  <script type="module" src="app.js?v=11"></script>
 </body>
 </html>
