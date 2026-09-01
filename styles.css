@@ -57,7 +57,7 @@ button,input,textarea,select{font:inherit;color:inherit}button,input,textarea,se
 .room-view.entered .projector{transform:translateX(0);transition-delay:.35s}
 
 /* browser projection screen (whiteboard behind the browser UI) */
-.screen-board{position:absolute;z-index:7;left:6%;top:5%;width:80%;height:84%;opacity:0;background:url("assets/whiteboard.png") center/cover no-repeat;
+.screen-board{position:absolute;z-index:7;left:6%;top:10%;width:80%;height:84%;opacity:0;background:url("assets/whiteboard.png") center/cover no-repeat;
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.4));transition:opacity .3s ease}
 .room-view.screen-on .screen-board{opacity:1;transition-delay:.15s}
 .profile-projection{position:absolute;z-index:7;left:19%;top:17%;width:46%;height:52%;opacity:0;transform:translateY(8px);
