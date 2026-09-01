@@ -1,0 +1,6 @@
+This is the login-page rotation folder.
+
+Remove 01-sample-login-wall.png and place your own PNG, JPG, JPEG, WEBP, or GIF images here.
+Then ZIP the complete BIGLWA project and upload it back to ChatGPT so the final rotation list can be connected.
+
+This project already includes the corrected home-page foreground frame, adjustable Aura controls, and the login-first navigation flow.
