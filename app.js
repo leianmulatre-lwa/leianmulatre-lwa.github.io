@@ -50,16 +50,22 @@ function layoutLoginMediaInFrame(){
   media.style.height=(647*scale)+'px';
   const symbolSize=92*scale;
   const symbolY=614*scale+offsetY-symbolSize/2;
-  const sun=$('.login-sun-symbol'),moon=$('.login-moon-symbol');
+  const sun=$('.login-sun-symbol'),moon=$('.login-moon-symbol'),logo=$('.login-door-logo');
   if(sun){
-    sun.style.left=(offsetX+98*scale-symbolSize/2)+'px';
+    sun.style.left=(offsetX+106*scale-symbolSize/2)+'px';
     sun.style.top=symbolY+'px';
     sun.style.width=symbolSize+'px';
   }
   if(moon){
-    moon.style.left=(offsetX+256*scale-symbolSize/2)+'px';
+    moon.style.left=(offsetX+264*scale-symbolSize/2)+'px';
     moon.style.top=symbolY+'px';
     moon.style.width=symbolSize+'px';
+  }
+  if(logo){
+    const logoWidth=226*scale,logoHeight=logoWidth*945/1665;
+    logo.style.left=(offsetX+178*scale-logoWidth/2)+'px';
+    logo.style.top=(offsetY+177*scale-logoHeight/2)+'px';
+    logo.style.width=logoWidth+'px';
   }
 }
 layoutLoginMediaInFrame();
