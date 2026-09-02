@@ -345,9 +345,19 @@ function applyTheme(){
     button.textContent=theme==='dark'?'☀':'☾';
     button.setAttribute('aria-label',theme==='dark'?'Switch to light mode':'Switch to dark mode');
   });
+  document.querySelectorAll('[data-theme-choice]').forEach(button=>{
+    const active=button.dataset.themeChoice===theme;
+    button.classList.toggle('is-active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
 }
 document.querySelectorAll('.theme-toggle').forEach(button=>button.addEventListener('click',()=>{
   theme=theme==='dark'?'light':'dark';
+  localStorage.setItem('biglwa-theme',theme);
+  applyTheme();
+}));
+document.querySelectorAll('[data-theme-choice]').forEach(button=>button.addEventListener('click',()=>{
+  theme=button.dataset.themeChoice;
   localStorage.setItem('biglwa-theme',theme);
   applyTheme();
 }));

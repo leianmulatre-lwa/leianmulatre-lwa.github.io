@@ -16,6 +16,14 @@ button,input,textarea,select{font:inherit;color:inherit}button,input,textarea,se
 .login-media{position:absolute;z-index:0;overflow:hidden;background:#000 center/cover no-repeat;pointer-events:none}
 .login-media::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(18,9,3,.05),rgba(18,9,3,.12))}
 .login-frame{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none}
+.login-door-symbol{position:absolute;z-index:4;top:48%;width:clamp(58px,7.4vw,118px);aspect-ratio:1;border:0;padding:0;background:transparent;cursor:pointer;transform:translateY(-50%);opacity:.68;transition:opacity .18s,transform .18s,filter .18s}
+.login-door-symbol span{display:block;width:100%;height:100%;background:#4b2a10;mask-position:center;mask-repeat:no-repeat;mask-size:contain;-webkit-mask-position:center;-webkit-mask-repeat:no-repeat;-webkit-mask-size:contain}
+.login-sun-symbol{left:5.6%}.login-moon-symbol{right:5.6%}
+.login-sun-symbol span{mask-image:url("assets/login-sun-mask.png");-webkit-mask-image:url("assets/login-sun-mask.png")}
+.login-moon-symbol span{mask-image:url("assets/login-moon-mask.png");-webkit-mask-image:url("assets/login-moon-mask.png")}
+.login-door-symbol:hover,.login-door-symbol:focus-visible,.login-door-symbol.is-active{opacity:1;filter:drop-shadow(0 0 8px rgba(244,198,105,.72))}
+.login-door-symbol:hover{transform:translateY(-50%) scale(1.05)}
+.login-door-symbol:focus-visible{outline:2px solid var(--live);outline-offset:5px;border-radius:50%}
 .login-view .veil{position:absolute;z-index:2;inset:0;pointer-events:none;background:radial-gradient(60% 55% at 50% 46%,transparent 30%,rgba(36,19,5,.55) 100%)}
 .login-view:after,.room-view:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 42%,transparent 35%,rgba(42,22,5,.10) 100%)}
 .login-projection{position:absolute;z-index:3;left:28%;top:15%;width:44%;min-height:37%;display:grid;place-content:center;text-align:center;padding:2.5rem;
@@ -58,6 +66,7 @@ html[data-theme="light"] .room-search .brand,html[data-theme="light"] .signed-in
 html[data-theme="light"] .search-shell{background:rgba(255,246,214,.72);color:#38220e}
 html[data-theme="light"] .search-shell input{color:#38220e}
 html[data-theme="light"] .theme-toggle{background:rgba(255,244,210,.72);color:#38220e;border-color:rgba(88,48,14,.42)}
+html[data-theme="dark"] .login-door-symbol span{background:#f0c078}
 /* ---------- room top bar (search takes a whole section of the top, after login) ---------- */
 .room-search{position:absolute;z-index:9;left:0;top:0;right:0;height:var(--topbar-h);display:grid;grid-template-columns:auto minmax(220px,1fr) auto;gap:1rem;align-items:center;padding:0 clamp(.9rem,2vw,2rem);
   border-bottom:1px solid rgba(240,200,120,.28);background:linear-gradient(180deg,#2a1a08,#1b0f04)}
@@ -137,9 +146,9 @@ html[data-theme="light"] .theme-toggle{background:rgba(255,244,210,.72);color:#3
 @keyframes wave{to{transform:scaleY(.35)}}
 
 /* door + control panel on the rail */
-.wall-door{position:absolute;left:0;top:7.5%;bottom:7.5%;width:27%;z-index:7;cursor:pointer;
+.wall-door{position:absolute;left:0;top:7.5%;bottom:7.5%;width:45vh;z-index:7;cursor:pointer;
   display:grid;grid-template-rows:auto auto 1fr;align-items:center;justify-items:center;gap:.55rem;padding:.8rem .55rem;
-  background:url("assets/door-pane.png") left center/contain no-repeat;
+  background:url("assets/door-pane.png") left center/100% 100% no-repeat;
   transform:translateX(0);transition:transform .55s var(--ease-out);box-shadow:none}
 .wall-door:focus-visible{outline:3px solid var(--live);outline-offset:2px}
 .door-avatar{width:clamp(2.2rem,4vw,3.4rem);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
@@ -197,7 +206,8 @@ html[data-theme="light"] .theme-toggle{background:rgba(255,244,210,.72);color:#3
   .control-panel{width:44vw;height:62vh;min-width:0;max-width:none;top:8vh}
   .profile-projection{left:24%;width:34%;top:22%;height:36%}
   .typewriter-nav{left:26%;width:38%;top:72%}
-.wall-door{width:23%}
+  .wall-door{width:45vh}
+  .login-door-symbol{top:auto;bottom:4%;width:54px;transform:none}.login-door-symbol:hover{transform:scale(1.05)}
   .room-view.panel-open .profile-projection{transform:translateX(11vw)}
 }
 @media(prefers-reduced-motion:reduce){
