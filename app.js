@@ -48,6 +48,19 @@ function layoutLoginMediaInFrame(){
   media.style.top=(offsetY+31*scale)+'px';
   media.style.width=(1184*scale)+'px';
   media.style.height=(647*scale)+'px';
+  const symbolSize=92*scale;
+  const symbolY=614*scale+offsetY-symbolSize/2;
+  const sun=$('.login-sun-symbol'),moon=$('.login-moon-symbol');
+  if(sun){
+    sun.style.left=(offsetX+98*scale-symbolSize/2)+'px';
+    sun.style.top=symbolY+'px';
+    sun.style.width=symbolSize+'px';
+  }
+  if(moon){
+    moon.style.left=(offsetX+256*scale-symbolSize/2)+'px';
+    moon.style.top=symbolY+'px';
+    moon.style.width=symbolSize+'px';
+  }
 }
 layoutLoginMediaInFrame();
 const defaults = {
