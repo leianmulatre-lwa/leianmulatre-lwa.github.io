@@ -137,7 +137,7 @@ html[data-theme="light"] .theme-toggle{background:rgba(255,244,210,.72);color:#3
 @keyframes wave{to{transform:scaleY(.35)}}
 
 /* door + control panel on the rail */
-.wall-door{position:absolute;left:-2%;top:7.5%;bottom:7.5%;width:27%;z-index:7;cursor:pointer;
+.wall-door{position:absolute;left:-5%;top:7.5%;bottom:7.5%;width:27%;z-index:7;cursor:pointer;
   display:grid;grid-template-rows:auto auto 1fr;align-items:center;justify-items:center;gap:.55rem;padding:.8rem .55rem;
   background:url("assets/door-pane.png") center/contain no-repeat;
   transform:translateX(0);transition:transform .55s var(--ease-out);box-shadow:none}
