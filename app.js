@@ -72,7 +72,8 @@ layoutLoginMediaInFrame();
 const defaults = {
   displayName:'Leian Stanley', handle:'leian', bio:'researcher, creator, entrepreneur, analyst.', mood:'making',
   rank:'statement', track:'imported track', auraStrength:100, profileOpacity:100, projectionGlow:22,
-  panelOpacity:100, softBlur:true, roomShadows:true, avatarUrl:'', auraUrl:'', auraX:0, auraY:0, auraScale:100, bg:0, bgCustom:'', bgX:0, bgY:0, bgScale:100
+  panelOpacity:100, softBlur:true, roomShadows:true, avatarUrl:'', auraUrl:'', auraX:0, auraY:0, auraScale:100,
+  bannerUrl:'', bannerX:0, bannerY:0, bannerScale:100
 };
 let currentUser = null;
 let state = {...defaults};
@@ -82,6 +83,12 @@ const profileKey = () => currentUser ? `biglwa-profile:${currentUser.uid}` : '';
 function loadProfile(){
   const saved=profileKey()&&localStorage.getItem(profileKey());
   state={...defaults,...(saved?JSON.parse(saved):{})};
+  if(!state.bannerUrl&&state.bgCustom){
+    state.bannerUrl=state.bgCustom;
+    state.bannerX=state.bgX||0;
+    state.bannerY=state.bgY||0;
+    state.bannerScale=state.bgScale||100;
+  }
   if(currentUser?.displayName&&!saved){
     state.handle=currentUser.displayName;
     state.displayName=currentUser.displayName;
@@ -143,24 +150,22 @@ function render(){
   $('#roomView').classList.toggle('no-blur',!state.softBlur);
   $('#roomView').classList.toggle('no-shadow',!state.roomShadows);
   setVars();
-  const ids={nameInput:'displayName',handleInput:'handle',bioInput:'bio',moodInput:'mood',rankSelect:'rank',trackInput:'track',auraStrength:'auraStrength',auraX:'auraX',auraY:'auraY',auraScale:'auraScale',profileOpacity:'profileOpacity',projectionGlow:'projectionGlow',panelOpacity:'panelOpacity',bgX:'bgX',bgY:'bgY',bgScale:'bgScale'};
+  const ids={nameInput:'displayName',handleInput:'handle',bioInput:'bio',moodInput:'mood',rankSelect:'rank',trackInput:'track',auraStrength:'auraStrength',auraX:'auraX',auraY:'auraY',auraScale:'auraScale',profileOpacity:'profileOpacity',projectionGlow:'projectionGlow',panelOpacity:'panelOpacity',bannerX:'bannerX',bannerY:'bannerY',bannerScale:'bannerScale'};
   for(const [id,key] of Object.entries(ids)){const el=$('#'+id);if(el)el.value=state[key]}
   $('#softBlur').checked=state.softBlur;$('#roomShadows').checked=state.roomShadows;
-  applyBg();
+  applyBanner();
   layoutAuraInRoomCrop();
 }
 
-/* ---- wallpaper paints the whiteboard (login + panels stay fixed) ---- */
-function applyBg(){
-  const b=$('#screenBoard');
-  const art=$('#wallpaperArt');
-  const custom=state.bg===-1&&state.bgCustom;
-  b.style.background=custom?'none':'url("assets/whiteboard.png") center/contain no-repeat';
+/* ---- banner paints only the upper sliding-door panel ---- */
+function applyBanner(){
+  const art=$('#bannerArt');
+  const custom=Boolean(state.bannerUrl);
   art.style.display=custom?'block':'none';
-  art.style.backgroundImage=custom?`url("${state.bgCustom}")`:'none';
-  art.style.transform=`translate(${state.bgX||0}%,${state.bgY||0}%) scale(${(state.bgScale||100)/100})`;
+  art.style.backgroundImage=custom?`url("${state.bannerUrl}")`:'none';
+  art.style.transform=`translate(${state.bannerX||0}%,${state.bannerY||0}%) scale(${(state.bannerScale||100)/100})`;
 }
-$('#bgUpload').addEventListener('change',e=>{const f=e.currentTarget.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.bg=-1;state.bgCustom=r.result;applyBg();showToast('wallpaper changed')};r.readAsDataURL(f)});
+$('#bannerUpload').addEventListener('change',e=>{const f=e.currentTarget.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.bannerUrl=r.result;applyBanner();showToast('banner changed')};r.readAsDataURL(f)});
 $('#avatarUpload').addEventListener('change',e=>{const f=e.currentTarget.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.avatarUrl=r.result;render();showToast('profile picture changed')};r.readAsDataURL(f)});
 
 /* ---- top search (home page) ---- */
@@ -274,14 +279,14 @@ $('#signOut').addEventListener('click',logout);
 /* ---- profile state ---- */
 function readControls(){
   state.displayName=$('#nameInput').value.trim();state.handle=$('#handleInput').value.trim().replace(/^@/,'');state.bio=$('#bioInput').value.trim();state.mood=$('#moodInput').value.trim();
-  state.rank=$('#rankSelect').value;state.track=$('#trackInput').value.trim();state.auraStrength=+$(`#auraStrength`).value;state.auraX=+$(`#auraX`).value;state.auraY=+$(`#auraY`).value;state.auraScale=+$(`#auraScale`).value;state.profileOpacity=+$(`#profileOpacity`).value;state.projectionGlow=+$(`#projectionGlow`).value;state.panelOpacity=+$(`#panelOpacity`).value;state.bgX=+$(`#bgX`).value;state.bgY=+$(`#bgY`).value;state.bgScale=+$(`#bgScale`).value;state.softBlur=$('#softBlur').checked;state.roomShadows=$('#roomShadows').checked;
+  state.rank=$('#rankSelect').value;state.track=$('#trackInput').value.trim();state.auraStrength=+$(`#auraStrength`).value;state.auraX=+$(`#auraX`).value;state.auraY=+$(`#auraY`).value;state.auraScale=+$(`#auraScale`).value;state.profileOpacity=+$(`#profileOpacity`).value;state.projectionGlow=+$(`#projectionGlow`).value;state.panelOpacity=+$(`#panelOpacity`).value;state.bannerX=+$(`#bannerX`).value;state.bannerY=+$(`#bannerY`).value;state.bannerScale=+$(`#bannerScale`).value;state.softBlur=$('#softBlur').checked;state.roomShadows=$('#roomShadows').checked;
 }
 function liveUpdate(){readControls();render()}
 function fileToData(input,key){const f=input.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state[key]=r.result;render();showToast(key==='auraUrl'?'aura loaded':'uploaded')};r.readAsDataURL(f)}
 
 $('#saveProfile').addEventListener('click',()=>{readControls();if(profileKey())localStorage.setItem(profileKey(),JSON.stringify(state));render();closePanel();showToast('profile saved · wall sealed')});
 $('#resetProfile').addEventListener('click',()=>{state={...defaults};if(profileKey())localStorage.removeItem(profileKey());render();showToast('profile reset')});
-['nameInput','handleInput','bioInput','moodInput','rankSelect','trackInput','auraStrength','auraX','auraY','auraScale','profileOpacity','projectionGlow','panelOpacity','bgX','bgY','bgScale','softBlur','roomShadows'].forEach(id=>$('#'+id).addEventListener('input',liveUpdate));
+['nameInput','handleInput','bioInput','moodInput','rankSelect','trackInput','auraStrength','auraX','auraY','auraScale','profileOpacity','projectionGlow','panelOpacity','bannerX','bannerY','bannerScale','softBlur','roomShadows'].forEach(id=>$('#'+id).addEventListener('input',liveUpdate));
 $('#auraInput').addEventListener('change',e=>fileToData(e.currentTarget,'auraUrl'));
 $('#removeTrack').addEventListener('click',()=>{state.track='';render();showToast('soundtrack removed')});
 

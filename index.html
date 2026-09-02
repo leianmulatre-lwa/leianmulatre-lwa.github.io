@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#c6924c" />
   <title>Big LWA</title>
-  <link rel="stylesheet" href="styles.css?v=73" />
+  <link rel="stylesheet" href="styles.css?v=74" />
 </head>
 <body>
   <main id="app" class="app-shell" aria-live="polite">
@@ -58,7 +58,7 @@
       <span class="wall-tag">hd wall · active</span>
 
       <img class="projector" src="assets/projector-stool.webp" alt="" aria-hidden="true" />
-      <div id="screenBoard" class="screen-board" aria-hidden="true"><div id="wallpaperArt" class="wallpaper-art"></div></div>
+      <div id="screenBoard" class="screen-board" aria-hidden="true"></div>
 
       <section id="profileProjection" class="profile-projection browser" aria-label="Projection browser">
         <div class="br-tabs" id="tabBar" role="tablist"></div>
@@ -104,6 +104,7 @@
       </section>
 
       <div id="wallDoor" class="wall-door" role="group" tabindex="0" aria-label="control panel door">
+        <div id="bannerArt" class="door-banner-art" aria-hidden="true"></div>
         <div class="door-profile-card">
           <span class="door-avatar" id="doorAvatar">LS</span>
           <strong id="doorDisplayName">Leian Stanley</strong>
@@ -153,11 +154,11 @@
               <label>soundtrack label <input id="trackInput" value="imported track" /></label>
             </section>
             <section class="control-group">
-              <h3>wallpaper</h3>
-              <label class="file-label">change background <input id="bgUpload" type="file" accept="image/*" /></label>
-              <label>move background left / right <input id="bgX" type="range" min="-30" max="30" value="0" /></label>
-              <label>move background up / down <input id="bgY" type="range" min="-30" max="30" value="0" /></label>
-              <label>background size <input id="bgScale" type="range" min="70" max="160" value="100" /></label>
+              <h3>banner</h3>
+              <label class="file-label">change banner <input id="bannerUpload" type="file" accept="image/*" /></label>
+              <label>move banner left / right <input id="bannerX" type="range" min="-30" max="30" value="0" /></label>
+              <label>move banner up / down <input id="bannerY" type="range" min="-30" max="30" value="0" /></label>
+              <label>banner size <input id="bannerScale" type="range" min="70" max="160" value="100" /></label>
             </section>
           </div>
           <footer class="panel-actions">
@@ -181,6 +182,6 @@
 
     <div id="toast" class="toast" role="status"></div>
   </main>
-  <script type="module" src="app.js?v=17"></script>
+  <script type="module" src="app.js?v=18"></script>
 </body>
 </html>
