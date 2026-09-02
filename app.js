@@ -72,7 +72,7 @@ layoutLoginMediaInFrame();
 const defaults = {
   displayName:'Leian Stanley', handle:'leian', bio:'researcher, creator, entrepreneur, analyst.', mood:'making',
   rank:'statement', track:'imported track', auraStrength:100, profileOpacity:100, projectionGlow:22,
-  panelOpacity:100, softBlur:true, roomShadows:true, auraUrl:'', auraX:0, auraY:0, auraScale:100, bg:0, bgCustom:'', bgX:0, bgY:0, bgScale:100
+  panelOpacity:100, softBlur:true, roomShadows:true, avatarUrl:'', auraUrl:'', auraX:0, auraY:0, auraScale:100, bg:0, bgCustom:'', bgX:0, bgY:0, bgScale:100
 };
 let currentUser = null;
 let state = {...defaults};
@@ -129,7 +129,14 @@ function render(){
   $('#rankFill').style.width=(12 + ranks.indexOf(state.rank)*21)+'%';
   $('#topUser').textContent='@'+(state.handle || 'handle');
   const inits=(state.displayName||'?').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
-  $('#avatar').textContent=inits;$('#doorAvatar').textContent=inits;
+  const avatar=$('#avatar'),doorAvatar=$('#doorAvatar');
+  for(const el of [avatar,doorAvatar]){
+    el.textContent=state.avatarUrl?'':inits;
+    el.style.backgroundImage=state.avatarUrl?`url("${state.avatarUrl}")`:'';
+    el.classList.toggle('has-photo',Boolean(state.avatarUrl));
+  }
+  $('#doorDisplayName').textContent=state.displayName || 'Untitled';
+  $('#doorHandle').textContent='@'+(state.handle || 'handle').replace(/^@/,'');
   $('#trackLabel').textContent=state.track || 'no soundtrack';
   $('#auraLayer').style.display='block';
   $('#auraLayer').style.backgroundImage=state.auraUrl?`url("${state.auraUrl}")`:'url("assets/nunnn.png")';
@@ -154,6 +161,7 @@ function applyBg(){
   art.style.transform=`translate(${state.bgX||0}%,${state.bgY||0}%) scale(${(state.bgScale||100)/100})`;
 }
 $('#bgUpload').addEventListener('change',e=>{const f=e.currentTarget.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.bg=-1;state.bgCustom=r.result;applyBg();showToast('wallpaper changed')};r.readAsDataURL(f)});
+$('#avatarUpload').addEventListener('change',e=>{const f=e.currentTarget.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.avatarUrl=r.result;render();showToast('profile picture changed')};r.readAsDataURL(f)});
 
 /* ---- top search (home page) ---- */
 const search=$('#archiveSearch');

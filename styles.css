@@ -94,7 +94,7 @@ html[data-theme="dark"] .login-door-logo{background:#f0c078}
 .login-projection h1,.panel-header h2,.control-group h3,.nav-key,.br-tab,.door-label,.projection-label,.wall-tag,p>.eyebrow,.panel-header .eyebrow{font-family:var(--stitch)}
 
 /* projector — real rig, slides in from behind the left panel door out to the right */
-.projector{position:absolute;z-index:7;left:76%;bottom:.7%;width:9.6%;transform:translateX(-820%);transition:transform 1.1s var(--ease-out);will-change:transform;filter:drop-shadow(0 16px 20px rgba(38,18,5,.35))}
+.projector{position:absolute;z-index:7;left:73.5%;bottom:.7%;width:9.6%;transform:translateX(-820%);transition:transform 1.1s var(--ease-out);will-change:transform;filter:drop-shadow(0 16px 20px rgba(38,18,5,.35))}
 .room-view.entered .projector{transform:translateX(0);transition-delay:.35s}
 
 /* browser projection screen (whiteboard behind the browser UI) */
@@ -102,7 +102,7 @@ html[data-theme="dark"] .login-door-logo{background:#f0c078}
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.4));transition:opacity .3s ease}
 .wallpaper-art{position:absolute;inset:0;display:none;background-position:center;background-size:cover;background-repeat:no-repeat;transform-origin:center;pointer-events:none}
 .room-view.screen-on .screen-board{opacity:1;transition-delay:.15s}
-.profile-projection{position:absolute;z-index:7;left:35%;top:17%;width:46%;height:52%;opacity:0;transform:translateY(8px);
+.profile-projection{position:absolute;z-index:7;left:19%;top:17%;width:46%;height:52%;opacity:0;transform:translateY(8px);
   filter:drop-shadow(0 0 calc(30px * var(--glow)) rgba(255,226,143,.95));transition:opacity .2s,filter .2s,transform .4s cubic-bezier(.2,.8,.2,1);overflow:hidden;
   background:linear-gradient(170deg,rgba(24,13,4,.92),rgba(14,8,2,.94));border:2px solid rgba(240,200,120,.4);border-radius:8px}
 .room-view.screen-on .profile-projection{opacity:var(--profile-opacity);transform:translateY(0);transition-delay:.25s}
@@ -123,7 +123,7 @@ html[data-theme="dark"] .login-door-logo{background:#f0c078}
 .projection-label{margin-left:2rem;opacity:.68;color:var(--paper-2)}
 .profile-core{display:grid;grid-template-columns:21% 1fr;gap:4%;align-items:center;margin-top:1.2%}
 .avatar-shell{text-align:center}
-.avatar{width:min(8.2vw,118px);aspect-ratio:1;border-radius:50%;margin:auto;display:grid;place-items:center;background:radial-gradient(circle at 40% 35%,#f6c77c,#75441c 72%);border:4px double rgba(75,44,15,.8);font-size:clamp(1.5rem,3vw,3rem);font-weight:900}
+.avatar{width:min(8.2vw,118px);aspect-ratio:1;border-radius:50%;margin:auto;display:grid;place-items:center;background:radial-gradient(circle at 40% 35%,#f6c77c,#75441c 72%);background-position:center;background-size:cover;background-repeat:no-repeat;border:4px double rgba(75,44,15,.8);font-size:clamp(1.5rem,3vw,3rem);font-weight:900}
 .tiny-button{font-size:.7rem;padding:.28rem .55rem;margin-top:.4rem}
 .name-row{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
 .identity h2{font-size:clamp(1.45rem,3vw,3.5rem);line-height:.9;margin:.15rem 0;color:var(--paper-2)}
@@ -152,9 +152,13 @@ html[data-theme="dark"] .login-door-logo{background:#f0c078}
   background:url("assets/door-pane.png") left center/100% 100% no-repeat;
   transform:translateX(0);transition:transform .55s var(--ease-out);box-shadow:none}
 .wall-door:focus-visible{outline:3px solid var(--live);outline-offset:2px}
-.door-avatar{width:clamp(2.2rem,4vw,3.4rem);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
-  background:radial-gradient(circle at 40% 35%,#b1592d,#551207);color:#f4dba1;font:800 .9rem ui-monospace,Consolas,monospace;
+.door-profile-card{display:grid;justify-items:center;gap:.16rem;color:var(--paper-2);text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.72)}
+.door-profile-card strong{font-family:var(--stitch);font-size:clamp(.72rem,1vw,1rem)}
+.door-profile-card small{font:700 clamp(.52rem,.68vw,.66rem) ui-monospace,monospace}
+.door-avatar{width:clamp(5.4rem,8vw,8rem);aspect-ratio:1;border-radius:22%;display:grid;place-items:center;
+  background:radial-gradient(circle at 40% 35%,#b1592d,#551207);background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;color:#f4dba1;font:800 .9rem ui-monospace,Consolas,monospace;
   border:2px solid rgba(240,200,120,.5);box-shadow:0 0 0 3px rgba(18,191,174,.25)}
+.door-avatar.has-photo{background-color:#8b612f}
 .door-title{border:1px solid rgba(240,200,120,.45);background:rgba(36,19,5,.62);border-radius:6px;padding:.42rem .55rem;
   color:var(--paper-2);font-family:var(--stitch);font-size:clamp(.6rem,.9vw,.78rem);letter-spacing:.06em;text-transform:uppercase;
   text-shadow:0 1px 2px rgba(0,0,0,.55);text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
