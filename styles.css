@@ -102,7 +102,7 @@ html[data-theme="dark"] .login-door-logo{background:#f0c078}
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.4));transition:opacity .3s ease}
 .wallpaper-art{position:absolute;inset:0;display:none;background-position:center;background-size:cover;background-repeat:no-repeat;transform-origin:center;pointer-events:none}
 .room-view.screen-on .screen-board{opacity:1;transition-delay:.15s}
-.profile-projection{position:absolute;z-index:7;left:19%;top:17%;width:46%;height:52%;opacity:0;transform:translateY(8px);
+.profile-projection{position:absolute;z-index:7;left:40%;top:22%;width:52%;height:56%;opacity:0;transform:translateY(8px);
   filter:drop-shadow(0 0 calc(30px * var(--glow)) rgba(255,226,143,.95));transition:opacity .2s,filter .2s,transform .4s cubic-bezier(.2,.8,.2,1);overflow:hidden;
   background:linear-gradient(170deg,rgba(24,13,4,.92),rgba(14,8,2,.94));border:2px solid rgba(240,200,120,.4);border-radius:8px}
 .room-view.screen-on .profile-projection{opacity:var(--profile-opacity);transform:translateY(0);transition-delay:.25s}
