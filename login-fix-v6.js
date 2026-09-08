@@ -2,7 +2,12 @@
   if (window.__biglwaLoginFixV6) return;
   window.__biglwaLoginFixV6 = true;
 
-  const SYMBOL = '/assets/login-symbol-logo.webp?v=20260908-6';
+  const B64 = '/assets/login-symbol-logo.b64?v=20260908-6';
+  let symbolPromise;
+  const symbolSrc = () => symbolPromise || (symbolPromise = fetch(B64,{cache:'force-cache'})
+    .then(r => { if(!r.ok) throw new Error('symbol '+r.status); return r.text(); })
+    .then(s => 'data:image/webp;base64,' + s.trim()));
+
   const style = document.createElement('style');
   style.id = 'biglwa-login-fix-v6-style';
   style.textContent = `
@@ -29,13 +34,14 @@
     if (!img) {
       img = document.createElement('img');
       img.className = 'login-symbol-logo';
-      img.src = SYMBOL;
       img.alt = 'BIGLWA symbol';
       img.decoding = 'async';
       const head = card.querySelector('.login-card-head');
       card.insertBefore(img, head || card.firstChild);
-    } else if (!img.src.includes('login-symbol-logo.webp')) {
-      img.src = SYMBOL;
+    }
+    if (!img.dataset.symbolLoaded) {
+      img.dataset.symbolLoaded = 'loading';
+      symbolSrc().then(src => { img.src = src; img.dataset.symbolLoaded = '1'; }).catch(() => { img.dataset.symbolLoaded = ''; });
     }
   }
 
