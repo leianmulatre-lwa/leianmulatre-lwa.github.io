@@ -1,30 +1,24 @@
 (() => {
-  if (window.__biglwaPolicyBrandV9) return;
-  window.__biglwaPolicyBrandV9 = true;
+  if (window.__biglwaPolicyBrandV10) return;
+  window.__biglwaPolicyBrandV10 = true;
 
-  const LOGO = '/assets/biglwa-header-logo.png?v=20260909-1';
+  const LOGO = '/assets/biglwa-header-logo.png?v=20260909-2';
 
   const style = document.createElement('style');
-  style.id = 'biglwa-policy-brand-v9-style';
+  style.id = 'biglwa-policy-brand-v10-style';
   style.textContent = `
-    .policy-top .policy-header-logo{display:block;height:48px;width:auto;max-width:150px;object-fit:contain;border:0;box-shadow:none;background:transparent;}
-    .policy-top .login-brand{display:flex!important;align-items:center!important;padding:0!important;line-height:1!important;text-decoration:none!important;}
-    @media(max-width:620px){.policy-top .policy-header-logo{height:40px;max-width:128px}}
+    .policy-top .login-brand{display:block!important;width:156px!important;height:66px!important;padding:0!important;margin:0!important;line-height:0!important;text-decoration:none!important;font-size:0!important;color:transparent!important;background-image:url('${LOGO}')!important;background-repeat:no-repeat!important;background-position:left center!important;background-size:contain!important;overflow:hidden!important;}
+    .policy-top .login-brand>*{display:none!important;}
+    @media(max-width:620px){.policy-top .login-brand{width:132px!important;height:58px!important}}
   `;
   document.head.appendChild(style);
 
   function replacePolicyHeaderLogo(){
     document.querySelectorAll('.policy-page .policy-top .login-brand').forEach(a => {
-      const current = a.querySelector('img.policy-header-logo');
-      if (current && current.getAttribute('src') === LOGO && a.children.length === 1) return;
       a.replaceChildren();
-      const img = document.createElement('img');
-      img.className = 'policy-header-logo';
-      img.src = LOGO;
-      img.alt = 'BIGLWA';
-      img.decoding = 'async';
-      a.appendChild(img);
+      a.textContent = '';
       a.setAttribute('aria-label','BIGLWA');
+      a.style.setProperty('background-image', `url("${LOGO}")`, 'important');
     });
   }
 
