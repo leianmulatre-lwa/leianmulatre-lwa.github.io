@@ -2,47 +2,26 @@
   if (window.__biglwaLoginFixV6) return;
   window.__biglwaLoginFixV6 = true;
 
-  const B64 = '/assets/login-symbol-logo.b64?v=20260908-6';
-  let symbolPromise;
-  const symbolSrc = () => symbolPromise || (symbolPromise = fetch(B64,{cache:'force-cache'})
-    .then(r => { if(!r.ok) throw new Error('symbol '+r.status); return r.text(); })
-    .then(s => 'data:image/webp;base64,' + s.trim()));
-
   const style = document.createElement('style');
   style.id = 'biglwa-login-fix-v6-style';
   style.textContent = `
     #loginPage .login-stage > .login-brand-row,
     #loginPage .login-stage > .login-brand,
     #loginPage .login-stage .biglwa-wordmark-img,
-    #loginPage .login-stage .biglwa-login-emblem { display:none!important; }
-    #loginPage .login-card > .biglwa-login-emblem { display:none!important; }
-    #loginPage .login-symbol-logo{display:block!important;width:min(270px,72%)!important;height:auto!important;object-fit:contain!important;margin:18px auto 8px!important;background:transparent!important;filter:drop-shadow(0 8px 18px rgba(48,18,16,.10));}
+    #loginPage .login-stage .biglwa-login-emblem,
+    #loginPage .login-card > .biglwa-login-emblem,
+    #loginPage .login-symbol-logo { display:none!important; }
     #loginPage #loginTitle,#loginPage #loginSubmit{font-family:'BiglwaAspen',Georgia,serif!important;font-weight:400!important;letter-spacing:.015em!important;}
     #loginPage #loginTitle{font-size:31px!important;line-height:1!important;}
     #loginPage #loginSubmit{font-size:20px!important;line-height:1.05!important;}
-    @media(max-width:620px){#loginPage .login-symbol-logo{width:min(225px,70%)!important;margin-top:14px!important;}#loginPage #loginTitle{font-size:27px!important;}#loginPage #loginSubmit{font-size:18px!important;}}
+    @media(max-width:620px){#loginPage #loginTitle{font-size:27px!important;}#loginPage #loginSubmit{font-size:18px!important;}}
   `;
   document.head.appendChild(style);
 
   function applyLoginBrand(){
     const page = document.getElementById('loginPage');
-    const card = document.getElementById('loginCard');
-    if (!page || !card) return;
-    page.querySelectorAll('.login-stage > .login-brand-row, .login-stage > .login-brand').forEach(el => el.style.setProperty('display','none','important'));
-    page.querySelectorAll('.biglwa-login-emblem').forEach(el => el.style.setProperty('display','none','important'));
-    let img = card.querySelector('.login-symbol-logo');
-    if (!img) {
-      img = document.createElement('img');
-      img.className = 'login-symbol-logo';
-      img.alt = 'BIGLWA symbol';
-      img.decoding = 'async';
-      const head = card.querySelector('.login-card-head');
-      card.insertBefore(img, head || card.firstChild);
-    }
-    if (!img.dataset.symbolLoaded) {
-      img.dataset.symbolLoaded = 'loading';
-      symbolSrc().then(src => { img.src = src; img.dataset.symbolLoaded = '1'; }).catch(() => { img.dataset.symbolLoaded = ''; });
-    }
+    if (!page) return;
+    page.querySelectorAll('.login-stage > .login-brand-row, .login-stage > .login-brand, .biglwa-login-emblem, .login-symbol-logo').forEach(el => el.style.setProperty('display','none','important'));
   }
 
   let queued = false;
