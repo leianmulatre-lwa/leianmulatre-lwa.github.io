@@ -2,7 +2,7 @@
   if (window.__biglwaLogoFrontFixV21) return;
   window.__biglwaLogoFrontFixV21 = true;
 
-  const LOGO = '/assets/biglwa-header-logo-alpha-v3.png?v=20260909-4';
+  const LOGO = '/assets/biglwa-header-logo-alpha-v3.png?v=20260909-5';
   let logoReady = false;
 
   const style = document.createElement('style');
