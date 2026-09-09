@@ -1,10 +1,10 @@
 (() => {
-  if (window.__biglwaLogoFrontFixV14) return;
-  window.__biglwaLogoFrontFixV14 = true;
+  if (window.__biglwaLogoFrontFixV15) return;
+  window.__biglwaLogoFrontFixV15 = true;
 
-  const LOGO = '/assets/biglwa-header-logo.png?v=20260909-6';
+  const LOGO = '/assets/biglwa-header-logo.png?v=20260909-7';
   const style = document.createElement('style');
-  style.id = 'biglwa-logo-front-fix-v14-style';
+  style.id = 'biglwa-logo-front-fix-v15-style';
   style.textContent = `
     #studioApp .studio-brand-row>a.brand,
     .policy-page .policy-top .login-brand{
