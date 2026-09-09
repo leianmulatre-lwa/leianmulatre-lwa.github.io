@@ -1,12 +1,12 @@
 (() => {
-  if (window.__biglwaLogoFrontFixV20) return;
-  window.__biglwaLogoFrontFixV20 = true;
+  if (window.__biglwaLogoFrontFixV21) return;
+  window.__biglwaLogoFrontFixV21 = true;
 
-  const LOGO = '/assets/biglwa-header-logo-alpha-v2.png?v=20260909-2';
+  const LOGO = '/assets/biglwa-header-logo-alpha-v3.png?v=20260909-4';
   let logoReady = false;
 
   const style = document.createElement('style');
-  style.id = 'biglwa-logo-front-fix-v20-style';
+  style.id = 'biglwa-logo-front-fix-v21-style';
   style.textContent = `
     #studioApp .studio-brand-row,
     .policy-page .policy-top{
@@ -27,9 +27,9 @@
       justify-content:flex-start!important;
       isolation:auto!important;
     }
-    #studioApp .studio-brand-row>a.brand{width:190px!important;height:78px!important;padding:0!important;margin:0!important;}
-    .policy-page .policy-top .login-brand{width:224px!important;height:88px!important;padding:0!important;margin:0!important;}
-    img.biglwa-front-logo-v20{
+    #studioApp .studio-brand-row>a.brand{width:164px!important;height:70px!important;padding:0!important;margin:0!important;}
+    .policy-page .policy-top .login-brand{width:190px!important;height:78px!important;padding:0!important;margin:0!important;}
+    img.biglwa-front-logo-v21{
       display:block!important;
       opacity:1!important;
       visibility:visible!important;
@@ -41,31 +41,30 @@
       box-shadow:none!important;
       filter:none!important;
       transform:none!important;
-      mix-blend-mode:darken!important;
+      mix-blend-mode:normal!important;
       background:transparent!important;
     }
-    body.night-mode img.biglwa-front-logo-v20{mix-blend-mode:normal!important;}
-    #studioApp img.biglwa-front-logo-v20{width:182px!important;height:72px!important;}
-    .policy-page img.biglwa-front-logo-v20{width:214px!important;height:84px!important;}
+    #studioApp img.biglwa-front-logo-v21{width:158px!important;height:62px!important;}
+    .policy-page img.biglwa-front-logo-v21{width:182px!important;height:72px!important;}
     #rightsPage .rights-grid.three-body-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
     @media(max-width:900px){#rightsPage .rights-grid.three-body-grid{grid-template-columns:1fr!important;}}
     @media(max-width:620px){
-      #studioApp .studio-brand-row>a.brand{width:142px!important;height:60px!important}
-      #studioApp img.biglwa-front-logo-v20{width:136px!important;height:56px!important}
-      .policy-page .policy-top .login-brand{width:174px!important;height:72px!important}
-      .policy-page img.biglwa-front-logo-v20{width:166px!important;height:68px!important}
+      #studioApp .studio-brand-row>a.brand{width:128px!important;height:54px!important}
+      #studioApp img.biglwa-front-logo-v21{width:122px!important;height:50px!important}
+      .policy-page .policy-top .login-brand{width:158px!important;height:66px!important}
+      .policy-page img.biglwa-front-logo-v21{width:150px!important;height:60px!important}
     }
   `;
   document.head.appendChild(style);
 
   function putLogo(anchor, ariaLabel){
     if (!anchor || !logoReady) return;
-    const current = anchor.querySelector('img.biglwa-front-logo-v20');
+    const current = anchor.querySelector('img.biglwa-front-logo-v21');
     if (current && current.getAttribute('src') === LOGO && anchor.children.length === 1) return;
     anchor.replaceChildren();
     anchor.setAttribute('aria-label', ariaLabel);
     const img = document.createElement('img');
-    img.className = 'biglwa-front-logo-v20';
+    img.className = 'biglwa-front-logo-v21';
     img.src = LOGO;
     img.alt = '';
     img.decoding = 'async';
