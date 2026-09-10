@@ -26,22 +26,23 @@
   const affidavit=`
     <article class="policy-card policy-affidavit-card">
       <div class="window-lights policy-lights" aria-hidden="true"><span class="window-light red"></span><span class="window-light yellow"></span><span class="window-light green"></span></div>
-      <p class="policy-kicker">Affidavit of Good Faith · September 7, 2026</p>
-      <h1>I am asking to be protected in good faith.</h1>
-      <p class="policy-lede">When a BIGLWA member asks us to act on a violation of their likeness, authorship, privacy, or social body, the request should begin with a clear record of what they believe happened and why they believe intervention is justified.</p>
-      <h2>Member declaration</h2>
-      <p>By submitting a Rights &amp; Likeness report under this declaration, I state in good faith that:</p>
-      <ol class="affidavit-list">
-        <li>I am the person affected by the reported conduct, the owner or creator of the affected work, or someone authorized to act for that person.</li>
-        <li>I have a good-faith belief that the use, copying, impersonation, publication, commercialization, synthetic recreation, disclosure, or other conduct I am reporting is unauthorized, nonconsensual, misleading, exploitative, or otherwise violates rights I hold or am authorized to assert.</li>
-        <li>The facts, chronology, links, screenshots, files, communications, and other evidence I provide are accurate to the best of my knowledge, and I have not knowingly altered or omitted material information for the purpose of misleading BIGLWA or another party.</li>
-        <li>I authorize BIGLWA to preserve the materials I submit for the purpose of documenting the report, evaluating platform action, supporting takedown or cease-and-desist correspondence, and—where appropriate—coordinating referral to licensed counsel.</li>
-        <li>I understand that a report does not guarantee removal, a cease-and-desist, litigation, recovery, or representation, and that legal representation requires a separate written engagement with a licensed attorney.</li>
-      </ol>
-      <h2>BIGLWA’s reciprocal good-faith commitment</h2>
-      <p>BIGLWA will not knowingly use a rights report as a pretext to appropriate a member’s identity, work, evidence, or story. We will aim to preserve the context of the complaint, limit access to what is reasonably necessary, document actions taken, and avoid representing that a legal remedy is guaranteed when it is not.</p>
-      <div class="affidavit-signoff"><b>Execution note</b><p>This page states BIGLWA’s standard good-faith declaration. It is not automatically a notarized affidavit, court filing, or sworn declaration merely because it appears on the site. If a particular jurisdiction, platform, or legal proceeding requires a signed declaration under penalty of perjury, notarization, or other formal execution, BIGLWA or retained counsel should provide the proper form for that matter.</p></div>
-      <div class="affidavit-founder-signature"><span>Signed,</span><strong>Leian Stanley</strong></div>
+      <p class="policy-kicker">Affidavit of Good Faith</p>
+      <h1>Educational Purpose and Public Interest</h1>
+      <p class="policy-lede">I, <strong>Leian</strong>, hereby affirm that the work, research, testimony, documentation, media, and public commentary connected to this project are being created in good faith and for the purpose of education, cultural preservation, public awareness, and community protection.</p>
+
+      <p>This project is intended to help the American public better understand the historical, political, social, racial, technological, and cultural forces shaping our present moment. Its purpose is not to harm, exploit, harass, defame, or endanger any person or community, but to document truth, encourage critical thinking, and provide language for people who have been harmed, misled, silenced, surveilled, or taken advantage of by powerful institutions and systems.</p>
+
+      <p>This work may address topics including, but not limited to, American empire, propaganda, racial capitalism, anti-Blackness, colorism, Haitian history and diaspora, queerness, gender, class, education, digital exploitation, artificial intelligence, platform culture, beauty standards, youth vulnerability, and the ways marginalized people are often used before they are protected.</p>
+
+      <p>I affirm that the purpose of this work is to do good. It is intended to educate the public, amplify Black voices, honor Haitian and diasporic history, protect young people from exploitation, and create a record for future generations. It is also intended to help people understand how manipulation can occur through media, technology, institutions, culture, and social pressure.</p>
+
+      <p>Any personal experiences shared through this project will be presented as testimony, reflection, memory, opinion, research, or documented evidence to the best of my ability. I affirm that I will make reasonable efforts to distinguish between fact, belief, interpretation, and allegation where appropriate. I further affirm that this project is not created for revenge, misinformation, or public harm, but for truth-telling, education, accountability, healing, and collective understanding.</p>
+
+      <p>This project is bigger than one individual. It is an archive, a warning, a love letter, and a tool for those who come after us. Its purpose is to help people see what has been hidden, question what they have been taught, and protect themselves and their communities with knowledge.</p>
+
+      <p>I make this statement voluntarily and in good faith.</p>
+
+      <div class="affidavit-founder-signature"><span>Signed:</span><strong>Leian Stanley</strong></div>
       ${links('affidavit')}
     </article>`;
 
