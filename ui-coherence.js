@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-widget-actions-fixed';
+  const V='20260910-widget-dock-visible-v2';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -205,22 +205,30 @@
 
   function ensureWidgetActions(){
     const app=$('#studioApp'),sidebar=$('#studioApp .sidebar');if(!app||!sidebar)return;
+    let minimizedSection=$('#minimizedWidgets',sidebar);
     let dock=$('#minimizedWidgetDock',sidebar);
-    if(!dock){dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.setAttribute('aria-label','Minimized widgets');const bottom=$('.sidebar-bottom',sidebar)||sidebar;bottom.prepend(dock)}
+    if(!dock){
+      if(!minimizedSection){minimizedSection=document.createElement('section');minimizedSection.id='minimizedWidgets';minimizedSection.className='minimized-widgets';minimizedSection.setAttribute('aria-label','Minimized widgets');minimizedSection.hidden=true;minimizedSection.innerHTML='<div class="minimized-label">MINIMIZED</div>';const top=$('.sidebar-top',sidebar)||sidebar;top.appendChild(minimizedSection)}
+      dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';minimizedSection.appendChild(dock);
+    }
+    const syncDock=()=>{if(minimizedSection)minimizedSection.hidden=dock.children.length===0};
     const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
     const widgets=$$(selector,app);
     let minimized=[];try{minimized=JSON.parse(localStorage.getItem('biglwaMinimizedWidgets')||'[]')}catch{}
     const saveMinimized=()=>{try{localStorage.setItem('biglwaMinimizedWidgets',JSON.stringify($$('.widget-is-minimized',app).map(w=>w.dataset.widgetId)))}catch{}};
     const addRestore=widget=>{
       const id=widget.dataset.widgetId;if(!id||$('[data-restore-widget="'+CSS.escape(id)+'"]',dock))return;
-      const button=document.createElement('button');button.type='button';button.dataset.restoreWidget=id;
-      const label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');button.textContent=label;button.title='Restore '+label;button.setAttribute('aria-label','Restore '+label);dock.appendChild(button);
+      const button=document.createElement('button');button.type='button';button.className='minimized-widget-btn';button.dataset.restoreWidget=id;
+      const label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');button.title='Restore '+label;button.setAttribute('aria-label','Restore '+label);
+      button.innerHTML='<span class="restore-dot" aria-hidden="true"></span><b>'+label+'</b>';
+      dock.appendChild(button);syncDock();
     };
     widgets.forEach((widget,index)=>{
       if(!widget.dataset.widgetId)widget.dataset.widgetId=widgetId(widget,index);
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
       if(minimized.includes(widget.dataset.widgetId)){widget.classList.add('widget-is-minimized');addRestore(widget)}
     });
+    syncDock();
     if(document.documentElement.dataset.biglwaWidgetCaptureBound!=='1'){
       document.documentElement.dataset.biglwaWidgetCaptureBound='1';
       document.addEventListener('click',event=>{
@@ -230,7 +238,7 @@
         if(control.matches('[data-restore-widget]')){
           const widget=$('[data-widget-id="'+CSS.escape(control.dataset.restoreWidget)+'"]',app);
           if(widget)widget.classList.remove('widget-is-minimized');
-          control.remove();saveMinimized();return;
+          control.remove();saveMinimized();syncDock();return;
         }
         const widget=control.closest(selector);if(!widget)return;
         if(control.matches('[data-expand-widget]')){
@@ -256,7 +264,7 @@
     let dragging=null;
     app.addEventListener('click',event=>{
       const restore=event.target.closest('[data-restore-widget]');
-      if(restore){const widget=$('[data-widget-id="'+CSS.escape(restore.dataset.restoreWidget)+'"]',app);if(widget)widget.classList.remove('widget-is-minimized');restore.remove();saveMinimized();return}
+      if(restore){const widget=$('[data-widget-id="'+CSS.escape(restore.dataset.restoreWidget)+'"]',app);if(widget)widget.classList.remove('widget-is-minimized');restore.remove();saveMinimized();syncDock();return}
       const green=event.target.closest('[data-expand-widget]');
       if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
       const yellow=event.target.closest('[data-rearrange-widget]');
