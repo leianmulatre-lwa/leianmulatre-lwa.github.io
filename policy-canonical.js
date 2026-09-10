@@ -1,101 +1,72 @@
 (()=>{
-  const V='20260910-policy-canonical-2';
-  const $=(s,r=document)=>r.querySelector(s);
-
-  const header=(page)=>{
-    const top=$('.policy-top',page);
-    if(!top)return;
-    top.innerHTML=`<a class="policy-brand-canonical" href="/" data-return-home aria-label="BIGLWA"><img src="/assets/biglwa-header-user-final.png?v=${V}" alt="BIGLWA"></a><a class="policy-back" href="/studio" data-return-app>Back</a>`;
-  };
+  const $=(selector,root=document)=>root.querySelector(selector);
 
   const links=(active)=>{
-    const items=[['privacy','Privacy'],['terms','Terms'],['rights','Rights & Likeness'],['affidavit','Affidavit of Good Faith']];
-    return `<nav class="policy-links">${items.filter(([id])=>id!==active).map(([id,label])=>`<a href="/${id}" data-policy-route="${id}">${label}</a>`).join('')}</nav>`;
+    const pages=[['privacy','Privacy'],['terms','Terms'],['rights','Rights & Likeness'],['affidavit','Affidavit of Good Faith']];
+    return `<nav class="policy-links">${pages.filter(([id])=>id!==active).map(([id,label])=>`<a href="/${id}" data-policy-route="${id}">${label}</a>`).join('')}</nav>`;
   };
 
-  const privacy=`
-    <article class="policy-card" data-canonical-policy="1">
+  const rights=`
+    <article class="policy-card policy-rights-card">
       <div class="window-lights policy-lights" aria-hidden="true"><span class="window-light red"></span><span class="window-light yellow"></span><span class="window-light green"></span></div>
-      <p class="policy-kicker">Privacy Policy</p>
-      <h1>Privacy should feel like shelter.</h1>
-      <p class="policy-lede">BIGLWA is built around a simple rule: information you give us to use the product should not quietly become permission to define, profile, sell, or recreate you.</p>
-
-      <h2>What account information we use</h2>
-      <p>BIGLWA uses Firebase services to process the account information needed to sign you in and operate your profile. That can include your email address, chosen username, authentication identifier, and basic account or verification status. Your email is an authentication credential; BIGLWA does not use the part before the @ sign as a substitute identity, display name, or public username.</p>
-
-      <h2>What stays local</h2>
-      <p>Studio appearance choices may be stored in your browser unless a feature clearly offers cloud sync. Local preferences are meant to customize your own experience, not to create a hidden public profile about you.</p>
-
-      <h2>Your identity and creative work stay yours</h2>
-      <p>You retain ownership of the content you create and the rights you hold in your name, image, voice, persona, likeness, and other original material. Using BIGLWA does not transfer ownership of those things to BIGLWA.</p>
-
-      <h2>No sale of your personhood</h2>
-      <p>BIGLWA does not sell your personal information or creative work. BIGLWA also does not intentionally use private member content to train generative models without a separate, affirmative opt-in that explains what is being authorized.</p>
-
-      <h2>Rights, safety, and evidence</h2>
-      <p>If you submit a safety, privacy, authorship, or likeness report, BIGLWA may preserve the records and evidence you provide so the report can be documented, reviewed, and—when appropriate—used to support platform action, takedown requests, or other accountability steps. Access should be limited to what is reasonably necessary for that purpose.</p>
-
-      <h2>Your choices</h2>
-      <p>You may request access to, correction of, or deletion of personal information BIGLWA controls, subject to information we may need to retain for security, fraud prevention, legal obligations, or an active rights or safety matter.</p>
-
-      <h2>Policy status</h2>
-      <p>This is BIGLWA's current product privacy policy and should continue to be reviewed as the platform's data systems grow. Features that materially change what data is collected, shared, or retained should be reflected here before they are treated as normal platform behavior.</p>
-      ${links('privacy')}
+      <p class="policy-kicker">Rights &amp; Likeness Promise</p>
+      <h1>Your social body is part of your body.</h1>
+      <p class="policy-lede">Your face, voice, name, persona, archive, creative labor, and the context around them deserve meaningful protection. BIGLWA’s goal is to make that protection part of the product—not something you have to beg a platform for after harm is already done.</p>
+      <div class="rights-grid rights-grid-three">
+        <div><b>01 · You keep authorship</b><p>Posting here does not make BIGLWA the owner of your work.</p></div>
+        <div><b>02 · Likeness is not a free asset</b><p>Impersonation, abusive deepfakes, nonconsensual sexualization, and identity extraction are treated as serious violations.</p></div>
+        <div><b>03 · We help build the paper trail</b><p>When possible, we can help preserve evidence and organize the chronology of a reported violation.</p></div>
+      </div>
+      <h2>When court becomes necessary</h2>
+      <p>If a matter warrants litigation, representation must be accepted by a licensed attorney under a separate engagement. That protects you too: it ensures someone legally authorized, conflict-checked, and accountable is actually responsible for the case. BIGLWA can build toward that infrastructure without pretending every report automatically becomes a lawsuit.</p>
+      <p class="policy-note"><strong>Design principle:</strong> protection should be visible. As reporting and provenance tools are built, BIGLWA should show users what was preserved, what action was requested, and what stage a rights matter is in.</p>
+      ${links('rights')}
     </article>`;
 
-  const terms=`
-    <article class="policy-card" data-canonical-policy="1">
+  const affidavit=`
+    <article class="policy-card policy-affidavit-card">
       <div class="window-lights policy-lights" aria-hidden="true"><span class="window-light red"></span><span class="window-light yellow"></span><span class="window-light green"></span></div>
-      <p class="policy-kicker">Terms of Use</p>
-      <h1>You are not the product.</h1>
-      <p class="policy-lede">These terms are meant to make the relationship legible: you can use BIGLWA without giving BIGLWA ownership of your identity, authorship, likeness, or creative life.</p>
-
-      <h2>Your account</h2>
-      <p>Public usernames are generally 5–24 characters. Three- and four-character usernames are reserved for special request. A username must be unique to one account so a BIGLWA profile can function as a reliable identity card and link across other platforms. You are responsible for keeping your login credentials secure and for activity performed through your account.</p>
-
-      <h2>You keep your work</h2>
-      <p>You retain the rights you hold in original content you post to BIGLWA. By posting, you give BIGLWA only the limited, non-exclusive permission reasonably necessary to host, display, transmit, format, back up, and otherwise operate that content as part of the service. That operational permission is not a transfer of ownership.</p>
-
-      <h2>Identity and likeness protections</h2>
-      <p>Do not use BIGLWA to impersonate another person, scrape people for identity exploitation, publish nonconsensual intimate material, create or distribute abusive or deceptive synthetic likenesses, doxx someone, falsely claim authorship, or commercially exploit another person's identity or work without authorization.</p>
-
-      <h2>Publication is not legal registration</h2>
-      <p>BIGLWA may preserve dates, authorship context, publication history, or other metadata, but platform metadata is not a substitute for copyright registration, trademark registration, contracts, releases, or other formal legal protections that may apply to a particular work or dispute.</p>
-
-      <h2>Enforcement</h2>
-      <p>BIGLWA may remove content, limit or disable accounts, preserve relevant evidence, support takedown requests, or prepare cease-and-desist communications when platform rules or rights protections are implicated. Serious or repeated abuse may lead to permanent loss of access.</p>
-
-      <h2>Legal help is separate</h2>
-      <p>Using BIGLWA, submitting a report, or receiving platform assistance does not automatically create an attorney-client relationship. Legal representation, litigation, or individualized legal advice requires a separate written engagement with licensed counsel.</p>
-
-      <h2>Policy status</h2>
-      <p>These are BIGLWA's current product terms. They are a strong operating-policy draft and should be reviewed by licensed counsel before BIGLWA relies on them as final legal terms for a large public launch.</p>
-      ${links('terms')}
+      <p class="policy-kicker">Affidavit of Good Faith · September 7, 2026</p>
+      <h1>I am asking to be protected in good faith.</h1>
+      <p class="policy-lede">When a BIGLWA member asks us to act on a violation of their likeness, authorship, privacy, or social body, the request should begin with a clear record of what they believe happened and why they believe intervention is justified.</p>
+      <h2>Member declaration</h2>
+      <p>By submitting a Rights &amp; Likeness report under this declaration, I state in good faith that:</p>
+      <ol class="affidavit-list">
+        <li>I am the person affected by the reported conduct, the owner or creator of the affected work, or someone authorized to act for that person.</li>
+        <li>I have a good-faith belief that the use, copying, impersonation, publication, commercialization, synthetic recreation, disclosure, or other conduct I am reporting is unauthorized, nonconsensual, misleading, exploitative, or otherwise violates rights I hold or am authorized to assert.</li>
+        <li>The facts, chronology, links, screenshots, files, communications, and other evidence I provide are accurate to the best of my knowledge, and I have not knowingly altered or omitted material information for the purpose of misleading BIGLWA or another party.</li>
+        <li>I authorize BIGLWA to preserve the materials I submit for the purpose of documenting the report, evaluating platform action, supporting takedown or cease-and-desist correspondence, and—where appropriate—coordinating referral to licensed counsel.</li>
+        <li>I understand that a report does not guarantee removal, a cease-and-desist, litigation, recovery, or representation, and that legal representation requires a separate written engagement with a licensed attorney.</li>
+      </ol>
+      <h2>BIGLWA’s reciprocal good-faith commitment</h2>
+      <p>BIGLWA will not knowingly use a rights report as a pretext to appropriate a member’s identity, work, evidence, or story. We will aim to preserve the context of the complaint, limit access to what is reasonably necessary, document actions taken, and avoid representing that a legal remedy is guaranteed when it is not.</p>
+      <div class="affidavit-signoff"><b>Execution note</b><p>This page states BIGLWA’s standard good-faith declaration. It is not automatically a notarized affidavit, court filing, or sworn declaration merely because it appears on the site. If a particular jurisdiction, platform, or legal proceeding requires a signed declaration under penalty of perjury, notarization, or other formal execution, BIGLWA or retained counsel should provide the proper form for that matter.</p></div>
+      <div class="affidavit-founder-signature"><span>Signed,</span><strong>Leian Stanley</strong></div>
+      ${links('affidavit')}
     </article>`;
+
+  function replacePage(id,markup){
+    const page=$(id);
+    const old=page&&$('.policy-card',page);
+    if(old) old.outerHTML=markup;
+  }
 
   function apply(){
-    const p=$('#privacyPage');
-    if(p){header(p);const shell=$('.policy-shell',p);const old=$('.policy-card',p);if(old)old.outerHTML=privacy;else shell?.insertAdjacentHTML('beforeend',privacy)}
-    const t=$('#termsPage');
-    if(t){header(t);const shell=$('.policy-shell',t);const old=$('.policy-card',t);if(old)old.outerHTML=terms;else shell?.insertAdjacentHTML('beforeend',terms)}
-
-    const r=$('#rightsPage');
-    if(r){header(r);const card=$('.policy-card',r);if(card)card.dataset.canonicalPolicy='1'}
-
-    const a=$('#affidavitPage');
-    if(a){header(a);const card=$('.policy-card',a);if(card)card.dataset.canonicalPolicy='1'}
-
-    let style=$('#biglwa-policy-canonical-style');
-    if(!style){style=document.createElement('style');style.id='biglwa-policy-canonical-style';document.head.appendChild(style)}
+    replacePage('#rightsPage',rights);
+    replacePage('#affidavitPage',affidavit);
+    let style=$('#biglwa-rights-affidavit-style');
+    if(!style){style=document.createElement('style');style.id='biglwa-rights-affidavit-style';document.head.appendChild(style)}
     style.textContent=`
-      .policy-page .policy-card[data-canonical-policy="1"]{visibility:visible!important}
-      .policy-page .policy-brand-canonical{display:flex!important;align-items:center!important;text-decoration:none!important}
-      .policy-page .policy-brand-canonical img{display:block!important;width:140px!important;height:auto!important;max-height:74px!important;object-fit:contain!important;object-position:left center!important;visibility:visible!important;opacity:1!important}
-      @media(max-width:620px){.policy-page .policy-brand-canonical img{width:112px!important;max-height:60px!important}}
+      #rightsPage .rights-grid-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .affidavit-founder-signature{display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin:34px 0 8px;font-family:Georgia,serif;color:#332c28}
+      .affidavit-founder-signature span{font-size:13px;font-family:Inter,system-ui,sans-serif;color:#766b64}
+      .affidavit-founder-signature strong{font-size:25px;font-style:italic;font-weight:500}
+      @media(max-width:760px){#rightsPage .rights-grid-three{grid-template-columns:1fr}}
     `;
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',apply,{once:true});
+  else apply();
   window.addEventListener('load',()=>setTimeout(apply,0),{once:true});
   setTimeout(apply,180);
 })();
