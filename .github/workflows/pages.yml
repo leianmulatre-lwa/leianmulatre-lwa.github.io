@@ -18,43 +18,68 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deploy1.outputs.page_url || steps.deploy2.outputs.page_url || steps.deploy3.outputs.page_url || steps.deploy4.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      - name: Verify and clear stale Pages deployment
+      - name: Cancel stale Pages deployment
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set +e
-          API="https://api.github.com/repos/${{ github.repository }}/pages/deployments/8df01e5d249773d92395dc64d5b6e5eaa531228a"
-          echo "Stale deployment status before cancel:"
-          curl -sS -L -w "\nHTTP %{http_code}\n" \
+          curl -sS -L -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$API"
-          echo "Cancel request:"
-          curl -sS -L -X POST -w "\nHTTP %{http_code}\n" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$API/cancel"
-          sleep 8
-          echo "Stale deployment status after cancel:"
-          curl -sS -L -w "\nHTTP %{http_code}\n" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$API"
-          exit 0
+            https://api.github.com/repos/${{ github.repository }}/pages/deployments/8df01e5d249773d92395dc64d5b6e5eaa531228a/cancel || true
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - name: Deploy attempt 1
+        id: deploy1
+        continue-on-error: true
         uses: actions/deploy-pages@v4
+      - name: Wait for Pages lock
+        if: steps.deploy1.outcome == 'failure'
+        run: sleep 90
+      - name: Cancel stale deployment again
+        if: steps.deploy1.outcome == 'failure'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -sS -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/pages/deployments/8df01e5d249773d92395dc64d5b6e5eaa531228a/cancel || true
+      - name: Deploy attempt 2
+        id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Wait longer for Pages lock
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: sleep 90
+      - name: Deploy attempt 3
+        id: deploy3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Final wait for Pages lock
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure' && steps.deploy3.outcome == 'failure'
+        run: sleep 90
+      - name: Deploy attempt 4
+        id: deploy4
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure' && steps.deploy3.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Fail if Pages remained locked
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure' && steps.deploy3.outcome == 'failure' && steps.deploy4.outcome == 'failure'
+        run: |
+          echo "GitHub Pages still reports the cancelled deployment as in progress after four retries."
+          exit 1
