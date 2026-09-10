@@ -3,7 +3,7 @@
   window.__biglwaStablePatch=function(html){
     const prepaint=`<style id="biglwa-clean-prepaint">#loginPage .login-stage>.login-brand-row,#loginPage .login-stage>.login-brand{display:none!important}#studioApp .studio-brand-row>a.brand{font-size:0!important;color:transparent!important;text-shadow:none!important}.widget-window-controls{visibility:visible!important;opacity:1!important}.card-head>.arrow-btn{visibility:hidden!important}#studioApp .scribble,#loginPage .login-foot{display:none!important}#studioApp .profile-card,#studioApp .welcome strong{visibility:hidden!important}body.biglwa-identity-ready #studioApp .profile-card,body.biglwa-identity-ready #studioApp .welcome strong{visibility:visible!important}#studioApp .sidebar-top>nav{display:none!important}#studioApp #sidebarCollapse{display:flex!important}#studioApp .search-wrap{max-width:none!important;width:100%!important;justify-self:stretch!important}</style>`;
     const imageCss=`<link rel="stylesheet" href="/login-emblem-inline.css?v=20260910-mutual-good-faith-2"><link rel="stylesheet" href="/topbar-lockup-inline.css?v=20260910-mutual-good-faith-2">`;
-    const scripts=`<script src="/module-pages.js?v=20260910-mutual-good-faith-2"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-mutual-good-faith-2"></scr`+`ipt><script src="/ui-coherence.js?v=20260910-studio-controls-1"></scr`+`ipt>`;
+    const scripts=`<script src="/module-pages.js?v=20260910-mutual-good-faith-2"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-mutual-good-faith-2"></scr`+`ipt><script src="/ui-coherence.js?v=20260910-studio-controls-2"></scr`+`ipt>`;
     const finalTopbar=`<style id="biglwa-topbar-final">#studioApp .topbar::before{content:none!important;display:none!important}#studioApp .studio-brand-row{display:flex!important;grid-column:1!important;align-items:center!important;justify-content:flex-start!important}#studioApp .topbar{grid-template-columns:minmax(150px,180px) minmax(360px,1fr) minmax(250px,350px)!important;gap:14px!important;align-items:center!important}#studioApp .search-wrap{grid-column:2!important}#studioApp .top-actions{grid-column:3!important}@media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}}@media(max-width:720px){#studioApp .topbar{grid-template-columns:94px minmax(0,1fr) auto!important;gap:8px!important}}</style>`;
     const affidavitSection=`<section class="policy-page route-screen" id="affidavitPage" aria-label="BIGLWA Affidavit of Good Faith">
       <div class="policy-shell">
@@ -36,7 +36,102 @@
     html=html.replace('<div><b>04 · Escalation can be real</b><p>Depending on the facts, BIGLWA may support takedowns or cease-and-desist correspondence and may coordinate referral to licensed counsel.</p></div>','');
     const affidavitCss=`<style id="biglwa-affidavit-title-size">#affidavitPage .affidavit-page-title{font-size:clamp(30px,4.1vw,48px)!important;line-height:1.02!important;letter-spacing:-1.5px!important;max-width:820px}@media(max-width:620px){#affidavitPage .affidavit-page-title{font-size:28px!important;letter-spacing:-.7px!important}}</style>`;
     html=html.replace('</head>',prepaint+imageCss+affidavitCss+'</head>');
-    html=html.replace('</body>',scripts+finalTopbar+'</body>');
+    const studioRepair=\`<style id="biglwa-studio-repair">
+#studioApp .profile-card{visibility:visible!important;opacity:1!important}
+#studioApp .profile-avatar{border-radius:14px!important}
+#studioApp #editProfileBtn,#studioApp .sidebar-theme-controls,#studioApp #lightModeBtn,#studioApp #darkModeBtn{display:flex!important;visibility:visible!important;opacity:1!important}
+#studioApp #editProfileBtn{min-width:118px!important;justify-content:center!important}
+#studioApp.biglwa-rearrange-mode .customizable-widget,#studioApp.biglwa-rearrange-mode .profile-card,#studioApp.biglwa-rearrange-mode .masonry>.card{outline:2px dashed rgba(80,60,55,.42);outline-offset:3px;cursor:grab}
+#studioApp.biglwa-rearrange-mode .widget-dragging{opacity:.45!important}
+#studioApp .widget-is-minimized{display:none!important}
+.widget-window-controls button.window-light{appearance:none;border:0;padding:0;cursor:pointer}
+</style><script>
+(function(){
+  var app=document.getElementById('studioApp'); if(!app)return;
+  document.body.classList.remove('biglwa-sidebar-hidden');
+  var stray=document.getElementById('biglwaSidebarShowTab'); if(stray)stray.remove();
+
+  function replaceNode(id,handler){
+    var old=document.getElementById(id); if(!old)return null;
+    var fresh=old.cloneNode(true); old.replaceWith(fresh); fresh.addEventListener('click',handler); return fresh;
+  }
+  var collapse=replaceNode('sidebarCollapse',function(){
+    app.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('biglwaSidebarCollapsed',app.classList.contains('sidebar-collapsed')?'1':'0');
+    syncCollapse();
+  });
+  function syncCollapse(){
+    if(!collapse)return;
+    var closed=app.classList.contains('sidebar-collapsed');
+    collapse.textContent=closed?'› More':'‹ Hide';
+    collapse.setAttribute('aria-label',closed?'Expand side navigation':'Collapse side navigation');
+    collapse.title=closed?'Expand side navigation':'Collapse side navigation';
+  }
+  if(localStorage.getItem('biglwaSidebarCollapsed')==='1')app.classList.add('sidebar-collapsed');
+  syncCollapse();
+
+  var panel=document.getElementById('wallpaperPanel');
+  var edit=replaceNode('editProfileBtn',function(){if(panel)panel.classList.toggle('panel-hidden')});
+  if(edit)edit.textContent='Edit Profile';
+  replaceNode('closePanel',function(){if(panel)panel.classList.add('panel-hidden')});
+  var save=document.querySelector('#saveProfile,[data-save-profile],#saveProfileBtn');
+  if(save)save.addEventListener('click',function(){setTimeout(function(){if(panel)panel.classList.add('panel-hidden')},0)});
+
+  function setTheme(dark){
+    document.body.classList.toggle('night-mode',dark);
+    localStorage.setItem('biglwaTheme',dark?'dark':'light');
+    var light=document.getElementById('lightModeBtn'), night=document.getElementById('darkModeBtn');
+    if(light)light.setAttribute('aria-pressed',dark?'false':'true');
+    if(night)night.setAttribute('aria-pressed',dark?'true':'false');
+  }
+  replaceNode('lightModeBtn',function(){setTheme(false)});
+  replaceNode('darkModeBtn',function(){setTheme(true)});
+  setTheme(localStorage.getItem('biglwaTheme')==='dark');
+
+  var selector='.profile-card,.customizable-widget,.masonry>.card:not(.manifesto-card)';
+  var widgets=[].slice.call(app.querySelectorAll(selector));
+  var dock=document.getElementById('minimizedWidgetDock');
+  var dockWrap=document.getElementById('minimizedWidgets');
+  var minimized=[];
+  try{minimized=JSON.parse(localStorage.getItem('biglwaMinimizedWidgets')||'[]')}catch(e){}
+  function widgetName(w){var h=w.querySelector('h1,h2,h3,strong');return h&&h.textContent.trim()||w.dataset.widgetId||'Widget'}
+  function saveMin(){localStorage.setItem('biglwaMinimizedWidgets',JSON.stringify(widgets.filter(function(w){return w.classList.contains('widget-is-minimized')}).map(function(w){return w.dataset.widgetId})))}
+  function restoreButton(w){
+    if(!dock)return;
+    var id=w.dataset.widgetId;
+    var b=dock.querySelector('[data-restore-widget="'+id+'"]');
+    if(!b){b=document.createElement('button');b.type='button';b.dataset.restoreWidget=id;b.textContent=widgetName(w);b.addEventListener('click',function(){w.classList.remove('widget-is-minimized');b.remove();saveMin();if(dockWrap&&!dock.children.length)dockWrap.hidden=true});dock.appendChild(b)}
+    if(dockWrap)dockWrap.hidden=false;
+  }
+  widgets.forEach(function(w,i){
+    if(!w.dataset.widgetId)w.dataset.widgetId=w.id||('widget-'+i);
+    var controls=w.querySelector('.widget-window-controls');
+    if(!controls){controls=document.createElement('div');controls.className='widget-window-controls';w.insertBefore(controls,w.firstChild)}
+    controls.innerHTML='<button type="button" class="window-light red" data-dock-widget title="Minimize widget" aria-label="Minimize widget"></button><button type="button" class="window-light yellow" data-rearrange-widget title="Rearrange widgets" aria-label="Rearrange widgets"></button><button type="button" class="window-light green" data-expand-widget title="Open widget" aria-label="Open widget"></button>';
+    if(minimized.indexOf(w.dataset.widgetId)>-1){w.classList.add('widget-is-minimized');restoreButton(w)}
+  });
+
+  function rearrange(on){
+    app.classList.toggle('biglwa-rearrange-mode',on);
+    widgets.forEach(function(w){w.draggable=on});
+    app.querySelectorAll('[data-rearrange-widget]').forEach(function(b){b.setAttribute('aria-pressed',on?'true':'false')});
+  }
+  var dragging=null;
+  app.addEventListener('dragstart',function(e){var w=e.target.closest(selector);if(!app.classList.contains('biglwa-rearrange-mode')||!w)return;dragging=w;w.classList.add('widget-dragging');if(e.dataTransfer)e.dataTransfer.effectAllowed='move'});
+  app.addEventListener('dragover',function(e){if(!dragging)return;var target=e.target.closest(selector);if(!target||target===dragging||target.parentNode!==dragging.parentNode)return;e.preventDefault();var box=target.getBoundingClientRect();target.parentNode.insertBefore(dragging,(e.clientY-box.top)>box.height/2?target.nextSibling:target)});
+  app.addEventListener('dragend',function(){if(dragging)dragging.classList.remove('widget-dragging');dragging=null});
+
+  app.addEventListener('click',function(e){
+    var green=e.target.closest('[data-expand-widget]');
+    if(green){e.preventDefault();e.stopPropagation();var w=green.closest(selector);var opener=w&&w.querySelector('.arrow-btn[data-open],[data-open]:not([data-expand-widget])');if(opener)opener.click();else if(w&&w.classList.contains('profile-card')&&edit)edit.click();return}
+    var yellow=e.target.closest('[data-rearrange-widget]');
+    if(yellow){e.preventDefault();e.stopPropagation();rearrange(!app.classList.contains('biglwa-rearrange-mode'));return}
+    var red=e.target.closest('[data-dock-widget]');
+    if(red){e.preventDefault();e.stopPropagation();var card=red.closest(selector);if(card){card.classList.add('widget-is-minimized');restoreButton(card);saveMin()}return}
+  });
+})();
+<\/script>\`;
+    html=html.replace('</body>',scripts+studioRepair+finalTopbar+'</body>');
     return html;
   };
   const boot=await fetch('/bootstrap-v2.html?v=20260910-mutual-good-faith-2').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
