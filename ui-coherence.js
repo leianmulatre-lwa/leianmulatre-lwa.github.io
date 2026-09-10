@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-profile-card-style-6';
+  const V='20260910-profile-dashboard-7';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -42,6 +42,26 @@
       #studioApp .profile-card #editProfileBtn:hover{background:rgba(255,255,255,.88)!important;box-shadow:0 6px 16px rgba(50,37,32,.08)!important}
       #studioApp .profile-card>.widget-window-controls{left:30px!important;right:auto!important;bottom:24px!important}
       @media(max-width:900px){#studioApp .profile-card{width:auto!important;right:14px!important;height:auto!important;min-height:285px!important;max-height:none!important;grid-template-columns:86px minmax(0,1fr)!important;padding:22px!important;gap:18px!important}#studioApp .profile-card .profile-avatar{width:86px!important;height:86px!important;font-size:40px!important}#studioApp .profile-card .profile-copy{padding-right:0!important}#studioApp .profile-card .real-rank{left:22px!important;right:22px!important;bottom:24px!important}#studioApp .profile-card>.widget-window-controls{display:none!important}}
+      /* Reference-led identity dashboard */
+      #studioApp .profile-card{left:22px!important;top:68px!important;width:min(880px,calc(100% - 330px))!important;height:270px!important;min-height:270px!important;max-height:270px!important;padding:0!important;display:grid!important;grid-template-columns:132px minmax(0,1fr)!important;gap:0!important;align-items:stretch!important;border-radius:18px!important;overflow:hidden!important}
+      #studioApp .profile-card .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:14px!important;padding:22px 16px!important;border-right:1px solid rgba(62,50,45,.13)!important;background:rgba(255,255,255,.20)!important}
+      #studioApp .profile-card .profile-avatar{width:96px!important;height:96px!important;border-radius:18px!important;font-size:48px!important}
+      #studioApp .profile-card .profile-rail-location{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:9px!important;line-height:1.3!important;text-align:center!important;color:var(--widget-muted,#706963)!important}
+      #studioApp .profile-card .profile-copy{grid-column:2!important;grid-row:1!important;display:block!important;align-self:stretch!important;padding:24px 24px 58px 24px!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important}
+      #studioApp .profile-card .profile-display-name{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:9px!important;line-height:1.2!important;font-weight:650!important;letter-spacing:1.8px!important;text-transform:uppercase!important;color:var(--widget-muted,#756d67)!important;margin:0 0 4px!important}
+      #studioApp .profile-card .profile-name-line{margin:0 0 8px!important}
+      #studioApp .profile-card .profile-name-line h1{font-family:Georgia,"Times New Roman",serif!important;font-size:29px!important;line-height:1!important;font-weight:700!important;letter-spacing:-1px!important;color:var(--widget-ink,#171717)!important}
+      #studioApp .profile-card .bio{font-family:Georgia,"Times New Roman",serif!important;font-size:13px!important;line-height:1.38!important;max-width:510px!important;margin:0 0 7px!important;color:var(--widget-ink,#2c2825)!important}
+      #studioApp .profile-card .meta-row{margin:0 0 13px!important;font-size:10px!important}
+      #studioApp .profile-card .meta-row>span{display:none!important}
+      #studioApp .profile-card .stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;margin:0!important;padding-top:11px!important;border-top:1px solid rgba(62,50,45,.11)!important}
+      #studioApp .profile-card .stats span{display:flex!important;flex-direction:column!important;gap:2px!important;padding-right:16px!important;border-right:1px solid rgba(62,50,45,.10)!important;font-family:Georgia,"Times New Roman",serif!important;font-size:10px!important;color:var(--widget-muted,#6f6862)!important}
+      #studioApp .profile-card .stats span:last-child{border-right:0!important}
+      #studioApp .profile-card .stats b{font-family:Georgia,"Times New Roman",serif!important;font-size:15px!important;line-height:1!important;color:var(--widget-ink,#171717)!important}
+      #studioApp .profile-card .real-rank{left:156px!important;right:24px!important;bottom:18px!important;padding-top:10px!important}
+      #studioApp .profile-card #editProfileBtn{top:20px!important;right:22px!important;background:#1d1b1a!important;color:#fff!important;border:0!important;border-radius:999px!important;padding:8px 17px!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:11px!important;font-weight:550!important}
+      #studioApp .profile-card>.widget-window-controls{display:none!important}
+      @media(max-width:900px){#studioApp .profile-card{left:14px!important;top:76px!important;width:calc(100% - 28px)!important;height:auto!important;min-height:330px!important;max-height:none!important;grid-template-columns:100px minmax(0,1fr)!important}#studioApp .profile-card .profile-identity-rail{padding:18px 10px!important}#studioApp .profile-card .profile-avatar{width:76px!important;height:76px!important;font-size:36px!important}#studioApp .profile-card .profile-copy{padding:22px 16px 72px!important}#studioApp .profile-card .stats{grid-template-columns:1fr 1fr!important;row-gap:9px!important}#studioApp .profile-card .real-rank{left:116px!important;right:16px!important}}
       #studioApp .profile-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
       #studioApp .profile-editor-grid label{display:block!important;margin:0!important;font-size:10px!important}
       #studioApp .profile-editor-grid label.full{grid-column:1/-1}
@@ -146,6 +166,19 @@
     const handle=$('.profile-name-line h1',card);
     const bio=$('.bio',card);
     const meta=$('.meta-row',card);
+    let rail=$('.profile-identity-rail',card);
+    if(!rail){
+      rail=document.createElement('div');rail.className='profile-identity-rail';
+      const avatar=$('.profile-avatar',card);if(avatar)rail.appendChild(avatar);
+      const railLocation=document.createElement('div');railLocation.className='profile-rail-location';railLocation.textContent=meta&&$('span',meta)?$('span',meta).textContent.replace(/^⌖\s*/,''):'';
+      rail.appendChild(railLocation);card.prepend(rail);
+    }
+    const stats=$('.stats',card);
+    if(stats&&!$('[data-profile-stat="projects"]',stats)){
+      const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>24</b> Projects';
+      const rooms=document.createElement('span');rooms.dataset.profileStat='rooms';rooms.innerHTML='<b>3</b> Rooms';
+      stats.append(projects,rooms);
+    }
     let display=$('.profile-display-name',card);
     if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Leian Stanley';copy.prepend(display)}
     const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');
@@ -155,7 +188,7 @@
       if(bio&&saved.bio)bio.textContent=saved.bio;
       if(meta){
         const location=$('span',meta),website=$('a',meta);
-        if(location&&saved.location)location.textContent='⌖ '+saved.location;
+        if(location&&saved.location)location.textContent='⌖ '+saved.location;const railLocation=$('.profile-rail-location',card);if(railLocation&&saved.location)railLocation.textContent=saved.location;
         if(website&&saved.website){website.textContent=saved.website;website.href=/^https?:\/\//.test(saved.website)?saved.website:'https://'+saved.website}
       }
     }
@@ -170,7 +203,7 @@
         if(display)display.textContent=details.name||'Your Name';
         if(handle)handle.textContent='@'+(details.username||'username');
         if(bio)bio.textContent=details.bio;
-        if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
+        if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
         panel.classList.add('panel-hidden');const b=$('#editProfileBtn');if(b)b.setAttribute('aria-expanded','false');
       });
     }
