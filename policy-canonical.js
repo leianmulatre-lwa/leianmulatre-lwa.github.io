@@ -1,5 +1,5 @@
 (()=>{
-  const V='20260910-policy-canonical-1';
+  const V='20260910-policy-canonical-2';
   const $=(s,r=document)=>r.querySelector(s);
 
   const header=(page)=>{
@@ -78,6 +78,12 @@
     if(p){header(p);const shell=$('.policy-shell',p);const old=$('.policy-card',p);if(old)old.outerHTML=privacy;else shell?.insertAdjacentHTML('beforeend',privacy)}
     const t=$('#termsPage');
     if(t){header(t);const shell=$('.policy-shell',t);const old=$('.policy-card',t);if(old)old.outerHTML=terms;else shell?.insertAdjacentHTML('beforeend',terms)}
+
+    const r=$('#rightsPage');
+    if(r){header(r);const card=$('.policy-card',r);if(card)card.dataset.canonicalPolicy='1'}
+
+    const a=$('#affidavitPage');
+    if(a){header(a);const card=$('.policy-card',a);if(card)card.dataset.canonicalPolicy='1'}
 
     let style=$('#biglwa-policy-canonical-style');
     if(!style){style=document.createElement('style');style.id='biglwa-policy-canonical-style';document.head.appendChild(style)}
