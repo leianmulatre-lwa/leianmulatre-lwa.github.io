@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BIGLWA</title><style>html,body{margin:0;background:#f7f2eb}</style></head><body><script>
+(async()=>{try{
+  window.__biglwaStablePatch=function(html){
+    const prepaint=`<style id="biglwa-clean-prepaint">#loginPage .login-stage>.login-brand-row,#loginPage .login-stage>.login-brand{display:none!important}#studioApp .studio-brand-row>a.brand,.policy-page .policy-top .login-brand{font-size:0!important;color:transparent!important;text-shadow:none!important}#studioApp .studio-brand-row>a.brand::before,#studioApp .studio-brand-row>a.brand::after,.policy-page .policy-top .login-brand::before,.policy-page .policy-top .login-brand::after{content:none!important;display:none!important}#rightsPage .rights-grid>:nth-child(4){display:none!important}#affidavitPage .policy-card{visibility:hidden}</style>`;
+    const scripts=`<script src="/module-pages.js?v=20260910-clean"></scr`+`ipt><script src="/branding-patch.js?v=20260910-clean"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-clean"></scr`+`ipt>`;
+    html=html.replace('</head>',prepaint+'</head>');
+    html=html.replace('</body>',scripts+'</body>');
+    return html;
+  };
+  const boot=await fetch('/bootstrap-v2.html?v=20260910-clean').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
+  const m=boot.match(/<script>([\s\S]*?)<\/script>/i);
+  if(!m) throw new Error('bootstrap script missing');
+  let js=m[1];
+  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260910-clean');
+  js=js.replace("js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);'+marker);","js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);html=window.__biglwaStablePatch(html);'+marker);");
+  (0,eval)(js);
+}catch(e){document.body.innerHTML='<main style="font-family:system-ui;padding:2rem"><h1>BIGLWA</h1><p>Loading failed. Refresh to try again.</p></main>';console.error(e)}})();
+</script></body></html>
