@@ -1,4 +1,4 @@
-/* BIGLWA Studio topbar logo: real binary PNG asset, no data URI. */
+/* BIGLWA Studio topbar logo: verified binary PNG asset, no data URI. */
 #studioApp .topbar::before{
   content:""!important;
   display:block!important;
@@ -7,7 +7,7 @@
   justify-self:start!important;
   width:136px!important;
   height:77px!important;
-  background-image:url('/assets/biglwa-topbar-lockup.png?v=20260910-binary-1')!important;
+  background-image:url('/assets/biglwa-topbar-lockup.png?v=20260910-verified-1')!important;
   background-repeat:no-repeat!important;
   background-position:left center!important;
   background-size:contain!important;
