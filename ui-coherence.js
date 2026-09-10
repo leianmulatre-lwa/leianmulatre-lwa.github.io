@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-profile-side-layout-9';
+  const V='20260910-studio-hero-grid';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -96,6 +96,20 @@
       .widget-window-controls .window-light.red{background:#df5b56!important}
       @media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:105px!important;height:59px!important;min-width:105px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand img{width:98px!important;max-width:98px!important;max-height:56px!important}}
       @media(max-width:720px){#studioApp .topbar{grid-template-columns:94px minmax(0,1fr) auto!important;gap:8px!important;padding-left:12px!important;padding-right:12px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:78px!important;height:44px!important;min-width:78px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand img{width:73px!important;max-width:73px!important;max-height:42px!important}}
+      /* 2026-09-10 studio hero: clean two-column grid, no card overlap */
+      #studioApp .hero{display:grid!important;grid-template-columns:minmax(420px,1fr) 300px!important;grid-template-rows:auto auto!important;column-gap:18px!important;row-gap:18px!important;align-items:start!important;align-content:start!important;padding:52px 3.5% 40px 4.8%!important;min-height:0!important;height:auto!important;max-height:none!important}
+      #studioApp .hero .profile-card{position:relative!important;grid-column:1!important;grid-row:1 / span 2!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:266px!important;max-height:none!important;margin:0!important;align-self:stretch!important}
+      #studioApp .hero .music-card{position:relative!important;grid-column:2!important;grid-row:1!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:128px!important;min-height:128px!important;max-height:128px!important;margin:0!important}
+      #studioApp .hero .aura-card{position:relative!important;grid-column:2!important;grid-row:2!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:128px!important;min-height:128px!important;max-height:128px!important;margin:0!important}
+      #studioApp .hero .mobile-dock.hero-action-bar{grid-column:1 / -1!important;grid-row:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;position:relative!important;margin:6px 0 0!important}
+      @media(max-width:1200px){#studioApp .hero{grid-template-columns:minmax(360px,1fr) 280px!important}#studioApp .hero .music-card{height:112px!important;min-height:112px!important;max-height:112px!important}#studioApp .hero .aura-card{height:112px!important;min-height:112px!important;max-height:112px!important}}
+      @media(max-width:900px){
+        #studioApp .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;padding:66px 12px 38px!important;row-gap:14px!important}
+        #studioApp .hero .profile-card{grid-column:1!important;grid-row:1!important;width:100%!important;min-height:270px!important}
+        #studioApp .hero .music-card{grid-column:1!important;grid-row:2!important;width:100%!important;height:96px!important;min-height:96px!important;max-height:96px!important}
+        #studioApp .hero .aura-card{grid-column:1!important;grid-row:3!important;width:100%!important;height:96px!important;min-height:96px!important;max-height:96px!important}
+        #studioApp .hero .mobile-dock.hero-action-bar{grid-column:1!important;grid-row:4!important}
+      }
     `;
   }
 
