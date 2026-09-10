@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-widget-dock-visible-v2';
+  const V='20260910-widget-drag-reset-v3';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -99,19 +99,25 @@
       #studioApp .widget-is-minimized{display:none!important}
       #studioApp .widget-is-expanded{position:fixed!important;inset:96px 44px 34px 132px!important;width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;margin:0!important;z-index:10000!important;overflow:auto!important;column-span:none!important}
       body.sidebar-collapsed #studioApp .widget-is-expanded{left:78px!important}
-      #studioApp.biglwa-rearrange-mode .masonry .card{outline:2px dashed rgba(var(--aura-rgb,216,95,109),.62)!important;outline-offset:3px!important;cursor:grab!important}
-      #studioApp .widget-dragging{opacity:.42!important}
+      #studioApp.biglwa-rearrange-mode .masonry .card,
+      #studioApp.biglwa-rearrange-mode .hero .profile-card,
+      #studioApp.biglwa-rearrange-mode .hero .music-card,
+      #studioApp.biglwa-rearrange-mode .hero .aura-card{outline:2px dashed rgba(var(--aura-rgb,216,95,109),.62)!important;outline-offset:3px!important;cursor:grab!important}
+      #studioApp.biglwa-rearrange-mode .widget-dragging{cursor:grabbing!important}
+      #studioApp .widget-dragging{opacity:.4!important}
+      #studioApp .biglwa-drag-ghost{position:fixed!important;z-index:50000!important;pointer-events:none!important;opacity:.85!important;box-shadow:0 24px 60px rgba(20,14,10,.28)!important;border-radius:18px!important}
+      #studioApp .biglwa-drop-slot{outline:3px solid rgba(var(--aura-rgb,216,95,109),.85)!important;outline-offset:4px!important;border-radius:18px!important;transform:scale(.985)!important;transition:transform .12s ease!important}
       #minimizedWidgetDock{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;margin:8px 0}
       #minimizedWidgetDock button{border:1px solid rgba(80,70,64,.16);border-radius:9px;background:rgba(255,255,255,.58);padding:7px 6px;color:inherit;font-size:10px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       body.sidebar-collapsed #minimizedWidgetDock button{width:34px;height:34px;padding:0;font-size:0;align-self:center}
       body.sidebar-collapsed #minimizedWidgetDock button::first-letter{font-size:12px}
       @media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:105px!important;height:59px!important;min-width:105px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand img{width:98px!important;max-width:98px!important;max-height:56px!important}}
       @media(max-width:720px){#studioApp .topbar{grid-template-columns:94px minmax(0,1fr) auto!important;gap:8px!important;padding-left:12px!important;padding-right:12px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:78px!important;height:44px!important;min-width:78px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand img{width:73px!important;max-width:73px!important;max-height:42px!important}}
-      /* 2026-09-10 studio hero: clean two-column grid, no card overlap */
-      #studioApp .hero{display:grid!important;grid-template-columns:minmax(420px,1fr) 300px!important;grid-template-rows:auto auto!important;column-gap:18px!important;row-gap:18px!important;align-items:start!important;align-content:start!important;padding:52px 3.5% 40px 4.8%!important;min-height:0!important;height:auto!important;max-height:none!important}
-      #studioApp .hero .profile-card{position:relative!important;grid-column:1!important;grid-row:1 / span 2!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:266px!important;max-height:none!important;margin:0!important;align-self:stretch!important}
-      #studioApp .hero .music-card{position:relative!important;grid-column:2!important;grid-row:1!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:128px!important;min-height:128px!important;max-height:128px!important;margin:0!important}
-      #studioApp .hero .aura-card{position:relative!important;grid-column:2!important;grid-row:2!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:128px!important;min-height:128px!important;max-height:128px!important;margin:0!important}
+      /* 2026-09-10 studio hero: clean two-column auto-flow grid so drag-reorder actually moves cards */
+      #studioApp .hero{display:grid!important;grid-template-columns:minmax(420px,1fr) 300px!important;grid-auto-rows:auto!important;grid-auto-flow:dense!important;column-gap:18px!important;row-gap:18px!important;align-items:start!important;align-content:start!important;padding:52px 3.5% 40px 4.8%!important;min-height:0!important;height:auto!important;max-height:none!important}
+      #studioApp .hero .profile-card{position:relative!important;grid-column:auto!important;grid-row:span 2!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:266px!important;max-height:none!important;margin:0!important;align-self:stretch!important}
+      #studioApp .hero .music-card{position:relative!important;grid-column:auto!important;grid-row:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:128px!important;min-height:128px!important;max-height:128px!important;margin:0!important}
+      #studioApp .hero .aura-card{position:relative!important;grid-column:auto!important;grid-row:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:128px!important;min-height:128px!important;max-height:128px!important;margin:0!important}
       #studioApp .hero .mobile-dock.hero-action-bar{grid-column:1 / -1!important;grid-row:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;position:relative!important;margin:6px 0 0!important}
       @media(max-width:1200px){#studioApp .hero{grid-template-columns:minmax(360px,1fr) 280px!important}#studioApp .hero .music-card{height:112px!important;min-height:112px!important;max-height:112px!important}#studioApp .hero .aura-card{height:112px!important;min-height:112px!important;max-height:112px!important}}
       @media(max-width:900px){
@@ -268,13 +274,74 @@
       const green=event.target.closest('[data-expand-widget]');
       if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
       const yellow=event.target.closest('[data-rearrange-widget]');
-      if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=active);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
+      if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=false);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
       const red=event.target.closest('[data-dock-widget]');
       if(red){event.preventDefault();event.stopPropagation();const widget=red.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized');addRestore(widget);saveMinimized();return}
     });
-    app.addEventListener('dragstart',event=>{const widget=event.target.closest(selector);if(!app.classList.contains('biglwa-rearrange-mode')||!widget)return;dragging=widget;widget.classList.add('widget-dragging');if(event.dataTransfer)event.dataTransfer.effectAllowed='move'});
-    app.addEventListener('dragover',event=>{if(!dragging)return;const target=event.target.closest(selector);if(!target||target===dragging||target.parentNode!==dragging.parentNode)return;event.preventDefault();const box=target.getBoundingClientRect();target.parentNode.insertBefore(dragging,event.clientY>box.top+box.height/2?target.nextSibling:target)});
-    app.addEventListener('dragend',()=>{if(dragging)dragging.classList.remove('widget-dragging');dragging=null});
+    const orderKey='biglwaWidgetOrder';
+    const readOrder=()=>{try{return JSON.parse(localStorage.getItem(orderKey)||'{}')}catch{return{}}};
+    const writeOrder=()=>{
+      const order=readOrder();
+      $$(selector,app).forEach(w=>{
+        const p=w.parentNode;if(!p||!p.id)return;
+        const id=w.dataset.widgetId;if(!id)return;
+        if(!order[p.id])order[p.id]=[];
+        const list=order[p.id];
+        if(!list.includes(id))list.push(id);
+      });
+      Object.keys(order).forEach(k=>{if(!$('#'+CSS.escape(k),app))delete order[k]});
+      try{localStorage.setItem(orderKey,JSON.stringify(order))}catch{}
+    };
+    const savedOrder=readOrder();
+    Object.keys(savedOrder).forEach(key=>{
+      const parent=$('#'+CSS.escape(key),app);if(!parent)return;
+      savedOrder[key].forEach(id=>{const w=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(w&&w.parentNode===parent)parent.appendChild(w)});
+    });
+    let dragStart=null,ghost=null,dragMove=0,dragSlot=null,dragOffX=0,dragOffY=0;
+    app.addEventListener('pointerdown',event=>{
+      if(!app.classList.contains('biglwa-rearrange-mode'))return;
+      if(event.target.closest('.widget-window-controls,button,a,input,textarea,select,[data-restore-widget]'))return;
+      const widget=event.target.closest(selector);if(!widget)return;
+      const r=widget.getBoundingClientRect();
+      dragStart={widget,x:event.clientX,y:event.clientY,parent:widget.parentNode};
+      dragOffX=event.clientX-(r.left-8);dragOffY=event.clientY-(r.top-8);
+      dragMove=0;
+    });
+    app.addEventListener('pointermove',event=>{
+      if(!dragStart)return;
+      const dx=event.clientX-dragStart.x,dy=event.clientY-dragStart.y;
+      if(dragMove===0&&Math.hypot(dx,dy)<6)return;
+      if(dragMove===0){
+        dragMove=1;
+        const r=dragStart.widget.getBoundingClientRect();
+        ghost=dragStart.widget.cloneNode(true);ghost.classList.add('biglwa-drag-ghost');ghost.classList.remove('widget-dragging','biglwa-drop-slot');
+        ghost.style.width=r.width+'px';ghost.style.height=r.height+'px';ghost.style.left=(r.left-8)+'px';ghost.style.top=(r.top-8)+'px';ghost.style.margin='0';
+        document.body.appendChild(ghost);
+        dragStart.widget.classList.add('widget-dragging');
+      }
+      ghost.style.left=(event.clientX-dragOffX)+'px';
+      ghost.style.top=(event.clientY-dragOffY)+'px';
+      const hit=document.elementFromPoint(event.clientX,event.clientY);
+      const target=hit&&hit.closest(selector);
+      if(dragSlot&&dragSlot!==target)dragSlot.classList.remove('biglwa-drop-slot');
+      dragSlot=null;
+      if(target&&target!==dragStart.widget&&target.parentNode===dragStart.parent){dragSlot=target;target.classList.add('biglwa-drop-slot')}
+      event.preventDefault();
+    });
+    app.addEventListener('pointerup',event=>{
+      if(!dragStart)return;
+      dragStart.widget.classList.remove('widget-dragging');
+      const widget=dragStart.widget,parent=dragStart.parent;
+      if(dragMove&&dragSlot){
+        const before=event.clientY<dragSlot.getBoundingClientRect().top+dragSlot.getBoundingClientRect().height/2;
+        parent.insertBefore(widget,before?dragSlot:dragSlot.nextSibling);
+        writeOrder();
+      }
+      if(dragSlot)dragSlot.classList.remove('biglwa-drop-slot');
+      if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
+      ghost=null;dragSlot=null;dragStart=null;dragMove=0;
+    });
+    app.addEventListener('pointercancel',()=>{if(dragStart)dragStart.widget.classList.remove('widget-dragging');if(dragSlot)dragSlot.classList.remove('biglwa-drop-slot');if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);ghost=null;dragSlot=null;dragStart=null;dragMove=0});
   }
 
   function ensureProfileEditor(){
@@ -383,11 +450,33 @@
     return done===links.length;
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureTheme()}
+  function ensureResetValues(){
+    const stats=$('#studioApp .profile-card .stats');
+    if(stats){
+      const nums=$$('b',stats);
+      if(nums.length>0)nums[0].textContent='0';
+      if(nums.length>1)nums[1].textContent='0';
+      stats.dataset.biglwaReset='1';
+    }
+    const feedList=$('#studioApp .feed-card .feed-list');
+    if(feedList){
+      if(!feedList.dataset.biglwaReset){
+        feedList.dataset.biglwaReset='1';
+        feedList.innerHTML='';
+        const empty=document.createElement('div');
+        empty.style.cssText='grid-column:1/-1;padding:14px 4px 6px;color:var(--muted,#8a837c);font-size:12px;text-align:center;font-family:Inter,ui-sans-serif,system-ui,sans-serif';
+        empty.textContent='No updates yet.';
+        feedList.appendChild(empty);
+      }
+    }
+  }
+
+  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureTheme();ensureResetValues()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
   const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
   const policyLogoTimer=setInterval(()=>{if(ensurePolicyBrands())clearInterval(policyLogoTimer)},400);
-  setTimeout(()=>{clearInterval(topLogoTimer);clearInterval(policyLogoTimer)},30000);
+  const resetTimer=setInterval(()=>{ensureResetValues();clearInterval(resetTimer)},500);
+  setTimeout(()=>{clearInterval(topLogoTimer);clearInterval(policyLogoTimer);clearInterval(resetTimer)},30000);
 })();
