@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-profile-editor-4';
+  const V='20260910-profile-layout-5';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -18,6 +18,18 @@
       #studioApp .profile-card{visibility:visible!important;opacity:1!important}
       #studioApp .profile-avatar{border-radius:14px!important}
       #studioApp .profile-copy>.eyebrow{display:none!important}
+      #studioApp .profile-card{position:absolute!important;grid-template-columns:132px minmax(0,1fr)!important;align-items:center!important;min-height:232px!important;height:auto!important;padding:24px 26px!important}
+      #studioApp .profile-card .profile-copy{grid-column:2!important;grid-row:1!important;align-self:center!important;padding-right:118px!important}
+      #studioApp .profile-card .profile-display-name{margin:0 0 1px!important;font-family:Georgia,"Times New Roman",serif!important;font-size:25px!important;line-height:1.05!important}
+      #studioApp .profile-card .profile-name-line h1{font-size:18px!important;letter-spacing:-.3px!important;font-weight:600!important}
+      #studioApp .profile-card #editProfileBtn{position:absolute!important;top:20px!important;right:22px!important;width:auto!important;min-width:0!important;padding:8px 13px!important;font-size:12px!important;line-height:1!important}
+      #studioApp .profile-card>.widget-window-controls{position:absolute!important;right:22px!important;bottom:18px!important;margin:0!important}
+      #studioApp .profile-card .bio{margin-top:9px!important}
+      #studioApp .profile-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+      #studioApp .profile-editor-grid label{display:block!important;margin:0!important;font-size:10px!important}
+      #studioApp .profile-editor-grid label.full{grid-column:1/-1}
+      #studioApp .profile-editor-grid input,#studioApp .profile-editor-grid textarea{display:block;width:100%;margin-top:4px;padding:9px;border:1px solid rgba(80,70,64,.22);border-radius:8px;background:rgba(255,255,255,.72);color:inherit;font:inherit}
+      #studioApp .profile-editor-grid textarea{resize:vertical}
       #studioApp #wallpaperPanel:not(.panel-hidden){display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:1000!important}
       #studioApp #wallpaperPanel{position:fixed!important;right:24px!important;top:92px!important;max-height:calc(100vh - 116px)!important;overflow:auto!important}
       #studioApp #editProfileBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;visibility:visible!important;opacity:1!important;min-width:146px!important}
@@ -110,47 +122,58 @@
   }
 
   function ensureProfileEditor(){
-    const card=$('#studioApp .profile-card');
-    if(!card)return;
-    card.style.visibility='visible'; card.style.opacity='1';
-    const eyebrow=$('.profile-copy > .eyebrow',card); if(eyebrow)eyebrow.remove();
+    const card=$('#studioApp .profile-card'); if(!card)return;
+    card.style.visibility='visible';card.style.opacity='1';
+    const eyebrow=$('.profile-copy > .eyebrow',card);if(eyebrow)eyebrow.remove();
+    const copy=$('.profile-copy',card);
+    const handle=$('.profile-name-line h1',card);
     const bio=$('.bio',card);
-    if(bio){const stored=localStorage.getItem('biglwaProfileBio');if(stored)bio.textContent=stored}
-    const panel=$('#wallpaperPanel');
-    if(!panel)return;
-
-    if(!$('#profileBioEditor',panel)){
-      const section=document.createElement('div');
-      section.className='customize-section profile-bio-section';
-      section.innerHTML='<h3>Bio</h3><p>Edit the biography shown on your profile card.</p><textarea id="profileBioEditor" rows="4" maxlength="300" aria-label="Profile bio"></textarea><button type="button" class="secondary-btn" id="saveProfileBtn">Save Profile</button>';
-      const title=$('.panel-title',panel);
-      if(title)title.insertAdjacentElement('afterend',section);else panel.prepend(section);
-      const input=$('#profileBioEditor',panel);
-      input.value=bio?bio.textContent.trim():'';
-      input.style.cssText='width:100%;resize:vertical;margin:0 0 10px;padding:10px;border:1px solid rgba(80,70,64,.22);border-radius:9px;background:rgba(255,255,255,.72);color:inherit;font:inherit';
-      input.addEventListener('input',()=>{if(bio)bio.textContent=input.value});
+    const meta=$('.meta-row',card);
+    let display=$('.profile-display-name',card);
+    if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Leian Stanley';copy.prepend(display)}
+    const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');
+    if(saved){
+      if(display&&saved.name)display.textContent=saved.name;
+      if(handle&&saved.username)handle.textContent='@'+saved.username.replace(/^@/,'');
+      if(bio&&saved.bio)bio.textContent=saved.bio;
+      if(meta){
+        const location=$('span',meta),website=$('a',meta);
+        if(location&&saved.location)location.textContent='⌖ '+saved.location;
+        if(website&&saved.website){website.textContent=saved.website;website.href=/^https?:\/\//.test(saved.website)?saved.website:'https://'+saved.website}
+      }
+    }
+    const panel=$('#wallpaperPanel');if(!panel)return;
+    if(!$('#profileDetailsEditor',panel)){
+      const section=document.createElement('div');section.className='customize-section profile-details-section';section.id='profileDetailsEditor';
+      section.innerHTML='<h3>Profile</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60"></label><label>Username<input id="profileUsernameInput" maxlength="30"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160"></label></div><button type="button" class="secondary-btn" id="saveProfileBtn" style="margin-top:10px">Save Profile</button>';
+      const title=$('.panel-title',panel);if(title)title.insertAdjacentElement('afterend',section);else panel.prepend(section);
       $('#saveProfileBtn',panel).addEventListener('click',()=>{
-        const value=input.value.trim();localStorage.setItem('biglwaProfileBio',value);if(bio)bio.textContent=value;
+        const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim()};
+        localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));
+        if(display)display.textContent=details.name||'Your Name';
+        if(handle)handle.textContent='@'+(details.username||'username');
+        if(bio)bio.textContent=details.bio;
+        if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
         panel.classList.add('panel-hidden');const b=$('#editProfileBtn');if(b)b.setAttribute('aria-expanded','false');
       });
     }
-
+    const fillEditor=()=>{
+      $('#profileNameInput',panel).value=display?display.textContent.trim():'';
+      $('#profileUsernameInput',panel).value=handle?handle.textContent.trim().replace(/^@/,''):'';
+      $('#profileBioEditor',panel).value=bio?bio.textContent.trim():'';
+      const loc=meta&&$('span',meta),web=meta&&$('a',meta);
+      $('#profileLocationInput',panel).value=loc?loc.textContent.replace(/^⌖\s*/,'').trim():'';
+      $('#profileWebsiteInput',panel).value=web?web.textContent.trim():'';
+    };
     let button=$('#editProfileBtn',card);
-    if(button&&button.dataset.biglwaProfileBound!=='1'){
-      const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;
-      button.dataset.biglwaProfileBound='1';button.type='button';button.textContent='Edit Profile';
-      button.addEventListener('click',e=>{
-        e.preventDefault();e.stopPropagation();
-        const open=panel.classList.contains('panel-hidden');
-        panel.hidden=false;panel.classList.toggle('panel-hidden',!open);
-        button.setAttribute('aria-expanded',open?'true':'false');
-        if(open){const input=$('#profileBioEditor',panel);if(input&&bio)input.value=bio.textContent.trim()}
-      });
+    if(button&&button.dataset.biglwaProfileBound!=='2'){
+      const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='2';button.type='button';button.textContent='Edit Profile';
+      button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const open=panel.classList.contains('panel-hidden');panel.hidden=false;panel.classList.toggle('panel-hidden',!open);button.setAttribute('aria-expanded',open?'true':'false');if(open)fillEditor()});
     }
     if(button){button.hidden=false;button.style.pointerEvents='auto';button.setAttribute('aria-controls','wallpaperPanel')}
     let close=$('#closePanel',panel);
-    if(close&&close.dataset.biglwaProfileBound!=='1'){
-      const fresh=close.cloneNode(true);close.replaceWith(fresh);close=fresh;close.dataset.biglwaProfileBound='1';
+    if(close&&close.dataset.biglwaProfileBound!=='2'){
+      const fresh=close.cloneNode(true);close.replaceWith(fresh);close=fresh;close.dataset.biglwaProfileBound='2';
       close.addEventListener('click',e=>{e.preventDefault();panel.classList.add('panel-hidden');if(button)button.setAttribute('aria-expanded','false')});
     }
   }
