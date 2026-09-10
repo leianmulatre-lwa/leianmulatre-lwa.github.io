@@ -1,1 +1,0 @@
-Temporary internal note: logo asset refresh in progress.
