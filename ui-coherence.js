@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-sidebar-widgets-10';
+  const V='20260910-widget-capture-11';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -212,6 +212,37 @@
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
       if(minimized.includes(widget.dataset.widgetId)){widget.classList.add('widget-is-minimized');addRestore(widget)}
     });
+    if(document.documentElement.dataset.biglwaWidgetCaptureBound!=='1'){
+      document.documentElement.dataset.biglwaWidgetCaptureBound='1';
+      document.addEventListener('click',event=>{
+        const control=event.target.closest('[data-expand-widget],[data-rearrange-widget],[data-dock-widget],[data-restore-widget]');
+        if(!control||!app.contains(control))return;
+        event.preventDefault();event.stopImmediatePropagation();
+        if(control.matches('[data-restore-widget]')){
+          const widget=$('[data-widget-id="'+CSS.escape(control.dataset.restoreWidget)+'"]',app);
+          if(widget)widget.classList.remove('widget-is-minimized');
+          control.remove();saveMinimized();return;
+        }
+        const widget=control.closest(selector);if(!widget)return;
+        if(control.matches('[data-expand-widget]')){
+          const opening=!widget.classList.contains('widget-is-expanded');
+          $('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));
+          widget.classList.toggle('widget-is-expanded',opening);
+          control.setAttribute('aria-pressed',opening?'true':'false');
+          return;
+        }
+        if(control.matches('[data-rearrange-widget]')){
+          const active=!app.classList.contains('biglwa-rearrange-mode');
+          app.classList.toggle('biglwa-rearrange-mode',active);
+          $(selector,app).forEach(w=>w.draggable=active);
+          $('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));
+          return;
+        }
+        widget.classList.remove('widget-is-expanded');
+        widget.classList.add('widget-is-minimized');
+        addRestore(widget);saveMinimized();
+      },true);
+    }
     if(app.dataset.widgetActionsBound==='1')return;app.dataset.widgetActionsBound='1';
     let dragging=null;
     app.addEventListener('click',event=>{
