@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-widget-capture-11';
+  const V='20260910-widget-actions-fixed';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -121,6 +121,15 @@
         #studioApp .hero .aura-card{grid-column:1!important;grid-row:3!important;width:100%!important;height:96px!important;min-height:96px!important;max-height:96px!important}
         #studioApp .hero .mobile-dock.hero-action-bar{grid-column:1!important;grid-row:4!important}
       }
+      /* Expanded widget must override hero grid & masonry layout rules */
+      #studioApp .hero .widget-is-expanded,
+      #studioApp .masonry .widget-is-expanded,
+      #studioApp .profile-card.widget-is-expanded,
+      #studioApp .music-card.widget-is-expanded,
+      #studioApp .aura-card.widget-is-expanded{position:fixed!important;inset:96px 44px 34px 132px!important;width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;min-width:0!important;min-height:0!important;margin:0!important;z-index:10000!important;overflow:auto!important;display:block!important;left:132px!important;right:44px!important;top:96px!important;bottom:34px!important}
+      body.sidebar-collapsed #studioApp .hero .widget-is-expanded,
+      body.sidebar-collapsed #studioApp .masonry .widget-is-expanded{left:78px!important}
+      #studioApp .widget-is-expanded>.widget-window-controls{position:sticky!important;top:0!important;right:0!important;left:auto!important;margin:0 0 10px auto!important;width:max-content!important}
     `;
   }
 
@@ -199,9 +208,9 @@
     let dock=$('#minimizedWidgetDock',sidebar);
     if(!dock){dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.setAttribute('aria-label','Minimized widgets');const bottom=$('.sidebar-bottom',sidebar)||sidebar;bottom.prepend(dock)}
     const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
-    const widgets=$(selector,app);
+    const widgets=$$(selector,app);
     let minimized=[];try{minimized=JSON.parse(localStorage.getItem('biglwaMinimizedWidgets')||'[]')}catch{}
-    const saveMinimized=()=>{try{localStorage.setItem('biglwaMinimizedWidgets',JSON.stringify($('.widget-is-minimized',app).map(w=>w.dataset.widgetId)))}catch{}};
+    const saveMinimized=()=>{try{localStorage.setItem('biglwaMinimizedWidgets',JSON.stringify($$('.widget-is-minimized',app).map(w=>w.dataset.widgetId)))}catch{}};
     const addRestore=widget=>{
       const id=widget.dataset.widgetId;if(!id||$('[data-restore-widget="'+CSS.escape(id)+'"]',dock))return;
       const button=document.createElement('button');button.type='button';button.dataset.restoreWidget=id;
@@ -226,7 +235,7 @@
         const widget=control.closest(selector);if(!widget)return;
         if(control.matches('[data-expand-widget]')){
           const opening=!widget.classList.contains('widget-is-expanded');
-          $('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));
+          $$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));
           widget.classList.toggle('widget-is-expanded',opening);
           control.setAttribute('aria-pressed',opening?'true':'false');
           return;
@@ -234,8 +243,8 @@
         if(control.matches('[data-rearrange-widget]')){
           const active=!app.classList.contains('biglwa-rearrange-mode');
           app.classList.toggle('biglwa-rearrange-mode',active);
-          $(selector,app).forEach(w=>w.draggable=active);
-          $('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));
+          $$(selector,app).forEach(w=>w.draggable=active);
+          $$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));
           return;
         }
         widget.classList.remove('widget-is-expanded');
@@ -249,9 +258,9 @@
       const restore=event.target.closest('[data-restore-widget]');
       if(restore){const widget=$('[data-widget-id="'+CSS.escape(restore.dataset.restoreWidget)+'"]',app);if(widget)widget.classList.remove('widget-is-minimized');restore.remove();saveMinimized();return}
       const green=event.target.closest('[data-expand-widget]');
-      if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
+      if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
       const yellow=event.target.closest('[data-rearrange-widget]');
-      if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$(selector,app).forEach(w=>w.draggable=active);$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
+      if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=active);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
       const red=event.target.closest('[data-dock-widget]');
       if(red){event.preventDefault();event.stopPropagation();const widget=red.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized');addRestore(widget);saveMinimized();return}
     });
