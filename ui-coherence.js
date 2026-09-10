@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-real-img-topbar-4';
+  const V='20260910-studio-controls-1';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -15,7 +15,11 @@
       #studioApp .biglwa-top-block-logo{display:none!important}
       #studioApp .search-wrap{grid-column:2!important;max-width:none!important;width:100%!important;justify-self:stretch!important}
       #studioApp .top-actions{grid-column:3!important}
-      #studioApp .sidebar-top>nav{display:none!important}
+      #studioApp .profile-card{visibility:visible!important;opacity:1!important}
+      #studioApp .profile-avatar{border-radius:14px!important}
+      #studioApp #editProfileBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;visibility:visible!important;opacity:1!important;min-width:146px!important}
+      #studioApp .sidebar-theme-controls{display:grid!important;grid-template-columns:repeat(2,36px)!important}
+      #studioApp .sidebar-theme-btn{display:grid!important;visibility:visible!important;opacity:1!important}
       #studioApp #sidebarCollapse{display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;width:100%!important;min-height:34px!important;border:1px solid rgba(80,70,64,.14)!important;border-radius:10px!important;background:rgba(255,255,255,.46)!important;color:inherit!important;margin:0 0 12px!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
       body.biglwa-sidebar-hidden #studioApp .sidebar{transform:translateX(-105%)!important;pointer-events:none!important}
       body.biglwa-sidebar-hidden #studioApp .main{margin-left:0!important}
@@ -61,15 +65,30 @@
 
   function ensureSidebar(){
     const sidebar=$('#studioApp .sidebar');if(!sidebar)return;
-    const top=$('.sidebar-top',sidebar);if(top)$$(':scope > nav',top).forEach(n=>n.remove());
-    let hide=$('#sidebarCollapse',sidebar);
-    if(!hide){hide=document.createElement('button');hide.id='sidebarCollapse';hide.className='sidebar-collapse';hide.type='button';hide.innerHTML='<span aria-hidden="true">â€¹</span><b>Hide</b>';top?.prepend(hide)}
-    const fresh=hide.cloneNode(true);hide.replaceWith(fresh);hide=fresh;
-    hide.setAttribute('aria-label','Hide left toolbar');hide.setAttribute('title','Hide left toolbar');hide.setAttribute('aria-expanded','true');
-    let show=$('#biglwaSidebarShowTab');if(!show){show=document.createElement('button');show.id='biglwaSidebarShowTab';show.type='button';show.innerHTML='â€º';show.setAttribute('aria-label','Show left toolbar');show.setAttribute('title','Show left toolbar');document.body.appendChild(show)}
-    const setHidden=(hidden)=>{document.body.classList.toggle('biglwa-sidebar-hidden',hidden);try{localStorage.setItem('biglwaSidebarHidden',hidden?'1':'0')}catch{}};
-    hide.addEventListener('click',()=>setHidden(true));show.onclick=()=>setHidden(false);
-    try{setHidden(localStorage.getItem('biglwaSidebarHidden')==='1')}catch{}
+    document.body.classList.remove('biglwa-sidebar-hidden');
+    $('#biglwaSidebarShowTab')?.remove();
+    const top=$('.sidebar-top',sidebar);
+    let toggle=$('#sidebarCollapse',sidebar);
+    if(!toggle){
+      toggle=document.createElement('button');
+      toggle.id='sidebarCollapse';
+      toggle.className='sidebar-collapse';
+      toggle.type='button';
+      top?.prepend(toggle);
+    }
+    const setCollapsed=(collapsed)=>{
+      document.body.classList.toggle('sidebar-collapsed',collapsed);
+      toggle.setAttribute('aria-expanded',collapsed?'false':'true');
+      toggle.setAttribute('aria-label',collapsed?'Expand side navigation':'Collapse side navigation');
+      toggle.setAttribute('title',collapsed?'Expand side navigation':'Collapse side navigation');
+      toggle.innerHTML=collapsed?'<span aria-hidden="true">›</span><b>More</b>':'<span aria-hidden="true">‹</span><b>Hide</b>';
+      try{localStorage.setItem('biglwaSidebarCollapsed',collapsed?'1':'0')}catch{}
+    };
+    const fresh=toggle.cloneNode(true);
+    toggle.replaceWith(fresh);
+    toggle=fresh;
+    toggle.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
+    try{setCollapsed(localStorage.getItem('biglwaSidebarCollapsed')==='1')}catch{setCollapsed(false)}
   }
 
   function widgetId(el,index){return el.dataset.widgetId||el.id||(['profile-card','music-card','aura-card'].find(c=>el.classList.contains(c))||`widget-${index+1}`).replace(/-card$/,'')}
@@ -87,7 +106,37 @@
     });
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensureLoginSnake();ensureSidebar();ensureControls()}
+  function ensureProfileEditor(){
+    const card=$('#studioApp .profile-card');
+    const button=$('#editProfileBtn',card||document);
+    const panel=$('#wallpaperPanel');
+    if(card){card.style.visibility='visible';card.style.opacity='1'}
+    if(button){
+      button.textContent='Edit Profile';
+      button.hidden=false;
+      button.style.removeProperty('display');
+      button.setAttribute('aria-controls','wallpaperPanel');
+      if(panel) button.setAttribute('aria-expanded',panel.classList.contains('panel-hidden')?'false':'true');
+    }
+  }
+
+  function ensureTheme(){
+    const light=$('#lightModeBtn');
+    const dark=$('#darkModeBtn');
+    if(!light||!dark)return;
+    const setTheme=(mode)=>{
+      const isDark=mode==='dark';
+      document.body.classList.toggle('night-mode',isDark);
+      light.setAttribute('aria-pressed',isDark?'false':'true');
+      dark.setAttribute('aria-pressed',isDark?'true':'false');
+      try{localStorage.setItem('biglwaTheme',mode)}catch{}
+    };
+    light.onclick=()=>setTheme('light');
+    dark.onclick=()=>setTheme('dark');
+    try{setTheme(localStorage.getItem('biglwaTheme')==='dark'?'dark':'light')}catch{setTheme('light')}
+  }
+
+  function run(){ensureStyles();ensureTopLogo();ensureLoginSnake();ensureSidebar();ensureControls();ensureProfileEditor();ensureTheme()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
