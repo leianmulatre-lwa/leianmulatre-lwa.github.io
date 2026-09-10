@@ -1,17 +1,19 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BIGLWA</title><style>html,body{margin:0;background:#f7f2eb}</style></head><body><script>
 (async()=>{try{
   window.__biglwaStablePatch=function(html){
-    const prepaint=`<style id="biglwa-clean-prepaint">#loginPage .login-stage>.login-brand-row,#loginPage .login-stage>.login-brand{display:none!important}#studioApp .studio-brand-row>a.brand,.policy-page .policy-top .login-brand{font-size:0!important;color:transparent!important;text-shadow:none!important}.policy-page .policy-card:not([data-canonical-policy='1']){visibility:hidden!important}.widget-window-controls:not([data-canonical-controls='1']){visibility:hidden!important}.card-head>.arrow-btn{visibility:hidden!important}#studioApp .scribble,#loginPage .login-foot{display:none!important}#studioApp .profile-card,#studioApp .welcome strong{visibility:hidden!important}body.biglwa-identity-ready #studioApp .profile-card,body.biglwa-identity-ready #studioApp .welcome strong{visibility:visible!important}#studioApp .sidebar-top>nav,#studioApp #sidebarCollapse{display:none!important}#studioApp .search-wrap{max-width:none!important;width:100%!important;justify-self:stretch!important}</style>`;
-    const scripts=`<script src="/module-pages.js?v=20260910-sidebar-clean"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-sidebar-clean"></scr`+`ipt>`;
+    const prepaint=`<style id="biglwa-clean-prepaint">#loginPage .login-stage>.login-brand-row,#loginPage .login-stage>.login-brand{display:none!important}#studioApp .studio-brand-row>a.brand,.policy-page .policy-top .login-brand{font-size:0!important;color:transparent!important;text-shadow:none!important}.policy-page .policy-card:not([data-canonical-policy='1']){visibility:hidden!important}.widget-window-controls:not([data-canonical-controls='1']){visibility:hidden!important}.card-head>.arrow-btn{visibility:hidden!important}#studioApp .scribble,#loginPage .login-foot{display:none!important}#studioApp .profile-card,#studioApp .welcome strong{visibility:hidden!important}body.biglwa-identity-ready #studioApp .profile-card,body.biglwa-identity-ready #studioApp .welcome strong{visibility:visible!important}#studioApp .sidebar-top>nav,#studioApp #sidebarCollapse{display:none!important}#studioApp .search-wrap{max-width:none!important;width:100%!important;justify-self:stretch!important}#loginCardSnakeMark{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:86px!important;margin:0 0 12px!important;visibility:visible!important;opacity:1!important}#loginCardSnakeMark img{display:block!important;width:86px!important;height:86px!important;max-width:86px!important;max-height:86px!important;object-fit:contain!important;visibility:visible!important;opacity:1!important}</style>`;
+    const scripts=`<script src="/module-pages.js?v=20260910-login-snake"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-login-snake"></scr`+`ipt>`;
+    const snake=`<div id="loginCardSnakeMark" aria-hidden="true"><img src="/assets/biglwa-emblem.webp?v=20260910-login-snake" alt="" width="86" height="86" decoding="sync"></div>`;
     html=html.replace('</head>',prepaint+'</head>');
+    if(!html.includes('id="loginCardSnakeMark"')) html=html.replace('<div class="login-card-head">',snake+'<div class="login-card-head">');
     html=html.replace('</body>',scripts+'</body>');
     return html;
   };
-  const boot=await fetch('/bootstrap-v2.html?v=20260910-sidebar-clean').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
+  const boot=await fetch('/bootstrap-v2.html?v=20260910-login-snake').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
   const m=boot.match(/<script>([\s\S]*?)<\/script>/i);
   if(!m) throw new Error('bootstrap script missing');
   let js=m[1];
-  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260910-sidebar-clean');
+  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260910-login-snake');
   js=js.replace("js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);'+marker);","js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);html=window.__biglwaStablePatch(html);'+marker);");
   (0,eval)(js);
 }catch(e){document.body.innerHTML='<main style="font-family:system-ui;padding:2rem"><h1>BIGLWA</h1><p>Loading failed. Refresh to try again.</p></main>';console.error(e)}})();
