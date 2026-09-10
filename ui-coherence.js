@@ -34,7 +34,8 @@
 
   function ensureTopLogo(){
     const row=$('#studioApp .studio-brand-row');
-    if(!row)return;
+    if(!row)return false;
+    if(row.dataset.biglwaTopLogo==='1'&&row.querySelector('a.brand.biglwa-block-brand img'))return true;
     row.innerHTML='';
     const a=document.createElement('a');
     a.className='brand biglwa-block-brand';
@@ -47,6 +48,8 @@
     img.decoding='sync';
     a.appendChild(img);
     row.appendChild(a);
+    row.dataset.biglwaTopLogo='1';
+    return true;
   }
 
   function ensureLoginSnake(){
@@ -88,4 +91,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
+  const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
+  setTimeout(()=>clearInterval(topLogoTimer),30000);
 })();
