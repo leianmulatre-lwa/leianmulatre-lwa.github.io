@@ -1,5 +1,5 @@
-(()=>{
-  const V='20260910-real-img-topbar-1';
+﻿(()=>{
+  const V='20260910-real-img-topbar-3';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -42,7 +42,7 @@
     a.href='/studio';
     a.setAttribute('aria-label','BIGLWA Studio');
     const img=document.createElement('img');
-    img.src='/assets/biglwa-header-user-final.png?v=20260910-real-img-topbar-1';
+    img.src='/assets/biglwa-header-ready.png?v=20260910-real-img-topbar-2';
     img.alt='';
     img.setAttribute('aria-hidden','true');
     img.decoding='sync';
@@ -63,10 +63,10 @@
     const sidebar=$('#studioApp .sidebar');if(!sidebar)return;
     const top=$('.sidebar-top',sidebar);if(top)$$(':scope > nav',top).forEach(n=>n.remove());
     let hide=$('#sidebarCollapse',sidebar);
-    if(!hide){hide=document.createElement('button');hide.id='sidebarCollapse';hide.className='sidebar-collapse';hide.type='button';hide.innerHTML='<span aria-hidden="true">‹</span><b>Hide</b>';top?.prepend(hide)}
+    if(!hide){hide=document.createElement('button');hide.id='sidebarCollapse';hide.className='sidebar-collapse';hide.type='button';hide.innerHTML='<span aria-hidden="true">â€¹</span><b>Hide</b>';top?.prepend(hide)}
     const fresh=hide.cloneNode(true);hide.replaceWith(fresh);hide=fresh;
     hide.setAttribute('aria-label','Hide left toolbar');hide.setAttribute('title','Hide left toolbar');hide.setAttribute('aria-expanded','true');
-    let show=$('#biglwaSidebarShowTab');if(!show){show=document.createElement('button');show.id='biglwaSidebarShowTab';show.type='button';show.innerHTML='›';show.setAttribute('aria-label','Show left toolbar');show.setAttribute('title','Show left toolbar');document.body.appendChild(show)}
+    let show=$('#biglwaSidebarShowTab');if(!show){show=document.createElement('button');show.id='biglwaSidebarShowTab';show.type='button';show.innerHTML='â€º';show.setAttribute('aria-label','Show left toolbar');show.setAttribute('title','Show left toolbar');document.body.appendChild(show)}
     const setHidden=(hidden)=>{document.body.classList.toggle('biglwa-sidebar-hidden',hidden);try{localStorage.setItem('biglwaSidebarHidden',hidden?'1':'0')}catch{}};
     hide.addEventListener('click',()=>setHidden(true));show.onclick=()=>setHidden(false);
     try{setHidden(localStorage.getItem('biglwaSidebarHidden')==='1')}catch{}
