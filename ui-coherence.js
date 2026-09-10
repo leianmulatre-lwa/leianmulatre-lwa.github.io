@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-profile-layout-5';
+  const V='20260910-profile-card-style-6';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -24,7 +24,24 @@
       #studioApp .profile-card .profile-name-line h1{font-size:18px!important;letter-spacing:-.3px!important;font-weight:600!important}
       #studioApp .profile-card #editProfileBtn{position:absolute!important;top:20px!important;right:22px!important;width:auto!important;min-width:0!important;padding:8px 13px!important;font-size:12px!important;line-height:1!important}
       #studioApp .profile-card>.widget-window-controls{position:absolute!important;right:22px!important;bottom:18px!important;margin:0!important}
-      #studioApp .profile-card .bio{margin-top:9px!important}
+      #studioApp .profile-card .bio{margin-top:10px!important}
+      #studioApp .profile-card{width:min(700px,calc(100% - 340px))!important;height:250px!important;min-height:250px!important;max-height:250px!important;bottom:auto!important;padding:28px 30px!important;grid-template-columns:118px minmax(0,1fr)!important;gap:26px!important;border-radius:22px!important;background:linear-gradient(135deg,rgba(255,252,247,.94),rgba(247,238,233,.90))!important;border:1px solid rgba(255,255,255,.74)!important;box-shadow:0 20px 55px rgba(54,35,30,.14)!important;overflow:hidden!important}
+      #studioApp .profile-card .profile-avatar{width:118px!important;height:118px!important;border-radius:18px!important;font-family:Georgia,"Times New Roman",serif!important;font-size:54px!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)!important}
+      #studioApp .profile-card .profile-copy{display:block!important;padding-right:100px!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important}
+      #studioApp .profile-card .profile-display-name{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:27px!important;line-height:1.08!important;font-weight:760!important;letter-spacing:-.8px!important;margin:0 0 2px!important}
+      #studioApp .profile-card .profile-name-line{gap:6px!important;margin-bottom:12px!important}
+      #studioApp .profile-card .profile-name-line h1{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:14px!important;line-height:1.2!important;font-weight:600!important;letter-spacing:.1px!important;color:var(--widget-muted,#6e6962)!important}
+      #studioApp .profile-card .verified{width:16px!important;height:16px!important;font-size:10px!important}
+      #studioApp .profile-card .bio{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:14px!important;line-height:1.48!important;max-width:430px!important;color:var(--widget-ink,#272321)!important;margin:0 0 12px!important}
+      #studioApp .profile-card .meta-row{font-size:11px!important;color:var(--widget-muted,#746c66)!important;gap:14px!important;margin-bottom:10px!important}
+      #studioApp .profile-card .meta-row a{color:rgb(var(--aura-rgb,216,95,109))!important}
+      #studioApp .profile-card .stats{font-size:11px!important;gap:18px!important;margin:0!important;color:var(--widget-muted,#746c66)!important}
+      #studioApp .profile-card .stats b{font-size:13px!important;color:var(--widget-ink,#272321)!important}
+      #studioApp .profile-card .real-rank{position:absolute!important;left:174px!important;right:30px!important;bottom:24px!important;max-width:none!important;margin:0!important;padding-top:11px!important;border-top:1px solid rgba(80,65,58,.11)!important;grid-template-columns:auto auto minmax(80px,1fr) auto!important}
+      #studioApp .profile-card #editProfileBtn{background:rgba(255,255,255,.52)!important;color:var(--widget-ink,#272321)!important;border:1px solid rgba(65,54,49,.18)!important;box-shadow:none!important;font-weight:650!important;letter-spacing:.1px!important}
+      #studioApp .profile-card #editProfileBtn:hover{background:rgba(255,255,255,.88)!important;box-shadow:0 6px 16px rgba(50,37,32,.08)!important}
+      #studioApp .profile-card>.widget-window-controls{left:30px!important;right:auto!important;bottom:24px!important}
+      @media(max-width:900px){#studioApp .profile-card{width:auto!important;right:14px!important;height:auto!important;min-height:285px!important;max-height:none!important;grid-template-columns:86px minmax(0,1fr)!important;padding:22px!important;gap:18px!important}#studioApp .profile-card .profile-avatar{width:86px!important;height:86px!important;font-size:40px!important}#studioApp .profile-card .profile-copy{padding-right:0!important}#studioApp .profile-card .real-rank{left:22px!important;right:22px!important;bottom:24px!important}#studioApp .profile-card>.widget-window-controls{display:none!important}}
       #studioApp .profile-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
       #studioApp .profile-editor-grid label{display:block!important;margin:0!important;font-size:10px!important}
       #studioApp .profile-editor-grid label.full{grid-column:1/-1}
