@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-profile-stack-8';
+  const V='20260910-profile-side-layout-9';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -62,8 +62,16 @@
       #studioApp .profile-card #editProfileBtn{top:20px!important;right:22px!important;background:#1d1b1a!important;color:#fff!important;border:0!important;border-radius:999px!important;padding:8px 17px!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:11px!important;font-weight:550!important}
       #studioApp .profile-card>.widget-window-controls{display:none!important}
       #studioApp .hero{min-height:430px!important}
-      #studioApp .music-card{left:22px!important;top:304px!important;bottom:auto!important;z-index:4!important}
-      #studioApp .aura-card{left:calc(22px + 344px)!important;top:304px!important;bottom:auto!important;z-index:4!important}
+      #studioApp .profile-card{width:640px!important}
+      #studioApp .music-card{left:684px!important;top:22px!important;bottom:auto!important;width:330px!important;z-index:4!important}
+      #studioApp .aura-card{left:1028px!important;top:22px!important;bottom:auto!important;width:145px!important;z-index:4!important}
+      #studioApp .hero{min-height:330px!important}
+      @media(max-width:1250px) and (min-width:901px){
+        #studioApp .profile-card{width:calc(100% - 44px)!important}
+        #studioApp .music-card{left:22px!important;top:306px!important;width:330px!important}
+        #studioApp .aura-card{left:366px!important;top:306px!important;width:145px!important}
+        #studioApp .hero{min-height:430px!important}
+      }
       @media(max-width:900px){#studioApp .profile-card{left:14px!important;top:20px!important;width:calc(100% - 28px)!important;height:auto!important;min-height:330px!important;max-height:none!important;grid-template-columns:100px minmax(0,1fr)!important}#studioApp .profile-card .profile-identity-rail{padding:18px 10px!important}#studioApp .profile-card .profile-avatar{width:76px!important;height:76px!important;font-size:36px!important}#studioApp .profile-card .profile-copy{padding:22px 16px 72px!important}#studioApp .profile-card .stats{grid-template-columns:1fr 1fr!important;row-gap:9px!important}#studioApp .profile-card .real-rank{left:116px!important;right:16px!important}}
       #studioApp .profile-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
       #studioApp .profile-editor-grid label{display:block!important;margin:0!important;font-size:10px!important}
