@@ -1,20 +1,20 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BIGLWA</title><style>html,body{margin:0;background:#f7f2eb}</style></head><body><script>
 (async()=>{try{
   window.__biglwaStablePatch=function(html){
-    const prepaint=`<style id="biglwa-clean-prepaint">#loginPage .login-stage>.login-brand-row,#loginPage .login-stage>.login-brand{display:none!important}#studioApp .studio-brand-row>a.brand,.policy-page .policy-top .login-brand{font-size:0!important;color:transparent!important;text-shadow:none!important}.policy-page .policy-card:not([data-canonical-policy='1']){visibility:hidden!important}.widget-window-controls{visibility:visible!important;opacity:1!important}.card-head>.arrow-btn{visibility:hidden!important}#studioApp .scribble,#loginPage .login-foot{display:none!important}#studioApp .profile-card,#studioApp .welcome strong{visibility:hidden!important}body.biglwa-identity-ready #studioApp .profile-card,body.biglwa-identity-ready #studioApp .welcome strong{visibility:visible!important}#studioApp .sidebar-top>nav{display:none!important}#studioApp #sidebarCollapse{display:flex!important}#studioApp .search-wrap{max-width:none!important;width:100%!important;justify-self:stretch!important}#studioApp .studio-brand-row{display:flex!important;align-items:center!important;justify-content:flex-start!important}#studioApp .biglwa-top-block-logo{display:block!important;height:48px!important;width:auto!important;max-width:150px!important;object-fit:contain!important;visibility:visible!important;opacity:1!important}</style>`;
-    const emblemCss=`<link rel="stylesheet" href="/login-emblem-inline.css?v=20260910-inline-emblem-2">`;
-    const scripts=`<script src="/module-pages.js?v=20260910-inline-emblem-2"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-inline-emblem-2"></scr`+`ipt><script src="/ui-coherence.js?v=20260910-inline-emblem-2"></scr`+`ipt>`;
-    const blockBrand=`<a class="brand biglwa-block-brand" href="/studio" aria-label="BIGLWA Studio"><img class="biglwa-top-block-logo" src="/assets/biglwa-header-user-final.png?v=20260910-inline-emblem-2" alt="BIGLWA" decoding="sync"></a>`;
-    html=html.replace('</head>',prepaint+emblemCss+'</head>');
+    const prepaint=`<style id="biglwa-clean-prepaint">#loginPage .login-stage>.login-brand-row,#loginPage .login-stage>.login-brand{display:none!important}#studioApp .studio-brand-row>a.brand,.policy-page .policy-top .login-brand{font-size:0!important;color:transparent!important;text-shadow:none!important}.policy-page .policy-card:not([data-canonical-policy='1']){visibility:hidden!important}.widget-window-controls{visibility:visible!important;opacity:1!important}.card-head>.arrow-btn{visibility:hidden!important}#studioApp .scribble,#loginPage .login-foot{display:none!important}#studioApp .profile-card,#studioApp .welcome strong{visibility:hidden!important}body.biglwa-identity-ready #studioApp .profile-card,body.biglwa-identity-ready #studioApp .welcome strong{visibility:visible!important}#studioApp .sidebar-top>nav{display:none!important}#studioApp #sidebarCollapse{display:flex!important}#studioApp .search-wrap{max-width:none!important;width:100%!important;justify-self:stretch!important}#studioApp .studio-brand-row{display:flex!important;align-items:center!important;justify-content:flex-start!important}</style>`;
+    const imageCss=`<link rel="stylesheet" href="/login-emblem-inline.css?v=20260910-inline-topbar-1"><link rel="stylesheet" href="/topbar-lockup-inline.css?v=20260910-inline-topbar-1">`;
+    const scripts=`<script src="/module-pages.js?v=20260910-inline-topbar-1"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-inline-topbar-1"></scr`+`ipt><script src="/ui-coherence.js?v=20260910-inline-topbar-1"></scr`+`ipt>`;
+    const blockBrand=`<a class="brand biglwa-block-brand" href="/studio" aria-label="BIGLWA Studio"></a>`;
+    html=html.replace('</head>',prepaint+imageCss+'</head>');
     html=html.replace('<a class="brand" href="/studio" aria-label="BIGLWA Studio">BIGLWA</a>',blockBrand);
     html=html.replace('</body>',scripts+'</body>');
     return html;
   };
-  const boot=await fetch('/bootstrap-v2.html?v=20260910-inline-emblem-2').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
+  const boot=await fetch('/bootstrap-v2.html?v=20260910-inline-topbar-1').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
   const m=boot.match(/<script>([\s\S]*?)<\/script>/i);
   if(!m) throw new Error('bootstrap script missing');
   let js=m[1];
-  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260910-inline-emblem-2');
+  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260910-inline-topbar-1');
   js=js.replace("js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);'+marker);","js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);html=window.__biglwaStablePatch(html);'+marker);");
   (0,eval)(js);
 }catch(e){document.body.innerHTML='<main style="font-family:system-ui;padding:2rem"><h1>BIGLWA</h1><p>Loading failed. Refresh to try again.</p></main>';console.error(e)}})();
