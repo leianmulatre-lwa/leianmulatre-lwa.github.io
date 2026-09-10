@@ -46,7 +46,7 @@
     a.href='/studio';
     a.setAttribute('aria-label','BIGLWA Studio');
     const img=document.createElement('img');
-    img.src='/assets/biglwa-header-ready.png?v=20260910-real-img-topbar-2';
+    img.src='/assets/biglwa-header-ready.png?v=20260910-mutual-good-faith-2';
     img.alt='';
     img.setAttribute('aria-hidden','true');
     img.decoding='sync';
@@ -136,10 +136,31 @@
     try{setTheme(localStorage.getItem('biglwaTheme')==='dark'?'dark':'light')}catch{setTheme('light')}
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensureLoginSnake();ensureSidebar();ensureControls();ensureProfileEditor();ensureTheme()}
+  function ensurePolicyBrands(){
+    const links=$$('.policy-page .policy-top > .login-brand, .policy-page header.policy-top .login-brand');
+    if(!links.length)return false;
+    let done=0;
+    links.forEach(a=>{
+      if(a.dataset.biglwaPolicyLogo==='1'||a.querySelector('img')){done++;return}
+      const img=document.createElement('img');
+      img.src='/assets/biglwa-header-ready.png';
+      img.alt='';
+      img.setAttribute('aria-hidden','true');
+      img.decoding='sync';
+      img.style.cssText='display:block;width:auto;height:34px;max-height:34px;object-fit:contain;object-position:left center';
+      a.textContent='';
+      a.appendChild(img);
+      a.dataset.biglwaPolicyLogo='1';
+      done++;
+    });
+    return done===links.length;
+  }
+
+  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureProfileEditor();ensureTheme()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
   const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
-  setTimeout(()=>clearInterval(topLogoTimer),30000);
+  const policyLogoTimer=setInterval(()=>{if(ensurePolicyBrands())clearInterval(policyLogoTimer)},400);
+  setTimeout(()=>{clearInterval(topLogoTimer);clearInterval(policyLogoTimer)},30000);
 })();
