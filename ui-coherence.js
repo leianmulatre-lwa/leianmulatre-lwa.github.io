@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-studio-hero-grid';
+  const V='20260910-sidebar-widgets-10';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -94,6 +94,17 @@
       .widget-window-controls .window-light.green{background:#58a36d!important}
       .widget-window-controls .window-light.yellow{background:#e5bd45!important}
       .widget-window-controls .window-light.red{background:#df5b56!important}
+      body.sidebar-collapsed #studioApp .sidebar-theme-controls{display:flex!important;flex-direction:column!important;grid-template-columns:none!important;align-items:center!important;justify-content:center!important;gap:7px!important;width:100%!important}
+      body.sidebar-collapsed #studioApp .sidebar-theme-btn{width:32px!important;height:32px!important;min-width:32px!important;margin:0!important;padding:0!important}
+      #studioApp .widget-is-minimized{display:none!important}
+      #studioApp .widget-is-expanded{position:fixed!important;inset:96px 44px 34px 132px!important;width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;margin:0!important;z-index:10000!important;overflow:auto!important;column-span:none!important}
+      body.sidebar-collapsed #studioApp .widget-is-expanded{left:78px!important}
+      #studioApp.biglwa-rearrange-mode .masonry .card{outline:2px dashed rgba(var(--aura-rgb,216,95,109),.62)!important;outline-offset:3px!important;cursor:grab!important}
+      #studioApp .widget-dragging{opacity:.42!important}
+      #minimizedWidgetDock{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;margin:8px 0}
+      #minimizedWidgetDock button{border:1px solid rgba(80,70,64,.16);border-radius:9px;background:rgba(255,255,255,.58);padding:7px 6px;color:inherit;font-size:10px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      body.sidebar-collapsed #minimizedWidgetDock button{width:34px;height:34px;padding:0;font-size:0;align-self:center}
+      body.sidebar-collapsed #minimizedWidgetDock button::first-letter{font-size:12px}
       @media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:105px!important;height:59px!important;min-width:105px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand img{width:98px!important;max-width:98px!important;max-height:56px!important}}
       @media(max-width:720px){#studioApp .topbar{grid-template-columns:94px minmax(0,1fr) auto!important;gap:8px!important;padding-left:12px!important;padding-right:12px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:78px!important;height:44px!important;min-width:78px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand img{width:73px!important;max-width:73px!important;max-height:42px!important}}
       /* 2026-09-10 studio hero: clean two-column grid, no card overlap */
@@ -181,6 +192,41 @@
       controls.innerHTML=`<button class="window-light green" type="button" data-expand-widget="${id}" aria-label="Open ${label} page" title="Open ${label} page"></button><button class="window-light yellow" type="button" data-rearrange-widget="${id}" aria-label="Rearrange widgets" title="Rearrange widgets" aria-pressed="false"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to left toolbar" title="Move to left toolbar"></button>`;
       $$('.arrow-btn',el).forEach(b=>b.style.display='none');
     });
+  }
+
+  function ensureWidgetActions(){
+    const app=$('#studioApp'),sidebar=$('#studioApp .sidebar');if(!app||!sidebar)return;
+    let dock=$('#minimizedWidgetDock',sidebar);
+    if(!dock){dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.setAttribute('aria-label','Minimized widgets');const bottom=$('.sidebar-bottom',sidebar)||sidebar;bottom.prepend(dock)}
+    const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
+    const widgets=$(selector,app);
+    let minimized=[];try{minimized=JSON.parse(localStorage.getItem('biglwaMinimizedWidgets')||'[]')}catch{}
+    const saveMinimized=()=>{try{localStorage.setItem('biglwaMinimizedWidgets',JSON.stringify($('.widget-is-minimized',app).map(w=>w.dataset.widgetId)))}catch{}};
+    const addRestore=widget=>{
+      const id=widget.dataset.widgetId;if(!id||$('[data-restore-widget="'+CSS.escape(id)+'"]',dock))return;
+      const button=document.createElement('button');button.type='button';button.dataset.restoreWidget=id;
+      const label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');button.textContent=label;button.title='Restore '+label;button.setAttribute('aria-label','Restore '+label);dock.appendChild(button);
+    };
+    widgets.forEach((widget,index)=>{
+      if(!widget.dataset.widgetId)widget.dataset.widgetId=widgetId(widget,index);
+      if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
+      if(minimized.includes(widget.dataset.widgetId)){widget.classList.add('widget-is-minimized');addRestore(widget)}
+    });
+    if(app.dataset.widgetActionsBound==='1')return;app.dataset.widgetActionsBound='1';
+    let dragging=null;
+    app.addEventListener('click',event=>{
+      const restore=event.target.closest('[data-restore-widget]');
+      if(restore){const widget=$('[data-widget-id="'+CSS.escape(restore.dataset.restoreWidget)+'"]',app);if(widget)widget.classList.remove('widget-is-minimized');restore.remove();saveMinimized();return}
+      const green=event.target.closest('[data-expand-widget]');
+      if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
+      const yellow=event.target.closest('[data-rearrange-widget]');
+      if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$(selector,app).forEach(w=>w.draggable=active);$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
+      const red=event.target.closest('[data-dock-widget]');
+      if(red){event.preventDefault();event.stopPropagation();const widget=red.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized');addRestore(widget);saveMinimized();return}
+    });
+    app.addEventListener('dragstart',event=>{const widget=event.target.closest(selector);if(!app.classList.contains('biglwa-rearrange-mode')||!widget)return;dragging=widget;widget.classList.add('widget-dragging');if(event.dataTransfer)event.dataTransfer.effectAllowed='move'});
+    app.addEventListener('dragover',event=>{if(!dragging)return;const target=event.target.closest(selector);if(!target||target===dragging||target.parentNode!==dragging.parentNode)return;event.preventDefault();const box=target.getBoundingClientRect();target.parentNode.insertBefore(dragging,event.clientY>box.top+box.height/2?target.nextSibling:target)});
+    app.addEventListener('dragend',()=>{if(dragging)dragging.classList.remove('widget-dragging');dragging=null});
   }
 
   function ensureProfileEditor(){
@@ -289,7 +335,7 @@
     return done===links.length;
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureProfileEditor();ensureTheme()}
+  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureTheme()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
