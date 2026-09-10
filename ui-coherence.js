@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-studio-controls-1';
+  const V='20260910-profile-editor-4';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -17,6 +17,9 @@
       #studioApp .top-actions{grid-column:3!important}
       #studioApp .profile-card{visibility:visible!important;opacity:1!important}
       #studioApp .profile-avatar{border-radius:14px!important}
+      #studioApp .profile-copy>.eyebrow{display:none!important}
+      #studioApp #wallpaperPanel:not(.panel-hidden){display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:1000!important}
+      #studioApp #wallpaperPanel{position:fixed!important;right:24px!important;top:92px!important;max-height:calc(100vh - 116px)!important;overflow:auto!important}
       #studioApp #editProfileBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;visibility:visible!important;opacity:1!important;min-width:146px!important}
       #studioApp .sidebar-theme-controls{display:grid!important;grid-template-columns:repeat(2,36px)!important}
       #studioApp .sidebar-theme-btn{display:grid!important;visibility:visible!important;opacity:1!important}
@@ -108,15 +111,47 @@
 
   function ensureProfileEditor(){
     const card=$('#studioApp .profile-card');
-    const button=$('#editProfileBtn',card||document);
+    if(!card)return;
+    card.style.visibility='visible'; card.style.opacity='1';
+    const eyebrow=$('.profile-copy > .eyebrow',card); if(eyebrow)eyebrow.remove();
+    const bio=$('.bio',card);
+    if(bio){const stored=localStorage.getItem('biglwaProfileBio');if(stored)bio.textContent=stored}
     const panel=$('#wallpaperPanel');
-    if(card){card.style.visibility='visible';card.style.opacity='1'}
-    if(button){
-      button.textContent='Edit Profile';
-      button.hidden=false;
-      button.style.removeProperty('display');
-      button.setAttribute('aria-controls','wallpaperPanel');
-      if(panel) button.setAttribute('aria-expanded',panel.classList.contains('panel-hidden')?'false':'true');
+    if(!panel)return;
+
+    if(!$('#profileBioEditor',panel)){
+      const section=document.createElement('div');
+      section.className='customize-section profile-bio-section';
+      section.innerHTML='<h3>Bio</h3><p>Edit the biography shown on your profile card.</p><textarea id="profileBioEditor" rows="4" maxlength="300" aria-label="Profile bio"></textarea><button type="button" class="secondary-btn" id="saveProfileBtn">Save Profile</button>';
+      const title=$('.panel-title',panel);
+      if(title)title.insertAdjacentElement('afterend',section);else panel.prepend(section);
+      const input=$('#profileBioEditor',panel);
+      input.value=bio?bio.textContent.trim():'';
+      input.style.cssText='width:100%;resize:vertical;margin:0 0 10px;padding:10px;border:1px solid rgba(80,70,64,.22);border-radius:9px;background:rgba(255,255,255,.72);color:inherit;font:inherit';
+      input.addEventListener('input',()=>{if(bio)bio.textContent=input.value});
+      $('#saveProfileBtn',panel).addEventListener('click',()=>{
+        const value=input.value.trim();localStorage.setItem('biglwaProfileBio',value);if(bio)bio.textContent=value;
+        panel.classList.add('panel-hidden');const b=$('#editProfileBtn');if(b)b.setAttribute('aria-expanded','false');
+      });
+    }
+
+    let button=$('#editProfileBtn',card);
+    if(button&&button.dataset.biglwaProfileBound!=='1'){
+      const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;
+      button.dataset.biglwaProfileBound='1';button.type='button';button.textContent='Edit Profile';
+      button.addEventListener('click',e=>{
+        e.preventDefault();e.stopPropagation();
+        const open=panel.classList.contains('panel-hidden');
+        panel.hidden=false;panel.classList.toggle('panel-hidden',!open);
+        button.setAttribute('aria-expanded',open?'true':'false');
+        if(open){const input=$('#profileBioEditor',panel);if(input&&bio)input.value=bio.textContent.trim()}
+      });
+    }
+    if(button){button.hidden=false;button.style.pointerEvents='auto';button.setAttribute('aria-controls','wallpaperPanel')}
+    let close=$('#closePanel',panel);
+    if(close&&close.dataset.biglwaProfileBound!=='1'){
+      const fresh=close.cloneNode(true);close.replaceWith(fresh);close=fresh;close.dataset.biglwaProfileBound='1';
+      close.addEventListener('click',e=>{e.preventDefault();panel.classList.add('panel-hidden');if(button)button.setAttribute('aria-expanded','false')});
     }
   }
 
