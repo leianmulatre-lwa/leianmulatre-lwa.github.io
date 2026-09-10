@@ -2,15 +2,15 @@
 (async()=>{try{
   window.__biglwaStablePatch=function(html){
     const prepaint=`<style id="biglwa-clean-prepaint">#loginPage .login-stage>.login-brand-row,#loginPage .login-stage>.login-brand{display:none!important}#studioApp .studio-brand-row>a.brand{font-size:0!important;color:transparent!important;text-shadow:none!important}.widget-window-controls{visibility:visible!important;opacity:1!important}.card-head>.arrow-btn{visibility:hidden!important}#studioApp .scribble,#loginPage .login-foot{display:none!important}#studioApp .profile-card,#studioApp .welcome strong{visibility:hidden!important}body.biglwa-identity-ready #studioApp .profile-card,body.biglwa-identity-ready #studioApp .welcome strong{visibility:visible!important}#studioApp .sidebar-top>nav{display:none!important}#studioApp #sidebarCollapse{display:flex!important}#studioApp .search-wrap{max-width:none!important;width:100%!important;justify-self:stretch!important}</style>`;
-    const imageCss=`<link rel="stylesheet" href="/login-emblem-inline.css?v=20260910-affidavit-inline-2"><link rel="stylesheet" href="/topbar-lockup-inline.css?v=20260910-affidavit-inline-2">`;
-    const scripts=`<script src="/module-pages.js?v=20260910-affidavit-inline-2"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-affidavit-inline-2"></scr`+`ipt><script src="/ui-coherence.js?v=20260910-affidavit-inline-2"></scr`+`ipt>`;
+    const imageCss=`<link rel="stylesheet" href="/login-emblem-inline.css?v=20260910-affidavit-private-fix-1"><link rel="stylesheet" href="/topbar-lockup-inline.css?v=20260910-affidavit-private-fix-1">`;
+    const scripts=`<script src="/module-pages.js?v=20260910-affidavit-private-fix-1"></scr`+`ipt><script src="/runtime-stable.js?v=20260910-affidavit-private-fix-1"></scr`+`ipt><script src="/ui-coherence.js?v=20260910-affidavit-private-fix-1"></scr`+`ipt>`;
     const finalTopbar=`<style id="biglwa-topbar-final">#studioApp .topbar::before{content:none!important;display:none!important}#studioApp .studio-brand-row{display:flex!important;grid-column:1!important;align-items:center!important;justify-content:flex-start!important}#studioApp .topbar{grid-template-columns:minmax(150px,180px) minmax(360px,1fr) minmax(250px,350px)!important;gap:14px!important;align-items:center!important}#studioApp .search-wrap{grid-column:2!important}#studioApp .top-actions{grid-column:3!important}@media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}}@media(max-width:720px){#studioApp .topbar{grid-template-columns:94px minmax(0,1fr) auto!important;gap:8px!important}}</style>`;
     const affidavitSection=`<section class="policy-page route-screen" id="affidavitPage" aria-label="BIGLWA Affidavit of Good Faith">
       <div class="policy-shell">
         <header class="policy-top"><a class="login-brand" href="/" data-return-home>BIGLWA</a><a class="policy-back" href="/studio" data-return-app>Back</a></header>
         <article class="policy-card policy-affidavit-card">
           <div class="window-lights policy-lights" aria-hidden="true"><span class="window-light red"></span><span class="window-light yellow"></span><span class="window-light green"></span></div>
-          <h1>AFFIDAVIT OF GOOD FAITH, EDUCATIONAL PURPOSE, AND PUBLIC INTEREST</h1>
+          <h1 class="affidavit-page-title">AFFIDAVIT OF GOOD FAITH, EDUCATIONAL PURPOSE, AND PUBLIC INTEREST</h1>
           <p>I, <strong>Leian</strong>, hereby affirm that the work, research, testimony, documentation, media, and public commentary connected to this project are being created in good faith and for the purpose of education, cultural preservation, public awareness, and community protection.</p>
           <p>This project is intended to help the American public better understand the historical, political, social, racial, technological, and cultural forces shaping our present moment. Its purpose is not to harm, exploit, harass, defame, or endanger any person or community, but to document truth, encourage critical thinking, and provide language for people who have been harmed, misled, silenced, surveilled, or taken advantage of by powerful institutions and systems.</p>
           <p>This work may address topics including, but not limited to, American empire, propaganda, racial capitalism, anti-Blackness, colorism, Haitian history and diaspora, queerness, gender, class, education, digital exploitation, artificial intelligence, platform culture, beauty standards, youth vulnerability, and the ways marginalized people are often used before they are protected.</p>
@@ -18,22 +18,23 @@
           <p>Any personal experiences shared through this project will be presented as testimony, reflection, memory, opinion, research, or documented evidence to the best of my ability. I affirm that I will make reasonable efforts to distinguish between fact, belief, interpretation, and allegation where appropriate. I further affirm that this project is not created for revenge, misinformation, or public harm, but for truth-telling, education, accountability, healing, and collective understanding.</p>
           <p>This project is bigger than one individual. It is an archive, a warning, a love letter, and a tool for those who come after us. Its purpose is to help people see what has been hidden, question what they have been taught, and protect themselves and their communities with knowledge.</p>
           <p>I make this statement voluntarily and in good faith.</p>
-          <p class="affidavit-verbatim-signature"><strong>Signed:</strong> Leian Mulatre</p><p><strong>Printed Name:</strong> Leian Mulatre</p><p><strong>Date:</strong> 06/23/26</p><p><strong>Location:</strong> 3371 Grant Rd SE</p>
+          <p class="affidavit-verbatim-signature"><strong>Signed:</strong> Leian Stanley</p>
           <nav class="policy-links"><a href="/rights" data-policy-route="rights">Rights &amp; Likeness</a><a href="/privacy" data-policy-route="privacy">Privacy</a><a href="/terms" data-policy-route="terms">Terms</a></nav>
         </article>
       </div>
     </section>`;
     html=html.replace(/<section class="policy-page route-screen" id="affidavitPage"[\s\S]*?<\/section>\s*(?=<div class="app-shell route-screen" id="studioApp">)/,affidavitSection+'\n\n  ');
     html=html.replace('<div><b>04 · Escalation can be real</b><p>Depending on the facts, BIGLWA may support takedowns or cease-and-desist correspondence and may coordinate referral to licensed counsel.</p></div>','');
-    html=html.replace('</head>',prepaint+imageCss+'</head>');
+    const affidavitCss=`<style id="biglwa-affidavit-title-size">#affidavitPage .affidavit-page-title{font-size:clamp(30px,4.1vw,48px)!important;line-height:1.02!important;letter-spacing:-1.5px!important;max-width:820px}@media(max-width:620px){#affidavitPage .affidavit-page-title{font-size:28px!important;letter-spacing:-.7px!important}}</style>`;
+    html=html.replace('</head>',prepaint+imageCss+affidavitCss+'</head>');
     html=html.replace('</body>',scripts+finalTopbar+'</body>');
     return html;
   };
-  const boot=await fetch('/bootstrap-v2.html?v=20260910-affidavit-inline-2').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
+  const boot=await fetch('/bootstrap-v2.html?v=20260910-affidavit-private-fix-1').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
   const m=boot.match(/<script>([\s\S]*?)<\/script>/i);
   if(!m) throw new Error('bootstrap script missing');
   let js=m[1];
-  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260910-affidavit-inline-2');
+  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260910-affidavit-private-fix-1');
   js=js.replace("js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);'+marker);","js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);html=window.__biglwaStablePatch(html);'+marker);");
   (0,eval)(js);
 }catch(e){document.body.innerHTML='<main style="font-family:system-ui;padding:2rem"><h1>BIGLWA</h1><p>Loading failed. Refresh to try again.</p></main>';console.error(e)}})();
