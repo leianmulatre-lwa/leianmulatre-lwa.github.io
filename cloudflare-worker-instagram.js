@@ -4,7 +4,7 @@ const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
 const OAUTH_SCOPES = 'instagram_business_basic,instagram_business_manage_messages';
 const SESSION_TTL = 60 * 60 * 24 * 30;
 
-export default {
+const instagramWorker = {
   async fetch(request, env) {
     try {
       return await route(request, env);
@@ -54,6 +54,7 @@ async function startOAuth(url, env) {
   authorization.searchParams.set('client_id', env.INSTAGRAM_APP_ID);
   authorization.searchParams.set('redirect_uri', redirectUri(env));
   authorization.searchParams.set('response_type', 'code');
+  authorization.searchParams.set('state', state);
   authorization.searchParams.set('scope', OAUTH_SCOPES);
   authorization.searchParams.set('force_reauth', 'true');
   return Response.redirect(authorization.toString(), 302);
@@ -296,4 +297,102 @@ function corsHeaders(origin) {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Vary': 'Origin'
   };
+}
+
+/* TikTok Login Kit Web. Uses the existing OAUTH_SESSIONS KV binding.
+ * Set TIKTOK_CLIENT_KEY and secret TIKTOK_CLIENT_SECRET in Cloudflare.
+ * Register https://biglwa-instagram-api.leianmulatre-284.workers.dev/tiktok/callback
+ * under Login Kit > Web. Tokens stay in KV, never in browser responses.
+ */
+export default {
+  async fetch(request, env) {
+    if (!new URL(request.url).pathname.startsWith('/tiktok/')) return instagramWorker.fetch(request, env);
+    env = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
+    try { return await ttRoute(request, env); }
+    catch (error) { return json({ error: error.publicMessage || 'TikTok service could not complete the request. Please reconnect.' }, error.status || 502, request, env); }
+  }
+};
+function ttFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
+function ttCallback(request) { return new URL('/tiktok/callback', request.url).href; }
+function ttCookie(request) { return (request.headers.get('Cookie') || '').split(';').map(s => s.trim()).find(s => s.startsWith('__Host-tt_oauth='))?.slice(16) || ''; }
+function ttRedirect(location, cookie) { return new Response(null, { status: 302, headers: { Location: location, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'Set-Cookie': '__Host-tt_oauth=' + cookie + '; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=' + (cookie ? 600 : 0) } }); }
+async function ttToken(env, params) {
+  const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', { method: 'POST', body: new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, client_secret: env.TIKTOK_CLIENT_SECRET, ...params }) });
+  const token = await response.json();
+  if (!response.ok || !token.access_token) ttFail('TikTok token exchange failed. Check that the client key, secret and Web redirect URI belong to the same TikTok app environment, then reconnect.', 502);
+  return token;
+}
+async function ttSave(env, id, token) {
+  const ttl = Math.max(60, Math.min(Number(token.refresh_expires_in || token.expires_in || 86400), 31536000));
+  const saved = { ...token, expiresAt: Date.now() + Number(token.expires_in || 86400) * 1000 };
+  await env.OAUTH_SESSIONS.put('tt:session:' + id, JSON.stringify(saved), { expirationTtl: ttl });
+  return saved;
+}
+async function ttRoute(request, env) {
+  const url = new URL(request.url), path = url.pathname;
+  if (request.method === 'OPTIONS') return corsPreflight(request, env);
+  const missing = ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET', 'OAUTH_SESSIONS'].filter(k => !env[k]);
+  if (path === '/tiktok/health') return json({ ok: !missing.length, missing, callback: ttCallback(request), version: 'tiktok-1' }, missing.length ? 503 : 200, request, env);
+  if (missing.length) ttFail('Add these Cloudflare Worker settings: ' + missing.join(', '), 503);
+  if (path === '/tiktok/start' && request.method === 'GET') {
+    const challenge = url.searchParams.get('challenge') || '';
+    if (!/^[A-Za-z0-9_-]{43}$/.test(challenge)) ttFail('Start TikTok connection from Orbit.', 400);
+    const state = randomToken(32), browser = randomToken(32);
+    await env.OAUTH_SESSIONS.put('tt:state:' + state, JSON.stringify({ browser, challenge, callback: ttCallback(request) }), { expirationTtl: 600 });
+    const dest = new URL('https://www.tiktok.com/v2/auth/authorize/');
+    dest.search = new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, response_type: 'code', scope: 'user.info.basic,video.list', redirect_uri: ttCallback(request), state }).toString();
+    return ttRedirect(dest.href, browser);
+  }
+  if (path === '/tiktok/callback' && request.method === 'GET') {
+    const state = url.searchParams.get('state') || '';
+    if (!state) return json({ ok: true, message: 'TikTok callback is installed. Start the connection from Orbit.', start: new URL('/tiktok/start', request.url).href }, 200, request, env);
+    const saved = await env.OAUTH_SESSIONS.get('tt:state:' + state, 'json');
+    if (!saved || !ttCookie(request) || saved.browser !== ttCookie(request)) ttFail('TikTok login expired or was opened in another browser. Start again from Orbit.', 400);
+    await env.OAUTH_SESSIONS.delete('tt:state:' + state);
+    const destination = new URL('/studio?view=orbit', env.SITE_URL);
+    if (url.searchParams.has('error') || !url.searchParams.get('code')) {
+      destination.searchParams.set('tiktok_error', 'TikTok authorization was cancelled or denied. Please try again.');
+      return ttRedirect(destination.href, '');
+    }
+    const token = await ttToken(env, { grant_type: 'authorization_code', code: url.searchParams.get('code'), redirect_uri: saved.callback });
+    const id = randomToken(32), handoff = randomToken(32);
+    await ttSave(env, id, token);
+    await env.OAUTH_SESSIONS.put('tt:handoff:' + handoff, JSON.stringify({ id, challenge: saved.challenge }), { expirationTtl: 120 });
+    destination.searchParams.set('tiktok_handoff', handoff);
+    return ttRedirect(destination.href, '');
+  }
+  if (!allowedOrigin(request, env)) ttFail('Origin not allowed.', 403);
+  if (path === '/tiktok/session' && request.method === 'POST') {
+    const body = await request.json();
+    const handoff = String(body.handoff || '');
+    if (!/^[A-Za-z0-9_-]{43}$/.test(handoff)) ttFail('Invalid TikTok handoff.', 400);
+    const key = 'tt:handoff:' + handoff, saved = await env.OAUTH_SESSIONS.get(key, 'json');
+    if (!saved) ttFail('TikTok connection expired. Please reconnect.', 401);
+    const challenge = bytesToBase64Url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(body.verifier || '')))));
+    if (challenge !== saved.challenge) ttFail('Reconnect TikTok from the same browser tab.', 401);
+    await env.OAUTH_SESSIONS.delete(key);
+    return json({ session: saved.id }, 200, request, env);
+  }
+  const id = (request.headers.get('Authorization') || '').replace(/^Bearer /, '');
+  let session = /^[A-Za-z0-9_-]{43}$/.test(id) ? await env.OAUTH_SESSIONS.get('tt:session:' + id, 'json') : null;
+  if (!session) ttFail('TikTok session expired. Please reconnect.', 401);
+  if (path === '/tiktok/disconnect' && request.method === 'POST') {
+    await env.OAUTH_SESSIONS.delete('tt:session:' + id);
+    return json({ ok: true }, 200, request, env);
+  }
+  if (request.method !== 'GET' || !['/tiktok/profile', '/tiktok/videos'].includes(path)) ttFail('Not found.', 404);
+  if (session.expiresAt < Date.now() + 60000) {
+    if (!session.refresh_token) ttFail('TikTok session expired. Please reconnect.', 401);
+    session = await ttSave(env, id, await ttToken(env, { grant_type: 'refresh_token', refresh_token: session.refresh_token }));
+  }
+  const videos = path === '/tiktok/videos';
+  const endpoint = videos ? 'video/list/?fields=id,title,video_description,cover_image_url,share_url' : 'user/info/?fields=open_id,display_name,avatar_url';
+  const response = await fetch('https://open.tiktokapis.com/v2/' + endpoint, {
+    method: videos ? 'POST' : 'GET',
+    headers: { Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+    ...(videos ? { body: JSON.stringify({ max_count: 20 }) } : {})
+  });
+  const body = await response.json();
+  if (!response.ok || (body.error && body.error.code !== 'ok')) ttFail('TikTok could not return ' + (videos ? 'videos. Check video.list access for this app.' : 'your profile. Check user.info.basic access for this app.'), 502);
+  return json(videos ? { videos: body.data?.videos || [] } : (body.data?.user || {}), 200, request, env);
 }
