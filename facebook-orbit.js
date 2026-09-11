@@ -5,10 +5,15 @@
   var APP_ID = '3959002817740866';
   var API_VERSION = 'v25.0';
   var sdkPromise = null;
-  var state = { connected: false, profile: null, error: '' };
+  var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '' };
 
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
+  function escapeText(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+    });
+  }
 
   function showStatus(message) {
     var toast = one('#biglwaFacebookOrbitStatus');
@@ -93,18 +98,75 @@
       });
 
       document.body.classList.toggle('facebook-orbit-connected', state.connected);
+      renderFeedImports();
     } catch (error) {
       window.console.error('BIGLWA Facebook Orbit render isolated:', error);
     }
   }
 
-  function loadProfile() {
+  function facebookApi(path, parameters) {
     return new Promise(function (resolve) {
-      window.FB.api('/me', { fields: 'id,name,picture' }, function (response) {
-        if (response && !response.error) { state.profile = response; }
-        resolve();
+      window.FB.api(path, parameters || {}, function (response) {
+        resolve(response && !response.error ? response : null);
       });
     });
+  }
+
+  function readGrantedPermissions() {
+    return facebookApi('/me/permissions').then(function (response) {
+      state.permissions = response && response.data ? response.data.filter(function (item) {
+        return item.status === 'granted';
+      }).map(function (item) { return item.permission; }) : [];
+    });
+  }
+
+  function hasPermission(name) { return state.permissions.indexOf(name) !== -1; }
+
+  function loadFacebookContent() {
+    return readGrantedPermissions().then(function () {
+      var requests = [
+        facebookApi('/me', { fields: 'id,name,email,link,picture.width(200).height(200)' }),
+        hasPermission('user_photos') ? facebookApi('/me/photos', { type: 'uploaded', fields: 'id,name,images,created_time,link', limit: 12 }) : Promise.resolve(null),
+        hasPermission('user_videos') ? facebookApi('/me/videos', { fields: 'id,title,description,source,picture,created_time,permalink_url', limit: 8 }) : Promise.resolve(null)
+      ];
+      return Promise.allSettled(requests).then(function (results) {
+        var profile = results[0].status === 'fulfilled' ? results[0].value : null;
+        var photos = results[1].status === 'fulfilled' ? results[1].value : null;
+        var videos = results[2].status === 'fulfilled' ? results[2].value : null;
+        if (profile) { state.profile = profile; }
+        state.photos = photos && photos.data ? photos.data : [];
+        state.videos = videos && videos.data ? videos.data : [];
+        render();
+      });
+    });
+  }
+
+  function photoUrl(photo) {
+    return photo && photo.images && photo.images.length ? photo.images[0].source : '';
+  }
+
+  function renderFeedImports() {
+    var list = one('#feedPageList');
+    if (!list) { return; }
+    all('.facebook-feed-item', list).forEach(function (item) { item.remove(); });
+    if (!state.connected) { return; }
+
+    var items = [];
+    state.photos.forEach(function (photo) {
+      var source = photoUrl(photo);
+      if (!source) { return; }
+      items.push('<article class="module-list-item facebook-feed-item" data-facebook-media="photo"><div style="width:100%"><small>Facebook · photo</small><b style="display:block;margin:4px 0 8px">' + escapeText(photo.name || 'Shared from Facebook') + '</b><img src="' + escapeText(source) + '" alt="' + escapeText(photo.name || 'Facebook photo') + '" loading="lazy" style="display:block;width:100%;max-height:460px;object-fit:cover;border-radius:12px">' + (photo.link ? '<a class="module-action ghost" href="' + escapeText(photo.link) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Facebook</a>' : '') + '</div></article>');
+    });
+    state.videos.forEach(function (video) {
+      var title = video.title || video.description || 'Shared from Facebook';
+      var media = video.source ? '<video controls preload="metadata" poster="' + escapeText(video.picture || '') + '" style="display:block;width:100%;max-height:460px;border-radius:12px;background:#171414"><source src="' + escapeText(video.source) + '"></video>' : (video.picture ? '<img src="' + escapeText(video.picture) + '" alt="' + escapeText(title) + '" loading="lazy" style="display:block;width:100%;max-height:460px;object-fit:cover;border-radius:12px">' : '');
+      items.push('<article class="module-list-item facebook-feed-item" data-facebook-media="video"><div style="width:100%"><small>Facebook · video</small><b style="display:block;margin:4px 0 8px">' + escapeText(title) + '</b>' + media + (video.permalink_url ? '<a class="module-action ghost" href="' + escapeText(video.permalink_url) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Facebook</a>' : '') + '</div></article>');
+    });
+
+    if (!items.length) {
+      items.push('<article class="module-list-item facebook-feed-item"><div><b>Facebook is connected</b><small>No approved photos or videos were returned. Meta may still require testing access or App Review for those permissions.</small></div></article>');
+    }
+    list.insertAdjacentHTML('afterbegin', items.join(''));
   }
 
   function connect() {
@@ -119,11 +181,11 @@
         }
         state.connected = true;
         state.error = '';
-        loadProfile().then(function () {
-          showStatus('Facebook is connected to Orbit.');
+        loadFacebookContent().then(function () {
+          showStatus('Facebook is connected. Approved media is ready in Collective Feed.');
           render();
         });
-      }, { scope: 'public_profile', return_scopes: true });
+      }, { scope: 'public_profile,email,user_photos,user_videos,user_link', return_scopes: true });
     }).catch(function (error) {
       state.connected = false;
       state.error = error.message || 'Facebook Login could not start.';
@@ -136,6 +198,9 @@
     function done() {
       state.connected = false;
       state.profile = null;
+      state.photos = [];
+      state.videos = [];
+      state.permissions = [];
       state.error = '';
       showStatus('Facebook disconnected from Orbit.');
       render();
@@ -159,7 +224,7 @@
       disconnect();
       return;
     }
-    if (target.closest('[data-open="orbit"]')) { window.setTimeout(render, 0); }
+    if (target.closest('[data-open="orbit"],[data-open="feed"]')) { window.setTimeout(render, 80); }
   }, true);
 
   window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render };
