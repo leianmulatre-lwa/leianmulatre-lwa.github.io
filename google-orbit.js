@@ -81,14 +81,20 @@
         const small=$('small',tile);if(small)small.textContent=state.connected?'Connected':'Connect';
         tile.classList.toggle('orbit-connected',state.connected);
       });
-      $$('[data-google-orbit-card="'+kind+'"]').forEach(card=>{
+      $('[data-orbit-path="'+kind+'"]').forEach(input=>{
+        const row=input.closest('.module-orbit-row'),actions=row&&$('.module-actions',row);if(!actions)return;
+        let button=$('[data-google-orbit-connect="'+kind+'"]',actions);
+        if(!button){button=document.createElement('button');button.type='button';button.className='module-action';button.dataset.googleOrbitConnect=kind;actions.prepend(button)}
+        button.textContent=state.connected?'Connected':'Connect Google';button.setAttribute('aria-pressed',state.connected?'true':'false');
+      });
+      $('[data-google-orbit-card="'+kind+'"]').forEach(card=>{
         const list=$('ul',card);if(list)list.innerHTML=preview(kind)||'<li>'+(state.connected?'No recent items found.':'Not connected')+'</li>';
       });
     });
     document.body.classList.toggle('google-orbit-connected',state.connected);
   }
   document.addEventListener('click',event=>{
-    const tile=event.target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"]');
+    const tile=event.target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
     if(tile){event.preventDefault();event.stopImmediatePropagation();connect();return}
     if(event.target.closest('[data-google-orbit-disconnect]')){event.preventDefault();disconnect()}
   },true);
