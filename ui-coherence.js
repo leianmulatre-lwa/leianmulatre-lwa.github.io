@@ -204,7 +204,7 @@
       el.dataset.widgetId=id;el.dataset.widgetLabel=label;el.dataset.widgetRoute=route;
       let controls=$(':scope > .widget-window-controls',el);if(!controls){controls=document.createElement('div');el.prepend(controls)}
       controls.className='widget-window-controls';controls.dataset.canonicalControls='1';controls.setAttribute('aria-label',`${label} window controls`);
-      controls.innerHTML=`<button class="window-light green" type="button" data-expand-widget="${id}" aria-label="Open ${label} page" title="Open ${label} page"></button><button class="window-light yellow" type="button" data-rearrange-widget="${id}" aria-label="Rearrange widgets" title="Rearrange widgets" aria-pressed="false"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to left toolbar" title="Move to left toolbar"></button>`;
+      controls.innerHTML=`<button class="window-light green" type="button" data-expand-widget="${id}" aria-label="Open ${label} page" title="Open ${label} page"></button><button class="window-light yellow" type="button" data-minimize-widget="${id}" aria-label="Minimize ${label}" title="Minimize ${label}"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to left toolbar" title="Move to left toolbar"></button>`;
       $$('.arrow-btn',el).forEach(b=>b.style.display='none');
     });
   }
@@ -238,7 +238,7 @@
     if(document.documentElement.dataset.biglwaWidgetCaptureBound!=='1'){
       document.documentElement.dataset.biglwaWidgetCaptureBound='1';
       document.addEventListener('click',event=>{
-        const control=event.target.closest('[data-expand-widget],[data-rearrange-widget],[data-dock-widget],[data-restore-widget]');
+        const control=event.target.closest('[data-expand-widget],[data-minimize-widget],[data-rearrange-widget],[data-dock-widget],[data-restore-widget]');
         if(!control||!app.contains(control))return;
         event.preventDefault();event.stopImmediatePropagation();
         if(control.matches('[data-restore-widget]')){
@@ -252,6 +252,15 @@
           $$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));
           widget.classList.toggle('widget-is-expanded',opening);
           control.setAttribute('aria-pressed',opening?'true':'false');
+          return;
+        }
+        if(control.matches('[data-minimize-widget]')){
+          if(widget.classList.contains('widget-is-expanded')){
+            widget.classList.remove('widget-is-expanded');
+            const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');
+          }else{
+            widget.classList.add('widget-is-minimized');addRestore(widget);saveMinimized();syncDock();
+          }
           return;
         }
         if(control.matches('[data-rearrange-widget]')){
@@ -273,6 +282,8 @@
       if(restore){const widget=$('[data-widget-id="'+CSS.escape(restore.dataset.restoreWidget)+'"]',app);if(widget)widget.classList.remove('widget-is-minimized');restore.remove();saveMinimized();syncDock();return}
       const green=event.target.closest('[data-expand-widget]');
       if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
+      const minimize=event.target.closest('[data-minimize-widget]');
+      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;if(widget.classList.contains('widget-is-expanded')){widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false')}else{widget.classList.add('widget-is-minimized');addRestore(widget);saveMinimized();syncDock()}return}
       const yellow=event.target.closest('[data-rearrange-widget]');
       if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=false);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
       const red=event.target.closest('[data-dock-widget]');
