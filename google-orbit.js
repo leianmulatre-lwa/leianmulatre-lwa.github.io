@@ -74,31 +74,44 @@
     if(kind==='youtube'&&state.youtube)return '<li>'+esc(state.youtube.snippet?.title||'YouTube channel')+'</li><li>'+esc(state.youtube.statistics?.subscriberCount||'0')+' subscribers</li>';
     return '';
   }
+  function ensureFacebook(){
+    const grid=$('#orbitGrid');
+    if(grid&&!$('[data-orbit-app="facebook"]',grid)){
+      const tile=document.createElement('button');tile.type='button';tile.dataset.orbitApp='facebook';
+      tile.innerHTML='<span class="orbit-glyph">FB</span><b>Facebook</b><small>Link</small>';
+      grid.appendChild(tile);
+    }
+  }
   function render(){
-    ['youtube','drive','calendar'].forEach(kind=>{
-      $$('[data-orbit-app="'+kind+'"]').forEach(tile=>{
-        tile.dataset.googleOrbitBound='1';tile.setAttribute('aria-label',(state.connected?'View connected ':'Connect ')+kind);
-        const small=$('small',tile);if(small)small.textContent=state.connected?'Connected':'Connect';
-        tile.classList.toggle('orbit-connected',state.connected);
+    try{
+      ensureFacebook();
+      ['youtube','drive','calendar'].forEach(kind=>{
+        $$('[data-orbit-app="'+kind+'"]').forEach(tile=>{
+          tile.dataset.googleOrbitBound='1';
+          tile.setAttribute('aria-label',(state.connected?'View connected ':'Connect ')+kind);
+          const small=$('small',tile);if(small)small.textContent=state.connected?'Connected':'Connect';
+          tile.classList.toggle('orbit-connected',state.connected);
+        });
+        $$('[data-orbit-path="'+kind+'"]').forEach(input=>{
+          const row=input.closest('.module-orbit-row'),actions=row&&$('.module-actions',row);if(!actions)return;
+          let button=$('[data-google-orbit-connect="'+kind+'"]',actions);
+          if(!button){button=document.createElement('button');button.type='button';button.className='module-action';button.dataset.googleOrbitConnect=kind;actions.prepend(button)}
+          button.textContent=state.connected?'Connected':'Connect Google';
+          button.setAttribute('aria-pressed',state.connected?'true':'false');
+        });
+        $$('[data-google-orbit-card="'+kind+'"]').forEach(card=>{
+          const list=$('ul',card);if(list)list.innerHTML=preview(kind)||'<li>'+(state.connected?'No recent items found.':'Not connected')+'</li>';
+        });
       });
-      $('[data-orbit-path="'+kind+'"]').forEach(input=>{
-        const row=input.closest('.module-orbit-row'),actions=row&&$('.module-actions',row);if(!actions)return;
-        let button=$('[data-google-orbit-connect="'+kind+'"]',actions);
-        if(!button){button=document.createElement('button');button.type='button';button.className='module-action';button.dataset.googleOrbitConnect=kind;actions.prepend(button)}
-        button.textContent=state.connected?'Connected':'Connect Google';button.setAttribute('aria-pressed',state.connected?'true':'false');
-      });
-      $('[data-google-orbit-card="'+kind+'"]').forEach(card=>{
-        const list=$('ul',card);if(list)list.innerHTML=preview(kind)||'<li>'+(state.connected?'No recent items found.':'Not connected')+'</li>';
-      });
-    });
-    document.body.classList.toggle('google-orbit-connected',state.connected);
+      document.body.classList.toggle('google-orbit-connected',state.connected);
+    }catch(error){console.error('BIGLWA Orbit render isolated:',error)}
   }
   document.addEventListener('click',event=>{
     const tile=event.target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
     if(tile){event.preventDefault();event.stopImmediatePropagation();connect();return}
-    if(event.target.closest('[data-google-orbit-disconnect]')){event.preventDefault();disconnect()}
+    if(event.target.closest('[data-google-orbit-disconnect]')){event.preventDefault();disconnect();return}
+    if(event.target.closest('[data-open="orbit"]'))setTimeout(render,0);
   },true);
-  const observer=new MutationObserver(render);observer.observe(document.documentElement,{childList:true,subtree:true});
-  render();
-  window.__biglwaGoogleOrbit={connect,disconnect,state};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true});else render();
+  window.__biglwaGoogleOrbit={connect,disconnect,state,render};
 })();
