@@ -78,6 +78,24 @@
     });
   }
 
+
+  async function calendarEvents(start, end) {
+    if (!accessToken || !state.connected) throw new Error('Connect Google Calendar in Orbit.');
+    var token = accessToken, events = [], pageToken = '';
+    do {
+      var url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events');
+      url.search = new URLSearchParams({timeMin:start,timeMax:end,singleEvents:'true',orderBy:'startTime',maxResults:'2500',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', ...(pageToken ? {pageToken:pageToken} : {})}).toString();
+      var response = await fetch(url.href, {headers:{Authorization:'Bearer '+token}});
+      if (token !== accessToken || !state.connected) throw new Error('Google account changed. Reopen Calendar.');
+      if (!response.ok) {
+        if (response.status === 401) { accessToken='';state.connected=false;state.calendar=[];render();document.dispatchEvent(new CustomEvent('biglwa:google-state')); }
+        throw new Error(response.status===401?'Google session expired. Reconnect in Orbit.':'Google Calendar could not load. Check Calendar access in Orbit and try again.');
+      }
+      var data=await response.json();events.push(...(data.items||[]));pageToken=data.nextPageToken||'';
+    } while(pageToken);
+    return events.filter(function(e){return e.status!=='cancelled'});
+  }
+
   function connect() {
     loadGoogleIdentity().then(function () {
       if (!tokenClient) {
@@ -93,6 +111,7 @@
             }
             accessToken = response.access_token;
             state.connected = true;
+            document.dispatchEvent(new CustomEvent('biglwa:google-state'));
             state.error = '';
             showStatus('Google Orbit connected. Loading Calendar, Drive, and YouTube...');
             loadData().then(function () {
@@ -120,6 +139,7 @@
       state.drive = [];
       state.calendar = [];
       state.youtube = null;
+      document.dispatchEvent(new CustomEvent('biglwa:google-state'));
       render();
       showStatus('Google Orbit disconnected.');
     }
@@ -200,7 +220,8 @@
     if (target.closest('[data-open="orbit"]')) { window.setTimeout(render, 0); }
   }, true);
 
-  window.__biglwaGoogleOrbit = { connect: connect, disconnect: disconnect, state: state, render: render };
+  document.addEventListener('biglwa:module-open', render);
+  window.__biglwaGoogleOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, calendarEvents: calendarEvents };
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', render, { once: true }); }
   else { render(); }
 }());
