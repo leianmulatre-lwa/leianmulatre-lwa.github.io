@@ -123,7 +123,7 @@
           showStatus('Facebook is connected to Orbit.');
           render();
         });
-      }, { scope: 'public_profile,email', return_scopes: true });
+      }, { scope: 'public_profile', return_scopes: true });
     }).catch(function (error) {
       state.connected = false;
       state.error = error.message || 'Facebook Login could not start.';
