@@ -142,8 +142,19 @@
     return '';
   }
 
+  function ensureFacebook() {
+    var grid = one('#orbitGrid');
+    if (!grid || one('[data-orbit-app="facebook"]', grid)) { return; }
+    var tile = document.createElement('button');
+    tile.type = 'button';
+    tile.setAttribute('data-orbit-app', 'facebook');
+    tile.innerHTML = '<span class="orbit-glyph">FB</span><b>Facebook</b><small>Link</small>';
+    grid.appendChild(tile);
+  }
+
   function render() {
     try {
+      ensureFacebook();
       ['youtube', 'drive', 'calendar'].forEach(function (kind) {
         all('[data-orbit-app="' + kind + '"]').forEach(function (tile) {
           tile.setAttribute('aria-label', (state.connected ? 'View connected ' : 'Connect ') + kind);
