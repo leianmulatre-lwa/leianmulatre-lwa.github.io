@@ -41,6 +41,7 @@
     html=html.replace(/(<article\b[^>]*\bid="projects"[^>]*>)([\s\S]*?)(<\/article>)/,(_,start,contents,end)=>start+contents.replace(/<div class="project-grid">[\s\S]*<\/div>/,'<div class="project-grid" style="grid-template-columns:1fr"><button class="project-tile" data-open="projects" aria-label="Open Projects" style="padding:0;overflow:hidden"><span class="studio-widget-scene"><img class="studio-scene-light" src="/assets/projects-studio-light.svg" alt="Pink paper backdrop, foreground spotlight aimed toward it, rear lamp off" width="960" height="640"><img class="studio-scene-dark" src="/assets/projects-studio-dark.svg" alt="Pink paper backdrop illuminated in a dark studio, rear lamp off" width="960" height="640"></span></button></div>')+end);
     html=html.replace(/<div class="library-shelf">[\s\S]*?<\/div>\s*(?=<button class="card-cta")/,'');
     html=html.replace('My Inspiration · 24 pins','My Inspiration');
+    html=html.replace(/<div class="room-scene">[\s\S]*?<\/div>\s*(?=<div class="room-footer")/,'<button class="room-photo-preview" type="button" data-open="room" aria-label="Open Room" style="display:block;width:100%;padding:0;border:0;border-radius:12px;overflow:hidden;background:transparent"><img src="/assets/room-photo-preview.svg" alt="Cozy bedroom with records, hanging plants, and a softly lit bed" width="736" height="552" style="display:block;width:100%;height:auto"></button>');
     html=html.replace('</body>',scripts+finalTopbar+'</body>');
     return html;
   };
