@@ -10,6 +10,8 @@
   const style = document.createElement('style');
   style.id = 'biglwa-module-pages-style-v3';
   style.textContent = `
+
+    .module-textarea.diary-lined{font:16px/28px Georgia,serif;min-height:360px;padding:14px 20px;background-color:#f5ecdf;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#bcc3c5 27px,#bcc3c5 28px);background-origin:content-box;background-attachment:local;color:#302b28}.night-mode .module-textarea.diary-lined{background-color:#302c28;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#59544e 27px,#59544e 28px);color:#f5ecdf}
     .module-workspace[hidden]{display:none!important}
     .main.module-view>.hero,.main.module-view>.masonry,.main.module-view>.site-policy-footer{display:none!important}
     .module-workspace{position:relative;z-index:4;min-height:calc(100vh - 66px);padding:34px clamp(18px,4vw,54px) 110px;background:linear-gradient(180deg,rgba(246,240,233,.94),rgba(239,231,223,.97));color:#272321}
@@ -139,7 +141,7 @@
 
   function renderWriting(key){
     const storage=`biglwaDraft_${key}`;
-    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide"><h2>${key==='diary'?'New diary page':'Scratchpad'}</h2><textarea class="module-textarea" id="moduleWritingArea" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves</div></section></div>`;
+    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide"><h2>${key==='diary'?'Dear diary':'Scratchpad'}</h2><textarea class="module-textarea ${key==='diary'?'diary-lined':''}" id="moduleWritingArea" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves</div></section></div>`;
     const area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;area.addEventListener('input',()=>{status.textContent='Saving…';clearTimeout(t);t=setTimeout(()=>{localStorage.setItem(storage,area.value);status.textContent='Saved locally.';status.classList.add('ok');},250)});
   }
 
@@ -220,7 +222,7 @@
     for(const [id,title,copy,key] of [['calendar','Calendar','Your schedule, connected through Orbit.','calendar'],['connect','Join BIGLWA','Invite friends to your creative community.','connect']]){
       const card=$('#'+id);if(!card)continue;
       [...card.children].forEach(el=>{if(!el.matches('.card-head,.widget-window-controls,.window-controls'))el.remove()});
-      const content=document.createElement('div');content.innerHTML='<h2>'+title+'</h2><p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
+      const content=document.createElement('div');content.innerHTML=(id==='calendar'?'':'<h2>'+title+'</h2>')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
     }
     const masonry=$('.masonry');if(masonry&&!$('#map')){const games=$('#games');const card=document.createElement('article');card.id='map';card.className='card studio-map-card';card.innerHTML=`<div class="card-head"><span class="eyebrow">Map</span><button class="arrow-btn" type="button" data-open="map" aria-label="Open map">→</button></div><h2 style="font-family:Georgia,serif;margin:8px 0 4px">Map</h2><div class="studio-map-visual" aria-hidden="true"></div><small>${readJSON('biglwaMapPins',[]).length} saved pin${readJSON('biglwaMapPins',[]).length===1?'':'s'} · click to map projects, places, and memories</small>`;games?masonry.insertBefore(card,games):masonry.appendChild(card)}else if($('#map')){const small=$('#map small');if(small)small.textContent=`${readJSON('biglwaMapPins',[]).length} saved pin${readJSON('biglwaMapPins',[]).length===1?'':'s'} · click to map projects, places, and memories`}
   }
