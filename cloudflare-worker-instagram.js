@@ -306,6 +306,11 @@ function corsHeaders(origin) {
  */
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname.startsWith('/pinterest/')) {
+      const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
+      try { return await pnRoute(request, config); }
+      catch (error) { return json({ error: error.publicMessage || 'Pinterest connection failed. Please try again.' }, error.status || 502, request, config); }
+    }
     if (!new URL(request.url).pathname.startsWith('/tiktok/')) return instagramWorker.fetch(request, env);
     env = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
     try { return await ttRoute(request, env); }
@@ -395,4 +400,101 @@ async function ttRoute(request, env) {
   const body = await response.json();
   if (!response.ok || (body.error && body.error.code !== 'ok')) ttFail('TikTok could not return ' + (videos ? 'videos. Check video.list access for this app.' : 'your profile. Check user.info.basic access for this app.'), 502);
   return json(videos ? { videos: body.data?.videos || [] } : (body.data?.user || {}), 200, request, env);
+}
+
+function pnFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
+function pnCallback(request) { return new URL('/pinterest/callback', request.url).href; }
+function pnCookie(request) { return (request.headers.get('Cookie') || '').split(';').map(s => s.trim()).find(s => s.startsWith('__Host-pn_oauth='))?.slice(16) || ''; }
+function pnRedirect(location, cookie) { return new Response(null, { status: 302, headers: { Location: location, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'Set-Cookie': '__Host-pn_oauth=' + cookie + '; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=' + (cookie ? 600 : 0) } }); }
+async function pnToken(env, params) {
+  const response = await fetch('https://api.pinterest.com/v5/oauth/token', {
+    method: 'POST', headers: { Authorization: 'Basic ' + btoa(env.PINTEREST_APP_ID + ':' + env.PINTEREST_APP_SECRET), 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(params)
+  });
+  const token = await response.json();
+  if (!response.ok || !token.access_token) pnFail('Pinterest could not authorize this connection. Check the approved app ID, app secret and registered redirect URI, then reconnect.', 502);
+  return token;
+}
+async function pnSave(env, id, token) {
+  const pnl = Math.max(60, Math.min(Number(token.refresh_token_expires_in || token.expires_in || 86400), 31536000));
+  const saved = { ...token, expiresAt: Date.now() + Number(token.expires_in || 86400) * 1000 };
+  await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(saved), { expirationTtl: pnl });
+  return saved;
+}
+async function pnRoute(request, env) {
+  const url = new URL(request.url), path = url.pathname;
+  if (request.method === 'OPTIONS') return corsPreflight(request, env);
+  const missing = ['PINTEREST_APP_ID', 'PINTEREST_APP_SECRET', 'OAUTH_SESSIONS'].filter(k => !env[k]);
+  if (path === '/pinterest/health') return json({ ok: !missing.length, missing, callback: pnCallback(request), version: 'pinterest-1' }, missing.length ? 503 : 200, request, env);
+  if (missing.length) pnFail('Add these Cloudflare Worker settings: ' + missing.join(', '), 503);
+  if (path === '/pinterest/start' && request.method === 'GET') {
+    const challenge = url.searchParams.get('challenge') || '';
+    if (!/^[A-Za-z0-9_-]{43}$/.test(challenge)) pnFail('Start Pinterest connection from Orbit.', 400);
+    const state = randomToken(32), browser = randomToken(32);
+    await env.OAUTH_SESSIONS.put('pn:state:' + state, JSON.stringify({ browser, challenge, callback: pnCallback(request) }), { expirationTtl: 600 });
+    const dest = new URL('https://www.pinterest.com/oauth/');
+    dest.search = new URLSearchParams({ client_id: env.PINTEREST_APP_ID, response_type: 'code', scope: 'boards:read,pins:read,user_accounts:read', redirect_uri: pnCallback(request), state }).toString();
+    return pnRedirect(dest.href, browser);
+  }
+  if (path === '/pinterest/callback' && request.method === 'GET') {
+    const state = url.searchParams.get('state') || '';
+    if (!state) return json({ ok: true, message: 'Pinterest callback is installed. Start the connection from Orbit.', start: new URL('/pinterest/start', request.url).href }, 200, request, env);
+    const saved = await env.OAUTH_SESSIONS.get('pn:state:' + state, 'json');
+    if (!saved || !pnCookie(request) || saved.browser !== pnCookie(request)) pnFail('Pinterest login expired or was opened in another browser. Start again from Orbit.', 400);
+    await env.OAUTH_SESSIONS.delete('pn:state:' + state);
+    const destination = new URL('/studio?view=boards', env.SITE_URL);
+    if (url.searchParams.has('error') || !url.searchParams.get('code')) {
+      destination.searchParams.set('pinterest_error', 'Pinterest authorization was cancelled or denied. Please try again.');
+      return pnRedirect(destination.href, '');
+    }
+    const token = await pnToken(env, { grant_type: 'authorization_code', code: url.searchParams.get('code'), redirect_uri: saved.callback });
+    const id = randomToken(32), handoff = randomToken(32);
+    await pnSave(env, id, token);
+    await env.OAUTH_SESSIONS.put('pn:handoff:' + handoff, JSON.stringify({ id, challenge: saved.challenge }), { expirationTtl: 120 });
+    destination.searchParams.set('pinterest_handoff', handoff);
+    return pnRedirect(destination.href, '');
+  }
+  if (!allowedOrigin(request, env)) pnFail('Origin not allowed.', 403);
+  if (path === '/pinterest/session' && request.method === 'POST') {
+    const body = await request.json();
+    const handoff = String(body.handoff || '');
+    if (!/^[A-Za-z0-9_-]{43}$/.test(handoff)) pnFail('Invalid Pinterest handoff.', 400);
+    const key = 'pn:handoff:' + handoff, saved = await env.OAUTH_SESSIONS.get(key, 'json');
+    if (!saved) pnFail('Pinterest connection expired. Please reconnect.', 401);
+    const challenge = bytesToBase64Url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(body.verifier || '')))));
+    if (challenge !== saved.challenge) pnFail('Reconnect Pinterest from the same browser tab.', 401);
+    await env.OAUTH_SESSIONS.delete(key);
+    return json({ session: saved.id }, 200, request, env);
+  }
+  const id = (request.headers.get('Authorization') || '').replace(/^Bearer /, '');
+  let session = /^[A-Za-z0-9_-]{43}$/.test(id) ? await env.OAUTH_SESSIONS.get('pn:session:' + id, 'json') : null;
+  if (!session) pnFail('Pinterest session expired. Please reconnect.', 401);
+  if (path === '/pinterest/disconnect' && request.method === 'POST') {
+    await env.OAUTH_SESSIONS.delete('pn:session:' + id);
+    return json({ ok: true }, 200, request, env);
+  }
+
+  const match = path.match(/^\/pinterest\/boards\/(\d+)\/pins$/);
+  if (request.method !== 'GET' || (!match && !['/pinterest/profile', '/pinterest/boards'].includes(path))) pnFail('Not found.', 404);
+  if (session.expiresAt < Date.now() + 60000) {
+    if (!session.refresh_token) pnFail('Pinterest session expired. Please reconnect.', 401);
+    const fresh = await pnToken(env, { grant_type: 'refresh_token', refresh_token: session.refresh_token });
+    if (!fresh.refresh_token) fresh.refresh_token = session.refresh_token;
+    session = await pnSave(env, id, fresh);
+  }
+  const endpoint = match ? '/boards/' + match[1] + '/pins' : path === '/pinterest/boards' ? '/boards' : '/user_account';
+  const target = new URL('https://api.pinterest.com/v5' + endpoint);
+  if (endpoint !== '/user_account') {
+    target.searchParams.set('page_size', '25');
+    const bookmark = url.searchParams.get('bookmark');
+    if (bookmark) { if (bookmark.length > 4096) pnFail('Invalid page.', 400); target.searchParams.set('bookmark', bookmark); }
+  }
+  const response = await fetch(target.href, { headers: { Authorization: 'Bearer ' + session.access_token } });
+  const data = await response.json();
+  if (!response.ok) {
+    if (response.status === 401) pnFail('Pinterest session expired. Please reconnect.', 401);
+    if (response.status === 429) pnFail('Pinterest is limiting requests. Please try again later.', 429);
+    pnFail('Pinterest could not return this content. Check that this account has access to the trial app and selected board.', response.status === 403 ? 403 : 502);
+  }
+  return json(data, 200, request, env);
 }
