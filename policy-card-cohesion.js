@@ -178,12 +178,12 @@
       const supporters = document.createElement('section');
       supporters.className = 'login-supporters';
       supporters.hidden = true;
-      supporters.setAttribute('aria-label', 'BIGLWA alumni network');
+      supporters.setAttribute('aria-label', 'Supported by researchers and alumni at');
 
       const heading = document.createElement('div');
       heading.className = 'supporter-heading';
       const title = document.createElement('h2');
-      title.textContent = 'Alumni network';
+      title.textContent = 'supported by researchers and alumni at';
       heading.append(title);
 
       const viewport = document.createElement('div');
