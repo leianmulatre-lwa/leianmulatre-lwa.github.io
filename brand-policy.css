@@ -413,15 +413,23 @@ body.about-site {
   ) !important;
 }
 
+@media (min-width: 1051px) {
+  #loginPage .login-shell,
+  #loginPage .login-stage,
+  #loginPage .login-panel-wrap {
+    min-height: max(690px, calc(100vh - 96px)) !important;
+  }
+}
+
 /* A blurred lower band creates breathing room and houses real supporters later. */
 #loginPage .login-public-tail {
   position: relative;
   z-index: 2;
   isolation: isolate;
   overflow: hidden;
-  min-height: 210px;
+  min-height: 170px;
   margin-top: -1px;
-  padding: 52px 0 28px;
+  padding: 18px 0;
   background: transparent;
 }
 
@@ -454,8 +462,8 @@ body.about-site {
 }
 
 #loginPage .login-public-footer {
-  padding-top: 30px;
-  padding-bottom: 42px;
+  padding-top: 18px;
+  padding-bottom: 24px;
 }
 
 #loginPage .login-supporters {
@@ -575,8 +583,8 @@ body.about-site {
   }
 
   #loginPage .login-public-tail {
-    min-height: 190px;
-    padding-top: 38px;
+    min-height: 160px;
+    padding-top: 16px;
   }
 
   #loginPage.login-page {
