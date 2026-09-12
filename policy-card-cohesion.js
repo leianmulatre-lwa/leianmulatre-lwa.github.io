@@ -178,20 +178,13 @@
       const supporters = document.createElement('section');
       supporters.className = 'login-supporters';
       supporters.hidden = true;
-      supporters.setAttribute('aria-label', 'BIGLWA supporters and collaborators');
+      supporters.setAttribute('aria-label', 'BIGLWA alumni network');
 
       const heading = document.createElement('div');
       heading.className = 'supporter-heading';
-      const titleWrap = document.createElement('div');
-      const kicker = document.createElement('p');
-      kicker.className = 'supporter-kicker';
-      kicker.textContent = 'In good company';
       const title = document.createElement('h2');
-      title.textContent = 'Supporters & collaborators.';
-      titleWrap.append(kicker, title);
-      const description = document.createElement('p');
-      description.textContent = 'The people and organizations helping BIGLWA build brighter worlds.';
-      heading.append(titleWrap, description);
+      title.textContent = 'Alumni network';
+      heading.append(title);
 
       const viewport = document.createElement('div');
       viewport.className = 'supporter-viewport';

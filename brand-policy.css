@@ -467,46 +467,30 @@ body.about-site {
 }
 
 #loginPage .login-supporters {
-  margin-bottom: 42px;
+  margin-bottom: 24px;
 }
 
 #loginPage .supporter-heading {
   display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 24px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 8px;
   color: #fff6ec;
-}
-
-#loginPage .supporter-kicker {
-  margin: 0 0 7px;
-  color: #f5a1af;
-  font: 800 10px/1 Inter, ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: .16em;
-  text-transform: uppercase;
+  text-align: right;
 }
 
 #loginPage .supporter-heading h2 {
   margin: 0;
-  font: 400 clamp(28px, 4vw, 44px)/1 "CS Bergamot Stitched", Georgia, serif;
-}
-
-#loginPage .supporter-heading > p:last-child {
-  max-width: 390px;
-  margin: 0;
-  color: rgba(255, 246, 236, .68);
-  font-size: 12px;
-  line-height: 1.55;
+  color: rgba(255, 246, 236, .82);
+  font: 400 18px/1 "CS Bergamot Stitched", Georgia, serif;
+  letter-spacing: .02em;
 }
 
 #loginPage .supporter-viewport {
   overflow: hidden;
-  padding: 18px 0;
-  border-top: 1px solid rgba(255, 246, 236, .16);
-  border-bottom: 1px solid rgba(255, 246, 236, .16);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  padding: 5px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
 }
 
 #loginPage .supporter-track {
@@ -522,33 +506,70 @@ body.about-site {
 #loginPage .supporter-group {
   display: flex;
   align-items: center;
-  gap: 52px;
-  padding-right: 52px;
+  gap: 12px;
+  padding-right: 12px;
 }
 
 #loginPage .supporter-logo {
   display: grid;
-  min-width: 132px;
-  height: 58px;
+  min-width: 112px;
+  height: 54px;
   place-items: center;
-  color: #fff6ec;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, .58);
+  border-radius: 12px;
+  background: rgba(248, 243, 236, .92);
+  box-shadow: 0 5px 16px rgba(8, 0, 3, .2);
+  transition: transform .18s ease, background .18s ease;
 }
 
 #loginPage .supporter-logo img {
   display: block;
   width: auto;
-  max-width: 150px;
+  max-width: 96px;
   height: auto;
-  max-height: 48px;
+  max-height: 38px;
   object-fit: contain;
-  filter: grayscale(1) brightness(1.8);
-  opacity: .82;
-  transition: filter .18s ease, opacity .18s ease;
+  filter: none;
+  opacity: .96;
+  transition: opacity .18s ease;
+}
+
+#loginPage .supporter-logo:hover {
+  background: #fffaf4;
+  transform: translateY(-1px);
 }
 
 #loginPage .supporter-logo:hover img {
-  filter: none;
   opacity: 1;
+}
+
+@media (min-width: 1051px) {
+  #loginPage .login-supporters {
+    position: absolute;
+    right: max(30px, calc((100% - 1320px) / 2 + 18px));
+    bottom: 20px;
+    width: min(620px, 46vw);
+    margin: 0;
+    padding: 0;
+  }
+
+  #loginPage .login-public-footer nav,
+  #loginPage .login-public-footer p {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 1050px) {
+  #loginPage .login-public-tail {
+    min-height: auto;
+  }
+
+  #loginPage .supporter-heading {
+    justify-content: flex-start;
+    text-align: left;
+  }
 }
 
 @keyframes biglwa-supporter-marquee {
@@ -603,13 +624,6 @@ body.about-site {
     padding-left: 14px;
   }
 
-  #loginPage .supporter-heading {
-    display: block;
-  }
-
-  #loginPage .supporter-heading > p:last-child {
-    margin-top: 12px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
