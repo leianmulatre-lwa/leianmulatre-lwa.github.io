@@ -383,23 +383,68 @@ body.about-site {
   padding: 30px clamp(20px, 4vw, 36px) 46px;
 }
 
-/* A lower login band creates breathing room now and houses real supporters later. */
+/* Login uses one continuous copy of the policy-page curtain. */
+#loginPage.login-page {
+  background-color: #170006 !important;
+  background-image:
+    linear-gradient(rgba(23, 0, 6, .68), rgba(23, 0, 6, .78)),
+    url("/assets/login-curtain-film-grain-v2.webp?v=20260912-login-policy-match-1") !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+#loginPage .login-shell {
+  isolation: auto !important;
+  background: transparent !important;
+}
+
+#loginPage .login-curtain-bg {
+  display: none !important;
+}
+
+#loginPage .login-shell::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(23, 0, 6, 0) 0%,
+    rgba(23, 0, 6, .08) 34%,
+    rgba(23, 0, 6, .22) 70%,
+    rgba(23, 0, 6, .34) 100%
+  ) !important;
+}
+
+/* A blurred lower band creates breathing room and houses real supporters later. */
 #loginPage .login-public-tail {
   position: relative;
   z-index: 2;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 210px;
   margin-top: -1px;
   padding: 52px 0 28px;
-  background-color: #170006;
-  background-image:
-    linear-gradient(rgba(23, 0, 6, .76), rgba(23, 0, 6, .9)),
-    url("/assets/login-curtain-film-grain-v2.webp?v=20260912-login-tail-1");
-  background-position: center bottom;
-  background-size: cover;
+  background: transparent;
+}
+
+#loginPage .login-public-tail::before {
+  content: "";
+  position: absolute;
+  inset: -24px 0 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(23, 0, 6, .34),
+    rgba(23, 0, 6, .4) 55%,
+    rgba(23, 0, 6, .48)
+  );
+  -webkit-backdrop-filter: blur(11px);
+  backdrop-filter: blur(11px);
 }
 
 #loginPage .login-public-footer,
 #loginPage .login-supporters {
+  position: relative;
+  z-index: 1;
   width: min(1120px, calc(100% - 32px));
   margin-right: auto;
   margin-left: auto;
@@ -532,6 +577,15 @@ body.about-site {
   #loginPage .login-public-tail {
     min-height: 190px;
     padding-top: 38px;
+  }
+
+  #loginPage.login-page {
+    background-attachment: scroll !important;
+  }
+
+  #loginPage .login-public-tail::before {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
   }
 
   #loginPage .login-public-footer,
