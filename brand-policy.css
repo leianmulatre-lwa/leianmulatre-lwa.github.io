@@ -453,11 +453,11 @@ body.about-site {
 #loginPage .login-supporters {
   position: relative;
   z-index: 1;
-  width: min(1120px, calc(100% - 32px));
+  width: min(1320px, calc(100% - 24px));
   margin-right: auto;
   margin-left: auto;
-  padding-right: 28px;
-  padding-left: 28px;
+  padding-right: 18px;
+  padding-left: 18px;
   box-sizing: border-box;
 }
 
@@ -598,9 +598,9 @@ body.about-site {
 
   #loginPage .login-public-footer,
   #loginPage .login-supporters {
-    width: min(100% - 20px, 1120px);
-    padding-right: 20px;
-    padding-left: 20px;
+    width: calc(100% - 12px);
+    padding-right: 14px;
+    padding-left: 14px;
   }
 
   #loginPage .supporter-heading {
