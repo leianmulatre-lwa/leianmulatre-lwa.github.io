@@ -1,0 +1,313 @@
+@font-face {
+  font-family: "CS Bergamot Stitched";
+  src: url("/assets/fonts/cs-bergamot-stitched.otf?v=20260912-display-1") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* Login display type and the corrected laptop-screen crop. */
+#loginPage .login-laptop-copy h1,
+#loginPage .login-card-head h2 {
+  font-family: "CS Bergamot Stitched", Georgia, "Times New Roman", serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .01em !important;
+}
+
+#loginPage .login-laptop-copy h1 {
+  line-height: .94 !important;
+}
+
+#loginPage .login-screen-video {
+  right: 12.2% !important;
+  width: auto !important;
+  z-index: 3 !important;
+}
+
+#loginPage .login-screen-video video {
+  object-position: 66% 44% !important;
+}
+
+#loginPage .login-laptop-copy {
+  z-index: 4 !important;
+}
+
+#loginPage .login-archive-credit {
+  z-index: 5 !important;
+}
+
+#loginPage .login-volume-toggle {
+  position: absolute;
+  right: 14.2%;
+  bottom: 17.1%;
+  z-index: 6;
+  display: grid;
+  width: clamp(24px, 2.45vw, 34px);
+  height: clamp(24px, 2.45vw, 34px);
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 246, 236, .34);
+  border-radius: 999px;
+  background: rgba(17, 2, 7, .58);
+  color: #fff6ec;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .26);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+#loginPage .login-volume-toggle:hover {
+  background: rgba(103, 25, 40, .82);
+  border-color: rgba(255, 246, 236, .68);
+  transform: translateY(-1px);
+}
+
+#loginPage .login-volume-toggle:focus-visible {
+  outline: 2px solid #f4879a;
+  outline-offset: 3px;
+}
+
+#loginPage .login-volume-toggle svg {
+  width: 52%;
+  height: 52%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+#loginPage .login-volume-toggle .sound-on,
+#loginPage .login-volume-toggle[aria-pressed="true"] .sound-off {
+  display: none;
+}
+
+#loginPage .login-volume-toggle[aria-pressed="true"] .sound-on {
+  display: block;
+}
+
+/* Policy routes share the login curtain while retaining their cream cards. */
+.policy-page {
+  position: relative;
+  isolation: isolate;
+  background-color: #170006 !important;
+  background-image:
+    linear-gradient(rgba(23, 0, 6, .68), rgba(23, 0, 6, .78)),
+    url("/assets/login-curtain-film-grain-v2.webp?v=20260912-policy-1") !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+.policy-page .policy-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.policy-page .policy-top {
+  min-height: 58px;
+}
+
+.policy-page .policy-top .login-brand {
+  display: inline-flex;
+  align-items: center;
+  min-width: 104px;
+  min-height: 58px;
+}
+
+.policy-page .policy-top .biglwa-policy-emblem {
+  display: block;
+  width: auto;
+  height: 58px;
+  max-height: 58px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.policy-page .policy-back {
+  color: rgba(255, 246, 236, .9) !important;
+  border-color: rgba(255, 246, 236, .26) !important;
+  background: rgba(25, 1, 8, .42) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.policy-page .policy-back:hover {
+  border-color: rgba(255, 246, 236, .62) !important;
+  background: rgba(87, 12, 29, .64) !important;
+}
+
+.policy-page .policy-card::before {
+  content: "";
+  display: block;
+  width: 116px;
+  height: 90px;
+  margin: -34px auto 20px;
+  background: url("/assets/biglwa-seal-black.png?v=20260912-policy-1") center / contain no-repeat;
+  opacity: .88;
+}
+
+.policy-page .policy-card h1,
+.policy-page .policy-card h2 {
+  font-family: "CS Bergamot Stitched", Georgia, "Times New Roman", serif !important;
+  font-weight: 400 !important;
+}
+
+.policy-page .policy-card h1 {
+  letter-spacing: .005em !important;
+  line-height: 1 !important;
+}
+
+.policy-page .policy-card h2 {
+  letter-spacing: .01em !important;
+}
+
+#privacyPage .privacy-principles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 28px 0 34px;
+}
+
+#privacyPage .privacy-principle {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #dfd4ca;
+  border-radius: 16px;
+  background: #f1e9e1;
+}
+
+#privacyPage .privacy-number {
+  display: block;
+  margin-bottom: 14px;
+  color: #8d2534;
+  font: 750 10px/1 Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .16em;
+}
+
+#privacyPage .privacy-principle h2 {
+  margin: 0 0 9px !important;
+  font-size: clamp(20px, 2.4vw, 26px) !important;
+  line-height: 1.05 !important;
+}
+
+#privacyPage .privacy-principle p {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.58 !important;
+}
+
+@media (max-width: 760px) {
+  #privacyPage .privacy-principles {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-page .policy-card::before {
+    width: 98px;
+    height: 75px;
+    margin-top: -28px;
+  }
+}
+
+@media (max-width: 560px) {
+  #loginPage .login-volume-toggle {
+    right: 13.7%;
+    bottom: 16.7%;
+  }
+}
+
+/* Standalone About route. */
+body.about-site {
+  min-height: 100vh;
+  padding: 0 0 30px;
+  background-color: #170006;
+  background-image:
+    linear-gradient(rgba(23, 0, 6, .64), rgba(23, 0, 6, .76)),
+    url("/assets/login-curtain-film-grain-v2.webp?v=20260912-about-1");
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+.about-site header,
+.about-site footer {
+  color: rgba(255, 246, 236, .9);
+  border-color: rgba(255, 246, 236, .2);
+}
+
+.about-site header .brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.about-site header .brand img {
+  display: block;
+  width: auto;
+  height: 58px;
+}
+
+.about-site header a:hover,
+.about-site footer a:hover {
+  color: #f5a1af;
+}
+
+.about-site main {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding-top: 0;
+  padding-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .68);
+  border-radius: 28px;
+  background: rgba(250, 247, 241, .94);
+  box-shadow: 0 28px 80px rgba(11, 0, 4, .32);
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+}
+
+.about-site h1,
+.about-site h2,
+.about-site h3 {
+  font-family: "CS Bergamot Stitched", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.about-site h1 {
+  letter-spacing: .005em;
+  line-height: .98;
+}
+
+.about-site h2,
+.about-site h3 {
+  letter-spacing: .01em;
+}
+
+.about-site .hero {
+  padding-left: clamp(24px, 5vw, 64px);
+  padding-right: clamp(24px, 5vw, 64px);
+}
+
+.about-site main > section {
+  margin-left: clamp(24px, 5vw, 64px);
+  margin-right: clamp(24px, 5vw, 64px);
+}
+
+.about-site footer p {
+  color: rgba(255, 246, 236, .68);
+}
+
+@media (max-width: 720px) {
+  body.about-site {
+    padding-bottom: 18px;
+  }
+
+  .about-site main {
+    margin: 12px 10px 18px;
+    border-radius: 20px;
+  }
+
+  .about-site header .brand img {
+    height: 48px;
+  }
+}

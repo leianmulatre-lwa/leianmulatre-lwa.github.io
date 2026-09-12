@@ -2,6 +2,8 @@
   const video = document.getElementById('loginArchiveVideo');
   if (!video) return;
 
+  const soundButton = document.getElementById('loginVolumeToggle');
+  const credit = document.querySelector('.login-archive-credit');
   const base = 'https://archive.org/download/BettyBoopCartoons/';
   const episodes = [
     ['A Song a Day (1936)', 'Betty_Boop_A_Song_a_Day_1936_512kb.mp4'],
@@ -12,40 +14,77 @@
   ];
 
   const storageKey = 'biglwaLoginCartoonLast';
-  let lastIndex = -1;
-  try {
-    const stored = Number(sessionStorage.getItem(storageKey));
-    if (Number.isInteger(stored) && stored >= 0 && stored < episodes.length) lastIndex = stored;
-  } catch (_) {}
+  let episodeIndex = -1;
+  let failedAttempts = 0;
+  let muted = true;
 
-  const available = episodes.map((_, index) => index).filter(index => index !== lastIndex);
-  let episodeIndex = available[Math.floor(Math.random() * available.length)];
-  let attempts = 0;
+  const readLastEpisode = () => {
+    try {
+      const stored = Number(sessionStorage.getItem(storageKey));
+      return Number.isInteger(stored) && stored >= 0 && stored < episodes.length ? stored : -1;
+    } catch (_) {
+      return -1;
+    }
+  };
+
+  const chooseEpisode = excluded => {
+    const choices = episodes.map((_, index) => index).filter(index => index !== excluded);
+    return choices[Math.floor(Math.random() * choices.length)];
+  };
+
+  const updateSoundButton = () => {
+    if (!soundButton) return;
+    const soundIsOn = !muted;
+    soundButton.setAttribute('aria-pressed', String(soundIsOn));
+    soundButton.setAttribute('aria-label', soundIsOn ? 'Mute cartoon' : 'Turn cartoon sound on');
+    soundButton.title = soundIsOn ? 'Mute cartoon' : 'Turn cartoon sound on';
+  };
+
+  const play = () => {
+    const playback = video.play();
+    if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+  };
 
   const loadEpisode = index => {
+    episodeIndex = index;
     const [title, file] = episodes[index];
     try { sessionStorage.setItem(storageKey, String(index)); } catch (_) {}
     video.dataset.episode = title;
     video.src = base + encodeURIComponent(file);
     video.defaultMuted = true;
-    video.muted = true;
+    video.muted = muted;
+    if (credit) {
+      credit.textContent = `${title} · Internet Archive`;
+      credit.title = `Now playing: ${title}`;
+    }
     video.load();
-    const playback = video.play();
-    if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+    play();
   };
 
+  video.addEventListener('ended', () => {
+    failedAttempts = 0;
+    loadEpisode(chooseEpisode(episodeIndex));
+  });
+
   video.addEventListener('error', () => {
-    if (attempts >= episodes.length - 1) return;
-    attempts += 1;
-    episodeIndex = (episodeIndex + 1) % episodes.length;
-    loadEpisode(episodeIndex);
+    if (failedAttempts >= episodes.length - 1) return;
+    failedAttempts += 1;
+    loadEpisode((episodeIndex + 1) % episodes.length);
   });
 
   video.addEventListener('canplay', () => {
-    video.muted = true;
-    const playback = video.play();
-    if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+    video.muted = muted;
+    play();
   });
 
-  loadEpisode(episodeIndex);
+  soundButton?.addEventListener('click', () => {
+    muted = !muted;
+    video.muted = muted;
+    video.volume = .78;
+    updateSoundButton();
+    play();
+  });
+
+  updateSoundButton();
+  loadEpisode(chooseEpisode(readLastEpisode()));
 })();

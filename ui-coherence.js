@@ -452,11 +452,12 @@
     links.forEach(a=>{
       if(a.dataset.biglwaPolicyLogo==='1'||a.querySelector('img')){done++;return}
       const img=document.createElement('img');
-      img.src='/assets/biglwa-header-ready.png?v=20260912-stitched-spaced-1';
+      img.src='/assets/login-logo-mask.png?v=20260912-policy-emblem-1';
       img.alt='';
+      img.className='biglwa-policy-emblem';
       img.setAttribute('aria-hidden','true');
       img.decoding='sync';
-      img.style.cssText='display:block;width:auto;height:34px;max-height:34px;object-fit:contain;object-position:left center';
+      img.style.cssText='display:block;width:auto;height:58px;max-height:58px;object-fit:contain;object-position:left center';
       a.textContent='';
       a.appendChild(img);
       a.dataset.biglwaPolicyLogo='1';
