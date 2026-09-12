@@ -13,7 +13,7 @@
       #studioApp .studio-brand-row>a.brand.biglwa-block-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:124px!important;height:70px!important;min-width:124px!important;font-size:0!important;color:transparent!important;text-shadow:none!important;overflow:visible!important;text-decoration:none!important}
       #studioApp .studio-brand-row>a.brand.biglwa-block-brand img{display:block!important;width:115px!important;height:auto!important;max-width:115px!important;max-height:66px!important;object-fit:contain!important;object-position:left center!important;visibility:visible!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important}
       body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand{position:relative!important}
-      body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand::after{content:""!important;position:absolute!important;left:0!important;top:50%!important;width:115px!important;height:66px!important;transform:translateY(-50%)!important;pointer-events:none!important;background:url("/assets/biglwa-header-ready.png?v=20260910-mutual-good-faith-2") left center/contain no-repeat!important;filter:brightness(0) invert(1)!important;clip-path:inset(0 45.7% 0 0)!important}
+      body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand::after{content:""!important;position:absolute!important;left:0!important;top:50%!important;width:115px!important;height:66px!important;transform:translateY(-50%)!important;pointer-events:none!important;background:url("/assets/biglwa-header-ready.png?v=20260912-stitched-spaced-1") left center/contain no-repeat!important;filter:brightness(0) invert(1)!important;clip-path:inset(0 46.5% 0 0)!important}
       #studioApp .biglwa-top-block-logo{display:none!important}
       #studioApp .search-wrap{grid-column:2!important;max-width:none!important;width:100%!important;justify-self:stretch!important}
       #studioApp .top-actions{grid-column:3!important}
@@ -153,7 +153,7 @@
     a.href='/studio';
     a.setAttribute('aria-label','BIGLWA Studio');
     const img=document.createElement('img');
-    img.src='/assets/biglwa-header-ready.png?v=20260910-mutual-good-faith-2';
+    img.src='/assets/biglwa-header-ready.png?v=20260912-stitched-spaced-1';
     img.alt='';
     img.setAttribute('aria-hidden','true');
     img.decoding='sync';
@@ -452,7 +452,7 @@
     links.forEach(a=>{
       if(a.dataset.biglwaPolicyLogo==='1'||a.querySelector('img')){done++;return}
       const img=document.createElement('img');
-      img.src='/assets/biglwa-header-ready.png';
+      img.src='/assets/biglwa-header-ready.png?v=20260912-stitched-spaced-1';
       img.alt='';
       img.setAttribute('aria-hidden','true');
       img.decoding='sync';
