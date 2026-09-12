@@ -224,7 +224,7 @@
       [...card.children].forEach(el=>{if(!el.matches('.card-head,.widget-window-controls,.window-controls'))el.remove()});
       const content=document.createElement('div');content.innerHTML=(id==='calendar'?'':'<h2>'+title+'</h2>')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
     }
-    const masonry=$('.masonry');if(masonry&&!$('#map')){const games=$('#games');const card=document.createElement('article');card.id='map';card.className='card studio-map-card';card.innerHTML=`<div class="card-head"><span class="eyebrow">Map</span><button class="arrow-btn" type="button" data-open="map" aria-label="Open map">→</button></div><h2 style="font-family:Georgia,serif;margin:8px 0 4px">Map</h2><div class="studio-map-visual" aria-hidden="true"></div><small>${readJSON('biglwaMapPins',[]).length} saved pin${readJSON('biglwaMapPins',[]).length===1?'':'s'} · click to map projects, places, and memories</small>`;games?masonry.insertBefore(card,games):masonry.appendChild(card)}else if($('#map')){const small=$('#map small');if(small)small.textContent=`${readJSON('biglwaMapPins',[]).length} saved pin${readJSON('biglwaMapPins',[]).length===1?'':'s'} · click to map projects, places, and memories`}
+    $('#map')?.remove();
   }
   setTimeout(enhanceStudioCards,80);
 
