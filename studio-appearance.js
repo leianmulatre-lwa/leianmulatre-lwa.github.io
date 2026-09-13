@@ -242,16 +242,22 @@
 
   async function processWallpaper(file,context,button,input){
     const safety=window.BIGLWAWallpaperSafety;
-    if(!safety){setSafetyStatus('error','Safety scanning is unavailable, so this file was not applied.');return}
     button.disabled=true;input.disabled=true;setSafetyStatus('checking',file.type.startsWith('video/')?'Checking multiple frames from this video on your device…':'Checking this image on your device…');
     try{
-      const result=await safety.scan(file,{context,onProgress:(current,total)=>setSafetyStatus('checking',`Checking frame ${current} of ${total} on your device…`)});
+      let result;
+      if(safety){
+        result=await safety.scan(file,{context,onProgress:(current,total)=>setSafetyStatus('checking',`Checking frame ${current} of ${total} on your device…`)});
+      }else{
+        const allowed=/^(image\/(jpeg|png|webp|gif)|video\/(mp4|webm|quicktime))$/.test(file.type),limit=file.type.startsWith('video/')?120*1024*1024:30*1024*1024;
+        if(!allowed||file.size>limit){setSafetyStatus('error',allowed?'Keep videos under 120 MB and images under 30 MB.':'Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.');return}
+        result={status:'local-only',engine:'local preview fallback'};
+      }
       if(result.status==='invalid'){setSafetyStatus('error',result.message||'This file could not be read safely.');return}
       if(result.status==='block'){setSafetyStatus('error','This appears to be explicit photographic media, so it cannot be used as a wallpaper.');return}
       let rating=result.status==='local-only'?'local-only':'general';
       if(result.status==='age-restricted'){
         setSafetyStatus('checking','Adult or uncertain context detected. Checking signed age verification…','18+ · checking');
-        if(!await safety.hasVerifiedAdultClaim()){setSafetyStatus('held','Held as 18+. A birthday entry is not enough, and secure age verification is not connected yet.','18+ · held');return}
+        if(!await safety?.hasVerifiedAdultClaim?.()){setSafetyStatus('held','Held as 18+. A birthday entry is not enough, and secure age verification is not connected yet.','18+ · held');return}
         rating='18+';
       }
       const record={id:RECORD_KEY,blob:file,type:file.type,name:String(file.name||'wallpaper').slice(0,180),rating,context,checkedBy:result.engine,review:rating==='local-only'?'pending':'complete',visibility:'device-only',updatedAt:Date.now()};

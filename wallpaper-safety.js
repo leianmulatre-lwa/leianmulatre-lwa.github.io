@@ -20,7 +20,10 @@
     const cleanup=()=>{clearTimeout(timer);target.removeEventListener(event,done);target.removeEventListener('error',fail)};
     target.addEventListener(event,done,{once:true});target.addEventListener('error',fail,{once:true});
   });
-  const withTimeout=(promise,ms,message)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(message)),ms))]);
+  const withTimeout=(promise,ms,message)=>{
+    let timer;
+    return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms)})]).finally(()=>clearTimeout(timer));
+  };
 
   function loadScript(src,id){
     if(window[id])return Promise.resolve(window[id]);
