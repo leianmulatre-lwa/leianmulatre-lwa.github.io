@@ -549,7 +549,8 @@ body.about-site {
   #loginPage .login-supporters {
     position: absolute;
     right: max(30px, calc((100% - 1320px) / 2 + 18px));
-    bottom: 20px;
+    top: 36px;
+    bottom: auto;
     width: min(620px, 46vw);
     margin: 0;
     padding: 0;

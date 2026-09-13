@@ -31,7 +31,7 @@
     });
 
     const founder = document.createElement('p');
-    founder.textContent = 'BIGLWA · Founded by Leian Stanley';
+    founder.textContent = 'BIGLWA · Founded by Leian Stanley · All rights reserved.';
     footer.append(nav, founder);
     return footer;
   };
