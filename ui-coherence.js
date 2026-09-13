@@ -140,6 +140,34 @@
       body.sidebar-collapsed #studioApp .hero .widget-is-expanded,
       body.sidebar-collapsed #studioApp .masonry .widget-is-expanded{left:78px!important}
       #studioApp .widget-is-expanded>.widget-window-controls{position:sticky!important;top:0!important;right:0!important;left:auto!important;margin:0 0 10px auto!important;width:max-content!important}
+      /* Profile editing stays inside the profile card instead of opening a floating panel. */
+      #studioApp .profile-card .profile-identity-rail #editProfileBtn{position:static!important;inset:auto!important;width:100%!important;min-width:0!important;max-width:100px!important;margin:0!important;padding:7px 8px!important;border-radius:999px!important;font-size:9px!important;line-height:1.1!important;white-space:nowrap!important}
+      #studioApp .profile-card.profile-is-editing{min-height:420px!important}
+      #studioApp .profile-card.profile-is-editing .profile-identity-rail{justify-content:flex-start!important}
+      #studioApp .profile-card.profile-is-editing .profile-copy{display:none!important}
+      #studioApp .profile-card #wallpaperPanel{position:static!important;inset:auto!important;grid-column:2!important;grid-row:1!important;align-self:stretch!important;width:auto!important;max-width:none!important;max-height:390px!important;margin:0!important;padding:19px 22px 18px!important;overflow:auto!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+      #studioApp .profile-card #wallpaperPanel.panel-hidden{display:none!important}
+      #studioApp .profile-card #wallpaperPanel:not(.panel-hidden){display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:auto!important}
+      #studioApp .profile-card #wallpaperPanel .panel-title{position:sticky;top:-19px;z-index:3;margin:-19px -22px 10px;padding:16px 22px 9px;background:linear-gradient(to bottom,rgba(250,246,240,.98) 72%,rgba(250,246,240,0))}
+      #studioApp .profile-card #wallpaperPanel .panel-title strong{font:600 18px/1.1 Georgia,"Times New Roman",serif}
+      #studioApp .profile-card #wallpaperPanel .panel-title button{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:inherit;cursor:pointer}
+      #studioApp .profile-editor-tabs{display:flex;gap:5px;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid rgba(75,63,57,.12)}
+      #studioApp .profile-editor-tabs button{border:1px solid rgba(75,63,57,.16);border-radius:999px;background:rgba(255,255,255,.48);padding:7px 10px;color:inherit;font:700 8px/1 system-ui;letter-spacing:.04em;cursor:pointer}
+      #studioApp .profile-editor-tabs button[aria-selected="true"]{border-color:rgba(var(--aura-rgb,216,95,109),.55);background:rgba(var(--aura-rgb,216,95,109),.13);color:rgb(var(--aura-rgb,216,95,109))}
+      #studioApp #wallpaperPanel [data-profile-editor-pane][hidden]{display:none!important}
+      #studioApp #wallpaperPanel .customize-section{margin:0!important;padding:0!important;border:0!important}
+      #studioApp #wallpaperPanel .customize-section h3{margin:0 0 5px!important;font:600 14px/1.2 Georgia,"Times New Roman",serif!important}
+      #studioApp #wallpaperPanel .profile-editor-grid{gap:7px!important}
+      #studioApp #wallpaperPanel .profile-editor-grid input,#studioApp #wallpaperPanel .profile-editor-grid textarea{box-sizing:border-box!important;padding:8px 9px!important}
+      #studioApp .profile-editor-actions{position:sticky;bottom:-18px;z-index:3;display:flex;gap:7px;margin:12px -22px -18px;padding:10px 22px 16px;background:linear-gradient(to top,rgba(250,246,240,.98) 76%,rgba(250,246,240,0))}
+      #studioApp .profile-editor-actions button{width:auto!important;min-width:112px!important;margin:0!important;padding:9px 13px!important}
+      #studioApp .profile-editor-actions .profile-editor-cancel{background:rgba(255,255,255,.54)!important;color:var(--widget-ink,#272321)!important;border:1px solid rgba(65,54,49,.18)!important;box-shadow:none!important}
+      body.night-mode #studioApp .profile-card #wallpaperPanel .panel-title{background:linear-gradient(to bottom,rgba(41,37,35,.98) 72%,rgba(41,37,35,0))}
+      body.night-mode #studioApp .profile-editor-actions{background:linear-gradient(to top,rgba(41,37,35,.98) 76%,rgba(41,37,35,0))}
+      body.night-mode #studioApp .profile-editor-tabs button{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16)}
+      body.night-mode #studioApp #wallpaperPanel .profile-editor-grid input,body.night-mode #studioApp #wallpaperPanel .profile-editor-grid textarea,body.night-mode #studioApp #wallpaperPanel select{background:#302c2a!important;border-color:#514a45!important;color:#f3eee8!important}
+      @media(max-width:900px){#studioApp .profile-card.profile-is-editing{min-height:460px!important}#studioApp .profile-card #wallpaperPanel{max-height:430px!important;padding-left:16px!important;padding-right:16px!important}#studioApp .profile-card #wallpaperPanel .panel-title{margin-left:-16px!important;margin-right:-16px!important;padding-left:16px!important;padding-right:16px!important}#studioApp .profile-editor-actions{margin-left:-16px!important;margin-right:-16px!important;padding-left:16px!important;padding-right:16px!important}}
+      @media(max-width:620px){#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:610px!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:grid!important;grid-template-columns:64px minmax(90px,120px) 1fr!important;align-items:center!important;justify-items:start!important;gap:10px!important;padding:12px 14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.13)!important}#studioApp .profile-card.profile-is-editing .profile-avatar{width:58px!important;height:58px!important}#studioApp .profile-card.profile-is-editing .profile-rail-location{text-align:left!important}#studioApp .profile-card #wallpaperPanel{grid-column:1!important;grid-row:2!important;max-height:510px!important}.profile-editor-grid{grid-template-columns:1fr!important}.profile-editor-grid label.full{grid-column:1!important}}
     `;
   }
 
@@ -382,7 +410,7 @@
     }
     let display=$('.profile-display-name',card);
     if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Leian Stanley';copy.prepend(display)}
-    const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');
+    let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
     if(saved){
       if(display&&saved.name)display.textContent=saved.name;
       if(handle&&saved.username)handle.textContent='@'+saved.username.replace(/^@/,'');
@@ -394,20 +422,25 @@
       }
     }
     const panel=$('#wallpaperPanel');if(!panel)return;
-    if(!$('#profileDetailsEditor',panel)){
-      const section=document.createElement('div');section.className='customize-section profile-details-section';section.id='profileDetailsEditor';
-      section.innerHTML='<h3>Profile</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60"></label><label>Username<input id="profileUsernameInput" maxlength="30"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160"></label></div><button type="button" class="secondary-btn" id="saveProfileBtn" style="margin-top:10px">Save Profile</button>';
-      const title=$('.panel-title',panel);if(title)title.insertAdjacentElement('afterend',section);else panel.prepend(section);
-      $('#saveProfileBtn',panel).addEventListener('click',()=>{
-        const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim()};
-        localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));
-        if(display)display.textContent=details.name||'Your Name';
-        if(handle)handle.textContent='@'+(details.username||'username');
-        if(bio)bio.textContent=details.bio;
-        if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
-        panel.classList.add('panel-hidden');const b=$('#editProfileBtn');if(b)b.setAttribute('aria-expanded','false');
-      });
+    panel.setAttribute('aria-label','Edit profile and Studio appearance');
+    if(panel.parentNode!==card)card.appendChild(panel);
+    const panelTitle=$('.panel-title',panel),panelTitleText=panelTitle&&$('strong',panelTitle);if(panelTitleText)panelTitleText.textContent='Edit profile';
+    let profileSection=$('#profileDetailsEditor',panel);
+    if(!profileSection){
+      profileSection=document.createElement('div');profileSection.className='customize-section profile-details-section';profileSection.id='profileDetailsEditor';
+      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label></div>';
+      if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
+    profileSection.dataset.profileEditorPane='profile';profileSection.setAttribute('role','tabpanel');
+    const sections=$$('.customize-section',panel),wallpaperSection=sections.find(section=>section!==profileSection&&!section.classList.contains('widget-style-section')),widgetSection=sections.find(section=>section.classList.contains('widget-style-section'));
+    if(wallpaperSection){wallpaperSection.id=wallpaperSection.id||'profileWallpaperEditor';wallpaperSection.dataset.profileEditorPane='wallpaper';wallpaperSection.setAttribute('role','tabpanel')}
+    if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel')}
+    let tabs=$('#profileEditorTabs',panel);
+    if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
+    let actions=$('#profileEditorActions',panel);
+    if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';actions.innerHTML='<button type="button" class="secondary-btn" id="saveProfileBtn">Save profile</button><button type="button" class="secondary-btn profile-editor-cancel" id="cancelProfileBtn">Cancel</button>';panel.appendChild(actions)}
+    const showTab=key=>{$$('[data-profile-editor-pane]',panel).forEach(pane=>{pane.hidden=pane.dataset.profileEditorPane!==key});$$('[data-profile-editor-tab]',tabs).forEach(tab=>{const active=tab.dataset.profileEditorTab===key;tab.setAttribute('aria-selected',active?'true':'false');tab.tabIndex=active?0:-1})};
+    if(tabs.dataset.biglwaTabsBound!=='1'){tabs.dataset.biglwaTabsBound='1';tabs.addEventListener('click',event=>{const tab=event.target.closest('[data-profile-editor-tab]');if(tab)showTab(tab.dataset.profileEditorTab)})}
     const fillEditor=()=>{
       $('#profileNameInput',panel).value=display?display.textContent.trim():'';
       $('#profileUsernameInput',panel).value=handle?handle.textContent.trim().replace(/^@/,''):'';
@@ -417,16 +450,30 @@
       $('#profileWebsiteInput',panel).value=web?web.textContent.trim():'';
     };
     let button=$('#editProfileBtn',card);
-    if(button&&button.dataset.biglwaProfileBound!=='2'){
-      const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='2';button.type='button';button.textContent='Edit Profile';
-      button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const open=panel.classList.contains('panel-hidden');panel.hidden=false;panel.classList.toggle('panel-hidden',!open);button.setAttribute('aria-expanded',open?'true':'false');if(open)fillEditor()});
+    const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
+    const startEdit=()=>{fillEditor();showTab('profile');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
+    if(button&&button.dataset.biglwaProfileBound!=='3'){
+      const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='3';button.type='button';button.textContent='Edit profile';
+      button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(card.classList.contains('profile-is-editing'))endEdit();else startEdit()});
     }
-    if(button){button.hidden=false;button.style.pointerEvents='auto';button.setAttribute('aria-controls','wallpaperPanel')}
+    if(button){button.hidden=false;button.style.pointerEvents='auto';button.setAttribute('aria-controls','wallpaperPanel');const railLocation=$('.profile-rail-location',rail);if(button.parentNode!==rail)rail.insertBefore(button,railLocation||null)}
+    const saveButton=$('#saveProfileBtn',panel);
+    if(saveButton&&saveButton.dataset.biglwaProfileBound!=='3'){
+      saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',()=>{
+        const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim()};
+        localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));
+        if(display)display.textContent=details.name||'Your Name';if(handle)handle.textContent='@'+(details.username||'username');if(bio)bio.textContent=details.bio;
+        if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
+        endEdit();
+      })
+    }
+    const cancel=$('#cancelProfileBtn',panel);if(cancel&&cancel.dataset.biglwaProfileBound!=='3'){cancel.dataset.biglwaProfileBound='3';cancel.addEventListener('click',()=>{fillEditor();endEdit()})}
     let close=$('#closePanel',panel);
-    if(close&&close.dataset.biglwaProfileBound!=='2'){
-      const fresh=close.cloneNode(true);close.replaceWith(fresh);close=fresh;close.dataset.biglwaProfileBound='2';
-      close.addEventListener('click',e=>{e.preventDefault();panel.classList.add('panel-hidden');if(button)button.setAttribute('aria-expanded','false')});
+    if(close&&close.dataset.biglwaProfileBound!=='3'){
+      const fresh=close.cloneNode(true);close.replaceWith(fresh);close=fresh;close.dataset.biglwaProfileBound='3';
+      close.addEventListener('click',e=>{e.preventDefault();fillEditor();endEdit()});
     }
+    if(!card.classList.contains('profile-is-editing')){panel.classList.add('panel-hidden');showTab('profile')}
   }
 
   function ensureTheme(){
