@@ -458,6 +458,88 @@ body.about-site {
   padding: 30px clamp(20px, 4vw, 36px) 46px;
 }
 
+/* The same supporter marquee closes every public information page. */
+.public-page-footer .public-supporters {
+  min-width: 0;
+  margin-top: 28px;
+  overflow: hidden;
+}
+
+.public-page-footer .supporter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+  color: #fff6ec;
+  text-align: left;
+}
+
+.public-page-footer .supporter-heading h2 {
+  margin: 0;
+  color: rgba(255, 246, 236, .82);
+  font: 400 18px/1 "CS Bergamot Stitched", Georgia, serif;
+  letter-spacing: .02em;
+}
+
+.public-page-footer .supporter-viewport {
+  overflow: hidden;
+  padding: 5px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+.public-page-footer .supporter-track {
+  display: flex;
+  width: max-content;
+  animation: biglwa-supporter-marquee var(--supporter-duration, 36s) linear infinite;
+}
+
+.public-page-footer .supporter-viewport:hover .supporter-track {
+  animation-play-state: paused;
+}
+
+.public-page-footer .supporter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 12px;
+}
+
+.public-page-footer .supporter-logo {
+  display: grid;
+  min-width: 112px;
+  height: 54px;
+  place-items: center;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, .58);
+  border-radius: 12px;
+  background: rgba(248, 243, 236, .92);
+  box-shadow: 0 5px 16px rgba(8, 0, 3, .2);
+  transition: transform .18s ease, background .18s ease;
+}
+
+.public-page-footer .supporter-logo img {
+  display: block;
+  width: auto;
+  max-width: 96px;
+  height: auto;
+  max-height: 38px;
+  object-fit: contain;
+  filter: none;
+  opacity: .96;
+  transition: opacity .18s ease;
+}
+
+.public-page-footer .supporter-logo:hover {
+  background: #fffaf4;
+  transform: translateY(-1px);
+}
+
+.public-page-footer .supporter-logo:hover img {
+  opacity: 1;
+}
+
 /* Login uses one continuous copy of the policy-page curtain. */
 #loginPage.login-page {
   background-color: #170006 !important;
@@ -703,17 +785,20 @@ body.about-site {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #loginPage .supporter-viewport {
+  #loginPage .supporter-viewport,
+  .public-page-footer .supporter-viewport {
     overflow-x: auto;
     -webkit-mask-image: none;
     mask-image: none;
   }
 
-  #loginPage .supporter-track {
+  #loginPage .supporter-track,
+  .public-page-footer .supporter-track {
     animation: none;
   }
 
-  #loginPage .supporter-group[aria-hidden="true"] {
+  #loginPage .supporter-group[aria-hidden="true"],
+  .public-page-footer .supporter-group[aria-hidden="true"] {
     display: none;
   }
 }

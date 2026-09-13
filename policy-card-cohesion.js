@@ -160,9 +160,17 @@
       const shell = page && page.querySelector('.policy-shell');
       if (!page || !shell) return;
       page.classList.add('has-public-footer');
-      if (!shell.querySelector('.policy-public-footer')) {
-        shell.append(makePublicFooter('policy-public-footer', route));
+      let footer = shell.querySelector('.policy-public-footer');
+      if (!footer) {
+        footer = makePublicFooter('policy-public-footer', route);
+        shell.append(footer);
       }
+      let carousel = footer.querySelector('.public-supporters');
+      if (!carousel) {
+        carousel = makeSupporterSection('public-supporters');
+        footer.append(carousel);
+      }
+      renderSupporters(carousel);
     });
   };
 
@@ -193,7 +201,29 @@
     return wrapper;
   };
 
+  const makeSupporterSection = (className) => {
+    const section = document.createElement('section');
+    section.className = `supporter-carousel ${className}`;
+    section.hidden = true;
+    section.setAttribute('aria-label', 'Supported by researchers and alumni at');
+
+    const heading = document.createElement('div');
+    heading.className = 'supporter-heading';
+    const title = document.createElement('h2');
+    title.textContent = 'supported by researchers and alumni at';
+    heading.append(title);
+
+    const viewport = document.createElement('div');
+    viewport.className = 'supporter-viewport';
+    const track = document.createElement('div');
+    track.className = 'supporter-track';
+    viewport.append(track);
+    section.append(heading, viewport);
+    return section;
+  };
+
   const renderSupporters = (section) => {
+    if (!section) return;
     const supporters = Array.isArray(window.BIGLWA_SUPPORTERS)
       ? window.BIGLWA_SUPPORTERS.filter((item) => item && item.name && item.src)
       : [];
@@ -216,6 +246,17 @@
     });
   };
 
+  const formatAboutSupporters = () => {
+    const footer = document.querySelector('body.about-site > .public-page-footer');
+    if (!footer) return;
+    let carousel = footer.querySelector('.public-supporters');
+    if (!carousel) {
+      carousel = makeSupporterSection('public-supporters');
+      footer.append(carousel);
+    }
+    renderSupporters(carousel);
+  };
+
   const formatLoginTail = () => {
     const page = document.getElementById('loginPage');
     if (!page) return;
@@ -224,23 +265,7 @@
       tail = document.createElement('div');
       tail.className = 'login-public-tail';
 
-      const supporters = document.createElement('section');
-      supporters.className = 'login-supporters';
-      supporters.hidden = true;
-      supporters.setAttribute('aria-label', 'Supported by researchers and alumni at');
-
-      const heading = document.createElement('div');
-      heading.className = 'supporter-heading';
-      const title = document.createElement('h2');
-      title.textContent = 'supported by researchers and alumni at';
-      heading.append(title);
-
-      const viewport = document.createElement('div');
-      viewport.className = 'supporter-viewport';
-      const track = document.createElement('div');
-      track.className = 'supporter-track';
-      viewport.append(track);
-      supporters.append(heading, viewport);
+      const supporters = makeSupporterSection('login-supporters');
 
       tail.append(supporters, makePublicFooter('login-public-footer'));
       page.append(tail);
@@ -253,6 +278,7 @@
     formatRights();
     addThreeBodyContext();
     formatPolicyFooters();
+    formatAboutSupporters();
     addStudioAboutLink();
     formatLoginTail();
     normalizePublicBrand();
