@@ -92,7 +92,7 @@
       #visitorLogDialog .encryption-readiness span{margin-top:2px;font:8px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
 
       #studioApp .sidebar-theme-btn .biglwa-theme-icon{display:none!important}
-      #studioApp .sidebar-theme-btn img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important}
+      #studioApp .sidebar-theme-btn img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;filter:brightness(0)!important;mix-blend-mode:normal!important}
       #studioApp #studioNotificationsBtn svg{width:18px;height:18px;display:block}
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
