@@ -7,6 +7,28 @@
     { label: 'Rights & Likeness', href: '/rights', route: 'rights' }
   ];
 
+  const publicBrandPattern = /\bBII?GLWA\b/g;
+  const replacePublicBrand = (value) => value.replace(publicBrandPattern, 'big LWA');
+
+  const normalizePublicBrand = () => {
+    document.querySelectorAll('.policy-page').forEach((page) => {
+      const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+      while (node) {
+        const normalized = replacePublicBrand(node.nodeValue);
+        if (normalized !== node.nodeValue) node.nodeValue = normalized;
+        node = walker.nextNode();
+      }
+
+      page.querySelectorAll('[aria-label]').forEach((element) => {
+        const label = element.getAttribute('aria-label');
+        if (!label) return;
+        const normalized = replacePublicBrand(label);
+        if (normalized !== label) element.setAttribute('aria-label', normalized);
+      });
+    });
+  };
+
   const makeNumber = (value) => {
     const number = document.createElement('span');
     number.className = 'policy-number';
@@ -31,7 +53,7 @@
     });
 
     const founder = document.createElement('p');
-    founder.textContent = 'BIGLWA · Founded by Leian Stanley · All rights reserved.';
+    founder.textContent = 'big LWA · Founded by Leian Stanley · All rights reserved.';
     footer.append(nav, founder);
     return footer;
   };
@@ -96,6 +118,33 @@
       card.insertBefore(makeNumber(number), originalTitle);
       originalTitle.replaceWith(heading);
     });
+  };
+
+  const addThreeBodyContext = () => {
+    const card = document.querySelector('#rightsPage .rights-card');
+    if (!card || card.querySelector('.three-body-model')) return;
+
+    const courtHeading = Array.from(card.children).find(
+      (element) => element.tagName === 'H2' && element.textContent.trim() === 'When court becomes necessary'
+    );
+    if (!courtHeading) return;
+
+    const context = document.createElement('section');
+    context.className = 'three-body-model';
+    context.setAttribute('aria-labelledby', 'threeBodyModelTitle');
+    context.innerHTML = `
+      <p class="three-body-kicker">Context</p>
+      <h2 id="threeBodyModelTitle">The three-body model</h2>
+      <p>Medical anthropologists Nancy Scheper-Hughes and Margaret Lock describe three connected ways of understanding the body:</p>
+      <div class="three-body-grid">
+        <div><strong>Individual body</strong><span>Your lived experience of your own body and self.</span></div>
+        <div><strong>Social body</strong><span>The meanings and stories a culture projects onto bodies.</span></div>
+        <div><strong>Body politic</strong><span>How institutions and systems regulate, surveil, and control individual and collective bodies.</span></div>
+      </div>
+      <p>For big LWA, likeness rights cross all three. A stolen image, abusive deepfake, impersonation, or misuse of creative work can affect someone personally, reshape how others see them, and reduce their power inside the systems circulating that material. Protection therefore has to preserve consent, context, authorship, and a usable record of what happened—not only the file itself.</p>
+      <p class="three-body-source">Framework: <a href="https://doi.org/10.1525/maq.1987.1.1.02a00020" target="_blank" rel="noopener noreferrer"><cite>The Mindful Body</cite> (1987)</a>.</p>
+    `;
+    courtHeading.before(context);
   };
 
   const formatPolicyFooters = () => {
@@ -202,9 +251,11 @@
   const apply = () => {
     formatPrivacy();
     formatRights();
+    addThreeBodyContext();
     formatPolicyFooters();
     addStudioAboutLink();
     formatLoginTail();
+    normalizePublicBrand();
   };
 
   apply();

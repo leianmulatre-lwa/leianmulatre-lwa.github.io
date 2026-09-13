@@ -236,11 +236,86 @@
   border-radius: 16px;
 }
 
+#rightsPage .three-body-model {
+  margin: 38px 0 30px;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid #d8ccc2;
+  border-radius: 20px;
+  background: #eee6de;
+  box-shadow: 3px 3px 0 #a74b59;
+}
+
+#rightsPage .three-body-model .three-body-kicker {
+  margin: 0 0 8px !important;
+  color: #922a39 !important;
+  font: 800 10px/1 Inter, ui-sans-serif, system-ui, sans-serif !important;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+#rightsPage .three-body-model > h2 {
+  margin: 0 0 12px !important;
+}
+
+#rightsPage .three-body-model > p {
+  max-width: 760px;
+}
+
+#rightsPage .three-body-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+#rightsPage .three-body-grid > div {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #ded3ca;
+  border-radius: 14px;
+  background: rgba(255, 253, 249, .78);
+}
+
+#rightsPage .three-body-grid > div:nth-child(1) { border-bottom: 3px solid #bd3f47; }
+#rightsPage .three-body-grid > div:nth-child(2) { border-bottom: 3px solid #d1ad2f; }
+#rightsPage .three-body-grid > div:nth-child(3) { border-bottom: 3px solid #416fa9; }
+
+#rightsPage .three-body-grid strong,
+#rightsPage .three-body-grid span {
+  display: block;
+}
+
+#rightsPage .three-body-grid strong {
+  margin-bottom: 6px;
+  font: 700 16px/1.15 Georgia, "Times New Roman", serif;
+}
+
+#rightsPage .three-body-grid span {
+  color: #5c514b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#rightsPage .three-body-source {
+  margin-bottom: 0 !important;
+  color: #6d625b !important;
+  font-size: 11px !important;
+}
+
+#rightsPage .three-body-source a {
+  color: #772839;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 760px) {
   #privacyPage .privacy-principles,
   #rightsPage .rights-grid,
   #rightsPage .rights-grid-three {
     grid-template-columns: 1fr !important;
+  }
+
+  #rightsPage .three-body-grid {
+    grid-template-columns: 1fr;
   }
 
   .policy-page .policy-card::before {
