@@ -87,6 +87,8 @@
       #visitorLogDialog input,#visitorLogDialog textarea{box-sizing:border-box;width:100%;border:1px solid rgba(73,59,52,.18);border-radius:10px;background:rgba(255,255,255,.72);color:inherit;padding:10px 11px;font:12px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;resize:vertical}
       #visitorLogDialog .visitor-dialog-primary{background:#1d1b1a;color:#fff;border-color:#1d1b1a;padding:9px 14px}
       #visitorLogDialog .visitor-form-note,#visitorLogDialog .visitor-form-status{margin:8px 0 0;font:9px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
+      #visitorLogDialog .visitor-own-profile-state{margin:0 0 13px;padding:11px 12px;border:1px solid rgba(var(--aura-rgb,216,95,109),.22);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.07);font:10px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#615852}
+      #visitorLogDialog .visitor-own-profile-state[hidden]{display:none}
       #visitorLogDialog .visitor-note-list{display:grid;gap:7px;margin-top:13px}
       #visitorLogDialog .visitor-note-item{padding:9px 10px;border:1px solid rgba(73,59,52,.11);border-radius:10px;background:rgba(255,255,255,.46);font:11px/1.4 Georgia,"Times New Roman",serif}
       #visitorLogDialog .visitor-note-item small{display:block;margin-top:4px;font:8px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:#837a73}
@@ -122,6 +124,7 @@
       body.night-mode #visitorLogDialog .visitor-dialog-head,body.night-mode #visitorLogDialog .visitor-note-item{border-color:rgba(255,255,255,.1)}
       body.night-mode #visitorLogDialog input,body.night-mode #visitorLogDialog textarea{background:#302c2a;border-color:#514a45;color:#f5eee7}
       body.night-mode #visitorLogDialog .visitor-dialog-head p,body.night-mode #visitorLogDialog .visitor-form-note,body.night-mode #visitorLogDialog .visitor-form-status,body.night-mode #visitorLogDialog .encryption-readiness span,body.night-mode #visitorLogDialog .visitor-note-item small{color:#bbb1a9}
+      body.night-mode #visitorLogDialog .visitor-own-profile-state{color:#d8cec6}
       body.night-mode #visitorLogDialog .visitor-note-item{background:rgba(255,255,255,.04)}
 
       @media(max-width:1020px){#studioApp .hero{grid-template-columns:minmax(0,1fr) 284px!important;padding-left:16px!important;padding-right:16px!important}}
@@ -152,6 +155,40 @@
     finally{db.close()}
   }
 
+  function viewingOwnProfile(){
+    const app=$('#studioApp');
+    if(!app)return true;
+    const relationship=(app.dataset.profileRelationship||document.body.dataset.profileRelationship||'').toLowerCase();
+    if(['visitor','other','guest'].includes(relationship))return false;
+    if(['self','owner','own'].includes(relationship))return true;
+    const ownerId=app.dataset.profileOwnerUid||app.dataset.profileOwnerId||document.body.dataset.profileOwnerUid||document.body.dataset.profileOwnerId||'';
+    const viewerId=app.dataset.viewerUid||app.dataset.viewerId||document.body.dataset.viewerUid||document.body.dataset.viewerId||'';
+    if(ownerId&&viewerId)return ownerId===viewerId;
+    /* The current Studio route is the signed-in member's own profile. Default to self
+       until a public profile explicitly supplies a relationship or both user ids. */
+    return true;
+  }
+
+  function syncVisitorPermissions(card=$('#visitorLogWidget')){
+    const own=viewingOwnProfile();
+    if(card){
+      card.dataset.profileRelationship=own?'self':'visitor';
+      const publicAction=$('[data-open-visitor="public"]',card);
+      if(publicAction){
+        publicAction.textContent=own?'View public notes':'Leave public note';
+        publicAction.setAttribute('aria-label',own?'View public notes on your profile':'Leave a public note on this profile');
+      }
+    }
+    const dialog=$('#visitorLogDialog');
+    if(!dialog)return own;
+    const publicTab=$('[data-visitor-tab="public"]',dialog),form=$('#visitorPublicForm',dialog),ownState=$('#visitorOwnProfileState',dialog);
+    if(publicTab)publicTab.textContent=own?'Public notes':'Public note';
+    if(form)form.hidden=own;
+    if(ownState)ownState.hidden=!own;
+    dialog.dataset.profileRelationship=own?'self':'visitor';
+    return own;
+  }
+
   function ensureVisitorLog(){
     const app=$('#studioApp'),hero=$('.hero',app);if(!app||!hero)return null;
     let card=$('#visitorLogWidget',app);
@@ -161,6 +198,7 @@
       card.dataset.widgetId='visitor-log';card.dataset.widgetLabel='Visitor Log';card.dataset.widgetRoute='visitor-log';
       card.innerHTML='<div class="card-kicker">Visitor Log</div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Your mailbox</strong><span>Public notes and private conversations begin here.</span></div></div><div class="visitor-log-actions"><button type="button" data-open-visitor="public">Public note</button><button type="button" data-open-visitor="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div>';
     }
+    syncVisitorPermissions(card);
     updateVisitorCount(card);
     return card;
   }
@@ -290,7 +328,7 @@
   }
 
   function readNotes(){try{const notes=JSON.parse(localStorage.getItem(NOTE_KEY)||'[]');return Array.isArray(notes)?notes:[]}catch{return[]}}
-  function updateVisitorCount(card=$('#visitorLogWidget')){if(!card)return;const count=readNotes().length,status=$('.visitor-log-count',card);if(status)status.textContent=count?`${count} local note${count===1?'':'s'} in this browser`:'Mailbox ready · visitor syncing comes with profiles'}
+  function updateVisitorCount(card=$('#visitorLogWidget')){if(!card)return;const count=readNotes().length,status=$('.visitor-log-count',card);if(status)status.textContent=count?`${count} local note${count===1?'':'s'} in this browser`:(viewingOwnProfile()?'Mailbox ready · only visitors can leave public notes':'Be the first visitor to leave a public note')}
 
   function renderNotes(){
     const list=$('#visitorNoteList');if(!list)return;list.innerHTML='';
@@ -309,17 +347,17 @@
 
   function ensureVisitorDialog(){
     let dialog=$('#visitorLogDialog');if(dialog)return dialog;
-    dialog=document.createElement('dialog');dialog.id='visitorLogDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Visitor Log</h2><p>A mailbox for notes now—and verified private conversations next.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><div class="visitor-dialog-tabs" role="tablist"><button type="button" role="tab" data-visitor-tab="public" aria-controls="visitorPublicPane">Public note</button><button type="button" role="tab" data-visitor-tab="direct" aria-controls="visitorDirectPane">Direct message</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><form id="visitorPublicForm"><label>Name (optional)<input id="visitorNoteName" maxlength="60" autocomplete="name"></label><label>Note<textarea id="visitorNoteText" rows="4" maxlength="500" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save note preview</button><p class="visitor-form-note">This preview stays in this browser until public profiles and moderation are connected.</p><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section><section class="visitor-dialog-pane" id="visitorDirectPane" data-visitor-pane="direct" hidden><div class="encryption-readiness"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg><div><strong>Encrypted draft storage is active</strong><span>Actual user-to-user E2EE stays off until recipient-key verification and ciphertext-only backend rules are connected.</span></div></div><form id="visitorDirectForm"><label>To<input id="visitorDirectTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="visitorDirectText" rows="5" maxlength="2000" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save encrypted draft</button><p class="visitor-form-status" id="visitorDirectStatus" role="status" aria-live="polite"></p></form></section>';
+    dialog=document.createElement('dialog');dialog.id='visitorLogDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Visitor Log</h2><p>A mailbox for notes now—and verified private conversations next.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><div class="visitor-dialog-tabs" role="tablist"><button type="button" role="tab" data-visitor-tab="public" aria-controls="visitorPublicPane">Public notes</button><button type="button" role="tab" data-visitor-tab="direct" aria-controls="visitorDirectPane">Direct message</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><p class="visitor-own-profile-state" id="visitorOwnProfileState" hidden>This is your profile. You can read public notes here, but only visitors can leave one.</p><form id="visitorPublicForm"><label>Name (optional)<input id="visitorNoteName" maxlength="60" autocomplete="name"></label><label>Note<textarea id="visitorNoteText" rows="4" maxlength="500" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save note preview</button><p class="visitor-form-note">This preview stays in this browser until public profiles and moderation are connected.</p><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section><section class="visitor-dialog-pane" id="visitorDirectPane" data-visitor-pane="direct" hidden><div class="encryption-readiness"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg><div><strong>Encrypted draft storage is active</strong><span>Actual user-to-user E2EE stays off until recipient-key verification and ciphertext-only backend rules are connected.</span></div></div><form id="visitorDirectForm"><label>To<input id="visitorDirectTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="visitorDirectText" rows="5" maxlength="2000" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save encrypted draft</button><p class="visitor-form-status" id="visitorDirectStatus" role="status" aria-live="polite"></p></form></section>';
     document.body.appendChild(dialog);
     const showTab=key=>{$$('[data-visitor-tab]',dialog).forEach(tab=>tab.setAttribute('aria-selected',tab.dataset.visitorTab===key?'true':'false'));$$('[data-visitor-pane]',dialog).forEach(pane=>pane.hidden=pane.dataset.visitorPane!==key)};
     dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-visitor-tab]');if(tab)showTab(tab.dataset.visitorTab);if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});
-    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();const message=$('#visitorNoteText',dialog).value.trim();if(!message)return;const notes=readNotes();notes.push({name:$('#visitorNoteName',dialog).value.trim(),message,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(NOTE_KEY,JSON.stringify(notes.slice(-30)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Note preview saved on this device.';renderNotes();updateVisitorCount()});
+    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncVisitorPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot leave a public note on your own profile.';return}const message=$('#visitorNoteText',dialog).value.trim();if(!message)return;const notes=readNotes();notes.push({name:$('#visitorNoteName',dialog).value.trim(),message,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(NOTE_KEY,JSON.stringify(notes.slice(-30)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Note preview saved on this device.';renderNotes();updateVisitorCount()});
     $('#visitorDirectForm',dialog).addEventListener('submit',async event=>{event.preventDefault();const to=$('#visitorDirectTo',dialog).value.trim(),message=$('#visitorDirectText',dialog).value.trim(),status=$('#visitorDirectStatus',dialog);if(!to||!message)return;status.textContent='Encrypting draft on this device…';try{await saveEncryptedDraft(to,message);$('#visitorDirectText',dialog).value='';status.textContent='Encrypted draft saved on this device. It has not been sent.'}catch{status.textContent='Encrypted draft storage is unavailable in this browser.'}});
-    dialog._showVisitorTab=showTab;showTab('public');renderNotes();return dialog;
+    dialog._showVisitorTab=showTab;syncVisitorPermissions();showTab('public');renderNotes();return dialog;
   }
 
   function openVisitorDialog(tab='public'){
-    const dialog=ensureVisitorDialog();dialog._showVisitorTab?.(tab);renderNotes();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
+    const dialog=ensureVisitorDialog();syncVisitorPermissions();dialog._showVisitorTab?.(tab);renderNotes();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
   }
 
   function bindVisitorActions(){
