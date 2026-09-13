@@ -14,7 +14,7 @@
     if(!style){style=document.createElement('style');style.id='biglwa-studio-experience-style';document.head.appendChild(style)}
     style.textContent=`
       /* Keep the profile editor and the three small widgets in one calm composition. */
-      #studioApp .hero{grid-template-columns:minmax(0,1fr) minmax(286px,326px)!important;grid-template-rows:auto auto!important;grid-auto-flow:row!important;gap:16px 18px!important;align-items:start!important;align-content:start!important;padding:40px clamp(18px,3.6vw,58px) 34px!important}
+      #studioApp .hero{grid-template-columns:minmax(0,1fr) minmax(286px,326px)!important;grid-template-rows:auto auto!important;grid-auto-flow:row!important;gap:16px 18px!important;align-items:start!important;align-content:start!important;padding:40px 16px 34px!important}
       #studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important;align-self:start!important;min-height:282px!important}
       #studioApp .hero-widget-rail{grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:1fr!important;gap:12px!important;align-content:start!important;min-width:0!important}
       #studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.visitor-log-card{position:relative!important;inset:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:118px!important;max-height:none!important;margin:0!important;padding:16px 18px!important;box-sizing:border-box!important;overflow:visible!important}
@@ -27,8 +27,9 @@
       #studioApp .profile-card #wallpaperPanel .panel-title{background-image:linear-gradient(to bottom,rgba(250,246,240,.98) 72%,rgba(250,246,240,0))!important}
       #studioApp .profile-editor-actions{background-image:linear-gradient(to top,rgba(250,246,240,.98) 76%,rgba(250,246,240,0))!important}
 
+      #studioApp .hero-widget-rail>.customizable-widget,#studioApp .masonry>.card:not(.manifesto-card){position:relative!important}
       #studioApp .widget-window-controls{top:13px!important;right:14px!important;left:auto!important;bottom:auto!important;position:absolute!important}
-      #studioApp .widget-drag-handle{display:grid!important;place-items:center!important;width:23px!important;height:18px!important;margin-left:3px!important;padding:0!important;border:0!important;border-radius:6px!important;background:rgba(55,47,43,.08)!important;color:var(--widget-muted,#746e68)!important;cursor:grab!important;touch-action:none!important;line-height:1!important}
+      #studioApp .widget-drag-handle{position:absolute!important;top:13px!important;right:auto!important;left:50%!important;z-index:6!important;display:grid!important;place-items:center!important;width:23px!important;height:18px!important;margin:0!important;padding:0!important;border:0!important;border-radius:6px!important;background:rgba(55,47,43,.08)!important;color:var(--widget-muted,#746e68)!important;cursor:grab!important;touch-action:none!important;line-height:1!important;transform:translateX(-50%)!important}
       #studioApp .widget-drag-handle:active{cursor:grabbing!important}
       #studioApp .widget-drag-handle svg{width:12px;height:12px;display:block}
       #studioApp .widget-drag-handle:focus-visible{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:2px}
@@ -110,8 +111,8 @@
       body.night-mode #visitorLogDialog .visitor-dialog-head p,body.night-mode #visitorLogDialog .visitor-form-note,body.night-mode #visitorLogDialog .visitor-form-status,body.night-mode #visitorLogDialog .encryption-readiness span,body.night-mode #visitorLogDialog .visitor-note-item small{color:#bbb1a9}
       body.night-mode #visitorLogDialog .visitor-note-item{background:rgba(255,255,255,.04)}
 
-      @media(max-width:1020px){#studioApp .hero{grid-template-columns:minmax(0,1fr) 284px!important;padding-left:18px!important;padding-right:18px!important}}
-      @media(max-width:900px){#studioApp .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;padding:62px 14px 34px!important}#studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important}#studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .hero>.hero-action-bar{grid-column:1!important;grid-row:3!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.visitor-log-card{min-height:132px!important}}
+      @media(max-width:1020px){#studioApp .hero{grid-template-columns:minmax(0,1fr) 284px!important;padding-left:16px!important;padding-right:16px!important}}
+      @media(max-width:900px){#studioApp .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;padding:62px 12px 34px!important}#studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important}#studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .hero>.hero-action-bar{grid-column:1!important;grid-row:3!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.visitor-log-card{min-height:132px!important}}
       @media(max-width:700px){#studioApp .hero-widget-rail{grid-template-columns:1fr!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.visitor-log-card{min-height:112px!important}#studioApp .profile-card.profile-is-editing{min-height:650px!important}#studioApp.profile-editor-wallpaper .profile-card.profile-is-editing{min-height:720px!important}#studioApp .profile-card #wallpaperPanel{max-height:570px!important}}
       @media(prefers-reduced-motion:reduce){#studioApp .widget-dragging-active{transform:none!important}}
     `;
@@ -170,10 +171,11 @@
       let controls=$(':scope>.widget-window-controls',widget);
       if(!controls){controls=document.createElement('div');controls.className='widget-window-controls';widget.prepend(controls)}
       if(!$('[data-expand-widget]',controls))controls.insertAdjacentHTML('afterbegin',`<button class="window-light green" type="button" data-expand-widget="${widget.dataset.widgetId}" aria-label="Expand ${widget.dataset.widgetLabel}"></button><button class="window-light yellow" type="button" data-minimize-widget="${widget.dataset.widgetId}" aria-label="Minimize ${widget.dataset.widgetLabel}"></button><button class="window-light red" type="button" data-dock-widget="${widget.dataset.widgetId}" aria-label="Move ${widget.dataset.widgetLabel} to toolbar"></button>`);
-      if(!$('[data-studio-drag-handle]',controls)){
-        const handle=document.createElement('button');handle.type='button';handle.className='widget-drag-handle';handle.dataset.studioDragHandle='1';handle.setAttribute('aria-label',`Move ${widget.dataset.widgetLabel}`);handle.title='Drag to reorder';handle.innerHTML='<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg>';
-        controls.appendChild(handle);
+      let handle=$('[data-studio-drag-handle]',widget);
+      if(!handle){
+        handle=document.createElement('button');handle.type='button';handle.className='widget-drag-handle';handle.dataset.studioDragHandle='1';handle.setAttribute('aria-label',`Move ${widget.dataset.widgetLabel}`);handle.title='Drag to reorder';handle.innerHTML='<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg>';
       }
+      if(handle.parentElement!==widget)widget.prepend(handle);
     });
   }
 
