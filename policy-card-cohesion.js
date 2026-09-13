@@ -8,7 +8,7 @@
   ];
 
   const publicBrandPattern = /\bBII?GLWA\b/g;
-  const replacePublicBrand = (value) => value.replace(publicBrandPattern, 'big LWA');
+  const replacePublicBrand = (value) => value.replace(publicBrandPattern, 'Big LWA');
 
   const normalizePublicBrand = () => {
     document.querySelectorAll('.policy-page').forEach((page) => {
@@ -53,7 +53,7 @@
     });
 
     const founder = document.createElement('p');
-    founder.textContent = 'big LWA · Founded by Leian Stanley · All rights reserved.';
+    founder.textContent = 'Big LWA · Founded by Leian Stanley · All rights reserved.';
     footer.append(nav, founder);
     return footer;
   };
@@ -141,7 +141,7 @@
         <div><strong>Social body</strong><span>The meanings and stories a culture projects onto bodies.</span></div>
         <div><strong>Body politic</strong><span>How institutions and systems regulate, surveil, and control individual and collective bodies.</span></div>
       </div>
-      <p>For big LWA, likeness rights cross all three. A stolen image, abusive deepfake, impersonation, or misuse of creative work can affect someone personally, reshape how others see them, and reduce their power inside the systems circulating that material. Protection therefore has to preserve consent, context, authorship, and a usable record of what happened—not only the file itself.</p>
+      <p>For Big LWA, likeness rights cross all three. A stolen image, abusive deepfake, impersonation, or misuse of creative work can affect someone personally, reshape how others see them, and reduce their power inside the systems circulating that material. Protection therefore has to preserve consent, context, authorship, and a usable record of what happened—not only the file itself.</p>
       <p class="three-body-source">Framework: <a href="https://doi.org/10.1525/maq.1987.1.1.02a00020" target="_blank" rel="noopener noreferrer"><cite>The Mindful Body</cite> (1987)</a>.</p>
     `;
     courtHeading.before(context);
