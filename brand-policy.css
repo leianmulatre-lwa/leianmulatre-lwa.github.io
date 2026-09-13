@@ -159,6 +159,12 @@
   opacity: .88;
 }
 
+/* Public information stays editorial-light even when Studio is in dark mode. */
+.policy-page .policy-card {
+  color: #221f1d !important;
+  color-scheme: light;
+}
+
 .policy-page .policy-card h1,
 .policy-page .policy-card h2 {
   font-family: "CS Bergamot Stitched", Georgia, "Times New Roman", serif !important;
@@ -379,6 +385,8 @@ body.about-site {
   box-shadow: 0 28px 80px rgba(11, 0, 4, .32);
   -webkit-backdrop-filter: blur(22px);
   backdrop-filter: blur(22px);
+  color: #221f1d;
+  color-scheme: light;
 }
 
 .about-site h1,
