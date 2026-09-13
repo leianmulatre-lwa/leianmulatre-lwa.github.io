@@ -1,6 +1,12 @@
 (()=>{
-  const TF_URL='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
-  const NSFW_URL='https://cdn.jsdelivr.net/npm/nsfwjs@4.4.0/dist/browser/nsfwjs.min.js';
+  const TF_URLS=[
+    'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js',
+    'https://unpkg.com/@tensorflow/tfjs@4.22.0/dist/tf.min.js'
+  ];
+  const NSFW_URLS=[
+    'https://cdn.jsdelivr.net/npm/nsfwjs@4.4.0/dist/browser/nsfwjs.min.js',
+    'https://unpkg.com/nsfwjs@4.4.0/dist/browser/nsfwjs.min.js'
+  ];
   const ALLOWED=new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','video/quicktime']);
   const IMAGE_MAX=30*1024*1024;
   const VIDEO_MAX=120*1024*1024;
@@ -20,20 +26,45 @@
     if(window[id])return Promise.resolve(window[id]);
     return new Promise((resolve,reject)=>{
       const prior=document.querySelector(`script[data-biglwa-safety="${id}"]`);
-      if(prior){prior.addEventListener('load',()=>resolve(window[id]),{once:true});prior.addEventListener('error',()=>reject(new Error(`${id} failed to load`)),{once:true});return}
+      if(prior){
+        if(prior.dataset.biglwaSafetyState==='failed'){prior.remove()}
+        else{
+          const timer=setTimeout(()=>reject(new Error(`${id} took too long to initialize`)),25000);
+          prior.addEventListener('load',()=>{clearTimeout(timer);window[id]?resolve(window[id]):reject(new Error(`${id} did not initialize`))},{once:true});
+          prior.addEventListener('error',()=>{clearTimeout(timer);reject(new Error(`${id} failed to load`))},{once:true});
+          return;
+        }
+      }
       const script=document.createElement('script');script.src=src;script.async=true;script.crossOrigin='anonymous';script.dataset.biglwaSafety=id;
-      script.onload=()=>window[id]?resolve(window[id]):reject(new Error(`${id} did not initialize`));
-      script.onerror=()=>reject(new Error(`${id} failed to load`));
+      const timer=setTimeout(()=>{script.dataset.biglwaSafetyState='failed';script.remove();reject(new Error(`${id} took too long to load`))},25000);
+      script.onload=()=>{clearTimeout(timer);script.dataset.biglwaSafetyState='ready';window[id]?resolve(window[id]):reject(new Error(`${id} did not initialize`))};
+      script.onerror=()=>{clearTimeout(timer);script.dataset.biglwaSafetyState='failed';script.remove();reject(new Error(`${id} failed to load`))};
       document.head.appendChild(script);
     });
   }
 
+  async function loadFirst(urls,id){
+    let lastError;
+    for(const url of urls){
+      try{return await loadScript(url,id)}
+      catch(error){lastError=error;document.querySelector(`script[data-biglwa-safety="${id}"]`)?.remove()}
+    }
+    throw lastError||new Error(`${id} could not be loaded`);
+  }
+
   async function getModel(){
     if(!modelPromise)modelPromise=(async()=>{
-      await loadScript(TF_URL,'tf');
-      const nsfw=await loadScript(NSFW_URL,'nsfwjs');
-      if(window.tf?.ready)await window.tf.ready();
-      return nsfw.load('MobileNetV2');
+      const tf=await loadFirst(TF_URLS,'tf');
+      const nsfw=await loadFirst(NSFW_URLS,'nsfwjs');
+      tf.enableProdMode?.();
+      await tf.ready?.();
+      try{return await nsfw.load('MobileNetV2')}
+      catch(firstError){
+        // Some privacy modes disable WebGL. The CPU backend is slower, but it
+        // keeps the same on-device review available instead of failing closed.
+        if(tf.getBackend?.()!=='cpu'&&tf.setBackend){await tf.setBackend('cpu');await tf.ready?.();return nsfw.load('MobileNetV2')}
+        throw firstError;
+      }
     })().catch(error=>{modelPromise=null;throw error});
     return modelPromise;
   }
@@ -133,14 +164,34 @@
 
   async function scan(file,{context='mixed',onProgress}={}){
     const valid=await validate(file);if(!valid.ok)return {status:'invalid',message:valid.message,scores:blankScores(),engine:'none'};
+    let model;
     try{
-      const model=await withTimeout(getModel(),45000,'The safety model took too long to load.');
+      model=await withTimeout(getModel(),70000,'The on-device safety model took too long to load.');
+    }catch(error){
+      return {
+        status:'local-only',
+        message:'On-device review could not start. Local preview is available, but this media is marked review pending and cannot be shared publicly.',
+        scores:blankScores(),
+        engine:'local preview fallback',
+        error:String(error?.message||error),
+        type:valid.type
+      };
+    }
+    try{
       const scores=blankScores();
       await withTimeout(file.type.startsWith('video/')?scanVideo(file,model,scores,onProgress):scanImage(file,model,scores,onProgress),120000,'The media safety check took too long.');
       return {...decide(scores,context),scores,engine:'NSFWJS 4.4.0 on-device',type:valid.type};
     }catch(error){
-      const detail=String(error?.message||error),safeDetail=/dimensions are too large|two minutes or less/.test(detail)?detail:'Safety scanning is unavailable, so this file was not applied.';
-      return {status:'unavailable',message:safeDetail,scores:blankScores(),engine:'unavailable',error:detail};
+      const detail=String(error?.message||error);
+      if(/dimensions are too large|two minutes or less|could not read|timed out/i.test(detail))return {status:'invalid',message:detail,scores:blankScores(),engine:'on-device validation',error:detail};
+      return {
+        status:'local-only',
+        message:'Review was interrupted. Local preview is available, but this media is marked review pending and cannot be shared publicly.',
+        scores:blankScores(),
+        engine:'local preview fallback',
+        error:detail,
+        type:valid.type
+      };
     }
   }
 
@@ -156,5 +207,7 @@
     }catch{return false}
   }
 
-  window.BIGLWAWallpaperSafety={scan,validate,decide,hasVerifiedAdultClaim,allowedTypes:[...ALLOWED]};
+  function retry(){modelPromise=null;return getModel()}
+
+  window.BIGLWAWallpaperSafety={scan,validate,decide,retry,hasVerifiedAdultClaim,allowedTypes:[...ALLOWED]};
 })();

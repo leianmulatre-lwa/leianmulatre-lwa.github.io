@@ -55,6 +55,7 @@
       #studioApp .wallpaper-safety-note{margin:8px 0!important;padding:8px 9px;border-radius:9px;background:rgba(var(--aura-rgb,216,95,109),.07);font-size:9px!important;line-height:1.45!important}
       #studioApp .wallpaper-safety-status{min-height:30px;margin:7px 0!important;padding:8px 9px;border:1px solid rgba(80,70,64,.14);border-radius:9px;background:rgba(255,255,255,.35);font-size:9px!important;line-height:1.45!important;color:var(--widget-muted,#77716b)!important}
       #studioApp .wallpaper-safety-status[data-state="checking"]{border-color:rgba(var(--aura-rgb,216,95,109),.44);color:rgb(var(--aura-rgb,216,95,109))!important}
+      #studioApp .wallpaper-safety-status[data-state="pending"]{border-color:rgba(194,139,27,.5);background:rgba(255,190,48,.11);color:#755109!important}
       #studioApp .wallpaper-safety-status[data-state="error"],#studioApp .wallpaper-safety-status[data-state="held"]{border-color:rgba(166,48,48,.38);color:#983737!important}
       #studioApp .wallpaper-18-badge{display:none;width:max-content;margin:5px 0;padding:4px 7px;border-radius:999px;background:#1d1b1a;color:#fff;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
       #studioApp .wallpaper-18-badge.is-visible{display:block}
@@ -66,6 +67,7 @@
       #pageWallpaper.biglwa-video-wallpaper>.biglwa-wallpaper-video{display:block}
       #pageWallpaper::after{z-index:2}
       body.night-mode #studioApp .wallpaper-safety-status{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
+      body.night-mode #studioApp .wallpaper-safety-status[data-state="pending"]{background:rgba(255,190,48,.1);border-color:rgba(255,202,87,.44);color:#f2cf84!important}
       @media(max-width:900px){#studioApp.profile-editor-widgets .profile-card.profile-is-editing{min-height:410px!important}#studioApp.profile-editor-wallpaper .profile-card.profile-is-editing{min-height:520px!important}}
       @media(prefers-reduced-motion:reduce){#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card{transition:none!important}}
     `;
@@ -219,6 +221,7 @@
     }
     applyWallpaperSettings(false);
     if(record.rating==='18+')setSafetyStatus('ready','Age-verified wallpaper active on this device.','18+ · verified');
+    else if(record.rating==='local-only')setSafetyStatus('pending','Local preview active · automated review is pending. This wallpaper stays on this device and cannot be shared publicly.','local only');
     else setSafetyStatus('ready','Safety check passed · wallpaper saved in this browser.');
   }
 
@@ -243,15 +246,15 @@
     button.disabled=true;input.disabled=true;setSafetyStatus('checking',file.type.startsWith('video/')?'Checking multiple frames from this video on your device…':'Checking this image on your device…');
     try{
       const result=await safety.scan(file,{context,onProgress:(current,total)=>setSafetyStatus('checking',`Checking frame ${current} of ${total} on your device…`)});
-      if(result.status==='invalid'||result.status==='unavailable'){setSafetyStatus('error',result.message||'This file could not be safely checked, so it was not applied.');return}
+      if(result.status==='invalid'){setSafetyStatus('error',result.message||'This file could not be read safely.');return}
       if(result.status==='block'){setSafetyStatus('error','This appears to be explicit photographic media, so it cannot be used as a wallpaper.');return}
-      let rating='general';
+      let rating=result.status==='local-only'?'local-only':'general';
       if(result.status==='age-restricted'){
         setSafetyStatus('checking','Adult or uncertain context detected. Checking signed age verification…','18+ · checking');
         if(!await safety.hasVerifiedAdultClaim()){setSafetyStatus('held','Held as 18+. A birthday entry is not enough, and secure age verification is not connected yet.','18+ · held');return}
         rating='18+';
       }
-      const record={id:RECORD_KEY,blob:file,type:file.type,name:String(file.name||'wallpaper').slice(0,180),rating,context,checkedBy:result.engine,updatedAt:Date.now()};
+      const record={id:RECORD_KEY,blob:file,type:file.type,name:String(file.name||'wallpaper').slice(0,180),rating,context,checkedBy:result.engine,review:rating==='local-only'?'pending':'complete',visibility:'device-only',updatedAt:Date.now()};
       await writeWallpaper(record);try{localStorage.removeItem('biglwaWallpaper')}catch{}
       await applyWallpaperRecord(record);
     }catch{setSafetyStatus('error','The safety check could not finish, so this file was not applied.')}
