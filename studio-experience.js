@@ -5,6 +5,12 @@
   const NOTE_KEY='biglwaVisitorNotesLocal';
   const MEDIA_DB='biglwa-studio-experience-v1';
   const MEDIA_STORE='records';
+  const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
+  const STUDIO_ICONS={
+    teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    hanger:'<svg class="studio-hanger-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M13 8.2a3.1 3.1 0 1 1 4.4 2.8c-1 .5-1.4 1.3-1.4 2.4v1.1M16 14.5 4.8 22.2c-1.3.9-.7 2.9.9 2.9h20.6c1.6 0 2.2-2 .9-2.9L16 14.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  };
   let musicUrl='';
   let coverUrl='';
   let musicRestored=false;
@@ -57,10 +63,9 @@
       #studioApp .music-card .progress{cursor:pointer!important;height:5px!important;margin-top:9px!important;border-radius:999px!important;overflow:hidden!important}
 
       #studioApp .visitor-log-card{--mail-accent:rgb(var(--aura-rgb,216,95,109))}
-      #studioApp .visitor-log-card .mailbox-mark{position:relative;width:46px;height:34px;flex:0 0 46px;border:1.5px solid currentColor;border-radius:5px 5px 9px 9px;opacity:.9}
-      #studioApp .visitor-log-card .mailbox-mark::before,#studioApp .visitor-log-card .mailbox-mark::after{content:"";position:absolute;left:4px;right:4px;height:1.5px;background:currentColor;transform-origin:center}
-      #studioApp .visitor-log-card .mailbox-mark::before{top:10px;transform:rotate(27deg)}
-      #studioApp .visitor-log-card .mailbox-mark::after{top:10px;transform:rotate(-27deg)}
+      #studioApp .visitor-log-card .mailbox-mark{position:relative;width:44px;height:44px;flex:0 0 44px;border:0;opacity:.92}
+      #studioApp .visitor-log-card .mailbox-mark::before,#studioApp .visitor-log-card .mailbox-mark::after{content:none!important;display:none!important}
+      #studioApp .visitor-log-card .mailbox-mark .visitor-mail-icon{display:block;width:44px;height:44px}
       #studioApp .visitor-log-intro{display:flex;gap:11px;align-items:center;margin:2px 0 10px}
       #studioApp .visitor-log-intro strong{display:block;font:700 13px/1.1 Georgia,"Times New Roman",serif}
       #studioApp .visitor-log-intro span{display:block;margin-top:3px;font:9px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
@@ -93,7 +98,15 @@
 
       #studioApp .sidebar-theme-btn .biglwa-theme-icon{display:none!important}
       #studioApp .sidebar-theme-btn img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;filter:brightness(0)!important;mix-blend-mode:normal!important}
-      #studioApp #studioNotificationsBtn svg{width:18px;height:18px;display:block}
+      #studioApp #studioNotificationsBtn .visitor-mail-icon{width:20px;height:20px;display:block}
+      #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon{display:block;width:22px;height:22px;margin:0 auto 2px}
+      #studioApp #closet .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
+      #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
+      #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
+      #studioApp #games .card-icon.games-combo-mark{display:inline-flex!important;width:auto!important;align-items:center;gap:3px;font-size:0!important}
+      #studioApp #games .games-chess-mark{font:22px/1 Georgia,"Times New Roman",serif}
+      #studioApp #games .games-block-mark{display:block;width:27px;height:27px;border-radius:5px;object-fit:cover;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
+      body.night-mode #studioApp #games .games-block-mark{mix-blend-mode:normal;filter:contrast(1.08)}
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
       body.night-mode #studioApp .profile-card,body.night-mode #studioApp .music-card,body.night-mode #studioApp .aura-card,body.night-mode #studioApp .visitor-log-card,body.night-mode #studioApp .mobile-dock.hero-action-bar,body.night-mode #studioApp .masonry .card:not(.manifesto-card){background:var(--widget-bg,rgba(250,247,241,.84))!important;border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;color:var(--widget-ink,#171717)!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important}
@@ -164,13 +177,20 @@
 
   function widgetLabel(widget){return widget.dataset.widgetLabel||$('.card-kicker,h2,h1',widget)?.textContent?.trim()||'widget'}
 
+  function greenControl(widget){
+    const id=widget.dataset.widgetId||widget.id||'widget',route=widget.dataset.widgetRoute||$('.arrow-btn[data-open]',widget)?.dataset.open||id;
+    if(route==='visitor-log'||id==='visitor-log')return {attribute:'data-open-visitor="public"',label:'Open Visitor Log mailbox'};
+    if(FULL_WIDGET_ROUTES.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
+    return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
+  }
+
   function ensureControls(){
     $$('#studioApp .hero-widget-rail>.customizable-widget,#studioApp .masonry>.card:not(.manifesto-card)').forEach((widget,index)=>{
       if(!widget.dataset.widgetId)widget.dataset.widgetId=widget.id||`studio-widget-${index+1}`;
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget);
       let controls=$(':scope>.widget-window-controls',widget);
       if(!controls){controls=document.createElement('div');controls.className='widget-window-controls';widget.prepend(controls)}
-      if(!$('[data-expand-widget]',controls))controls.insertAdjacentHTML('afterbegin',`<button class="window-light green" type="button" data-expand-widget="${widget.dataset.widgetId}" aria-label="Expand ${widget.dataset.widgetLabel}"></button><button class="window-light yellow" type="button" data-minimize-widget="${widget.dataset.widgetId}" aria-label="Minimize ${widget.dataset.widgetLabel}"></button><button class="window-light red" type="button" data-dock-widget="${widget.dataset.widgetId}" aria-label="Move ${widget.dataset.widgetLabel} to toolbar"></button>`);
+      if(!$('.window-light.green',controls)){const green=greenControl(widget);controls.insertAdjacentHTML('afterbegin',`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${widget.dataset.widgetId}" aria-label="Minimize ${widget.dataset.widgetLabel}"></button><button class="window-light red" type="button" data-dock-widget="${widget.dataset.widgetId}" aria-label="Move ${widget.dataset.widgetLabel} to toolbar"></button>`)}
       let handle=$('[data-studio-drag-handle]',widget);
       if(!handle){
         handle=document.createElement('button');handle.type='button';handle.className='widget-drag-handle';handle.dataset.studioDragHandle='1';handle.setAttribute('aria-label',`Move ${widget.dataset.widgetLabel}`);handle.title='Drag to reorder';handle.innerHTML='<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg>';
@@ -307,6 +327,34 @@
     app.addEventListener('click',event=>{const button=event.target.closest('[data-open-visitor]');if(!button)return;event.preventDefault();openVisitorDialog(button.dataset.openVisitor||'public')});
   }
 
+  function ensureDirectoryIcons(){
+    const app=$('#studioApp');if(!app)return;
+    const studioLink=$('.hero-action-bar a[href="#home"]',app);
+    if(studioLink&&!$('.studio-teepee-icon',studioLink)){
+      [...studioLink.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
+      studioLink.insertAdjacentHTML('afterbegin',STUDIO_ICONS.teepee);
+    }
+    const closet=$('#closet .card-icon',app);
+    if(closet&&!closet.classList.contains('studio-hanger-mark')){closet.classList.add('studio-hanger-mark');closet.innerHTML=STUDIO_ICONS.hanger}
+    const archive=$('#archive .card-icon',app);
+    if(archive){archive.classList.add('archive-horizontal-mark');archive.textContent='▤'}
+    const games=$('#games .card-icon',app);
+    if(games&&!games.classList.contains('games-combo-mark')){games.classList.add('games-combo-mark');games.innerHTML='<span class="games-chess-mark" aria-hidden="true">♟</span><img class="games-block-mark" src="/assets/games-lwa-blocks.webp?v=20260913-games-blocks-2" alt="" aria-hidden="true">'}
+    const mailbox=$('#visitorLogWidget .mailbox-mark',app);
+    if(mailbox&&!$('.visitor-mail-icon',mailbox))mailbox.innerHTML=STUDIO_ICONS.mail;
+  }
+
+  function bindWidgetSettingsActions(){
+    const app=$('#studioApp');if(!app||app.dataset.widgetSettingsPath==='1')return;app.dataset.widgetSettingsPath='1';
+    app.addEventListener('click',event=>{
+      const control=event.target.closest('[data-open-widget-settings]');if(!control)return;
+      event.preventDefault();event.stopPropagation();
+      const card=$('.profile-card',app),edit=$('#editProfileBtn',card);
+      if(card&&!card.classList.contains('profile-is-editing'))edit?.click();
+      requestAnimationFrame(()=>{$('[data-profile-editor-tab="widgets"]',card)?.click()});
+    });
+  }
+
   function ensureThemeAndMailboxIcons(){
     const light=$('#lightModeBtn'),dark=$('#darkModeBtn');
     const ensureThemeImage=(button,src,label)=>{if(!button)return;let image=$('img',button);if(!image){image=document.createElement('img');button.replaceChildren(image)}image.src=src;image.alt='';image.setAttribute('aria-hidden','true');button.title=label;button.setAttribute('aria-label',label);$('.biglwa-theme-icon',button)?.remove()};
@@ -314,11 +362,11 @@
     ensureThemeImage(dark,'/assets/login-moon-mask.png?v=20260913-theme-symbols-4','Dark mode');
     const app=$('#studioApp'),candidate=$('.top-actions .icon-btn[aria-label="Notifications"]',app)||$('.top-actions .icon-btn',app);if(!candidate)return;
     candidate.id='studioNotificationsBtn';candidate.type='button';candidate.setAttribute('aria-label','Open Visitor Log');candidate.title='Visitor Log';
-    candidate.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 7.5h15v10h-15z" stroke="currentColor" stroke-width="1.6"/><path d="m5 8 7 5 7-5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="notif-dot"></span>';
+    candidate.innerHTML=STUDIO_ICONS.mail+'<span class="notif-dot"></span>';
     if(candidate.dataset.visitorBound!=='1'){candidate.dataset.visitorBound='1';candidate.addEventListener('click',()=>openVisitorDialog('public'))}
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindVisitorActions();ensureThemeAndMailboxIcons()}
+  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindVisitorActions();ensureDirectoryIcons();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
