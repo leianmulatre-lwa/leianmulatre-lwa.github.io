@@ -91,14 +91,14 @@
       #visitorLogDialog .encryption-readiness strong{font:700 10px/1.2 Inter,ui-sans-serif,system-ui,sans-serif}
       #visitorLogDialog .encryption-readiness span{margin-top:2px;font:8px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
 
-      #studioApp .sidebar-theme-btn .biglwa-theme-icon{display:grid;place-items:center;width:100%;height:100%;font:600 17px/1 Georgia,"Times New Roman",serif}
-      #studioApp .sidebar-theme-btn img{display:none!important}
+      #studioApp .sidebar-theme-btn .biglwa-theme-icon{display:none!important}
+      #studioApp .sidebar-theme-btn img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important}
       #studioApp #studioNotificationsBtn svg{width:18px;height:18px;display:block}
 
-      body.night-mode #studioApp{--widget-ink:#f5eee7!important;--widget-muted:#beb4ac!important;color:#f5eee7!important}
-      body.night-mode #studioApp .profile-card,body.night-mode #studioApp .music-card,body.night-mode #studioApp .aura-card,body.night-mode #studioApp .visitor-log-card,body.night-mode #studioApp .mobile-dock.hero-action-bar,body.night-mode #studioApp .masonry .card:not(.manifesto-card){background:rgba(31,28,27,.95)!important;background:color-mix(in srgb,var(--widget-bg,rgba(250,247,241,.84)) 16%,rgba(31,28,27,.95) 84%)!important;border-color:rgba(255,255,255,.11)!important;color:#f5eee7!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important}
-      body.night-mode #studioApp .profile-card .profile-identity-rail{background:rgba(255,255,255,.035)!important;border-color:rgba(255,255,255,.1)!important}
-      body.night-mode #studioApp .profile-card .profile-name-line h1,body.night-mode #studioApp .profile-card .bio,body.night-mode #studioApp .profile-card .stats b,body.night-mode #studioApp .card-kicker{color:#f5eee7!important}
+      body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
+      body.night-mode #studioApp .profile-card,body.night-mode #studioApp .music-card,body.night-mode #studioApp .aura-card,body.night-mode #studioApp .visitor-log-card,body.night-mode #studioApp .mobile-dock.hero-action-bar,body.night-mode #studioApp .masonry .card:not(.manifesto-card){background:var(--widget-bg,rgba(250,247,241,.84))!important;border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;color:var(--widget-ink,#171717)!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important}
+      body.night-mode #studioApp .profile-card .profile-identity-rail{background:color-mix(in srgb,var(--widget-ink,#171717) 4%,transparent)!important;border-color:rgba(var(--aura-rgb,216,95,109),.14)!important}
+      body.night-mode #studioApp .profile-card .profile-name-line h1,body.night-mode #studioApp .profile-card .bio,body.night-mode #studioApp .profile-card .stats b,body.night-mode #studioApp .card-kicker{color:var(--widget-ink,#171717)!important}
       body.night-mode #studioApp .profile-card #wallpaperPanel{background:transparent!important;color:#f5eee7!important}
       body.night-mode #studioApp .profile-card #wallpaperPanel .panel-title{background-image:linear-gradient(to bottom,rgba(34,31,30,.99) 72%,rgba(34,31,30,0))!important}
       body.night-mode #studioApp .profile-editor-actions{background-image:linear-gradient(to top,rgba(34,31,30,.99) 76%,rgba(34,31,30,0))!important}
@@ -309,8 +309,9 @@
 
   function ensureThemeAndMailboxIcons(){
     const light=$('#lightModeBtn'),dark=$('#darkModeBtn');
-    if(light&&!$('.biglwa-theme-icon',light)){light.innerHTML='<span class="biglwa-theme-icon" aria-hidden="true">☀</span>';light.title='Light mode'}
-    if(dark&&!$('.biglwa-theme-icon',dark)){dark.innerHTML='<span class="biglwa-theme-icon" aria-hidden="true">☾</span>';dark.title='Dark mode'}
+    const ensureThemeImage=(button,src,label)=>{if(!button)return;let image=$('img',button);if(!image){image=document.createElement('img');button.replaceChildren(image)}image.src=src;image.alt='';image.setAttribute('aria-hidden','true');button.title=label;button.setAttribute('aria-label',label);$('.biglwa-theme-icon',button)?.remove()};
+    ensureThemeImage(light,'/assets/login-sun-mask.png?v=20260913-theme-symbols-4','Light mode');
+    ensureThemeImage(dark,'/assets/login-moon-mask.png?v=20260913-theme-symbols-4','Dark mode');
     const app=$('#studioApp'),candidate=$('.top-actions .icon-btn[aria-label="Notifications"]',app)||$('.top-actions .icon-btn',app);if(!candidate)return;
     candidate.id='studioNotificationsBtn';candidate.type='button';candidate.setAttribute('aria-label','Open Visitor Log');candidate.title='Visitor Log';
     candidate.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 7.5h15v10h-15z" stroke="currentColor" stroke-width="1.6"/><path d="m5 8 7 5 7-5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="notif-dot"></span>';

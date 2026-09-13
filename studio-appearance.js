@@ -49,6 +49,9 @@
       #studioApp .widget-live-connection{display:grid;grid-template-columns:32px minmax(0,1fr);gap:8px;align-items:center;margin:7px 0 12px;padding:9px 10px;border:1px solid rgba(var(--aura-rgb,216,95,109),.30);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.08);font:10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif}
       #studioApp .widget-live-connection i{display:block;width:30px;height:30px;border-radius:9px;background:rgb(var(--aura-rgb,216,95,109));box-shadow:0 5px 13px rgba(var(--aura-rgb,216,95,109),.28)}
       #studioApp .widget-live-connection strong,#studioApp .widget-live-connection span{display:block}#studioApp .widget-live-connection span{color:var(--widget-muted,#77716b);font-size:9px}
+      #studioApp .widget-opacity-control{margin:0 0 12px!important;padding:10px 11px!important;border:1px solid rgba(var(--aura-rgb,216,95,109),.28)!important;border-radius:11px!important;background:rgba(var(--aura-rgb,216,95,109),.07)!important;font-weight:700!important}
+      #studioApp .widget-opacity-control input[type="range"]{accent-color:rgb(var(--aura-rgb,216,95,109))!important}
+      #studioApp .widget-opacity-control #widgetOpacityValue{font-variant-numeric:tabular-nums}
       #studioApp #profileWallpaperEditor .wallpaper-preview{position:relative;overflow:hidden;background-size:cover;background-position:center}
       #studioApp #profileWallpaperEditor .wallpaper-preview video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:none}
       #studioApp .wallpaper-media-context{grid-template-columns:1fr auto!important}
@@ -124,10 +127,19 @@
 
   function ensureWidgetConnection(){
     const section=$('#profileWidgetEditor')||$('[data-profile-editor-pane="widgets"]');if(!section)return;
-    if(!$('#widgetLiveConnection',section)){
-      const live=document.createElement('div');live.id='widgetLiveConnection';live.className='widget-live-connection';live.setAttribute('role','status');live.innerHTML='<i aria-hidden="true"></i><div><strong>Live Studio preview</strong><span>Connecting to visible widgets…</span></div>';
+    let live=$('#widgetLiveConnection',section);
+    if(!live){
+      live=document.createElement('div');live.id='widgetLiveConnection';live.className='widget-live-connection';live.setAttribute('role','status');live.innerHTML='<i aria-hidden="true"></i><div><strong>Live Studio preview</strong><span>Connecting to visible widgets…</span></div>';
       const intro=$('p',section);if(intro)intro.insertAdjacentElement('afterend',live);else section.prepend(live);
     }
+    let opacity=$('#widgetOpacity',section),opacityLabel=opacity?.closest('label');
+    if(!opacity){
+      opacityLabel=document.createElement('label');opacityLabel.innerHTML='Widget opacity <span id="widgetOpacityValue">84%</span><input id="widgetOpacity" type="range" min="35" max="100" value="84" aria-label="Widget opacity">';
+      opacity=$('#widgetOpacity',opacityLabel);
+    }
+    opacityLabel.classList.add('widget-opacity-control');
+    const labelText=[...opacityLabel.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());if(labelText)labelText.textContent='Widget opacity ';
+    if(live.nextElementSibling!==opacityLabel)live.insertAdjacentElement('afterend',opacityLabel);
     if(section.dataset.biglwaAppearanceBound!=='1'){
       section.dataset.biglwaAppearanceBound='1';
       section.addEventListener('input',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor'))applyAppearance(true)});
