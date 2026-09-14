@@ -13,7 +13,7 @@
     feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/feed-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="377" height="280" loading="eager" decoding="async"></span>',
     diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/diary-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="282" height="347" loading="eager" decoding="async"></span>',
     check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/did-you-know-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="407" height="375" loading="eager" decoding="async"></span>',
-    quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/quick-notes-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="375" height="413" loading="eager" decoding="async"></span>',
+    quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/quick-notes-symbol-generated.png?v=20260914-quick-notes-1" alt="" width="375" height="413" loading="eager" decoding="async"></span>',
     mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
   let musicUrl='';
