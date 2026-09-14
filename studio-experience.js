@@ -126,9 +126,9 @@
       #studioApp #closet .studio-hanger-symbol{display:inline-grid;width:25px;height:25px;place-items:center}
       #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
-      #studioApp #games .card-icon.games-combo-mark{display:inline-flex!important;width:auto!important;align-items:center;gap:3px;font-size:0!important}
+      #studioApp #games .card-icon.games-chess-only-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #games .games-chess-mark{font:22px/1 Georgia,"Times New Roman",serif}
-      #studioApp #games .games-block-mark{display:block;width:27px;height:27px;border-radius:5px;object-fit:cover;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
+      #studioApp #games .quiz>.games-block-mark{display:block;width:42px;height:42px;margin:0 0 9px;border-radius:7px;object-fit:cover;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
       body.night-mode #studioApp #games .games-block-mark{mix-blend-mode:normal;filter:contrast(1.08)}
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
@@ -430,7 +430,10 @@
     const archive=$('#archive .card-icon',app);
     if(archive){archive.classList.add('archive-horizontal-mark');archive.textContent='▤'}
     const games=$('#games .card-icon',app);
-    if(games&&!games.classList.contains('games-combo-mark')){games.classList.add('games-combo-mark');games.innerHTML='<span class="games-chess-mark" aria-hidden="true">♟</span><img class="games-block-mark" src="/assets/games-lwa-blocks.webp?v=20260913-games-blocks-2" alt="" aria-hidden="true">'}
+    if(games&&!games.classList.contains('games-chess-only-mark')){games.classList.add('games-chess-only-mark');games.innerHTML='<span class="games-chess-mark" aria-hidden="true">♟</span>'}
+    const quiz=$('#games .quiz',app);
+    if(quiz&&!$('.games-block-mark',quiz)){quiz.insertAdjacentHTML('afterbegin','<img class="games-block-mark" src="/assets/games-lwa-blocks.webp?v=20260913-games-blocks-2" alt="" aria-hidden="true" width="42" height="42">')}
+    replaceCardSymbol('#closet .card-icon','studio-closet-hanger-icon',STUDIO_ICONS.hanger);
     const mailbox=$('#visitorLogWidget .mailbox-mark',app);
     if(mailbox&&!$('.visitor-mail-icon',mailbox))mailbox.innerHTML=STUDIO_ICONS.mail;
   }
