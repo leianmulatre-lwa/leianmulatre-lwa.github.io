@@ -9,6 +9,9 @@
   const STUDIO_ICONS={
     teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     hanger:'<svg class="studio-hanger-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M13 8.2a3.1 3.1 0 1 1 4.4 2.8c-1 .5-1.4 1.3-1.4 2.4v1.1M16 14.5 4.8 22.2c-1.3.9-.7 2.9.9 2.9h20.6c1.6 0 2.2-2 .9-2.9L16 14.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img src="/assets/feed-spiral-symbol.png?v=20260914-feed-1" alt=""></span>',
+    diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img src="/assets/diary-symbol.png?v=20260914-diary-1" alt=""></span>',
+    check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img src="/assets/did-you-know-check-symbol.png?v=20260914-dyk-1" alt=""></span>',
     mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
   let musicUrl='';
@@ -102,6 +105,20 @@
       #studioApp .sidebar-theme-btn img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;filter:brightness(0)!important;mix-blend-mode:normal!important}
       #studioApp #studioNotificationsBtn .visitor-mail-icon{width:20px;height:20px;display:block}
       #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon{display:block;width:22px;height:22px;margin:0 auto 2px}
+      #studioApp .studio-symbol-mark{display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
+      #studioApp .studio-symbol-mark img{display:block;width:100%;height:100%;object-fit:contain;filter:grayscale(1) contrast(1000%);mix-blend-mode:multiply}
+      #studioApp[data-widget-ink-tone="light"] .studio-symbol-mark img{filter:grayscale(1) contrast(1000%) invert(1);mix-blend-mode:screen}
+      #studioApp .hero-action-bar .studio-feed-symbol{width:29px;height:21px;margin:0 auto 2px}
+      #studioApp .hero-action-bar .studio-feed-symbol img{transform:scale(1.22) translateX(-1%)}
+      #studioApp .hero-action-bar .studio-diary-symbol{width:23px;height:23px;margin:0 auto 2px}
+      #studioApp .hero-action-bar .studio-diary-symbol img{transform:scale(1.24)}
+      #studioApp #feed .card-icon.studio-image-icon,#studioApp #diary .card-icon.studio-image-icon,#studioApp #learn .card-icon.studio-image-icon{display:inline-grid!important;place-items:center;width:30px;height:27px;font-size:0!important;overflow:visible}
+      #studioApp #feed .studio-feed-symbol{width:32px;height:24px}
+      #studioApp #feed .studio-feed-symbol img{transform:scale(1.22) translateX(-1%)}
+      #studioApp #diary .studio-diary-symbol{width:27px;height:27px}
+      #studioApp #diary .studio-diary-symbol img{transform:scale(1.24)}
+      #studioApp #learn .studio-check-symbol{width:29px;height:27px}
+      #studioApp #learn .studio-check-symbol img{transform:scale(1.3)}
       #studioApp #closet .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
@@ -367,11 +384,25 @@
 
   function ensureDirectoryIcons(){
     const app=$('#studioApp');if(!app)return;
+    const replaceDirectorySymbol=(href,iconClass,markup)=>{
+      const link=$(`.hero-action-bar a[href="${href}"]`,app);if(!link||$('.'+iconClass,link))return;
+      [...link.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
+      link.insertAdjacentHTML('afterbegin',markup);
+    };
+    const replaceCardSymbol=(selector,iconClass,markup)=>{
+      const icon=$(selector,app);if(!icon||icon.classList.contains(iconClass))return;
+      icon.classList.add('studio-image-icon',iconClass);icon.innerHTML=markup;
+    };
     const studioLink=$('.hero-action-bar a[href="#home"]',app);
     if(studioLink&&!$('.studio-teepee-icon',studioLink)){
       [...studioLink.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
       studioLink.insertAdjacentHTML('afterbegin',STUDIO_ICONS.teepee);
     }
+    replaceDirectorySymbol('#feed','studio-feed-symbol',STUDIO_ICONS.feed);
+    replaceDirectorySymbol('#diary','studio-diary-symbol',STUDIO_ICONS.diary);
+    replaceCardSymbol('#feed .card-icon','studio-feed-card-icon',STUDIO_ICONS.feed);
+    replaceCardSymbol('#diary .card-icon','studio-diary-card-icon',STUDIO_ICONS.diary);
+    replaceCardSymbol('#learn .card-icon','studio-learn-card-icon',STUDIO_ICONS.check);
     const closet=$('#closet .card-icon',app);
     if(closet&&!closet.classList.contains('studio-hanger-mark')){closet.classList.add('studio-hanger-mark');closet.innerHTML=STUDIO_ICONS.hanger}
     const archive=$('#archive .card-icon',app);

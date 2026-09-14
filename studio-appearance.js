@@ -97,6 +97,7 @@
     const values=readAppearance();
     const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.35,Number(values.opacity)/100));
     const luminance=(.2126*r+.7152*g+.0722*b)/255;
+    app.dataset.widgetInkTone=luminance<.48?'light':'dark';
     const [ar,ag,ab]=parseHex(values.aura,'#d85f6d');
     const auraLuminance=(.2126*ar+.7152*ag+.0722*ab)/255;
     const properties={
