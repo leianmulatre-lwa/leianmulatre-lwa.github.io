@@ -120,6 +120,7 @@
       #studioApp #learn .studio-check-symbol{width:29px;height:27px}
       #studioApp #notes .studio-quick-notes-symbol{width:27px;height:27px}
       #studioApp #closet .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
+      #studioApp #closet .studio-hanger-symbol{display:inline-grid;width:25px;height:25px;place-items:center}
       #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
       #studioApp #games .card-icon.games-combo-mark{display:inline-flex!important;width:auto!important;align-items:center;gap:3px;font-size:0!important}
