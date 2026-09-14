@@ -8,10 +8,21 @@
 
 /* Login display type and the corrected laptop-screen crop. */
 #loginPage .login-laptop-copy h1,
-#loginPage .login-card-head h2 {
+#loginPage .login-card-head h2,
+#loginPage #loginTitle,
+#loginPage .login-submit {
   font-family: "CS Bergamot Stitched", Georgia, "Times New Roman", serif !important;
   font-weight: 400 !important;
-  letter-spacing: .01em !important;
+  letter-spacing: .02em !important;
+  line-height: 1 !important;
+}
+
+#loginPage #loginTitle {
+  font-size: 42px !important;
+}
+
+#loginPage .login-submit {
+  font-size: 24px !important;
 }
 
 #loginPage .login-laptop-copy h1 {
