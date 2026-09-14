@@ -10,7 +10,7 @@
     teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/hanger-symbol-generated.png?v=20260914-generated-symbols-4" alt="" onerror="this.onerror=null;this.src='/assets/hanger-symbol.png?v=20260914-symbol-fallback-1'" width="315" height="416" loading="eager" decoding="async"></span>',
     feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/feed-symbol-generated.png?v=20260914-generated-symbols-4" alt="" onerror="this.onerror=null;this.src='/assets/feed-spiral-symbol.png?v=20260914-symbol-fallback-1'" width="377" height="280" loading="eager" decoding="async"></span>',
-    diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/diary-symbol-generated.png?v=20260914-diary-1" alt="" onerror="this.onerror=null;this.src='/assets/diary-symbol.png?v=20260914-symbol-fallback-1'" width="282" height="347" loading="eager" decoding="async"></span>',
+    diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/diary-symbol-generated.png?v=20260914-diary-2" alt="" onerror="this.onerror=null;this.src='/assets/diary-symbol.png?v=20260914-symbol-fallback-1'" width="282" height="347" loading="eager" decoding="async"></span>',
     check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/did-you-know-symbol-generated.png?v=20260914-did-you-know-1" alt="" onerror="this.onerror=null;this.src='/assets/did-you-know-check-symbol.png?v=20260914-symbol-fallback-1'" width="407" height="375" loading="eager" decoding="async"></span>',
     quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/quick-notes-symbol-generated.png?v=20260914-generated-symbols-4" alt="" onerror="this.onerror=null;this.src='/assets/quick-notes-symbol.png?v=20260914-symbol-fallback-1'" width="375" height="413" loading="eager" decoding="async"></span>',
     mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -393,12 +393,20 @@
       document.body.appendChild(defs);
     }
     const replaceDirectorySymbol=(href,iconClass,markup)=>{
-      const link=$(`.hero-action-bar a[href="${href}"]`,app);if(!link||$('.'+iconClass,link))return;
+      const link=$(`.hero-action-bar a[href="${href}"]`,app);if(!link)return;
+      const current=$('.'+iconClass,link);
+      const nextSrc=(markup.match(/<img[^>]+src="([^"]+)/)||[])[1]||'';
+      const currentImage=current?.querySelector('.studio-symbol-image');
+      if(current&&currentImage?.getAttribute('src')===nextSrc)return;
+      if(current){current.outerHTML=markup;return}
       [...link.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
       link.insertAdjacentHTML('afterbegin',markup);
     };
     const replaceCardSymbol=(selector,iconClass,markup)=>{
-      const icon=$(selector,app);if(!icon||icon.classList.contains(iconClass))return;
+      const icon=$(selector,app);if(!icon)return;
+      const nextSrc=(markup.match(/<img[^>]+src="([^"]+)/)||[])[1]||'';
+      const currentImage=icon.querySelector('.studio-symbol-image');
+      if(icon.classList.contains(iconClass)&&currentImage?.getAttribute('src')===nextSrc)return;
       icon.classList.add('studio-image-icon',iconClass);icon.innerHTML=markup;
     };
     const studioLink=$('.hero-action-bar a[href="#home"]',app);
