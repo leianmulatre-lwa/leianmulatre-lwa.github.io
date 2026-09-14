@@ -9,10 +9,10 @@
   const STUDIO_ICONS={
     teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     hanger:'<svg class="studio-hanger-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M13 8.2a3.1 3.1 0 1 1 4.4 2.8c-1 .5-1.4 1.3-1.4 2.4v1.1M16 14.5 4.8 22.2c-1.3.9-.7 2.9.9 2.9h20.6c1.6 0 2.2-2 .9-2.9L16 14.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img src="/assets/feed-spiral-symbol.png?v=20260914-feed-1" alt=""></span>',
-    diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img src="/assets/diary-symbol.png?v=20260914-diary-1" alt=""></span>',
-    check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img src="/assets/did-you-know-check-symbol.png?v=20260914-dyk-1" alt=""></span>',
-    quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img src="/assets/quick-notes-symbol.png?v=20260914-quick-notes-1" alt=""></span>',
+    feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="60 32 304 209" preserveAspectRatio="xMidYMid meet"><image href="/assets/feed-spiral-symbol.png?v=20260914-feed-2" x="0" y="0" width="377" height="280" filter="url(#studioSymbolKnockout)"/></svg></span>',
+    diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="32 51 180 278" preserveAspectRatio="xMidYMid meet"><image href="/assets/diary-symbol.png?v=20260914-diary-2" x="0" y="0" width="282" height="347" filter="url(#studioSymbolKnockout)"/></svg></span>',
+    check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="93 97 271 219" preserveAspectRatio="xMidYMid meet"><image href="/assets/did-you-know-check-symbol.png?v=20260914-dyk-2" x="0" y="0" width="407" height="375" filter="url(#studioSymbolKnockout)"/></svg></span>',
+    quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="137 39 180 286" preserveAspectRatio="xMidYMid meet"><image href="/assets/quick-notes-symbol.png?v=20260914-quick-notes-2" x="0" y="0" width="375" height="546" filter="url(#studioSymbolKnockout)"/></svg></span>',
     mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
   let musicUrl='';
@@ -107,23 +107,18 @@
       #studioApp #studioNotificationsBtn .visitor-mail-icon{width:20px;height:20px;display:block}
       #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon{display:block;width:22px;height:22px;margin:0 auto 2px}
       #studioApp .studio-symbol-mark{display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
-      #studioApp .studio-symbol-mark img{display:block;width:100%;height:100%;object-fit:contain;filter:grayscale(1) contrast(1000%);mix-blend-mode:multiply}
-      #studioApp[data-widget-ink-tone="light"] .studio-symbol-mark img{filter:grayscale(1) contrast(1000%) invert(1);mix-blend-mode:screen}
+      #studioApp .studio-symbol-source{display:block;width:100%;height:100%;overflow:visible;filter:none}
+      #studioApp[data-widget-ink-tone="light"] .studio-symbol-source{filter:invert(1)}
+      #studioApp .sidebar .studio-symbol-source{filter:none}
+      body.night-mode #studioApp .sidebar .studio-symbol-source{filter:invert(1)}
       #studioApp .hero-action-bar .studio-feed-symbol{width:29px;height:21px;margin:0 auto 2px}
-      #studioApp .hero-action-bar .studio-feed-symbol img{transform:scale(1.22) translateX(-1%)}
       #studioApp .hero-action-bar .studio-diary-symbol{width:23px;height:23px;margin:0 auto 2px}
-      #studioApp .hero-action-bar .studio-diary-symbol img{transform:scale(1.24)}
       #studioApp .sidebar .nav-item>.studio-quick-notes-symbol{width:22px!important;height:22px!important}
       #studioApp #feed .card-icon.studio-image-icon,#studioApp #diary .card-icon.studio-image-icon,#studioApp #learn .card-icon.studio-image-icon,#studioApp #notes .card-icon.studio-image-icon{display:inline-grid!important;place-items:center;width:30px;height:27px;font-size:0!important;overflow:visible}
       #studioApp #feed .studio-feed-symbol{width:32px;height:24px}
-      #studioApp #feed .studio-feed-symbol img{transform:scale(1.22) translateX(-1%)}
       #studioApp #diary .studio-diary-symbol{width:27px;height:27px}
-      #studioApp #diary .studio-diary-symbol img{transform:scale(1.24)}
       #studioApp #learn .studio-check-symbol{width:29px;height:27px}
-      #studioApp #learn .studio-check-symbol img{transform:scale(1.3)}
       #studioApp #notes .studio-quick-notes-symbol{width:27px;height:27px}
-      #studioApp .studio-quick-notes-symbol{position:relative}
-      #studioApp .studio-quick-notes-symbol img{position:absolute;width:129%;height:auto;max-width:none;left:-28%;top:-12%}
       #studioApp #closet .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
@@ -389,6 +384,13 @@
 
   function ensureDirectoryIcons(){
     const app=$('#studioApp');if(!app)return;
+    if(!$('#studioSymbolFilterDefs')){
+      const defs=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      defs.id='studioSymbolFilterDefs';defs.setAttribute('aria-hidden','true');defs.setAttribute('width','0');defs.setAttribute('height','0');
+      defs.style.cssText='position:absolute;width:0;height:0;overflow:hidden;pointer-events:none';
+      defs.innerHTML='<defs><filter id="studioSymbolKnockout" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -.333333 -.333333 -.333333 1 0"/><feComponentTransfer><feFuncA type="linear" slope="10" intercept="-.5"/></feComponentTransfer></filter></defs>';
+      document.body.appendChild(defs);
+    }
     const replaceDirectorySymbol=(href,iconClass,markup)=>{
       const link=$(`.hero-action-bar a[href="${href}"]`,app);if(!link||$('.'+iconClass,link))return;
       [...link.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
