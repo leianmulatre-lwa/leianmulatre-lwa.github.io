@@ -8,7 +8,7 @@
   const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
   const STUDIO_ICONS={
     teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 315 416" preserveAspectRatio="xMidYMid meet"><image href="/assets/hanger-symbol.png?v=20260914-hanger-supplied-1" x="0" y="0" width="315" height="416" filter="url(#studioSymbolKnockout)"/></svg></span>',
+    hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 315 416" preserveAspectRatio="xMidYMid meet"><image href="/assets/hanger-symbol-generated.png?v=20260914-generated-1" x="0" y="0" width="315" height="416" filter="url(#studioSymbolKnockout)"/></svg></span>',
     feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 377 280" preserveAspectRatio="xMidYMid meet"><image href="/assets/feed-spiral-symbol.png?v=20260914-feed-supplied-1" x="0" y="0" width="377" height="280" filter="url(#studioSymbolKnockout)"/></svg></span>',
     diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 282 347" preserveAspectRatio="xMidYMid meet"><image href="/assets/diary-symbol.png?v=20260914-diary-supplied-1" x="0" y="0" width="282" height="347" filter="url(#studioSymbolKnockout)"/></svg></span>',
     check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 407 375" preserveAspectRatio="xMidYMid meet"><image href="/assets/did-you-know-check-symbol.png?v=20260914-dyk-supplied-1" x="0" y="0" width="407" height="375" filter="url(#studioSymbolKnockout)"/></svg></span>',
@@ -119,7 +119,7 @@
       #studioApp #diary .studio-diary-symbol{width:27px;height:27px}
       #studioApp #learn .studio-check-symbol{width:29px;height:27px}
       #studioApp #notes .studio-quick-notes-symbol{width:27px;height:27px}
-      #studioApp #closet .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
+      #studioApp #projects .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #closet .studio-hanger-symbol{display:inline-grid;width:25px;height:25px;place-items:center}
       #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
@@ -414,8 +414,8 @@
     const notesLink=$('.sidebar .nav-item[href="#notes"]',app),notesNavIcon=notesLink?.querySelector(':scope > span');
     if(notesNavIcon&&!notesNavIcon.classList.contains('studio-quick-notes-symbol'))notesNavIcon.outerHTML=STUDIO_ICONS.quickNotes;
     replaceCardSymbol('#notes .card-icon','studio-notes-card-icon',STUDIO_ICONS.quickNotes);
-    const closet=$('#closet .card-icon',app);
-    if(closet&&!closet.classList.contains('studio-hanger-mark')){closet.classList.add('studio-hanger-mark');closet.innerHTML=STUDIO_ICONS.hanger}
+    const projects=$('#projects .card-icon',app);
+    if(projects&&!projects.classList.contains('studio-hanger-mark')){projects.classList.add('studio-hanger-mark');projects.innerHTML=STUDIO_ICONS.hanger}
     const archive=$('#archive .card-icon',app);
     if(archive){archive.classList.add('archive-horizontal-mark');archive.textContent='▤'}
     const games=$('#games .card-icon',app);
