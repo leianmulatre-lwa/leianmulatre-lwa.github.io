@@ -8,11 +8,11 @@
   const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
   const STUDIO_ICONS={
     teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 315 416" preserveAspectRatio="xMidYMid meet"><image href="/assets/hanger-symbol-generated.png?v=20260914-generated-2" x="0" y="0" width="315" height="416" filter="url(#studioSymbolKnockout)"/></svg></span>',
-    feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 377 280" preserveAspectRatio="xMidYMid meet"><image href="/assets/feed-symbol-generated.png?v=20260914-generated-2" x="0" y="0" width="377" height="280" filter="url(#studioSymbolKnockout)"/></svg></span>',
-    diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 282 347" preserveAspectRatio="xMidYMid meet"><image href="/assets/diary-symbol-generated.png?v=20260914-generated-2" x="0" y="0" width="282" height="347" filter="url(#studioSymbolKnockout)"/></svg></span>',
-    check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 407 375" preserveAspectRatio="xMidYMid meet"><image href="/assets/did-you-know-symbol-generated.png?v=20260914-generated-2" x="0" y="0" width="407" height="375" filter="url(#studioSymbolKnockout)"/></svg></span>',
-    quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><svg class="studio-symbol-source" viewBox="0 0 375 413" preserveAspectRatio="xMidYMid meet"><image href="/assets/quick-notes-symbol-generated.png?v=20260914-generated-2" x="0" y="0" width="375" height="413" filter="url(#studioSymbolKnockout)"/></svg></span>',
+    hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/hanger-symbol-generated.png?v=20260914-generated-symbols-3" alt="" width="315" height="416" loading="eager" decoding="async"></span>',
+    feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/feed-symbol-generated.png?v=20260914-generated-symbols-3" alt="" width="377" height="280" loading="eager" decoding="async"></span>',
+    diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/diary-symbol-generated.png?v=20260914-generated-symbols-3" alt="" width="282" height="347" loading="eager" decoding="async"></span>',
+    check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/did-you-know-symbol-generated.png?v=20260914-generated-symbols-3" alt="" width="407" height="375" loading="eager" decoding="async"></span>',
+    quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/quick-notes-symbol-generated.png?v=20260914-generated-symbols-3" alt="" width="375" height="413" loading="eager" decoding="async"></span>',
     mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
   let musicUrl='';
@@ -107,10 +107,10 @@
       #studioApp #studioNotificationsBtn .visitor-mail-icon{width:20px;height:20px;display:block}
       #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon{display:block;width:22px;height:22px;margin:0 auto 2px}
       #studioApp .studio-symbol-mark{display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
-      #studioApp .studio-symbol-source{display:block;width:100%;height:100%;overflow:visible;filter:none}
-      #studioApp[data-widget-ink-tone="light"] .studio-symbol-source{filter:invert(1)}
-      #studioApp .sidebar .studio-symbol-source{filter:none}
-      body.night-mode #studioApp .sidebar .studio-symbol-source{filter:invert(1)}
+      #studioApp .studio-symbol-source{display:block;width:100%;height:100%;overflow:visible;filter:none}\n      #studioApp .studio-symbol-image{display:block;width:100%;height:100%;object-fit:contain;filter:none}
+      #studioApp[data-widget-ink-tone="light"] .studio-symbol-source,#studioApp[data-widget-ink-tone="light"] .studio-symbol-image{filter:invert(1)}
+      #studioApp .sidebar .studio-symbol-source,#studioApp .sidebar .studio-symbol-image{filter:none}
+      body.night-mode #studioApp .sidebar .studio-symbol-source,body.night-mode #studioApp .sidebar .studio-symbol-image{filter:invert(1)}
       #studioApp .hero-action-bar .studio-feed-symbol{width:29px;height:21px;margin:0 auto 2px}
       #studioApp .hero-action-bar .studio-diary-symbol{width:23px;height:23px;margin:0 auto 2px}
       #studioApp .sidebar .nav-item>.studio-quick-notes-symbol{width:22px!important;height:22px!important}
