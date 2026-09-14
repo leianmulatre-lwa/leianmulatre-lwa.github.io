@@ -9,6 +9,7 @@
   const STUDIO_ICONS={
     teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/hanger-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="315" height="416" loading="eager" decoding="async"></span>',
+    projects:'<span class="studio-symbol-mark studio-projects-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/projects-symbol.png?v=20260914-projects-1" alt="" width="1254" height="1254" loading="eager" decoding="async"></span>',
     feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/feed-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="377" height="280" loading="eager" decoding="async"></span>',
     diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/diary-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="282" height="347" loading="eager" decoding="async"></span>',
     check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/did-you-know-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="407" height="375" loading="eager" decoding="async"></span>',
@@ -120,6 +121,8 @@
       #studioApp #learn .studio-check-symbol{width:29px;height:27px}
       #studioApp #notes .studio-quick-notes-symbol{width:27px;height:27px}
       #studioApp #projects .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
+      #studioApp #projects .card-icon.studio-projects-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
+      #studioApp #projects .studio-projects-symbol{display:inline-grid;width:26px;height:26px;place-items:center}
       #studioApp #closet .studio-hanger-symbol{display:inline-grid;width:25px;height:25px;place-items:center}
       #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
@@ -423,7 +426,7 @@
     if(notesNavIcon&&!notesNavIcon.classList.contains('studio-quick-notes-symbol'))notesNavIcon.outerHTML=STUDIO_ICONS.quickNotes;
     replaceCardSymbol('#notes .card-icon','studio-notes-card-icon',STUDIO_ICONS.quickNotes);
     const projects=$('#projects .card-icon',app);
-    if(projects&&!projects.classList.contains('studio-hanger-mark')){projects.classList.add('studio-hanger-mark');projects.innerHTML=STUDIO_ICONS.hanger}
+    if(projects&&!projects.classList.contains('studio-projects-mark')){projects.classList.add('studio-projects-mark');projects.innerHTML=STUDIO_ICONS.projects}
     const archive=$('#archive .card-icon',app);
     if(archive){archive.classList.add('archive-horizontal-mark');archive.textContent='▤'}
     const games=$('#games .card-icon',app);
