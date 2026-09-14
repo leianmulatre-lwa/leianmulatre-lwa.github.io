@@ -12,6 +12,7 @@
     feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img src="/assets/feed-spiral-symbol.png?v=20260914-feed-1" alt=""></span>',
     diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img src="/assets/diary-symbol.png?v=20260914-diary-1" alt=""></span>',
     check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img src="/assets/did-you-know-check-symbol.png?v=20260914-dyk-1" alt=""></span>',
+    quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img src="/assets/quick-notes-symbol.png?v=20260914-quick-notes-1" alt=""></span>',
     mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
   let musicUrl='';
@@ -112,13 +113,17 @@
       #studioApp .hero-action-bar .studio-feed-symbol img{transform:scale(1.22) translateX(-1%)}
       #studioApp .hero-action-bar .studio-diary-symbol{width:23px;height:23px;margin:0 auto 2px}
       #studioApp .hero-action-bar .studio-diary-symbol img{transform:scale(1.24)}
-      #studioApp #feed .card-icon.studio-image-icon,#studioApp #diary .card-icon.studio-image-icon,#studioApp #learn .card-icon.studio-image-icon{display:inline-grid!important;place-items:center;width:30px;height:27px;font-size:0!important;overflow:visible}
+      #studioApp .sidebar .nav-item>.studio-quick-notes-symbol{width:22px!important;height:22px!important}
+      #studioApp #feed .card-icon.studio-image-icon,#studioApp #diary .card-icon.studio-image-icon,#studioApp #learn .card-icon.studio-image-icon,#studioApp #notes .card-icon.studio-image-icon{display:inline-grid!important;place-items:center;width:30px;height:27px;font-size:0!important;overflow:visible}
       #studioApp #feed .studio-feed-symbol{width:32px;height:24px}
       #studioApp #feed .studio-feed-symbol img{transform:scale(1.22) translateX(-1%)}
       #studioApp #diary .studio-diary-symbol{width:27px;height:27px}
       #studioApp #diary .studio-diary-symbol img{transform:scale(1.24)}
       #studioApp #learn .studio-check-symbol{width:29px;height:27px}
       #studioApp #learn .studio-check-symbol img{transform:scale(1.3)}
+      #studioApp #notes .studio-quick-notes-symbol{width:27px;height:27px}
+      #studioApp .studio-quick-notes-symbol{position:relative}
+      #studioApp .studio-quick-notes-symbol img{position:absolute;width:129%;height:auto;max-width:none;left:-28%;top:-12%}
       #studioApp #closet .card-icon.studio-hanger-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #closet .card-icon .studio-hanger-icon{display:block;width:25px;height:25px}
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
@@ -403,6 +408,9 @@
     replaceCardSymbol('#feed .card-icon','studio-feed-card-icon',STUDIO_ICONS.feed);
     replaceCardSymbol('#diary .card-icon','studio-diary-card-icon',STUDIO_ICONS.diary);
     replaceCardSymbol('#learn .card-icon','studio-learn-card-icon',STUDIO_ICONS.check);
+    const notesLink=$('.sidebar .nav-item[href="#notes"]',app),notesNavIcon=notesLink?.querySelector(':scope > span');
+    if(notesNavIcon&&!notesNavIcon.classList.contains('studio-quick-notes-symbol'))notesNavIcon.outerHTML=STUDIO_ICONS.quickNotes;
+    replaceCardSymbol('#notes .card-icon','studio-notes-card-icon',STUDIO_ICONS.quickNotes);
     const closet=$('#closet .card-icon',app);
     if(closet&&!closet.classList.contains('studio-hanger-mark')){closet.classList.add('studio-hanger-mark');closet.innerHTML=STUDIO_ICONS.hanger}
     const archive=$('#archive .card-icon',app);
