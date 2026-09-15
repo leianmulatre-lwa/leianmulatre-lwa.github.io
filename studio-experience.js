@@ -128,7 +128,7 @@
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
       #studioApp #games .card-icon.games-chess-only-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #games .games-chess-mark{font:22px/1 Georgia,"Times New Roman",serif}
-      #studioApp #games .quiz>.games-block-mark{display:block;width:42px;height:42px;margin:0 0 9px;border-radius:7px;object-fit:cover;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
+      #studioApp #games .quiz>.games-block-mark{display:block;width:100%;height:auto;max-height:160px;margin:0 0 14px;border-radius:7px;object-fit:contain;object-position:center;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
       body.night-mode #studioApp #games .games-block-mark{mix-blend-mode:normal;filter:contrast(1.08)}
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
@@ -432,7 +432,7 @@
     const games=$('#games .card-icon',app);
     if(games&&!games.classList.contains('games-chess-only-mark')){games.classList.add('games-chess-only-mark');games.innerHTML='<span class="games-chess-mark" aria-hidden="true">♟</span>'}
     const quiz=$('#games .quiz',app);
-    if(quiz&&!$('.games-block-mark',quiz)){quiz.insertAdjacentHTML('afterbegin','<img class="games-block-mark" src="/assets/games-lwa-blocks.webp?v=20260913-games-blocks-2" alt="" aria-hidden="true" width="42" height="42">')}
+    if(quiz&&!$('.games-block-mark',quiz)){quiz.insertAdjacentHTML('afterbegin','<img class="games-block-mark" src="/assets/culture-quiz-cubes.png?v=20260915-culture-quiz-cubes-1" alt="" aria-hidden="true" width="1672" height="941">')}
     replaceCardSymbol('#closet .card-icon','studio-closet-hanger-icon',STUDIO_ICONS.hanger);
     const mailbox=$('#visitorLogWidget .mailbox-mark',app);
     if(mailbox&&!$('.visitor-mail-icon',mailbox))mailbox.innerHTML=STUDIO_ICONS.mail;
