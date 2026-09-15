@@ -562,6 +562,19 @@
     avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
   }
 
+  function ensureRealWorldDefaults(){
+    const app=$('#studioApp');if(!app)return;
+    const stats=$('.profile-card .stats',app);
+    if(stats&&!stats.dataset.biglwaMetricDefaults){
+      stats.innerHTML='<span data-profile-stat="followers"><b>0</b> Followers</span><span data-profile-stat="following"><b>0</b> Following</span><span data-profile-stat="connections"><b>0</b> Connections</span><span data-profile-stat="reach"><b>0</b> Reach</span>';
+      stats.dataset.biglwaMetricDefaults='1';
+    }
+    const feedList=$('.feed-card .feed-list',app);if(feedList){feedList.replaceChildren();feedList.dataset.biglwaReset='1'}
+    $('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"]',app).forEach(card=>{
+      $('span,p,small',card).forEach(el=>{if(/\\b(streaming|viewers?|watching|live)\\b|\\b\\d+\\s*(viewers?|watchers?)\\b/i.test(el.textContent))el.textContent='after hours…'});
+    });
+  }
+
   function ensureResetValues(){
     const stats=$('#studioApp .profile-card .stats');
     if(stats){
@@ -603,12 +616,13 @@
     }
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureProfileInitial();ensureStudioHeadersLowercase();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureTheme();ensureResetValues()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
   setTimeout(run,900);
   setTimeout(run,1600);
+  setTimeout(run,2600);
   const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
   const policyLogoTimer=setInterval(()=>{if(ensurePolicyBrands())clearInterval(policyLogoTimer)},400);
   const resetTimer=setInterval(()=>{ensureResetValues();clearInterval(resetTimer)},500);
