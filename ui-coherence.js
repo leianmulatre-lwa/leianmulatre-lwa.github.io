@@ -310,7 +310,7 @@
       try{localStorage.setItem('biglwaTheme',mode)}catch{}
     };
     const toggleEditorFallback=button=>{
-      const card=button.closest('.profile-card'),panel=$('#wallpaperPanel',card)||$('#wallpaperPanel');
+      const card=button.closest('.profile-card'),panel=card?($('#wallpaperPanel',card)||$('#wallpaperPanel')):$('#wallpaperPanel');
       const opening=!card?.classList.contains('profile-is-editing');
       if(card)card.classList.toggle('profile-is-editing',opening);
       if(panel){panel.hidden=!opening;panel.classList.toggle('panel-hidden',!opening)}
@@ -346,6 +346,7 @@
       if(control.matches('[data-dock-widget]'))widget.classList.add('widget-is-docked');
       addRestore(app,widget);syncDock(dock,section);saveMinimized(app);
     },true);
+    try{setTheme(localStorage.getItem('biglwaTheme')==='dark'?'dark':'light')}catch{setTheme('light')}
   }
 
   function ensureWidgetActions(){
