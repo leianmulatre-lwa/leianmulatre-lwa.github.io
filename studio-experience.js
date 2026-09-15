@@ -133,14 +133,14 @@
       #studioApp #games .games-preview-picker label{display:grid;gap:4px;min-width:0;font:700 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
       #studioApp #games .games-preview-picker select{width:100%;min-width:0;border:1px solid rgba(70,58,52,.16);border-radius:7px;background:rgba(255,255,255,.62);color:inherit;padding:6px 8px;font:11px/1.2 Inter,ui-sans-serif,system-ui,sans-serif}
       #studioApp #games .games-preview-library-note{max-width:116px;font:8px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b);text-align:right}
-      #studioApp #games .games-external-preview{margin:0 0 8px;padding:18px 16px;border:1px solid rgba(var(--aura-rgb,216,95,109),.2);border-radius:10px;background:rgba(var(--widget-bg,250,247,241),.72);text-align:center}
+      #studioApp #games .games-external-preview{margin:0 0 8px;padding:18px 16px;border:1px solid rgba(var(--aura-rgb,216,95,109),.2);border-radius:10px;background:color-mix(in srgb,var(--widget-bg,rgba(250,247,241,.84)) 72%,transparent);text-align:center}
       #studioApp #games .games-external-preview[hidden],#studioApp #games .games-block-mark[hidden]{display:none!important}
       #studioApp #games .games-preview-kicker{display:block;margin-bottom:7px;font:750 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.12em;color:var(--widget-muted,#77716b)}
       #studioApp #games .games-external-preview h3{margin:0;font:700 22px/1.05 Georgia,"Times New Roman",serif;color:var(--widget-ink,#171717)}
       #studioApp #games .games-external-preview p{margin:7px auto 12px;max-width:300px;font:11px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
       #studioApp #games .games-external-preview a{display:inline-block;padding:7px 11px;border-radius:999px;background:rgb(var(--aura-rgb,216,95,109));color:var(--aura-button-ink,#fff);font:700 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;text-decoration:none}
       #studioApp #games .games-preview-coming-soon{display:inline-block;font:10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
-      @media(max-width:560px){#studioApp #games .games-preview-picker{grid-template-columns:1fr}.#studioApp #games .games-preview-library-note{max-width:none;text-align:left}}
+      @media(max-width:560px){#studioApp #games .games-preview-picker{grid-template-columns:1fr}#studioApp #games .games-preview-library-note{max-width:none;text-align:left}}
 
       body.night-mode #studioApp #games .games-block-mark{mix-blend-mode:normal;filter:contrast(1.08)}
 
