@@ -72,7 +72,7 @@
   const m=boot.match(/<script>([\s\S]*?)<\/script>/i);
   if(!m) throw new Error('bootstrap script missing');
   let js=m[1];
-  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260915-games-arcade-proportions-1');
+  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20260915-games-arcade-mask-1');
   js=js.replace("js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);'+marker);","js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);html=window.__biglwaStablePatch(html);'+marker);");
   (0,eval)(js);
 }catch(e){document.body.innerHTML='<main style="font-family:system-ui;padding:2rem"><h1>BIGLWA</h1><p>Loading failed. Refresh to try again.</p></main>';console.error(e)}})();
