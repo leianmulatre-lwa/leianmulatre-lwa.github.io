@@ -591,7 +591,7 @@
       feedList.replaceChildren();feedList.dataset.biglwaReset='1';
     });
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
-      const title=$('h2,h3,.card-kicker',card);if(title)title.textContent='After Hours...';
+      const title=$('h2,h3,.card-kicker',card);if(title)title.textContent='After Hours: u up?';
       const count=$$('span,p,small,strong',card).find(el=>/\\b(streaming|viewers?|watching|live)\\b|\\b\\d+\\s*(viewers?|watchers?)\\b/i.test(el.textContent));
       if(count)count.textContent='0 watching';
       else{const status=document.createElement('p');status.className='stream-watching-count';status.textContent='0 watching';card.appendChild(status)}
