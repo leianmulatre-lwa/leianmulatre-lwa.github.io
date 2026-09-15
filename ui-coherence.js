@@ -64,7 +64,9 @@
       #studioApp .profile-card .stats span{display:flex!important;flex-direction:column!important;gap:2px!important;padding-right:16px!important;border-right:1px solid rgba(62,50,45,.10)!important;font-family:Georgia,"Times New Roman",serif!important;font-size:10px!important;color:var(--widget-muted,#6f6862)!important}
       #studioApp .profile-card .stats span:last-child{border-right:0!important}
       #studioApp .profile-card .stats b{font-family:Georgia,"Times New Roman",serif!important;font-size:15px!important;line-height:1!important;color:var(--widget-ink,#171717)!important}
-      #studioApp .profile-card .real-rank{left:156px!important;right:24px!important;bottom:18px!important;padding-top:10px!important}
+      #studioApp .profile-card .real-rank{left:156px!important;right:24px!important;bottom:15px!important;padding-top:10px!important;row-gap:4px!important}
+      #studioApp .profile-card .real-rank-explanation{grid-column:1/-1!important;display:block!important;margin-top:2px!important;font:10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--widget-muted,#746c66)!important;max-width:620px!important}
+
       #studioApp .profile-card #editProfileBtn{top:20px!important;right:22px!important;background:#1d1b1a!important;color:#fff!important;border:0!important;border-radius:999px!important;padding:8px 17px!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:11px!important;font-weight:550!important}
       #studioApp .profile-card>.widget-window-controls{display:none!important}
       #studioApp .hero{min-height:430px!important}
@@ -273,11 +275,11 @@
   }
 
   function ensureWidgetActions(){
-    const app=$('#studioApp'),sidebar=$('#studioApp .sidebar');if(!app||!sidebar)return;
-    let minimizedSection=$('#minimizedWidgets',sidebar);
-    let dock=$('#minimizedWidgetDock',sidebar);
+    const app=$('#studioApp'),sidebar=$('#studioApp .sidebar');if(!app)return;
+    let minimizedSection=sidebar?$('#minimizedWidgets',sidebar):$('#minimizedWidgets',app);
+    let dock=sidebar?$('#minimizedWidgetDock',sidebar):$('#minimizedWidgetDock',app);
     if(!dock){
-      if(!minimizedSection){minimizedSection=document.createElement('section');minimizedSection.id='minimizedWidgets';minimizedSection.className='minimized-widgets';minimizedSection.setAttribute('aria-label','Minimized widgets');minimizedSection.hidden=true;minimizedSection.innerHTML='<div class="minimized-label">MINIMIZED</div>';const top=$('.sidebar-top',sidebar)||sidebar;top.appendChild(minimizedSection)}
+      if(!minimizedSection){minimizedSection=document.createElement('section');minimizedSection.id='minimizedWidgets';minimizedSection.className='minimized-widgets';minimizedSection.setAttribute('aria-label','Minimized widgets');minimizedSection.hidden=true;minimizedSection.innerHTML='<div class="minimized-label">MINIMIZED</div>';const top=$('.sidebar-top',sidebar)||sidebar||app;top.appendChild(minimizedSection)}
       dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';minimizedSection.appendChild(dock);
     }
     const syncDock=()=>{if(minimizedSection)minimizedSection.hidden=dock.children.length===0};
@@ -565,13 +567,20 @@
   function ensureRealWorldDefaults(){
     const app=$('#studioApp');if(!app)return;
     const stats=$('.profile-card .stats',app);
-    if(stats&&!stats.dataset.biglwaMetricDefaults){
+    if(stats){
       stats.innerHTML='<span data-profile-stat="followers"><b>0</b> Followers</span><span data-profile-stat="following"><b>0</b> Following</span><span data-profile-stat="connections"><b>0</b> Connections</span><span data-profile-stat="reach"><b>0</b> Reach</span>';
       stats.dataset.biglwaMetricDefaults='1';
+      $$('b',stats).forEach(value=>{value.textContent='0'});
     }
-    const feedList=$('.feed-card .feed-list',app);if(feedList){feedList.replaceChildren();feedList.dataset.biglwaReset='1'}
-    $('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"]',app).forEach(card=>{
-      $('span,p,small',card).forEach(el=>{if(/\\b(streaming|viewers?|watching|live)\\b|\\b\\d+\\s*(viewers?|watchers?)\\b/i.test(el.textContent))el.textContent='after hours…'});
+    $$('.feed-card .feed-list,#feed .feed-list',app).forEach(feedList=>{
+      feedList.replaceChildren();
+      feedList.dataset.biglwaReset='1';
+    });
+    $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
+      const title=$('h2,h3,.card-kicker',card);
+      if(title)title.textContent='After Hours...';
+      const count=$$('span,p,small,strong',card).find(el=>/\\b(streaming|viewers?|watching|live)\\b|\\b\\d+\\s*(viewers?|watchers?)\\b/i.test(el.textContent));
+      if(count)count.textContent='0 watching';
     });
   }
 
@@ -600,7 +609,8 @@
       if(value)value.textContent='Chopped';
       if(track)track.style.width='0%';
       if(next)next.textContent='next: 007';
-      rank.setAttribute('aria-label','Real Rank: Chopped, progressing toward 007');
+      if(!$('.real-rank-explanation',rank)){const explanation=document.createElement('small');explanation.className='real-rank-explanation';explanation.textContent='Real Rank reflects your progress, participation, and standing inside BIG LWA.';rank.appendChild(explanation)}
+      rank.setAttribute('aria-label','Real Rank: Chopped, progressing toward 007. Real Rank reflects your progress, participation, and standing inside BIG LWA.');
       rank.dataset.biglwaDefault='chopped';
     }
     const feedList=$('#studioApp .feed-card .feed-list');
