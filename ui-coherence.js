@@ -564,25 +564,45 @@
     avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
   }
 
+  function syncRealProfileMetrics(){
+    const app=$('#studioApp'),stats=$('.profile-card .stats',app);if(!stats)return false;
+    const source=window.__biglwaProfileMetrics&&typeof window.__biglwaProfileMetrics==='object'?window.__biglwaProfileMetrics:{};
+    const number=(key)=>Number.isFinite(Number(source[key]))?String(Math.max(0,Number(source[key]))):'0';
+    const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach']];
+    const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\\s+/g,' ').trim()]);
+    const expected=metrics.map(([key,label])=>[key,number(key)+' '+label]);
+    const same=current.length===expected.length&&current.every((item,i)=>item[0]===expected[i][0]&&item[1]===expected[i][1]);
+    if(!same){
+      stats.replaceChildren(...metrics.map(([key,label])=>{
+        const item=document.createElement('span');item.dataset.profileStat=key;
+        const value=document.createElement('b');value.textContent=number(key);
+        item.append(value,document.createTextNode(' '+label));return item;
+      }));
+    }
+    stats.dataset.biglwaMetricSource='real-profile-metrics';
+    return true;
+  }
+
   function ensureRealWorldDefaults(){
     const app=$('#studioApp');if(!app)return;
-    const stats=$('.profile-card .stats',app);
-    if(stats){
-      stats.innerHTML='<span data-profile-stat="followers"><b>0</b> Followers</span><span data-profile-stat="following"><b>0</b> Following</span><span data-profile-stat="connections"><b>0</b> Connections</span><span data-profile-stat="reach"><b>0</b> Reach</span>';
-      stats.dataset.biglwaMetricDefaults='1';
-      $$('b',stats).forEach(value=>{value.textContent='0'});
-    }
+    syncRealProfileMetrics();
     $$('.feed-card .feed-list,#feed .feed-list',app).forEach(feedList=>{
-      feedList.replaceChildren();
-      feedList.dataset.biglwaReset='1';
+      feedList.replaceChildren();feedList.dataset.biglwaReset='1';
     });
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
-      const title=$('h2,h3,.card-kicker',card);
-      if(title)title.textContent='After Hours...';
+      const title=$('h2,h3,.card-kicker',card);if(title)title.textContent='After Hours...';
       const count=$$('span,p,small,strong',card).find(el=>/\\b(streaming|viewers?|watching|live)\\b|\\b\\d+\\s*(viewers?|watchers?)\\b/i.test(el.textContent));
       if(count)count.textContent='0 watching';
       else{const status=document.createElement('p');status.className='stream-watching-count';status.textContent='0 watching';card.appendChild(status)}
     });
+  }
+
+  function ensureRealWorldMetricsObserver(){
+    if(document.documentElement.dataset.biglwaMetricsObserver==='1')return;
+    const target=$('#studioApp')||document.body;if(!target)return;
+    document.documentElement.dataset.biglwaMetricsObserver='1';
+    new MutationObserver(()=>{syncRealProfileMetrics()}).observe(target,{subtree:true,childList:true,characterData:true});
+    syncRealProfileMetrics();
   }
 
   function ensureResetValues(){
@@ -627,13 +647,14 @@
     }
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
   setTimeout(run,900);
   setTimeout(run,1600);
   setTimeout(run,2600);
+  setTimeout(run,4200);
   const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
   const policyLogoTimer=setInterval(()=>{if(ensurePolicyBrands())clearInterval(policyLogoTimer)},400);
   const resetTimer=setInterval(()=>{ensureResetValues();clearInterval(resetTimer)},500);
