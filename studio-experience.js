@@ -128,7 +128,7 @@
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
       #studioApp #games .card-icon.games-chess-only-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #games .games-chess-mark{font:22px/1 Georgia,"Times New Roman",serif}
-      #studioApp #games .quiz>.games-block-mark{display:block;width:100%;height:auto;max-height:160px;margin:0 0 14px;border-radius:7px;object-fit:contain;object-position:center;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
+      #studioApp #games .quiz>.games-block-mark{display:block;width:92%;height:auto;max-height:145px;margin:0 auto 14px;border-radius:7px;object-fit:contain;object-position:center;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
       body.night-mode #studioApp #games .games-block-mark{mix-blend-mode:normal;filter:contrast(1.08)}
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
