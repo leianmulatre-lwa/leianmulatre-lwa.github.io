@@ -128,7 +128,20 @@
       #studioApp #archive .card-icon.archive-horizontal-mark{font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1}
       #studioApp #games .card-icon.games-chess-only-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #games .games-chess-mark{font:22px/1 Georgia,"Times New Roman",serif}
-      #studioApp #games .quiz>.games-block-mark{display:block;width:92%;height:auto;max-height:145px;margin:0 auto 14px;border-radius:7px;object-fit:contain;object-position:center;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
+      #studioApp #games .quiz>.games-block-mark{display:block;width:82%;height:auto;max-height:120px;margin:0 auto 12px;border-radius:7px;object-fit:contain;object-position:center;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
+      #studioApp #games .games-preview-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin:0 0 10px;padding:8px 9px;border:1px solid rgba(70,58,52,.14);border-radius:9px;background:rgba(255,255,255,.36)}
+      #studioApp #games .games-preview-picker label{display:grid;gap:4px;min-width:0;font:700 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+      #studioApp #games .games-preview-picker select{width:100%;min-width:0;border:1px solid rgba(70,58,52,.16);border-radius:7px;background:rgba(255,255,255,.62);color:inherit;padding:6px 8px;font:11px/1.2 Inter,ui-sans-serif,system-ui,sans-serif}
+      #studioApp #games .games-preview-library-note{max-width:116px;font:8px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b);text-align:right}
+      #studioApp #games .games-external-preview{margin:0 0 8px;padding:18px 16px;border:1px solid rgba(var(--aura-rgb,216,95,109),.2);border-radius:10px;background:rgba(var(--widget-bg,250,247,241),.72);text-align:center}
+      #studioApp #games .games-external-preview[hidden],#studioApp #games .games-block-mark[hidden]{display:none!important}
+      #studioApp #games .games-preview-kicker{display:block;margin-bottom:7px;font:750 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.12em;color:var(--widget-muted,#77716b)}
+      #studioApp #games .games-external-preview h3{margin:0;font:700 22px/1.05 Georgia,"Times New Roman",serif;color:var(--widget-ink,#171717)}
+      #studioApp #games .games-external-preview p{margin:7px auto 12px;max-width:300px;font:11px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
+      #studioApp #games .games-external-preview a{display:inline-block;padding:7px 11px;border-radius:999px;background:rgb(var(--aura-rgb,216,95,109));color:var(--aura-button-ink,#fff);font:700 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;text-decoration:none}
+      #studioApp #games .games-preview-coming-soon{display:inline-block;font:10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
+      @media(max-width:560px){#studioApp #games .games-preview-picker{grid-template-columns:1fr}.#studioApp #games .games-preview-library-note{max-width:none;text-align:left}}
+
       body.night-mode #studioApp #games .games-block-mark{mix-blend-mode:normal;filter:contrast(1.08)}
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
@@ -438,6 +451,72 @@
     if(mailbox&&!$('.visitor-mail-icon',mailbox))mailbox.innerHTML=STUDIO_ICONS.mail;
   }
 
+  function ensureGamesPreviewPicker(){
+    const app=$('#studioApp'),quiz=$('#games .quiz',app);
+    if(!app||!quiz)return;
+    const library=[
+      {id:'culture-quiz',name:'Culture Quiz',kind:'native',description:'Play the BIG LWA culture quiz on this page.'},
+      {id:'run-3',name:'Run 3',kind:'external',description:'The endless runner from Coolmath Games.',url:'https://www.coolmathgames.com/0-run-3',source:'Coolmath Games'},
+      {id:'fnaf',name:"Five Nights at Freddy's",kind:'external',description:'Official game listing for the FNAF series.',url:'https://store.steampowered.com/app/319510/Five_Nights_at_Freddys/',source:'Steam'},
+      {id:'biglwa-arcade',name:'BIG LWA Arcade',kind:'hosted',description:'HTML5 games owned by or licensed to BIG LWA can live here.',source:'BIG LWA library'}
+    ];
+    let picker=$('#gamesPreviewPicker',quiz);
+    if(!picker){
+      picker=document.createElement('div');
+      picker.id='gamesPreviewPicker';
+      picker.className='games-preview-picker';
+      picker.innerHTML='<label><span>Game preview</span><select id="gamesPreviewSelect" aria-label="Choose game preview"></select></label><span class="games-preview-library-note">Choose what visitors see in this card.</span>';
+      quiz.insertAdjacentElement('afterbegin',picker);
+    }
+    const select=$('#gamesPreviewSelect',picker);
+    if(!select)return;
+    if(select.options.length!==library.length){
+      select.replaceChildren(...library.map(game=>{
+        const option=document.createElement('option');
+        option.value=game.id;option.textContent=game.name;return option;
+      }));
+    }
+    let external=$('#gamesExternalPreview',quiz);
+    if(!external){
+      external=document.createElement('div');
+      external.id='gamesExternalPreview';
+      external.className='games-external-preview';
+      quiz.appendChild(external);
+    }
+    const image=$('.games-block-mark',quiz);
+    const render=id=>{
+      const game=library.find(item=>item.id===id)||library[0],native=game.kind==='native';
+      if(image)image.hidden=!native;
+      external.hidden=native;
+      [...quiz.children].forEach(child=>{
+        if(child!==picker&&child!==image&&child!==external)child.hidden=!native;
+      });
+      quiz.classList.toggle('games-preview-external',!native);
+      if(native)return;
+      external.replaceChildren();
+      const kicker=document.createElement('span');kicker.className='games-preview-kicker';kicker.textContent=game.kind==='hosted'?'BIG LWA LIBRARY':'OFFICIAL LINK';
+      const title=document.createElement('h3');title.textContent=game.name;
+      const description=document.createElement('p');description.textContent=game.description;
+      external.append(kicker,title,description);
+      if(game.url){
+        const link=document.createElement('a');link.href=game.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open on '+game.source+' ↗';external.appendChild(link);
+      }else{
+        const note=document.createElement('span');note.className='games-preview-coming-soon';note.textContent='Ready for owned or licensed HTML5 games.';external.appendChild(note);
+      }
+    };
+    if(select.dataset.gamesPreviewBound!=='1'){
+      select.dataset.gamesPreviewBound='1';
+      select.addEventListener('change',()=>{
+        try{localStorage.setItem('biglwaGamesPreview',select.value)}catch{}
+        render(select.value);
+      });
+    }
+    let saved='';
+    try{saved=localStorage.getItem('biglwaGamesPreview')||''}catch{}
+    if(library.some(game=>game.id===saved))select.value=saved;
+    render(select.value||'culture-quiz');
+  }
+
   function bindWidgetSettingsActions(){
     const app=$('#studioApp');if(!app||app.dataset.widgetSettingsPath==='1')return;app.dataset.widgetSettingsPath='1';
     app.addEventListener('click',event=>{
@@ -460,7 +539,7 @@
     if(candidate.dataset.visitorBound!=='1'){candidate.dataset.visitorBound='1';candidate.addEventListener('click',()=>openVisitorDialog('public'))}
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindVisitorActions();ensureDirectoryIcons();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
+  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindVisitorActions();ensureDirectoryIcons();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
