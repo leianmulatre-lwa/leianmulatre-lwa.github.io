@@ -72,7 +72,9 @@
       #studioApp .visitor-log-intro>div{min-width:0!important}
       #studioApp .visitor-log-intro strong,#studioApp .visitor-log-intro span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       #studioApp .visitor-log-actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:6px!important}
-      #studioApp .visitor-log-actions button{white-space:nowrap!important;min-width:0!important}
+      #studioApp .visitor-log-actions button{white-space:nowrap!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
+      #studioApp .visitor-log-card .widget-window-controls{z-index:12!important}
+      #studioApp .visitor-log-card .visitor-log-actions{position:relative!important;z-index:2!important}
       #studioApp .visitor-log-card .mailbox-mark{position:relative;width:44px;height:44px;flex:0 0 44px;border:0;opacity:.92}
       #studioApp .visitor-log-card .mailbox-mark::before,#studioApp .visitor-log-card .mailbox-mark::after{content:none!important;display:none!important}
       #studioApp .visitor-log-card .mailbox-mark .visitor-mail-icon{display:block;width:44px;height:44px}
@@ -82,7 +84,7 @@
       #studioApp .visitor-log-actions{display:flex;gap:6px;flex-wrap:wrap}
       #studioApp .visitor-log-actions button:first-child{background:var(--mail-accent);color:var(--aura-button-ink,#fff);border-color:transparent}
       #studioApp .visitor-log-count{margin-top:7px;font:8px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
-      #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important}
+      #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:lowercase!important}
       #studioApp .aura-card .aura-orb{animation:biglwa-aura-wobble 8s ease-in-out infinite;transform-origin:50% 50%;will-change:transform}
       @keyframes biglwa-aura-wobble{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}25%{transform:translate3d(1px,-2px,0) scale(1.025) rotate(-1.2deg)}50%{transform:translate3d(-1px,1px,0) scale(.985) rotate(1deg)}75%{transform:translate3d(2px,0,0) scale(1.018) rotate(-.7deg)}}
       @media(prefers-reduced-motion:reduce){#studioApp .aura-card .aura-orb{animation:none!important}}
