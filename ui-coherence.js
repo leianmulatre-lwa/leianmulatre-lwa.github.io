@@ -565,7 +565,8 @@
   }
 
   function syncRealProfileMetrics(){
-    const app=$('#studioApp'),stats=$('.profile-card .stats',app);if(!stats)return false;
+    const app=$('#studioApp');if(!app)return false;
+    const stats=$('.profile-card .stats',app);if(!stats)return false;
     const source=window.__biglwaProfileMetrics&&typeof window.__biglwaProfileMetrics==='object'?window.__biglwaProfileMetrics:{};
     const number=(key)=>Number.isFinite(Number(source[key]))?String(Math.max(0,Number(source[key]))):'0';
     const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach']];
