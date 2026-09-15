@@ -274,6 +274,80 @@
     });
   }
 
+    function bindStableStudioInteractions(){
+    if(document.documentElement.dataset.biglwaStableInteractions==='1')return;
+    document.documentElement.dataset.biglwaStableInteractions='1';
+    const widgetSelector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
+    const getApp=()=>$('#studioApp');
+    const syncDock=(dock,section)=>{if(section)section.hidden=!dock||dock.children.length===0};
+    const ensureDock=app=>{
+      let section=$('#minimizedWidgets',app),dock=$('#minimizedWidgetDock',app);
+      if(!section){section=document.createElement('section');section.id='minimizedWidgets';section.className='minimized-widgets';section.setAttribute('aria-label','Minimized widgets');section.hidden=true;section.innerHTML='<div class="minimized-label">MINIMIZED</div>';($('.sidebar-top',app)||app).appendChild(section)}
+      if(!dock){dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';section.appendChild(dock)}
+      return {section,dock};
+    };
+    const saveMinimized=app=>{try{localStorage.setItem('biglwaMinimizedWidgets',JSON.stringify($('.widget-is-minimized',app).map(widget=>widget.dataset.widgetId).filter(Boolean)))}catch{}};
+    const addRestore=(app,widget)=>{
+      const id=widget.dataset.widgetId;if(!id)return;
+      const {section,dock}=ensureDock(app);
+      if(!$('[data-restore-widget="'+CSS.escape(id)+'"]',dock)){
+        const button=document.createElement('button');button.type='button';button.className='minimized-widget-btn';button.dataset.restoreWidget=id;
+        const label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');button.title='Restore '+label;button.setAttribute('aria-label','Restore '+label);button.innerHTML='<span class="restore-dot" aria-hidden="true"></span><b>'+label+'</b>';dock.appendChild(button);
+      }
+      syncDock(dock,section);
+    };
+    const restoreWidget=(app,id,button)=>{
+      const widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null;
+      if(widget){widget.classList.remove('widget-is-minimized','widget-is-docked');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false')}
+      if(button)button.remove();
+      const {section,dock}=ensureDock(app);syncDock(dock,section);saveMinimized(app);
+    };
+    const setTheme=mode=>{
+      const isDark=mode==='dark';document.body.classList.toggle('night-mode',isDark);
+      const light=$('#lightModeBtn'),dark=$('#darkModeBtn');
+      if(light)light.setAttribute('aria-pressed',isDark?'false':'true');
+      if(dark)dark.setAttribute('aria-pressed',isDark?'true':'false');
+      try{localStorage.setItem('biglwaTheme',mode)}catch{}
+    };
+    const toggleEditorFallback=button=>{
+      const card=button.closest('.profile-card'),panel=$('#wallpaperPanel',card)||$('#wallpaperPanel');
+      const opening=!card?.classList.contains('profile-is-editing');
+      if(card)card.classList.toggle('profile-is-editing',opening);
+      if(panel){panel.hidden=!opening;panel.classList.toggle('panel-hidden',!opening)}
+      button.setAttribute('aria-expanded',opening?'true':'false');button.textContent=opening?'Cancel':'Edit profile';
+    };
+    document.addEventListener('click',event=>{
+      const target=event.target&&event.target.closest?event.target.closest('button,a'):null;if(!target)return;
+      if(target.id==='lightModeBtn'||target.dataset.theme==='light'){event.preventDefault();event.stopImmediatePropagation();setTheme('light');return}
+      if(target.id==='darkModeBtn'||target.dataset.theme==='dark'){event.preventDefault();event.stopImmediatePropagation();setTheme('dark');return}
+      const app=getApp();if(!app||!app.contains(target))return;
+      if(target.id==='editProfileBtn'){
+        if(target.dataset.biglwaProfileBound==='3')return;
+        event.preventDefault();event.stopImmediatePropagation();toggleEditorFallback(target);return;
+      }
+      const restore=target.closest('[data-restore-widget]');
+      if(restore){event.preventDefault();event.stopImmediatePropagation();restoreWidget(app,restore.dataset.restoreWidget,restore);return}
+      const control=target.closest('.widget-window-controls [data-expand-widget],.widget-window-controls [data-open-widget-settings],.widget-window-controls [data-minimize-widget],.widget-window-controls [data-dock-widget]');
+      if(!control)return;
+      event.preventDefault();event.stopImmediatePropagation();
+      const widget=control.closest(widgetSelector);if(!widget)return;
+      if(control.matches('[data-expand-widget],[data-open-widget-settings]')){
+        if(control.hasAttribute('data-open-widget-settings')){
+          const edit=$('#editProfileBtn',app);if(edit)edit.click();
+          setTimeout(()=>{$('[data-profile-editor-tab="widgets"]',app)?.click()},0);
+          return;
+        }
+        widget.classList.remove('widget-is-minimized','widget-is-docked');
+        const opening=!widget.classList.contains('widget-is-expanded');$('.widget-is-expanded',app).forEach(item=>item.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);control.setAttribute('aria-pressed',opening?'true':'false');
+        saveMinimized(app);return;
+      }
+      const {section,dock}=ensureDock(app);
+      widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized');
+      if(control.matches('[data-dock-widget]'))widget.classList.add('widget-is-docked');
+      addRestore(app,widget);syncDock(dock,section);saveMinimized(app);
+    },true);
+  }
+
   function ensureWidgetActions(){
     const app=$('#studioApp'),sidebar=$('#studioApp .sidebar');if(!app)return;
     let minimizedSection=sidebar?$('#minimizedWidgets',sidebar):$('#minimizedWidgets',app);
@@ -609,7 +683,7 @@
   function ensureResetValues(){
     const stats=$('#studioApp .profile-card .stats');
     if(stats){
-      const items=$('span',stats);
+      const items=$$('span',stats);
       let followersFound=false;
       items.forEach(item=>{
         const label=item.textContent.trim().toLowerCase();
@@ -621,7 +695,7 @@
         }
         if(/\\bprojects?\\b|\\brooms?\\b/.test(label))value.textContent='0';
       });
-      const nums=$('b',stats);
+      const nums=$$('b',stats);
       if(!followersFound&&nums.length>0)nums[0].textContent='0';
       stats.dataset.biglwaReset='1';
     }
@@ -648,7 +722,7 @@
     }
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
