@@ -197,21 +197,28 @@
   }
 
   function currentWallpaperSettings(){
-    return {fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',aura:$('#auraRange')?.value||'30',overlay:$('#overlayRange')?.value||'18'};
+    return {fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'};
   }
 
   function applyWallpaperSettings(save=true){
     const settings=currentWallpaperSettings(),{page,video,previewVideo}=getWallpaperElements();if(!page)return;
     page.style.setProperty('--page-size',settings.fit);page.style.backgroundSize=settings.fit;page.style.setProperty('--page-position',settings.position);page.style.backgroundPosition=settings.position;
-    page.style.setProperty('--page-blur',`${settings.blur}px`);document.documentElement.style.setProperty('--aura-strength',settings.aura);$('#studioApp')?.style.setProperty('--aura-strength',settings.aura);page.style.setProperty('--page-overlay',Number(settings.overlay)/100);
+    page.style.setProperty('--page-blur',`${settings.blur}px`);page.style.setProperty('--page-overlay',Number(settings.overlay)/100);
     [video,previewVideo].forEach(media=>{media.style.objectFit=settings.fit;media.style.objectPosition=settings.position});
-    const labels={blurValue:`${settings.blur}%`,auraValue:`${settings.aura}%`,overlayValue:`${settings.overlay}%`};Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
+    const labels={blurValue:`${settings.blur}%`,overlayValue:`${settings.overlay}%`};Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
     if(save)try{localStorage.setItem(WALLPAPER_SETTINGS_KEY,JSON.stringify(settings))}catch{}
+  }
+
+  function removeWallpaperAuraControl(){
+    const input=$('#auraRange');
+    if(input){const row=input.closest('label')||input.parentElement;if(row)row.remove();else input.remove()}
+    const value=$('#auraValue');
+    if(value){const row=value.closest('label')||value.parentElement;if(row)row.remove();else value.remove()}
   }
 
   function restoreWallpaperSettings(){
     let settings=null;try{settings=JSON.parse(localStorage.getItem(WALLPAPER_SETTINGS_KEY)||'null')}catch{}
-    if(settings){const mapping={fitSelect:'fit',positionSelect:'position',blurRange:'blur',auraRange:'aura',overlayRange:'overlay'};Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&settings[key]!=null)input.value=settings[key]})}
+    if(settings){const mapping={fitSelect:'fit',positionSelect:'position',blurRange:'blur',overlayRange:'overlay'};Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&settings[key]!=null)input.value=settings[key]})}
     applyWallpaperSettings(false);
   }
 
@@ -325,7 +332,7 @@
     syncEditorState();
   }
 
-  function run(){ensureStyles();ensureWidgetConnection();ensureWallpaperEditor();bindEditorState()}
+  function run(){ensureStyles();removeWallpaperAuraControl();ensureWidgetConnection();ensureWallpaperEditor();bindEditorState()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeActiveUrl,{once:true});
