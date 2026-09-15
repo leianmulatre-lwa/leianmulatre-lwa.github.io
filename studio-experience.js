@@ -96,6 +96,11 @@
       #studioApp .card .card-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;line-height:1!important;position:relative!important;top:0!important;transform:none!important;margin-right:9px!important}
       /* Optical baseline correction for the taller/narrower supplied marks. */
       #studioApp #closet .card-icon,#studioApp #diary .card-icon,#studioApp #projects .card-icon,#studioApp #games .card-icon{transform:translateY(4px)!important}
+      /* Use a real shared header row: each mark is centered beside its title. */
+      #studioApp .biglwa-card-heading-row{display:flex!important;align-items:center!important;gap:10px!important;min-height:30px!important;margin:0 0 8px!important}
+      #studioApp .biglwa-card-heading-row>.card-icon{flex:0 0 28px!important;width:28px!important;height:28px!important;margin:0!important;transform:none!important;align-self:center!important}
+      #studioApp .biglwa-card-heading-row>h2{flex:0 0 auto!important;margin:0!important;line-height:1!important;align-self:center!important}
+
       #studioApp #closet .card-icon .studio-symbol-mark,#studioApp #diary .card-icon .studio-symbol-mark,#studioApp #projects .card-icon .studio-symbol-mark,#studioApp #games .card-icon .games-chess-mark{transform:translateY(0)!important}
 
       #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:lowercase!important}
@@ -553,6 +558,20 @@
     });
   }
 
+  function ensureCardHeadingRows(){
+    const app=$('#studioApp');if(!app)return;
+    [['#closet','#closet .card-icon','#closet h2'],['#diary','#diary .card-icon','#diary h2'],['#projects','#projects .card-icon','#projects h2'],['#games','#games .card-icon','#games h2']].forEach(([cardSel,iconSel,titleSel])=>{
+      const card=$(cardSel,app),icon=$(iconSel,app),title=$(titleSel,app);if(!card||!icon||!title||icon.contains(title)||title.contains(icon))return;
+      let row=$('.biglwa-card-heading-row',card);
+      if(!row){
+        if(icon.parentElement!==title.parentElement)return;
+        row=document.createElement('div');row.className='biglwa-card-heading-row';icon.parentElement.insertBefore(row,icon);
+      }
+      if(icon.parentElement!==row)row.appendChild(icon);
+      if(title.parentElement!==row)row.appendChild(title);
+    });
+  }
+
   function ensureThemeAndMailboxIcons(){
     const light=$('#lightModeBtn'),dark=$('#darkModeBtn');
     const ensureThemeImage=(button,src,label)=>{if(!button)return;let image=$('img',button);if(!image){image=document.createElement('img');button.replaceChildren(image)}image.src=src;image.alt='';image.setAttribute('aria-hidden','true');button.title=label;button.setAttribute('aria-label',label);$('.biglwa-theme-icon',button)?.remove()};
@@ -564,7 +583,7 @@
     if(candidate.dataset.visitorBound!=='1'){candidate.dataset.visitorBound='1';candidate.addEventListener('click',()=>openVisitorDialog('public'))}
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindVisitorActions();ensureDirectoryIcons();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
+  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindVisitorActions();ensureDirectoryIcons();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
