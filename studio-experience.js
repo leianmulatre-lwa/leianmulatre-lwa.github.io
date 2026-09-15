@@ -93,6 +93,7 @@
       #studioApp #projects .card-icon.studio-projects-mark,#studioApp #games .card-icon.games-chess-only-mark{width:28px!important;height:26px!important}
       #studioApp #closet .card-icon{width:28px!important;height:26px!important}
       #studioApp .card .card-icon svg,#studioApp .card .card-icon img{max-width:100%!important;max-height:100%!important}
+      #studioApp .card .card-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;line-height:1!important;position:relative!important;top:0!important;transform:none!important;margin-right:9px!important}
 
       #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:lowercase!important}
       #studioApp .aura-card .aura-orb{animation:biglwa-aura-wobble 8s ease-in-out infinite;transform-origin:50% 50%;will-change:transform}
