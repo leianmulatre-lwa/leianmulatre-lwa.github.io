@@ -67,6 +67,39 @@
     body.night-mode .module-workspace{background:linear-gradient(180deg,rgba(31,29,28,.97),rgba(25,23,22,.98));color:#f3eee8}.night-mode .module-heading,.night-mode .module-card,.night-mode .module-list-item,.night-mode .module-orbit-row,.night-mode .module-launcher,.night-mode .module-input,.night-mode .module-textarea,.night-mode .module-select,.night-mode .module-chat,.night-mode .calendar-board,.night-mode .calendar-day,.night-mode .dyk-card,.night-mode .dyk-option,.night-mode .trophy-entry,.night-mode .trophy-empty{border-color:#504943;background:rgba(45,41,39,.78);color:#f4eee8}.night-mode .module-heading p,.night-mode .module-card>p,.night-mode .module-list-item small,.night-mode .module-route,.night-mode .module-status,.night-mode .module-launcher small,.night-mode .dyk-source,.night-mode .dyk-side small,.night-mode .trophy-meta,.night-mode .trophy-empty p,.night-mode .trophy-field>span{color:#b6aaa2}.night-mode .module-back,.night-mode .module-action.ghost,.night-mode .trophy-entry-actions button{background:#302c2a;border-color:#514a45;color:#eee7e0}.night-mode .trophy-result,.night-mode .trophy-proof{color:#e8dfd8}.night-mode .module-bubble{background:#3b3633}.night-mode .module-bubble.mine{background:#5a3d3e}.night-mode .calendar-event-chip{background:#594746}
     @media(max-width:850px){.module-grid,.calendar-shell,.dyk-game,.trophy-page-grid{grid-template-columns:1fr}.module-card.wide{grid-column:1}.module-launchers{grid-template-columns:repeat(2,minmax(0,1fr))}.module-form.two,.module-form.three{grid-template-columns:1fr}.module-orbit{grid-template-columns:1fr}.module-heading{grid-template-columns:1fr}.module-badge{justify-self:start}.calendar-day{min-height:68px}.photo-strip{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:560px){.calendar-board{padding:9px}.calendar-days,.calendar-weekdays{gap:2px}.calendar-day{min-height:52px;padding:4px}.calendar-event-chip{font-size:0;width:6px;height:6px;border-radius:50%;padding:0}.module-map{height:420px}.trophy-form-grid{grid-template-columns:1fr}.trophy-field.full{grid-column:1}.trophy-entry{grid-template-columns:1fr}.trophy-entry-actions{justify-content:flex-start}}
+
+    .module-game-stage{grid-column:1/-1}
+    .module-game-stage-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:12px}
+    .module-game-stage-head h2{margin:0 0 5px;font:400 24px/1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+    .module-game-stage-head p{margin:0!important}
+    .module-game-stage-head span{font:700 9px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:#8b8179}
+    .module-game-viewport{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;height:330px;overflow:hidden;position:relative;padding:3px 0;border-radius:16px;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 93%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 93%,transparent 100%)}
+    .module-game-track{display:flex;flex-direction:column;gap:9px;min-width:0;animation:biglwaModuleArcadeScroll 32s linear infinite}
+    .module-game-track:nth-child(2){animation-duration:38s;animation-delay:-12s}
+    .module-game-track:nth-child(3){animation-duration:35s;animation-delay:-21s}
+    .module-game-tile{position:relative;display:block;flex:0 0 auto;height:94px;min-width:0;overflow:hidden;border:1px solid #ddd3ca;border-radius:13px;background:#eee5dc;box-shadow:0 7px 16px rgba(55,42,34,.1);text-decoration:none;color:#fff;transition:transform .18s ease,box-shadow .18s ease}
+    .module-game-tile:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(55,42,34,.16)}
+    .module-game-tile img{display:block;width:100%;height:100%;object-fit:cover}
+    .module-game-tile:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 38%,rgba(22,17,16,.82))}
+    .module-game-tile span{position:absolute;right:8px;bottom:8px;left:8px;z-index:1;overflow:hidden;font:700 11px/1.05 system-ui;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);white-space:nowrap;text-overflow:ellipsis}
+    .module-game-tile small{position:absolute;right:8px;top:8px;z-index:1;padding:4px 6px;border-radius:999px;background:rgba(20,17,16,.62);font:700 8px/1 system-ui;color:#fff;opacity:0;transition:opacity .18s ease}
+    .module-game-tile:hover small,.module-game-tile:focus-visible small{opacity:1}
+    .module-game-stage .module-status{margin-top:10px}
+    .module-game-submit{grid-column:1/-1}
+    .module-game-submit h2{font:400 24px/1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+    .module-game-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;align-items:end}
+    .module-game-form label{display:block}
+    .module-game-form label>span{display:block;margin:0 0 5px;font:700 8px/1.2 system-ui;letter-spacing:.08em;text-transform:uppercase;color:#8b8179}
+    .module-game-form .module-action{min-height:36px}
+    .module-game-submit-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .module-game-image-preview{display:block;width:52px;height:36px;object-fit:cover;border:1px solid #d8cec5;border-radius:7px;background:#eee5dc}
+    .module-game-submit .module-status{margin:0}
+    .night-mode .module-game-tile{border-color:#514a45;background:#302c2a}
+    .night-mode .module-game-form label>span{color:#b6aaa2}
+    @keyframes biglwaModuleArcadeScroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+    @media (prefers-reduced-motion:reduce){.module-game-track{animation:none}}
+    @media(max-width:850px){.module-game-viewport{height:290px}.module-game-form{grid-template-columns:1fr}}
+    @media(max-width:560px){.module-game-viewport{grid-template-columns:repeat(2,minmax(0,1fr));height:310px}.module-game-track:nth-child(3){display:none}.module-game-stage-head{align-items:start;flex-direction:column;gap:6px}}
   `;
   document.head.appendChild(style);
 
@@ -223,8 +256,37 @@
   }
 
   function renderGames(){
-    body.innerHTML=heading('games')+`<div class="module-grid"><section class="module-card module-quiz"><h2>Culture check</h2><p>Where did hip-hop emerge as a culture in the 1970s?</p><button data-answer="wrong">Brooklyn</button><button data-answer="correct">The Bronx</button><button data-answer="wrong">Harlem</button><div class="module-status" id="moduleQuizStatus"></div></section><section class="module-card"><h2>More games</h2><p>Did You Know? is its own playable knowledge deck now.</p><button class="module-action" type="button" id="openDYK">Play Did You Know?</button></section></div>`;
-    $$('.module-quiz [data-answer]',body).forEach(btn=>btn.onclick=()=>{$$('.module-quiz [data-answer]',body).forEach(x=>x.classList.remove('correct','wrong'));const ok=btn.dataset.answer==='correct';btn.classList.add(ok?'correct':'wrong');$('#moduleQuizStatus',body).textContent=ok?'Correct — the Bronx, New York City.':'Not quite — try again.'}); $('#openDYK',body).onclick=()=>openModule('learn');
+    const gameLibrary=[
+      {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-and-watergirl-5-elements'},
+      {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
+      {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
+      {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://www.coolmathgames.com/0-raft-wars'},
+      {title:'sudoku',image:'/assets/arcade/sudoku.jpg',href:'https://www.coolmathgames.com/0-sudoku'},
+      {title:'wordle',image:'/assets/arcade/wordle.png',href:'https://www.nytimes.com/games/wordle/index.html'},
+      {title:'worldguessr',image:'/assets/arcade/worldguessr.jpg',href:'https://worldguessr.com/'},
+      {title:'cookie clicker',image:'/assets/arcade/cookie-clicker.png',href:'https://orteil.dashnet.org/cookieclicker/'},
+      {title:'chess',image:'/assets/arcade/chess.jpg',href:'https://www.chess.com/play/online'},
+      {title:'fancy pants',image:'/assets/arcade/fancy-man.webp',href:'https://www.coolmathgames.com/0-fancy-pants-adventures'},
+      {title:'n+',image:'/assets/arcade/nplus.webp',href:'https://www.coolmathgames.com/0-n-game'},
+      {title:'run 3',image:'/assets/arcade/run-3.png',href:'https://www.coolmathgames.com/0-run-3'},
+      {title:'five nights at freddy’s',image:'/assets/arcade/five-nights-at-freddys.jpg',href:'https://store.steampowered.com/app/319510/Five_Nights_at_Freddys/'},
+      {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.coolmathgames.com/0-swords-and-sandals-2'}
+    ];
+    const tile=game=>'<a class="module-game-tile" href="'+esc(game.href)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+esc(game.title)+'"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>open ↗</small></a>';
+    const track=items=>items.concat(items).map(tile).join('');
+    body.innerHTML=heading('games')+
+      '<div class="module-grid module-games-grid">'+
+        '<section class="module-card module-game-stage wide"><div class="module-game-stage-head"><div><h2>arcade library</h2><p>Pick a cover to open the game in a new tab.</p></div><span>animated preview</span></div><div class="module-game-viewport" aria-label="Animated arcade library"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-status">External games open in their own tab. The library can grow from your suggestions.</div></section>'+
+        '<section class="module-card module-quiz"><h2>Culture check</h2><p>Where did hip-hop emerge as a culture in the 1970s?</p><button data-answer="wrong">Brooklyn</button><button data-answer="correct">The Bronx</button><button data-answer="wrong">Harlem</button><div class="module-status" id="moduleQuizStatus"></div></section>'+
+        '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Send a game link and cover image link for the arcade library.</p><form class="module-game-form" id="gameSuggestForm"><label><span>Game name</span><input class="module-input" name="title" required maxlength="80" placeholder="Game title"></label><label><span>Game link</span><input class="module-input" name="link" type="url" required placeholder="https://…"></label><label><span>Image link</span><input class="module-input" name="image" type="url" required placeholder="https://…"></label><div class="module-game-submit-row"><button class="module-action" type="submit">Save suggestion</button><img class="module-game-image-preview" id="gameSuggestImagePreview" alt="" hidden><div class="module-status" id="gameSuggestStatus" aria-live="polite"></div></div></form></section>'+
+      '</div>';
+    $$('.module-quiz [data-answer]',body).forEach(btn=>btn.onclick=()=>{$$('.module-quiz [data-answer]',body).forEach(x=>x.classList.remove('correct','wrong'));const ok=btn.dataset.answer==='correct';btn.classList.add(ok?'correct':'wrong');$('#moduleQuizStatus',body).textContent=ok?'Correct — the Bronx, New York City.':'Not quite — try again.'});
+    const form=$('#gameSuggestForm',body);
+    const imageInput=$('[name="image"]',form);
+    const imagePreview=$('#gameSuggestImagePreview',body);
+    const status=$('#gameSuggestStatus',body);
+    imageInput.oninput=()=>{const value=imageInput.value.trim();if(!value){imagePreview.hidden=true;imagePreview.removeAttribute('src');return}imagePreview.src=value;imagePreview.hidden=false;imagePreview.onerror=()=>{imagePreview.hidden=true}};
+    form.onsubmit=e=>{e.preventDefault();const data=new FormData(form);const title=(data.get('title')||'').toString().trim();const link=(data.get('link')||'').toString().trim();const image=(data.get('image')||'').toString().trim();try{new URL(link);new URL(image)}catch(_){status.textContent='Please use valid links for the game and image.';return}const key='biglwaGameSuggestions';const saved=readJSON(key,[]);saved.push({title,link,image,createdAt:new Date().toISOString()});writeJSON(key,saved);status.className='module-status ok';status.textContent='Saved on this browser for review.';form.reset();imagePreview.hidden=true;imagePreview.removeAttribute('src')};
   }
 
   const dykQuestions=[
