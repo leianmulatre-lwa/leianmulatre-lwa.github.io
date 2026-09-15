@@ -250,8 +250,8 @@
   function widgetRoute(el,id){return el.dataset.widgetRoute||$('.arrow-btn[data-open]',el)?.dataset.open||id}
   const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
   function greenControlAction(route,id){
-    if(route==='visitor-log'||id==='visitor-log')return {attribute:'data-open-visitor="public"',label:'Open Visitor Log mailbox'};
-    if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
+    if(route==='visitor-log'||id==='visitor-log')return {attribute:`data-expand-widget="${id}"`,label:'Expand Visitor Log mailbox'};
+    if(fullWidgetRoutes.has(route))return {attribute:`data-expand-widget="${id}"`,label:`Expand ${route.replace(/[-_]/g,' ')} widget`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
   function ensureControls(){
