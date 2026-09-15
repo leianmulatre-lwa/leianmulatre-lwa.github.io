@@ -22,8 +22,8 @@
       #studioApp .profile-copy>.eyebrow{display:none!important}
       #studioApp .profile-card{position:absolute!important;grid-template-columns:132px minmax(0,1fr)!important;align-items:center!important;min-height:232px!important;height:auto!important;padding:24px 26px!important}
       #studioApp .profile-card .profile-copy{grid-column:2!important;grid-row:1!important;align-self:center!important;padding-right:118px!important}
-      #studioApp .profile-card .profile-display-name{margin:0 0 1px!important;font-family:Georgia,"Times New Roman",serif!important;font-size:25px!important;line-height:1.05!important}
-      #studioApp .profile-card .profile-name-line h1{font-size:18px!important;letter-spacing:-.3px!important;font-weight:600!important}
+      #studioApp .profile-card .profile-display-name{margin:0 0 1px!important;font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-size:25px!important;line-height:1.05!important}
+      #studioApp .profile-card .profile-name-line h1{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-size:18px!important;letter-spacing:.01em!important;font-weight:400!important}
       #studioApp .profile-card #editProfileBtn{position:absolute!important;top:20px!important;right:22px!important;width:auto!important;min-width:0!important;padding:8px 13px!important;font-size:12px!important;line-height:1!important}
       #studioApp .profile-card>.widget-window-controls{position:absolute!important;right:22px!important;bottom:18px!important;margin:0!important}
       #studioApp .profile-card .bio{margin-top:10px!important}
@@ -520,6 +520,16 @@
     return done===links.length;
   }
 
+  function ensureProfileInitial(){
+    const card=$('#studioApp .profile-card');if(!card)return;
+    const avatar=$('.profile-avatar',card);if(!avatar||avatar.querySelector('img'))return;
+    let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
+    const candidates=[saved?.username,window.__biglwaProfileUsername,$('.profile-name-line h1',card)?.textContent,$('.mini-avatar')?.textContent,$('#loginUsername')?.value];
+    const username=candidates.map(value=>String(value||'').trim().replace(/^@/,'')).find(value=>value&&value!=='LS')||'B';
+    const initial=username.charAt(0).toUpperCase();
+    avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
+  }
+
   function ensureResetValues(){
     const stats=$('#studioApp .profile-card .stats');
     if(stats){
@@ -561,10 +571,11 @@
     }
   }
 
-  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();ensureWidgetActions();ensureProfileEditor();ensureProfileInitial();ensureTheme();ensureResetValues()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
+  setTimeout(run,900);
   const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
   const policyLogoTimer=setInterval(()=>{if(ensurePolicyBrands())clearInterval(policyLogoTimer)},400);
   const resetTimer=setInterval(()=>{ensureResetValues();clearInterval(resetTimer)},500);
