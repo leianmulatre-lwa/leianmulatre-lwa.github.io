@@ -159,6 +159,8 @@
       #studioApp #games .card-icon.games-chess-only-mark{display:inline-grid!important;width:26px;height:26px;place-items:center;font-size:0!important}
       #studioApp #games .games-chess-mark{font:22px/1 Georgia,"Times New Roman",serif}
       #studioApp #games .quiz>.games-block-mark{display:block;width:82%;height:auto;max-height:120px;margin:0 auto 12px;border-radius:7px;object-fit:contain;object-position:center;box-shadow:0 2px 5px rgba(31,24,21,.14);mix-blend-mode:multiply}
+      #studioApp #games .games-preview-picker,#studioApp #games .games-external-preview{display:none!important}
+      #studioApp #games .games-block-mark{border:0!important;outline:0!important;box-shadow:none!important}
       #studioApp #games .games-preview-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin:0 0 10px;padding:8px 9px;border:1px solid rgba(70,58,52,.14);border-radius:9px;background:rgba(255,255,255,.36)}
       #studioApp #games .games-preview-picker label{display:grid;gap:4px;min-width:0;font:700 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
       #studioApp #games .games-preview-picker select{width:100%;min-width:0;border:1px solid rgba(70,58,52,.16);border-radius:7px;background:rgba(255,255,255,.62);color:inherit;padding:6px 8px;font:11px/1.2 Inter,ui-sans-serif,system-ui,sans-serif}
@@ -484,6 +486,10 @@
   function ensureGamesPreviewPicker(){
     const app=$('#studioApp'),quiz=$('#games .quiz',app);
     if(!app||!quiz)return;
+    $('#gamesPreviewPicker',quiz)?.remove();
+    $('.games-external-preview',quiz).forEach(preview=>preview.remove());
+    quiz.classList.remove('games-preview-external');
+    return;
     const library=[
       {id:'culture-quiz',name:'Culture Quiz',kind:'native',description:'Play the BIG LWA culture quiz on this page.'},
       {id:'run-3',name:'Run 3',kind:'external',description:'The endless runner from Coolmath Games.',url:'https://www.coolmathgames.com/0-run-3',source:'Coolmath Games'},
