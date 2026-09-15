@@ -523,10 +523,30 @@
   function ensureResetValues(){
     const stats=$('#studioApp .profile-card .stats');
     if(stats){
-      const nums=$$('b',stats);
-      if(nums.length>0)nums[0].textContent='0';
-      if(nums.length>1)nums[1].textContent='0';
+      const items=$('span',stats);
+      let followersFound=false;
+      items.forEach(item=>{
+        const label=item.textContent.trim().toLowerCase();
+        const value=$('b',item);
+        if(!value)return;
+        if(/\\bfollow(?:ers|ing)?\\b/.test(label)){
+          value.textContent='0';
+          followersFound=true;
+        }
+        if(/\\bprojects?\\b|\\brooms?\\b/.test(label))value.textContent='0';
+      });
+      const nums=$('b',stats);
+      if(!followersFound&&nums.length>0)nums[0].textContent='0';
       stats.dataset.biglwaReset='1';
+    }
+    const rank=$('#studioApp .profile-card .real-rank');
+    if(rank){
+      const value=$('strong',rank),track=$('.rank-track i',rank),next=$('.rank-next',rank);
+      if(value)value.textContent='Chopped';
+      if(track)track.style.width='0%';
+      if(next)next.textContent='next: 007';
+      rank.setAttribute('aria-label','Real Rank: Chopped, progressing toward 007');
+      rank.dataset.biglwaDefault='chopped';
     }
     const feedList=$('#studioApp .feed-card .feed-list');
     if(feedList){
