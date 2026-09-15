@@ -84,6 +84,16 @@
       #studioApp .visitor-log-actions{display:flex;gap:6px;flex-wrap:wrap}
       #studioApp .visitor-log-actions button:first-child{background:var(--mail-accent);color:var(--aura-button-ink,#fff);border-color:transparent}
       #studioApp .visitor-log-count{margin-top:7px;font:8px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
+      /* Keep every card symbol and stitched heading on the same optical baseline. */
+      #studioApp .masonry>.card>.card-icon,#studioApp .hero-widget-rail>.card>.card-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;position:relative!important;top:0!important;transform:none!important;margin:0 9px 0 0!important;line-height:1!important}
+      #studioApp .masonry>.card>h2,#studioApp .masonry>.card>h3,#studioApp .hero-widget-rail>.card>h2,#studioApp .hero-widget-rail>.card>h3{display:inline-flex!important;align-items:center!important;vertical-align:middle!important;margin-top:0!important;line-height:1!important}
+      #studioApp .card .studio-symbol-mark{display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;position:relative!important;top:0!important;transform:none!important;line-height:1!important}
+      #studioApp .card .studio-symbol-image{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important}
+      #studioApp #feed .card-icon.studio-image-icon,#studioApp #diary .card-icon.studio-image-icon,#studioApp #learn .card-icon.studio-image-icon,#studioApp #notes .card-icon.studio-image-icon{width:28px!important;height:26px!important}
+      #studioApp #projects .card-icon.studio-projects-mark,#studioApp #games .card-icon.games-chess-only-mark{width:28px!important;height:26px!important}
+      #studioApp #closet .card-icon{width:28px!important;height:26px!important}
+      #studioApp .card .card-icon svg,#studioApp .card .card-icon img{max-width:100%!important;max-height:100%!important}
+
       #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:lowercase!important}
       #studioApp .aura-card .aura-orb{animation:biglwa-aura-wobble 8s ease-in-out infinite;transform-origin:50% 50%;will-change:transform}
       @keyframes biglwa-aura-wobble{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}25%{transform:translate3d(1px,-2px,0) scale(1.025) rotate(-1.2deg)}50%{transform:translate3d(-1px,1px,0) scale(.985) rotate(1deg)}75%{transform:translate3d(2px,0,0) scale(1.018) rotate(-.7deg)}}
