@@ -546,7 +546,7 @@
           return;
         }
         widget.classList.remove('widget-is-minimized','widget-is-docked');
-        const opening=!widget.classList.contains('widget-is-expanded');$('.widget-is-expanded',app).forEach(item=>item.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);control.setAttribute('aria-pressed',opening?'true':'false');
+        const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(item=>item.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);control.setAttribute('aria-pressed',opening?'true':'false');
         saveMinimized(app);return;
       }
       const {section,dock}=ensureDock(app);
@@ -848,7 +848,7 @@
 
   function ensureStudioHeadersLowercase(){
     const app=$('#studioApp');if(!app)return;
-    $('.masonry .card h2,.hero h2,.profile-card h2,.panel-title strong',app).forEach(el=>{
+    $$('.masonry .card h2,.hero h2,.profile-card h2,.panel-title strong',app).forEach(el=>{
       el.childNodes.forEach(node=>{if(node.nodeType===Node.TEXT_NODE)node.textContent=node.textContent.toLowerCase()});
       el.style.setProperty('text-transform','lowercase','important');
     });

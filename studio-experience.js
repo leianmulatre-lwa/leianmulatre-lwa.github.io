@@ -571,7 +571,7 @@
     const app=$('#studioApp'),quiz=$('#games .quiz',app);
     if(!app||!quiz)return;
     $('#gamesPreviewPicker',quiz)?.remove();
-    $('.games-external-preview',quiz).forEach(preview=>preview.remove());
+    $$('.games-external-preview',quiz).forEach(preview=>preview.remove());
     quiz.classList.remove('games-preview-external');
     return;
     const library=[
