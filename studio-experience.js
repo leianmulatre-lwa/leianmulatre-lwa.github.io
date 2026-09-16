@@ -43,7 +43,7 @@
       #studioApp .profile-card #wallpaperPanel .panel-title{background-image:linear-gradient(to bottom,var(--widget-bg,rgba(250,247,241,.84)) 72%,transparent)!important;color:var(--widget-ink,#171717)!important}
       #studioApp .profile-editor-actions{background-image:linear-gradient(to top,var(--widget-bg,rgba(250,247,241,.84)) 76%,transparent)!important;color:var(--widget-ink,#171717)!important}
       #studioApp .profile-card .profile-identity-rail{box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:20px 16px!important}
-      #studioApp .profile-card .profile-identity-rail>.profile-avatar{flex:0 0 auto!important;margin:0 auto!important;transform:translateX(10px)!important}
+      #studioApp .profile-card .profile-identity-rail>.profile-avatar{flex:0 0 auto!important;margin:0 auto!important;position:relative!important;left:10px!important}
       #studioApp .profile-card .profile-identity-rail>#editProfileBtn{flex:0 0 auto!important;width:120px!important;max-width:120px!important;margin:0 auto!important}
       #studioApp .profile-card .profile-identity-rail>.profile-rail-location{flex:0 0 auto!important;width:120px!important;margin:0 auto!important;text-align:center!important;line-height:1.25!important}
       #studioApp .profile-card .profile-identity-rail>.weekly-mood-card{order:4!important;box-sizing:border-box;width:120px;min-height:58px;margin:2px auto 0;padding:9px 10px;border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:12px;background:rgba(255,255,255,.42);color:var(--widget-ink,#171717);text-align:left;overflow:hidden}
