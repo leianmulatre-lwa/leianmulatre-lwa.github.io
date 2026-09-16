@@ -50,9 +50,15 @@
       #studioApp .weekly-mood-card>span,#studioApp .weekly-mood-card>strong{display:block}
       #studioApp .weekly-mood-card>span{margin-bottom:5px;font:750 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--widget-muted,#77716b)}
       #studioApp .weekly-mood-card>strong{font:600 11px/1.2 Georgia,"Times New Roman",serif;overflow-wrap:anywhere}
-      #studioApp .weekly-mood-card[data-mood-style="diary"]{border-left:9px solid rgb(var(--aura-rgb,216,95,109));background:repeating-linear-gradient(to bottom,rgba(255,252,239,.88) 0,rgba(255,252,239,.88) 15px,rgba(122,160,184,.22) 16px)}
-      #studioApp .weekly-mood-card[data-mood-style="widget"]{border-radius:var(--widget-radius,16px);background:var(--widget-bg,rgba(250,247,241,.84));box-shadow:0 7px 18px rgba(var(--aura-rgb,216,95,109),.13)}
-      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]{transform:rotate(-1deg);border-color:#dec665;background:#fff4a9;box-shadow:2px 3px 0 rgba(72,56,36,.12);color:#372f28}
+      #studioApp .weekly-mood-card[data-mood-style="diary"]{border:1px solid #d4cec2;border-radius:3px;background-color:#fffdf5;background-image:linear-gradient(90deg,transparent 0 13px,rgba(201,67,83,.52) 13px 14px,transparent 14px),repeating-linear-gradient(to bottom,transparent 0 14px,rgba(78,137,176,.3) 14px 15px);color:#292522;box-shadow:0 3px 0 rgba(72,56,36,.08)}
+      #studioApp .weekly-mood-card[data-mood-style="diary"]>span{padding-left:8px;color:#a63f51;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif}
+      #studioApp .weekly-mood-card[data-mood-style="diary"]>strong{padding-left:8px;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:800}
+      #studioApp .weekly-mood-card[data-mood-style="widget"]{border:1px solid rgba(var(--aura-rgb,216,95,109),.34);border-radius:var(--widget-radius,16px);background:var(--widget-bg,rgba(250,247,241,.84));color:var(--widget-ink,#171717);box-shadow:0 9px 22px rgba(var(--aura-rgb,216,95,109),.2),inset 0 0 0 1px rgba(255,255,255,.22);backdrop-filter:blur(var(--widget-blur,8px))}
+      #studioApp .weekly-mood-card[data-mood-style="widget"]>span{color:rgb(var(--aura-rgb,216,95,109))}
+      #studioApp .weekly-mood-card[data-mood-style="widget"]>strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-weight:400}
+      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]{position:relative;border:0;border-radius:1px 1px 13px 1px;background:linear-gradient(145deg,#fff7a8 0,#f3d75f 78%,#d8b943 100%);color:#352d20;box-shadow:3px 4px 0 rgba(72,56,36,.16);transform:rotate(-1.8deg)}
+      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]>span{color:#77601c;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif}
+      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]>strong{font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:800}
       #studioApp .profile-song-editor-mount{display:grid;gap:8px;margin:9px 0 12px;padding:11px;border:1px solid rgba(var(--aura-rgb,216,95,109),.22);border-radius:12px;background:rgba(var(--aura-rgb,216,95,109),.06)}
       #studioApp .profile-song-editor-wait{font:9px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
       #studioApp .profile-song-editor-mount:has(.music-file-actions) .profile-song-editor-wait{display:none}
@@ -113,22 +119,18 @@
       #studioApp .guest-check-card>.card-kicker{display:none!important}
       #studioApp .guest-check-card>.widget-window-controls{position:absolute!important;right:13px!important;top:12px!important;z-index:7!important;margin:0!important}
       #studioApp .guest-check-card>.widget-drag-handle{top:10px!important;z-index:7!important}
-      #studioApp .guest-check-sheet{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;min-height:216px;margin:0!important;padding:30px 14px 12px;border:0!important;border-radius:inherit;background:repeating-linear-gradient(to bottom,#fffdf5 0,#fffdf5 30px,rgba(92,142,178,.24) 31px);box-shadow:inset 0 7px 0 rgba(var(--aura-rgb,216,95,109),.78),inset 0 10px 0 rgba(var(--aura-rgb,216,95,109),.18);color:#2d2824;overflow:hidden}
+      #studioApp .guest-check-sheet{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;min-height:216px;margin:0!important;padding:36px 12px 10px;border:0!important;border-radius:inherit;background:#fffaf0;box-shadow:inset 0 7px 0 rgba(var(--aura-rgb,216,95,109),.78),inset 0 10px 0 rgba(var(--aura-rgb,216,95,109),.18);color:#2d2824;overflow:hidden;cursor:pointer}
       #studioApp .guest-check-sheet::before{content:none}
       #studioApp .guest-check-sheet::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.26),transparent 28%,rgba(69,47,37,.025));mix-blend-mode:multiply}
-      #studioApp .guest-check-sheet-head{display:grid;grid-template-columns:minmax(0,1fr) 72px;align-items:center;gap:8px;margin:0 0 6px;padding:0 0 5px;border-bottom:2px solid rgba(var(--aura-rgb,216,95,109),.52);font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em;color:#665851}
-      #studioApp .guest-check-sheet-head time{padding-left:9px;border-left:2px solid rgba(216,95,109,.78);text-align:right}
-      #studioApp .guest-check-sheet-head time{letter-spacing:.04em;color:rgb(var(--aura-rgb,216,95,109))}
-      #studioApp .guest-check-sheet .visitor-log-intro{margin:0 0 8px}
-      #studioApp .guest-check-sheet .visitor-log-intro strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-size:15px;font-weight:400;text-transform:lowercase;color:#211d1a}
-      #studioApp .guest-check-sheet .visitor-log-intro span,#studioApp .guest-check-sheet .visitor-log-count{color:#736860!important}
-      #studioApp .guest-check-sheet .visitor-log-actions button:not(:first-child){background:rgba(255,253,244,.82);color:#39322d}
-      #studioApp .guest-check-lines{position:relative;z-index:2;height:62px;margin:0 0 7px;overflow:hidden;background:rgba(255,253,245,.78)}
+      #studioApp .guest-check-sheet-head{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) 62px 48px;align-items:stretch;margin:0;padding:0;border-top:2px solid rgba(78,137,176,.62);border-bottom:2px solid rgba(78,137,176,.62);font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#665851}
+      #studioApp .guest-check-sheet-head>span{display:flex;align-items:center;min-width:0;height:25px;padding:0 7px;overflow:hidden;white-space:nowrap}
+      #studioApp .guest-check-sheet-head>span+span{justify-content:center;border-left:2px solid rgba(126,73,145,.76);padding:0 3px;color:#714776}
+      #studioApp .guest-check-lines{position:relative;z-index:2;height:112px;margin:0;overflow:hidden;background:rgba(255,253,245,.34)}
       #studioApp .guest-check-lines-track{display:flex;flex-direction:column;will-change:transform}
-      #studioApp .guest-check-line{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 72px;align-items:end;gap:8px;height:31px;min-height:31px;padding:0 4px 6px;overflow:hidden;border-bottom:1px solid rgba(92,142,178,.24);color:#3c332e;font:700 9px/1.05 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;white-space:nowrap}
-      #studioApp .guest-check-entry{min-width:0;overflow:hidden;text-overflow:ellipsis}
-      #studioApp .guest-check-date{align-self:stretch;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 0 1px 9px;border-left:2px solid rgba(216,95,109,.66);color:#7d667f;font:700 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;text-align:right}
-      #studioApp .guest-check-line.is-placeholder{display:flex;align-items:flex-end}
+      #studioApp .guest-check-line{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 62px 48px;align-items:stretch;height:28px;min-height:28px;padding:0;overflow:hidden;border-bottom:1px solid rgba(78,137,176,.42);color:#3c332e;font:700 9px/1.05 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;white-space:nowrap}
+      #studioApp .guest-check-entry{display:flex;align-items:center;min-width:0;padding:0 7px;overflow:hidden;text-overflow:ellipsis}
+      #studioApp .guest-check-date,#studioApp .guest-check-gift{display:flex;align-items:center;justify-content:center;min-width:0;padding:0 3px;border-left:2px solid rgba(126,73,145,.76);color:#714776;font:700 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;text-align:center}
+      #studioApp .guest-check-gift{font-size:13px}
       #studioApp .guest-check-line em{font-weight:500;color:#756861}
       #studioApp .guest-check-lines.is-filled .guest-check-lines-track{animation:biglwa-guest-lines-scroll 14s linear infinite}
       @keyframes biglwa-guest-lines-scroll{0%,8%{transform:translateY(0)}92%,100%{transform:translateY(-50%)}}
@@ -209,6 +211,18 @@
       #guestCheckDialog .guest-gift-picker input{position:absolute;opacity:0;pointer-events:none}
       #guestCheckDialog .guest-gift-picker span{display:grid;place-items:center;min-height:38px;border:1px solid rgba(73,59,52,.14);border-radius:10px;background:rgba(255,255,255,.58);font-size:20px;cursor:pointer}
       #guestCheckDialog .guest-gift-picker input:checked+span{border-color:rgb(var(--aura-rgb,216,95,109));box-shadow:0 0 0 2px rgba(var(--aura-rgb,216,95,109),.16)}
+      #guestCheckDialog .guest-check-entry-form{display:grid;gap:11px}
+      #guestCheckDialog .guest-check-form-row{display:grid;grid-template-columns:minmax(0,1fr) 78px 62px;border-top:2px solid rgba(78,137,176,.68);border-bottom:2px solid rgba(78,137,176,.68);background:#fffaf0;color:#2d2824}
+      #guestCheckDialog .guest-check-form-main{display:grid;grid-template-rows:1fr 1fr;min-width:0}
+      #guestCheckDialog .guest-check-form-row label,#guestCheckDialog .guest-check-form-date{display:grid;align-content:start;gap:3px;min-width:0;margin:0;padding:8px 10px;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+      #guestCheckDialog .guest-check-form-main label+label{border-top:1px solid rgba(78,137,176,.42)}
+      #guestCheckDialog .guest-check-form-date,#guestCheckDialog .guest-check-form-gift{border-left:2px solid rgba(126,73,145,.76);text-align:center}
+      #guestCheckDialog .guest-check-form-date{place-items:start center;color:#714776}
+      #guestCheckDialog .guest-check-form-date time{margin-top:10px;font-size:10px;letter-spacing:0}
+      #guestCheckDialog .guest-check-form-row input,#guestCheckDialog .guest-check-form-row select{min-width:0;width:100%;margin:0;padding:3px 0;border:0!important;border-radius:0!important;outline:0;background:transparent!important;color:#2d2824!important;font:700 13px/1.3 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;text-transform:none;letter-spacing:0;resize:none}
+      #guestCheckDialog .guest-check-form-row input:focus{box-shadow:inset 0 -2px 0 rgb(var(--aura-rgb,216,95,109))}
+      #guestCheckDialog .guest-check-form-row select{margin-top:7px;text-align:center;font-size:21px;cursor:pointer}
+      #guestCheckDialog .guest-check-entry-form .visitor-dialog-primary{justify-self:start}
       #studioLogsDialog .studio-log-list{display:grid;gap:8px;padding:15px 22px 22px}
       #studioLogsDialog .studio-log-item{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:start;padding:11px 12px;border:1px solid rgba(73,59,52,.12);border-radius:12px;background:rgba(255,255,255,.48)}
       #studioLogsDialog .studio-log-dot{width:9px;height:9px;margin-top:3px;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109))}
@@ -324,17 +338,10 @@
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:166px!important;right:24px!important;bottom:13px!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.music-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.guest-check-card{height:184px!important;min-height:184px!important;max-height:184px!important;overflow:hidden!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.music-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card{padding:14px 16px!important}
-      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet{min-height:184px!important;padding:28px 12px 8px!important}
-      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet-head{margin-bottom:3px!important;padding-bottom:3px!important}
-      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-intro{margin-bottom:4px!important}
-      #studioApp:not(.profile-editor-wallpaper) .guest-check-lines{height:62px!important;margin-bottom:4px!important}
-      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-count{margin-top:2px!important}
-      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-actions button{padding:5px 8px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet{min-height:184px!important;padding:34px 12px 8px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-lines{height:112px!important}
 
       /* Mood style changes preview directly on the existing card beneath the profile picture. */
-      #studioApp .weekly-mood-card[data-mood-style="diary"]{position:relative;border:1px solid #d9d3c8;border-left:1px solid #d9d3c8;border-radius:5px;background-color:#fffdf5;background-image:linear-gradient(90deg,transparent 0 12px,rgba(205,73,86,.42) 12px 13px,transparent 13px),repeating-linear-gradient(to bottom,transparent 0 15px,rgba(92,142,178,.24) 15px 16px);color:#2e2926}
-      #studioApp .weekly-mood-card[data-mood-style="widget"]{border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:var(--widget-radius,16px);background:var(--widget-bg,rgba(250,247,241,.84));color:var(--widget-ink,#171717);box-shadow:0 7px 18px rgba(var(--aura-rgb,216,95,109),.13)}
-      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]{position:relative;border:1px solid #dec665;border-radius:2px 2px 12px 2px;background:linear-gradient(145deg,#fff8b5 0,#f6df72 78%,#dfc455 100%);color:#372f28;box-shadow:2px 3px 0 rgba(72,56,36,.12);transform:rotate(-1deg)}
       #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]::after{content:"";position:absolute;right:0;bottom:0;width:15px;height:15px;background:linear-gradient(135deg,rgba(255,255,255,.1) 0 49%,#c6a944 50% 100%);clip-path:polygon(100% 0,100% 100%,0 100%)}
 
       /* Sidebar and account actions stay legible in both appearance modes. */
@@ -417,13 +424,14 @@
       card=document.createElement('section');
       card.id='guestCheckWidget';card.className='guest-check-card glass small-card customizable-widget';
       card.dataset.widgetId='guest-check';card.dataset.widgetLabel='Guest Check';card.dataset.widgetRoute='guest-check';
-      card.innerHTML='<div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
+    }
+    if(card.dataset.guestGridLayout!=='3'){
+      card.dataset.guestGridLayout='3';
+      card.innerHTML='<div class="guest-check-sheet" data-open-guest="check" role="button" tabindex="0" aria-label="Open Guest Check"><div class="guest-check-sheet-head" aria-hidden="true"><span>who wuz here? · note</span><span>date</span><span>emoji</span></div><div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div></div>';
     }
     $(':scope > .card-kicker',card)?.remove();
     $('[data-open-guest="direct"]',card)?.remove();
     $('.mailbox-mark',card)?.remove();
-    if(!$('.guest-check-lines',card)){$('.visitor-log-actions',card)?.insertAdjacentHTML('beforebegin','<div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div>')}
-    const guestDate=$('.guest-check-sheet-head time',card);if(guestDate)guestDate.textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
     syncGuestPermissions(card);
     updateGuestCount(card);
     return card;
@@ -567,15 +575,22 @@
   function renderGuestCheckWidgetLines(card=$('#guestCheckWidget')){
     if(!card)return;
     const viewport=$('.guest-check-lines',card),track=$('.guest-check-lines-track',card);if(!viewport||!track)return;
-    const entries=readGuestChecks().slice(-6).reverse(),scrolling=entries.length>2;
-    const sequence=entries.length?(scrolling?entries.concat(entries):entries):[{name:'',affirmation:'open for the next signature…',gift:'',placeholder:true}];
+    const entries=readGuestChecks().slice(-8).reverse(),scrolling=entries.length>4;
+    const visible=entries.length?entries.slice():[];
+    while(!scrolling&&visible.length<4)visible.push({placeholder:true});
+    const sequence=scrolling?entries.concat(entries):visible;
     track.replaceChildren(...sequence.map(entry=>{
       const line=document.createElement('div');line.className='guest-check-line'+(entry.placeholder?' is-placeholder':'');
-      if(entry.placeholder){line.textContent=entry.affirmation;return line}
-      const copy=document.createElement('span');copy.className='guest-check-entry';copy.append(document.createTextNode(`${entry.name||'Anonymous'} wuz here ${entry.gift||''}`.trim()));
-      if(entry.affirmation){const note=document.createElement('em');note.textContent=' · '+entry.affirmation;copy.appendChild(note)}
-      const date=document.createElement('time');date.className='guest-check-date';date.dateTime=new Date(entry.createdAt||Date.now()).toISOString();date.textContent=new Date(entry.createdAt||Date.now()).toLocaleDateString(undefined,{month:'short',day:'numeric'});
-      line.append(copy,date);
+      const copy=document.createElement('span');copy.className='guest-check-entry';
+      const date=document.createElement('time');date.className='guest-check-date';
+      const gift=document.createElement('span');gift.className='guest-check-gift';
+      if(!entry.placeholder){
+        copy.append(document.createTextNode(`${entry.name||'Anonymous'} wuz here`));
+        if(entry.affirmation){const note=document.createElement('em');note.textContent=' · '+entry.affirmation;copy.appendChild(note)}
+        date.dateTime=new Date(entry.createdAt||Date.now()).toISOString();date.textContent=new Date(entry.createdAt||Date.now()).toLocaleDateString(undefined,{month:'numeric',day:'numeric'});
+        gift.textContent=entry.gift||'';
+      }
+      line.append(copy,date,gift);
       return line;
     }));
     viewport.classList.toggle('is-filled',scrolling);
@@ -602,22 +617,24 @@
   function ensureGuestDialog(){
     let dialog=$('#guestCheckDialog');if(dialog)return dialog;
     const gifts=['💐','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','🩷','🩵','🩶','✌🏽','💸','😻'];
-    const giftOptions=gifts.map((gift,index)=>`<label><input type="radio" name="guestGift" value="${gift}" ${index===0?'checked':''}><span title="${gift}" aria-label="${gift}">${gift}</span></label>`).join('');
-    dialog=document.createElement('dialog');dialog.id='guestCheckDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Guest Check</h2><p>Leave a little proof that you passed through.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><p class="visitor-own-profile-state" id="visitorOwnProfileState" hidden>This is your profile. You can read Guest Check entries here, but only visitors can leave one.</p><form id="visitorPublicForm"><label>Name<input id="visitorNoteName" maxlength="60" autocomplete="name" placeholder="Your name"></label><label>Affirmation<textarea id="visitorNoteText" rows="3" maxlength="280" placeholder="Leave something kind…" required></textarea></label><div class="guest-gift-label">Add a gift</div><div class="guest-gift-picker" role="radiogroup" aria-label="Choose a Guest Check gift">'+giftOptions+'</div><button class="visitor-dialog-primary" type="submit">Say I wuz here</button><p class="visitor-form-note">Guest Check entries stay in this browser until public profiles and moderation are connected.</p><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section>';
+    const giftOptions=gifts.map(gift=>`<option value="${gift}">${gift}</option>`).join('');
+    const today=new Date().toLocaleDateString(undefined,{month:'numeric',day:'numeric'});
+    dialog=document.createElement('dialog');dialog.id='guestCheckDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Guest Check</h2></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><p class="visitor-own-profile-state" id="visitorOwnProfileState" hidden>Your Guest Check entries are below.</p><form id="visitorPublicForm" class="guest-check-entry-form"><div class="guest-check-form-row"><div class="guest-check-form-main"><label><span>who wuz here?</span><input id="visitorNoteName" maxlength="60" autocomplete="name" aria-label="Who wuz here?"></label><label><span>note</span><input id="visitorNoteText" maxlength="280" aria-label="Guest note" required></label></div><div class="guest-check-form-date"><span>date</span><time id="guestCheckToday">'+today+'</time></div><label class="guest-check-form-gift"><span>emoji</span><select id="guestGiftSelect" aria-label="Choose a gift emoji">'+giftOptions+'</select></label></div><button class="visitor-dialog-primary" type="submit">Add check-in</button><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section>';
     document.body.appendChild(dialog);
     const showTab=key=>{$$('[data-visitor-tab]',dialog).forEach(tab=>tab.setAttribute('aria-selected',tab.dataset.visitorTab===key?'true':'false'));$$('[data-visitor-pane]',dialog).forEach(pane=>pane.hidden=pane.dataset.visitorPane!==key)};
     dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-visitor-tab]');if(tab)showTab(tab.dataset.visitorTab);if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});
-    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncGuestPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot sign Guest Check on your own profile.';return}const affirmation=$('#visitorNoteText',dialog).value.trim();if(!affirmation)return;const gift=$('input[name="guestGift"]:checked',dialog)?.value||'💐',checks=readGuestChecks();checks.push({name:$('#visitorNoteName',dialog).value.trim(),affirmation,gift,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(GUEST_KEY,JSON.stringify(checks.slice(-50)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Your Guest Check is saved on this device.';renderGuestChecks();updateGuestCount()});
+    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncGuestPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot sign Guest Check on your own profile.';return}const affirmation=$('#visitorNoteText',dialog).value.trim();if(!affirmation)return;const gift=$('#guestGiftSelect',dialog)?.value||'💐',checks=readGuestChecks();checks.push({name:$('#visitorNoteName',dialog).value.trim(),affirmation,gift,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(GUEST_KEY,JSON.stringify(checks.slice(-50)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Saved.';renderGuestChecks();updateGuestCount()});
     dialog._showVisitorTab=showTab;syncGuestPermissions();showTab('public');renderGuestChecks();return dialog;
   }
 
   function openGuestDialog(){
-    const dialog=ensureGuestDialog();syncGuestPermissions();dialog._showVisitorTab?.('public');renderGuestChecks();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
+    const dialog=ensureGuestDialog(),today=$('#guestCheckToday',dialog);if(today)today.textContent=new Date().toLocaleDateString(undefined,{month:'numeric',day:'numeric'});syncGuestPermissions();dialog._showVisitorTab?.('public');renderGuestChecks();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
   }
 
   function bindGuestActions(){
     const app=$('#studioApp');if(!app||app.dataset.guestActions==='1')return;app.dataset.guestActions='1';
     app.addEventListener('click',event=>{const button=event.target.closest('[data-open-guest]');if(!button)return;event.preventDefault();openGuestDialog()});
+    app.addEventListener('keydown',event=>{const button=event.target.closest('[data-open-guest][role="button"]');if(!button||!['Enter',' '].includes(event.key))return;event.preventDefault();openGuestDialog()});
   }
 
   function readActivity(){try{const items=JSON.parse(localStorage.getItem(ACTIVITY_KEY)||'[]');return Array.isArray(items)?items:[]}catch{return[]}}
