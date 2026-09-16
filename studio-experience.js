@@ -161,10 +161,11 @@
       #studioApp #games .games-arcade-brand{position:relative;isolation:isolate;overflow:hidden;margin:-4px 8px 16px;padding:6px 24px 11px;border:5px solid #160e0c;border-radius:18px 18px 8px 8px;background:radial-gradient(circle at 50% 0,rgba(255,249,190,.7),transparent 58%),#f2c450;clip-path:polygon(5% 9%,19% 9%,24% 0,76% 0,81% 9%,95% 9%,100% 19%,100% 100%,0 100%,0 19%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
       #studioApp #games .games-arcade-brand::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) left 7px center/13px 18px repeat-y,radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) right 7px center/13px 18px repeat-y,repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(20,8,7,.11) 2px 3px);mix-blend-mode:normal}
       #studioApp #games .games-arcade-brand::after{content:"";position:absolute;inset:-35%;z-index:4;pointer-events:none;background:repeating-radial-gradient(circle at 25% 30%,rgba(255,255,255,.34) 0 1px,transparent 1px 4px),repeating-radial-gradient(circle at 75% 65%,rgba(47,9,18,.28) 0 1px,transparent 1px 5px);opacity:.16;animation:biglwa-arcade-static .42s steps(2,end) infinite}
-      #studioApp #games .games-arcade-brand img{position:relative;z-index:2}
+      #studioApp #games .games-arcade-brand img{position:relative;z-index:2;display:block;object-fit:contain;object-position:center}
       #studioApp #games .games-arcade-brand img:first-child{height:70px!important;margin:-12px auto -17px!important}
-      #studioApp #games .games-arcade-brand img:last-child{width:min(90%,236px)!important;margin:-5px auto 0!important;mix-blend-mode:multiply!important}
-      #studioApp #games .arcade-library-viewport{height:230px!important;padding:10px!important;border:10px solid #171313!important;border-radius:12px!important;background:#070909!important;clip-path:polygon(2% 0,98% 0,100% 100%,0 100%);box-shadow:inset 0 0 22px rgba(76,219,231,.16),0 6px 0 #0d0908!important;-webkit-mask-image:none!important;mask-image:none!important}
+      #studioApp #games .games-arcade-brand img:last-child{width:min(90%,236px)!important;height:auto!important;margin:-5px auto 0!important;mix-blend-mode:normal!important}
+      #studioApp #games .arcade-library-viewport{isolation:isolate;height:230px!important;padding:10px!important;border:12px solid #171313!important;border-radius:13px!important;background:#030606!important;clip-path:none!important;outline:5px solid rgba(46,20,16,.72);outline-offset:0;box-shadow:inset 0 22px 27px rgba(0,0,0,.82),inset 18px 0 24px rgba(0,0,0,.7),inset -18px 0 24px rgba(0,0,0,.7),inset 0 -16px 22px rgba(0,0,0,.62),0 8px 0 #0d0908,0 15px 22px rgba(0,0,0,.3)!important;-webkit-mask-image:none!important;mask-image:none!important}
+      #studioApp #games .arcade-library-viewport::after{content:"";position:absolute;inset:0;z-index:8;border-radius:2px;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.62),transparent 13%,transparent 86%,rgba(0,0,0,.52)),linear-gradient(to right,rgba(0,0,0,.5),transparent 10%,transparent 90%,rgba(0,0,0,.5));box-shadow:inset 0 0 26px 10px rgba(0,0,0,.44),inset 0 0 3px 1px rgba(102,225,229,.18)}
       #studioApp #games .games-library::before{content:none}
       #studioApp #games .games-library::after{content:none}
       #studioApp #games .arcade-control-deck{position:absolute;left:20px;right:20px;bottom:14px;z-index:4;display:flex;align-items:end;justify-content:center;gap:21px;height:66px;background:transparent;overflow:visible}
@@ -741,7 +742,7 @@
   function ensureArcadeCabinet(){
     const cabinet=$('#studioApp #games .games-library');if(!cabinet)return;
     const brand=$('.games-arcade-brand',cabinet),logos=brand?$$('img',brand):[];
-    if(logos[1]){logos[1].src='/assets/arcade-wordmark.png?v=20260916-arcade-mask-1';logos[1].alt='ARCADE'}
+    if(logos[1]){logos[1].src='/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15';logos[1].alt='ARCADE'}
     let controls=$('.arcade-control-deck',cabinet);
     if(!controls){
       controls=document.createElement('div');controls.className='arcade-control-deck';controls.setAttribute('aria-hidden','true');
