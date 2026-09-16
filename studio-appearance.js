@@ -334,6 +334,8 @@
     syncEditorState();
   }
 
+  window.BIGLWAStudioAppearance={save(){applyAppearance(true);applyWallpaperSettings(true);return true}};
+
   function run(){ensureStyles();ensureWidgetConnection();ensureWallpaperEditor();removeWallpaperAuraControl();bindEditorState()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});

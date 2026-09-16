@@ -1,7 +1,7 @@
 ﻿(()=>{
   const V='20260910-widget-drag-reset-v3';
   const DOCKED_WIDGET_KEY='biglwaDockedWidgetsV2';
-  const NAV_SHORTCUT_KEY='biglwaSidebarShortcutsV2';
+  const NAV_SHORTCUT_KEY='biglwaSidebarShortcutsV3';
   const SHORTCUT_LIMIT=8;
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -114,8 +114,7 @@
       #studioApp .profile-editor-grid label.full{grid-column:1/-1}
       #studioApp .profile-editor-grid input,#studioApp .profile-editor-grid textarea{display:block;width:100%;margin-top:4px;padding:9px;border:1px solid rgba(80,70,64,.22);border-radius:8px;background:rgba(255,255,255,.72);color:inherit;font:inherit}
       #studioApp .profile-editor-grid textarea{resize:vertical}
-      #studioApp #wallpaperPanel:not(.panel-hidden){display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:1000!important}
-      #studioApp #wallpaperPanel{position:fixed!important;right:24px!important;top:92px!important;max-height:calc(100vh - 116px)!important;overflow:auto!important}
+      #studioApp #wallpaperPanel.wallpaper-panel{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
       #studioApp #editProfileBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;visibility:visible!important;opacity:1!important;min-width:146px!important}
       #studioApp .sidebar-theme-controls{display:grid!important;grid-template-columns:repeat(2,36px)!important}
       #studioApp .sidebar-theme-btn{display:grid!important;visibility:visible!important;opacity:1!important}
@@ -149,6 +148,7 @@
       #studioApp .sidebar-top{overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
       #studioApp .sidebar-section{--sidebar-section-rgb:216,95,109;position:relative;display:flex;flex-direction:column;gap:5px;margin:0 0 8px;padding:8px 5px 8px 8px;border-left:2px solid rgba(var(--sidebar-section-rgb),.66);background:linear-gradient(90deg,rgba(var(--sidebar-section-rgb),.09),rgba(var(--sidebar-section-rgb),.015) 78%,transparent);border-radius:3px 9px 9px 3px}
       #studioApp .sidebar-primary-widgets{--sidebar-section-rgb:80,148,101}
+      #studioApp .sidebar-primary-widgets[hidden]{display:none!important}
       #studioApp .sidebar-shortcuts{--sidebar-section-rgb:220,169,61}
       #studioApp .sidebar-rest-tools{--sidebar-section-rgb:216,95,109}
       #studioApp .sidebar-section nav{display:flex!important;flex-direction:column;gap:4px}
@@ -165,6 +165,7 @@
       #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.22)}
       #studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{content:"";position:absolute;right:7px;top:50%;width:9px;height:9px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 42% 40%,rgba(255,255,255,.94) 0 11%,rgb(var(--aura-rgb,216,95,109)) 36%,rgba(var(--aura-rgb,216,95,109),.18) 72%,transparent 74%);box-shadow:0 0 9px rgba(var(--aura-rgb,216,95,109),.72);animation:biglwa-sidebar-aura 3.8s ease-in-out infinite}
       #studioApp .sidebar-shortcuts .minimized-label{display:none!important}
+      #studioApp .minimized-label{display:none!important}
       #studioApp #minimizedWidgets{display:block!important;margin:0;padding:0;border:0;background:none}
       #minimizedWidgetDock,#studioSidebarShortcutDock{display:flex;flex-direction:column;align-items:stretch;gap:4px;width:100%;margin:0}
       #studioApp .sidebar-widget-restore-row,#studioApp .sidebar-navigation-row{position:relative;display:block;border-radius:8px}
@@ -176,6 +177,8 @@
       #studioApp .sidebar-route-control.is-docked::before{content:"↩";position:absolute;right:7px;top:50%;transform:translateY(-50%);font:700 10px/1 Inter,system-ui,sans-serif;color:rgb(var(--sidebar-section-rgb))}
       #studioApp .hero-action-bar{grid-template-columns:repeat(var(--studio-action-count,9),minmax(70px,1fr))!important}
       #studioApp .sidebar-shortcut-status{min-height:0;margin:0;padding:0 4px;color:#8b6b25;font:650 8px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;transition:opacity .18s ease}
+      #studioApp .sidebar-shortcut-save{display:flex;align-items:center;justify-content:center;width:100%;min-height:30px;margin:3px 0 0;padding:7px 8px;border:1px solid rgba(157,116,26,.24);border-radius:8px;background:rgba(255,255,255,.42);color:inherit;font:700 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+      #studioApp .sidebar-shortcut-save:hover{background:rgba(255,255,255,.68)}
       @keyframes biglwa-sidebar-aura{0%,100%{transform:translateY(-50%) scale(.88) translateX(0)}35%{transform:translateY(-56%) scale(1.08) translateX(-1px)}68%{transform:translateY(-45%) scale(.96) translateX(1px)}}
       body.night-mode #studioApp .sidebar-section{background:linear-gradient(90deg,rgba(var(--sidebar-section-rgb),.12),rgba(var(--sidebar-section-rgb),.025) 78%,transparent)}
       body.night-mode #studioApp .sidebar-route-control:hover,body.night-mode #studioApp .sidebar-shortcut-open:hover,body.night-mode #studioApp .sidebar-navigation-open:hover,body.night-mode #studioApp .sidebar-shortcut-remove:hover{background:rgba(255,255,255,.08)}
@@ -183,6 +186,8 @@
       body.sidebar-collapsed #studioApp .sidebar-section{padding:7px 3px;border-left-width:2px}
       body.sidebar-collapsed #studioApp .sidebar-route-control,body.sidebar-collapsed #studioApp .sidebar-shortcut-open,body.sidebar-collapsed #studioApp .sidebar-navigation-open{justify-content:center;width:36px;height:36px;min-height:36px;padding:0;margin:auto;font-size:0}
       body.sidebar-collapsed #studioApp .sidebar-route-control b,body.sidebar-collapsed #studioApp .sidebar-shortcut-open b,body.sidebar-collapsed #studioApp .sidebar-navigation-open b,body.sidebar-collapsed #studioApp .sidebar-shortcut-remove,body.sidebar-collapsed #studioApp .sidebar-shortcut-status{display:none!important}
+      body.sidebar-collapsed #studioApp .sidebar-shortcut-save{width:36px;min-height:32px;margin:3px auto;padding:0;font-size:0}
+      body.sidebar-collapsed #studioApp .sidebar-shortcut-save::before{content:"✓";font-size:14px}
       body.sidebar-collapsed #studioApp .sidebar-shortcut-row{display:block}
       body.sidebar-collapsed #studioApp .sidebar-route-control.is-current::after,body.sidebar-collapsed #studioApp .sidebar-shortcut-open.is-current::after,body.sidebar-collapsed #studioApp .sidebar-navigation-open.is-current::after{right:2px;top:5px;width:7px;height:7px}
       @media(prefers-reduced-motion:reduce){#studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{animation:none}}
@@ -213,6 +218,9 @@
       #studioApp .widget-is-expanded>.widget-window-controls{position:sticky!important;top:0!important;right:0!important;left:auto!important;margin:0 0 10px auto!important;width:max-content!important}
       /* Profile editing stays inside the profile card instead of opening a floating panel. */
       #studioApp .profile-card .profile-identity-rail #editProfileBtn{position:static!important;inset:auto!important;width:100%!important;min-width:0!important;max-width:100px!important;margin:0!important;padding:7px 8px!important;border-radius:999px!important;font-size:9px!important;line-height:1.1!important;white-space:nowrap!important}
+      #studioApp .profile-card .profile-identity-rail>.profile-avatar{order:1!important}
+      #studioApp .profile-card .profile-identity-rail>#editProfileBtn{order:2!important;margin-top:0!important}
+      #studioApp .profile-card .profile-identity-rail>.profile-rail-location{order:3!important;margin-top:0!important}
       #studioApp .profile-card.profile-is-editing{min-height:420px!important}
       #studioApp .profile-card.profile-is-editing .profile-identity-rail{justify-content:flex-start!important}
       #studioApp .profile-card.profile-is-editing .profile-copy{display:none!important}
@@ -238,7 +246,7 @@
       body.night-mode #studioApp .profile-editor-tabs button{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16)}
       body.night-mode #studioApp #wallpaperPanel .profile-editor-grid input,body.night-mode #studioApp #wallpaperPanel .profile-editor-grid textarea,body.night-mode #studioApp #wallpaperPanel select{background:#302c2a!important;border-color:#514a45!important;color:#f3eee8!important}
       @media(max-width:900px){#studioApp .profile-card.profile-is-editing{min-height:460px!important}#studioApp .profile-card #wallpaperPanel{max-height:430px!important;padding-left:16px!important;padding-right:16px!important}#studioApp .profile-card #wallpaperPanel .panel-title{margin-left:-16px!important;margin-right:-16px!important;padding-left:16px!important;padding-right:16px!important}#studioApp .profile-editor-actions{margin-left:-16px!important;margin-right:-16px!important;padding-left:16px!important;padding-right:16px!important}}
-      @media(max-width:620px){#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:610px!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:grid!important;grid-template-columns:64px minmax(90px,120px) 1fr!important;align-items:center!important;justify-items:start!important;gap:10px!important;padding:12px 14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.13)!important}#studioApp .profile-card.profile-is-editing .profile-avatar{width:58px!important;height:58px!important}#studioApp .profile-card.profile-is-editing .profile-rail-location{text-align:left!important}#studioApp .profile-card #wallpaperPanel{grid-column:1!important;grid-row:2!important;max-height:510px!important}.profile-editor-grid{grid-template-columns:1fr!important}.profile-editor-grid label.full{grid-column:1!important}}
+      @media(max-width:620px){#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:610px!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:12px 14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.13)!important}#studioApp .profile-card.profile-is-editing .profile-avatar{width:58px!important;height:58px!important}#studioApp .profile-card.profile-is-editing .profile-rail-location{text-align:center!important}#studioApp .profile-card #wallpaperPanel{grid-column:1!important;grid-row:2!important;max-height:510px!important}.profile-editor-grid{grid-template-columns:1fr!important}.profile-editor-grid label.full{grid-column:1!important}}
       /* Restored bio banner: wide profile identity surface, separate from editor mode. */
       #studioApp:not(.profile-editor-wallpaper) .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto!important;gap:16px!important}
       #studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){position:relative!important;grid-column:1!important;grid-row:1!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;height:348px!important;min-height:348px!important;max-height:348px!important;display:grid!important;grid-template-columns:174px minmax(0,1fr)!important;gap:22px!important;padding:14px!important;box-sizing:border-box!important}
@@ -313,21 +321,23 @@
 
     let primary=$('#studioSidebarPrimary',top);
     if(!primary){
-      primary=document.createElement('section');primary.id='studioSidebarPrimary';primary.className='sidebar-section sidebar-primary-widgets';primary.setAttribute('aria-label','Pinned widgets');
-      primary.innerHTML='<button class="sidebar-route-control" type="button" data-sidebar-widget="guest-check"><span class="sidebar-route-icon" aria-hidden="true">✓</span><b>Guest Check</b></button><button class="sidebar-route-control" type="button" data-sidebar-widget="aura"><span class="sidebar-route-icon" aria-hidden="true">◌</span><b>Aura</b></button><button class="sidebar-route-control" type="button" data-sidebar-widget="music"><span class="sidebar-route-icon" aria-hidden="true">♫</span><b>Music</b></button>';
+      primary=document.createElement('section');primary.id='studioSidebarPrimary';primary.className='sidebar-section sidebar-primary-widgets';primary.setAttribute('aria-label','Widgets moved out of the Studio');
       toggle.insertAdjacentElement('afterend',primary);
     }
+    $$('[data-sidebar-widget]',primary).forEach(control=>control.remove());
     let widgetDockSection=$('#minimizedWidgets',top);
     if(!widgetDockSection){widgetDockSection=document.createElement('div');widgetDockSection.id='minimizedWidgets';widgetDockSection.className='minimized-widgets';widgetDockSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div><div class="minimized-widget-dock" id="minimizedWidgetDock"></div>'}
     widgetDockSection.hidden=false;widgetDockSection.classList.remove('sidebar-section','sidebar-shortcuts');widgetDockSection.setAttribute('aria-label','Widgets moved out of the Studio');
     if(widgetDockSection.parentElement!==primary)primary.appendChild(widgetDockSection);
     let shortcuts=$('#studioSidebarShortcuts',top);
-    if(!shortcuts){shortcuts=document.createElement('section');shortcuts.id='studioSidebarShortcuts';shortcuts.className='sidebar-section sidebar-shortcuts';shortcuts.setAttribute('aria-label','Shortcut bar, maximum eight');shortcuts.innerHTML='<nav id="studioSidebarShortcutDock" aria-label="Shortcut bar destinations"></nav><p class="sidebar-shortcut-status" role="status" aria-live="polite"></p>'}
+    if(!shortcuts){shortcuts=document.createElement('section');shortcuts.id='studioSidebarShortcuts';shortcuts.className='sidebar-section sidebar-shortcuts';shortcuts.setAttribute('aria-label','Shortcut bar, maximum eight');shortcuts.innerHTML='<nav id="studioSidebarShortcutDock" aria-label="Shortcut bar destinations"></nav><p class="sidebar-shortcut-status" role="status" aria-live="polite"></p><button class="sidebar-shortcut-save" id="saveSidebarShortcuts" type="button">Save shortcuts</button>'}
+    if(!$('#saveSidebarShortcuts',shortcuts)){const save=document.createElement('button');save.id='saveSidebarShortcuts';save.className='sidebar-shortcut-save';save.type='button';save.textContent='Save shortcuts';shortcuts.appendChild(save)}
     if(shortcuts.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',shortcuts);
     let rest=$('#studioSidebarRest',top);
     if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';rest.setAttribute('aria-label','More tools');top.appendChild(rest)}
     const nav=$(':scope > nav',top)||$('nav[aria-label="Collections and community"]',top);
     if(nav&&nav.id!=='studioSidebarShortcutDock'&&nav.parentElement!==rest)rest.appendChild(nav);
+    primary.hidden=!$('[data-shortcut-row]',widgetDockSection);
   }
 
   const navigationCatalog=new Map();
@@ -376,7 +386,8 @@
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
     $$('.nav-item,[data-sidebar-route]',rest).forEach((link,index)=>rememberNavigation(link,100+index));
-    if(!initialNavigationShortcuts)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
+    if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
+    if(!initialNavigationShortcuts?.length)return;
     let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
     let hasSavedShortcuts=false;try{hasSavedShortcuts=localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
     if(!hasSavedShortcuts&&!shortcuts.length)shortcuts=initialNavigationShortcuts.filter(key=>navigationCatalog.has(key));
@@ -390,6 +401,8 @@
     const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
     const split=Math.ceil(links.length/2);bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));bar.style.setProperty('--studio-action-count',String(links.length+1));
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
+    const saveShortcutButton=$('#saveSidebarShortcuts',app);
+    if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
     if(top.dataset.sidebarShortcutDragBound!=='1'){
       top.dataset.sidebarShortcutDragBound='1';
       top.addEventListener('dragstart',event=>{const row=event.target.closest('[data-sidebar-route-row]');if(!row)return;draggedNavigationKey=row.dataset.sidebarRouteRow;row.classList.add('is-dragging');event.dataTransfer?.setData('text/plain',draggedNavigationKey);if(event.dataTransfer)event.dataTransfer.effectAllowed='move'});
@@ -417,10 +430,10 @@
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
     const text=document.createElement('b');text.textContent=label;restore.append(mark,text);row.append(restore);return row;
   }
-  function fixedPrimaryWidget(id){return ['guest-check','aura','music'].includes(String(id||''))}
   function syncPrimaryWidgetDock(app){
     if(!app)return;
-    $$('[data-sidebar-widget]',app).forEach(control=>{const widget=$('[data-widget-id="'+CSS.escape(control.dataset.sidebarWidget)+'"]',app),docked=!!widget?.classList.contains('widget-is-minimized');control.classList.toggle('is-docked',docked);control.setAttribute('aria-label',docked?'Return '+(widget.dataset.widgetLabel||control.dataset.sidebarWidget)+' to the Studio':'Open '+control.dataset.sidebarWidget.replace(/-/g,' '))});
+    const primary=$('#studioSidebarPrimary',app),dock=$('#minimizedWidgetDock',primary||app);if(!primary||!dock)return;
+    primary.hidden=!$('[data-shortcut-row]',dock);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
@@ -455,7 +468,7 @@
       controls.className='widget-window-controls';controls.dataset.canonicalControls='1';controls.setAttribute('aria-label',`${label} window controls`);
       const green=greenControlAction(route,id);
       controls.innerHTML=`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${id}" aria-label="Minimize ${label}" title="Minimize ${label}"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to left toolbar" title="Move to left toolbar"></button>`;
-      $('.arrow-btn',el).forEach(b=>b.style.display='none');
+      $$('.arrow-btn',el).forEach(b=>b.style.display='none');
       let handle=$('[data-studio-drag-handle]',el);
       if(!handle){
         handle=document.createElement('button');handle.type='button';handle.className='widget-drag-handle';handle.dataset.studioDragHandle='1';handle.setAttribute('aria-label','Move '+label);handle.title='Drag to reorder';handle.innerHTML='<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg>';
@@ -480,7 +493,6 @@
     const addRestore=(app,widget)=>{
       const id=widget.dataset.widgetId;if(!id)return;
       const {section,dock}=ensureDock(app);
-      if(fixedPrimaryWidget(id)){syncPrimaryWidgetDock(app);return true}
       if($('[data-shortcut-row="'+CSS.escape(id)+'"]',dock))return true;
       dock.appendChild(shortcutButtonMarkup(widget));syncDock(dock,section);saveMinimized(app);return true;
     };
@@ -563,7 +575,6 @@
     const saveMinimized=()=>writeWidgetShortcuts($$(selector,app).filter(widget=>widget.classList.contains('widget-is-minimized')).map(widget=>widget.dataset.widgetId).filter(Boolean));
     const addRestore=widget=>{
       const id=widget.dataset.widgetId;if(!id||$('[data-shortcut-row="'+CSS.escape(id)+'"]',dock))return true;
-      if(fixedPrimaryWidget(id)){syncPrimaryWidgetDock(app);return true}
       dock.appendChild(shortcutButtonMarkup(widget));syncDock();saveMinimized();return true;
     };
     widgets.forEach((widget,index)=>{
@@ -706,9 +717,10 @@
     if(!rail){
       rail=document.createElement('div');rail.className='profile-identity-rail';
       const avatar=$('.profile-avatar',card);if(avatar)rail.appendChild(avatar);
-      const railLocation=document.createElement('div');railLocation.className='profile-rail-location';railLocation.textContent=meta&&$('span',meta)?$('span',meta).textContent.replace(/^⌖\s*/,''):'';
-      rail.appendChild(railLocation);card.prepend(rail);
+      card.prepend(rail);
     }
+    let railLocation=$('.profile-rail-location',rail);
+    if(!railLocation){railLocation=document.createElement('div');railLocation.className='profile-rail-location';railLocation.textContent=meta&&$('span',meta)?$('span',meta).textContent.replace(/^⌖\s*/,''):'';rail.appendChild(railLocation)}
     const stats=$('.stats',card);
     if(stats&&!$('[data-profile-stat="projects"]',stats)){
       const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>24</b> Projects';
@@ -776,12 +788,12 @@
       const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='3';button.type='button';button.textContent='Edit profile';
       button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(card.classList.contains('profile-is-editing'))endEdit();else startEdit()});
     }
-    if(button){button.hidden=false;button.style.pointerEvents='auto';button.setAttribute('aria-controls','wallpaperPanel');const railLocation=$('.profile-rail-location',rail);if(button.parentNode!==rail)rail.insertBefore(button,railLocation||null)}
+    if(button){button.hidden=false;button.style.pointerEvents='auto';button.setAttribute('aria-controls','wallpaperPanel');rail.insertBefore(button,railLocation||null)}
     const saveButton=$('#saveProfileBtn',panel);
     if(saveButton&&saveButton.dataset.biglwaProfileBound!=='3'){
       saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',()=>{
         const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim()};
-        localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));
+        localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));window.BIGLWAStudioAppearance?.save?.();
         if(display)display.textContent=details.name||'Your Name';if(handle)handle.textContent='@'+(details.username||'username');if(bio)bio.textContent=details.bio;
         if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
         window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
@@ -845,11 +857,13 @@
   function ensureProfileInitial(){
     const card=$('#studioApp .profile-card');if(!card)return;
     const avatar=$('.profile-avatar',card);if(!avatar||avatar.querySelector('img'))return;
+    const existing=avatar.textContent.trim();
+    if(existing){avatar.dataset.profileInitial=existing.charAt(0).toUpperCase();avatar.dataset.profilePictureLocked='1';return}
     let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
     const candidates=[saved?.username,window.__biglwaProfileUsername,$('.profile-name-line h1',card)?.textContent,$('.mini-avatar')?.textContent,$('#loginUsername')?.value];
     const username=candidates.map(value=>String(value||'').trim().replace(/^@/,'')).find(value=>value&&value!=='LS')||'B';
     const initial=username.charAt(0).toUpperCase();
-    avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
+    avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.dataset.profilePictureLocked='1';avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
   }
 
   function syncRealProfileMetrics(){
@@ -936,7 +950,7 @@
     }
   }
 
-  function run(){ensureStyles();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileEditor();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
