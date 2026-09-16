@@ -343,8 +343,7 @@
       #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-count{margin-top:2px!important}
       #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-actions button{padding:5px 8px!important}
 
-      /* The editor preview uses the same three treatments as the saved mood card. */
-      #studioApp .profile-mood-preview{position:relative;box-sizing:border-box;width:min(240px,100%);min-height:84px;margin:12px 0 2px;padding:14px 16px;overflow:hidden;color:#2e2926;text-align:left}
+      /* Mood style changes preview directly on the existing card beneath the profile picture. */
       #studioApp .weekly-mood-card[data-mood-style="diary"]{position:relative;border:1px solid #d9d3c8;border-left:1px solid #d9d3c8;border-radius:5px;background-color:#fffdf5;background-image:linear-gradient(90deg,transparent 0 12px,rgba(205,73,86,.42) 12px 13px,transparent 13px),repeating-linear-gradient(to bottom,transparent 0 15px,rgba(92,142,178,.24) 15px 16px);color:#2e2926}
       #studioApp .weekly-mood-card[data-mood-style="widget"]{border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:var(--widget-radius,16px);background:var(--widget-bg,rgba(250,247,241,.84));color:var(--widget-ink,#171717);box-shadow:0 7px 18px rgba(var(--aura-rgb,216,95,109),.13)}
       #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]{position:relative;border:1px solid #dec665;border-radius:2px 2px 12px 2px;background:linear-gradient(145deg,#fff8b5 0,#f6df72 78%,#dfc455 100%);color:#372f28;box-shadow:2px 3px 0 rgba(72,56,36,.12);transform:rotate(-1deg)}
