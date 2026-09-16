@@ -138,10 +138,10 @@
     @media(max-width:850px){.module-game-source-grid{grid-template-columns:1fr}}
     @media(max-width:560px){.culture-quiz-options{grid-template-columns:1fr}.culture-quiz-head{align-items:start}}
     
-    /* Give the workspace a deliberate bottom edge that blends into the page wallpaper. */
-    .module-workspace{border-radius:0 0 30px 30px;padding-bottom:152px;background:linear-gradient(180deg,rgba(246,240,233,.94) 0%,rgba(239,231,223,.96) calc(100% - 152px),rgba(239,231,223,.78) calc(100% - 92px),rgba(239,231,223,.35) calc(100% - 34px),rgba(239,231,223,0) 100%)}
-    .module-workspace:after{content:"";display:block;width:min(100%,1160px);height:1px;margin:30px auto 0;background:linear-gradient(90deg,transparent,rgba(117,92,79,.22) 12%,rgba(117,92,79,.22) 88%,transparent)}
-    body.night-mode .module-workspace{background:linear-gradient(180deg,rgba(31,29,28,.97) 0%,rgba(25,23,22,.96) calc(100% - 152px),rgba(25,23,22,.72) calc(100% - 92px),rgba(25,23,22,.32) calc(100% - 34px),rgba(25,23,22,0) 100%)}
+    /* Let widget pages dissolve close to the wallpaper edge without a rounded panel ending. */
+    .module-workspace{border-radius:0;padding-bottom:118px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:linear-gradient(180deg,rgba(246,240,233,.94) 0%,rgba(239,231,223,.96) calc(100% - 104px),rgba(239,231,223,.88) calc(100% - 72px),rgba(239,231,223,.58) calc(100% - 38px),rgba(239,231,223,.18) calc(100% - 10px),rgba(239,231,223,0) 100%)}
+    .module-workspace:after{content:"";display:block;width:min(100%,1160px);height:1px;margin:24px auto 0;background:linear-gradient(90deg,transparent,rgba(117,92,79,.16) 7%,rgba(117,92,79,.16) 93%,transparent)}
+    body.night-mode .module-workspace{background:linear-gradient(180deg,rgba(31,29,28,.97) 0%,rgba(25,23,22,.96) calc(100% - 104px),rgba(25,23,22,.86) calc(100% - 72px),rgba(25,23,22,.56) calc(100% - 38px),rgba(25,23,22,.17) calc(100% - 10px),rgba(25,23,22,0) 100%)}
     body.night-mode .module-workspace:after{background:linear-gradient(90deg,transparent,rgba(224,210,199,.17) 12%,rgba(224,210,199,.17) 88%,transparent)}
   `;
   document.head.appendChild(style);
@@ -502,7 +502,7 @@
   window.openBIGLWAModule=openModule;
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
 
-  function closeModule(push=true){stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';if(push){try{history.pushState({},'', '/studio')}catch{}}}
+  function closeModule(push=true){stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
   workspace.addEventListener('change',event=>{
     const control=event.target.closest('[data-silent-update]');if(!control)return;
@@ -528,7 +528,7 @@
   }
   setTimeout(()=>{enhanceStudioCards();syncTrophyCard()},80);
 
-  document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!mobile&&!trigger)return;let key=mobile?'create':trigger.dataset.open;const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key)return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
+  document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const directory=e.target.closest('.hero-action-bar a[href^="#"]');const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!directory&&!mobile&&!trigger)return;let key=mobile?'create':directory?(directory.getAttribute('href')||'').replace(/^#/,''):trigger.dataset.open;if(key==='home'){e.preventDefault();e.stopImmediatePropagation();closeModule();window.scrollTo({top:0,behavior:'smooth'});return}if(key==='desk')key='create';const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key||!known.has(String(key).toLowerCase()))return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
   window.addEventListener('popstate',()=>{const v=new URLSearchParams(location.search).get('view');if(v)openModule(v,'',false);else closeModule(false)});
   const initialView=new URLSearchParams(location.search).get('view');if(initialView)setTimeout(()=>openModule(initialView,'',false),80);
 })();
