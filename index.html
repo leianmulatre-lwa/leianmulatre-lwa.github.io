@@ -65,6 +65,7 @@
     html=html.replaceAll('<span>Camera</span>','<span>Photobooth</span>');
     html=html.replace(/(<article\b[^>]*\bid="camera"[^>]*>)([\s\S]*?)(<\/article>)/,(_,start,contents,end)=>start+contents.replace('<h2>Camera</h2>','<h2>Photobooth</h2>').replace('Open Camera Roll →','Open Photobooth →')+end);
     html=html.replace("camera:['Camera',","camera:['Photobooth',");
+    html=html.replace(/,\\n\s*orbit:/,",\n  orbit:");
     html=html.replace('</body>',scripts+finalTopbar+'</body>');
     return html;
   };
