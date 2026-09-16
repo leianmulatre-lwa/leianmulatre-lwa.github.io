@@ -101,6 +101,40 @@
     @media(max-width:850px){.module-game-viewport{height:290px}.module-game-form{grid-template-columns:1fr}}
     @media(max-width:560px){.module-game-viewport{grid-template-columns:repeat(2,minmax(0,1fr));height:310px}.module-game-track:nth-child(3){display:none}.module-game-stage-head{align-items:start;flex-direction:column;gap:6px}}
 
+    .module-game-action{width:100%;padding:0;appearance:none;font:inherit;text-align:left;cursor:pointer}
+    .module-game-action:focus-visible{outline:3px solid rgba(var(--aura-rgb,216,95,109),.75);outline-offset:3px}
+    .module-culture-quiz[hidden]{display:none!important}
+    .culture-quiz-head{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .culture-quiz-progress{font:700 9px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:#8b8179}
+    .culture-quiz-question{max-width:760px;margin:13px 0 18px;font:500 clamp(22px,3vw,34px)/1.12 Georgia,serif}
+    .culture-quiz-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .culture-quiz-options button{min-height:48px;border:1px solid #d9d0c7;background:rgba(255,255,255,.7);border-radius:12px;padding:11px 13px;text-align:left;font:600 11px/1.35 system-ui;color:inherit;cursor:pointer}
+    .culture-quiz-options button:hover:not(:disabled){border-color:rgba(var(--aura-rgb,216,95,109),.6);transform:translateY(-1px)}
+    .culture-quiz-options button.correct{background:#edf6ee;border-color:#7ea787}
+    .culture-quiz-options button.wrong{background:#f8eaea;border-color:#b98080}
+    .culture-quiz-options button:disabled{cursor:default}
+    .culture-quiz-feedback{min-height:24px;margin-top:14px;font-size:11px;line-height:1.6;color:#6e655f}
+    .culture-quiz-source{display:block;margin-top:6px;font-size:9px}
+    .culture-quiz-source a{color:inherit;text-underline-offset:3px}
+    .culture-quiz-feedback .module-action{display:block;margin-top:12px}
+    .culture-quiz-result{padding:18px 0 8px}
+    .culture-quiz-result>p:last-of-type{color:#766c66;font-size:12px}
+    .culture-quiz-score{margin:14px 0 4px;font:500 clamp(44px,8vw,70px)/1 Georgia,serif}
+    .module-game-form{grid-template-columns:1fr;align-items:stretch}
+    .module-game-source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .module-game-source-grid label{min-width:0}
+    .module-game-source-grid label>small{display:block;margin-top:5px;color:#8b8179;font-size:9px}
+    .module-file-input{font-size:10px}
+    .module-game-submit-row{align-items:center}
+    .module-game-image-preview{width:72px;height:52px;flex:0 0 auto}
+    .night-mode .culture-quiz-options button{border-color:#514a45;background:#302c2a;color:#f4eee8}
+    .night-mode .culture-quiz-options button.correct{background:#294335;border-color:#648e6e}
+    .night-mode .culture-quiz-options button.wrong{background:#4a3030;border-color:#a66c6c}
+    .night-mode .culture-quiz-feedback,.night-mode .culture-quiz-result>p:last-of-type{color:#c3b8b0}
+    .night-mode .culture-quiz-progress,.night-mode .module-game-source-grid label>small{color:#b6aaa2}
+    @media(max-width:850px){.module-game-source-grid{grid-template-columns:1fr}}
+    @media(max-width:560px){.culture-quiz-options{grid-template-columns:1fr}.culture-quiz-head{align-items:start}}
+    
     /* Give the workspace a deliberate bottom edge that blends into the page wallpaper. */
     .module-workspace{border-radius:0 0 30px 30px;padding-bottom:152px;background:linear-gradient(180deg,rgba(246,240,233,.94) 0%,rgba(239,231,223,.96) calc(100% - 152px),rgba(239,231,223,.78) calc(100% - 92px),rgba(239,231,223,.35) calc(100% - 34px),rgba(239,231,223,0) 100%)}
     .module-workspace:after{content:"";display:block;width:min(100%,1160px);height:1px;margin:30px auto 0;background:linear-gradient(90deg,transparent,rgba(117,92,79,.22) 12%,rgba(117,92,79,.22) 88%,transparent)}
@@ -263,6 +297,7 @@
 
   function renderGames(){
     const gameLibrary=[
+      {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-and-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
@@ -278,21 +313,128 @@
       {title:'five nights at freddy’s',image:'/assets/arcade/five-nights-at-freddys.jpg',href:'https://store.steampowered.com/app/319510/Five_Nights_at_Freddys/'},
       {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.coolmathgames.com/0-swords-and-sandals-2'}
     ];
-    const tile=game=>'<a class="module-game-tile" href="'+esc(game.href)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+esc(game.title)+'"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>open ↗</small></a>';
+    const tile=game=>game.internal==='cultureQuiz'
+      ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
+      :'<a class="module-game-tile" href="'+esc(game.href)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+esc(game.title)+'"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>open ↗</small></a>';
     const track=items=>items.concat(items).map(tile).join('');
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="module-game-stage-head"><div><h2>arcade library</h2><p>Pick a cover to open the game in a new tab.</p></div><span>animated preview</span></div><div class="module-game-viewport" aria-label="Animated arcade library"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-status">External games open in their own tab. The library can grow from your suggestions.</div></section>'+
-        '<section class="module-card module-quiz"><h2>Culture check</h2><p>Where did hip-hop emerge as a culture in the 1970s?</p><button data-answer="wrong">Brooklyn</button><button data-answer="correct">The Bronx</button><button data-answer="wrong">Harlem</button><div class="module-status" id="moduleQuizStatus"></div></section>'+
-        '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Send a game link and cover image link for the arcade library.</p><form class="module-game-form" id="gameSuggestForm"><label><span>Game name</span><input class="module-input" name="title" required maxlength="80" placeholder="Game title"></label><label><span>Game link</span><input class="module-input" name="link" type="url" required placeholder="https://…"></label><label><span>Image link</span><input class="module-input" name="image" type="url" required placeholder="https://…"></label><div class="module-game-submit-row"><button class="module-action" type="submit">Save suggestion</button><img class="module-game-image-preview" id="gameSuggestImagePreview" alt="" hidden><div class="module-status" id="gameSuggestStatus" aria-live="polite"></div></div></form></section>'+
+        '<section class="module-card module-game-stage wide"><div class="module-game-stage-head"><div><h2>arcade library</h2><p>Pick a cover to open a game, or play Culture Quiz here.</p></div><span>animated preview</span></div><div class="module-game-viewport" aria-label="Animated arcade library"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-status">External games open in a new tab. Suggestions are saved privately in this browser for review.</div></section>'+
+        '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
+        '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
+          '<label><span>Game name</span><input class="module-input" name="title" required maxlength="80" placeholder="Game title"></label>'+
+          '<div class="module-game-source-grid"><label><span>Game link (optional)</span><input class="module-input" name="gameLink" type="text" inputmode="url" placeholder="https://…"></label><label><span>Or upload game file</span><input class="module-input module-file-input" name="gameFile" type="file" accept=".html,.htm,.zip,.swf,text/html,application/zip,application/x-shockwave-flash"><small>HTML, ZIP, or SWF file</small></label></div>'+
+          '<div class="module-game-source-grid"><label><span>Image link (optional)</span><input class="module-input" name="imageLink" type="text" inputmode="url" placeholder="https://…"></label><label><span>Or upload image file</span><input class="module-input module-file-input" name="imageFile" type="file" accept="image/*"><small>PNG, JPG, GIF, or WebP</small></label></div>'+
+          '<div class="module-game-submit-row"><button class="module-action" type="submit">Save suggestion</button><img class="module-game-image-preview" id="gameSuggestImagePreview" alt="Selected cover preview" hidden><div class="module-status" id="gameSuggestStatus" aria-live="polite"></div></div>'+
+        '</form></section>'+
       '</div>';
-    $$('.module-quiz [data-answer]',body).forEach(btn=>btn.onclick=()=>{$$('.module-quiz [data-answer]',body).forEach(x=>x.classList.remove('correct','wrong'));const ok=btn.dataset.answer==='correct';btn.classList.add(ok?'correct':'wrong');$('#moduleQuizStatus',body).textContent=ok?'Correct — the Bronx, New York City.':'Not quite — try again.'});
+
+    const cultureQuestions=dykQuestions;
+    const culturePanel=$('#cultureQuizPanel',body);
+    const cultureContent=$('#cultureQuizContent',body);
+    let cultureIndex=0,cultureScore=0,cultureAnswered=false;
+    const drawCultureQuestion=()=>{
+      cultureAnswered=false;
+      if(cultureIndex>=cultureQuestions.length){
+        cultureContent.innerHTML='<div class="culture-quiz-result"><span class="culture-quiz-progress">quiz complete</span><p class="culture-quiz-score">'+cultureScore+' / '+cultureQuestions.length+'</p><p>You finished the culture quiz.</p><button class="module-action" type="button" data-culture-replay>Play again</button></div>';
+        return;
+      }
+      const item=cultureQuestions[cultureIndex];
+      cultureContent.innerHTML='<span class="culture-quiz-progress">question '+(cultureIndex+1)+' of '+cultureQuestions.length+'</span><h3 class="culture-quiz-question">'+esc(item.q)+'</h3><div class="culture-quiz-options">'+item.a.map((answer,index)=>'<button type="button" data-culture-answer="'+index+'">'+esc(answer)+'</button>').join('')+'</div><div class="culture-quiz-feedback" id="cultureQuizFeedback">Choose an answer to reveal the context.</div>';
+    };
+    drawCultureQuestion();
+    $$('[data-play-culture-quiz]',body).forEach(button=>button.addEventListener('click',()=>{
+      cultureIndex=0;cultureScore=0;drawCultureQuestion();culturePanel.hidden=false;
+      culturePanel.scrollIntoView({behavior:'smooth',block:'center'});
+    }));
+    $('[data-close-culture-quiz]',culturePanel).onclick=()=>{culturePanel.hidden=true};
+    cultureContent.onclick=event=>{
+      const answerButton=event.target.closest('[data-culture-answer]');
+      if(answerButton&&!cultureAnswered){
+        cultureAnswered=true;
+        const item=cultureQuestions[cultureIndex];
+        const picked=Number(answerButton.dataset.cultureAnswer);
+        const buttons=$$('[data-culture-answer]',cultureContent);
+        buttons.forEach((button,index)=>{
+          button.disabled=true;
+          if(index===item.correct)button.classList.add('correct');
+          else if(index===picked)button.classList.add('wrong');
+        });
+        if(picked===item.correct)cultureScore++;
+        const feedback=$('#cultureQuizFeedback',cultureContent);
+        feedback.innerHTML=(picked===item.correct?'<strong>Correct.</strong> ':'<strong>Not quite.</strong> ')+esc(item.context)+'<span class="culture-quiz-source">Source: <a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">'+esc(item.source)+' ↗</a></span><button class="module-action" type="button" data-culture-next>'+(cultureIndex+1<cultureQuestions.length?'Next question →':'See score →')+'</button>';
+      }
+      if(event.target.closest('[data-culture-next]')){cultureIndex++;drawCultureQuestion()}
+      if(event.target.closest('[data-culture-replay]')){cultureIndex=0;cultureScore=0;drawCultureQuestion()}
+    };
+
     const form=$('#gameSuggestForm',body);
-    const imageInput=$('[name="image"]',form);
+    const gameLinkInput=$('[name="gameLink"]',form);
+    const imageLinkInput=$('[name="imageLink"]',form);
+    const gameFileInput=$('[name="gameFile"]',form);
+    const imageFileInput=$('[name="imageFile"]',form);
     const imagePreview=$('#gameSuggestImagePreview',body);
     const status=$('#gameSuggestStatus',body);
-    imageInput.oninput=()=>{const value=imageInput.value.trim();if(!value){imagePreview.hidden=true;imagePreview.removeAttribute('src');return}imagePreview.src=value;imagePreview.hidden=false;imagePreview.onerror=()=>{imagePreview.hidden=true}};
-    form.onsubmit=e=>{e.preventDefault();const data=new FormData(form);const title=(data.get('title')||'').toString().trim();const link=(data.get('link')||'').toString().trim();const image=(data.get('image')||'').toString().trim();try{new URL(link);new URL(image)}catch(_){status.textContent='Please use valid links for the game and image.';return}const key='biglwaGameSuggestions';const saved=readJSON(key,[]);saved.push({title,link,image,createdAt:new Date().toISOString()});writeJSON(key,saved);status.className='module-status ok';status.textContent='Saved on this browser for review.';form.reset();imagePreview.hidden=true;imagePreview.removeAttribute('src')};
+    let previewObjectUrl='';
+    const clearPreviewObjectUrl=()=>{if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=''}};
+    const updateImagePreview=()=>{
+      clearPreviewObjectUrl();
+      const file=imageFileInput.files&&imageFileInput.files[0];
+      const value=imageLinkInput.value.trim();
+      if(file){previewObjectUrl=URL.createObjectURL(file);imagePreview.src=previewObjectUrl;imagePreview.hidden=false}
+      else if(value){imagePreview.src=value;imagePreview.hidden=false}
+      else{imagePreview.hidden=true;imagePreview.removeAttribute('src')}
+    };
+    imageFileInput.onchange=updateImagePreview;
+    imageLinkInput.oninput=updateImagePreview;
+    imagePreview.onerror=()=>{if(!previewObjectUrl)imagePreview.hidden=true};
+    const isWebUrl=value=>{try{return ['http:','https:'].includes(new URL(value).protocol)}catch(_){return false}};
+    const openSuggestionsDatabase=()=>new Promise((resolve,reject)=>{
+      if(!('indexedDB' in window)){reject(new Error('Browser storage is unavailable'));return}
+      const request=indexedDB.open('biglwaGameSuggestionsDB',1);
+      request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains('suggestions'))db.createObjectStore('suggestions',{keyPath:'id',autoIncrement:true})};
+      request.onsuccess=()=>resolve(request.result);
+      request.onerror=()=>reject(request.error||new Error('Could not open browser storage'));
+      request.onblocked=()=>reject(new Error('Browser storage is busy; try again in a moment'));
+    });
+    form.onsubmit=async event=>{
+      event.preventDefault();
+      const data=new FormData(form);
+      const title=String(data.get('title')||'').trim();
+      const gameLink=String(data.get('gameLink')||'').trim();
+      const imageLink=String(data.get('imageLink')||'').trim();
+      const gameFile=gameFileInput.files&&gameFileInput.files[0]||null;
+      const imageFile=imageFileInput.files&&imageFileInput.files[0]||null;
+      const allowedGameFile=gameFile&&/\.(html?|zip|swf)$/i.test(gameFile.name);
+      if(gameLink&&!isWebUrl(gameLink)){status.textContent='Use a complete http or https game link.';return}
+      if(!gameLink&&!gameFile){status.textContent='Add a game link or choose a game file.';return}
+      if(gameFile&&!allowedGameFile){status.textContent='Choose an HTML, ZIP, or SWF game file.';return}
+      if(imageLink&&!isWebUrl(imageLink)){status.textContent='Use a complete http or https image link.';return}
+      if(!imageLink&&!imageFile){status.textContent='Add an image link or choose an image file.';return}
+      if(imageFile&&!imageFile.type.startsWith('image/')){status.textContent='Choose a supported image file.';return}
+      status.className='module-status';status.textContent='Saving in this browser…';
+      const submitButton=$('button[type="submit"]',form);submitButton.disabled=true;
+      let db;
+      try{
+        db=await openSuggestionsDatabase();
+        await new Promise((resolve,reject)=>{
+          const transaction=db.transaction('suggestions','readwrite');
+          transaction.objectStore('suggestions').add({title,gameLink,imageLink,gameFile,imageFile,createdAt:new Date().toISOString()});
+          transaction.oncomplete=resolve;
+          transaction.onerror=()=>reject(transaction.error||new Error('Could not save suggestion'));
+          transaction.onabort=()=>reject(transaction.error||new Error('Could not save suggestion'));
+        });
+        status.className='module-status ok';
+        status.textContent='Saved on this browser for review.';
+        form.reset();updateImagePreview();
+      }catch(error){
+        status.className='module-status';
+        status.textContent=error&&error.name==='QuotaExceededError'?'Browser storage is full. Remove some saved site data and try again.':'Could not save here. Check browser storage settings and try again.';
+      }finally{
+        if(db)db.close();
+        submitButton.disabled=false;
+      }
+    };
   }
 
   const dykQuestions=[
