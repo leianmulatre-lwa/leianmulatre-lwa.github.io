@@ -158,12 +158,14 @@
       #studioApp #diary .diary-page::before,#studioApp #diary .diary-page::after{content:none!important}
 
       #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 102px;border:9px solid #1c100e;border-radius:29px 29px 17px 17px;background:linear-gradient(90deg,#281310 0,#5e3327 12%,#754836 49%,#5b3025 87%,#25120f 100%);clip-path:none;box-shadow:inset 0 0 0 3px rgba(255,215,141,.14),inset 0 -76px 0 rgba(20,11,10,.55),inset 14px 0 18px rgba(0,0,0,.24),inset -14px 0 18px rgba(0,0,0,.24),0 21px 34px rgba(38,25,19,.24);overflow:hidden}
-      #studioApp #games .games-arcade-brand{position:relative;isolation:isolate;overflow:hidden;margin:-4px 8px 16px;padding:22px 24px 11px;border:5px solid #160e0c;border-radius:18px 18px 9px 9px;background:radial-gradient(circle at 35% 0,rgba(255,249,190,.72),transparent 60%),#f2c450;clip-path:polygon(4% 0,36% 0,43% 18%,96% 18%,100% 28%,100% 100%,0 100%,0 9%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
+      #studioApp #games .arcade-folder-depth{position:relative;isolation:isolate;margin:-4px 8px 16px;padding:8px 0 0 8px}
+      #studioApp #games .arcade-folder-depth::before{content:"";position:absolute;inset:0 8px 8px 0;z-index:0;background:linear-gradient(145deg,#b38335,#815122 72%);clip-path:polygon(3% 0,28% 0,42% 30%,96% 30%,100% 39%,100% 100%,0 100%,0 8%);box-shadow:0 9px 15px rgba(23,11,8,.32)}
+      #studioApp #games .games-arcade-brand{position:relative;z-index:1;isolation:isolate;overflow:hidden;min-height:128px;margin:0;padding:0;border:5px solid #160e0c;border-radius:18px 18px 9px 9px;background:radial-gradient(circle at 29% 0,rgba(255,249,190,.74),transparent 62%),#f2c450;clip-path:polygon(3% 0,28% 0,42% 30%,96% 30%,100% 39%,100% 100%,0 100%,0 8%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
       #studioApp #games .games-arcade-brand::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) left 7px center/13px 18px repeat-y,radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) right 7px center/13px 18px repeat-y,repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(20,8,7,.11) 2px 3px);mix-blend-mode:normal}
       #studioApp #games .games-arcade-brand::after{content:"";position:absolute;inset:-35%;z-index:4;pointer-events:none;background:repeating-radial-gradient(circle at 25% 30%,rgba(255,255,255,.34) 0 1px,transparent 1px 4px),repeating-radial-gradient(circle at 75% 65%,rgba(47,9,18,.28) 0 1px,transparent 1px 5px);opacity:.16;animation:biglwa-arcade-static .42s steps(2,end) infinite}
-      #studioApp #games .games-arcade-brand img{position:relative;z-index:2;display:block;object-fit:contain;object-position:center}
-      #studioApp #games .games-arcade-brand img:first-child{height:70px!important;margin:-12px auto -17px!important}
-      #studioApp #games .games-arcade-brand img:last-child{width:min(90%,236px)!important;height:auto!important;margin:-5px auto 0!important;mix-blend-mode:normal!important}
+      #studioApp #games .games-arcade-brand img{position:absolute;z-index:2;display:block;height:auto!important;object-fit:contain;object-position:center;margin:0!important}
+      #studioApp #games .games-arcade-brand img:first-child{left:50%;top:63%;width:min(29%,132px)!important;transform:translate(-50%,-50%)}
+      #studioApp #games .games-arcade-brand img:last-child{top:34%;right:4%;width:min(43%,215px)!important;mix-blend-mode:normal!important}
       #studioApp #games .arcade-library-viewport{isolation:isolate;height:230px!important;padding:10px!important;border:12px solid #171313!important;border-radius:13px!important;background:#030606!important;clip-path:none!important;outline:5px solid rgba(46,20,16,.72);outline-offset:0;box-shadow:inset 0 22px 27px rgba(0,0,0,.82),inset 18px 0 24px rgba(0,0,0,.7),inset -18px 0 24px rgba(0,0,0,.7),inset 0 -16px 22px rgba(0,0,0,.62),0 8px 0 #0d0908,0 15px 22px rgba(0,0,0,.3)!important;-webkit-mask-image:none!important;mask-image:none!important}
       #studioApp #games .arcade-library-viewport::after{content:"";position:absolute;inset:0;z-index:8;border-radius:2px;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.62),transparent 13%,transparent 86%,rgba(0,0,0,.52)),linear-gradient(to right,rgba(0,0,0,.5),transparent 10%,transparent 90%,rgba(0,0,0,.5));box-shadow:inset 0 0 26px 10px rgba(0,0,0,.44),inset 0 0 3px 1px rgba(102,225,229,.18)}
       #studioApp #games .games-library::before{content:none}
@@ -743,8 +745,9 @@
     const cabinet=$('#studioApp #games .games-library');if(!cabinet)return;
     const brand=$('.games-arcade-brand',cabinet),logos=brand?$$('img',brand):[];
     if(logos[1]){logos[1].src='/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15';logos[1].alt='ARCADE'}
-    const viewport=$('.arcade-library-viewport',cabinet),folder=$('.arcade-folder-shell',cabinet);
-    if(viewport&&folder){folder.before(viewport);folder.remove()}
+    if(brand&&!brand.parentElement.classList.contains('arcade-folder-depth')){
+      const depth=document.createElement('div');depth.className='arcade-folder-depth';brand.before(depth);depth.appendChild(brand);
+    }
     let controls=$('.arcade-control-deck',cabinet);
     if(!controls){
       controls=document.createElement('div');controls.className='arcade-control-deck';controls.setAttribute('aria-hidden','true');
