@@ -18,8 +18,7 @@
     check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/did-you-know-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="407" height="375" loading="eager" decoding="async"></span>',
     quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/quick-notes-symbol-generated.png?v=20260914-quick-notes-1" alt="" width="375" height="413" loading="eager" decoding="async"></span>',
     mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    logout:'<img class="studio-logout-icon" src="/assets/logout.png?v=20260916-logout-1" alt="" width="64" height="64" aria-hidden="true">',
-    guest:'<span class="guest-check-mark" aria-hidden="true">✌🏽</span>'
+    logout:'<img class="studio-logout-icon" src="/assets/logout.png?v=20260916-logout-1" alt="" width="64" height="64" aria-hidden="true">'
   };
   let musicUrl='';
   let coverUrl='';
@@ -104,10 +103,7 @@
       #studioApp .visitor-log-actions button{white-space:nowrap!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
       #studioApp .guest-check-card .widget-window-controls{z-index:12!important}
       #studioApp .guest-check-card .visitor-log-actions{position:relative!important;z-index:2!important}
-      #studioApp .guest-check-card .mailbox-mark{position:relative;width:44px;height:44px;flex:0 0 44px;border:0;opacity:.96}
-      #studioApp .guest-check-card .mailbox-mark::before,#studioApp .guest-check-card .mailbox-mark::after{content:none!important;display:none!important}
-      #studioApp .guest-check-mark{display:grid;width:44px;height:44px;place-items:center;border:1px solid rgba(var(--aura-rgb,216,95,109),.26);border-radius:14px;background:rgba(var(--aura-rgb,216,95,109),.10);font-size:22px;line-height:1}
-      #studioApp .visitor-log-intro{display:flex;gap:11px;align-items:center;margin:2px 0 10px}
+      #studioApp .visitor-log-intro{display:block;margin:2px 0 10px}
       #studioApp .visitor-log-intro strong{display:block;font:700 13px/1.1 Georgia,"Times New Roman",serif}
       #studioApp .visitor-log-intro span{display:block;margin-top:3px;font:9px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
       #studioApp .visitor-log-actions{display:flex;gap:6px;flex-wrap:wrap}
@@ -126,9 +122,9 @@
       #studioApp .guest-check-sheet .visitor-log-intro strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-size:15px;font-weight:400;text-transform:lowercase;color:#211d1a}
       #studioApp .guest-check-sheet .visitor-log-intro span,#studioApp .guest-check-sheet .visitor-log-count{color:#736860!important}
       #studioApp .guest-check-sheet .visitor-log-actions button:not(:first-child){background:rgba(255,253,244,.82);color:#39322d}
-      #studioApp .guest-check-lines{position:relative;z-index:2;height:44px;margin:1px 0 7px;overflow:hidden;border-top:1px solid rgba(68,53,46,.12);border-bottom:1px solid rgba(68,53,46,.12)}
+      #studioApp .guest-check-lines{position:relative;z-index:2;height:48px;margin:0 0 7px;overflow:hidden;background:rgba(255,253,245,.78)}
       #studioApp .guest-check-lines-track{display:flex;flex-direction:column;will-change:transform}
-      #studioApp .guest-check-line{box-sizing:border-box;height:22px;min-height:22px;padding:5px 4px 3px;overflow:hidden;color:#3c332e;font:700 9px/1.35 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+      #studioApp .guest-check-line{box-sizing:border-box;display:flex;align-items:flex-end;height:24px;min-height:24px;padding:0 4px 3px;overflow:hidden;border-bottom:1px solid rgba(92,142,178,.24);color:#3c332e;font:700 9px/1.05 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;text-overflow:ellipsis;white-space:nowrap}
       #studioApp .guest-check-line em{font-weight:500;color:#756861}
       #studioApp .guest-check-lines.is-filled .guest-check-lines-track{animation:biglwa-guest-lines-scroll 14s linear infinite}
       @keyframes biglwa-guest-lines-scroll{0%,8%{transform:translateY(0)}92%,100%{transform:translateY(-50%)}}
@@ -151,7 +147,12 @@
 
       #studioApp #closet .card-icon .studio-symbol-mark,#studioApp #diary .card-icon .studio-symbol-mark,#studioApp #projects .card-icon .studio-symbol-mark,#studioApp #games .card-icon .games-chess-mark{transform:translateY(0)!important}
 
-      #studioApp #diary .diary-page{position:relative!important;display:grid!important;place-items:center!important;min-height:210px!important;aspect-ratio:auto!important;padding:24px!important;border:9px solid #171717!important;border-left-width:18px!important;border-radius:4px 13px 13px 4px!important;background-color:rgb(var(--aura-rgb,216,95,109))!important;background-image:url("/assets/composition-marble.svg?v=20260916-composition-1")!important;background-size:340px 226px!important;background-position:center!important;background-blend-mode:screen!important;box-shadow:inset 5px 0 0 rgba(255,255,255,.28),0 13px 24px rgba(35,25,20,.2)!important;overflow:hidden!important}
+      #studioApp #diary{background-color:#0b0b0d!important;background-image:url("/assets/composition-texture.webp?v=20260917-composition-2")!important;background-size:340px 227px!important;background-position:center top!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 18px 45px rgba(0,0,0,.22)!important}
+      #studioApp #diary .biglwa-card-heading-row,#studioApp #diary>.sub{position:relative;z-index:2;text-shadow:0 1px 4px #000,0 0 9px #000}
+      #studioApp #diary .biglwa-card-heading-row h2{color:#fff!important}
+      #studioApp #diary .studio-diary-symbol img{filter:brightness(0) invert(1) drop-shadow(0 1px 3px #000)}
+      #studioApp #diary>.sub{color:rgba(255,255,255,.88)!important}
+      #studioApp #diary .diary-page{position:relative!important;display:grid!important;place-items:center!important;min-height:210px!important;aspect-ratio:auto!important;padding:24px!important;border:9px solid #101012!important;border-left-width:18px!important;border-radius:4px 13px 13px 4px!important;background-color:#0b0b0d!important;background-image:url("/assets/composition-texture.webp?v=20260917-composition-2")!important;background-size:340px 227px!important;background-position:center!important;background-blend-mode:normal!important;box-shadow:inset 5px 0 0 rgba(255,255,255,.28),0 13px 24px rgba(0,0,0,.32)!important;overflow:hidden!important}
       #studioApp #diary .diary-page img{display:none!important}
       #studioApp #diary .diary-page::before,#studioApp #diary .diary-page::after{content:none!important}
       #studioApp #diary .diary-cover-label{position:relative;display:grid;align-content:center;gap:9px;box-sizing:border-box;width:min(84%,290px);min-height:118px;padding:20px 24px 18px;border:4px double #171717;border-radius:4px 16px 16px 4px;background:#fff;color:#111;box-shadow:0 7px 0 rgba(0,0,0,.22),inset 0 0 0 2px rgba(0,0,0,.08);transform:rotate(-.55deg)}
@@ -161,22 +162,22 @@
       #studioApp #diary .diary-cover-label strong{font-size:30px;line-height:1;transform:rotate(-1deg)}
       #studioApp #diary .diary-cover-label span{font-size:14px;line-height:1.1;transform:rotate(.4deg)}
 
-      #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 102px;border:9px solid #1c100e;border-radius:34px 34px 19px 19px;background:linear-gradient(90deg,#281310 0,#5e3327 12%,#754836 49%,#5b3025 87%,#25120f 100%);box-shadow:inset 0 0 0 3px rgba(255,215,141,.14),inset 0 -76px 0 rgba(20,11,10,.55),inset 14px 0 18px rgba(0,0,0,.24),inset -14px 0 18px rgba(0,0,0,.24),0 21px 34px rgba(38,25,19,.24);overflow:hidden}
-      #studioApp #games .games-arcade-brand{position:relative;isolation:isolate;overflow:hidden;margin:-4px -3px 16px;padding:6px 8px 11px;border:5px solid #160e0c;border-radius:18px 18px 8px 8px;background:radial-gradient(circle at 50% 0,rgba(255,249,190,.7),transparent 58%),#f2c450;box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
-      #studioApp #games .games-arcade-brand::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(20,8,7,.11) 2px 3px);mix-blend-mode:overlay}
+      #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 102px;border:9px solid #1c100e;border-radius:29px 29px 17px 17px;background:linear-gradient(90deg,#281310 0,#5e3327 12%,#754836 49%,#5b3025 87%,#25120f 100%);clip-path:polygon(5% 0,95% 0,100% 4%,100% 92%,96% 100%,4% 100%,0 92%,0 4%);box-shadow:inset 0 0 0 3px rgba(255,215,141,.14),inset 0 -76px 0 rgba(20,11,10,.55),inset 14px 0 18px rgba(0,0,0,.24),inset -14px 0 18px rgba(0,0,0,.24),0 21px 34px rgba(38,25,19,.24);overflow:hidden}
+      #studioApp #games .games-arcade-brand{position:relative;isolation:isolate;overflow:hidden;margin:-4px 8px 16px;padding:6px 24px 11px;border:5px solid #160e0c;border-radius:18px 18px 8px 8px;background:radial-gradient(circle at 50% 0,rgba(255,249,190,.7),transparent 58%),#f2c450;clip-path:polygon(5% 9%,19% 9%,24% 0,76% 0,81% 9%,95% 9%,100% 19%,100% 100%,0 100%,0 19%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
+      #studioApp #games .games-arcade-brand::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) left 7px center/13px 18px repeat-y,radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) right 7px center/13px 18px repeat-y,repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(20,8,7,.11) 2px 3px);mix-blend-mode:normal}
       #studioApp #games .games-arcade-brand::after{content:"";position:absolute;inset:-35%;z-index:4;pointer-events:none;background:repeating-radial-gradient(circle at 25% 30%,rgba(255,255,255,.34) 0 1px,transparent 1px 4px),repeating-radial-gradient(circle at 75% 65%,rgba(47,9,18,.28) 0 1px,transparent 1px 5px);opacity:.16;animation:biglwa-arcade-static .42s steps(2,end) infinite}
       #studioApp #games .games-arcade-brand img{position:relative;z-index:2}
       #studioApp #games .games-arcade-brand img:first-child{height:70px!important;margin:-12px auto -17px!important}
       #studioApp #games .games-arcade-brand img:last-child{width:min(90%,236px)!important;margin:-5px auto 0!important;mix-blend-mode:multiply!important}
-      #studioApp #games .arcade-library-viewport{height:230px!important;padding:10px!important;border:10px solid #171313!important;border-radius:12px!important;background:#070909!important;box-shadow:inset 0 0 22px rgba(76,219,231,.16),0 6px 0 #0d0908!important;-webkit-mask-image:none!important;mask-image:none!important}
+      #studioApp #games .arcade-library-viewport{height:230px!important;padding:10px!important;border:10px solid #171313!important;border-radius:12px!important;background:#070909!important;clip-path:polygon(2% 0,98% 0,100% 100%,0 100%);box-shadow:inset 0 0 22px rgba(76,219,231,.16),0 6px 0 #0d0908!important;-webkit-mask-image:none!important;mask-image:none!important}
       #studioApp #games .games-library::before{content:"25¢";position:absolute;right:21px;bottom:50px;z-index:5;display:grid;place-items:center;width:26px;height:34px;border:2px solid #090706;border-radius:4px;background:#191414;color:#e5c16e;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;box-shadow:inset 0 0 0 2px #4a3b35}
       #studioApp #games .games-library::after{content:"PLAYER 1";position:absolute;right:18px;bottom:18px;color:#ead9c8;font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em}
       #studioApp #games .arcade-control-deck{position:absolute;left:20px;right:64px;bottom:14px;z-index:4;display:flex;align-items:end;justify-content:center;gap:21px;height:66px;border-top:4px solid #170d0b;border-radius:46% 46% 10px 10px/18px 18px 10px 10px;background:linear-gradient(180deg,#754432,#3a201a);box-shadow:inset 0 5px 8px rgba(255,220,164,.09),0 -4px 0 #180d0b}
       #studioApp #games .arcade-joystick{--stick:#dd5c70;position:relative;display:block;width:38px;height:61px;filter:drop-shadow(0 5px 2px rgba(0,0,0,.35))}
-      #studioApp #games .arcade-joystick::before{content:"";position:absolute;left:50%;bottom:12px;width:7px;height:34px;border-radius:5px;background:linear-gradient(90deg,#171313,#555,#151111);transform:translateX(-50%) rotate(var(--tilt,0deg));transform-origin:50% 100%}
+      #studioApp #games .arcade-joystick::before{content:"";position:absolute;left:50%;top:20px;width:7px;height:31px;border-radius:5px;background:linear-gradient(90deg,#171313,#555,#151111);transform:translateX(-50%)}
       #studioApp #games .arcade-joystick::after{content:"";position:absolute;left:50%;top:0;width:27px;height:27px;border-radius:50%;background:radial-gradient(circle at 36% 27%,rgba(255,255,255,.58),transparent 24%),var(--stick);box-shadow:inset -4px -5px 7px rgba(0,0,0,.22),0 0 0 2px rgba(17,10,9,.58);transform:translateX(-50%)}
       #studioApp #games .arcade-joystick>i{position:absolute;left:50%;bottom:5px;width:35px;height:13px;border:3px solid #140c0a;border-radius:50%;background:#281714;transform:translateX(-50%);box-shadow:inset 0 2px 0 rgba(255,255,255,.1)}
-      #studioApp #games .arcade-joystick.is-yellow{--stick:#efc548;--tilt:-7deg}#studioApp #games .arcade-joystick.is-red{--stick:rgb(var(--aura-rgb,216,95,109));--tilt:4deg}#studioApp #games .arcade-joystick.is-green{--stick:#5ca975;--tilt:-3deg}
+      #studioApp #games .arcade-joystick.is-yellow{--stick:#efc548}#studioApp #games .arcade-joystick.is-red{--stick:rgb(var(--aura-rgb,216,95,109))}#studioApp #games .arcade-joystick.is-green{--stick:#5ca975}
       @keyframes biglwa-arcade-static{0%{transform:translate(0,0)}25%{transform:translate(4%,-3%)}50%{transform:translate(-3%,4%)}75%{transform:translate(2%,3%)}100%{transform:translate(-2%,-2%)}}
 
       #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:lowercase!important}
@@ -290,6 +291,7 @@
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
       body.night-mode #studioApp .profile-card,body.night-mode #studioApp .music-card,body.night-mode #studioApp .aura-card,body.night-mode #studioApp .guest-check-card,body.night-mode #studioApp .mobile-dock.hero-action-bar,body.night-mode #studioApp .masonry .card:not(.manifesto-card){background:var(--widget-bg,rgba(250,247,241,.84))!important;border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;color:var(--widget-ink,#171717)!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important}
+      body.night-mode #studioApp #diary{background-color:#0b0b0d!important;background-image:url("/assets/composition-texture.webp?v=20260917-composition-2")!important;background-size:340px 227px!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 18px 45px rgba(0,0,0,.34)!important}
       body.night-mode #studioApp .profile-card .profile-identity-rail{background:color-mix(in srgb,var(--widget-ink,#171717) 4%,transparent)!important;border-color:rgba(var(--aura-rgb,216,95,109),.14)!important}
       body.night-mode #studioApp .profile-card .profile-name-line h1,body.night-mode #studioApp .profile-card .bio,body.night-mode #studioApp .profile-card .stats b,body.night-mode #studioApp .card-kicker{color:var(--widget-ink,#171717)!important}
       #studioApp .profile-card #wallpaperPanel{background:transparent!important;color:var(--widget-ink,#171717)!important}
@@ -374,8 +376,9 @@
       card=document.createElement('section');
       card.id='guestCheckWidget';card.className='guest-check-card glass small-card customizable-widget';
       card.dataset.widgetId='guest-check';card.dataset.widgetLabel='Guest Check';card.dataset.widgetRoute='guest-check';
-      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
+      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
     }
+    $('.mailbox-mark',card)?.remove();
     if(!$('.guest-check-lines',card)){$('.visitor-log-actions',card)?.insertAdjacentHTML('beforebegin','<div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div>')}
     const guestDate=$('.guest-check-sheet-head time',card);if(guestDate)guestDate.textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
     syncGuestPermissions(card);
@@ -653,8 +656,7 @@
     const quiz=$('#games .quiz',app);
     if(quiz&&!$('.games-block-mark',quiz)){quiz.insertAdjacentHTML('afterbegin','<img class="games-block-mark" src="/assets/culture-quiz-cubes.png?v=20260915-culture-quiz-cubes-1" alt="" aria-hidden="true" width="1672" height="941">')}
     replaceCardSymbol('#closet .card-icon','studio-closet-hanger-icon',STUDIO_ICONS.hanger);
-    const guestMark=$('#guestCheckWidget .mailbox-mark',app);
-    if(guestMark&&!$('.guest-check-mark',guestMark))guestMark.innerHTML=STUDIO_ICONS.guest;
+    $('#guestCheckWidget .mailbox-mark',app)?.remove();
   }
 
   function currentProfileUsername(){
