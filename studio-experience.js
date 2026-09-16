@@ -43,7 +43,7 @@
       #studioApp .profile-card #wallpaperPanel .panel-title{background-image:linear-gradient(to bottom,var(--widget-bg,rgba(250,247,241,.84)) 72%,transparent)!important;color:var(--widget-ink,#171717)!important}
       #studioApp .profile-editor-actions{background-image:linear-gradient(to top,var(--widget-bg,rgba(250,247,241,.84)) 76%,transparent)!important;color:var(--widget-ink,#171717)!important}
       #studioApp .profile-card .profile-identity-rail{box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:20px 16px!important}
-      #studioApp .profile-card .profile-identity-rail>.profile-avatar{flex:0 0 auto!important;margin:0 auto!important}
+      #studioApp .profile-card .profile-identity-rail>.profile-avatar{flex:0 0 auto!important;margin:0 auto!important;transform:translateX(10px)!important}
       #studioApp .profile-card .profile-identity-rail>#editProfileBtn{flex:0 0 auto!important;width:120px!important;max-width:120px!important;margin:0 auto!important}
       #studioApp .profile-card .profile-identity-rail>.profile-rail-location{flex:0 0 auto!important;width:120px!important;margin:0 auto!important;text-align:center!important;line-height:1.25!important}
       #studioApp .profile-card .profile-identity-rail>.weekly-mood-card{order:4!important;box-sizing:border-box;width:120px;min-height:58px;margin:2px auto 0;padding:9px 10px;border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:12px;background:rgba(255,255,255,.42);color:var(--widget-ink,#171717);text-align:left;overflow:hidden}
@@ -113,15 +113,25 @@
       #studioApp .visitor-log-actions{display:flex;gap:6px;flex-wrap:wrap}
       #studioApp .visitor-log-actions button:first-child{background:var(--mail-accent);color:var(--aura-button-ink,#fff);border-color:transparent}
       #studioApp .visitor-log-count{margin-top:7px;font:8px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
-      #studioApp .hero-widget-rail>.guest-check-card{min-height:216px!important;padding:15px 16px 16px!important}
-      #studioApp .guest-check-sheet{position:relative;margin:2px 0 0;padding:12px 11px 10px 28px;border:1px solid rgba(83,68,57,.22);border-radius:5px 12px 12px 5px;background:repeating-linear-gradient(to bottom,rgba(255,253,244,.96) 0,rgba(255,253,244,.96) 21px,rgba(111,153,180,.22) 22px);box-shadow:inset 13px 0 0 rgba(var(--aura-rgb,216,95,109),.72),0 7px 18px rgba(55,39,31,.11);color:#2d2824;overflow:hidden}
-      #studioApp .guest-check-sheet::before{content:"";position:absolute;left:5px;top:14px;bottom:14px;width:5px;background:radial-gradient(circle,#f8f1e8 0 2px,rgba(64,47,39,.28) 2.3px 2.8px,transparent 3px) 0 0/5px 19px repeat-y}
+      #studioApp .hero-widget-rail>.guest-check-card{position:relative;display:block!important;min-height:216px!important;padding:0!important;border-radius:var(--widget-radius,16px)!important;overflow:hidden!important}
+      #studioApp .guest-check-card>.card-kicker{position:absolute!important;left:35px;top:14px;z-index:5;margin:0!important;padding:0!important;color:#382e29!important;text-shadow:0 1px rgba(255,255,255,.72)}
+      #studioApp .guest-check-card>.widget-window-controls{position:absolute!important;right:13px!important;top:12px!important;z-index:7!important;margin:0!important}
+      #studioApp .guest-check-card>.widget-drag-handle{top:10px!important;z-index:7!important}
+      #studioApp .guest-check-sheet{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;min-height:216px;margin:0!important;padding:38px 14px 12px 34px;border:0!important;border-radius:inherit;background:repeating-linear-gradient(to bottom,#fffdf5 0,#fffdf5 23px,rgba(92,142,178,.24) 24px);box-shadow:inset 17px 0 0 rgba(var(--aura-rgb,216,95,109),.82),inset 20px 0 0 rgba(193,75,88,.25);color:#2d2824;overflow:hidden}
+      #studioApp .guest-check-sheet::before{content:"";position:absolute;left:6px;top:10px;bottom:10px;width:6px;background:radial-gradient(circle,#fffdf5 0 2.2px,rgba(64,47,39,.3) 2.5px 3px,transparent 3.2px) 0 0/6px 20px repeat-y}
+      #studioApp .guest-check-sheet::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.26),transparent 28%,rgba(69,47,37,.025));mix-blend-mode:multiply}
       #studioApp .guest-check-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid rgba(202,80,88,.35);font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em;color:#665851}
       #studioApp .guest-check-sheet-head time{letter-spacing:.04em;color:rgb(var(--aura-rgb,216,95,109))}
       #studioApp .guest-check-sheet .visitor-log-intro{margin:0 0 8px}
       #studioApp .guest-check-sheet .visitor-log-intro strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-size:15px;font-weight:400;text-transform:lowercase;color:#211d1a}
       #studioApp .guest-check-sheet .visitor-log-intro span,#studioApp .guest-check-sheet .visitor-log-count{color:#736860!important}
       #studioApp .guest-check-sheet .visitor-log-actions button:not(:first-child){background:rgba(255,253,244,.82);color:#39322d}
+      #studioApp .guest-check-lines{position:relative;z-index:2;height:44px;margin:1px 0 7px;overflow:hidden;border-top:1px solid rgba(68,53,46,.12);border-bottom:1px solid rgba(68,53,46,.12)}
+      #studioApp .guest-check-lines-track{display:flex;flex-direction:column;will-change:transform}
+      #studioApp .guest-check-line{box-sizing:border-box;height:22px;min-height:22px;padding:5px 4px 3px;overflow:hidden;color:#3c332e;font:700 9px/1.35 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+      #studioApp .guest-check-line em{font-weight:500;color:#756861}
+      #studioApp .guest-check-lines.is-filled .guest-check-lines-track{animation:biglwa-guest-lines-scroll 14s linear infinite}
+      @keyframes biglwa-guest-lines-scroll{0%,8%{transform:translateY(0)}92%,100%{transform:translateY(-50%)}}
       /* Keep every card symbol and stitched heading on the same optical baseline. */
       #studioApp .masonry>.card>.card-icon,#studioApp .hero-widget-rail>.card>.card-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;position:relative!important;top:0!important;transform:none!important;margin:0 9px 0 0!important;line-height:1!important}
       #studioApp .masonry>.card>h2,#studioApp .masonry>.card>h3,#studioApp .hero-widget-rail>.card>h2,#studioApp .hero-widget-rail>.card>h3{display:inline-flex!important;align-items:center!important;vertical-align:middle!important;margin-top:0!important;line-height:1!important}
@@ -143,21 +153,36 @@
 
       #studioApp #diary .diary-page{position:relative!important;display:grid!important;place-items:center!important;min-height:210px!important;aspect-ratio:auto!important;padding:24px!important;border:9px solid #171717!important;border-left-width:18px!important;border-radius:4px 13px 13px 4px!important;background-color:rgb(var(--aura-rgb,216,95,109))!important;background-image:url("/assets/composition-marble.svg?v=20260916-composition-1")!important;background-size:340px 226px!important;background-position:center!important;background-blend-mode:screen!important;box-shadow:inset 5px 0 0 rgba(255,255,255,.28),0 13px 24px rgba(35,25,20,.2)!important;overflow:hidden!important}
       #studioApp #diary .diary-page img{display:none!important}
-      #studioApp #diary .diary-page::before{content:"DEAR DIARY";display:grid;place-items:center;width:min(82%,270px);min-height:84px;padding:12px;border:3px solid #171717;border-radius:3px;background:#fff;color:#171717;font:400 26px/1 "CS Bergamot Stitched",Georgia,"Times New Roman",serif;letter-spacing:.03em;text-transform:lowercase;box-shadow:0 4px 0 rgba(0,0,0,.2)}
-      #studioApp #diary .diary-page::after{content:"private composition · open to write";position:absolute;right:24px;bottom:17px;color:#fff;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+      #studioApp #diary .diary-page::before,#studioApp #diary .diary-page::after{content:none!important}
+      #studioApp #diary .diary-cover-label{position:relative;display:grid;align-content:center;gap:9px;box-sizing:border-box;width:min(84%,290px);min-height:118px;padding:20px 24px 18px;border:4px double #171717;border-radius:4px 16px 16px 4px;background:#fff;color:#111;box-shadow:0 7px 0 rgba(0,0,0,.22),inset 0 0 0 2px rgba(0,0,0,.08);transform:rotate(-.55deg)}
+      #studioApp #diary .diary-cover-label::before,#studioApp #diary .diary-cover-label::after{content:"";position:absolute;left:24px;right:24px;height:2px;background:#191919;opacity:.76}
+      #studioApp #diary .diary-cover-label::before{top:58px}#studioApp #diary .diary-cover-label::after{top:91px}
+      #studioApp #diary .diary-cover-label strong,#studioApp #diary .diary-cover-label span{position:relative;z-index:1;display:block;font-family:"Arial Rounded MT Bold","Comic Sans MS",Impact,sans-serif;font-weight:900;letter-spacing:-.035em;text-align:left}
+      #studioApp #diary .diary-cover-label strong{font-size:30px;line-height:1;transform:rotate(-1deg)}
+      #studioApp #diary .diary-cover-label span{font-size:14px;line-height:1.1;transform:rotate(.4deg)}
 
-      #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 66px;border:7px solid #201412;border-radius:25px 25px 16px 16px;background:linear-gradient(90deg,#321b17,#684031 48%,#2b1815);box-shadow:inset 0 0 0 2px rgba(255,219,149,.14),inset 0 -34px 0 rgba(20,12,11,.54),0 17px 28px rgba(38,25,19,.2);overflow:hidden}
-      #studioApp #games .games-arcade-brand{margin:-4px -3px 13px;padding:9px 8px 11px;border:3px solid #160e0c;border-radius:14px 14px 7px 7px;background:radial-gradient(circle at 50% 0,rgba(var(--aura-rgb,216,95,109),.36),transparent 64%),#f2c450;box-shadow:inset 0 0 0 2px rgba(255,255,255,.26),0 5px 0 #140d0b}
-      #studioApp #games .games-arcade-brand img:first-child{height:72px!important;margin:-8px auto -5px!important}
-      #studioApp #games .games-arcade-brand img:last-child{width:min(88%,220px)!important;margin:0 auto!important}
+      #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 102px;border:9px solid #1c100e;border-radius:34px 34px 19px 19px;background:linear-gradient(90deg,#281310 0,#5e3327 12%,#754836 49%,#5b3025 87%,#25120f 100%);box-shadow:inset 0 0 0 3px rgba(255,215,141,.14),inset 0 -76px 0 rgba(20,11,10,.55),inset 14px 0 18px rgba(0,0,0,.24),inset -14px 0 18px rgba(0,0,0,.24),0 21px 34px rgba(38,25,19,.24);overflow:hidden}
+      #studioApp #games .games-arcade-brand{position:relative;isolation:isolate;overflow:hidden;margin:-4px -3px 16px;padding:6px 8px 11px;border:5px solid #160e0c;border-radius:18px 18px 8px 8px;background:radial-gradient(circle at 50% 0,rgba(255,249,190,.7),transparent 58%),#f2c450;box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
+      #studioApp #games .games-arcade-brand::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(20,8,7,.11) 2px 3px);mix-blend-mode:overlay}
+      #studioApp #games .games-arcade-brand::after{content:"";position:absolute;inset:-35%;z-index:4;pointer-events:none;background:repeating-radial-gradient(circle at 25% 30%,rgba(255,255,255,.34) 0 1px,transparent 1px 4px),repeating-radial-gradient(circle at 75% 65%,rgba(47,9,18,.28) 0 1px,transparent 1px 5px);opacity:.16;animation:biglwa-arcade-static .42s steps(2,end) infinite}
+      #studioApp #games .games-arcade-brand img{position:relative;z-index:2}
+      #studioApp #games .games-arcade-brand img:first-child{height:70px!important;margin:-12px auto -17px!important}
+      #studioApp #games .games-arcade-brand img:last-child{width:min(90%,236px)!important;margin:-5px auto 0!important;mix-blend-mode:multiply!important}
       #studioApp #games .arcade-library-viewport{height:230px!important;padding:10px!important;border:10px solid #171313!important;border-radius:12px!important;background:#070909!important;box-shadow:inset 0 0 22px rgba(76,219,231,.16),0 6px 0 #0d0908!important;-webkit-mask-image:none!important;mask-image:none!important}
-      #studioApp #games .games-library::before{content:"";position:absolute;left:50%;bottom:22px;width:25px;height:25px;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109));box-shadow:-46px 2px 0 #efc548,46px 2px 0 #5ca975,0 -17px 0 -5px #111;transform:translateX(-50%);z-index:2}
-      #studioApp #games .games-library::after{content:"PLAYER 1";position:absolute;right:18px;bottom:15px;color:#ead9c8;font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em}
+      #studioApp #games .games-library::before{content:"25¢";position:absolute;right:21px;bottom:50px;z-index:5;display:grid;place-items:center;width:26px;height:34px;border:2px solid #090706;border-radius:4px;background:#191414;color:#e5c16e;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;box-shadow:inset 0 0 0 2px #4a3b35}
+      #studioApp #games .games-library::after{content:"PLAYER 1";position:absolute;right:18px;bottom:18px;color:#ead9c8;font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em}
+      #studioApp #games .arcade-control-deck{position:absolute;left:20px;right:64px;bottom:14px;z-index:4;display:flex;align-items:end;justify-content:center;gap:21px;height:66px;border-top:4px solid #170d0b;border-radius:46% 46% 10px 10px/18px 18px 10px 10px;background:linear-gradient(180deg,#754432,#3a201a);box-shadow:inset 0 5px 8px rgba(255,220,164,.09),0 -4px 0 #180d0b}
+      #studioApp #games .arcade-joystick{--stick:#dd5c70;position:relative;display:block;width:38px;height:61px;filter:drop-shadow(0 5px 2px rgba(0,0,0,.35))}
+      #studioApp #games .arcade-joystick::before{content:"";position:absolute;left:50%;bottom:12px;width:7px;height:34px;border-radius:5px;background:linear-gradient(90deg,#171313,#555,#151111);transform:translateX(-50%) rotate(var(--tilt,0deg));transform-origin:50% 100%}
+      #studioApp #games .arcade-joystick::after{content:"";position:absolute;left:50%;top:0;width:27px;height:27px;border-radius:50%;background:radial-gradient(circle at 36% 27%,rgba(255,255,255,.58),transparent 24%),var(--stick);box-shadow:inset -4px -5px 7px rgba(0,0,0,.22),0 0 0 2px rgba(17,10,9,.58);transform:translateX(-50%)}
+      #studioApp #games .arcade-joystick>i{position:absolute;left:50%;bottom:5px;width:35px;height:13px;border:3px solid #140c0a;border-radius:50%;background:#281714;transform:translateX(-50%);box-shadow:inset 0 2px 0 rgba(255,255,255,.1)}
+      #studioApp #games .arcade-joystick.is-yellow{--stick:#efc548;--tilt:-7deg}#studioApp #games .arcade-joystick.is-red{--stick:rgb(var(--aura-rgb,216,95,109));--tilt:4deg}#studioApp #games .arcade-joystick.is-green{--stick:#5ca975;--tilt:-3deg}
+      @keyframes biglwa-arcade-static{0%{transform:translate(0,0)}25%{transform:translate(4%,-3%)}50%{transform:translate(-3%,4%)}75%{transform:translate(2%,3%)}100%{transform:translate(-2%,-2%)}}
 
       #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:lowercase!important}
       #studioApp .aura-card .aura-orb{animation:biglwa-aura-wobble 5.8s cubic-bezier(.45,.05,.55,.95) infinite;transform-origin:50% 50%;will-change:transform}
       @keyframes biglwa-aura-wobble{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}18%{transform:translate3d(4px,-3px,0) scale(1.055) rotate(-2.2deg)}42%{transform:translate3d(-3px,2px,0) scale(.965) rotate(1.8deg)}67%{transform:translate3d(3px,3px,0) scale(1.042) rotate(-1.4deg)}84%{transform:translate3d(-2px,-1px,0) scale(.985) rotate(1deg)}}
-      @media(prefers-reduced-motion:reduce){#studioApp .aura-card .aura-orb{animation:none!important}}
+      @media(prefers-reduced-motion:reduce){#studioApp .aura-card .aura-orb,#studioApp .games-arcade-brand::after,#studioApp .guest-check-lines-track{animation:none!important}}
 
       #guestCheckDialog,#studioLogsDialog{width:min(560px,calc(100vw - 28px));max-height:min(720px,calc(100vh - 28px));padding:0;border:1px solid rgba(73,59,52,.18);border-radius:20px;background:#f8f2ec;color:#201d1b;box-shadow:0 28px 90px rgba(28,17,13,.34);overflow:auto}
       #guestCheckDialog::backdrop,#studioLogsDialog::backdrop{background:rgba(24,17,15,.54);backdrop-filter:blur(8px)}
@@ -349,8 +374,9 @@
       card=document.createElement('section');
       card.id='guestCheckWidget';card.className='guest-check-card glass small-card customizable-widget';
       card.dataset.widgetId='guest-check';card.dataset.widgetLabel='Guest Check';card.dataset.widgetRoute='guest-check';
-      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
+      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
     }
+    if(!$('.guest-check-lines',card)){$('.visitor-log-actions',card)?.insertAdjacentHTML('beforebegin','<div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div>')}
     const guestDate=$('.guest-check-sheet-head time',card);if(guestDate)guestDate.textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
     syncGuestPermissions(card);
     updateGuestCount(card);
@@ -492,7 +518,21 @@
       return Array.isArray(legacy)?legacy.map(note=>({name:note.name||'',affirmation:note.message||'',gift:'💐',createdAt:note.createdAt||Date.now(),visibility:'device-preview'})):[];
     }catch{return[]}
   }
-  function updateGuestCount(card=$('#guestCheckWidget')){if(!card)return;const count=readGuestChecks().length,status=$('.visitor-log-count',card);if(status)status.textContent=count?`${count} guest check${count===1?'':'s'} saved in this browser`:(viewingOwnProfile()?'Guest book ready · only visitors can sign':'Be the first to say you wuz here')}
+  function renderGuestCheckWidgetLines(card=$('#guestCheckWidget')){
+    if(!card)return;
+    const viewport=$('.guest-check-lines',card),track=$('.guest-check-lines-track',card);if(!viewport||!track)return;
+    const entries=readGuestChecks().slice(-6).reverse(),scrolling=entries.length>2;
+    const sequence=entries.length?(scrolling?entries.concat(entries):entries):[{name:'',affirmation:'open for the next signature…',gift:'',placeholder:true}];
+    track.replaceChildren(...sequence.map(entry=>{
+      const line=document.createElement('div');line.className='guest-check-line'+(entry.placeholder?' is-placeholder':'');
+      if(entry.placeholder){line.textContent=entry.affirmation;return line}
+      line.append(document.createTextNode(`${entry.name||'Anonymous'} wuz here ${entry.gift||''}`.trim()));
+      if(entry.affirmation){const note=document.createElement('em');note.textContent=' · '+entry.affirmation;line.appendChild(note)}
+      return line;
+    }));
+    viewport.classList.toggle('is-filled',scrolling);
+  }
+  function updateGuestCount(card=$('#guestCheckWidget')){if(!card)return;const count=readGuestChecks().length,status=$('.visitor-log-count',card);if(status)status.textContent=count?`${count} guest check${count===1?'':'s'} saved in this browser`:(viewingOwnProfile()?'Guest book ready · only visitors can sign':'Be the first to say you wuz here');renderGuestCheckWidgetLines(card)}
 
   function renderGuestChecks(){
     const list=$('#visitorNoteList');if(!list)return;list.innerHTML='';
@@ -617,6 +657,35 @@
     if(guestMark&&!$('.guest-check-mark',guestMark))guestMark.innerHTML=STUDIO_ICONS.guest;
   }
 
+  function currentProfileUsername(){
+    try{const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');if(saved?.username)return '@'+String(saved.username).replace(/^@/,'')}catch{}
+    const handle=$('#studioApp .profile-name-line h1')?.textContent?.trim();return handle||'@username';
+  }
+
+  function ensureDiaryCover(){
+    const page=$('#studioApp #diary .diary-page');if(!page)return;
+    let label=$('.diary-cover-label',page);
+    if(!label){label=document.createElement('span');label.className='diary-cover-label';label.setAttribute('aria-hidden','true');label.innerHTML='<strong>Diary</strong><span></span>';page.appendChild(label)}
+    const owner=$('span',label);if(owner)owner.textContent='Property of: '+currentProfileUsername();
+  }
+
+  function ensureArcadeCabinet(){
+    const cabinet=$('#studioApp #games .games-library');if(!cabinet)return;
+    const brand=$('.games-arcade-brand',cabinet),logos=brand?$$('img',brand):[];
+    if(logos[1]){logos[1].src='/assets/arcade-wordmark.png?v=20260916-arcade-mask-1';logos[1].alt='ARCADE'}
+    let controls=$('.arcade-control-deck',cabinet);
+    if(!controls){
+      controls=document.createElement('div');controls.className='arcade-control-deck';controls.setAttribute('aria-hidden','true');
+      controls.innerHTML='<span class="arcade-joystick is-yellow"><i></i></span><span class="arcade-joystick is-red"><i></i></span><span class="arcade-joystick is-green"><i></i></span>';
+      cabinet.appendChild(controls);
+    }
+  }
+
+  function bindProfileVisualSync(){
+    if(document.body.dataset.biglwaProfileVisualSync==='1')return;document.body.dataset.biglwaProfileVisualSync='1';
+    window.addEventListener('biglwa:studio-update',event=>{if(event.detail?.source==='Profile')ensureDiaryCover();updateGuestCount()});
+  }
+
   function ensureGamesPreviewPicker(){
     const app=$('#studioApp'),quiz=$('#games .quiz',app);
     if(!app||!quiz)return;
@@ -735,7 +804,7 @@
     $$('[data-orbit-save="spotify"],[data-orbit-open="spotify"],[data-orbit-path="spotify"],[data-orbit-auth="spotify"]').forEach(item=>item.closest('.module-orbit-row')?.remove());
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify()}
+  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureDiaryCover();ensureArcadeCabinet();bindProfileVisualSync();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
