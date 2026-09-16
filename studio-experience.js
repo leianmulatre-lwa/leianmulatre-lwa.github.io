@@ -110,13 +110,14 @@
       #studioApp .visitor-log-actions button:first-child{background:var(--mail-accent);color:var(--aura-button-ink,#fff);border-color:transparent}
       #studioApp .visitor-log-count{margin-top:7px;font:8px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
       #studioApp .hero-widget-rail>.guest-check-card{position:relative;display:block!important;min-height:216px!important;padding:0!important;border-radius:var(--widget-radius,16px)!important;overflow:hidden!important}
-      #studioApp .guest-check-card>.card-kicker{position:absolute!important;left:35px;top:14px;z-index:5;margin:0!important;padding:0!important;color:#382e29!important;text-shadow:0 1px rgba(255,255,255,.72)}
+      #studioApp .guest-check-card>.card-kicker{display:none!important}
       #studioApp .guest-check-card>.widget-window-controls{position:absolute!important;right:13px!important;top:12px!important;z-index:7!important;margin:0!important}
       #studioApp .guest-check-card>.widget-drag-handle{top:10px!important;z-index:7!important}
-      #studioApp .guest-check-sheet{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;min-height:216px;margin:0!important;padding:38px 14px 12px 34px;border:0!important;border-radius:inherit;background:repeating-linear-gradient(to bottom,#fffdf5 0,#fffdf5 23px,rgba(92,142,178,.24) 24px);box-shadow:inset 17px 0 0 rgba(var(--aura-rgb,216,95,109),.82),inset 20px 0 0 rgba(193,75,88,.25);color:#2d2824;overflow:hidden}
-      #studioApp .guest-check-sheet::before{content:"";position:absolute;left:6px;top:10px;bottom:10px;width:6px;background:radial-gradient(circle,#fffdf5 0 2.2px,rgba(64,47,39,.3) 2.5px 3px,transparent 3.2px) 0 0/6px 20px repeat-y}
+      #studioApp .guest-check-sheet{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;min-height:216px;margin:0!important;padding:30px 14px 12px;border:0!important;border-radius:inherit;background:repeating-linear-gradient(to bottom,#fffdf5 0,#fffdf5 23px,rgba(92,142,178,.24) 24px);box-shadow:inset 0 7px 0 rgba(var(--aura-rgb,216,95,109),.78),inset 0 10px 0 rgba(var(--aura-rgb,216,95,109),.18);color:#2d2824;overflow:hidden}
+      #studioApp .guest-check-sheet::before{content:none}
       #studioApp .guest-check-sheet::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.26),transparent 28%,rgba(69,47,37,.025));mix-blend-mode:multiply}
-      #studioApp .guest-check-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid rgba(202,80,88,.35);font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em;color:#665851}
+      #studioApp .guest-check-sheet-head{display:grid;grid-template-columns:minmax(0,1fr) 72px;align-items:center;gap:8px;margin:0 0 6px;padding:0 0 5px;border-bottom:2px solid rgba(var(--aura-rgb,216,95,109),.52);font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em;color:#665851}
+      #studioApp .guest-check-sheet-head time{padding-left:8px;border-left:1px solid rgba(108,67,145,.42);text-align:right}
       #studioApp .guest-check-sheet-head time{letter-spacing:.04em;color:rgb(var(--aura-rgb,216,95,109))}
       #studioApp .guest-check-sheet .visitor-log-intro{margin:0 0 8px}
       #studioApp .guest-check-sheet .visitor-log-intro strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-size:15px;font-weight:400;text-transform:lowercase;color:#211d1a}
@@ -124,7 +125,10 @@
       #studioApp .guest-check-sheet .visitor-log-actions button:not(:first-child){background:rgba(255,253,244,.82);color:#39322d}
       #studioApp .guest-check-lines{position:relative;z-index:2;height:48px;margin:0 0 7px;overflow:hidden;background:rgba(255,253,245,.78)}
       #studioApp .guest-check-lines-track{display:flex;flex-direction:column;will-change:transform}
-      #studioApp .guest-check-line{box-sizing:border-box;display:flex;align-items:flex-end;height:24px;min-height:24px;padding:0 4px 3px;overflow:hidden;border-bottom:1px solid rgba(92,142,178,.24);color:#3c332e;font:700 9px/1.05 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+      #studioApp .guest-check-line{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 72px;align-items:end;gap:8px;height:24px;min-height:24px;padding:0 4px 3px;overflow:hidden;border-bottom:1px solid rgba(92,142,178,.24);color:#3c332e;font:700 9px/1.05 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;white-space:nowrap}
+      #studioApp .guest-check-entry{min-width:0;overflow:hidden;text-overflow:ellipsis}
+      #studioApp .guest-check-date{padding-left:8px;border-left:1px solid rgba(108,67,145,.3);color:#7d667f;font:700 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;text-align:right}
+      #studioApp .guest-check-line.is-placeholder{display:flex;align-items:flex-end}
       #studioApp .guest-check-line em{font-weight:500;color:#756861}
       #studioApp .guest-check-lines.is-filled .guest-check-lines-track{animation:biglwa-guest-lines-scroll 14s linear infinite}
       @keyframes biglwa-guest-lines-scroll{0%,8%{transform:translateY(0)}92%,100%{transform:translateY(-50%)}}
@@ -162,7 +166,7 @@
       #studioApp #diary .diary-cover-label strong{font-size:30px;line-height:1;transform:rotate(-1deg)}
       #studioApp #diary .diary-cover-label span{font-size:14px;line-height:1.1;transform:rotate(.4deg)}
 
-      #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 102px;border:9px solid #1c100e;border-radius:29px 29px 17px 17px;background:linear-gradient(90deg,#281310 0,#5e3327 12%,#754836 49%,#5b3025 87%,#25120f 100%);clip-path:polygon(5% 0,95% 0,100% 4%,100% 92%,96% 100%,4% 100%,0 92%,0 4%);box-shadow:inset 0 0 0 3px rgba(255,215,141,.14),inset 0 -76px 0 rgba(20,11,10,.55),inset 14px 0 18px rgba(0,0,0,.24),inset -14px 0 18px rgba(0,0,0,.24),0 21px 34px rgba(38,25,19,.24);overflow:hidden}
+      #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 102px;border:9px solid #1c100e;border-radius:29px 29px 17px 17px;background:linear-gradient(90deg,#281310 0,#5e3327 12%,#754836 49%,#5b3025 87%,#25120f 100%);clip-path:none;box-shadow:inset 0 0 0 3px rgba(255,215,141,.14),inset 0 -76px 0 rgba(20,11,10,.55),inset 14px 0 18px rgba(0,0,0,.24),inset -14px 0 18px rgba(0,0,0,.24),0 21px 34px rgba(38,25,19,.24);overflow:hidden}
       #studioApp #games .games-arcade-brand{position:relative;isolation:isolate;overflow:hidden;margin:-4px 8px 16px;padding:6px 24px 11px;border:5px solid #160e0c;border-radius:18px 18px 8px 8px;background:radial-gradient(circle at 50% 0,rgba(255,249,190,.7),transparent 58%),#f2c450;clip-path:polygon(5% 9%,19% 9%,24% 0,76% 0,81% 9%,95% 9%,100% 19%,100% 100%,0 100%,0 19%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
       #studioApp #games .games-arcade-brand::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) left 7px center/13px 18px repeat-y,radial-gradient(circle,#fff5ad 0 2.4px,#e8bc4c 2.7px 4px,transparent 4.3px) right 7px center/13px 18px repeat-y,repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(20,8,7,.11) 2px 3px);mix-blend-mode:normal}
       #studioApp #games .games-arcade-brand::after{content:"";position:absolute;inset:-35%;z-index:4;pointer-events:none;background:repeating-radial-gradient(circle at 25% 30%,rgba(255,255,255,.34) 0 1px,transparent 1px 4px),repeating-radial-gradient(circle at 75% 65%,rgba(47,9,18,.28) 0 1px,transparent 1px 5px);opacity:.16;animation:biglwa-arcade-static .42s steps(2,end) infinite}
@@ -170,7 +174,7 @@
       #studioApp #games .games-arcade-brand img:first-child{height:70px!important;margin:-12px auto -17px!important}
       #studioApp #games .games-arcade-brand img:last-child{width:min(90%,236px)!important;margin:-5px auto 0!important;mix-blend-mode:multiply!important}
       #studioApp #games .arcade-library-viewport{height:230px!important;padding:10px!important;border:10px solid #171313!important;border-radius:12px!important;background:#070909!important;clip-path:polygon(2% 0,98% 0,100% 100%,0 100%);box-shadow:inset 0 0 22px rgba(76,219,231,.16),0 6px 0 #0d0908!important;-webkit-mask-image:none!important;mask-image:none!important}
-      #studioApp #games .games-library::before{content:"25¢";position:absolute;right:21px;bottom:50px;z-index:5;display:grid;place-items:center;width:26px;height:34px;border:2px solid #090706;border-radius:4px;background:#191414;color:#e5c16e;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;box-shadow:inset 0 0 0 2px #4a3b35}
+      #studioApp #games .games-library::before{content:none}
       #studioApp #games .games-library::after{content:"PLAYER 1";position:absolute;right:18px;bottom:18px;color:#ead9c8;font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em}
       #studioApp #games .arcade-control-deck{position:absolute;left:20px;right:64px;bottom:14px;z-index:4;display:flex;align-items:end;justify-content:center;gap:21px;height:66px;border-top:4px solid #170d0b;border-radius:46% 46% 10px 10px/18px 18px 10px 10px;background:linear-gradient(180deg,#754432,#3a201a);box-shadow:inset 0 5px 8px rgba(255,220,164,.09),0 -4px 0 #180d0b}
       #studioApp #games .arcade-joystick{--stick:#dd5c70;position:relative;display:block;width:38px;height:61px;filter:drop-shadow(0 5px 2px rgba(0,0,0,.35))}
@@ -224,6 +228,15 @@
       #studioLogsDialog .studio-log-item span{margin-top:3px;font:10px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
       #studioLogsDialog .studio-log-item time{font:9px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;color:#8a817a;white-space:nowrap}
       #studioLogsDialog .studio-log-empty{padding:24px 22px 28px;color:#766e68;font:12px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;text-align:center}
+      #studioLogsDialog .studio-mail-tabs{display:flex;gap:6px;padding:12px 22px 0}
+      #studioLogsDialog .studio-mail-tabs button{border:1px solid rgba(73,59,52,.14);border-radius:999px;background:rgba(255,255,255,.45);color:inherit;padding:7px 11px;font:700 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+      #studioLogsDialog .studio-mail-tabs button[aria-selected="true"]{border-color:transparent;background:rgb(var(--aura-rgb,216,95,109));color:var(--aura-button-ink,#fff)}
+      #studioLogsDialog .studio-mail-pane[hidden]{display:none}
+      #studioLogsDialog .studio-message-pane{padding:16px 22px 22px}
+      #studioLogsDialog .studio-message-pane label{display:grid;gap:5px;margin-bottom:11px;font:750 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+      #studioLogsDialog .studio-message-pane input,#studioLogsDialog .studio-message-pane textarea{box-sizing:border-box;width:100%;padding:10px 11px;border:1px solid rgba(73,59,52,.18);border-radius:10px;background:rgba(255,255,255,.72);color:inherit;font:12px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;text-transform:none;letter-spacing:0;resize:vertical}
+      #studioLogsDialog .studio-message-pane button{border:0;border-radius:999px;background:#1d1b1a;color:#fff;padding:9px 14px;font:700 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+      #studioLogsDialog .studio-message-status{min-height:14px;margin:8px 0 0;color:#766e68;font:10px/1.4 Inter,ui-sans-serif,system-ui,sans-serif}
 
       #studioApp .sidebar-theme-btn .biglwa-theme-icon{display:none!important}
       #studioApp .sidebar-theme-btn img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;filter:brightness(0)!important;mix-blend-mode:normal!important}
@@ -307,9 +320,47 @@
       body.night-mode #guestCheckDialog .visitor-own-profile-state{color:#d8cec6}
       body.night-mode #guestCheckDialog .visitor-note-item,body.night-mode #studioLogsDialog .studio-log-item{background:rgba(255,255,255,.04)}
 
+      /* Compact the profile banner and top widget rail without changing their content. */
+      #studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:286px!important;min-height:286px!important;max-height:286px!important;grid-template-columns:150px minmax(0,1fr)!important;gap:16px!important;padding:12px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail{gap:7px!important;padding:8px 12px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{left:5px!important;width:100px!important;height:100px!important;border-radius:16px!important;font-size:46px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) #editProfileBtn{width:110px!important;max-width:110px!important;min-height:30px!important;padding:7px 10px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-rail-location{width:118px!important;font-size:10px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail>.weekly-mood-card{width:118px!important;min-height:52px!important;margin-top:0!important;padding:8px 9px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy{padding:18px 22px 56px 0!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-name-line h1{font-size:28px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .bio{font-size:14px!important;line-height:1.3!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .meta-row{margin-bottom:9px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .stats{padding-top:8px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:166px!important;right:24px!important;bottom:13px!important}
+      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.music-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.guest-check-card{height:184px!important;min-height:184px!important;max-height:184px!important;overflow:hidden!important}
+      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.music-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card{padding:14px 16px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet{min-height:184px!important;padding:28px 12px 8px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet-head{margin-bottom:3px!important;padding-bottom:3px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-intro{margin-bottom:4px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-lines{height:42px!important;margin-bottom:4px!important}
+
+      /* The editor preview uses the same three treatments as the saved mood card. */
+      #studioApp .profile-mood-preview{position:relative;box-sizing:border-box;width:min(240px,100%);min-height:84px;margin:12px 0 2px;padding:14px 16px;overflow:hidden;color:#2e2926;text-align:left}
+      #studioApp .weekly-mood-card[data-mood-style="diary"]{position:relative;border:1px solid #d9d3c8;border-left:1px solid #d9d3c8;border-radius:5px;background-color:#fffdf5;background-image:linear-gradient(90deg,transparent 0 12px,rgba(205,73,86,.42) 12px 13px,transparent 13px),repeating-linear-gradient(to bottom,transparent 0 15px,rgba(92,142,178,.24) 15px 16px);color:#2e2926}
+      #studioApp .weekly-mood-card[data-mood-style="widget"]{border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:var(--widget-radius,16px);background:var(--widget-bg,rgba(250,247,241,.84));color:var(--widget-ink,#171717);box-shadow:0 7px 18px rgba(var(--aura-rgb,216,95,109),.13)}
+      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]{position:relative;border:1px solid #dec665;border-radius:2px 2px 12px 2px;background:linear-gradient(145deg,#fff8b5 0,#f6df72 78%,#dfc455 100%);color:#372f28;box-shadow:2px 3px 0 rgba(72,56,36,.12);transform:rotate(-1deg)}
+      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]::after{content:"";position:absolute;right:0;bottom:0;width:15px;height:15px;background:linear-gradient(135deg,rgba(255,255,255,.1) 0 49%,#c6a944 50% 100%);clip-path:polygon(100% 0,100% 100%,0 100%)}
+
+      /* Sidebar and account actions stay legible in both appearance modes. */
+      #studioApp .profile-card .real-rank strong,body.night-mode #studioApp .profile-card .real-rank strong{color:#211e1c!important;-webkit-text-fill-color:#211e1c!important;text-shadow:none!important}
+      #studioApp #studioSignOut .studio-logout-icon{filter:brightness(0)!important}
+      body.night-mode #studioApp #studioSignOut .studio-logout-icon{filter:brightness(0) invert(1)!important}
+      body.night-mode #studioApp .sidebar,body.night-mode #studioApp .sidebar button,body.night-mode #studioApp .sidebar a{color:#f4eee8!important}
+      body.night-mode #studioApp .sidebar .sidebar-route-icon>img,body.night-mode #studioApp .sidebar .sidebar-route-icon img,body.night-mode #studioApp .sidebar .studio-symbol-image,body.night-mode #studioApp .sidebar .studio-symbol-source,body.night-mode #studioApp .sidebar-theme-btn img{filter:brightness(0) invert(1)!important}
+      body.night-mode #studioApp .card h2,body.night-mode #studioApp .card h3{font-family:Georgia,"Times New Roman",serif!important;font-synthesis:none!important;text-shadow:none!important}
+      body.night-mode #studioLogsDialog .studio-mail-tabs button{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.13)}
+      body.night-mode #studioLogsDialog .studio-mail-tabs button[aria-selected="true"]{background:rgb(var(--aura-rgb,216,95,109))}
+      body.night-mode #studioLogsDialog .studio-message-pane input,body.night-mode #studioLogsDialog .studio-message-pane textarea{background:#302c2a;border-color:#514a45;color:#f5eee7}
+
       @media(max-width:1020px){#studioApp .hero{grid-template-columns:minmax(0,1fr) 284px!important;padding-left:16px!important;padding-right:16px!important}}
       @media(max-width:900px){#studioApp .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;padding:62px 12px 34px!important}#studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important}#studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .hero>.hero-action-bar{grid-column:1!important;grid-row:3!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{min-height:132px!important}}
-      @media(max-width:700px){#studioApp .hero-widget-rail{grid-template-columns:1fr!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{min-height:112px!important}#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:0!important;overflow:hidden!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.12)!important}#studioApp .profile-card.profile-is-editing #wallpaperPanel.profile-inline-editor{grid-column:1!important;grid-row:2!important;padding:18px 16px 22px!important}#studioApp .profile-card.profile-is-editing .profile-editor-actions{grid-template-columns:1fr 1fr!important}#studioApp .profile-card.profile-is-editing .profile-update-privacy{grid-column:1/-1!important}#studioApp .profile-card.profile-is-editing .profile-editor-actions button{width:100%!important;min-width:0!important}#guestCheckDialog .guest-gift-picker{grid-template-columns:repeat(5,minmax(38px,1fr))}}
+      @media(max-width:700px){#studioApp .hero-widget-rail{grid-template-columns:1fr!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{height:auto!important;min-height:150px!important;max-height:none!important}#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:auto!important;min-height:286px!important;max-height:none!important;grid-template-columns:120px minmax(0,1fr)!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:18px!important;right:18px!important}#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:0!important;overflow:hidden!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.12)!important}#studioApp .profile-card.profile-is-editing #wallpaperPanel.profile-inline-editor{grid-column:1!important;grid-row:2!important;padding:18px 16px 22px!important}#studioApp .profile-card.profile-is-editing .profile-editor-actions{grid-template-columns:1fr 1fr!important}#studioApp .profile-card.profile-is-editing .profile-update-privacy{grid-column:1/-1!important}#studioApp .profile-card.profile-is-editing .profile-editor-actions button{width:100%!important;min-width:0!important}#guestCheckDialog .guest-gift-picker{grid-template-columns:repeat(5,minmax(38px,1fr))}}
       @media(prefers-reduced-motion:reduce){#studioApp .widget-dragging-active{transform:none!important}}
     `;
   }
@@ -376,8 +427,10 @@
       card=document.createElement('section');
       card.id='guestCheckWidget';card.className='guest-check-card glass small-card customizable-widget';
       card.dataset.widgetId='guest-check';card.dataset.widgetLabel='Guest Check';card.dataset.widgetRoute='guest-check';
-      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
+      card.innerHTML='<div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
     }
+    $(':scope > .card-kicker',card)?.remove();
+    $('[data-open-guest="direct"]',card)?.remove();
     $('.mailbox-mark',card)?.remove();
     if(!$('.guest-check-lines',card)){$('.visitor-log-actions',card)?.insertAdjacentHTML('beforebegin','<div class="guest-check-lines" aria-label="Recent Guest Check signatures"><div class="guest-check-lines-track"></div></div>')}
     const guestDate=$('.guest-check-sheet-head time',card);if(guestDate)guestDate.textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
@@ -529,8 +582,10 @@
     track.replaceChildren(...sequence.map(entry=>{
       const line=document.createElement('div');line.className='guest-check-line'+(entry.placeholder?' is-placeholder':'');
       if(entry.placeholder){line.textContent=entry.affirmation;return line}
-      line.append(document.createTextNode(`${entry.name||'Anonymous'} wuz here ${entry.gift||''}`.trim()));
-      if(entry.affirmation){const note=document.createElement('em');note.textContent=' · '+entry.affirmation;line.appendChild(note)}
+      const copy=document.createElement('span');copy.className='guest-check-entry';copy.append(document.createTextNode(`${entry.name||'Anonymous'} wuz here ${entry.gift||''}`.trim()));
+      if(entry.affirmation){const note=document.createElement('em');note.textContent=' · '+entry.affirmation;copy.appendChild(note)}
+      const date=document.createElement('time');date.className='guest-check-date';date.dateTime=new Date(entry.createdAt||Date.now()).toISOString();date.textContent=new Date(entry.createdAt||Date.now()).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      line.append(copy,date);
       return line;
     }));
     viewport.classList.toggle('is-filled',scrolling);
@@ -558,22 +613,21 @@
     let dialog=$('#guestCheckDialog');if(dialog)return dialog;
     const gifts=['💐','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','🩷','🩵','🩶','✌🏽','💸','😻'];
     const giftOptions=gifts.map((gift,index)=>`<label><input type="radio" name="guestGift" value="${gift}" ${index===0?'checked':''}><span title="${gift}" aria-label="${gift}">${gift}</span></label>`).join('');
-    dialog=document.createElement('dialog');dialog.id='guestCheckDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Guest Check</h2><p>Leave a little proof that you passed through.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><div class="visitor-dialog-tabs" role="tablist"><button type="button" role="tab" data-visitor-tab="public" aria-controls="visitorPublicPane">Guest Check</button><button type="button" role="tab" data-visitor-tab="direct" aria-controls="visitorDirectPane">Direct message</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><p class="visitor-own-profile-state" id="visitorOwnProfileState" hidden>This is your profile. You can read Guest Check entries here, but only visitors can leave one.</p><form id="visitorPublicForm"><label>Name<input id="visitorNoteName" maxlength="60" autocomplete="name" placeholder="Your name"></label><label>Affirmation<textarea id="visitorNoteText" rows="3" maxlength="280" placeholder="Leave something kind…" required></textarea></label><div class="guest-gift-label">Add a gift</div><div class="guest-gift-picker" role="radiogroup" aria-label="Choose a Guest Check gift">'+giftOptions+'</div><button class="visitor-dialog-primary" type="submit">Say I wuz here</button><p class="visitor-form-note">Guest Check entries stay in this browser until public profiles and moderation are connected.</p><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section><section class="visitor-dialog-pane" id="visitorDirectPane" data-visitor-pane="direct" hidden><div class="encryption-readiness"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg><div><strong>Encrypted draft storage is active</strong><span>Actual user-to-user E2EE stays off until recipient-key verification and ciphertext-only backend rules are connected.</span></div></div><form id="visitorDirectForm"><label>To<input id="visitorDirectTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="visitorDirectText" rows="5" maxlength="2000" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save encrypted draft</button><p class="visitor-form-status" id="visitorDirectStatus" role="status" aria-live="polite"></p></form></section>';
+    dialog=document.createElement('dialog');dialog.id='guestCheckDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Guest Check</h2><p>Leave a little proof that you passed through.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><p class="visitor-own-profile-state" id="visitorOwnProfileState" hidden>This is your profile. You can read Guest Check entries here, but only visitors can leave one.</p><form id="visitorPublicForm"><label>Name<input id="visitorNoteName" maxlength="60" autocomplete="name" placeholder="Your name"></label><label>Affirmation<textarea id="visitorNoteText" rows="3" maxlength="280" placeholder="Leave something kind…" required></textarea></label><div class="guest-gift-label">Add a gift</div><div class="guest-gift-picker" role="radiogroup" aria-label="Choose a Guest Check gift">'+giftOptions+'</div><button class="visitor-dialog-primary" type="submit">Say I wuz here</button><p class="visitor-form-note">Guest Check entries stay in this browser until public profiles and moderation are connected.</p><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section>';
     document.body.appendChild(dialog);
     const showTab=key=>{$$('[data-visitor-tab]',dialog).forEach(tab=>tab.setAttribute('aria-selected',tab.dataset.visitorTab===key?'true':'false'));$$('[data-visitor-pane]',dialog).forEach(pane=>pane.hidden=pane.dataset.visitorPane!==key)};
     dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-visitor-tab]');if(tab)showTab(tab.dataset.visitorTab);if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});
     $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncGuestPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot sign Guest Check on your own profile.';return}const affirmation=$('#visitorNoteText',dialog).value.trim();if(!affirmation)return;const gift=$('input[name="guestGift"]:checked',dialog)?.value||'💐',checks=readGuestChecks();checks.push({name:$('#visitorNoteName',dialog).value.trim(),affirmation,gift,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(GUEST_KEY,JSON.stringify(checks.slice(-50)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Your Guest Check is saved on this device.';renderGuestChecks();updateGuestCount()});
-    $('#visitorDirectForm',dialog).addEventListener('submit',async event=>{event.preventDefault();const to=$('#visitorDirectTo',dialog).value.trim(),message=$('#visitorDirectText',dialog).value.trim(),status=$('#visitorDirectStatus',dialog);if(!to||!message)return;status.textContent='Encrypting draft on this device…';try{await saveEncryptedDraft(to,message);$('#visitorDirectText',dialog).value='';status.textContent='Encrypted draft saved on this device. It has not been sent.'}catch{status.textContent='Encrypted draft storage is unavailable in this browser.'}});
     dialog._showVisitorTab=showTab;syncGuestPermissions();showTab('public');renderGuestChecks();return dialog;
   }
 
-  function openGuestDialog(tab='public'){
-    const dialog=ensureGuestDialog();syncGuestPermissions();dialog._showVisitorTab?.(tab);renderGuestChecks();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
+  function openGuestDialog(){
+    const dialog=ensureGuestDialog();syncGuestPermissions();dialog._showVisitorTab?.('public');renderGuestChecks();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
   }
 
   function bindGuestActions(){
     const app=$('#studioApp');if(!app||app.dataset.guestActions==='1')return;app.dataset.guestActions='1';
-    app.addEventListener('click',event=>{const button=event.target.closest('[data-open-guest]');if(!button)return;event.preventDefault();openGuestDialog(button.dataset.openGuest==='direct'?'direct':'public')});
+    app.addEventListener('click',event=>{const button=event.target.closest('[data-open-guest]');if(!button)return;event.preventDefault();openGuestDialog()});
   }
 
   function readActivity(){try{const items=JSON.parse(localStorage.getItem(ACTIVITY_KEY)||'[]');return Array.isArray(items)?items:[]}catch{return[]}}
@@ -595,11 +649,15 @@
   }
   function ensureLogsDialog(){
     let dialog=$('#studioLogsDialog');if(dialog)return dialog;
-    dialog=document.createElement('dialog');dialog.id='studioLogsDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Logs</h2><p>Studio changes and whether followers or connections were notified.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close Logs">×</button></div><div class="studio-log-list" id="studioLogList"></div>';
-    document.body.appendChild(dialog);dialog.addEventListener('click',event=>{if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});return dialog;
+    dialog=document.createElement('dialog');dialog.id='studioLogsDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Logs</h2><p>Studio updates and private messages share this mail path.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close Logs">×</button></div><div class="studio-mail-tabs" role="tablist"><button type="button" role="tab" data-studio-mail-tab="updates">Updates</button><button type="button" role="tab" data-studio-mail-tab="messages">Messages</button></div><section class="studio-mail-pane" data-studio-mail-pane="updates"><div class="studio-log-list" id="studioLogList"></div></section><section class="studio-mail-pane studio-message-pane" data-studio-mail-pane="messages" hidden><form id="studioMessageForm"><label>To<input id="studioMessageTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="studioMessageText" rows="5" maxlength="2000" required></textarea></label><button type="submit">Save encrypted draft</button><p class="studio-message-status" id="studioMessageStatus" role="status" aria-live="polite"></p></form></section>';
+    document.body.appendChild(dialog);
+    const showTab=key=>{$$('[data-studio-mail-tab]',dialog).forEach(tab=>tab.setAttribute('aria-selected',tab.dataset.studioMailTab===key?'true':'false'));$$('[data-studio-mail-pane]',dialog).forEach(pane=>{pane.hidden=pane.dataset.studioMailPane!==key})};
+    dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-studio-mail-tab]');if(tab)showTab(tab.dataset.studioMailTab);if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});
+    $('#studioMessageForm',dialog)?.addEventListener('submit',async event=>{event.preventDefault();const to=$('#studioMessageTo',dialog).value.trim(),message=$('#studioMessageText',dialog).value.trim(),status=$('#studioMessageStatus',dialog);if(!to||!message)return;status.textContent='Encrypting draft on this device…';try{await saveEncryptedDraft(to,message);$('#studioMessageText',dialog).value='';status.textContent='Encrypted draft saved on this device. It has not been sent.'}catch{status.textContent='Encrypted draft storage is unavailable in this browser.'}});
+    dialog._showStudioMailTab=showTab;showTab('updates');return dialog;
   }
   function openLogs(){
-    const dialog=ensureLogsDialog();renderLogs();try{localStorage.setItem(ACTIVITY_READ_KEY,String(Date.now()))}catch{}updateLogsDot();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
+    const dialog=ensureLogsDialog();dialog._showStudioMailTab?.('updates');renderLogs();try{localStorage.setItem(ACTIVITY_READ_KEY,String(Date.now()))}catch{}updateLogsDot();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
   }
   function bindActivity(){
     if(document.body.dataset.biglwaActivityBound==='1')return;document.body.dataset.biglwaActivityBound='1';

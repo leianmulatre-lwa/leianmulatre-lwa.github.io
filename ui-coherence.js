@@ -168,7 +168,7 @@
       #studioApp .sidebar-shortcut-drag:hover,#studioApp .sidebar-shortcut-action:hover{background:rgba(255,255,255,.58);color:inherit}
       #studioApp .sidebar-navigation-row.is-available::after,#studioApp .sidebar-widget-restore-row.is-minimized::after{content:"";position:absolute;right:20px;top:4px;width:6px;height:6px;border-radius:50%;pointer-events:none}
       #studioApp .sidebar-navigation-row.is-available::after{border:1px solid #5b9e6f;background:rgba(91,158,111,.14);box-shadow:0 0 0 2px rgba(91,158,111,.08)}
-      #studioApp .sidebar-widget-restore-row.is-minimized::after{background:#d85d66;box-shadow:0 0 0 2px rgba(216,93,102,.14)}
+      #studioApp .sidebar-widget-restore-row.is-minimized::after{background:#5b9e6f;box-shadow:0 0 0 2px rgba(91,158,111,.14)}
       #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.22)}
       #studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{content:"";position:absolute;right:7px;top:50%;width:9px;height:9px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 42% 40%,rgba(255,255,255,.94) 0 11%,rgb(var(--aura-rgb,216,95,109)) 36%,rgba(var(--aura-rgb,216,95,109),.18) 72%,transparent 74%);box-shadow:0 0 9px rgba(var(--aura-rgb,216,95,109),.72);animation:biglwa-sidebar-aura 3.8s ease-in-out infinite}
       #studioApp .sidebar-shortcuts .minimized-label{display:none!important}
@@ -188,6 +188,9 @@
       #studioApp .sidebar-shortcut-save:hover{background:rgba(255,255,255,.68)}
       @keyframes biglwa-sidebar-aura{0%,100%{transform:translateY(-50%) scale(.88) translateX(0)}35%{transform:translateY(-56%) scale(1.08) translateX(-1px)}68%{transform:translateY(-45%) scale(.96) translateX(1px)}}
       body.night-mode #studioApp .sidebar-section{background:linear-gradient(90deg,rgba(var(--sidebar-section-rgb),.12),rgba(var(--sidebar-section-rgb),.025) 78%,transparent)}
+      #studioApp .sidebar,#studioApp .sidebar button,#studioApp .sidebar a{color:#282523!important}
+      body.night-mode #studioApp .sidebar,body.night-mode #studioApp .sidebar button,body.night-mode #studioApp .sidebar a{color:#f4eee8!important}
+      body.night-mode #studioApp .sidebar .sidebar-route-icon>img,body.night-mode #studioApp .sidebar .sidebar-route-icon img,body.night-mode #studioApp .sidebar .studio-symbol-image,body.night-mode #studioApp .sidebar .studio-symbol-source{filter:brightness(0) invert(1)!important}
       body.night-mode #studioApp .sidebar-route-control:hover,body.night-mode #studioApp .sidebar-shortcut-open:hover,body.night-mode #studioApp .sidebar-navigation-open:hover,body.night-mode #studioApp .sidebar-shortcut-drag:hover,body.night-mode #studioApp .sidebar-shortcut-action:hover{background:rgba(255,255,255,.08)}
       body.night-mode #studioApp .sidebar-shortcut-drag,body.night-mode #studioApp .sidebar-shortcut-action{color:rgba(240,231,224,.58)}
       body.sidebar-collapsed #studioApp .sidebar-section{padding:7px 3px;border-left-width:2px}
@@ -347,14 +350,16 @@
 
     const legacyNavigation=$$(':scope > nav a,:scope > nav button',top);
     legacyNavigation.forEach((control,index)=>rememberNavigation(control,SHORTCUT_LIMIT+index));
-    const obsoletePrimary=$('#studioSidebarPrimary',top);
+    let primary=$('#studioSidebarPrimary',top);
+    if(!primary){primary=document.createElement('section');primary.id='studioSidebarPrimary';primary.className='sidebar-section sidebar-primary-widgets';primary.setAttribute('aria-label','Widgets minimized from the Studio')}
     let shortcuts=$('#studioSidebarShortcuts',top);
     if(!shortcuts){shortcuts=document.createElement('section');shortcuts.id='studioSidebarShortcuts';shortcuts.className='sidebar-section sidebar-shortcuts';shortcuts.setAttribute('aria-label','Shortcut bar, maximum eight');shortcuts.innerHTML='<nav id="studioSidebarShortcutDock" aria-label="Shortcut bar destinations"></nav><p class="sidebar-shortcut-status" role="status" aria-live="polite"></p><button class="sidebar-shortcut-save" id="saveSidebarShortcuts" type="button">Save shortcuts</button>'}
     if(!$('#saveSidebarShortcuts',shortcuts)){const save=document.createElement('button');save.id='saveSidebarShortcuts';save.className='sidebar-shortcut-save';save.type='button';save.textContent='Save shortcuts';shortcuts.appendChild(save)}
-    if(shortcuts.previousElementSibling!==toggle)toggle.insertAdjacentElement('afterend',shortcuts);
+    if(primary.previousElementSibling!==toggle)toggle.insertAdjacentElement('afterend',primary);
+    if(shortcuts.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',shortcuts);
     let rest=$('#studioSidebarRest',top);
     if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';top.appendChild(rest)}
-    rest.setAttribute('aria-label','Available shortcuts and widgets minimized from the Studio');
+    rest.setAttribute('aria-label','Available shortcut destinations');
     $$(':scope > nav',top).forEach(nav=>nav.remove());
     $$(':scope > nav:not(#studioSidebarAvailableDock),:scope > .sidebar-navigation-row,:scope > [data-sidebar-widget]',rest).forEach(item=>item.remove());
     let availableDock=$('#studioSidebarAvailableDock',rest);
@@ -362,9 +367,9 @@
     let widgetDockSection=$('#minimizedWidgets',top);
     if(!widgetDockSection){widgetDockSection=document.createElement('div');widgetDockSection.id='minimizedWidgets';widgetDockSection.className='minimized-widgets';widgetDockSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div><div class="minimized-widget-dock" id="minimizedWidgetDock"></div>'}
     widgetDockSection.hidden=false;widgetDockSection.classList.remove('sidebar-section','sidebar-shortcuts');widgetDockSection.setAttribute('aria-label','Widgets closed from the Studio');
-    if(widgetDockSection.parentElement!==rest)rest.appendChild(widgetDockSection);
-    obsoletePrimary?.remove();
-    rest.hidden=!$('[data-sidebar-route-row]',availableDock)&&!$('[data-shortcut-row]',widgetDockSection);
+    if(widgetDockSection.parentElement!==primary)primary.appendChild(widgetDockSection);
+    primary.hidden=!$('[data-shortcut-row]',widgetDockSection);
+    rest.hidden=!$('[data-sidebar-route-row]',availableDock);
   }
 
   const navigationCatalog=new Map();
@@ -432,7 +437,7 @@
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
     if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
-    rest.hidden=!available.length&&!$('[data-shortcut-row]',rest);
+    rest.hidden=!available.length;
     bindSidebarShortcutDrag(app);
   }
 
@@ -482,7 +487,7 @@
   }
   function shortcutButtonMarkup(widget){
     const id=widget.dataset.widgetId,label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' '),route=widget.dataset.widgetRoute||id;
-    const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget),icon=source?source.innerHTML:(label.trim()[0]||'•').toUpperCase();
+    const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget),fallbackIcons={music:'♫',aura:'◌','guest-check':'✓'},icon=source?source.innerHTML:(fallbackIcons[id]||(label.trim()[0]||'•').toUpperCase());
     const row=document.createElement('div');row.className='sidebar-shortcut-row sidebar-widget-restore-row is-minimized';row.dataset.shortcutRow=id;row.dataset.widgetRoute=route;row.dataset.shortcutZone='minimized';row.title=`${label} · minimized from the Studio`;
     const spacer=document.createElement('span');spacer.setAttribute('aria-hidden','true');
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
@@ -492,8 +497,9 @@
   }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
-    const rest=$('#studioSidebarRest',app),dock=$('#minimizedWidgetDock',rest||app);if(!rest||!dock)return;
-    rest.hidden=!$('[data-sidebar-route-row]',rest)&&!$('[data-shortcut-row]',dock);
+    const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),dock=$('#minimizedWidgetDock',primary||app);if(!primary||!dock)return;
+    primary.hidden=!$('[data-shortcut-row]',dock);
+    if(rest)rest.hidden=!$('[data-sidebar-route-row]',rest);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
@@ -544,9 +550,11 @@
     const getApp=()=>$('#studioApp');
     const syncDock=(dock,section)=>{if(section)section.hidden=!$('[data-shortcut-row]',dock)};
     const ensureDock=app=>{
-      let section=$('#minimizedWidgets',app),dock=$('#minimizedWidgetDock',app);
-      if(!section){section=document.createElement('div');section.id='minimizedWidgets';section.className='minimized-widgets';section.setAttribute('aria-label','Widgets closed from the Studio');section.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';($('#studioSidebarRest',app)||$('.sidebar-top',app)||app).appendChild(section)}
-      if(!dock){dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';section.appendChild(dock)}
+      let section=$('#studioSidebarPrimary',app),mount=$('#minimizedWidgets',app),dock=$('#minimizedWidgetDock',app);
+      if(!section){section=document.createElement('section');section.id='studioSidebarPrimary';section.className='sidebar-section sidebar-primary-widgets';section.setAttribute('aria-label','Widgets minimized from the Studio');const shortcuts=$('#studioSidebarShortcuts',app),top=$('.sidebar-top',app)||app;if(shortcuts)shortcuts.insertAdjacentElement('beforebegin',section);else top.appendChild(section)}
+      if(!mount){mount=document.createElement('div');mount.id='minimizedWidgets';mount.className='minimized-widgets';mount.setAttribute('aria-label','Widgets closed from the Studio');mount.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';section.appendChild(mount)}
+      if(mount.parentElement!==section)section.appendChild(mount);
+      if(!dock){dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';mount.appendChild(dock)}
       return {section,dock};
     };
     const saveMinimized=app=>writeWidgetShortcuts($$(widgetSelector,app).filter(widget=>widget.classList.contains('widget-is-minimized')).map(widget=>widget.dataset.widgetId).filter(Boolean));
@@ -628,13 +636,16 @@
 
   function ensureWidgetActions(){
     const app=$('#studioApp'),sidebar=$('#studioApp .sidebar');if(!app)return;
-    let minimizedSection=sidebar?$('#minimizedWidgets',sidebar):$('#minimizedWidgets',app);
+    let minimizedSection=sidebar?$('#studioSidebarPrimary',sidebar):$('#studioSidebarPrimary',app);
+    let minimizedMount=sidebar?$('#minimizedWidgets',sidebar):$('#minimizedWidgets',app);
     let dock=sidebar?$('#minimizedWidgetDock',sidebar):$('#minimizedWidgetDock',app);
     if(!dock){
-      if(!minimizedSection){minimizedSection=document.createElement('div');minimizedSection.id='minimizedWidgets';minimizedSection.className='minimized-widgets';minimizedSection.setAttribute('aria-label','Widgets closed from the Studio');minimizedSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';const top=$('#studioSidebarRest',sidebar)||$('.sidebar-top',sidebar)||sidebar||app;top.appendChild(minimizedSection)}
-      dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';minimizedSection.appendChild(dock);
+      if(!minimizedSection){minimizedSection=document.createElement('section');minimizedSection.id='studioSidebarPrimary';minimizedSection.className='sidebar-section sidebar-primary-widgets';minimizedSection.setAttribute('aria-label','Widgets minimized from the Studio');const shortcuts=$('#studioSidebarShortcuts',sidebar||app),top=$('.sidebar-top',sidebar)||sidebar||app;if(shortcuts)shortcuts.insertAdjacentElement('beforebegin',minimizedSection);else top.appendChild(minimizedSection)}
+      if(!minimizedMount){minimizedMount=document.createElement('div');minimizedMount.id='minimizedWidgets';minimizedMount.className='minimized-widgets';minimizedMount.setAttribute('aria-label','Widgets closed from the Studio');minimizedMount.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';minimizedSection.appendChild(minimizedMount)}
+      dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';minimizedMount.appendChild(dock);
     }
-    const syncDock=()=>{const red=$('#studioSidebarRest',app);if(red)red.hidden=!$('[data-sidebar-route-row]',red)&&!$('[data-shortcut-row]',dock);if(minimizedSection)minimizedSection.hidden=false};
+    if(minimizedMount&&minimizedMount.parentElement!==minimizedSection)minimizedSection.appendChild(minimizedMount);
+    const syncDock=()=>{const red=$('#studioSidebarRest',app);if(red)red.hidden=!$('[data-sidebar-route-row]',red);if(minimizedSection)minimizedSection.hidden=!$('[data-shortcut-row]',dock)};
     const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
     const widgets=$$(selector,app);
     const minimized=readWidgetShortcuts();
@@ -830,6 +841,11 @@
       profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Qwiky Note</option><option value="diary">Diary</option><option value="widget">Widget</option></select></label></div>';
       if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
+    let moodPreview=$('#profileMoodPreview',profileSection);
+    if(!moodPreview){
+      moodPreview=document.createElement('div');moodPreview.id='profileMoodPreview';moodPreview.className='weekly-mood-card profile-mood-preview';moodPreview.setAttribute('aria-label','Mood card preview');moodPreview.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">add this week’s #mood</strong>';
+      $('.profile-editor-grid',profileSection)?.insertAdjacentElement('afterend',moodPreview);
+    }
     profileSection.dataset.profileEditorPane='profile';profileSection.setAttribute('role','tabpanel');
     let mediaSection=$('#profileMediaEditor',panel);
     if(!mediaSection){mediaSection=document.createElement('div');mediaSection.id='profileMediaEditor';mediaSection.className='customize-section profile-media-section';mediaSection.dataset.profileEditorPane='media';mediaSection.setAttribute('role','tabpanel');mediaSection.innerHTML='<h3>Song &amp; Aura</h3><p>Choose the song shown on your card and write the words beneath your Aura.</p><div id="profileSongEditorMount" class="profile-song-editor-mount"><span class="profile-song-editor-wait">Song controls are connecting…</span></div><label class="profile-aura-text-label">Aura text<textarea id="profileAuraTextInput" rows="2" maxlength="100" placeholder="Focused&#10;but dreaming."></textarea></label>';panel.appendChild(mediaSection)}
@@ -853,6 +869,12 @@
     actions.hidden=false;saveAction.hidden=false;cancelAction.hidden=false;
     const showTab=key=>{$$('[data-profile-editor-pane]',panel).forEach(pane=>{pane.hidden=pane.dataset.profileEditorPane!==key});$$('[data-profile-editor-tab]',tabs).forEach(tab=>{const active=tab.dataset.profileEditorTab===key;tab.setAttribute('aria-selected',active?'true':'false');tab.tabIndex=active?0:-1})};
     if(tabs.dataset.biglwaTabsBound!=='1'){tabs.dataset.biglwaTabsBound='1';tabs.addEventListener('click',event=>{const tab=event.target.closest('[data-profile-editor-tab]');if(tab)showTab(tab.dataset.profileEditorTab)})}
+    const syncMoodPreview=()=>renderWeeklyMood(moodPreview,$('#profileMoodInput',panel)?.value.trim()||'add this week’s #mood',$('#profileMoodStyle',panel)?.value||'qwiky-note');
+    if(profileSection.dataset.biglwaMoodPreviewBound!=='1'){
+      profileSection.dataset.biglwaMoodPreviewBound='1';
+      profileSection.addEventListener('input',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
+      profileSection.addEventListener('change',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
+    }
     const fillEditor=()=>{
       $('#profileNameInput',panel).value=display?display.textContent.trim():'';
       $('#profileUsernameInput',panel).value=handle?handle.textContent.trim().replace(/^@/,''):'';
@@ -864,6 +886,7 @@
       $('#profileMoodInput',panel).value=moodValue==='add this week’s #mood'?'':moodValue;
       $('#profileMoodStyle',panel).value=moodCard.dataset.moodStyle||'qwiky-note';
       const aura=$('#studioApp .aura-card p');$('#profileAuraTextInput',panel).value=aura?aura.innerText.trim():'Focused\nbut dreaming.';
+      syncMoodPreview();
     };
     let button=$('#editProfileBtn',card);
     const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');panel.hidden=true;button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
@@ -877,10 +900,11 @@
     if(saveButton&&saveButton.dataset.biglwaProfileBound!=='3'){
       saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',()=>{
         const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim(),mood:$('#profileMoodInput',panel).value.trim(),moodStyle:$('#profileMoodStyle',panel).value,auraText:$('#profileAuraTextInput',panel).value.trim()};
-        localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));window.BIGLWAStudioAppearance?.save?.();
+        try{localStorage.setItem('biglwaProfileDetails',JSON.stringify(details))}catch{}
+        try{window.BIGLWAStudioAppearance?.save?.()}catch{}
         if(display)display.textContent=details.name||'Your Name';if(handle)handle.textContent='@'+(details.username||'username');if(bio)bio.textContent=details.bio;
         if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
-        renderWeeklyMood(moodCard,details.mood,details.moodStyle);renderAuraCopy(details.auraText);$('#saveStudioMusicMeta',panel)?.click();
+        renderWeeklyMood(moodCard,details.mood,details.moodStyle);renderWeeklyMood(moodPreview,details.mood,details.moodStyle);renderAuraCopy(details.auraText);$('#saveStudioMusicMeta',panel)?.click();
         window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity, mood, song, Aura, and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
         endEdit();
       })
