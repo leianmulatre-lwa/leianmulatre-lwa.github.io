@@ -690,6 +690,21 @@
     app.addEventListener('pointercancel',()=>{if(dragStart)dragStart.widget.classList.remove('widget-dragging');if(dragSlot)dragSlot.classList.remove('biglwa-drop-slot');if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);ghost=null;dragSlot=null;dragStart=null;dragMove=0});
   }
 
+  function renderWeeklyMood(card,text='add this week’s #mood',style='qwiky-note'){
+    if(!card)return;
+    const allowed=new Set(['diary','widget','qwiky-note']);
+    card.dataset.moodStyle=allowed.has(style)?style:'qwiky-note';
+    const value=$('.weekly-mood-value',card);if(value)value.textContent=text||'add this week’s #mood';
+  }
+
+  function renderAuraCopy(text='Focused\nbut dreaming.'){
+    const copy=$('#studioApp .aura-card p');if(!copy)return;
+    const lines=String(text||'Focused\nbut dreaming.').split(/\n+/).map(line=>line.trim()).filter(Boolean);
+    copy.replaceChildren();
+    const lead=document.createElement('strong');lead.textContent=lines.shift()||'Focused';copy.appendChild(lead);
+    if(lines.length)copy.appendChild(document.createElement('br'),document.createTextNode(lines.join(' ')));
+  }
+
   function ensureProfileEditor(){
     const card=$('#studioApp .profile-card'); if(!card)return;
     card.style.visibility='visible';card.style.opacity='1';
@@ -706,6 +721,8 @@
     }
     let railLocation=$('.profile-rail-location',rail);
     if(!railLocation){railLocation=document.createElement('div');railLocation.className='profile-rail-location';railLocation.textContent=meta&&$('span',meta)?$('span',meta).textContent.replace(/^⌖\s*/,''):'';rail.appendChild(railLocation)}
+    let moodCard=$('#weeklyMoodCard',rail);
+    if(!moodCard){moodCard=document.createElement('div');moodCard.id='weeklyMoodCard';moodCard.className='weekly-mood-card';moodCard.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">add this week’s #mood</strong>';rail.appendChild(moodCard)}
     const stats=$('.stats',card);
     if(stats&&!$('[data-profile-stat="projects"]',stats)){
       const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>24</b> Projects';
@@ -724,6 +741,8 @@
         if(location&&saved.location)location.textContent='⌖ '+saved.location;const railLocation=$('.profile-rail-location',card);if(railLocation&&saved.location)railLocation.textContent=saved.location;
         if(website&&saved.website){website.textContent=saved.website;website.href=/^https?:\/\//.test(saved.website)?saved.website:'https://'+saved.website}
       }
+      renderWeeklyMood(moodCard,saved.mood,saved.moodStyle);
+      if(saved.auraText)renderAuraCopy(saved.auraText);
     }
     const panel=$('#wallpaperPanel');if(!panel)return;
     panel.classList.remove('wallpaper-panel','glass');
@@ -735,15 +754,18 @@
     let profileSection=$('#profileDetailsEditor',panel);
     if(!profileSection){
       profileSection=document.createElement('div');profileSection.className='customize-section profile-details-section';profileSection.id='profileDetailsEditor';
-      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label></div>';
+      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Qwiky Note</option><option value="diary">Diary</option><option value="widget">Widget</option></select></label></div>';
       if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
     profileSection.dataset.profileEditorPane='profile';profileSection.setAttribute('role','tabpanel');
-    const sections=$$('.customize-section',panel),wallpaperSection=sections.find(section=>section!==profileSection&&!section.classList.contains('widget-style-section')),widgetSection=sections.find(section=>section.classList.contains('widget-style-section'));
+    let mediaSection=$('#profileMediaEditor',panel);
+    if(!mediaSection){mediaSection=document.createElement('div');mediaSection.id='profileMediaEditor';mediaSection.className='customize-section profile-media-section';mediaSection.dataset.profileEditorPane='media';mediaSection.setAttribute('role','tabpanel');mediaSection.innerHTML='<h3>Song &amp; Aura</h3><p>Choose the song shown on your card and write the words beneath your Aura.</p><div id="profileSongEditorMount" class="profile-song-editor-mount"><span class="profile-song-editor-wait">Song controls are connecting…</span></div><label class="profile-aura-text-label">Aura text<textarea id="profileAuraTextInput" rows="2" maxlength="100" placeholder="Focused&#10;but dreaming."></textarea></label>';panel.appendChild(mediaSection)}
+    const sections=$$('.customize-section',panel),wallpaperSection=sections.find(section=>section!==profileSection&&section!==mediaSection&&!section.classList.contains('widget-style-section')),widgetSection=sections.find(section=>section.classList.contains('widget-style-section'));
     if(wallpaperSection){wallpaperSection.id=wallpaperSection.id||'profileWallpaperEditor';wallpaperSection.dataset.profileEditorPane='wallpaper';wallpaperSection.setAttribute('role','tabpanel')}
     if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel')}
     let tabs=$('#profileEditorTabs',panel);
-    if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
+    if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileMediaEditor" data-profile-editor-tab="media">Song &amp; Aura</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
+    if(!tabs.querySelector('[data-profile-editor-tab="media"]')){const mediaTab=document.createElement('button');mediaTab.type='button';mediaTab.setAttribute('role','tab');mediaTab.setAttribute('aria-controls','profileMediaEditor');mediaTab.dataset.profileEditorTab='media';mediaTab.textContent='Song & Aura';tabs.querySelector('[data-profile-editor-tab="wallpaper"]')?.insertAdjacentElement('beforebegin',mediaTab)}
     let actions=$('#profileEditorActions',panel);
     if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';panel.appendChild(actions)}
     let saveAction=$('#saveProfileBtn',actions);if(!saveAction){saveAction=document.createElement('button');saveAction.type='button';saveAction.className='secondary-btn profile-editor-save';saveAction.id='saveProfileBtn';saveAction.textContent='Save changes';actions.appendChild(saveAction)}
@@ -765,6 +787,10 @@
       const loc=meta&&$('span',meta),web=meta&&$('a',meta);
       $('#profileLocationInput',panel).value=loc?loc.textContent.replace(/^⌖\s*/,'').trim():'';
       $('#profileWebsiteInput',panel).value=web?web.textContent.trim():'';
+      const moodValue=$('.weekly-mood-value',moodCard)?.textContent||'';
+      $('#profileMoodInput',panel).value=moodValue==='add this week’s #mood'?'':moodValue;
+      $('#profileMoodStyle',panel).value=moodCard.dataset.moodStyle||'qwiky-note';
+      const aura=$('#studioApp .aura-card p');$('#profileAuraTextInput',panel).value=aura?aura.innerText.trim():'Focused\nbut dreaming.';
     };
     let button=$('#editProfileBtn',card);
     const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');panel.hidden=true;button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
@@ -777,11 +803,12 @@
     const saveButton=$('#saveProfileBtn',panel);
     if(saveButton&&saveButton.dataset.biglwaProfileBound!=='3'){
       saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',()=>{
-        const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim()};
+        const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim(),mood:$('#profileMoodInput',panel).value.trim(),moodStyle:$('#profileMoodStyle',panel).value,auraText:$('#profileAuraTextInput',panel).value.trim()};
         localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));window.BIGLWAStudioAppearance?.save?.();
         if(display)display.textContent=details.name||'Your Name';if(handle)handle.textContent='@'+(details.username||'username');if(bio)bio.textContent=details.bio;
         if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
-        window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
+        renderWeeklyMood(moodCard,details.mood,details.moodStyle);renderAuraCopy(details.auraText);$('#saveStudioMusicMeta',panel)?.click();
+        window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity, mood, song, Aura, and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
         endEdit();
       })
     }
@@ -879,10 +906,13 @@
     const app=$('#studioApp');if(!app)return;
     const streamTitle=latestStreamTitle();
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
-      const title=$('h2,h3,.card-kicker',card);if(title)title.textContent=streamTitle;
-      const count=$$('span,p,small,strong',card).find(el=>/(streaming|viewers?|watching|live)|\d+\s*(viewers?|watchers?)/i.test(el.textContent));
+      const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
+      const screen=$('.stream-screen',card)||card;
+      const title=$('strong',screen);if(title)title.textContent=streamTitle;
+      const counts=$$('span,.stream-watching-count',screen).filter(el=>/watching|viewers?|watchers?|streaming/i.test(el.textContent));
+      const count=counts.shift();counts.forEach(extra=>extra.remove());
       if(count)count.textContent='0 watching';
-      else{const status=document.createElement('p');status.className='stream-watching-count';status.textContent='0 watching';card.appendChild(status)}
+      else{const status=document.createElement('span');status.className='stream-watching-count';status.textContent='0 watching';screen.appendChild(status)}
     });
   }
 

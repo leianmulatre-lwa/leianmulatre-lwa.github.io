@@ -6,7 +6,7 @@
   const RECORD_KEY='active';
   const APPEARANCE_KEY='biglwaWidgetStyle';
   const WALLPAPER_SETTINGS_KEY='biglwaWallpaperSettings';
-  const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card)';
+  const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card),#studioApp .module-workspace .module-card,#studioApp .module-workspace .calendar-board,#studioApp .module-workspace .module-launcher';
   let activeObjectUrl='';
   let restored=false;
 
@@ -29,6 +29,19 @@
         backdrop-filter:blur(var(--widget-blur,18px))!important;
         transition:background .14s ease,border-radius .14s ease,border-color .14s ease,box-shadow .14s ease,color .14s ease!important;
       }
+      #studioApp .module-workspace .module-card:not(.module-game-stage):not(:has(.diary-lined)),
+      #studioApp .module-workspace .calendar-board,
+      #studioApp .module-workspace .module-launcher,
+      #studioApp .module-workspace .module-orbit-row,
+      #studioApp .module-workspace .trophy-entry{
+        background:var(--widget-bg,rgba(250,247,241,.84))!important;
+        color:var(--widget-ink,#171717)!important;
+        border-radius:var(--widget-radius,16px)!important;
+        border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;
+        -webkit-backdrop-filter:blur(var(--widget-blur,18px))!important;
+        backdrop-filter:blur(var(--widget-blur,18px))!important;
+      }
+      #studioApp .module-workspace{--module-page-blur:var(--widget-blur,18px);-webkit-backdrop-filter:blur(var(--module-page-blur))!important;backdrop-filter:blur(var(--module-page-blur))!important}
       #studioApp .masonry .card:not(.manifesto-card) .sub,
       #studioApp .masonry .card:not(.manifesto-card) p,
       #studioApp .music-card .music-row span,
@@ -216,6 +229,8 @@
     if(input){const row=input.closest('label')||input.parentElement;if(row)row.remove();else input.remove()}
     const value=$('#auraValue');
     if(value){const row=value.closest('label')||value.parentElement;if(row)row.remove();else value.remove()}
+    [document.documentElement,$('#studioApp')].filter(Boolean).forEach(root=>root.style.setProperty('--aura-strength','0'));
+    try{localStorage.removeItem('biglwaAuraStrength');localStorage.removeItem('biglwaAuraValue')}catch{}
   }
 
   function restoreWallpaperSettings(){
@@ -323,7 +338,7 @@
     const active=$('[data-profile-editor-tab][aria-selected="true"]',panel),key=active?.dataset.profileEditorTab||'profile';
     app.classList.remove('profile-editor-profile','profile-editor-wallpaper','profile-editor-widgets');
     if(card.classList.contains('profile-is-editing'))app.classList.add(`profile-editor-${key}`);
-    const title=$('.panel-title strong',panel);if(title)title.textContent=key==='widgets'?'Edit widgets live':key==='wallpaper'?'Edit wallpaper':'Edit profile';
+    const title=$('.panel-title strong',panel);if(title)title.textContent=key==='widgets'?'Edit widgets live':key==='wallpaper'?'Edit wallpaper':key==='media'?'Edit song & Aura':'Edit profile';
     const save=$('#saveProfileBtn',panel);if(save)save.textContent='Save changes';
   }
 

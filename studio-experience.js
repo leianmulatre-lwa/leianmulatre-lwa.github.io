@@ -42,6 +42,30 @@
       #studioApp .profile-card #wallpaperPanel .panel-title,#studioApp .profile-editor-actions{background-color:transparent!important}
       #studioApp .profile-card #wallpaperPanel .panel-title{background-image:linear-gradient(to bottom,var(--widget-bg,rgba(250,247,241,.84)) 72%,transparent)!important;color:var(--widget-ink,#171717)!important}
       #studioApp .profile-editor-actions{background-image:linear-gradient(to top,var(--widget-bg,rgba(250,247,241,.84)) 76%,transparent)!important;color:var(--widget-ink,#171717)!important}
+      #studioApp .profile-card .profile-identity-rail{box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:20px 16px!important}
+      #studioApp .profile-card .profile-identity-rail>.profile-avatar{flex:0 0 auto!important;margin:0 auto!important}
+      #studioApp .profile-card .profile-identity-rail>#editProfileBtn{flex:0 0 auto!important;width:120px!important;max-width:120px!important;margin:0 auto!important}
+      #studioApp .profile-card .profile-identity-rail>.profile-rail-location{flex:0 0 auto!important;width:120px!important;margin:0 auto!important;text-align:center!important;line-height:1.25!important}
+      #studioApp .profile-card .profile-identity-rail>.weekly-mood-card{order:4!important;box-sizing:border-box;width:120px;min-height:58px;margin:2px auto 0;padding:9px 10px;border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:12px;background:rgba(255,255,255,.42);color:var(--widget-ink,#171717);text-align:left;overflow:hidden}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail{align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:18px 16px!important}
+      #studioApp .weekly-mood-card>span,#studioApp .weekly-mood-card>strong{display:block}
+      #studioApp .weekly-mood-card>span{margin-bottom:5px;font:750 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--widget-muted,#77716b)}
+      #studioApp .weekly-mood-card>strong{font:600 11px/1.2 Georgia,"Times New Roman",serif;overflow-wrap:anywhere}
+      #studioApp .weekly-mood-card[data-mood-style="diary"]{border-left:9px solid rgb(var(--aura-rgb,216,95,109));background:repeating-linear-gradient(to bottom,rgba(255,252,239,.88) 0,rgba(255,252,239,.88) 15px,rgba(122,160,184,.22) 16px)}
+      #studioApp .weekly-mood-card[data-mood-style="widget"]{border-radius:var(--widget-radius,16px);background:var(--widget-bg,rgba(250,247,241,.84));box-shadow:0 7px 18px rgba(var(--aura-rgb,216,95,109),.13)}
+      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]{transform:rotate(-1deg);border-color:#dec665;background:#fff4a9;box-shadow:2px 3px 0 rgba(72,56,36,.12);color:#372f28}
+      #studioApp .profile-song-editor-mount{display:grid;gap:8px;margin:9px 0 12px;padding:11px;border:1px solid rgba(var(--aura-rgb,216,95,109),.22);border-radius:12px;background:rgba(var(--aura-rgb,216,95,109),.06)}
+      #studioApp .profile-song-editor-wait{font:9px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
+      #studioApp .profile-song-editor-mount:has(.music-file-actions) .profile-song-editor-wait{display:none}
+      #studioApp .profile-song-editor-mount .music-file-actions{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:0!important}
+      #studioApp .profile-song-editor-mount .music-meta-editor{display:grid!important;grid-template-columns:1fr 1fr;gap:7px;margin:0;padding:9px 0 0;border-top:1px solid rgba(70,58,52,.12)}
+      #studioApp .profile-song-editor-mount button{border:1px solid rgba(70,58,52,.18);border-radius:999px;background:rgba(255,255,255,.56);color:inherit;padding:7px 10px;font:700 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+      #studioApp .profile-song-editor-mount .music-meta-editor label{display:grid;gap:4px;font:750 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase}
+      #studioApp .profile-song-editor-mount .music-meta-editor input{box-sizing:border-box;min-width:0;width:100%;padding:8px 9px;border:1px solid rgba(70,58,52,.18);border-radius:8px;background:rgba(255,255,255,.62);color:inherit;font:11px/1.25 Inter,ui-sans-serif,system-ui,sans-serif;text-transform:none;letter-spacing:0}
+      #studioApp .profile-song-editor-mount .music-meta-editor button{grid-column:1/-1;justify-self:start}
+      #studioApp .profile-song-editor-mount .music-status{margin:0!important}
+      #studioApp .profile-aura-text-label{display:grid!important;gap:5px!important;font:700 9px/1.2 Inter,ui-sans-serif,system-ui,sans-serif!important;letter-spacing:.06em;text-transform:uppercase}
+      #studioApp .profile-aura-text-label textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid rgba(80,70,64,.22);border-radius:9px;background:rgba(255,255,255,.65);color:inherit;font:12px/1.4 Georgia,"Times New Roman",serif;text-transform:none;letter-spacing:0;resize:vertical}
 
       #studioApp .hero-widget-rail>.customizable-widget,#studioApp .masonry>.card:not(.manifesto-card){position:relative!important}
       #studioApp .widget-window-controls{top:13px!important;right:14px!important;left:auto!important;bottom:auto!important;position:absolute!important}
@@ -89,6 +113,15 @@
       #studioApp .visitor-log-actions{display:flex;gap:6px;flex-wrap:wrap}
       #studioApp .visitor-log-actions button:first-child{background:var(--mail-accent);color:var(--aura-button-ink,#fff);border-color:transparent}
       #studioApp .visitor-log-count{margin-top:7px;font:8px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
+      #studioApp .hero-widget-rail>.guest-check-card{min-height:216px!important;padding:15px 16px 16px!important}
+      #studioApp .guest-check-sheet{position:relative;margin:2px 0 0;padding:12px 11px 10px 28px;border:1px solid rgba(83,68,57,.22);border-radius:5px 12px 12px 5px;background:repeating-linear-gradient(to bottom,rgba(255,253,244,.96) 0,rgba(255,253,244,.96) 21px,rgba(111,153,180,.22) 22px);box-shadow:inset 13px 0 0 rgba(var(--aura-rgb,216,95,109),.72),0 7px 18px rgba(55,39,31,.11);color:#2d2824;overflow:hidden}
+      #studioApp .guest-check-sheet::before{content:"";position:absolute;left:5px;top:14px;bottom:14px;width:5px;background:radial-gradient(circle,#f8f1e8 0 2px,rgba(64,47,39,.28) 2.3px 2.8px,transparent 3px) 0 0/5px 19px repeat-y}
+      #studioApp .guest-check-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid rgba(202,80,88,.35);font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em;color:#665851}
+      #studioApp .guest-check-sheet-head time{letter-spacing:.04em;color:rgb(var(--aura-rgb,216,95,109))}
+      #studioApp .guest-check-sheet .visitor-log-intro{margin:0 0 8px}
+      #studioApp .guest-check-sheet .visitor-log-intro strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-size:15px;font-weight:400;text-transform:lowercase;color:#211d1a}
+      #studioApp .guest-check-sheet .visitor-log-intro span,#studioApp .guest-check-sheet .visitor-log-count{color:#736860!important}
+      #studioApp .guest-check-sheet .visitor-log-actions button:not(:first-child){background:rgba(255,253,244,.82);color:#39322d}
       /* Keep every card symbol and stitched heading on the same optical baseline. */
       #studioApp .masonry>.card>.card-icon,#studioApp .hero-widget-rail>.card>.card-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;position:relative!important;top:0!important;transform:none!important;margin:0 9px 0 0!important;line-height:1!important}
       #studioApp .masonry>.card>h2,#studioApp .masonry>.card>h3,#studioApp .hero-widget-rail>.card>h2,#studioApp .hero-widget-rail>.card>h3{display:inline-flex!important;align-items:center!important;vertical-align:middle!important;margin-top:0!important;line-height:1!important}
@@ -108,9 +141,22 @@
 
       #studioApp #closet .card-icon .studio-symbol-mark,#studioApp #diary .card-icon .studio-symbol-mark,#studioApp #projects .card-icon .studio-symbol-mark,#studioApp #games .card-icon .games-chess-mark{transform:translateY(0)!important}
 
+      #studioApp #diary .diary-page{position:relative!important;display:grid!important;place-items:center!important;min-height:210px!important;aspect-ratio:auto!important;padding:24px!important;border:9px solid #171717!important;border-left-width:18px!important;border-radius:4px 13px 13px 4px!important;background-color:rgb(var(--aura-rgb,216,95,109))!important;background-image:url("/assets/composition-marble.svg?v=20260916-composition-1")!important;background-size:340px 226px!important;background-position:center!important;background-blend-mode:screen!important;box-shadow:inset 5px 0 0 rgba(255,255,255,.28),0 13px 24px rgba(35,25,20,.2)!important;overflow:hidden!important}
+      #studioApp #diary .diary-page img{display:none!important}
+      #studioApp #diary .diary-page::before{content:"DEAR DIARY";display:grid;place-items:center;width:min(82%,270px);min-height:84px;padding:12px;border:3px solid #171717;border-radius:3px;background:#fff;color:#171717;font:400 26px/1 "CS Bergamot Stitched",Georgia,"Times New Roman",serif;letter-spacing:.03em;text-transform:lowercase;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+      #studioApp #diary .diary-page::after{content:"private composition · open to write";position:absolute;right:24px;bottom:17px;color:#fff;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+
+      #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 66px;border:7px solid #201412;border-radius:25px 25px 16px 16px;background:linear-gradient(90deg,#321b17,#684031 48%,#2b1815);box-shadow:inset 0 0 0 2px rgba(255,219,149,.14),inset 0 -34px 0 rgba(20,12,11,.54),0 17px 28px rgba(38,25,19,.2);overflow:hidden}
+      #studioApp #games .games-arcade-brand{margin:-4px -3px 13px;padding:9px 8px 11px;border:3px solid #160e0c;border-radius:14px 14px 7px 7px;background:radial-gradient(circle at 50% 0,rgba(var(--aura-rgb,216,95,109),.36),transparent 64%),#f2c450;box-shadow:inset 0 0 0 2px rgba(255,255,255,.26),0 5px 0 #140d0b}
+      #studioApp #games .games-arcade-brand img:first-child{height:72px!important;margin:-8px auto -5px!important}
+      #studioApp #games .games-arcade-brand img:last-child{width:min(88%,220px)!important;margin:0 auto!important}
+      #studioApp #games .arcade-library-viewport{height:230px!important;padding:10px!important;border:10px solid #171313!important;border-radius:12px!important;background:#070909!important;box-shadow:inset 0 0 22px rgba(76,219,231,.16),0 6px 0 #0d0908!important;-webkit-mask-image:none!important;mask-image:none!important}
+      #studioApp #games .games-library::before{content:"";position:absolute;left:50%;bottom:22px;width:25px;height:25px;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109));box-shadow:-46px 2px 0 #efc548,46px 2px 0 #5ca975,0 -17px 0 -5px #111;transform:translateX(-50%);z-index:2}
+      #studioApp #games .games-library::after{content:"PLAYER 1";position:absolute;right:18px;bottom:15px;color:#ead9c8;font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em}
+
       #studioApp .card h2,#studioApp .card h3,#studioApp .profile-card .profile-display-name,#studioApp .profile-card .profile-name-line h1,#studioApp .profile-card .real-rank strong,#studioApp .panel-title strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:lowercase!important}
-      #studioApp .aura-card .aura-orb{animation:biglwa-aura-wobble 8s ease-in-out infinite;transform-origin:50% 50%;will-change:transform}
-      @keyframes biglwa-aura-wobble{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}25%{transform:translate3d(1px,-2px,0) scale(1.025) rotate(-1.2deg)}50%{transform:translate3d(-1px,1px,0) scale(.985) rotate(1deg)}75%{transform:translate3d(2px,0,0) scale(1.018) rotate(-.7deg)}}
+      #studioApp .aura-card .aura-orb{animation:biglwa-aura-wobble 5.8s cubic-bezier(.45,.05,.55,.95) infinite;transform-origin:50% 50%;will-change:transform}
+      @keyframes biglwa-aura-wobble{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}18%{transform:translate3d(4px,-3px,0) scale(1.055) rotate(-2.2deg)}42%{transform:translate3d(-3px,2px,0) scale(.965) rotate(1.8deg)}67%{transform:translate3d(3px,3px,0) scale(1.042) rotate(-1.4deg)}84%{transform:translate3d(-2px,-1px,0) scale(.985) rotate(1deg)}}
       @media(prefers-reduced-motion:reduce){#studioApp .aura-card .aura-orb{animation:none!important}}
 
       #guestCheckDialog,#studioLogsDialog{width:min(560px,calc(100vw - 28px));max-height:min(720px,calc(100vh - 28px));padding:0;border:1px solid rgba(73,59,52,.18);border-radius:20px;background:#f8f2ec;color:#201d1b;box-shadow:0 28px 90px rgba(28,17,13,.34);overflow:auto}
@@ -303,8 +349,9 @@
       card=document.createElement('section');
       card.id='guestCheckWidget';card.className='guest-check-card glass small-card customizable-widget';
       card.dataset.widgetId='guest-check';card.dataset.widgetLabel='Guest Check';card.dataset.widgetRoute='guest-check';
-      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div>';
+      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="guest-check-sheet"><div class="guest-check-sheet-head"><span>GUEST BOOK</span><time></time></div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div></div>';
     }
+    const guestDate=$('.guest-check-sheet-head time',card);if(guestDate)guestDate.textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
     syncGuestPermissions(card);
     updateGuestCount(card);
     return card;
@@ -397,6 +444,7 @@
     else if(image){image.hidden=true;image.removeAttribute('src');art.classList.remove('has-cover')}
     if(title)title.textContent=record.title||record.fileName?.replace(/\.[^.]+$/,'')||'Your track';
     if(artist)artist.textContent=record.artist||'Add artist';
+    const titleInput=$('#studioTrackTitle'),artistInput=$('#studioTrackArtist');if(titleInput)titleInput.value=record.title||record.fileName?.replace(/\.[^.]+$/,'')||'Your track';if(artistInput)artistInput.value=record.artist||'Add artist';
     setMusicStatus(record.audioBlob?'Ready · saved on this device':'Choose an audio file to play.');
   }
 
@@ -431,6 +479,8 @@
     $('#saveStudioMusicMeta',editor).addEventListener('click',async()=>{try{await updateMusic({title:$('#studioTrackTitle',editor).value.trim()||'Your track',artist:$('#studioTrackArtist',editor).value.trim()||'Add artist'});editor.classList.remove('is-open')}catch{setMusicStatus('The track details could not be saved.')}});
     $('#studioTrackInput',card).addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!file.type.startsWith('audio/')||file.size>75*1024*1024){setMusicStatus('Choose an audio file under 75 MB.');return}setMusicStatus('Saving track…');try{await updateMusic({audioBlob:file,fileName:String(file.name).slice(0,180),title:file.name.replace(/\.[^.]+$/,'').slice(0,100)})}catch{setMusicStatus('This browser could not save the track.')}});
     $('#studioCoverInput',card).addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)||file.size>15*1024*1024){setMusicStatus('Choose a JPG, PNG, WebP, or GIF cover under 15 MB.');return}setMusicStatus('Reviewing cover on this device…');try{const result=await window.BIGLWAWallpaperSafety?.scan(file,{context:'mixed'});if(result&&['invalid','block','age-restricted'].includes(result.status)){setMusicStatus(result.status==='block'?'That cover cannot be used.':'That cover needs review before it can display.');return}await updateMusic({coverBlob:file,coverReview:result?.status==='local-only'?'pending':'complete'});if(result?.status==='local-only')setMusicStatus('Cover preview active locally · review pending.')}catch{setMusicStatus('The cover could not be saved.')}});
+    $('#studioTrackTitle',editor).value=title?.textContent||'Your track';$('#studioTrackArtist',editor).value=artist?.textContent||'Add artist';
+    const profileMount=$('#profileSongEditorMount');if(profileMount)profileMount.append(actions,editor,status);
     restoreMusic();
   }
 
@@ -675,7 +725,17 @@
     updateLogsDot();
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
+  function dockMusicControlsInProfile(){
+    const mount=$('#profileSongEditorMount'),actions=$('#studioApp .music-file-actions'),editor=$('#studioMusicMetaEditor'),status=$('#studioMusicStatus');
+    if(mount&&actions&&editor&&status)mount.append(actions,editor,status);
+  }
+
+  function removeSpotify(){
+    $$('[data-orbit-app="spotify"]').forEach(item=>item.remove());
+    $$('[data-orbit-save="spotify"],[data-orbit-open="spotify"],[data-orbit-path="spotify"],[data-orbit-auth="spotify"]').forEach(item=>item.closest('.module-orbit-row')?.remove());
+  }
+
+  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
