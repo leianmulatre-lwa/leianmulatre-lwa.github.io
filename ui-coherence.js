@@ -154,24 +154,30 @@
       #studioApp .sidebar-rest-tools[hidden]{display:none!important}
       #studioApp .sidebar-section nav{display:flex!important;flex-direction:column;gap:4px}
       #studioApp .sidebar-rest-tools .nav-item{position:relative;padding:9px 8px;border-radius:8px;font-size:10px}
-      #studioApp .sidebar-route-control,#studioApp .sidebar-shortcut-open,#studioApp .sidebar-navigation-open{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;min-height:34px;padding:7px 8px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;text-decoration:none;font:650 10px/1.15 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+      #studioApp .sidebar-route-control,#studioApp .sidebar-shortcut-open,#studioApp .sidebar-navigation-open{position:relative;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:0;width:36px;height:36px;min-height:36px;margin:0 auto;padding:0;border:0;border-radius:9px;background:transparent;color:inherit;text-align:center;text-decoration:none;font:650 10px/1.15 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
       #studioApp .sidebar-route-control:hover,#studioApp .sidebar-shortcut-open:hover,#studioApp .sidebar-navigation-open:hover{background:rgba(255,255,255,.52)}
       #studioApp .sidebar-route-icon{display:grid;flex:0 0 21px;width:21px;height:21px;place-items:center;font:700 15px/1 Georgia,serif}
       #studioApp .sidebar-route-icon>svg,#studioApp .sidebar-route-icon>img,#studioApp .sidebar-route-icon>.studio-symbol-mark{display:block;width:21px!important;height:21px!important;object-fit:contain}
-      #studioApp .sidebar-shortcut-row{display:grid;grid-template-columns:minmax(0,1fr) 20px;gap:2px;align-items:center}
+      #studioApp .sidebar-shortcut-row,#studioApp .sidebar-navigation-row{position:relative;display:grid;grid-template-columns:17px 36px 17px;gap:3px;align-items:center;justify-content:center;min-height:38px;border-radius:9px}
       #studioApp .sidebar-shortcut-open{min-width:0}
-      #studioApp .sidebar-shortcut-open b,#studioApp .sidebar-navigation-open b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit}
-      #studioApp .sidebar-shortcut-remove{display:grid;width:20px;height:26px;place-items:center;padding:0;border:0;border-radius:7px;background:transparent;color:rgba(74,64,58,.55);font:600 14px/1 system-ui;cursor:pointer}
-      #studioApp .sidebar-shortcut-remove:hover{background:rgba(255,255,255,.54);color:inherit}
+      #studioApp .sidebar-shortcut-open b,#studioApp .sidebar-navigation-open b{display:none!important}
+      #studioApp .sidebar-shortcut-drag,#studioApp .sidebar-shortcut-action{display:grid;width:17px;height:28px;place-items:center;padding:0;border:0;border-radius:6px;background:transparent;color:rgba(74,64,58,.55);cursor:grab;touch-action:none}
+      #studioApp .sidebar-shortcut-action{cursor:pointer;font:750 14px/1 system-ui}
+      #studioApp .sidebar-minimized-state{display:grid;width:17px;height:28px;place-items:center;color:rgba(151,61,69,.72);font:800 11px/1 system-ui}
+      #studioApp .sidebar-shortcut-drag svg{display:block;width:10px;height:14px}
+      #studioApp .sidebar-shortcut-drag:hover,#studioApp .sidebar-shortcut-action:hover{background:rgba(255,255,255,.58);color:inherit}
+      #studioApp .sidebar-navigation-row.is-available::after,#studioApp .sidebar-widget-restore-row.is-minimized::after{content:"";position:absolute;right:20px;top:4px;width:6px;height:6px;border-radius:50%;pointer-events:none}
+      #studioApp .sidebar-navigation-row.is-available::after{border:1px solid #5b9e6f;background:rgba(91,158,111,.14);box-shadow:0 0 0 2px rgba(91,158,111,.08)}
+      #studioApp .sidebar-widget-restore-row.is-minimized::after{background:#d85d66;box-shadow:0 0 0 2px rgba(216,93,102,.14)}
       #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.22)}
       #studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{content:"";position:absolute;right:7px;top:50%;width:9px;height:9px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 42% 40%,rgba(255,255,255,.94) 0 11%,rgb(var(--aura-rgb,216,95,109)) 36%,rgba(var(--aura-rgb,216,95,109),.18) 72%,transparent 74%);box-shadow:0 0 9px rgba(var(--aura-rgb,216,95,109),.72);animation:biglwa-sidebar-aura 3.8s ease-in-out infinite}
       #studioApp .sidebar-shortcuts .minimized-label{display:none!important}
       #studioApp .minimized-label{display:none!important}
       #studioApp #minimizedWidgets{display:block!important;margin:0;padding:0;border:0;background:none}
-      #minimizedWidgetDock,#studioSidebarShortcutDock{display:flex;flex-direction:column;align-items:stretch;gap:4px;width:100%;margin:0}
-      #studioApp .sidebar-widget-restore-row,#studioApp .sidebar-navigation-row{position:relative;display:block;border-radius:8px}
-      #studioApp .sidebar-navigation-row{cursor:grab;touch-action:manipulation}
-      #studioApp .sidebar-navigation-row:active{cursor:grabbing}
+      #minimizedWidgetDock,#studioSidebarShortcutDock,#studioSidebarAvailableDock{display:flex!important;flex-direction:column;align-items:stretch;gap:4px;width:100%;margin:0}
+      #studioApp .sidebar-widget-restore-row{position:relative}
+      #studioApp .sidebar-navigation-row{touch-action:none}
+      #studioApp .sidebar-navigation-row:active .sidebar-shortcut-drag{cursor:grabbing}
       #studioApp .sidebar-navigation-row.is-dragging{opacity:.38}
       #studioApp .sidebar-section.is-shortcut-drop-target{outline:2px dashed rgba(var(--sidebar-section-rgb),.78);outline-offset:2px}
       #studioApp .sidebar-route-control.is-docked{background:rgba(255,255,255,.52);box-shadow:inset 0 0 0 1px rgba(var(--sidebar-section-rgb),.3)}
@@ -182,14 +188,15 @@
       #studioApp .sidebar-shortcut-save:hover{background:rgba(255,255,255,.68)}
       @keyframes biglwa-sidebar-aura{0%,100%{transform:translateY(-50%) scale(.88) translateX(0)}35%{transform:translateY(-56%) scale(1.08) translateX(-1px)}68%{transform:translateY(-45%) scale(.96) translateX(1px)}}
       body.night-mode #studioApp .sidebar-section{background:linear-gradient(90deg,rgba(var(--sidebar-section-rgb),.12),rgba(var(--sidebar-section-rgb),.025) 78%,transparent)}
-      body.night-mode #studioApp .sidebar-route-control:hover,body.night-mode #studioApp .sidebar-shortcut-open:hover,body.night-mode #studioApp .sidebar-navigation-open:hover,body.night-mode #studioApp .sidebar-shortcut-remove:hover{background:rgba(255,255,255,.08)}
-      body.night-mode #studioApp .sidebar-shortcut-remove{color:rgba(240,231,224,.58)}
+      body.night-mode #studioApp .sidebar-route-control:hover,body.night-mode #studioApp .sidebar-shortcut-open:hover,body.night-mode #studioApp .sidebar-navigation-open:hover,body.night-mode #studioApp .sidebar-shortcut-drag:hover,body.night-mode #studioApp .sidebar-shortcut-action:hover{background:rgba(255,255,255,.08)}
+      body.night-mode #studioApp .sidebar-shortcut-drag,body.night-mode #studioApp .sidebar-shortcut-action{color:rgba(240,231,224,.58)}
       body.sidebar-collapsed #studioApp .sidebar-section{padding:7px 3px;border-left-width:2px}
       body.sidebar-collapsed #studioApp .sidebar-route-control,body.sidebar-collapsed #studioApp .sidebar-shortcut-open,body.sidebar-collapsed #studioApp .sidebar-navigation-open{justify-content:center;width:36px;height:36px;min-height:36px;padding:0;margin:auto;font-size:0}
-      body.sidebar-collapsed #studioApp .sidebar-route-control b,body.sidebar-collapsed #studioApp .sidebar-shortcut-open b,body.sidebar-collapsed #studioApp .sidebar-navigation-open b,body.sidebar-collapsed #studioApp .sidebar-shortcut-remove,body.sidebar-collapsed #studioApp .sidebar-shortcut-status{display:none!important}
+      body.sidebar-collapsed #studioApp .sidebar-route-control b,body.sidebar-collapsed #studioApp .sidebar-shortcut-open b,body.sidebar-collapsed #studioApp .sidebar-navigation-open b,body.sidebar-collapsed #studioApp .sidebar-shortcut-status{display:none!important}
       body.sidebar-collapsed #studioApp .sidebar-shortcut-save{width:36px;min-height:32px;margin:3px auto;padding:0;font-size:0}
       body.sidebar-collapsed #studioApp .sidebar-shortcut-save::before{content:"✓";font-size:14px}
-      body.sidebar-collapsed #studioApp .sidebar-shortcut-row{display:block}
+      body.sidebar-collapsed #studioApp .sidebar-shortcut-row,body.sidebar-collapsed #studioApp .sidebar-navigation-row{grid-template-columns:0 36px 0;gap:0}
+      body.sidebar-collapsed #studioApp .sidebar-shortcut-drag,body.sidebar-collapsed #studioApp .sidebar-shortcut-action{width:0;overflow:hidden;opacity:0;pointer-events:none}
       body.sidebar-collapsed #studioApp .sidebar-route-control.is-current::after,body.sidebar-collapsed #studioApp .sidebar-shortcut-open.is-current::after,body.sidebar-collapsed #studioApp .sidebar-navigation-open.is-current::after{right:2px;top:5px;width:7px;height:7px}
       @media(prefers-reduced-motion:reduce){#studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{animation:none}}
       @media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:105px!important;height:59px!important;min-width:105px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand img{width:98px!important;max-width:98px!important;max-height:56px!important}body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand::after{width:98px!important;height:56px!important}}
@@ -263,6 +270,24 @@
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:188px!important;right:30px!important;bottom:18px!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
       @media(max-width:900px){#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:auto!important;min-height:340px!important;max-height:none!important;grid-template-columns:86px minmax(0,1fr)!important;gap:18px!important;padding:22px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{width:86px!important;height:86px!important;font-size:40px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy{padding:10px 0 58px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:22px!important;right:22px!important}#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail{grid-template-columns:1fr!important}}
+      /* Station artwork turns the Stream preview into a real broadcast booth. */
+      #studioApp #stream .stream-screen{position:relative;isolation:isolate;min-height:238px;padding:18px;overflow:hidden;border:5px solid #181313;border-radius:14px;background:#120d10;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 8px 0 #2a1918}
+      #studioApp #stream .stream-station-photo{position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.94) contrast(1.08) brightness(.72)}
+      #studioApp #stream .stream-screen::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(8,7,12,.15),rgba(8,7,12,.34) 45%,rgba(8,7,12,.86));pointer-events:none}
+      #studioApp #stream .stream-screen::after{content:"";position:absolute;inset:0;z-index:3;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);mix-blend-mode:overlay;pointer-events:none}
+      #studioApp #stream .stream-screen>.on-air,#studioApp #stream .stream-screen>strong,#studioApp #stream .stream-screen>span,#studioApp #stream .stream-screen>.stream-wave{position:relative;z-index:2}
+      #studioApp #stream .stream-screen>strong{display:block;margin-top:102px;font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-size:24px;line-height:1;color:#fff;text-shadow:0 2px 13px rgba(0,0,0,.9)}
+      #studioApp #stream .stream-screen>span{display:block;margin-top:7px;color:rgba(255,255,255,.82);font:700 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+      #studioApp #stream .stream-wave{position:absolute;left:18px;right:18px;bottom:54px;height:28px;opacity:.74}
+      #studioApp #stream .on-air{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(16,12,15,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+      /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
+      #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
+      #studioApp #notes .note-paper{position:relative;isolation:isolate;min-height:210px;padding:54px 28px 28px;border:0!important;border-radius:3px 3px 17px 3px!important;background:repeating-linear-gradient(to bottom,transparent 0,transparent 28px,rgba(119,92,38,.15) 29px),linear-gradient(145deg,#fff6a5,#f1d866)!important;color:#3c3021!important;font-family:"Comic Sans MS","Bradley Hand","Segoe Print",cursive!important;font-size:20px!important;line-height:1.45!important;text-align:left!important;transform:rotate(-.55deg);box-shadow:0 12px 22px rgba(69,49,23,.18),inset 0 0 28px rgba(255,255,255,.28)!important;overflow:hidden}
+      #studioApp #notes .note-paper::before{content:"QWIKY NOTE";position:absolute;left:20px;top:16px;padding:5px 8px;border:1px solid rgba(75,55,25,.18);background:rgba(255,248,196,.76);color:#67512f;font:900 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.15em;transform:rotate(-1.5deg)}
+      #studioApp #notes .note-paper::after{content:"";position:absolute;right:0;bottom:0;width:34px;height:34px;background:linear-gradient(135deg,rgba(172,139,52,.28) 0 49%,#fff5a0 50%);filter:drop-shadow(-2px -2px 2px rgba(84,64,29,.11))}
+      #studioApp #notes .note-paper span{position:absolute;right:22px;bottom:15px;margin:0!important;color:#765f35;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+      body.night-mode #studioApp #notes .note-paper{filter:saturate(.84) brightness(.82)}
+      @media(max-width:680px){#studioApp #stream .stream-screen{min-height:210px}#studioApp #stream .stream-screen>strong{margin-top:82px;font-size:21px}#studioApp #notes .note-paper{min-height:185px;font-size:18px}}
     `;
   }
 
@@ -320,6 +345,8 @@
     toggle.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
     try{setCollapsed(localStorage.getItem('biglwaSidebarCollapsed')==='1')}catch{setCollapsed(false)}
 
+    const legacyNavigation=$$(':scope > nav a,:scope > nav button',top);
+    legacyNavigation.forEach((control,index)=>rememberNavigation(control,SHORTCUT_LIMIT+index));
     const obsoletePrimary=$('#studioSidebarPrimary',top);
     let shortcuts=$('#studioSidebarShortcuts',top);
     if(!shortcuts){shortcuts=document.createElement('section');shortcuts.id='studioSidebarShortcuts';shortcuts.className='sidebar-section sidebar-shortcuts';shortcuts.setAttribute('aria-label','Shortcut bar, maximum eight');shortcuts.innerHTML='<nav id="studioSidebarShortcutDock" aria-label="Shortcut bar destinations"></nav><p class="sidebar-shortcut-status" role="status" aria-live="polite"></p><button class="sidebar-shortcut-save" id="saveSidebarShortcuts" type="button">Save shortcuts</button>'}
@@ -327,15 +354,17 @@
     if(shortcuts.previousElementSibling!==toggle)toggle.insertAdjacentElement('afterend',shortcuts);
     let rest=$('#studioSidebarRest',top);
     if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';top.appendChild(rest)}
-    rest.setAttribute('aria-label','Widgets closed from the Studio');
+    rest.setAttribute('aria-label','Available shortcuts and widgets minimized from the Studio');
     $$(':scope > nav',top).forEach(nav=>nav.remove());
-    $$(':scope > nav,.sidebar-navigation-row,[data-sidebar-widget]',rest).forEach(item=>item.remove());
+    $$(':scope > nav:not(#studioSidebarAvailableDock),:scope > .sidebar-navigation-row,:scope > [data-sidebar-widget]',rest).forEach(item=>item.remove());
+    let availableDock=$('#studioSidebarAvailableDock',rest);
+    if(!availableDock){availableDock=document.createElement('nav');availableDock.id='studioSidebarAvailableDock';availableDock.setAttribute('aria-label','Available shortcut destinations, still active in the Studio');rest.prepend(availableDock)}
     let widgetDockSection=$('#minimizedWidgets',top);
     if(!widgetDockSection){widgetDockSection=document.createElement('div');widgetDockSection.id='minimizedWidgets';widgetDockSection.className='minimized-widgets';widgetDockSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div><div class="minimized-widget-dock" id="minimizedWidgetDock"></div>'}
     widgetDockSection.hidden=false;widgetDockSection.classList.remove('sidebar-section','sidebar-shortcuts');widgetDockSection.setAttribute('aria-label','Widgets closed from the Studio');
     if(widgetDockSection.parentElement!==rest)rest.appendChild(widgetDockSection);
     obsoletePrimary?.remove();
-    rest.hidden=!$('[data-shortcut-row]',widgetDockSection);
+    rest.hidden=!$('[data-sidebar-route-row]',availableDock)&&!$('[data-shortcut-row]',widgetDockSection);
   }
 
   const navigationCatalog=new Map();
@@ -345,6 +374,7 @@
     return String(control?.dataset?.sidebarRoute||control?.dataset?.policyRoute||control?.dataset?.open||(control?.getAttribute?.('href')||'').replace(/^.*#/,'')||'').trim().toLowerCase();
   }
   function navigationLabel(control,key){
+    if(key==='notes')return 'Qwiky Note';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
   function navigationSymbolMarkup(control,label){
@@ -364,12 +394,15 @@
     return key;
   }
   function createSidebarNavigationRow(entry,zone){
-    const row=document.createElement('div');row.className='sidebar-navigation-row';row.draggable=false;row.dataset.sidebarRouteRow=entry.key;row.dataset.shortcutZone=zone;row.title='Shortcut bar destination';
+    const connected=zone==='shortcut';
+    const row=document.createElement('div');row.className=`sidebar-navigation-row ${connected?'is-shortcut':'is-available'}`;row.draggable=false;row.dataset.sidebarRouteRow=entry.key;row.dataset.shortcutZone=zone;row.title=connected?`${entry.label} · connected to shortcut bar`:`${entry.label} · active in Studio, not on shortcut bar`;
+    const drag=document.createElement('button');drag.type='button';drag.className='sidebar-shortcut-drag';drag.dataset.shortcutDragHandle=entry.key;drag.setAttribute('aria-label',`Drag ${entry.label} ${connected?'out of':'into'} the shortcut bar`);drag.title='Drag to move';drag.innerHTML='<svg viewBox="0 0 10 14" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="7" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="3" cy="11" r="1" fill="currentColor"/><circle cx="7" cy="11" r="1" fill="currentColor"/></svg>';
     const open=entry.policyRoute?document.createElement('a'):document.createElement('button');
     if(open.tagName==='BUTTON')open.type='button';else{open.href=entry.href||('/'+entry.key);open.dataset.policyRoute=entry.policyRoute}
     open.className='sidebar-navigation-open';open.dataset.sidebarRoute=entry.key;open.setAttribute('aria-label','Open '+entry.label);
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=entry.symbolHTML||'•';
-    const text=document.createElement('b');text.textContent=entry.label;open.append(mark,text);row.appendChild(open);return row;
+    const action=document.createElement('button');action.type='button';action.className='sidebar-shortcut-action';action.dataset[connected?'removeShortcut':'addShortcut']=entry.key;action.textContent=connected?'−':'+';action.setAttribute('aria-label',connected?`Disconnect ${entry.label} from shortcut bar`:`Add ${entry.label} to shortcut bar`);action.title=action.getAttribute('aria-label');
+    open.append(mark);row.append(drag,open,action);return row;
   }
   function createHeroShortcut(entry,existing){
     const link=existing||document.createElement('a');link.href=entry.href&&entry.href.startsWith('/')?entry.href:'#'+entry.key;link.dataset.shortcutRoute=entry.key;
@@ -380,18 +413,18 @@
     return link;
   }
   function syncSidebarShortcutSystem(){
-    const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app);if(!app||!top||!bar||!shortcutDock||!rest)return;
+    const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
     if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
     if(!initialNavigationShortcuts?.length)return;
     let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
     let hasSavedShortcuts=false;try{hasSavedShortcuts=localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
-    if(!hasSavedShortcuts&&!shortcuts.length)shortcuts=initialNavigationShortcuts.filter(key=>navigationCatalog.has(key));
-    heroKeys.forEach(key=>{if(shortcuts.length<SHORTCUT_LIMIT&&!shortcuts.includes(key))shortcuts.push(key)});
+    if(!hasSavedShortcuts)shortcuts=initialNavigationShortcuts.filter(key=>navigationCatalog.has(key)).slice(0,SHORTCUT_LIMIT);
     shortcuts=writeNavigationShortcuts(shortcuts);
     shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
-    $$(':scope > nav,.sidebar-navigation-row',rest).forEach(item=>item.remove());
+    const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
+    availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
     let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button';create.innerHTML='＋<span>Create</span>'}
     const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
@@ -399,7 +432,43 @@
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
     if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
-    rest.hidden=!$('[data-shortcut-row]',rest);
+    rest.hidden=!available.length&&!$('[data-shortcut-row]',rest);
+    bindSidebarShortcutDrag(app);
+  }
+
+  function moveNavigationShortcut(app,key,connected,targetKey=''){
+    if(!navigationCatalog.has(key))return false;
+    const current=readNavigationShortcuts(initialNavigationShortcuts||[]).filter(item=>navigationCatalog.has(item));
+    const without=current.filter(item=>item!==key);
+    if(connected){
+      if(!current.includes(key)&&without.length>=SHORTCUT_LIMIT){showShortcutStatus(app,'Shortcut bar is full. Remove one first.');return false}
+      const targetIndex=targetKey===key?Math.min(Math.max(current.indexOf(key),0),without.length):(targetKey?without.indexOf(targetKey):-1);
+      without.splice(targetIndex<0?without.length:targetIndex,0,key);
+    }
+    writeNavigationShortcuts(without);
+    syncSidebarShortcutSystem();
+    showShortcutStatus(app,connected?'Connected to shortcut bar.':'Still active in Studio · shortcut disconnected.');
+    return true;
+  }
+
+  function bindSidebarShortcutDrag(app){
+    if(!app||app.dataset.biglwaShortcutDragBound==='1')return;app.dataset.biglwaShortcutDragBound='1';
+    let state=null;
+    const clear=()=>{if(!state)return;state.row.classList.remove('is-dragging');$$('.is-shortcut-drop-target',app).forEach(zone=>zone.classList.remove('is-shortcut-drop-target'));try{state.handle.releasePointerCapture(state.pointerId)}catch{}state=null};
+    app.addEventListener('pointerdown',event=>{
+      const handle=event.target.closest('[data-shortcut-drag-handle]');if(!handle)return;
+      const row=handle.closest('[data-sidebar-route-row]');if(!row)return;
+      event.preventDefault();state={handle,row,key:row.dataset.sidebarRouteRow,pointerId:event.pointerId};row.classList.add('is-dragging');try{handle.setPointerCapture(event.pointerId)}catch{}
+    });
+    app.addEventListener('pointermove',event=>{
+      if(!state)return;const hit=document.elementFromPoint(event.clientX,event.clientY);$$('.is-shortcut-drop-target',app).forEach(zone=>zone.classList.remove('is-shortcut-drop-target'));
+      const zone=hit?.closest('#studioSidebarShortcuts,#studioSidebarRest');if(zone)zone.classList.add('is-shortcut-drop-target');event.preventDefault();
+    });
+    app.addEventListener('pointerup',event=>{
+      if(!state)return;const hit=document.elementFromPoint(event.clientX,event.clientY),shortcutZone=hit?.closest('#studioSidebarShortcuts'),restZone=hit?.closest('#studioSidebarRest'),target=hit?.closest('[data-sidebar-route-row]');
+      const key=state.key;if(shortcutZone)moveNavigationShortcut(app,key,true,target?.dataset.sidebarRouteRow||'');else if(restZone)moveNavigationShortcut(app,key,false);clear();
+    });
+    app.addEventListener('pointercancel',clear);
   }
 
   function widgetId(el,index){return el.dataset.widgetId||el.id||(['profile-card','music-card','aura-card'].find(c=>el.classList.contains(c))||`widget-${index+1}`).replace(/-card$/,'')}
@@ -414,15 +483,17 @@
   function shortcutButtonMarkup(widget){
     const id=widget.dataset.widgetId,label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' '),route=widget.dataset.widgetRoute||id;
     const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget),icon=source?source.innerHTML:(label.trim()[0]||'•').toUpperCase();
-    const row=document.createElement('div');row.className='sidebar-shortcut-row sidebar-widget-restore-row';row.dataset.shortcutRow=id;row.dataset.widgetRoute=route;
+    const row=document.createElement('div');row.className='sidebar-shortcut-row sidebar-widget-restore-row is-minimized';row.dataset.shortcutRow=id;row.dataset.widgetRoute=route;row.dataset.shortcutZone='minimized';row.title=`${label} · minimized from the Studio`;
+    const spacer=document.createElement('span');spacer.setAttribute('aria-hidden','true');
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
-    const text=document.createElement('b');text.textContent=label;restore.append(mark,text);row.append(restore);return row;
+    const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
+    restore.append(mark);row.append(spacer,restore,state);return row;
   }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const rest=$('#studioSidebarRest',app),dock=$('#minimizedWidgetDock',rest||app);if(!rest||!dock)return;
-    rest.hidden=!$('[data-shortcut-row]',dock);
+    rest.hidden=!$('[data-sidebar-route-row]',rest)&&!$('[data-shortcut-row]',dock);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
@@ -515,7 +586,9 @@
       const sidebarRoute=target.closest('[data-sidebar-route]');
       if(sidebarRoute&&!sidebarRoute.dataset.policyRoute){event.preventDefault();event.stopImmediatePropagation();openWidgetDestination(app,sidebarRoute.dataset.sidebarRoute,sidebarRoute.dataset.sidebarRoute);return}
       const removeShortcut=target.closest('[data-remove-shortcut]');
-      if(removeShortcut){event.preventDefault();event.stopImmediatePropagation();restoreWidget(app,removeShortcut.dataset.removeShortcut,removeShortcut.closest('[data-shortcut-row]'));return}
+      if(removeShortcut){event.preventDefault();event.stopImmediatePropagation();moveNavigationShortcut(app,removeShortcut.dataset.removeShortcut,false);return}
+      const addShortcut=target.closest('[data-add-shortcut]');
+      if(addShortcut){event.preventDefault();event.stopImmediatePropagation();moveNavigationShortcut(app,addShortcut.dataset.addShortcut,true);return}
       const shortcut=target.closest('[data-widget-shortcut]');
       if(shortcut){event.preventDefault();event.stopImmediatePropagation();openWidgetDestination(app,shortcut.dataset.widgetShortcut,shortcut.dataset.widgetRoute);return}
       if(target.id==='editProfileBtn'){
@@ -561,7 +634,7 @@
       if(!minimizedSection){minimizedSection=document.createElement('div');minimizedSection.id='minimizedWidgets';minimizedSection.className='minimized-widgets';minimizedSection.setAttribute('aria-label','Widgets closed from the Studio');minimizedSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';const top=$('#studioSidebarRest',sidebar)||$('.sidebar-top',sidebar)||sidebar||app;top.appendChild(minimizedSection)}
       dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';minimizedSection.appendChild(dock);
     }
-    const syncDock=()=>{const red=$('#studioSidebarRest',app);if(red)red.hidden=!$('[data-shortcut-row]',dock);if(minimizedSection)minimizedSection.hidden=false};
+    const syncDock=()=>{const red=$('#studioSidebarRest',app);if(red)red.hidden=!$('[data-sidebar-route-row]',red)&&!$('[data-shortcut-row]',dock);if(minimizedSection)minimizedSection.hidden=false};
     const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
     const widgets=$$(selector,app);
     const minimized=readWidgetShortcuts();
@@ -908,12 +981,22 @@
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
       const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
       const screen=$('.stream-screen',card)||card;
+      let photo=$('.stream-station-photo',screen);
+      if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.src='/assets/station-radio-room.webp?v=20260916-station-1';photo.alt='Sticker-covered radio booth lit in red and blue with a host at a microphone';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
       const title=$('strong',screen);if(title)title.textContent=streamTitle;
       const counts=$$('span,.stream-watching-count',screen).filter(el=>/watching|viewers?|watchers?|streaming/i.test(el.textContent));
       const count=counts.shift();counts.forEach(extra=>extra.remove());
       if(count)count.textContent='0 watching';
       else{const status=document.createElement('span');status.className='stream-watching-count';status.textContent='0 watching';screen.appendChild(status)}
     });
+  }
+
+  function syncQwikyNoteWidget(){
+    const card=$('#studioApp #notes');if(!card)return;
+    const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Qwiky Note';
+    const sub=$('.sub',card);if(sub)sub.textContent='Pin a thought before it floats away.';
+    card.dataset.widgetLabel='Qwiky Note';card.dataset.search=(card.dataset.search||'')+' qwiky sticky note';
+    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Qwiky Note');note.title='Open Qwiky Note'}
   }
 
   function ensureRealWorldDefaults(){
@@ -923,6 +1006,7 @@
       feedList.replaceChildren();feedList.dataset.biglwaReset='1';
     });
     syncStreamWidget();
+    syncQwikyNoteWidget();
     if(document.documentElement.dataset.biglwaStreamSyncBound!=='1'){
       document.documentElement.dataset.biglwaStreamSyncBound='1';
       document.addEventListener('biglwa:stream-updated',syncStreamWidget);
@@ -979,7 +1063,7 @@
     }
   }
 
-  function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);
