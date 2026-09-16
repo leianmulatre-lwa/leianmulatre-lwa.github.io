@@ -100,6 +100,12 @@
     @media (prefers-reduced-motion:reduce){.module-game-track{animation:none}}
     @media(max-width:850px){.module-game-viewport{height:290px}.module-game-form{grid-template-columns:1fr}}
     @media(max-width:560px){.module-game-viewport{grid-template-columns:repeat(2,minmax(0,1fr));height:310px}.module-game-track:nth-child(3){display:none}.module-game-stage-head{align-items:start;flex-direction:column;gap:6px}}
+
+    /* Give the workspace a deliberate bottom edge that blends into the page wallpaper. */
+    .module-workspace{border-radius:0 0 30px 30px;padding-bottom:152px;background:linear-gradient(180deg,rgba(246,240,233,.94) 0%,rgba(239,231,223,.96) calc(100% - 152px),rgba(239,231,223,.78) calc(100% - 92px),rgba(239,231,223,.35) calc(100% - 34px),rgba(239,231,223,0) 100%)}
+    .module-workspace:after{content:"";display:block;width:min(100%,1160px);height:1px;margin:30px auto 0;background:linear-gradient(90deg,transparent,rgba(117,92,79,.22) 12%,rgba(117,92,79,.22) 88%,transparent)}
+    body.night-mode .module-workspace{background:linear-gradient(180deg,rgba(31,29,28,.97) 0%,rgba(25,23,22,.96) calc(100% - 152px),rgba(25,23,22,.72) calc(100% - 92px),rgba(25,23,22,.32) calc(100% - 34px),rgba(25,23,22,0) 100%)}
+    body.night-mode .module-workspace:after{background:linear-gradient(90deg,transparent,rgba(224,210,199,.17) 12%,rgba(224,210,199,.17) 88%,transparent)}
   `;
   document.head.appendChild(style);
 
