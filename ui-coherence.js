@@ -421,6 +421,7 @@
     const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
+    refreshNavigationCatalogFromWidgets(app);
     if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
     if(!initialNavigationShortcuts?.length)return;
     let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
@@ -485,9 +486,21 @@
     if(fullWidgetRoutes.has(route))return {attribute:`data-expand-widget="${id}"`,label:`Expand ${route.replace(/[-_]/g,' ')} widget`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
+  const widgetFallbackIcons={music:'♫',aura:'◌','guest-check':'✓'};
+  function widgetIconMarkup(widget){
+    if(!widget)return '';
+    const id=widget.dataset.widgetId||widget.id||'',label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');
+    const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget);
+    if(source){
+      const markup=(source.matches('img,svg')?source.outerHTML:source.innerHTML).trim();
+      if(markup)return markup;
+      const text=source.textContent.trim();if(text)return text;
+    }
+    return widgetFallbackIcons[id]||(label.trim()[0]||'•').toUpperCase();
+  }
   function shortcutButtonMarkup(widget){
     const id=widget.dataset.widgetId,label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' '),route=widget.dataset.widgetRoute||id;
-    const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget),fallbackIcons={music:'♫',aura:'◌','guest-check':'✓'},icon=source?source.innerHTML:(fallbackIcons[id]||(label.trim()[0]||'•').toUpperCase());
+    const icon=widgetIconMarkup(widget);
     const row=document.createElement('div');row.className='sidebar-shortcut-row sidebar-widget-restore-row is-minimized';row.dataset.shortcutRow=id;row.dataset.widgetRoute=route;row.dataset.shortcutZone='minimized';row.title=`${label} · minimized from the Studio`;
     const spacer=document.createElement('span');spacer.setAttribute('aria-hidden','true');
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
@@ -495,8 +508,23 @@
     const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
     restore.append(mark);row.append(spacer,restore,state);return row;
   }
+  function refreshMinimizedWidgetIcons(app){
+    if(!app)return;
+    $$('#minimizedWidgetDock [data-shortcut-row]',app).forEach(row=>{
+      const id=row.dataset.shortcutRow||'',widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null,mark=$('.sidebar-route-icon',row);if(!widget||!mark)return;
+      const icon=widgetIconMarkup(widget);if(icon&&mark.innerHTML!==icon)mark.innerHTML=icon;
+    });
+  }
+  function refreshNavigationCatalogFromWidgets(app){
+    if(!app)return;
+    navigationCatalog.forEach((entry,key)=>{
+      const widget=$('[data-widget-route="'+CSS.escape(key)+'"]',app)||$('#'+CSS.escape(key),app)||(key==='rooms'?$('#room',app):key==='room'?$('#rooms',app):null);
+      const icon=widgetIconMarkup(widget);if(icon)entry.symbolHTML=icon;
+    });
+  }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
+    refreshMinimizedWidgetIcons(app);
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),dock=$('#minimizedWidgetDock',primary||app);if(!primary||!dock)return;
     primary.hidden=!$('[data-shortcut-row]',dock);
     if(rest)rest.hidden=!$('[data-sidebar-route-row]',rest);
@@ -1085,6 +1113,10 @@
   }
 
   function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  if(document.documentElement.dataset.biglwaSymbolSyncBound!=='1'){
+    document.documentElement.dataset.biglwaSymbolSyncBound='1';
+    document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshNavigationCatalogFromWidgets(app);syncSidebarShortcutSystem();refreshMinimizedWidgetIcons(app)});
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   setTimeout(run,140);

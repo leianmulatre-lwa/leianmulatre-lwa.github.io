@@ -717,6 +717,7 @@
     if(quiz&&!$('.games-block-mark',quiz)){quiz.insertAdjacentHTML('afterbegin','<img class="games-block-mark" src="/assets/culture-quiz-cubes.png?v=20260915-culture-quiz-cubes-1" alt="" aria-hidden="true" width="1672" height="941">')}
     replaceCardSymbol('#closet .card-icon','studio-closet-hanger-icon',STUDIO_ICONS.hanger);
     $('#guestCheckWidget .mailbox-mark',app)?.remove();
+    document.dispatchEvent(new CustomEvent('biglwa:widget-symbols-ready'));
   }
 
   function currentProfileUsername(){
