@@ -113,21 +113,21 @@
       #studioApp .guest-check-card>.card-kicker{display:none!important}
       #studioApp .guest-check-card>.widget-window-controls{position:absolute!important;right:13px!important;top:12px!important;z-index:7!important;margin:0!important}
       #studioApp .guest-check-card>.widget-drag-handle{top:10px!important;z-index:7!important}
-      #studioApp .guest-check-sheet{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;min-height:216px;margin:0!important;padding:30px 14px 12px;border:0!important;border-radius:inherit;background:repeating-linear-gradient(to bottom,#fffdf5 0,#fffdf5 23px,rgba(92,142,178,.24) 24px);box-shadow:inset 0 7px 0 rgba(var(--aura-rgb,216,95,109),.78),inset 0 10px 0 rgba(var(--aura-rgb,216,95,109),.18);color:#2d2824;overflow:hidden}
+      #studioApp .guest-check-sheet{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;min-height:216px;margin:0!important;padding:30px 14px 12px;border:0!important;border-radius:inherit;background:repeating-linear-gradient(to bottom,#fffdf5 0,#fffdf5 30px,rgba(92,142,178,.24) 31px);box-shadow:inset 0 7px 0 rgba(var(--aura-rgb,216,95,109),.78),inset 0 10px 0 rgba(var(--aura-rgb,216,95,109),.18);color:#2d2824;overflow:hidden}
       #studioApp .guest-check-sheet::before{content:none}
       #studioApp .guest-check-sheet::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.26),transparent 28%,rgba(69,47,37,.025));mix-blend-mode:multiply}
       #studioApp .guest-check-sheet-head{display:grid;grid-template-columns:minmax(0,1fr) 72px;align-items:center;gap:8px;margin:0 0 6px;padding:0 0 5px;border-bottom:2px solid rgba(var(--aura-rgb,216,95,109),.52);font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.13em;color:#665851}
-      #studioApp .guest-check-sheet-head time{padding-left:8px;border-left:1px solid rgba(108,67,145,.42);text-align:right}
+      #studioApp .guest-check-sheet-head time{padding-left:9px;border-left:2px solid rgba(216,95,109,.78);text-align:right}
       #studioApp .guest-check-sheet-head time{letter-spacing:.04em;color:rgb(var(--aura-rgb,216,95,109))}
       #studioApp .guest-check-sheet .visitor-log-intro{margin:0 0 8px}
       #studioApp .guest-check-sheet .visitor-log-intro strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-size:15px;font-weight:400;text-transform:lowercase;color:#211d1a}
       #studioApp .guest-check-sheet .visitor-log-intro span,#studioApp .guest-check-sheet .visitor-log-count{color:#736860!important}
       #studioApp .guest-check-sheet .visitor-log-actions button:not(:first-child){background:rgba(255,253,244,.82);color:#39322d}
-      #studioApp .guest-check-lines{position:relative;z-index:2;height:48px;margin:0 0 7px;overflow:hidden;background:rgba(255,253,245,.78)}
+      #studioApp .guest-check-lines{position:relative;z-index:2;height:62px;margin:0 0 7px;overflow:hidden;background:rgba(255,253,245,.78)}
       #studioApp .guest-check-lines-track{display:flex;flex-direction:column;will-change:transform}
-      #studioApp .guest-check-line{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 72px;align-items:end;gap:8px;height:24px;min-height:24px;padding:0 4px 3px;overflow:hidden;border-bottom:1px solid rgba(92,142,178,.24);color:#3c332e;font:700 9px/1.05 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;white-space:nowrap}
+      #studioApp .guest-check-line{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 72px;align-items:end;gap:8px;height:31px;min-height:31px;padding:0 4px 6px;overflow:hidden;border-bottom:1px solid rgba(92,142,178,.24);color:#3c332e;font:700 9px/1.05 "Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;white-space:nowrap}
       #studioApp .guest-check-entry{min-width:0;overflow:hidden;text-overflow:ellipsis}
-      #studioApp .guest-check-date{padding-left:8px;border-left:1px solid rgba(108,67,145,.3);color:#7d667f;font:700 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;text-align:right}
+      #studioApp .guest-check-date{align-self:stretch;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 0 1px 9px;border-left:2px solid rgba(216,95,109,.66);color:#7d667f;font:700 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;text-align:right}
       #studioApp .guest-check-line.is-placeholder{display:flex;align-items:flex-end}
       #studioApp .guest-check-line em{font-weight:500;color:#756861}
       #studioApp .guest-check-lines.is-filled .guest-check-lines-track{animation:biglwa-guest-lines-scroll 14s linear infinite}
@@ -338,7 +338,9 @@
       #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet{min-height:184px!important;padding:28px 12px 8px!important}
       #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet-head{margin-bottom:3px!important;padding-bottom:3px!important}
       #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-intro{margin-bottom:4px!important}
-      #studioApp:not(.profile-editor-wallpaper) .guest-check-lines{height:42px!important;margin-bottom:4px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-lines{height:62px!important;margin-bottom:4px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-count{margin-top:2px!important}
+      #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet .visitor-log-actions button{padding:5px 8px!important}
 
       /* The editor preview uses the same three treatments as the saved mood card. */
       #studioApp .profile-mood-preview{position:relative;box-sizing:border-box;width:min(240px,100%);min-height:84px;margin:12px 0 2px;padding:14px 16px;overflow:hidden;color:#2e2926;text-align:left}
