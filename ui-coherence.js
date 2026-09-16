@@ -252,7 +252,7 @@
   function widgetRoute(el,id){return el.dataset.widgetRoute||$('.arrow-btn[data-open]',el)?.dataset.open||id}
   const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
   function greenControlAction(route,id){
-    if(route==='visitor-log'||id==='visitor-log')return {attribute:`data-expand-widget="${id}"`,label:'Expand Visitor Log mailbox'};
+    if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(fullWidgetRoutes.has(route))return {attribute:`data-expand-widget="${id}"`,label:`Expand ${route.replace(/[-_]/g,' ')} widget`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
@@ -547,6 +547,12 @@
     if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
     let actions=$('#profileEditorActions',panel);
     if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';actions.innerHTML='<button type="button" class="secondary-btn" id="saveProfileBtn">Save profile</button><button type="button" class="secondary-btn profile-editor-cancel" id="cancelProfileBtn">Cancel</button>';panel.appendChild(actions)}
+    let updatePrivacy=$('#profileUpdatePrivacy',actions);
+    if(!updatePrivacy){
+      updatePrivacy=document.createElement('label');updatePrivacy.id='profileUpdatePrivacy';updatePrivacy.className='profile-update-privacy';
+      updatePrivacy.innerHTML='<input id="profileSilentUpdate" type="checkbox"><span>Do not notify followers/connections of this update</span>';
+      actions.prepend(updatePrivacy);
+    }
     const showTab=key=>{$$('[data-profile-editor-pane]',panel).forEach(pane=>{pane.hidden=pane.dataset.profileEditorPane!==key});$$('[data-profile-editor-tab]',tabs).forEach(tab=>{const active=tab.dataset.profileEditorTab===key;tab.setAttribute('aria-selected',active?'true':'false');tab.tabIndex=active?0:-1})};
     if(tabs.dataset.biglwaTabsBound!=='1'){tabs.dataset.biglwaTabsBound='1';tabs.addEventListener('click',event=>{const tab=event.target.closest('[data-profile-editor-tab]');if(tab)showTab(tab.dataset.profileEditorTab)})}
     const fillEditor=()=>{
@@ -572,6 +578,7 @@
         localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));
         if(display)display.textContent=details.name||'Your Name';if(handle)handle.textContent='@'+(details.username||'username');if(bio)bio.textContent=details.bio;
         if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
+        window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
         endEdit();
       })
     }

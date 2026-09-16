@@ -6,7 +6,7 @@
   const RECORD_KEY='active';
   const APPEARANCE_KEY='biglwaWidgetStyle';
   const WALLPAPER_SETTINGS_KEY='biglwaWallpaperSettings';
-  const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card)';
+  const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card)';
   let activeObjectUrl='';
   let restored=false;
 
@@ -18,6 +18,7 @@
       #studioApp .profile-card,
       #studioApp .music-card,
       #studioApp .aura-card,
+      #studioApp .guest-check-card,
       #studioApp .mobile-dock.hero-action-bar,
       #studioApp .masonry .card:not(.manifesto-card){
         background:var(--widget-bg,rgba(250,247,241,.84))!important;
@@ -42,6 +43,7 @@
       #studioApp .aura-card .aura-orb{background:radial-gradient(circle at 55% 48%,rgba(var(--aura-rgb,216,95,109),1) 0 15%,rgba(var(--aura-rgb,216,95,109),.6) 31%,rgba(var(--aura-rgb,216,95,109),.2) 56%,transparent 73%)!important;box-shadow:0 0 calc(var(--aura-strength,30) * .65px) rgba(var(--aura-rgb,216,95,109),.58)!important}
       #studioApp.profile-editor-widgets .music-card,
       #studioApp.profile-editor-widgets .aura-card,
+      #studioApp.profile-editor-widgets .guest-check-card,
       #studioApp.profile-editor-widgets .mobile-dock.hero-action-bar,
       #studioApp.profile-editor-widgets .masonry .card:not(.manifesto-card){box-shadow:0 0 0 2px rgba(var(--aura-rgb,216,95,109),.55),0 14px 36px rgba(var(--aura-rgb,216,95,109),.14)!important}
       #studioApp.profile-editor-widgets .profile-card.profile-is-editing{min-height:380px!important}
@@ -72,7 +74,7 @@
       body.night-mode #studioApp .wallpaper-safety-status{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
       body.night-mode #studioApp .wallpaper-safety-status[data-state="pending"]{background:rgba(255,190,48,.1);border-color:rgba(255,202,87,.44);color:#f2cf84!important}
       @media(max-width:900px){#studioApp.profile-editor-widgets .profile-card.profile-is-editing{min-height:410px!important}#studioApp.profile-editor-wallpaper .profile-card.profile-is-editing{min-height:520px!important}}
-      @media(prefers-reduced-motion:reduce){#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card{transition:none!important}}
+      @media(prefers-reduced-motion:reduce){#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card{transition:none!important}}
     `;
   }
 

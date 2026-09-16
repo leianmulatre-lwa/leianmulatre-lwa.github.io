@@ -2,7 +2,10 @@
   const $=(selector,root=document)=>root.querySelector(selector);
   const $$=(selector,root=document)=>[...root.querySelectorAll(selector)];
   const ORDER_KEY='biglwaWidgetOrderV2';
-  const NOTE_KEY='biglwaVisitorNotesLocal';
+  const GUEST_KEY='biglwaGuestChecksLocalV1';
+  const LEGACY_NOTE_KEY='biglwaVisitorNotesLocal';
+  const ACTIVITY_KEY='biglwaStudioActivityV1';
+  const ACTIVITY_READ_KEY='biglwaStudioActivityReadAt';
   const MEDIA_DB='biglwa-studio-experience-v1';
   const MEDIA_STORE='records';
   const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
@@ -14,7 +17,9 @@
     diary:'<span class="studio-symbol-mark studio-diary-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/diary-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="282" height="347" loading="eager" decoding="async"></span>',
     check:'<span class="studio-symbol-mark studio-check-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/did-you-know-symbol-generated.png?v=20260914-symbol-cutover-1" alt="" width="407" height="375" loading="eager" decoding="async"></span>',
     quickNotes:'<span class="studio-symbol-mark studio-quick-notes-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/quick-notes-symbol-generated.png?v=20260914-quick-notes-1" alt="" width="375" height="413" loading="eager" decoding="async"></span>',
-    mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    mail:'<svg class="visitor-mail-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="10.5" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 11.5 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    logout:'<img class="studio-logout-icon" src="/assets/logout.png?v=20260916-logout-1" alt="" width="64" height="64" aria-hidden="true">',
+    guest:'<span class="guest-check-mark" aria-hidden="true">✌🏽</span>'
   };
   let musicUrl='';
   let coverUrl='';
@@ -28,8 +33,8 @@
       #studioApp .hero{grid-template-columns:minmax(0,1fr) minmax(286px,326px)!important;grid-template-rows:auto auto!important;grid-auto-flow:row!important;gap:16px 18px!important;align-items:start!important;align-content:start!important;padding:40px 16px 34px!important}
       #studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important;align-self:start!important;min-height:282px!important}
       #studioApp .hero-widget-rail{grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:1fr!important;gap:12px!important;align-content:start!important;min-width:0!important}
-      #studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.visitor-log-card{position:relative!important;inset:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:118px!important;max-height:none!important;margin:0!important;padding:16px 18px!important;box-sizing:border-box!important;overflow:visible!important}
-      #studioApp .hero-widget-rail>.visitor-log-card{min-height:142px!important}
+      #studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{position:relative!important;inset:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:118px!important;max-height:none!important;margin:0!important;padding:16px 18px!important;box-sizing:border-box!important;overflow:visible!important}
+      #studioApp .hero-widget-rail>.guest-check-card{min-height:150px!important}
       #studioApp .hero>.hero-action-bar{grid-column:1/-1!important;grid-row:2!important;margin:4px 0 0!important}
       #studioApp .profile-card.profile-is-editing{min-height:430px!important}
       #studioApp.profile-editor-wallpaper .profile-card.profile-is-editing{min-height:520px!important}
@@ -57,7 +62,7 @@
       #studioApp .music-card .music-copy strong{font:700 14px/1.2 Inter,ui-sans-serif,system-ui,sans-serif!important}
       #studioApp .music-card .music-copy span{font:10px/1.3 Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--widget-muted,#77716b)!important}
       #studioApp .music-card .music-file-actions{display:flex;gap:6px;margin-top:10px}
-      #studioApp .music-card .music-file-actions button,#studioApp .visitor-log-actions button,#visitorLogDialog button{border:1px solid rgba(70,58,52,.16);border-radius:999px;background:rgba(255,255,255,.52);color:inherit;padding:6px 9px;font:650 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+      #studioApp .music-card .music-file-actions button,#studioApp .visitor-log-actions button,#guestCheckDialog button,#studioLogsDialog button{border:1px solid rgba(70,58,52,.16);border-radius:999px;background:rgba(255,255,255,.52);color:inherit;padding:6px 9px;font:650 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
       #studioApp .music-card .music-file-actions button:hover,#studioApp .visitor-log-actions button:hover{background:rgba(255,255,255,.82)}
       #studioApp .music-card .music-status{min-height:13px;margin:6px 0 0;font:9px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
       #studioApp .music-card .music-meta-editor{display:none;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(70,58,52,.12)}
@@ -67,17 +72,17 @@
       #studioApp .music-card .music-meta-editor button{grid-column:1/-1;justify-self:start}
       #studioApp .music-card .progress{cursor:pointer!important;height:5px!important;margin-top:9px!important;border-radius:999px!important;overflow:hidden!important}
 
-      #studioApp .visitor-log-card{--mail-accent:rgb(var(--aura-rgb,216,95,109));overflow:hidden!important}
-      #studioApp .visitor-log-card>.card-kicker{padding-right:56px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #studioApp .guest-check-card{--mail-accent:rgb(var(--aura-rgb,216,95,109));overflow:hidden!important}
+      #studioApp .guest-check-card>.card-kicker{padding-right:56px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       #studioApp .visitor-log-intro>div{min-width:0!important}
       #studioApp .visitor-log-intro strong,#studioApp .visitor-log-intro span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       #studioApp .visitor-log-actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:6px!important}
       #studioApp .visitor-log-actions button{white-space:nowrap!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
-      #studioApp .visitor-log-card .widget-window-controls{z-index:12!important}
-      #studioApp .visitor-log-card .visitor-log-actions{position:relative!important;z-index:2!important}
-      #studioApp .visitor-log-card .mailbox-mark{position:relative;width:44px;height:44px;flex:0 0 44px;border:0;opacity:.92}
-      #studioApp .visitor-log-card .mailbox-mark::before,#studioApp .visitor-log-card .mailbox-mark::after{content:none!important;display:none!important}
-      #studioApp .visitor-log-card .mailbox-mark .visitor-mail-icon{display:block;width:44px;height:44px}
+      #studioApp .guest-check-card .widget-window-controls{z-index:12!important}
+      #studioApp .guest-check-card .visitor-log-actions{position:relative!important;z-index:2!important}
+      #studioApp .guest-check-card .mailbox-mark{position:relative;width:44px;height:44px;flex:0 0 44px;border:0;opacity:.96}
+      #studioApp .guest-check-card .mailbox-mark::before,#studioApp .guest-check-card .mailbox-mark::after{content:none!important;display:none!important}
+      #studioApp .guest-check-mark{display:grid;width:44px;height:44px;place-items:center;border:1px solid rgba(var(--aura-rgb,216,95,109),.26);border-radius:14px;background:rgba(var(--aura-rgb,216,95,109),.10);font-size:22px;line-height:1}
       #studioApp .visitor-log-intro{display:flex;gap:11px;align-items:center;margin:2px 0 10px}
       #studioApp .visitor-log-intro strong{display:block;font:700 13px/1.1 Georgia,"Times New Roman",serif}
       #studioApp .visitor-log-intro span{display:block;margin-top:3px;font:9px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
@@ -108,34 +113,65 @@
       @keyframes biglwa-aura-wobble{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}25%{transform:translate3d(1px,-2px,0) scale(1.025) rotate(-1.2deg)}50%{transform:translate3d(-1px,1px,0) scale(.985) rotate(1deg)}75%{transform:translate3d(2px,0,0) scale(1.018) rotate(-.7deg)}}
       @media(prefers-reduced-motion:reduce){#studioApp .aura-card .aura-orb{animation:none!important}}
 
-      #visitorLogDialog{width:min(520px,calc(100vw - 28px));max-height:min(680px,calc(100vh - 28px));padding:0;border:1px solid rgba(73,59,52,.18);border-radius:20px;background:#f8f2ec;color:#201d1b;box-shadow:0 28px 90px rgba(28,17,13,.34);overflow:hidden}
-      #visitorLogDialog::backdrop{background:rgba(24,17,15,.54);backdrop-filter:blur(8px)}
-      #visitorLogDialog .visitor-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px 13px;border-bottom:1px solid rgba(73,59,52,.12)}
-      #visitorLogDialog .visitor-dialog-head h2{margin:0;font:700 24px/1 Georgia,"Times New Roman",serif}
-      #visitorLogDialog .visitor-dialog-head p{margin:6px 0 0;font:10px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
-      #visitorLogDialog .visitor-dialog-close{width:31px;height:31px;padding:0;display:grid;place-items:center;font-size:18px}
-      #visitorLogDialog .visitor-dialog-tabs{display:flex;gap:6px;padding:12px 22px 0}
-      #visitorLogDialog .visitor-dialog-tabs button[aria-selected="true"]{background:rgb(var(--aura-rgb,216,95,109));border-color:transparent;color:var(--aura-button-ink,#fff)}
-      #visitorLogDialog .visitor-dialog-pane{padding:15px 22px 22px}
-      #visitorLogDialog .visitor-dialog-pane[hidden]{display:none}
-      #visitorLogDialog label{display:grid;gap:5px;margin-bottom:10px;font:750 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-      #visitorLogDialog input,#visitorLogDialog textarea{box-sizing:border-box;width:100%;border:1px solid rgba(73,59,52,.18);border-radius:10px;background:rgba(255,255,255,.72);color:inherit;padding:10px 11px;font:12px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;resize:vertical}
-      #visitorLogDialog .visitor-dialog-primary{background:#1d1b1a;color:#fff;border-color:#1d1b1a;padding:9px 14px}
-      #visitorLogDialog .visitor-form-note,#visitorLogDialog .visitor-form-status{margin:8px 0 0;font:9px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
-      #visitorLogDialog .visitor-own-profile-state{margin:0 0 13px;padding:11px 12px;border:1px solid rgba(var(--aura-rgb,216,95,109),.22);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.07);font:10px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#615852}
-      #visitorLogDialog .visitor-own-profile-state[hidden]{display:none}
-      #visitorLogDialog .visitor-note-list{display:grid;gap:7px;margin-top:13px}
-      #visitorLogDialog .visitor-note-item{padding:9px 10px;border:1px solid rgba(73,59,52,.11);border-radius:10px;background:rgba(255,255,255,.46);font:11px/1.4 Georgia,"Times New Roman",serif}
-      #visitorLogDialog .visitor-note-item small{display:block;margin-top:4px;font:8px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:#837a73}
-      #visitorLogDialog .encryption-readiness{display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:center;margin:0 0 12px;padding:9px 10px;border:1px solid rgba(var(--aura-rgb,216,95,109),.25);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.07)}
-      #visitorLogDialog .encryption-readiness svg{width:25px;height:25px;color:rgb(var(--aura-rgb,216,95,109))}
-      #visitorLogDialog .encryption-readiness strong,#visitorLogDialog .encryption-readiness span{display:block}
-      #visitorLogDialog .encryption-readiness strong{font:700 10px/1.2 Inter,ui-sans-serif,system-ui,sans-serif}
-      #visitorLogDialog .encryption-readiness span{margin-top:2px;font:8px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
+      #guestCheckDialog,#studioLogsDialog{width:min(560px,calc(100vw - 28px));max-height:min(720px,calc(100vh - 28px));padding:0;border:1px solid rgba(73,59,52,.18);border-radius:20px;background:#f8f2ec;color:#201d1b;box-shadow:0 28px 90px rgba(28,17,13,.34);overflow:auto}
+      #guestCheckDialog::backdrop,#studioLogsDialog::backdrop{background:rgba(24,17,15,.54);backdrop-filter:blur(8px)}
+      #guestCheckDialog .visitor-dialog-head,#studioLogsDialog .visitor-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px 13px;border-bottom:1px solid rgba(73,59,52,.12)}
+      #guestCheckDialog .visitor-dialog-head h2,#studioLogsDialog .visitor-dialog-head h2{margin:0;font:700 24px/1 Georgia,"Times New Roman",serif}
+      #guestCheckDialog .visitor-dialog-head p,#studioLogsDialog .visitor-dialog-head p{margin:6px 0 0;font:12px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
+      #guestCheckDialog .visitor-dialog-close,#studioLogsDialog .visitor-dialog-close{width:31px;height:31px;padding:0;display:grid;place-items:center;font-size:18px}
+      #guestCheckDialog .visitor-dialog-tabs{display:flex;gap:6px;padding:12px 22px 0}
+      #guestCheckDialog .visitor-dialog-tabs button[aria-selected="true"]{background:rgb(var(--aura-rgb,216,95,109));border-color:transparent;color:var(--aura-button-ink,#fff)}
+      #guestCheckDialog .visitor-dialog-pane{padding:15px 22px 22px}
+      #guestCheckDialog .visitor-dialog-pane[hidden]{display:none}
+      #guestCheckDialog label{display:grid;gap:5px;margin-bottom:10px;font:750 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+      #guestCheckDialog input,#guestCheckDialog textarea{box-sizing:border-box;width:100%;border:1px solid rgba(73,59,52,.18);border-radius:10px;background:rgba(255,255,255,.72);color:inherit;padding:10px 11px;font:12px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;resize:vertical}
+      #guestCheckDialog .visitor-dialog-primary{background:#1d1b1a;color:#fff;border-color:#1d1b1a;padding:9px 14px}
+      #guestCheckDialog .visitor-form-note,#guestCheckDialog .visitor-form-status{margin:8px 0 0;font:10px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
+      #guestCheckDialog .visitor-own-profile-state{margin:0 0 13px;padding:11px 12px;border:1px solid rgba(var(--aura-rgb,216,95,109),.22);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.07);font:11px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:#615852}
+      #guestCheckDialog .visitor-own-profile-state[hidden]{display:none}
+      #guestCheckDialog .visitor-note-list{display:grid;gap:7px;margin-top:13px}
+      #guestCheckDialog .visitor-note-item{padding:10px 11px;border:1px solid rgba(73,59,52,.11);border-radius:10px;background:rgba(255,255,255,.46);font:13px/1.4 Georgia,"Times New Roman",serif}
+      #guestCheckDialog .visitor-note-item small{display:block;margin-top:4px;font:9px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;color:#837a73}
+      #guestCheckDialog .encryption-readiness{display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:center;margin:0 0 12px;padding:9px 10px;border:1px solid rgba(var(--aura-rgb,216,95,109),.25);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.07)}
+      #guestCheckDialog .encryption-readiness svg{width:25px;height:25px;color:rgb(var(--aura-rgb,216,95,109))}
+      #guestCheckDialog .encryption-readiness strong,#guestCheckDialog .encryption-readiness span{display:block}
+      #guestCheckDialog .encryption-readiness strong{font:700 10px/1.2 Inter,ui-sans-serif,system-ui,sans-serif}
+      #guestCheckDialog .encryption-readiness span{margin-top:2px;font:9px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
+      #guestCheckDialog .guest-gift-label{margin:2px 0 7px;font:750 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+      #guestCheckDialog .guest-gift-picker{display:grid;grid-template-columns:repeat(8,minmax(38px,1fr));gap:6px;margin-bottom:13px}
+      #guestCheckDialog .guest-gift-picker label{display:block;margin:0;letter-spacing:0;text-transform:none}
+      #guestCheckDialog .guest-gift-picker input{position:absolute;opacity:0;pointer-events:none}
+      #guestCheckDialog .guest-gift-picker span{display:grid;place-items:center;min-height:38px;border:1px solid rgba(73,59,52,.14);border-radius:10px;background:rgba(255,255,255,.58);font-size:20px;cursor:pointer}
+      #guestCheckDialog .guest-gift-picker input:checked+span{border-color:rgb(var(--aura-rgb,216,95,109));box-shadow:0 0 0 2px rgba(var(--aura-rgb,216,95,109),.16)}
+      #studioLogsDialog .studio-log-list{display:grid;gap:8px;padding:15px 22px 22px}
+      #studioLogsDialog .studio-log-item{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:start;padding:11px 12px;border:1px solid rgba(73,59,52,.12);border-radius:12px;background:rgba(255,255,255,.48)}
+      #studioLogsDialog .studio-log-dot{width:9px;height:9px;margin-top:3px;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109))}
+      #studioLogsDialog .studio-log-item.is-private .studio-log-dot{background:#8d837c}
+      #studioLogsDialog .studio-log-item strong,#studioLogsDialog .studio-log-item span{display:block}
+      #studioLogsDialog .studio-log-item strong{font:700 12px/1.25 Inter,ui-sans-serif,system-ui,sans-serif}
+      #studioLogsDialog .studio-log-item span{margin-top:3px;font:10px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:#766e68}
+      #studioLogsDialog .studio-log-item time{font:9px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;color:#8a817a;white-space:nowrap}
+      #studioLogsDialog .studio-log-empty{padding:24px 22px 28px;color:#766e68;font:12px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;text-align:center}
 
       #studioApp .sidebar-theme-btn .biglwa-theme-icon{display:none!important}
       #studioApp .sidebar-theme-btn img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;filter:brightness(0)!important;mix-blend-mode:normal!important}
       #studioApp #studioNotificationsBtn .visitor-mail-icon{width:20px;height:20px;display:block}
+      #studioApp #studioSignOut .studio-logout-icon{display:block;width:22px;height:22px;object-fit:contain}
+      #studioApp #studioSignOut,#studioApp #studioNotificationsBtn{display:grid;place-items:center;width:30px;height:30px;padding:0}
+      #studioApp #studioNotificationsBtn .notif-dot[hidden]{display:none!important}
+      #studioApp .profile-card.profile-is-editing{display:grid!important;grid-template-columns:184px minmax(0,1fr)!important;width:100%!important;min-height:560px!important;max-height:none!important;padding:0!important;overflow:hidden!important}
+      #studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;align-self:stretch!important;padding:22px 18px!important;border-right:1px solid rgba(62,50,45,.12)!important;background:rgba(var(--aura-rgb,216,95,109),.05)!important}
+      #studioApp .profile-card.profile-is-editing #wallpaperPanel{position:static!important;inset:auto!important;grid-column:2!important;grid-row:1!important;width:auto!important;max-width:none!important;max-height:none!important;margin:0!important;padding:22px 26px 24px!important;overflow:visible!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+      #studioApp .profile-card.profile-is-editing #wallpaperPanel .panel-title{position:static!important;margin:0 0 12px!important;padding:0 0 12px!important;border-bottom:1px solid rgba(73,59,52,.12)!important;background:none!important}
+      #studioApp .profile-card.profile-is-editing .profile-editor-tabs{display:flex!important;flex-wrap:wrap!important;gap:7px!important;margin-bottom:16px!important;padding-bottom:12px!important}
+      #studioApp .profile-card.profile-is-editing .profile-editor-tabs button{min-height:32px!important;padding:8px 12px!important;font-size:10px!important}
+      #studioApp .profile-card.profile-is-editing #wallpaperPanel .customize-section h3{font-size:17px!important}
+      #studioApp .profile-card.profile-is-editing #wallpaperPanel .customize-section p{font-size:12px!important;line-height:1.45!important}
+      #studioApp .profile-card.profile-is-editing .profile-editor-grid label{font-size:11px!important;line-height:1.35!important}
+      #studioApp .profile-card.profile-is-editing .profile-editor-grid input,#studioApp .profile-card.profile-is-editing .profile-editor-grid textarea,#studioApp .profile-card.profile-is-editing select{font-size:12px!important;line-height:1.35!important}
+      #studioApp .profile-card.profile-is-editing .profile-editor-actions{position:static!important;margin:18px 0 0!important;padding:15px 0 0!important;border-top:1px solid rgba(73,59,52,.12)!important;background:none!important;flex-wrap:wrap!important}
+      #studioApp .profile-update-privacy{display:flex!important;align-items:flex-start!important;gap:8px!important;width:100%!important;margin:0 0 2px!important;font:600 11px/1.35 Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--widget-muted,#6f6862)!important}
+      #studioApp .profile-update-privacy input{width:15px!important;height:15px!important;margin:0!important;accent-color:rgb(var(--aura-rgb,216,95,109))!important}
       #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon{display:block;width:22px;height:22px;margin:0 auto 2px}
       #studioApp .studio-symbol-mark{display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
       #studioApp .studio-symbol-source{display:block;width:100%;height:100%;overflow:visible;filter:none}\n      #studioApp .studio-symbol-image{display:block;width:100%;height:100%;object-fit:contain;filter:none}
@@ -177,7 +213,7 @@
       body.night-mode #studioApp #games .games-block-mark{mix-blend-mode:normal;filter:contrast(1.08)}
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
-      body.night-mode #studioApp .profile-card,body.night-mode #studioApp .music-card,body.night-mode #studioApp .aura-card,body.night-mode #studioApp .visitor-log-card,body.night-mode #studioApp .mobile-dock.hero-action-bar,body.night-mode #studioApp .masonry .card:not(.manifesto-card){background:var(--widget-bg,rgba(250,247,241,.84))!important;border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;color:var(--widget-ink,#171717)!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important}
+      body.night-mode #studioApp .profile-card,body.night-mode #studioApp .music-card,body.night-mode #studioApp .aura-card,body.night-mode #studioApp .guest-check-card,body.night-mode #studioApp .mobile-dock.hero-action-bar,body.night-mode #studioApp .masonry .card:not(.manifesto-card){background:var(--widget-bg,rgba(250,247,241,.84))!important;border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;color:var(--widget-ink,#171717)!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important}
       body.night-mode #studioApp .profile-card .profile-identity-rail{background:color-mix(in srgb,var(--widget-ink,#171717) 4%,transparent)!important;border-color:rgba(var(--aura-rgb,216,95,109),.14)!important}
       body.night-mode #studioApp .profile-card .profile-name-line h1,body.night-mode #studioApp .profile-card .bio,body.night-mode #studioApp .profile-card .stats b,body.night-mode #studioApp .card-kicker{color:var(--widget-ink,#171717)!important}
       #studioApp .profile-card #wallpaperPanel{background:transparent!important;color:var(--widget-ink,#171717)!important}
@@ -186,16 +222,16 @@
       body.night-mode #studioApp #wallpaperPanel input,body.night-mode #studioApp #wallpaperPanel textarea,body.night-mode #studioApp #wallpaperPanel select,body.night-mode #studioApp .music-meta-editor input{background:#292625!important;border-color:#514b47!important;color:#f5eee7!important;color-scheme:dark}
       body.night-mode #studioApp .profile-editor-tabs button,body.night-mode #studioApp .music-file-actions button,body.night-mode #studioApp .visitor-log-actions button,body.night-mode #studioApp .widget-drag-handle{background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.13)!important;color:#eee6df!important}
       body.night-mode #studioApp .visitor-log-actions button:first-child{background:rgb(var(--aura-rgb,216,95,109))!important;color:var(--aura-button-ink,#fff)!important}
-      body.night-mode #visitorLogDialog{background:#252220;color:#f5eee7;border-color:rgba(255,255,255,.13);color-scheme:dark}
-      body.night-mode #visitorLogDialog .visitor-dialog-head,body.night-mode #visitorLogDialog .visitor-note-item{border-color:rgba(255,255,255,.1)}
-      body.night-mode #visitorLogDialog input,body.night-mode #visitorLogDialog textarea{background:#302c2a;border-color:#514a45;color:#f5eee7}
-      body.night-mode #visitorLogDialog .visitor-dialog-head p,body.night-mode #visitorLogDialog .visitor-form-note,body.night-mode #visitorLogDialog .visitor-form-status,body.night-mode #visitorLogDialog .encryption-readiness span,body.night-mode #visitorLogDialog .visitor-note-item small{color:#bbb1a9}
-      body.night-mode #visitorLogDialog .visitor-own-profile-state{color:#d8cec6}
-      body.night-mode #visitorLogDialog .visitor-note-item{background:rgba(255,255,255,.04)}
+      body.night-mode #guestCheckDialog,body.night-mode #studioLogsDialog{background:#252220;color:#f5eee7;border-color:rgba(255,255,255,.13);color-scheme:dark}
+      body.night-mode #guestCheckDialog .visitor-dialog-head,body.night-mode #guestCheckDialog .visitor-note-item,body.night-mode #studioLogsDialog .visitor-dialog-head,body.night-mode #studioLogsDialog .studio-log-item{border-color:rgba(255,255,255,.1)}
+      body.night-mode #guestCheckDialog input,body.night-mode #guestCheckDialog textarea{background:#302c2a;border-color:#514a45;color:#f5eee7}
+      body.night-mode #guestCheckDialog .visitor-dialog-head p,body.night-mode #guestCheckDialog .visitor-form-note,body.night-mode #guestCheckDialog .visitor-form-status,body.night-mode #guestCheckDialog .encryption-readiness span,body.night-mode #guestCheckDialog .visitor-note-item small,body.night-mode #studioLogsDialog .visitor-dialog-head p,body.night-mode #studioLogsDialog .studio-log-item span,body.night-mode #studioLogsDialog .studio-log-item time{color:#bbb1a9}
+      body.night-mode #guestCheckDialog .visitor-own-profile-state{color:#d8cec6}
+      body.night-mode #guestCheckDialog .visitor-note-item,body.night-mode #studioLogsDialog .studio-log-item{background:rgba(255,255,255,.04)}
 
       @media(max-width:1020px){#studioApp .hero{grid-template-columns:minmax(0,1fr) 284px!important;padding-left:16px!important;padding-right:16px!important}}
-      @media(max-width:900px){#studioApp .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;padding:62px 12px 34px!important}#studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important}#studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .hero>.hero-action-bar{grid-column:1!important;grid-row:3!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.visitor-log-card{min-height:132px!important}}
-      @media(max-width:700px){#studioApp .hero-widget-rail{grid-template-columns:1fr!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.visitor-log-card{min-height:112px!important}#studioApp .profile-card.profile-is-editing{min-height:650px!important}#studioApp.profile-editor-wallpaper .profile-card.profile-is-editing{min-height:720px!important}#studioApp .profile-card #wallpaperPanel{max-height:570px!important}}
+      @media(max-width:900px){#studioApp .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;padding:62px 12px 34px!important}#studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important}#studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .hero>.hero-action-bar{grid-column:1!important;grid-row:3!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{min-height:132px!important}}
+      @media(max-width:700px){#studioApp .hero-widget-rail{grid-template-columns:1fr!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{min-height:112px!important}#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:0!important;overflow:visible!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:grid!important;grid-template-columns:64px minmax(0,1fr) auto!important;align-items:center!important;gap:11px!important;padding:14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.12)!important}#studioApp .profile-card.profile-is-editing #wallpaperPanel{grid-column:1!important;grid-row:2!important;padding:18px 16px 22px!important}#guestCheckDialog .guest-gift-picker{grid-template-columns:repeat(5,minmax(38px,1fr))}}
       @media(prefers-reduced-motion:reduce){#studioApp .widget-dragging-active{transform:none!important}}
     `;
   }
@@ -235,17 +271,17 @@
     return true;
   }
 
-  function syncVisitorPermissions(card=$('#visitorLogWidget')){
+  function syncGuestPermissions(card=$('#guestCheckWidget')){
     const own=viewingOwnProfile();
     if(card){
       card.dataset.profileRelationship=own?'self':'visitor';
-      const publicAction=$('.visitor-log-actions [data-open-visitor="public"]',card);
+      const publicAction=$('.visitor-log-actions [data-open-guest="check"]',card);
       if(publicAction){
-        publicAction.textContent=own?'View public notes':'Leave public note';
-        publicAction.setAttribute('aria-label',own?'View public notes on your profile':'Leave a public note on this profile');
+        publicAction.textContent=own?'View check-ins':'Say you wuz here';
+        publicAction.setAttribute('aria-label',own?'View Guest Check entries on your profile':'Leave a Guest Check entry on this profile');
       }
     }
-    const dialog=$('#visitorLogDialog');
+    const dialog=$('#guestCheckDialog');
     if(!dialog)return own;
     const publicTab=$('[data-visitor-tab="public"]',dialog),form=$('#visitorPublicForm',dialog),ownState=$('#visitorOwnProfileState',dialog);
     if(publicTab)publicTab.textContent=own?'Public notes':'Public note';
@@ -255,17 +291,17 @@
     return own;
   }
 
-  function ensureVisitorLog(){
+  function ensureGuestCheck(){
     const app=$('#studioApp'),hero=$('.hero',app);if(!app||!hero)return null;
-    let card=$('#visitorLogWidget',app);
+    let card=$('#guestCheckWidget',app);
     if(!card){
       card=document.createElement('section');
-      card.id='visitorLogWidget';card.className='visitor-log-card glass small-card customizable-widget';
-      card.dataset.widgetId='visitor-log';card.dataset.widgetLabel='Visitor Log';card.dataset.widgetRoute='visitor-log';
-      card.innerHTML='<div class="card-kicker">Visitor Log</div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Your mailbox</strong><span>Public notes and private conversations begin here.</span></div></div><div class="visitor-log-actions"><button type="button" data-open-visitor="public">Public note</button><button type="button" data-open-visitor="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div>';
+      card.id='guestCheckWidget';card.className='guest-check-card glass small-card customizable-widget';
+      card.dataset.widgetId='guest-check';card.dataset.widgetLabel='Guest Check';card.dataset.widgetRoute='guest-check';
+      card.innerHTML='<div class="card-kicker">Guest Check</div><div class="visitor-log-intro"><span class="mailbox-mark" aria-hidden="true"></span><div><strong>Who wuz here?</strong><span>Visitors can leave an affirmation and a little gift.</span></div></div><div class="visitor-log-actions"><button type="button" data-open-guest="check">View check-ins</button><button type="button" data-open-guest="direct">Direct message</button></div><div class="visitor-log-count" aria-live="polite"></div>';
     }
-    syncVisitorPermissions(card);
-    updateVisitorCount(card);
+    syncGuestPermissions(card);
+    updateGuestCount(card);
     return card;
   }
 
@@ -273,8 +309,8 @@
     const app=$('#studioApp'),hero=$('.hero',app);if(!app||!hero)return;
     let rail=$('#heroWidgetRail',hero);
     if(!rail){rail=document.createElement('aside');rail.id='heroWidgetRail';rail.className='hero-widget-rail';rail.setAttribute('aria-label','Studio profile widgets');const profile=$('.profile-card',hero);profile?.insertAdjacentElement('afterend',rail)}
-    const visitor=ensureVisitorLog();
-    const cards=[$('.aura-card',app),$('.music-card',app),visitor].filter(Boolean);
+    const guest=ensureGuestCheck();
+    const cards=[$('.aura-card',app),$('.music-card',app),guest].filter(Boolean);
     cards.forEach(card=>{if(card.parentNode!==rail)rail.appendChild(card)});
     restoreOrder(rail);
   }
@@ -283,7 +319,7 @@
 
   function greenControl(widget){
     const id=widget.dataset.widgetId||widget.id||'widget',route=widget.dataset.widgetRoute||$('.arrow-btn[data-open]',widget)?.dataset.open||id;
-    if(route==='visitor-log'||id==='visitor-log')return {attribute:'data-open-visitor="public"',label:'Open Visitor Log mailbox'};
+    if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(FULL_WIDGET_ROUTES.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
@@ -393,12 +429,21 @@
     restoreMusic();
   }
 
-  function readNotes(){try{const notes=JSON.parse(localStorage.getItem(NOTE_KEY)||'[]');return Array.isArray(notes)?notes:[]}catch{return[]}}
-  function updateVisitorCount(card=$('#visitorLogWidget')){if(!card)return;const count=readNotes().length,status=$('.visitor-log-count',card);if(status)status.textContent=count?`${count} local note${count===1?'':'s'} in this browser`:(viewingOwnProfile()?'Mailbox ready · only visitors can leave public notes':'Be the first visitor to leave a public note')}
+  function readGuestChecks(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(GUEST_KEY)||'null');
+      if(Array.isArray(saved))return saved;
+      const legacy=JSON.parse(localStorage.getItem(LEGACY_NOTE_KEY)||'[]');
+      return Array.isArray(legacy)?legacy.map(note=>({name:note.name||'',affirmation:note.message||'',gift:'💐',createdAt:note.createdAt||Date.now(),visibility:'device-preview'})):[];
+    }catch{return[]}
+  }
+  function updateGuestCount(card=$('#guestCheckWidget')){if(!card)return;const count=readGuestChecks().length,status=$('.visitor-log-count',card);if(status)status.textContent=count?`${count} guest check${count===1?'':'s'} saved in this browser`:(viewingOwnProfile()?'Guest book ready · only visitors can sign':'Be the first to say you wuz here')}
 
-  function renderNotes(){
+  function renderGuestChecks(){
     const list=$('#visitorNoteList');if(!list)return;list.innerHTML='';
-    readNotes().slice(-3).reverse().forEach(note=>{const item=document.createElement('div');item.className='visitor-note-item';const text=document.createElement('div');text.textContent=note.message;const meta=document.createElement('small');meta.textContent=`${note.name||'Anonymous'} · ${new Date(note.createdAt).toLocaleString()}`;item.append(text,meta);list.appendChild(item)});
+    const checks=readGuestChecks().slice(-12).reverse();
+    if(!checks.length){const empty=document.createElement('div');empty.className='visitor-note-item';empty.textContent='No one has checked in yet.';list.appendChild(empty);return}
+    checks.forEach(entry=>{const item=document.createElement('div');item.className='visitor-note-item';const title=document.createElement('div');title.textContent=`${entry.name||'Anonymous'} wuz here ${entry.gift||''}`.trim();item.appendChild(title);if(entry.affirmation){const affirmation=document.createElement('div');affirmation.textContent=entry.affirmation;item.appendChild(affirmation)}const meta=document.createElement('small');meta.textContent=new Date(entry.createdAt).toLocaleString();item.appendChild(meta);list.appendChild(item)});
   }
 
   async function getDraftKey(){
@@ -411,24 +456,58 @@
     const ciphertext=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,payload);await dbPut({id:'private-draft',iv,ciphertext,updatedAt:Date.now()});
   }
 
-  function ensureVisitorDialog(){
-    let dialog=$('#visitorLogDialog');if(dialog)return dialog;
-    dialog=document.createElement('dialog');dialog.id='visitorLogDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Visitor Log</h2><p>A mailbox for notes now—and verified private conversations next.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><div class="visitor-dialog-tabs" role="tablist"><button type="button" role="tab" data-visitor-tab="public" aria-controls="visitorPublicPane">Public notes</button><button type="button" role="tab" data-visitor-tab="direct" aria-controls="visitorDirectPane">Direct message</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><p class="visitor-own-profile-state" id="visitorOwnProfileState" hidden>This is your profile. You can read public notes here, but only visitors can leave one.</p><form id="visitorPublicForm"><label>Name (optional)<input id="visitorNoteName" maxlength="60" autocomplete="name"></label><label>Note<textarea id="visitorNoteText" rows="4" maxlength="500" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save note preview</button><p class="visitor-form-note">This preview stays in this browser until public profiles and moderation are connected.</p><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section><section class="visitor-dialog-pane" id="visitorDirectPane" data-visitor-pane="direct" hidden><div class="encryption-readiness"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg><div><strong>Encrypted draft storage is active</strong><span>Actual user-to-user E2EE stays off until recipient-key verification and ciphertext-only backend rules are connected.</span></div></div><form id="visitorDirectForm"><label>To<input id="visitorDirectTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="visitorDirectText" rows="5" maxlength="2000" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save encrypted draft</button><p class="visitor-form-status" id="visitorDirectStatus" role="status" aria-live="polite"></p></form></section>';
+  function ensureGuestDialog(){
+    let dialog=$('#guestCheckDialog');if(dialog)return dialog;
+    const gifts=['💐','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','🩷','🩵','🩶','✌🏽','💸','😻'];
+    const giftOptions=gifts.map((gift,index)=>`<label><input type="radio" name="guestGift" value="${gift}" ${index===0?'checked':''}><span title="${gift}" aria-label="${gift}">${gift}</span></label>`).join('');
+    dialog=document.createElement('dialog');dialog.id='guestCheckDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Guest Check</h2><p>Leave a little proof that you passed through.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close">×</button></div><div class="visitor-dialog-tabs" role="tablist"><button type="button" role="tab" data-visitor-tab="public" aria-controls="visitorPublicPane">Guest Check</button><button type="button" role="tab" data-visitor-tab="direct" aria-controls="visitorDirectPane">Direct message</button></div><section class="visitor-dialog-pane" id="visitorPublicPane" data-visitor-pane="public"><p class="visitor-own-profile-state" id="visitorOwnProfileState" hidden>This is your profile. You can read Guest Check entries here, but only visitors can leave one.</p><form id="visitorPublicForm"><label>Name<input id="visitorNoteName" maxlength="60" autocomplete="name" placeholder="Your name"></label><label>Affirmation<textarea id="visitorNoteText" rows="3" maxlength="280" placeholder="Leave something kind…" required></textarea></label><div class="guest-gift-label">Add a gift</div><div class="guest-gift-picker" role="radiogroup" aria-label="Choose a Guest Check gift">'+giftOptions+'</div><button class="visitor-dialog-primary" type="submit">Say I wuz here</button><p class="visitor-form-note">Guest Check entries stay in this browser until public profiles and moderation are connected.</p><p class="visitor-form-status" id="visitorPublicStatus" role="status" aria-live="polite"></p></form><div class="visitor-note-list" id="visitorNoteList"></div></section><section class="visitor-dialog-pane" id="visitorDirectPane" data-visitor-pane="direct" hidden><div class="encryption-readiness"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg><div><strong>Encrypted draft storage is active</strong><span>Actual user-to-user E2EE stays off until recipient-key verification and ciphertext-only backend rules are connected.</span></div></div><form id="visitorDirectForm"><label>To<input id="visitorDirectTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="visitorDirectText" rows="5" maxlength="2000" required></textarea></label><button class="visitor-dialog-primary" type="submit">Save encrypted draft</button><p class="visitor-form-status" id="visitorDirectStatus" role="status" aria-live="polite"></p></form></section>';
     document.body.appendChild(dialog);
     const showTab=key=>{$$('[data-visitor-tab]',dialog).forEach(tab=>tab.setAttribute('aria-selected',tab.dataset.visitorTab===key?'true':'false'));$$('[data-visitor-pane]',dialog).forEach(pane=>pane.hidden=pane.dataset.visitorPane!==key)};
     dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-visitor-tab]');if(tab)showTab(tab.dataset.visitorTab);if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});
-    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncVisitorPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot leave a public note on your own profile.';return}const message=$('#visitorNoteText',dialog).value.trim();if(!message)return;const notes=readNotes();notes.push({name:$('#visitorNoteName',dialog).value.trim(),message,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(NOTE_KEY,JSON.stringify(notes.slice(-30)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Note preview saved on this device.';renderNotes();updateVisitorCount()});
+    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncGuestPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot sign Guest Check on your own profile.';return}const affirmation=$('#visitorNoteText',dialog).value.trim();if(!affirmation)return;const gift=$('input[name="guestGift"]:checked',dialog)?.value||'💐',checks=readGuestChecks();checks.push({name:$('#visitorNoteName',dialog).value.trim(),affirmation,gift,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(GUEST_KEY,JSON.stringify(checks.slice(-50)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Your Guest Check is saved on this device.';renderGuestChecks();updateGuestCount()});
     $('#visitorDirectForm',dialog).addEventListener('submit',async event=>{event.preventDefault();const to=$('#visitorDirectTo',dialog).value.trim(),message=$('#visitorDirectText',dialog).value.trim(),status=$('#visitorDirectStatus',dialog);if(!to||!message)return;status.textContent='Encrypting draft on this device…';try{await saveEncryptedDraft(to,message);$('#visitorDirectText',dialog).value='';status.textContent='Encrypted draft saved on this device. It has not been sent.'}catch{status.textContent='Encrypted draft storage is unavailable in this browser.'}});
-    dialog._showVisitorTab=showTab;syncVisitorPermissions();showTab('public');renderNotes();return dialog;
+    dialog._showVisitorTab=showTab;syncGuestPermissions();showTab('public');renderGuestChecks();return dialog;
   }
 
-  function openVisitorDialog(tab='public'){
-    const dialog=ensureVisitorDialog();syncVisitorPermissions();dialog._showVisitorTab?.(tab);renderNotes();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
+  function openGuestDialog(tab='public'){
+    const dialog=ensureGuestDialog();syncGuestPermissions();dialog._showVisitorTab?.(tab);renderGuestChecks();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
   }
 
-  function bindVisitorActions(){
-    const app=$('#studioApp');if(!app||app.dataset.visitorActions==='1')return;app.dataset.visitorActions='1';
-    app.addEventListener('click',event=>{const button=event.target.closest('[data-open-visitor]');if(!button)return;event.preventDefault();openVisitorDialog(button.dataset.openVisitor||'public')});
+  function bindGuestActions(){
+    const app=$('#studioApp');if(!app||app.dataset.guestActions==='1')return;app.dataset.guestActions='1';
+    app.addEventListener('click',event=>{const button=event.target.closest('[data-open-guest]');if(!button)return;event.preventDefault();openGuestDialog(button.dataset.openGuest==='direct'?'direct':'public')});
+  }
+
+  function readActivity(){try{const items=JSON.parse(localStorage.getItem(ACTIVITY_KEY)||'[]');return Array.isArray(items)?items:[]}catch{return[]}}
+  function updateLogsDot(){
+    const button=$('#studioNotificationsBtn'),dot=$('.notif-dot',button);if(!dot)return;
+    let readAt=0;try{readAt=Number(localStorage.getItem(ACTIVITY_READ_KEY)||0)}catch{}
+    dot.hidden=!readActivity().some(item=>Number(item.createdAt)>readAt);
+  }
+  function recordActivity(detail={}){
+    const title=String(detail.title||detail.label||'Studio updated').trim()||'Studio updated';
+    const item={title,source:String(detail.source||'Studio'),detail:String(detail.detail||''),notified:detail.notified!==false,createdAt:Number(detail.createdAt)||Date.now()};
+    const items=readActivity();items.push(item);try{localStorage.setItem(ACTIVITY_KEY,JSON.stringify(items.slice(-100)))}catch{}
+    updateLogsDot();return item;
+  }
+  function renderLogs(){
+    const list=$('#studioLogList');if(!list)return;const items=readActivity().slice().reverse();list.innerHTML='';
+    if(!items.length){const empty=document.createElement('div');empty.className='studio-log-empty';empty.textContent='No Studio updates yet. Changes you save in widget pages will appear here.';list.appendChild(empty);return}
+    items.forEach(entry=>{const row=document.createElement('article');row.className='studio-log-item'+(entry.notified?'':' is-private');const dot=document.createElement('i');dot.className='studio-log-dot';dot.setAttribute('aria-hidden','true');const copy=document.createElement('div');const title=document.createElement('strong');title.textContent=entry.title;const meta=document.createElement('span');meta.textContent=`${entry.source} · ${entry.notified?'Followers & connections notified':'Not shared with followers/connections'}${entry.detail?' · '+entry.detail:''}`;const time=document.createElement('time');time.dateTime=new Date(entry.createdAt).toISOString();time.textContent=new Date(entry.createdAt).toLocaleString();copy.append(title,meta);row.append(dot,copy,time);list.appendChild(row)});
+  }
+  function ensureLogsDialog(){
+    let dialog=$('#studioLogsDialog');if(dialog)return dialog;
+    dialog=document.createElement('dialog');dialog.id='studioLogsDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Logs</h2><p>Studio changes and whether followers or connections were notified.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close Logs">×</button></div><div class="studio-log-list" id="studioLogList"></div>';
+    document.body.appendChild(dialog);dialog.addEventListener('click',event=>{if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});return dialog;
+  }
+  function openLogs(){
+    const dialog=ensureLogsDialog();renderLogs();try{localStorage.setItem(ACTIVITY_READ_KEY,String(Date.now()))}catch{}updateLogsDot();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
+  }
+  function bindActivity(){
+    if(document.body.dataset.biglwaActivityBound==='1')return;document.body.dataset.biglwaActivityBound='1';
+    window.BIGLWAActivity={record:recordActivity,open:openLogs,read:readActivity};
+    window.addEventListener('biglwa:studio-update',event=>recordActivity(event.detail||{}));
+    updateLogsDot();
   }
 
   function ensureDirectoryIcons(){
@@ -479,8 +558,8 @@
     const quiz=$('#games .quiz',app);
     if(quiz&&!$('.games-block-mark',quiz)){quiz.insertAdjacentHTML('afterbegin','<img class="games-block-mark" src="/assets/culture-quiz-cubes.png?v=20260915-culture-quiz-cubes-1" alt="" aria-hidden="true" width="1672" height="941">')}
     replaceCardSymbol('#closet .card-icon','studio-closet-hanger-icon',STUDIO_ICONS.hanger);
-    const mailbox=$('#visitorLogWidget .mailbox-mark',app);
-    if(mailbox&&!$('.visitor-mail-icon',mailbox))mailbox.innerHTML=STUDIO_ICONS.mail;
+    const guestMark=$('#guestCheckWidget .mailbox-mark',app);
+    if(guestMark&&!$('.guest-check-mark',guestMark))guestMark.innerHTML=STUDIO_ICONS.guest;
   }
 
   function ensureGamesPreviewPicker(){
@@ -583,13 +662,15 @@
     const ensureThemeImage=(button,src,label)=>{if(!button)return;let image=$('img',button);if(!image){image=document.createElement('img');button.replaceChildren(image)}image.src=src;image.alt='';image.setAttribute('aria-hidden','true');button.title=label;button.setAttribute('aria-label',label);$('.biglwa-theme-icon',button)?.remove()};
     ensureThemeImage(light,'/assets/login-sun-mask.png?v=20260913-theme-symbols-4','Light mode');
     ensureThemeImage(dark,'/assets/login-moon-mask.png?v=20260913-theme-symbols-4','Dark mode');
-    const app=$('#studioApp'),candidate=$('.top-actions .icon-btn[aria-label="Notifications"]',app)||$('.top-actions .icon-btn',app);if(!candidate)return;
-    candidate.id='studioNotificationsBtn';candidate.type='button';candidate.setAttribute('aria-label','Open Visitor Log');candidate.title='Visitor Log';
+    const app=$('#studioApp'),signOut=$('#studioSignOut',app),candidate=$('#studioNotificationsBtn',app)||$('.top-actions .icon-btn[aria-label="Notifications"]',app)||$('.top-actions .icon-btn:not(#studioSignOut)',app);if(!candidate)return;
+    if(signOut){signOut.setAttribute('aria-label','Sign out');signOut.title='Sign out';signOut.innerHTML=STUDIO_ICONS.logout}
+    candidate.id='studioNotificationsBtn';candidate.type='button';candidate.setAttribute('aria-label','Open Logs');candidate.title='Logs';
     candidate.innerHTML=STUDIO_ICONS.mail+'<span class="notif-dot"></span>';
-    if(candidate.dataset.visitorBound!=='1'){candidate.dataset.visitorBound='1';candidate.addEventListener('click',()=>openVisitorDialog('public'))}
+    if(candidate.dataset.logsBound!=='1'){candidate.dataset.logsBound='1';candidate.addEventListener('click',openLogs)}
+    updateLogsDot();
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindVisitorActions();ensureDirectoryIcons();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
+  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
