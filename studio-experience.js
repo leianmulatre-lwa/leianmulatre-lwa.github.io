@@ -50,15 +50,15 @@
       #studioApp .weekly-mood-card>span,#studioApp .weekly-mood-card>strong{display:block}
       #studioApp .weekly-mood-card>span{margin-bottom:5px;font:750 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--widget-muted,#77716b)}
       #studioApp .weekly-mood-card>strong{font:600 11px/1.2 Georgia,"Times New Roman",serif;overflow-wrap:anywhere}
-      #studioApp .weekly-mood-card[data-mood-style="diary"]{border:1px solid #d4cec2;border-radius:3px;background-color:#fffdf5;background-image:linear-gradient(90deg,transparent 0 13px,rgba(201,67,83,.52) 13px 14px,transparent 14px),repeating-linear-gradient(to bottom,transparent 0 14px,rgba(78,137,176,.3) 14px 15px);color:#292522;box-shadow:0 3px 0 rgba(72,56,36,.08)}
-      #studioApp .weekly-mood-card[data-mood-style="diary"]>span{padding-left:8px;color:#a63f51;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif}
-      #studioApp .weekly-mood-card[data-mood-style="diary"]>strong{padding-left:8px;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:800}
-      #studioApp .weekly-mood-card[data-mood-style="widget"]{border:1px solid rgba(var(--aura-rgb,216,95,109),.34);border-radius:var(--widget-radius,16px);background:var(--widget-bg,rgba(250,247,241,.84));color:var(--widget-ink,#171717);box-shadow:0 9px 22px rgba(var(--aura-rgb,216,95,109),.2),inset 0 0 0 1px rgba(255,255,255,.22);backdrop-filter:blur(var(--widget-blur,8px))}
-      #studioApp .weekly-mood-card[data-mood-style="widget"]>span{color:rgb(var(--aura-rgb,216,95,109))}
-      #studioApp .weekly-mood-card[data-mood-style="widget"]>strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-weight:400}
-      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]{position:relative;border:0;border-radius:1px 1px 13px 1px;background:linear-gradient(145deg,#fff7a8 0,#f3d75f 78%,#d8b943 100%);color:#352d20;box-shadow:3px 4px 0 rgba(72,56,36,.16);transform:rotate(-1.8deg)}
-      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]>span{color:#77601c;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif}
-      #studioApp .weekly-mood-card[data-mood-style="qwiky-note"]>strong{font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:800}
+      #studioApp .profile-card .profile-identity-rail>.weekly-mood-card[data-mood-style="diary"]{border:1px solid #d4cec2!important;border-radius:3px!important;background-color:#fffdf5!important;background-image:linear-gradient(90deg,transparent 0 13px,rgba(201,67,83,.62) 13px 14px,transparent 14px),repeating-linear-gradient(to bottom,transparent 0 14px,rgba(78,137,176,.34) 14px 15px)!important;color:#292522!important;box-shadow:0 3px 0 rgba(72,56,36,.12)!important;transform:none!important}
+      #studioApp .profile-card .weekly-mood-card[data-mood-style="diary"]>span{padding-left:8px;color:#a63f51!important;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif}
+      #studioApp .profile-card .weekly-mood-card[data-mood-style="diary"]>strong{padding-left:8px;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:800}
+      #studioApp .profile-card .profile-identity-rail>.weekly-mood-card[data-mood-style="widget"]{border:1px solid rgba(var(--aura-rgb,216,95,109),.34)!important;border-radius:var(--widget-radius,16px)!important;background:var(--widget-bg,rgba(250,247,241,.84))!important;color:var(--widget-ink,#171717)!important;box-shadow:0 9px 22px rgba(var(--aura-rgb,216,95,109),.2),inset 0 0 0 1px rgba(255,255,255,.22)!important;backdrop-filter:blur(var(--widget-blur,8px));transform:none!important}
+      #studioApp .profile-card .weekly-mood-card[data-mood-style="widget"]>span{color:rgb(var(--aura-rgb,216,95,109))!important}
+      #studioApp .profile-card .weekly-mood-card[data-mood-style="widget"]>strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif;font-weight:400}
+      #studioApp .profile-card .profile-identity-rail>.weekly-mood-card[data-mood-style="qwiky-note"]{position:relative;border:0!important;border-radius:1px 1px 13px 1px!important;background:linear-gradient(145deg,#fff7a8 0,#f3d75f 78%,#d8b943 100%)!important;color:#352d20!important;box-shadow:3px 4px 0 rgba(72,56,36,.18)!important;transform:rotate(-1.8deg)!important}
+      #studioApp .profile-card .weekly-mood-card[data-mood-style="qwiky-note"]>span{color:#77601c!important;font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif}
+      #studioApp .profile-card .weekly-mood-card[data-mood-style="qwiky-note"]>strong{font-family:"Comic Sans MS","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:800}
       #studioApp .profile-song-editor-mount{display:grid;gap:8px;margin:9px 0 12px;padding:11px;border:1px solid rgba(var(--aura-rgb,216,95,109),.22);border-radius:12px;background:rgba(var(--aura-rgb,216,95,109),.06)}
       #studioApp .profile-song-editor-wait{font:9px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--widget-muted,#77716b)}
       #studioApp .profile-song-editor-mount:has(.music-file-actions) .profile-song-editor-wait{display:none}
@@ -164,7 +164,9 @@
       #studioApp #games .games-arcade-brand img{position:relative;z-index:2;display:block;object-fit:contain;object-position:center}
       #studioApp #games .games-arcade-brand img:first-child{height:70px!important;margin:-12px auto -17px!important}
       #studioApp #games .games-arcade-brand img:last-child{width:min(90%,236px)!important;height:auto!important;margin:-5px auto 0!important;mix-blend-mode:normal!important}
-      #studioApp #games .arcade-library-viewport{isolation:isolate;height:230px!important;padding:10px!important;border:12px solid #171313!important;border-radius:13px!important;background:#030606!important;clip-path:none!important;outline:5px solid rgba(46,20,16,.72);outline-offset:0;box-shadow:inset 0 22px 27px rgba(0,0,0,.82),inset 18px 0 24px rgba(0,0,0,.7),inset -18px 0 24px rgba(0,0,0,.7),inset 0 -16px 22px rgba(0,0,0,.62),0 8px 0 #0d0908,0 15px 22px rgba(0,0,0,.3)!important;-webkit-mask-image:none!important;mask-image:none!important}
+      #studioApp #games .arcade-folder-shell{position:relative;isolation:isolate;margin:34px 0 0;padding:10px;border-radius:0 17px 17px 17px;background:linear-gradient(145deg,#211817,#0f0d0d 72%);box-shadow:0 8px 0 #0d0908,0 15px 22px rgba(0,0,0,.3),inset 0 0 0 3px rgba(129,78,58,.28)}
+      #studioApp #games .arcade-folder-shell::before{content:"";position:absolute;left:0;top:-25px;z-index:0;width:42%;height:32px;border-radius:15px 15px 0 0;background:linear-gradient(135deg,#2e201d,#141010 76%);clip-path:polygon(0 100%,0 24%,5% 0,62% 0,73% 72%,100% 72%,100% 100%);box-shadow:inset 0 3px 0 rgba(255,215,141,.08)}
+      #studioApp #games .arcade-library-viewport{position:relative;z-index:1;isolation:isolate;height:230px!important;padding:9px!important;border:0!important;border-radius:4px 12px 12px 12px!important;background:#030606!important;clip-path:none!important;outline:0!important;box-shadow:inset 0 22px 27px rgba(0,0,0,.82),inset 18px 0 24px rgba(0,0,0,.7),inset -18px 0 24px rgba(0,0,0,.7),inset 0 -16px 22px rgba(0,0,0,.62)!important;-webkit-mask-image:none!important;mask-image:none!important}
       #studioApp #games .arcade-library-viewport::after{content:"";position:absolute;inset:0;z-index:8;border-radius:2px;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.62),transparent 13%,transparent 86%,rgba(0,0,0,.52)),linear-gradient(to right,rgba(0,0,0,.5),transparent 10%,transparent 90%,rgba(0,0,0,.5));box-shadow:inset 0 0 26px 10px rgba(0,0,0,.44),inset 0 0 3px 1px rgba(102,225,229,.18)}
       #studioApp #games .games-library::before{content:none}
       #studioApp #games .games-library::after{content:none}
@@ -743,6 +745,10 @@
     const cabinet=$('#studioApp #games .games-library');if(!cabinet)return;
     const brand=$('.games-arcade-brand',cabinet),logos=brand?$$('img',brand):[];
     if(logos[1]){logos[1].src='/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15';logos[1].alt='ARCADE'}
+    const viewport=$('.arcade-library-viewport',cabinet);
+    if(viewport&&!viewport.parentElement.classList.contains('arcade-folder-shell')){
+      const folder=document.createElement('div');folder.className='arcade-folder-shell';viewport.before(folder);folder.appendChild(viewport);
+    }
     let controls=$('.arcade-control-deck',cabinet);
     if(!controls){
       controls=document.createElement('div');controls.className='arcade-control-deck';controls.setAttribute('aria-hidden','true');
