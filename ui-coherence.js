@@ -1,6 +1,6 @@
 ﻿(()=>{
   const V='20260910-widget-drag-reset-v3';
-  const DOCKED_WIDGET_KEY='biglwaDockedWidgetsV2';
+  const DOCKED_WIDGET_KEY='biglwaDockedWidgetsV3';
   const NAV_SHORTCUT_KEY='biglwaSidebarShortcutsV3';
   const SHORTCUT_LIMIT=8;
   const $=(s,r=document)=>r.querySelector(s);
@@ -151,6 +151,7 @@
       #studioApp .sidebar-primary-widgets[hidden]{display:none!important}
       #studioApp .sidebar-shortcuts{--sidebar-section-rgb:220,169,61}
       #studioApp .sidebar-rest-tools{--sidebar-section-rgb:216,95,109}
+      #studioApp .sidebar-rest-tools[hidden]{display:none!important}
       #studioApp .sidebar-section nav{display:flex!important;flex-direction:column;gap:4px}
       #studioApp .sidebar-rest-tools .nav-item{position:relative;padding:9px 8px;border-radius:8px;font-size:10px}
       #studioApp .sidebar-route-control,#studioApp .sidebar-shortcut-open,#studioApp .sidebar-navigation-open{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;min-height:34px;padding:7px 8px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;text-decoration:none;font:650 10px/1.15 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
@@ -319,25 +320,22 @@
     toggle.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
     try{setCollapsed(localStorage.getItem('biglwaSidebarCollapsed')==='1')}catch{setCollapsed(false)}
 
-    let primary=$('#studioSidebarPrimary',top);
-    if(!primary){
-      primary=document.createElement('section');primary.id='studioSidebarPrimary';primary.className='sidebar-section sidebar-primary-widgets';primary.setAttribute('aria-label','Widgets moved out of the Studio');
-      toggle.insertAdjacentElement('afterend',primary);
-    }
-    $$('[data-sidebar-widget]',primary).forEach(control=>control.remove());
-    let widgetDockSection=$('#minimizedWidgets',top);
-    if(!widgetDockSection){widgetDockSection=document.createElement('div');widgetDockSection.id='minimizedWidgets';widgetDockSection.className='minimized-widgets';widgetDockSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div><div class="minimized-widget-dock" id="minimizedWidgetDock"></div>'}
-    widgetDockSection.hidden=false;widgetDockSection.classList.remove('sidebar-section','sidebar-shortcuts');widgetDockSection.setAttribute('aria-label','Widgets moved out of the Studio');
-    if(widgetDockSection.parentElement!==primary)primary.appendChild(widgetDockSection);
+    const obsoletePrimary=$('#studioSidebarPrimary',top);
     let shortcuts=$('#studioSidebarShortcuts',top);
     if(!shortcuts){shortcuts=document.createElement('section');shortcuts.id='studioSidebarShortcuts';shortcuts.className='sidebar-section sidebar-shortcuts';shortcuts.setAttribute('aria-label','Shortcut bar, maximum eight');shortcuts.innerHTML='<nav id="studioSidebarShortcutDock" aria-label="Shortcut bar destinations"></nav><p class="sidebar-shortcut-status" role="status" aria-live="polite"></p><button class="sidebar-shortcut-save" id="saveSidebarShortcuts" type="button">Save shortcuts</button>'}
     if(!$('#saveSidebarShortcuts',shortcuts)){const save=document.createElement('button');save.id='saveSidebarShortcuts';save.className='sidebar-shortcut-save';save.type='button';save.textContent='Save shortcuts';shortcuts.appendChild(save)}
-    if(shortcuts.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',shortcuts);
+    if(shortcuts.previousElementSibling!==toggle)toggle.insertAdjacentElement('afterend',shortcuts);
     let rest=$('#studioSidebarRest',top);
-    if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';rest.setAttribute('aria-label','More tools');top.appendChild(rest)}
-    const nav=$(':scope > nav',top)||$('nav[aria-label="Collections and community"]',top);
-    if(nav&&nav.id!=='studioSidebarShortcutDock'&&nav.parentElement!==rest)rest.appendChild(nav);
-    primary.hidden=!$('[data-shortcut-row]',widgetDockSection);
+    if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';top.appendChild(rest)}
+    rest.setAttribute('aria-label','Widgets closed from the Studio');
+    $$(':scope > nav',top).forEach(nav=>nav.remove());
+    $$(':scope > nav,.sidebar-navigation-row,[data-sidebar-widget]',rest).forEach(item=>item.remove());
+    let widgetDockSection=$('#minimizedWidgets',top);
+    if(!widgetDockSection){widgetDockSection=document.createElement('div');widgetDockSection.id='minimizedWidgets';widgetDockSection.className='minimized-widgets';widgetDockSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div><div class="minimized-widget-dock" id="minimizedWidgetDock"></div>'}
+    widgetDockSection.hidden=false;widgetDockSection.classList.remove('sidebar-section','sidebar-shortcuts');widgetDockSection.setAttribute('aria-label','Widgets closed from the Studio');
+    if(widgetDockSection.parentElement!==rest)rest.appendChild(widgetDockSection);
+    obsoletePrimary?.remove();
+    rest.hidden=!$('[data-shortcut-row]',widgetDockSection);
   }
 
   const navigationCatalog=new Map();
@@ -366,7 +364,7 @@
     return key;
   }
   function createSidebarNavigationRow(entry,zone){
-    const row=document.createElement('div');row.className='sidebar-navigation-row';row.draggable=true;row.dataset.sidebarRouteRow=entry.key;row.dataset.shortcutZone=zone;row.title=zone==='shortcut'?'Drag to reorder or move out of the shortcut bar':'Drag into the yellow section to add to the shortcut bar';
+    const row=document.createElement('div');row.className='sidebar-navigation-row';row.draggable=false;row.dataset.sidebarRouteRow=entry.key;row.dataset.shortcutZone=zone;row.title='Shortcut bar destination';
     const open=entry.policyRoute?document.createElement('a'):document.createElement('button');
     if(open.tagName==='BUTTON')open.type='button';else{open.href=entry.href||('/'+entry.key);open.dataset.policyRoute=entry.policyRoute}
     open.className='sidebar-navigation-open';open.dataset.sidebarRoute=entry.key;open.setAttribute('aria-label','Open '+entry.label);
@@ -385,17 +383,15 @@
     const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app);if(!app||!top||!bar||!shortcutDock||!rest)return;
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
-    $$('.nav-item,[data-sidebar-route]',rest).forEach((link,index)=>rememberNavigation(link,100+index));
     if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
     if(!initialNavigationShortcuts?.length)return;
     let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
     let hasSavedShortcuts=false;try{hasSavedShortcuts=localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
     if(!hasSavedShortcuts&&!shortcuts.length)shortcuts=initialNavigationShortcuts.filter(key=>navigationCatalog.has(key));
+    heroKeys.forEach(key=>{if(shortcuts.length<SHORTCUT_LIMIT&&!shortcuts.includes(key))shortcuts.push(key)});
     shortcuts=writeNavigationShortcuts(shortcuts);
     shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
-    const remaining=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
-    let restNav=$(':scope > nav',rest);if(!restNav){restNav=document.createElement('nav');restNav.setAttribute('aria-label','Remaining Studio destinations');rest.appendChild(restNav)}
-    restNav.replaceChildren(...remaining.map(entry=>createSidebarNavigationRow(entry,'rest')));
+    $$(':scope > nav,.sidebar-navigation-row',rest).forEach(item=>item.remove());
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
     let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button';create.innerHTML='＋<span>Create</span>'}
     const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
@@ -403,14 +399,7 @@
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
     if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
-    if(top.dataset.sidebarShortcutDragBound!=='1'){
-      top.dataset.sidebarShortcutDragBound='1';
-      top.addEventListener('dragstart',event=>{const row=event.target.closest('[data-sidebar-route-row]');if(!row)return;draggedNavigationKey=row.dataset.sidebarRouteRow;row.classList.add('is-dragging');event.dataTransfer?.setData('text/plain',draggedNavigationKey);if(event.dataTransfer)event.dataTransfer.effectAllowed='move'});
-      top.addEventListener('dragover',event=>{const zone=event.target.closest('#studioSidebarShortcuts,#studioSidebarRest');if(!zone||!draggedNavigationKey)return;event.preventDefault();zone.classList.add('is-shortcut-drop-target');if(event.dataTransfer)event.dataTransfer.dropEffect='move'});
-      top.addEventListener('dragleave',event=>{const zone=event.target.closest('#studioSidebarShortcuts,#studioSidebarRest');if(zone&&!zone.contains(event.relatedTarget))zone.classList.remove('is-shortcut-drop-target')});
-      top.addEventListener('drop',event=>{const zone=event.target.closest('#studioSidebarShortcuts,#studioSidebarRest');if(!zone||!draggedNavigationKey)return;event.preventDefault();$$('.is-shortcut-drop-target',top).forEach(item=>item.classList.remove('is-shortcut-drop-target'));let list=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key)),key=draggedNavigationKey;const target=event.target.closest('[data-sidebar-route-row]');if(zone.id==='studioSidebarShortcuts'){if(!list.includes(key)&&list.length>=SHORTCUT_LIMIT){showShortcutStatus(app,'Eight shortcuts max. Move one into red first.');draggedNavigationKey='';return}list=list.filter(item=>item!==key);const targetIndex=target?list.indexOf(target.dataset.sidebarRouteRow):-1;if(targetIndex<0)list.push(key);else list.splice(targetIndex,0,key)}else list=list.filter(item=>item!==key);writeNavigationShortcuts(list);draggedNavigationKey='';syncSidebarShortcutSystem()});
-      top.addEventListener('dragend',()=>{draggedNavigationKey='';$$('.is-dragging,.is-shortcut-drop-target',top).forEach(item=>item.classList.remove('is-dragging','is-shortcut-drop-target'))});
-    }
+    rest.hidden=!$('[data-shortcut-row]',rest);
   }
 
   function widgetId(el,index){return el.dataset.widgetId||el.id||(['profile-card','music-card','aura-card'].find(c=>el.classList.contains(c))||`widget-${index+1}`).replace(/-card$/,'')}
@@ -432,8 +421,8 @@
   }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
-    const primary=$('#studioSidebarPrimary',app),dock=$('#minimizedWidgetDock',primary||app);if(!primary||!dock)return;
-    primary.hidden=!$('[data-shortcut-row]',dock);
+    const rest=$('#studioSidebarRest',app),dock=$('#minimizedWidgetDock',rest||app);if(!rest||!dock)return;
+    rest.hidden=!$('[data-shortcut-row]',dock);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
@@ -482,10 +471,10 @@
     document.documentElement.dataset.biglwaStableInteractions='1';
     const widgetSelector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
     const getApp=()=>$('#studioApp');
-    const syncDock=(dock,section)=>{if(section)section.hidden=false};
+    const syncDock=(dock,section)=>{if(section)section.hidden=!$('[data-shortcut-row]',dock)};
     const ensureDock=app=>{
       let section=$('#minimizedWidgets',app),dock=$('#minimizedWidgetDock',app);
-      if(!section){section=document.createElement('div');section.id='minimizedWidgets';section.className='minimized-widgets';section.setAttribute('aria-label','Widgets moved out of the Studio');section.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';($('#studioSidebarPrimary',app)||$('.sidebar-top',app)||app).appendChild(section)}
+      if(!section){section=document.createElement('div');section.id='minimizedWidgets';section.className='minimized-widgets';section.setAttribute('aria-label','Widgets closed from the Studio');section.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';($('#studioSidebarRest',app)||$('.sidebar-top',app)||app).appendChild(section)}
       if(!dock){dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';section.appendChild(dock)}
       return {section,dock};
     };
@@ -549,10 +538,14 @@
         const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(item=>item.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);control.setAttribute('aria-pressed',opening?'true':'false');
         saveMinimized(app);return;
       }
+      if(control.matches('[data-minimize-widget]')){
+        widget.classList.remove('widget-is-expanded');
+        const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');
+        return;
+      }
       const {section,dock}=ensureDock(app);
       const added=addRestore(app,widget);if(!added)return;
-      widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized');
-      if(control.matches('[data-dock-widget]'))widget.classList.add('widget-is-docked');
+      widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized','widget-is-docked');
       syncDock(dock,section);saveMinimized(app);syncPrimaryWidgetDock(app);
     },true);
     try{setTheme(localStorage.getItem('biglwaTheme')==='dark'?'dark':'light')}catch{setTheme('light')}
@@ -565,10 +558,10 @@
     let minimizedSection=sidebar?$('#minimizedWidgets',sidebar):$('#minimizedWidgets',app);
     let dock=sidebar?$('#minimizedWidgetDock',sidebar):$('#minimizedWidgetDock',app);
     if(!dock){
-      if(!minimizedSection){minimizedSection=document.createElement('div');minimizedSection.id='minimizedWidgets';minimizedSection.className='minimized-widgets';minimizedSection.setAttribute('aria-label','Widgets moved out of the Studio');minimizedSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';const top=$('#studioSidebarPrimary',sidebar)||$('.sidebar-top',sidebar)||sidebar||app;top.appendChild(minimizedSection)}
+      if(!minimizedSection){minimizedSection=document.createElement('div');minimizedSection.id='minimizedWidgets';minimizedSection.className='minimized-widgets';minimizedSection.setAttribute('aria-label','Widgets closed from the Studio');minimizedSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div>';const top=$('#studioSidebarRest',sidebar)||$('.sidebar-top',sidebar)||sidebar||app;top.appendChild(minimizedSection)}
       dock=document.createElement('div');dock.id='minimizedWidgetDock';dock.className='minimized-widget-dock';minimizedSection.appendChild(dock);
     }
-    const syncDock=()=>{if(minimizedSection)minimizedSection.hidden=false};
+    const syncDock=()=>{const red=$('#studioSidebarRest',app);if(red)red.hidden=!$('[data-shortcut-row]',dock);if(minimizedSection)minimizedSection.hidden=false};
     const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
     const widgets=$$(selector,app);
     const minimized=readWidgetShortcuts();
@@ -604,15 +597,7 @@
           control.setAttribute('aria-pressed',opening?'true':'false');
           return;
         }
-        if(control.matches('[data-minimize-widget]')){
-          if(widget.classList.contains('widget-is-expanded')){
-            widget.classList.remove('widget-is-expanded');
-            const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');
-          }else{
-            widget.classList.add('widget-is-minimized');addRestore(widget);saveMinimized();syncDock();syncPrimaryWidgetDock(app);
-          }
-          return;
-        }
+        if(control.matches('[data-minimize-widget]')){widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');return}
         if(control.matches('[data-rearrange-widget]')){
           const active=!app.classList.contains('biglwa-rearrange-mode');
           app.classList.toggle('biglwa-rearrange-mode',active);
@@ -633,7 +618,7 @@
       const green=event.target.closest('[data-expand-widget]');
       if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
       const minimize=event.target.closest('[data-minimize-widget]');
-      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;if(widget.classList.contains('widget-is-expanded')){widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false')}else{widget.classList.add('widget-is-minimized');addRestore(widget);saveMinimized();syncDock();syncPrimaryWidgetDock(app)}return}
+      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');return}
       const yellow=event.target.closest('[data-rearrange-widget]');
       if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=false);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
       const red=event.target.closest('[data-dock-widget]');
@@ -886,18 +871,32 @@
     return true;
   }
 
+  function latestStreamTitle(){
+    try{const saved=JSON.parse(localStorage.getItem('biglwaModule_stream')||'[]');const title=Array.isArray(saved)&&saved[0]?.title?String(saved[0].title).trim():'';return title||'After Hours: u up?'}catch{return 'After Hours: u up?'}
+  }
+
+  function syncStreamWidget(){
+    const app=$('#studioApp');if(!app)return;
+    const streamTitle=latestStreamTitle();
+    $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
+      const title=$('h2,h3,.card-kicker',card);if(title)title.textContent=streamTitle;
+      const count=$$('span,p,small,strong',card).find(el=>/(streaming|viewers?|watching|live)|\d+\s*(viewers?|watchers?)/i.test(el.textContent));
+      if(count)count.textContent='0 watching';
+      else{const status=document.createElement('p');status.className='stream-watching-count';status.textContent='0 watching';card.appendChild(status)}
+    });
+  }
+
   function ensureRealWorldDefaults(){
     const app=$('#studioApp');if(!app)return;
     syncRealProfileMetrics();
     $$('.feed-card .feed-list,#feed .feed-list',app).forEach(feedList=>{
       feedList.replaceChildren();feedList.dataset.biglwaReset='1';
     });
-    $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
-      const title=$('h2,h3,.card-kicker',card);if(title)title.textContent='After Hours: u up?';
-      const count=$$('span,p,small,strong',card).find(el=>/\\b(streaming|viewers?|watching|live)\\b|\\b\\d+\\s*(viewers?|watchers?)\\b/i.test(el.textContent));
-      if(count)count.textContent='0 watching';
-      else{const status=document.createElement('p');status.className='stream-watching-count';status.textContent='0 watching';card.appendChild(status)}
-    });
+    syncStreamWidget();
+    if(document.documentElement.dataset.biglwaStreamSyncBound!=='1'){
+      document.documentElement.dataset.biglwaStreamSyncBound='1';
+      document.addEventListener('biglwa:stream-updated',syncStreamWidget);
+    }
   }
 
   function ensureRealWorldMetricsObserver(){

@@ -211,8 +211,9 @@
     body.innerHTML = heading(key) + `<div class="module-grid"><section class="module-card"><h2>Add</h2><p>Saved locally in this prototype.</p><form class="module-form" id="moduleCollectionForm">${fieldMarkup}<button class="module-action" type="submit">Save</button></form><div class="module-status" id="moduleStatus"></div></section><section class="module-card"><h2>Saved</h2><div class="module-list" id="moduleCollectionList">${listHtml(items,key)}</div></section></div>`;
     const form=$('#moduleCollectionForm',body), list=$('#moduleCollectionList',body), status=$('#moduleStatus',body);
     const render=()=>{const cur=readJSON(storage,[]);list.innerHTML=listHtml(cur,key)};
-    form.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(form);const vals=Object.fromEntries(fd.entries());const title=(vals.title||vals.name||'').trim();if(!title){status.textContent='Give it a name first.';return;}const meta=fields.slice(1).map(f=>vals[f.name]).filter(Boolean).join(' · ');const cur=readJSON(storage,[]);cur.unshift({title,meta,date:new Date().toLocaleDateString()});writeJSON(storage,cur);form.reset();status.textContent='Saved.';status.classList.add('ok');render();});
-    list.addEventListener('click',e=>{const b=e.target.closest('[data-remove-item]');if(!b)return;const cur=readJSON(storage,[]);cur.splice(Number(b.dataset.removeItem),1);writeJSON(storage,cur);render();});
+    const syncWidget=()=>{if(key==='stream')document.dispatchEvent(new CustomEvent('biglwa:stream-updated'))};
+    form.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(form);const vals=Object.fromEntries(fd.entries());const title=(vals.title||vals.name||'').trim();if(!title){status.textContent='Give it a name first.';return;}const meta=fields.slice(1).map(f=>vals[f.name]).filter(Boolean).join(' · ');const cur=readJSON(storage,[]);cur.unshift({title,meta,date:new Date().toLocaleDateString()});writeJSON(storage,cur);form.reset();status.textContent='Saved.';status.classList.add('ok');render();syncWidget();});
+    list.addEventListener('click',e=>{const b=e.target.closest('[data-remove-item]');if(!b)return;const cur=readJSON(storage,[]);cur.splice(Number(b.dataset.removeItem),1);writeJSON(storage,cur);render();syncWidget();});
   }
 
   function monthKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
