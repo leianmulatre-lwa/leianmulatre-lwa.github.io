@@ -151,20 +151,9 @@
 
       #studioApp #closet .card-icon .studio-symbol-mark,#studioApp #diary .card-icon .studio-symbol-mark,#studioApp #projects .card-icon .studio-symbol-mark,#studioApp #games .card-icon .games-chess-mark{transform:translateY(0)!important}
 
-      #studioApp #diary{background-color:#0b0b0d!important;background-image:url("/assets/composition-texture.webp?v=20260917-composition-2")!important;background-size:340px 227px!important;background-position:center top!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 18px 45px rgba(0,0,0,.22)!important}
-      #studioApp #diary .biglwa-card-heading-row,#studioApp #diary>.sub{position:relative;z-index:2;text-shadow:0 1px 4px #000,0 0 9px #000}
-      #studioApp #diary .biglwa-card-heading-row h2{color:#fff!important}
-      #studioApp #diary .studio-diary-symbol img{filter:brightness(0) invert(1) drop-shadow(0 1px 3px #000)}
-      #studioApp #diary>.sub{color:rgba(255,255,255,.88)!important}
-      #studioApp #diary .diary-page{position:relative!important;display:grid!important;place-items:center!important;min-height:210px!important;aspect-ratio:auto!important;padding:24px!important;border:9px solid #101012!important;border-left-width:18px!important;border-radius:4px 13px 13px 4px!important;background-color:#0b0b0d!important;background-image:url("/assets/composition-texture.webp?v=20260917-composition-2")!important;background-size:340px 227px!important;background-position:center!important;background-blend-mode:normal!important;box-shadow:inset 5px 0 0 rgba(255,255,255,.28),0 13px 24px rgba(0,0,0,.32)!important;overflow:hidden!important}
-      #studioApp #diary .diary-page img{display:none!important}
+      #studioApp #diary .diary-page{position:relative!important;display:block!important;min-height:210px!important;aspect-ratio:3/2!important;padding:0!important;border:1px solid rgba(73,52,33,.18)!important;border-radius:10px!important;background:#fffdf4!important;box-shadow:0 7px 18px rgba(73,52,33,.14)!important;overflow:hidden!important}
+      #studioApp #diary .diary-page img{display:block!important;width:100%!important;height:100%!important;min-height:210px!important;object-fit:cover!important;object-position:center!important;transform:scale(1.04)!important}
       #studioApp #diary .diary-page::before,#studioApp #diary .diary-page::after{content:none!important}
-      #studioApp #diary .diary-cover-label{position:relative;display:grid;align-content:center;gap:9px;box-sizing:border-box;width:min(84%,290px);min-height:118px;padding:20px 24px 18px;border:4px double #171717;border-radius:4px 16px 16px 4px;background:#fff;color:#111;box-shadow:0 7px 0 rgba(0,0,0,.22),inset 0 0 0 2px rgba(0,0,0,.08);transform:rotate(-.55deg)}
-      #studioApp #diary .diary-cover-label::before,#studioApp #diary .diary-cover-label::after{content:"";position:absolute;left:24px;right:24px;height:2px;background:#191919;opacity:.76}
-      #studioApp #diary .diary-cover-label::before{top:58px}#studioApp #diary .diary-cover-label::after{top:91px}
-      #studioApp #diary .diary-cover-label strong,#studioApp #diary .diary-cover-label span{position:relative;z-index:1;display:block;font-family:"Arial Rounded MT Bold","Comic Sans MS",Impact,sans-serif;font-weight:900;letter-spacing:-.035em;text-align:left}
-      #studioApp #diary .diary-cover-label strong{font-size:30px;line-height:1;transform:rotate(-1deg)}
-      #studioApp #diary .diary-cover-label span{font-size:14px;line-height:1.1;transform:rotate(.4deg)}
 
       #studioApp #games .games-library{position:relative;margin:12px 0 4px;padding:18px 18px 102px;border:9px solid #1c100e;border-radius:29px 29px 17px 17px;background:linear-gradient(90deg,#281310 0,#5e3327 12%,#754836 49%,#5b3025 87%,#25120f 100%);clip-path:none;box-shadow:inset 0 0 0 3px rgba(255,215,141,.14),inset 0 -76px 0 rgba(20,11,10,.55),inset 14px 0 18px rgba(0,0,0,.24),inset -14px 0 18px rgba(0,0,0,.24),0 21px 34px rgba(38,25,19,.24);overflow:hidden}
       #studioApp #games .games-arcade-brand{position:relative;isolation:isolate;overflow:hidden;margin:-4px 8px 16px;padding:6px 24px 11px;border:5px solid #160e0c;border-radius:18px 18px 8px 8px;background:radial-gradient(circle at 50% 0,rgba(255,249,190,.7),transparent 58%),#f2c450;clip-path:polygon(5% 9%,19% 9%,24% 0,76% 0,81% 9%,95% 9%,100% 19%,100% 100%,0 100%,0 19%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.24),0 7px 0 #140d0b,0 12px 20px rgba(0,0,0,.28)}
@@ -305,7 +294,6 @@
 
       body.night-mode #studioApp{color:var(--widget-ink,#f5eee7)!important}
       body.night-mode #studioApp .profile-card,body.night-mode #studioApp .music-card,body.night-mode #studioApp .aura-card,body.night-mode #studioApp .guest-check-card,body.night-mode #studioApp .mobile-dock.hero-action-bar,body.night-mode #studioApp .masonry .card:not(.manifesto-card){background:var(--widget-bg,rgba(250,247,241,.84))!important;border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;color:var(--widget-ink,#171717)!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important}
-      body.night-mode #studioApp #diary{background-color:#0b0b0d!important;background-image:url("/assets/composition-texture.webp?v=20260917-composition-2")!important;background-size:340px 227px!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 18px 45px rgba(0,0,0,.34)!important}
       body.night-mode #studioApp .profile-card .profile-identity-rail{background:color-mix(in srgb,var(--widget-ink,#171717) 4%,transparent)!important;border-color:rgba(var(--aura-rgb,216,95,109),.14)!important}
       body.night-mode #studioApp .profile-card .profile-name-line h1,body.night-mode #studioApp .profile-card .bio,body.night-mode #studioApp .profile-card .stats b,body.night-mode #studioApp .card-kicker{color:var(--widget-ink,#171717)!important}
       #studioApp .profile-card #wallpaperPanel{background:transparent!important;color:var(--widget-ink,#171717)!important}
@@ -727,9 +715,10 @@
 
   function ensureDiaryCover(){
     const page=$('#studioApp #diary .diary-page');if(!page)return;
-    let label=$('.diary-cover-label',page);
-    if(!label){label=document.createElement('span');label.className='diary-cover-label';label.setAttribute('aria-hidden','true');label.innerHTML='<strong>Diary</strong><span></span>';page.appendChild(label)}
-    const owner=$('span',label);if(owner)owner.textContent='Property of: '+currentProfileUsername();
+    $('.diary-cover-label',page)?.remove();
+    let image=$('img',page);
+    if(!image){image=document.createElement('img');page.appendChild(image)}
+    image.src='/assets/diary-notebook-closeup.svg';image.alt='Dear diary… on a lined notebook page';image.width=900;image.height=600;
   }
 
   function ensureArcadeCabinet(){

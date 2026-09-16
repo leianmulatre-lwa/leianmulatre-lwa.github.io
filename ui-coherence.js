@@ -486,7 +486,7 @@
   const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
   function greenControlAction(route,id){
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
-    if(fullWidgetRoutes.has(route))return {attribute:`data-expand-widget="${id}"`,label:`Expand ${route.replace(/[-_]/g,' ')} widget`};
+    if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
   const greenSidebarWidgetIds=new Set(['music','aura','guest-check']);
