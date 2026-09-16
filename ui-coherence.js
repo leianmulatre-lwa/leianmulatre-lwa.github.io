@@ -633,6 +633,9 @@
       }
     }
     const panel=$('#wallpaperPanel');if(!panel)return;
+    panel.classList.remove('wallpaper-panel','glass');
+    panel.classList.add('profile-inline-editor');
+    panel.dataset.inlineProfileEditor='1';
     panel.setAttribute('aria-label','Edit profile and Studio appearance');
     if(panel.parentNode!==card)card.appendChild(panel);
     const panelTitle=$('.panel-title',panel),panelTitleText=panelTitle&&$('strong',panelTitle);if(panelTitleText)panelTitleText.textContent='Edit profile';
@@ -649,13 +652,17 @@
     let tabs=$('#profileEditorTabs',panel);
     if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
     let actions=$('#profileEditorActions',panel);
-    if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';actions.innerHTML='<button type="button" class="secondary-btn" id="saveProfileBtn">Save profile</button><button type="button" class="secondary-btn profile-editor-cancel" id="cancelProfileBtn">Cancel</button>';panel.appendChild(actions)}
+    if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';panel.appendChild(actions)}
+    let saveAction=$('#saveProfileBtn',actions);if(!saveAction){saveAction=document.createElement('button');saveAction.type='button';saveAction.className='secondary-btn profile-editor-save';saveAction.id='saveProfileBtn';saveAction.textContent='Save changes';actions.appendChild(saveAction)}
+    let cancelAction=$('#cancelProfileBtn',actions);if(!cancelAction){cancelAction=document.createElement('button');cancelAction.type='button';cancelAction.className='secondary-btn profile-editor-cancel';cancelAction.id='cancelProfileBtn';cancelAction.textContent='Cancel';actions.appendChild(cancelAction)}
     let updatePrivacy=$('#profileUpdatePrivacy',actions);
     if(!updatePrivacy){
       updatePrivacy=document.createElement('label');updatePrivacy.id='profileUpdatePrivacy';updatePrivacy.className='profile-update-privacy';
       updatePrivacy.innerHTML='<input id="profileSilentUpdate" type="checkbox"><span>Do not notify followers/connections of this update</span>';
       actions.prepend(updatePrivacy);
     }
+    if(actions.previousElementSibling!==tabs)tabs.insertAdjacentElement('afterend',actions);
+    actions.hidden=false;saveAction.hidden=false;cancelAction.hidden=false;
     const showTab=key=>{$$('[data-profile-editor-pane]',panel).forEach(pane=>{pane.hidden=pane.dataset.profileEditorPane!==key});$$('[data-profile-editor-tab]',tabs).forEach(tab=>{const active=tab.dataset.profileEditorTab===key;tab.setAttribute('aria-selected',active?'true':'false');tab.tabIndex=active?0:-1})};
     if(tabs.dataset.biglwaTabsBound!=='1'){tabs.dataset.biglwaTabsBound='1';tabs.addEventListener('click',event=>{const tab=event.target.closest('[data-profile-editor-tab]');if(tab)showTab(tab.dataset.profileEditorTab)})}
     const fillEditor=()=>{
@@ -667,7 +674,7 @@
       $('#profileWebsiteInput',panel).value=web?web.textContent.trim():'';
     };
     let button=$('#editProfileBtn',card);
-    const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
+    const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');panel.hidden=true;button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
     const startEdit=()=>{fillEditor();showTab('profile');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
     if(button&&button.dataset.biglwaProfileBound!=='3'){
       const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='3';button.type='button';button.textContent='Edit profile';
@@ -691,7 +698,7 @@
       const fresh=close.cloneNode(true);close.replaceWith(fresh);close=fresh;close.dataset.biglwaProfileBound='3';
       close.addEventListener('click',e=>{e.preventDefault();fillEditor();endEdit()});
     }
-    if(!card.classList.contains('profile-is-editing')){panel.classList.add('panel-hidden');showTab('profile')}
+    if(!card.classList.contains('profile-is-editing')){panel.classList.add('panel-hidden');panel.hidden=true;showTab('profile')}
   }
 
   function ensureTheme(){
