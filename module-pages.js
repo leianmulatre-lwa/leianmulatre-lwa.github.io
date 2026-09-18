@@ -700,7 +700,14 @@
       preview.setAttribute('aria-label','Open Archive');
       preview.innerHTML='<img alt="Polaroid photograph of three friends relaxing together on a bed" width="360" height="638" loading="eager" decoding="sync">';
       const archiveImg=$('img',preview);
-      const archiveParts=[0,1,2,3,4].map(i=>'/assets/archive-preview-b64-'+i+'.txt?v=20260918-inline-1');
+      const archiveParts=[
+        '/assets/archive-preview-b64-0a.txt?v=20260918-inline-2',
+        '/assets/archive-preview-b64-0b.txt?v=20260918-inline-2',
+        '/assets/archive-preview-b64-1.txt?v=20260918-inline-2',
+        '/assets/archive-preview-b64-2.txt?v=20260918-inline-2',
+        '/assets/archive-preview-b64-3.txt?v=20260918-inline-2',
+        '/assets/archive-preview-b64-4.txt?v=20260918-inline-2'
+      ];
       Promise.all(archiveParts.map(url=>fetch(url,{cache:'no-store'}).then(response=>{
         if(!response.ok)throw new Error('Archive preview chunk failed: '+response.status);
         return response.text();
