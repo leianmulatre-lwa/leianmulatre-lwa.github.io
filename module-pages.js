@@ -53,6 +53,7 @@
     #studioApp #archive .archive-photo-preview{position:relative;display:block;width:100%;aspect-ratio:4/3;margin:10px 0 12px;padding:0;overflow:hidden;border:1px solid rgba(121,101,88,.22);border-radius:14px;background:#e9e1d9;box-shadow:0 6px 16px rgba(65,43,34,.10);cursor:pointer}
     #studioApp #archive .archive-photo-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 43%;filter:saturate(.96) contrast(1.01)}
     #studioApp #archive .archive-photo-preview::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26)}
+    #studioApp #archive .archive-photo-preview.archive-preview-load-failed::before{content:"Archive preview";position:absolute;inset:0;display:grid;place-items:center;color:#7d6f66;font:700 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em}
     #studioApp #notes .note-paper.has-saved-writing{display:flex!important;align-items:flex-start!important;justify-content:flex-start!important}
     #studioApp #notes .note-paper .studio-writing-preview-text{position:relative;z-index:2;display:-webkit-box!important;max-width:100%;margin:0!important;padding:0 0 22px!important;overflow:hidden!important;-webkit-box-orient:vertical;-webkit-line-clamp:4;color:#3c3021!important;font:600 17px/1.45 "Comic Sans MS","Bradley Hand","Segoe Print",cursive!important;white-space:pre-wrap;overflow-wrap:anywhere}
     #studioApp #notes .note-paper .studio-writing-preview-meta{position:absolute;right:22px;bottom:15px;z-index:3;margin:0!important;color:#765f35;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
@@ -697,7 +698,19 @@
       preview.className='archive-photo-preview';
       preview.dataset.open='archive';
       preview.setAttribute('aria-label','Open Archive');
-      preview.innerHTML='<img src="/assets/archive-polaroid-bed-photo-v2.webp?v=20260918-verified-1" alt="Polaroid photograph of three friends relaxing together on a bed" width="480" height="851" loading="eager">';
+      preview.innerHTML='<img alt="Polaroid photograph of three friends relaxing together on a bed" width="360" height="638" loading="eager" decoding="sync">';
+      const archiveImg=$('img',preview);
+      const archiveParts=[0,1,2,3,4].map(i=>'/assets/archive-preview-b64-'+i+'.txt?v=20260918-inline-1');
+      Promise.all(archiveParts.map(url=>fetch(url,{cache:'no-store'}).then(response=>{
+        if(!response.ok)throw new Error('Archive preview chunk failed: '+response.status);
+        return response.text();
+      }))).then(parts=>{
+        const data=parts.join('').replace(/\\s+/g,'');
+        if(archiveImg)archiveImg.src='data:image/jpeg;base64,'+data;
+      }).catch(error=>{
+        console.error(error);
+        preview.classList.add('archive-preview-load-failed');
+      });
 
       const cta=document.createElement('button');
       cta.className='card-cta';
