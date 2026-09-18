@@ -697,7 +697,7 @@
       preview.className='archive-photo-preview';
       preview.dataset.open='archive';
       preview.setAttribute('aria-label','Open Archive');
-      preview.innerHTML='<img src="/assets/archive-polaroid-bed-photo.webp?v=20260918-polaroid-exact-1" alt="Polaroid photograph of three friends relaxing together on a bed" width="480" height="851" loading="eager">';
+      preview.innerHTML='<img src="/assets/archive-polaroid-bed-photo-v2.webp?v=20260918-verified-1" alt="Polaroid photograph of three friends relaxing together on a bed" width="480" height="851" loading="eager">';
 
       const cta=document.createElement('button');
       cta.className='card-cta';
