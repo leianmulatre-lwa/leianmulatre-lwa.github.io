@@ -184,6 +184,11 @@
       #studioApp .sidebar-route-control.is-docked{background:rgba(255,255,255,.52);box-shadow:inset 0 0 0 1px rgba(var(--sidebar-section-rgb),.3)}
       #studioApp .sidebar-route-control.is-docked::before{content:"↩";position:absolute;right:7px;top:50%;transform:translateY(-50%);font:700 10px/1 Inter,system-ui,sans-serif;color:rgb(var(--sidebar-section-rgb))}
       #studioApp .hero-action-bar{grid-template-columns:repeat(var(--studio-action-count,9),minmax(70px,1fr))!important}
+      #studioApp .biglwa-nav-project-symbol{display:block!important;width:30px!important;height:27px!important;object-fit:contain!important;object-position:center!important}
+      #studioApp .biglwa-archive-horizontal-symbol{display:inline-grid!important;place-items:center!important;width:30px!important;height:27px!important;line-height:1!important;transform:rotate(90deg)!important;transform-origin:center!important}
+      #studioApp .biglwa-archive-horizontal-symbol img,#studioApp .biglwa-archive-horizontal-symbol svg{display:block!important;max-width:27px!important;max-height:27px!important}
+      #studioApp .hero-action-bar>a[data-shortcut-route="projects"]>img,#studioApp .hero-action-bar>a[data-shortcut-route="archive"]>.biglwa-archive-horizontal-symbol{margin:0 auto 5px!important}
+      body.night-mode #studioApp .hero-action-bar .biglwa-nav-project-symbol{filter:brightness(0) invert(1)!important}
       #studioApp .sidebar-shortcut-status{min-height:0;margin:0;padding:0 4px;color:#8b6b25;font:650 8px/1.35 Inter,ui-sans-serif,system-ui,sans-serif;transition:opacity .18s ease}
       #studioApp .sidebar-shortcut-save{display:flex;align-items:center;justify-content:center;width:100%;min-height:30px;margin:3px 0 0;padding:7px 8px;border:1px solid rgba(157,116,26,.24);border-radius:8px;background:rgba(255,255,255,.42);color:inherit;font:700 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
       #studioApp .sidebar-shortcut-save:hover{background:rgba(255,255,255,.68)}
@@ -414,8 +419,10 @@
     const link=existing||document.createElement('a');link.href=entry.href&&entry.href.startsWith('/')?entry.href:'#'+entry.key;link.dataset.shortcutRoute=entry.key;
     if(entry.policyRoute)link.dataset.policyRoute=entry.policyRoute;else delete link.dataset.policyRoute;
     link.setAttribute('aria-label',entry.label);
-    if(!existing){link.innerHTML=(entry.symbolHTML||'•')+'<span></span>';link.querySelector(':scope > span:last-child').textContent=entry.label}
-    else{const label=link.querySelector(':scope > span:last-child');if(label)label.textContent=entry.label}
+    if(!existing||entry.key==='projects'||entry.key==='archive'){
+      link.innerHTML=(entry.symbolHTML||'•')+'<span></span>';
+      link.querySelector(':scope > span:last-child').textContent=entry.label;
+    }else{const label=link.querySelector(':scope > span:last-child');if(label)label.textContent=entry.label}
     return link;
   }
   function syncSidebarShortcutSystem(){
@@ -526,12 +533,32 @@
       const icon=widgetIconMarkup(widget);if(icon&&mark.innerHTML!==icon)mark.innerHTML=icon;
     });
   }
+  function applyPreferredStudioSymbols(app){
+    if(!app)return;
+    const projectMarkup='<img class="studio-symbol-image biglwa-nav-project-symbol" src="/assets/hanger-symbol-generated.png?v=20260918-project-hanger-1" alt="" aria-hidden="true">';
+    const projectWidget=$('#projects',app);
+    const projectIcon=projectWidget&&$('.card-icon,.studio-symbol-mark',projectWidget);
+    if(projectIcon){projectIcon.innerHTML=projectMarkup;projectIcon.classList.add('studio-image-icon')}
+
+    const libraryWidget=$('#library',app);
+    const libraryEntry=navigationCatalog.get('library');
+    const libraryMarkup=widgetIconMarkup(libraryWidget)||libraryEntry?.symbolHTML||'◇';
+    const archiveMarkup='<span class="biglwa-archive-horizontal-symbol" aria-hidden="true">'+libraryMarkup+'</span>';
+    const archiveWidget=$('#archive',app);
+    const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
+    if(archiveIcon)archiveIcon.innerHTML=archiveMarkup;
+
+    const projectEntry=navigationCatalog.get('projects');if(projectEntry)projectEntry.symbolHTML=projectMarkup;
+    const archiveEntry=navigationCatalog.get('archive');if(archiveEntry)archiveEntry.symbolHTML=archiveMarkup;
+  }
   function refreshNavigationCatalogFromWidgets(app){
     if(!app)return;
+    applyPreferredStudioSymbols(app);
     navigationCatalog.forEach((entry,key)=>{
       const widget=$('[data-widget-route="'+CSS.escape(key)+'"]',app)||$('#'+CSS.escape(key),app)||(key==='rooms'?$('#room',app):key==='room'?$('#rooms',app):null);
       const icon=widgetIconMarkup(widget);if(icon)entry.symbolHTML=icon;
     });
+    applyPreferredStudioSymbols(app);
   }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
