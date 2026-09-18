@@ -1,7 +1,7 @@
 /* BIG LWA stitched crest on the login card. The shape is shared through stitched-crest.css. */
 #loginPage #loginCard{position:relative!important}
 #loginPage #loginCard::before{
-  content:""!important;display:block!important;width:128px!important;height:96px!important;margin:0 auto 12px!important;
+  content:""!important;display:block!important;width:156px!important;height:116px!important;margin:0 auto 16px!important;
   background:#171514!important;
   -webkit-mask-image:var(--biglwa-stitched-crest-mask)!important;mask-image:var(--biglwa-stitched-crest-mask)!important;
   -webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;
@@ -10,4 +10,4 @@
   visibility:visible!important;opacity:1!important
 }
 #loginPage #loginCard #loginCardSnakeMark,#loginPage #loginCard .login-card-emblem{display:none!important}
-@media(max-width:700px){#loginPage #loginCard::before{width:106px!important;height:80px!important;margin-bottom:10px!important}}
+@media(max-width:700px){#loginPage #loginCard::before{width:132px!important;height:100px!important;margin-bottom:12px!important}}
