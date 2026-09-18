@@ -42,10 +42,10 @@
       #studioApp .topbar{grid-template-columns:minmax(150px,180px) minmax(360px,1fr) minmax(250px,350px)!important;gap:14px!important;align-items:center!important}
       #studioApp .topbar::before{content:none!important;display:none!important}
       #studioApp .studio-brand-row{display:flex!important;grid-column:1!important;align-items:center!important;justify-content:flex-start!important;min-width:0!important;width:100%!important;height:100%!important}
-      #studioApp .studio-brand-row>a.brand.biglwa-block-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:124px!important;height:70px!important;min-width:124px!important;font-size:0!important;color:transparent!important;text-shadow:none!important;overflow:visible!important;text-decoration:none!important}
-      #studioApp .studio-brand-row>a.brand.biglwa-block-brand img{display:block!important;width:115px!important;height:auto!important;max-width:115px!important;max-height:66px!important;object-fit:contain!important;object-position:left center!important;visibility:visible!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important}
-      body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand{position:relative!important}
-      body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand::after{content:""!important;position:absolute!important;left:0!important;top:50%!important;width:115px!important;height:66px!important;transform:translateY(-50%)!important;pointer-events:none!important;background:url("/assets/biglwa-header-ready.png?v=20260912-stitched-spaced-1") left center/contain no-repeat!important;filter:brightness(0) invert(1)!important;clip-path:inset(0 46.5% 0 0)!important}
+      #studioApp .studio-brand-row>a.brand.biglwa-block-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:124px!important;height:70px!important;min-width:124px!important;font-size:0!important;color:#171514!important;text-shadow:none!important;overflow:visible!important;text-decoration:none!important}
+      #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{display:block!important;width:115px!important;height:66px!important;flex:0 0 115px!important;color:#171514!important}
+      body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{color:#fff6ec!important}
+      #studioApp .studio-brand-row>a.brand.biglwa-block-brand::before,#studioApp .studio-brand-row>a.brand.biglwa-block-brand::after{content:none!important;display:none!important}
       #studioApp .biglwa-top-block-logo{display:none!important}
       #studioApp .search-wrap{grid-column:2!important;max-width:none!important;width:100%!important;justify-self:stretch!important}
       #studioApp .top-actions{grid-column:3!important}
@@ -298,18 +298,16 @@
   function ensureTopLogo(){
     const row=$('#studioApp .studio-brand-row');
     if(!row)return false;
-    if(row.dataset.biglwaTopLogo==='1'&&row.querySelector('a.brand.biglwa-block-brand img'))return true;
+    if(row.dataset.biglwaTopLogo==='1'&&row.querySelector('a.brand.biglwa-block-brand .biglwa-topbar-crest'))return true;
     row.innerHTML='';
     const a=document.createElement('a');
     a.className='brand biglwa-block-brand';
     a.href='/studio';
     a.setAttribute('aria-label','BIGLWA Studio');
-    const img=document.createElement('img');
-    img.src='/assets/biglwa-header-ready.png?v=20260912-stitched-spaced-1';
-    img.alt='';
-    img.setAttribute('aria-hidden','true');
-    img.decoding='sync';
-    a.appendChild(img);
+    const mark=document.createElement('span');
+    mark.className='biglwa-stitched-crest biglwa-topbar-crest';
+    mark.setAttribute('aria-hidden','true');
+    a.appendChild(mark);
     row.appendChild(a);
     row.dataset.biglwaTopLogo='1';
     return true;
@@ -978,20 +976,16 @@
   }
 
   function ensurePolicyBrands(){
-    const links=$$('.policy-page .policy-top > .login-brand, .policy-page header.policy-top .login-brand');
+    const links=$('.policy-page .policy-top > .login-brand, .policy-page header.policy-top .login-brand');
     if(!links.length)return false;
     let done=0;
     links.forEach(a=>{
-      if(a.dataset.biglwaPolicyLogo==='1'||a.querySelector('img')){done++;return}
-      const img=document.createElement('img');
-      img.src='/assets/login-logo-mask.png?v=20260912-policy-emblem-1';
-      img.alt='';
-      img.className='biglwa-policy-emblem';
-      img.setAttribute('aria-hidden','true');
-      img.decoding='sync';
-      img.style.cssText='display:block;width:auto;height:58px;max-height:58px;object-fit:contain;object-position:left center';
+      if(a.dataset.biglwaPolicyLogo==='1'||a.querySelector('.biglwa-policy-emblem')){done++;return}
+      const mark=document.createElement('span');
+      mark.className='biglwa-stitched-crest biglwa-policy-emblem';
+      mark.setAttribute('aria-hidden','true');
       a.textContent='';
-      a.appendChild(img);
+      a.appendChild(mark);
       a.dataset.biglwaPolicyLogo='1';
       done++;
     });
