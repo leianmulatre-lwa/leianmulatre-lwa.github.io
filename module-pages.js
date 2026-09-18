@@ -676,21 +676,30 @@
     const archiveCard=$('#archive');
     if(archiveCard){
       archiveCard.dataset.widgetRoute='archive';
-      const existing=$('.archive-photo-preview',archiveCard);
-      const preview=existing||document.createElement('button');
+
+      // Archive gets one content preview only. Remove old placeholder/photo wrappers,
+      // while leaving the card header, controls, copy, and actions intact.
+      [...archiveCard.querySelectorAll('img')].forEach(img=>{
+        if(img.closest('.card-head,.widget-window-controls,.window-controls,.card-icon,.studio-symbol-mark'))return;
+        let node=img;
+        while(node.parentElement&&node.parentElement!==archiveCard)node=node.parentElement;
+        if(node.parentElement===archiveCard)node.remove();
+      });
+      [...archiveCard.children].forEach(el=>{
+        if(el.matches('.archive-photo-preview')){el.remove();return}
+        if(el.matches('[class*="archive-preview"],[class*="archive-visual"],[class*="photo-preview"],[class*="media-preview"],[class*="collage"],[class*="gallery"],[class*="contact-sheet"]'))el.remove();
+      });
+
+      const preview=document.createElement('button');
       preview.type='button';
       preview.className='archive-photo-preview';
       preview.dataset.open='archive';
       preview.setAttribute('aria-label','Open Archive');
-      preview.innerHTML='<img src="/assets/archive-photo-preview.webp?v=20260918-archive-photo-1" alt="Polaroid photograph of three friends relaxing together on a bed" width="480" height="850" loading="eager">';
-      if(!existing){
-        const replaceable=[...archiveCard.children].find(el=>el.matches('figure,:scope > img,[class*="archive-preview"],[class*="archive-visual"],[class*="photo-preview"],[class*="media-preview"]'));
-        if(replaceable)replaceable.replaceWith(preview);
-        else{
-          const cta=$('.card-cta',archiveCard);
-          if(cta)archiveCard.insertBefore(preview,cta);else archiveCard.appendChild(preview);
-        }
-      }
+      preview.innerHTML='<img src="/assets/archive-photo-preview.webp?v=20260918-exact-upload-2" alt="Polaroid photograph of three friends relaxing together on a bed" width="480" height="851" loading="eager">';
+
+      const cta=$('.card-cta',archiveCard);
+      if(cta)archiveCard.insertBefore(preview,cta);
+      else archiveCard.appendChild(preview);
     }
     for(const [id,title,copy,key] of [['calendar','Calendar','Your schedule, connected through Orbit.','calendar'],['connect','Join BIGLWA','Invite friends to your creative community.','connect']]){
       const card=$('#'+id);if(!card)continue;
