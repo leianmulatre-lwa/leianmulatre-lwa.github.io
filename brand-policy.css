@@ -135,8 +135,8 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  min-width: 146px !important;
-  min-height: 84px !important;
+  min-width: 156px !important;
+  min-height: 88px !important;
   font-size: 0 !important;
   color: transparent !important;
   text-shadow: none !important;
@@ -145,9 +145,9 @@
 
 .policy-page .policy-top .biglwa-policy-emblem {
   display: block !important;
-  width: 146px;
-  height: 82px;
-  flex: 0 0 146px;
+  width: 156px;
+  height: 88px;
+  flex: 0 0 156px;
   color: transparent !important;
   background: #fff6ec !important;
   -webkit-mask-image: var(--biglwa-stitched-crest-mask) !important;
@@ -179,8 +179,8 @@
 .policy-page .policy-card::before {
   content: "";
   display: block;
-  width: 138px;
-  height: 104px;
+  width: 146px;
+  height: 110px;
   margin: -38px auto 22px;
   background: #171514;
   -webkit-mask-image: var(--biglwa-stitched-crest-mask);
