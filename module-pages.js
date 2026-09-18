@@ -50,6 +50,15 @@
     .photo-strip{display:grid;grid-template-columns:repeat(4,minmax(80px,1fr));gap:8px;margin-top:12px}.photo-strip figure{margin:0;position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#ddd}.photo-strip img{width:100%;height:100%;object-fit:cover}.photo-strip a{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(20,18,17,.76);color:#fff;text-decoration:none;font:700 8px/1 system-ui;padding:6px 7px}
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
     #studioApp #camera .contact-sheet.photobooth-reference-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 62%;filter:contrast(1.02);transform:scale(1.09);transform-origin:center 62%}
+    #studioApp #notes .note-paper.has-saved-writing{display:flex!important;align-items:flex-start!important;justify-content:flex-start!important}
+    #studioApp #notes .note-paper .studio-writing-preview-text{position:relative;z-index:2;display:-webkit-box!important;max-width:100%;margin:0!important;padding:0 0 22px!important;overflow:hidden!important;-webkit-box-orient:vertical;-webkit-line-clamp:4;color:#3c3021!important;font:600 17px/1.45 "Comic Sans MS","Bradley Hand","Segoe Print",cursive!important;white-space:pre-wrap;overflow-wrap:anywhere}
+    #studioApp #notes .note-paper .studio-writing-preview-meta{position:absolute;right:22px;bottom:15px;z-index:3;margin:0!important;color:#765f35;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+    #studioApp #diary .diary-page.has-saved-writing{position:relative;display:block!important;min-height:0;aspect-ratio:3/2;padding:0!important;border-radius:10px;overflow:hidden;background:#fffdf4!important;box-shadow:0 5px 14px #49342120}
+    #studioApp #diary .diary-page.has-saved-writing::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 12%,rgba(198,70,83,.48) 12% 12.5%,transparent 12.5%),repeating-linear-gradient(to bottom,transparent 0,transparent 27px,rgba(96,132,157,.28) 28px);pointer-events:none}
+    #studioApp #diary .studio-diary-preview{position:absolute;inset:14px 16px 12px 15%;z-index:2;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;text-align:left;color:#312a27}
+    #studioApp #diary .studio-diary-preview small{display:block;margin:0 0 6px;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a6d67}
+    #studioApp #diary .studio-diary-preview p{display:-webkit-box;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:5;white-space:pre-wrap;overflow-wrap:anywhere;font:600 14px/28px Georgia,"Times New Roman",serif}
+    body.night-mode #studioApp #diary .diary-page.has-saved-writing{filter:saturate(.86) brightness(.82)}
     .calendar-shell{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,.7fr);gap:14px;margin-top:20px}.calendar-board{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:18px;padding:16px}.calendar-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.calendar-toolbar h2{margin:0;font:600 20px Georgia,serif}.calendar-weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.calendar-weekdays span{text-align:center;font:700 8px/1.2 system-ui;text-transform:uppercase;letter-spacing:.08em;color:#8b8179;padding:7px 2px}.calendar-day{position:relative;min-height:88px;border:1px solid #e0d7cf;border-radius:11px;background:rgba(255,255,255,.5);padding:7px;text-align:left;cursor:pointer;color:inherit}.calendar-day.other{opacity:.35}.calendar-day.today{box-shadow:inset 0 0 0 2px rgba(var(--aura-rgb,216,95,109),.55)}.calendar-day.selected{background:rgba(var(--aura-rgb,216,95,109),.12);border-color:rgba(var(--aura-rgb,216,95,109),.55)}.calendar-day-num{font:700 10px system-ui}.calendar-event-chip{display:block;margin-top:5px;padding:4px 5px;border-radius:7px;background:#eee1dc;font:700 8px/1.2 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calendar-mini{margin:11px 0 10px;padding:10px;border:1px solid rgba(117,92,79,.16);border-radius:12px;background:rgba(255,255,255,.26)}.calendar-mini-head{display:flex;justify-content:space-between;font:700 9px system-ui;margin-bottom:7px}.calendar-mini-weekdays,.calendar-mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.calendar-mini-weekdays span{padding:2px 0;text-align:center;color:#8b8179;font:800 7px/1 system-ui;text-transform:uppercase}.calendar-mini-grid span{display:grid;place-items:center;min-height:24px;border-radius:6px;font:8px system-ui;background:rgba(255,255,255,.45)}.calendar-mini-grid .today{background:rgba(var(--aura-rgb,216,95,109),.18);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.5);font-weight:800}
     .dyk-game{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px;margin-top:20px}.dyk-card{min-height:360px;border:1px solid #ddd3ca;background:rgba(255,255,255,.62);border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:space-between}.dyk-kicker{font:700 9px system-ui;text-transform:uppercase;letter-spacing:.12em;color:#8b8179}.dyk-question{font:500 clamp(25px,4vw,42px)/1.08 Georgia,serif;margin:16px 0 24px}.dyk-options{display:grid;gap:8px}.dyk-option{border:1px solid #d9d0c7;background:rgba(255,255,255,.72);border-radius:12px;padding:12px 13px;text-align:left;font:600 11px system-ui;cursor:pointer}.dyk-option.correct{background:#edf6ee;border-color:#7ea787}.dyk-option.wrong{background:#f8eaea;border-color:#b98080}.dyk-option:disabled{cursor:default}.dyk-source{margin-top:13px;font-size:9px;line-height:1.5;color:#7b716a}.dyk-source a{color:inherit}.dyk-score{font:500 48px/1 Georgia,serif;margin:10px 0}.dyk-side small{font-size:9px;color:#847a73}
     .module-map{height:520px;border-radius:17px;overflow:hidden;border:1px solid #d6cbc2;background:#ddd}.map-coordinate{font:9px/1.5 ui-monospace,SFMono-Regular,monospace;color:#80756e;margin:7px 0}.map-pin-list{max-height:360px;overflow:auto}.studio-map-card{min-height:170px}.studio-map-preview-slot{margin:10px 0}.studio-map-visual{height:78px;border:1px solid #d8cec5;border-radius:12px;background:radial-gradient(circle at 30% 55%,rgba(var(--aura-rgb,216,95,109),.35) 0 4px,transparent 5px),radial-gradient(circle at 67% 32%,#202020 0 3px,transparent 4px),linear-gradient(35deg,transparent 48%,rgba(80,70,62,.14) 49% 51%,transparent 52%),linear-gradient(125deg,#e9e1d8,#f7f1ea);position:relative;overflow:hidden}.studio-map-visual:before,.studio-map-visual:after{content:"";position:absolute;border:1px solid rgba(90,79,70,.16);border-radius:50%;width:120px;height:90px}.studio-map-visual:before{left:-20px;top:25px}.studio-map-visual:after{right:-26px;top:-30px}.studio-map-pins-preview{overflow:hidden;border:1px solid rgba(112,96,84,.22);border-radius:12px;background:rgba(255,255,255,.38)}.studio-map-pins-tab{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-bottom:1px solid rgba(112,96,84,.16);background:rgba(var(--aura-rgb,216,95,109),.08)}.studio-map-pins-tab span{font:800 8px/1 system-ui;letter-spacing:.11em;text-transform:uppercase}.studio-map-pins-tab b{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:rgba(var(--aura-rgb,216,95,109),.15);font:800 8px/1 system-ui}.studio-map-pins-list{display:grid;padding:3px 9px}.studio-map-pin-row{display:grid;grid-template-columns:9px minmax(0,1fr);gap:8px;align-items:center;padding:8px 1px;border-bottom:1px solid rgba(112,96,84,.1)}.studio-map-pin-row:last-child{border-bottom:0}.studio-map-pin-dot{width:7px;height:7px;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109));box-shadow:0 0 0 3px rgba(var(--aura-rgb,216,95,109),.1)}.studio-map-pin-copy{min-width:0}.studio-map-pin-copy b,.studio-map-pin-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.studio-map-pin-copy b{font:700 9px/1.2 system-ui}.studio-map-pin-copy small{margin-top:3px;color:#847a73;font:8px/1.25 system-ui}.studio-map-more{padding:6px 10px 9px;color:#847a73;font:700 8px/1.2 system-ui}.night-mode .studio-map-pins-preview{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.12)}.night-mode .studio-map-pins-tab{border-color:rgba(255,255,255,.1)}.night-mode .studio-map-pin-row{border-color:rgba(255,255,255,.08)}.night-mode .studio-map-pin-copy small,.night-mode .studio-map-more{color:#b9aea6}
@@ -339,8 +348,16 @@
   function renderWriting(key){
     const storage=`biglwaDraft_${key}`;
     const title=key==='diary'?`<div class="module-diary-cover-label"><strong>Diary</strong><span>Property of: ${esc(profileUsername())}</span></div>`:'<div class="module-qwiky-label"><strong>Qwiky Note</strong><span>pin it before it floats away</span></div>';
-    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves</div></section></div>`;
-    const area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;area.addEventListener('input',()=>{status.textContent='Saving…';clearTimeout(t);t=setTimeout(()=>{localStorage.setItem(storage,area.value);status.textContent='Saved locally.';status.classList.add('ok');},250)});
+    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button></div><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves while you write</div></form></section></div>`;
+    const form=$('#moduleWritingForm',body),area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;
+    const save=(explicit=false)=>{
+      localStorage.setItem(storage,area.value);
+      status.textContent=explicit?'Saved. Studio preview updated.':'Saved locally.';
+      status.classList.add('ok');
+      document.dispatchEvent(new CustomEvent('biglwa:writing-saved',{detail:{key,value:area.value}}));
+    };
+    area.addEventListener('input',()=>{status.textContent='Saving…';status.classList.remove('ok');clearTimeout(t);t=setTimeout(()=>save(false),350)});
+    form.addEventListener('submit',event=>{event.preventDefault();clearTimeout(t);save(true)});
   }
 
   function renderFeed(){
@@ -589,6 +606,38 @@
     setTimeout(()=>recordStudioUpdate(activeModuleKey,`${labels[activeModuleKey]||'Studio'} settings updated`,'Saved from its widget page'),0);
   });
 
+  function writingPreviewValue(key){
+    try{return String(localStorage.getItem('biglwaDraft_'+key)||'').trim()}catch{return ''}
+  }
+  function syncWritingPreviews(){
+    const noteCard=$('#notes'),notePaper=noteCard&&$('.note-paper',noteCard),note=writingPreviewValue('notes');
+    if(notePaper){
+      if(notePaper._biglwaPlaceholderHTML===undefined)notePaper._biglwaPlaceholderHTML=notePaper.innerHTML;
+      notePaper.classList.toggle('has-saved-writing',!!note);
+      if(note){
+        const savedAt=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+        notePaper.innerHTML='<p class="studio-writing-preview-text">'+esc(note)+'</p><span class="studio-writing-preview-meta">saved '+esc(savedAt)+'</span>';
+        notePaper.setAttribute('aria-label','Qwiky Note preview: '+note.slice(0,120));
+      }else{
+        notePaper.innerHTML=notePaper._biglwaPlaceholderHTML||'';
+        notePaper.setAttribute('aria-label','Open Qwiky Note');
+      }
+    }
+    const diaryCard=$('#diary'),diaryPage=diaryCard&&$('.diary-page',diaryCard),diary=writingPreviewValue('diary');
+    if(diaryPage){
+      if(diaryPage._biglwaPlaceholderHTML===undefined)diaryPage._biglwaPlaceholderHTML=diaryPage.innerHTML;
+      diaryPage.classList.toggle('has-saved-writing',!!diary);
+      if(diary){
+        const savedAt=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+        diaryPage.innerHTML='<div class="studio-diary-preview"><small>latest entry · '+esc(savedAt)+'</small><p>'+esc(diary)+'</p></div>';
+        diaryPage.setAttribute('aria-label','Diary preview: '+diary.slice(0,120));
+      }else{
+        diaryPage.innerHTML=diaryPage._biglwaPlaceholderHTML||'';
+        diaryPage.setAttribute('aria-label','Open diary');
+      }
+    }
+  }
+
   function readMapPreviewPins(){
     try{
       const value=JSON.parse(localStorage.getItem('biglwaMapPins')||'[]');
@@ -649,10 +698,11 @@
       syncMapCardPreview();
     }
   }
-  setTimeout(()=>{enhanceStudioCards();syncTrophyCard()},80);
-  window.addEventListener('storage',event=>{if(event.key==='biglwaMapPins')syncMapCardPreview()});
-  window.addEventListener('focus',syncMapCardPreview);
-  document.addEventListener('biglwa:module-close',syncMapCardPreview);
+  setTimeout(()=>{enhanceStudioCards();syncTrophyCard();syncWritingPreviews()},80);
+  window.addEventListener('storage',event=>{if(event.key==='biglwaMapPins')syncMapCardPreview();if(event.key==='biglwaDraft_notes'||event.key==='biglwaDraft_diary')syncWritingPreviews()});
+  window.addEventListener('focus',()=>{syncMapCardPreview();syncWritingPreviews()});
+  document.addEventListener('biglwa:writing-saved',syncWritingPreviews);
+  document.addEventListener('biglwa:module-close',()=>{syncMapCardPreview();syncWritingPreviews()});
 
   document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const directory=e.target.closest('.hero-action-bar a[href^="#"]');const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!directory&&!mobile&&!trigger)return;let key=mobile?'create':directory?(directory.getAttribute('href')||'').replace(/^#/,''):trigger.dataset.open;if(key==='home'){e.preventDefault();e.stopImmediatePropagation();closeModule();window.scrollTo({top:0,behavior:'smooth'});return}if(key==='desk')key='create';const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key||!known.has(String(key).toLowerCase()))return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
   window.addEventListener('popstate',()=>{const v=new URLSearchParams(location.search).get('view');if(v)openModule(v,'',false);else closeModule(false)});
