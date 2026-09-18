@@ -140,11 +140,10 @@
 
 .policy-page .policy-top .biglwa-policy-emblem {
   display: block;
-  width: auto;
+  width: 104px;
   height: 58px;
-  max-height: 58px;
-  object-fit: contain;
-  object-position: left center;
+  flex: 0 0 104px;
+  color: #fff6ec;
 }
 
 .policy-page .policy-back {
@@ -166,8 +165,16 @@
   width: 116px;
   height: 90px;
   margin: -34px auto 20px;
-  background: url("/assets/biglwa-seal-black.png?v=20260912-policy-1") center / contain no-repeat;
-  opacity: .88;
+  background: #171514;
+  -webkit-mask-image: var(--biglwa-stitched-crest-mask);
+  mask-image: var(--biglwa-stitched-crest-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: .9;
 }
 
 /* Public information stays editorial-light even when Studio is in dark mode. */
