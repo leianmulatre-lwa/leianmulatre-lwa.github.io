@@ -184,7 +184,7 @@
       #studioApp .sidebar-route-control.is-docked{background:rgba(255,255,255,.52);box-shadow:inset 0 0 0 1px rgba(var(--sidebar-section-rgb),.3)}
       #studioApp .sidebar-route-control.is-docked::before{content:"↩";position:absolute;right:7px;top:50%;transform:translateY(-50%);font:700 10px/1 Inter,system-ui,sans-serif;color:rgb(var(--sidebar-section-rgb))}
       #studioApp .hero-action-bar{grid-template-columns:repeat(var(--studio-action-count,9),minmax(70px,1fr))!important}
-      #studioApp .biglwa-nav-project-symbol{display:block!important;width:30px!important;height:27px!important;object-fit:contain!important;object-position:center!important}
+      #studioApp .biglwa-nav-project-symbol{display:block!important;width:30px!important;height:27px!important;object-fit:contain!important;object-position:center!important}#studioApp .biglwa-library-fallback{display:block!important;width:29px!important;height:23px!important;color:currentColor!important}
       #studioApp .biglwa-archive-horizontal-symbol{display:inline-grid!important;place-items:center!important;width:30px!important;height:27px!important;line-height:1!important;transform:rotate(90deg)!important;transform-origin:center!important}
       #studioApp .biglwa-archive-horizontal-symbol img,#studioApp .biglwa-archive-horizontal-symbol svg{display:block!important;max-width:27px!important;max-height:27px!important}
       #studioApp .hero-action-bar>a[data-shortcut-route="projects"]>img,#studioApp .hero-action-bar>a[data-shortcut-route="archive"]>.biglwa-archive-horizontal-symbol{margin:0 auto 5px!important}
@@ -535,14 +535,15 @@
   }
   function applyPreferredStudioSymbols(app){
     if(!app)return;
-    const projectMarkup='<img class="studio-symbol-image biglwa-nav-project-symbol" src="/assets/hanger-symbol-generated.png?v=20260918-project-hanger-1" alt="" aria-hidden="true">';
+    const projectMarkup='<img class="studio-symbol-image biglwa-nav-project-symbol" src="/assets/projects-symbol.png?v=20260918-project-symbol-2" alt="" aria-hidden="true">';
     const projectWidget=$('#projects',app);
     const projectIcon=projectWidget&&$('.card-icon,.studio-symbol-mark',projectWidget);
     if(projectIcon){projectIcon.innerHTML=projectMarkup;projectIcon.classList.add('studio-image-icon')}
 
     const libraryWidget=$('#library',app);
     const libraryEntry=navigationCatalog.get('library');
-    const libraryMarkup=widgetIconMarkup(libraryWidget)||libraryEntry?.symbolHTML||'◇';
+    let libraryMarkup=widgetIconMarkup(libraryWidget)||libraryEntry?.symbolHTML||'';
+    if(!libraryMarkup||/^[◇◆◈▰•]+$/.test(String(libraryMarkup).replace(/<[^>]+>/g,'').trim()))libraryMarkup='<svg class="biglwa-library-fallback" viewBox="0 0 34 26" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="25" height="5" rx="1.5"/><path d="M7 9v3M26 9v3"/><rect x="6" y="12" width="24" height="5" rx="1.5"/><path d="M9 17v3M27 17v3"/><rect x="3" y="20" width="26" height="4" rx="1.4"/></g></svg>';
     const archiveMarkup='<span class="biglwa-archive-horizontal-symbol" aria-hidden="true">'+libraryMarkup+'</span>';
     const archiveWidget=$('#archive',app);
     const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
