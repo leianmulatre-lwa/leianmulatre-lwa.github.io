@@ -139,11 +139,23 @@
 }
 
 .policy-page .policy-top .biglwa-policy-emblem {
-  display: block;
-  width: 104px;
-  height: 58px;
-  flex: 0 0 104px;
-  color: #fff6ec;
+  display: block !important;
+  width: 112px;
+  height: 62px;
+  flex: 0 0 112px;
+  color: transparent !important;
+  background: #fff6ec !important;
+  -webkit-mask-image: var(--biglwa-stitched-crest-mask) !important;
+  mask-image: var(--biglwa-stitched-crest-mask) !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-position: left center !important;
+  mask-position: left center !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
+  -webkit-mask-mode: luminance !important;
+  mask-mode: luminance !important;
+  mask-type: luminance !important;
 }
 
 .policy-page .policy-back {
