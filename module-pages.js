@@ -645,7 +645,7 @@
       mapCard.dataset.widgetRoute='map';
       mapCard.dataset.search=(mapCard.dataset.search||'')+' map places pins memories projects locations geography';
       const arrow=$('.arrow-btn',mapCard);if(arrow){arrow.dataset.open='map';arrow.setAttribute('aria-label','Open Map')}
-      $('.card-cta',mapCard).forEach(button=>{button.dataset.open='map'});
+      mapCard.querySelectorAll('.card-cta').forEach(button=>{button.dataset.open='map'});
       syncMapCardPreview();
     }
   }
