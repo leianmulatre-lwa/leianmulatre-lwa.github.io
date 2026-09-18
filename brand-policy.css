@@ -128,21 +128,26 @@
 }
 
 .policy-page .policy-top {
-  min-height: 58px;
+  min-height: 84px;
 }
 
 .policy-page .policy-top .login-brand {
-  display: inline-flex;
-  align-items: center;
-  min-width: 104px;
-  min-height: 58px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-width: 146px !important;
+  min-height: 84px !important;
+  font-size: 0 !important;
+  color: transparent !important;
+  text-shadow: none !important;
+  overflow: visible !important;
 }
 
 .policy-page .policy-top .biglwa-policy-emblem {
   display: block !important;
-  width: 112px;
-  height: 62px;
-  flex: 0 0 112px;
+  width: 146px;
+  height: 82px;
+  flex: 0 0 146px;
   color: transparent !important;
   background: #fff6ec !important;
   -webkit-mask-image: var(--biglwa-stitched-crest-mask) !important;
@@ -174,9 +179,9 @@
 .policy-page .policy-card::before {
   content: "";
   display: block;
-  width: 116px;
-  height: 90px;
-  margin: -34px auto 20px;
+  width: 138px;
+  height: 104px;
+  margin: -38px auto 22px;
   background: #171514;
   -webkit-mask-image: var(--biglwa-stitched-crest-mask);
   mask-image: var(--biglwa-stitched-crest-mask);
@@ -842,4 +847,11 @@ body.about-site {
   .public-page-footer .supporter-group[aria-hidden="true"] {
     display: none;
   }
+}
+
+@media(max-width:620px){
+  .policy-page .policy-top{min-height:72px}
+  .policy-page .policy-top .login-brand{min-width:126px!important;min-height:72px!important}
+  .policy-page .policy-top .biglwa-policy-emblem{width:126px!important;height:70px!important;flex-basis:126px!important}
+  .policy-page .policy-card::before{width:124px;height:94px;margin-top:-34px}
 }
