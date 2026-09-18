@@ -1008,13 +1008,19 @@
     if(!links.length)return false;
     let done=0;
     links.forEach(a=>{
-      if(a.dataset.biglwaPolicyLogo==='1'||a.querySelector('.biglwa-policy-emblem')){done++;return}
-      const mark=document.createElement('span');
-      mark.className='biglwa-stitched-crest biglwa-policy-emblem';
-      mark.setAttribute('aria-hidden','true');
-      a.textContent='';
-      a.appendChild(mark);
+      let mark=a.querySelector('.biglwa-policy-emblem');
+      const valid=mark&&mark.tagName==='SPAN'&&mark.classList.contains('biglwa-stitched-crest');
+      if(!valid){
+        a.replaceChildren();
+        mark=document.createElement('span');
+        mark.className='biglwa-stitched-crest biglwa-policy-emblem';
+        mark.setAttribute('aria-hidden','true');
+        a.appendChild(mark);
+      }else{
+        [...a.children].forEach(child=>{if(child!==mark)child.remove()});
+      }
       a.dataset.biglwaPolicyLogo='1';
+      a.setAttribute('aria-label','Big LWA home');
       done++;
     });
     return done===links.length;
