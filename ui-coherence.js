@@ -1004,7 +1004,7 @@
   }
 
   function ensurePolicyBrands(){
-    const links=$('.policy-page .policy-top > .login-brand, .policy-page header.policy-top .login-brand');
+    const links=$$('.policy-page .policy-top > .login-brand, .policy-page header.policy-top .login-brand');
     if(!links.length)return false;
     let done=0;
     links.forEach(a=>{
