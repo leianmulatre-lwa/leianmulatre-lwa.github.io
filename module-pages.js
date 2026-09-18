@@ -51,7 +51,7 @@
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
     #studioApp #camera .contact-sheet.photobooth-reference-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 46%;filter:contrast(1.02);transform:scale(1.09);transform-origin:center 46%}
     #studioApp #archive .archive-photo-preview{position:relative;display:block;width:100%;aspect-ratio:4/3;margin:10px 0 12px;padding:0;overflow:hidden;border:1px solid rgba(121,101,88,.22);border-radius:14px;background:#e9e1d9;box-shadow:0 6px 16px rgba(65,43,34,.10);cursor:pointer}
-    #studioApp #archive .archive-photo-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 52%;filter:saturate(.94) contrast(1.02)}
+    #studioApp #archive .archive-photo-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 43%;filter:saturate(.96) contrast(1.01)}
     #studioApp #archive .archive-photo-preview::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26)}
     #studioApp #notes .note-paper.has-saved-writing{display:flex!important;align-items:flex-start!important;justify-content:flex-start!important}
     #studioApp #notes .note-paper .studio-writing-preview-text{position:relative;z-index:2;display:-webkit-box!important;max-width:100%;margin:0!important;padding:0 0 22px!important;overflow:hidden!important;-webkit-box-orient:vertical;-webkit-line-clamp:4;color:#3c3021!important;font:600 17px/1.45 "Comic Sans MS","Bradley Hand","Segoe Print",cursive!important;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -677,29 +677,35 @@
     if(archiveCard){
       archiveCard.dataset.widgetRoute='archive';
 
-      // Archive gets one content preview only. Remove old placeholder/photo wrappers,
-      // while leaving the card header, controls, copy, and actions intact.
-      [...archiveCard.querySelectorAll('img')].forEach(img=>{
-        if(img.closest('.card-head,.widget-window-controls,.window-controls,.card-icon,.studio-symbol-mark'))return;
-        let node=img;
-        while(node.parentElement&&node.parentElement!==archiveCard)node=node.parentElement;
-        if(node.parentElement===archiveCard)node.remove();
-      });
+      // Deterministic Archive body: keep only the header/window controls,
+      // then build exactly one temporary preview from the approved upload.
       [...archiveCard.children].forEach(el=>{
-        if(el.matches('.archive-photo-preview')){el.remove();return}
-        if(el.matches('[class*="archive-preview"],[class*="archive-visual"],[class*="photo-preview"],[class*="media-preview"],[class*="collage"],[class*="gallery"],[class*="contact-sheet"]'))el.remove();
+        if(el.matches('.card-head,.widget-window-controls,.window-controls,.widget-drag-handle'))return;
+        el.remove();
       });
+
+      const head=$('.card-head',archiveCard);
+      const arrow=head&&$('.arrow-btn',head);
+      if(arrow){arrow.dataset.open='archive';arrow.setAttribute('aria-label','Open Archive')}
+
+      const copy=document.createElement('p');
+      copy.className='sub';
+      copy.textContent='Keep memories, media, references, and works in progress close.';
 
       const preview=document.createElement('button');
       preview.type='button';
       preview.className='archive-photo-preview';
       preview.dataset.open='archive';
       preview.setAttribute('aria-label','Open Archive');
-      preview.innerHTML='<img src="/assets/archive-photo-preview.webp?v=20260918-exact-upload-2" alt="Polaroid photograph of three friends relaxing together on a bed" width="480" height="851" loading="eager">';
+      preview.innerHTML='<img src="/assets/archive-polaroid-bed-photo.webp?v=20260918-polaroid-exact-1" alt="Polaroid photograph of three friends relaxing together on a bed" width="480" height="851" loading="eager">';
 
-      const cta=$('.card-cta',archiveCard);
-      if(cta)archiveCard.insertBefore(preview,cta);
-      else archiveCard.appendChild(preview);
+      const cta=document.createElement('button');
+      cta.className='card-cta';
+      cta.type='button';
+      cta.dataset.open='archive';
+      cta.textContent='Open Archive →';
+
+      archiveCard.append(copy,preview,cta);
     }
     for(const [id,title,copy,key] of [['calendar','Calendar','Your schedule, connected through Orbit.','calendar'],['connect','Join BIGLWA','Invite friends to your creative community.','connect']]){
       const card=$('#'+id);if(!card)continue;
