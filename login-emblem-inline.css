@@ -6,7 +6,7 @@
   -webkit-mask-image:var(--biglwa-stitched-crest-mask)!important;mask-image:var(--biglwa-stitched-crest-mask)!important;
   -webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;
   -webkit-mask-position:center!important;mask-position:center!important;
-  -webkit-mask-size:contain!important;mask-size:contain!important;
+  -webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-mode:luminance!important;mask-mode:luminance!important;mask-type:luminance!important;
   visibility:visible!important;opacity:1!important
 }
 #loginPage #loginCard #loginCardSnakeMark,#loginPage #loginCard .login-card-emblem{display:none!important}
