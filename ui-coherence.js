@@ -543,7 +543,7 @@
     const libraryWidget=$('#library',app);
     const libraryEntry=navigationCatalog.get('library');
     let libraryMarkup=widgetIconMarkup(libraryWidget)||libraryEntry?.symbolHTML||'';
-    if(!libraryMarkup||/^[◇◆◈▰•]+$/.test(String(libraryMarkup).replace(/<[^>]+>/g,'').trim()))libraryMarkup='<svg class="biglwa-library-fallback" viewBox="0 0 34 26" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="25" height="5" rx="1.5"/><path d="M7 9v3M26 9v3"/><rect x="6" y="12" width="24" height="5" rx="1.5"/><path d="M9 17v3M27 17v3"/><rect x="3" y="20" width="26" height="4" rx="1.4"/></g></svg>';
+    if(!libraryMarkup||/^[◇◆◈▰•]+$/.test(String(libraryMarkup).replace(/<[^>]+>/g,'').trim()))libraryMarkup='<svg class="biglwa-library-fallback" viewBox="0 0 26 34" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="25" rx="1.5"/><path d="M8 7h3M8 26h3"/><rect x="11" y="6" width="5" height="24" rx="1.5"/><path d="M16 9h3M16 27h3"/><rect x="19" y="3" width="4" height="26" rx="1.4"/></g></svg>';
     const archiveMarkup='<span class="biglwa-archive-horizontal-symbol" aria-hidden="true">'+libraryMarkup+'</span>';
     const archiveWidget=$('#archive',app);
     const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
