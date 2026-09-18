@@ -82,14 +82,36 @@
       #studioApp .widget-drop-target{outline:2px solid rgb(var(--aura-rgb,216,95,109))!important;outline-offset:3px!important}
       #studioApp .hero-widget-rail .card-kicker{padding-right:100px!important;margin-bottom:10px!important}
 
-      #studioApp .music-card .music-row{align-items:center!important;gap:10px!important}
-      #studioApp .music-card .album-art{position:relative!important;overflow:hidden!important;isolation:isolate!important;flex:0 0 48px!important;width:48px!important;height:48px!important;border-radius:10px!important;display:grid!important;place-items:center!important;background:#221d1d!important;color:#f6a4b4!important}
-      #studioApp .music-card .album-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+      #studioApp .hero-widget-rail>.music-card.stereo-music-widget{min-height:226px!important;padding:11px!important;border:1px solid #0d0d0d!important;border-radius:15px!important;background:linear-gradient(145deg,#2f3131 0%,#171818 48%,#292a2a 100%)!important;color:#e8ece6!important;box-shadow:inset 0 0 0 2px #454747,inset 0 -8px 18px rgba(0,0,0,.34),0 10px 24px rgba(28,20,18,.18)!important;overflow:hidden!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+      #studioApp .music-card.stereo-music-widget>.card-kicker{position:relative!important;z-index:3!important;width:max-content!important;margin:0 0 7px 4px!important;padding:3px 7px!important;border:1px solid #555!important;border-radius:3px!important;background:#171818!important;color:#b8bdb6!important;font:800 7px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;letter-spacing:.15em!important;text-transform:uppercase!important;box-shadow:inset 0 1px rgba(255,255,255,.06)!important}
+      #studioApp .music-card.stereo-music-widget>.widget-window-controls{top:10px!important;right:11px!important}
+      #studioApp .music-card.stereo-music-widget>.widget-drag-handle{top:9px!important;background:rgba(255,255,255,.08)!important;color:#aeb4ad!important}
+      #studioApp .music-card .stereo-shell{display:grid;gap:7px}
+      #studioApp .music-card .stereo-tuner{position:relative;height:26px;display:flex;align-items:center;justify-content:center;padding:0 27px;border:2px solid #626666;border-radius:4px;background:linear-gradient(#050706,#0a0d0a);box-shadow:inset 0 0 0 1px #111,inset 0 0 13px rgba(87,255,112,.07);overflow:hidden;color:#81ef87;font:700 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-shadow:0 0 5px rgba(102,255,119,.45)}
+      #studioApp .music-card .stereo-tuner::before{content:"";position:absolute;left:18px;right:18px;bottom:6px;height:1px;background:repeating-linear-gradient(90deg,#4fe35e 0 1px,transparent 1px 10px);opacity:.72}
+      #studioApp .music-card .stereo-tuner::after{content:"";position:absolute;left:58%;top:3px;bottom:3px;width:2px;background:#ff6a31;box-shadow:0 0 5px #ff6a31}
+      #studioApp .music-card .stereo-tuner-label{white-space:nowrap}
+      #studioApp .music-card .stereo-face{display:grid;grid-template-columns:54px minmax(0,1fr) 54px;gap:7px;align-items:center}
+      #studioApp .music-card .stereo-speaker{position:relative;aspect-ratio:1;border:3px solid #767a79;border-radius:50%;background:radial-gradient(circle at center,#121313 0 17%,transparent 18%),radial-gradient(circle,#111 0 1.2px,transparent 1.5px) 0 0/6px 6px,#272929;box-shadow:inset 0 0 0 3px #202222,inset 0 0 15px #000,0 1px 0 rgba(255,255,255,.12)}
+      #studioApp .music-card .stereo-speaker::after{content:"";position:absolute;inset:33%;border:1px solid #777;border-radius:50%;background:#323434;box-shadow:inset 0 0 7px #000}
+      #studioApp .music-card .stereo-display{position:relative;min-width:0;height:83px;padding:8px 8px 6px;border:2px solid #656a65;border-radius:8px;background:radial-gradient(ellipse at 50% 46%,rgba(39,91,51,.34),transparent 74%),#061109;box-shadow:inset 0 0 0 2px #101610,inset 0 0 20px rgba(83,255,110,.08),0 1px 0 rgba(255,255,255,.08);overflow:hidden;color:#9cff9e;text-shadow:0 0 6px rgba(115,255,127,.35)}
+      #studioApp .music-card .stereo-display::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.018) 0 1px,transparent 1px 3px),linear-gradient(90deg,rgba(80,255,98,.02),transparent 28%,rgba(80,255,98,.025) 70%,transparent);mix-blend-mode:screen}
+      #studioApp .music-card .stereo-now-playing{position:relative;z-index:2;margin-bottom:4px;text-align:center;color:#75df80;font:800 6px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase}
+      #studioApp .music-card .music-row{position:relative;z-index:2;display:flex!important;align-items:center!important;gap:6px!important;min-width:0!important}
+      #studioApp .music-card .album-art{position:relative!important;overflow:hidden!important;isolation:isolate!important;flex:0 0 27px!important;width:27px!important;height:27px!important;border:1px solid rgba(132,255,143,.35)!important;border-radius:3px!important;display:grid!important;place-items:center!important;background:#0a170d!important;color:#84ef8b!important;font-size:12px!important;box-shadow:inset 0 0 8px rgba(86,255,104,.08)!important}
+      #studioApp .music-card .album-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;filter:saturate(.72) contrast(1.08) brightness(.86)}
       #studioApp .music-card .album-art.has-cover>span{opacity:0}
       #studioApp .music-card .music-copy{min-width:0;flex:1}
-      #studioApp .music-card .music-copy strong,#studioApp .music-card .music-copy span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      #studioApp .music-card .music-copy strong{font:700 14px/1.2 Inter,ui-sans-serif,system-ui,sans-serif!important}
-      #studioApp .music-card .music-copy span{font:10px/1.3 Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--widget-muted,#77716b)!important}
+      #studioApp .music-card .music-copy strong,#studioApp .music-card .music-copy span{display:block!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      #studioApp .music-card .music-copy strong{color:#afffb0!important;font:800 11px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace!important;letter-spacing:.02em!important;text-shadow:0 0 6px rgba(110,255,125,.34)}
+      #studioApp .music-card .music-copy span{margin-top:2px!important;color:#75d97d!important;font:7px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace!important}
+      #studioApp .music-card .stereo-eq{position:relative;z-index:2;height:13px;margin:5px 1px 0;display:flex;align-items:end;gap:2px}
+      #studioApp .music-card .stereo-eq i{display:block;flex:1;min-width:2px;border-radius:1px 1px 0 0;background:#63ed70;box-shadow:0 0 3px rgba(91,255,106,.35)}
+      #studioApp .music-card .stereo-eq i:nth-child(1){height:35%}#studioApp .music-card .stereo-eq i:nth-child(2){height:70%}#studioApp .music-card .stereo-eq i:nth-child(3){height:48%}#studioApp .music-card .stereo-eq i:nth-child(4){height:88%}#studioApp .music-card .stereo-eq i:nth-child(5){height:56%}#studioApp .music-card .stereo-eq i:nth-child(6){height:30%}#studioApp .music-card .stereo-eq i:nth-child(7){height:64%}#studioApp .music-card .stereo-eq i:nth-child(8){height:42%}#studioApp .music-card .stereo-eq i:nth-child(9){height:76%}#studioApp .music-card .stereo-eq i:nth-child(10){height:26%}
+      #studioApp .music-card .stereo-control-deck{display:grid;grid-template-columns:1fr auto 1fr;gap:7px;align-items:center;padding:0 58px}
+      #studioApp .music-card .stereo-faux-button,#studioApp .music-card #playBtn{height:25px!important;min-width:36px!important;padding:0 9px!important;border:1px solid #090909!important;border-radius:4px!important;background:linear-gradient(#484b4b,#202222)!important;color:#cbd0ca!important;box-shadow:inset 0 1px rgba(255,255,255,.13),0 2px 0 #090909!important;font:800 10px/1 system-ui!important}
+      #studioApp .music-card #playBtn{min-width:46px!important;color:#8fff93!important;text-shadow:0 0 6px rgba(100,255,110,.65)!important}
+      #studioApp .music-card .stereo-faux-button{display:grid;place-items:center;font-size:9px}
       #studioApp .music-card .music-file-actions{display:flex;gap:6px;margin-top:10px}
       #studioApp .music-card .music-file-actions button,#studioApp .visitor-log-actions button,#guestCheckDialog button,#studioLogsDialog button{border:1px solid rgba(70,58,52,.16);border-radius:999px;background:rgba(255,255,255,.52);color:inherit;padding:6px 9px;font:650 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
       #studioApp .music-card .music-file-actions button:hover,#studioApp .visitor-log-actions button:hover{background:rgba(255,255,255,.82)}
@@ -99,7 +121,8 @@
       #studioApp .music-card .music-meta-editor label{display:grid;gap:3px;font:700 7px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
       #studioApp .music-card .music-meta-editor input{min-width:0;border:1px solid rgba(70,58,52,.16);border-radius:7px;background:rgba(255,255,255,.5);color:inherit;padding:6px 7px;font:10px/1.2 Inter,ui-sans-serif,system-ui,sans-serif}
       #studioApp .music-card .music-meta-editor button{grid-column:1/-1;justify-self:start}
-      #studioApp .music-card .progress{cursor:pointer!important;height:5px!important;margin-top:9px!important;border-radius:999px!important;overflow:hidden!important}
+      #studioApp .music-card .stereo-display .progress{position:relative;z-index:2;cursor:pointer!important;height:4px!important;margin:5px 1px 0!important;border:1px solid rgba(110,231,121,.22)!important;border-radius:999px!important;overflow:hidden!important;background:#102215!important}
+      #studioApp .music-card.stereo-music-widget .progress i{background:#6af076!important;box-shadow:0 0 5px rgba(106,240,118,.6)!important}
 
       #studioApp .guest-check-card{--mail-accent:rgb(var(--aura-rgb,216,95,109));overflow:hidden!important}
       #studioApp .guest-check-card>.card-kicker{padding-right:56px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -545,6 +568,21 @@
   function upgradeMusic(){
     const card=$('#studioApp .music-card');if(!card||card.dataset.realPlayer==='1')return;card.dataset.realPlayer='1';
     const row=$('.music-row',card),art=$('.album-art',card),copy=row?.children?.[1],play=$('#playBtn',card),progress=$('.progress',card),progressBar=$('#musicProgress',card);if(!row||!art||!copy||!play||!progress||!progressBar)return;
+    card.classList.add('stereo-music-widget');
+    const shell=document.createElement('div');shell.className='stereo-shell';
+    const tuner=document.createElement('div');tuner.className='stereo-tuner';tuner.setAttribute('aria-hidden','true');tuner.innerHTML='<span class="stereo-tuner-label">FM&nbsp;&nbsp;88 · 92 · 96 · 100 · 104 · 108</span>';
+    const face=document.createElement('div');face.className='stereo-face';
+    const leftSpeaker=document.createElement('div');leftSpeaker.className='stereo-speaker';leftSpeaker.setAttribute('aria-hidden','true');
+    const display=document.createElement('div');display.className='stereo-display';
+    const rightSpeaker=document.createElement('div');rightSpeaker.className='stereo-speaker';rightSpeaker.setAttribute('aria-hidden','true');
+    const nowPlaying=document.createElement('div');nowPlaying.className='stereo-now-playing';nowPlaying.textContent='now playing';
+    const eq=document.createElement('div');eq.className='stereo-eq';eq.setAttribute('aria-hidden','true');eq.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
+    const deck=document.createElement('div');deck.className='stereo-control-deck';
+    const rewind=document.createElement('span');rewind.className='stereo-faux-button';rewind.setAttribute('aria-hidden','true');rewind.textContent='◀◀';
+    const forward=document.createElement('span');forward.className='stereo-faux-button';forward.setAttribute('aria-hidden','true');forward.textContent='▶▶';
+    const kicker=$('.card-kicker',card);
+    if(kicker)kicker.insertAdjacentElement('afterend',shell);else card.prepend(shell);
+    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,progress);deck.append(rewind,play,forward);
     art.id='studioAlbumArt';art.innerHTML='<span aria-hidden="true">♪</span><img alt="Album cover" hidden>';
     copy.classList.add('music-copy');const title=$('strong',copy),artist=$('span',copy);if(title)title.id='studioMusicTitle';if(artist)artist.id='studioMusicArtist';
     const audio=document.createElement('audio');audio.id='studioAudio';audio.preload='metadata';card.appendChild(audio);
