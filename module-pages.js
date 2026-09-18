@@ -560,7 +560,7 @@
 
   let activeMap=null;
   function renderMap(){
-    body.innerHTML=heading('map')+`<style>#biglwaMapApp{width:100%;height:820px;border:0;border-radius:16px;background:#f6f0e9}@media(max-width:760px){#biglwaMapApp{height:1250px}}</style><div class="module-actions"><a class="module-action ghost" href="/map-app.html" target="_blank" rel="noopener">Open full-screen map ↗</a></div><iframe id="biglwaMapApp" src="/map-app.html?v=20260911-pins-1&embed=1" title="BIGLWA interactive map and saved pins" allow="geolocation 'self'"></iframe>`;
+    body.innerHTML=heading('map')+`<style>#biglwaMapApp{width:100%;height:820px;border:0;border-radius:16px;background:#f6f0e9}@media(max-width:760px){#biglwaMapApp{height:1250px}}</style><iframe id="biglwaMapApp" src="/map-app.html?v=20260918-map-modes-1&embed=1" title="BIGLWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>`;
   }
 
   function renderCreate(){const mods=['calendar','feed','projects','trophies','camera','diary','boards','closet','archive','stream','map','orbit'];body.innerHTML=heading('create')+`<div class="module-grid"><section class="module-card wide"><h2>Choose where this belongs</h2><div class="module-launchers">${mods.map(k=>`<button class="module-launcher" type="button" data-module-launch="${k}"><b>${labels[k]}</b><small>${desc[k]}</small></button>`).join('')}</div></section></div>`;body.onclick=e=>{const b=e.target.closest('[data-module-launch]');if(b)openModule(b.dataset.moduleLaunch)}};
