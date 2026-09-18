@@ -597,7 +597,27 @@
       [...card.children].forEach(el=>{if(!el.matches('.card-head,.widget-window-controls,.window-controls'))el.remove()});
       const content=document.createElement('div');content.innerHTML=(id==='calendar'?miniCalendarMarkup():'<h2>'+title+'</h2>')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
     }
-    $('#map')?.remove();
+    let mapCard=$('#map');
+    if(!mapCard){
+      const masonry=$('#studioApp .masonry');
+      if(masonry){
+        mapCard=document.createElement('article');
+        mapCard.id='map';
+        mapCard.className='card studio-map-card';
+        mapCard.dataset.search='map places pins memories projects locations geography';
+        mapCard.dataset.widgetRoute='map';
+        mapCard.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">⌖</span><h2>Map</h2></div><button class="arrow-btn" type="button" data-open="map" aria-label="Open Map">→</button></div><p class="sub">Pin places, memories, and projects.</p><div class="studio-map-visual" aria-hidden="true"></div><button class="card-cta" type="button" data-open="map">Open Map →</button>';
+        const calendar=$('#calendar');
+        if(calendar&&calendar.parentElement===masonry)calendar.insertAdjacentElement('afterend',mapCard);else masonry.appendChild(mapCard);
+      }
+    }
+    if(mapCard){
+      mapCard.classList.add('studio-map-card');
+      mapCard.dataset.widgetRoute='map';
+      mapCard.dataset.search=(mapCard.dataset.search||'')+' map places pins memories projects locations geography';
+      const arrow=$('.arrow-btn',mapCard);if(arrow){arrow.dataset.open='map';arrow.setAttribute('aria-label','Open Map')}
+      $('.card-cta',mapCard).forEach(button=>{button.dataset.open='map'});
+    }
   }
   setTimeout(()=>{enhanceStudioCards();syncTrophyCard()},80);
 
