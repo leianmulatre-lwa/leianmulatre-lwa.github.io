@@ -27,25 +27,7 @@
         border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;
         -webkit-backdrop-filter:blur(var(--widget-blur,18px))!important;
         backdrop-filter:blur(var(--widget-blur,18px))!important;
-        transition:none!important;
-      }
-      /* Keep widget shells geometrically stable when browsers recycle off-screen paint layers. */
-      #studioApp .profile-card:not(.widget-dragging):not(.biglwa-drop-slot),
-      #studioApp .music-card:not(.widget-dragging):not(.biglwa-drop-slot),
-      #studioApp .aura-card:not(.widget-dragging):not(.biglwa-drop-slot),
-      #studioApp .guest-check-card:not(.widget-dragging):not(.biglwa-drop-slot),
-      #studioApp .mobile-dock.hero-action-bar:not(.widget-dragging):not(.biglwa-drop-slot),
-      #studioApp .masonry .card:not(.manifesto-card):not(.widget-dragging):not(.biglwa-drop-slot),
-      #studioApp .module-workspace .module-card,
-      #studioApp .module-workspace .calendar-board,
-      #studioApp .module-workspace .module-launcher{
-        box-sizing:border-box!important;
-        isolation:isolate!important;
-        -webkit-backface-visibility:hidden!important;
-        backface-visibility:hidden!important;
-        -webkit-transform:translate3d(0,0,0);
-        transform:translate3d(0,0,0);
-        background-clip:padding-box!important;
+        transition:background .14s ease,border-radius .14s ease,border-color .14s ease,box-shadow .14s ease,color .14s ease!important;
       }
       #studioApp .module-workspace .module-card:not(.module-game-stage):not(:has(.diary-lined)),
       #studioApp .module-workspace .calendar-board,
