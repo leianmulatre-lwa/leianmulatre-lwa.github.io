@@ -25,9 +25,10 @@
         color:var(--widget-ink,#171717)!important;
         border-radius:var(--widget-radius,16px)!important;
         border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;
-        -webkit-backdrop-filter:blur(var(--widget-blur,18px))!important;
-        backdrop-filter:blur(var(--widget-blur,18px))!important;
-        transition:background .14s ease,border-radius .14s ease,border-color .14s ease,box-shadow .14s ease,color .14s ease!important;
+        -webkit-backdrop-filter:none!important;
+        backdrop-filter:none!important;
+        background-clip:padding-box!important;
+        transition:background .14s ease,border-color .14s ease,box-shadow .14s ease,color .14s ease!important;
       }
       #studioApp .module-workspace .module-card:not(.module-game-stage):not(:has(.diary-lined)),
       #studioApp .module-workspace .calendar-board,
@@ -38,10 +39,11 @@
         color:var(--widget-ink,#171717)!important;
         border-radius:var(--widget-radius,16px)!important;
         border-color:rgba(var(--aura-rgb,216,95,109),.18)!important;
-        -webkit-backdrop-filter:blur(var(--widget-blur,18px))!important;
-        backdrop-filter:blur(var(--widget-blur,18px))!important;
+        -webkit-backdrop-filter:none!important;
+        backdrop-filter:none!important;
+        background-clip:padding-box!important;
       }
-      #studioApp .module-workspace{--module-page-blur:var(--widget-blur,18px);-webkit-backdrop-filter:blur(var(--module-page-blur))!important;backdrop-filter:blur(var(--module-page-blur))!important}
+      #studioApp .module-workspace{--module-page-blur:0px;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
       #studioApp .masonry .card:not(.manifesto-card) .sub,
       #studioApp .masonry .card:not(.manifesto-card) p,
       #studioApp .music-card .music-row span,
