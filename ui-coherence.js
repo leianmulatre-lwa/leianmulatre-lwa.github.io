@@ -535,7 +535,7 @@
   }
   function applyPreferredStudioSymbols(app){
     if(!app)return;
-    const projectMarkup='<img class="studio-symbol-image biglwa-nav-project-symbol" src="/assets/projects-symbol.png?v=20260918-project-symbol-2" alt="" aria-hidden="true">';
+    const projectMarkup='<img class="studio-symbol-image biglwa-nav-project-symbol" src="/assets/projects-symbol.png?v=20260914-projects-1" alt="" aria-hidden="true">';
     const projectWidget=$('#projects',app);
     const projectIcon=projectWidget&&$('.card-icon,.studio-symbol-mark',projectWidget);
     if(projectIcon){projectIcon.innerHTML=projectMarkup;projectIcon.classList.add('studio-image-icon')}

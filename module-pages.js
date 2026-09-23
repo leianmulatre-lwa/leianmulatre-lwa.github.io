@@ -282,7 +282,7 @@
     const storage=`biglwaModule_${key}`;
     const items=readJSON(storage,sample);
     const fieldMarkup=fields.map(f=>`<input class="module-input" name="${f.name}" placeholder="${esc(f.placeholder)}" ${f.type?`type="${f.type}"`:''}>`).join('');
-    const feature=key==='stream'?`<figure class="module-station-preview"><img src="/assets/station-radio-room.webp?v=20260916-station-1" alt="Sticker-covered radio booth lit in red and blue with a host at a microphone" width="1920" height="1080"><figcaption><span><i></i> ON AIR</span><strong>the station</strong></figcaption></figure>`:'';
+    const feature=key==='stream'?`<figure class="module-station-preview"><img src="/assets/station-radio-room.webp?v=20260916-station-1" alt="Sticker-covered radio booth lit in red and blue with a host at a microphone" width="1920" height="1080" loading="lazy" decoding="async"><figcaption><span><i></i> ON AIR</span><strong>the station</strong></figcaption></figure>`:'';
     body.innerHTML = heading(key) + feature + `<div class="module-grid"><section class="module-card"><h2>Add</h2><p>Saved locally in this prototype.</p><form class="module-form" id="moduleCollectionForm">${fieldMarkup}<button class="module-action" type="submit">Save</button></form><div class="module-status" id="moduleStatus"></div></section><section class="module-card"><h2>Saved</h2><div class="module-list" id="moduleCollectionList">${listHtml(items,key)}</div></section></div>`;
     const form=$('#moduleCollectionForm',body), list=$('#moduleCollectionList',body), status=$('#moduleStatus',body);
     const render=()=>{const cur=readJSON(storage,[]);list.innerHTML=listHtml(cur,key)};
@@ -383,7 +383,7 @@
   function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="module-grid"><section class="module-card wide"><h2>Photobooth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260917-photobooth-22" alt="Three friends posing together in a black-and-white photobooth portrait" width="1600" height="1066"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section></div>`;
+    body.innerHTML=heading('camera')+`<div class="module-grid"><section class="module-card wide"><h2>Photobooth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260917-photobooth-22" alt="Three friends posing together in a black-and-white photobooth portrait" width="1600" height="1066" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section></div>`;
     const stage=$('#photoStage',body),cap=$('#photoCapture',body),flip=$('#photoFlip',body),status=$('#photoStatus',body),strip=$('#photoStrip',body);let facing='user';
     const start=async()=>{try{stopCamera();activeCameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});stage.classList.remove('has-intro');stage.innerHTML='<video id="boothVideo" autoplay playsinline muted></video>';$('#boothVideo',body).srcObject=activeCameraStream;cap.disabled=false;flip.disabled=false;status.textContent='Photobooth ready.';status.classList.add('ok')}catch(err){status.textContent='Camera could not start. Check browser camera permission or use an existing photo.'}};
     $('#photoStart',body).onclick=start; $('#photoFlip',body).onclick=async()=>{facing=facing==='user'?'environment':'user';await start()};
@@ -405,7 +405,7 @@
       {title:'sudoku',image:'/assets/arcade/sudoku.jpg',href:'https://www.coolmathgames.com/0-sudoku'},
       {title:'wordle',image:'/assets/arcade/wordle.png',href:'https://www.nytimes.com/games/wordle/index.html'},
       {title:'worldguessr',image:'/assets/arcade/worldguessr.jpg',href:'https://worldguessr.com/'},
-      {title:'cookie clicker',image:'/assets/arcade/cookie-clicker.png',href:'https://orteil.dashnet.org/cookieclicker/'},
+      {title:'cookie clicker',image:'/assets/arcade/cookie-clicker.jpg',href:'https://orteil.dashnet.org/cookieclicker/'},
       {title:'chess',image:'/assets/arcade/chess.jpg',href:'https://www.chess.com/play/online'},
       {title:'fancy pants',image:'/assets/arcade/fancy-man.webp',href:'https://www.coolmathgames.com/0-fancy-pants-adventures'},
       {title:'n+',image:'/assets/arcade/nplus.webp',href:'https://www.coolmathgames.com/0-n-game'},
@@ -673,7 +673,7 @@
 
   function enhanceStudioCards(){
     const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
-    if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Black-and-white photobooth preview');cameraPreview.innerHTML='<img src="/assets/photobooth-before-use.webp?v=20260917-photobooth-22" alt="Three friends posing together in a black-and-white photobooth portrait" width="1600" height="1066" loading="eager">'}
+    if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Black-and-white photobooth preview');cameraPreview.innerHTML='<img src="/assets/photobooth-before-use.webp?v=20260917-photobooth-22" alt="Three friends posing together in a black-and-white photobooth portrait" width="1600" height="1066" loading="lazy">'}
     const archiveCard=$('#archive');
     if(archiveCard){
       archiveCard.dataset.widgetRoute='archive';
