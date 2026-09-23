@@ -1,5 +1,5 @@
 ﻿(()=>{
-  const V='20260910-widget-drag-reset-v3';
+  const V='20260922-public-profile-route-1';
   const DOCKED_WIDGET_KEY='biglwaDockedWidgetsV3';
   const NAV_SHORTCUT_KEY='biglwaSidebarShortcutsV3';
   const SHORTCUT_LIMIT=8;
@@ -972,9 +972,7 @@
         try{
           localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));
           if(details.username){
-            const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');
-            const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];
-            next.push({username:details.username,name:details.name||'',url:'/studio'});
+            const next=[{username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)}];
             localStorage.setItem('biglwaUserDirectory',JSON.stringify(next));
           }
         }catch{}
