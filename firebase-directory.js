@@ -2,7 +2,7 @@
  * Firebase web config is public client configuration; access is controlled by Firebase Security Rules.
  */
 const FIREBASE_CONFIG = {
-  apiKey: "REPLACE_WITH_EXISTING_BIGLWA_API_KEY",
+  apiKey: "AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY",
   authDomain: "biglwa.firebaseapp.com",
   projectId: "biglwa",
   appId: "1:83232670555:web:e04927b20458390b3b507e"
