@@ -348,7 +348,9 @@
       #studioApp .profile-card #wallpaperPanel .panel-title{background-image:linear-gradient(to bottom,var(--widget-bg,rgba(250,247,241,.84)) 72%,transparent)!important;color:var(--widget-ink,#171717)!important}
       #studioApp .profile-editor-actions{background-image:linear-gradient(to top,var(--widget-bg,rgba(250,247,241,.84)) 76%,transparent)!important;color:var(--widget-ink,#171717)!important}
       body.night-mode #studioApp #wallpaperPanel input,body.night-mode #studioApp #wallpaperPanel textarea,body.night-mode #studioApp #wallpaperPanel select,body.night-mode #studioApp .music-meta-editor input{background:#292625!important;border-color:#514b47!important;color:#f5eee7!important;color-scheme:dark}
-      body.night-mode #studioApp .profile-editor-tabs button,body.night-mode #studioApp .music-file-actions button,body.night-mode #studioApp .visitor-log-actions button,body.night-mode #studioApp .widget-drag-handle{background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.13)!important;color:#eee6df!important}
+      body.night-mode #studioApp .profile-editor-tabs button,body.night-mode #studioApp .music-file-actions button,body.night-mode #studioApp .visitor-log-actions button{background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.13)!important;color:#eee6df!important}
+      body.night-mode #studioApp .widget-drag-handle{background:rgba(55,47,43,.10)!important;border-color:rgba(82,72,64,.14)!important;color:#5f5852!important}
+      body.night-mode #studioApp .music-card.stereo-music-widget>.widget-drag-handle{background:rgba(255,255,255,.08)!important;border-color:transparent!important;color:#aeb4ad!important}
       body.night-mode #studioApp .visitor-log-actions button:first-child{background:rgb(var(--aura-rgb,216,95,109))!important;color:var(--aura-button-ink,#fff)!important}
       body.night-mode #guestCheckDialog,body.night-mode #studioLogsDialog{background:#252220;color:#f5eee7;border-color:rgba(255,255,255,.13);color-scheme:dark}
       body.night-mode #guestCheckDialog .visitor-dialog-head,body.night-mode #guestCheckDialog .visitor-note-item,body.night-mode #studioLogsDialog .visitor-dialog-head,body.night-mode #studioLogsDialog .studio-log-item{border-color:rgba(255,255,255,.1)}
@@ -389,7 +391,7 @@
       body.night-mode #studioApp #studioSignOut .studio-logout-icon{filter:brightness(0) invert(1)!important}
       body.night-mode #studioApp .sidebar,body.night-mode #studioApp .sidebar button,body.night-mode #studioApp .sidebar a{color:#f4eee8!important}
       body.night-mode #studioApp .sidebar .sidebar-route-icon>img,body.night-mode #studioApp .sidebar .sidebar-route-icon img,body.night-mode #studioApp .sidebar .studio-symbol-image,body.night-mode #studioApp .sidebar .studio-symbol-source,body.night-mode #studioApp .sidebar-theme-btn img{filter:brightness(0) invert(1)!important}
-      body.night-mode #studioApp .card h2,body.night-mode #studioApp .card h3{font-family:Georgia,"Times New Roman",serif!important;font-synthesis:none!important;text-shadow:none!important}
+      body.night-mode #studioApp .card h2,body.night-mode #studioApp .card h3{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-synthesis:none!important;text-shadow:none!important}
       body.night-mode #studioLogsDialog .studio-mail-tabs button{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.13)}
       body.night-mode #studioLogsDialog .studio-mail-tabs button[aria-selected="true"]{background:rgb(var(--aura-rgb,216,95,109))}
       body.night-mode #studioLogsDialog .studio-message-pane input,body.night-mode #studioLogsDialog .studio-message-pane textarea{background:#302c2a;border-color:#514a45;color:#f5eee7}
@@ -506,7 +508,10 @@
 
   function ensureControls(){
     $$('#studioApp .hero-widget-rail>.customizable-widget,#studioApp .masonry>.card:not(.manifesto-card)').forEach((widget,index)=>{
-      if(!widget.dataset.widgetId)widget.dataset.widgetId=widget.id||`studio-widget-${index+1}`;
+      if(!widget.dataset.widgetId){
+        const canonicalId=widget.classList.contains('music-card')?'music':widget.classList.contains('aura-card')?'aura':widget.classList.contains('guest-check-card')?'guest-check':null;
+        widget.dataset.widgetId=canonicalId||widget.id||`studio-widget-${index+1}`;
+      }
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget);
       let controls=$(':scope>.widget-window-controls',widget);
       if(!controls){controls=document.createElement('div');controls.className='widget-window-controls';widget.prepend(controls)}

@@ -494,7 +494,7 @@
     if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
-  const greenSidebarWidgetIds=new Set(['music','aura','guest-check']);
+  const greenSidebarWidgetIds=new Set(['music','aura','guest-check','music-card','aura-card']);
   const widgetFallbackIcons={music:'♫',aura:'◌','guest-check':'✓'};
   function ensureRedWidgetDock(app){
     const rest=$('#studioSidebarRest',app);if(!rest)return null;
