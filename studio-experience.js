@@ -352,12 +352,12 @@
 
       /* Compact the profile banner and top widget rail without changing their content. */
       #studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:286px!important;min-height:286px!important;max-height:286px!important;grid-template-columns:150px minmax(0,1fr)!important;gap:16px!important;padding:12px!important}
-      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail{gap:7px!important;padding:8px 12px!important}
-      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{left:5px!important;width:100px!important;height:100px!important;border-radius:16px!important;font-size:46px!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail{gap:7px!important;padding:8px 12px!important;justify-content:center!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{left:5px!important;width:124px!important;height:124px!important;border-radius:16px!important;font-size:56px!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) #editProfileBtn{width:110px!important;max-width:110px!important;min-height:30px!important;padding:7px 10px!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-rail-location{width:118px!important;font-size:10px!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail>.weekly-mood-card{width:118px!important;min-height:52px!important;margin-top:0!important;padding:8px 9px!important}
-      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy{padding:18px 22px 56px 0!important}
+      #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy{padding:30px 22px 60px 0!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-name-line h1{font-size:28px!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .bio{font-size:14px!important;line-height:1.3!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .meta-row{margin-bottom:9px!important}

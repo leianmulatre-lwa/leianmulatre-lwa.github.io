@@ -777,7 +777,7 @@
     for(const [id,title,copy,key] of [['calendar','Calendar','Your schedule, connected through Orbit.','calendar'],['connect','Connect','Invite friends to your creative community.','connect']]){
       const card=$('#'+id);if(!card)continue;
       [...card.children].forEach(el=>{if(!el.matches('.card-head,.widget-window-controls,.window-controls'))el.remove()});
-      const content=document.createElement('div');content.innerHTML=(id==='calendar'?miniCalendarMarkup():'<h2>'+title+'</h2>')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
+      const content=document.createElement('div');content.innerHTML=(id==='calendar'?miniCalendarMarkup():'')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
     }
     let mapCard=$('#map');
     if(!mapCard){
