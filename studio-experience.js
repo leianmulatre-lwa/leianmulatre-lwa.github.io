@@ -8,7 +8,7 @@
   const ACTIVITY_READ_KEY='biglwaStudioActivityReadAt';
   const MEDIA_DB='biglwa-studio-experience-v1';
   const MEDIA_STORE='records';
-  const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
+  const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools']);
   const STUDIO_ICONS={
     teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/projects-symbol.png?v=20260914-projects-1" alt="" width="315" height="416" loading="eager" decoding="async"></span>',

@@ -1,4 +1,4 @@
-﻿(()=>{
+(()=>{
   const V='20260910-widget-drag-reset-v3';
   const DOCKED_WIDGET_KEY='biglwaDockedWidgetsV3';
   const NAV_SHORTCUT_KEY='biglwaSidebarShortcutsV3';
@@ -488,7 +488,7 @@
   function widgetId(el,index){return el.dataset.widgetId||el.id||(['profile-card','music-card','aura-card'].find(c=>el.classList.contains(c))||`widget-${index+1}`).replace(/-card$/,'')}
   function widgetLabel(el,id){return el.dataset.widgetLabel||$('h1,h2,.card-kicker',el)?.textContent?.trim()||id.replace(/[-_]/g,' ')}
   function widgetRoute(el,id){return el.dataset.widgetRoute||$('.arrow-btn[data-open]',el)?.dataset.open||id}
-  const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map']);
+  const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools']);
   function greenControlAction(route,id){
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
