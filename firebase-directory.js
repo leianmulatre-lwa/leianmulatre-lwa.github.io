@@ -81,6 +81,11 @@ async function syncAccountProfile(profile={},options={}){
         name:clean(profile.name)||clean(user.displayName),
         uid:user.uid,
         url:"/"+encodeURIComponent(username),
+        bio:clean(profile.bio),
+        location:clean(profile.location),
+        website:clean(profile.website),
+        mood:clean(profile.mood),
+        moodStyle:clean(profile.moodStyle),
         updatedAt:serverTimestamp()
       },{merge:true});
       tx.set(userRef,{
@@ -131,7 +136,7 @@ export async function searchUsers(rawQuery){
     ));
     return snap.docs.map(d=>{
       const x=d.data()||{};
-      return {username:x.username||d.id,name:x.name||"",url:x.url||("/"+encodeURIComponent(x.username||d.id))};
+      return {username:x.username||d.id,name:x.name||"",url:x.url||("/"+encodeURIComponent(x.username||d.id)),bio:x.bio||"",location:x.location||"",website:x.website||"",mood:x.mood||"",moodStyle:x.moodStyle||""};
     });
   }catch(err){
     console.warn("[BIGLWA] Firebase username search unavailable:",err);
