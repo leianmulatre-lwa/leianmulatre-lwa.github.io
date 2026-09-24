@@ -393,13 +393,30 @@
 
   const TRENDING_ROOMS=[['lounge','The Lounge','BIGLWA home room'],['minecraft','#minecraft','Trending room'],['fortnite','#fortnite','Trending room'],['deadbydaylight','#deadbydaylight','Trending room'],['rocketleague','#rocketleague','Trending room'],['biglwa','#biglwa','Trending room'],['arcade','#arcade','Trending room'],['support','#support','Trending room'],['gov','#gov','Trending room'],['substack','#substack','Trending room']];
   const roomStorageKey = slug => slug==='lounge' ? 'biglwaRoomMessages' : 'biglwaRoomMessages_'+slug;
+  const customRoomSlug = name => 'custom-'+name.toLowerCase().replace(/^#/,'').replace(/[^a-z0-9-]/g,'');
+  const readCustomRooms = () => { const v=readJSON('biglwaCustomRooms',[]); return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x):[]; };
+  const writeCustomRooms = list => writeJSON('biglwaCustomRooms', list);
+  const roomList = () => TRENDING_ROOMS.map(([slug,name,desc])=>({slug,name,desc})).concat(readCustomRooms().map(name=>({slug:customRoomSlug(name),name:normalizeRoomName(name),desc:'Custom room'})));
+  function normalizeRoomName(raw){
+    let name=String(raw||'').trim().replace(/\s+/g,'-');
+    if(name&&name[0]!=='#')name='#'+name;
+    return name;
+  }
   function renderRoom(){
     let slug=String(localStorage.getItem('biglwaActiveRoom')||'lounge');
-    if(!TRENDING_ROOMS.some(r=>r[0]===slug))slug='lounge';
-    const room=TRENDING_ROOMS.find(r=>r[0]===slug),storage=roomStorageKey(slug);
-    const messages=readJSON(storage,[{text:'Welcome to '+room[1]+'.',mine:false}]);
-    body.innerHTML=heading('rooms')+`<div class="module-grid"><section class="module-card wide"><h2>Trending rooms</h2><p>Tap a room to drop in — conversation stays local for now.</p><div class="module-launchers" id="trendingRooms">${TRENDING_ROOMS.map(r=>`<button class="module-launcher" type="button" data-room="${r[0]}" ${r[0]===slug?'aria-pressed="true"':''}><b>${esc(r[1])}</b><small>${esc(r[2])}</small></button>`).join('')}</div></section><section class="module-card wide"><div class="room-head" style="display:flex;align-items:center;gap:10px"><h2>${esc(room[1])}</h2><span style="font-size:11px;padding:2px 8px;border:1px solid rgba(127,127,127,.35);border-radius:999px;color:#999;text-transform:uppercase;letter-spacing:.08em">${esc(slug==='lounge'?'home':'trending')}</span></div><div class="module-chat" id="roomChat">${messages.map(m=>`<div class="module-bubble ${m.mine?'mine':''}">${esc(m.text)}</div>`).join('')}</div><form class="module-form two" id="roomForm" style="margin-top:8px"><input class="module-input" name="text" placeholder="Say something in ${esc(room[1])}…"><button class="module-action" type="submit">Send</button></form><div class="module-status">Local prototype — real room sync comes with the backend. Messages stay in this browser.</div></section></div>`;
-    $('#trendingRooms',body).onclick=e=>{const b=e.target.closest('[data-room]');if(!b)return;localStorage.setItem('biglwaActiveRoom',b.dataset.room);openModule('rooms','',false)};
+    const allRooms=roomList();
+    if(!allRooms.some(r=>r.slug===slug))slug='lounge';
+    const room=allRooms.find(r=>r.slug===slug)||allRooms[0],storage=roomStorageKey(room.slug);
+    const messages=readJSON(storage,[{text:'Welcome to '+room.name+'.',mine:false}]);
+    const chip=(r,i)=>`<button class="module-launcher" type="button" data-room="${i}" ${r.slug===slug?'aria-pressed="true"':''}><b>${esc(r.name)}</b><small>${esc(r.desc)}</small></button>`;
+    body.innerHTML=heading('rooms')+`<div class="module-grid">
+      <section class="module-card wide"><h2>Trending rooms</h2><p>Tap a room to drop in — conversation stays local for now.</p><div class="module-launchers" id="trendingRooms">${allRooms.map((r,i)=>chip(r,i)).join('')}</div></section>
+      <section class="module-card wide"><h2>Create a room</h2><p>Names start with <strong>#</strong> and spaces become <strong>-</strong> (e.g. <em>#my hangout</em> → <em>#my-hangout</em>).</p><form class="module-form two" id="createRoomForm" style="margin-top:8px"><input class="module-input" name="room" placeholder="#new-room" maxlength="32" autocomplete="off"><button class="module-action" type="submit">Create room</button></form><div class="module-status" id="createRoomStatus">Your custom rooms are saved in this browser.</div></section>
+      <section class="module-card wide"><div class="room-head" style="display:flex;align-items:center;gap:10px"><h2>${esc(room.name)}</h2><span style="font-size:11px;padding:2px 8px;border:1px solid rgba(127,127,127,.35);border-radius:999px;color:#999;text-transform:uppercase;letter-spacing:.08em">${esc(room.slug==='lounge'?'home':room.slug.slice(0,7)==='custom-'?'custom':'trending')}</span></div><div class="module-chat" id="roomChat">${messages.map(m=>`<div class="module-bubble ${m.mine?'mine':''}">${esc(m.text)}</div>`).join('')}</div><form class="module-form two" id="roomForm" style="margin-top:8px"><input class="module-input" name="text" placeholder="Say something in ${esc(room.name)}…"><button class="module-action" type="submit">Send</button></form><div class="module-status">Local prototype — real room sync comes with the backend. Messages stay in this browser.</div></section>
+    </div>`;
+    const goTo=k=>{const target=allRooms[Number(k)];if(!target)return;localStorage.setItem('biglwaActiveRoom',target.slug);openModule('rooms','',false)};
+    $('#trendingRooms',body).onclick=e=>{const b=e.target.closest('[data-room]');if(b)goTo(b.dataset.room)};
+    $('#createRoomForm',body).onsubmit=e=>{e.preventDefault();const status=$('#createRoomStatus',body);let raw=(new FormData(e.currentTarget).get('room')||'').trim();const name=normalizeRoomName(raw);if(!name){status.textContent='Type a room name first.';return}if(name.length>32){status.textContent='Room names are capped at 32 characters.';return}if(readCustomRooms().some(x=>normalizeRoomName(x).toLowerCase()===name.toLowerCase())){status.textContent='That room already exists in your list.';return}const list=readCustomRooms();list.push(name);writeCustomRooms(list);localStorage.setItem('biglwaActiveRoom',customRoomSlug(name));openModule('rooms','',false)};
     $('#roomForm',body).onsubmit=e=>{e.preventDefault();const text=(new FormData(e.currentTarget).get('text')||'').trim();if(!text)return;const cur=readJSON(storage,[]);cur.push({text,mine:true});writeJSON(storage,cur);openModule('rooms','',false)};
   }
 

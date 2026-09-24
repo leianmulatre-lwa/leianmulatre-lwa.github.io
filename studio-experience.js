@@ -373,6 +373,7 @@
 
       /* Sidebar and account actions stay legible in both appearance modes. */
       #studioApp .profile-card .real-rank strong,body.night-mode #studioApp .profile-card .real-rank strong{color:#211e1c!important;-webkit-text-fill-color:#211e1c!important;text-shadow:none!important}
+      #studioApp .profile-card .real-rank strong{font-size:21px!important;line-height:1.05!important;letter-spacing:.01em!important}
       #studioApp #studioSignOut .studio-logout-icon{filter:brightness(0)!important}
       body.night-mode #studioApp #studioSignOut .studio-logout-icon{filter:brightness(0) invert(1)!important}
       body.night-mode #studioApp .sidebar,body.night-mode #studioApp .sidebar button,body.night-mode #studioApp .sidebar a{color:#f4eee8!important}
@@ -385,6 +386,7 @@
       @media(max-width:1020px){#studioApp .hero{grid-template-columns:minmax(0,1fr) 284px!important;padding-left:16px!important;padding-right:16px!important}}
       @media(max-width:900px){#studioApp .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;padding:62px 12px 34px!important}#studioApp .hero>.profile-card{grid-column:1!important;grid-row:1!important}#studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .hero>.hero-action-bar{grid-column:1!important;grid-row:3!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{min-height:132px!important}}
       @media(max-width:700px){#studioApp .hero-widget-rail{grid-template-columns:1fr!important}#studioApp .hero-widget-rail>.music-card,#studioApp .hero-widget-rail>.aura-card,#studioApp .hero-widget-rail>.guest-check-card{height:auto!important;min-height:150px!important;max-height:none!important}#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:auto!important;min-height:286px!important;max-height:none!important;grid-template-columns:120px minmax(0,1fr)!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:18px!important;right:18px!important}#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:0!important;overflow:hidden!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.12)!important}#studioApp .profile-card.profile-is-editing #wallpaperPanel.profile-inline-editor{grid-column:1!important;grid-row:2!important;padding:18px 16px 22px!important}#studioApp .profile-card.profile-is-editing .profile-editor-actions{grid-template-columns:1fr 1fr!important}#studioApp .profile-card.profile-is-editing .profile-update-privacy{grid-column:1/-1!important}#studioApp .profile-card.profile-is-editing .profile-editor-actions button{width:100%!important;min-width:0!important}#guestCheckDialog .guest-gift-picker{grid-template-columns:repeat(5,minmax(38px,1fr))}}
+      @media(min-width:901px){#studioApp .hero.biglwa-hero-2w{grid-template-columns:minmax(0,1fr) 278px!important;column-gap:18px!important;align-items:start!important;min-height:440px!important}#studioApp .hero.biglwa-hero-2w>.profile-card{grid-column:1!important;grid-row:1!important;width:100%!important;align-self:start!important}#studioApp .hero.biglwa-hero-2w>.hero-action-bar{grid-column:1/-1!important;grid-row:2!important}#studioApp .hero.biglwa-hero-2w .hero-widget-rail{grid-column:2!important;grid-row:1!important;grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:min-content!important;align-content:start!important;gap:12px!important;width:278px!important}#studioApp .hero.biglwa-hero-2w .hero-widget-rail>.music-card,#studioApp .hero.biglwa-hero-2w .hero-widget-rail>.aura-card,#studioApp .hero.biglwa-hero-2w .hero-widget-rail>.guest-check-card{width:auto!important;min-width:0!important}}
       @media(prefers-reduced-motion:reduce){#studioApp .widget-dragging-active{transform:none!important}}
     `;
   }
@@ -472,6 +474,14 @@
     const cards=[$('.aura-card',app),$('.music-card',app),guest].filter(Boolean);
     cards.forEach(card=>{if(card.parentNode!==rail)rail.appendChild(card)});
     restoreOrder(rail);
+    const applyHeroLayout=()=>{
+      const visible=$$('.aura-card,.music-card,.guest-check-card',rail).filter(card=>getComputedStyle(card).display!=='none').length;
+      hero.classList.toggle('biglwa-hero-2w',visible===2);
+    };
+    applyHeroLayout();
+    if(rail.dataset.biglwaRailWatch==='1')return;
+    rail.dataset.biglwaRailWatch='1';
+    new MutationObserver(applyHeroLayout).observe(rail,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
   }
 
   function widgetLabel(widget){return widget.dataset.widgetLabel||$('.card-kicker,h2,h1',widget)?.textContent?.trim()||'widget'}
