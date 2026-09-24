@@ -108,6 +108,12 @@
       #studioApp .music-card .stereo-eq{position:relative;z-index:2;height:13px;margin:5px 1px 0;display:flex;align-items:end;gap:2px}
       #studioApp .music-card .stereo-eq i{display:block;flex:1;min-width:2px;border-radius:1px 1px 0 0;background:#63ed70;box-shadow:0 0 3px rgba(91,255,106,.35)}
       #studioApp .music-card .stereo-eq i:nth-child(1){height:35%}#studioApp .music-card .stereo-eq i:nth-child(2){height:70%}#studioApp .music-card .stereo-eq i:nth-child(3){height:48%}#studioApp .music-card .stereo-eq i:nth-child(4){height:88%}#studioApp .music-card .stereo-eq i:nth-child(5){height:56%}#studioApp .music-card .stereo-eq i:nth-child(6){height:30%}#studioApp .music-card .stereo-eq i:nth-child(7){height:64%}#studioApp .music-card .stereo-eq i:nth-child(8){height:42%}#studioApp .music-card .stereo-eq i:nth-child(9){height:76%}#studioApp .music-card .stereo-eq i:nth-child(10){height:26%}
+      #studioApp .music-card.stereo-music-widget .stereo-eq i{transform-origin:50% 100%!important}
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i{animation:biglwa-eq-wave .75s ease-in-out infinite}
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(2n){animation-duration:.6s}
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(3n){animation-duration:.9s;animation-delay:.12s}
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(4n){animation-delay:.24s}
+      @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.32)}50%{transform:scaleY(1)}}
       #studioApp .music-card .stereo-control-deck{display:grid;grid-template-columns:1fr auto 1fr;gap:7px;align-items:center;padding:0 58px}
       #studioApp .music-card .stereo-faux-button,#studioApp .music-card #playBtn{height:25px!important;min-width:36px!important;padding:0 9px!important;border:1px solid #090909!important;border-radius:4px!important;background:linear-gradient(#484b4b,#202222)!important;color:#cbd0ca!important;box-shadow:inset 0 1px rgba(255,255,255,.13),0 2px 0 #090909!important;font:800 10px/1 system-ui!important}
       #studioApp .music-card #playBtn{min-width:46px!important;color:#8fff93!important;text-shadow:0 0 6px rgba(100,255,110,.65)!important}
@@ -207,6 +213,7 @@
       #studioApp .aura-card .aura-orb{animation:biglwa-aura-wobble 5.8s cubic-bezier(.45,.05,.55,.95) infinite;transform-origin:50% 50%;will-change:transform}
       @keyframes biglwa-aura-wobble{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}18%{transform:translate3d(4px,-3px,0) scale(1.055) rotate(-2.2deg)}42%{transform:translate3d(-3px,2px,0) scale(.965) rotate(1.8deg)}67%{transform:translate3d(3px,3px,0) scale(1.042) rotate(-1.4deg)}84%{transform:translate3d(-2px,-1px,0) scale(.985) rotate(1deg)}}
       @media(prefers-reduced-motion:reduce){#studioApp .aura-card .aura-orb,#studioApp #games .arcade-folder-depth::after,#studioApp .guest-check-lines-track{animation:none!important}}
+    @media(prefers-reduced-motion:reduce){#studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i{animation:none!important}}
 
       #guestCheckDialog,#studioLogsDialog{width:min(560px,calc(100vw - 28px));max-height:min(720px,calc(100vh - 28px));padding:0;border:1px solid rgba(73,59,52,.18);border-radius:20px;background:#f8f2ec;color:#201d1b;box-shadow:0 28px 90px rgba(28,17,13,.34);overflow:auto}
       #guestCheckDialog::backdrop,#studioLogsDialog::backdrop{background:rgba(24,17,15,.54);backdrop-filter:blur(8px)}
@@ -365,6 +372,10 @@
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:166px!important;right:24px!important;bottom:13px!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.music-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.guest-check-card{height:184px!important;min-height:184px!important;max-height:184px!important;overflow:hidden!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.music-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card{padding:14px 16px!important}
+      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card{display:grid!important;grid-template-columns:96px minmax(0,1fr)!important;grid-template-rows:auto minmax(0,1fr)!important;column-gap:14px!important;align-items:center!important;align-content:center!important}
+      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card .card-kicker{grid-column:1/-1!important;margin:0 0 2px!important}
+      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card .aura-orb{width:84px!important;height:84px!important;margin:0!important;grid-row:2!important;grid-column:1!important}
+      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card p{font-size:15px!important;line-height:1.12!important;margin:0!important;grid-row:2!important;grid-column:2!important;align-self:center!important}
       #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet{min-height:184px!important;padding:34px 12px 8px!important}
       #studioApp:not(.profile-editor-wallpaper) .guest-check-lines{height:112px!important}
 
@@ -603,7 +614,7 @@
     progress.setAttribute('role','slider');progress.tabIndex=0;progress.setAttribute('aria-label','Track position');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');progress.setAttribute('aria-valuenow','0');
     const sync=()=>{const fraction=audio.duration?audio.currentTime/audio.duration:0;progressBar.style.width=`${fraction*100}%`;progress.setAttribute('aria-valuenow',String(Math.round(fraction*100)));progress.title=`${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`};
     play.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(!audio.src){$('#studioTrackInput').click();setMusicStatus('Choose an audio file first.');return}if(audio.paused)audio.play().catch(()=>setMusicStatus('Playback needs another tap.'));else audio.pause()},{capture:true});
-    audio.addEventListener('play',()=>{play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);
+    audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});
     $('#chooseStudioTrack',card).addEventListener('click',()=>$('#studioTrackInput',card).click());$('#chooseStudioCover',card).addEventListener('click',()=>$('#studioCoverInput',card).click());

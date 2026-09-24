@@ -42,7 +42,7 @@
       #studioApp .topbar{grid-template-columns:minmax(150px,180px) minmax(360px,1fr) minmax(250px,350px)!important;gap:14px!important;align-items:center!important}
       #studioApp .topbar::before{content:none!important;display:none!important}
       #studioApp .studio-brand-row{display:flex!important;grid-column:1!important;align-items:center!important;justify-content:flex-start!important;min-width:0!important;width:100%!important;height:100%!important}
-      #studioApp .studio-brand-row>a.brand.biglwa-block-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:124px!important;height:70px!important;min-width:124px!important;margin-left:-14px!important;font-size:0!important;color:#171514!important;text-shadow:none!important;overflow:visible!important;text-decoration:none!important}
+      #studioApp .studio-brand-row>a.brand.biglwa-block-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:124px!important;height:70px!important;min-width:124px!important;margin-left:-22px!important;font-size:0!important;color:#171514!important;text-shadow:none!important;overflow:visible!important;text-decoration:none!important}
       #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{display:block!important;width:115px!important;height:66px!important;flex:0 0 115px!important;color:#171514!important}
       body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{color:#fff6ec!important}
       #studioApp .studio-brand-row>a.brand.biglwa-block-brand::before,#studioApp .studio-brand-row>a.brand.biglwa-block-brand::after{content:none!important;display:none!important}
