@@ -376,6 +376,7 @@
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.music-card,#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card{padding:14px 16px!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card{display:grid!important;grid-template-columns:96px minmax(0,1fr)!important;grid-template-rows:auto minmax(0,1fr)!important;column-gap:14px!important;align-items:center!important;align-content:center!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card .card-kicker{grid-column:1/-1!important;margin:0 0 2px!important}
+      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card.widget-is-minimized,#studioApp .hero-widget-rail>.guest-check-card.widget-is-minimized{display:none!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card .aura-orb{width:84px!important;height:84px!important;margin:0!important;grid-row:2!important;grid-column:1!important}
       #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>.aura-card p{font-size:15px!important;line-height:1.12!important;margin:0!important;grid-row:2!important;grid-column:2!important;align-self:center!important}
       #studioApp:not(.profile-editor-wallpaper) .guest-check-sheet{min-height:184px!important;padding:34px 12px 8px!important}
