@@ -28,6 +28,15 @@ async function getFirebase(){
 
 const normalize=v=>String(v||"").trim().replace(/^@/,"").toLowerCase();
 const clean=v=>String(v||"").trim();
+const safeNumber=(v,fallback=0)=>{const n=Number(v);return Number.isFinite(n)?n:fallback};
+const safeText=(v,max=64)=>clean(v).slice(0,max);
+
+function localUsername(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
+  const username=clean(document.getElementById("loginUsername")?.value)||clean(saved?.username);
+  return validUsername(username)?normalize(username):"";
+}
 
 function validUsername(value){
   const username=normalize(value);
@@ -86,6 +95,7 @@ async function syncAccountProfile(profile={},options={}){
         website:clean(profile.website),
         mood:clean(profile.mood),
         moodStyle:clean(profile.moodStyle),
+        auraText:clean(profile.auraText),
         updatedAt:serverTimestamp()
       },{merge:true});
       tx.set(userRef,{
@@ -134,10 +144,85 @@ async function saveCustomizations(custom={}){
       },
       updatedAt:serverTimestamp()
     },{merge:true});
+    await savePublicLook({appearance,wallpaper});
     return true;
   }catch(err){
     console.warn("[BIGLWA] Customization sync unavailable:",err);
     return false;
+  }
+}
+
+/* Public projection of a member's look. Written into the already-public
+ * usernames doc so signed-out visitors can render a studio preview without
+ * ever reading the owner-only users doc. Settings only, never media. */
+async function savePublicLook(custom={}){
+  try{
+    const {db,auth}=await getFirebase();
+    const user=auth.currentUser;
+    const username=localUsername();
+    if(!user||!username)return false;
+    const {doc,setDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const appearance=(custom&&typeof custom.appearance==="object"&&custom.appearance)||{};
+    const wallpaper=(custom&&typeof custom.wallpaper==="object"&&custom.wallpaper)||{};
+    const look={
+      widgetColor:safeText(appearance.color,32),
+      widgetRadius:safeNumber(appearance.radius,16),
+      widgetOpacity:safeNumber(appearance.opacity,100),
+      widgetBlur:safeNumber(appearance.blur,0),
+      auraColor:safeText(appearance.aura,32),
+      wallpaper:{
+        fit:safeText(wallpaper.fit,16),
+        blur:safeNumber(wallpaper.blur,0),
+        overlay:safeNumber(wallpaper.overlay,0)
+      }
+    };
+    await setDoc(doc(db,"usernames",username),{look,updatedAt:serverTimestamp()},{merge:true});
+    return true;
+  }catch(err){
+    console.warn("[BIGLWA] Public look mirror unavailable:",err);
+    return false;
+  }
+}
+
+/* Signed-out safe: usernames docs are world readable by Firestore rules. */
+async function loadPublicProfile(rawUsername){
+  const username=normalize(rawUsername);
+  if(!validUsername(username))return null;
+  try{
+    const {db}=await getFirebase();
+    const {doc,getDoc}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const snap=await getDoc(doc(db,"usernames",username));
+    if(!snap.exists())return null;
+    const data=snap.data()||{};
+    const look=data.look&&typeof data.look==="object"?data.look:null;
+    return {
+      username:clean(data.username)||username,
+      name:clean(data.name),
+      bio:clean(data.bio),
+      location:clean(data.location),
+      website:clean(data.website),
+      mood:clean(data.mood),
+      moodStyle:clean(data.moodStyle),
+      auraText:clean(data.auraText),
+      url:clean(data.url)||("/"+encodeURIComponent(username)),
+      look:look?{
+        appearance:{
+          widgetColor:clean(look.widgetColor),
+          widgetRadius:safeNumber(look.widgetRadius,0),
+          widgetOpacity:safeNumber(look.widgetOpacity,100),
+          widgetBlur:safeNumber(look.widgetBlur,0),
+          auraColor:clean(look.auraColor)
+        },
+        wallpaper:{
+          fit:clean(look.wallpaper&&look.wallpaper.fit),
+          blur:safeNumber(look.wallpaper&&look.wallpaper.blur,0),
+          overlay:safeNumber(look.wallpaper&&look.wallpaper.overlay,0)
+        }
+      }:null
+    };
+  }catch(err){
+    console.warn("[BIGLWA] Public profile unavailable:",err);
+    return null;
   }
 }
 
@@ -235,7 +320,7 @@ async function autoSyncSignedInAccount(){
   }
 }
 
-window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile};
+window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile};
 
 (async()=>{
   try{
