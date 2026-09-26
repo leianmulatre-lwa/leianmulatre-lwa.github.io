@@ -507,12 +507,17 @@ async function pnRoute(request, env) {
 /* ---------------------------------------------------------------------------
  * Account media (wallpapers) on R2.
  *
- * Set an R2 bucket binding named WALLPAPER_BUCKET on this Worker. Members upload
- * with their Firebase ID token; the Worker verifies the token with Google, then
- * stores the bytes under the caller's own uid. Firestore keeps the review state,
- * so a file held for moderation is never linked from a profile and its key is a
- * random 128-bit name that cannot be guessed.
+ * Set an R2 bucket binding named WALLPAPER_BUCKET on this Worker, pointing at the
+ * existing bucket: wallpaper-bucket (account 284c464d6001dfdc30197132be75a680).
+ * The S3 endpoint is for the dashboard and the AWS CLI only; the Worker reads R2
+ * through this binding, so no access keys are ever needed in the browser.
  *
+ * Members upload with their Firebase ID token; the Worker verifies the token with
+ * Google, then stores the bytes under the caller's own uid. Firestore keeps the
+ * review state, so a file held for moderation is never linked from a profile and its
+ * key is a random 128-bit name that cannot be guessed.
+ *
+ *   GET    /media/health
  *   POST   /media/wallpaper?kind=image|video&state=pending|approved
  *   GET    /media/wallpaper/<uid>/<file>
  *   DELETE /media/wallpaper/<uid>/<file>
@@ -526,9 +531,12 @@ const MEDIA_MAX_VIDEO = 120 * 1024 * 1024;
 function mediaFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
 
 function mediaBucket(env) {
-  if (!env.WALLPAPER_BUCKET) mediaFail('Media storage is not configured on this Worker yet.', 503);
-  return env.WALLPAPER_BUCKET;
+  const bucket = env.WALLPAPER_BUCKET || env.MEDIA_BUCKET || env.R2_BUCKET;
+  if (!bucket) mediaFail('Media storage is not configured on this Worker yet.', 503);
+  return bucket;
 }
+
+function mediaBucketReady(env) { return !!(env.WALLPAPER_BUCKET || env.MEDIA_BUCKET || env.R2_BUCKET); }
 
 /* Google verifies the signature, audience and expiry for us, so an unverified
  * id_token can never reach the bucket. */
@@ -554,6 +562,16 @@ function mediaKeyParts(pathname) {
 async function mediaRoute(request, env) {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
+  /* Lets the site confirm the binding is wired without signing anyone in. */
+  if (url.pathname === '/media/health' && request.method === 'GET') {
+    return json({
+      ok: true,
+      service: 'BIGLWA account media',
+      bucket: 'wallpaper-bucket',
+      configured: mediaBucketReady(env),
+      methods: ['POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>']
+    }, 200, request, env);
+  }
   if (request.method === 'POST' && (url.pathname === '/media/wallpaper' || url.pathname === '/media/wallpaper/')) return mediaUpload(request, env, url);
   if (request.method === 'GET') return mediaServe(request, env, mediaKeyParts(url.pathname));
   if (request.method === 'DELETE') return mediaDelete(request, env, mediaKeyParts(url.pathname));
