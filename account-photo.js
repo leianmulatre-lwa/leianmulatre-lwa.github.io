@@ -56,7 +56,12 @@ export async function uploadProfilePhoto(file) {
     body: file
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || "That photo could not be uploaded.");
+  if (!response.ok) {
+    /* A bare 404 means the Worker predates this route, which is a deploy gap rather
+       than anything wrong with the picture, so say so instead of echoing "Not found". */
+    if (response.status === 404) throw new Error("Photo storage is not deployed yet. Please try again later.");
+    throw new Error(payload.error || "That photo could not be uploaded.");
+  }
   await persistPhoto(payload);
   return payload;
 }
