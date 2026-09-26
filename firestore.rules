@@ -45,12 +45,13 @@ service cloud.firestore {
       // The owner may edit their entry and may repair a stale or missing uid, but may not
       // hand the entry to a different account. A moderator may still only publish approved
       // media, and only into the two public fields.
-      allow update: if request.auth != null
+      allow update: if (request.auth != null
         && (resource.data.uid == request.auth.uid || ownsUsername(username))
         && (resource.data.uid == request.auth.uid
           || request.resource.data.uid == request.auth.uid
           || resource.data.uid == null
-          || ownsUsername(username));
+          || ownsUsername(username)))
+        || (isAdmin() && onlyModeratedMediaChanged());
 
       allow delete: if request.auth != null
         && (resource.data.uid == request.auth.uid || ownsUsername(username));

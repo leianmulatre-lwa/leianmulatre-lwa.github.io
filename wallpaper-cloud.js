@@ -142,19 +142,24 @@ async function deleteMedia(ref) {
 
 /* Public projection. The preview only ever reads the usernames doc, so an approved
    wallpaper is the single field a visitor can see. */
-async function writePublicMedia(username, media) {
+async function writePublicMedia(username, media, ownerUid) {
   const { db } = await firebase();
-  const user = await signedInUser();
-  if (!user || !username) return;
+  const current = await signedInUser();
+  const uid = ownerUid || current?.uid || null;
+  if (!uid || !username) return;
   const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
-  /* Claim the username on the account doc first. The account doc is owner-only, so this
-     binding is the trustworthy half of the ownership proof the security rules check, and
-     writing it repairs a profile whose public uid is missing or stale. */
-  await setDoc(doc(db, 'users', user.uid), { usernameLower: username, updatedAt: serverTimestamp() }, { merge: true });
   const look = media
     ? { wallpaperMedia: { url: media.url, kind: media.kind, state: 'approved', updatedAt: Date.now() } }
     : { wallpaperMedia: null };
-  await setDoc(doc(db, PROFILE_COLLECTION, username), { uid: user.uid, look, updatedAt: serverTimestamp() }, { merge: true });
+  const payload = { look, updatedAt: serverTimestamp() };
+  /* A moderator publishing somebody else's approved media must leave the entry's uid and
+     the owner's account doc alone: writing them would hand the entry to the moderator and
+     make the rules reject the write, since moderators may only touch look and updatedAt. */
+  if (!ownerUid || ownerUid === current?.uid) {
+    await setDoc(doc(db, 'users', uid), { usernameLower: username, updatedAt: serverTimestamp() }, { merge: true });
+    payload.uid = uid;
+  }
+  await setDoc(doc(db, PROFILE_COLLECTION, username), payload, { merge: true });
 }
 
 async function publishToAccount(media, extra = {}) {
@@ -270,7 +275,7 @@ async function decideReview(id, decision, note = '') {
         },
         updatedAt: serverTimestamp()
       }, { merge: true });
-      await writePublicMedia(current.username, { url: current.mediaUrl, kind: current.kind });
+      await writePublicMedia(current.username, { url: current.mediaUrl, kind: current.kind }, owner);
     }
   }
   if (state === 'rejected' && current.mediaKey) await deleteMedia({ key: current.mediaKey });
