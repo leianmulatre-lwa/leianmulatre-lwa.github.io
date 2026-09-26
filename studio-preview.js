@@ -24,7 +24,18 @@ const preview = {
 };
 
 const $ = (sel,root=document)=>root.querySelector(sel);
-const entryPath = ()=>window.__biglwaEntryPath||location.pathname;
+/* The 404 fallback hands the requested name over as ?route=, and the app router then
+   rewrites the URL to "/" before any deferred script can look. So the entry path is
+   captured once, synchronously, by the inline loader in index.html. */
+const ENTRY_PATH=(()=>{
+  if(window.__biglwaEntryPath) return window.__biglwaEntryPath;
+  try{
+    const route=new URLSearchParams(location.search).get("route");
+    if(route) return "/"+String(route).replace(/^\/+/,"");
+  }catch{}
+  return location.pathname;
+})();
+const entryPath = ()=>ENTRY_PATH;
 const pathUsername = (path=entryPath())=>{
   let segment="";
   try{segment=decodeURIComponent(String(path||"")).replace(/^\/+|\/+$/g,"").toLowerCase()}catch{}
@@ -428,7 +439,7 @@ function enforce(){
 function activate(profile){
   preview.profile=profile;
   preview.username=profile.username||preview.username;
-  preview.path=entryPath();
+  preview.path="/"+preview.username;
   preview.title="@"+preview.username+"'s Studio - BIGLWA";
   preview.active=true;
   document.documentElement.classList.add("biglwa-preview-mode");
