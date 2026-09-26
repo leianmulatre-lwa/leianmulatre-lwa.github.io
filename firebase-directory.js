@@ -217,7 +217,17 @@ async function loadPublicProfile(rawUsername){
           fit:clean(look.wallpaper&&look.wallpaper.fit),
           blur:safeNumber(look.wallpaper&&look.wallpaper.blur,0),
           overlay:safeNumber(look.wallpaper&&look.wallpaper.overlay,0)
-        }
+        },
+        /* Only an approved wallpaper is ever mirrored here, so a signed-out visitor can
+           render it while held or rejected media stays invisible. */
+        wallpaperMedia:(()=>{
+          const media=look.wallpaperMedia;
+          if(!media||typeof media!=="object")return null;
+          const url=clean(media.url);
+          if(!url||clean(media.state)!=="approved")return null;
+          if(!/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/wallpaper\//.test(url))return null;
+          return {url,kind:clean(media.kind)==="video"?"video":"image"};
+        })()
       }:null
     };
   }catch(err){

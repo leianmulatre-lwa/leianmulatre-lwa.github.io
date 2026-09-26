@@ -948,9 +948,46 @@
     $$('[data-orbit-save="spotify"],[data-orbit-open="spotify"],[data-orbit-path="spotify"],[data-orbit-auth="spotify"]').forEach(item=>item.closest('.module-orbit-row')?.remove());
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureDiaryCover();ensureArcadeCabinet();bindProfileVisualSync();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify()}
+  /* Wallpaper moderation launcher. It belongs to the signed-in member's own studio and
+     to nobody else: a guest preview never gets it, and Firestore rules mean a visitor
+     could not read the queue even if the markup were forced into the page. */
+  let reviewsWidgetBusy=false;
+  async function ensureReviewsWidget(){
+    const card=$('#studioApp [data-widget-id="reviews"]');
+    const cloud=window.BIGLWAWallpaperCloud;
+    const previewing=document.documentElement.classList.contains('biglwa-preview-mode');
+    if(previewing||!cloud){card?.remove();return}
+    if(reviewsWidgetBusy)return;
+    reviewsWidgetBusy=true;
+    try{
+      const mine=String(await cloud.username()||'').toLowerCase();
+      const shown=String($('#studioApp .profile-display-name')?.textContent||'').trim().replace(/^@/,'').toLowerCase();
+      const owns=!!mine&&shown===mine;
+      const queue=owns?await cloud.reviews({pendingOnly:true}):[];
+      const admin=owns&&await cloud.isAdmin();
+      if(!owns||(!admin&&!queue.length)){card?.remove();return}
+      const masonry=$('#studioApp .masonry');
+      if(!masonry){return}
+      if(card){card.querySelector('.card-kicker')?.replaceChildren(document.createTextNode('Wallpaper Reviews'));return}
+      const node=document.createElement('section');
+      node.className='card studio-tool-card reviews-widget';
+      node.id='reviewsWidget';
+      node.dataset.widgetId='reviews';
+      node.dataset.widgetRoute='reviews';
+      node.dataset.widgetLabel='Wallpaper Reviews';
+      node.innerHTML='<div class="card-kicker">Wallpaper Reviews</div><h2>'+(admin?'Waiting on you':'Held for review')+'</h2><p>'+(admin?'Approve or reject wallpapers held by the automated safety check.':(queue.length+' wallpaper'+(queue.length===1?'':'s')+' waiting on a moderator.'))+'</p><button class="arrow-btn" type="button" data-open="reviews" aria-label="Open wallpaper reviews">Open</button>';
+      masonry.appendChild(node);
+    }catch{}finally{reviewsWidgetBusy=false}
+  }
+
+  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureDiaryCover();ensureArcadeCabinet();bindProfileVisualSync();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify();ensureReviewsWidget()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
   setTimeout(run,260);setTimeout(run,900);
+  /* The account and the cloud module settle after first paint, and a sign-in can change
+     who owns the studio, so keep checking until the launcher is in the right state. */
+  setTimeout(ensureReviewsWidget,2200);setTimeout(ensureReviewsWidget,5200);
+  document.addEventListener('biglwa:wallpaper-published',()=>setTimeout(ensureReviewsWidget,1200));
+  document.addEventListener('biglwa:user-directory-ready',()=>setTimeout(ensureReviewsWidget,1500));
 })();

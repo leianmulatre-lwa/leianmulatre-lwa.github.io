@@ -155,12 +155,15 @@ function restoreAppearance(){
     }catch{}
   });
   preview.snapshot=null;
+  /* The previewed member's wallpaper is not ours, so drop it before going back. */
+  preview.paintedMedia=false;
   window.BIGLWAStudioAppearance?.apply?.();
+  window.BIGLWAStudioAppearance?.clearMedia?.();
 }
 
 function applyLook(look){
   if(!look || typeof look!=="object") return;
-  const mirror=look.appearance||{},wallpaper=look.wallpaper||{};
+  const mirror=look.appearance||{},wallpaper=look.wallpaper||{},media=look.wallpaperMedia||null;
   const appearance={};
   if(mirror.widgetColor) appearance.color=mirror.widgetColor;
   if(mirror.widgetRadius!=null) appearance.radius=mirror.widgetRadius;
@@ -169,10 +172,10 @@ function applyLook(look){
   if(mirror.auraColor) appearance.aura=mirror.auraColor;
   const hasAppearance=Object.keys(appearance).length>0;
   const hasWallpaper=Object.keys(wallpaper).some(key=>wallpaper[key]!==""&&wallpaper[key]!=null);
-  if(!hasAppearance && !hasWallpaper) return;
+  if(!hasAppearance && !hasWallpaper && !media?.url) return;
   snapshotAppearance();
-  window.BIGLWAStudioAppearance?.apply?.({appearance,wallpaper});
-  }
+  window.BIGLWAStudioAppearance?.apply?.({appearance,wallpaper,media});
+}
 
 /* ---------- banner ---------- */
 const PREVIEW_CSS = `

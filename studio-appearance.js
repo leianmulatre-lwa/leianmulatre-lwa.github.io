@@ -3,7 +3,6 @@
   const $$=(selector,root=document)=>[...root.querySelectorAll(selector)];
   const DB_NAME='biglwa-studio-media-v1';
   const STORE_NAME='wallpaper';
-  const RECORD_KEY='active';
   const APPEARANCE_KEY='biglwaWidgetStyle';
   const WALLPAPER_SETTINGS_KEY='biglwaWallpaperSettings';
   const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card),#studioApp .module-workspace .module-card,#studioApp .module-workspace .calendar-board,#studioApp .module-workspace .module-launcher';
@@ -168,31 +167,22 @@
     restoreAppearance();
   }
 
-  function openDatabase(){
-    return new Promise((resolve,reject)=>{
-      if(!('indexedDB'in window)){reject(new Error('Browser storage is unavailable.'));return}
-      const request=indexedDB.open(DB_NAME,1);
-      request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE_NAME))request.result.createObjectStore(STORE_NAME,{keyPath:'id'})};
-      request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('Could not open wallpaper storage.'));
-    });
-  }
-
-  async function readWallpaper(){
-    const db=await openDatabase();
-    try{return await new Promise((resolve,reject)=>{const request=db.transaction(STORE_NAME,'readonly').objectStore(STORE_NAME).get(RECORD_KEY);request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error)})}
-    finally{db.close()}
-  }
-
-  async function writeWallpaper(record){
-    const db=await openDatabase();
-    try{await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put(record);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Wallpaper save was interrupted.'))})}
-    finally{db.close()}
-  }
-
-  async function deleteWallpaper(){
-    const db=await openDatabase();
-    try{await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).delete(RECORD_KEY);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
-    finally{db.close()}
+  /* The wallpaper object store is gone: media lives on the account, not the device.
+     The legacy database is cleared once so an old blob cannot linger. */
+  async function purgeLegacyWallpaper(){
+    if(!('indexedDB'in window))return;
+    try{
+      await new Promise((resolve,reject)=>{
+        const request=indexedDB.open(DB_NAME,1);
+        request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE_NAME))request.result.createObjectStore(STORE_NAME,{keyPath:'id'})};
+        request.onsuccess=()=>resolve(request.result);
+        request.onerror=()=>reject(request.error||new Error('Could not open wallpaper storage.'));
+      }).then(db=>new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();
+        tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);
+      }));
+    }catch{}
+    try{localStorage.removeItem('biglwaWallpaper')}catch{}
   }
 
   function getWallpaperElements(){
@@ -205,6 +195,27 @@
   }
 
   function revokeActiveUrl(){if(activeObjectUrl){URL.revokeObjectURL(activeObjectUrl);activeObjectUrl=''}}
+
+  /* A wallpaper is now either a Cloudflare URL on the account or a short-lived local
+     object URL for media that is still held for review. Nothing is persisted here. */
+  function paintWallpaper(media){
+    const {page,preview,video,previewVideo}=getWallpaperElements();
+    if(!page||(!media?.url&&!media?.blob))return false;
+    clearWallpaperDisplay();
+    const url=media.blob?(activeObjectUrl=URL.createObjectURL(media.blob)):String(media.url);
+    if(isVideoMedia(media)){
+      page.classList.add('biglwa-video-wallpaper');
+      [video,previewVideo].forEach(el=>{el.src=url;el.style.display='block'});
+      if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.play().catch(()=>{});previewVideo.play().catch(()=>{})}
+    }else{
+      page.classList.add('custom-image');page.style.setProperty('--page-image',`url("${url}")`);
+      preview.style.backgroundImage=`url("${url}")`;preview.style.backgroundSize='cover';preview.style.backgroundPosition='center';
+    }
+    applyWallpaperSettings(false);
+    return true;
+  }
+
+  const isVideoMedia=media=>media?.kind==='video'||/^video\//.test(String(media?.contentType||''));
 
   function clearWallpaperDisplay(){
     const {page,preview,video,previewVideo}=getWallpaperElements();if(!page)return;
@@ -247,49 +258,43 @@
     const mark=$('#wallpaper18Badge');if(mark){mark.textContent=badge;mark.classList.toggle('is-visible',Boolean(badge))}
   }
 
-  async function applyWallpaperRecord(record){
-    const {page,preview,video,previewVideo}=getWallpaperElements();if(!page||!record?.blob)return;
-    clearWallpaperDisplay();
-    const url=URL.createObjectURL(record.blob);activeObjectUrl=url;
-    if(String(record.type).startsWith('video/')){
-      page.classList.add('biglwa-video-wallpaper');
-      [video,previewVideo].forEach(media=>{media.src=url;media.style.display='block'});
-      if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.play().catch(()=>{});previewVideo.play().catch(()=>{})}
-    }else{
-      page.classList.add('custom-image');page.style.setProperty('--page-image',`url("${url}")`);
-      preview.style.backgroundImage=`url("${url}")`;preview.style.backgroundSize='cover';preview.style.backgroundPosition='center';
-    }
-    applyWallpaperSettings(false);
-    if(record.rating==='18+')setSafetyStatus('ready','Age-verified wallpaper active on this device.','18+ · verified');
-    else if(record.rating==='local-only')setSafetyStatus('pending','Local preview active · automated review is pending. This wallpaper stays on this device and cannot be shared publicly.','local only');
-    else setSafetyStatus('ready','Safety check passed · wallpaper saved in this browser.');
+  function wallpaperStatusCopy(media,rating){
+    if(rating==='18+')return['ready','Age-verified wallpaper saved to your account.','18+ · verified'];
+    if(media?.state==='held')return['pending','Held for review. This wallpaper is not shown on your public profile until a moderator approves it.','held for review'];
+    if(media?.url)return['ready','Safety check passed · wallpaper saved to your account and shown on your profile.','saved to account'];
+    return['idle','Choose a file to run a private, on-device safety check.',''];
   }
 
+  /* The account doc is the source of truth, so signing in on another device restores the
+     same wallpaper. Legacy device-only blobs are dropped, never migrated silently. */
   async function restoreWallpaper(){
     if(restored)return;restored=true;
+    const cloud=window.BIGLWAWallpaperCloud;
     try{
-      const record=await readWallpaper();
-      if(record){
-        if(record.rating==='18+'&&!await window.BIGLWAWallpaperSafety?.hasVerifiedAdultClaim?.()){
-          clearWallpaperDisplay();setSafetyStatus('held','This saved wallpaper is held until the signed 18+ verification claim is present.','18+ · held');return;
-        }
-        await applyWallpaperRecord(record);try{localStorage.removeItem('biglwaWallpaper')}catch{};return;
+      if(!cloud){setSafetyStatus('idle','Choose a file to run a private, on-device safety check.');return}
+      if(!await cloud.isSignedIn()){setSafetyStatus('idle','Sign in to load the wallpaper saved to your account.');return}
+      const media=await cloud.load();
+      if(media&&media.state==='approved'){
+        paintWallpaper(media);
+        const [state,message,badge]=wallpaperStatusCopy(media,null);
+        setSafetyStatus(state,message,badge);
+        return;
       }
-      if(localStorage.getItem('biglwaWallpaper')){clearWallpaperDisplay();setSafetyStatus('held','Your older wallpaper is preserved, but needs to be chosen again for the new safety check before it can display.');return}
       setSafetyStatus('idle','Choose a file to run a private, on-device safety check.');
-    }catch{clearWallpaperDisplay();setSafetyStatus('error','Wallpaper storage is unavailable, so no custom media was shown.')}
+    }catch{clearWallpaperDisplay();setSafetyStatus('error','Your account wallpaper could not be loaded, so no custom media was shown.')}
   }
 
   async function processWallpaper(file,context,button,input){
     const safety=window.BIGLWAWallpaperSafety;
+    const cloud=window.BIGLWAWallpaperCloud;
     button.disabled=true;input.disabled=true;setSafetyStatus('checking',file.type.startsWith('video/')?'Checking multiple frames from this video on your device…':'Checking this image on your device…');
     try{
       let result;
       if(safety){
         result=await safety.scan(file,{context,onProgress:(current,total)=>setSafetyStatus('checking',`Checking frame ${current} of ${total} on your device…`)});
       }else{
-        const allowed=/^(image\/(jpeg|png|webp|gif)|video\/(mp4|webm|quicktime))$/.test(file.type),limit=file.type.startsWith('video/')?120*1024*1024:30*1024*1024;
-        if(!allowed||file.size>limit){setSafetyStatus('error',allowed?'Keep videos under 120 MB and images under 30 MB.':'Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.');return}
+        const limit=file.type.startsWith('video/')?120*1024*1024:30*1024*1024;
+        if(!cloud?.supported(file.type)||file.size>limit){setSafetyStatus('error',cloud?.supported(file.type)?'Keep videos under 120 MB and images under 30 MB.':'Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.');return}
         result={status:'local-only',engine:'local preview fallback'};
       }
       if(result.status==='invalid'){setSafetyStatus('error',result.message||'This file could not be read safely.');return}
@@ -297,19 +302,37 @@
       let rating=result.status==='local-only'?'local-only':'general';
       if(result.status==='age-restricted'){
         setSafetyStatus('checking','Adult or uncertain context detected. Checking signed age verification…','18+ · checking');
-        if(!await safety?.hasVerifiedAdultClaim?.()){setSafetyStatus('held','Held as 18+. A birthday entry is not enough, and secure age verification is not connected yet.','18+ · held');return}
+        if(!await safety?.hasVerifiedAdultClaim?.()){setSafetyStatus('held','Held for review. A birthday entry is not enough, and secure age verification is not connected yet, so this wallpaper is not published.','18+ · held');return}
         rating='18+';
       }
-      const record={id:RECORD_KEY,blob:file,type:file.type,name:String(file.name||'wallpaper').slice(0,180),rating,context,checkedBy:result.engine,review:rating==='local-only'?'pending':'complete',visibility:'device-only',updatedAt:Date.now()};
-      await writeWallpaper(record);try{localStorage.removeItem('biglwaWallpaper')}catch{}
-      await applyWallpaperRecord(record);
-    }catch{setSafetyStatus('error','The safety check could not finish, so this file was not applied.')}
+      if(!cloud){setSafetyStatus('error','Account media is unavailable, so this wallpaper was not saved.');return}
+      if(!await cloud.isSignedIn()){setSafetyStatus('held','Sign in to save this wallpaper to your account. Nothing was kept on this device.','not saved');return}
+      setSafetyStatus('checking','Safety check passed · uploading to your account…');
+      const confident=rating==='general'&&result.status===cloud.autoPublishStatus;
+      const media=await cloud.upload(file,{state:confident?'approved':'pending'});
+      if(confident){
+        await cloud.publish(media,{approvedBy:'auto'});
+        paintWallpaper(media);
+        const [state,message,badge]=wallpaperStatusCopy(media,rating);
+        setSafetyStatus(state,message,badge);
+        document.dispatchEvent(new CustomEvent('biglwa:wallpaper-published',{detail:{username:cloud.username(),url:media.url,kind:media.kind}}));
+        return;
+      }
+      /* Uncertain or adult-coded media is stored for a human, shown to the member, and
+         never written to the public profile. */
+      await cloud.review({media,verdict:result.status,context,kind:media.kind,scores:result.scores,name:file.name});
+      paintWallpaper({blob:file,kind:media.kind,contentType:media.contentType,state:'held'});
+      const [state,message,badge]=wallpaperStatusCopy({state:'held'},rating);
+      setSafetyStatus(state,message,badge);
+    }catch(error){
+      setSafetyStatus('error',error?.message||'The wallpaper could not be saved to your account.');
+    }
     finally{button.disabled=false;input.disabled=false;input.value=''}
   }
 
   function ensureWallpaperEditor(){
     const section=$('#profileWallpaperEditor')||$('[data-profile-editor-pane="wallpaper"]');if(!section)return;
-    const intro=$('p',section);if(intro)intro.textContent='Use one continuous image, animated GIF, or video wallpaper. Media stays on this device in the current Studio build.';
+    const intro=$('p',section);    if(intro)intro.textContent='Use one continuous image, animated GIF, or video wallpaper. Media is checked on your device, then saved to your BIGLWA account so it follows you to any device and can be approved for your public profile.';
     let input=$('#wallpaperInput',section),button=$('#changeWallpaper',section);if(!input||!button)return;
     if(input.dataset.biglwaSafeMediaBound!=='1'){
       const fresh=input.cloneNode(true);fresh.dataset.biglwaSafeMediaBound='1';fresh.accept='image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,.mov';input.replaceWith(fresh);input=fresh;
@@ -321,7 +344,7 @@
     if(!row){row=document.createElement('div');row.className='wallpaper-button-row';button.replaceWith(row);row.appendChild(button);const remove=document.createElement('button');remove.type='button';remove.id='removeWallpaper';remove.className='secondary-btn wallpaper-remove';remove.textContent='Remove';row.appendChild(remove)}
     if(!$('#wallpaperMediaContext',section)){
       const context=document.createElement('label');context.className='wallpaper-media-context';context.innerHTML='Media context<select id="wallpaperMediaContext"><option value="photo">Photo or video</option><option value="art">Artwork or illustration</option><option value="mixed">Mixed or other</option></select>';row.insertAdjacentElement('afterend',context);
-      const note=document.createElement('p');note.className='wallpaper-safety-note';note.textContent='Artwork is reviewed in context, not automatically blocked. Likely explicit photographic nudity is blocked. Uncertain or adult-coded media is held as 18+ and needs verified age.';context.insertAdjacentElement('afterend',note);
+      const note=document.createElement('p');note.className='wallpaper-safety-note';note.textContent='Artwork is reviewed in context, not automatically blocked. Likely explicit photographic nudity is blocked. A confident clean scan publishes straight to your account. Uncertain or adult-coded media is uploaded for a moderator and stays off your public profile until approved.';context.insertAdjacentElement('afterend',note);
       const badge=document.createElement('span');badge.id='wallpaper18Badge';badge.className='wallpaper-18-badge';note.insertAdjacentElement('afterend',badge);
       const status=document.createElement('p');status.id='wallpaperSafetyStatus';status.className='wallpaper-safety-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');badge.insertAdjacentElement('afterend',status);
     }
@@ -329,7 +352,10 @@
       section.dataset.biglwaSafeMediaBound='1';
       button.addEventListener('click',event=>{event.preventDefault();input.click()});
       input.addEventListener('change',()=>{const file=input.files?.[0];if(file)processWallpaper(file,$('#wallpaperMediaContext',section)?.value||'mixed',button,input)});
-      $('#removeWallpaper',section)?.addEventListener('click',async()=>{try{await deleteWallpaper();try{localStorage.removeItem('biglwaWallpaper')}catch{}clearWallpaperDisplay();setSafetyStatus('idle','Custom wallpaper removed. Choose a file to run a new safety check.')}catch{setSafetyStatus('error','The wallpaper could not be removed from browser storage.')}});
+      $('#removeWallpaper',section)?.addEventListener('click',async()=>{
+        try{await window.BIGLWAWallpaperCloud?.removeWallpaper();clearWallpaperDisplay();setSafetyStatus('idle','Custom wallpaper removed from your account. Choose a file to run a new safety check.')}
+        catch{setSafetyStatus('error','The wallpaper could not be removed from your account.')}
+      });
       section.addEventListener('input',event=>{if(event.target.matches('#fitSelect,#positionSelect,#blurRange,#auraRange,#overlayRange'))applyWallpaperSettings(true)});
       section.addEventListener('change',event=>{if(event.target.matches('#fitSelect,#positionSelect,#blurRange,#auraRange,#overlayRange'))applyWallpaperSettings(true)});
     }
@@ -373,12 +399,20 @@
         }
       }catch{}
       applyAppearance(false);applyWallpaperSettings(false);
+      /* A signed-out preview passes the approved public media URL straight through. */
+      if(values&&values.media&&values.media.url)paintWallpaper(values.media);
       try{applyAppearance(true);applyWallpaperSettings(true)}catch{}
-    }
+    },
+    media:paintWallpaper,
+    clearMedia(){clearWallpaperDisplay()}
   };
 
   function run(){ensureStyles();ensureWidgetConnection();ensureWallpaperEditor();removeWallpaperAuraControl();bindEditorState()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+  purgeLegacyWallpaper();
+  /* The cloud module is a separate script, so give it a moment before deciding the
+     account has no wallpaper. */
+  (async()=>{for(let i=0;i<40&&!window.BIGLWAWallpaperCloud;i++)await new Promise(r=>setTimeout(r,100));restored=false;restoreWallpaper()})();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeActiveUrl,{once:true});
   setTimeout(run,220);

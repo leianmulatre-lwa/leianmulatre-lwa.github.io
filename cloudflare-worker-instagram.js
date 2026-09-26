@@ -294,7 +294,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Vary': 'Origin'
   };
 }
@@ -306,6 +306,11 @@ function corsHeaders(origin) {
  */
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname.startsWith('/media/')) {
+      const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
+      try { return await mediaRoute(request, config); }
+      catch (error) { return json({ error: error.publicMessage || 'Media service error. Please try again.' }, error.status || 500, request, config); }
+    }
     if (new URL(request.url).pathname.startsWith('/pinterest/')) {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
       try { return await pnRoute(request, config); }
@@ -497,4 +502,117 @@ async function pnRoute(request, env) {
     pnFail('Pinterest could not return this content. Check that this account has access to the trial app and selected board.', response.status === 403 ? 403 : 502);
   }
   return json(data, 200, request, env);
+}
+
+/* ---------------------------------------------------------------------------
+ * Account media (wallpapers) on R2.
+ *
+ * Set an R2 bucket binding named WALLPAPER_BUCKET on this Worker. Members upload
+ * with their Firebase ID token; the Worker verifies the token with Google, then
+ * stores the bytes under the caller's own uid. Firestore keeps the review state,
+ * so a file held for moderation is never linked from a profile and its key is a
+ * random 128-bit name that cannot be guessed.
+ *
+ *   POST   /media/wallpaper?kind=image|video&state=pending|approved
+ *   GET    /media/wallpaper/<uid>/<file>
+ *   DELETE /media/wallpaper/<uid>/<file>
+ */
+const MEDIA_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MEDIA_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+const MEDIA_EXTENSIONS = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' };
+const MEDIA_MAX_IMAGE = 30 * 1024 * 1024;
+const MEDIA_MAX_VIDEO = 120 * 1024 * 1024;
+
+function mediaFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
+
+function mediaBucket(env) {
+  if (!env.WALLPAPER_BUCKET) mediaFail('Media storage is not configured on this Worker yet.', 503);
+  return env.WALLPAPER_BUCKET;
+}
+
+/* Google verifies the signature, audience and expiry for us, so an unverified
+ * id_token can never reach the bucket. */
+async function mediaUser(request) {
+  const header = request.headers.get('Authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!token) mediaFail('Sign in to use account media.', 401);
+  const response = await fetch('https://securetoken.googleapis.com/v1/tokeninfo?id_token=' + encodeURIComponent(token));
+  if (!response.ok) mediaFail('Your session expired. Sign in again to use account media.', 401);
+  const info = await response.json().catch(() => ({}));
+  const uid = String(info.sub || '').trim();
+  if (!uid || info.email_verified === 'false') mediaFail('That account cannot store media.', 403);
+  return { uid, email: String(info.email || '') };
+}
+
+function mediaKeyParts(pathname) {
+  const parts = pathname.replace(/^\/media\/wallpaper\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  if (parts.length !== 2 || !parts[0] || !parts[1]) mediaFail('Media not found.', 404);
+  if (!/^[A-Za-z0-9_-]{8,128}$/.test(parts[0]) || !/^[A-Za-z0-9._-]{1,120}$/.test(parts[1])) mediaFail('Media not found.', 404);
+  return { uid: parts[0], name: parts[1], key: parts[0] + '/' + parts[1] };
+}
+
+async function mediaRoute(request, env) {
+  const url = new URL(request.url);
+  if (request.method === 'OPTIONS') return corsPreflight(request, env);
+  if (request.method === 'POST' && (url.pathname === '/media/wallpaper' || url.pathname === '/media/wallpaper/')) return mediaUpload(request, env, url);
+  if (request.method === 'GET') return mediaServe(request, env, mediaKeyParts(url.pathname));
+  if (request.method === 'DELETE') return mediaDelete(request, env, mediaKeyParts(url.pathname));
+  return json({ error: 'Not found' }, 404, request, env);
+}
+
+async function mediaUpload(request, env, url) {
+  const user = await mediaUser(request);
+  const bucket = mediaBucket(env);
+  const contentType = String(request.headers.get('Content-Type') || '').split(';')[0].trim().toLowerCase();
+  const kind = url.searchParams.get('kind') === 'video' ? 'video' : 'image';
+  const allowed = kind === 'video' ? MEDIA_VIDEO_TYPES : MEDIA_IMAGE_TYPES;
+  if (!allowed.includes(contentType)) mediaFail('Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.');
+  const declared = Number(request.headers.get('Content-Length') || 0);
+  const limit = kind === 'video' ? MEDIA_MAX_VIDEO : MEDIA_MAX_IMAGE;
+  if (declared && declared > limit) mediaFail('That file is larger than the ' + (limit / 1024 / 1024) + ' MB limit for ' + kind + 's.', 413);
+  const state = url.searchParams.get('state') === 'approved' ? 'approved' : 'pending';
+  const body = await request.arrayBuffer();
+  if (!body.byteLength) mediaFail('That file was empty.', 400);
+  if (body.byteLength > limit) mediaFail('That file is larger than the ' + (limit / 1024 / 1024) + ' MB limit for ' + kind + 's.', 413);
+  const createdAt = Date.now();
+  const name = createdAt + '-' + randomToken(16) + '.' + MEDIA_EXTENSIONS[contentType];
+  const key = 'wallpapers/' + user.uid + '/' + name;
+  await bucket.put(key, body, {
+    httpMetadata: { contentType, cacheControl: 'private, max-age=31536000, immutable' },
+    customMetadata: { uid: user.uid, kind, state, name: String(url.searchParams.get('name') || '').slice(0, 120), createdAt: String(createdAt) }
+  });
+  return json({
+    ok: true, key, kind, state, contentType, size: body.byteLength, createdAt,
+    url: url.origin + '/media/wallpaper/' + user.uid + '/' + name
+  }, 200, request, env);
+}
+
+async function mediaServe(request, env, { key }) {
+  const bucket = mediaBucket(env);
+  const object = await bucket.get(key);
+  if (!object) return json({ error: 'Media not found' }, 404, request, env);
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set('Cache-Control', 'private, max-age=31536000, immutable');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('ETag', object.httpEtag);
+  const range = request.headers.get('Range');
+  if (range && /^bytes=/.test(range) && typeof object.range === 'function') {
+    const parsed = object.range(range);
+    if (parsed) {
+      headers.set('Content-Range', parsed.range);
+      headers.set('Content-Length', String(object.size));
+      return new Response(parsed.body, { status: 206, headers });
+    }
+  }
+  headers.set('Content-Length', String(object.size));
+  return new Response(object.body, { status: 200, headers });
+}
+
+async function mediaDelete(request, env, { uid, key }) {
+  const user = await mediaUser(request);
+  if (user.uid !== uid) mediaFail('You can only remove your own media.', 403);
+  const bucket = mediaBucket(env);
+  await bucket.delete(key);
+  return json({ ok: true, key }, 200, request, env);
 }

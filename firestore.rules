@@ -3,6 +3,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Moderators are a hand-edited list. A document here means the account may review
+    // media, and nobody can add themselves: the first admin is seeded once by hand.
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/moderationAdmins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/moderationAdmins/$(request.auth.uid)).data.active != false;
+    }
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Only these two fields of a public profile may be written by a moderator, and only
+    // when the media behind them has actually been approved.
+    function onlyModeratedMediaChanged() {
+      let after = request.resource.data.look.wallpaperMedia;
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['look', 'updatedAt'])
+        && (after == null || after.state == 'approved');
+    }
+
     // Public username directory. Anyone may search it.
     match /usernames/{username} {
       allow read: if true;
@@ -10,18 +30,45 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
 
-      allow update: if request.auth != null
+      allow update: if (request.auth != null
         && resource.data.uid == request.auth.uid
-        && request.resource.data.uid == request.auth.uid;
+        && request.resource.data.uid == request.auth.uid)
+        || (isAdmin() && onlyModeratedMediaChanged());
 
       allow delete: if request.auth != null
         && resource.data.uid == request.auth.uid;
     }
 
-    // Account/profile data belongs to the signed-in account.
+    // Account/profile data belongs to the signed-in account. A moderator may clear a
+    // rejected wallpaper from a member's account, nothing else.
     match /users/{userId} {
-      allow read, create, update, delete: if request.auth != null
-        && request.auth.uid == userId;
+      allow read, create, delete: if isOwner(userId);
+      allow update: if isOwner(userId)
+        || (isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallpaper', 'updatedAt'])
+          && (request.resource.data.wallpaper == null
+            || request.resource.data.wallpaper.state == 'approved'));
+    }
+
+    // Wallpaper moderation queue. Members may open a review for their own media and
+    // follow their own queue; only moderators can decide one.
+    match /wallpaperReviews/{reviewId} {
+      allow read: if isAdmin() || isOwner(resource.data.ownerUid);
+
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.state == 'pending';
+
+      allow update: if isAdmin();
+
+      allow delete: if isOwner(resource.data.ownerUid) || isAdmin();
+    }
+
+    // The moderator list itself. A member may check their own entry so the UI knows
+    // whether to offer the review widget; only moderators may read or change the list.
+    match /moderationAdmins/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow write: if isAdmin();
     }
 
     // Deny everything else by default.
