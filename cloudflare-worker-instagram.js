@@ -538,21 +538,27 @@ function mediaBucket(env) {
 
 function mediaBucketReady(env) { return !!(env.WALLPAPER_BUCKET || env.MEDIA_BUCKET || env.R2_BUCKET); }
 
-/* Google verifies the signature and expiry for us, so an unverified id_token
- * can never reach the bucket. The issuer claim pins the token to our Firebase
- * project, so a valid token minted by another project is still refused. */
+/* Verify Firebase ID tokens against Firebase Auth itself. The generic Google
+ * OAuth tokeninfo endpoint is not the right verifier for Firebase Auth ID tokens. */
 async function mediaUser(request, env) {
   const header = request.headers.get('Authorization') || '';
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
   if (!token) mediaFail('Sign in to use account media.', 401);
-  const response = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token));
+  const apiKey = String(env.FIREBASE_API_KEY || 'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY').trim();
+  const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken: token })
+  });
   if (!response.ok) mediaFail('Your session expired. Sign in again to use account media.', 401);
-  const info = await response.json().catch(() => ({}));
+  const payload = await response.json().catch(() => ({}));
+  const info = Array.isArray(payload.users) ? payload.users[0] : null;
   const projectId = String(env.FIREBASE_PROJECT_ID || 'biglwa').trim();
-  if (info.iss !== 'https://securetoken.google.com/' + projectId) mediaFail('That sign-in is not from this account system.', 403);
-  const uid = String(info.sub || '').trim();
-  const verified = String(info.email_verified || '').toLowerCase();
-  if (!uid || (verified && verified !== 'true')) mediaFail('That account cannot store media.', 403);
+  if (!info || !String(info.localId || '').trim()) mediaFail('That sign-in is not from this account system.', 403);
+  if (projectId !== 'biglwa') mediaFail('That sign-in is not from this account system.', 403);
+  const uid = String(info.localId || '').trim();
+  if (info.disabled === true) mediaFail('That account cannot store media.', 403);
+  if (info.emailVerified === false) mediaFail('Verify your email before saving account media.', 403);
   return { uid, email: String(info.email || '') };
 }
 
@@ -560,7 +566,7 @@ function mediaKeyParts(pathname) {
   const parts = pathname.replace(/^\/media\/wallpaper\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
   if (parts.length !== 2 || !parts[0] || !parts[1]) mediaFail('Media not found.', 404);
   if (!/^[A-Za-z0-9_-]{8,128}$/.test(parts[0]) || !/^[A-Za-z0-9._-]{1,120}$/.test(parts[1])) mediaFail('Media not found.', 404);
-  return { uid: parts[0], name: parts[1], key: parts[0] + '/' + parts[1] };
+  return { uid: parts[0], name: parts[1], key: 'wallpapers/' + parts[0] + '/' + parts[1] };
 }
 
 async function mediaRoute(request, env) {
@@ -604,7 +610,9 @@ async function mediaUpload(request, env, url) {
     customMetadata: { uid: user.uid, kind, state, name: String(url.searchParams.get('name') || '').slice(0, 120), createdAt: String(createdAt) }
   });
   return json({
-    ok: true, key, kind, state, contentType, size: body.byteLength, createdAt,
+    ok: true,
+    key: user.uid + '/' + name,
+    kind, state, contentType, size: body.byteLength, createdAt,
     url: url.origin + '/media/wallpaper/' + user.uid + '/' + name
   }, 200, request, env);
 }
