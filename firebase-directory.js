@@ -176,7 +176,10 @@ async function savePublicLook(custom={}){
         overlay:safeNumber(wallpaper.overlay,0)
       }
     };
-    await setDoc(doc(db,"usernames",username),{look,updatedAt:serverTimestamp()},{merge:true});
+    /* Record the username on the owner-only account doc first: that binding is what the
+       security rules trust, and writing it repairs a public profile whose uid is stale. */
+    await setDoc(doc(db,"users",user.uid),{usernameLower:username.toLowerCase(),updatedAt:serverTimestamp()},{merge:true});
+    await setDoc(doc(db,"usernames",username),{uid:user.uid,look,updatedAt:serverTimestamp()},{merge:true});
     return true;
   }catch(err){
     console.warn("[BIGLWA] Public look mirror unavailable:",err);

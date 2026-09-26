@@ -144,11 +144,17 @@ async function deleteMedia(ref) {
    wallpaper is the single field a visitor can see. */
 async function writePublicMedia(username, media) {
   const { db } = await firebase();
+  const user = await signedInUser();
+  if (!user || !username) return;
   const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+  /* Claim the username on the account doc first. The account doc is owner-only, so this
+     binding is the trustworthy half of the ownership proof the security rules check, and
+     writing it repairs a profile whose public uid is missing or stale. */
+  await setDoc(doc(db, 'users', user.uid), { usernameLower: username, updatedAt: serverTimestamp() }, { merge: true });
   const look = media
     ? { wallpaperMedia: { url: media.url, kind: media.kind, state: 'approved', updatedAt: Date.now() } }
     : { wallpaperMedia: null };
-  await setDoc(doc(db, PROFILE_COLLECTION, username), { look, updatedAt: serverTimestamp() }, { merge: true });
+  await setDoc(doc(db, PROFILE_COLLECTION, username), { uid: user.uid, look, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 async function publishToAccount(media, extra = {}) {

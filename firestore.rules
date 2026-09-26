@@ -15,6 +15,16 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
+    /* The public profile doc carries a uid field, but a claim on a public document is a
+       weak owner proof: it can be missing, or left over from an earlier account, and a
+       stale value locks the real owner out with an unreadable permission error. The
+       account doc is owner-only, so the username recorded there is the trustworthy half.
+       Either proof is accepted, so docs that already match keep working untouched. */
+    function ownsUsername(name) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.usernameLower == name;
+    }
+
     // Only these two fields of a public profile may be written by a moderator, and only
     // when the media behind them has actually been approved.
     function onlyModeratedMediaChanged() {
@@ -27,16 +37,23 @@ service cloud.firestore {
     match /usernames/{username} {
       allow read: if true;
 
+      // A member may open their own entry, either by stamping their own uid on it or
+      // because their account doc already records this username.
       allow create: if request.auth != null
-        && request.resource.data.uid == request.auth.uid;
+        && (request.resource.data.uid == request.auth.uid || ownsUsername(username));
 
-      allow update: if (request.auth != null
-        && resource.data.uid == request.auth.uid
-        && request.resource.data.uid == request.auth.uid)
-        || (isAdmin() && onlyModeratedMediaChanged());
+      // The owner may edit their entry and may repair a stale or missing uid, but may not
+      // hand the entry to a different account. A moderator may still only publish approved
+      // media, and only into the two public fields.
+      allow update: if request.auth != null
+        && (resource.data.uid == request.auth.uid || ownsUsername(username))
+        && (resource.data.uid == request.auth.uid
+          || request.resource.data.uid == request.auth.uid
+          || resource.data.uid == null
+          || ownsUsername(username));
 
       allow delete: if request.auth != null
-        && resource.data.uid == request.auth.uid;
+        && (resource.data.uid == request.auth.uid || ownsUsername(username));
     }
 
     // Account/profile data belongs to the signed-in account. A moderator may clear a
