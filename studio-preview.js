@@ -20,7 +20,11 @@ const preview = {
   timer:0,
   checking:false,
   lastCheck:0,
-  promptOpen:false
+  promptOpen:false,
+  lastReason:"",
+  abort:null,
+  bannerObserver:null,
+  openModule:null
 };
 
 const $ = (sel,root=document)=>root.querySelector(sel);
@@ -172,7 +176,7 @@ function applyLook(look){
 
 /* ---------- banner ---------- */
 const PREVIEW_CSS = `
-.biglwa-preview-banner{position:fixed;top:0;left:0;right:0;z-index:100000;display:flex;align-items:center;gap:12px;padding:9px 14px;background:rgba(23,23,23,.96);color:#fbf8f2;font:500 12px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;box-shadow:0 10px 30px rgba(20,14,12,.24);backdrop-filter:blur(6px)}
+.biglwa-preview-banner{position:sticky;top:0;left:0;right:0;z-index:100000;display:flex;align-items:center;gap:12px;padding:9px 14px;background:rgba(23,23,23,.96);color:#fbf8f2;font:500 12px/1.3 Inter,ui-sans-serif,system-ui,sans-serif;box-shadow:0 10px 30px rgba(20,14,12,.24);backdrop-filter:blur(6px)}
 .biglwa-preview-banner p{margin:0;display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .biglwa-preview-banner strong{font-weight:700;font-size:12px}
 .biglwa-preview-banner p span{color:#c9c2ba;font-size:11px}
@@ -183,11 +187,30 @@ const PREVIEW_CSS = `
 .biglwa-preview-actions .biglwa-preview-join{background:#ef5f78;border-color:#ef5f78;color:#fff}
 .biglwa-preview-actions .biglwa-preview-join:hover{background:#e04a66}
 .biglwa-preview-actions .biglwa-preview-close{border:0;font-size:15px;line-height:1;padding:4px 8px;text-transform:none;letter-spacing:0}
-html.biglwa-preview-mode #studioApp [data-expand-widget],
+/* The banner is in normal flow, so everything below it already sits lower. Only the
+   sticky chrome needs the measured height. */
+html.biglwa-preview-mode .topbar{top:var(--biglwa-preview-banner-h,0px)!important}
+html.biglwa-preview-mode .page-wallpaper{top:calc(66px + var(--biglwa-preview-banner-h,0px))!important}
+html.biglwa-preview-mode .policy-top{top:var(--biglwa-preview-banner-h,0px)!important}
+/* Visitor view: nothing that implies the visitor owns this studio. */
+html.biglwa-preview-mode #studioApp .widget-window-controls,
+html.biglwa-preview-mode #studioApp .widget-drag-handle,
+html.biglwa-preview-mode #studioApp .minimized-widget-dock,
+html.biglwa-preview-mode #studioApp [data-studio-drag-handle],
+html.biglwa-preview-mode #studioApp #editProfileBtn,
 html.biglwa-preview-mode #studioApp [data-open-widget-settings],
+html.biglwa-preview-mode #studioApp [data-expand-widget],
+html.biglwa-preview-mode #studioApp [data-minimize-widget],
 html.biglwa-preview-mode #studioApp [data-dock-widget],
 html.biglwa-preview-mode #studioApp [data-rearrange-widget],
-html.biglwa-preview-mode #studioApp #editProfileBtn{cursor:not-allowed}
+html.biglwa-preview-mode #studioApp [data-restore-widget],
+html.biglwa-preview-mode #studioApp [data-add-shortcut],
+html.biglwa-preview-mode #studioApp [data-remove-shortcut],
+html.biglwa-preview-mode #studioApp [data-open-guest],
+html.biglwa-preview-mode #studioApp .module-launcher,
+html.biglwa-preview-mode #studioApp [data-module],
+html.biglwa-preview-mode #studioApp .customize-heading button,
+html.biglwa-preview-mode #studioApp .sidebar [data-module]{display:none!important}
 .biglwa-prompt-backdrop{position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:20px;background:rgba(28,20,18,.52);backdrop-filter:blur(3px)}
 .biglwa-prompt-card{width:min(430px,100%);border-radius:20px;background:#fbf8f2;color:#171717;padding:24px 22px 18px;box-shadow:0 26px 70px rgba(20,14,12,.34);border:1px solid rgba(23,23,23,.08)}
 .biglwa-prompt-card h3{margin:0 0 8px;font:700 19px/1.2 "CS Bergamot Stitched",Georgia,serif}
@@ -209,6 +232,13 @@ function ensureStyles(){
   document.head.appendChild(style);
 }
 
+function measureBanner(){
+  const banner=$("#biglwaPreviewBanner");
+  if(!banner) return;
+  const height=Math.round(banner.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--biglwa-preview-banner-h",height+"px");
+}
+
 function buildBanner(){
   ensureStyles();
   let banner=$("#biglwaPreviewBanner");
@@ -225,7 +255,13 @@ function buildBanner(){
       '<button type="button" data-preview-signin>Sign in</button>'+
       '<button type="button" class="biglwa-preview-close" data-preview-leave aria-label="Leave preview">×</button>'+
     '</div>';
-  document.body.appendChild(banner);
+  document.body.prepend(banner);
+  measureBanner();
+  if(window.ResizeObserver){
+    preview.bannerObserver?.disconnect();
+    preview.bannerObserver=new ResizeObserver(measureBanner);
+    preview.bannerObserver.observe(banner);
+  }
   banner.addEventListener("click",event=>{
     const button=event.target.closest("button");
     if(!button) return;
@@ -236,6 +272,9 @@ function buildBanner(){
 }
 
 function removeBanner(){
+  preview.bannerObserver?.disconnect();
+  preview.bannerObserver=null;
+  document.documentElement.style.removeProperty("--biglwa-preview-banner-h");
   $("#biglwaPreviewBanner")?.remove();
 }
 
@@ -295,6 +334,9 @@ function gateReason(target,kind){
   /* Profile music stays free for guests. Its file pickers are rendered inside the
      profile editor, and the card's play button opens them programmatically. */
   if(target.closest(".music-card,.music-file-actions,#studioTrackInput,#studioCoverInput")) return "";
+  /* Orbit is the member's live connection settings. A guest may look at the list of
+     networks, but saving, opening or editing any of them stays with the owner. */
+  if(target.closest("[data-orbit-save],[data-orbit-open],[data-orbit-path],[data-orbit-auth],[data-orbit-app],#calOrbit,.module-orbit")) return "connect accounts";
   const app=studioApp();
   if(!app || !app.contains(target)) return "";
   const widgetControl=target.closest("[data-expand-widget],[data-open-widget-settings],[data-minimize-widget],[data-dock-widget],[data-rearrange-widget],[data-restore-widget],[data-add-shortcut],[data-remove-shortcut],[data-studio-drag-handle]");
@@ -352,12 +394,35 @@ function bindGate(){
   const signal=preview.abort.signal;
   ["click","submit","focusin"].forEach(type=>window.addEventListener(type,gateEvent(type),{capture:true,signal}));
   window.addEventListener("keydown",gateKeydown,{capture:true,signal});
+  guardOrbit();
+}
+
+/* Orbit holds the member's real connection settings, so it stays shut for guests even
+   when a module page calls openModule() from inside its own closure. */
+const ORBIT_KEYS = new Set(["orbit","orbits"]);
+function guardOrbit(){
+  const open=window.openBIGLWAModule;
+  if(typeof open!=="function" || preview.openModule===open) return;
+  preview.openModule=open;
+  const wrapped=function(key,...rest){
+    const name=String(key||"").toLowerCase();
+    if(preview.active && !preview.signedIn && ORBIT_KEYS.has(name)){
+      openPrompt("connect accounts");
+      return;
+    }
+    return open.call(this,key,...rest);
+  };
+  window.openBIGLWAModule=wrapped;
 }
 
 function unbindGate(){
   if(!preview.abort) return;
   preview.abort.abort();
   preview.abort=null;
+  if(preview.openModule){
+    window.openBIGLWAModule=preview.openModule;
+    preview.openModule=null;
+  }
 }
 
 /* ---------- lifecycle ---------- */
@@ -442,6 +507,7 @@ function enforce(){
   const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
   if(nameDrift || auraDrift) applyIdentity(preview.profile);
   decorateGuestCard();
+  guardOrbit();
   checkSignedIn();
 }
 
