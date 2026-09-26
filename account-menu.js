@@ -19,8 +19,12 @@ body.night-mode #${MENU_ID} a{color:#f3eee8}
 body.night-mode #${MENU_ID} a:hover{background:rgba(var(--aura-rgb,216,95,109),.2);color:#fff}
 body.night-mode #${MENU_ID} .biglwa-account-menu-label{color:#b6aaa2}
 html.biglwa-preview-mode #${MENU_ID}{display:none!important}
+#${TRIGGER_ID}{cursor:pointer}
+#${TRIGGER_ID}[aria-disabled="true"]{cursor:default}
 @media(prefers-reduced-motion:reduce){#${MENU_ID}{transition:none}}
 `;
+
+  const SIGNED_OUT_HINT = 'Sign in to open your settings';
 
   const ensureStyle = () => {
     if (document.getElementById('biglwa-account-menu-style')) return;
@@ -31,6 +35,20 @@ html.biglwa-preview-mode #${MENU_ID}{display:none!important}
   };
 
   const previewing = () => document.documentElement.classList.contains('biglwa-preview-mode');
+
+  /* The greeting chip is public chrome on a profile, so it stays visible for visitors.
+     Preview mode is how this app already reports "not the signed-in owner", so when it
+     is on, say so on the chip instead of letting it look like a dead menu button. */
+  function syncAffordance(trigger) {
+    if (!trigger) return;
+    if (previewing()) {
+      trigger.setAttribute('aria-disabled', 'true');
+      trigger.setAttribute('title', SIGNED_OUT_HINT);
+    } else {
+      trigger.removeAttribute('aria-disabled');
+      trigger.removeAttribute('title');
+    }
+  }
 
   function close(menu, trigger) {
     if (!menu || menu.hidden) return;
@@ -70,6 +88,14 @@ html.biglwa-preview-mode #${MENU_ID}{display:none!important}
 
     const menu = build(trigger);
     trigger.setAttribute('aria-haspopup', 'menu');
+    syncAffordance(trigger);
+
+    /* standDown() drops biglwa-preview-mode once the visitor turns out to be the
+       signed-in owner, which is the moment the menu starts working. */
+    new MutationObserver(() => {
+      syncAffordance(trigger);
+      if (previewing()) close(menu, trigger);
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     const toggle = (open) => {
       if (previewing()) return close(menu, trigger);
@@ -110,10 +136,37 @@ html.biglwa-preview-mode #${MENU_ID}{display:none!important}
     window.addEventListener('resize', () => close(menu, trigger));
   }
 
+  /* Signed-out visitors cannot open the menu, so leave a route to Settings in the two
+     footers they can actually reach: the sign-in screen and the studio footer. */
+  function addFooterLink(nav) {
+    if (!nav || nav.querySelector('a[href="/settings"]')) return;
+    const link = document.createElement('a');
+    link.href = '/settings';
+    link.textContent = 'Settings';
+    const sibling = nav.querySelector('a');
+    if (sibling?.className) link.className = sibling.className;
+    nav.append(link);
+  }
+
+  function addFooterLinks() {
+    document.querySelectorAll('.login-public-footer nav, .site-policy-footer nav').forEach(addFooterLink);
+  }
+
+  function watchFooters() {
+    if (!document.body) return;
+    new MutationObserver(addFooterLinks).observe(document.body, { childList: true, subtree: true });
+    addFooterLinks();
+  }
+
   async function start() {
+    watchFooters();
     for (let attempt = 0; attempt < 60; attempt += 1) {
       const trigger = document.getElementById(TRIGGER_ID);
-      if (trigger) return wire(trigger);
+      if (trigger) {
+        wire(trigger);
+        addFooterLinks();
+        return;
+      }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
