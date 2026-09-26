@@ -352,7 +352,30 @@
     syncEditorState();
   }
 
-  window.BIGLWAStudioAppearance={save(){applyAppearance(true);applyWallpaperSettings(true);return true}};
+  window.BIGLWAStudioAppearance={
+    save(){applyAppearance(true);applyWallpaperSettings(true);return true},
+    apply(values={}){
+      try{
+        if(values&&typeof values.appearance==='object'){
+          const ap=values.appearance;
+          const colorInput=$('#widgetColor');if(colorInput&&ap.color!=null)colorInput.value=ap.color;
+          const radiusInput=$('#widgetRadius');if(radiusInput&&ap.radius!=null)radiusInput.value=String(ap.radius);
+          const opacityInput=$('#widgetOpacity');if(opacityInput&&ap.opacity!=null)opacityInput.value=String(ap.opacity);
+          const blurInput=$('#widgetBlur');if(blurInput&&ap.blur!=null)blurInput.value=String(ap.blur);
+          const auraInput=$('#auraColor');if(auraInput&&ap.aura!=null)auraInput.value=ap.aura;
+        }
+        if(values&&typeof values.wallpaper==='object'){
+          const ws=values.wallpaper;
+          const fit=$('#fitSelect');if(fit&&ws.fit!=null)fit.value=ws.fit;
+          const pos=$('#positionSelect');if(pos&&ws.position!=null)pos.value=ws.position;
+          const blur=$('#blurRange');if(blur&&ws.blur!=null)blur.value=Number(ws.blur);
+          const over=$('#overlayRange');if(over&&ws.overlay!=null)over.value=Number(ws.overlay);
+        }
+      }catch{}
+      applyAppearance(false);applyWallpaperSettings(false);
+      try{applyAppearance(true);applyWallpaperSettings(true)}catch{}
+    }
+  };
 
   function run(){ensureStyles();ensureWidgetConnection();ensureWallpaperEditor();removeWallpaperAuraControl();bindEditorState()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();

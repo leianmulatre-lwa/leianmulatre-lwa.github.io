@@ -860,6 +860,83 @@
     if(lines.length)copy.appendChild(document.createElement('br'),document.createTextNode(lines.join(' ')));
   }
 
+  function applyProfilePayload(payload){
+    const card=$('#studioApp .profile-card');if(!card)return false;
+    const data=payload&&typeof payload==='object'?payload:null;if(!data)return false;
+    const display=$('.profile-display-name',card),handle=$('.profile-name-line h1',card),bio=$('.bio',card),meta=$('.meta-row',card),moodCard=$('#weeklyMoodCard',card);
+    if(display&&data.name!=null)display.textContent=data.name||'Your Name';
+    if(handle&&data.username!=null)handle.textContent='@'+String(data.username).replace(/^@/,'');
+    if(bio&&data.bio!=null)bio.textContent=data.bio;
+    if(data.location!=null){
+      const location=meta&&$('span',meta);if(location)location.textContent=data.location?'⌖ '+data.location:'';
+      const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=data.location||'';
+    }
+    if(data.website!=null&&meta){
+      const website=$('a',meta);
+      if(website){website.textContent=data.website;website.href=data.website?(/^https?:\/\//.test(data.website)?data.website:'https://'+data.website):'#'}
+    }
+    if(moodCard&&(data.mood!=null||data.moodStyle!=null))renderWeeklyMood(moodCard,data.mood!=null?data.mood:($('.weekly-mood-value',moodCard)?.textContent||''),data.moodStyle||moodCard.dataset.moodStyle||'qwiky-note');
+    if(data.auraText!=null)renderAuraCopy(data.auraText);
+    return true;
+  }
+
+  function applyRemoteLayout(layout){
+    const app=$('#studioApp');if(!app||!layout)return;
+    const docked=Array.isArray(layout.docked)?layout.docked:[];
+    const greenDock=$('#minimizedWidgetDock',app);
+    $$('.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)',app).forEach(widget=>{
+      const id=widget.dataset.widgetId;if(!id||widget.classList.contains('profile-card'))return;
+      const shouldDock=docked.includes(id);
+      const isDocked=widget.classList.contains('widget-is-minimized');
+      const row=$('[data-shortcut-row="'+CSS.escape(id)+'"]',app);
+      if(shouldDock&&!isDocked){
+        widget.classList.add('widget-is-minimized','widget-is-docked');
+        if(!row&&greenDock){const target=restoreDockForWidget(app,widget,greenDock);if(target)target.appendChild(shortcutButtonMarkup(widget))}
+      }else if(!shouldDock&&isDocked){
+        widget.classList.remove('widget-is-minimized','widget-is-docked');
+        if(row)row.remove();
+      }
+    });
+    const order=layout.order&&typeof layout.order==='object'?layout.order:{};
+    Object.keys(order).forEach(key=>{
+      const parent=$('#'+CSS.escape(key),app);if(!parent)return;
+      (Array.isArray(order[key])?order[key]:[]).forEach(id=>{
+        const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);
+        if(widget&&widget.parentNode===parent)parent.appendChild(widget);
+      });
+    });
+    syncPrimaryWidgetDock(app);
+  }
+
+  function applyRemoteCustomization(remote){
+    if(!remote||typeof remote!=='object')return;
+    window.__biglwaRemoteCustomization=remote;
+    const profile=remote.profile;
+    if(profile&&typeof profile==='object'){
+      let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
+      try{localStorage.setItem('biglwaProfileDetails',JSON.stringify(Object.assign({},saved,profile)))}catch{}
+      applyProfilePayload(profile);
+      if(profile.username){
+        try{
+          const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');
+          const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==String(profile.username).toLowerCase()):[];
+          next.push({username:profile.username,name:profile.name||'',url:'/'+encodeURIComponent(profile.username)});
+          localStorage.setItem('biglwaUserDirectory',JSON.stringify(next));
+        }catch{}
+      }
+    }
+    const custom=remote.customization&&typeof remote.customization==='object'?remote.customization:{};
+    if(custom.appearance&&typeof custom.appearance==='object'){try{localStorage.setItem('biglwaWidgetStyle',JSON.stringify(custom.appearance))}catch{}}
+    if(custom.wallpaper&&typeof custom.wallpaper==='object'){try{localStorage.setItem('biglwaWallpaperSettings',JSON.stringify(custom.wallpaper))}catch{}}
+    if(custom.layout&&typeof custom.layout==='object'){
+      const layout=custom.layout;
+      if(Array.isArray(layout.docked)){try{localStorage.setItem('biglwaDockedWidgetsV3',JSON.stringify(layout.docked))}catch{}}
+      if(layout.order&&typeof layout.order==='object'){try{localStorage.setItem('biglwaWidgetOrder',JSON.stringify(layout.order))}catch{}}
+      applyRemoteLayout(layout);
+    }
+    try{window.BIGLWAStudioAppearance?.apply?.(custom)}catch{}
+  }
+
   function ensureProfileEditor(){
     const card=$('#studioApp .profile-card'); if(!card)return;
     card.style.visibility='visible';card.style.opacity='1';
@@ -889,16 +966,10 @@
     if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Leian Stanley';copy.prepend(display)}
     let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
     if(saved){
-      if(display&&saved.name)display.textContent=saved.name;
-      if(handle&&saved.username)handle.textContent='@'+saved.username.replace(/^@/,'');
-      if(bio&&saved.bio)bio.textContent=saved.bio;
-      if(meta){
-        const location=$('span',meta),website=$('a',meta);
-        if(location&&saved.location)location.textContent='⌖ '+saved.location;const railLocation=$('.profile-rail-location',card);if(railLocation&&saved.location)railLocation.textContent=saved.location;
-        if(website&&saved.website){website.textContent=saved.website;website.href=/^https?:\/\//.test(saved.website)?saved.website:'https://'+saved.website}
-      }
-      renderWeeklyMood(moodCard,saved.mood,saved.moodStyle);
-      if(saved.auraText)renderAuraCopy(saved.auraText);
+      const present={};
+      ['name','username','bio','location','website','auraText'].forEach(key=>{if(saved[key])present[key]=saved[key]});
+      present.mood=saved.mood;present.moodStyle=saved.moodStyle;
+      applyProfilePayload(present);
     }
     const panel=$('#wallpaperPanel');if(!panel)return;
     panel.classList.remove('wallpaper-panel','glass');
@@ -971,9 +1042,10 @@
         const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim(),mood:$('#profileMoodInput',panel).value.trim(),moodStyle:$('#profileMoodStyle',panel).value,auraText:$('#profileAuraTextInput',panel).value.trim()};
         try{localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));if(details.username){const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];next.push({username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)});localStorage.setItem('biglwaUserDirectory',JSON.stringify(next))}}catch{} try{window.BigLWAUserDirectory?.saveProfile?.(details)}catch{}
         try{window.BIGLWAStudioAppearance?.save?.()}catch{}
-        if(display)display.textContent=details.name||'Your Name';if(handle)handle.textContent='@'+(details.username||'username');if(bio)bio.textContent=details.bio;
-        if(meta){const loc=$('span',meta),web=$('a',meta);if(loc)loc.textContent=details.location?'⌖ '+details.location:'';const railLocation=$('.profile-rail-location',card);if(railLocation)railLocation.textContent=details.location;if(web){web.textContent=details.website;web.href=details.website?(/^https?:\/\//.test(details.website)?details.website:'https://'+details.website):'#'}}
-        renderWeeklyMood(moodCard,details.mood,details.moodStyle);moodBeforeEdit=null;renderAuraCopy(details.auraText);$('#saveStudioMusicMeta',panel)?.click();
+        const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
+        const savedDocked=readJson('biglwaDockedWidgetsV3'),savedOrder=readJson('biglwaWidgetOrder');
+        try{window.BigLWAUserDirectory?.saveCustomizations?.({appearance:{color:$('#widgetColor')?.value||'#faf7f1',radius:$('#widgetRadius')?.value||'16',opacity:$('#widgetOpacity')?.value||'84',blur:$('#widgetBlur')?.value||'18',aura:$('#auraColor')?.value||'#d85f6d'},wallpaper:{fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'},layout:{docked:Array.isArray(savedDocked)?savedDocked:[],order:savedOrder&&typeof savedOrder==='object'?savedOrder:{}}})}catch{}
+        applyProfilePayload(details);moodBeforeEdit=null;$('#saveStudioMusicMeta',panel)?.click();
         window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity, mood, song, Aura, and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
         endEdit();
       })
@@ -1159,6 +1231,13 @@
   }
 
   function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  if(document.documentElement.dataset.biglwaCustomizationSyncBound!=='1'){
+    document.documentElement.dataset.biglwaCustomizationSyncBound='1';
+    window.addEventListener('biglwa:customization-remote',event=>{
+      try{applyRemoteCustomization(event.detail)}catch(err){console.warn('[BIGLWA] Remote customization apply failed:',err)}
+      setTimeout(()=>{const app=$('#studioApp');if(!app)return;applyRemoteCustomization(window.__biglwaRemoteCustomization)},60);
+    });
+  }
   if(document.documentElement.dataset.biglwaSymbolSyncBound!=='1'){
     document.documentElement.dataset.biglwaSymbolSyncBound='1';
     document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshNavigationCatalogFromWidgets(app);syncSidebarShortcutSystem();refreshMinimizedWidgetIcons(app)});

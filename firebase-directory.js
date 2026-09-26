@@ -119,6 +119,72 @@ export async function saveProfile(profile){
   return syncAccountProfile(profile,{throwErrors:false});
 }
 
+async function saveCustomizations(custom={}){
+  try{
+    const {db,auth}=await getFirebase();
+    const user=auth.currentUser;
+    if(!user)return false;
+    const {doc,setDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const {appearance,wallpaper,layout}=custom||{};
+    await setDoc(doc(db,"users",user.uid),{
+      customization:{
+        appearance:appearance&&typeof appearance==="object"?appearance:{},
+        wallpaper:wallpaper&&typeof wallpaper==="object"?wallpaper:{},
+        layout:layout&&typeof layout==="object"?layout:{}
+      },
+      updatedAt:serverTimestamp()
+    },{merge:true});
+    return true;
+  }catch(err){
+    console.warn("[BIGLWA] Customization sync unavailable:",err);
+    return false;
+  }
+}
+
+async function loadProfile(){
+  try{
+    const {db,auth}=await getFirebase();
+    const user=auth.currentUser;
+    if(!user)return null;
+    const {doc,getDoc}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const snap=await getDoc(doc(db,"users",user.uid));
+    if(!snap.exists())return null;
+    const data=snap.data()||{};
+    return {
+      profile:{
+        name:clean(data.name),
+        username:clean(data.username),
+        bio:clean(data.bio),
+        location:clean(data.location),
+        website:clean(data.website),
+        mood:clean(data.mood),
+        moodStyle:clean(data.moodStyle),
+        auraText:clean(data.auraText)
+      },
+      customization:(data.customization&&typeof data.customization==="object")?data.customization:{},
+      updatedAt:data.updatedAt||null
+    };
+  }catch(err){
+    console.warn("[BIGLWA] Profile download unavailable:",err);
+    return null;
+  }
+}
+
+async function downloadAccountToDevice(){
+  try{
+    const {auth}=await getFirebase();
+    if(!auth.currentUser)return false;
+    const remote=await loadProfile();
+    if(!remote||typeof remote!=="object")return false;
+    window.__biglwaRemoteCustomization=remote;
+    window.dispatchEvent(new CustomEvent("biglwa:customization-remote",{detail:remote}));
+    return true;
+  }catch(err){
+    console.warn("[BIGLWA] Account download skipped:",err);
+    return false;
+  }
+}
+
 export async function searchUsers(rawQuery){
   const q=normalize(rawQuery);
   if(!q)return [];
@@ -169,13 +235,16 @@ async function autoSyncSignedInAccount(){
   }
 }
 
-window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile};
+window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile};
 
 (async()=>{
   try{
     const {auth}=await getFirebase();
     const {onAuthStateChanged}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js");
-    onAuthStateChanged(auth,()=>setTimeout(autoSyncSignedInAccount,0));
+    onAuthStateChanged(auth,()=>setTimeout(async()=>{
+      await autoSyncSignedInAccount();
+      await downloadAccountToDevice();
+    },0));
   }catch(err){
     console.warn("[BIGLWA] Firebase auth bridge unavailable:",err);
   }
