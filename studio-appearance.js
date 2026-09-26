@@ -7,7 +7,6 @@
   const WALLPAPER_SETTINGS_KEY='biglwaWallpaperSettings';
   const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card),#studioApp .module-workspace .module-card,#studioApp .module-workspace .calendar-board,#studioApp .module-workspace .module-launcher';
   let activeObjectUrl='';
-  let restored=false;
 
   function ensureStyles(){
     let style=$('#biglwa-studio-appearance-style');
@@ -267,13 +266,21 @@
 
   /* The account doc is the source of truth, so signing in on another device restores the
      same wallpaper. Legacy device-only blobs are dropped, never migrated silently. */
+  let restored=false,restoring=false;
   async function restoreWallpaper(){
-    if(restored)return;restored=true;
+    if(restored||restoring)return;restoring=true;
     const cloud=window.BIGLWAWallpaperCloud;
     try{
       if(!cloud){setSafetyStatus('idle','Choose a file to run a private, on-device safety check.');return}
-      if(!await cloud.isSignedIn()){setSafetyStatus('idle','Sign in to load the wallpaper saved to your account.');return}
+      if(!await cloud.isSignedIn()){
+        /* Not signed out for good: leave the guard open so the auth listener below can
+           restore the wallpaper the moment the session is known. */
+        restored=false;
+        setSafetyStatus('idle','Sign in to load the wallpaper saved to your account.');
+        return;
+      }
       const media=await cloud.load();
+      restored=true;
       if(media&&media.state==='approved'){
         paintWallpaper(media);
         const [state,message,badge]=wallpaperStatusCopy(media,null);
@@ -281,7 +288,16 @@
         return;
       }
       setSafetyStatus('idle','Choose a file to run a private, on-device safety check.');
-    }catch{clearWallpaperDisplay();setSafetyStatus('error','Your account wallpaper could not be loaded, so no custom media was shown.')}
+    }catch{restored=true;clearWallpaperDisplay();setSafetyStatus('error','Your account wallpaper could not be loaded, so no custom media was shown.')}
+    finally{restoring=false}
+  }
+
+  /* The session can resolve late on a cold load, or appear after a sign-in without a
+     reload, so follow the auth state instead of deciding once at startup. */
+  function watchAccountMedia(){
+    const cloud=window.BIGLWAWallpaperCloud;
+    if(!cloud||typeof cloud.onAuthStateChange!=='function')return;
+    cloud.onAuthStateChange((user)=>{if(user){restored=false;restoring=false;restoreWallpaper()}});
   }
 
   async function processWallpaper(file,context,button,input){
@@ -412,7 +428,7 @@
   purgeLegacyWallpaper();
   /* The cloud module is a separate script, so give it a moment before deciding the
      account has no wallpaper. */
-  (async()=>{for(let i=0;i<40&&!window.BIGLWAWallpaperCloud;i++)await new Promise(r=>setTimeout(r,100));restored=false;restoreWallpaper()})();
+  (async()=>{for(let i=0;i<40&&!window.BIGLWAWallpaperCloud;i++)await new Promise(r=>setTimeout(r,100));restored=false;restoreWallpaper();watchAccountMedia()})();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeActiveUrl,{once:true});
   setTimeout(run,220);

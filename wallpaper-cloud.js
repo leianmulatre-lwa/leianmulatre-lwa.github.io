@@ -53,8 +53,20 @@ async function firebase() {
 async function signedInUser() {
   try {
     const { auth } = await firebase();
+    /* currentUser is null until the SDK finishes restoring a persisted session, so a
+       signed-in member reads as signed-out on a cold load. authStateReady() settles
+       that race instead of guessing. */
+    if (typeof auth.authStateReady === 'function') { try { await auth.authStateReady(); } catch {} }
     return auth.currentUser || null;
   } catch { return null; }
+}
+
+function onAuthStateChange(handler) {
+  return firebase().then(({ auth }) => {
+    if (typeof auth.onAuthStateChanged !== 'function') return () => {};
+    if (typeof auth.authStateReady === 'function') auth.authStateReady().catch(() => {});
+    return auth.onAuthStateChanged((user) => { try { handler(user); } catch {} });
+  }).catch(() => () => {});
 }
 
 function localUsername() {
@@ -272,6 +284,7 @@ window.BIGLWAWallpaperCloud = {
   isVideo,
   isAdmin,
   isSignedIn: async () => !!(await signedInUser()),
+  onAuthStateChange,
   username: localUsername,
   upload: uploadMedia,
   remove: deleteMedia,
