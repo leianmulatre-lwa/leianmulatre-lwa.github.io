@@ -43,6 +43,21 @@
     .orbit-field-label{display:block;font:700 8px/1.2 system-ui;letter-spacing:.08em;text-transform:uppercase;color:#8b8179;margin:8px 0 4px}
     .module-launchers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.module-launcher{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:14px;padding:15px 12px;text-align:left;cursor:pointer}.module-launcher b{display:block;font-family:Georgia,serif;font-size:14px;margin-bottom:4px}.module-launcher small{font-size:9px;color:#81776f;line-height:1.35}
     .photobooth-stage{position:relative;min-height:420px;border:1px solid #cfc3ba;border-radius:18px;overflow:hidden;background:#171514;display:grid;place-items:center}
+    .video-booth-soon{position:relative;overflow:hidden}
+    .video-booth-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+    .video-booth-head h2{margin:0}
+    .coming-soon-badge{border-radius:999px;padding:3px 9px;background:rgba(var(--aura-rgb,216,95,109),.14);color:#8d3a49;font:700 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+    body.night-mode .coming-soon-badge{color:#f0b7c1}
+    .video-booth-preview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;max-width:520px}
+    .video-booth-tile{display:grid;place-items:center;aspect-ratio:3/4;border-radius:16px;border:1px solid #d8cec5;background:linear-gradient(160deg,#efe7e0,#ded3ca);color:#8a7f77;font:700 11px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+    body.night-mode .video-booth-tile{background:linear-gradient(160deg,#2b2724,#1d1a19);border-color:#4a423c;color:#a2968c}
+    .video-booth-soon .module-action[disabled]{opacity:.5;cursor:not-allowed}
+    .video-booth-status{font-size:9px;color:#81766f;margin:0 0 10px}
+    .video-booth-checks{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+    .video-booth-checks li{position:relative;padding-left:22px;font-size:10px;line-height:1.5;color:#5c534c}
+    .video-booth-checks li::before{content:"";position:absolute;left:0;top:2px;width:12px;height:12px;border-radius:4px;border:1px solid #c9bdb4;background:rgba(255,255,255,.6)}
+    .video-booth-checks li[data-ready="1"]::before{background:#477650;border-color:#3d6444}
+    .video-booth-checks li[data-ready="1"]::after{content:"";position:absolute;left:3px;top:5px;width:5px;height:2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg)}
     .photobooth-stage.has-intro{min-height:0;aspect-ratio:3/2;background:#c9c0bd}
     .photobooth-stage .photobooth-intro{width:100%;height:100%;max-height:none;object-fit:cover;object-position:center;filter:contrast(1.02)}
     .photobooth-stage video,.photobooth-stage canvas,.photobooth-stage img{width:100%;height:100%;max-height:560px;object-fit:cover;display:block}
@@ -384,12 +399,36 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
   function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="module-grid"><section class="module-card wide"><h2>Photobooth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section></div>`;
+    body.innerHTML=heading('camera')+`<div class="module-grid"><section class="module-card wide"><h2>Photobooth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
     const stage=$('#photoStage',body),cap=$('#photoCapture',body),flip=$('#photoFlip',body),status=$('#photoStatus',body),strip=$('#photoStrip',body);let facing='user';
     const start=async()=>{try{stopCamera();activeCameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});stage.classList.remove('has-intro');stage.innerHTML='<video id="boothVideo" autoplay playsinline muted></video>';$('#boothVideo',body).srcObject=activeCameraStream;cap.disabled=false;flip.disabled=false;status.textContent='Photobooth ready.';status.classList.add('ok')}catch(err){status.textContent='Camera could not start. Check browser camera permission or use an existing photo.'}};
     $('#photoStart',body).onclick=start; $('#photoFlip',body).onclick=async()=>{facing=facing==='user'?'environment':'user';await start()};
     cap.onclick=()=>{const v=$('#boothVideo',body);if(!v||!v.videoWidth)return;stage.classList.add('flash');setTimeout(()=>stage.classList.remove('flash'),380);const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0,c.width,c.height);const url=c.toDataURL('image/jpeg',.9);const fig=document.createElement('figure');fig.innerHTML=`<img src="${url}" alt="Photobooth capture"><a href="${url}" download="biglwa-photobooth-${Date.now()}.jpg">save</a>`;strip.prepend(fig);status.textContent='Captured. Save it if you want to keep it.'};
     $('#cameraFile',body).onchange=e=>{const f=e.target.files?.[0];if(!f)return;const url=URL.createObjectURL(f);stage.classList.remove('has-intro');stage.innerHTML=`<img src="${url}" alt="Selected photo">`;cap.disabled=true;status.textContent='Local photo preview — nothing uploaded.'};
+  }
+
+  /* Video Booth: a random one-to-1 video chat booth, held back until the safety work
+     below it is finished. Nothing here starts a camera or a call. */
+  function renderVideoBooth(){
+    return `<section class="module-card wide video-booth-soon" aria-labelledby="videoBoothTitle">
+      <div class="video-booth-head">
+        <h2 id="videoBoothTitle">Video Booth</h2>
+        <span class="coming-soon-badge">Coming soon</span>
+      </div>
+      <p>Get matched with one person from the community for a private video booth. Filter who you would rather meet, and skip or end a booth whenever you want.</p>
+      <div class="video-booth-preview" aria-hidden="true"><span class="video-booth-tile you">You</span><span class="video-booth-tile them">Them</span></div>
+      <div class="module-actions">
+        <button class="module-action" type="button" disabled aria-disabled="true">Start a booth</button>
+        <button class="module-action secondary" type="button" disabled aria-disabled="true">Next booth</button>
+      </div>
+      <p class="video-booth-status">This booth is not open yet. It stays closed until the safety tools below are ready.</p>
+      <ul class="video-booth-checks">
+        <li data-ready="0">Report and block controls, with a fast way out of every booth</li>
+        <li data-ready="0">A queue and camera check before anyone is matched</li>
+        <li data-ready="0">Moderation review of reported booths</li>
+        <li data-ready="0">Age and consent rules agreed before the first match</li>
+      </ul>
+    </section>`;
   }
 
   const TRENDING_ROOMS=[['lounge','The Lounge','BIGLWA home room'],['minecraft','#minecraft','Trending room'],['fortnite','#fortnite','Trending room'],['deadbydaylight','#deadbydaylight','Trending room'],['rocketleague','#rocketleague','Trending room'],['biglwa','#biglwa','Trending room'],['arcade','#arcade','Trending room'],['support','#support','Trending room'],['gov','#gov','Trending room'],['substack','#substack','Trending room']];
