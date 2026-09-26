@@ -85,7 +85,9 @@ function showLoginScreen(){
 function renderAuraCopy(text){
   const copy=$("#studioApp .aura-card p");
   if(!copy) return;
-  const lines=clean(text).split(/\n+/).map(line=>line.trim()).filter(Boolean);
+  /* Same fallback the studio uses, so a member without aura text never shows the guest's. */
+  const source=clean(text)||"Focused\nbut dreaming.";
+  const lines=source.split(/\n+/).map(line=>line.trim()).filter(Boolean);
   if(!lines.length) return;
   copy.replaceChildren();
   const lead=document.createElement("strong");
@@ -434,7 +436,11 @@ function enforce(){
   if(preview.title && document.title!==preview.title) document.title=preview.title;
   const name=clean(preview.profile?.name)||clean(preview.profile?.username);
   const shown=$("#studioApp .profile-display-name");
-  if(shown && name && clean(shown.textContent)!==name) applyIdentity(preview.profile);
+  const nameDrift=!!(shown && name && clean(shown.textContent)!==name);
+  const lead=clean(preview.profile?.auraText).split(/\n+/)[0]||"Focused";
+  const aura=$("#studioApp .aura-card p");
+  const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
+  if(nameDrift || auraDrift) applyIdentity(preview.profile);
   decorateGuestCard();
   checkSignedIn();
 }
