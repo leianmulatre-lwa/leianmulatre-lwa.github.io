@@ -432,6 +432,9 @@ function enforce(){
   if(!app.classList.contains("is-active") || loginPage()?.classList.contains("is-active")) showStudioScreen();
   if(location.pathname!==preview.path) history.replaceState({},"",preview.path);
   if(preview.title && document.title!==preview.title) document.title=preview.title;
+  const name=clean(preview.profile?.name)||clean(preview.profile?.username);
+  const shown=$("#studioApp .profile-display-name");
+  if(shown && name && clean(shown.textContent)!==name) applyIdentity(preview.profile);
   decorateGuestCard();
   checkSignedIn();
 }
