@@ -184,7 +184,7 @@
       #studioApp .sidebar-route-control.is-docked{background:rgba(255,255,255,.52);box-shadow:inset 0 0 0 1px rgba(var(--sidebar-section-rgb),.3)}
       #studioApp .sidebar-route-control.is-docked::before{content:"↩";position:absolute;right:7px;top:50%;transform:translateY(-50%);font:700 10px/1 Inter,system-ui,sans-serif;color:rgb(var(--sidebar-section-rgb))}
       #studioApp .hero-action-bar{grid-template-columns:repeat(var(--studio-action-count,9),minmax(70px,1fr))!important}
-      #studioApp .biglwa-nav-project-symbol{display:block!important;width:30px!important;height:27px!important;object-fit:contain!important;object-position:center!important;filter:brightness(0)!important}#studioApp .biglwa-library-fallback{display:block!important;width:29px!important;height:23px!important;color:currentColor!important}
+      #studioApp .biglwa-nav-project-symbol{display:block!important;width:30px!important;height:27px!important;object-fit:contain!important;object-position:center!important}#studioApp .biglwa-library-fallback{display:block!important;width:29px!important;height:23px!important;color:currentColor!important}
       #studioApp .biglwa-archive-horizontal-symbol{display:inline-grid!important;place-items:center!important;width:30px!important;height:27px!important;line-height:1!important;transform:rotate(90deg)!important;transform-origin:center!important}
       #studioApp .biglwa-archive-horizontal-symbol img,#studioApp .biglwa-archive-horizontal-symbol svg{display:block!important;max-width:27px!important;max-height:27px!important}
       #studioApp .hero-action-bar>a[data-shortcut-route="projects"]>img,#studioApp .hero-action-bar>a[data-shortcut-route="archive"]>.biglwa-archive-horizontal-symbol{margin:0 auto 5px!important}
