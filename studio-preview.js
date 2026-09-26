@@ -3,6 +3,8 @@
  * that member's studio. Browsing stays open, profile music keeps playing, and
  * anything that would change or personalise the space asks for an account first.
  */
+import { showPreviewIdentity, clearPreviewIdentity } from "./account-chrome.js";
+import { identity } from "./account-identity.js";
 const PREVIEW_RESERVED = new Set([
   "studio","login","privacy","terms","rights","photo-booth","map-app",
   "bootstrap-v2","base-v1","index","404","favicon","assets"
@@ -129,6 +131,13 @@ function applyIdentity(data){
   if(welcome && name) welcome.textContent=name.charAt(0).toUpperCase()+name.slice(1);
   const avatar=$("#studioApp .mini-avatar");
   if(avatar && name) avatar.textContent=name.charAt(0).toUpperCase();
+  /* The top-right chip repeats the viewer's own name, so a previewing visitor sees their
+     own account labelled on somebody else's studio. Paint the profile being looked at. */
+  showPreviewIdentity({
+    name,
+    username: data.username,
+    avatarUrl: data.avatarUrl || data.profilePhotoUrl || data.profilePhoto?.url || ""
+  });
   document.body.classList.add("biglwa-identity-ready");
   return true;
 }
@@ -136,7 +145,12 @@ function applyIdentity(data){
 function localProfile(){
   let saved=null;
   try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
-  return saved&&typeof saved==="object"?saved:{};
+  saved=saved&&typeof saved==="object"?saved:{};
+  /* The signed-in account wins over the device-wide slot, otherwise signing in as one
+     member and then another leaves the first member's name on the studio. */
+  const live=identity();
+  if(live) return { ...saved, username:live.username||saved.username, name:live.name||saved.name, avatarUrl:live.avatarUrl||saved.avatarUrl };
+  return saved;
 }
 
 function snapshotAppearance(){
@@ -439,6 +453,7 @@ function standDown(){
   removeBanner();
   document.documentElement.classList.remove("biglwa-preview-mode");
   restoreAppearance();
+  clearPreviewIdentity();
   const me=localProfile();
   applyIdentity({
     name:clean(me.name)||"BIGLWA",

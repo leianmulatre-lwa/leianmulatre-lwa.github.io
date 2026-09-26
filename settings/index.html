@@ -98,6 +98,27 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
       <p class="status" id="accountStatusSignedOut" role="status" aria-live="polite" hidden></p>
     </div>
 
+    <div class="card" id="photoCard" style="margin-top:22px" hidden>
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Profile photo</h3>
+      <p id="photoIntro">Your picture is stored with your account and shown on your studio, on the small avatar in the top right, and on your public profile. It is never posted anywhere else.</p>
+
+      <div class="identity">
+        <span class="biglwa-photo-preview" id="photoPreview" aria-hidden="true"
+              style="width:84px;height:84px;border-radius:50%;background-size:cover;background-position:center;background-image:none;background:linear-gradient(145deg,#2c2523,#d18d6b)"></span>
+        <span>
+          <span class="email" id="photoName">&nbsp;</span><br>
+          <span class="status" id="photoStatus" role="status" aria-live="polite"></span>
+        </span>
+      </div>
+
+      <div class="row">
+        <label class="button secondary" for="photoInput" style="cursor:pointer">Choose a photo</label>
+        <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        <button type="button" id="photoRemove" class="secondary">Remove photo</button>
+      </div>
+    </div>
+
     <div class="note">
       <p><strong>Changing your email is verified, not assumed.</strong> Big LWA sends a confirmation to the new address and only swaps it once you click that link, so nobody can take over your account by typing your name into a form.</p>
       <p>Password reset links are single-use and expire. If you signed in with Google, Apple, or another provider, your password lives with that provider and there is nothing here to reset.</p>
@@ -171,5 +192,6 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
 <script src="/supporter-logos.js?v=20260913-public-supporters-2"></script>
 <script src="/policy-card-cohesion.js?v=20260913-public-supporters-4"></script>
 <script src="/settings-account.js?v=20260926-account-settings-1"></script>
+<script type="module" src="/settings-photo.js?v=20260926-photo-1"></script>
 </body>
 </html>

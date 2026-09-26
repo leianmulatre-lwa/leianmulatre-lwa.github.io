@@ -4,8 +4,8 @@
   const MENU_ID = 'biglwaAccountMenu';
 
   const css = `
-#${MENU_ID}{position:absolute;z-index:1200;min-width:196px;margin-top:8px;padding:6px;border-radius:14px;
-  background:#fffdf9;border:1px solid rgba(117,92,79,.22);box-shadow:0 18px 44px rgba(43,32,28,.22)}
+#${MENU_ID}{position:absolute;top:calc(100% + 10px);right:0;left:auto;z-index:1200;min-width:196px;padding:6px;
+  border-radius:14px;background:#fffdf9;border:1px solid rgba(117,92,79,.22);box-shadow:0 18px 44px rgba(43,32,28,.22)}
 #${MENU_ID}[hidden]{display:none!important}
 #${MENU_ID} .biglwa-account-menu-label{padding:7px 10px 6px;font:700 9px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;
   letter-spacing:.12em;text-transform:uppercase;color:#8b8179}
@@ -79,6 +79,11 @@ html.biglwa-preview-mode #${MENU_ID}{display:none!important}
 
     menu.append(label, link);
     trigger.parentNode.insertBefore(menu, trigger.nextSibling);
+    /* An absolutely positioned box is placed against the containing block's padding edge,
+       so a padded chip leaves the menu hanging past it. Cancel that padding to line the
+       menu's own edge up with the chip's. */
+    const padRight = parseFloat(getComputedStyle(trigger).paddingRight) || 0;
+    if (padRight) menu.style.right = padRight + 'px';
     return menu;
   }
 

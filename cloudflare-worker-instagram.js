@@ -521,12 +521,19 @@ async function pnRoute(request, env) {
  *   POST   /media/wallpaper?kind=image|video&state=pending|approved
  *   GET    /media/wallpaper/<uid>/<file>
  *   DELETE /media/wallpaper/<uid>/<file>
+ *   POST   /media/profile-photo
+ *   GET    /media/profile-photo/<uid>/<file>
+ *   DELETE /media/profile-photo/<uid>/<file>
  */
 const MEDIA_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MEDIA_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const MEDIA_EXTENSIONS = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' };
 const MEDIA_MAX_IMAGE = 30 * 1024 * 1024;
 const MEDIA_MAX_VIDEO = 120 * 1024 * 1024;
+/* A profile picture is shown in a 34-106px circle, so it needs a far smaller ceiling than
+   a wallpaper and is never a video. */
+const MEDIA_MAX_PHOTO = 8 * 1024 * 1024;
+const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos' };
 
 function mediaFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
 
@@ -562,16 +569,24 @@ async function mediaUser(request, env) {
   return { uid, email: String(info.email || '') };
 }
 
+function mediaSegment(pathname) {
+  const match = /^\/media\/(wallpaper|profile-photo)(?:\/|$)/.exec(pathname);
+  return match ? match[1] : '';
+}
+
 function mediaKeyParts(pathname) {
-  const parts = pathname.replace(/^\/media\/wallpaper\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  const segment = mediaSegment(pathname);
+  if (!segment) mediaFail('Media not found.', 404);
+  const parts = pathname.replace(/^\/media\/[^/]+\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
   if (parts.length !== 2 || !parts[0] || !parts[1]) mediaFail('Media not found.', 404);
   if (!/^[A-Za-z0-9_-]{8,128}$/.test(parts[0]) || !/^[A-Za-z0-9._-]{1,120}$/.test(parts[1])) mediaFail('Media not found.', 404);
-  return { uid: parts[0], name: parts[1], key: 'wallpapers/' + parts[0] + '/' + parts[1] };
+  return { uid: parts[0], name: parts[1], key: MEDIA_FOLDERS[segment] + '/' + parts[0] + '/' + parts[1] };
 }
 
 async function mediaRoute(request, env) {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
+  const segment = mediaSegment(url.pathname);
   /* Lets the site confirm the binding is wired without signing anyone in. */
   if (url.pathname === '/media/health' && request.method === 'GET') {
     return json({
@@ -579,32 +594,38 @@ async function mediaRoute(request, env) {
       service: 'BIGLWA account media',
       bucket: 'wallpaper-bucket',
       configured: mediaBucketReady(env),
-      methods: ['POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>']
+      methods: [
+        'POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>',
+        'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>'
+      ]
     }, 200, request, env);
   }
-  if (request.method === 'POST' && (url.pathname === '/media/wallpaper' || url.pathname === '/media/wallpaper/')) return mediaUpload(request, env, url);
-  if (request.method === 'GET') return mediaServe(request, env, mediaKeyParts(url.pathname));
-  if (request.method === 'DELETE') return mediaDelete(request, env, mediaKeyParts(url.pathname));
+  if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/media/' + segment) {
+    return mediaUpload(request, env, url, segment);
+  }
+  if (request.method === 'GET' && segment) return mediaServe(request, env, mediaKeyParts(url.pathname));
+  if (request.method === 'DELETE' && segment) return mediaDelete(request, env, mediaKeyParts(url.pathname));
   return json({ error: 'Not found' }, 404, request, env);
 }
 
-async function mediaUpload(request, env, url) {
+async function mediaUpload(request, env, url, segment = 'wallpaper') {
   const user = await mediaUser(request, env);
   const bucket = mediaBucket(env);
   const contentType = String(request.headers.get('Content-Type') || '').split(';')[0].trim().toLowerCase();
-  const kind = url.searchParams.get('kind') === 'video' ? 'video' : 'image';
+  const photo = segment === 'profile-photo';
+  const kind = !photo && url.searchParams.get('kind') === 'video' ? 'video' : 'image';
   const allowed = kind === 'video' ? MEDIA_VIDEO_TYPES : MEDIA_IMAGE_TYPES;
   if (!allowed.includes(contentType)) mediaFail('Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.');
   const declared = Number(request.headers.get('Content-Length') || 0);
-  const limit = kind === 'video' ? MEDIA_MAX_VIDEO : MEDIA_MAX_IMAGE;
-  if (declared && declared > limit) mediaFail('That file is larger than the ' + (limit / 1024 / 1024) + ' MB limit for ' + kind + 's.', 413);
-  const state = url.searchParams.get('state') === 'approved' ? 'approved' : 'pending';
+  const limit = photo ? MEDIA_MAX_PHOTO : kind === 'video' ? MEDIA_MAX_VIDEO : MEDIA_MAX_IMAGE;
+  if (declared && declared > limit) mediaFail('That file is larger than the ' + Math.round(limit / 1024 / 1024) + ' MB limit for ' + (photo ? 'profile photos' : kind + 's') + '.', 413);
+  const state = photo ? 'approved' : url.searchParams.get('state') === 'approved' ? 'approved' : 'pending';
   const body = await request.arrayBuffer();
   if (!body.byteLength) mediaFail('That file was empty.', 400);
-  if (body.byteLength > limit) mediaFail('That file is larger than the ' + (limit / 1024 / 1024) + ' MB limit for ' + kind + 's.', 413);
+  if (body.byteLength > limit) mediaFail('That file is larger than the ' + Math.round(limit / 1024 / 1024) + ' MB limit for ' + (photo ? 'profile photos' : kind + 's') + '.', 413);
   const createdAt = Date.now();
   const name = createdAt + '-' + randomToken(16) + '.' + MEDIA_EXTENSIONS[contentType];
-  const key = 'wallpapers/' + user.uid + '/' + name;
+  const key = MEDIA_FOLDERS[segment] + '/' + user.uid + '/' + name;
   await bucket.put(key, body, {
     httpMetadata: { contentType, cacheControl: 'private, max-age=31536000, immutable' },
     customMetadata: { uid: user.uid, kind, state, name: String(url.searchParams.get('name') || '').slice(0, 120), createdAt: String(createdAt) }
@@ -613,7 +634,7 @@ async function mediaUpload(request, env, url) {
     ok: true,
     key: user.uid + '/' + name,
     kind, state, contentType, size: body.byteLength, createdAt,
-    url: url.origin + '/media/wallpaper/' + user.uid + '/' + name
+    url: url.origin + '/media/' + segment + '/' + user.uid + '/' + name
   }, 200, request, env);
 }
 
