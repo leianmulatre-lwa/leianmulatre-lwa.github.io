@@ -538,17 +538,21 @@ function mediaBucket(env) {
 
 function mediaBucketReady(env) { return !!(env.WALLPAPER_BUCKET || env.MEDIA_BUCKET || env.R2_BUCKET); }
 
-/* Google verifies the signature, audience and expiry for us, so an unverified
- * id_token can never reach the bucket. */
-async function mediaUser(request) {
+/* Google verifies the signature and expiry for us, so an unverified id_token
+ * can never reach the bucket. The issuer claim pins the token to our Firebase
+ * project, so a valid token minted by another project is still refused. */
+async function mediaUser(request, env) {
   const header = request.headers.get('Authorization') || '';
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
   if (!token) mediaFail('Sign in to use account media.', 401);
-  const response = await fetch('https://securetoken.googleapis.com/v1/tokeninfo?id_token=' + encodeURIComponent(token));
+  const response = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token));
   if (!response.ok) mediaFail('Your session expired. Sign in again to use account media.', 401);
   const info = await response.json().catch(() => ({}));
+  const projectId = String(env.FIREBASE_PROJECT_ID || 'biglwa').trim();
+  if (info.iss !== 'https://securetoken.google.com/' + projectId) mediaFail('That sign-in is not from this account system.', 403);
   const uid = String(info.sub || '').trim();
-  if (!uid || info.email_verified === 'false') mediaFail('That account cannot store media.', 403);
+  const verified = String(info.email_verified || '').toLowerCase();
+  if (!uid || (verified && verified !== 'true')) mediaFail('That account cannot store media.', 403);
   return { uid, email: String(info.email || '') };
 }
 
@@ -579,7 +583,7 @@ async function mediaRoute(request, env) {
 }
 
 async function mediaUpload(request, env, url) {
-  const user = await mediaUser(request);
+  const user = await mediaUser(request, env);
   const bucket = mediaBucket(env);
   const contentType = String(request.headers.get('Content-Type') || '').split(';')[0].trim().toLowerCase();
   const kind = url.searchParams.get('kind') === 'video' ? 'video' : 'image';
@@ -628,7 +632,7 @@ async function mediaServe(request, env, { key }) {
 }
 
 async function mediaDelete(request, env, { uid, key }) {
-  const user = await mediaUser(request);
+  const user = await mediaUser(request, env);
   if (user.uid !== uid) mediaFail('You can only remove your own media.', 403);
   const bucket = mediaBucket(env);
   await bucket.delete(key);
