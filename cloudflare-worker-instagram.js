@@ -40,8 +40,35 @@ function assertEnvironment(env) {
   if (missing.length) throw new Error('Missing Worker bindings: ' + missing.join(', '));
 }
 
+/* Meta compares the redirect URI against the value registered in the app dashboard as an
+   exact string, so it is kept in a secret instead of being pinned to a hostname in code.
+   The default covers the current worker; set INSTAGRAM_REDIRECT_URI when the worker moves,
+   and the exact value the Worker will send is reported by /media/health so a stale
+   registration is visible without reading source. */
+const DEFAULT_INSTAGRAM_REDIRECT_URI = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev/oauth/callback';
+
 function redirectUri(env) {
-  return 'https://biglwa-instagram-api.leianmulatre-284.workers.dev/oauth/callback';
+  const value = (env.INSTAGRAM_REDIRECT_URI || DEFAULT_INSTAGRAM_REDIRECT_URI).trim();
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error('INSTAGRAM_REDIRECT_URI is not a valid URL. Set it to the exact redirect URI registered in Meta.');
+  }
+  if (parsed.protocol !== 'https:') throw new Error('INSTAGRAM_REDIRECT_URI must use https, which Instagram requires.');
+  /* Return the trimmed original rather than parsed.href: normalising could rewrite the
+     string and break Meta's exact match, which is the failure this is meant to prevent. */
+  return value;
+}
+
+/* Health output is diagnostic and must not itself fail, so a bad secret is reported
+   rather than thrown when it is only being displayed. */
+function safeRedirectUri(env) {
+  try {
+    return redirectUri(env);
+  } catch (error) {
+    return 'invalid: ' + error.message;
+  }
 }
 
 async function startOAuth(url, env) {
@@ -594,6 +621,10 @@ async function mediaRoute(request, env) {
       service: 'BIGLWA account media',
       bucket: 'wallpaper-bucket',
       configured: mediaBucketReady(env),
+      /* Instagram rejects the connection when this does not match the app dashboard
+         character for character, and that error surfaces only after the member has
+         already clicked connect, so report the exact expected value here. */
+      instagramRedirectUri: safeRedirectUri(env),
       methods: [
         'POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>',
         'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>'
