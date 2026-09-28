@@ -1,10 +1,13 @@
 /* BIGLWA account boot
  * One entry point that starts the per-account identity, paints it onto the studio chrome,
- * and loads the stored profile photo. Registered after the studio markup exists.
+ * loads the stored profile photo, and mirrors the connected Orbit sources onto the
+ * account. Registered after the studio markup exists.
  */
 import { startIdentity, refreshIdentity, identity } from "./account-identity.js";
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
+import { startConnections } from "./orbit-connections.js";
+import { startFeed } from "./feed-view.js";
 
 function boot() {
   startIdentity();
@@ -15,6 +18,10 @@ function boot() {
       loadProfilePhoto();
     }
   });
+  /* Independent of the photo: a member with a connected source and no profile picture
+     still needs their connections recorded and the feed available. */
+  startConnections();
+  startFeed();
 }
 
 if (document.readyState === "loading") {

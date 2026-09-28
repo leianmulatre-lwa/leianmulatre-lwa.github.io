@@ -5,8 +5,11 @@ const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/pinterest/'
 const KEY='biglwaPinterestSession';
 let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const session=()=>{try{return sessionStorage.getItem(KEY)||''}catch{return ''}};
-const save=v=>{if(v)sessionStorage.setItem(KEY,v);else sessionStorage.removeItem(KEY)};
+ /* The session id is a credential that should outlive the tab, like the other two
+    sources, so the connection does not vanish when the window is closed. The PKCE
+    verifier stays in session storage: it is only needed for the one round trip. */
+ const session=()=>{try{return localStorage.getItem(KEY)||''}catch{return ''}};
+ const save=v=>{try{if(v)localStorage.setItem(KEY,v);else localStorage.removeItem(KEY)}catch{}};
 const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 function notice(text){message=text;render();let el=document.getElementById('pinterestNotice');if(!el){el=document.createElement('div');el.id='pinterestNotice';el.setAttribute('role','status');el.style.cssText='position:fixed;right:18px;bottom:18px;max-width:360px;padding:16px;background:#fff5eb;color:#302b28;border:1px solid #ccc;border-radius:12px;z-index:15000';document.body.append(el)}el.textContent=text;clearTimeout(notice.timer);notice.timer=setTimeout(()=>el.remove(),10000)}
 async function api(path,body){

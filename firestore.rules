@@ -68,6 +68,18 @@ service cloud.firestore {
             || request.resource.data.wallpaper.state == 'approved'));
     }
 
+    // Feed posts are public to read, like the public profile entries they sit beside.
+    // Only the author may create, change, or remove one. The uid is stamped on the
+    // document at creation and may not be moved afterwards, otherwise an author could
+    // hand a post to someone else and then keep editing it through their own account.
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.uid);
+      allow update: if isOwner(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid;
+      allow delete: if isOwner(resource.data.uid);
+    }
+
     // Wallpaper moderation queue. Members may open a review for their own media and
     // follow their own queue; only moderators can decide one.
     match /wallpaperReviews/{reviewId} {

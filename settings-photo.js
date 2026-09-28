@@ -4,6 +4,7 @@
  */
 import { uploadProfilePhoto, removeProfilePhoto, loadProfilePhoto } from "./account-photo.js";
 import { onIdentityChange, identity, startIdentity } from "./account-identity.js";
+import { onConnectionsChange, forget, startConnections } from "./orbit-connections.js";
 
 const el = (id) => document.getElementById(id);
 const say = (node, text, tone) => {
@@ -35,6 +36,40 @@ function showFor(who) {
   loadProfilePhoto().then((url) => paintPreview(url));
 }
 
+const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function counts(stats) {
+  if (!stats) return "";
+  const part = (label, value) => (value == null ? "" : label + " " + Number(value).toLocaleString());
+  const bits = [part("followers", stats.followers), part("posts", stats.mediaCount),
+    part("boards", stats.boards), part("pins", stats.pins)].filter(Boolean);
+  return bits.length ? " · " + bits.join(" · ") : "";
+}
+
+function showConnections(list) {
+  const card = document.getElementById("connectionsCard");
+  const box = document.getElementById("connectionsList");
+  if (!card || !box) return;
+  const who = identity();
+  const rows = Object.values(list || {});
+  /* Connections live on the account, so they are only meaningful to a signed-in member.
+     A visitor sees nothing rather than an empty panel that looks broken. */
+  card.hidden = !who || !rows.length;
+  if (card.hidden) return;
+  box.innerHTML = rows.map((row) => {
+    const name = esc(row.name || row.username || row.label);
+    const handle = row.username ? "@" + esc(row.username) : "";
+    const picture = row.avatarUrl
+      ? '<img src="' + esc(row.avatarUrl) + '" alt="" width="52" height="52" style="border-radius:50%;object-fit:cover;flex:0 0 auto">'
+      : '<span aria-hidden="true" style="width:52px;height:52px;border-radius:50%;flex:0 0 auto;background:#e6dcd1"></span>';
+    return '<div class="identity" style="margin:12px 0 0" data-connection="' + esc(row.id) + '">' + picture +
+      "<span><b>" + name + "</b> " + handle +
+      '<span class="email">' + esc(row.label) + counts(row.stats) + "</span></span>" +
+      '<button type="button" class="secondary" data-unlink="' + esc(row.id) + '">Unlink</button></div>';
+  }).join("");
+}
+
 function start() {
   const input = el("photoInput");
   const remove = el("photoRemove");
@@ -44,6 +79,24 @@ function start() {
   onIdentityChange(showFor);
   startIdentity();
   showFor(identity());
+
+  onConnectionsChange(showConnections);
+  startConnections();
+
+  document.addEventListener("click", async (event) => {
+    const button = event.target && event.target.closest ? event.target.closest("[data-unlink]") : null;
+    if (!button) return;
+    button.disabled = true;
+    const previous = button.textContent;
+    button.textContent = "Unlinking…";
+    await forget(button.dataset.unlink);
+    /* The row is removed by the connections change, so this only has to cover the case
+       where it stays put, and say why nothing appeared to happen. */
+    if (button.isConnected) {
+      button.textContent = "Unlinked";
+      setTimeout(() => { button.textContent = previous; button.disabled = false; }, 1600);
+    }
+  });
 
   input.addEventListener("change", async () => {
     const file = input.files && input.files[0];

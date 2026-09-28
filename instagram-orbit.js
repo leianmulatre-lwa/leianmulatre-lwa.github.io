@@ -20,7 +20,9 @@
     if (!toast) { toast = document.createElement('div'); toast.id = 'biglwaInstagramStatus'; toast.setAttribute('role', 'status'); toast.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:12000;max-width:330px;padding:11px 14px;border:1px solid rgba(80,70,64,.2);border-radius:12px;background:rgba(250,247,241,.96);box-shadow:0 12px 34px rgba(0,0,0,.14);font:600 11px/1.4 system-ui;color:#302b28'; document.body.appendChild(toast); }
     toast.textContent = message; clearTimeout(status.timer); status.timer = setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 6000);
   }
-  function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/studio?view=orbit')); }
+  /* /studio is a stub that rebuilds the query and would drop the handoff code, so the
+     return goes to the site root the app actually runs from. */
+  function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/?route=studio&view=orbit')); }
   function restore() {
     if (!session()) return Promise.resolve();
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) { state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render(); }).catch(function (error) {

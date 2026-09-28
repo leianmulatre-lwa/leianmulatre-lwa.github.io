@@ -381,9 +381,12 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
   }
 
   function renderFeed(){
-    const storage='biglwaFeedPosts'; const seed=[{title:'Maya added to Diaspora Docs',meta:'project update'},{title:'Jules published a closet drop',meta:'community'}]; const posts=readJSON(storage,seed);
-    body.innerHTML=heading('feed')+`<div class="module-grid"><section class="module-card"><h2>Post an update</h2><form class="module-form" id="feedComposer"><textarea class="module-input" style="min-height:96px;resize:vertical" name="text" placeholder="What changed? What are you making?"></textarea><button class="module-action" type="submit">Post</button></form></section><section class="module-card"><h2>Collective feed</h2><div class="module-list" id="feedPageList">${listHtml(posts,'post')}</div></section></div>`;
-    const render=()=>{$('#feedPageList',body).innerHTML=listHtml(readJSON(storage,[]),'post')}; $('#feedComposer',body).onsubmit=e=>{e.preventDefault();const text=(new FormData(e.currentTarget).get('text')||'').trim();if(!text)return;const cur=readJSON(storage,[]);cur.unshift({title:text,meta:'just now · local prototype'});writeJSON(storage,cur);e.currentTarget.reset();render()}; $('#feedPageList',body).onclick=e=>{const b=e.target.closest('[data-remove-item]');if(!b)return;const cur=readJSON(storage,[]);cur.splice(Number(b.dataset.removeItem),1);writeJSON(storage,cur);render()};
+    /* The feed is rendered by feed-view.js: posts live in Firestore under their author
+       and may carry a picture, so the old per-device text-only prototype is gone rather
+       than left to overwrite the real feed on its next render. The shell stays here so
+       the route still has a heading, a composer to upgrade, and the shared list the
+       connected sources pour into. */
+    body.innerHTML=heading('feed')+`<div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><form class="module-form" id="feedComposer"><textarea class="module-input" style="min-height:96px;resize:vertical" name="text" placeholder="What changed? What are you making?"></textarea><button class="module-action" type="submit">Post</button></form></section><section class="module-card"><h2>Collective feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
   }
 
   function renderConnect(){

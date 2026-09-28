@@ -47,6 +47,18 @@ function assertEnvironment(env) {
    registration is visible without reading source. */
 const DEFAULT_INSTAGRAM_REDIRECT_URI = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev/oauth/callback';
 
+/* The studio is the site root. /studio is only a stub that forwards to /?route=studio and
+   rebuilds the query from scratch, so the single-use handoff code that carries the new
+   connection was silently dropped and the member landed back on an unconnected site with
+   nothing to show for it. Every return path goes to the root so the handoff survives. */
+function studioUrl(env, view) {
+  const target = new URL(env.SITE_URL || 'https://biglwa.com');
+  target.pathname = '/';
+  target.searchParams.set('route', 'studio');
+  if (view) target.searchParams.set('view', view);
+  return target.toString();
+}
+
 function redirectUri(env) {
   const value = (env.INSTAGRAM_REDIRECT_URI || DEFAULT_INSTAGRAM_REDIRECT_URI).trim();
   let parsed;
@@ -72,7 +84,7 @@ function safeRedirectUri(env) {
 }
 
 async function startOAuth(url, env) {
-  const requestedReturn = url.searchParams.get('return_to') || env.SITE_URL + '/studio?view=orbit';
+  const requestedReturn = url.searchParams.get('return_to') || studioUrl(env, 'orbit');
   const returnTo = safeReturnUrl(requestedReturn, env);
   const nonce = randomToken(32);
   const state = nonce + '.' + bytesToBase64Url(await hmac(env.STATE_SECRET, nonce));
@@ -300,8 +312,8 @@ function safeReturnUrl(value, env) {
   try {
     const candidate = new URL(value);
     const site = new URL(env.SITE_URL);
-    return candidate.origin === site.origin ? candidate.toString() : site.origin + '/studio?view=orbit';
-  } catch { return env.SITE_URL + '/studio?view=orbit'; }
+    return candidate.origin === site.origin ? candidate.toString() : studioUrl(env, 'orbit');
+  } catch { return studioUrl(env, 'orbit'); }
 }
 
 function redirectError(destination, message) {
@@ -411,7 +423,7 @@ async function ttRoute(request, env) {
     const saved = await env.OAUTH_SESSIONS.get('tt:state:' + state, 'json');
     if (!saved || !ttCookie(request) || saved.browser !== ttCookie(request)) ttFail('TikTok login expired or was opened in another browser. Start again from Orbit.', 400);
     await env.OAUTH_SESSIONS.delete('tt:state:' + state);
-    const destination = new URL('/studio?view=orbit', env.SITE_URL);
+    const destination = new URL(studioUrl(env, 'orbit'));
     if (url.searchParams.has('error') || !url.searchParams.get('code')) {
       destination.searchParams.set('tiktok_error', 'TikTok authorization was cancelled or denied. Please try again.');
       return ttRedirect(destination.href, '');
@@ -502,7 +514,7 @@ async function pnRoute(request, env) {
     const saved = await env.OAUTH_SESSIONS.get('pn:state:' + state, 'json');
     if (!saved || !pnCookie(request) || saved.browser !== pnCookie(request)) pnFail('Pinterest login expired or was opened in another browser. Start again from Orbit.', 400);
     await env.OAUTH_SESSIONS.delete('pn:state:' + state);
-    const destination = new URL('/studio?view=boards', env.SITE_URL);
+    const destination = new URL(studioUrl(env, 'boards'));
     if (url.searchParams.has('error') || !url.searchParams.get('code')) {
       destination.searchParams.set('pinterest_error', 'Pinterest authorization was cancelled or denied. Please try again.');
       return pnRedirect(destination.href, '');
@@ -588,7 +600,7 @@ const MEDIA_MAX_VIDEO = 120 * 1024 * 1024;
 /* A profile picture is shown in a 34-106px circle, so it needs a far smaller ceiling than
    a wallpaper and is never a video. */
 const MEDIA_MAX_PHOTO = 8 * 1024 * 1024;
-const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos' };
+const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos', 'feed-image': 'feed-images' };
 
 function mediaFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
 
@@ -625,7 +637,7 @@ async function mediaUser(request, env) {
 }
 
 function mediaSegment(pathname) {
-  const match = /^\/media\/(wallpaper|profile-photo)(?:\/|$)/.exec(pathname);
+  const match = /^\/media\/(wallpaper|profile-photo|feed-image)(?:\/|$)/.exec(pathname);
   return match ? match[1] : '';
 }
 
@@ -655,14 +667,15 @@ async function mediaRoute(request, env) {
       instagramRedirectUri: safeRedirectUri(env),
       methods: [
         'POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>',
-        'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>'
+        'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>',
+        'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>'
       ]
     }, 200, request, env);
   }
   if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/media/' + segment) {
     return mediaUpload(request, env, url, segment);
   }
-  if (request.method === 'GET' && segment) return mediaServe(request, env, mediaKeyParts(url.pathname));
+  if (request.method === 'GET' && segment) return mediaServe(request, env, mediaKeyParts(url.pathname), segment);
   if (request.method === 'DELETE' && segment) return mediaDelete(request, env, mediaKeyParts(url.pathname));
   return json({ error: 'Not found' }, 404, request, env);
 }
@@ -671,22 +684,23 @@ async function mediaUpload(request, env, url, segment = 'wallpaper') {
   const user = await mediaUser(request, env);
   const bucket = mediaBucket(env);
   const contentType = String(request.headers.get('Content-Type') || '').split(';')[0].trim().toLowerCase();
-  const photo = segment === 'profile-photo';
+  /* The wallpaper is the only media that can be video and the only kind that waits for review. */
+  const photo = segment !== 'wallpaper';
   const kind = !photo && url.searchParams.get('kind') === 'video' ? 'video' : 'image';
   const allowed = kind === 'video' ? MEDIA_VIDEO_TYPES : MEDIA_IMAGE_TYPES;
   if (!allowed.includes(contentType)) mediaFail('Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.');
   const declared = Number(request.headers.get('Content-Length') || 0);
   const limit = photo ? MEDIA_MAX_PHOTO : kind === 'video' ? MEDIA_MAX_VIDEO : MEDIA_MAX_IMAGE;
-  if (declared && declared > limit) mediaFail('That file is larger than the ' + Math.round(limit / 1024 / 1024) + ' MB limit for ' + (photo ? 'profile photos' : kind + 's') + '.', 413);
+  if (declared && declared > limit) mediaFail('That file is larger than the ' + Math.round(limit / 1024 / 1024) + ' MB limit for ' + (photo ? (segment === 'feed-image' ? 'feed images' : 'profile photos') : kind + 's') + '.', 413);
   const state = photo ? 'approved' : url.searchParams.get('state') === 'approved' ? 'approved' : 'pending';
   const body = await request.arrayBuffer();
   if (!body.byteLength) mediaFail('That file was empty.', 400);
-  if (body.byteLength > limit) mediaFail('That file is larger than the ' + Math.round(limit / 1024 / 1024) + ' MB limit for ' + (photo ? 'profile photos' : kind + 's') + '.', 413);
+  if (body.byteLength > limit) mediaFail('That file is larger than the ' + Math.round(limit / 1024 / 1024) + ' MB limit for ' + (photo ? (segment === 'feed-image' ? 'feed images' : 'profile photos') : kind + 's') + '.', 413);
   const createdAt = Date.now();
   const name = createdAt + '-' + randomToken(16) + '.' + MEDIA_EXTENSIONS[contentType];
   const key = MEDIA_FOLDERS[segment] + '/' + user.uid + '/' + name;
   await bucket.put(key, body, {
-    httpMetadata: { contentType, cacheControl: 'private, max-age=31536000, immutable' },
+    httpMetadata: { contentType, cacheControl: (photo ? 'public, ' : 'private, ') + 'max-age=31536000, immutable' },
     customMetadata: { uid: user.uid, kind, state, name: String(url.searchParams.get('name') || '').slice(0, 120), createdAt: String(createdAt) }
   });
   return json({
@@ -697,13 +711,17 @@ async function mediaUpload(request, env, url, segment = 'wallpaper') {
   }, 200, request, env);
 }
 
-async function mediaServe(request, env, { key }) {
+async function mediaServe(request, env, { key }, segment) {
   const bucket = mediaBucket(env);
   const object = await bucket.get(key);
   if (!object) return json({ error: 'Media not found' }, 404, request, env);
   const headers = new Headers();
   object.writeHttpMetadata(headers);
-  headers.set('Cache-Control', 'private, max-age=31536000, immutable');
+  /* A feed image belongs to a public post, so a shared cache is welcome to keep it. A
+     wallpaper and a profile photo are read through a signed-in session instead, and are
+     left out of shared caches. The key holds a random token either way, so a cached copy
+     cannot be guessed at. */
+  headers.set('Cache-Control', (segment === 'feed-image' ? 'public, ' : 'private, ') + 'max-age=31536000, immutable');
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('ETag', object.httpEtag);
   const range = request.headers.get('Range');

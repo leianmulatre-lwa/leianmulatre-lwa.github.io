@@ -98,6 +98,13 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
       <p class="status" id="accountStatusSignedOut" role="status" aria-live="polite" hidden></p>
     </div>
 
+    <div class="card" id="connectionsCard" style="margin-top:22px" hidden>
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Connected accounts</h3>
+      <p id="connectionsIntro">Accounts you link to Orbit appear here. They stay linked on this device; unlinking asks you to connect again next time.</p>
+      <div id="connectionsList" class="identity-list"></div>
+    </div>
+
     <div class="card" id="photoCard" style="margin-top:22px" hidden>
       <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
       <h3>Profile photo</h3>
@@ -192,6 +199,6 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
 <script src="/supporter-logos.js?v=20260913-public-supporters-2"></script>
 <script src="/policy-card-cohesion.js?v=20260913-public-supporters-4"></script>
 <script src="/settings-account.js?v=20260926-account-settings-1"></script>
-<script type="module" src="/settings-photo.js?v=20260926-photo-1"></script>
+<script type="module" src="/settings-photo.js?v=20260927-photo-2"></script>
 </body>
 </html>
