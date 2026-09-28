@@ -31,21 +31,49 @@ async function loadBoards(more=false){
  const data=await api('boards'+(more&&boardsNext?'?bookmark='+encodeURIComponent(boardsNext):''));
  boards=more?[...boards,...(data.items||[])]:data.items||[];boardsNext=data.bookmark||'';
 }
-async function restore(){if(!session())return;await run(async()=>{profile=await api('profile');connected=true;await loadBoards()})}
-async function choose(id,more=false){if(!/^\d+$/.test(id))return;await run(async()=>{
- if(!more){boardId=id;pins=[];pinsNext=''}
- const data=await api('boards/'+id+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
- pins=more?[...pins,...(data.items||[])]:data.items||[];pinsNext=data.bookmark||'';
-})}
+ async function loadPins(id,more){
+  const data=await api('boards/'+id+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
+  pins=more?[...pins,...(data.items||[])]:data.items||[];pinsNext=data.bookmark||'';
+ }
+ async function restore(){if(!session())return;await run(async()=>{profile=await api('profile');connected=true;await loadBoards();
+  /* Opening the first board means the feed has Pins to show before anyone picks a
+     board, instead of an empty list that looks like the connection returned nothing. */
+  if(!boardId&&boards.length){boardId=boards[0].id;await loadPins(boardId)}})}
+ async function choose(id,more=false){if(!/^\d+$/.test(id))return;await run(async()=>{
+  if(!more){boardId=id;pins=[];pinsNext=''}
+  await loadPins(id,more);
+ })}
 async function disconnect(){await run(async()=>{await api('disconnect',{});save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext=''})}
-function image(pin){
- const images=pin.media?.images||pin.media?.items?.[0]?.images||{};
- const candidate=images['600x']?.url||images['400x300']?.url||Object.values(images).find(x=>x?.url)?.url||pin.media?.cover_image_url;
- try{const u=new URL(candidate);return u.protocol==='https:'&& (u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com'))?u.href:''}catch{return ''}
-}
-function render(){
- document.querySelectorAll('[data-orbit-app="pinterest"]').forEach(el=>{el.classList.toggle('orbit-connected',connected);el.setAttribute('aria-label',connected?'Open Pinterest boards':'Connect Pinterest')});
- document.querySelectorAll('[data-orbit-path="pinterest"]').forEach(input=>{
+ function image(pin){
+  const images=pin.media?.images||pin.media?.items?.[0]?.images||{};
+  const candidate=images['600x']?.url||images['400x300']?.url||Object.values(images).find(x=>x?.url)?.url||pin.media?.cover_image_url;
+  try{const u=new URL(candidate);return u.protocol==='https:'&& (u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com'))?u.href:''}catch{return ''}
+ }
+ /* Pins reach the feed as cards, and Boards keeps its own grid, so both read this list. */
+ function feedPins(){
+  if(!connected)return[];
+  const source=boardId?pins:boards.flatMap(b=>(b.pins||[]).map(p=>({...p,boardName:b.name})));
+  return source.filter(p=>/^\d+$/.test(p.id)).slice(0,24);
+ }
+ function renderFeedList(list){
+  list=list||document.getElementById('feedPageList');if(!list)return;
+  list.querySelectorAll('.pinterest-feed-item').forEach(el=>el.remove());
+  const cards=feedPins().map(p=>{
+   const src=image(p);
+   const label=p.boardName||boardNameFor(p.board_id);
+   return '<article class="module-list-item pinterest-feed-item"><div style="width:100%"><small>Pinterest'+(label?' · '+esc(label):'')+'</small><b style="display:block;margin:4px 0 8px">'+esc(p.title||p.description||p.alt_text||'Pinterest Pin')+'</b>'+
+   (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'" style="display:block;width:100%;max-height:520px;object-fit:cover;border-radius:12px">':'')+
+   '<a class="module-action ghost" href="https://www.pinterest.com/pin/'+esc(p.id)+'/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Pinterest</a></div></article>';
+  });
+  if(!cards.length)return;
+  list.insertAdjacentHTML('afterbegin',cards.join(''));
+ }
+ function boardNameFor(id){return boards.find(b=>b.id===id)?.name||''}
+ if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('Pinterest','pinterest-feed-item',renderFeedList);
+ function render(){
+  document.querySelectorAll('[data-orbit-app="pinterest"]').forEach(el=>{el.classList.toggle('orbit-connected',connected);el.setAttribute('aria-label',connected?'Open Pinterest boards':'Connect Pinterest')});
+  renderFeedList();
+  document.querySelectorAll('[data-orbit-path="pinterest"]').forEach(input=>{
  const actions=input.closest('.module-orbit-row')?.querySelector('.module-actions');if(!actions)return;
  let b=actions.querySelector('[data-pn-open]');if(!b){b=document.createElement('button');b.type='button';b.className='module-action';b.dataset.pnOpen='';actions.prepend(b)}b.textContent=connected?'View Pinterest boards':'Connect Pinterest';b.disabled=busy;
  });

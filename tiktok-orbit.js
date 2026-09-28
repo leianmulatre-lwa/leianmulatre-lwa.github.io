@@ -52,10 +52,12 @@
       if (!area) { area = document.createElement('span'); area.dataset.ttActions=''; actions.prepend(area); }
       area.innerHTML='<button type="button" class="module-action" data-tt-connect>' + (connected?'Refresh TikTok':'Connect TikTok') + '</button>' + (connected?'<button type="button" class="module-action" data-tt-disconnect>Disconnect</button>':'');
     });
-    const list = document.getElementById('feedPageList');
-    if (!list) return;
+  }
+  function renderFeedList(list){
+    list=list||document.getElementById('feedPageList');
+    if(!list)return;
     list.querySelectorAll('.tiktok-feed-item').forEach(el=>el.remove());
-    if (!connected) return;
+    if(!connected)return;
     const cards = videos.map(v => {
       let href=''; try { const u=new URL(v.share_url); if(u.protocol==='https:' && (u.hostname==='www.tiktok.com'||u.hostname==='tiktok.com')) href=u.href; } catch {}
       let cover=''; try { const u=new URL(v.cover_image_url); if(u.protocol==='https:') cover=u.href; } catch {}
@@ -63,6 +65,7 @@
     });
     list.insertAdjacentHTML('afterbegin',cards.join('')||'<article class="module-list-item tiktok-feed-item">TikTok connected. No videos to display.</article>');
   }
+  if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('TikTok','tiktok-feed-item',renderFeedList);
   async function init() {
     const url = new URL(location.href), handoff=url.searchParams.get('tiktok_handoff'), error=url.searchParams.get('tiktok_error');
     if (handoff||error) { url.searchParams.delete('tiktok_handoff'); url.searchParams.delete('tiktok_error'); history.replaceState(history.state,'',url.href); }

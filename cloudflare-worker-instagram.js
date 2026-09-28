@@ -118,8 +118,12 @@ async function finishOAuth(url, env) {
   exchange.searchParams.set('access_token', shortToken.access_token);
   const longResponse = await fetch(exchange.toString());
   const longToken = await longResponse.json();
-  const accessToken = longResponse.ok && longToken.access_token ? longToken.access_token : shortToken.access_token;
-  const expiresIn = Number(longToken.expires_in || SESSION_TTL);
+  const longLived = longResponse.ok && !!longToken.access_token;
+  const accessToken = longLived ? longToken.access_token : shortToken.access_token;
+  /* A short-lived token lasts about an hour. Recording it as a 30-day session let a
+     member believe they were still connected long after Instagram had expired the
+     credential, which surfaced later as an unexplained feed failure. */
+  const expiresIn = Number((longLived ? longToken.expires_in : shortToken.expires_in) || 3600);
   const sessionId = randomToken(32);
   const userId = String(shortToken.user_id || '');
   const session = { accessToken, userId, createdAt: Date.now(), expiresAt: Date.now() + expiresIn * 1000 };
@@ -158,8 +162,18 @@ async function graph(path, session, fields) {
   if (fields) url.searchParams.set('fields', fields);
   url.searchParams.set('access_token', session.accessToken);
   const response = await fetch(url.toString());
-  const body = await response.json();
-  if (!response.ok || body.error) throw new Error('Instagram Graph request failed.');
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body.error) {
+    /* Instagram explains itself in the error body: an unsupported field, a token that
+       needs a permission, or an expired login each come back with a specific message.
+       Discarding it for a generic string left the feed failing silently with no way to
+       tell a bad field from a dead session. */
+    const detail = body && body.error && (body.error.message || body.error.error_user_msg);
+    const error = new Error(detail ? 'Instagram: ' + detail : 'Instagram returned ' + response.status + ' for this request.');
+    error.status = response.status || 502;
+    error.instagramCode = body && body.error && body.error.code;
+    throw error;
+  }
   return body;
 }
 
@@ -167,7 +181,9 @@ async function proxyProfile(request, env) {
   requireOrigin(request, env);
   const session = await sessionFromRequest(request, env);
   if (!session) return json({ error: 'Instagram session expired.' }, 401, request, env);
-  const profile = await graph('/me', session, 'user_id,username,name,account_type,profile_picture_url,followers_count,media_count');
+  /* Only the fields the feed actually reads. An unsupported field fails the whole
+     request, and album children are never used here. */
+  const profile = await graph('/me', session, 'username,name,profile_picture_url,followers_count,media_count');
   return json(profile, 200, request, env);
 }
 
@@ -175,7 +191,7 @@ async function proxyMedia(request, env) {
   requireOrigin(request, env);
   const session = await sessionFromRequest(request, env);
   if (!session) return json({ error: 'Instagram session expired.' }, 401, request, env);
-  const media = await graph('/me/media', session, 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,children{media_type,media_url,thumbnail_url}');
+  const media = await graph('/me/media', session, 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp');
   return json(media, 200, request, env);
 }
 
@@ -355,8 +371,17 @@ function ttCookie(request) { return (request.headers.get('Cookie') || '').split(
 function ttRedirect(location, cookie) { return new Response(null, { status: 302, headers: { Location: location, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'Set-Cookie': '__Host-tt_oauth=' + cookie + '; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=' + (cookie ? 600 : 0) } }); }
 async function ttToken(env, params) {
   const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', { method: 'POST', body: new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, client_secret: env.TIKTOK_CLIENT_SECRET, ...params }) });
-  const token = await response.json();
-  if (!response.ok || !token.access_token) ttFail('TikTok token exchange failed. Check that the client key, secret and Web redirect URI belong to the same TikTok app environment, then reconnect.', 502);
+  const token = await response.json().catch(() => ({}));
+  if (!response.ok || !token.access_token) {
+    /* TikTok names the reason precisely: an invalid client_key/secret, a redirect URI
+       that is not the one registered, or a scope the app has not been granted all look
+       identical from the outside. Guessing a single cause sent people to the wrong
+       setting, so report what TikTok actually said. */
+    const code = token.error_code ?? (token.error && typeof token.error === 'object' ? token.error.code : token.error);
+    const detail = token.error_description || (token.error && typeof token.error === 'object' ? token.error.message : '');
+    const reason = detail || (code ? 'TikTok reported ' + code : 'TikTok returned HTTP ' + response.status + '.');
+    ttFail('TikTok rejected this connection — ' + reason + (code ? ' (code ' + code + ')' : ''), 502);
+  }
   return token;
 }
 async function ttSave(env, id, token) {
@@ -443,8 +468,11 @@ async function pnToken(env, params) {
     method: 'POST', headers: { Authorization: 'Basic ' + btoa(env.PINTEREST_APP_ID + ':' + env.PINTEREST_APP_SECRET), 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(params)
   });
-  const token = await response.json();
-  if (!response.ok || !token.access_token) pnFail('Pinterest could not authorize this connection. Check the approved app ID, app secret and registered redirect URI, then reconnect.', 502);
+  const token = await response.json().catch(() => ({}));
+  if (!response.ok || !token.access_token) {
+    const detail = token.message || token.error_description || (token.error && typeof token.error === 'object' ? token.error.message : '');
+    pnFail('Pinterest rejected this connection — ' + (detail || 'HTTP ' + response.status + '.'), 502);
+  }
   return token;
 }
 async function pnSave(env, id, token) {

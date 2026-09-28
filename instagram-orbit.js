@@ -13,7 +13,7 @@
   function api(path, options) {
     var settings = options || {};
     settings.headers = Object.assign({}, settings.headers || {}, session() ? { Authorization: 'Bearer ' + session() } : {});
-    return fetch(API + path, settings).then(function (response) { return response.json().catch(function () { return {}; }).then(function (body) { if (!response.ok) throw new Error(body.error || 'Instagram request failed.'); return body; }); });
+    return fetch(API + path, settings).then(function (response) { return response.json().catch(function () { return {}; }).then(function (body) { if (!response.ok) { var failure = new Error(body.error || 'Instagram request failed.'); failure.status = response.status; throw failure; } return body; }); });
   }
   function status(message) {
     var toast = one('#biglwaInstagramStatus');
@@ -23,7 +23,14 @@
   function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/studio?view=orbit')); }
   function restore() {
     if (!session()) return Promise.resolve();
-    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) { state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render(); }).catch(function (error) { saveSession(''); state.connected = false; state.error = error.message; render(); });
+    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) { state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render(); }).catch(function (error) {
+      /* Only an expired credential may end the connection. A dropped connection or an
+         Instagram-side fault used to discard the session, so one bad moment forced the
+         member through the whole authorisation flow again. */
+      if (error.status === 401) { saveSession(''); state.connected = false; }
+      state.error = error.message;
+      render();
+    });
   }
   function consumeHandoff() {
     var url = new URL(window.location.href); var handoff = url.searchParams.get('instagram_handoff'); var error = url.searchParams.get('instagram_error');
@@ -40,10 +47,11 @@
       renderFeed();
     } catch (error) { console.error('BIGLWA Instagram render isolated:', error); }
   }
-  function renderFeed() {
-    var list = one('#feedPageList'); if (!list) return;
-    all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
-    if (!state.connected) return;
+  function feedHtml() {
+    if (state.error) {
+      return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
+    }
+    if (!state.connected) return '';
     var cards = state.media.slice(0, 20).map(function (item) {
       var caption = item.caption || 'Shared from Instagram'; var visual = '';
       if (item.media_type === 'VIDEO') visual = '<video controls preload="metadata" poster="' + escapeText(item.thumbnail_url || '') + '" style="display:block;width:100%;max-height:520px;border-radius:12px;background:#171414"><source src="' + escapeText(item.media_url || '') + '"></video>';
@@ -51,9 +59,17 @@
       return '<article class="module-list-item instagram-feed-item"><div style="width:100%"><small>Instagram · @' + escapeText(state.profile && state.profile.username || '') + '</small><b style="display:block;margin:4px 0 8px">' + escapeText(caption) + '</b>' + visual + (item.permalink ? '<a class="module-action ghost" href="' + escapeText(item.permalink) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Instagram</a>' : '') + '</div></article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
-    list.insertAdjacentHTML('afterbegin', cards.join(''));
+    return cards.join('');
   }
+  function renderFeed(list) {
+    list = list || one('#feedPageList');
+    if (!list) return;
+    all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
+    var html = feedHtml();
+    if (html) list.insertAdjacentHTML('afterbegin', html);
+  }
+  if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
   document.addEventListener('click', function (event) { var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); connect(); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
-  window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render };
+  window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { render(); consumeHandoff(); }, { once: true }); else { render(); consumeHandoff(); }
 }());
