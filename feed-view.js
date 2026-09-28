@@ -22,27 +22,42 @@ const FEED_SIZE = 40;
 const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+/* Each source gets its own colour, carried as a border and a soft outer glow rather than a
+   fill, so a board of mixed cards still reads as one surface.
+   These are the colours of the members' own posts, chosen by the `source` field on a Firestore
+   document. The connected sources' live cards are painted from their marker class by
+   orbit-feed.js, which carries the same values; the two lists have to agree or a board will
+   show one shade for a post and another for the same account's live cards. */
+const SOURCES = {
+  biglwa:   { label: "BIGLWA",    accent: "#c1355a" },
+  instagram:{ label: "Instagram", accent: "#c13584" },
+  tiktok:   { label: "TikTok",    accent: "#0f8f95" },
+  pinterest:{ label: "Pinterest", accent: "#cf4632" },
+  facebook: { label: "Facebook",  accent: "#1877f2" },
+  youtube:  { label: "YouTube",   accent: "#d0202f" },
+  soundcloud:{ label: "SoundCloud", accent: "#e2622a" },
+  google:   { label: "Google",    accent: "#4285f4" }
+};
+const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
+
 const STYLE = `
 /* Masonry via columns, so cards of different heights pack tightly and read the way a
-   pin board does. Break-inside keeps a caption attached to its own image. */
-#feedPageList{columns:4 240px;column-gap:18px;display:block}
+   pin board does. Break-inside keeps a caption attached to its own image.
+   Four columns is the count that keeps the board readable rather than a wall of cards;
+   the boards preview deliberately uses three, so the two never look like the same grid. */
+#feedPageList{columns:4 220px;column-gap:18px;display:block}
 #feedPageList>*{break-inside:avoid;margin:0 0 18px;width:100%}
-@media (max-width:900px){#feedPageList{columns:3 200px}}
-@media (max-width:640px){#feedPageList{columns:2 150px}}
-@media (max-width:400px){#feedPageList{columns:1}}
-.biglwa-pin{overflow:hidden;border:1px solid rgba(80,70,64,.16);border-radius:16px;background:#fffdf9;
-  box-shadow:0 1px 2px rgba(48,43,40,.06);display:block;width:100%}
-/* The connected sources share the list, so their cards are dressed as pins too rather
-   than sitting in the board as loose list rows. */
-#feedPageList>.instagram-feed-item,#feedPageList>.tiktok-feed-item,#feedPageList>.pinterest-feed-item{
-  overflow:hidden;border:1px solid rgba(80,70,64,.16);border-radius:16px;background:#fffdf9;padding:0}
-#feedPageList>.instagram-feed-item>div,#feedPageList>.tiktok-feed-item>div,#feedPageList>.pinterest-feed-item>div{padding:11px 13px 13px}
-#feedPageList>.instagram-feed-item small,#feedPageList>.tiktok-feed-item small,#feedPageList>.pinterest-feed-item small{
-  display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
-#feedPageList>.instagram-feed-item b,#feedPageList>.tiktok-feed-item b,#feedPageList>.pinterest-feed-item b{
-  display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;color:#2f2a27;overflow-wrap:anywhere}
-#feedPageList>.instagram-feed-item img,#feedPageList>.tiktok-feed-item img,#feedPageList>.pinterest-feed-item img{
-  border-radius:0!important;max-height:520px}
+@media (max-width:1100px){#feedPageList{columns:3 200px}}
+@media (max-width:760px){#feedPageList{columns:2 150px}}
+@media (max-width:420px){#feedPageList{columns:1}}
+/* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
+   instead, because it already owns their marker classes and would otherwise be restyling
+   cards it does not build. */
+.biglwa-pin{--accent:var(--pin-accent,#c1355a);overflow:hidden;
+  border:1px solid rgba(80,70,64,.14);border-left:4px solid var(--accent);
+  border-radius:16px;background:#fffdf9;position:relative;display:block;width:100%;
+  box-shadow:0 10px 22px -14px var(--accent),0 1px 2px rgba(48,43,40,.06)}
+.biglwa-pin::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--accent),transparent)}
 .biglwa-pin>img{display:block;width:100%;height:auto;background:#efe7dd}
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
@@ -50,15 +65,41 @@ const STYLE = `
 .biglwa-pin-body a{display:inline-flex;margin-top:9px;font:600 12px/1 system-ui;color:#a53332}
 .biglwa-pin-empty{padding:15px}
 .biglwa-pin-del{margin-top:9px;background:none;border:0;padding:0;font:600 12px/1 system-ui;color:#9b8a7c;cursor:pointer}
+/* A small tag sits on the image corner so the source is readable without reading text. */
+.biglwa-pin-src{position:absolute;right:8px;top:8px;z-index:2;padding:3px 8px;border-radius:999px;
+  background:var(--accent);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.05em;text-transform:uppercase;
+  box-shadow:0 2px 8px rgba(0,0,0,.28)}
 #biglwaFeedPicker{display:none}
 .biglwa-pick{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   border:1px dashed rgba(80,70,64,.4);border-radius:12px;padding:12px 14px;font:600 13px/1 system-ui;color:#5a4f47}
 .biglwa-pick:hover{background:#fff6ec}
 .biglwa-thumb{width:100%;border-radius:12px;margin-top:10px;display:block}
-.biglwa-preview{display:flex;align-items:center;gap:10px;margin-top:10px}
-.biglwa-preview img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid rgba(80,70,64,.18)}
-.biglwa-preview span{font:600 12px/1.4 system-ui;color:#6b5f56}
 #biglwaFeedStatus{font:600 12px/1.5 system-ui;margin:9px 0 0;min-height:1em}
+/* The preview strip sits front and centre above the board: four pictures in a single row,
+   wider than a card so it reads as a header rather than another item in the feed. */
+.biglwa-feed-hero{margin:0 0 20px;padding:14px;border:1px solid rgba(80,70,64,.16);border-radius:18px;
+  background:linear-gradient(180deg,#fffdf9,#fff6ec);box-shadow:0 12px 28px -18px rgba(48,43,40,.4)}
+.biglwa-feed-hero[hidden]{display:none}
+.biglwa-feed-hero-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 3px 11px}
+.biglwa-feed-hero-head h3{margin:0;font:700 12px/1.3 system-ui;letter-spacing:.05em;text-transform:uppercase;color:#6f645c}
+.biglwa-feed-hero-head span{font:600 10px/1.3 system-ui;color:#9b8a7c}
+.biglwa-feed-hero-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.biglwa-feed-hero-row a,.biglwa-feed-hero-row>div{position:relative;display:block;overflow:hidden;
+  aspect-ratio:4/3;border-radius:14px;background:#efe7dd;text-decoration:none;
+  border:1px solid rgba(80,70,64,.14);box-shadow:0 8px 18px -12px var(--accent,#c1355a)}
+.biglwa-feed-hero-row img{width:100%;height:100%;object-fit:cover;display:block}
+.biglwa-feed-hero-row .biglwa-pin-src{right:6px;top:6px;padding:2px 7px;font-size:8px}
+.biglwa-feed-hero-cap{position:absolute;left:0;right:0;bottom:0;padding:16px 9px 8px;color:#fff;
+  font:600 11px/1.35 system-ui;background:linear-gradient(180deg,transparent,rgba(24,16,14,.82));
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.biglwa-feed-hero-empty{display:grid;place-items:center;aspect-ratio:4/3;border-radius:14px;
+  border:1px dashed rgba(80,70,64,.28);background:rgba(255,255,255,.5);
+  font:600 10px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}
+/* Matched on the row as well as the class, so the dashed edge wins against the border the
+   shared tile rule sets. Without the second selector the slot renders as a solid card and
+   reads as a real post with a broken picture. */
+.biglwa-feed-hero-row>.biglwa-feed-hero-empty{border-style:dashed}
+@media (max-width:760px){.biglwa-feed-hero-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 `;
 
 function installStyle() {
@@ -134,6 +175,57 @@ async function loadPosts() {
   return posts;
 }
 
+/* The preview strip sits above the board. It shows the four newest pictures in a single
+   row, so a visitor sees colour and activity before they start reading. It is decoration
+   over the same data the list already holds, never a second query, so the two can never
+   disagree about what the feed contains. Slots with no picture are left as dashed gaps
+   rather than shrinking the row, which keeps the row four wide until there is something
+   to put in it. */
+const HERO_SLOTS = 4;
+let heroOn = null;
+let heroSignature = null;
+
+function renderHero(force) {
+  const anchor = document.getElementById("biglwaFeedHero");
+  if (!anchor) return;
+  /* The class lives on the markup in the module page, but it is asserted here as well so
+     the strip is still a panel if that markup is ever built without it. */
+  anchor.classList.add("biglwa-feed-hero");
+  /* A feed with nothing in it at all stays clean: the strip is a preview of pictures, so
+     showing four empty slots over an empty board would only add noise. Once a single post
+     exists the strip appears and holds its width, gaps included. */
+  anchor.hidden = !posts.length;
+  if (anchor.hidden) {
+    heroOn = null;
+    heroSignature = null;
+    return;
+  }
+  const signature = posts.map((p) => p.id + ":" + (p.imageUrl || "") + ":" + (p.caption || "")).join("|");
+  if (!force && anchor === heroOn && signature === heroSignature) return;
+  heroOn = anchor;
+  heroSignature = signature;
+
+  const withImage = posts.filter((p) => p.imageUrl);
+  const slots = [];
+  for (let i = 0; i < HERO_SLOTS; i++) slots.push(withImage[i] || null);
+  const rest = Math.max(0, withImage.length - HERO_SLOTS);
+
+  const cards = slots.map((post) => {
+    if (!post) return '<div class="biglwa-feed-hero-empty">Nothing here yet</div>';
+    const src = accentOf(post.source);
+    const caption = (post.caption || "").trim();
+    return '<a style="--accent:' + src.accent + '" href="' + esc(post.imageUrl) + '" target="_blank" rel="noopener noreferrer">' +
+      '<span class="biglwa-pin-src">' + esc(src.label) + "</span>" +
+      '<img src="' + esc(post.imageUrl) + '" alt="' + esc(caption || src.label + " post") + '" loading="lazy">' +
+      (caption ? '<span class="biglwa-feed-hero-cap">' + esc(caption) + "</span>" : "") +
+      "</a>";
+  }).join("");
+
+  anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
+    (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
+    "</span></div>" + '<div class="biglwa-feed-hero-row">' + cards + "</div>";
+}
+
 /* Redrawing the list on every call would drop hover and focus state and pull the reader
    out of a card they are on, so the markup is only rebuilt when the posts or the viewer
    actually differ. A newly rendered feed route is a new list and still gets drawn. */
@@ -142,6 +234,7 @@ function renderPosts(force) {
   if (!list) return;
   const me = identity()?.uid;
   const signature = posts.map((p) => p.id + ":" + (p.imageUrl || "") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "");
+  renderHero(force);
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
   drawnSignature = signature;
@@ -150,11 +243,12 @@ function renderPosts(force) {
   if (!posts.length) return;
   const html = posts.map((post) => {
     const mine = post.uid && post.uid === me;
+    const src = accentOf(post.source);
     const label = post.authorName ? esc(post.authorName) : (post.username ? "@" + esc(post.username) : "Member");
     const image = post.imageUrl
       ? '<img src="' + esc(post.imageUrl) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
       : '<div class="biglwa-pin-empty"><small>Note</small></div>';
-    return '<article class="biglwa-pin biglwa-pin-post"><div>' + image +
+    return '<article class="biglwa-pin biglwa-pin-post" style="--pin-accent:' + src.accent + '"><span class="biglwa-pin-src">' + esc(src.label) + "</span><div>" + image +
       '<div class="biglwa-pin-body"><small>' + label + " · " + esc(when(post.createdAt)) + "</small>" +
       (post.caption ? "<b>" + esc(post.caption) + "</b>" : "") +
       (mine ? '<button type="button" class="biglwa-pin-del" data-feed-delete="' + esc(post.id) + '">Delete</button>' : "") +

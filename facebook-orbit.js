@@ -228,6 +228,10 @@
   }, true);
 
   window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render };
+  /* Registering with the shared mount is what lets these cards survive a feed rebuild and
+     pick up the Facebook accent, instead of only appearing on the click that opened the
+     page and then being wiped by the next rebuild. */
+  if (window.BIGLWAFeedMount) { window.BIGLWAFeedMount('Facebook', 'facebook-feed-item', renderFeedImports); }
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', render, { once: true }); }
   else { render(); }
 }());

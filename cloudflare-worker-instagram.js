@@ -487,17 +487,78 @@ async function pnToken(env, params) {
   }
   return token;
 }
-async function pnSave(env, id, token) {
+async function pnSave(env, id, token, previous) {
   const pnl = Math.max(60, Math.min(Number(token.refresh_token_expires_in || token.expires_in || 86400), 31536000));
   const saved = { ...token, expiresAt: Date.now() + Number(token.expires_in || 86400) * 1000 };
+  /* A refresh replaces the whole record, so the cover cache is carried across by hand.
+     Without this the reader would pay for six more Pinterest calls every hour. */
+  if (previous && previous.pinCovers) saved.pinCovers = previous.pinCovers;
   await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(saved), { expirationTtl: pnl });
   return saved;
+}
+
+/* Pinterest's board list carries a name and a pin count but no dependable cover picture, so a
+ * board grid can only be given real photos by asking for each board's first Pin. The
+ * browser cannot do that itself: it would mean six extra calls on every page open against a
+ * rate limit the app shares, and the results are the same every time. So it is done here,
+ * once per session, and kept on the session record until the connection changes.
+ *
+ * Results are deliberately partial-tolerant. A board that is empty, private, or fails for
+ * any reason is simply left without a cover, because one unhappy board must not cost the
+ * reader the other five. */
+const PN_COVER_LIMIT = 12;
+const PN_COVER_TTL = 6 * 60 * 60 * 1000;
+
+function pnPinImage(pin) {
+  const images = pin?.media?.images || pin?.media?.items?.[0]?.images || {};
+  const candidate = images['600x']?.url || images['400x300']?.url || images['237x']?.url ||
+    Object.values(images).find((entry) => entry?.url)?.url || pin?.media?.cover_image_url;
+  if (!candidate) return '';
+  try {
+    const parsed = new URL(candidate);
+    /* Only Pinterest's own image host is echoed back, so a bad record cannot turn the
+       preview into a request to somewhere the reader did not choose. */
+    if (parsed.protocol !== 'https:') return '';
+    const host = parsed.hostname.toLowerCase();
+    if (host !== 'pinimg.com' && !host.endsWith('.pinimg.com')) return '';
+    return parsed.href;
+  } catch { return ''; }
+}
+
+async function pnBoardCovers(request, env, session, id) {
+  const raw = String(new URL(request.url).searchParams.get('ids') || '');
+  const wanted = [...new Set(raw.split(',').map((value) => value.trim()).filter((value) => /^\d{1,20}$/.test(value)))].slice(0, PN_COVER_LIMIT);
+  if (!wanted.length) return { covers: {}, missing: [] };
+
+  const cached = session.pinCovers && Date.now() - Number(session.pinCovers.at || 0) < PN_COVER_TTL ? session.pinCovers.map || {} : {};
+  const covers = {};
+  const missing = [];
+  for (const boardId of wanted) {
+    if (cached[boardId]) { covers[boardId] = cached[boardId]; continue; }
+    missing.push(boardId);
+  }
+  if (missing.length) {
+    /* Sequential rather than parallel: the limit here exists to be gentle with Pinterest,
+       and six covers arriving a second apart looks the same as six arriving together. */
+    for (const boardId of missing) {
+      const response = await fetch('https://api.pinterest.com/v5/boards/' + boardId + '/pins?page_size=1', {
+        headers: { Authorization: 'Bearer ' + session.access_token }
+      });
+      if (!response.ok) continue;
+      const data = await response.json().catch(() => ({}));
+      const image = pnPinImage((data.items || [])[0]);
+      if (image) { covers[boardId] = image; cached[boardId] = image; }
+    }
+    session.pinCovers = { at: Date.now(), map: cached };
+    await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(session));
+  }
+  return { covers, missing: missing.filter((boardId) => !covers[boardId]) };
 }
 async function pnRoute(request, env) {
   const url = new URL(request.url), path = url.pathname;
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
   const missing = ['PINTEREST_APP_ID', 'PINTEREST_APP_SECRET', 'OAUTH_SESSIONS'].filter(k => !env[k]);
-  if (path === '/pinterest/health') return json({ ok: !missing.length, missing, callback: pnCallback(request), version: 'pinterest-1' }, missing.length ? 503 : 200, request, env);
+  if (path === '/pinterest/health') return json({ ok: !missing.length, missing, callback: pnCallback(request), version: 'pinterest-2' }, missing.length ? 503 : 200, request, env);
   if (missing.length) pnFail('Add these Cloudflare Worker settings: ' + missing.join(', '), 503);
   if (path === '/pinterest/start' && request.method === 'GET') {
     const challenge = url.searchParams.get('challenge') || '';
@@ -547,13 +608,15 @@ async function pnRoute(request, env) {
   }
 
   const match = path.match(/^\/pinterest\/boards\/(\d+)\/pins$/);
-  if (request.method !== 'GET' || (!match && !['/pinterest/profile', '/pinterest/boards'].includes(path))) pnFail('Not found.', 404);
+  const covers = path === '/pinterest/board-covers';
+  if (request.method !== 'GET' || (!match && !covers && !['/pinterest/profile', '/pinterest/boards'].includes(path))) pnFail('Not found.', 404);
   if (session.expiresAt < Date.now() + 60000) {
     if (!session.refresh_token) pnFail('Pinterest session expired. Please reconnect.', 401);
     const fresh = await pnToken(env, { grant_type: 'refresh_token', refresh_token: session.refresh_token });
     if (!fresh.refresh_token) fresh.refresh_token = session.refresh_token;
-    session = await pnSave(env, id, fresh);
+    session = await pnSave(env, id, fresh, session);
   }
+  if (covers) return json(await pnBoardCovers(request, env, session, id), 200, request, env);
   const endpoint = match ? '/boards/' + match[1] + '/pins' : path === '/pinterest/boards' ? '/boards' : '/user_account';
   const target = new URL('https://api.pinterest.com/v5' + endpoint);
   if (endpoint !== '/user_account') {

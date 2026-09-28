@@ -41,6 +41,31 @@
     .module-status{min-height:16px;margin-top:7px;font-size:9px;color:#81766f}.module-status.ok{color:#477650}
     .module-orbit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.module-orbit-row{border:1px solid #ddd3ca;background:rgba(255,255,255,.52);border-radius:14px;padding:11px}.module-orbit-row header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.module-orbit-row header b{font-size:11px}.module-orbit-row header span{min-width:28px;height:26px;padding:0 7px;border-radius:999px;display:grid;place-items:center;background:#292523;color:#fff;font-size:8px;font-weight:800}
     .orbit-field-label{display:block;font:700 8px/1.2 system-ui;letter-spacing:.08em;text-transform:uppercase;color:#8b8179;margin:8px 0 4px}
+    /* Quick links: the same list the owner connects and a visitor clicks. Each source
+       carries its own colour so a row of links is readable at a glance. */
+    .orbit-quick{margin:14px 0 4px;padding:13px;border:1px solid #ddd3ca;border-radius:14px;background:rgba(255,255,255,.5)}
+    .orbit-quick h3{margin:0 0 3px;font:700 11px/1.3 system-ui;letter-spacing:.04em;text-transform:uppercase;color:#6f645c}
+    .orbit-quick p{margin:0 0 10px;font-size:10px;line-height:1.5;color:#8b8179}
+    .orbit-quick-row{display:flex;flex-wrap:wrap;gap:9px}
+    .orbit-quick-link{--accent:#8b8179;position:relative;display:flex;flex-direction:column;gap:1px;min-width:132px;padding:9px 26px 9px 11px;border-radius:12px;border:1px solid rgba(80,70,64,.16);background:#fffdf9;color:#2f2a27;text-decoration:none;box-shadow:0 2px 0 0 var(--accent),0 6px 14px -8px var(--accent);transition:transform .16s ease,box-shadow .16s ease}
+    .orbit-quick-link:hover{transform:translateY(-1px);box-shadow:0 3px 0 0 var(--accent),0 10px 20px -8px var(--accent)}
+    .orbit-quick-link:focus-visible{outline:3px solid #a53332;outline-offset:2px}
+    .orbit-quick-link b{font:700 12px/1.3 system-ui}
+    .orbit-quick-link small{font:600 10px/1.35 system-ui;color:#8b8179;overflow-wrap:anywhere}
+    .orbit-quick-link i{position:absolute;right:9px;top:9px;font-style:normal;font-size:11px;color:var(--accent)}
+    .orbit-quick-link.is-instagram{--accent:#c13584}.orbit-quick-link.is-tiktok{--accent:#0f8f95}.orbit-quick-link.is-pinterest{--accent:#cf4632}.orbit-quick-link.is-facebook{--accent:#1877f2}.orbit-quick-link.is-youtube{--accent:#d0202f}.orbit-quick-link.is-soundcloud{--accent:#e2622a}
+    .module-orbit-row.is-oauth{border-color:rgba(80,70,64,.24);background:rgba(255,255,255,.66)}
+    .orbit-state{margin-left:auto;font:700 8px/1.6 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8b8179;padding:2px 7px;border-radius:999px;background:rgba(139,129,121,.14)}
+    .module-orbit-row header .orbit-state+span{margin-left:6px}
+    .orbit-state.is-on{color:#3f6b4a;background:rgba(63,107,74,.14)}
+    .orbit-connected-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;background:rgba(255,255,255,.7);border:1px solid rgba(80,70,64,.12)}
+    .orbit-connected-card img{border-radius:50%;object-fit:cover;flex:0 0 auto;background:#e6dcd1}
+    .orbit-connected-card span{min-width:0;flex:1}
+    .orbit-connected-card b{display:block;font:700 12px/1.35 system-ui;overflow-wrap:anywhere}
+    .orbit-connected-card small{display:block;font:600 10px/1.4 system-ui;color:#8b8179;overflow-wrap:anywhere}
+    .orbit-hotlink{flex:0 0 auto;font:700 11px/1 system-ui;color:#a53332;text-decoration:none;padding:6px 9px;border-radius:9px;border:1px solid rgba(165,51,50,.28)}
+    .orbit-hotlink:hover{background:rgba(165,51,50,.08)}
+    .orbit-not-connected{margin:0;font-size:10px;color:#8b8179}
     .module-launchers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.module-launcher{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:14px;padding:15px 12px;text-align:left;cursor:pointer}.module-launcher b{display:block;font-family:Georgia,serif;font-size:14px;margin-bottom:4px}.module-launcher small{font-size:9px;color:#81776f;line-height:1.35}
     .photobooth-stage{position:relative;min-height:420px;border:1px solid #cfc3ba;border-radius:18px;overflow:hidden;background:#171514;display:grid;place-items:center}
     .video-booth-soon{position:relative;overflow:hidden}
@@ -249,7 +274,7 @@
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews']);
 const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',connect:'Connect',camera:'Photobooth',diary:'Diary',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Qwiky Note',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews'};
-  const desc = {create:'Start something and send it to the right part of BIGLWA.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect the creative platforms that make up your orbit. Keep public profile paths and future login/authorization paths separate.',feed:'Publish a small update to your local Studio feed.',connect:'Invite friends to join BIGLWA.',camera:'A real browser photobooth: start the camera, pose, capture, retake, and save a frame without uploading it.',diary:'A private writing page that autosaves in this browser.',stream:'Plan a screening, talk, radio set, workshop, or live session.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Free tools that run in your browser: compress PDFs, convert media, and grab YouTube audio or video.'};
+  const desc = {create:'Start something and send it to the right part of BIGLWA.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'Publish a picture and a caption to the collective feed.',connect:'Invite friends to join BIGLWA.',camera:'A real browser photobooth: start the camera, pose, capture, retake, and save a frame without uploading it.',diary:'A private writing page that autosaves in this browser.',stream:'Plan a screening, talk, radio set, workshop, or live session.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Free tools that run in your browser: compress PDFs, convert media, and grab YouTube audio or video.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
@@ -353,12 +378,89 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     draw();load();
   }
 
-  function renderOrbitPage(){
-    const apps=[['instagram','IG','Instagram'],['facebook','FB','Facebook'],['tiktok','TT','TikTok'],['pinterest','P','Pinterest'],['soundcloud','SC','SoundCloud'],['youtube','YT','YouTube'],['drive','GD','Google Drive'],['calendar','GC','Google Calendar'],['goodreads','GR','Goodreads'],['letterboxd','LB','Letterboxd'],['imdb','IMDb','IMDb']];
-    const links=readJSON('biglwaOrbitLinks',{}), auth=readJSON('biglwaOrbitAuthPaths',{});
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>These are the creative-network paths we actually need here. Calendar syncing lives in Calendar, not Orbit. Profile and login/authorization paths remain separate so we can wire real OAuth later.</p><div class="module-orbit">${apps.map(([k,g,n])=>`<div class="module-orbit-row"><header><b>${n}</b><span>${g}</span></header><label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><label class="orbit-field-label">Future login / authorization path</label><input class="module-input" data-orbit-auth="${k}" value="${esc(auth[k]||'')}" placeholder="OAuth, login, or developer callback path"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`).join('')}</div><div class="module-status" id="orbitPageStatus"></div></section></div>`;
-    body.onclick=e=>{const save=e.target.closest('[data-orbit-save]'),open=e.target.closest('[data-orbit-open]');if(save){const k=save.dataset.orbitSave,p=$(`[data-orbit-path="${k}"]`,body).value.trim(),a=$(`[data-orbit-auth="${k}"]`,body).value.trim(),all=readJSON('biglwaOrbitLinks',{}),auths=readJSON('biglwaOrbitAuthPaths',{});p?all[k]=p:delete all[k];a?auths[k]=a:delete auths[k];writeJSON('biglwaOrbitLinks',all);writeJSON('biglwaOrbitAuthPaths',auths);$('#orbitPageStatus',body).textContent=`${apps.find(x=>x[0]===k)?.[2]||'Orbit'} paths saved.`;$('#orbitPageStatus',body).classList.add('ok');}if(open){safeOpen(readJSON('biglwaOrbitLinks',{})[open.dataset.orbitOpen]);}};
+  /* Instagram, TikTok, and Pinterest are connected with real authorization, so they are
+     not asked for a hand-pasted login path any more. The rest keep a plain profile link
+     because there is nothing to authorize against here. */
+  const ORBIT_APPS=[['instagram','IG','Instagram'],['facebook','FB','Facebook'],['tiktok','TT','TikTok'],['pinterest','P','Pinterest'],['soundcloud','SC','SoundCloud'],['youtube','YT','YouTube'],['drive','GD','Google Drive'],['calendar','GC','Google Calendar'],['goodreads','GR','Goodreads'],['letterboxd','LB','Letterboxd'],['imdb','IMDb','IMDb']];
+  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest']);
+  const ORBIT_APP_NAMES=Object.fromEntries(ORBIT_APPS.map(([k,,n])=>[k,n]));
+  const orbitLinks=()=>readJSON('biglwaOrbitLinks',{});
+  const orbitConnected=()=>{try{return Object.values(window.__biglwaConnections?.connections?.()||{})}catch{return[]}};
+  function orbitCount(key,value){
+   if(value==null)return '';
+   const n=Number(value);
+   if(!Number.isFinite(n))return '';
+   if(n>=1e6)return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M';
+   if(n>=1e3)return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K';
+   return String(n);
   }
+  /* A source that is not connected has no record at all, so the row itself is missing.
+     Reading it as empty is the whole answer here: the card says "not connected" and there
+     are simply no counts to show. */
+  function orbitStat(label,key,row){
+   const n=orbitCount(key,row?.stats?.[key]);
+   return n?n+' '+label:'';
+  }
+  /* The quick links sit above everything: what a visitor can reach, and what the owner can
+     connect. Both sides read from the same list so the two never disagree. */
+  function orbitQuickLinks(){
+   const connected=orbitConnected().filter(row=>row&&row.link);
+   const saved=Object.entries(orbitLinks()).filter(([k,url])=>url&&!ORBIT_CONNECTED.has(k));
+   if(!connected.length&&!saved.length)return '';
+   const chip=(href,label,handle,cls)=>'<a class="orbit-quick-link '+(cls||'')+'" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer"><b>'+esc(label)+'</b>'+(handle?'<small>'+esc(handle)+'</small>':'')+'<i aria-hidden="true">↗</i></a>';
+   return '<section class="orbit-quick" aria-label="Your links"><h3>Quick links</h3><p>These are the places people can reach you. Anyone viewing your profile sees the same links.</p><div class="orbit-quick-row">'+
+    connected.map(row=>chip(row.link,row.label,row.username?'@'+row.username:(row.name||''),'is-connected is-'+row.id)).join('')+
+    saved.map(([k,url])=>chip(url,(ORBIT_APP_NAMES[k]||k),'Saved link','is-saved is-'+k)).join('')+
+    '</div></section>';
+  }
+  /* The source clients each own their own connect button, so the Orbit page hands the click
+     over rather than reimplementing the OAuth start. */
+  const ORBIT_HANDS=()=>{const c=window.__biglwaConnections;if(!c)return false;const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest};return Object.values(map).every(Boolean)};
+   function renderOrbitPage(){
+    const links=orbitLinks();
+    const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. Everything else is a link you paste. Calendar syncing lives in Calendar, not Orbit.</p>${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n])=>{
+     if(ORBIT_CONNECTED.has(k)){
+      const row=connected[k];
+      const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
+      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b><span>${g}</span>${row?'<em class="orbit-state is-on">Connected</em>':'<em class="orbit-state">Not connected</em>'}</header>`+
+       (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span><a class="orbit-hotlink" href="${esc(row.link)}" target="_blank" rel="noopener noreferrer">Open ↗</a></div>`
+        :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${ORBIT_HANDS()?'':'disabled'}>${row?'Reconnect':'Connect'} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}</div></div>`;
+     }
+     return `<div class="module-orbit-row"><header><b>${n}</b><span>${g}</span></header><label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
+     }).join('')}</div><div class="module-status" id="orbitPageStatus"></div></section></div>`;
+    /* Looked up after the markup exists, so the status line is the node that is actually
+       on the page rather than one from a previous render. */
+    const status=$('#orbitPageStatus',body);
+    const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
+    body.onclick=e=>{
+     const connect=e.target.closest('[data-orbit-connect]');
+     if(connect){const k=connect.dataset.orbitConnect;const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
+     const unlink=e.target.closest('[data-orbit-unlink]');
+     if(unlink){const k=unlink.dataset.orbitUnlink;say('Unlinking…');window.__biglwaConnections?.forget?.(k).then(()=>{say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage()});return}
+     const save=e.target.closest('[data-orbit-save]');
+     if(save){const k=save.dataset.orbitSave,url=$('[data-orbit-path="'+k+'"]',body).value.trim(),all=orbitLinks();url?all[k]=url:delete all[k];writeJSON('biglwaOrbitLinks',all);say((ORBIT_APP_NAMES[k]||'Orbit')+' link saved.');renderOrbitPage();return}
+     const open=e.target.closest('[data-orbit-open]');
+     if(open){safeOpen(orbitLinks()[open.dataset.orbitOpen])}
+    };
+     /* A connection that finishes elsewhere, or after an unlink, repaints the page.
+        The subscription is registered once for the whole page, not once per render: the
+        page is redrawn on every connection change, and a listener added each time would
+        call back once per past render and repaint in a loop. */
+     orbitWatch();
+   }
+   /* The viewer is repainted by the connections watcher, not by the markup, so the current
+      route is checked at fire time. Registering here also means the guard is genuinely once
+      even if the module is opened and closed repeatedly. */
+   let orbitWatched=false;
+   function orbitWatch(){
+     if(orbitWatched)return;
+     const hub=window.__biglwaConnections;
+     if(!hub?.onConnectionsChange)return;
+     orbitWatched=true;
+     hub.onConnectionsChange(()=>{if(routeName.textContent==='Orbit'&&!body.hidden)renderOrbitPage()});
+   }
 
   function profileUsername(){
     try{const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');if(saved?.username)return '@'+String(saved.username).replace(/^@/,'')}catch{}
@@ -386,7 +488,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
        than left to overwrite the real feed on its next render. The shell stays here so
        the route still has a heading, a composer to upgrade, and the shared list the
        connected sources pour into. */
-    body.innerHTML=heading('feed')+`<div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><form class="module-form" id="feedComposer"><textarea class="module-input" style="min-height:96px;resize:vertical" name="text" placeholder="What changed? What are you making?"></textarea><button class="module-action" type="submit">Post</button></form></section><section class="module-card"><h2>Collective feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
+    body.innerHTML=heading('feed')+`<div id="biglwaFeedHero" class="biglwa-feed-hero" hidden></div><div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><form class="module-form" id="feedComposer"><textarea class="module-input" style="min-height:96px;resize:vertical" name="text" placeholder="What changed? What are you making?"></textarea><button class="module-action" type="submit">Post</button></form></section><section class="module-card"><h2>Collective feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
   }
 
   function renderConnect(){

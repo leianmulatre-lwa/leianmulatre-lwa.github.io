@@ -31,6 +31,15 @@ const clean=v=>String(v||"").trim();
 const safeNumber=(v,fallback=0)=>{const n=Number(v);return Number.isFinite(n)?n:fallback};
 const safeText=(v,max=64)=>clean(v).slice(0,max);
 
+/* Which hosts a public social link is allowed to point at. A visitor clicking a link on
+   someone else's profile is leaving the site, so the address has to be one we recognise
+   rather than whatever string ended up in the document. */
+const SOCIAL_HOSTS={
+  instagram:["instagram.com","www.instagram.com"],
+  tiktok:["tiktok.com","www.tiktok.com"],
+  pinterest:["pinterest.com","www.pinterest.com"]
+};
+
 function localUsername(){
   let saved=null;
   try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
@@ -187,6 +196,29 @@ async function savePublicLook(custom={}){
   }
 }
 
+/* The social links are written by the connection mirror, but a public document is not
+ * trusted just because it is readable: a link is only kept if it is https and on the
+ * provider's own host. Anything else is dropped here as well as on the way in, so a
+ * hand-edited document still cannot put an arbitrary address in front of a visitor. */
+function readSocials(raw){
+  if(!raw||typeof raw!=="object")return [];
+  return Object.entries(raw).flatMap(([id,entry])=>{
+    if(!entry||typeof entry!=="object")return [];
+    const url=safeText(entry.url,300);
+    if(!url||!SOCIAL_HOSTS[id])return [];
+    let parsed;
+    try{parsed=new URL(url)}catch{return []}
+    if(parsed.protocol!=="https:")return [];
+    if(!SOCIAL_HOSTS[id].includes(parsed.hostname.toLowerCase()))return [];
+    return [{
+      id,
+      label:safeText(entry.label,32)||id,
+      handle:safeText(entry.handle,64),
+      url:parsed.href
+    }];
+  }).slice(0,8);
+}
+
 /* Signed-out safe: usernames docs are world readable by Firestore rules. */
 async function loadPublicProfile(rawUsername){
   const username=normalize(rawUsername);
@@ -208,6 +240,7 @@ async function loadPublicProfile(rawUsername){
       moodStyle:clean(data.moodStyle),
       auraText:clean(data.auraText),
       url:clean(data.url)||("/"+encodeURIComponent(username)),
+      socials:readSocials(data.socials),
       look:look?{
         appearance:{
           widgetColor:clean(look.widgetColor),

@@ -142,8 +142,66 @@ function applyIdentity(data){
   return true;
 }
 
+/* The public social links, drawn as a row of buttons under the profile details.
+ *
+ * These are the visitor's way in, so they are the only part of a connection that is ever
+ * published: an address on the provider's own site, nothing more. The addresses have
+ * already been checked by the reader in firebase-directory.js, so anything reaching here is
+ * an https link on a host we recognise, and the markup is built from nodes rather than a
+ * string so a value can never turn into markup.
+ *
+ * The links leave the site, so unlike everything else on a preview they are allowed to open
+ * somewhere new. They say so on the label rather than surprising someone with a tab. */
+const SOCIAL_ACCENT={
+  instagram:"#c13584",
+  tiktok:"#0f8f95",
+  pinterest:"#cf4632"
+};
+
+function renderSocials(data){
+  const card=$("#studioApp .profile-card");
+  if(!card||!data) return false;
+  let row=$(".biglwa-social-row",card);
+  const links=Array.isArray(data.socials)?data.socials:[];
+  /* An empty set clears the row rather than leaving a stale one behind: the same card is
+     reused if the viewer navigates from one profile to another. */
+  if(!links.length){
+    if(row) row.remove();
+    return false;
+  }
+  if(!row){
+    row=document.createElement("div");
+    row.className="biglwa-social-row";
+    row.setAttribute("aria-label","Elsewhere on the web");
+    const anchor=$(".meta-row",card)||$(".bio",card);
+    if(anchor) anchor.after(row); else card.append(row);
+  }
+  /* Rebuilt only when the set actually differs, so this does not reset focus every time
+     the preview re-asserts itself. */
+  const signature=links.map(l=>l.id+":"+l.url).join("|")+":"+clean(data.username);
+  if(row.dataset.signature===signature) return true;
+  row.dataset.signature=signature;
+  row.textContent="";
+  for(const link of links){
+    const anchor=document.createElement("a");
+    anchor.className="biglwa-social";
+    anchor.href=link.url;
+    anchor.target="_blank";
+    anchor.rel="noopener noreferrer";
+    anchor.style.setProperty("--accent",SOCIAL_ACCENT[link.id]||"#8a7a6c");
+    anchor.dataset.source=link.id;
+    const label=document.createElement("span");
+    label.className="biglwa-social-label";
+    label.textContent=link.label;
+    const handle=document.createElement("small");
+    handle.textContent=link.handle||link.url.replace(/^https:\/\/www\./,"").replace(/\/$/,"");
+    anchor.append(label,handle);
+    row.append(anchor);
+  }
+  return true;
+}
+
 function localProfile(){
-  let saved=null;
   try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
   saved=saved&&typeof saved==="object"?saved:{};
   /* The signed-in account wins over the device-wide slot, otherwise signing in as one
@@ -239,6 +297,16 @@ html.biglwa-preview-mode #studioApp .sidebar [data-module]{display:none!importan
 .biglwa-prompt-actions .biglwa-prompt-join{background:#171717;border-color:#171717;color:#fbf8f2}
 .biglwa-prompt-actions .biglwa-prompt-join:hover{background:#ef5f78;border-color:#ef5f78}
 .biglwa-prompt-actions .biglwa-prompt-skip{margin-left:auto;border:0;color:#8d837c;text-transform:none;letter-spacing:0}
+.biglwa-social-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.biglwa-social{display:inline-flex;flex-direction:column;gap:1px;padding:7px 12px;border-radius:12px;
+  text-decoration:none;background:#fffaf3;border:1px solid rgba(80,70,64,.16);
+  border-left:3px solid var(--accent,#8a7a6c);
+  box-shadow:0 8px 18px -14px var(--accent,#8a7a6c)}
+.biglwa-social:hover{background:#fff4e8}
+.biglwa-social:focus-visible{outline:3px solid var(--accent,#8a7a6c)}
+.biglwa-social-label{font:600 12px/1.3 system-ui;color:#2f2a27}
+.biglwa-social small{font:500 11px/1.3 system-ui;color:#8a7a6c;max-width:180px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
 `;
 
 function ensureStyles(){
@@ -524,6 +592,7 @@ function enforce(){
   const aura=$("#studioApp .aura-card p");
   const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
   if(nameDrift || auraDrift) applyIdentity(preview.profile);
+  renderSocials(preview.profile);
   decorateGuestCard();
   guardOrbit();
   checkSignedIn();
@@ -538,6 +607,7 @@ function activate(profile){
   document.documentElement.classList.add("biglwa-preview-mode");
   showStudioScreen();
   applyIdentity(profile);
+  renderSocials(profile);
   applyLook(profile.look);
   buildBanner();
   bindGate();

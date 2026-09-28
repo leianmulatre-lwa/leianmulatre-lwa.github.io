@@ -31,9 +31,8 @@ function render(){
 function profileForm(service,label,placeholder){const url=read(LINKS,{})[service]||'';return '<form data-lib-profile="'+service+'"><h3>'+label+'</h3><label>Public profile URL<input name="url" type="url" value="'+esc(url)+'" placeholder="'+placeholder+'"></label><button>Save link</button>'+(safeUrl(url,service+'.com')?' <a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open profile</a>':'')+'</form>'}
 function renderOrbit(){
  for(const service of ['goodreads','letterboxd','imdb']){
- const row=$('[data-orbit-path="'+service+'"]')?.closest('.module-orbit-row');if(!row)continue;
- const auth=row.querySelector('[data-orbit-auth]');if(auth){if(auth.previousElementSibling)auth.previousElementSibling.hidden=true;auth.hidden=true;auth.value=''}
- const open=row.querySelector('[data-orbit-open]');if(open)open.disabled=!safeUrl(read(LINKS,{})[service],service+'.com');
+  const row=$('[data-orbit-path="'+service+'"]')?.closest('.module-orbit-row');if(!row)continue;
+  const open=row.querySelector('[data-orbit-open]');if(open)open.disabled=!safeUrl(read(LINKS,{})[service],service+'.com');
  if(!row.querySelector('.lib-orbit-note')){const p=document.createElement('p');p.className='lib-orbit-note';p.textContent='Profile link + CSV import. No live account sync.';row.append(p);const b=document.createElement('button');b.type='button';b.className='module-action';b.dataset.libOpen='';b.textContent='Open Library / import ratings';row.append(b)}
  }
 }

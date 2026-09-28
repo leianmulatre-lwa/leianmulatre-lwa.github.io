@@ -190,6 +190,71 @@ async function write(uid, id, record) {
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * The public half.
+ *
+ * The account document is owner-only, so a visitor cannot see a member's connections from
+ * there, and that is the right place for them: it holds counts, check times, and records
+ * that outlive the device. A visitor should see the links and nothing else.
+ *
+ * So the links are mirrored into the already-public usernames document, and only the
+ * links: a label, a handle, and an https address on the provider's own host. Counts, the
+ * last-checked time, and the needs-reauth marker are all left behind. A visitor learns where
+ * a member is, and nothing about how their account is wired.
+ *
+ * This is published rather than opt-in, because a link a member chose to put on their
+ * profile is the whole point of a profile. A member who does not want a link on their
+ * profile unlinks the account in Settings, which removes it here too.
+ * ----------------------------------------------------------------------- */
+
+/* A public link is only ever one of the provider hosts we already talk to. Anything else is
+   dropped rather than echoed, so this mirror cannot become a way to publish an arbitrary
+   address on someone's profile. */
+const PUBLIC_HOSTS = {
+  instagram: ["instagram.com", "www.instagram.com"],
+  tiktok: ["tiktok.com", "www.tiktok.com"],
+  pinterest: ["pinterest.com", "www.pinterest.com"]
+};
+
+function publicLink(id, record) {
+  const raw = clean(record && record.link);
+  if (!raw) return null;
+  let url;
+  try { url = new URL(raw); } catch { return null; }
+  if (url.protocol !== "https:") return null;
+  const host = url.hostname.toLowerCase();
+  if (!(PUBLIC_HOSTS[id] || []).includes(host)) return null;
+  return {
+    id,
+    label: clean(record.label) || id,
+    handle: clean(record.username),
+    url: url.href
+  };
+}
+
+async function mirrorPublic(uid, records) {
+  if (!uid) return;
+  try {
+    const { db, doc, getDoc, setDoc, serverTimestamp } = await firebase();
+    /* The username lives on the owner-only account doc; the rules trust that binding, so
+       reading it here is also what makes this write look like it came from the owner. */
+    const account = await getDoc(doc(db, "users", uid));
+    if (!account.exists()) return;
+    const username = clean(account.data().usernameLower || account.data().username);
+    if (!username) return;
+
+    const socials = {};
+    for (const [id, record] of Object.entries(records || {})) {
+      const link = publicLink(id, record);
+      if (link) socials[id] = link;
+    }
+    await setDoc(doc(db, "usernames", username), { socials, updatedAt: serverTimestamp() }, { merge: true });
+  } catch {
+    /* The public mirror is a convenience. Not being able to reach it must not disturb the
+       connection itself, which has already been recorded on the account. */
+  }
+}
+
 /* Reads what the account already records, so a connection made on another device is
    visible before this device has refreshed it from the provider. */
 async function load(uid) {
@@ -230,6 +295,9 @@ export function refresh(uid) {
       current = next;
       emit();
     }
+    /* Mirrored once per pass rather than per source: three links arriving separately would
+       make a visitor's profile flicker through a half-published state. */
+    await mirrorPublic(who, current);
     refreshing = null;
     return current;
   })();
@@ -267,6 +335,9 @@ export async function forget(id) {
   delete next[id];
   current = next;
   emit();
+  /* The visitor's copy has to go at the same time, or an unlinked account would keep
+     appearing on the public profile until the next sign-in. */
+  if (who) await mirrorPublic(who, current);
   return current;
 }
 
@@ -279,6 +350,9 @@ export async function startConnections() {
   startIdentity();
   const begin = (who) => load(who?.uid);
   onIdentityChange(begin);
+  /* The Orbit page is a classic script and cannot import this module, so the connected
+     accounts are published on the window for it to read and to subscribe to. */
+  window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, forget };
   return begin(identity());
 }
 

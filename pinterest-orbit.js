@@ -3,7 +3,7 @@
 if(window.__biglwaPinterest) return;
 const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/pinterest/';
 const KEY='biglwaPinterestSession';
-let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='';
+ let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='',covers={};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  /* The session id is a credential that should outlive the tab, like the other two
     sources, so the connection does not vanish when the window is closed. The PKCE
@@ -15,7 +15,7 @@ function notice(text){message=text;render();let el=document.getElementById('pint
 async function api(path,body){
  const res=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session()},...(body?{body:JSON.stringify(body)}:{})});
  const data=await res.json().catch(()=>({}));
- if(!res.ok){if(res.status===401){save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext=''}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
+ if(!res.ok){if(res.status===401){save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={}}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
  return data;
 }
 async function run(fn){
@@ -30,10 +30,20 @@ async function connect(){await run(async()=>{
  const challenge=encode(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
  location.assign(API+'start?challenge='+encodeURIComponent(challenge));
 })}
-async function loadBoards(more=false){
- const data=await api('boards'+(more&&boardsNext?'?bookmark='+encodeURIComponent(boardsNext):''));
- boards=more?[...boards,...(data.items||[])]:data.items||[];boardsNext=data.bookmark||'';
-}
+ async function loadBoards(more=false){
+  const data=await api('boards'+(more&&boardsNext?'?bookmark='+encodeURIComponent(boardsNext):''));
+  boards=more?[...boards,...(data.items||[])]:data.items||[];boardsNext=data.bookmark||'';
+  /* Covers are fetched without blocking the board list: the grid is already usable with
+     placeholders, and the pictures arrive a moment later. */
+  loadCovers().then(render);
+ }
+  /* Six covers is what the preview shows, so asking for more would spend the rate limit on
+     tiles nobody sees. The Worker caches per session, so this is cheap after the first call. */
+ async function loadCovers(){
+  const ids=boards.filter(b=>/^\d+$/.test(b.id)).slice(0,6);
+  if(!ids.length)return;
+  try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render()}catch{}finally{}
+ }
  async function loadPins(id,more){
   const data=await api('boards/'+id+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
   pins=more?[...pins,...(data.items||[])]:data.items||[];pinsNext=data.bookmark||'';
@@ -46,7 +56,7 @@ async function loadBoards(more=false){
   if(!more){boardId=id;pins=[];pinsNext=''}
   await loadPins(id,more);
  })}
-async function disconnect(){await run(async()=>{await api('disconnect',{});save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext=''})}
+ async function disconnect(){await run(async()=>{await api('disconnect',{});save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={}})}
  function image(pin){
   const images=pin.media?.images||pin.media?.items?.[0]?.images||{};
   const candidate=images['600x']?.url||images['400x300']?.url||Object.values(images).find(x=>x?.url)?.url||pin.media?.cover_image_url;
@@ -72,6 +82,31 @@ async function disconnect(){await run(async()=>{await api('disconnect',{});save(
   list.insertAdjacentHTML('afterbegin',cards.join(''));
  }
  function boardNameFor(id){return boards.find(b=>b.id===id)?.name||''}
+  /* The board grid is three across and two down. That is deliberately not the four-column
+     feed, so the two grids read as different things. Before a connection it is six empty
+     slots rather than a prompt, which shows the shape of what is coming without pretending
+     there is something there. A board with no cover yet keeps its slot and waits. */
+ function boardGrid(){
+  if(!connected){
+   return '<div class="pinterest-board-grid" aria-hidden="true">'+Array.from({length:6},()=>'<div class="pinterest-board is-empty"><span>Connect Pinterest</span></div>').join('')+'</div>';
+  }
+  if(!boards.length)return'';
+  const tiles=boards.slice(0,6).map(b=>{
+   const cover=covers[b.id];
+   /* Boards are addressed by owner, so a profile with no username yet would otherwise
+      produce a link with a hole in it. Falling back to the account root still opens
+      Pinterest rather than a broken address. */
+   const owner=profile.username||profile.business_name;
+   const href=owner?'https://www.pinterest.com/'+encodeURIComponent(owner)+'/'+encodeURIComponent(b.id)+'/':'https://www.pinterest.com/';
+   return '<a class="pinterest-board'+(cover?'':' is-empty')+'" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+
+    (cover?'<img loading="lazy" src="'+esc(cover)+'" alt="">':'<span>No cover yet</span>')+
+    '<strong>'+esc(b.name)+'</strong>'+
+    (b.pin_count!=null?'<small>'+b.pin_count+' Pins</small>':'')+'</a>';
+  });
+  /* Fewer than six boards still fill the grid, so the row never looks half drawn. */
+  while(tiles.length<6)tiles.push('<div class="pinterest-board is-empty"><span>&nbsp;</span></div>');
+  return '<div class="pinterest-board-grid">'+tiles.join('')+'</div>';
+ }
  if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('Pinterest','pinterest-feed-item',renderFeedList);
  function render(){
   document.querySelectorAll('[data-orbit-app="pinterest"]').forEach(el=>{el.classList.toggle('orbit-connected',connected);el.setAttribute('aria-label',connected?'Open Pinterest boards':'Connect Pinterest')});
@@ -88,11 +123,14 @@ async function disconnect(){await run(async()=>{await api('disconnect',{});save(
  const disabled=busy?' disabled':'';
  panel.innerHTML='<h2>Pinterest boards</h2><p>'+(connected?'Connected as '+esc(profile.username||profile.business_name||'your Pinterest account'):'Connect Pinterest to browse your public boards and Pins here.')+'</p><div class="module-actions">'+
  (connected?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>Refresh boards</button><button type="button" class="module-action" data-pn-disconnect'+disabled+'>Disconnect</button>':'<button type="button" class="module-action" data-pn-connect'+disabled+'>Connect Pinterest</button>')+
- '</div><p role="status">'+esc(message)+'</p>'+
- (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
- (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
- (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
- '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(p.id)).map(p=>{const src=image(p);return '<a class="pinterest-pin" href="https://www.pinterest.com/pin/'+p.id+'/" target="_blank" rel="noopener noreferrer">'+(src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'">':'')+'<span>'+esc(p.title||p.description||'View Pin')+'</span><small>View on Pinterest ↗</small></a>'}).join('')+'</div>'+
+  '</div><p role="status">'+esc(message)+'</p>'+
+  /* The grid sits outside the connected branch on purpose: the shape of what is coming is
+     useful before anyone connects, and it is the same six slots either way. */
+  boardGrid()+
+  (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
+  (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
+  (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
+  '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(p.id)).map(p=>{const src=image(p);return '<a class="pinterest-pin" href="https://www.pinterest.com/pin/'+p.id+'/" target="_blank" rel="noopener noreferrer">'+(src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'">':'')+'<span>'+esc(p.title||p.description||'View Pin')+'</span><small>View on Pinterest ↗</small></a>'}).join('')+'</div>'+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
  (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'');
 }
@@ -110,7 +148,7 @@ document.addEventListener('click',e=>{
 },true);
 document.addEventListener('biglwa:module-open',render);
 async function init(){
- const style=document.createElement('style');style.textContent='#pinterestBoards{font-size:16px}#pinterestBoards p,#pinterestBoards label{font-size:16px;line-height:1.5}#pinterestBoards button,#pinterestBoards select{font-size:14px;min-height:42px}#pinterestBoards button:disabled{opacity:.55;cursor:wait}.pinterest-pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:16px;margin:20px 0}.pinterest-pin{border:1px solid #d8cec5;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#fffaf3;color:#302b28;text-decoration:none}.pinterest-pin img{width:100%;height:230px;object-fit:cover}.pinterest-pin span,.pinterest-pin small{padding:10px 12px;overflow-wrap:anywhere}.pinterest-pin small{font-size:13px;margin-top:auto}.pinterest-pin:focus-visible{outline:3px solid #a53332}';document.head.append(style);
+  const style=document.createElement('style');style.textContent='#pinterestBoards{font-size:16px}#pinterestBoards p,#pinterestBoards label{font-size:16px;line-height:1.5}#pinterestBoards button,#pinterestBoards select{font-size:14px;min-height:42px}#pinterestBoards button:disabled{opacity:.55;cursor:wait}.pinterest-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.pinterest-board{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:150px;overflow:hidden;border:1px solid #d8cec5;border-radius:14px;background:#fffaf3;color:#302b28;text-decoration:none;box-shadow:0 10px 22px -16px rgba(48,43,40,.6)}.pinterest-board img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pinterest-board strong,.pinterest-board small{position:relative;z-index:1;padding:0 12px;color:#fff;background:linear-gradient(180deg,transparent,rgba(24,16,14,.78) 62%);text-shadow:0 1px 3px rgba(0,0,0,.4)}.pinterest-board strong{padding-top:30px;font:600 15px/1.4 system-ui;overflow-wrap:anywhere}.pinterest-board small{padding-bottom:11px;font:600 12px/1.4 system-ui;opacity:.9}.pinterest-board.is-empty{display:grid;place-items:center;min-height:150px;border-style:dashed;background:repeating-linear-gradient(45deg,#fffaf3,#fffaf3 10px,#fdf3e9 10px,#fdf3e9 20px)}.pinterest-board.is-empty span{font:600 12px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}.pinterest-board:focus-visible{outline:3px solid #a53332}@media (max-width:760px){.pinterest-board-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}.pinterest-pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:16px;margin:20px 0}.pinterest-pin{border:1px solid #d8cec5;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#fffaf3;color:#302b28;text-decoration:none}.pinterest-pin img{width:100%;height:230px;object-fit:cover}.pinterest-pin span,.pinterest-pin small{padding:10px 12px;overflow-wrap:anywhere}.pinterest-pin small{font-size:13px;margin-top:auto}.pinterest-pin:focus-visible{outline:3px solid #a53332}';document.head.append(style);
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
  if(handoff||error){url.searchParams.delete('pinterest_handoff');url.searchParams.delete('pinterest_error');history.replaceState(history.state,'',url.href)}
  if(error)notice(error);
