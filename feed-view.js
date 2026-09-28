@@ -43,13 +43,15 @@ const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
 const STYLE = `
 /* Masonry via columns, so cards of different heights pack tightly and read the way a
    pin board does. Break-inside keeps a caption attached to its own image.
-   Four columns is the count that keeps the board readable rather than a wall of cards;
-   the boards preview deliberately uses three, so the two never look like the same grid. */
-#feedPageList{columns:4 220px;column-gap:18px;display:block}
+   The count is fixed rather than a minimum width: the wall spans the page, and a
+   minimum would quietly add a fifth column on a wide screen. The feed card is wide
+   so it centres across the page instead of sitting in the narrow right-hand column,
+   and it keeps filling downward for as many rows as there are posts. */
+#feedPageList{columns:4;column-gap:18px;display:block}
 #feedPageList>*{break-inside:avoid;margin:0 0 18px;width:100%}
-@media (max-width:1100px){#feedPageList{columns:3 200px}}
-@media (max-width:760px){#feedPageList{columns:2 150px}}
-@media (max-width:420px){#feedPageList{columns:1}}
+@media (max-width:1100px){#feedPageList{columns:3}}
+@media (max-width:760px){#feedPageList{columns:2}}
+@media (max-width:460px){#feedPageList{columns:1}}
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
