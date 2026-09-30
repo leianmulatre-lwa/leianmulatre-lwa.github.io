@@ -195,7 +195,7 @@ function installStyle() {
   if (document.getElementById("biglwaFeedStyle")) return;
   const style = document.createElement("style");
   style.id = "biglwaFeedStyle";
-  style.textContent = STYLE;
+  style.textContent = STYLE + "\n/* Orbit imports are account drafts until the member explicitly publishes them. */\n#biglwaOrbitDrafts{margin:0 0 18px;padding:16px;border:1px solid rgba(80,70,64,.16);border-radius:18px;background:#fffdf9;box-shadow:0 10px 24px -18px rgba(48,43,40,.35)}\n#biglwaOrbitDrafts[hidden]{display:none}\n.biglwa-drafts-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}\n.biglwa-drafts-head h3{margin:0;font:700 13px/1.2 system-ui;color:#2f2a27}\n.biglwa-drafts-head p{margin:4px 0 0;max-width:650px;font:500 10px/1.45 system-ui;color:#81766f}\n.biglwa-drafts-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}\n.biglwa-draft-card{position:relative;display:grid;gap:7px;padding:8px;border:1px solid #dfd6cd;border-radius:13px;background:#fff;cursor:pointer}\n.biglwa-draft-card input{position:absolute;left:9px;top:9px;z-index:2;width:17px;height:17px;accent-color:#c1355a}\n.biglwa-draft-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:9px;background:#eee7df}\n.biglwa-draft-card b{display:block;font:700 10px/1.35 system-ui;color:#302b28;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}\n.biglwa-draft-card small{display:block;margin-top:3px;font:600 9px/1.3 system-ui;color:#8b8179}\n@media(max-width:760px){.biglwa-drafts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.biglwa-drafts-head{align-items:flex-start;flex-direction:column}}\n";
   document.head.appendChild(style);
 }
 
@@ -219,7 +219,7 @@ async function firebase() {
       doc: store.doc, getDoc: store.getDoc, deleteDoc: store.deleteDoc,
       addDoc: store.addDoc, collection: store.collection, query: store.query, orderBy: store.orderBy,
       limit: store.limit, getDocs: store.getDocs, serverTimestamp: store.serverTimestamp,
-      updateDoc: store.updateDoc
+      updateDoc: store.updateDoc, setDoc: store.setDoc
     };
   }
   return refs;
@@ -244,6 +244,7 @@ function when(iso) {
 }
 
 let posts = [];
+let draftPosts = [];
 let loading = false;
 let drawnOn = null;
 let drawnSignature = null;
@@ -252,17 +253,40 @@ async function loadPosts() {
   if (loading) return posts;
   loading = true;
   try {
-    const { db, collection, query, orderBy, limit, getDocs } = await firebase();
-    const snap = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(FEED_SIZE)));
-    posts = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((p) => p.state !== "archived");
-  } catch {
-    /* A feed that cannot load should still show the connected sources below it. */
-    posts = [];
+    const { db, auth, collection, query, where, limit, getDocs } = await firebase();
+    const publicSnap = await getDocs(query(collection(db, "posts"), where("state", "==", "approved"), limit(FEED_SIZE)));
+    posts = publicSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      .filter((p) => p.state === "approved")
+      .sort((a, b) => timestampMs(b.createdAt) - timestampMs(a.createdAt));
+    draftPosts = [];
+    const user = auth.currentUser;
+    if (user) {
+      const draftSnap = await getDocs(query(
+        collection(db, "posts"),
+        where("uid", "==", user.uid),
+        where("state", "==", "draft"),
+        limit(40)
+      ));
+      draftPosts = draftSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => timestampMs(b.updatedAt || b.createdAt) - timestampMs(a.updatedAt || a.createdAt));
+    }
+  } catch (error) {
+    console.error("BIGLWA feed load:", error);
+    if (!posts.length) posts = [];
+    draftPosts = [];
   } finally {
     loading = false;
   }
+  renderDrafts();
   renderPosts();
   return posts;
+}
+
+function timestampMs(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 /* The preview strip sits above the board. It shows the four newest pictures in a single
@@ -322,12 +346,50 @@ function renderHero(force) {
 /* Redrawing the list on every call would drop hover and focus state and pull the reader
    out of a card they are on, so the markup is only rebuilt when the posts or the viewer
    actually differ. A newly rendered feed route is a new list and still gets drawn. */
+function renderDrafts() {
+  const anchor = document.getElementById("biglwaOrbitDrafts");
+  if (!anchor) return;
+  if (!identity()?.uid || !draftPosts.length) {
+    anchor.hidden = true;
+    anchor.innerHTML = "";
+    return;
+  }
+  anchor.hidden = false;
+  anchor.innerHTML =
+    '<div class="biglwa-drafts-head"><div><h3>Imported from Orbit</h3><p>Saved to your account, not public yet. Choose what you want to post to the collective feed.</p></div>' +
+    '<button type="button" class="module-action" data-orbit-publish-selected>Post selected</button></div>' +
+    '<div class="biglwa-drafts-grid">' +
+    draftPosts.map((post) =>
+      '<label class="biglwa-draft-card" data-draft-id="' + esc(post.id) + '">' +
+        '<input type="checkbox" data-orbit-draft-check value="' + esc(post.id) + '">' +
+        '<img src="' + esc(slideUrls(post)[0] || "") + '" alt="' + esc(post.caption || "Imported post") + '" loading="lazy">' +
+        '<div><b>' + esc(post.caption || "Imported from " + (post.source || "Orbit")) + '</b><small>' + esc((post.source || "Orbit") + (post.sourceUsername ? " · @" + post.sourceUsername : "")) + '</small></div>' +
+      '</label>'
+    ).join("") +
+    '</div>';
+}
+
+async function publishDraft(postId) {
+  const { db, auth, doc, setDoc, getDoc, serverTimestamp } = await firebase();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sign in to publish this post.");
+  const rootRef = doc(db, "posts", postId);
+  const profileRef = doc(db, "users", user.uid, "posts", postId);
+  const snap = await getDoc(rootRef);
+  if (!snap.exists()) throw new Error("That imported post is no longer available.");
+  const post = snap.data() || {};
+  if (post.uid !== user.uid) throw new Error("You can only publish your own imports.");
+  const patch = { state: "approved", publishedAt: serverTimestamp(), updatedAt: serverTimestamp() };
+  await setDoc(rootRef, patch, { merge: true });
+  await setDoc(profileRef, patch, { merge: true });
+}
 function renderPosts(force) {
   const list = document.getElementById("feedPageList");
   if (!list) return;
   const me = identity()?.uid;
     const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
 ;
+  renderDrafts();
   renderHero(force);
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
