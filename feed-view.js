@@ -18,9 +18,23 @@ const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_BYTES = 8 * 1024 * 1024;
 const FEED_SIZE = 40;
+/* A post may carry several photos. They are shown one at a time in a square frame that
+   moves on its own, so a multi-photo post reads like a slideshow rather than a stack.
+   The ceiling keeps one post from turning the wall into a video. */
+const MAX_SLIDES = 6;
+const SLIDE_MS = 4200;
 
 const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* One picture is the old shape and stays the common case, so it is read from either the
+   list or the single field. The first photo is also written back to `imageUrl`, which is
+   what the preview strip and anything older still read. */
+const slideUrls = (post) => {
+  const list = Array.isArray(post.imageUrls) ? post.imageUrls.filter((u) => typeof u === "string" && u) : [];
+  if (list.length) return list.slice(0, MAX_SLIDES);
+  return post.imageUrl ? [post.imageUrl] : [];
+};
 
 /* Each source gets its own colour, carried as a border and a soft outer glow rather than a
    fill, so a board of mixed cards still reads as one surface.
@@ -60,22 +74,48 @@ const STYLE = `
   border-radius:16px;background:#fffdf9;position:relative;display:block;width:100%;
   box-shadow:0 10px 22px -14px var(--accent),0 1px 2px rgba(48,43,40,.06)}
 .biglwa-pin::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--accent),transparent)}
-.biglwa-pin>img{display:block;width:100%;height:auto;background:#efe7dd}
+/* Every picture in the wall is square and the same size as its column, so a board of mixed
+   sources stays even instead of stepping up and down with each photo's own shape. The
+   renderer wraps the picture in a plain div, so that is matched too; the frames of a
+   slideshow are left alone because they are positioned by their own rule. */
+.biglwa-pin>img,.biglwa-pin>div>img{aspect-ratio:1/1;object-fit:cover;display:block;width:100%;height:auto;background:#efe7dd}
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-body b{display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;color:#2f2a27;overflow-wrap:anywhere}
 .biglwa-pin-body a{display:inline-flex;margin-top:9px;font:600 12px/1 system-ui;color:#a53332}
 .biglwa-pin-empty{padding:15px}
 .biglwa-pin-del{margin-top:9px;background:none;border:0;padding:0;font:600 12px/1 system-ui;color:#9b8a7c;cursor:pointer}
-/* A small tag sits on the image corner so the source is readable without reading text. */
-.biglwa-pin-src{position:absolute;right:8px;top:8px;z-index:2;padding:3px 8px;border-radius:999px;
-  background:var(--accent);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.05em;text-transform:uppercase;
-  box-shadow:0 2px 8px rgba(0,0,0,.28)}
+/* The source is told by the colour along the edge of the card instead of by a name, so the
+   label is no longer drawn. The accent border and the glow around it stay. */
+.biglwa-pin-src{display:none}
+/* A post with more than one photo becomes a square slideshow: one photo at a time, moving
+   on by itself, with dots and arrows so it is still readable and pausable by hand. */
+.biglwa-slide{position:relative;width:100%;aspect-ratio:1/1;background:#efe7dd;overflow:hidden}
+.biglwa-slide>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .45s ease}
+.biglwa-slide>img.is-on{opacity:1}
+.biglwa-slide-dot{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;z-index:3}
+.biglwa-slide-dot i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);
+  box-shadow:0 0 0 1px rgba(24,16,14,.35);pointer-events:none}
+.biglwa-slide-dot i.is-on{background:#fff;box-shadow:0 0 0 1px rgba(24,16,14,.6)}
+.biglwa-slide-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+  width:28px;height:28px;border:0;border-radius:50%;background:rgba(24,16,14,.5);color:#fff;
+  font:700 15px/1 system-ui;cursor:pointer;opacity:0;transition:opacity .2s ease}
+.biglwa-slide:hover .biglwa-slide-btn,.biglwa-slide:focus-within .biglwa-slide-btn{opacity:1}
+.biglwa-slide-btn.prev{left:6px}
+.biglwa-slide-btn.next{right:6px}
+.biglwa-slide-count{position:absolute;right:8px;top:8px;z-index:3;padding:3px 8px;border-radius:999px;
+  background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.05em}
+/* Someone who has asked their system for less motion gets a slideshow that holds still. */
+@media (prefers-reduced-motion:reduce){.biglwa-slide>img{transition:none}}
 #biglwaFeedPicker{display:none}
 .biglwa-pick{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   border:1px dashed rgba(80,70,64,.4);border-radius:12px;padding:12px 14px;font:600 13px/1 system-ui;color:#5a4f47}
 .biglwa-pick:hover{background:#fff6ec}
 .biglwa-thumb{width:100%;border-radius:12px;margin-top:10px;display:block}
+.biglwa-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:10px}
+.biglwa-thumbs .biglwa-thumb{margin-top:0;aspect-ratio:1/1;overflow:hidden;background:#efe7dd}
+.biglwa-thumbs .biglwa-thumb img{width:100%;height:100%;object-fit:cover;display:block;border-radius:12px}
 #biglwaFeedStatus{font:600 12px/1.5 system-ui;margin:9px 0 0;min-height:1em}
 /* The preview strip sits front and centre above the board: four pictures in a single row,
    wider than a card so it reads as a header rather than another item in the feed. */
@@ -90,7 +130,8 @@ const STYLE = `
   aspect-ratio:4/3;border-radius:14px;background:#efe7dd;text-decoration:none;
   border:1px solid rgba(80,70,64,.14);box-shadow:0 8px 18px -12px var(--accent,#c1355a)}
 .biglwa-feed-hero-row img{width:100%;height:100%;object-fit:cover;display:block}
-.biglwa-feed-hero-row .biglwa-pin-src{right:6px;top:6px;padding:2px 7px;font-size:8px}
+.biglwa-feed-hero-count{position:absolute;left:8px;top:8px;z-index:2;padding:3px 8px;border-radius:999px;
+  background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.04em}
 .biglwa-feed-hero-cap{position:absolute;left:0;right:0;bottom:0;padding:16px 9px 8px;color:#fff;
   font:600 11px/1.35 system-ui;background:linear-gradient(180deg,transparent,rgba(24,16,14,.82));
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -202,12 +243,14 @@ function renderHero(force) {
     heroSignature = null;
     return;
   }
-  const signature = posts.map((p) => p.id + ":" + (p.imageUrl || "") + ":" + (p.caption || "")).join("|");
+  const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "")).join("|");
   if (!force && anchor === heroOn && signature === heroSignature) return;
   heroOn = anchor;
   heroSignature = signature;
 
-  const withImage = posts.filter((p) => p.imageUrl);
+  /* A post counts as having a picture whether it carries one photo or several: the strip
+     shows the first photo of a slideshow, which is the same picture the card opens on. */
+  const withImage = posts.filter((p) => slideUrls(p).length);
   const slots = [];
   for (let i = 0; i < HERO_SLOTS; i++) slots.push(withImage[i] || null);
   const rest = Math.max(0, withImage.length - HERO_SLOTS);
@@ -216,9 +259,11 @@ function renderHero(force) {
     if (!post) return '<div class="biglwa-feed-hero-empty">Nothing here yet</div>';
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
-    return '<a style="--accent:' + src.accent + '" href="' + esc(post.imageUrl) + '" target="_blank" rel="noopener noreferrer">' +
-      '<span class="biglwa-pin-src">' + esc(src.label) + "</span>" +
-      '<img src="' + esc(post.imageUrl) + '" alt="' + esc(caption || src.label + " post") + '" loading="lazy">' +
+    const first = slideUrls(post)[0];
+    const many = slideUrls(post).length > 1;
+    return '<a style="--accent:' + src.accent + '" href="' + esc(first) + '" target="_blank" rel="noopener noreferrer">' +
+      (many ? '<span class="biglwa-feed-hero-count">' + slideUrls(post).length + " photos</span>" : "") +
+      '<img src="' + esc(first) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy">' +
       (caption ? '<span class="biglwa-feed-hero-cap">' + esc(caption) + "</span>" : "") +
       "</a>";
   }).join("");
@@ -235,28 +280,133 @@ function renderPosts(force) {
   const list = document.getElementById("feedPageList");
   if (!list) return;
   const me = identity()?.uid;
-  const signature = posts.map((p) => p.id + ":" + (p.imageUrl || "") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "");
+    const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
+;
   renderHero(force);
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
   drawnSignature = signature;
 
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
+  stopSlideshows();
   if (!posts.length) return;
   const html = posts.map((post) => {
     const mine = post.uid && post.uid === me;
     const src = accentOf(post.source);
     const label = post.authorName ? esc(post.authorName) : (post.username ? "@" + esc(post.username) : "Member");
-    const image = post.imageUrl
-      ? '<img src="' + esc(post.imageUrl) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
-      : '<div class="biglwa-pin-empty"><small>Note</small></div>';
-    return '<article class="biglwa-pin biglwa-pin-post" style="--pin-accent:' + src.accent + '"><span class="biglwa-pin-src">' + esc(src.label) + "</span><div>" + image +
+    const urls = slideUrls(post);
+    const image = !urls.length
+      ? '<div class="biglwa-pin-empty"><small>Note</small></div>'
+      : urls.length === 1
+        ? '<img src="' + esc(urls[0]) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
+        : slideshow(urls, post.caption || "Feed post");
+    return '<article class="biglwa-pin biglwa-pin-post" style="--pin-accent:' + src.accent + '"><div>' + image +
       '<div class="biglwa-pin-body"><small>' + label + " · " + esc(when(post.createdAt)) + "</small>" +
       (post.caption ? "<b>" + esc(post.caption) + "</b>" : "") +
       (mine ? '<button type="button" class="biglwa-pin-del" data-feed-delete="' + esc(post.id) + '">Delete</button>' : "") +
       "</div></div></article>";
   }).join("");
   list.insertAdjacentHTML("afterbegin", html);
+  startSlideshows(list);
+}
+
+/* A multi-photo post is drawn as a stack of square pictures inside one frame. Only the
+   active one is visible, so the card keeps the same height and the same column width as a
+   single picture. The arrows and dots are real controls, so the slideshow can also be moved
+   by hand or by keyboard rather than only on its own timer. */
+function slideshow(urls, alt) {
+  const frames = urls.map((url, i) =>
+    '<img src="' + esc(url) + '" alt="' + esc(alt) + '" loading="lazy"' + (i ? ' aria-hidden="true"' : "") +
+    (i ? "" : ' class="is-on"') + ">").join("");
+  const dots = urls.map((_, i) => "<i" + (i ? "" : ' class="is-on"') + "></i>").join("");
+  return '<div class="biglwa-slide" data-biglwa-slideshow aria-roledescription="carousel" aria-label="' +
+    esc(alt) + '">' + frames +
+    '<span class="biglwa-slide-count">1 / ' + urls.length + "</span>" +
+    '<div class="biglwa-slide-dot">' + dots + "</div>" +
+    '<button type="button" class="biglwa-slide-btn prev" data-slide-step="-1" aria-label="Previous photo">&#8249;</button>' +
+    '<button type="button" class="biglwa-slide-btn next" data-slide-step="1" aria-label="Next photo">&#8250;</button>' +
+    "</div>";
+}
+
+/* Every running slideshow is tracked so a redraw cannot leave a timer pointing at pictures
+   that are no longer on the page. Each one stops itself when it is scrolled out of view, when
+   the reader hovers or focuses it, and when the tab is hidden, and it never starts moving on
+   its own for a reader who has asked their system for reduced motion. */
+const running = new Set();
+const calmMotion = () => {
+  try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+  catch { return false; }
+};
+
+function stopSlideshows() {
+  for (const timer of running) clearInterval(timer);
+  running.clear();
+}
+
+function startSlideshows(root) {
+  for (const frame of (root || document).querySelectorAll("[data-biglwa-slideshow]")) {
+    const photos = Array.from(frame.querySelectorAll("img"));
+    const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot i"));
+    const count = frame.querySelector(".biglwa-slide-count");
+    if (photos.length < 2) continue;
+    let at = 0;
+
+    const show = (next) => {
+      at = (next + photos.length) % photos.length;
+      photos.forEach((img, i) => {
+        img.classList.toggle("is-on", i === at);
+        if (i === at) img.removeAttribute("aria-hidden");
+        else img.setAttribute("aria-hidden", "true");
+      });
+      dots.forEach((dot, i) => dot.classList.toggle("is-on", i === at));
+      if (count) count.textContent = at + 1 + " / " + photos.length;
+    };
+
+    const hold = () => {
+      if (!timer) return;
+      clearInterval(timer);
+      running.delete(timer);
+      timer = null;
+    };
+    const play = () => {
+      if (timer || calmMotion() || !frame.isConnected) return;
+      timer = setInterval(() => show(at + 1), SLIDE_MS);
+      running.add(timer);
+    };
+    let timer = null;
+
+    frame.addEventListener("click", (event) => {
+      const step = event.target.closest("[data-slide-step]");
+      if (!step) return;
+      event.preventDefault();
+      show(at + Number(step.dataset.slideStep));
+    });
+    /* Hovering or tabbing into a card means the reader is looking at it, so it holds still. */
+    frame.addEventListener("mouseenter", hold);
+    frame.addEventListener("mouseleave", play);
+    frame.addEventListener("focusin", hold);
+    frame.addEventListener("focusout", (event) => { if (!frame.contains(event.relatedTarget)) play(); });
+
+    show(0);
+    play();
+
+    /* Off-screen cards are not watched: a wall of forty posts would otherwise run forty
+       timers for pictures nobody is looking at. */
+    if (typeof IntersectionObserver === "function") {
+      const seen = new IntersectionObserver((entries) => {
+        for (const entry of entries) entry.isIntersecting ? play() : hold();
+      }, { rootMargin: "120px" });
+      seen.observe(frame);
+    }
+  }
+}
+
+/* The tab being hidden should not leave pictures turning in the background. */
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopSlideshows();
+    else startSlideshows(document);
+  });
 }
 
 /* The image is uploaded before the post is written, so a record is never created for a
@@ -291,8 +441,8 @@ async function removeImage(key, uid) {
 
 async function submit(form) {
   const caption = String(new FormData(form).get("text") || "").trim();
-  const file = document.getElementById("biglwaFeedPicker")?.files?.[0];
-  if (!caption && !file) { say("Add a picture or a caption first.", "bad"); return; }
+  const files = Array.from(document.getElementById("biglwaFeedPicker")?.files || []).slice(0, MAX_SLIDES);
+  if (!caption && !files.length) { say("Add a photo or a caption first.", "bad"); return; }
   if (caption.length > 500) { say("Captions are limited to 500 characters.", "bad"); return; }
 
   const submitButton = form.querySelector('button[type="submit"]');
@@ -308,27 +458,36 @@ async function submit(form) {
     return;
   }
 
-  let media = null;
+  /* Photos are uploaded one at a time and the record is only written once every one of
+     them is stored, so a post never points at a picture that is not there. */
+  const uploaded = [];
   try {
-    if (file) media = await uploadImage(file, user);
+    for (let i = 0; i < files.length; i++) {
+      say("Uploading photo " + (i + 1) + " of " + files.length + "…");
+      uploaded.push(await uploadImage(files[i], user));
+    }
     const me = identity();
+    const urls = uploaded.map((m) => m.url).filter(Boolean);
     await addDoc(collection(db, "posts"), {
       uid: user.uid,
       username: me?.username || "",
       authorName: me?.name || me?.username || "",
       caption: caption.slice(0, 500),
-      imageKey: media?.key || null,
-      imageUrl: media?.url || null,
+      imageKey: uploaded[0]?.key || null,
+      imageUrl: urls[0] || null,
+      imageKeys: uploaded.map((m) => m.key).filter(Boolean),
+      imageUrls: urls,
       state: "approved",
       createdAt: serverTimestamp()
     });
     form.reset();
+    document.getElementById("biglwaFeedThumbs")?.remove();
     document.getElementById("biglwaFeedThumb")?.remove();
     say("Posted to the feed.", "good");
     await loadPosts();
   } catch (error) {
-    /* Roll the picture back so a rejected post does not leave a file behind. */
-    if (media?.key) await removeImage(media.key, user.uid);
+    /* Roll every picture back so a rejected post does not leave files behind. */
+    for (const media of uploaded) await removeImage(media.key, user.uid);
     say(error.message || "That post could not be published.", "bad");
   } finally {
     if (submitButton) submitButton.disabled = false;
@@ -342,9 +501,9 @@ function upgradeComposer(form) {
   form.dataset.bigUpgrade = "1";
   const holder = document.createElement("span");
   holder.className = "biglwa-pick";
-  holder.innerHTML = '<input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">Choose a picture';
+  holder.innerHTML = '<input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif" multiple>Choose up to ' + MAX_SLIDES + ' photos';
   const text = form.querySelector("textarea");
-  if (text) text.placeholder = "Say something, or add a picture";
+  if (text) text.placeholder = "Say something, or add photos";
   form.appendChild(holder);
   const status = document.createElement("p");
   status.id = "biglwaFeedStatus";
@@ -352,16 +511,27 @@ function upgradeComposer(form) {
   form.appendChild(status);
 
   holder.querySelector("input").addEventListener("change", (event) => {
-    document.getElementById("biglwaFeedThumb")?.remove();
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const preview = document.createElement("img");
-    preview.id = "biglwaFeedThumb";
-    preview.className = "biglwa-thumb";
-    preview.alt = "Selected picture";
-    preview.src = URL.createObjectURL(file);
-    form.insertBefore(preview, status);
-    say(file.name + " · " + Math.round(file.size / 1024) + " KB");
+    document.getElementById("biglwaFeedThumbs")?.remove();
+    const files = Array.from(event.target.files || []).slice(0, MAX_SLIDES);
+    if (!files.length) return;
+    /* Extra choices beyond the ceiling are reported rather than dropped silently. */
+    const extra = event.target.files.length - files.length;
+    const strip = document.createElement("div");
+    strip.id = "biglwaFeedThumbs";
+    strip.className = "biglwa-thumbs";
+    for (const file of files) {
+      const cell = document.createElement("span");
+      cell.className = "biglwa-thumb";
+      const img = document.createElement("img");
+      img.alt = "";
+      img.src = URL.createObjectURL(file);
+      cell.appendChild(img);
+      strip.appendChild(cell);
+    }
+    form.insertBefore(strip, status);
+    const total = files.reduce((sum, file) => sum + file.size, 0);
+    say(files.length + (files.length > 1 ? " photos" : " photo") + " · " +
+      Math.round(total / 1024) + " KB" + (extra ? " · only the first " + MAX_SLIDES + " will post" : ""));
   });
 
   form.addEventListener("submit", (event) => {

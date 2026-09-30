@@ -44,14 +44,28 @@
     'letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}',
     '#feedPageList>.module-list-item b{display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;',
     'color:#2f2a27;overflow-wrap:anywhere}',
-    '#feedPageList>.module-list-item img{border-radius:0!important;max-height:520px}',
+    /* Connected pictures are square too, so a board of member posts and connected
+       accounts sits on one even grid instead of stepping with each photo's shape. */
+    '#feedPageList>.module-list-item img,#feedPageList>.module-list-item video{',
+    'border-radius:0!important;aspect-ratio:1/1;object-fit:cover;width:100%;max-height:none}',
+    /* The source used to be named in text on the card. The coloured edge and the glow
+       around it say which account it came from, so the name is no longer drawn. */
+    '#feedPageList>.module-list-item>div>small{display:none}',
+    /* Green means one thing across the whole wall: this opens the original somewhere else.
+       The dot sits in front of the label so the colour is readable even where the link
+       text is truncated on a narrow column. */
+    '#feedPageList .biglwa-view-site{display:inline-flex;align-items:center;gap:6px;',
+    'margin-top:9px;padding:6px 12px;border-radius:999px;font:700 11px/1 system-ui;',
+    'letter-spacing:.02em;text-decoration:none;background:rgba(31,142,74,.1);',
+    'border:1px solid rgba(31,142,74,.34);color:#1f7a45}',
+    '#feedPageList .biglwa-view-site::before{content:"";width:8px;height:8px;border-radius:50%;',
+    'flex:0 0 8px;background:#1f8e4a;box-shadow:0 0 0 3px rgba(31,142,74,.16)}',
+    '#feedPageList .biglwa-view-site:hover{background:rgba(31,142,74,.16);color:#166238}',
+    '#feedPageList .biglwa-view-site:focus-visible{outline:2px solid #1f8e4a;outline-offset:2px}',
     /* A gradient lip along the top edge, so a card is identifiable as a source at a
        glance even when the picture behind it is pale. */
     '#feedPageList>.module-list-item::before{content:"";display:block;height:3px;',
-    'background:linear-gradient(90deg,var(--accent),transparent)}',
-    '#feedPageList>.biglwa-feed-src{position:absolute;right:8px;top:8px;z-index:2;padding:3px 8px;',
-    'border-radius:999px;background:var(--accent);color:#fff;font:700 9px/1.5 system-ui;',
-    'letter-spacing:.05em;text-transform:uppercase;box-shadow:0 2px 8px rgba(0,0,0,.28)}'
+    'background:linear-gradient(90deg,var(--accent),transparent)}'
   ].join('');
 
   function installStyle() {
@@ -69,16 +83,22 @@
      which is the case after a rebuild replaced the list with markup that still carried a
      marker class. Every card is painted, not just the first: a source commonly renders a
      dozen of them and a board where only the top one had a colour would look broken.
-     The label is keyed on a class so re-running it never stacks duplicates. */
+     Only the colour is set on the card. A label element used to be added here, and it is
+     gone: the accent along the edge and the glow identify the account without a name. */
   function paint(source, nodes) {
     var look = ACCENTS[source.marker] || FALLBACK;
     Array.prototype.forEach.call(nodes, function (node) {
       node.style.setProperty('--accent', look.accent);
-      if (node.querySelector('.biglwa-feed-src')) return;
-      var tag = document.createElement('span');
-      tag.className = 'biglwa-feed-src';
-      tag.textContent = look.label;
-      node.insertBefore(tag, node.firstChild);
+      /* A label left on a card by an older build is taken off rather than left hidden. */
+      var stale = node.querySelector('.biglwa-feed-src');
+      if (stale) stale.remove();
+      /* Every source writes its own "view on X" link in a slightly different place, and the
+         shape of the card differs with it, so the link is found here instead of in each
+         source. It is marked green, which is the one meaning that never changes. */
+      var links = node.querySelectorAll('a[href][target="_blank"]');
+      Array.prototype.forEach.call(links, function (link) {
+        link.classList.add('biglwa-view-site');
+      });
     });
   }
 
