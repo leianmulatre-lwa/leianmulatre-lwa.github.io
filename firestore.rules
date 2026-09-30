@@ -68,16 +68,25 @@ service cloud.firestore {
             || request.resource.data.wallpaper.state == 'approved'));
     }
 
-    // Feed posts are public to read, like the public profile entries they sit beside.
-    // Only the author may create, change, or remove one. The uid is stamped on the
-    // document at creation and may not be moved afterwards, otherwise an author could
-    // hand a post to someone else and then keep editing it through their own account.
+    // Collective posts are public only after the owner explicitly publishes them.
+    // Draft Orbit imports remain readable only by the Firebase account that owns them.
     match /posts/{postId} {
-      allow read: if true;
-      allow create: if isOwner(request.resource.data.uid);
+      allow read: if resource.data.state == 'approved'
+        || isOwner(resource.data.uid);
+      allow create: if isOwner(request.resource.data.uid)
+        && request.resource.data.state in ['draft', 'approved'];
       allow update: if isOwner(resource.data.uid)
-        && request.resource.data.uid == resource.data.uid;
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.state in ['draft', 'approved', 'archived'];
       allow delete: if isOwner(resource.data.uid);
+    }
+
+    // Every account post is also mirrored under the owner's profile. This gives the member
+    // a durable per-account post history while the root /posts collection powers the public
+    // collective feed. The same document id is used in both places.
+    match /users/{userId}/posts/{postId} {
+      allow read, create, update, delete: if isOwner(userId)
+        && (request.resource == null || request.resource.data.uid == userId);
     }
 
     // Wallpaper moderation queue. Members may open a review for their own media and
