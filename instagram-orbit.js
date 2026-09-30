@@ -4,12 +4,27 @@
 
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
-  var state = { connected: false, profile: null, media: [], error: '' };
+  var state = { connected: false, profile: null, media: [], error: '', importsSaved: 0 };
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (error) { return ''; } }
   function saveSession(value) { try { if (value) localStorage.setItem(SESSION_KEY, value); else localStorage.removeItem(SESSION_KEY); } catch (error) {} }
+  function importToFeed() {
+    var who = window.__biglwaIdentity;
+    var importer = window.__biglwaOrbitPosts;
+    if (!importer || typeof importer.importOrbitMedia !== 'function') return Promise.resolve();
+    return importer.importOrbitMedia('instagram', state.media, state.profile, who || {})
+      .then(function (result) {
+        state.importsSaved = result.imported || 0;
+        if (window.__biglwaFeed && typeof window.__biglwaFeed.refresh === 'function') window.__biglwaFeed.refresh();
+        return result;
+      })
+      .catch(function (error) {
+        console.error('BIGLWA Instagram draft import:', error);
+        status(error.message || 'Instagram connected, but the feed drafts could not be saved.');
+      });
+  }
   function api(path, options) {
     var settings = options || {};
     settings.headers = Object.assign({}, settings.headers || {}, session() ? { Authorization: 'Bearer ' + session() } : {});
@@ -25,7 +40,10 @@
   function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/?route=studio&view=orbit')); }
   function restore() {
     if (!session()) return Promise.resolve();
-    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) { state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render(); }).catch(function (error) {
+    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) {
+      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render();
+      return importToFeed().then(function () { render(); });
+    }).catch(function (error) {
       /* Only an expired credential may end the connection. A dropped connection or an
          Instagram-side fault used to discard the session, so one bad moment forced the
          member through the whole authorisation flow again. */
