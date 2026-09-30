@@ -937,7 +937,16 @@ export async function startFeed() {
   if (booted) return window.__biglwaFeed;
   booted = true;
   startIdentity();
-  onIdentityChange(watch);
+  onIdentityChange((who) => {
+    watch();
+    if (who) loadPosts();
+    else {
+      posts = [];
+      draftPosts = [];
+      renderDrafts();
+      renderPosts(true);
+    }
+  });
   watch();
   if (identity()) await loadPosts();
   window.__biglwaFeed = { loadPosts, renderPosts, refresh: loadPosts };
