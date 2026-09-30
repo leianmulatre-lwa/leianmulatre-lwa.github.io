@@ -582,7 +582,7 @@ async function submit(form) {
   say("Posting…");
 
   /* Everything here needs an account, so it is settled before a byte is uploaded. */
-  const { db, auth, addDoc, collection, serverTimestamp } = await firebase();
+  const { db, auth, addDoc, collection, doc, setDoc, deleteDoc, serverTimestamp } = await firebase();
   const user = auth.currentUser;
   if (!user) {
     say("Sign in to post to the feed.", "bad");
@@ -600,7 +600,8 @@ async function submit(form) {
     }
     const me = identity();
     const urls = uploaded.map((m) => m.url).filter(Boolean);
-    await addDoc(collection(db, "posts"), {
+    const createdAt = serverTimestamp();
+    const postData = {
       uid: user.uid,
       username: me?.username || "",
       authorName: me?.name || me?.username || "",
@@ -609,9 +610,12 @@ async function submit(form) {
       imageUrl: urls[0] || null,
       imageKeys: uploaded.map((m) => m.key).filter(Boolean),
       imageUrls: urls,
+      source: "biglwa",
       state: "approved",
-      createdAt: serverTimestamp()
-    });
+      createdAt
+    };
+    const postRef = await addDoc(collection(db, "posts"), postData);
+    await setDoc(doc(db, "users", user.uid, "posts", postRef.id), postData);
     form.reset();
     document.getElementById("biglwaFeedThumbs")?.remove();
     document.getElementById("biglwaFeedThumb")?.remove();
@@ -678,8 +682,9 @@ function upgradeComposer(form) {
 async function archivePost(post, action) {
   action.disabled = true;
   try {
-    const { db, doc, updateDoc } = await firebase();
-    await updateDoc(doc(db, "posts", post.id), { state: "archived" });
+    const { db, doc, updateDoc, setDoc, serverTimestamp } = await firebase();
+    await updateDoc(doc(db, "posts", post.id), { state: "archived", updatedAt: serverTimestamp() });
+    await setDoc(doc(db, "users", identity().uid, "posts", post.id), { state: "archived", updatedAt: serverTimestamp() }, { merge: true });
     posts = posts.filter((p) => p.id !== post.id);
     renderPosts();
     say("Post archived.", "good");
@@ -697,6 +702,7 @@ async function deletePost(post, action) {
   try {
     const { db, doc, deleteDoc } = await firebase();
     await deleteDoc(doc(db, "posts", post.id));
+    if (identity()?.uid === post.uid) await deleteDoc(doc(db, "users", post.uid, "posts", post.id));
     const keys = Array.isArray(post.imageKeys)
       ? post.imageKeys.filter(Boolean)
       : (post.imageKey ? [post.imageKey] : []);
