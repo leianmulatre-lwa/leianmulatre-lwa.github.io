@@ -72,6 +72,7 @@ function writeCache(record) {
 
 function emit() {
   const snapshot = current ? { ...current } : null;
+  window.__biglwaIdentity = snapshot;
   listeners.forEach((fn) => {
     try { fn(snapshot); } catch {}
   });
