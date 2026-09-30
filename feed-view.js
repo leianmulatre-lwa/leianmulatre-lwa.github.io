@@ -801,6 +801,26 @@ async function wire(list, form) {
   installStyle();
   if (!list) return;
   if (form) upgradeComposer(form);
+  const draftPanel = document.getElementById("biglwaOrbitDrafts");
+  if (draftPanel && !draftPanel.dataset.bigWired) {
+    draftPanel.dataset.bigWired = "1";
+    draftPanel.addEventListener("click", async (event) => {
+      const bulk = event.target.closest("[data-orbit-publish-selected]");
+      if (!bulk) return;
+      const ids = Array.from(draftPanel.querySelectorAll("[data-orbit-draft-check]:checked")).map((input) => input.value);
+      if (!ids.length) { say("Choose at least one imported post.", "bad"); return; }
+      bulk.disabled = true;
+      try {
+        for (const id of ids) await publishDraft(id);
+        say(ids.length + (ids.length === 1 ? " post" : " posts") + " added to the collective feed.", "good");
+        await loadPosts();
+      } catch (error) {
+        say(error.message || "Those posts could not be published.", "bad");
+      } finally {
+        bulk.disabled = false;
+      }
+    });
+  }
   if (list !== wiredList) {
     wiredList = list;
     list.addEventListener("click", (event) => {
