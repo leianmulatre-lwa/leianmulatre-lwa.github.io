@@ -488,7 +488,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
        than left to overwrite the real feed on its next render. The shell stays here so
        the route still has a heading, a composer to upgrade, and the shared list the
        connected sources pour into. */
-    body.innerHTML=heading('feed')+`<div id="biglwaFeedHero" class="biglwa-feed-hero" hidden></div><div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><form class="module-form" id="feedComposer"><textarea class="module-input" style="min-height:96px;resize:vertical" name="text" placeholder="What changed? What are you making?"></textarea><button class="module-action" type="submit">Post</button></form></section><section class="module-card wide"><h2>Collective feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
+    body.innerHTML=heading('feed')+`<div id="biglwaOrbitDrafts" hidden></div><div id="biglwaFeedHero" class="biglwa-feed-hero" hidden></div><div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><form class="module-form" id="feedComposer"><textarea class="module-input" style="min-height:96px;resize:vertical" name="text" placeholder="What changed? What are you making?"></textarea><button class="module-action" type="submit">Post</button></form></section><section class="module-card wide"><h2>Collective feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
   }
 
   function renderConnect(){
