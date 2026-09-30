@@ -61,19 +61,23 @@ const STYLE = `
    minimum would quietly add a fifth column on a wide screen. The feed card is wide
    so it centres across the page instead of sitting in the narrow right-hand column,
    and it keeps filling downward for as many rows as there are posts. */
-#feedPageList{columns:4;column-gap:18px;display:block}
-#feedPageList>*{break-inside:avoid;margin:0 0 18px;width:100%}
-@media (max-width:1100px){#feedPageList{columns:3}}
-@media (max-width:760px){#feedPageList{columns:2}}
-@media (max-width:460px){#feedPageList{columns:1}}
+#feedPageList{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+#feedPageList>*{min-width:0;width:100%;height:100%}
+@media (max-width:980px){#feedPageList{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){#feedPageList{grid-template-columns:1fr}}
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
-.biglwa-pin{--accent:var(--pin-accent,#c1355a);overflow:hidden;
-  border:1px solid rgba(80,70,64,.14);border-left:4px solid var(--accent);
-  border-radius:16px;background:#fffdf9;position:relative;display:block;width:100%;
-  box-shadow:0 10px 22px -14px var(--accent),0 1px 2px rgba(48,43,40,.06)}
+.biglwa-pin{--accent:var(--pin-accent,#bd3f47);overflow:hidden;
+  border:1px solid #dfd4ca;border-left:1px solid #dfd4ca;
+  border-radius:16px;background:#f1e9e1;position:relative;display:block;width:100%;
+  box-shadow:3px 3px 0 var(--accent),0 10px 24px rgba(55,42,34,.07)}
 .biglwa-pin::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--accent),transparent)}
+.biglwa-pin:nth-child(6n+1){--accent:#bd3f47}.biglwa-pin:nth-child(6n+2){--accent:#d77b30}.biglwa-pin:nth-child(6n+3){--accent:#d1ad2f}.biglwa-pin:nth-child(6n+4){--accent:#4e8f61}.biglwa-pin:nth-child(6n+5){--accent:#416fa9}.biglwa-pin:nth-child(6n+6){--accent:#7955a0}
+#biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
+#biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f8f2ec!important;box-shadow:3px 3px 0 #d77b30}
+#biglwaOrbitDrafts .biglwa-draft-card:nth-child(6n+2){box-shadow:3px 3px 0 #d1ad2f}.biglwa-draft-card:nth-child(6n+3){box-shadow:3px 3px 0 #4e8f61}.biglwa-draft-card:nth-child(6n+4){box-shadow:3px 3px 0 #416fa9}
+#feedPageList .biglwa-pin::before{background:var(--accent)!important}
 /* A member's post keeps its own shape: the picture fills the column width at its true
    height, and the caption lives in the enlarged view rather than under the card. The menu
    may drop below a short wide picture, so the card lets it escape and the picture itself
