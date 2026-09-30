@@ -85,8 +85,10 @@ service cloud.firestore {
     // a durable per-account post history while the root /posts collection powers the public
     // collective feed. The same document id is used in both places.
     match /users/{userId}/posts/{postId} {
-      allow read, create, update, delete: if isOwner(userId)
-        && (request.resource == null || request.resource.data.uid == userId);
+      allow read, create, update: if isOwner(userId)
+        && request.resource.data.uid == userId;
+      allow delete: if isOwner(userId)
+        && resource.data.uid == userId;
     }
 
     // Wallpaper moderation queue. Members may open a review for their own media and
