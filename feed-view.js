@@ -18,8 +18,8 @@ const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_BYTES = 8 * 1024 * 1024;
 const FEED_SIZE = 40;
-/* A post may carry several photos. They are shown one at a time in a square frame that
-   moves on its own, so a multi-photo post reads like a slideshow rather than a stack.
+/* A post may carry several photos. They are shown one at a time in a frame shaped like
+   its first photo, so a multi-photo post reads like a slideshow rather than a stack.
    The ceiling keeps one post from turning the wall into a video. */
 const MAX_SLIDES = 6;
 const SLIDE_MS = 4200;
@@ -74,23 +74,46 @@ const STYLE = `
   border-radius:16px;background:#fffdf9;position:relative;display:block;width:100%;
   box-shadow:0 10px 22px -14px var(--accent),0 1px 2px rgba(48,43,40,.06)}
 .biglwa-pin::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--accent),transparent)}
-/* Every picture in the wall is square and the same size as its column, so a board of mixed
-   sources stays even instead of stepping up and down with each photo's own shape. The
-   renderer wraps the picture in a plain div, so that is matched too; the frames of a
-   slideshow are left alone because they are positioned by their own rule. */
-.biglwa-pin>img,.biglwa-pin>div>img{aspect-ratio:1/1;object-fit:cover;display:block;width:100%;height:auto;background:#efe7dd}
+/* A member's post keeps its own shape: the picture fills the column width at its true
+   height, and the caption lives in the enlarged view rather than under the card. The menu
+   may drop below a short wide picture, so the card lets it escape and the picture itself
+   is rounded instead of relying on the card to clip it. */
+.biglwa-pin-post{overflow:visible}
+.biglwa-pin::before{border-radius:16px 16px 0 0}
+.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:15px 15px 0 0}
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
-.biglwa-pin-body b{display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;color:#2f2a27;overflow-wrap:anywhere}
-.biglwa-pin-body a{display:inline-flex;margin-top:9px;font:600 12px/1 system-ui;color:#a53332}
 .biglwa-pin-empty{padding:15px}
-.biglwa-pin-del{margin-top:9px;background:none;border:0;padding:0;font:600 12px/1 system-ui;color:#9b8a7c;cursor:pointer}
+/* The three dots carry the actions. Green opens the picture large, where the caption and
+   the full-size link live; yellow hides the post from the wall without removing it; red
+   deletes it. The same colour naming is used by the linked accounts' green "view-site"
+   pill, so green always means "go somewhere bigger" across the wall. */
+.biglwa-post-dots{position:absolute;top:10px;right:10px;z-index:4;width:30px;height:30px;border:0;
+  border-radius:50%;background:rgba(24,16,14,.52);color:#fff;display:grid;place-items:center;
+  cursor:pointer;font:700 14px/1 system-ui;padding-bottom:2px;letter-spacing:.08em;
+  box-shadow:0 2px 8px rgba(24,16,14,.28)}
+.biglwa-post-dots:hover,.biglwa-post-dots[aria-expanded="true"]{background:#1d1613}
+.biglwa-post-menu{position:absolute;top:46px;right:10px;z-index:5;min-width:158px;padding:6px;
+  border-radius:12px;background:#fffdf9;border:1px solid rgba(80,70,64,.16);
+  box-shadow:0 22px 46px -18px rgba(24,16,14,.55);display:none;flex-direction:column;gap:2px}
+.biglwa-post-menu.is-open{display:flex}
+.biglwa-post-menu button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:none;
+  padding:9px 10px;border-radius:8px;font:600 13px/1 system-ui;color:#3a322c;cursor:pointer;text-align:left}
+.biglwa-post-menu button:hover{background:#f4ece2}
+.biglwa-post-menu button:disabled{opacity:.55;cursor:default}
+.biglwa-dot{width:9px;height:9px;border-radius:50%;flex:none;background:#8a7a6c}
+.biglwa-post-menu button[data-post-enlarge] .biglwa-dot{background:#3f6b4a}
+.biglwa-post-menu button[data-post-archive] .biglwa-dot{background:#c98a16}
+.biglwa-post-menu button[data-post-delete] .biglwa-dot{background:#a53332}
+.biglwa-post-menu button[data-post-delete]{color:#a53332}
 /* The source is told by the colour along the edge of the card instead of by a name, so the
    label is no longer drawn. The accent border and the glow around it stay. */
 .biglwa-pin-src{display:none}
-/* A post with more than one photo becomes a square slideshow: one photo at a time, moving
-   on by itself, with dots and arrows so it is still readable and pausable by hand. */
-.biglwa-slide{position:relative;width:100%;aspect-ratio:1/1;background:#efe7dd;overflow:hidden}
+/* A post with more than one photo becomes a slideshow shaped like its first photo, moving
+   on by itself, with dots and arrows so it is still readable and pausable by hand. The
+   frame's ratio is set from that first picture once it loads, so the card's shape already
+   belongs to the post instead of to a fixed square. */
+.biglwa-slide{position:relative;width:100%;aspect-ratio:4/3;background:#efe7dd;overflow:hidden;border-radius:15px 15px 0 0}
 .biglwa-slide>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   opacity:0;transition:opacity .45s ease}
 .biglwa-slide>img.is-on{opacity:1}
@@ -132,9 +155,6 @@ const STYLE = `
 .biglwa-feed-hero-row img{width:100%;height:100%;object-fit:cover;display:block}
 .biglwa-feed-hero-count{position:absolute;left:8px;top:8px;z-index:2;padding:3px 8px;border-radius:999px;
   background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.04em}
-.biglwa-feed-hero-cap{position:absolute;left:0;right:0;bottom:0;padding:16px 9px 8px;color:#fff;
-  font:600 11px/1.35 system-ui;background:linear-gradient(180deg,transparent,rgba(24,16,14,.82));
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .biglwa-feed-hero-empty{display:grid;place-items:center;aspect-ratio:4/3;border-radius:14px;
   border:1px dashed rgba(80,70,64,.28);background:rgba(255,255,255,.5);
   font:600 10px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}
@@ -143,6 +163,32 @@ const STYLE = `
    reads as a real post with a broken picture. */
 .biglwa-feed-hero-row>.biglwa-feed-hero-empty{border-style:dashed}
 @media (max-width:760px){.biglwa-feed-hero-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* The enlarged view. The picture keeps its own shape inside the bounds of the viewport,
+   the caption sits beside a straight link to the full-size image, and arrow keys or the
+   on-screen arrows move between the photos of a multi-photo post. */
+.biglwa-lightbox{position:fixed;inset:0;z-index:9000;background:rgba(22,15,12,.86);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px}
+.biglwa-lightbox-close{position:absolute;top:14px;right:14px;z-index:2;width:38px;height:38px;border:0;
+  border-radius:50%;background:rgba(24,16,14,.6);color:#fff;font:700 20px/1 system-ui;cursor:pointer}
+.biglwa-lightbox-close:hover{background:#1d1613}
+.biglwa-lightbox-stage{position:relative;display:grid;place-items:center;width:100%;max-width:min(960px,92vw)}
+.biglwa-lightbox-stage img{display:block;max-width:100%;max-height:72vh;object-fit:contain;border-radius:10px;
+  box-shadow:0 24px 60px -24px rgba(0,0,0,.7)}
+.biglwa-lightbox-count{position:absolute;left:10px;top:10px;z-index:2;padding:4px 10px;border-radius:999px;
+  background:rgba(24,16,14,.6);color:#fff;font:700 11px/1.5 system-ui;letter-spacing:.05em}
+.biglwa-lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:40px;height:40px;
+  border:0;border-radius:50%;background:rgba(24,16,14,.55);color:#fff;font:700 20px/1 system-ui;cursor:pointer}
+.biglwa-lightbox-arrow:hover{background:#1d1613}
+.biglwa-lightbox-arrow.prev{left:12px}
+.biglwa-lightbox-arrow.next{right:12px}
+.biglwa-lightbox-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
+  max-width:min(820px,92vw);background:#fffdf9;border:1px solid rgba(80,70,64,.14);border-radius:14px;
+  padding:12px 16px;box-shadow:0 18px 44px -22px rgba(0,0,0,.55)}
+.biglwa-lightbox-caption{margin:0;font:500 14px/1.5 system-ui;color:#2f2a27;overflow-wrap:anywhere}
+.biglwa-lightbox-view{margin-left:auto;padding:8px 14px;border-radius:999px;font:700 12px/1 system-ui;
+  text-decoration:none;background:rgba(31,142,74,.1);border:1px solid rgba(31,142,74,.34);color:#1f7a45;flex:none}
+.biglwa-lightbox-view:hover{background:rgba(31,142,74,.16);color:#166238}
+@media (max-width:640px){.biglwa-lightbox-stage img{max-height:62vh}}
 `;
 
 function installStyle() {
@@ -172,7 +218,8 @@ async function firebase() {
       auth: getAuth(app),
       doc: store.doc, getDoc: store.getDoc, deleteDoc: store.deleteDoc,
       addDoc: store.addDoc, collection: store.collection, query: store.query, orderBy: store.orderBy,
-      limit: store.limit, getDocs: store.getDocs, serverTimestamp: store.serverTimestamp
+      limit: store.limit, getDocs: store.getDocs, serverTimestamp: store.serverTimestamp,
+      updateDoc: store.updateDoc
     };
   }
   return refs;
@@ -207,7 +254,7 @@ async function loadPosts() {
   try {
     const { db, collection, query, orderBy, limit, getDocs } = await firebase();
     const snap = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(FEED_SIZE)));
-    posts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    posts = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((p) => p.state !== "archived");
   } catch {
     /* A feed that cannot load should still show the connected sources below it. */
     posts = [];
@@ -264,7 +311,6 @@ function renderHero(force) {
     return '<a style="--accent:' + src.accent + '" href="' + esc(first) + '" target="_blank" rel="noopener noreferrer">' +
       (many ? '<span class="biglwa-feed-hero-count">' + slideUrls(post).length + " photos</span>" : "") +
       '<img src="' + esc(first) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy">' +
-      (caption ? '<span class="biglwa-feed-hero-cap">' + esc(caption) + "</span>" : "") +
       "</a>";
   }).join("");
 
@@ -291,29 +337,34 @@ function renderPosts(force) {
   stopSlideshows();
   if (!posts.length) return;
   const html = posts.map((post) => {
-    const mine = post.uid && post.uid === me;
     const src = accentOf(post.source);
     const label = post.authorName ? esc(post.authorName) : (post.username ? "@" + esc(post.username) : "Member");
     const urls = slideUrls(post);
     const image = !urls.length
       ? '<div class="biglwa-pin-empty"><small>Note</small></div>'
       : urls.length === 1
-        ? '<img src="' + esc(urls[0]) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
+        ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
         : slideshow(urls, post.caption || "Feed post");
-    return '<article class="biglwa-pin biglwa-pin-post" style="--pin-accent:' + src.accent + '"><div>' + image +
-      '<div class="biglwa-pin-body"><small>' + label + " · " + esc(when(post.createdAt)) + "</small>" +
-      (post.caption ? "<b>" + esc(post.caption) + "</b>" : "") +
-      (mine ? '<button type="button" class="biglwa-pin-del" data-feed-delete="' + esc(post.id) + '">Delete</button>' : "") +
-      "</div></div></article>";
+    /* The picture stands alone; the caption and the actions live behind the dots, and the
+       caption is only read in the enlarged view. */
+    return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '" style="--pin-accent:' + src.accent + '"><div>' + image + "</div>" +
+      '<button type="button" class="biglwa-post-dots" data-feed-dots aria-haspopup="menu" aria-label="Post options" aria-expanded="false">&#8230;</button>' +
+      '<div class="biglwa-post-menu" role="menu">' +
+      '<button type="button" role="menuitem" data-post-enlarge><i class="biglwa-dot" aria-hidden="true"></i>Enlarge</button>' +
+      '<button type="button" role="menuitem" data-post-archive><i class="biglwa-dot" aria-hidden="true"></i>Archive</button>' +
+      '<button type="button" role="menuitem" data-post-delete><i class="biglwa-dot" aria-hidden="true"></i>Delete</button>' +
+      "</div>" +
+      '<div class="biglwa-pin-body"><small>' + label + " · " + esc(when(post.createdAt)) + "</small></div>" +
+      "</article>";
   }).join("");
   list.insertAdjacentHTML("afterbegin", html);
   startSlideshows(list);
 }
 
-/* A multi-photo post is drawn as a stack of square pictures inside one frame. Only the
-   active one is visible, so the card keeps the same height and the same column width as a
-   single picture. The arrows and dots are real controls, so the slideshow can also be moved
-   by hand or by keyboard rather than only on its own timer. */
+/* A multi-photo post is drawn as a stack of pictures inside one frame shaped like the
+   first one. Only the active one is visible, so the card keeps the same height and the
+   same column width as a single picture. The arrows and dots are real controls, so the
+   slideshow can also be moved by hand or by keyboard rather than only on its own timer. */
 function slideshow(urls, alt) {
   const frames = urls.map((url, i) =>
     '<img src="' + esc(url) + '" alt="' + esc(alt) + '" loading="lazy"' + (i ? ' aria-hidden="true"' : "") +
@@ -349,6 +400,17 @@ function startSlideshows(root) {
     const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot i"));
     const count = frame.querySelector(".biglwa-slide-count");
     if (photos.length < 2) continue;
+    /* The frame borrows the leading photo's shape once it can be measured, so the card is
+       not stuck on a fixed square for a post whose pictures are a different ratio. */
+    const shape = () => {
+      const lead = photos[0];
+      if (lead && lead.naturalWidth && lead.naturalHeight) {
+        frame.style.aspectRatio = (lead.naturalWidth / lead.naturalHeight).toFixed(4);
+      }
+    };
+    const lead = photos[0];
+    if (lead && lead.complete) shape();
+    else if (lead) lead.addEventListener("load", shape, { once: true });
     let at = 0;
 
     const show = (next) => {
@@ -540,7 +602,128 @@ function upgradeComposer(form) {
   });
 }
 
-/* Wires the composer and the delete button exactly once per rendered feed, and only when
+/* Yellow hides the post from the wall but keeps the record and its photos. The author can
+   always change `state`, so no rules change is needed. The list stops drawing posts whose
+   state is "archived" both here and in loadPosts. */
+async function archivePost(post, action) {
+  action.disabled = true;
+  try {
+    const { db, doc, updateDoc } = await firebase();
+    await updateDoc(doc(db, "posts", post.id), { state: "archived" });
+    posts = posts.filter((p) => p.id !== post.id);
+    renderPosts();
+    say("Post archived.", "good");
+  } catch (error) {
+    action.disabled = false;
+    say(error.message || "That post could not be archived.", "bad");
+  }
+}
+
+/* Red removes the post and every picture it carries. Earlier only the first key was
+   cleared, so a multi-photo post left its other files behind; the whole list goes now. */
+async function deletePost(post, action) {
+  if (!window.confirm("Delete this post and its photos?")) return;
+  action.disabled = true;
+  try {
+    const { db, doc, deleteDoc } = await firebase();
+    await deleteDoc(doc(db, "posts", post.id));
+    const keys = Array.isArray(post.imageKeys)
+      ? post.imageKeys.filter(Boolean)
+      : (post.imageKey ? [post.imageKey] : []);
+    for (const key of keys) await removeImage(key);
+    posts = posts.filter((p) => p.id !== post.id);
+    renderPosts();
+    say("Post removed.", "good");
+  } catch (error) {
+    action.disabled = false;
+    say(error.message || "That post could not be removed.", "bad");
+  }
+}
+
+/* Green opens the post large. This is where the caption is finally read, next to a link
+   straight to whichever picture is open. */
+let lightbox = null;
+function openLightbox(post, index) {
+  closeLightbox();
+  const urls = slideUrls(post);
+  if (!urls.length) return;
+  const many = urls.length > 1;
+  const box = document.createElement("div");
+  box.className = "biglwa-lightbox";
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-modal", "true");
+  box.setAttribute("aria-label", "Show photo");
+  box.innerHTML =
+    '<button type="button" class="biglwa-lightbox-close" data-lightbox-close aria-label="Close">&#215;</button>' +
+    '<div class="biglwa-lightbox-stage">' +
+    '<img src="" alt="">' +
+    '<span class="biglwa-lightbox-count"></span>' +
+    (many
+      ? '<button type="button" class="biglwa-lightbox-arrow prev" data-lightbox-step="-1" aria-label="Previous photo">&#8249;</button>' +
+        '<button type="button" class="biglwa-lightbox-arrow next" data-lightbox-step="1" aria-label="Next photo">&#8250;</button>'
+      : "") +
+    "</div>" +
+    '<div class="biglwa-lightbox-meta">' +
+    '<p class="biglwa-lightbox-caption"></p>' +
+    '<a class="biglwa-lightbox-view" target="_blank" rel="noopener noreferrer">View full size</a>' +
+    "</div>";
+  document.body.appendChild(box);
+  lightbox = { box, urls, index: 0 };
+
+  const img = box.querySelector("img");
+  const caption = box.querySelector(".biglwa-lightbox-caption");
+  caption.textContent = post.caption || "";
+  caption.hidden = !post.caption;
+
+  const go = (next) => {
+    if (!lightbox) return;
+    lightbox.index = (next + urls.length) % urls.length;
+    const url = urls[lightbox.index];
+    img.src = url;
+    img.alt = (post.caption ? post.caption : "Feed picture") + " (" + (lightbox.index + 1) + "/" + urls.length + ")";
+    box.querySelectorAll("[data-lightbox-step]").forEach((button) => {
+      button.disabled = !many;
+      button.style.display = many ? "" : "none";
+    });
+    const count = box.querySelector(".biglwa-lightbox-count");
+    count.textContent = (lightbox.index + 1) + " / " + urls.length;
+    count.hidden = !many;
+    const view = box.querySelector(".biglwa-lightbox-view");
+    view.href = url;
+  };
+
+  box.addEventListener("click", (event) => {
+    const step = event.target.closest("[data-lightbox-step]");
+    if (step) { go(lightbox.index + Number(step.dataset.lightboxStep)); return; }
+    if (event.target === box || event.target.closest("[data-lightbox-close]")) closeLightbox();
+  });
+
+  go(index || 0);
+  box.querySelector(".biglwa-lightbox-close").focus({ preventScroll: true });
+  document.documentElement.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  if (!lightbox) return;
+  lightbox.box.remove();
+  lightbox = null;
+  document.documentElement.style.overflow = "";
+}
+
+function closeMenus() {
+  document.querySelectorAll(".biglwa-post-menu.is-open").forEach((menu) => {
+    menu.classList.remove("is-open");
+    const dots = menu.closest(".biglwa-pin-post")?.querySelector("[data-feed-dots]");
+    if (dots) dots.setAttribute("aria-expanded", "false");
+  });
+}
+
+function closeLightboxAndMenus() {
+  closeLightbox();
+  closeMenus();
+}
+
+/* Wires the composer and the three-dot menu exactly once per rendered feed, and only when
    the element is a new one. The route re-renders its markup on every visit, so identity of
    the element is what tells a fresh form from one that is already wired. */
 let wiredList = null;
@@ -550,24 +733,62 @@ async function wire(list, form) {
   if (form) upgradeComposer(form);
   if (list !== wiredList) {
     wiredList = list;
-    list.addEventListener("click", async (event) => {
-      const button = event.target.closest("[data-feed-delete]");
-      if (!button) return;
-      const id = button.dataset.feedDelete;
-      const post = posts.find((p) => p.id === id);
-      if (!post) return;
-      button.disabled = true;
-      try {
-        const { db, doc, deleteDoc } = await firebase();
-        await deleteDoc(doc(db, "posts", id));
-        if (post.imageKey) await removeImage(post.imageKey);
-        await loadPosts();
-        say("Post removed.", "good");
-      } catch (error) {
-        button.disabled = false;
-        say(error.message || "That post could not be removed.", "bad");
+    list.addEventListener("click", (event) => {
+      const dots = event.target.closest("[data-feed-dots]");
+      if (dots) {
+        event.preventDefault();
+        event.stopPropagation();
+        const menu = dots.closest(".biglwa-pin-post")?.querySelector(".biglwa-post-menu");
+        if (menu && menu.classList.contains("is-open")) {
+          menu.classList.remove("is-open");
+          dots.setAttribute("aria-expanded", "false");
+          return;
+        }
+        closeMenus();
+        if (menu) {
+          menu.classList.add("is-open");
+          dots.setAttribute("aria-expanded", "true");
+        }
+        return;
       }
+      const action = event.target.closest("[data-post-enlarge],[data-post-archive],[data-post-delete]");
+      if (action) {
+        const card = action.closest(".biglwa-pin-post");
+        const post = card && posts.find((p) => p.id === card.dataset.postId);
+        if (!post) return;
+        closeMenus();
+        if (action.hasAttribute("data-post-enlarge")) openLightbox(post, 0);
+        else if (action.hasAttribute("data-post-archive")) archivePost(post, action);
+        else if (action.hasAttribute("data-post-delete")) deletePost(post, action);
+        return;
+      }
+      closeMenus();
+      const card = event.target.closest(".biglwa-pin-post");
+      if (!card || !event.target.closest("img,.biglwa-pin-empty")) return;
+      const post = posts.find((p) => p.id === card.dataset.postId);
+      if (post) openLightbox(post, 0);
     });
+    if (!window.__biglwaMenuCloser) {
+      window.__biglwaMenuCloser = true;
+      /* A single shared closer keeps an open menu from surviving a click anywhere else,
+         and gives the lightbox and the menu one Escape key each. */
+      document.addEventListener("click", (event) => {
+        if (event.target.closest("[data-feed-dots],.biglwa-post-menu")) return;
+        closeMenus();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeLightboxAndMenus();
+        if (!lightbox) return;
+        if (event.key === "ArrowLeft") {
+          const prev = lightbox.box.querySelector("[data-lightbox-step='-1']");
+          if (prev) prev.click();
+        }
+        if (event.key === "ArrowRight") {
+          const next = lightbox.box.querySelector("[data-lightbox-step='1']");
+          if (next) next.click();
+        }
+      });
+    }
   }
   renderPosts();
 }
