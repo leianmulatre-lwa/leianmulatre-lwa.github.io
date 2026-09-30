@@ -51,17 +51,10 @@
     /* The source used to be named in text on the card. The coloured edge and the glow
        around it say which account it came from, so the name is no longer drawn. */
     '#feedPageList>.module-list-item>div>small{display:none}',
-    /* Green means one thing across the whole wall: this opens the original somewhere else.
-       The dot sits in front of the label so the colour is readable even where the link
-       text is truncated on a narrow column. */
-    '#feedPageList .biglwa-view-site{display:inline-flex;align-items:center;gap:6px;',
-    'margin-top:9px;padding:6px 12px;border-radius:999px;font:700 11px/1 system-ui;',
-    'letter-spacing:.02em;text-decoration:none;background:rgba(31,142,74,.1);',
-    'border:1px solid rgba(31,142,74,.34);color:#1f7a45}',
-    '#feedPageList .biglwa-view-site::before{content:"";width:8px;height:8px;border-radius:50%;',
-    'flex:0 0 8px;background:#1f8e4a;box-shadow:0 0 0 3px rgba(31,142,74,.16)}',
-    '#feedPageList .biglwa-view-site:hover{background:rgba(31,142,74,.16);color:#166238}',
-    '#feedPageList .biglwa-view-site:focus-visible{outline:2px solid #1f8e4a;outline-offset:2px}',
+    /* Connected cards stay purely visual in the feed wall: the caption above the picture
+       and the outbound "View on Instagram/Facebook/..." button are taken off, so the
+       coloured edge and the picture carry the card on their own. */
+    '#feedPageList>.module-list-item b,#feedPageList>.module-list-item a[target="_blank"]{display:none}',
     /* A gradient lip along the top edge, so a card is identifiable as a source at a
        glance even when the picture behind it is pale. */
     '#feedPageList>.module-list-item::before{content:"";display:block;height:3px;',
@@ -92,13 +85,6 @@
       /* A label left on a card by an older build is taken off rather than left hidden. */
       var stale = node.querySelector('.biglwa-feed-src');
       if (stale) stale.remove();
-      /* Every source writes its own "view on X" link in a slightly different place, and the
-         shape of the card differs with it, so the link is found here instead of in each
-         source. It is marked green, which is the one meaning that never changes. */
-      var links = node.querySelectorAll('a[href][target="_blank"]');
-      Array.prototype.forEach.call(links, function (link) {
-        link.classList.add('biglwa-view-site');
-      });
     });
   }
 

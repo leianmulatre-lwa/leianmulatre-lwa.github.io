@@ -340,20 +340,28 @@ function renderPosts(force) {
     const src = accentOf(post.source);
     const label = post.authorName ? esc(post.authorName) : (post.username ? "@" + esc(post.username) : "Member");
     const urls = slideUrls(post);
+    /* The three-dot menu belongs to posts written by the collective-feed uploader: an
+       image-list field marks one as made by it. Older content carries only the single
+       picture fields and keeps the wall quiet, so the actions are never offered on
+       content that was not posted through this feed. */
+    const managed = Array.isArray(post.imageKeys);
     const image = !urls.length
       ? '<div class="biglwa-pin-empty"><small>Note</small></div>'
       : urls.length === 1
         ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
         : slideshow(urls, post.caption || "Feed post");
     /* The picture stands alone; the caption and the actions live behind the dots, and the
-       caption is only read in the enlarged view. */
+       caption is only read in the enlarged view. Every member picture still opens large on
+       a tap, even when it has no menu. */
     return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '" style="--pin-accent:' + src.accent + '"><div>' + image + "</div>" +
-      '<button type="button" class="biglwa-post-dots" data-feed-dots aria-haspopup="menu" aria-label="Post options" aria-expanded="false">&#8230;</button>' +
-      '<div class="biglwa-post-menu" role="menu">' +
-      '<button type="button" role="menuitem" data-post-enlarge><i class="biglwa-dot" aria-hidden="true"></i>Enlarge</button>' +
-      '<button type="button" role="menuitem" data-post-archive><i class="biglwa-dot" aria-hidden="true"></i>Archive</button>' +
-      '<button type="button" role="menuitem" data-post-delete><i class="biglwa-dot" aria-hidden="true"></i>Delete</button>' +
-      "</div>" +
+      (managed
+        ? '<button type="button" class="biglwa-post-dots" data-feed-dots aria-haspopup="menu" aria-label="Post options" aria-expanded="false">&#8230;</button>' +
+          '<div class="biglwa-post-menu" role="menu">' +
+          '<button type="button" role="menuitem" data-post-enlarge><i class="biglwa-dot" aria-hidden="true"></i>Enlarge</button>' +
+          '<button type="button" role="menuitem" data-post-archive><i class="biglwa-dot" aria-hidden="true"></i>Archive</button>' +
+          '<button type="button" role="menuitem" data-post-delete><i class="biglwa-dot" aria-hidden="true"></i>Delete</button>' +
+          "</div>"
+        : "") +
       '<div class="biglwa-pin-body"><small>' + label + " · " + esc(when(post.createdAt)) + "</small></div>" +
       "</article>";
   }).join("");
