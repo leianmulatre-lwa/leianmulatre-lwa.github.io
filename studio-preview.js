@@ -564,6 +564,18 @@ async function checkSignedIn(){
 
 /* The live router treats every /name route as the signed-in owner, so label the guest
    affordance correctly while the account gate keeps the action itself closed. */
+function decorateArchiveAccess(){
+  const app=studioApp();
+  if(!app)return;
+  const allowed=preview.signedIn && preview.profile?.archiveVisibility==='friends';
+  const nodes=app.querySelectorAll('[data-module-launch="archive"],[data-open-module="archive"],[data-widget-route="archive"],#archive');
+  nodes.forEach(node=>{
+    if(!node.dataset.archiveOriginalDisplay) node.dataset.archiveOriginalDisplay=node.style.display||'';
+    node.style.display=allowed?'': 'none';
+    node.setAttribute('aria-hidden',allowed?'false':'true');
+  });
+}
+
 function decorateGuestCard(){
   const card=$("#guestCheckWidget")||$("#studioApp .guest-check-card");
   if(!card) return;
@@ -601,6 +613,7 @@ function enforce(){
   const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
   if(nameDrift || auraDrift) applyIdentity(preview.profile);
   renderSocials(preview.profile);
+  decorateArchiveAccess();
   decorateGuestCard();
   guardOrbit();
   checkSignedIn();
