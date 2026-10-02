@@ -44,10 +44,12 @@
     'letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}',
     '#feedPageList>.module-list-item b{display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;',
     'color:#2f2a27;overflow-wrap:anywhere}',
-    /* Connected pictures are square too, so a board of member posts and connected
-       accounts sits on one even grid instead of stepping with each photo's shape. */
+    /* Connected pictures keep their own shape too, so a board of member posts and
+       connected accounts steps with each photo the same way instead of forcing every
+       one into a square preview. */
     '#feedPageList>.module-list-item img,#feedPageList>.module-list-item video{',
-    'border-radius:0!important;aspect-ratio:1/1;object-fit:cover;width:100%;max-height:none}',
+    'border-radius:0!important;aspect-ratio:auto;object-fit:contain;width:100%;height:auto;',
+    'max-height:none!important}',
     /* The source used to be named in text on the card. The coloured edge and the glow
        around it say which account it came from, so the name is no longer drawn. */
     '#feedPageList>.module-list-item>div>small{display:none}',

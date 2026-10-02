@@ -55,16 +55,15 @@ const SOURCES = {
 const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
 
 const STYLE = `
-/* Masonry via columns, so cards of different heights pack tightly and read the way a
-   pin board does. Break-inside keeps a caption attached to its own image.
-   The count is fixed rather than a minimum width: the wall spans the page, and a
-   minimum would quietly add a fifth column on a wide screen. The feed card is wide
-   so it centres across the page instead of sitting in the narrow right-hand column,
-   and it keeps filling downward for as many rows as there are posts. */
-#feedPageList{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
-#feedPageList>*{min-width:0;width:100%;height:100%}
-@media (max-width:980px){#feedPageList{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:620px){#feedPageList{grid-template-columns:1fr}}
+/* A single grid, four cards across, so the wall reads as one even surface. Cards
+   sit flush at the top of their column and keep their own height: a landscape next
+   to a tall portrait does not stretch into an empty block, so the frame is the
+   picture's shape rather than a square. */
+#feedPageList{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start}
+#feedPageList>*{min-width:0;width:100%}
+@media (max-width:980px){#feedPageList{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:700px){#feedPageList{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){#feedPageList{grid-template-columns:1fr}}
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
