@@ -55,15 +55,14 @@ const SOURCES = {
 const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
 
 const STYLE = `
-/* A single grid, four cards across, so the wall reads as one even surface. Cards
-   sit flush at the top of their column and keep their own height: a landscape next
-   to a tall portrait does not stretch into an empty block, so the frame is the
-   picture's shape rather than a square. */
-#feedPageList{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start}
-#feedPageList>*{min-width:0;width:100%}
-@media (max-width:980px){#feedPageList{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:700px){#feedPageList{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:480px){#feedPageList{grid-template-columns:1fr}}
+/* A pin-board wall: multi-column, so each card packs upward into the first gap of
+   its column instead of lining up with the row of its neighbours. The count is fixed
+   at four across, and each card holds its picture's own shape. */
+#feedPageList{display:block;columns:4;column-gap:18px}
+#feedPageList>*{break-inside:avoid;min-width:0;width:100%;margin:0 0 18px}
+@media (max-width:980px){#feedPageList{columns:3}}
+@media (max-width:700px){#feedPageList{columns:2}}
+@media (max-width:480px){#feedPageList{columns:1}}
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
@@ -78,7 +77,7 @@ const STYLE = `
 #biglwaOrbitDrafts .biglwa-draft-card:nth-child(6n+2){box-shadow:3px 3px 0 #d1ad2f}.biglwa-draft-card:nth-child(6n+3){box-shadow:3px 3px 0 #4e8f61}.biglwa-draft-card:nth-child(6n+4){box-shadow:3px 3px 0 #416fa9}
 #feedPageList .biglwa-pin::before{background:var(--accent)!important}
 /* A member's post keeps its own shape: the picture fills the column width at its true
-   height, and the caption lives in the enlarged view rather than under the card. The menu
+   height and no caption sits on the card. The menu
    may drop below a short wide picture, so the card lets it escape and the picture itself
    is rounded instead of relying on the card to clip it. */
 .biglwa-pin-post{overflow:visible}
@@ -87,8 +86,8 @@ const STYLE = `
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-empty{padding:15px}
-/* The three dots carry the actions. Green opens the picture large, where the caption and
-   the full-size link live; yellow hides the post from the wall without removing it; red
+/* The three dots carry the actions. Green opens the picture large, where the full-size
+   link lives; yellow hides the post from the wall without removing it; red
    deletes it. The same colour naming is used by the linked accounts' green "view-site"
    pill, so green always means "go somewhere bigger" across the wall. */
 .biglwa-post-dots{position:absolute;top:10px;right:10px;z-index:4;width:30px;height:30px;border:0;
@@ -167,8 +166,8 @@ const STYLE = `
 .biglwa-feed-hero-row>.biglwa-feed-hero-empty{border-style:dashed}
 @media (max-width:760px){.biglwa-feed-hero-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* The enlarged view. The picture keeps its own shape inside the bounds of the viewport,
-   the caption sits beside a straight link to the full-size image, and arrow keys or the
-   on-screen arrows move between the photos of a multi-photo post. */
+   a straight link opens the full-size image, and arrow keys or the on-screen arrows
+   move between the photos of a multi-photo post. */
 .biglwa-lightbox{position:fixed;inset:0;z-index:9000;background:rgba(22,15,12,.86);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px}
 .biglwa-lightbox-close{position:absolute;top:14px;right:14px;z-index:2;width:38px;height:38px;border:0;
@@ -187,7 +186,6 @@ const STYLE = `
 .biglwa-lightbox-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
   max-width:min(820px,92vw);background:#fffdf9;border:1px solid rgba(80,70,64,.14);border-radius:14px;
   padding:12px 16px;box-shadow:0 18px 44px -22px rgba(0,0,0,.55)}
-.biglwa-lightbox-caption{margin:0;font:500 14px/1.5 system-ui;color:#2f2a27;overflow-wrap:anywhere}
 .biglwa-lightbox-view{margin-left:auto;padding:8px 14px;border-radius:999px;font:700 12px/1 system-ui;
   text-decoration:none;background:rgba(31,142,74,.1);border:1px solid rgba(31,142,74,.34);color:#1f7a45;flex:none}
 .biglwa-lightbox-view:hover{background:rgba(31,142,74,.16);color:#166238}
@@ -415,9 +413,9 @@ function renderPosts(force) {
       : urls.length === 1
         ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
         : slideshow(urls, post.caption || "Feed post");
-    /* The picture stands alone; the caption and the actions live behind the dots, and the
-       caption is only read in the enlarged view. Every member picture still opens large on
-       a tap, even when it has no menu. */
+    /* The picture stands alone; the actions live behind the dots on posts the feed
+       manages, and every member picture still opens large on a tap, even without a
+       menu of its own. */
     return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '" style="--pin-accent:' + src.accent + '"><div>' + image + "</div>" +
       (managed
         ? '<button type="button" class="biglwa-post-dots" data-feed-dots aria-haspopup="menu" aria-label="Post options" aria-expanded="false">&#8230;</button>' +
@@ -719,8 +717,7 @@ async function deletePost(post, action) {
   }
 }
 
-/* Green opens the post large. This is where the caption is finally read, next to a link
-   straight to whichever picture is open. */
+/* Green opens the post large. A link opens whichever picture is showing at full size. */
 let lightbox = null;
 function openLightbox(post, index) {
   closeLightbox();
@@ -743,16 +740,12 @@ function openLightbox(post, index) {
       : "") +
     "</div>" +
     '<div class="biglwa-lightbox-meta">' +
-    '<p class="biglwa-lightbox-caption"></p>' +
     '<a class="biglwa-lightbox-view" target="_blank" rel="noopener noreferrer">View full size</a>' +
     "</div>";
   document.body.appendChild(box);
   lightbox = { box, urls, index: 0 };
 
   const img = box.querySelector("img");
-  const caption = box.querySelector(".biglwa-lightbox-caption");
-  caption.textContent = post.caption || "";
-  caption.hidden = !post.caption;
 
   const go = (next) => {
     if (!lightbox) return;
