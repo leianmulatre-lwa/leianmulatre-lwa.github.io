@@ -372,7 +372,7 @@ function renderPosts(force) {
     const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
 ;
   renderDrafts();
-  renderHero(force);
+  /* Latest pictures was replaced by the Collective Feed itself. */
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
   drawnSignature = signature;
@@ -550,90 +550,48 @@ async function removeImage(key, uid) {
 }
 
 async function submit(form) {
-  const caption = String(new FormData(form).get("text") || "").trim();
-  const files = Array.from(document.getElementById("biglwaFeedPicker")?.files || []).slice(0, MAX_SLIDES);
-  if (!caption && !files.length) { say("Add a photo or a caption first.", "bad"); return; }
-  if (caption.length > 500) { say("Captions are limited to 500 characters.", "bad"); return; }
+  const data = new FormData(form);
+  const url = String(data.get("url") || "").trim();
+  const picker = document.getElementById("biglwaFeedPicker");
+  const file = picker?.files?.[0] || null;
+  if (!url && !file) { say("Add a link or a photo first.", "bad"); return; }
 
   const submitButton = form.querySelector('button[type="submit"]');
   if (submitButton) submitButton.disabled = true;
-  say("Posting…");
+  say("Saving your post…");
 
-  /* Everything here needs an account, so it is settled before a byte is uploaded. */
-  const { db, auth, addDoc, collection, doc, setDoc, deleteDoc, serverTimestamp } = await firebase();
-  const user = auth.currentUser;
-  if (!user) {
-    say("Sign in to post to the feed.", "bad");
-    if (submitButton) submitButton.disabled = false;
-    return;
-  }
-
-  /* Photos are uploaded one at a time and the record is only written once every one of
-     them is stored, so a post never points at a picture that is not there. */
-  const uploaded = [];
   try {
-    for (let i = 0; i < files.length; i++) {
-      say("Uploading photo " + (i + 1) + " of " + files.length + "…");
-      uploaded.push(await uploadImage(files[i], user));
-    }
-    const me = identity();
-    const urls = uploaded.map((m) => m.url).filter(Boolean);
-    const createdAt = serverTimestamp();
-    const postData = {
-      uid: user.uid,
-      username: me?.username || "",
-      authorName: me?.name || me?.username || "",
-      caption: caption.slice(0, 500),
-      imageKey: uploaded[0]?.key || null,
-      imageUrl: urls[0] || null,
-      imageKeys: uploaded.map((m) => m.key).filter(Boolean),
-      imageUrls: urls,
-      source: "biglwa",
-      state: "approved",
-      createdAt
-    };
-    const postRef = await addDoc(collection(db, "posts"), postData);
-    await setDoc(doc(db, "users", user.uid, "posts", postRef.id), postData);
+    const publisher = window.__biglwaCollectivePublish;
+    if (!publisher?.createFeedDraft) throw new Error("The collective feed uploader is still loading. Try again in a moment.");
+    const draft = await publisher.createFeedDraft({ url, blob: file || null });
+    await publishDraft(draft.id);
     form.reset();
     document.getElementById("biglwaFeedThumbs")?.remove();
-    document.getElementById("biglwaFeedThumb")?.remove();
-    say("Posted to the feed.", "good");
+    say("Posted to the Collective Feed.", "good");
     await loadPosts();
   } catch (error) {
-    /* Roll every picture back so a rejected post does not leave files behind. */
-    for (const media of uploaded) await removeImage(media.key, user.uid);
+    console.error("BIGLWA feed post:", error);
     say(error.message || "That post could not be published.", "bad");
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
 }
 
-/* Replaces the plain text-only composer with one that also takes a picture. The form
-   element is reused so anything already listening to it keeps working. */
+/* The Feed composer is deliberately small: one link, plus one optional photo.
+   A link gets its thumbnail from the server-side Open Graph preview; the photo replaces
+   that thumbnail when supplied. No caption is collected or stored here. */
 function upgradeComposer(form) {
   if (!form || form.dataset.bigUpgrade) return;
   form.dataset.bigUpgrade = "1";
-  const holder = document.createElement("span");
-  holder.className = "biglwa-pick";
-  holder.innerHTML = '<input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif" multiple>Choose up to ' + MAX_SLIDES + ' photos';
-  const text = form.querySelector("textarea");
-  if (text) text.placeholder = "Say something, or add photos";
-  form.appendChild(holder);
-  const status = document.createElement("p");
-  status.id = "biglwaFeedStatus";
-  status.setAttribute("role", "status");
-  form.appendChild(status);
-
-  holder.querySelector("input").addEventListener("change", (event) => {
-    document.getElementById("biglwaFeedThumbs")?.remove();
-    const files = Array.from(event.target.files || []).slice(0, MAX_SLIDES);
-    if (!files.length) return;
-    /* Extra choices beyond the ceiling are reported rather than dropped silently. */
-    const extra = event.target.files.length - files.length;
-    const strip = document.createElement("div");
-    strip.id = "biglwaFeedThumbs";
-    strip.className = "biglwa-thumbs";
-    for (const file of files) {
+  const picker = document.getElementById("biglwaFeedPicker");
+  if (picker) {
+    picker.addEventListener("change", (event) => {
+      document.getElementById("biglwaFeedThumbs")?.remove();
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const strip = document.createElement("div");
+      strip.id = "biglwaFeedThumbs";
+      strip.className = "biglwa-thumbs";
       const cell = document.createElement("span");
       cell.className = "biglwa-thumb";
       const img = document.createElement("img");
@@ -641,13 +599,10 @@ function upgradeComposer(form) {
       img.src = URL.createObjectURL(file);
       cell.appendChild(img);
       strip.appendChild(cell);
-    }
-    form.insertBefore(strip, status);
-    const total = files.reduce((sum, file) => sum + file.size, 0);
-    say(files.length + (files.length > 1 ? " photos" : " photo") + " · " +
-      Math.round(total / 1024) + " KB" + (extra ? " · only the first " + MAX_SLIDES + " will post" : ""));
-  });
-
+      form.appendChild(strip);
+      say("Photo selected · it will be attached to the post.");
+    });
+  }
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     submit(form);
