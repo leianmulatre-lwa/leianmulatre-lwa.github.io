@@ -26,9 +26,9 @@
      the `source` field instead of a class. The two have to agree or one account would be
      two different colours on the same board. */
   var ACCENTS = {
-    'instagram-feed-item': { accent: '#c13584', label: 'Instagram' },
-    'tiktok-feed-item': { accent: '#0f8f95', label: 'TikTok' },
-    'pinterest-feed-item': { accent: '#cf4632', label: 'Pinterest' },
+    'instagram-feed-item': { accent: '#f28c28', label: 'Instagram' },
+    'tiktok-feed-item': { accent: '#111111', label: 'TikTok' },
+    'pinterest-feed-item': { accent: '#e60023', label: 'Pinterest' },
     'facebook-feed-item': { accent: '#1877f2', label: 'Facebook' },
     'youtube-feed-item': { accent: '#d0202f', label: 'YouTube' },
     'soundcloud-feed-item': { accent: '#e2622a', label: 'SoundCloud' }
@@ -36,17 +36,12 @@
   var FALLBACK = { accent: '#8a7a6c', label: 'Source' };
 
   var STYLE = [
-    /* Connected-account cards use the same shell as the new Collective Feed cards:
-       warm paper, soft border, rounded corners, and the six-colour offset rim. */
+    /* Connected-account cards use the same shell as the Collective Feed cards: warm
+       paper, soft border, rounded corners, and an offset rim tinted with the source's
+       own colour. */
     '#feedPageList>.module-list-item{position:relative;min-width:0;overflow:visible;',
-    'border:1px solid #dfd4ca;border-radius:16px;background:#f1e9e1;padding:0;',
-    'box-shadow:3px 3px 0 #bd3f47;display:block;width:100%;}',
-    '#feedPageList>.module-list-item:nth-child(6n+1){box-shadow:3px 3px 0 #bd3f47}',
-    '#feedPageList>.module-list-item:nth-child(6n+2){box-shadow:3px 3px 0 #d77b30}',
-    '#feedPageList>.module-list-item:nth-child(6n+3){box-shadow:3px 3px 0 #d1ad2f}',
-    '#feedPageList>.module-list-item:nth-child(6n+4){box-shadow:3px 3px 0 #4e8f61}',
-    '#feedPageList>.module-list-item:nth-child(6n+5){box-shadow:3px 3px 0 #416fa9}',
-    '#feedPageList>.module-list-item:nth-child(6n+6){box-shadow:3px 3px 0 #7955a0}',
+    'border:1px solid #dfd4ca;border-radius:18px;background:#f1e9e1;padding:0;',
+    'box-shadow:3px 3px 0 var(--feed-card-rim,#bd3f47);display:block;width:100%;}',
     '#feedPageList>.module-list-item>div{padding:11px 13px 13px}',
     '#feedPageList>.module-list-item small{display:block;font:600 11px/1.4 system-ui;',
     'letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}',
@@ -56,7 +51,7 @@
        natural ratio instead of being forced into a fixed preview. */
     '#feedPageList>.module-list-item img,#feedPageList>.module-list-item video{',
     'display:block;width:100%;height:auto;max-height:none!important;aspect-ratio:auto;',
-    'object-fit:contain;border-radius:15px 15px 0 0!important;background:#efe7dd}',
+    'object-fit:contain;border-radius:17px 17px 0 0!important;background:#efe7dd}',
     '#feedPageList>.module-list-item>div:has(> img),#feedPageList>.module-list-item>div:has(> video){padding:0}',
     '#feedPageList>.module-list-item>div:has(> img)>small,#feedPageList>.module-list-item>div:has(> video)>small{padding:11px 13px 0}',
     '#feedPageList>.module-list-item>div:has(> img)>b,#feedPageList>.module-list-item>div:has(> video)>b{padding:0 13px}',
@@ -87,6 +82,7 @@
     var look = ACCENTS[source.marker] || FALLBACK;
     Array.prototype.forEach.call(nodes, function (node) {
       node.style.setProperty('--accent', look.accent);
+      node.style.setProperty('--feed-card-rim', look.accent);
       /* A label left on a card by an older build is taken off rather than left hidden. */
       var stale = node.querySelector('.biglwa-feed-src');
       if (stale) stale.remove();

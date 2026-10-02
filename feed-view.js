@@ -77,8 +77,8 @@ const STYLE = `
    may drop below a short wide picture, so the card lets it escape and the picture itself
    is rounded instead of relying on the card to clip it. */
 .biglwa-pin-post{overflow:visible}
-.biglwa-pin::before{border-radius:16px 16px 0 0}
-.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:17px 17px 0 0}
+.biglwa-pin::before{border-radius:18px 18px 0 0}
+.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:18px 18px 0 0}
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-empty{padding:15px}
@@ -86,11 +86,11 @@ const STYLE = `
 .biglwa-pin-link b{display:block;font:700 10px/1.35 system-ui;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .biglwa-pin-link small{display:block;margin-top:3px;font:600 8px/1.3 system-ui;color:#8b8179;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .biglwa-pin-link span{flex:none;border:1px solid #d8cec5;border-radius:999px;padding:5px 8px;font:700 8px/1 system-ui;color:#4f4742;background:#fffdf9}
-/* Three actions sit in the left corner of every post the feed manages: green opens the
-   picture large, yellow hides the post from the wall without removing it, and red
+/* Three actions sit in the top-right corner of every post the feed manages: green opens
+   the picture large, yellow hides the post from the wall without removing it, and red
    deletes it. */
-.biglwa-post-actions{position:absolute;top:10px;left:10px;z-index:8;display:flex;gap:6px}
-.biglwa-post-actions button{width:28px;height:28px;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;display:grid;place-items:center;font:800 13px/1 system-ui;cursor:pointer;box-shadow:0 2px 7px rgba(24,16,14,.24);transition:transform .15s ease,filter .15s ease}
+.biglwa-post-actions{position:absolute;top:8px;right:8px;z-index:8;display:flex;gap:4px}
+.biglwa-post-actions button{width:20px;height:20px;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;display:grid;place-items:center;font:800 9px/1 system-ui;cursor:pointer;box-shadow:0 2px 7px rgba(24,16,14,.24);transition:transform .15s ease,filter .15s ease}
 .biglwa-post-actions button:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .biglwa-post-actions [data-post-delete]{background:#bd3f47}.biglwa-post-actions [data-post-archive]{background:#d1ad2f;color:#302719}.biglwa-post-actions [data-post-enlarge]{background:#4e8f61}
 /* Instagram-imported cards get a tiny browser-window header. The strip is intentionally
@@ -362,14 +362,14 @@ function renderDrafts() {
   }
   anchor.hidden = false;
   anchor.innerHTML =
-    '<div class="biglwa-drafts-head"><div><h3>Imported from Orbit</h3><p>Saved to your account, not public yet. Choose what you want to post to the collective feed.</p></div>' +
+    '<div class="biglwa-drafts-head"><div><h3>Saved posts</h3><p>Not public yet. Choose what you want to post to the collective feed.</p></div>' +
     '<button type="button" class="module-action" data-orbit-publish-selected>Post selected</button></div>' +
     '<div class="biglwa-drafts-grid">' +
     draftPosts.map((post) =>
       '<label class="biglwa-draft-card" data-draft-id="' + esc(post.id) + '">' +
         '<input type="checkbox" data-orbit-draft-check value="' + esc(post.id) + '">' +
         '<img src="' + esc(slideUrls(post)[0] || "") + '" alt="' + esc(post.caption || "Imported post") + '" loading="lazy">' +
-        '<div><b>' + esc(post.caption || "Imported from " + (post.source || "Orbit")) + '</b><small>' + esc((post.source || "Orbit") + (post.sourceUsername ? " · @" + post.sourceUsername : "")) + '</small></div>' +
+        '<div>' + (post.caption ? '<b>' + esc(post.caption) + '</b>' : '') + '<small>' + esc((post.source || "Orbit") + (post.sourceUsername ? " · @" + post.sourceUsername : "")) + '</small></div>' +
       '</label>'
     ).join("") +
     '</div>';
