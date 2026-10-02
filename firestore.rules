@@ -91,6 +91,19 @@ service cloud.firestore {
         && resource.data.uid == userId;
     }
 
+    // Instagram/Orbit Archive. The owner always has access. If the owner explicitly
+    // chooses "friends", a signed-in UID listed in archiveFriends may read the archive.
+    // Provider credentials and the friend list itself remain owner-only on /users/{userId}.
+    match /users/{userId}/archive/{archiveId} {
+      allow read: if isOwner(userId)
+        || (request.auth != null
+          && get(/databases/$(database)/documents/users/$(userId)).data.archive.visibility == 'friends'
+          && request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.archiveFriends);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.uid == userId;
+      allow delete: if isOwner(userId);
+    }
+
     // Wallpaper moderation queue. Members may open a review for their own media and
     // follow their own queue; only moderators can decide one.
     match /wallpaperReviews/{reviewId} {
