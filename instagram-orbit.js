@@ -10,11 +10,17 @@
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (error) { return ''; } }
   function saveSession(value) { try { if (value) localStorage.setItem(SESSION_KEY, value); else localStorage.removeItem(SESSION_KEY); } catch (error) {} }
+  async function firebaseContext() {
+    const app = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js');
+    const authMod = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
+    const store = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+    const firebaseApp = app.getApps()[0] || app.initializeApp({ apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY', authDomain:'biglwa.firebaseapp.com', projectId:'biglwa', appId:'1:83232670555:web:e04927b20458390b3b507e' });
+    return { app: firebaseApp, auth: authMod.getAuth(firebaseApp), store };
+  }
   async function firebaseAuthToken() {
     try {
-      const mod = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
-      const user = mod.getAuth().currentUser;
-      return user ? await user.getIdToken() : '';
+      const ctx = await firebaseContext();
+      return ctx.auth.currentUser ? await ctx.auth.currentUser.getIdToken() : '';
     } catch (error) { return ''; }
   }
   async function accountSession() {
@@ -28,21 +34,15 @@
   }
   async function persistAccount(profile, media) {
     try {
-      const token = await firebaseAuthToken();
-      if (!token) return false;
-      const app = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js');
-      const store = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
-      const auth = modAuth();
-      const user = auth.currentUser;
+      const ctx = await firebaseContext();
+      const user = ctx.auth.currentUser;
       if (!user) return false;
-      const firebaseApp = app.getApps()[0] || app.initializeApp({ apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY', authDomain:'biglwa.firebaseapp.com', projectId:'biglwa', appId:'1:83232670555:web:e04927b20458390b3b507e' });
-      const db = store.getFirestore(firebaseApp);
-      await store.setDoc(store.doc(db, 'users', user.uid), { orbit: { instagram: { connected: true, profile: profile || null, mediaCount: Array.isArray(media) ? media.length : 0, mediaIds: Array.isArray(media) ? media.map(function (item) { return String(item.id || ''); }).filter(Boolean).slice(0, 1000) : [], syncedAt: store.serverTimestamp() } }, updatedAt: store.serverTimestamp() }, { merge: true });
+      await ctx.store.setDoc(ctx.store.doc(ctx.store.getFirestore(ctx.app), 'users', user.uid), {
+        orbit: { instagram: { connected: true, profile: profile || null, mediaCount: Array.isArray(media) ? media.length : 0, mediaIds: Array.isArray(media) ? media.map(function (item) { return String(item.id || ''); }).filter(Boolean).slice(0, 1000) : [], syncedAt: ctx.store.serverTimestamp() } },
+        updatedAt: ctx.store.serverTimestamp()
+      }, { merge: true });
       return true;
     } catch (error) { console.warn('BIGLWA Orbit account persistence:', error); return false; }
-  }
-  function modAuth() {
-    try { return window.__biglwaFirebaseAuth || null; } catch (error) { return null; }
   }
   function importToFeed() {
     var who = window.__biglwaIdentity;
