@@ -93,6 +93,26 @@ const STYLE = `
 .biglwa-post-actions button{width:28px;height:28px;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;display:grid;place-items:center;font:800 13px/1 system-ui;cursor:pointer;box-shadow:0 2px 7px rgba(24,16,14,.24);transition:transform .15s ease,filter .15s ease}
 .biglwa-post-actions button:hover{transform:translateY(-1px);filter:brightness(1.08)}
 .biglwa-post-actions [data-post-delete]{background:#bd3f47}.biglwa-post-actions [data-post-archive]{background:#d1ad2f;color:#302719}.biglwa-post-actions [data-post-enlarge]{background:#4e8f61}
+/* Instagram-imported cards get a tiny browser-window header. The strip is intentionally
+   much thinner than the card itself: aura tint, three small traffic-light controls at right,
+   and carousel tabs that sit in the same strip like browser tabs. */
+.biglwa-instagram-browser-strip{height:27px;box-sizing:border-box;padding:3px 5px 3px 7px;display:flex;align-items:center;gap:4px;
+  background:rgba(var(--aura-rgb,216,95,109),.18);border-bottom:1px solid rgba(var(--aura-rgb,216,95,109),.28);
+  border-radius:15px 15px 0 0;position:relative;z-index:8}
+.biglwa-instagram-browser-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;height:21px;margin-right:auto}
+.biglwa-instagram-browser-tab{height:18px;min-width:20px;padding:0 6px;border:0;border-radius:5px 5px 2px 2px;
+  background:rgba(var(--aura-rgb,216,95,109),.16);color:rgba(75,62,58,.72);font:800 8px/18px system-ui;cursor:pointer}
+.biglwa-instagram-browser-tab.is-active{height:21px;background:#f1e9e1;color:#5a4c46;box-shadow:0 -1px 0 rgba(255,255,255,.5)}
+.biglwa-instagram-browser-actions{display:flex;align-items:center;gap:4px;margin-left:auto}
+.biglwa-instagram-browser-actions button{width:18px;height:18px;min-width:18px;padding:0;border:1px solid rgba(255,255,255,.72);
+  border-radius:50%;display:grid;place-items:center;color:#fff;font:800 9px/1 system-ui;cursor:pointer;
+  box-shadow:0 1px 3px rgba(24,16,14,.18)}
+.biglwa-instagram-browser-actions [data-post-delete]{background:#bd3f47}
+.biglwa-instagram-browser-actions [data-post-archive]{background:#d1ad2f;color:#302719}
+.biglwa-instagram-browser-actions [data-post-enlarge]{background:#4e8f61}
+.biglwa-instagram-browser-actions button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.biglwa-instagram-card .biglwa-pin-img{border-radius:0}
+.biglwa-instagram-card .biglwa-slide{border-radius:0}
 /* The source is told by the colour along the edge of the card instead of by a name, so the
    label is no longer drawn. The accent border and the glow around it stay. */
 .biglwa-pin-src{display:none}
@@ -386,22 +406,35 @@ function renderPosts(force) {
   if (!posts.length) return;
   const html = posts.map((post) => {
     const src = accentOf(post.source);
-    const label = post.authorName ? esc(post.authorName) : (post.username ? "@" + esc(post.username) : "Member");
     const urls = slideUrls(post);
-    /* The three-dot menu belongs to posts written by the collective-feed uploader: an
-       image-list field marks one as made by it. Older content carries only the single
-       picture fields and keeps the wall quiet, so the actions are never offered on
-       content that was not posted through this feed. */
     const managed = Boolean(me && post.uid === me);
+    const isInstagram = String(post.source || "").toLowerCase() === "instagram";
     const image = !urls.length
       ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
       : urls.length === 1
         ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="Collective feed media" loading="lazy">'
         : slideshow(urls, "Collective feed media");
     const link = post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
-    return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '">' +
-      '<div>' + image + "</div>" + link +
-      (managed
+    const tabs = isInstagram && urls.length > 1
+      ? '<div class="biglwa-instagram-browser-tabs" aria-label="Instagram carousel tabs">' +
+        urls.map((_, i) => '<button type="button" class="biglwa-instagram-browser-tab' + (i === 0 ? ' is-active' : '') + '" data-instagram-slide="' + i + '">' + (i + 1) + '</button>').join("") +
+        '</div>'
+      : '<span class="biglwa-instagram-browser-tabs" aria-hidden="true"></span>';
+    const browserStrip = isInstagram
+      ? '<div class="biglwa-instagram-browser-strip">' +
+          tabs +
+          (managed
+            ? '<div class="biglwa-instagram-browser-actions" aria-label="Instagram post actions">' +
+              '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete">&#10005;</button>' +
+              '<button type="button" data-post-archive aria-label="Archive" title="Archive">&#9662;</button>' +
+              '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge">&#8599;</button>' +
+              '</div>'
+            : '') +
+        '</div>'
+      : '';
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + '" data-post-id="' + esc(post.id) + '">' +
+      '<div>' + browserStrip + image + "</div>" + link +
+      (!isInstagram && managed
         ? '<div class="biglwa-post-actions">' +
           '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete from Collective Feed">&#10005;</button>' +
           '<button type="button" data-post-archive aria-label="Archive" title="Archive">&#9662;</button>' +
@@ -750,6 +783,25 @@ async function wire(list, form) {
   if (list !== wiredList) {
     wiredList = list;
     list.addEventListener("click", (event) => {
+      const instaTab = event.target.closest("[data-instagram-slide]");
+      if (instaTab) {
+        const card = instaTab.closest(".biglwa-instagram-card");
+        const post = card && posts.find((p) => p.id === card.dataset.postId);
+        const index = Number(instaTab.dataset.instagramSlide);
+        const frame = card && card.querySelector("[data-biglwa-slideshow]");
+        if (post && frame && Number.isInteger(index)) {
+          const photos = Array.from(frame.querySelectorAll("img"));
+          const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot i"));
+          const count = frame.querySelector(".biglwa-slide-count");
+          if (photos[index]) {
+            photos.forEach((img, i) => img.classList.toggle("is-on", i === index));
+            dots.forEach((dot, i) => dot.classList.toggle("is-on", i === index));
+            if (count) count.textContent = (index + 1) + " / " + photos.length;
+            card.querySelectorAll("[data-instagram-slide]").forEach((tab) => tab.classList.toggle("is-active", tab === instaTab));
+          }
+        }
+        return;
+      }
       const action = event.target.closest("[data-post-enlarge],[data-post-archive],[data-post-delete]");
       if (action) {
         const card = action.closest(".biglwa-pin-post");
