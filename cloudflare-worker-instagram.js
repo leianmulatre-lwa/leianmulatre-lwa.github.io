@@ -220,6 +220,9 @@ async function proxyMedia(request, env) {
       nextPath = '';
     } else {
       const parsed = new URL(next);
+      /* Never carry Instagram's access token from the paging URL back through our
+         application. The server-side session token is the only credential used here. */
+      parsed.searchParams.delete('access_token');
       nextPath = parsed.pathname + parsed.search;
     }
   }
