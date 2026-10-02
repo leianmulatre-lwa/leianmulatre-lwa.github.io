@@ -16,8 +16,23 @@
   function writeWidgetShortcuts(items){
     const next=[...new Set((items||[]).map(String).filter(Boolean))];
     try{localStorage.setItem(DOCKED_WIDGET_KEY,JSON.stringify(next))}catch{}
+    syncLayoutToAccount();
     return next;
   }
+  function syncLayoutToAccount(){
+    try{
+      const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
+      const docked=readJson(DOCKED_WIDGET_KEY);
+      const order=readJson('biglwaWidgetOrder');
+      const shortcuts=readJson(NAV_SHORTCUT_KEY);
+      window.BigLWAUserDirectory?.saveCustomizations?.({layout:{
+        docked:Array.isArray(docked)?docked:[],
+        order:order&&typeof order==='object'?order:{},
+        navigation:Array.isArray(shortcuts)?shortcuts:[]
+      }});
+    }catch{}
+  }
+
   function readNavigationShortcuts(fallback=[]){
     try{
       const saved=JSON.parse(localStorage.getItem(NAV_SHORTCUT_KEY)||'null');
@@ -28,6 +43,7 @@
   function writeNavigationShortcuts(items){
     const next=[...new Set((items||[]).map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
     try{localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(next))}catch{}
+    syncLayoutToAccount();
     return next;
   }
 
@@ -792,6 +808,7 @@
       });
       Object.keys(order).forEach(k=>{if(!$('#'+CSS.escape(k),app))delete order[k]});
       try{localStorage.setItem(orderKey,JSON.stringify(order))}catch{}
+      syncLayoutToAccount();
     };
     const savedOrder=readOrder();
     Object.keys(savedOrder).forEach(key=>{
