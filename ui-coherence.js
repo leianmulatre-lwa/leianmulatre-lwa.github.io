@@ -949,6 +949,7 @@
       const layout=custom.layout;
       if(Array.isArray(layout.docked)){try{localStorage.setItem('biglwaDockedWidgetsV3',JSON.stringify(layout.docked))}catch{}}
       if(layout.order&&typeof layout.order==='object'){try{localStorage.setItem('biglwaWidgetOrder',JSON.stringify(layout.order))}catch{}}
+      if(Array.isArray(layout.navigation)){try{localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(layout.navigation))}catch{}}
       applyRemoteLayout(layout);
     }
     try{window.BIGLWAStudioAppearance?.apply?.(custom)}catch{}
