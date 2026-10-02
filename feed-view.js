@@ -86,28 +86,17 @@ const STYLE = `
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-empty{padding:15px}
-/* The three dots carry the actions. Green opens the picture large, where the full-size
-   link lives; yellow hides the post from the wall without removing it; red
-   deletes it. The same colour naming is used by the linked accounts' green "view-site"
-   pill, so green always means "go somewhere bigger" across the wall. */
-.biglwa-post-dots{position:absolute;top:10px;right:10px;z-index:4;width:30px;height:30px;border:0;
-  border-radius:50%;background:rgba(24,16,14,.52);color:#fff;display:grid;place-items:center;
-  cursor:pointer;font:700 14px/1 system-ui;padding-bottom:2px;letter-spacing:.08em;
-  box-shadow:0 2px 8px rgba(24,16,14,.28)}
-.biglwa-post-dots:hover,.biglwa-post-dots[aria-expanded="true"]{background:#1d1613}
-.biglwa-post-menu{position:absolute;top:46px;right:10px;z-index:5;min-width:158px;padding:6px;
-  border-radius:12px;background:#fffdf9;border:1px solid rgba(80,70,64,.16);
-  box-shadow:0 22px 46px -18px rgba(24,16,14,.55);display:none;flex-direction:column;gap:2px}
-.biglwa-post-menu.is-open{display:flex}
-.biglwa-post-menu button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:none;
-  padding:9px 10px;border-radius:8px;font:600 13px/1 system-ui;color:#3a322c;cursor:pointer;text-align:left}
-.biglwa-post-menu button:hover{background:#f4ece2}
-.biglwa-post-menu button:disabled{opacity:.55;cursor:default}
-.biglwa-dot{width:9px;height:9px;border-radius:50%;flex:none;background:#8a7a6c}
-.biglwa-post-menu button[data-post-enlarge] .biglwa-dot{background:#3f6b4a}
-.biglwa-post-menu button[data-post-archive] .biglwa-dot{background:#c98a16}
-.biglwa-post-menu button[data-post-delete] .biglwa-dot{background:#a53332}
-.biglwa-post-menu button[data-post-delete]{color:#a53332}
+/* Three actions sit in the left corner of every post the feed manages: green opens the
+   picture large, yellow hides the post from the wall without removing it, and red
+   deletes it. */
+.biglwa-post-actions{position:absolute;top:10px;left:10px;z-index:4;display:flex;gap:6px}
+.biglwa-post-actions button{width:28px;height:28px;border:0;border-radius:50%;color:#fff;
+  display:grid;place-items:center;font:700 14px/1 system-ui;cursor:pointer;
+  box-shadow:0 2px 8px rgba(24,16,14,.3)}
+.biglwa-post-actions button:hover{filter:brightness(1.14)}
+.biglwa-post-actions [data-post-enlarge]{background:#3f6b4a}
+.biglwa-post-actions [data-post-archive]{background:#c98a16}
+.biglwa-post-actions [data-post-delete]{background:#a53332}
 /* The source is told by the colour along the edge of the card instead of by a name, so the
    label is no longer drawn. The accent border and the glow around it stay. */
 .biglwa-pin-src{display:none}
@@ -418,11 +407,10 @@ function renderPosts(force) {
        menu of its own. */
     return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '" style="--pin-accent:' + src.accent + '"><div>' + image + "</div>" +
       (managed
-        ? '<button type="button" class="biglwa-post-dots" data-feed-dots aria-haspopup="menu" aria-label="Post options" aria-expanded="false">&#8230;</button>' +
-          '<div class="biglwa-post-menu" role="menu">' +
-          '<button type="button" role="menuitem" data-post-enlarge><i class="biglwa-dot" aria-hidden="true"></i>Enlarge</button>' +
-          '<button type="button" role="menuitem" data-post-archive><i class="biglwa-dot" aria-hidden="true"></i>Archive</button>' +
-          '<button type="button" role="menuitem" data-post-delete><i class="biglwa-dot" aria-hidden="true"></i>Delete</button>' +
+        ? '<div class="biglwa-post-actions">' +
+          '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge">&#8599;</button>' +
+          '<button type="button" data-post-archive aria-label="Archive" title="Archive">&#9662;</button>' +
+          '<button type="button" data-post-delete aria-label="Delete" title="Delete">&#10005;</button>' +
           "</div>"
         : "") +
       '<div class="biglwa-pin-body"><small>' + label + " · " + esc(when(post.createdAt)) + "</small></div>" +
@@ -782,22 +770,9 @@ function closeLightbox() {
   document.documentElement.style.overflow = "";
 }
 
-function closeMenus() {
-  document.querySelectorAll(".biglwa-post-menu.is-open").forEach((menu) => {
-    menu.classList.remove("is-open");
-    const dots = menu.closest(".biglwa-pin-post")?.querySelector("[data-feed-dots]");
-    if (dots) dots.setAttribute("aria-expanded", "false");
-  });
-}
-
-function closeLightboxAndMenus() {
-  closeLightbox();
-  closeMenus();
-}
-
-/* Wires the composer and the three-dot menu exactly once per rendered feed, and only when
-   the element is a new one. The route re-renders its markup on every visit, so identity of
-   the element is what tells a fresh form from one that is already wired. */
+/* Wires the composer and the three card actions exactly once per rendered feed, and only
+   when the element is a new one. The route re-renders its markup on every visit, so
+   identity of the element is what tells a fresh form from one that is already wired. */
 let wiredList = null;
 async function wire(list, form) {
   installStyle();
@@ -826,35 +801,16 @@ async function wire(list, form) {
   if (list !== wiredList) {
     wiredList = list;
     list.addEventListener("click", (event) => {
-      const dots = event.target.closest("[data-feed-dots]");
-      if (dots) {
-        event.preventDefault();
-        event.stopPropagation();
-        const menu = dots.closest(".biglwa-pin-post")?.querySelector(".biglwa-post-menu");
-        if (menu && menu.classList.contains("is-open")) {
-          menu.classList.remove("is-open");
-          dots.setAttribute("aria-expanded", "false");
-          return;
-        }
-        closeMenus();
-        if (menu) {
-          menu.classList.add("is-open");
-          dots.setAttribute("aria-expanded", "true");
-        }
-        return;
-      }
       const action = event.target.closest("[data-post-enlarge],[data-post-archive],[data-post-delete]");
       if (action) {
         const card = action.closest(".biglwa-pin-post");
         const post = card && posts.find((p) => p.id === card.dataset.postId);
         if (!post) return;
-        closeMenus();
         if (action.hasAttribute("data-post-enlarge")) openLightbox(post, 0);
         else if (action.hasAttribute("data-post-archive")) archivePost(post, action);
         else if (action.hasAttribute("data-post-delete")) deletePost(post, action);
         return;
       }
-      closeMenus();
       const card = event.target.closest(".biglwa-pin-post");
       if (!card || !event.target.closest("img,.biglwa-pin-empty")) return;
       const post = posts.find((p) => p.id === card.dataset.postId);
@@ -862,14 +818,9 @@ async function wire(list, form) {
     });
     if (!window.__biglwaMenuCloser) {
       window.__biglwaMenuCloser = true;
-      /* A single shared closer keeps an open menu from surviving a click anywhere else,
-         and gives the lightbox and the menu one Escape key each. */
-      document.addEventListener("click", (event) => {
-        if (event.target.closest("[data-feed-dots],.biglwa-post-menu")) return;
-        closeMenus();
-      });
+      /* A single shared handler gives the lightbox one Escape key and its own arrows. */
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeLightboxAndMenus();
+        if (event.key === "Escape") closeLightbox();
         if (!lightbox) return;
         if (event.key === "ArrowLeft") {
           const prev = lightbox.box.querySelector("[data-lightbox-step='-1']");
