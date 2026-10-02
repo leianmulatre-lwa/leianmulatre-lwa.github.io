@@ -36,31 +36,34 @@
   var FALLBACK = { accent: '#8a7a6c', label: 'Source' };
 
   var STYLE = [
-    '#feedPageList>.module-list-item{--accent:#8a7a6c;position:relative;overflow:hidden;',
-    'border:1px solid rgba(80,70,64,.14);border-left:4px solid var(--accent);border-radius:16px;',
-    'background:#fffdf9;padding:0;box-shadow:0 10px 22px -14px var(--accent),0 1px 2px rgba(48,43,40,.06)}',
+    /* Connected-account cards use the same shell as the new Collective Feed cards:
+       warm paper, soft border, rounded corners, and the six-colour offset rim. */
+    '#feedPageList>.module-list-item{position:relative;min-width:0;overflow:visible;',
+    'border:1px solid #dfd4ca;border-radius:16px;background:#f1e9e1;padding:0;',
+    'box-shadow:3px 3px 0 #bd3f47;display:block;width:100%;}',
+    '#feedPageList>.module-list-item:nth-child(6n+1){box-shadow:3px 3px 0 #bd3f47}',
+    '#feedPageList>.module-list-item:nth-child(6n+2){box-shadow:3px 3px 0 #d77b30}',
+    '#feedPageList>.module-list-item:nth-child(6n+3){box-shadow:3px 3px 0 #d1ad2f}',
+    '#feedPageList>.module-list-item:nth-child(6n+4){box-shadow:3px 3px 0 #4e8f61}',
+    '#feedPageList>.module-list-item:nth-child(6n+5){box-shadow:3px 3px 0 #416fa9}',
+    '#feedPageList>.module-list-item:nth-child(6n+6){box-shadow:3px 3px 0 #7955a0}',
     '#feedPageList>.module-list-item>div{padding:11px 13px 13px}',
     '#feedPageList>.module-list-item small{display:block;font:600 11px/1.4 system-ui;',
     'letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}',
     '#feedPageList>.module-list-item b{display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;',
     'color:#2f2a27;overflow-wrap:anywhere}',
-    /* Connected pictures keep their own shape too, so a board of member posts and
-       connected accounts steps with each photo the same way instead of forcing every
-       one into a square preview. */
+    /* Images inherit the same rounded top edge as the new cards and keep their
+       natural ratio instead of being forced into a fixed preview. */
     '#feedPageList>.module-list-item img,#feedPageList>.module-list-item video{',
-    'border-radius:0!important;aspect-ratio:auto;object-fit:contain;width:100%;height:auto;',
-    'max-height:none!important}',
-    /* The source used to be named in text on the card. The coloured edge and the glow
-       around it say which account it came from, so the name is no longer drawn. */
-    '#feedPageList>.module-list-item>div>small{display:none}',
-    /* Connected cards stay purely visual in the feed wall: the caption above the picture
-       and the outbound "View on Instagram/Facebook/..." button are taken off, so the
-       coloured edge and the picture carry the card on their own. */
-    '#feedPageList>.module-list-item b,#feedPageList>.module-list-item a[target="_blank"]{display:none}',
-    /* A gradient lip along the top edge, so a card is identifiable as a source at a
-       glance even when the picture behind it is pale. */
-    '#feedPageList>.module-list-item::before{content:"";display:block;height:3px;',
-    'background:linear-gradient(90deg,var(--accent),transparent)}'
+    'display:block;width:100%;height:auto;max-height:none!important;aspect-ratio:auto;',
+    'object-fit:contain;border-radius:15px 15px 0 0!important;background:#efe7dd}',
+    '#feedPageList>.module-list-item>div:has(> img),#feedPageList>.module-list-item>div:has(> video){padding:0}',
+    '#feedPageList>.module-list-item>div:has(> img)>small,#feedPageList>.module-list-item>div:has(> video)>small{padding:11px 13px 0}',
+    '#feedPageList>.module-list-item>div:has(> img)>b,#feedPageList>.module-list-item>div:has(> video)>b{padding:0 13px}',
+    '#feedPageList>.module-list-item>div:has(> img)>a,#feedPageList>.module-list-item>div:has(> video)>a{margin:10px 13px 13px}',
+    /* Keep the user-data metadata and outbound link, but remove the old source stripe. */
+    '#feedPageList>.module-list-item::before{content:none}',
+    '#feedPageList>.module-list-item .module-action{border-radius:999px}'
   ].join('');
 
   function installStyle() {
