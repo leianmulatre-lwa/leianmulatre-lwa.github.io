@@ -97,8 +97,8 @@ service cloud.firestore {
     match /users/{userId}/archive/{archiveId} {
       allow read: if isOwner(userId)
         || (request.auth != null
-          && get(/databases/$(database)/documents/users/$(userId)).data.archive.visibility == 'friends'
-          && request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.archiveFriends);
+          && get(/databases/$(database)/documents/users/$(userId)).data.get('archive', {}).get('visibility', 'private') == 'friends'
+          && request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.get('archiveFriends', []));
       allow create, update: if isOwner(userId)
         && request.resource.data.uid == userId;
       allow delete: if isOwner(userId);
