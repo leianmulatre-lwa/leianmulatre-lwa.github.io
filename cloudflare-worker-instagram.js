@@ -736,9 +736,41 @@ function mediaKeyParts(pathname) {
   return { uid: parts[0], name: parts[1], key: MEDIA_FOLDERS[segment] + '/' + parts[0] + '/' + parts[1] };
 }
 
+async function mediaLinkPreview(request, env) {
+  requireOrigin(request, env);
+  await mediaUser(request, env);
+  const body = await request.json().catch(() => ({}));
+  const raw = String(body.url || '').trim();
+  let target;
+  try { target = new URL(raw); } catch { mediaFail('Use a full http:// or https:// link.'); }
+  if (!['http:', 'https:'].includes(target.protocol) || target.username || target.password) mediaFail('That link cannot be previewed.');
+  const host = target.hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || /^(127\\.|10\\.|192\\.168\\.|169\\.254\\.)/.test(host) || host === '::1' || host === '0.0.0.0') mediaFail('That link cannot be previewed.');
+  const response = await fetch(target.toString(), { headers: { 'User-Agent': 'BIGLWA-Link-Preview/1.0' }, redirect: 'follow' });
+  if (!response.ok) mediaFail('The linked page could not be previewed.', 502);
+  const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+  if (!contentType.includes('text/html')) return json({ url: target.toString(), title: '', imageUrl: '', siteName: target.hostname }, 200, request, env);
+  const html = (await response.text()).slice(0, 1000000);
+  const meta = (name) => {
+    const safe = name.replace(/[.*+?^$\\{\\}()|[\\]\\\\]/g, '\\\\async function mediaRoute(request, env) {
+  const url = new URL(request.url);
+  if (request.method === 'OPTIONS') return corsPreflight(request, env);
+');
+    const re1 = new RegExp('<meta[^>]+(?:property|name)=[\\\"\\\']' + safe + '[\\\"\\\'][^>]+content=[\\\"\\\']([^\\\"\\\']+)', 'i');
+    const re2 = new RegExp('<meta[^>]+content=[\\\"\\\']([^\\\"\\\']+)[\\\"\\\'][^>]+(?:property|name)=[\\\"\\\']' + safe + '[\\\"\\\']', 'i');
+    const match = html.match(re1) || html.match(re2);
+    return match ? match[1].trim() : '';
+  };
+  const decode = (value) => value.replace(/&amp;/g, '&').replace(/&quot;/g, '\\"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const image = decode(meta('og:image') || meta('twitter:image'));
+  const title = decode(meta('og:title') || meta('twitter:title')) || target.hostname;
+  return json({ url: target.toString(), title: title.slice(0, 240), imageUrl: image.slice(0, 2000), siteName: target.hostname }, 200, request, env);
+}
+
 async function mediaRoute(request, env) {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
+  if (url.pathname === '/media/link-preview' && request.method === 'POST') return mediaLinkPreview(request, env);
   const segment = mediaSegment(url.pathname);
   /* Lets the site confirm the binding is wired without signing anyone in. */
   if (url.pathname === '/media/health' && request.method === 'GET') {
