@@ -956,6 +956,21 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
       [...card.children].forEach(el=>{if(!el.matches('.card-head,.widget-window-controls,.window-controls'))el.remove()});
       const content=document.createElement('div');content.innerHTML=(id==='calendar'?miniCalendarMarkup():'')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
     }
+    const feedCard=$('#feed');
+    if(feedCard){
+      feedCard.dataset.widgetRoute='feed';
+      let hero=$('#biglwaFeedHero',feedCard);
+      if(!hero){
+        hero=document.createElement('div');
+        hero.id='biglwaFeedHero';
+        hero.className='biglwa-feed-hero';
+        hero.setAttribute('aria-label','Four latest Collective Feed posts');
+        const cta=$('.card-cta',feedCard);
+        if(cta)feedCard.insertBefore(hero,cta);else feedCard.appendChild(hero);
+      }
+      hero.setAttribute('aria-label','Four latest Collective Feed post thumbnails');
+      if(window.__biglwaFeed?.refresh){setTimeout(()=>window.__biglwaFeed.refresh(),0)}
+    }
     let mapCard=$('#map');
     if(!mapCard){
       const masonry=$('#studioApp .masonry');
