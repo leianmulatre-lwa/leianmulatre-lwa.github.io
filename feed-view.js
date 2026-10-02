@@ -58,11 +58,11 @@ const STYLE = `
 /* A pin-board wall: multi-column, so each card packs upward into the first gap of
    its column instead of lining up with the row of its neighbours. The count is fixed
    at four across, and each card holds its picture's own shape. */
-#feedPageList{display:block;columns:4;column-gap:18px}
+#feedPageList{display:block!important;column-count:4!important;column-width:auto!important;column-gap:18px!important;column-fill:balance}
 #feedPageList>*{break-inside:avoid;min-width:0;width:100%;margin:0 0 18px}
-@media (max-width:980px){#feedPageList{columns:3}}
-@media (max-width:700px){#feedPageList{columns:2}}
-@media (max-width:480px){#feedPageList{columns:1}}
+@media (max-width:980px){#feedPageList{column-count:3!important}}
+@media (max-width:700px){#feedPageList{column-count:2!important}}
+@media (max-width:480px){#feedPageList{column-count:1!important}}
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
