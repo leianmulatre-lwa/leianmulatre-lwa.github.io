@@ -304,16 +304,20 @@ async function loadProfile(){
 }
 
 async function downloadAccountToDevice(){
+  window.__biglwaAccountHydrated=false;
   try{
     const {auth}=await getFirebase();
-    if(!auth.currentUser)return false;
+    if(!auth.currentUser){window.__biglwaAccountHydrated=false;return false;}
     const remote=await loadProfile();
-    if(!remote||typeof remote!=="object")return false;
-    window.__biglwaRemoteCustomization=remote;
-    window.dispatchEvent(new CustomEvent("biglwa:customization-remote",{detail:remote}));
-    return true;
+    if(remote&&typeof remote==="object"){
+      window.__biglwaRemoteCustomization=remote;
+      window.dispatchEvent(new CustomEvent("biglwa:customization-remote",{detail:remote}));
+    }
+    window.__biglwaAccountHydrated=true;
+    return !!remote;
   }catch(err){
     console.warn("[BIGLWA] Account download skipped:",err);
+    window.__biglwaAccountHydrated=true;
     return false;
   }
 }
