@@ -163,9 +163,30 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
 }
 
 export async function loadArchive(ownerUid) {
-  const { db, auth, collection, getDocs } = await firebase();
+  const { db, auth, collection, getDocs, doc, setDoc } = await firebase();
   const uid = ownerUid || auth.currentUser?.uid;
   if (!uid) return [];
+
+  /* One-time migration bridge: older builds stored Orbit imports only under
+     users/{uid}/posts. Copy those Instagram records into the new Archive location
+     before reading it, preserving the existing post id so publishing still works. */
+  if (!ownerUid || auth.currentUser?.uid === uid) {
+    try {
+      const oldSnap = await getDocs(collection(db, "users", uid, "posts"));
+      const instagram = oldSnap.docs.filter(d => String(d.data()?.source || "").toLowerCase() === "instagram");
+      for (const old of instagram) {
+        const data = old.data() || {};
+        await setDoc(doc(db, "users", uid, "archive", old.id), {
+          ...data,
+          archiveState: "saved",
+          migratedToArchive: true
+        }, { merge: true });
+      }
+    } catch (error) {
+      console.warn("BIGLWA Archive migration:", error);
+    }
+  }
+
   const snap = await getDocs(collection(db, "users", uid, "archive"));
   return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => {
     const av = a.sourceCreatedAt || "";
