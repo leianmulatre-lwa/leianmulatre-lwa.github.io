@@ -90,6 +90,15 @@
     .photo-strip{display:grid;grid-template-columns:repeat(4,minmax(80px,1fr));gap:8px;margin-top:12px}.photo-strip figure{margin:0;position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#ddd}.photo-strip img{width:100%;height:100%;object-fit:cover}.photo-strip a{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(20,18,17,.76);color:#fff;text-decoration:none;font:700 8px/1 system-ui;padding:6px 7px}
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
     #studioApp #camera .contact-sheet.photobooth-reference-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 46%;filter:contrast(1.02);transform:scale(1.09);transform-origin:center 46%}
+    #studioApp[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+    #studioApp[data-module-key="archive"] .instagram-archive-card{position:relative;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f28c28;box-shadow:3px 3px 0 #f28c28}
+    #studioApp[data-module-key="archive"] .instagram-archive-card img,#studioApp[data-module-key="archive"] .instagram-archive-card video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}
+    #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta{padding:8px 9px;background:#f28c28;color:#5a321d;font:700 8px/1.35 system-ui}
+    #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta small{display:block;margin-top:3px;font:600 8px/1.35 system-ui;color:#704d38;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #studioApp[data-module-key="archive"] .instagram-archive-empty{padding:26px;border:1px dashed #d8cec5;border-radius:14px;text-align:center;color:#81766f}
+    @media(max-width:980px){#studioApp[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:700px){#studioApp[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:480px){#studioApp[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:1fr}}
     #studioApp #archive .archive-photo-preview{position:relative;display:block;width:100%;aspect-ratio:4/3;margin:10px 0 12px;padding:0;overflow:hidden;border:1px solid rgba(121,101,88,.22);border-radius:14px;background:#e9e1d9;box-shadow:0 6px 16px rgba(65,43,34,.10);cursor:pointer}
     #studioApp #archive .archive-photo-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 43%;filter:saturate(.96) contrast(1.01)}
     #studioApp #archive .archive-photo-preview::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26)}
@@ -744,6 +753,45 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     };draw();
   }
 
+  function renderArchive(){
+    const orbit=window.__biglwaInstagramOrbit;
+    const draw=()=>{
+      const state=orbit?.state||{};
+      const media=Array.isArray(state.media)?state.media:[];
+      const profile=state.profile||{};
+      const username=profile.username||profile.name||'Instagram account';
+      const status=state.error||(!state.connected?'Connect Instagram in Orbit to import your archive.':'');
+      const cards=media.map((item,index)=>{
+        const children=item.children&&Array.isArray(item.children.data)?item.children.data.filter(x=>x&&(x.media_url||x.thumbnail_url)):[];
+        const first=children[0]||item;
+        const src=first.media_url||first.thumbnail_url||'';
+        const type=first.media_type||item.media_type||'IMAGE';
+        const visual=type==='VIDEO'
+          ? '<video src="'+esc(src)+'" poster="'+esc(first.thumbnail_url||'')+'" muted playsinline preload="metadata" controls></video>'
+          : '<img src="'+esc(src)+'" alt="Instagram archive item '+(index+1)+'" loading="lazy" decoding="async">';
+        const caption=String(item.caption||'').trim();
+        const date=item.timestamp?new Date(item.timestamp).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'';
+        const count=children.length>1?' · '+children.length+' photos':'';
+        return '<article class="instagram-archive-card">'+visual+'<div class="archive-media-meta">'+esc(date||'Instagram')+esc(count)+'<small>'+esc(caption||username)+'</small></div></article>';
+      }).join('');
+      body.innerHTML=heading('archive',media.length?media.length+' Instagram items imported':'')+
+        '<div class="module-grid">'+
+        '<section class="module-card wide"><h2>Instagram archive</h2><p>Connected Instagram content lives here instead of being mixed into the Studio profile. The archive pulls the full media library available through the connected account.</p>'+
+        '<div class="module-actions"><button class="module-action ghost" id="archiveOrbit" type="button">Manage Instagram connection</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
+        '<div class="module-status" id="archiveInstagramStatus">'+esc(status||('Imported from @'+username+'.'))+'</div>'+
+        (cards?'<div class="instagram-archive-grid">'+cards+'</div>':'<div class="instagram-archive-empty">No Instagram media has been imported yet.</div>')+
+        '</section></div>';
+      const go=$('#archiveOrbit',body);if(go)go.onclick=()=>openModule('orbit');
+      const refresh=$('#archiveRefreshInstagram',body);if(refresh)refresh.onclick=async()=>{
+        refresh.disabled=true;const st=$('#archiveInstagramStatus',body);if(st)st.textContent='Importing Instagram…';
+        try{await orbit?.restore?.();draw()}catch(e){if(st)st.textContent=e?.message||'Instagram could not be refreshed.'}finally{refresh.disabled=false}
+      };
+    };
+    draw();
+    const refresh=()=>{if(activeModuleKey==='archive'&&!workspace.hidden)draw()};
+    window.addEventListener('biglwa:instagram-restored',refresh,{once:true});
+  }
+
   function renderCloset(){
     const storage='biglwaModule_closet',depopKey='biglwaDepopPath';const items=readJSON(storage,[]),depop=localStorage.getItem(depopKey)||'';
     body.innerHTML=heading('closet')+`<div class="module-grid"><section class="module-card"><h2>Depop connection</h2><p>Keep a store/profile path here now; we can wire a real connection/import flow later.</p><div class="closet-connect"><span class="depop-mark">DEPOP</span><input class="module-input" id="depopPath" value="${esc(depop)}" placeholder="https://depop.com/yourshop"></div><div class="module-actions"><button class="module-action" id="saveDepop" type="button">Save path</button><button class="module-action ghost" id="openDepop" type="button" ${depop?'':'disabled'}>Open Depop</button></div><div class="module-status" id="depopStatus"></div></section><section class="module-card"><h2>Add closet item</h2><form class="module-form" id="closetForm"><input class="module-input" name="title" placeholder="Item name" required><div class="module-form two"><input class="module-input" name="price" placeholder="Price"><input class="module-input" name="size" placeholder="Size"></div><input class="module-input" name="condition" placeholder="Condition / notes"><input class="module-input" name="link" placeholder="Optional listing link"><button class="module-action" type="submit">Save item</button><button class="module-action secondary" id="closetFeedUpload" type="button">Add to Collective Feed</button></form></section><section class="module-card wide"><h2>Your closet</h2><div class="module-list" id="closetList">${listHtml(items,'item')}</div></section></div>`;
@@ -813,7 +861,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
     stopCamera();let key=(rawKey||'').toLowerCase();if(key==='room')key='rooms';if(key==='project')key='projects';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
-    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='archive')renderCollection('archive',[{name:'title',placeholder:'Archive entry'},{name:'detail',placeholder:'Context, source, date, or medium'}],[{title:'Community flyer collection',meta:'ephemera · context preserved'}]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream')renderCollection('stream',[{name:'title',placeholder:'Broadcast title'},{name:'detail',placeholder:'Date · time · format'}]);document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',`/studio?view=${encodeURIComponent(key)}`)}catch{}}
+    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream')renderCollection('stream',[{name:'title',placeholder:'Broadcast title'},{name:'detail',placeholder:'Date · time · format'}]);document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',`/studio?view=${encodeURIComponent(key)}`)}catch{}}
   }
   window.openBIGLWAModule=openModule;
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
