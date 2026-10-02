@@ -3,6 +3,7 @@ const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
 const OAUTH_SCOPES = 'instagram_business_basic,instagram_business_manage_messages';
 const SESSION_TTL = 60 * 60 * 24 * 30;
+const FIREBASE_WEB_API_KEY = 'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY';
 
 const instagramWorker = {
   async fetch(request, env) {
@@ -25,6 +26,7 @@ async function route(request, env) {
   if (url.pathname === '/oauth/start' && request.method === 'GET') return startOAuth(url, env);
   if (url.pathname === '/oauth/callback' && request.method === 'GET') return finishOAuth(url, env);
   if (url.pathname === '/session/exchange' && request.method === 'POST') return exchangeHandoff(request, env);
+  if (url.pathname === '/session/account' && request.method === 'GET') return accountSession(request, env);
   if (url.pathname === '/instagram/profile' && request.method === 'GET') return proxyProfile(request, env);
   if (url.pathname === '/instagram/media' && request.method === 'GET') return proxyMedia(request, env);
   if (url.pathname === '/instagram/disconnect' && request.method === 'POST') return disconnect(request, env);
@@ -153,11 +155,48 @@ async function exchangeHandoff(request, env) {
   const body = await request.json().catch(() => ({}));
   const handoff = String(body.handoff || '');
   if (!handoff) return json({ error: 'Missing handoff code.' }, 400, request, env);
+  const firebaseUid = await firebaseUidFromToken(String(body.firebaseIdToken || ''), env);
   const key = 'handoff:' + handoff;
   const sessionId = await env.OAUTH_SESSIONS.get(key);
   await env.OAUTH_SESSIONS.delete(key);
   if (!sessionId) return json({ error: 'Instagram handoff expired. Please reconnect.' }, 401, request, env);
-  return json({ session: sessionId }, 200, request, env);
+  if (firebaseUid) {
+    const current = await env.OAUTH_SESSIONS.get('session:' + sessionId, 'json');
+    if (current) {
+      current.firebaseUid = firebaseUid;
+      await env.OAUTH_SESSIONS.put('session:' + sessionId, JSON.stringify(current), { expirationTtl: Math.min(Math.max(1, Math.ceil((current.expiresAt - Date.now()) / 1000)), SESSION_TTL) });
+      await env.OAUTH_SESSIONS.put('firebase:' + firebaseUid, sessionId, { expirationTtl: Math.min(Math.max(1, Math.ceil((current.expiresAt - Date.now()) / 1000)), SESSION_TTL) });
+    }
+  }
+  return json({ session: sessionId, persisted: !!firebaseUid }, 200, request, env);
+}
+
+async function firebaseUidFromToken(idToken, env) {
+  if (!idToken) return '';
+  try {
+    const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(FIREBASE_WEB_API_KEY), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken })
+    });
+    const body = await response.json().catch(() => ({}));
+    const user = body.users && body.users[0];
+    return user && user.localId ? String(user.localId) : '';
+  } catch (_) { return ''; }
+}
+
+async function accountSession(request, env) {
+  requireOrigin(request, env);
+  const header = request.headers.get('Authorization') || '';
+  const idToken = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  const uid = await firebaseUidFromToken(idToken, env);
+  if (!uid) return json({ error: 'Firebase account session required.' }, 401, request, env);
+  const sessionId = await env.OAUTH_SESSIONS.get('firebase:' + uid);
+  if (!sessionId) return json({ connected: false }, 200, request, env);
+  const session = await env.OAUTH_SESSIONS.get('session:' + sessionId, 'json');
+  if (!session || session.expiresAt < Date.now()) {
+    await env.OAUTH_SESSIONS.delete('firebase:' + uid);
+    return json({ connected: false }, 200, request, env);
+  }
+  return json({ connected: true, session: sessionId }, 200, request, env);
 }
 
 async function sessionFromRequest(request, env) {
@@ -236,6 +275,7 @@ async function disconnect(request, env) {
   if (session) {
     await env.OAUTH_SESSIONS.delete('session:' + session.id);
     if (session.userId) await env.OAUTH_SESSIONS.delete('user:' + session.userId);
+    if (session.firebaseUid) await env.OAUTH_SESSIONS.delete('firebase:' + session.firebaseUid);
   }
   return json({ ok: true }, 200, request, env);
 }
