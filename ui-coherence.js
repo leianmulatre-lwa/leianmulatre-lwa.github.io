@@ -20,6 +20,7 @@
     return next;
   }
   function syncLayoutToAccount(){
+    if(window.__biglwaAccountHydrated!==true)return;
     try{
       const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
       const docked=readJson(DOCKED_WIDGET_KEY);
