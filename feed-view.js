@@ -66,7 +66,7 @@ const STYLE = `
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
-.biglwa-pin{--feed-card-rim:#bd3f47;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:18px;background:#f1e9e1;box-shadow:3px 3px 0 var(--feed-card-rim);display:block;width:100%}
+.biglwa-pin{--feed-card-rim:#bd3f47;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;box-shadow:3px 3px 0 var(--feed-card-rim);display:block;width:100%}
 .biglwa-pin:nth-child(6n+1){--feed-card-rim:#bd3f47}.biglwa-pin:nth-child(6n+2){--feed-card-rim:#d77b30}.biglwa-pin:nth-child(6n+3){--feed-card-rim:#d1ad2f}.biglwa-pin:nth-child(6n+4){--feed-card-rim:#4e8f61}.biglwa-pin:nth-child(6n+5){--feed-card-rim:#416fa9}.biglwa-pin:nth-child(6n+6){--feed-card-rim:#7955a0}
 .biglwa-pin::before{content:none}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
@@ -76,9 +76,9 @@ const STYLE = `
    height and no caption sits on the card. The menu
    may drop below a short wide picture, so the card lets it escape and the picture itself
    is rounded instead of relying on the card to clip it. */
-.biglwa-pin-post{overflow:visible}
-.biglwa-pin::before{border-radius:18px 18px 0 0}
-.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:18px 18px 0 0}
+.biglwa-pin-post{overflow:hidden}
+.biglwa-pin::before{border-radius:14px 14px 0 0}
+.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:0}
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-empty{padding:15px}
@@ -96,20 +96,20 @@ const STYLE = `
 /* Instagram-imported cards get a tiny browser-window header. The strip is intentionally
    much thinner than the card itself: aura tint, three small traffic-light controls at right,
    and carousel tabs that sit in the same strip like browser tabs. */
-.biglwa-instagram-browser-strip{height:20px;box-sizing:border-box;padding:2px 4px 2px 6px;display:flex;align-items:center;gap:4px;
-  background:rgba(var(--aura-rgb,216,95,109),.18);border-bottom:1px solid rgba(var(--aura-rgb,216,95,109),.28);
-  border-radius:15px 15px 0 0;position:relative;z-index:8}
-.biglwa-instagram-browser-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;height:16px;margin-right:auto}
-.biglwa-instagram-browser-tab{height:14px;min-width:17px;padding:0 5px;border:0;border-radius:5px 5px 2px 2px;
-  background:rgba(var(--aura-rgb,216,95,109),.16);color:rgba(75,62,58,.72);font:800 7px/14px system-ui;cursor:pointer}
-.biglwa-instagram-browser-tab.is-active{height:16px;background:#f1e9e1;color:#5a4c46;box-shadow:0 -1px 0 rgba(255,255,255,.5)}
-.biglwa-instagram-browser-actions{display:flex;align-items:center;gap:3px;margin-left:auto}
-.biglwa-instagram-browser-actions button{width:14px;height:14px;min-width:14px;padding:0;border:1px solid rgba(255,255,255,.72);
-  border-radius:50%;display:grid;place-items:center;color:#fff;font:800 7px/1 system-ui;cursor:pointer;
-  box-shadow:0 1px 3px rgba(24,16,14,.18)}
+.biglwa-instagram-card{width:96%!important;margin-left:0!important;background:#f28c28!important;border-color:#f28c28!important;box-shadow:3px 3px 0 #f28c28!important;border-radius:11px!important}
+.biglwa-instagram-card .biglwa-instagram-browser-strip{height:15px;padding:1px 4px;gap:3px;background:#f28c28;border:0;border-radius:10px 10px 0 0;position:relative;z-index:8}
+.biglwa-instagram-browser-strip{box-sizing:border-box;display:flex;align-items:center;gap:3px}
+.biglwa-instagram-browser-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;height:12px;margin-right:auto}
+.biglwa-instagram-browser-tab{height:11px;min-width:14px;padding:0 4px;border:0;border-radius:4px 4px 1px 1px;
+  background:rgba(255,255,255,.22);color:rgba(75,45,20,.78);font:800 6px/11px system-ui;cursor:pointer}
+.biglwa-instagram-browser-tab.is-active{height:12px;background:#fff3e2;color:#5a4c46;box-shadow:0 -1px 0 rgba(255,255,255,.5)}
+.biglwa-instagram-browser-actions{display:flex;align-items:center;gap:2px;margin-right:3px;order:-1}
+.biglwa-instagram-browser-actions button{width:8px;height:8px;min-width:8px;padding:0;border:0;border-radius:50%;display:block;color:transparent;font-size:0;line-height:0;cursor:pointer;box-shadow:none}
 .biglwa-instagram-browser-actions [data-post-delete]{background:#bd3f47}
 .biglwa-instagram-browser-actions [data-post-archive]{background:#d1ad2f;color:#302719}
 .biglwa-instagram-browser-actions [data-post-enlarge]{background:#4e8f61}
+.biglwa-instagram-card .biglwa-slide{border-radius:0!important;background:#f28c28}
+.biglwa-instagram-card .biglwa-slide>img{border-radius:0!important}
 .biglwa-instagram-browser-actions button:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .biglwa-instagram-card .biglwa-pin-img{border-radius:0}
 .biglwa-instagram-card .biglwa-slide{border-radius:0}
@@ -395,8 +395,7 @@ function renderPosts(force) {
   const me = identity()?.uid;
     const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
 ;
-  renderDrafts();
-  /* Latest pictures was replaced by the Collective Feed itself. */
+  /* Imported drafts remain account data, but the old Saved posts panel is intentionally not rendered here. */
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
   drawnSignature = signature;
@@ -425,9 +424,9 @@ function renderPosts(force) {
           tabs +
           (managed
             ? '<div class="biglwa-instagram-browser-actions" aria-label="Instagram post actions">' +
-              '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete">&#10005;</button>' +
-              '<button type="button" data-post-archive aria-label="Archive" title="Archive">&#9662;</button>' +
-              '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge">&#8599;</button>' +
+              '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete"></button>' +
+              '<button type="button" data-post-archive aria-label="Archive" title="Archive"></button>' +
+              '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge"></button>' +
               '</div>'
             : '') +
         '</div>'
