@@ -80,7 +80,7 @@
     }
     if (!savedSession) return Promise.resolve();
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) {
-      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render();
+      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render(); window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
       return Promise.all([importToFeed(), persistAccount(state.profile, state.media)]).then(function () { render(); });
     }).catch(function (error) {
       /* Only an expired credential may end the connection. A dropped connection or an
@@ -143,15 +143,14 @@
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
     return cards.join('');
   }
+  /* Instagram belongs in Archive. It is connected content, not a second renderer for
+     the member's Studio/profile feed. Older builds registered this source with the shared
+     feed mount, which made every connected photo compete with the Collective Feed layout. */
   function renderFeed(list) {
     list = list || one('#feedPageList');
     if (!list) return;
     all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
-    var html = feedHtml();
-    if (!html) return;
-    list.insertAdjacentHTML('beforeend', html);
   }
-  if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
   document.addEventListener('click', function (event) {
     var tab = event.target && event.target.closest ? event.target.closest('[data-instagram-tab]') : null;
     if (tab) {
