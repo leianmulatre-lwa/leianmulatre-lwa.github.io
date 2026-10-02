@@ -82,6 +82,10 @@ const STYLE = `
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-empty{padding:15px}
+.biglwa-pin-link{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 12px;color:#302b28;text-decoration:none;border-top:1px solid #dfd4ca}
+.biglwa-pin-link b{display:block;font:700 10px/1.35 system-ui;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.biglwa-pin-link small{display:block;margin-top:3px;font:600 8px/1.3 system-ui;color:#8b8179;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.biglwa-pin-link span{flex:none;border:1px solid #d8cec5;border-radius:999px;padding:5px 8px;font:700 8px/1 system-ui;color:#4f4742;background:#fffdf9}
 /* Three actions sit in the left corner of every post the feed manages: green opens the
    picture large, yellow hides the post from the wall without removing it, and red
    deletes it. */
@@ -394,8 +398,9 @@ function renderPosts(force) {
       : urls.length === 1
         ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="Collective feed media" loading="lazy">'
         : slideshow(urls, "Collective feed media");
+    const link = post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '">' +
-      '<div>' + image + "</div>" +
+      '<div>' + image + "</div>" + link +
       (managed
         ? '<div class="biglwa-post-actions">' +
           '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete from Collective Feed">&#10005;</button>' +
