@@ -657,7 +657,13 @@ async function boot(){
   if(!dir || moved()) return;
   let mine=null;
   try{ mine=await dir.loadProfile(); }catch{}
-  if(mine){ preview.signedIn=true; return; }
+  if(mine){
+    const mineUsername=clean(mine.profile?.username||mine.username).toLowerCase();
+    if(mineUsername===username.toLowerCase()) return;
+    /* A signed-in member can still preview a friend's profile. Only the matching
+       username is treated as the owner; otherwise keep preview mode active. */
+    preview.signedIn=true;
+  }
   const profile=await dir.loadPublicProfile(username);
   if(moved()) return;
   if(!profile){ noticeMissing(username); return; }
