@@ -96,25 +96,59 @@ const STYLE = `
 /* Instagram-imported cards get a tiny browser-window header. The strip is intentionally
    much thinner than the card itself: aura tint, three small traffic-light controls at right,
    and carousel tabs that sit in the same strip like browser tabs. */
-.biglwa-instagram-card{width:96%!important;margin-left:0!important;background:#f28c28!important;border-color:#f28c28!important;box-shadow:3px 3px 0 #f28c28!important;border-radius:11px!important}
-.biglwa-instagram-card .biglwa-instagram-browser-strip{height:15px;padding:1px 4px;gap:3px;background:#f28c28;border:0;border-radius:10px 10px 0 0;position:relative;z-index:8}
-.biglwa-instagram-browser-strip{box-sizing:border-box;display:flex;align-items:center;gap:3px}
-.biglwa-instagram-browser-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;height:12px;margin-right:auto}
-.biglwa-instagram-browser-tab{height:11px;min-width:14px;padding:0 4px;border:0;border-radius:4px 4px 1px 1px;
-  background:rgba(255,255,255,.22);color:rgba(75,45,20,.78);font:800 6px/11px system-ui;cursor:pointer}
-.biglwa-instagram-browser-tab.is-active{height:12px;background:#fff3e2;color:#5a4c46;box-shadow:0 -1px 0 rgba(255,255,255,.5)}
-.biglwa-instagram-browser-actions{display:flex;align-items:center;gap:2px;margin-right:3px;order:-1}
-.biglwa-instagram-browser-actions button{width:8px;height:8px;min-width:8px;padding:0;border:0;border-radius:50%;display:block;color:transparent;font-size:0;line-height:0;cursor:pointer;box-shadow:none}
-.biglwa-instagram-browser-actions [data-post-delete]{background:#bd3f47}
-.biglwa-instagram-browser-actions [data-post-archive]{background:#d1ad2f;color:#302719}
-.biglwa-instagram-browser-actions [data-post-enlarge]{background:#4e8f61}
-.biglwa-instagram-card .biglwa-slide{border-radius:0!important;background:#f28c28}
+/* Instagram uses one shared card treatment for both persisted Feed imports and the
+   live Orbit cards. The live renderer no longer carries its own competing stylesheet. */
+.biglwa-instagram-card,.instagram-feed-item{
+  width:96%!important;margin-left:0!important;
+  background:#f28c28!important;border-color:#f28c28!important;
+  box-shadow:3px 3px 0 #f28c28!important;border-radius:11px!important;
+  overflow:hidden!important
+}
+.biglwa-instagram-card .biglwa-instagram-browser-strip,
+.instagram-feed-item .biglwa-instagram-strip{
+  height:15px!important;padding:1px 4px!important;gap:3px;
+  box-sizing:border-box;display:flex;align-items:center;
+  background:#f28c28!important;border:0!important;
+  border-radius:10px 10px 0 0;position:relative;z-index:8
+}
+.biglwa-instagram-browser-tabs,.biglwa-instagram-tabs{
+  display:flex;align-items:flex-end;gap:2px;min-width:0;height:12px;margin-right:auto
+}
+.biglwa-instagram-browser-tab,.biglwa-instagram-tab{
+  height:11px;min-width:14px;padding:0 4px;border:0;
+  border-radius:4px 4px 1px 1px;background:rgba(255,255,255,.22);
+  color:rgba(75,45,20,.78);font:800 6px/11px system-ui;cursor:pointer
+}
+.biglwa-instagram-browser-tab.is-active,.biglwa-instagram-tab.is-active{
+  height:12px;background:#fff3e2;color:#5a4c46;
+  box-shadow:0 -1px 0 rgba(255,255,255,.5)
+}
+.biglwa-instagram-browser-actions,.biglwa-instagram-actions{
+  display:flex;align-items:center;gap:2px;margin-right:3px;order:-1
+}
+.biglwa-instagram-browser-actions button,
+.biglwa-instagram-actions button,
+.biglwa-instagram-actions a{
+  width:8px!important;height:8px!important;min-width:8px!important;
+  padding:0!important;border:0!important;border-radius:50%!important;
+  display:block!important;color:transparent!important;font-size:0!important;
+  line-height:0!important;cursor:pointer;box-shadow:none!important
+}
+.biglwa-instagram-browser-actions [data-post-delete],
+.biglwa-instagram-actions button:nth-child(1){background:#bd3f47}
+.biglwa-instagram-browser-actions [data-post-archive],
+.biglwa-instagram-actions button:nth-child(2){background:#d1ad2f}
+.biglwa-instagram-browser-actions [data-post-enlarge],
+.biglwa-instagram-actions a{background:#4e8f61}
+.biglwa-instagram-card .biglwa-slide,
+.instagram-feed-item img,.instagram-feed-item video{
+  border-radius:0!important;background:#f28c28
+}
 .biglwa-instagram-card .biglwa-slide>img{border-radius:0!important}
-.biglwa-instagram-browser-actions button:hover{filter:brightness(1.08);transform:translateY(-1px)}
-.biglwa-instagram-card .biglwa-pin-img{border-radius:0}
-.biglwa-instagram-card .biglwa-slide{border-radius:0}
-/* The source is told by the colour along the edge of the card instead of by a name, so the
-   label is no longer drawn. The accent border and the glow around it stay. */
+.biglwa-instagram-browser-actions button:hover,
+.biglwa-instagram-actions button:hover,
+.biglwa-instagram-actions a:hover{filter:brightness(1.08);transform:translateY(-1px)}
+/* The source is told by the orange card treatment instead of an extra label. */
 .biglwa-pin-src{display:none}
 /* A post with more than one photo becomes a slideshow shaped like its first photo, moving
    on by itself, with dots and arrows so it is still readable and pausable by hand. The
