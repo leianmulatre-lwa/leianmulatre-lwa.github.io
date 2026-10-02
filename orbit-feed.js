@@ -39,26 +39,26 @@
     /* Connected-account cards use the same shell as the Collective Feed cards: warm
        paper, soft border, rounded corners, and an offset rim tinted with the source's
        own colour. */
-    '#feedPageList>.module-list-item{position:relative;min-width:0;overflow:visible;',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card){position:relative;min-width:0;overflow:visible;',
     'border:1px solid #dfd4ca;border-radius:18px;background:#f1e9e1;padding:0;',
     'box-shadow:3px 3px 0 var(--feed-card-rim,#bd3f47);display:block;width:100%;}',
-    '#feedPageList>.module-list-item>div{padding:11px 13px 13px}',
-    '#feedPageList>.module-list-item small{display:block;font:600 11px/1.4 system-ui;',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div{padding:11px 13px 13px}',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card) small{display:block;font:600 11px/1.4 system-ui;',
     'letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}',
-    '#feedPageList>.module-list-item b{display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card) b{display:block;margin:5px 0 0;font:600 15px/1.45 system-ui;',
     'color:#2f2a27;overflow-wrap:anywhere}',
     /* Images inherit the same rounded top edge as the new cards and keep their
        natural ratio instead of being forced into a fixed preview. */
-    '#feedPageList>.module-list-item img,#feedPageList>.module-list-item video{',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card) img,#feedPageList>.module-list-item:not(.biglwa-instagram-card) video{',
     'display:block;width:100%;height:auto;max-height:none!important;aspect-ratio:auto;',
     'object-fit:contain;border-radius:17px 17px 0 0!important;background:#efe7dd}',
-    '#feedPageList>.module-list-item>div:has(> img),#feedPageList>.module-list-item>div:has(> video){padding:0}',
-    '#feedPageList>.module-list-item>div:has(> img)>small,#feedPageList>.module-list-item>div:has(> video)>small{padding:11px 13px 0}',
-    '#feedPageList>.module-list-item>div:has(> img)>b,#feedPageList>.module-list-item>div:has(> video)>b{padding:0 13px}',
-    '#feedPageList>.module-list-item>div:has(> img)>a,#feedPageList>.module-list-item>div:has(> video)>a{margin:10px 13px 13px}',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> img),#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> video){padding:0}',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> img)>small,#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> video)>small{padding:11px 13px 0}',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> img)>b,#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> video)>b{padding:0 13px}',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> img)>a,#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div:has(> video)>a{margin:10px 13px 13px}',
     /* Keep the user-data metadata and outbound link, but remove the old source stripe. */
-    '#feedPageList>.module-list-item::before{content:none}',
-    '#feedPageList>.module-list-item .module-action{border-radius:999px}'
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card)::before{content:none}',
+    '#feedPageList>.module-list-item:not(.biglwa-instagram-card) .module-action{border-radius:999px}'
   ].join('');
 
   function installStyle() {
