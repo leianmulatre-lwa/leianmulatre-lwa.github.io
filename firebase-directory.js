@@ -143,16 +143,18 @@ async function saveCustomizations(custom={}){
     const {db,auth}=await getFirebase();
     const user=auth.currentUser;
     if(!user)return false;
-    const {doc,setDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
-    const {appearance,wallpaper,layout}=custom||{};
-    await setDoc(doc(db,"users",user.uid),{
-      customization:{
-        appearance:appearance&&typeof appearance==="object"?appearance:{},
-        wallpaper:wallpaper&&typeof wallpaper==="object"?wallpaper:{},
-        layout:layout&&typeof layout==="object"?layout:{}
-      },
-      updatedAt:serverTimestamp()
-    },{merge:true});
+    const {doc,getDoc,setDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const ref=doc(db,"users",user.uid);
+    const snap=await getDoc(ref);
+    const existing=snap.exists()&&snap.data()?.customization&&typeof snap.data().customization==="object"?snap.data().customization:{};
+    const {appearance,wallpaper,layout,session}=custom||{};
+    const customization={
+      appearance:appearance&&typeof appearance==="object"?{...(existing.appearance||{}),...appearance}:(existing.appearance||{}),
+      wallpaper:wallpaper&&typeof wallpaper==="object"?{...(existing.wallpaper||{}),...wallpaper}:(existing.wallpaper||{}),
+      layout:layout&&typeof layout==="object"?{...(existing.layout||{}),...layout}:(existing.layout||{}),
+      session:session&&typeof session==="object"?{...(existing.session||{}),...session}:(existing.session||{})
+    };
+    await setDoc(ref,{customization,updatedAt:serverTimestamp()},{merge:true});
     await savePublicLook({appearance,wallpaper});
     return true;
   }catch(err){
