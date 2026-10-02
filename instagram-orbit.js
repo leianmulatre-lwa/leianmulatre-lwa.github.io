@@ -10,6 +10,40 @@
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (error) { return ''; } }
   function saveSession(value) { try { if (value) localStorage.setItem(SESSION_KEY, value); else localStorage.removeItem(SESSION_KEY); } catch (error) {} }
+  async function firebaseAuthToken() {
+    try {
+      const mod = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
+      const user = mod.getAuth().currentUser;
+      return user ? await user.getIdToken() : '';
+    } catch (error) { return ''; }
+  }
+  async function accountSession() {
+    const token = await firebaseAuthToken();
+    if (!token) return '';
+    try {
+      const result = await fetch(API + '/session/account', { headers: { Authorization: 'Bearer ' + token } });
+      const body = await result.json().catch(function () { return {}; });
+      return body.connected ? (body.session || '') : '';
+    } catch (error) { return ''; }
+  }
+  async function persistAccount(profile, media) {
+    try {
+      const token = await firebaseAuthToken();
+      if (!token) return false;
+      const app = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js');
+      const store = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+      const auth = modAuth();
+      const user = auth.currentUser;
+      if (!user) return false;
+      const firebaseApp = app.getApps()[0] || app.initializeApp({ apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY', authDomain:'biglwa.firebaseapp.com', projectId:'biglwa', appId:'1:83232670555:web:e04927b20458390b3b507e' });
+      const db = store.getFirestore(firebaseApp);
+      await store.setDoc(store.doc(db, 'users', user.uid), { orbit: { instagram: { connected: true, profile: profile || null, mediaCount: Array.isArray(media) ? media.length : 0, mediaIds: Array.isArray(media) ? media.map(function (item) { return String(item.id || ''); }).filter(Boolean).slice(0, 1000) : [], syncedAt: store.serverTimestamp() } }, updatedAt: store.serverTimestamp() }, { merge: true });
+      return true;
+    } catch (error) { console.warn('BIGLWA Orbit account persistence:', error); return false; }
+  }
+  function modAuth() {
+    try { return window.__biglwaFirebaseAuth || null; } catch (error) { return null; }
+  }
   function importToFeed() {
     var who = window.__biglwaIdentity;
     var importer = window.__biglwaOrbitPosts;
@@ -38,11 +72,16 @@
   /* /studio is a stub that rebuilds the query and would drop the handoff code, so the
      return goes to the site root the app actually runs from. */
   function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/?route=studio&view=orbit')); }
-  function restore() {
-    if (!session()) return Promise.resolve();
+  async function restore() {
+    var savedSession = session();
+    if (!savedSession) {
+      savedSession = await accountSession();
+      if (savedSession) saveSession(savedSession);
+    }
+    if (!savedSession) return Promise.resolve();
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) {
       state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render();
-      return importToFeed().then(function () { render(); });
+      return Promise.all([importToFeed(), persistAccount(state.profile, state.media)]).then(function () { render(); });
     }).catch(function (error) {
       /* Only an expired credential may end the connection. A dropped connection or an
          Instagram-side fault used to discard the session, so one bad moment forced the
@@ -57,7 +96,7 @@
     if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); }
     if (!handoff) return restore();
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
-    return api('/session/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handoff: handoff }) }).then(function (result) { saveSession(result.session); return restore(); }).then(function () { status('Instagram is connected to Orbit.'); }).catch(function (failure) { status(failure.message); });
+    return firebaseAuthToken().then(function (firebaseIdToken) { return api('/session/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handoff: handoff, firebaseIdToken: firebaseIdToken }) }); }).then(function (result) { saveSession(result.session); return restore(); }).then(function () { status('Instagram is connected to Orbit.'); }).catch(function (failure) { status(failure.message); });
   }
   function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; render(); status('Instagram disconnected from Orbit.'); }); }
   function render() {
