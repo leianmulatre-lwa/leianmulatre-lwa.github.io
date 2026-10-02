@@ -141,9 +141,13 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   }
 
   try {
-    await setDoc(doc(db, "users", user.uid), {
+    const accountRef = doc(db, "users", user.uid);
+    const accountSnap = await getDoc(accountRef);
+    const existingAccount = accountSnap.exists() ? accountSnap.data() || {} : {};
+    const existingVisibility = existingAccount.archive?.visibility === "friends" ? "friends" : "private";
+    await setDoc(accountRef, {
       archive: {
-        visibility: "private",
+        visibility: existingVisibility,
         instagram: {
           connected: true,
           username: clean(profile?.username),
@@ -191,6 +195,11 @@ export async function setArchiveVisibility(visibility) {
     archive: { visibility: value },
     updatedAt: serverTimestamp()
   }, { merge: true });
+  try {
+    const account = await getDoc(doc(db, "users", user.uid));
+    const username = clean(account.data()?.usernameLower || account.data()?.username);
+    if (username) await setDoc(doc(db, "usernames", username), { archiveVisibility: value, updatedAt: serverTimestamp() }, { merge: true });
+  } catch {}
   return value;
 }
 
@@ -256,6 +265,10 @@ export async function setOrbitState(postId, state) {
   const patch = { state, updatedAt: serverTimestamp() };
   await setDoc(rootRef, patch, { merge: true });
   await setDoc(profileRef, patch, { merge: true });
+  await setDoc(doc(db, "users", user.uid, "archive", postId), {
+    state,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
   return { ...current, ...patch, id: postId };
 }
 
