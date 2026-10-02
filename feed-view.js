@@ -325,21 +325,21 @@ function renderHero(force) {
   heroOn = anchor;
   heroSignature = signature;
 
-  /* A post counts as having a picture whether it carries one photo or several: the strip
-     shows the first photo of a slideshow, which is the same picture the card opens on. */
-  const withImage = posts.filter((p) => slideUrls(p).length);
-  const slots = [];
-  for (let i = 0; i < HERO_SLOTS; i++) slots.push(withImage[i] || null);
-  const rest = Math.max(0, withImage.length - HERO_SLOTS);
-
+  /* The widget is explicitly the latest four POST slots, not four arbitrary images.
+     Posts without media keep their slot so the widget always represents the same four
+     newest feed records. */
+  const slots = posts.slice(0, HERO_SLOTS);
   const cards = slots.map((post) => {
-    if (!post) return '<div class="biglwa-feed-hero-empty">Nothing here yet</div>';
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
-    const first = slideUrls(post)[0];
-    const many = slideUrls(post).length > 1;
+    const urls = slideUrls(post);
+    const first = urls[0];
+    if (!first) {
+      return '<div class="biglwa-feed-hero-empty" style="--accent:' + src.accent + '">No thumbnail</div>';
+    }
+    const many = urls.length > 1;
     return '<a style="--accent:' + src.accent + '" href="' + esc(first) + '" target="_blank" rel="noopener noreferrer">' +
-      (many ? '<span class="biglwa-feed-hero-count">' + slideUrls(post).length + " photos</span>" : "") +
+      (many ? '<span class="biglwa-feed-hero-count">' + urls.length + " photos</span>" : "") +
       '<img src="' + esc(first) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy">' +
       "</a>";
   }).join("");
@@ -657,8 +657,9 @@ async function archivePost(post, action) {
     await updateDoc(doc(db, "posts", post.id), { state: "archived", updatedAt: serverTimestamp() });
     await setDoc(doc(db, "users", identity().uid, "posts", post.id), { state: "archived", updatedAt: serverTimestamp() }, { merge: true });
     posts = posts.filter((p) => p.id !== post.id);
-    renderPosts();
-    say("Post archived.", "good");
+    renderPosts(true);
+    renderHero(true);
+    say("Post archived and moved to Archive.", "good");
   } catch (error) {
     action.disabled = false;
     say(error.message || "That post could not be archived.", "bad");
