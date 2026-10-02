@@ -106,46 +106,7 @@
       renderFeed();
     } catch (error) { console.error('BIGLWA Instagram render isolated:', error); }
   }
-  var INSTAGRAM_CARD_STYLE = [
-    '#feedPageList>.instagram-feed-item{position:relative!important;min-width:0!important;overflow:visible!important;',
-    'border:1px solid #dfd4ca!important;border-radius:16px!important;background:#f1e9e1!important;',
-    'padding:0!important;box-shadow:3px 3px 0 #bd3f47!important;display:block!important;width:100%!important}',
-    '#feedPageList>.instagram-feed-item:nth-child(6n+1){box-shadow:3px 3px 0 #bd3f47!important}',
-    '#feedPageList>.instagram-feed-item:nth-child(6n+2){box-shadow:3px 3px 0 #d77b30!important}',
-    '#feedPageList>.instagram-feed-item:nth-child(6n+3){box-shadow:3px 3px 0 #d1ad2f!important}',
-    '#feedPageList>.instagram-feed-item:nth-child(6n+4){box-shadow:3px 3px 0 #4e8f61!important}',
-    '#feedPageList>.instagram-feed-item:nth-child(6n+5){box-shadow:3px 3px 0 #416fa9!important}',
-    '#feedPageList>.instagram-feed-item:nth-child(6n+6){box-shadow:3px 3px 0 #7955a0!important}',
-    '#feedPageList>.instagram-feed-item>div{padding:0!important}',
-    '#feedPageList>.instagram-feed-item img,#feedPageList>.instagram-feed-item video{border-radius:0!important}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-strip{height:30px;box-sizing:border-box;padding:4px 6px 4px 7px;',
-    'display:flex;align-items:center;justify-content:flex-end;gap:4px;position:relative;z-index:8;',
-    'background:rgba(var(--aura-rgb,216,95,109),.78);border-radius:15px 15px 0 0;',
-    'border-bottom:1px solid rgba(255,255,255,.28)}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions{display:flex;align-items:center;gap:4px;margin-left:auto}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions button,',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions a{width:20px;height:20px;min-width:20px;padding:0;border:1px solid rgba(255,255,255,.62);',
-    'border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font:800 10px/1 system-ui;',
-    'cursor:pointer;box-shadow:0 1px 3px rgba(24,16,14,.18);background:#bd3f47}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions button:nth-child(2){background:#d1ad2f;color:#302719}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions a{background:#4e8f61}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions button:hover,',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions a:hover{filter:brightness(1.08);transform:translateY(-1px)}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-tabs{display:flex;align-items:flex-end;gap:3px;min-width:0;margin-right:auto;height:22px}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-tab{height:18px;min-width:19px;padding:0 6px;border:0;',
-    'border-radius:5px 5px 2px 2px;background:rgba(255,255,255,.28);color:#fff;font:800 8px/18px system-ui;cursor:pointer;',
-    'box-shadow:inset 0 -1px 0 rgba(255,255,255,.2)}',
-    '#feedPageList>.instagram-feed-item .biglwa-instagram-tab.is-active{background:#f1e9e1;color:#5f514a;height:21px;',
-    'box-shadow:0 -1px 0 rgba(255,255,255,.35)}'
-  ].join('');
-  if (!document.getElementById('biglwaInstagramCardStyle')) {
-    var instagramStyle = document.createElement('style');
-    instagramStyle.id = 'biglwaInstagramCardStyle';
-    instagramStyle.textContent = INSTAGRAM_CARD_STYLE;
-    (document.head || document.documentElement).appendChild(instagramStyle);
-  }
-
-  function feedHtml() {
+  var   function feedHtml() {
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
     }
@@ -165,14 +126,14 @@
         return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
       }).join('') + '</div>' : '';
       var link = item.permalink || '#';
-      return '<article class="module-list-item instagram-feed-item" data-instagram-index="' + index + '">' +
+      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" data-instagram-index="' + index + '">' +
         '<div style="width:100%;padding:0">' +
           '<div class="biglwa-instagram-strip">' +
             tabs +
             '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
-              '<button type="button" data-instagram-hide aria-label="Remove from feed" title="Remove from feed">×</button>' +
-              '<button type="button" data-instagram-hide aria-label="Archive" title="Archive">⌄</button>' +
-              '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram">↗</a>' +
+              '<button type="button" data-instagram-hide aria-label="Remove from feed" title="Remove from feed"></button>' +
+              '<button type="button" data-instagram-hide aria-label="Archive" title="Archive"></button>' +
+              '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram"></a>' +
             '</div>' +
           '</div>' +
           visual +
