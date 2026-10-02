@@ -66,16 +66,12 @@ const STYLE = `
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
-.biglwa-pin{--accent:var(--pin-accent,#bd3f47);overflow:hidden;
-  border:1px solid #dfd4ca;border-left:1px solid #dfd4ca;
-  border-radius:16px;background:#f1e9e1;position:relative;display:block;width:100%;
-  box-shadow:3px 3px 0 var(--accent),0 10px 24px rgba(55,42,34,.07)}
-.biglwa-pin::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--accent),transparent)}
-.biglwa-pin:nth-child(6n+1){--accent:#bd3f47}.biglwa-pin:nth-child(6n+2){--accent:#d77b30}.biglwa-pin:nth-child(6n+3){--accent:#d1ad2f}.biglwa-pin:nth-child(6n+4){--accent:#4e8f61}.biglwa-pin:nth-child(6n+5){--accent:#416fa9}.biglwa-pin:nth-child(6n+6){--accent:#7955a0}
+.biglwa-pin{--feed-card-rim:#bd3f47;position:relative;min-width:0;overflow:visible;border:1px solid #dfd4ca;border-radius:16px;background:#f1e9e1;box-shadow:3px 3px 0 var(--feed-card-rim);display:block;width:100%}
+.biglwa-pin:nth-child(6n+1){--feed-card-rim:#bd3f47}.biglwa-pin:nth-child(6n+2){--feed-card-rim:#d77b30}.biglwa-pin:nth-child(6n+3){--feed-card-rim:#d1ad2f}.biglwa-pin:nth-child(6n+4){--feed-card-rim:#4e8f61}.biglwa-pin:nth-child(6n+5){--feed-card-rim:#416fa9}.biglwa-pin:nth-child(6n+6){--feed-card-rim:#7955a0}
+.biglwa-pin::before{content:none}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
-#biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f8f2ec!important;box-shadow:3px 3px 0 #d77b30}
+#biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #d77b30}
 #biglwaOrbitDrafts .biglwa-draft-card:nth-child(6n+2){box-shadow:3px 3px 0 #d1ad2f}.biglwa-draft-card:nth-child(6n+3){box-shadow:3px 3px 0 #4e8f61}.biglwa-draft-card:nth-child(6n+4){box-shadow:3px 3px 0 #416fa9}
-#feedPageList .biglwa-pin::before{background:var(--accent)!important}
 /* A member's post keeps its own shape: the picture fills the column width at its true
    height and no caption sits on the card. The menu
    may drop below a short wide picture, so the card lets it escape and the picture itself
@@ -89,14 +85,10 @@ const STYLE = `
 /* Three actions sit in the left corner of every post the feed manages: green opens the
    picture large, yellow hides the post from the wall without removing it, and red
    deletes it. */
-.biglwa-post-actions{position:absolute;top:10px;left:10px;z-index:4;display:flex;gap:6px}
-.biglwa-post-actions button{width:28px;height:28px;border:0;border-radius:50%;color:#fff;
-  display:grid;place-items:center;font:700 14px/1 system-ui;cursor:pointer;
-  box-shadow:0 2px 8px rgba(24,16,14,.3)}
-.biglwa-post-actions button:hover{filter:brightness(1.14)}
-.biglwa-post-actions [data-post-enlarge]{background:#3f6b4a}
-.biglwa-post-actions [data-post-archive]{background:#c98a16}
-.biglwa-post-actions [data-post-delete]{background:#a53332}
+.biglwa-post-actions{position:absolute;top:10px;left:10px;z-index:8;display:flex;gap:6px}
+.biglwa-post-actions button{width:28px;height:28px;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;display:grid;place-items:center;font:800 13px/1 system-ui;cursor:pointer;box-shadow:0 2px 7px rgba(24,16,14,.24);transition:transform .15s ease,filter .15s ease}
+.biglwa-post-actions button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.biglwa-post-actions [data-post-delete]{background:#bd3f47}.biglwa-post-actions [data-post-archive]{background:#d1ad2f;color:#302719}.biglwa-post-actions [data-post-enlarge]{background:#4e8f61}
 /* The source is told by the colour along the edge of the card instead of by a name, so the
    label is no longer drawn. The accent border and the glow around it stay. */
 .biglwa-pin-src{display:none}
@@ -208,7 +200,7 @@ async function firebase() {
       auth: getAuth(app),
       doc: store.doc, getDoc: store.getDoc, deleteDoc: store.deleteDoc,
       addDoc: store.addDoc, collection: store.collection, query: store.query, orderBy: store.orderBy,
-      limit: store.limit, getDocs: store.getDocs, serverTimestamp: store.serverTimestamp,
+      limit: store.limit, where: store.where, getDocs: store.getDocs, serverTimestamp: store.serverTimestamp,
       updateDoc: store.updateDoc, setDoc: store.setDoc
     };
   }
@@ -396,24 +388,21 @@ function renderPosts(force) {
        image-list field marks one as made by it. Older content carries only the single
        picture fields and keeps the wall quiet, so the actions are never offered on
        content that was not posted through this feed. */
-    const managed = Array.isArray(post.imageKeys);
+    const managed = Boolean(me && post.uid === me);
     const image = !urls.length
-      ? '<div class="biglwa-pin-empty"><small>Note</small></div>'
+      ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
       : urls.length === 1
-        ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="' + esc(post.caption || "Feed post") + '" loading="lazy">'
-        : slideshow(urls, post.caption || "Feed post");
-    /* The picture stands alone; the actions live behind the dots on posts the feed
-       manages, and every member picture still opens large on a tap, even without a
-       menu of its own. */
-    return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '" style="--pin-accent:' + src.accent + '"><div>' + image + "</div>" +
+        ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="Collective feed media" loading="lazy">'
+        : slideshow(urls, "Collective feed media");
+    return '<article class="biglwa-pin biglwa-pin-post" data-post-id="' + esc(post.id) + '">' +
+      '<div>' + image + "</div>" +
       (managed
         ? '<div class="biglwa-post-actions">' +
-          '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge">&#8599;</button>' +
+          '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete from Collective Feed">&#10005;</button>' +
           '<button type="button" data-post-archive aria-label="Archive" title="Archive">&#9662;</button>' +
-          '<button type="button" data-post-delete aria-label="Delete" title="Delete">&#10005;</button>' +
+          '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge">&#8599;</button>' +
           "</div>"
         : "") +
-      '<div class="biglwa-pin-body"><small>' + label + " · " + esc(when(post.createdAt)) + "</small></div>" +
       "</article>";
   }).join("");
   list.insertAdjacentHTML("afterbegin", html);
@@ -740,7 +729,7 @@ function openLightbox(post, index) {
     lightbox.index = (next + urls.length) % urls.length;
     const url = urls[lightbox.index];
     img.src = url;
-    img.alt = (post.caption ? post.caption : "Feed picture") + " (" + (lightbox.index + 1) + "/" + urls.length + ")";
+    img.alt = "Collective feed media (" + (lightbox.index + 1) + "/" + urls.length + ")";
     box.querySelectorAll("[data-lightbox-step]").forEach((button) => {
       button.disabled = !many;
       button.style.display = many ? "" : "none";
