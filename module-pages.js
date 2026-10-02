@@ -761,19 +761,23 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
       const profile=state.profile||{};
       const username=profile.username||profile.name||'Instagram account';
       const status=state.error||(!state.connected?'Connect Instagram in Orbit to import your archive.':'');
-      const cards=media.map((item,index)=>{
+      const cards=media.reduce((out,item,index)=>{
         const children=item.children&&Array.isArray(item.children.data)?item.children.data.filter(x=>x&&(x.media_url||x.thumbnail_url)):[];
-        const first=children[0]||item;
-        const src=first.media_url||first.thumbnail_url||'';
-        const type=first.media_type||item.media_type||'IMAGE';
-        const visual=type==='VIDEO'
-          ? '<video src="'+esc(src)+'" poster="'+esc(first.thumbnail_url||'')+'" muted playsinline preload="metadata" controls></video>'
-          : '<img src="'+esc(src)+'" alt="Instagram archive item '+(index+1)+'" loading="lazy" decoding="async">';
-        const caption=String(item.caption||'').trim();
-        const date=item.timestamp?new Date(item.timestamp).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'';
-        const count=children.length>1?' · '+children.length+' photos':'';
-        return '<article class="instagram-archive-card">'+visual+'<div class="archive-media-meta">'+esc(date||'Instagram')+esc(count)+'<small>'+esc(caption||username)+'</small></div></article>';
-      }).join('');
+        const pieces=children.length?children:[item];
+        pieces.forEach((piece,pieceIndex)=>{
+          const src=piece.media_url||piece.thumbnail_url||'';
+          if(!src)return;
+          const type=piece.media_type||item.media_type||'IMAGE';
+          const visual=type==='VIDEO'
+            ? '<video src="'+esc(src)+'" poster="'+esc(piece.thumbnail_url||'')+'" muted playsinline preload="metadata" controls></video>'
+            : '<img src="'+esc(src)+'" alt="Instagram archive item '+(index+1)+'" loading="lazy" decoding="async">';
+          const caption=String(item.caption||'').trim();
+          const date=item.timestamp?new Date(item.timestamp).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'';
+          const suffix=pieces.length>1?' · '+(pieceIndex+1)+'/'+pieces.length:'';
+          out.push('<article class="instagram-archive-card">'+visual+'<div class="archive-media-meta">'+esc(date||'Instagram')+esc(suffix)+'<small>'+esc(caption||username)+'</small></div></article>');
+        });
+        return out;
+      },[]).join('');
       body.innerHTML=heading('archive',media.length?media.length+' Instagram items imported':'')+
         '<div class="module-grid">'+
         '<section class="module-card wide"><h2>Instagram archive</h2><p>Connected Instagram content lives here instead of being mixed into the Studio profile. The archive pulls the full media library available through the connected account.</p>'+
