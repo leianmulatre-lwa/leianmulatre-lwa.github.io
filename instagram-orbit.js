@@ -185,9 +185,9 @@
   function renderFeed(list) {
     list = list || one('#feedPageList');
     if (!list) return;
+    /* Collective Feed is now owned by feed-view.js. Orbit only supplies account data;
+       rendering it here created a second Instagram card layer on top of the persisted posts. */
     all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
-    var html = feedHtml();
-    if (html) list.insertAdjacentHTML('afterbegin', html);
   }
   if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
   document.addEventListener('click', function (event) {
