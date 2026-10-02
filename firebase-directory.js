@@ -233,6 +233,7 @@ async function loadPublicProfile(rawUsername){
     const data=snap.data()||{};
     const look=data.look&&typeof data.look==="object"?data.look:null;
     return {
+      uid:clean(data.uid),
       username:clean(data.username)||username,
       name:clean(data.name),
       bio:clean(data.bio),
@@ -243,6 +244,7 @@ async function loadPublicProfile(rawUsername){
       auraText:clean(data.auraText),
       url:clean(data.url)||("/"+encodeURIComponent(username)),
       socials:readSocials(data.socials),
+      archiveVisibility:data.archiveVisibility==='friends'?'friends':'private',
       look:look?{
         appearance:{
           widgetColor:clean(look.widgetColor),
@@ -372,7 +374,25 @@ async function autoSyncSignedInAccount(){
   }
 }
 
-window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile};
+async function loadArchiveForUsername(rawUsername){
+  const username=normalize(rawUsername);
+  if(!validUsername(username))return [];
+  try{
+    const {db}=await getFirebase();
+    const {doc,getDoc,collection,getDocs}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const directorySnap=await getDoc(doc(db,"usernames",username));
+    if(!directorySnap.exists())return [];
+    const uid=clean(directorySnap.data()?.uid);
+    if(!uid)return [];
+    const snap=await getDocs(collection(db,"users",uid,"archive"));
+    return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.sourceCreatedAt||"").localeCompare(String(a.sourceCreatedAt||"")));
+  }catch(err){
+    console.warn("[BIGLWA] Archive unavailable:",err);
+    return [];
+  }
+}
+
+window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername};
 
 (async()=>{
   try{
