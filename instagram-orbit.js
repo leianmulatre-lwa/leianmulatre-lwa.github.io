@@ -67,16 +67,59 @@
       renderFeed();
     } catch (error) { console.error('BIGLWA Instagram render isolated:', error); }
   }
+  var INSTAGRAM_CARD_STYLE = [
+    '#feedPageList>.instagram-feed-item{position:relative!important;min-width:0!important;overflow:visible!important;',
+    'border:1px solid #dfd4ca!important;border-radius:16px!important;background:#f1e9e1!important;',
+    'padding:0!important;box-shadow:3px 3px 0 #bd3f47!important;display:block!important;width:100%!important}',
+    '#feedPageList>.instagram-feed-item:nth-child(6n+1){box-shadow:3px 3px 0 #bd3f47!important}',
+    '#feedPageList>.instagram-feed-item:nth-child(6n+2){box-shadow:3px 3px 0 #d77b30!important}',
+    '#feedPageList>.instagram-feed-item:nth-child(6n+3){box-shadow:3px 3px 0 #d1ad2f!important}',
+    '#feedPageList>.instagram-feed-item:nth-child(6n+4){box-shadow:3px 3px 0 #4e8f61!important}',
+    '#feedPageList>.instagram-feed-item:nth-child(6n+5){box-shadow:3px 3px 0 #416fa9!important}',
+    '#feedPageList>.instagram-feed-item:nth-child(6n+6){box-shadow:3px 3px 0 #7955a0!important}',
+    '#feedPageList>.instagram-feed-item>div{padding:0!important}',
+    '#feedPageList>.instagram-feed-item img,#feedPageList>.instagram-feed-item video{border-radius:15px 15px 0 0!important}',
+    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions{position:absolute;top:10px;right:10px;z-index:8;display:flex;gap:6px}',
+    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions button,',
+    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions a{width:28px;height:28px;padding:0;border:1px solid rgba(255,255,255,.7);border-radius:50%;',
+    'display:grid;place-items:center;color:#fff;text-decoration:none;font:800 13px/1 system-ui;cursor:pointer;',
+    'box-shadow:0 2px 7px rgba(24,16,14,.24);background:#bd3f47}',
+    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions button:nth-child(2){background:#d1ad2f;color:#302719}',
+    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions a{background:#4e8f61}',
+    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions button:hover,',
+    '#feedPageList>.instagram-feed-item .biglwa-instagram-actions a:hover{filter:brightness(1.08);transform:translateY(-1px)}'
+  ].join('');
+  if (!document.getElementById('biglwaInstagramCardStyle')) {
+    var instagramStyle = document.createElement('style');
+    instagramStyle.id = 'biglwaInstagramCardStyle';
+    instagramStyle.textContent = INSTAGRAM_CARD_STYLE;
+    (document.head || document.documentElement).appendChild(instagramStyle);
+  }
+
   function feedHtml() {
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
     }
     if (!state.connected) return '';
-    var cards = state.media.slice(0, 20).map(function (item) {
-      var caption = item.caption || 'Shared from Instagram'; var visual = '';
-      if (item.media_type === 'VIDEO') visual = '<video controls preload="metadata" poster="' + escapeText(item.thumbnail_url || '') + '" style="display:block;width:100%;max-height:520px;border-radius:12px;background:#171414"><source src="' + escapeText(item.media_url || '') + '"></video>';
-      else visual = '<img src="' + escapeText(item.media_url || item.thumbnail_url || '') + '" alt="' + escapeText(caption) + '" loading="lazy" style="display:block;width:100%;max-height:520px;object-fit:cover;border-radius:12px">';
-      return '<article class="module-list-item instagram-feed-item"><div style="width:100%"><small>Instagram · @' + escapeText(state.profile && state.profile.username || '') + '</small><b style="display:block;margin:4px 0 8px">' + escapeText(caption) + '</b>' + visual + (item.permalink ? '<a class="module-action ghost" href="' + escapeText(item.permalink) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Instagram</a>' : '') + '</div></article>';
+    var cards = state.media.slice(0, 20).map(function (item, index) {
+      var visual = '';
+      var media = item.media_url || item.thumbnail_url || '';
+      if (item.media_type === 'VIDEO') {
+        visual = '<video preload="metadata" poster="' + escapeText(item.thumbnail_url || '') + '" src="' + escapeText(item.media_url || '') + '" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:15px 15px 0 0;background:#efe7dd"></video>';
+      } else {
+        visual = '<img src="' + escapeText(media) + '" alt="Instagram media" loading="lazy" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:15px 15px 0 0;background:#efe7dd">';
+      }
+      var link = item.permalink || '#';
+      return '<article class="module-list-item instagram-feed-item" data-instagram-index="' + index + '">' +
+        '<div style="width:100%;padding:0">' +
+          '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
+            '<button type="button" data-instagram-hide aria-label="Remove from feed" title="Remove from feed">×</button>' +
+            '<button type="button" data-instagram-hide aria-label="Archive" title="Archive">⌄</button>' +
+            '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram">↗</a>' +
+          '</div>' +
+          visual +
+        '</div>' +
+      '</article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
     return cards.join('');
@@ -89,7 +132,14 @@
     if (html) list.insertAdjacentHTML('afterbegin', html);
   }
   if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
-  document.addEventListener('click', function (event) { var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); connect(); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
+  document.addEventListener('click', function (event) {
+    var hide = event.target && event.target.closest ? event.target.closest('[data-instagram-hide]') : null;
+    if (hide) {
+      var card = hide.closest('.instagram-feed-item');
+      if (card) card.remove();
+      return;
+    }
+ var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); connect(); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
   window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { render(); consumeHandoff(); }, { once: true }); else { render(); consumeHandoff(); }
 }());
