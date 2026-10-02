@@ -44,9 +44,9 @@ const slideUrls = (post) => {
    show one shade for a post and another for the same account's live cards. */
 const SOURCES = {
   biglwa:   { label: "BIGLWA",    accent: "#c1355a" },
-  instagram:{ label: "Instagram", accent: "#c13584" },
-  tiktok:   { label: "TikTok",    accent: "#0f8f95" },
-  pinterest:{ label: "Pinterest", accent: "#cf4632" },
+  instagram:{ label: "Instagram", accent: "#f28c28" },
+  tiktok:   { label: "TikTok",    accent: "#111111" },
+  pinterest:{ label: "Pinterest", accent: "#e60023" },
   facebook: { label: "Facebook",  accent: "#1877f2" },
   youtube:  { label: "YouTube",   accent: "#d0202f" },
   soundcloud:{ label: "SoundCloud", accent: "#e2622a" },
@@ -66,7 +66,7 @@ const STYLE = `
 /* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
    instead, because it already owns their marker classes and would otherwise be restyling
    cards it does not build. */
-.biglwa-pin{--feed-card-rim:#bd3f47;position:relative;min-width:0;overflow:visible;border:1px solid #dfd4ca;border-radius:16px;background:#f1e9e1;box-shadow:3px 3px 0 var(--feed-card-rim);display:block;width:100%}
+.biglwa-pin{--feed-card-rim:#bd3f47;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:18px;background:#f1e9e1;box-shadow:3px 3px 0 var(--feed-card-rim);display:block;width:100%}
 .biglwa-pin:nth-child(6n+1){--feed-card-rim:#bd3f47}.biglwa-pin:nth-child(6n+2){--feed-card-rim:#d77b30}.biglwa-pin:nth-child(6n+3){--feed-card-rim:#d1ad2f}.biglwa-pin:nth-child(6n+4){--feed-card-rim:#4e8f61}.biglwa-pin:nth-child(6n+5){--feed-card-rim:#416fa9}.biglwa-pin:nth-child(6n+6){--feed-card-rim:#7955a0}
 .biglwa-pin::before{content:none}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
@@ -78,7 +78,7 @@ const STYLE = `
    is rounded instead of relying on the card to clip it. */
 .biglwa-pin-post{overflow:visible}
 .biglwa-pin::before{border-radius:16px 16px 0 0}
-.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:15px 15px 0 0}
+.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:17px 17px 0 0}
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-empty{padding:15px}
@@ -96,16 +96,16 @@ const STYLE = `
 /* Instagram-imported cards get a tiny browser-window header. The strip is intentionally
    much thinner than the card itself: aura tint, three small traffic-light controls at right,
    and carousel tabs that sit in the same strip like browser tabs. */
-.biglwa-instagram-browser-strip{height:27px;box-sizing:border-box;padding:3px 5px 3px 7px;display:flex;align-items:center;gap:4px;
+.biglwa-instagram-browser-strip{height:20px;box-sizing:border-box;padding:2px 4px 2px 6px;display:flex;align-items:center;gap:4px;
   background:rgba(var(--aura-rgb,216,95,109),.18);border-bottom:1px solid rgba(var(--aura-rgb,216,95,109),.28);
   border-radius:15px 15px 0 0;position:relative;z-index:8}
-.biglwa-instagram-browser-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;height:21px;margin-right:auto}
-.biglwa-instagram-browser-tab{height:18px;min-width:20px;padding:0 6px;border:0;border-radius:5px 5px 2px 2px;
-  background:rgba(var(--aura-rgb,216,95,109),.16);color:rgba(75,62,58,.72);font:800 8px/18px system-ui;cursor:pointer}
-.biglwa-instagram-browser-tab.is-active{height:21px;background:#f1e9e1;color:#5a4c46;box-shadow:0 -1px 0 rgba(255,255,255,.5)}
-.biglwa-instagram-browser-actions{display:flex;align-items:center;gap:4px;margin-left:auto}
-.biglwa-instagram-browser-actions button{width:18px;height:18px;min-width:18px;padding:0;border:1px solid rgba(255,255,255,.72);
-  border-radius:50%;display:grid;place-items:center;color:#fff;font:800 9px/1 system-ui;cursor:pointer;
+.biglwa-instagram-browser-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;height:16px;margin-right:auto}
+.biglwa-instagram-browser-tab{height:14px;min-width:17px;padding:0 5px;border:0;border-radius:5px 5px 2px 2px;
+  background:rgba(var(--aura-rgb,216,95,109),.16);color:rgba(75,62,58,.72);font:800 7px/14px system-ui;cursor:pointer}
+.biglwa-instagram-browser-tab.is-active{height:16px;background:#f1e9e1;color:#5a4c46;box-shadow:0 -1px 0 rgba(255,255,255,.5)}
+.biglwa-instagram-browser-actions{display:flex;align-items:center;gap:3px;margin-left:auto}
+.biglwa-instagram-browser-actions button{width:14px;height:14px;min-width:14px;padding:0;border:1px solid rgba(255,255,255,.72);
+  border-radius:50%;display:grid;place-items:center;color:#fff;font:800 7px/1 system-ui;cursor:pointer;
   box-shadow:0 1px 3px rgba(24,16,14,.18)}
 .biglwa-instagram-browser-actions [data-post-delete]{background:#bd3f47}
 .biglwa-instagram-browser-actions [data-post-archive]{background:#d1ad2f;color:#302719}
@@ -432,7 +432,7 @@ function renderPosts(force) {
             : '') +
         '</div>'
       : '';
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + '" data-post-id="' + esc(post.id) + '">' +
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + '" style="--feed-card-rim:' + esc(src.accent) + '" data-post-id="' + esc(post.id) + '">' +
       '<div>' + browserStrip + image + "</div>" + link +
       (!isInstagram && managed
         ? '<div class="biglwa-post-actions">' +
