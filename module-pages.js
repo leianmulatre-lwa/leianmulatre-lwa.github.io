@@ -91,7 +91,7 @@
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
     #studioApp #camera .contact-sheet.photobooth-reference-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 46%;filter:contrast(1.02);transform:scale(1.09);transform-origin:center 46%}
     #studioApp[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
-    #studioApp[data-module-key="archive"] .instagram-archive-card{position:relative;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f28c28;box-shadow:3px 3px 0 #f28c28}
+    #studioApp[data-module-key="archive"] .instagram-archive-card{position:relative;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f28c28;box-shadow:3px 3px 0 #f28c28}.instagram-archive-media{display:grid;gap:1px}.instagram-archive-piece{position:relative;min-width:0;background:#f28c28}.instagram-archive-piece img,.instagram-archive-piece video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}.instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}.archive-card-actions{padding:7px 8px;background:#f28c28}.archive-card-actions .module-action{width:100%}.archive-visibility-card{display:grid;gap:10px}.archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}.archive-friend-add{display:flex;gap:7px}.archive-friend-add .module-input{flex:1}
     #studioApp[data-module-key="archive"] .instagram-archive-card img,#studioApp[data-module-key="archive"] .instagram-archive-card video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}
     #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta{padding:8px 9px;background:#f28c28;color:#5a321d;font:700 8px/1.35 system-ui}
     #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta small{display:block;margin-top:3px;font:600 8px/1.35 system-ui;color:#704d38;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -755,45 +755,96 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
 
   function renderArchive(){
     const orbit=window.__biglwaInstagramOrbit;
-    const draw=()=>{
-      const state=orbit?.state||{};
-      const media=Array.isArray(state.media)?state.media:[];
-      const profile=state.profile||{};
-      const username=profile.username||profile.name||'Instagram account';
-      const status=state.error||(!state.connected?'Connect Instagram in Orbit to import your archive.':'');
-      const cards=media.reduce((out,item,index)=>{
-        const children=item.children&&Array.isArray(item.children.data)?item.children.data.filter(x=>x&&(x.media_url||x.thumbnail_url)):[];
-        const pieces=children.length?children:[item];
-        pieces.forEach((piece,pieceIndex)=>{
-          const src=piece.media_url||piece.thumbnail_url||'';
-          if(!src)return;
-          const type=piece.media_type||item.media_type||'IMAGE';
-          const visual=type==='VIDEO'
-            ? '<video src="'+esc(src)+'" poster="'+esc(piece.thumbnail_url||'')+'" muted playsinline preload="metadata" controls></video>'
-            : '<img src="'+esc(src)+'" alt="Instagram archive item '+(index+1)+'" loading="lazy" decoding="async">';
-          const caption=String(item.caption||'').trim();
-          const date=item.timestamp?new Date(item.timestamp).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'';
-          const suffix=pieces.length>1?' · '+(pieceIndex+1)+'/'+pieces.length:'';
-          out.push('<article class="instagram-archive-card">'+visual+'<div class="archive-media-meta">'+esc(date||'Instagram')+esc(suffix)+'<small>'+esc(caption||username)+'</small></div></article>');
-        });
-        return out;
-      },[]).join('');
-      body.innerHTML=heading('archive',media.length?media.length+' Instagram items imported':'')+
+    const postsApi=window.__biglwaOrbitPosts;
+    const previewMode=document.documentElement.classList.contains('biglwa-preview-mode');
+    const previewUsername=(()=>{try{return decodeURIComponent(location.pathname.replace(/^\\/+|\\+$/g,''))}catch{return ''}})();
+    const draw=async()=>{
+      let owner=!previewMode;
+      let media=[];
+      let settings={visibility:'private',friends:[]};
+      let profile=orbit?.state?.profile||{};
+      let status='';
+      try{
+        if(owner){
+          settings=await postsApi?.getArchiveSettings?.()||settings;
+          media=await postsApi?.loadArchive?.()||[];
+          profile=orbit?.state?.profile||profile;
+        }else{
+          const publicProfile=await window.BigLWAUserDirectory?.loadPublicProfile?.(previewUsername);
+          settings={visibility:publicProfile?.archiveVisibility||'private',friends:[]};
+          if(settings.visibility!=='friends'){
+            body.innerHTML=heading('archive')+'<div class="module-grid"><section class="module-card wide"><h2>Archive</h2><p>This Archive is private. The owner has not made it viewable to friends.</p></section></div>';
+            return;
+          }
+          media=await window.BigLWAUserDirectory?.loadArchiveForUsername?.(previewUsername)||[];
+          profile=publicProfile||profile;
+          if(!media.length)status='This friend has not shared any archived Instagram content yet.';
+        }
+      }catch(error){
+        console.error('BIGLWA Archive:',error);
+        status=error?.message||'The Archive could not be loaded.';
+      }
+      const username=profile.username||profile.name||previewUsername||'Instagram account';
+      const cards=media.map((item,index)=>{
+        const pieces=Array.isArray(item.mediaItems)&&item.mediaItems.length
+          ? item.mediaItems
+          : (Array.isArray(item.imageUrls)?item.imageUrls.map((url,i)=>({index:i,url,thumbnailUrl:url,mediaType:item.mediaType||'IMAGE'})):[{url:item.imageUrl,thumbnailUrl:item.imageUrl,mediaType:item.mediaType||'IMAGE'}]);
+        const caption=String(item.caption||'').trim();
+        const date=item.sourceCreatedAt?new Date(item.sourceCreatedAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'Instagram';
+        const visualPieces=pieces.filter(piece=>piece&&piece.url).map((piece,pieceIndex)=>{
+          const visual=String(piece.mediaType||'').toUpperCase()==='VIDEO'
+            ? '<video src="'+esc(piece.url)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="metadata" controls></video>'
+            : '<img src="'+esc(piece.url)+'" alt="Instagram archive item '+(index+1)+(pieces.length>1?' '+(pieceIndex+1):'')+'" loading="lazy" decoding="async">';
+          return '<div class="instagram-archive-piece">'+visual+(pieces.length>1?'<span>'+(pieceIndex+1)+'/'+pieces.length+'</span>':'')+'</div>';
+        }).join('');
+        const posted=item.state==='approved';
+        const action=owner
+          ? '<button type="button" class="module-action '+(posted?'ghost':'')+'" data-archive-post="'+esc(item.id)+'" '+(posted?'disabled':'')+'>'+ (posted?'Posted to Collective Feed':'Post to Collective Feed') +'</button>'
+          : '';
+        return '<article class="instagram-archive-card" data-archive-id="'+esc(item.id)+'">'+
+          '<div class="instagram-archive-media">'+visualPieces+'</div>'+
+          '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small></div>'+
+          (action?'<div class="archive-card-actions">'+action+'</div>':'')+
+        '</article>';
+      }).join('');
+      const count=media.length;
+      const visibility=owner
+        ? '<section class="module-card wide archive-visibility-card"><h2>Archive visibility</h2><p>Your Instagram Archive is private to you by default. Friends can only see it when you turn this on and add their BIGLWA username.</p>'+
+          '<div class="archive-visibility-row"><label><span>Who can view this Archive?</span><select class="module-select" id="archiveVisibility"><option value="private" '+(settings.visibility==='private'?'selected':'')+'>Only me</option><option value="friends" '+(settings.visibility==='friends'?'selected':'')+'>Friends</option></select></label></div>'+
+          '<div class="archive-friend-add"><input class="module-input" id="archiveFriendUsername" placeholder="@username"><button class="module-action" id="archiveAddFriend" type="button">Add friend</button></div>'+
+          '<div class="module-status" id="archiveFriendStatus">'+(settings.visibility==='friends'?(settings.friends?.length||0)+' friend access slot(s) enabled.':'Archive is private.')+'</div></section>'
+        : '';
+      body.innerHTML=heading('archive',count?count+' Instagram posts imported':'')+
         '<div class="module-grid">'+
-        '<section class="module-card wide"><h2>Instagram archive</h2><p>Connected Instagram content lives here instead of being mixed into the Studio profile. The archive pulls the full media library available through the connected account.</p>'+
-        '<div class="module-actions"><button class="module-action ghost" id="archiveOrbit" type="button">Manage Instagram connection</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
-        '<div class="module-status" id="archiveInstagramStatus">'+esc(status||('Imported from @'+username+'.'))+'</div>'+
+        '<section class="module-card wide"><h2>Instagram archive</h2><p>Connected Instagram content is saved to your account Archive first. Nothing enters Collective Feed until you choose <b>Post to Collective Feed</b>.</p>'+
+        (owner?'<div class="module-actions"><button class="module-action ghost" id="archiveOrbit" type="button">Manage Instagram connection</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>':'')+
+        '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(orbit?.state?.connected?'Imported from @'+username+'.':'Connect Instagram in Orbit, then import your archive.'):'Shared with friends.'))+'</div>'+
         (cards?'<div class="instagram-archive-grid">'+cards+'</div>':'<div class="instagram-archive-empty">No Instagram media has been imported yet.</div>')+
-        '</section></div>';
-      const go=$('#archiveOrbit',body);if(go)go.onclick=()=>openModule('orbit');
-      const refresh=$('#archiveRefreshInstagram',body);if(refresh)refresh.onclick=async()=>{
-        refresh.disabled=true;const st=$('#archiveInstagramStatus',body);if(st)st.textContent='Importing Instagram…';
-        try{await orbit?.restore?.();draw()}catch(e){if(st)st.textContent=e?.message||'Instagram could not be refreshed.'}finally{refresh.disabled=false}
-      };
+        '</section>'+visibility+'</div>';
+      if(owner){
+        $('#archiveOrbit',body)?.addEventListener('click',()=>openModule('orbit'));
+        $('#archiveRefreshInstagram',body)?.addEventListener('click',async()=>{
+          const button=$('#archiveRefreshInstagram',body),st=$('#archiveInstagramStatus',body);
+          button.disabled=true;if(st)st.textContent='Importing Instagram into your Archive…';
+          try{await orbit?.restore?.();await draw()}catch(error){if(st)st.textContent=error?.message||'Instagram could not be refreshed.'}finally{button.disabled=false}
+        });
+        $('#archiveVisibility',body)?.addEventListener('change',async(event)=>{
+          const st=$('#archiveFriendStatus',body);event.target.disabled=true;
+          try{const value=await postsApi?.setArchiveVisibility?.(event.target.value);if(st)st.textContent=value==='friends'?'Archive is viewable to the friends you add below.':'Archive is private to you.';await draw()}catch(error){if(st)st.textContent=error?.message||'Visibility could not be saved.'}finally{event.target.disabled=false}
+        });
+        $('#archiveAddFriend',body)?.addEventListener('click',async()=>{
+          const input=$('#archiveFriendUsername',body),st=$('#archiveFriendStatus',body),button=$('#archiveAddFriend',body);
+          button.disabled=true;
+          try{await postsApi?.addArchiveFriend?.(input.value);input.value='';if(st)st.textContent='Friend added to Archive access.';await draw()}catch(error){if(st)st.textContent=error?.message||'Friend could not be added.'}finally{button.disabled=false}
+        });
+        body.querySelectorAll('[data-archive-post]').forEach(button=>button.addEventListener('click',async()=>{
+          button.disabled=true;const id=button.dataset.archivePost;
+          try{await postsApi?.publishOrbitPost?.(id);button.textContent='Posted to Collective Feed';button.classList.add('ghost');}
+          catch(error){button.disabled=false;const st=$('#archiveInstagramStatus',body);if(st)st.textContent=error?.message||'That post could not be published.'}
+        }));
+      }
     };
     draw();
-    const refresh=()=>{if(activeModuleKey==='archive'&&!workspace.hidden)draw()};
-    window.addEventListener('biglwa:instagram-restored',refresh,{once:true});
   }
 
   function renderCloset(){
