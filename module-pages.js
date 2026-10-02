@@ -811,7 +811,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
       const visibility=owner
         ? '<section class="module-card wide archive-visibility-card"><h2>Archive visibility</h2><p>Your Instagram Archive is private to you by default. Friends can only see it when you turn this on and add their BIGLWA username.</p>'+
           '<div class="archive-visibility-row"><label><span>Who can view this Archive?</span><select class="module-select" id="archiveVisibility"><option value="private" '+(settings.visibility==='private'?'selected':'')+'>Only me</option><option value="friends" '+(settings.visibility==='friends'?'selected':'')+'>Friends</option></select></label></div>'+
-          '<div class="archive-friend-add"><input class="module-input" id="archiveFriendUsername" placeholder="@username"><button class="module-action" id="archiveAddFriend" type="button">Add friend</button></div>'+
+          '<div class="archive-friend-add"><input class="module-input" id="archiveFriendUsername" placeholder="@username"><button class="module-action" id="archiveAddFriend" type="button">Add friend</button><button class="module-action ghost" id="archiveRemoveFriend" type="button">Remove</button></div>'+
           '<div class="module-status" id="archiveFriendStatus">'+(settings.visibility==='friends'?(settings.friends?.length||0)+' friend access slot(s) enabled.':'Archive is private.')+'</div></section>'
         : '';
       body.innerHTML=heading('archive',count?count+' Instagram posts imported':'')+
@@ -831,6 +831,11 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
         $('#archiveVisibility',body)?.addEventListener('change',async(event)=>{
           const st=$('#archiveFriendStatus',body);event.target.disabled=true;
           try{const value=await postsApi?.setArchiveVisibility?.(event.target.value);if(st)st.textContent=value==='friends'?'Archive is viewable to the friends you add below.':'Archive is private to you.';await draw()}catch(error){if(st)st.textContent=error?.message||'Visibility could not be saved.'}finally{event.target.disabled=false}
+        });
+        $('#archiveRemoveFriend',body)?.addEventListener('click',async()=>{
+          const input=$('#archiveFriendUsername',body),st=$('#archiveFriendStatus',body),button=$('#archiveRemoveFriend',body);
+          button.disabled=true;
+          try{await postsApi?.removeArchiveFriend?.(input.value);input.value='';if(st)st.textContent='Friend removed from Archive access.';await draw()}catch(error){if(st)st.textContent=error?.message||'Friend could not be removed.'}finally{button.disabled=false}
         });
         $('#archiveAddFriend',body)?.addEventListener('click',async()=>{
           const input=$('#archiveFriendUsername',body),st=$('#archiveFriendStatus',body),button=$('#archiveAddFriend',body);
