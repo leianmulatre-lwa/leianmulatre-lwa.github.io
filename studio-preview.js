@@ -484,7 +484,7 @@ function bindGate(){
 
 /* Orbit holds the member's real connection settings, so it stays shut for guests even
    when a module page calls openModule() from inside its own closure. */
-const ORBIT_KEYS = new Set(["orbit","orbits"]);
+const ORBIT_KEYS = new Set(["orbit","orbits"]);\nconst ARCHIVE_KEYS = new Set(["archive"]);
 function guardOrbit(){
   const open=window.openBIGLWAModule;
   if(typeof open!=="function" || preview.openModule===open) return;
@@ -493,6 +493,10 @@ function guardOrbit(){
     const name=String(key||"").toLowerCase();
     if(preview.active && !preview.signedIn && ORBIT_KEYS.has(name)){
       openPrompt("connect accounts");
+      return;
+    }
+    if(preview.active && !preview.signedIn && ARCHIVE_KEYS.has(name)){
+      openPrompt("view this Archive");
       return;
     }
     return open.call(this,key,...rest);
@@ -549,7 +553,11 @@ async function checkSignedIn(){
   preview.lastCheck=Date.now();
   try{
     const profile=await directory()?.loadProfile?.();
-    if(profile){ preview.signedIn=true; standDown(); }
+    if(profile){
+      const sameProfile=clean(profile.profile?.username||profile.username).toLowerCase()===clean(preview.username).toLowerCase();
+      preview.signedIn=true;
+      if(sameProfile) standDown();
+    }
   }catch{}
   preview.checking=false;
 }
