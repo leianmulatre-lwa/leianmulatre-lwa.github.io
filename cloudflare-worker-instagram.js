@@ -203,8 +203,28 @@ async function proxyMedia(request, env) {
   requireOrigin(request, env);
   const session = await sessionFromRequest(request, env);
   if (!session) return json({ error: 'Instagram session expired.' }, 401, request, env);
-  const media = await graph('/me/media', session, 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp');
-  return json(media, 200, request, env);
+
+  /* Instagram returns /me/media in pages. Orbit should import the complete synced
+     library, not just the first page returned by Graph. Follow every cursor until
+     Instagram says there is no next page. */
+  const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp';
+  const allMedia = [];
+  let nextPath = '/me/media?fields=' + encodeURIComponent(fields);
+
+  while (nextPath) {
+    const page = await graph(nextPath, session);
+    if (Array.isArray(page.data)) allMedia.push(...page.data);
+
+    const next = page.paging && page.paging.next;
+    if (!next) {
+      nextPath = '';
+    } else {
+      const parsed = new URL(next);
+      nextPath = parsed.pathname + parsed.search;
+    }
+  }
+
+  return json({ data: allMedia }, 200, request, env);
 }
 
 async function disconnect(request, env) {
