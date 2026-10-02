@@ -207,7 +207,7 @@ async function proxyMedia(request, env) {
   /* Instagram returns /me/media in pages. Orbit should import the complete synced
      library, not just the first page returned by Graph. Follow every cursor until
      Instagram says there is no next page. */
-  const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp';
+  const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,children{media_type,media_url,thumbnail_url}';
   const allMedia = [];
   let nextPath = '/me/media?fields=' + encodeURIComponent(fields);
 
