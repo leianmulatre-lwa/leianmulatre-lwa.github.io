@@ -283,7 +283,6 @@ async function loadPosts() {
   } finally {
     loading = false;
   }
-  renderDrafts();
   renderPosts();
   return posts;
 }
@@ -352,29 +351,6 @@ function renderHero(force) {
 /* Redrawing the list on every call would drop hover and focus state and pull the reader
    out of a card they are on, so the markup is only rebuilt when the posts or the viewer
    actually differ. A newly rendered feed route is a new list and still gets drawn. */
-function renderDrafts() {
-  const anchor = document.getElementById("biglwaOrbitDrafts");
-  if (!anchor) return;
-  if (!identity()?.uid || !draftPosts.length) {
-    anchor.hidden = true;
-    anchor.innerHTML = "";
-    return;
-  }
-  anchor.hidden = false;
-  anchor.innerHTML =
-    '<div class="biglwa-drafts-head"><div><h3>Saved posts</h3><p>Not public yet. Choose what you want to post to the collective feed.</p></div>' +
-    '<button type="button" class="module-action" data-orbit-publish-selected>Post selected</button></div>' +
-    '<div class="biglwa-drafts-grid">' +
-    draftPosts.map((post) =>
-      '<label class="biglwa-draft-card" data-draft-id="' + esc(post.id) + '">' +
-        '<input type="checkbox" data-orbit-draft-check value="' + esc(post.id) + '">' +
-        '<img src="' + esc(slideUrls(post)[0] || "") + '" alt="' + esc(post.caption || "Imported post") + '" loading="lazy">' +
-        '<div>' + (post.caption ? '<b>' + esc(post.caption) + '</b>' : '') + '<small>' + esc((post.source || "Orbit") + (post.sourceUsername ? " · @" + post.sourceUsername : "")) + '</small></div>' +
-      '</label>'
-    ).join("") +
-    '</div>';
-}
-
 async function publishDraft(postId) {
   const { db, auth, doc, setDoc, getDoc, serverTimestamp } = await firebase();
   const user = auth.currentUser;
@@ -395,7 +371,6 @@ function renderPosts(force) {
   const me = identity()?.uid;
     const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
 ;
-  /* Imported drafts remain account data, but the old Saved posts panel is intentionally not rendered here. */
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
   drawnSignature = signature;
@@ -891,7 +866,6 @@ export async function startFeed() {
     else {
       posts = [];
       draftPosts = [];
-      renderDrafts();
       renderPosts(true);
     }
   });
