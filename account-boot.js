@@ -7,7 +7,7 @@ import { startIdentity, refreshIdentity, identity } from "./account-identity.js"
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
 import { startConnections } from "./orbit-connections.js";
-import { startFeed } from "./feed-view.js?v=20261002-collective-feed-1";
+import { startFeed } from "./feed-view.js?v=20261002-instagram-browser-strip-1";
 
 function boot() {
   startIdentity();
