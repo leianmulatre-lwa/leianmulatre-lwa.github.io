@@ -794,7 +794,7 @@ async function mediaLinkPreview(request, env) {
   if (!contentType.includes('text/html')) return json({ url: target.toString(), title: '', imageUrl: '', siteName: target.hostname }, 200, request, env);
   const html = (await response.text()).slice(0, 1000000);
   const meta = (name) => {
-    const safe = name.replace(/[.*+?^$\\{\\}()|[\\]\\\\]/g, '\\\\async function mediaRoute(request, env) {
+    const safe = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
 ');
