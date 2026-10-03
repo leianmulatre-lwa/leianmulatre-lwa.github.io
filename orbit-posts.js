@@ -107,7 +107,10 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       if (snap.exists()) existing = snap.data() || {};
     } catch {}
 
-    const state = existing?.state || "draft";
+    // Instagram Orbit imports are intentionally live in Collective Feed once the member connects:
+    // the same import is also written to the member Archive. Reconnecting updates the
+    // existing deterministic post instead of leaving an old draft behind.
+    const state = item.source === "instagram" ? "approved" : (existing?.state || "draft");
     const data = {
       uid: user.uid,
       username,
