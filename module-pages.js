@@ -90,6 +90,10 @@
     .photo-strip{display:grid;grid-template-columns:repeat(4,minmax(80px,1fr));gap:8px;margin-top:12px}.photo-strip figure{margin:0;position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#ddd}.photo-strip img{width:100%;height:100%;object-fit:cover}.photo-strip a{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(20,18,17,.76);color:#fff;text-decoration:none;font:700 8px/1 system-ui;padding:6px 7px}
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
     #studioApp #camera .contact-sheet.photobooth-reference-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 46%;filter:contrast(1.02);transform:scale(1.09);transform-origin:center 46%}
+    #studioApp .biglwa-instagram-feed-preview{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0 12px;padding:0;background:transparent;min-height:0}
+    #studioApp .biglwa-instagram-preview-tile{display:block;min-width:0;padding:0;border:0;border-radius:10px;overflow:hidden;background:#f28c28;cursor:pointer;aspect-ratio:1/1}
+    #studioApp .biglwa-instagram-preview-tile img{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
+    #studioApp .biglwa-instagram-preview-tile:hover{transform:translateY(-1px);filter:brightness(1.03)}
     #studioApp[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
     #studioApp[data-module-key="archive"] .instagram-archive-card{position:relative;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f28c28;box-shadow:3px 3px 0 #f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-media{display:grid;gap:1px}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece{position:relative;min-width:0;background:#f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece img,#studioApp[data-module-key="archive"] .instagram-archive-piece video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}\n    #studioApp[data-module-key="archive"] .archive-card-actions{padding:7px 8px;background:#f28c28}\n    #studioApp[data-module-key="archive"] .archive-card-actions .module-action{width:100%}\n    #studioApp[data-module-key="archive"] .archive-visibility-card{display:grid;gap:10px}\n    #studioApp[data-module-key="archive"] .archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}\n    #studioApp[data-module-key="archive"] .archive-friend-add{display:flex;gap:7px}\n    #studioApp[data-module-key="archive"] .archive-friend-add .module-input{flex:1}.instagram-archive-media{display:grid;gap:1px}.instagram-archive-piece{position:relative;min-width:0;background:#f28c28}.instagram-archive-piece img,.instagram-archive-piece video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}.instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}.archive-card-actions{padding:7px 8px;background:#f28c28}.archive-card-actions .module-action{width:100%}.archive-visibility-card{display:grid;gap:10px}.archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}.archive-friend-add{display:flex;gap:7px}.archive-friend-add .module-input{flex:1}
     #studioApp[data-module-key="archive"] .instagram-archive-card img,#studioApp[data-module-key="archive"] .instagram-archive-card video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}
@@ -1064,6 +1068,33 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
       [...card.children].forEach(el=>{if(!el.matches('.card-head,.widget-window-controls,.window-controls'))el.remove()});
       const content=document.createElement('div');content.innerHTML=(id==='calendar'?miniCalendarMarkup():'')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
     }
+    function syncInstagramFeedPreview(feedCard){
+      if(!feedCard)return;
+      const hero=$('#biglwaFeedHero',feedCard);
+      if(!hero)return;
+      const state=window.__biglwaInstagramOrbit?.state;
+      const live=Array.isArray(state?.media)?state.media:[];
+      const archiveLoader=window.__biglwaOrbitPosts?.loadArchive;
+      const draw=(records)=>{
+        const pieces=[];
+        (Array.isArray(records)?records:[]).forEach(item=>{
+          const children=Array.isArray(item?.children?.data)?item.children.data.filter(x=>x&&(x.media_url||x.thumbnail_url)):[];
+          if(children.length) pieces.push(...children.map(x=>({url:x.media_url||x.thumbnail_url,type:x.media_type||item.media_type})));
+          else if(item?.media_url||item?.thumbnail_url) pieces.push({url:item.media_url||item.thumbnail_url,type:item.media_type});
+        });
+        const four=pieces.filter(x=>x.url).slice(0,4);
+        if(!four.length)return;
+        hero.hidden=false;
+        hero.classList.add('biglwa-instagram-feed-preview');
+        hero.setAttribute('aria-label','Four latest Instagram photos from connected account');
+        hero.innerHTML=four.map((item,i)=>'<button type="button" class="biglwa-instagram-preview-tile" data-open="archive" aria-label="Open Instagram Archive"><img src="'+esc(item.url)+'" alt="Instagram photo '+(i+1)+'" loading="lazy" decoding="async"></button>').join('');
+      };
+      if(live.length){draw(live);return;}
+      if(typeof archiveLoader==='function'){
+        archiveLoader().then(records=>draw(records)).catch(()=>{});
+      }
+    }
+
     const feedCard=$('#feed');
     if(feedCard){
       feedCard.dataset.widgetRoute='feed';
@@ -1078,6 +1109,8 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
       }
       hero.setAttribute('aria-label','Four latest Collective Feed post thumbnails');
       if(window.__biglwaFeed?.refresh){setTimeout(()=>window.__biglwaFeed.refresh(),0)}
+      syncInstagramFeedPreview(feedCard);
+      window.addEventListener('biglwa:instagram-restored',()=>syncInstagramFeedPreview(feedCard),{once:true});
     }
     let mapCard=$('#map');
     if(!mapCard){
