@@ -717,6 +717,8 @@ async function pnRoute(request, env) {
  *   POST   /media/profile-photo
  *   GET    /media/profile-photo/<uid>/<file>
  *   DELETE /media/profile-photo/<uid>/<file>
+ *   POST   /media/orbit-import
+ *   GET    /media/orbit/<uid>/<file>
  */
 const MEDIA_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MEDIA_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
@@ -726,7 +728,7 @@ const MEDIA_MAX_VIDEO = 120 * 1024 * 1024;
 /* A profile picture is shown in a 34-106px circle, so it needs a far smaller ceiling than
    a wallpaper and is never a video. */
 const MEDIA_MAX_PHOTO = 8 * 1024 * 1024;
-const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos', 'feed-image': 'feed-images' };
+const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos', 'feed-image': 'feed-images', orbit: 'orbit' };
 
 function mediaFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
 
@@ -763,7 +765,7 @@ async function mediaUser(request, env) {
 }
 
 function mediaSegment(pathname) {
-  const match = /^\/media\/(wallpaper|profile-photo|feed-image)(?:\/|$)/.exec(pathname);
+  const match = /^\/media\/(wallpaper|profile-photo|feed-image|orbit)(?:\/|$)/.exec(pathname);
   return match ? match[1] : '';
 }
 
@@ -826,16 +828,137 @@ async function mediaRoute(request, env) {
       methods: [
         'POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>',
         'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>',
-        'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>'
+        'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>', 'POST /media/orbit-import', 'GET /media/orbit/<uid>/<file>'
       ]
     }, 200, request, env);
   }
+  if (url.pathname === '/media/orbit-import' && request.method === 'POST') return orbitMediaImport(request, env);
   if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/media/' + segment) {
     return mediaUpload(request, env, url, segment);
   }
   if (request.method === 'GET' && segment) return mediaServe(request, env, mediaKeyParts(url.pathname), segment);
   if (request.method === 'DELETE' && segment) return mediaDelete(request, env, mediaKeyParts(url.pathname));
   return json({ error: 'Not found' }, 404, request, env);
+}
+
+
+async function orbitMediaImport(request, env) {
+  const user = await mediaUser(request, env);
+  const orbitSessionId = String(request.headers.get('X-Instagram-Session') || '').trim();
+  if (!orbitSessionId) mediaFail('Instagram Orbit session required. Reconnect Instagram and try again.', 401);
+  const session = await env.OAUTH_SESSIONS.get('session:' + orbitSessionId, 'json');
+  if (!session || !session.accessToken || session.expiresAt < Date.now()) {
+    mediaFail('Instagram session expired. Reconnect Instagram and try again.', 401);
+  }
+  if (session.firebaseUid && session.firebaseUid !== user.uid) {
+    mediaFail('That Instagram connection belongs to a different BIGLWA account.', 403);
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const items = Array.isArray(body.items) ? body.items : [];
+  if (!items.length) return json({ ok: true, imported: [], failed: [] }, 200, request, env);
+  if (items.length > 300) mediaFail('That Orbit import is too large. Refresh Orbit and try again.', 413);
+
+  const imported = [];
+  const failed = [];
+  for (const item of items) {
+    const sourcePostId = String(item.sourcePostId || '').trim();
+    const index = Number.isFinite(Number(item.index)) ? Number(item.index) : 0;
+    const rawUrl = String(item.url || '').trim();
+    const mediaType = String(item.mediaType || 'IMAGE').toUpperCase();
+    if (!sourcePostId || !rawUrl) {
+      failed.push({ sourcePostId, index, error: 'Missing Instagram media URL.' });
+      continue;
+    }
+
+    let target;
+    try { target = new URL(rawUrl); }
+    catch { failed.push({ sourcePostId, index, error: 'Instagram returned an invalid media URL.' }); continue; }
+
+    if (target.protocol !== 'https:' || !isInstagramMediaHost(target.hostname)) {
+      failed.push({ sourcePostId, index, error: 'Instagram returned an unsupported media host.' });
+      continue;
+    }
+
+    let response = await fetch(target.toString(), {
+      redirect: 'follow',
+      headers: { 'User-Agent': 'BIGLWA-Orbit-Media/1.0' }
+    });
+    if (!response.ok) {
+      target.searchParams.set('access_token', session.accessToken);
+      response = await fetch(target.toString(), {
+        redirect: 'follow',
+        headers: { 'User-Agent': 'BIGLWA-Orbit-Media/1.0' }
+      });
+    }
+    if (!response.ok) {
+      failed.push({ sourcePostId, index, error: 'Instagram would not provide this media file.' });
+      continue;
+    }
+
+    const contentType = String(response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    if (!MEDIA_IMAGE_TYPES.includes(contentType) && !MEDIA_VIDEO_TYPES.includes(contentType)) {
+      failed.push({ sourcePostId, index, error: 'Instagram returned an unsupported media type.' });
+      continue;
+    }
+
+    const limit = MEDIA_VIDEO_TYPES.includes(contentType) ? MEDIA_MAX_VIDEO : MEDIA_MAX_IMAGE;
+    const declared = Number(response.headers.get('content-length') || 0);
+    if (declared && declared > limit) {
+      failed.push({ sourcePostId, index, error: 'This Instagram media file is too large for BIGLWA storage.' });
+      continue;
+    }
+
+    const bytes = await response.arrayBuffer();
+    if (!bytes.byteLength || bytes.byteLength > limit) {
+      failed.push({ sourcePostId, index, error: 'This Instagram media file could not be stored.' });
+      continue;
+    }
+
+    const ext = MEDIA_EXTENSIONS[contentType] || (mediaType === 'VIDEO' ? 'mp4' : 'jpg');
+    const fingerprint = await sha256Hex(sourcePostId + ':' + index);
+    const name = fingerprint.slice(0, 40) + '.' + ext;
+    const key = MEDIA_FOLDERS.orbit + '/' + user.uid + '/' + name;
+    await mediaBucket(env).put(key, bytes, {
+      httpMetadata: { contentType, cacheControl: 'public, max-age=31536000, immutable' },
+      customMetadata: {
+        uid: user.uid,
+        source: 'instagram',
+        sourcePostId,
+        index: String(index),
+        mediaType,
+        originalUrl: rawUrl.slice(0, 1000)
+      }
+    });
+    imported.push({
+      sourcePostId,
+      index,
+      mediaType,
+      contentType,
+      key: user.uid + '/' + name,
+      url: new URL('/media/orbit/' + encodeURIComponent(user.uid) + '/' + encodeURIComponent(name), request.url).toString()
+    });
+  }
+
+  if (failed.length && !imported.length) {
+    mediaFail('BIGLWA could not copy the Instagram images. Reconnect Instagram and try again.', 502);
+  }
+  return json({ ok: true, imported, failed }, 200, request, env);
+}
+
+function isInstagramMediaHost(hostname) {
+  const host = String(hostname || '').toLowerCase().replace(/\.$/, '');
+  return host === 'instagram.com' || host.endsWith('.instagram.com')
+    || host === 'cdninstagram.com' || host.endsWith('.cdninstagram.com')
+    || host === 'fbcdn.net' || host.endsWith('.fbcdn.net')
+    || host === 'fbsbx.com' || host.endsWith('.fbsbx.com')
+    || host === 'facebook.com' || host.endsWith('.facebook.com');
+}
+
+async function sha256Hex(value) {
+  const bytes = new TextEncoder().encode(String(value));
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  return Array.from(digest).map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 async function mediaUpload(request, env, url, segment = 'wallpaper') {
