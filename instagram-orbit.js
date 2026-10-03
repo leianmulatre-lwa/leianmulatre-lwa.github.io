@@ -56,7 +56,7 @@
       })
       .catch(function (error) {
         console.error('BIGLWA Instagram draft import:', error);
-        status(error.message || 'Instagram connected, but the feed drafts could not be saved.');
+        status(error.message || 'Instagram connected, but the imported media could not be saved to Big LWA.');
       });
   }
   function api(path, options) {
