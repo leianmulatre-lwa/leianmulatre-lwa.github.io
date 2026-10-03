@@ -1,7 +1,8 @@
 /* BIGLWA Orbit -> Feed persistence
  *
- * Provider media is imported into the signed-in member's Firestore account as a draft.
- * Nothing from Orbit becomes public just because an account was connected.
+ * Instagram Orbit media is copied into the signed-in member's Big LWA storage and
+ * written to the member account, Archive, and Collective Feed. Other Orbit providers may
+ * remain draft-first.
  *
  * Each imported item has one root /posts/{postId} record for the collective feed and one
  * /users/{uid}/posts/{postId} record for the member's profile. The two records use the
@@ -94,9 +95,8 @@ function mediaFromItem(source, item, hostedMedia) {
   };
 }
 
-/* Imports belong to the owner's Archive first. A Collective Feed copy is still created,
-   but it stays draft until the owner explicitly posts it. Carousel children remain together
-   so the owner can publish the original post as one multi-image feed card. */
+/* Instagram imports are durable account media: the same post is written to the owner's
+   profile, Archive, and Collective Feed. Carousel children remain together as one card. */
 
 async function importInstagramMediaToR2(items, user) {
   const session = (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })();
