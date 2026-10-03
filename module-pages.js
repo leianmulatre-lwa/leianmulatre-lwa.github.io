@@ -820,7 +820,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
         : '';
       body.innerHTML=heading('archive',count?count+' Instagram posts imported':'')+
         '<div class="module-grid">'+
-        '<section class="module-card wide"><h2>Instagram archive</h2><p>Connected Instagram content is saved to your account Archive first. Nothing enters Collective Feed until you choose <b>Post to Collective Feed</b>.</p>'+
+        '<section class="module-card wide"><h2>Instagram archive</h2><p>Connected Instagram content is saved to your account Archive and Collective Feed at the same time. Instagram imports publish automatically; the Archive keeps the source history on your account.</p>'+
         (owner?'<div class="module-actions"><button class="module-action ghost" id="archiveOrbit" type="button">Manage Instagram connection</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>':'')+
         '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(orbit?.state?.connected?'Imported from @'+username+'.':'Connect Instagram in Orbit, then import your archive.'):'Shared with friends.'))+'</div>'+
         (cards?'<div class="instagram-archive-grid">'+cards+'</div>':'<div class="instagram-archive-empty">No Instagram media has been imported yet.</div>')+
@@ -829,7 +829,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
         $('#archiveOrbit',body)?.addEventListener('click',()=>openModule('orbit'));
         $('#archiveRefreshInstagram',body)?.addEventListener('click',async()=>{
           const button=$('#archiveRefreshInstagram',body),st=$('#archiveInstagramStatus',body);
-          button.disabled=true;if(st)st.textContent='Importing Instagram into your Archive…';
+          button.disabled=true;if(st)st.textContent='Refreshing Instagram into your Archive + Collective Feed…';
           try{await orbit?.restore?.();await draw()}catch(error){if(st)st.textContent=error?.message||'Instagram could not be refreshed.'}finally{button.disabled=false}
         });
         $('#archiveVisibility',body)?.addEventListener('change',async(event)=>{
