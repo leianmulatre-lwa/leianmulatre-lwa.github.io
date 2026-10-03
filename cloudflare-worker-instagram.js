@@ -794,10 +794,7 @@ async function mediaLinkPreview(request, env) {
   if (!contentType.includes('text/html')) return json({ url: target.toString(), title: '', imageUrl: '', siteName: target.hostname }, 200, request, env);
   const html = (await response.text()).slice(0, 1000000);
   const meta = (name) => {
-    const safe = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const url = new URL(request.url);
-  if (request.method === 'OPTIONS') return corsPreflight(request, env);
-');
+    const safe = name.replace(/[.*+?^$\${}()|[\]\\]/g, '\\$&');
     const re1 = new RegExp('<meta[^>]+(?:property|name)=[\\\"\\\']' + safe + '[\\\"\\\'][^>]+content=[\\\"\\\']([^\\\"\\\']+)', 'i');
     const re2 = new RegExp('<meta[^>]+content=[\\\"\\\']([^\\\"\\\']+)[\\\"\\\'][^>]+(?:property|name)=[\\\"\\\']' + safe + '[\\\"\\\']', 'i');
     const match = html.match(re1) || html.match(re2);
@@ -808,7 +805,6 @@ async function mediaLinkPreview(request, env) {
   const title = decode(meta('og:title') || meta('twitter:title')) || target.hostname;
   return json({ url: target.toString(), title: title.slice(0, 240), imageUrl: image.slice(0, 2000), siteName: target.hostname }, 200, request, env);
 }
-
 async function mediaRoute(request, env) {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
