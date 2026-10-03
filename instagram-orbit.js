@@ -106,7 +106,7 @@
       renderFeed();
     } catch (error) { console.error('BIGLWA Instagram render isolated:', error); }
   }
-  var   function feedHtml() {
+  function feedHtml() {
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
     }
