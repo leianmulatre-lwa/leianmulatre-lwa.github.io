@@ -30,9 +30,9 @@ const preview = {
 };
 
 const $ = (sel,root=document)=>root.querySelector(sel);
-/* The 404 fallback hands the requested name over as ?route=, and the app router then
-   rewrites the URL to "/" before any deferred script can look. So the entry path is
-   captured once, synchronously, by the inline loader in index.html. */
+/* GitHub Pages uses 404.html as the SPA fallback. It now loads the root shell
+   without changing the requested URL, so this value captures the real entry path
+   before deferred scripts run. */
 const ENTRY_PATH=(()=>{
   if(window.__biglwaEntryPath) return window.__biglwaEntryPath;
   try{
