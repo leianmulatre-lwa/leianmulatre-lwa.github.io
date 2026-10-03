@@ -14,6 +14,8 @@ const FIREBASE_CONFIG = {
   appId: "1:83232670555:web:e04927b20458390b3b507e"
 };
 
+const MEDIA_ENDPOINT = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
+
 let refs;
 async function firebase() {
   if (!refs) {
@@ -50,21 +52,34 @@ async function idFor(source, externalId) {
   return "orbit_" + Array.from(digest).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
-function mediaFromItem(source, item) {
-  const caption = clean(item.caption || item.title || item.description || "Shared from " + source);
+function sourcePostIdFor(item, fallbackUrl) {
+  return clean(item.id || item.pk || item.code || item.url || fallbackUrl);
+}
+
+function mediaPieces(item) {
   const children = Array.isArray(item?.children?.data)
     ? item.children.data.filter(child => child && (child.media_url || child.thumbnail_url))
     : [];
-  const pieces = children.length ? children : [item];
-  const mediaItems = pieces.map((piece, index) => ({
-    index,
-    url: clean(piece.media_url || piece.thumbnail_url),
-    thumbnailUrl: clean(piece.thumbnail_url || piece.media_url),
-    mediaType: clean(piece.media_type || item.media_type || "IMAGE").toUpperCase()
-  })).filter(piece => piece.url);
+  return children.length ? children : [item];
+}
+
+function mediaFromItem(source, item, hostedMedia) {
+  const caption = clean(item.caption || item.title || item.description || "Shared from " + source);
+  const fallbackUrl = clean(item.media_url || item.thumbnail_url || item.url);
+  const sourcePostId = sourcePostIdFor(item, fallbackUrl);
+  const pieces = mediaPieces(item);
+  const mediaItems = pieces.map((piece, index) => {
+    const originalUrl = clean(piece.media_url || piece.thumbnail_url);
+    const hosted = hostedMedia?.get(sourcePostId + ":" + index);
+    return {
+      index,
+      url: hosted || originalUrl,
+      thumbnailUrl: hosted || clean(piece.thumbnail_url || piece.media_url),
+      mediaType: clean(piece.media_type || item.media_type || "IMAGE").toUpperCase()
+    };
+  }).filter(piece => piece.url);
   const imageUrls = mediaItems.map(piece => piece.url);
   if (!imageUrls.length) return null;
-  const sourcePostId = clean(item.id || item.pk || item.code || item.url || imageUrls[0]);
   return {
     source: source.toLowerCase(),
     sourcePostId,
@@ -82,6 +97,64 @@ function mediaFromItem(source, item) {
 /* Imports belong to the owner's Archive first. A Collective Feed copy is still created,
    but it stays draft until the owner explicitly posts it. Carousel children remain together
    so the owner can publish the original post as one multi-image feed card. */
+
+async function importInstagramMediaToR2(items, user) {
+  const session = (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })();
+  if (!session) throw new Error("Instagram Orbit is connected, but its media session is missing. Reconnect Instagram.");
+  const firebaseIdToken = await user.getIdToken();
+  if (!firebaseIdToken) throw new Error("Your BIGLWA login expired. Sign in again and reconnect Instagram.");
+
+  const requestItems = [];
+  for (const raw of items) {
+    const pieces = mediaPieces(raw);
+    const fallbackUrl = clean(raw.media_url || raw.thumbnail_url || raw.url);
+    const sourcePostId = sourcePostIdFor(raw, fallbackUrl);
+    pieces.forEach((piece, index) => {
+      const url = clean(piece.media_url || piece.thumbnail_url);
+      if (url) {
+        requestItems.push({
+          sourcePostId,
+          index,
+          url,
+          mediaType: clean(piece.media_type || raw.media_type || "IMAGE").toUpperCase()
+        });
+      }
+    });
+  }
+
+  const imported = [];
+  const failed = [];
+  for (let start = 0; start < requestItems.length; start += 100) {
+    const batch = requestItems.slice(start, start + 100);
+    const response = await fetch(MEDIA_ENDPOINT + "/media/orbit-import", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + firebaseIdToken,
+        "X-Instagram-Session": session
+      },
+      body: JSON.stringify({ items: batch })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "BIGLWA could not save the Instagram media.");
+    imported.push(...(Array.isArray(body.imported) ? body.imported : []));
+    failed.push(...(Array.isArray(body.failed) ? body.failed : []));
+  }
+
+  if (failed.length) {
+    const first = failed[0]?.error || "Some Instagram images could not be copied into BIGLWA storage.";
+    throw new Error(first + " Reconnect Instagram and try again.");
+  }
+
+  const map = new Map();
+  imported.forEach(entry => {
+    if (entry && entry.sourcePostId != null && entry.index != null && entry.url) {
+      map.set(String(entry.sourcePostId) + ":" + String(entry.index), String(entry.url));
+    }
+  });
+  return map;
+}
+
 export async function importOrbitMedia(source, items, profile, identityRecord) {
   const { db, auth, doc, setDoc, getDoc, serverTimestamp } = await firebase();
   const user = auth.currentUser;
@@ -93,8 +166,13 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   let imported = 0;
   let skipped = 0;
 
+  let hostedMedia = null;
+  if (source.toLowerCase() === "instagram") {
+    hostedMedia = await importInstagramMediaToR2(items, user);
+  }
+
   for (const raw of items) {
-    const item = mediaFromItem(source, raw);
+    const item = mediaFromItem(source, raw, hostedMedia);
     if (!item) { skipped += 1; continue; }
 
     const postId = await idFor(item.source, item.sourcePostId);
@@ -290,6 +368,7 @@ export async function setOrbitState(postId, state) {
   await setDoc(rootRef, patch, { merge: true });
   await setDoc(profileRef, patch, { merge: true });
   await setDoc(doc(db, "users", user.uid, "archive", postId), {
+    uid: user.uid,
     state,
     updatedAt: serverTimestamp()
   }, { merge: true });
