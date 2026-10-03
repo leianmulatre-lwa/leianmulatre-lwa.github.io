@@ -850,8 +850,8 @@ async function orbitMediaImport(request, env) {
   if (!session || !session.accessToken || session.expiresAt < Date.now()) {
     mediaFail('Instagram session expired. Reconnect Instagram and try again.', 401);
   }
-  if (session.firebaseUid && session.firebaseUid !== user.uid) {
-    mediaFail('That Instagram connection belongs to a different BIGLWA account.', 403);
+  if (!session.firebaseUid || session.firebaseUid !== user.uid) {
+    mediaFail('Reconnect Instagram while signed into this BIGLWA account.', 403);
   }
 
   const body = await request.json().catch(() => ({}));
@@ -891,7 +891,11 @@ async function orbitMediaImport(request, env) {
         headers: { 'User-Agent': 'BIGLWA-Orbit-Media/1.0' }
       });
     }
-    if (!response.ok) {
+    let finalUrl = '';
+    try { finalUrl = new URL(response.url || target.toString()); } catch {
+      finalUrl = null;
+    }
+    if (!response.ok || !finalUrl || !isInstagramMediaHost(finalUrl.hostname)) {
       failed.push({ sourcePostId, index, error: 'Instagram would not provide this media file.' });
       continue;
     }
