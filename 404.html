@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BIGLWA</title></head><body><script>
 (async()=>{
   try{
-    const response=await fetch('/?biglwa-spa-shell=1',{cache:'no-store'});
+    const response=await fetch('/index.html?biglwa-spa-shell=1',{cache:'no-store'});
     if(!response.ok)throw new Error('shell '+response.status);
     const html=await response.text();
     document.open();
