@@ -77,7 +77,7 @@ service cloud.firestore {
         && request.resource.data.state in ['draft', 'approved'];
       allow update: if isOwner(resource.data.uid)
         && request.resource.data.uid == resource.data.uid
-        && request.resource.data.state in ['draft', 'approved', 'archived'];
+        && request.resource.data.state in ['draft', 'approved', 'archived', 'pending_delete'];
       allow delete: if isOwner(resource.data.uid);
     }
 
