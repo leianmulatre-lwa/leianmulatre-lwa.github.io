@@ -278,7 +278,10 @@ export async function loadArchive(ownerUid) {
       const instagram = oldSnap.docs.filter(d => String(d.data()?.source || "").toLowerCase() === "instagram");
       for (const old of instagram) {
         const data = old.data() || {};
-        await setDoc(doc(db, "users", uid, "archive", old.id), {
+        const archiveRef = doc(db, "users", uid, "archive", old.id);
+        const archiveSnap = await getDoc(archiveRef);
+        if (archiveSnap.exists()) continue;
+        await setDoc(archiveRef, {
           ...data,
           archiveState: data.archiveState
             || (data.state === "approved" ? "collective" : data.state === "archived" ? "archived" : "saved"),
