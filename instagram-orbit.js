@@ -89,8 +89,12 @@
     }
     if (!savedSession) return Promise.resolve();
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) {
-      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render(); window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
-      return Promise.all([importToFeed(), persistAccount(state.profile, state.media)]).then(function () { render(); });
+      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render();
+      return Promise.all([importToFeed(), persistAccount(state.profile, state.media)]).then(function () {
+        render();
+        window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
+        return true;
+      });
     }).catch(function (error) {
       /* Only an expired credential may end the connection. A dropped connection or an
          Instagram-side fault used to discard the session, so one bad moment forced the
