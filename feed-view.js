@@ -100,15 +100,15 @@ const STYLE = `
    live Orbit cards. The live renderer no longer carries its own competing stylesheet. */
 .biglwa-instagram-card,.instagram-feed-item{
   width:96%!important;margin-left:0!important;
-  background:#f28c28!important;border-color:#f28c28!important;
-  box-shadow:3px 3px 0 #f28c28!important;border-radius:11px!important;
-  overflow:hidden!important
+  background:#c7c7c7!important;border-color:#b9b9b9!important;
+  box-shadow:3px 3px 0 #a7a7a7!important;border-radius:11px!important;
+  overflow:hidden!important;filter:grayscale(1)!important
 }
 .biglwa-instagram-card .biglwa-instagram-browser-strip,
 .instagram-feed-item .biglwa-instagram-strip{
   height:15px!important;padding:1px 4px!important;gap:3px;
   box-sizing:border-box;display:flex;align-items:center;
-  background:#f28c28!important;border:0!important;
+  background:#c7c7c7!important;border:0!important;
   border-radius:10px 10px 0 0;position:relative;z-index:8
 }
 .biglwa-instagram-browser-tabs,.biglwa-instagram-tabs{
@@ -142,7 +142,7 @@ const STYLE = `
 .biglwa-instagram-actions a{background:#4e8f61}
 .biglwa-instagram-card .biglwa-slide,
 .instagram-feed-item img,.instagram-feed-item video{
-  border-radius:0!important;background:#f28c28
+  border-radius:0!important;background:#c7c7c7
 }
 .biglwa-instagram-card .biglwa-slide>img{border-radius:0!important}
 .biglwa-instagram-browser-actions button:hover,
