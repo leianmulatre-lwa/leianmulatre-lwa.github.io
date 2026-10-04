@@ -289,6 +289,8 @@ let loading = false;
 let drawnOn = null;
 let drawnSignature = null;
 
+let instagramHydrating = false;
+
 async function loadPosts() {
   if (loading) return posts;
   loading = true;
@@ -296,18 +298,38 @@ async function loadPosts() {
     const { db, auth, collection, query, where, limit, getDocs, doc, setDoc } = await firebase();
     const user = auth.currentUser;
     let rootPosts = [];
+    let profilePosts = [];
+
     try {
       const publicSnap = await getDocs(query(collection(db, "posts"), where("state", "==", "approved"), limit(FEED_SIZE)));
       rootPosts = publicSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
     } catch (error) {
       console.error("BIGLWA collective feed root load:", error);
     }
+
     if (user) {
       try {
         const profileSnap = await getDocs(collection(db, "users", user.uid, "posts"));
-        const profileApproved = profileSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((p) => p.orbitImported && p.state === "approved");
+        profilePosts = profileSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        /* Exact recovery path for a connected Instagram account whose first restore
+           happened before the account Feed persistence module was ready. */
+        const instagram = window.__biglwaInstagramOrbit;
+        const hasInstagram = profilePosts.some((p) => p.orbitImported && String(p.source || "").toLowerCase() === "instagram");
+        if (!hasInstagram && !rootPosts.some((p) => p.orbitImported && String(p.source || "").toLowerCase() === "instagram")
+            && instagram?.state?.connected && Array.isArray(instagram.state.media) && instagram.state.media.length && !instagramHydrating
+            && typeof instagram.restore === "function") {
+          instagramHydrating = true;
+          try { await instagram.restore(); } catch (error) {
+            console.warn("BIGLWA Instagram feed hydration:", error);
+          } finally {
+            instagramHydrating = false;
+          }
+          const refreshed = await getDocs(collection(db, "users", user.uid, "posts"));
+          profilePosts = refreshed.docs.map((d) => ({ id: d.id, ...d.data() }));
+        }
+
+        const profileApproved = profilePosts.filter((p) => p.orbitImported && p.state === "approved");
         const rootIds = new Set(rootPosts.map((p) => p.id));
         for (const profilePost of profileApproved) {
           if (!rootIds.has(profilePost.id)) {
@@ -324,10 +346,12 @@ async function loadPosts() {
         console.warn("BIGLWA account post load:", error);
       }
     }
+
     posts = rootPosts
       .filter((p) => p.state === "approved")
       .sort((a, b) => timestampMs(b.createdAt || b.sourceCreatedAt) - timestampMs(a.createdAt || a.sourceCreatedAt))
       .slice(0, FEED_SIZE);
+
     draftPosts = [];
     if (user) {
       const draftSnap = await getDocs(query(
