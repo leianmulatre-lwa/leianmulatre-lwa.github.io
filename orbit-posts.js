@@ -33,6 +33,7 @@ async function firebase() {
       doc: store.doc,
       getDoc: store.getDoc,
       setDoc: store.setDoc,
+      deleteDoc: store.deleteDoc,
       getDocs: store.getDocs,
       query: store.query,
       where: store.where,
@@ -207,6 +208,8 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       mediaType: item.mediaType,
       orbitImported: true,
       state,
+      archiveState: state === "approved" ? "collective" : "saved",
+      deletionAt: null,
       updatedAt: serverTimestamp()
     };
     if (!existing) data.createdAt = serverTimestamp();
@@ -215,8 +218,9 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     await setDoc(profileRef, data, { merge: true });
     await setDoc(archiveRef, {
       ...data,
-      archiveState: "saved",
-      archivedAt: existing?.archivedAt || serverTimestamp()
+      archiveState: "collective",
+      archivedAt: null,
+      deletionAt: null
     }, { merge: true });
     imported += 1;
   }
@@ -244,13 +248,10 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
 }
 
 export async function loadArchive(ownerUid) {
-  const { db, auth, collection, getDocs, doc, setDoc } = await firebase();
+  const { db, auth, collection, getDocs, doc, setDoc, deleteDoc } = await firebase();
   const uid = ownerUid || auth.currentUser?.uid;
   if (!uid) return [];
 
-  /* One-time migration bridge: older builds stored Orbit imports only under
-     users/{uid}/posts. Copy those Instagram records into the new Archive location
-     before reading it, preserving the existing post id so publishing still works. */
   if (!ownerUid || auth.currentUser?.uid === uid) {
     try {
       const oldSnap = await getDocs(collection(db, "users", uid, "posts"));
@@ -259,7 +260,8 @@ export async function loadArchive(ownerUid) {
         const data = old.data() || {};
         await setDoc(doc(db, "users", uid, "archive", old.id), {
           ...data,
-          archiveState: "saved",
+          archiveState: data.archiveState
+            || (data.state === "approved" ? "collective" : data.state === "archived" ? "archived" : "saved"),
           migratedToArchive: true
         }, { merge: true });
       }
@@ -269,13 +271,34 @@ export async function loadArchive(ownerUid) {
   }
 
   const snap = await getDocs(collection(db, "users", uid, "archive"));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => {
-    const av = a.sourceCreatedAt || "";
-    const bv = b.sourceCreatedAt || "";
-    return String(bv).localeCompare(String(av));
-  });
+  const now = Date.now();
+  const rows = [];
+  for (const d of snap.docs) {
+    const data = d.data() || {};
+    const deletionAt = data.deletionAt;
+    const deletionMs = typeof deletionAt?.toMillis === "function"
+      ? deletionAt.toMillis()
+      : (deletionAt instanceof Date ? deletionAt.getTime() : Date.parse(deletionAt || ""));
+    if (data.archiveState === "pending_delete" && Number.isFinite(deletionMs) && deletionMs <= now && (!ownerUid || auth.currentUser?.uid === uid)) {
+      try {
+        await deleteDoc(doc(db, "posts", d.id));
+        await deleteDoc(doc(db, "users", uid, "posts", d.id));
+        await deleteDoc(doc(db, "users", uid, "archive", d.id));
+      } catch (error) {
+        console.warn("BIGLWA Archive expired deletion:", error);
+        rows.push({ id: d.id, ...data });
+      }
+      continue;
+    }
+    rows.push({
+      id: d.id,
+      ...data,
+      archiveState: data.archiveState
+        || (data.state === "approved" ? "collective" : data.state === "archived" ? "archived" : "saved")
+    });
+  }
+  return rows.sort((a,b) => String(b.sourceCreatedAt || "").localeCompare(String(a.sourceCreatedAt || "")));
 }
-
 export async function getArchiveSettings() {
   const { db, auth, doc, getDoc } = await firebase();
   const user = auth.currentUser;
@@ -354,42 +377,50 @@ export async function archiveOrbitPost(postId) {
 }
 
 export async function setOrbitState(postId, state) {
-  if (!["draft", "approved", "archived"].includes(state)) throw new Error("Invalid post state.");
+  if (!["draft", "approved", "archived", "pending_delete"].includes(state)) throw new Error("Invalid post state.");
   const { db, auth, doc, getDoc, setDoc, serverTimestamp } = await firebase();
   const user = auth.currentUser;
   if (!user) throw new Error("Sign in to manage this post.");
+
   const rootRef = doc(db, "posts", postId);
   const profileRef = doc(db, "users", user.uid, "posts", postId);
+  const archiveRef = doc(db, "users", user.uid, "archive", postId);
   const snap = await getDoc(rootRef);
   if (!snap.exists()) throw new Error("That post is no longer available.");
   const current = snap.data() || {};
   if (current.uid !== user.uid) throw new Error("You can only manage your own posts.");
-  const patch = { state, updatedAt: serverTimestamp() };
+
+  const archiveSnap = await getDoc(archiveRef);
+  const archiveCurrent = archiveSnap.exists() ? archiveSnap.data() || {} : {};
+  let deletionAt = archiveCurrent.deletionAt || current.deletionAt || null;
+  if (state === "pending_delete" && !deletionAt) deletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  if (state !== "pending_delete") deletionAt = null;
+
+  const archiveState = state === "approved"
+    ? "collective"
+    : state === "archived"
+      ? "archived"
+      : state === "pending_delete"
+        ? "pending_delete"
+        : (archiveCurrent.archiveState || "saved");
+
+  const patch = { state, deletionAt, updatedAt: serverTimestamp() };
   await setDoc(rootRef, patch, { merge: true });
   await setDoc(profileRef, patch, { merge: true });
-  await setDoc(doc(db, "users", user.uid, "archive", postId), {
+  await setDoc(archiveRef, {
+    ...archiveCurrent,
     uid: user.uid,
     state,
+    archiveState,
+    deletionAt,
     updatedAt: serverTimestamp()
   }, { merge: true });
-  return { ...current, ...patch, id: postId };
+
+  return { ...current, ...patch, archiveState, id: postId };
 }
 
 export async function removeOrbitPost(postId) {
-  const { db, auth, doc, getDoc, setDoc, serverTimestamp } = await firebase();
-  const user = auth.currentUser;
-  if (!user) throw new Error("Sign in to manage this post.");
-  const rootRef = doc(db, "posts", postId);
-  const profileRef = doc(db, "users", user.uid, "posts", postId);
-  const snap = await getDoc(rootRef);
-  if (!snap.exists()) return;
-  const current = snap.data() || {};
-  if (current.uid !== user.uid) throw new Error("You can only remove your own posts.");
-  /* Keep the account/profile record as an archive so the member's history survives a
-     refresh on another device. The collective root is also archived rather than deleted. */
-  const patch = { state: "archived", updatedAt: serverTimestamp() };
-  await setDoc(rootRef, patch, { merge: true });
-  await setDoc(profileRef, patch, { merge: true });
+  return setOrbitState(postId, "pending_delete");
 }
 
 window.__biglwaOrbitPosts = {
