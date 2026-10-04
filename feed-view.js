@@ -1,22 +1,716 @@
-async function deletePost(post, action) {
-  if (!window.confirm("Delete this post and its photos?")) return;
-  action.disabled = true;
+/* BIGLWA feed
+ *
+ * Turns the feed page into a Pinterest-style masonry of cards and lets a member post an
+ * image with a caption.
+ *
+ * Posts live in Firestore under the author, not in a per-device slot, so a post is
+ * visible from any device and to anyone who can read the feed. The image goes to the
+ * media Worker first, so the Firestore document only ever holds a URL and an owner
+ * stamped uid rather than image data.
+ *
+ * The feed list is also where Instagram, TikTok, and Pinterest pour in, so this file
+ * styles the shared list and leaves those sources to their own renderers. Cards are
+ * marked so the shared mount does not mistake them for a missing source.
+ */
+import { identity, onIdentityChange, startIdentity } from "./account-identity.js";
+
+const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_BYTES = 8 * 1024 * 1024;
+const FEED_SIZE = 40;
+/* A post may carry several photos. They are shown one at a time in a frame shaped like
+   its first photo, so a multi-photo post reads like a slideshow rather than a stack.
+   The ceiling keeps one post from turning the wall into a video. */
+const MAX_SLIDES = 6;
+const SLIDE_MS = 4200;
+
+const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* One picture is the old shape and stays the common case, so it is read from either the
+   list or the single field. The first photo is also written back to `imageUrl`, which is
+   what the preview strip and anything older still read. */
+const slideUrls = (post) => {
+  const list = Array.isArray(post.imageUrls) ? post.imageUrls.filter((u) => typeof u === "string" && u) : [];
+  if (list.length) return list.slice(0, MAX_SLIDES);
+  return post.imageUrl ? [post.imageUrl] : [];
+};
+
+/* Each source gets its own colour, carried as a border and a soft outer glow rather than a
+   fill, so a board of mixed cards still reads as one surface.
+   These are the colours of the members' own posts, chosen by the `source` field on a Firestore
+   document. The connected sources' live cards are painted from their marker class by
+   orbit-feed.js, which carries the same values; the two lists have to agree or a board will
+   show one shade for a post and another for the same account's live cards. */
+const SOURCES = {
+  biglwa:   { label: "BIGLWA",    accent: "#c1355a" },
+  instagram:{ label: "Instagram", accent: "#f28c28" },
+  tiktok:   { label: "TikTok",    accent: "#111111" },
+  pinterest:{ label: "Pinterest", accent: "#e60023" },
+  facebook: { label: "Facebook",  accent: "#1877f2" },
+  youtube:  { label: "YouTube",   accent: "#d0202f" },
+  soundcloud:{ label: "SoundCloud", accent: "#e2622a" },
+  google:   { label: "Google",    accent: "#4285f4" }
+};
+const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
+
+const STYLE = `
+/* A pin-board wall: multi-column, so each card packs upward into the first gap of
+   its column instead of lining up with the row of its neighbours. The count is fixed
+   at four across, and each card holds its picture's own shape. */
+#feedPageList{display:block!important;column-count:4!important;column-width:auto!important;column-gap:18px!important;column-fill:balance}
+#feedPageList>*{break-inside:avoid;min-width:0;width:100%;margin:0 0 18px}
+@media (max-width:980px){#feedPageList{column-count:3!important}}
+@media (max-width:700px){#feedPageList{column-count:2!important}}
+@media (max-width:480px){#feedPageList{column-count:1!important}}
+/* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
+   instead, because it already owns their marker classes and would otherwise be restyling
+   cards it does not build. */
+.biglwa-pin{--feed-card-rim:#bd3f47;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;box-shadow:3px 3px 0 var(--feed-card-rim);display:block;width:100%}
+.biglwa-pin:nth-child(6n+1){--feed-card-rim:#bd3f47}.biglwa-pin:nth-child(6n+2){--feed-card-rim:#d77b30}.biglwa-pin:nth-child(6n+3){--feed-card-rim:#d1ad2f}.biglwa-pin:nth-child(6n+4){--feed-card-rim:#4e8f61}.biglwa-pin:nth-child(6n+5){--feed-card-rim:#416fa9}.biglwa-pin:nth-child(6n+6){--feed-card-rim:#7955a0}
+.biglwa-pin::before{content:none}
+#biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
+#biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #d77b30}
+#biglwaOrbitDrafts .biglwa-draft-card:nth-child(6n+2){box-shadow:3px 3px 0 #d1ad2f}.biglwa-draft-card:nth-child(6n+3){box-shadow:3px 3px 0 #4e8f61}.biglwa-draft-card:nth-child(6n+4){box-shadow:3px 3px 0 #416fa9}
+/* A member's post keeps its own shape: the picture fills the column width at its true
+   height and no caption sits on the card. The menu
+   may drop below a short wide picture, so the card lets it escape and the picture itself
+   is rounded instead of relying on the card to clip it. */
+.biglwa-pin-post{overflow:hidden}
+.biglwa-pin::before{border-radius:14px 14px 0 0}
+.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:0}
+.biglwa-pin-body{padding:11px 13px 13px}
+.biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
+.biglwa-pin-empty{padding:15px}
+.biglwa-pin-link{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 12px;color:#302b28;text-decoration:none;border-top:1px solid #dfd4ca}
+.biglwa-pin-link b{display:block;font:700 10px/1.35 system-ui;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.biglwa-pin-link small{display:block;margin-top:3px;font:600 8px/1.3 system-ui;color:#8b8179;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.biglwa-pin-link span{flex:none;border:1px solid #d8cec5;border-radius:999px;padding:5px 8px;font:700 8px/1 system-ui;color:#4f4742;background:#fffdf9}
+/* Three actions sit in the top-right corner of every post the feed manages: green opens
+   the picture large, yellow hides the post from the wall without removing it, and red
+   deletes it. */
+.biglwa-post-actions{position:absolute;top:8px;right:8px;z-index:8;display:flex;gap:4px}
+.biglwa-post-actions button{width:20px;height:20px;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;display:grid;place-items:center;font:800 9px/1 system-ui;cursor:pointer;box-shadow:0 2px 7px rgba(24,16,14,.24);transition:transform .15s ease,filter .15s ease}
+.biglwa-post-actions button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.biglwa-post-actions [data-post-delete]{background:#bd3f47}.biglwa-post-actions [data-post-archive]{background:#d1ad2f;color:#302719}.biglwa-post-actions [data-post-enlarge]{background:#4e8f61}
+/* Instagram-imported cards get a tiny browser-window header. The strip is intentionally
+   much thinner than the card itself: aura tint, three small traffic-light controls at right,
+   and carousel tabs that sit in the same strip like browser tabs. */
+/* Instagram uses one shared card treatment for both persisted Feed imports and the
+   live Orbit cards. The live renderer no longer carries its own competing stylesheet. */
+.biglwa-instagram-card,.instagram-feed-item{
+  width:96%!important;margin-left:0!important;
+  background:#f28c28!important;border-color:#f28c28!important;
+  box-shadow:3px 3px 0 #f28c28!important;border-radius:11px!important;
+  overflow:hidden!important
+}
+.biglwa-instagram-card .biglwa-instagram-browser-strip,
+.instagram-feed-item .biglwa-instagram-strip{
+  height:15px!important;padding:1px 4px!important;gap:3px;
+  box-sizing:border-box;display:flex;align-items:center;
+  background:#f28c28!important;border:0!important;
+  border-radius:10px 10px 0 0;position:relative;z-index:8
+}
+.biglwa-instagram-browser-tabs,.biglwa-instagram-tabs{
+  display:flex;align-items:flex-end;gap:2px;min-width:0;height:12px;margin-right:auto
+}
+.biglwa-instagram-browser-tab,.biglwa-instagram-tab{
+  height:11px;min-width:14px;padding:0 4px;border:0;
+  border-radius:4px 4px 1px 1px;background:rgba(255,255,255,.22);
+  color:rgba(75,45,20,.78);font:800 6px/11px system-ui;cursor:pointer
+}
+.biglwa-instagram-browser-tab.is-active,.biglwa-instagram-tab.is-active{
+  height:12px;background:#fff3e2;color:#5a4c46;
+  box-shadow:0 -1px 0 rgba(255,255,255,.5)
+}
+.biglwa-instagram-browser-actions,.biglwa-instagram-actions{
+  display:flex;align-items:center;gap:2px;margin-right:3px;order:-1
+}
+.biglwa-instagram-browser-actions button,
+.biglwa-instagram-actions button,
+.biglwa-instagram-actions a{
+  width:8px!important;height:8px!important;min-width:8px!important;
+  padding:0!important;border:0!important;border-radius:50%!important;
+  display:block!important;color:transparent!important;font-size:0!important;
+  line-height:0!important;cursor:pointer;box-shadow:none!important
+}
+.biglwa-instagram-browser-actions [data-post-delete],
+.biglwa-instagram-actions button:nth-child(1){background:#bd3f47}
+.biglwa-instagram-browser-actions [data-post-archive],
+.biglwa-instagram-actions button:nth-child(2){background:#d1ad2f}
+.biglwa-instagram-browser-actions [data-post-enlarge],
+.biglwa-instagram-actions a{background:#4e8f61}
+.biglwa-instagram-card .biglwa-slide,
+.instagram-feed-item img,.instagram-feed-item video{
+  border-radius:0!important;background:#f28c28
+}
+.biglwa-instagram-card .biglwa-slide>img{border-radius:0!important}
+.biglwa-instagram-browser-actions button:hover,
+.biglwa-instagram-actions button:hover,
+.biglwa-instagram-actions a:hover{filter:brightness(1.08);transform:translateY(-1px)}
+/* The source is told by the orange card treatment instead of an extra label. */
+.biglwa-pin-src{display:none}
+/* A post with more than one photo becomes a slideshow shaped like its first photo, moving
+   on by itself, with dots and arrows so it is still readable and pausable by hand. The
+   frame's ratio is set from that first picture once it loads, so the card's shape already
+   belongs to the post instead of to a fixed square. */
+.biglwa-slide{position:relative;width:100%;aspect-ratio:4/3;background:#efe7dd;overflow:hidden;border-radius:15px 15px 0 0}
+.biglwa-slide>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .45s ease}
+.biglwa-slide>img.is-on{opacity:1}
+.biglwa-slide-dot{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;z-index:3}
+.biglwa-slide-dot i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);
+  box-shadow:0 0 0 1px rgba(24,16,14,.35);pointer-events:none}
+.biglwa-slide-dot i.is-on{background:#fff;box-shadow:0 0 0 1px rgba(24,16,14,.6)}
+.biglwa-slide-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+  width:28px;height:28px;border:0;border-radius:50%;background:rgba(24,16,14,.5);color:#fff;
+  font:700 15px/1 system-ui;cursor:pointer;opacity:0;transition:opacity .2s ease}
+.biglwa-slide:hover .biglwa-slide-btn,.biglwa-slide:focus-within .biglwa-slide-btn{opacity:1}
+.biglwa-slide-btn.prev{left:6px}
+.biglwa-slide-btn.next{right:6px}
+.biglwa-slide-count{position:absolute;right:8px;top:8px;z-index:3;padding:3px 8px;border-radius:999px;
+  background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.05em}
+/* Someone who has asked their system for less motion gets a slideshow that holds still. */
+@media (prefers-reduced-motion:reduce){.biglwa-slide>img{transition:none}}
+#biglwaFeedPicker{display:none}
+.biglwa-pick{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  border:1px dashed rgba(80,70,64,.4);border-radius:12px;padding:12px 14px;font:600 13px/1 system-ui;color:#5a4f47}
+.biglwa-pick:hover{background:#fff6ec}
+.biglwa-thumb{width:100%;border-radius:12px;margin-top:10px;display:block}
+.biglwa-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:10px}
+.biglwa-thumbs .biglwa-thumb{margin-top:0;aspect-ratio:1/1;overflow:hidden;background:#efe7dd}
+.biglwa-thumbs .biglwa-thumb img{width:100%;height:100%;object-fit:cover;display:block;border-radius:12px}
+#biglwaFeedStatus{font:600 12px/1.5 system-ui;margin:9px 0 0;min-height:1em}
+/* The preview strip sits front and centre above the board: four pictures in a single row,
+   wider than a card so it reads as a header rather than another item in the feed. */
+.biglwa-feed-hero{margin:0 0 20px;padding:14px;border:1px solid rgba(80,70,64,.16);border-radius:18px;
+  background:linear-gradient(180deg,#fffdf9,#fff6ec);box-shadow:0 12px 28px -18px rgba(48,43,40,.4)}
+.biglwa-feed-hero[hidden]{display:none}
+.biglwa-feed-hero-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 3px 11px}
+.biglwa-feed-hero-head h3{margin:0;font:700 12px/1.3 system-ui;letter-spacing:.05em;text-transform:uppercase;color:#6f645c}
+.biglwa-feed-hero-head span{font:600 10px/1.3 system-ui;color:#9b8a7c}
+.biglwa-feed-hero-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.biglwa-feed-hero-row a,.biglwa-feed-hero-row>div{position:relative;display:block;overflow:hidden;
+  aspect-ratio:4/3;border-radius:14px;background:#efe7dd;text-decoration:none;
+  border:1px solid rgba(80,70,64,.14);box-shadow:0 8px 18px -12px var(--accent,#c1355a)}
+.biglwa-feed-hero-row img{width:100%;height:100%;object-fit:cover;display:block}
+.biglwa-feed-hero-count{position:absolute;left:8px;top:8px;z-index:2;padding:3px 8px;border-radius:999px;
+  background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.04em}
+.biglwa-feed-hero-empty{display:grid;place-items:center;aspect-ratio:4/3;border-radius:14px;
+  border:1px dashed rgba(80,70,64,.28);background:rgba(255,255,255,.5);
+  font:600 10px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}
+/* Matched on the row as well as the class, so the dashed edge wins against the border the
+   shared tile rule sets. Without the second selector the slot renders as a solid card and
+   reads as a real post with a broken picture. */
+.biglwa-feed-hero-row>.biglwa-feed-hero-empty{border-style:dashed}
+@media (max-width:760px){.biglwa-feed-hero-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* The enlarged view. The picture keeps its own shape inside the bounds of the viewport,
+   a straight link opens the full-size image, and arrow keys or the on-screen arrows
+   move between the photos of a multi-photo post. */
+.biglwa-lightbox{position:fixed;inset:0;z-index:9000;background:rgba(22,15,12,.86);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px}
+.biglwa-lightbox-close{position:absolute;top:14px;right:14px;z-index:2;width:38px;height:38px;border:0;
+  border-radius:50%;background:rgba(24,16,14,.6);color:#fff;font:700 20px/1 system-ui;cursor:pointer}
+.biglwa-lightbox-close:hover{background:#1d1613}
+.biglwa-lightbox-stage{position:relative;display:grid;place-items:center;width:100%;max-width:min(960px,92vw)}
+.biglwa-lightbox-stage img{display:block;max-width:100%;max-height:72vh;object-fit:contain;border-radius:10px;
+  box-shadow:0 24px 60px -24px rgba(0,0,0,.7)}
+.biglwa-lightbox-count{position:absolute;left:10px;top:10px;z-index:2;padding:4px 10px;border-radius:999px;
+  background:rgba(24,16,14,.6);color:#fff;font:700 11px/1.5 system-ui;letter-spacing:.05em}
+.biglwa-lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:40px;height:40px;
+  border:0;border-radius:50%;background:rgba(24,16,14,.55);color:#fff;font:700 20px/1 system-ui;cursor:pointer}
+.biglwa-lightbox-arrow:hover{background:#1d1613}
+.biglwa-lightbox-arrow.prev{left:12px}
+.biglwa-lightbox-arrow.next{right:12px}
+.biglwa-lightbox-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
+  max-width:min(820px,92vw);background:#fffdf9;border:1px solid rgba(80,70,64,.14);border-radius:14px;
+  padding:12px 16px;box-shadow:0 18px 44px -22px rgba(0,0,0,.55)}
+.biglwa-lightbox-view{margin-left:auto;padding:8px 14px;border-radius:999px;font:700 12px/1 system-ui;
+  text-decoration:none;background:rgba(31,142,74,.1);border:1px solid rgba(31,142,74,.34);color:#1f7a45;flex:none}
+.biglwa-lightbox-view:hover{background:rgba(31,142,74,.16);color:#166238}
+@media (max-width:640px){.biglwa-lightbox-stage img{max-height:62vh}}
+`;
+
+function installStyle() {
+  if (document.getElementById("biglwaFeedStyle")) return;
+  const style = document.createElement("style");
+  style.id = "biglwaFeedStyle";
+  style.textContent = STYLE + "\n/* Orbit imports are account drafts until the member explicitly publishes them. */\n#biglwaOrbitDrafts{margin:0 0 18px;padding:16px;border:1px solid rgba(80,70,64,.16);border-radius:18px;background:#fffdf9;box-shadow:0 10px 24px -18px rgba(48,43,40,.35)}\n#biglwaOrbitDrafts[hidden]{display:none}\n.biglwa-drafts-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}\n.biglwa-drafts-head h3{margin:0;font:700 13px/1.2 system-ui;color:#2f2a27}\n.biglwa-drafts-head p{margin:4px 0 0;max-width:650px;font:500 10px/1.45 system-ui;color:#81766f}\n.biglwa-drafts-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}\n.biglwa-draft-card{position:relative;display:grid;gap:7px;padding:8px;border:1px solid #dfd6cd;border-radius:13px;background:#fff;cursor:pointer}\n.biglwa-draft-card input{position:absolute;left:9px;top:9px;z-index:2;width:17px;height:17px;accent-color:#c1355a}\n.biglwa-draft-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:9px;background:#eee7df}\n.biglwa-draft-card b{display:block;font:700 10px/1.35 system-ui;color:#302b28;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}\n.biglwa-draft-card small{display:block;margin-top:3px;font:600 9px/1.3 system-ui;color:#8b8179}\n@media(max-width:760px){.biglwa-drafts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.biglwa-drafts-head{align-items:flex-start;flex-direction:column}}\n";
+  document.head.appendChild(style);
+}
+
+let refs;
+async function firebase() {
+  if (!refs) {
+    const [{ initializeApp, getApps }, store, { getAuth }] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js"),
+      import("https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js")
+    ]);
+    const app = getApps()[0] || initializeApp({
+      apiKey: "AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY",
+      authDomain: "biglwa.firebaseapp.com",
+      projectId: "biglwa",
+      appId: "1:83232670555:web:e04927b20458390b3b507e"
+    });
+    refs = {
+      db: store.getFirestore(app),
+      auth: getAuth(app),
+      doc: store.doc, getDoc: store.getDoc, deleteDoc: store.deleteDoc,
+      addDoc: store.addDoc, collection: store.collection, query: store.query, orderBy: store.orderBy,
+      limit: store.limit, where: store.where, getDocs: store.getDocs, serverTimestamp: store.serverTimestamp,
+      updateDoc: store.updateDoc, setDoc: store.setDoc
+    };
+  }
+  return refs;
+}
+
+function say(text, tone) {
+  const node = document.getElementById("biglwaFeedStatus");
+  if (!node) return;
+  node.textContent = text || "";
+  node.style.color = tone === "bad" ? "#a53332" : tone === "good" ? "#3f6b4a" : "#6b5f56";
+}
+
+function when(iso) {
+  const then = Date.parse(iso || "");
+  if (!then) return "";
+  const mins = Math.round((Date.now() - then) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return mins + " min ago";
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return hours + " hr ago";
+  return new Date(then).toLocaleDateString();
+}
+
+let posts = [];
+let draftPosts = [];
+let loading = false;
+let drawnOn = null;
+let drawnSignature = null;
+
+async function loadPosts() {
+  if (loading) return posts;
+  loading = true;
   try {
-    const { db, doc, deleteDoc } = await firebase();
-    await deleteDoc(doc(db, "posts", post.id));
-    if (identity()?.uid === post.uid) await deleteDoc(doc(db, "users", post.uid, "posts", post.id));
-    const keys = Array.isArray(post.imageKeys)
-      ? post.imageKeys.filter(Boolean)
-      : (post.imageKey ? [post.imageKey] : []);
-    for (const key of keys) await removeImage(key);
-    posts = posts.filter((p) => p.id !== post.id);
-    renderPosts();
-    say("Post removed.", "good");
+    const { db, auth, collection, query, where, limit, getDocs, doc, setDoc } = await firebase();
+    const user = auth.currentUser;
+    let rootPosts = [];
+    try {
+      const publicSnap = await getDocs(query(collection(db, "posts"), where("state", "==", "approved"), limit(FEED_SIZE)));
+      rootPosts = publicSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error("BIGLWA collective feed root load:", error);
+    }
+    if (user) {
+      try {
+        const profileSnap = await getDocs(collection(db, "users", user.uid, "posts"));
+        const profileApproved = profileSnap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((p) => p.orbitImported && p.state === "approved");
+        const rootIds = new Set(rootPosts.map((p) => p.id));
+        for (const profilePost of profileApproved) {
+          if (!rootIds.has(profilePost.id)) {
+            try {
+              await setDoc(doc(db, "posts", profilePost.id), profilePost, { merge: true });
+            } catch (error) {
+              console.warn("BIGLWA Orbit profile-to-feed repair:", error);
+            }
+            rootPosts.push(profilePost);
+            rootIds.add(profilePost.id);
+          }
+        }
+      } catch (error) {
+        console.warn("BIGLWA account post load:", error);
+      }
+    }
+    posts = rootPosts
+      .filter((p) => p.state === "approved")
+      .sort((a, b) => timestampMs(b.createdAt || b.sourceCreatedAt) - timestampMs(a.createdAt || a.sourceCreatedAt))
+      .slice(0, FEED_SIZE);
+    draftPosts = [];
+    if (user) {
+      const draftSnap = await getDocs(query(
+        collection(db, "posts"),
+        where("uid", "==", user.uid),
+        where("state", "==", "draft"),
+        limit(40)
+      ));
+      draftPosts = draftSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => timestampMs(b.updatedAt || b.createdAt) - timestampMs(a.updatedAt || a.createdAt));
+    }
   } catch (error) {
-    action.disabled = false;
-    say(error.message || "That post could not be removed.", "bad");
+    console.error("BIGLWA feed load:", error);
+    if (!posts.length) posts = [];
+    draftPosts = [];
+  } finally {
+    loading = false;
+  }
+  renderPosts(true);
+  renderHero(true);
+  return posts;
+}
+function timestampMs(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/* The preview strip sits above the board. It shows the four newest pictures in a single
+   row, so a visitor sees colour and activity before they start reading. It is decoration
+   over the same data the list already holds, never a second query, so the two can never
+   disagree about what the feed contains. Slots with no picture are left as dashed gaps
+   rather than shrinking the row, which keeps the row four wide until there is something
+   to put in it. */
+const HERO_SLOTS = 4;
+let heroOn = null;
+let heroSignature = null;
+
+function renderHero(force) {
+  const anchor = document.getElementById("biglwaFeedHero");
+  if (!anchor) return;
+  /* The class lives on the markup in the module page, but it is asserted here as well so
+     the strip is still a panel if that markup is ever built without it. */
+  anchor.classList.add("biglwa-feed-hero");
+  /* A feed with nothing in it at all stays clean: the strip is a preview of pictures, so
+     showing four empty slots over an empty board would only add noise. Once a single post
+     exists the strip appears and holds its width, gaps included. */
+  anchor.hidden = !posts.length;
+  if (anchor.hidden) {
+    heroOn = null;
+    heroSignature = null;
+    return;
+  }
+  const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "")).join("|");
+  if (!force && anchor === heroOn && signature === heroSignature) return;
+  heroOn = anchor;
+  heroSignature = signature;
+
+  /* The widget is explicitly the latest four POST slots, not four arbitrary images.
+     Posts without media keep their slot so the widget always represents the same four
+     newest feed records. */
+  const slots = posts.slice(0, HERO_SLOTS);
+  const cards = slots.map((post) => {
+    const src = accentOf(post.source);
+    const caption = (post.caption || "").trim();
+    const urls = slideUrls(post);
+    const first = urls[0];
+    if (!first) {
+      return '<div class="biglwa-feed-hero-empty" style="--accent:' + src.accent + '">No thumbnail</div>';
+    }
+    const many = urls.length > 1;
+    return '<a style="--accent:' + src.accent + '" href="' + esc(first) + '" target="_blank" rel="noopener noreferrer">' +
+      (many ? '<span class="biglwa-feed-hero-count">' + urls.length + " photos</span>" : "") +
+      '<img src="' + esc(first) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy">' +
+      "</a>";
+  }).join("");
+
+  anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
+    (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
+    "</span></div>" + '<div class="biglwa-feed-hero-row">' + cards + "</div>";
+}
+
+/* Redrawing the list on every call would drop hover and focus state and pull the reader
+   out of a card they are on, so the markup is only rebuilt when the posts or the viewer
+   actually differ. A newly rendered feed route is a new list and still gets drawn. */
+async function publishDraft(postId) {
+  const { db, auth, doc, setDoc, getDoc, serverTimestamp } = await firebase();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sign in to publish this post.");
+  const rootRef = doc(db, "posts", postId);
+  const profileRef = doc(db, "users", user.uid, "posts", postId);
+  const snap = await getDoc(rootRef);
+  if (!snap.exists()) throw new Error("That imported post is no longer available.");
+  const post = snap.data() || {};
+  if (post.uid !== user.uid) throw new Error("You can only publish your own imports.");
+  const patch = { state: "approved", publishedAt: serverTimestamp(), updatedAt: serverTimestamp() };
+  await setDoc(rootRef, patch, { merge: true });
+  await setDoc(profileRef, patch, { merge: true });
+}
+function renderPosts(force) {
+  const list = document.getElementById("feedPageList");
+  if (!list) return;
+  const me = identity()?.uid;
+    const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
+;
+  if (!force && list === drawnOn && signature === drawnSignature) return;
+  drawnOn = list;
+  drawnSignature = signature;
+
+  list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
+  stopSlideshows();
+  if (!posts.length) return;
+  const html = posts.map((post) => {
+    const src = accentOf(post.source);
+    const urls = slideUrls(post);
+    const managed = Boolean(me && post.uid === me);
+    const isInstagram = String(post.source || "").toLowerCase() === "instagram";
+    const image = !urls.length
+      ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
+      : urls.length === 1
+        ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="Collective feed media" loading="lazy">'
+        : slideshow(urls, "Collective feed media");
+    const link = post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
+    const tabs = isInstagram && urls.length > 1
+      ? '<div class="biglwa-instagram-browser-tabs" aria-label="Instagram carousel tabs">' +
+        urls.map((_, i) => '<button type="button" class="biglwa-instagram-browser-tab' + (i === 0 ? ' is-active' : '') + '" data-instagram-slide="' + i + '">' + (i + 1) + '</button>').join("") +
+        '</div>'
+      : '<span class="biglwa-instagram-browser-tabs" aria-hidden="true"></span>';
+    const browserStrip = isInstagram
+      ? '<div class="biglwa-instagram-browser-strip">' +
+          tabs +
+          (managed
+            ? '<div class="biglwa-instagram-browser-actions" aria-label="Instagram post actions">' +
+              '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete"></button>' +
+              '<button type="button" data-post-archive aria-label="Archive" title="Archive"></button>' +
+              '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge"></button>' +
+              '</div>'
+            : '') +
+        '</div>'
+      : '';
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + '" style="--feed-card-rim:' + esc(src.accent) + '" data-post-id="' + esc(post.id) + '">' +
+      '<div>' + browserStrip + image + "</div>" + link +
+      (!isInstagram && managed
+        ? '<div class="biglwa-post-actions">' +
+          '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete from Collective Feed">&#10005;</button>' +
+          '<button type="button" data-post-archive aria-label="Archive" title="Archive">&#9662;</button>' +
+          '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge">&#8599;</button>' +
+          "</div>"
+        : "") +
+      "</article>";
+  }).join("");
+  list.insertAdjacentHTML("afterbegin", html);
+  startSlideshows(list);
+}
+
+/* A multi-photo post is drawn as a stack of pictures inside one frame shaped like the
+   first one. Only the active one is visible, so the card keeps the same height and the
+   same column width as a single picture. The arrows and dots are real controls, so the
+   slideshow can also be moved by hand or by keyboard rather than only on its own timer. */
+function slideshow(urls, alt) {
+  const frames = urls.map((url, i) =>
+    '<img src="' + esc(url) + '" alt="' + esc(alt) + '" loading="lazy"' + (i ? ' aria-hidden="true"' : "") +
+    (i ? "" : ' class="is-on"') + ">").join("");
+  const dots = urls.map((_, i) => "<i" + (i ? "" : ' class="is-on"') + "></i>").join("");
+  return '<div class="biglwa-slide" data-biglwa-slideshow aria-roledescription="carousel" aria-label="' +
+    esc(alt) + '">' + frames +
+    '<span class="biglwa-slide-count">1 / ' + urls.length + "</span>" +
+    '<div class="biglwa-slide-dot">' + dots + "</div>" +
+    '<button type="button" class="biglwa-slide-btn prev" data-slide-step="-1" aria-label="Previous photo">&#8249;</button>' +
+    '<button type="button" class="biglwa-slide-btn next" data-slide-step="1" aria-label="Next photo">&#8250;</button>' +
+    "</div>";
+}
+
+/* Every running slideshow is tracked so a redraw cannot leave a timer pointing at pictures
+   that are no longer on the page. Each one stops itself when it is scrolled out of view, when
+   the reader hovers or focuses it, and when the tab is hidden, and it never starts moving on
+   its own for a reader who has asked their system for reduced motion. */
+const running = new Set();
+const calmMotion = () => {
+  try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+  catch { return false; }
+};
+
+function stopSlideshows() {
+  for (const timer of running) clearInterval(timer);
+  running.clear();
+}
+
+function startSlideshows(root) {
+  for (const frame of (root || document).querySelectorAll("[data-biglwa-slideshow]")) {
+    const photos = Array.from(frame.querySelectorAll("img"));
+    const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot i"));
+    const count = frame.querySelector(".biglwa-slide-count");
+    if (photos.length < 2) continue;
+    /* The frame borrows the leading photo's shape once it can be measured, so the card is
+       not stuck on a fixed square for a post whose pictures are a different ratio. */
+    const shape = () => {
+      const lead = photos[0];
+      if (lead && lead.naturalWidth && lead.naturalHeight) {
+        frame.style.aspectRatio = (lead.naturalWidth / lead.naturalHeight).toFixed(4);
+      }
+    };
+    const lead = photos[0];
+    if (lead && lead.complete) shape();
+    else if (lead) lead.addEventListener("load", shape, { once: true });
+    let at = 0;
+
+    const show = (next) => {
+      at = (next + photos.length) % photos.length;
+      photos.forEach((img, i) => {
+        img.classList.toggle("is-on", i === at);
+        if (i === at) img.removeAttribute("aria-hidden");
+        else img.setAttribute("aria-hidden", "true");
+      });
+      dots.forEach((dot, i) => dot.classList.toggle("is-on", i === at));
+      if (count) count.textContent = at + 1 + " / " + photos.length;
+    };
+
+    const hold = () => {
+      if (!timer) return;
+      clearInterval(timer);
+      running.delete(timer);
+      timer = null;
+    };
+    const play = () => {
+      if (timer || calmMotion() || !frame.isConnected) return;
+      timer = setInterval(() => show(at + 1), SLIDE_MS);
+      running.add(timer);
+    };
+    let timer = null;
+
+    frame.addEventListener("click", (event) => {
+      const step = event.target.closest("[data-slide-step]");
+      if (!step) return;
+      event.preventDefault();
+      show(at + Number(step.dataset.slideStep));
+    });
+    /* Hovering or tabbing into a card means the reader is looking at it, so it holds still. */
+    frame.addEventListener("mouseenter", hold);
+    frame.addEventListener("mouseleave", play);
+    frame.addEventListener("focusin", hold);
+    frame.addEventListener("focusout", (event) => { if (!frame.contains(event.relatedTarget)) play(); });
+
+    show(0);
+    play();
+
+    /* Off-screen cards are not watched: a wall of forty posts would otherwise run forty
+       timers for pictures nobody is looking at. */
+    if (typeof IntersectionObserver === "function") {
+      const seen = new IntersectionObserver((entries) => {
+        for (const entry of entries) entry.isIntersecting ? play() : hold();
+      }, { rootMargin: "120px" });
+      seen.observe(frame);
+    }
   }
 }
+
+/* The tab being hidden should not leave pictures turning in the background. */
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopSlideshows();
+    else startSlideshows(document);
+  });
+}
+
+/* The image is uploaded before the post is written, so a record is never created for a
+   picture that failed to store. A stale image left behind by a failed write is removed
+   through the same route rather than orphaned in the bucket. */
+async function uploadImage(file, user) {
+  if (!IMAGE_TYPES.includes(file.type)) throw new Error("Choose a JPG, PNG, WebP, or GIF.");
+  if (file.size > MAX_BYTES) throw new Error("That image is larger than the 8 MB limit.");
+  const response = await fetch(WORKER + "/media/feed-image", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + (await user.getIdToken()), "Content-Type": file.type },
+    body: file
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 404) throw new Error("Photo storage is not deployed yet. Please try again later.");
+    throw new Error(payload.error || "That image could not be uploaded.");
+  }
+  return payload;
+}
+
+async function removeImage(key, uid) {
+  try {
+    const { auth } = await firebase();
+    const user = auth.currentUser;
+    if (!user || !key) return;
+    await fetch(WORKER + "/media/feed-image/" + encodeURIComponent(uid || user.uid) + "/" + key.split("/").pop(), {
+      method: "DELETE", headers: { Authorization: "Bearer " + (await user.getIdToken()) }
+    });
+  } catch { /* the post is what matters; a leftover file is harmless */ }
+}
+
+async function submit(form) {
+  const data = new FormData(form);
+  const url = String(data.get("url") || "").trim();
+  const picker = document.getElementById("biglwaFeedPicker");
+  const file = picker?.files?.[0] || null;
+  if (!url && !file) { say("Add a link or a photo first.", "bad"); return; }
+
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  say("Saving your post…");
+
+  try {
+    const publisher = window.__biglwaCollectivePublish;
+    if (!publisher?.createFeedDraft) throw new Error("The collective feed uploader is still loading. Try again in a moment.");
+    const draft = await publisher.createFeedDraft({ url, blob: file || null });
+    await publishDraft(draft.id);
+    form.reset();
+    document.getElementById("biglwaFeedThumbs")?.remove();
+    say("Posted to the Collective Feed.", "good");
+    await loadPosts();
+  } catch (error) {
+    console.error("BIGLWA feed post:", error);
+    say(error.message || "That post could not be published.", "bad");
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+}
+
+/* The Feed composer is deliberately small: one link, plus one optional photo.
+   A link gets its thumbnail from the server-side Open Graph preview; the photo replaces
+   that thumbnail when supplied. No caption is collected or stored here. */
+function upgradeComposer(form) {
+  if (!form || form.dataset.bigUpgrade) return;
+  form.dataset.bigUpgrade = "1";
+  const picker = document.getElementById("biglwaFeedPicker");
+  if (picker) {
+    picker.addEventListener("change", (event) => {
+      document.getElementById("biglwaFeedThumbs")?.remove();
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const strip = document.createElement("div");
+      strip.id = "biglwaFeedThumbs";
+      strip.className = "biglwa-thumbs";
+      const cell = document.createElement("span");
+      cell.className = "biglwa-thumb";
+      const img = document.createElement("img");
+      img.alt = "";
+      img.src = URL.createObjectURL(file);
+      cell.appendChild(img);
+      strip.appendChild(cell);
+      form.appendChild(strip);
+      say("Photo selected · it will be attached to the post.");
+    });
+  }
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    submit(form);
+  });
+}
+
+/* Yellow hides the post from the wall but keeps the record and its photos. The author can
+   always change `state`, so no rules change is needed. The list stops drawing posts whose
+   state is "archived" both here and in loadPosts. */
+async function archivePost(post, action) {
+  action.disabled = true;
+  try {
+    const orbit = window.__biglwaOrbitPosts;
+    if (post.orbitImported && orbit?.archiveOrbitPost) {
+      await orbit.archiveOrbitPost(post.id);
+    } else {
+      const { db, doc, updateDoc, setDoc, serverTimestamp } = await firebase();
+      const stamp = serverTimestamp();
+      await updateDoc(doc(db, "posts", post.id), { state: "archived", deletionAt: null, updatedAt: stamp });
+      await setDoc(doc(db, "users", identity().uid, "posts", post.id), { state: "archived", deletionAt: null, updatedAt: stamp }, { merge: true });
+    }
+    posts = posts.filter((p) => p.id !== post.id);
+    renderPosts(true);
+    renderHero(true);
+    say("Post archived and moved to Archive.", "good");
+    window.dispatchEvent(new CustomEvent("biglwa:orbit-state-changed", { detail: { id: post.id, state: "archived" } }));
+  } catch (error) {
+    action.disabled = false;
+    say(error.message || "That post could not be archived.", "bad");
+  }
+}
+/* Red removes the post and every picture it carries. Earlier only the first key was
+   cleared, so a multi-photo post left its other files behind; the whole list goes now. */
 async function deletePost(post, action) {
   if (!window.confirm("Remove this post from the Collective Feed? It will stay in your Archive for 30 days before deletion.")) return;
   action.disabled = true;
@@ -30,11 +724,11 @@ async function deletePost(post, action) {
       const current = rootSnap.exists() ? rootSnap.data() || {} : {};
       const deletionAt = current.deletionAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       const stamp = serverTimestamp();
-      await updateDoc(doc(db, "posts", post.id), { state: "pending_delete", deletionAt, updatedAt: stamp });
-      await setDoc(doc(db, "users", post.uid || identity().uid, "posts", post.id), { state: "pending_delete", deletionAt, updatedAt: stamp }, { merge: true });
+      await updateDoc(doc(db, "posts", post.id), { state: "archived", deletionAt, updatedAt: stamp });
+      await setDoc(doc(db, "users", post.uid || identity().uid, "posts", post.id), { state: "archived", deletionAt, updatedAt: stamp }, { merge: true });
       await setDoc(doc(db, "users", post.uid || identity().uid, "archive", post.id), {
         ...current,
-        state: "pending_delete",
+        state: "archived",
         archiveState: "pending_delete",
         deletionAt,
         updatedAt: stamp
