@@ -404,19 +404,20 @@ export async function setOrbitState(postId, state) {
         ? "pending_delete"
         : (archiveCurrent.archiveState || "saved");
 
-  const patch = { state, deletionAt, updatedAt: serverTimestamp() };
+  const persistedState = state === "pending_delete" ? "archived" : state;
+  const patch = { state: persistedState, deletionAt, updatedAt: serverTimestamp() };
   await setDoc(rootRef, patch, { merge: true });
   await setDoc(profileRef, patch, { merge: true });
   await setDoc(archiveRef, {
     ...archiveCurrent,
     uid: user.uid,
-    state,
+    state: persistedState,
     archiveState,
     deletionAt,
     updatedAt: serverTimestamp()
   }, { merge: true });
 
-  return { ...current, ...patch, archiveState, id: postId };
+  return { ...current, ...patch, requestedState: state, archiveState, id: postId };
 }
 
 export async function removeOrbitPost(postId) {
