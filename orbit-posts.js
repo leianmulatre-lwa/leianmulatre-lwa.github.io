@@ -181,15 +181,35 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     const profileRef = doc(db, "users", user.uid, "posts", postId);
     const archiveRef = doc(db, "users", user.uid, "archive", postId);
     let existing = null;
+    let existingArchive = null;
     try {
       const snap = await getDoc(rootRef);
       if (snap.exists()) existing = snap.data() || {};
     } catch {}
+    try {
+      const snap = await getDoc(archiveRef);
+      if (snap.exists()) existingArchive = snap.data() || {};
+    } catch {}
 
-    // Instagram Orbit imports are intentionally live in Collective Feed once the member connects:
-    // the same import is also written to the member Archive. Reconnecting updates the
-    // existing deterministic post instead of leaving an old draft behind.
-    const state = item.source === "instagram" ? "approved" : (existing?.state || "draft");
+    /* First import is live in Collective Feed. Once the owner has changed that card's
+       state, a reconnect must respect the saved lifecycle rather than silently undoing it. */
+    const priorArchiveState = clean(existingArchive?.archiveState);
+    const priorState = clean(existing?.state || existingArchive?.state);
+    const preservedDeleteAt = existingArchive?.deletionAt || existing?.deletionAt || null;
+    const state = priorArchiveState === "pending_delete"
+      ? "archived"
+      : priorArchiveState === "archived" || priorState === "archived"
+        ? "archived"
+        : item.source === "instagram"
+          ? "approved"
+          : (existing?.state || "draft");
+    const archiveState = priorArchiveState === "pending_delete"
+      ? "pending_delete"
+      : priorArchiveState === "archived" || priorState === "archived"
+        ? "archived"
+        : state === "approved"
+          ? "collective"
+          : "saved";
     const data = {
       uid: user.uid,
       username,
@@ -208,8 +228,8 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       mediaType: item.mediaType,
       orbitImported: true,
       state,
-      archiveState: state === "approved" ? "collective" : "saved",
-      deletionAt: null,
+      archiveState,
+      deletionAt: preservedDeleteAt,
       updatedAt: serverTimestamp()
     };
     if (!existing) data.createdAt = serverTimestamp();
@@ -218,9 +238,9 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     await setDoc(profileRef, data, { merge: true });
     await setDoc(archiveRef, {
       ...data,
-      archiveState: "collective",
-      archivedAt: null,
-      deletionAt: null
+      archiveState,
+      archivedAt: archiveState === "collective" ? null : (existingArchive?.archivedAt || serverTimestamp()),
+      deletionAt: preservedDeleteAt
     }, { merge: true });
     imported += 1;
   }
