@@ -95,10 +95,10 @@
     #studioApp .biglwa-instagram-preview-tile img{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
     #studioApp .biglwa-instagram-preview-tile:hover{transform:translateY(-1px);filter:brightness(1.03)}
     #studioApp[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
-    #studioApp[data-module-key="archive"] .instagram-archive-card{position:relative;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f28c28;box-shadow:3px 3px 0 #f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-media{display:grid;gap:1px}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece{position:relative;min-width:0;background:#f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece img,#studioApp[data-module-key="archive"] .instagram-archive-piece video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}\n    #studioApp[data-module-key="archive"] .archive-card-actions{padding:7px 8px;background:#f28c28}\n    #studioApp[data-module-key="archive"] .archive-card-actions .module-action{width:100%}\n    #studioApp[data-module-key="archive"] .archive-visibility-card{display:grid;gap:10px}\n    #studioApp[data-module-key="archive"] .archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}\n    #studioApp[data-module-key="archive"] .archive-friend-add{display:flex;gap:7px}\n    #studioApp[data-module-key="archive"] .archive-friend-add .module-input{flex:1}.instagram-archive-media{display:grid;gap:1px}.instagram-archive-piece{position:relative;min-width:0;background:#f28c28}.instagram-archive-piece img,.instagram-archive-piece video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}.instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}.archive-card-actions{padding:7px 8px;background:#f28c28}.archive-card-actions .module-action{width:100%}.archive-visibility-card{display:grid;gap:10px}.archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}.archive-friend-add{display:flex;gap:7px}.archive-friend-add .module-input{flex:1}
+    #studioApp[data-module-key="archive"] .instagram-archive-card{position:relative;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f28c28;box-shadow:3px 3px 0 #f28c28;transition:filter .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}\n    #studioApp[data-module-key="archive"] .instagram-archive-card.is-collective{background:#c7c7c7!important;border-color:#b9b9b9!important;box-shadow:3px 3px 0 #a7a7a7!important;filter:grayscale(1)!important}\n    #studioApp[data-module-key="archive"] .instagram-archive-card.is-archived{background:#f28c28!important;border-color:#f28c28!important;box-shadow:3px 3px 0 #f28c28!important;filter:none!important}\n    #studioApp[data-module-key="archive"] .instagram-archive-card.is-pending-delete{background:#d96c67!important;border-color:#bd3f47!important;box-shadow:3px 3px 0 #9e3636!important;filter:none!important}\n    #studioApp[data-module-key="archive"] .instagram-archive-media{display:grid;gap:1px}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece{position:relative;min-width:0;background:#f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-card.is-collective .instagram-archive-piece{background:#c7c7c7!important}\n    #studioApp[data-module-key="archive"] .instagram-archive-card.is-pending-delete .instagram-archive-piece{background:#d96c67!important}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece img,#studioApp[data-module-key="archive"] .instagram-archive-piece video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}\n    #studioApp[data-module-key="archive"] .instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}\n    #studioApp[data-module-key="archive"] .archive-card-actions{padding:7px 8px;background:#f28c28}\n    #studioApp[data-module-key="archive"] .archive-card-actions .module-action{width:100%}\n    #studioApp[data-module-key="archive"] .archive-visibility-card{display:grid;gap:10px}\n    #studioApp[data-module-key="archive"] .archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}\n    #studioApp[data-module-key="archive"] .archive-friend-add{display:flex;gap:7px}\n    #studioApp[data-module-key="archive"] .archive-friend-add .module-input{flex:1}.instagram-archive-media{display:grid;gap:1px}.instagram-archive-piece{position:relative;min-width:0;background:#f28c28}.instagram-archive-piece img,.instagram-archive-piece video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}.instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}.archive-card-actions{padding:7px 8px;background:#f28c28}.archive-card-actions .module-action{width:100%}.archive-visibility-card{display:grid;gap:10px}.archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}.archive-friend-add{display:flex;gap:7px}.archive-friend-add .module-input{flex:1}
     #studioApp[data-module-key="archive"] .instagram-archive-card img,#studioApp[data-module-key="archive"] .instagram-archive-card video{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f28c28}
-    #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta{padding:8px 9px;background:#f28c28;color:#5a321d;font:700 8px/1.35 system-ui}
-    #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta small{display:block;margin-top:3px;font:600 8px/1.35 system-ui;color:#704d38;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta{padding:8px 9px;background:#f28c28;color:#5a321d;font:700 8px/1.35 system-ui}\n    #studioApp[data-module-key="archive"] .instagram-archive-card.is-collective .archive-media-meta{background:#c7c7c7!important;color:#4f4f4f!important}\n    #studioApp[data-module-key="archive"] .instagram-archive-card.is-pending-delete .archive-media-meta{background:#d96c67!important;color:#fff!important}
+    #studioApp[data-module-key="archive"] .instagram-archive-card .archive-media-meta small{display:block;margin-top:3px;font:600 8px/1.35 system-ui;color:#704d38;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n    #studioApp[data-module-key="archive"] .archive-state-line{display:block;margin-top:4px;font:700 7px/1.35 system-ui;letter-spacing:.02em}\n    #studioApp[data-module-key="archive"] .archive-delete-warning{color:#fff!important}
     #studioApp[data-module-key="archive"] .instagram-archive-empty{padding:26px;border:1px dashed #d8cec5;border-radius:14px;text-align:center;color:#81766f}
     @media(max-width:980px){#studioApp[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
     @media(max-width:700px){#studioApp[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -757,6 +757,20 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     };draw();
   }
 
+  function archiveStateFor(item){
+    const raw=String(item?.archiveState||"").toLowerCase();
+    if(raw==="pending_delete" || String(item?.state||"").toLowerCase()==="pending_delete") return "pending_delete";
+    if(raw==="archived" || String(item?.state||"").toLowerCase()==="archived") return "archived";
+    if(raw==="collective" || raw==="saved" || String(item?.state||"").toLowerCase()==="approved") return "collective";
+    return raw || "saved";
+  }
+  function deletionCountdownText(value){
+    const ms=typeof value?.toMillis==="function" ? value.toMillis() : (value instanceof Date ? value.getTime() : Date.parse(value||""));
+    if(!Number.isFinite(ms)) return "30 days until deletion";
+    const days=Math.max(0,Math.ceil((ms-Date.now())/86400000));
+    return days+" day"+(days===1?"":"s")+" until deletion";
+  }
+
   function renderArchive(){
     const orbit=window.__biglwaInstagramOrbit;
     const postsApi=window.__biglwaOrbitPosts;
@@ -795,19 +809,28 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
           : (Array.isArray(item.imageUrls)?item.imageUrls.map((url,i)=>({index:i,url,thumbnailUrl:url,mediaType:item.mediaType||'IMAGE'})):[{url:item.imageUrl,thumbnailUrl:item.imageUrl,mediaType:item.mediaType||'IMAGE'}]);
         const caption=String(item.caption||'').trim();
         const date=item.sourceCreatedAt?new Date(item.sourceCreatedAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'Instagram';
+        const state=archiveStateFor(item);
         const visualPieces=pieces.filter(piece=>piece&&piece.url).map((piece,pieceIndex)=>{
           const visual=String(piece.mediaType||'').toUpperCase()==='VIDEO'
             ? '<video src="'+esc(piece.url)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="metadata" controls></video>'
             : '<img src="'+esc(piece.url)+'" alt="Instagram archive item '+(index+1)+(pieces.length>1?' '+(pieceIndex+1):'')+'" loading="lazy" decoding="async">';
           return '<div class="instagram-archive-piece">'+visual+(pieces.length>1?'<span>'+(pieceIndex+1)+'/'+pieces.length+'</span>':'')+'</div>';
         }).join('');
-        const posted=item.state==='approved';
+        const posted=state==='collective';
+        const pending=state==='pending_delete';
         const action=owner
-          ? '<button type="button" class="module-action '+(posted?'ghost':'')+'" data-archive-post="'+esc(item.id)+'" '+(posted?'disabled':'')+'>'+ (posted?'Posted to Collective Feed':'Post to Collective Feed') +'</button>'
+          ? '<button type="button" class="module-action '+((posted||pending)?'ghost':'')+'" data-archive-post="'+esc(item.id)+'" '+(pending?'disabled':'')+'>'+ (pending?'Deleting soon…':posted?'Visible on Collective Feed':'Post to Collective Feed') +'</button>'
           : '';
-        return '<article class="instagram-archive-card" data-archive-id="'+esc(item.id)+'">'+
+        const statusLine=posted
+          ? '<small class="archive-state-line">Visible on Collective Feed · shown here in gray</small>'
+          : state==='archived'
+            ? '<small class="archive-state-line">Archived here · full color</small>'
+            : pending
+              ? '<small class="archive-state-line archive-delete-warning">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</small>'
+              : '';
+        return '<article class="instagram-archive-card is-'+esc(state.replace(/_/g,'-'))+'" data-archive-id="'+esc(item.id)+'">'+
           '<div class="instagram-archive-media">'+visualPieces+'</div>'+
-          '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small></div>'+
+          '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small>'+statusLine+'</div>'+
           (action?'<div class="archive-card-actions">'+action+'</div>':'')+
         '</article>';
       }).join('');
@@ -848,7 +871,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
         });
         body.querySelectorAll('[data-archive-post]').forEach(button=>button.addEventListener('click',async()=>{
           button.disabled=true;const id=button.dataset.archivePost;
-          try{await postsApi?.publishOrbitPost?.(id);button.textContent='Posted to Collective Feed';button.classList.add('ghost');}
+          try{await postsApi?.publishOrbitPost?.(id);await draw();}
           catch(error){button.disabled=false;const st=$('#archiveInstagramStatus',body);if(st)st.textContent=error?.message||'That post could not be published.'}
         }));
       }
@@ -930,6 +953,12 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
   window.openBIGLWAModule=openModule;
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
   window.addEventListener('biglwa:orbit-imported',()=>{
+    if(activeModuleKey==='archive') renderArchive();
+    if(activeModuleKey==='feed'){
+      if(window.__biglwaFeed&&typeof window.__biglwaFeed.refresh==='function') window.__biglwaFeed.refresh();
+    }
+  });
+  window.addEventListener('biglwa:orbit-state-changed',()=>{
     if(activeModuleKey==='archive') renderArchive();
     if(activeModuleKey==='feed'){
       if(window.__biglwaFeed&&typeof window.__biglwaFeed.refresh==='function') window.__biglwaFeed.refresh();
