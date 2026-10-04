@@ -929,6 +929,12 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
   }
   window.openBIGLWAModule=openModule;
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
+  window.addEventListener('biglwa:orbit-imported',()=>{
+    if(activeModuleKey==='archive') renderArchive();
+    if(activeModuleKey==='feed'){
+      if(window.__biglwaFeed&&typeof window.__biglwaFeed.refresh==='function') window.__biglwaFeed.refresh();
+    }
+  });
 
   function closeModule(push=true){stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
