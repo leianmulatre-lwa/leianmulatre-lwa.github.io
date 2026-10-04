@@ -221,6 +221,9 @@ function observeFeed() {
   tick();
 }
 
+window.addEventListener("biglwa:orbit-imported", () => { loadPosts(); });
+window.addEventListener("biglwa:instagram-restored", () => { loadPosts(); });
+
 function watch() {
   const form = document.getElementById("feedComposer");
   if (form && form !== seenForm) {
