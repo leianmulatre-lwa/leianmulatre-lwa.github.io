@@ -44,20 +44,29 @@
       return true;
     } catch (error) { console.warn('BIGLWA Orbit account persistence:', error); return false; }
   }
-  function importToFeed() {
+  async function waitForOrbitPosts() {
+    for (var attempt = 0; attempt < 120; attempt += 1) {
+      var importer = window.__biglwaOrbitPosts;
+      if (importer && typeof importer.importOrbitMedia === 'function') return importer;
+      await new Promise(function (resolve) { setTimeout(resolve, 50); });
+    }
+    return null;
+  }
+  async function importToFeed() {
     var who = window.__biglwaIdentity;
-    var importer = window.__biglwaOrbitPosts;
-    if (!importer || typeof importer.importOrbitMedia !== 'function') return Promise.resolve();
-    return importer.importOrbitMedia('instagram', state.media, state.profile, who || {})
-      .then(function (result) {
-        state.importsSaved = result.imported || 0;
-        if (window.__biglwaFeed && typeof window.__biglwaFeed.refresh === 'function') window.__biglwaFeed.refresh();
-        return result;
-      })
-      .catch(function (error) {
-        console.error('BIGLWA Instagram draft import:', error);
-        status(error.message || 'Instagram connected, but the imported media could not be saved to Big LWA.');
-      });
+    var importer = await waitForOrbitPosts();
+    if (!importer) {
+      throw new Error('BIGLWA Orbit storage did not finish loading. Reload the page and reconnect Instagram.');
+    }
+    var result = await importer.importOrbitMedia('instagram', state.media, state.profile, who || {});
+    state.importsSaved = result.imported || 0;
+    window.dispatchEvent(new CustomEvent('biglwa:orbit-imported', {
+      detail: { source: 'instagram', imported: state.importsSaved }
+    }));
+    if (window.__biglwaFeed && typeof window.__biglwaFeed.refresh === 'function') {
+      window.__biglwaFeed.refresh();
+    }
+    return result;
   }
   function api(path, options) {
     var settings = options || {};
