@@ -1,0 +1,23 @@
+name = "biglwa-instagram-api"
+main = "cloudflare-worker-instagram.js"
+compatibility_date = "2026-09-11"
+
+# These bindings mirror what is already live on the Worker. A bare
+# `wrangler deploy worker.js` would have removed every one of them, which would
+# break OAuth state storage and all media storage at the same time.
+[vars]
+INSTAGRAM_APP_ID = "1071153952301247"
+PINTEREST_APP_ID = "1610773"
+SITE_URL = "https://biglwa.com"
+TIKTOK_CLIENT_KEY = "awtd7mu4k7rn1pay"
+
+[[kv_namespaces]]
+binding = "OAUTH_SESSIONS"
+id = "e438b6eecb074f428d8a7f92122b3ad8"
+
+[[r2_buckets]]
+binding = "WALLPAPER_BUCKET"
+bucket_name = "wallpaper-bucket"
+
+# INSTAGRAM_APP_SECRET, PINTEREST_APP_SECRET, STATE_SECRET and TIKTOK_CLIENT_SECRET
+# stay as encrypted Worker secrets and are not restated here.
