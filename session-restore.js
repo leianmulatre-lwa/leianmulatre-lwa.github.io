@@ -1,7 +1,13 @@
 /* BIGLWA session restore
  * Keeps the last Studio module on the signed-in account and resolves Firebase auth before
  * the login surface is allowed to flash on a Studio refresh.
+ *
+ * Wrapped because this loads as a classic script. wallpaper-cloud.js is also a classic
+ * script with a top-level `const FIREBASE_CONFIG`, and two classic scripts declaring the
+ * same name collide in the global lexical scope: the second one throws a SyntaxError, which
+ * kills the whole file. Nothing here is meant to be global.
  */
+(() => {
 const FIREBASE_CONFIG={apiKey:"AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY",authDomain:"biglwa.firebaseapp.com",projectId:"biglwa",appId:"1:83232670555:web:e04927b20458390b3b507e"};
 let authPromise;
 async function getAuth(){
@@ -66,3 +72,4 @@ async function boot(){
   });
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();

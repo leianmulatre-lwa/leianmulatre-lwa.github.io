@@ -484,7 +484,8 @@ function bindGate(){
 
 /* Orbit holds the member's real connection settings, so it stays shut for guests even
    when a module page calls openModule() from inside its own closure. */
-const ORBIT_KEYS = new Set(["orbit","orbits"]);\nconst ARCHIVE_KEYS = new Set(["archive"]);
+const ORBIT_KEYS = new Set(["orbit","orbits"]);
+const ARCHIVE_KEYS = new Set(["archive"]);
 function guardOrbit(){
   const open=window.openBIGLWAModule;
   if(typeof open!=="function" || preview.openModule===open) return;
