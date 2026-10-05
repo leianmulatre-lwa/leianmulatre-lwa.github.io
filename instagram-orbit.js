@@ -4,7 +4,10 @@
 
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
-  var state = { connected: false, profile: null, media: [], error: '', importError: '', sessionLookupError: '', importsSaved: 0 };
+  var state = { connected: false, profile: null, media: [], error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importAttempted: false, importWarning: '', mediaCopyOk: null };
+  /* The same figures the Orbit panel shows, readable from the console, so a silent
+     zero-import can be diagnosed without guessing. */
+  window.__biglwaInstagramDiagnostics = state;
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -68,8 +71,11 @@
     if (!importer) {
       throw new Error('BIGLWA Orbit storage did not finish loading. Reload the page and reconnect Instagram.');
     }
+    state.importAttempted = true;
     var result = await importer.importOrbitMedia('instagram', state.media, state.profile, who || {});
     state.importsSaved = result.imported || 0;
+    state.importsSkipped = result.skipped || 0;
+    state.importWarning = (result && result.warning) || '';
     window.dispatchEvent(new CustomEvent('biglwa:orbit-imported', {
       detail: { source: 'instagram', imported: state.importsSaved }
     }));
@@ -146,12 +152,26 @@
       renderFeed();
     } catch (error) { console.error('BIGLWA Instagram render isolated:', error); }
   }
+  function importStatusHtml() {
+    if (!state.connected || !state.importAttempted) return '';
+    var parts = [];
+    parts.push('Instagram returned ' + state.media.length + ' item' + (state.media.length === 1 ? '' : 's') + '.');
+    parts.push('Saved to your BIGLWA account: ' + state.importsSaved + '.');
+    if (state.importsSkipped) parts.push('Skipped (no usable picture): ' + state.importsSkipped + '.');
+    var tone = state.importsSaved ? 'good' : 'bad';
+    if (state.importWarning) parts.push(state.importWarning);
+    return '<article class="module-list-item instagram-feed-item biglwa-instagram-import-status" data-instagram-import-status><div>' +
+      '<b>Import status</b><small>' + escapeText(parts.join(' ')) + '</small>' +
+      '<button type="button" class="module-action" data-instagram-resave>Save to BIGLWA again</button>' +
+      '</div></article>';
+  }
   function feedHtml() {
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
     }
     if (state.importError) {
-      return '<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected but nothing was saved</b><small>' + escapeText(state.importError) + '</small></div></article>';
+      return '<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected but nothing was saved</b><small>' + escapeText(state.importError) + '</small>' +
+        '<button type="button" class="module-action" data-instagram-resave>Try saving again</button></div></article>';
     }
     if (!state.connected) return '';
     var cards = state.media.slice(0, 20).map(function (item, index) {
@@ -184,16 +204,24 @@
       '</article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
-    return cards.join('');
+    return importStatusHtml() + cards.join('');
   }
   /* Instagram belongs in Archive. It is connected content, not a second renderer for
-     the member's Studio/profile feed. Older builds registered this source with the shared
-     feed mount, which made every connected photo compete with the Collective Feed layout. */
+     the member's Studio/profile feed.
+
+     This function used to delete the cards and insert nothing, and feedHtml() was never
+     called from anywhere in the file. Instagram was also the only provider that never
+     registered with the shared feed mount, so it was the only one that stayed invisible
+     after connecting. Both are fixed here: the cards are inserted into the list, and the
+     source is registered with the same mount TikTok, Pinterest and Facebook use. */
   function renderFeed(list) {
     list = list || one('#feedPageList');
     if (!list) return;
     all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
+    var html = feedHtml();
+    if (html) list.insertAdjacentHTML('afterbegin', html);
   }
+  if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
   document.addEventListener('click', function (event) {
     var tab = event.target && event.target.closest ? event.target.closest('[data-instagram-tab]') : null;
     if (tab) {
@@ -226,6 +254,24 @@
         all('.biglwa-instagram-tab', card).forEach(function (button) { button.classList.remove('is-active'); });
         tab.classList.add('is-active');
       }
+      return;
+    }
+    var resave = event.target && event.target.closest ? event.target.closest('[data-instagram-resave]') : null;
+    if (resave) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      status('Saving your Instagram media to BIGLWA…');
+      importToFeed().then(function (result) {
+        state.importError = '';
+        state.importAttempted = true;
+        render();
+        if (window.__biglwaFeed && typeof window.__biglwaFeed.refresh === 'function') window.__biglwaFeed.refresh();
+        status('Saved ' + ((result && result.imported) || 0) + ' item(s) to your BIGLWA account.');
+      }, function (failure) {
+        state.importError = failure.message;
+        render();
+        status('Could not save: ' + failure.message);
+      });
       return;
     }
     var hide = event.target && event.target.closest ? event.target.closest('[data-instagram-hide]') : null;
