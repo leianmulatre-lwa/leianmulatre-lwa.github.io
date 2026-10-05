@@ -291,11 +291,23 @@ let drawnSignature = null;
 
 let instagramHydrating = false;
 
+/* Ordering and the owner fields are read consistently with orbit-posts.js. Sorting on the
+   raw source string mis-ordered Instagram's epoch-seconds timestamps and put the newest
+   card in the wrong place, which is what made the most recent Instagram card look like it
+   had not uploaded. */
+function postTimeMs(post) {
+  const parse = window.__biglwaOrbitPosts?.sourceTimeMs;
+  if (typeof parse === "function") {
+    return parse(post.sourceCreatedAt) || parse(post.sourceCreatedAtMs) || timestampMs(post.createdAt);
+  }
+  return timestampMs(post.createdAt || post.sourceCreatedAt);
+}
+
 async function loadPosts() {
   if (loading) return posts;
   loading = true;
   try {
-    const { db, auth, collection, query, where, limit, getDocs, doc, setDoc } = await firebase();
+    const { db, auth, collection, query, where, limit, getDocs } = await firebase();
     const user = auth.currentUser;
     let rootPosts = [];
     let profilePosts = [];
@@ -331,15 +343,20 @@ async function loadPosts() {
 
         const profileApproved = profilePosts.filter((p) => p.orbitImported && p.state === "approved");
         const rootIds = new Set(rootPosts.map((p) => p.id));
+        const repair = window.__biglwaOrbitPosts?.savePostRecords;
         for (const profilePost of profileApproved) {
-          if (!rootIds.has(profilePost.id)) {
-            try {
-              await setDoc(doc(db, "posts", profilePost.id), profilePost, { merge: true });
-            } catch (error) {
-              console.warn("BIGLWA Orbit profile-to-feed repair:", error);
-            }
-            rootPosts.push(profilePost);
-            rootIds.add(profilePost.id);
+          if (rootIds.has(profilePost.id)) continue;
+          rootIds.add(profilePost.id);
+          rootPosts.push(profilePost);
+          /* A card that reached the profile index but never the canonical record is written
+             back through the shared writer, so the repair stamps the same owner fields and
+             lands in the Archive too. Writing doc(db,"posts") directly from a reader is what
+             left the two paths disagreeing. */
+          if (typeof repair !== "function") continue;
+          try {
+            await repair(user.uid, profilePost.id, { ...profilePost, id: undefined }, { archiveState: profilePost.archiveState || "collective" });
+          } catch (error) {
+            console.warn("BIGLWA Orbit profile-to-feed repair:", error);
           }
         }
       } catch (error) {
@@ -349,7 +366,7 @@ async function loadPosts() {
 
     posts = rootPosts
       .filter((p) => p.state === "approved")
-      .sort((a, b) => timestampMs(b.createdAt || b.sourceCreatedAt) - timestampMs(a.createdAt || a.sourceCreatedAt))
+      .sort((a, b) => postTimeMs(b) - postTimeMs(a))
       .slice(0, FEED_SIZE);
 
     draftPosts = [];
@@ -439,18 +456,13 @@ function renderHero(force) {
    out of a card they are on, so the markup is only rebuilt when the posts or the viewer
    actually differ. A newly rendered feed route is a new list and still gets drawn. */
 async function publishDraft(postId) {
-  const { db, auth, doc, setDoc, getDoc, serverTimestamp } = await firebase();
-  const user = auth.currentUser;
-  if (!user) throw new Error("Sign in to publish this post.");
-  const rootRef = doc(db, "posts", postId);
-  const profileRef = doc(db, "users", user.uid, "posts", postId);
-  const snap = await getDoc(rootRef);
-  if (!snap.exists()) throw new Error("That imported post is no longer available.");
-  const post = snap.data() || {};
-  if (post.uid !== user.uid) throw new Error("You can only publish your own imports.");
-  const patch = { state: "approved", publishedAt: serverTimestamp(), updatedAt: serverTimestamp() };
-  await setDoc(rootRef, patch, { merge: true });
-  await setDoc(profileRef, patch, { merge: true });
+  /* Publishing went through its own two-path write that skipped the Archive entirely, so a
+     draft promoted to the Collective Feed was missing from the account's Archive until the
+     next reconnect happened to rewrite it. setOrbitState owns the approved transition and
+     updates the canonical record, the profile index, and the Archive together. */
+  const orbit = window.__biglwaOrbitPosts;
+  if (typeof orbit?.setOrbitState !== "function") throw new Error("The feed is still loading. Try again in a moment.");
+  return orbit.setOrbitState(postId, "approved");
 }
 function renderPosts(force) {
   const list = document.getElementById("feedPageList");
@@ -714,15 +726,13 @@ function upgradeComposer(form) {
 async function archivePost(post, action) {
   action.disabled = true;
   try {
+    /* Every card goes through orbit-posts.js, not just imported ones. This used to branch
+       on post.orbitImported and hand-roll the write for everything else, which updated
+       /posts and the profile index but never the Archive, so a Studio or link post could
+       be hidden from the feed and be missing from the Archive at the same time. */
     const orbit = window.__biglwaOrbitPosts;
-    if (post.orbitImported && orbit?.archiveOrbitPost) {
-      await orbit.archiveOrbitPost(post.id);
-    } else {
-      const { db, doc, updateDoc, setDoc, serverTimestamp } = await firebase();
-      const stamp = serverTimestamp();
-      await updateDoc(doc(db, "posts", post.id), { state: "archived", deletionAt: null, updatedAt: stamp });
-      await setDoc(doc(db, "users", identity().uid, "posts", post.id), { state: "archived", deletionAt: null, updatedAt: stamp }, { merge: true });
-    }
+    if (typeof orbit?.setOrbitState !== "function") throw new Error("The feed is still loading. Try again in a moment.");
+    await orbit.setOrbitState(post.id, "archived");
     posts = posts.filter((p) => p.id !== post.id);
     renderPosts(true);
     renderHero(true);
@@ -740,24 +750,8 @@ async function deletePost(post, action) {
   action.disabled = true;
   try {
     const orbit = window.__biglwaOrbitPosts;
-    if (post.orbitImported && orbit?.removeOrbitPost) {
-      await orbit.removeOrbitPost(post.id);
-    } else {
-      const { db, doc, updateDoc, setDoc, getDoc, serverTimestamp } = await firebase();
-      const rootSnap = await getDoc(doc(db, "posts", post.id));
-      const current = rootSnap.exists() ? rootSnap.data() || {} : {};
-      const deletionAt = current.deletionAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      const stamp = serverTimestamp();
-      await updateDoc(doc(db, "posts", post.id), { state: "archived", deletionAt, updatedAt: stamp });
-      await setDoc(doc(db, "users", post.uid || identity().uid, "posts", post.id), { state: "archived", deletionAt, updatedAt: stamp }, { merge: true });
-      await setDoc(doc(db, "users", post.uid || identity().uid, "archive", post.id), {
-        ...current,
-        state: "archived",
-        archiveState: "pending_delete",
-        deletionAt,
-        updatedAt: stamp
-      }, { merge: true });
-    }
+    if (typeof orbit?.setOrbitState !== "function") throw new Error("The feed is still loading. Try again in a moment.");
+    await orbit.setOrbitState(post.id, "pending_delete");
     posts = posts.filter((p) => p.id !== post.id);
     renderPosts(true);
     renderHero(true);

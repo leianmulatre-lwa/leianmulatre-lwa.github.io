@@ -81,27 +81,47 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.uid);
     }
 
-    // Every account post is also mirrored under the owner's profile. This gives the member
-    // a durable per-account post history while the root /posts collection powers the public
-    // collective feed. The same document id is used in both places.
+    /* Every account post is also mirrored under the owner's profile. This gives the member
+       a durable per-account post history while the root /posts collection powers the public
+       collective feed. The same document id is used in both places.
+
+       Reads: a published card is readable by anyone, which is what lets a visitor open
+       another member's profile and see what they actually published. A draft stays
+       owner-only. Firestore rejects a whole query when any document in it would fail the
+       rule, so a reader must filter on state == 'approved' to see another account. That
+       is not a partial leak; the query simply fails closed. */
     match /users/{userId}/posts/{postId} {
-      allow read, create, update: if isOwner(userId)
+      allow read: if isOwner(userId)
+        || (resource.data.uid == userId && resource.data.state == 'approved');
+      allow create, update: if isOwner(userId)
         && request.resource.data.uid == userId;
       allow delete: if isOwner(userId)
         && resource.data.uid == userId;
     }
 
-    // Instagram/Orbit Archive. The owner always has access. If the owner explicitly
-    // chooses "friends", a signed-in UID listed in archiveFriends may read the archive.
-    // Provider credentials and the friend list itself remain owner-only on /users/{userId}.
+    /* Instagram/Orbit Archive. The owner always has access. A card the owner has published
+       to the Collective Feed is public, so the Archive and the feed cannot disagree about
+       what a visitor may see. Everything still saved only to the Archive stays private. If
+       the owner explicitly chooses "friends", a signed-in UID listed in archiveFriends may
+       read the rest. Provider credentials and the friend list itself remain owner-only on
+       /users/{userId}. */
     match /users/{userId}/archive/{archiveId} {
       allow read: if isOwner(userId)
+        || (resource.data.uid == userId && resource.data.state == 'approved')
         || (request.auth != null
           && get(/databases/$(database)/documents/users/$(userId)).data.get('archive', {}).get('visibility', 'private') == 'friends'
           && request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.get('archiveFriends', []));
       allow create, update: if isOwner(userId)
         && request.resource.data.uid == userId;
       allow delete: if isOwner(userId);
+    }
+
+    /* Per-owner retrieval index. The client keeps one small doc per account recording what
+       that account owns and by source, so a future search or ranking pass can enumerate an
+       owner's media without fanning out across every post. Owner-only, and deliberately
+       not readable by others: it is an inventory, not a published surface. */
+    match /users/{userId}/index/{indexId} {
+      allow read, write: if isOwner(userId);
     }
 
     // Wallpaper moderation queue. Members may open a review for their own media and

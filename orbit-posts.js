@@ -37,6 +37,9 @@ async function firebase() {
       getDocs: store.getDocs,
       query: store.query,
       where: store.where,
+      orderBy: store.orderBy,
+      limit: store.limit,
+      writeBatch: store.writeBatch,
       serverTimestamp: store.serverTimestamp
     };
   }
@@ -72,25 +75,36 @@ function mediaFromItem(source, item, hostedMedia) {
   const pieces = mediaPieces(item);
   const mediaItems = pieces.map((piece, index) => {
     const originalUrl = clean(piece.media_url || piece.thumbnail_url);
-    const hosted = hostedMedia?.get(sourcePostId + ":" + index);
+    const slot = sourcePostId + ":" + index;
+    const hosted = hostedMedia?.urls?.get(slot);
     return {
       index,
       url: hosted || originalUrl,
+      /* The Worker already stores Orbit media under orbit/<uid>/<name> and returns that
+         owner-scoped key. It used to be discarded here, which left Firestore holding only
+         a borrowed Instagram URL and no way to tie a picture back to the account that owns
+         it. Keeping the key is what lets a later retrieval or ranking pass enumerate an
+         account's own media straight from storage. */
+      key: hostedMedia?.keys?.get(slot) || null,
       thumbnailUrl: hosted || clean(piece.thumbnail_url || piece.media_url),
       mediaType: clean(piece.media_type || item.media_type || "IMAGE").toUpperCase()
     };
   }).filter(piece => piece.url);
   const imageUrls = mediaItems.map(piece => piece.url);
+  const imageKeys = mediaItems.map(piece => piece.key).filter(Boolean);
   if (!imageUrls.length) return null;
   return {
     source: source.toLowerCase(),
     sourcePostId,
     caption: caption.slice(0, 500),
     imageUrl: imageUrls[0],
+    imageUrlKey: imageKeys[0] || null,
     imageUrls,
+    imageKeys,
     mediaItems,
     sourceUrl: clean(item.permalink || item.share_url || item.url),
     sourceCreatedAt: clean(item.timestamp || item.create_time || item.created_at),
+    sourceCreatedAtMs: sourceTimeMs(item.timestamp ?? item.create_time ?? item.created_at),
     sourceUsername: clean(item.username || item.author || ""),
     mediaType: clean(item.media_type || item.media_type_name || "IMAGE").toUpperCase()
   };
@@ -98,6 +112,108 @@ function mediaFromItem(source, item, hostedMedia) {
 
 /* Instagram imports are durable account media: the same post is written to the owner's
    profile, Archive, and Collective Feed. Carousel children remain together as one card. */
+
+/* ---- Shared helpers -------------------------------------------------------
+   These three existed inline in three different files with three different
+   behaviours, which is how the owner attribution and the ordering drifted apart.
+   They live here now so every writer and reader agrees. */
+
+/* Source timestamps arrive in three shapes depending on which Orbit provider and
+   which endpoint produced them: ISO-8601 (Instagram Graph), Unix seconds as a
+   number or numeric string (the internal feed endpoints), and Unix milliseconds.
+   Date.parse() returns NaN for a bare numeric string, so an epoch-seconds post used
+   to collapse to 0 and sort as if it were infinitely old. Every reader now funnels
+   through this one function and orders on a stored numeric field. */
+export function sourceTimeMs(value) {
+  if (value == null) return 0;
+  if (typeof value.toMillis === "function") { try { return value.toMillis(); } catch { return 0; } }
+  if (value instanceof Date) { const ms = value.getTime(); return Number.isFinite(ms) ? ms : 0; }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value) || value <= 0) return 0;
+    return value > 1e12 ? value : value * 1000;
+  }
+  const text = String(value).trim();
+  if (!text) return 0;
+  if (/^\d+$/.test(text)) {
+    const n = Number(text);
+    return n > 1e12 ? n : n * 1000;
+  }
+  const parsed = Date.parse(text);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/* Every card carries the same owner identity fields so the Collective Feed, the Archive,
+   a profile page, and any future search or ranking pass can attribute and group a card
+   without a second lookup. `usernameLower` is the join key used elsewhere in the app. */
+async function resolveOwner(user, identityRecord, profile) {
+  const username = clean(identityRecord?.username || profile?.username || user.displayName);
+  const authorName = clean(identityRecord?.name || identityRecord?.displayName || profile?.name || username);
+  let usernameLower = clean(identityRecord?.usernameLower || username).replace(/^@/, "").toLowerCase();
+  if (!usernameLower) {
+    try {
+      const { db: rdb, doc: rdoc, getDoc: rgetDoc } = await firebase();
+      const snap = await rgetDoc(rdoc(rdb, "users", user.uid));
+      if (snap.exists()) {
+        const account = snap.data() || {};
+        usernameLower = clean(account.usernameLower || account.username).replace(/^@/, "").toLowerCase();
+      }
+    } catch {}
+  }
+  return { uid: user.uid, username, usernameLower, authorName };
+}
+
+/* One post is stored in three places by design: /posts/{id} is the canonical record the
+   public Collective Feed reads, and users/{uid}/posts/{id} plus users/{uid}/archive/{id}
+   are per-owner indexes so an account can retrieve everything it owns cheaply and in
+   step. All three previously had separate ad-hoc write code in three files, so they
+   drifted: the collective publisher never wrote the Archive, and the feed renderer
+   wrote /posts back from a reader. Every write now goes through this function, which
+   also commits all three in a single batch so a partial failure cannot leave the
+   paths disagreeing. */
+function postRefs(store, uid, postId) {
+  return {
+    root: store.doc(store.db, "posts", postId),
+    profile: store.doc(store.db, "users", uid, "posts", postId),
+    archive: store.doc(store.db, "users", uid, "archive", postId)
+  };
+}
+
+/* All three land in one batch, so a partial failure cannot leave the canonical record and
+   the per-owner indexes disagreeing about the same post id. */
+async function writePostRecords(store, uid, postId, data, archiveExtra = {}) {
+  const refs = postRefs(store, uid, postId);
+  const batch = store.writeBatch(store.db);
+  batch.set(refs.root, data, { merge: true });
+  batch.set(refs.profile, data, { merge: true });
+  batch.set(refs.archive, { ...data, ...archiveExtra }, { merge: true });
+  await batch.commit();
+  return refs;
+}
+
+/* Per-owner index doc. The app already needs "everything this account has published"
+   for the Archive count and the profile header; keeping a single small counter doc means
+   a future retrieval or ranking algorithm does not have to fan out across every post to
+   learn what an account owns and what kind of media it holds. */
+async function bumpOwnerIndex(store, uid, owner, incoming) {
+  const ref = store.doc(store.db, "users", uid, "index", "media");
+  try {
+    const snap = await store.getDoc(ref);
+    const current = snap.exists() ? snap.data() || {} : {};
+    const counts = { ...(current.counts || {}) };
+    const incomingCount = Object.keys(incoming || {}).length;
+    if (incomingCount) counts[incoming] = (counts[incoming] || 0) + 1;
+    await store.setDoc(ref, {
+      uid,
+      username: owner.username,
+      usernameLower: owner.usernameLower,
+      counts,
+      lastImportedAt: store.serverTimestamp(),
+      updatedAt: store.serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.warn("BIGLWA owner index:", error);
+  }
+}
 
 /* The R2 copy is an enhancement, not a precondition for persistence.
    mediaFromItem() already falls back to each item's original source URL whenever this map
@@ -153,23 +269,28 @@ async function importInstagramMediaToR2(items, user) {
     imported.push(...(Array.isArray(body.imported) ? body.imported : []));
   }
 
-  const map = new Map();
+  const map = { urls: new Map(), keys: new Map() };
   imported.forEach(entry => {
     if (entry && entry.sourcePostId != null && entry.index != null && entry.url) {
-      map.set(String(entry.sourcePostId) + ":" + String(entry.index), String(entry.url));
+      const slot = String(entry.sourcePostId) + ":" + String(entry.index);
+      map.urls.set(slot, String(entry.url));
+      if (entry.key) map.keys.set(slot, String(entry.key));
     }
   });
   return map;
 }
 
 export async function importOrbitMedia(source, items, profile, identityRecord) {
-  const { db, auth, doc, setDoc, getDoc, serverTimestamp } = await firebase();
+  const store = await firebase();
+  const { db, auth, getDoc, serverTimestamp } = store;
   const user = auth.currentUser;
   if (!user) throw new Error("Sign in to save Orbit imports to your account.");
   if (!Array.isArray(items) || !items.length) return { imported: 0, skipped: 0 };
 
-  const username = clean(identityRecord?.username || user.displayName);
-  const authorName = clean(identityRecord?.name || username || profile?.username || profile?.name);
+  /* Resolved once per import rather than per card, and it falls back to the account doc so
+     a card can never be written with an empty owner just because the identity module had
+     not finished booting. */
+  const owner = await resolveOwner(user, identityRecord, profile);
   let imported = 0;
   let skipped = 0;
 
@@ -177,7 +298,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   let warning = "";
   if (source.toLowerCase() === "instagram") {
     hostedMedia = await importInstagramMediaToR2(items, user);
-    if (!hostedMedia || !hostedMedia.size) {
+    if (!hostedMedia || !hostedMedia.urls.size) {
       warning = "Orbit media is linked from Instagram instead of copied into BIGLWA storage, so some pictures can stop loading when Instagram retires the link.";
     }
   }
@@ -187,17 +308,15 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     if (!item) { skipped += 1; continue; }
 
     const postId = await idFor(item.source, item.sourcePostId);
-    const rootRef = doc(db, "posts", postId);
-    const profileRef = doc(db, "users", user.uid, "posts", postId);
-    const archiveRef = doc(db, "users", user.uid, "archive", postId);
+    const refs = postRefs(store, user.uid, postId);
     let existing = null;
     let existingArchive = null;
     try {
-      const snap = await getDoc(rootRef);
+      const snap = await getDoc(refs.root);
       if (snap.exists()) existing = snap.data() || {};
     } catch {}
     try {
-      const snap = await getDoc(archiveRef);
+      const snap = await getDoc(refs.archive);
       if (snap.exists()) existingArchive = snap.data() || {};
     } catch {}
 
@@ -221,13 +340,14 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
           ? "collective"
           : "saved";
     const data = {
-      uid: user.uid,
-      username,
-      authorName,
+      uid: owner.uid,
+      username: owner.username,
+      usernameLower: owner.usernameLower,
+      authorName: owner.authorName,
       caption: item.caption,
-      imageKey: null,
+      imageKey: item.imageUrlKey,
       imageUrl: item.imageUrl,
-      imageKeys: [],
+      imageKeys: item.imageKeys,
       imageUrls: item.imageUrls,
       mediaItems: item.mediaItems,
       source: item.source,
@@ -235,6 +355,9 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       sourceUrl: item.sourceUrl || null,
       sourceUsername: item.sourceUsername || clean(profile?.username),
       sourceCreatedAt: item.sourceCreatedAt || null,
+      /* Stored numerically so every reader orders on the same real value. Sorting on the
+         raw string is what put newest Instagram cards in the wrong order. */
+      sourceCreatedAtMs: item.sourceCreatedAtMs || 0,
       mediaType: item.mediaType,
       orbitImported: true,
       state,
@@ -244,23 +367,21 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     };
     if (!existing) data.createdAt = serverTimestamp();
 
-    await setDoc(rootRef, data, { merge: true });
-    await setDoc(profileRef, data, { merge: true });
-    await setDoc(archiveRef, {
-      ...data,
+    await writePostRecords(store, user.uid, postId, data, {
       archiveState,
       archivedAt: archiveState === "collective" ? null : (existingArchive?.archivedAt || serverTimestamp()),
       deletionAt: preservedDeleteAt
-    }, { merge: true });
+    });
+    await bumpOwnerIndex(store, user.uid, owner, item.source);
     imported += 1;
   }
 
   try {
-    const accountRef = doc(db, "users", user.uid);
+    const accountRef = store.doc(db, "users", user.uid);
     const accountSnap = await getDoc(accountRef);
     const existingAccount = accountSnap.exists() ? accountSnap.data() || {} : {};
     const existingVisibility = existingAccount.archive?.visibility === "friends" ? "friends" : "private";
-    await setDoc(accountRef, {
+    await store.setDoc(accountRef, {
       archive: {
         visibility: existingVisibility,
         instagram: {
@@ -278,7 +399,12 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
 }
 
 export async function loadArchive(ownerUid) {
-  const { db, auth, collection, getDocs, doc, setDoc, deleteDoc } = await firebase();
+  /* getDoc was missing from this destructure. The migration block below calls it, so the
+     whole load threw "getDoc is not defined", the catch swallowed it as a warning, and the
+     Archive silently stayed empty for every account whose Instagram posts predated the
+     Archive collection. That was the actual reason imported media never appeared there. */
+  const store = await firebase();
+  const { db, auth, collection, getDocs, query, doc, getDoc, setDoc, deleteDoc, orderBy, limit } = store;
   const uid = ownerUid || auth.currentUser?.uid;
   if (!uid) return [];
 
@@ -303,7 +429,23 @@ export async function loadArchive(ownerUid) {
     }
   }
 
-  const snap = await getDocs(collection(db, "users", uid, "archive"));
+  /* Ordered by the stored numeric source time so the newest card is genuinely first.
+     Sorted on the raw string before, which mis-ordered epoch-seconds timestamps and put
+     cards with no timestamp at an arbitrary point. */
+  let snap;
+  try {
+    snap = await getDocs(query(
+      collection(db, "users", uid, "archive"),
+      orderBy("sourceCreatedAtMs", "desc"),
+      limit(300)
+    ));
+  } catch (error) {
+    /* Documents written before the numeric field existed are not returned by an
+       orderBy on that field, so fall back to the unfiltered read rather than showing
+       an empty Archive. */
+    console.warn("BIGLWA Archive ordered read:", error);
+    snap = await getDocs(collection(db, "users", uid, "archive"));
+  }
   const now = Date.now();
   const rows = [];
   for (const d of snap.docs) {
@@ -330,7 +472,13 @@ export async function loadArchive(ownerUid) {
         || (data.state === "approved" ? "collective" : data.state === "archived" ? "archived" : "saved")
     });
   }
-  return rows.sort((a,b) => String(b.sourceCreatedAt || "").localeCompare(String(a.sourceCreatedAt || "")));
+  return rows.sort((a, b) => archiveTimeMs(b) - archiveTimeMs(a));
+}
+
+/* Newest first: the source's own time when it is known, otherwise when the card was
+   imported. Falling back keeps undated cards from jumping to the top of the Archive. */
+function archiveTimeMs(row) {
+  return Number(row?.sourceCreatedAtMs) || sourceTimeMs(row?.sourceCreatedAt) || 0;
 }
 export async function getArchiveSettings() {
   const { db, auth, doc, getDoc } = await firebase();
@@ -411,19 +559,18 @@ export async function archiveOrbitPost(postId) {
 
 export async function setOrbitState(postId, state) {
   if (!["draft", "approved", "archived", "pending_delete"].includes(state)) throw new Error("Invalid post state.");
-  const { db, auth, doc, getDoc, setDoc, serverTimestamp } = await firebase();
+  const store = await firebase();
+  const { db, auth, getDoc, serverTimestamp } = store;
   const user = auth.currentUser;
   if (!user) throw new Error("Sign in to manage this post.");
 
-  const rootRef = doc(db, "posts", postId);
-  const profileRef = doc(db, "users", user.uid, "posts", postId);
-  const archiveRef = doc(db, "users", user.uid, "archive", postId);
-  const snap = await getDoc(rootRef);
+  const refs = postRefs(store, user.uid, postId);
+  const snap = await getDoc(refs.root);
   if (!snap.exists()) throw new Error("That post is no longer available.");
   const current = snap.data() || {};
   if (current.uid !== user.uid) throw new Error("You can only manage your own posts.");
 
-  const archiveSnap = await getDoc(archiveRef);
+  const archiveSnap = await getDoc(refs.archive);
   const archiveCurrent = archiveSnap.exists() ? archiveSnap.data() || {} : {};
   let deletionAt = archiveCurrent.deletionAt || current.deletionAt || null;
   if (state === "pending_delete" && !deletionAt) deletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -439,22 +586,52 @@ export async function setOrbitState(postId, state) {
 
   const persistedState = state === "pending_delete" ? "archived" : state;
   const patch = { state: persistedState, deletionAt, updatedAt: serverTimestamp() };
-  await setDoc(rootRef, patch, { merge: true });
-  await setDoc(profileRef, patch, { merge: true });
-  await setDoc(archiveRef, {
-    ...archiveCurrent,
-    uid: user.uid,
-    state: persistedState,
-    archiveState,
-    deletionAt,
-    updatedAt: serverTimestamp()
-  }, { merge: true });
 
-  return { ...current, ...patch, requestedState: state, archiveState, id: postId };
+  /* The owner identity fields are re-stamped here as well. Older cards were written
+     without usernameLower, so publishing one left a card in the Collective Feed that
+     nothing could attribute to an account. */
+  const owner = await resolveOwner(user, { username: current.username, name: current.authorName }, null);
+  const full = {
+    ...patch,
+    uid: user.uid,
+    username: current.username || owner.username,
+    usernameLower: current.usernameLower || owner.usernameLower,
+    authorName: current.authorName || owner.authorName
+  };
+
+  await writePostRecords(store, user.uid, postId, full, {
+    archiveState,
+    archivedAt: archiveState === "archived" || archiveState === "pending_delete"
+      ? (archiveCurrent.archivedAt || serverTimestamp())
+      : null
+  });
+
+  return { ...current, ...full, requestedState: state, archiveState, id: postId };
 }
 
 export async function removeOrbitPost(postId) {
   return setOrbitState(postId, "pending_delete");
+}
+
+/* Public entry point for the other writers. collective-publish.js and feed-view.js each
+   had their own partial copy of this write, which is how a card could end up in the
+   Collective Feed but missing from the Archive, or carry no owner at all. They now call
+   this, so there is exactly one definition of what a post write means. */
+export async function savePostRecords(ownerUid, postId, data, archiveExtra = {}) {
+  const store = await firebase();
+  const uid = ownerUid || store.auth.currentUser?.uid;
+  if (!uid) throw new Error("Sign in to save this post.");
+  if (String(data?.uid || "") !== uid) throw new Error("A post can only be saved to its owner's account.");
+  const owner = await resolveOwner(store.auth.currentUser, data, null);
+  const payload = {
+    ...data,
+    uid,
+    username: clean(data.username) || owner.username,
+    usernameLower: clean(data.usernameLower) || owner.usernameLower,
+    authorName: clean(data.authorName) || owner.authorName
+  };
+  await writePostRecords(store, uid, postId, payload, archiveExtra);
+  return payload;
 }
 
 window.__biglwaOrbitPosts = {
@@ -467,5 +644,7 @@ window.__biglwaOrbitPosts = {
   getArchiveSettings,
   setArchiveVisibility,
   addArchiveFriend,
-  removeArchiveFriend
+  removeArchiveFriend,
+  savePostRecords,
+  sourceTimeMs
 };
