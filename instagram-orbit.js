@@ -4,7 +4,7 @@
 
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
-  var state = { connected: false, profile: null, media: [], error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importAttempted: false, importWarning: '' };
+  var state = { connected: false, profile: null, media: [], error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
   /* The same figures the Orbit panel shows, readable from the console, so a silent
      zero-import can be diagnosed without guessing. */
   window.__biglwaInstagramDiagnostics = state;
@@ -75,6 +75,7 @@
     var result = await importer.importOrbitMedia('instagram', state.media, state.profile, who || {});
     state.importsSaved = result.imported || 0;
     state.importsSkipped = result.skipped || 0;
+    state.importsPartial = result.partial || 0;
     state.importWarning = (result && result.warning) || '';
     window.dispatchEvent(new CustomEvent('biglwa:orbit-imported', {
       detail: { source: 'instagram', imported: state.importsSaved }
@@ -158,6 +159,7 @@
     parts.push('Instagram returned ' + state.media.length + ' item' + (state.media.length === 1 ? '' : 's') + '.');
     parts.push('Saved to your BIGLWA account: ' + state.importsSaved + '.');
     if (state.importsSkipped) parts.push('Skipped (no usable picture): ' + state.importsSkipped + '.');
+    if (state.importsPartial) parts.push('Only partly saved: ' + state.importsPartial + '. Your BIGLWA security rules still need publishing.');
     if (state.importWarning) parts.push(state.importWarning);
     return '<article class="module-list-item instagram-feed-item biglwa-instagram-import-status" data-instagram-import-status><div>' +
       '<b>Import status</b><small>' + escapeText(parts.join(' ')) + '</small>' +

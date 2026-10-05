@@ -178,16 +178,36 @@ function postRefs(store, uid, postId) {
   };
 }
 
-/* All three land in one batch, so a partial failure cannot leave the canonical record and
-   the per-owner indexes disagreeing about the same post id. */
+/* Each path is committed on its own, owner indexes first and the canonical record last.
+   These three used to share one writeBatch, which is all-or-nothing: if the deployed rules
+   denied a single path, commit() rejected and the card was saved nowhere at all, so the
+   Collective Feed, the profile and the Archive all stayed empty together. Writing them
+   independently means a rule that has not been updated yet costs one index instead of the
+   whole card, and the feed repair pass can still promote a profile hit into /posts. */
 async function writePostRecords(store, uid, postId, data, archiveExtra = {}) {
   const refs = postRefs(store, uid, postId);
-  const batch = store.writeBatch(store.db);
-  batch.set(refs.root, data, { merge: true });
-  batch.set(refs.profile, data, { merge: true });
-  batch.set(refs.archive, { ...data, ...archiveExtra }, { merge: true });
-  await batch.commit();
-  return refs;
+  const targets = [
+    ["archive", refs.archive, { ...data, ...archiveExtra }],
+    ["profile", refs.profile, data],
+    ["root", refs.root, data]
+  ];
+  const denied = [];
+  for (const [label, ref, payload] of targets) {
+    try {
+      await store.setDoc(ref, payload, { merge: true });
+    } catch (error) {
+      denied.push(label);
+      console.warn("BIGLWA post write denied (" + label + "):", error);
+    }
+  }
+  if (denied.length === targets.length) {
+    const failure = new Error("BIGLWA could not save this card to your account.");
+    failure.code = "post-write-failed";
+    failure.denied = denied;
+    throw failure;
+  }
+  if (denied.length) console.warn("BIGLWA post saved to some paths only; denied:", denied.join(", "));
+  return { refs, denied };
 }
 
 /* Per-owner index doc. The app already needs "everything this account has published"
@@ -285,7 +305,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   const { db, auth, getDoc, serverTimestamp } = store;
   const user = auth.currentUser;
   if (!user) throw new Error("Sign in to save Orbit imports to your account.");
-  if (!Array.isArray(items) || !items.length) return { imported: 0, skipped: 0 };
+  if (!Array.isArray(items) || !items.length) return { imported: 0, skipped: 0, partial: 0, warning: "" };
 
   /* Resolved once per import rather than per card, and it falls back to the account doc so
      a card can never be written with an empty owner just because the identity module had
@@ -293,6 +313,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   const owner = await resolveOwner(user, identityRecord, profile);
   let imported = 0;
   let skipped = 0;
+  let partial = 0;
 
   let hostedMedia = null;
   let warning = "";
@@ -367,11 +388,12 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     };
     if (!existing) data.createdAt = serverTimestamp();
 
-    await writePostRecords(store, user.uid, postId, data, {
+    const written = await writePostRecords(store, user.uid, postId, data, {
       archiveState,
       archivedAt: archiveState === "collective" ? null : (existingArchive?.archivedAt || serverTimestamp()),
       deletionAt: preservedDeleteAt
     });
+    if (written.denied.length) partial += 1;
     await bumpOwnerIndex(store, user.uid, owner, item.source);
     imported += 1;
   }
@@ -395,7 +417,13 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     }, { merge: true });
   } catch {}
 
-  return { imported, skipped, warning };
+  if (partial) {
+    warning = (warning ? warning + " " : "")
+      + partial + " card" + (partial === 1 ? "" : "s")
+      + " could not be written to every list. Your BIGLWA security rules still need publishing.";
+  }
+
+  return { imported, skipped, partial, warning };
 }
 
 export async function loadArchive(ownerUid) {
