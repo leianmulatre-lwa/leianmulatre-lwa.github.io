@@ -22,6 +22,14 @@ const FEED_SIZE = 40;
    its first photo, so a multi-photo post reads like a slideshow rather than a stack.
    The ceiling keeps one post from turning the wall into a video. */
 const MAX_SLIDES = 6;
+/* A post with a dozen photos is not a slideshow, it is a stack. Past this many the card
+   settles on the first picture instead of drawing tabs and dots for every one of them,
+   because thirteen numbered tabs in a strip a few pixels tall is noise rather than
+   navigation. */
+const MANY_PHOTOS = 8;
+/* How many pictures are counted before a post is treated as a stack. Only the first
+   MANY_PHOTOS are ever drawn, so this is just a ceiling on the counting work. */
+const SLIDE_SCAN = 30;
 const SLIDE_MS = 4200;
 
 const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c) =>
@@ -36,7 +44,9 @@ const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c
    A video contributes its poster instead, which is what keeps a reel or a video-only post
    from rendering as an empty card. */
 const looksLikeVideoFile = (u) => /\.(mp4|mov|m4v|webm)(\?|$)/i.test(String(u || ""));
-const slideUrls = (post) => {
+/* Every picture the post can show, so the card can tell a two-photo post from a
+   thirteen-photo one before deciding what to draw. */
+const pictureUrls = (post) => {
   const items = Array.isArray(post.mediaItems) ? post.mediaItems : [];
   const fromItems = items.map((piece) => {
     if (!piece) return "";
@@ -45,11 +55,13 @@ const slideUrls = (post) => {
     const poster = piece.thumbnailUrl && !looksLikeVideoFile(piece.thumbnailUrl) ? piece.thumbnailUrl : "";
     return poster || piece.url;
   }).filter((u) => u && !looksLikeVideoFile(u));
-  if (fromItems.length) return fromItems.slice(0, MAX_SLIDES);
+  if (fromItems.length) return fromItems.slice(0, SLIDE_SCAN);
   const list = Array.isArray(post.imageUrls) ? post.imageUrls.filter((u) => typeof u === "string" && u && !looksLikeVideoFile(u)) : [];
-  if (list.length) return list.slice(0, MAX_SLIDES);
+  if (list.length) return list.slice(0, SLIDE_SCAN);
   return post.imageUrl && !looksLikeVideoFile(post.imageUrl) ? [post.imageUrl] : [];
 };
+/* What a card is actually allowed to draw. */
+const slideUrls = (post) => pictureUrls(post).slice(0, MAX_SLIDES);
 
 /* Each source gets its own colour, carried as a border and a soft outer glow rather than a
    fill, so a board of mixed cards still reads as one surface.
@@ -67,22 +79,35 @@ const SOURCES = {
   soundcloud:{ label: "SoundCloud", accent: "#e2622a" },
   google:   { label: "Google",    accent: "#4285f4" }
 };
+/* One wall, one shadow, but each source keeps a rim you can recognise it by. Blood orange
+   is the wall's own colour and the default for anything without a rim of its own; TikTok is
+   black and Facebook is blue because those are the ones that were being mistaken for
+   something else without it. */
+const FEED_RIM = "#a52a0c";
+const SOURCE_RIMS = {
+  instagram: "#a52a0c",
+  tiktok: "#111111",
+  facebook: "#1877f2",
+  pinterest: "#e60023"
+};
+const rimOf = (source) => SOURCE_RIMS[String(source || "").toLowerCase()] || FEED_RIM;
 const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
 
 const STYLE = `
 /* A pin-board wall: multi-column, so each card packs upward into the first gap of
-   its column instead of lining up with the row of its neighbours. The count is fixed
-   at four across, and each card holds its picture's own shape. */
-#feedPageList{display:block!important;column-count:4!important;column-width:auto!important;column-gap:18px!important;column-fill:balance}
+   its column instead of lining up with the row of its neighbours. The wall now takes the
+   width the page gives it, so a wide window gets a wider wall instead of a narrow strip. */
+#feedPageList{display:block!important;column-count:5!important;column-width:auto!important;column-gap:18px!important;column-fill:balance}
 #feedPageList>*{break-inside:avoid;min-width:0;width:100%;margin:0 0 18px}
-@media (max-width:980px){#feedPageList{column-count:3!important}}
-@media (max-width:700px){#feedPageList{column-count:2!important}}
-@media (max-width:480px){#feedPageList{column-count:1!important}}
-/* A member post wears the board colour. The connected sources are dressed by orbit-feed.js
-   instead, because it already owns their marker classes and would otherwise be restyling
-   cards it does not build. */
-.biglwa-pin{--feed-card-rim:#bd3f47;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;box-shadow:3px 3px 0 var(--feed-card-rim);display:block;width:100%}
-.biglwa-pin:nth-child(6n+1){--feed-card-rim:#bd3f47}.biglwa-pin:nth-child(6n+2){--feed-card-rim:#d77b30}.biglwa-pin:nth-child(6n+3){--feed-card-rim:#d1ad2f}.biglwa-pin:nth-child(6n+4){--feed-card-rim:#4e8f61}.biglwa-pin:nth-child(6n+5){--feed-card-rim:#416fa9}.biglwa-pin:nth-child(6n+6){--feed-card-rim:#7955a0}
+@media (max-width:1560px){#feedPageList{column-count:4!important}}
+@media (max-width:1180px){#feedPageList{column-count:3!important}}
+@media (max-width:820px){#feedPageList{column-count:2!important}}
+@media (max-width:520px){#feedPageList{column-count:1!important}}
+/* Every card wears the same blood-orange rim and the same soft glow. The cards that read
+   best were the orange ones, and the rest were left on an old per-position colour cycle
+   where only every sixth card happened to land on orange, so the wall looked accidental. */
+.biglwa-pin{--feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
+  box-shadow:3px 3px 0 var(--feed-card-rim),0 12px 26px -18px rgba(var(--aura-rgb,216,95,109),.8)}
 .biglwa-pin::before{content:none}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
 #biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #d77b30}
@@ -195,9 +220,14 @@ const STYLE = `
 /* The source is told by the orange card treatment instead of an extra label. */
 .biglwa-pin-src{display:none}
 /* A post with more than one photo becomes a slideshow moving on by itself, with dots and
-   arrows so it is still readable and pausable by hand. The frame takes the height of the
-   photo on show, so the card's shape belongs to the post rather than to a fixed square. */
-.biglwa-slide{position:relative;width:100%;min-height:120px;background:#efe7dd;overflow:hidden;border-radius:15px 15px 0 0}
+   arrows so it is still readable and pausable by hand. The frame holds one fixed shape for
+   the whole life of the card: it starts at 4/5 and is measured once, from the first photo,
+   when that photo arrives. Every picture then fills that fixed frame and is contained
+   inside it, so advancing the slideshow cannot resize the card, cannot push the column
+   around underneath the reader, and cannot leave a card sitting past its own ratio.
+   The starting ratio is also why a picture that fails to load changes nothing: the frame
+   is already the right size and simply stays empty. */
+.biglwa-slide{position:relative;width:100%;aspect-ratio:4/5;min-height:120px;background:#efe7dd;overflow:hidden;border-radius:15px 15px 0 0}
 .biglwa-slide>img{opacity:0;transition:opacity .45s ease}
 .biglwa-slide>img.is-on{opacity:1}
 .biglwa-slide-dot{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;z-index:3}
@@ -212,17 +242,15 @@ const STYLE = `
 .biglwa-slide-btn.next{right:6px}
 .biglwa-slide-count{position:absolute;right:8px;top:8px;z-index:6;padding:3px 8px;border-radius:999px;
   background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.05em}
-/* Every card, single or multi-photo, takes its height from the picture it is showing, so the
-   rim and shadow always end on the image instead of on a fixed frame. A single picture already
-   did this with height:auto; a slideshow was pinned to aspect-ratio:4/3 with object-fit:cover,
-   which is why some posts grew with their image and some were cut to a fixed shape. The photo
-   on show is now an ordinary in-flow image and the others sit behind it, so the frame is
-   exactly as tall as the picture and nothing is cropped. */
-.biglwa-pin-img,.biglwa-slide>img,.instagram-feed-item img,.instagram-feed-item video{
+/* A single picture still pushes the card to its own height, because that shape is the
+   picture's own and it is known before anything is drawn. A slideshow cannot: its shape
+   would otherwise change every time a photo with a different ratio came on, which is what
+   made cards drift while the page was being scrolled. So a slideshow frame is measured
+   once and held, and its pictures are contained inside that shape. */
+.biglwa-pin-img,.instagram-feed-item img,.instagram-feed-item video{
   display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;object-fit:contain
 }
-.biglwa-slide>img.is-on{position:relative;z-index:1}
-.biglwa-slide>img:not(.is-on){position:absolute;inset:0;width:100%;height:100%}
+.biglwa-slide>img{display:block;position:absolute;inset:0;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:contain;z-index:1}
 /* Someone who has asked their system for less motion gets a slideshow that holds still. */
 @media (prefers-reduced-motion:reduce){.biglwa-slide>img{transition:none}}
 #biglwaFeedPicker{display:none}
@@ -516,6 +544,10 @@ function renderHero(force) {
 /* The + and its tray are pure markup so the card stays a string template, but the tray is
    built with the post's own picture and caption so the reader can see what they are sending. */
 function sendBar(post) {
+  void post;
+  return sendBarMarkup();
+}
+function sendBarMarkup() {
   return '<div class="biglwa-send" data-open="0">' +
     '<button class="biglwa-send-toggle" type="button" data-send-toggle aria-expanded="false" ' +
     'aria-label="Send this picture to a board, project or the map" title="Send to boards, projects or map">+</button>' +
@@ -527,6 +559,20 @@ function sendBar(post) {
       '<span class="biglwa-send-status" data-send-status aria-live="polite"></span>' +
     "</div>" +
   "</div>";
+}
+/* Live source cards, such as the connected Instagram ones, are not in `posts`, so they
+   hand their own picture record in here. That lets the same + tray sit under every card on
+   the wall instead of only under the saved posts. */
+const sentCards = new Map();
+function registerSendCard(card) {
+  if (!card || !card.dataset || !card.dataset.postId) return;
+  sentCards.set(card.dataset.postId, card.dataset.sendRecord ? JSON.parse(card.dataset.sendRecord) : null);
+}
+function postForCard(card) {
+  if (!card || !card.dataset || !card.dataset.postId) return null;
+  return posts.find((p) => p.id === card.dataset.postId)
+    || sentCards.get(card.dataset.postId)
+    || null;
 }
 function sendStatus(tray, message) {
   const out = tray && tray.querySelector("[data-send-status]");
@@ -621,7 +667,7 @@ function renderPosts(force) {
   const list = document.getElementById("feedPageList");
   if (!list) return;
   const me = identity()?.uid;
-    const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
+    const signature = posts.map((p) => p.id + ":" + pictureUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
 ;
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
@@ -632,18 +678,25 @@ function renderPosts(force) {
   if (!posts.length) return;
   const html = posts.map((post) => {
     const src = accentOf(post.source);
-    const urls = slideUrls(post);
+    void src;
+    /* Counted before drawing, because a post with thirteen photos is a stack rather than
+       a slideshow and should settle on one picture instead of drawing thirteen tabs. */
+    const everyPhoto = pictureUrls(post);
+    const urls = everyPhoto.slice(0, MAX_SLIDES);
+    const isStack = everyPhoto.length >= MANY_PHOTOS;
     const managed = Boolean(me && post.uid === me);
     const isInstagram = String(post.source || "").toLowerCase() === "instagram";
-    const image = !urls.length
+    const shown = isStack ? urls.slice(0, 1) : urls;
+    const image = !shown.length
       ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
-      : urls.length === 1
-        ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="Collective feed media" loading="lazy">'
-        : slideshow(urls, "Collective feed media");
+      : shown.length === 1
+        ? '<img class="biglwa-pin-img" src="' + esc(shown[0]) + '" alt="Collective feed media" loading="lazy">'
+        : slideshow(shown, "Collective feed media");
     const link = !isInstagram && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
-    const tabs = isInstagram && urls.length > 1
+    const carousel = !isStack && shown.length > 1;
+    const tabs = carousel
       ? '<div class="biglwa-instagram-browser-tabs" aria-label="Instagram carousel tabs">' +
-        urls.map((_, i) => '<button type="button" class="biglwa-instagram-browser-tab' + (i === 0 ? ' is-active' : '') + '" data-instagram-slide="' + i + '">' + (i + 1) + '</button>').join("") +
+        shown.map((_, i) => '<button type="button" class="biglwa-instagram-browser-tab' + (i === 0 ? ' is-active' : '') + '" data-instagram-slide="' + i + '">' + (i + 1) + '</button>').join("") +
         '</div>'
       : '<span class="biglwa-instagram-browser-tabs" aria-hidden="true"></span>';
     const browserStrip = isInstagram
@@ -658,7 +711,7 @@ function renderPosts(force) {
             : '') +
         '</div>'
       : '';
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + '" style="--feed-card-rim:' + esc(src.accent) + '" data-post-id="' + esc(post.id) + '">' +
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + '" data-post-id="' + esc(post.id) + '">' +
       '<div>' + browserStrip + image + "</div>" + link +
       sendBar(post) +
       (!isInstagram && managed
@@ -713,9 +766,27 @@ function startSlideshows(root) {
     const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot i"));
     const count = frame.querySelector(".biglwa-slide-count");
     if (photos.length < 2) continue;
-    /* The frame no longer borrows a fixed ratio: the photo on show is a normal in-flow
-       image, so the card is exactly as tall as that picture and the rim always ends on it. */
+    /* The frame is measured once, from the first photo, and then left alone for good. It
+       used to grow to whatever picture was on show, so every slide change resized the card
+       and shoved everything below it along, which is what made the wall drift while being
+       scrolled. A first photo that never arrives simply leaves the frame at the ratio the
+       stylesheet gives it, so a picture that fails to load cannot change the card's shape
+       either. Later photos are measured, never applied. */
     let at = 0;
+    let shaped = frame.style.aspectRatio !== "";
+    const shapeFrom = (img) => {
+      if (shaped) return;
+      const w = img.naturalWidth, h = img.naturalHeight;
+      if (!w || !h) return;
+      shaped = true;
+      frame.style.aspectRatio = w + " / " + h;
+    };
+    if (photos[0].complete && photos[0].naturalWidth) shapeFrom(photos[0]);
+    photos.forEach((img, i) => {
+      if (i > 0) return;
+      img.addEventListener("load", () => shapeFrom(img), { once: true });
+      img.addEventListener("error", () => { shaped = true; }, { once: true });
+    });
 
     const show = (next) => {
       at = (next + photos.length) % photos.length;
@@ -1030,16 +1101,14 @@ async function wire(list, form) {
       }
       const sendTo = event.target.closest("[data-send-to]");
       if (sendTo) {
-        const card = sendTo.closest(".biglwa-pin-post");
-        const post = card && posts.find((p) => p.id === card.dataset.postId);
+        const post = postForCard(sendTo.closest("[data-post-id]"));
         if (post) sendPostTo(post, sendTo.dataset.sendTo, sendTo.closest(".biglwa-send"));
         return;
       }
       const sendMap = event.target.closest("[data-send-map]");
       if (sendMap) {
         const field = sendMap.closest(".biglwa-send-tray").querySelector("[data-send-map-field]");
-        const card = sendMap.closest(".biglwa-pin-post");
-        const post = card && posts.find((p) => p.id === card.dataset.postId);
+        const post = postForCard(sendMap.closest("[data-post-id]"));
         if (post && field) sendPostTo(post, "map", sendMap.closest(".biglwa-send"), field.value.trim());
         return;
       }
@@ -1140,7 +1209,10 @@ export async function startFeed() {
   });
   watch();
   if (identity()) await loadPosts();
-  window.__biglwaFeed = { loadPosts, renderPosts, refresh: loadPosts };
+  window.__biglwaFeed = { loadPosts, renderPosts, refresh: loadPosts, sendBarMarkup, registerSendCard };
+  /* The connected source cards render before this module finishes booting, so they are told
+     the wall is ready and they can add their own + tray then. */
+  document.dispatchEvent(new CustomEvent("biglwa:feed-ready"));
   return window.__biglwaFeed;
 }
 

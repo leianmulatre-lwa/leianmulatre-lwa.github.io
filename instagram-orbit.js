@@ -221,7 +221,10 @@
       var children = item.children && Array.isArray(item.children.data) ? item.children.data.filter(function (child) {
         return child && (child.media_url || child.thumbnail_url);
       }) : [];
-      var carousel = item.media_type === 'CAROUSEL_ALBUM' && children.length > 1;
+      /* A post with a dozen photos is a stack, not a slideshow, so it settles on the first
+         picture instead of drawing a numbered tab for every one of them. */
+      var manyPhotos = children.length >= 8;
+      var carousel = item.media_type === 'CAROUSEL_ALBUM' && children.length > 1 && !manyPhotos;
       var mediaItems = carousel ? children : [item];
       var first = mediaItems[0] || item;
       var media = first.media_url || first.thumbnail_url || '';
@@ -230,9 +233,25 @@
         : '<img data-instagram-media src="' + escapeText(media) + '" alt="Instagram media" loading="lazy" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd">';
       var tabs = carousel ? '<div class="biglwa-instagram-tabs" aria-label="Carousel photos">' + mediaItems.map(function (_, tabIndex) {
         return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
-      }).join('') + '</div>' : '';
+      }).join('') + '</div>' : '<span class="biglwa-instagram-tabs" aria-hidden="true"></span>';
       var link = item.permalink || '#';
-      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#c13584" data-instagram-index="' + index + '">' +
+      var cardId = 'instagram-' + escapeText(item.id || ('item-' + index));
+      /* The + tray belongs on every card on the wall, so these cards carry one too. The
+         picture record is handed to the feed as a data attribute, which is what lets the
+         same tray send to a board, a project or the map. */
+      var sendBar = typeof window.__biglwaFeed === 'object' && typeof window.__biglwaFeed.sendBarMarkup === 'function'
+        ? window.__biglwaFeed.sendBarMarkup()
+        : '';
+      var sendRecord = JSON.stringify({
+        id: cardId,
+        caption: item.caption || '',
+        sourceUrl: item.permalink || '',
+        imageUrls: (children.length ? children : [item]).map(function (child) {
+          return child.media_type === 'VIDEO' ? (child.thumbnail_url || '') : (child.media_url || '');
+        }).filter(Boolean)
+      }).replace(/"/g, '&quot;');
+      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#a52a0c" data-instagram-index="' + index + '"' +
+        ' data-post-id="' + cardId + '" data-send-record="' + sendRecord + '">' +
         '<div style="width:100%;padding:0">' +
           '<div class="biglwa-instagram-strip">' +
             tabs +
@@ -244,6 +263,7 @@
           '</div>' +
           visual +
         '</div>' +
+        sendBar +
       '</article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
@@ -263,7 +283,16 @@
     all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
     var html = feedHtml();
     if (html) list.insertAdjacentHTML('afterbegin', html);
+    /* These cards are not saved posts, so the wall is told what each one holds in order for
+       their + tray to work the same way as the tray on a saved card. */
+    if (window.__biglwaFeed && typeof window.__biglwaFeed.registerSendCard === 'function') {
+      all('[data-send-record]', list).forEach(function (card) { window.__biglwaFeed.registerSendCard(card); });
+    }
   }
+  /* The feed module boots after this one, so the first render has no tray to hand out and
+     no way to register the pictures. It announces itself when it is ready and the cards
+     are drawn again with their + in place. */
+  document.addEventListener('biglwa:feed-ready', function () { renderFeed(); });
   if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
   document.addEventListener('click', function (event) {
     var tab = event.target && event.target.closest ? event.target.closest('[data-instagram-tab]') : null;

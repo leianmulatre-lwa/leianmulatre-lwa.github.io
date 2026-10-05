@@ -21,9 +21,12 @@ const clean = (v) => String(v == null ? "" : v).trim();
 const isPicturePiece = new Function("clean", lift(posts, "function isPicturePiece") + "\nreturn isPicturePiece;")(clean);
 const pictureSrc = new Function("lift", lift(posts, "function pictureSrc") + "\nreturn pictureSrc;")();
 const looksLikeVideoFile = new Function(lift(feed, "const looksLikeVideoFile") + "\nreturn looksLikeVideoFile;")();
-const MAX_SLIDES = 10;
-const slideUrls = new Function("MAX_SLIDES", "looksLikeVideoFile",
-  lift(feed, "const slideUrls = (post)") + "\nreturn slideUrls;")(MAX_SLIDES, looksLikeVideoFile);
+const MAX_SLIDES = 6;
+const SLIDE_SCAN = 30;
+const pictureUrls = new Function("SLIDE_SCAN", "looksLikeVideoFile",
+  lift(feed, "const pictureUrls = (post)") + "\nreturn pictureUrls;")(SLIDE_SCAN, looksLikeVideoFile);
+const slideUrls = new Function("MAX_SLIDES", "pictureUrls",
+  lift(feed, "const slideUrls = (post)") + "\nreturn slideUrls;")(MAX_SLIDES, pictureUrls);
 
 let pass = 0, fail = 0;
 function check(name, cond, extra = "") {
