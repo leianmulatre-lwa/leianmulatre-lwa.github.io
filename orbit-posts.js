@@ -68,6 +68,17 @@ function mediaPieces(item) {
   return children.length ? children : [item];
 }
 
+/* A carousel can mix stills and video, and a video's media_url is an .mp4. Those used to be
+   written into imageUrls along with the pictures, and every reader puts imageUrls straight
+   into an <img src>, so a video child became a broken image icon. A piece is only a picture
+   when it says so, and a video contributes its poster so there is always something that can
+   actually be drawn. */
+function isPicturePiece(piece, parent) {
+  const type = clean(piece?.media_type || parent?.media_type || "IMAGE").toUpperCase();
+  if (type === "VIDEO" || type === "REELS" || type === "IGTV") return false;
+  const url = clean(piece?.media_url || piece?.thumbnail_url || "");
+  return !/\.(mp4|mov|m4v|webm)(\?|$)/i.test(url);
+}
 function mediaFromItem(source, item, hostedMedia) {
   const caption = clean(item.caption || item.title || item.description || "Shared from " + source);
   const fallbackUrl = clean(item.media_url || item.thumbnail_url || item.url);
@@ -77,8 +88,11 @@ function mediaFromItem(source, item, hostedMedia) {
     const originalUrl = clean(piece.media_url || piece.thumbnail_url);
     const slot = sourcePostId + ":" + index;
     const hosted = hostedMedia?.urls?.get(slot);
+    const picture = isPicturePiece(piece, item);
+    const poster = clean(piece.thumbnail_url || "");
     return {
       index,
+      isPicture: picture,
       url: hosted || originalUrl,
       /* The Worker already stores Orbit media under orbit/<uid>/<name> and returns that
          owner-scoped key. It used to be discarded here, which left Firestore holding only
@@ -86,12 +100,16 @@ function mediaFromItem(source, item, hostedMedia) {
          it. Keeping the key is what lets a later retrieval or ranking pass enumerate an
          account's own media straight from storage. */
       key: hostedMedia?.keys?.get(slot) || null,
-      thumbnailUrl: hosted || clean(piece.thumbnail_url || piece.media_url),
+      thumbnailUrl: poster || (picture ? hosted || originalUrl : ""),
       mediaType: clean(piece.media_type || item.media_type || "IMAGE").toUpperCase()
     };
   }).filter(piece => piece.url);
-  const imageUrls = mediaItems.map(piece => piece.url);
-  const imageKeys = mediaItems.map(piece => piece.key).filter(Boolean);
+  /* imageUrls is pictures only, so a feed card, the preview and the Archive never point an
+     <img> at a video file. */
+  const imageUrls = mediaItems.filter(piece => piece.isPicture && piece.thumbnailUrl)
+    .map(piece => pictureSrc(piece));
+  const imageKeys = mediaItems.filter(piece => piece.isPicture)
+    .map(piece => piece.key).filter(Boolean);
   if (!imageUrls.length) return null;
   return {
     source: source.toLowerCase(),
@@ -108,6 +126,14 @@ function mediaFromItem(source, item, hostedMedia) {
     sourceUsername: clean(item.username || item.author || ""),
     mediaType: clean(item.media_type || item.media_type_name || "IMAGE").toUpperCase()
   };
+}
+/* A picture is drawn from its poster when it has one, so the hosted copy of a video's poster
+   is preferred over re-fetching the short-lived Instagram CDN link. */
+function pictureSrc(piece) {
+  if (piece.isPicture && piece.thumbnailUrl && piece.thumbnailUrl !== piece.url) {
+    return piece.thumbnailUrl;
+  }
+  return piece.url;
 }
 
 /* Instagram imports are durable account media: the same post is written to the owner's
@@ -264,6 +290,7 @@ async function importInstagramMediaToR2(items, user) {
   }
 
   const imported = [];
+  let failedBatches = 0;
   for (let start = 0; start < requestItems.length; start += 100) {
     const batch = requestItems.slice(start, start + 100);
     let response;
@@ -278,18 +305,27 @@ async function importInstagramMediaToR2(items, user) {
         body: JSON.stringify({ items: batch })
       });
     } catch (error) {
+      /* One bad batch must not throw away the batches around it. Instagram feeds often
+         carry a single unreachable video among dozens of fine pictures, and abandoning the
+         rest meant a whole page of cards kept temporary links with no warning. */
       console.warn("BIGLWA Orbit media copy:", error);
-      return null;
+      failedBatches += 1;
+      continue;
     }
     if (!response.ok) {
       console.warn("BIGLWA Orbit media copy:", response.status);
-      return null;
+      failedBatches += 1;
+      continue;
     }
     const body = await response.json().catch(() => ({}));
-    imported.push(...(Array.isArray(body.imported) ? body.imported : []));
+    const batchImported = Array.isArray(body.imported) ? body.imported : [];
+    if (batchImported.length < batch.length) failedBatches += 1;
+    imported.push(...batchImported);
   }
 
-  const map = { urls: new Map(), keys: new Map() };
+  const map = { urls: new Map(), keys: new Map(), missing: 0, failedBatches };
+  const requested = new Set();
+  requestItems.forEach(item => requested.add(String(item.sourcePostId) + ":" + String(item.index)));
   imported.forEach(entry => {
     if (entry && entry.sourcePostId != null && entry.index != null && entry.url) {
       const slot = String(entry.sourcePostId) + ":" + String(entry.index);
@@ -297,6 +333,7 @@ async function importInstagramMediaToR2(items, user) {
       if (entry.key) map.keys.set(slot, String(entry.key));
     }
   });
+  map.missing = Math.max(0, requested.size - map.urls.size);
   return map;
 }
 
@@ -319,8 +356,14 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   let warning = "";
   if (source.toLowerCase() === "instagram") {
     hostedMedia = await importInstagramMediaToR2(items, user);
+    /* A partial copy is the normal case when one video among many pictures fails, and it
+       used to pass completely silently. Naming the leftovers keeps the difference between
+       "saved" and "saved but still pointing at Instagram" visible to the person saving. */
+    const notCopied = hostedMedia ? (hostedMedia.missing || 0) : 0;
     if (!hostedMedia || !hostedMedia.urls.size) {
       warning = "Orbit media is linked from Instagram instead of copied into BIGLWA storage, so some pictures can stop loading when Instagram retires the link.";
+    } else if (notCopied > 0) {
+      warning = notCopied + " image" + (notCopied === 1 ? "" : "s") + " could not be copied into BIGLWA storage and still load straight from Instagram. Use Save again in a moment to finish them.";
     }
   }
 

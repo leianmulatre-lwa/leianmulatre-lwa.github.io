@@ -30,10 +30,25 @@ const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c
 /* One picture is the old shape and stays the common case, so it is read from either the
    list or the single field. The first photo is also written back to `imageUrl`, which is
    what the preview strip and anything older still read. */
+/* Only real pictures are drawn. Records imported before the importer learned to tell a
+   picture from a video can still carry an .mp4 in imageUrls, and pointing an <img> at one
+   shows a broken image icon, so anything that is obviously a video file is dropped here too.
+   A video contributes its poster instead, which is what keeps a reel or a video-only post
+   from rendering as an empty card. */
+const looksLikeVideoFile = (u) => /\.(mp4|mov|m4v|webm)(\?|$)/i.test(String(u || ""));
 const slideUrls = (post) => {
-  const list = Array.isArray(post.imageUrls) ? post.imageUrls.filter((u) => typeof u === "string" && u) : [];
+  const items = Array.isArray(post.mediaItems) ? post.mediaItems : [];
+  const fromItems = items.map((piece) => {
+    if (!piece) return "";
+    /* A video can only ever be drawn by its poster. */
+    if (piece.isPicture === false) return looksLikeVideoFile(piece.url) ? piece.thumbnailUrl || "" : "";
+    const poster = piece.thumbnailUrl && !looksLikeVideoFile(piece.thumbnailUrl) ? piece.thumbnailUrl : "";
+    return poster || piece.url;
+  }).filter((u) => u && !looksLikeVideoFile(u));
+  if (fromItems.length) return fromItems.slice(0, MAX_SLIDES);
+  const list = Array.isArray(post.imageUrls) ? post.imageUrls.filter((u) => typeof u === "string" && u && !looksLikeVideoFile(u)) : [];
   if (list.length) return list.slice(0, MAX_SLIDES);
-  return post.imageUrl ? [post.imageUrl] : [];
+  return post.imageUrl && !looksLikeVideoFile(post.imageUrl) ? [post.imageUrl] : [];
 };
 
 /* Each source gets its own colour, carried as a border and a soft outer glow rather than a

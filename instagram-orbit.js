@@ -96,6 +96,25 @@
     }
     return result;
   }
+  /* Connecting saves on its own, but the first save can land before the account is fully
+     ready: Orbit storage still booting, the login token refreshing, or a rules change not
+     visible yet. Rather than leaving that to a button, a failed save is retried a few times
+     on its own. The final attempt rethrows so the panel can still say what went wrong. */
+  async function saveToFeedWithRetry() {
+    var delays = [1200, 4000, 9000];
+    var attempt = 0;
+    for (;;) {
+      try {
+        return await importToFeed();
+      } catch (failure) {
+        if (attempt >= delays.length) throw failure;
+        var wait = delays[attempt];
+        attempt += 1;
+        await new Promise(function (resolve) { setTimeout(resolve, wait); });
+        if (!state.connected) throw failure;
+      }
+    }
+  }
   function api(path, options) {
     var settings = options || {};
     settings.headers = Object.assign({}, settings.headers || {}, session() ? { Authorization: 'Bearer ' + session() } : {});
@@ -124,7 +143,7 @@
       /* Loading and saving fail for different reasons and need different words. Sharing one
          catch made a failed save read as "Instagram could not load", so a member whose
          connection was healthy saw a broken connection and never learned the save failed. */
-      return importToFeed().then(function (result) {
+      return saveToFeedWithRetry().then(function (result) {
         state.importError = '';
         if (result && result.warning) status(result.warning);
         return persistAccount(state.profile, state.media);
@@ -168,14 +187,25 @@
   function importStatusHtml() {
     if (!state.connected || !state.importAttempted) return '';
     var parts = [];
+    var healthy = !state.importError && state.importsSaved > 0 && !state.importsPartial && !state.importWarning;
     parts.push('Instagram returned ' + state.media.length + ' item' + (state.media.length === 1 ? '' : 's') + '.');
-    parts.push('Saved to your BIGLWA account: ' + state.importsSaved + '.');
+    parts.push(healthy
+      ? 'Saved automatically to your BIGLWA account: ' + state.importsSaved + '.'
+      : 'Saved to your BIGLWA account: ' + state.importsSaved + '.');
     if (state.importsSkipped) parts.push('Skipped (no usable picture): ' + state.importsSkipped + '.');
     if (state.importsPartial) parts.push('Only partly saved: ' + state.importsPartial + '. Your BIGLWA security rules still need publishing.');
     if (state.importWarning) parts.push(state.importWarning);
+    /* Saving is automatic, so the retry button only appears when something actually went
+       wrong. It used to be shown on every connected account, which made an import that had
+       already succeeded look like it still needed a button pressed. */
+    var retry = '';
+    if (!healthy) {
+      retry = '<button type="button" class="module-action" data-instagram-resave>' +
+        (state.importError ? 'Try saving again' : 'Save anything that did not make it') + '</button>';
+    }
     return '<article class="module-list-item instagram-feed-item biglwa-instagram-import-status" data-instagram-import-status><div>' +
       '<b>Import status</b><small>' + escapeText(parts.join(' ')) + '</small>' +
-      '<button type="button" class="module-action" data-instagram-resave>Save to BIGLWA again</button>' +
+      retry +
       '</div></article>';
   }
   function feedHtml() {
