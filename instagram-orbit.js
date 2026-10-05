@@ -8,7 +8,6 @@
   /* The same figures the Orbit panel shows, readable from the console, so a silent
      zero-import can be diagnosed without guessing. */
   window.__biglwaInstagramDiagnostics = state;
-  window.__biglwaInstagramReturnCode = RETURNED_HANDOFF;
   /* Read the OAuth return code the moment this file evaluates, which is before
      module-pages.js runs its top-level canonicalizeLegacyView(). That call rewrites
      ?route=studio&view=orbit to /studio/orbit and drops every other query parameter,
@@ -151,7 +150,8 @@
     });
   }
   function consumeHandoff() {
-    var url = new URL(window.location.href); var handoff = url.searchParams.get('instagram_handoff') || RETURNED_HANDOFF; var error = url.searchParams.get('instagram_error') || RETURNED_ERROR; RETURNED_HANDOFF = ''; RETURNED_ERROR = '';
+    var url = new URL(window.location.href); var handoff = url.searchParams.get('instagram_handoff') || RETURNED_HANDOFF; var error = url.searchParams.get('instagram_error') || RETURNED_ERROR;
+    window.__biglwaInstagramReturnCode = handoff;
     if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); }
     if (!handoff) return restore();
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
