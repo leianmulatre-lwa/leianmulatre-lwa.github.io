@@ -202,7 +202,7 @@
         return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
       }).join('') + '</div>' : '';
       var link = item.permalink || '#';
-      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" data-instagram-index="' + index + '">' +
+      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#c13584" data-instagram-index="' + index + '">' +
         '<div style="width:100%;padding:0">' +
           '<div class="biglwa-instagram-strip">' +
             tabs +

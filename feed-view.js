@@ -78,7 +78,35 @@ const STYLE = `
    is rounded instead of relying on the card to clip it. */
 .biglwa-pin-post{overflow:hidden}
 .biglwa-pin::before{border-radius:14px 14px 0 0}
-.biglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:0}
+/* A card carries a single + that opens a small tray underneath it, so a picture can be sent
+   to a board, a project or the map without leaving the page. Boards and projects are the same
+   local lists the module pages read, and the map is the same pin list map-app.html writes, so
+   anything added here shows up in those places immediately. */
+.biglwa-send{display:flex;justify-content:center;padding:6px 0 8px;background:rgba(var(--aura-rgb,216,95,109),.09)}
+.biglwa-send-toggle{width:26px;height:26px;border:1px solid rgba(var(--aura-rgb,216,95,109),.35);border-radius:50%;
+  background:#fffdf9;color:rgb(var(--aura-rgb,216,95,109));font:800 17px/1 system-ui;cursor:pointer}
+.biglwa-send-toggle:hover{background:rgba(var(--aura-rgb,216,95,109),.14)}
+.biglwa-send-tray{display:none;gap:8px;padding:4px 10px 10px;background:rgba(var(--aura-rgb,216,95,109),.09);
+  border-top:1px solid rgba(var(--aura-rgb,216,95,109),.2)}
+.biglwa-send[data-open="1"] .biglwa-send-tray{display:flex;flex-wrap:wrap}
+.biglwa-send-tray button,.biglwa-send-tray input{border:1px solid rgba(var(--aura-rgb,216,95,109),.3);border-radius:999px;
+  padding:5px 10px;background:#fffdf9;color:#3a332f;font:700 10px/1.2 system-ui;cursor:pointer}
+.biglwa-send-tray button:hover{background:rgba(var(--aura-rgb,216,95,109),.14)}
+.biglwa-send-tray input{flex:1;min-width:150px;cursor:text;font-weight:600}
+.biglwa-send-tray .biglwa-send-status{width:100%;font:600 9px/1.4 system-ui;color:#6b605a}
+/* An archived card is in colour but greyed back, so the Archive wall reads as stored rather
+   than published. */
+.biglwa-pin-post.is-archived{filter:grayscale(1);opacity:.82}
+.biglwa-feed-hero-row{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:760px){.biglwa-feed-hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.bliglwa-pin-img{display:block;width:100%;height:auto;background:#efe7dd;border-radius:0}
+/* Every card, single or multi-photo, takes its height from the picture it is showing, so the
+   rim and shadow always end on the image instead of on a fixed frame. Single pictures already
+   did this with height:auto; a slideshow was pinned to 4/3 with object-fit:cover, which is
+   why some posts grew with their image and some were cropped to a fixed shape. The frame now
+   follows the ratio of whichever photo is on show and contains it instead of cutting it. */
+.biglwa-instagram-actions,.biglwa-instagram-browser-actions{order:2}
+.biglwa-instagram-tabs,.biglwa-instagram-browser-tabs{order:1;margin-right:auto}
 .biglwa-pin-body{padding:11px 13px 13px}
 .biglwa-pin-body small{display:block;font:600 11px/1.4 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}
 .biglwa-pin-empty{padding:15px}
@@ -100,15 +128,16 @@ const STYLE = `
    live Orbit cards. The live renderer no longer carries its own competing stylesheet. */
 .biglwa-instagram-card,.instagram-feed-item{
   width:96%!important;margin-left:0!important;
-  background:#c7c7c7!important;border-color:#b9b9b9!important;
-  box-shadow:3px 3px 0 #a7a7a7!important;border-radius:11px!important;
-  overflow:hidden!important;filter:grayscale(1)!important
+  background:rgba(var(--aura-rgb,216,95,109),.09)!important;
+  border-color:rgba(var(--aura-rgb,216,95,109),.2)!important;
+  box-shadow:3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#c13584)),0 12px 26px -18px rgba(var(--aura-rgb,216,95,109),.8)!important;
+  border-radius:11px!important;overflow:hidden!important
 }
 .biglwa-instagram-card .biglwa-instagram-browser-strip,
 .instagram-feed-item .biglwa-instagram-strip{
   height:15px!important;padding:1px 4px!important;gap:3px;
   box-sizing:border-box;display:flex;align-items:center;
-  background:#c7c7c7!important;border:0!important;
+  background:rgba(var(--aura-rgb,216,95,109),.17)!important;border:0!important;
   border-radius:10px 10px 0 0;position:relative;z-index:8
 }
 .biglwa-instagram-browser-tabs,.biglwa-instagram-tabs{
@@ -124,7 +153,7 @@ const STYLE = `
   box-shadow:0 -1px 0 rgba(255,255,255,.5)
 }
 .biglwa-instagram-browser-actions,.biglwa-instagram-actions{
-  display:flex;align-items:center;gap:2px;margin-right:3px;order:-1
+  display:flex;align-items:center;gap:3px;margin-left:auto
 }
 .biglwa-instagram-browser-actions button,
 .biglwa-instagram-actions button,
@@ -150,13 +179,11 @@ const STYLE = `
 .biglwa-instagram-actions a:hover{filter:brightness(1.08);transform:translateY(-1px)}
 /* The source is told by the orange card treatment instead of an extra label. */
 .biglwa-pin-src{display:none}
-/* A post with more than one photo becomes a slideshow shaped like its first photo, moving
-   on by itself, with dots and arrows so it is still readable and pausable by hand. The
-   frame's ratio is set from that first picture once it loads, so the card's shape already
-   belongs to the post instead of to a fixed square. */
-.biglwa-slide{position:relative;width:100%;aspect-ratio:4/3;background:#efe7dd;overflow:hidden;border-radius:15px 15px 0 0}
-.biglwa-slide>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  opacity:0;transition:opacity .45s ease}
+/* A post with more than one photo becomes a slideshow moving on by itself, with dots and
+   arrows so it is still readable and pausable by hand. The frame takes the height of the
+   photo on show, so the card's shape belongs to the post rather than to a fixed square. */
+.biglwa-slide{position:relative;width:100%;min-height:120px;background:#efe7dd;overflow:hidden;border-radius:15px 15px 0 0}
+.biglwa-slide>img{opacity:0;transition:opacity .45s ease}
 .biglwa-slide>img.is-on{opacity:1}
 .biglwa-slide-dot{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;z-index:3}
 .biglwa-slide-dot i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);
@@ -168,8 +195,19 @@ const STYLE = `
 .biglwa-slide:hover .biglwa-slide-btn,.biglwa-slide:focus-within .biglwa-slide-btn{opacity:1}
 .biglwa-slide-btn.prev{left:6px}
 .biglwa-slide-btn.next{right:6px}
-.biglwa-slide-count{position:absolute;right:8px;top:8px;z-index:3;padding:3px 8px;border-radius:999px;
+.biglwa-slide-count{position:absolute;right:8px;top:8px;z-index:6;padding:3px 8px;border-radius:999px;
   background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.05em}
+/* Every card, single or multi-photo, takes its height from the picture it is showing, so the
+   rim and shadow always end on the image instead of on a fixed frame. A single picture already
+   did this with height:auto; a slideshow was pinned to aspect-ratio:4/3 with object-fit:cover,
+   which is why some posts grew with their image and some were cut to a fixed shape. The photo
+   on show is now an ordinary in-flow image and the others sit behind it, so the frame is
+   exactly as tall as the picture and nothing is cropped. */
+.biglwa-pin-img,.biglwa-slide>img,.instagram-feed-item img,.instagram-feed-item video{
+  display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;object-fit:contain
+}
+.biglwa-slide>img.is-on{position:relative;z-index:1}
+.biglwa-slide>img:not(.is-on){position:absolute;inset:0;width:100%;height:100%}
 /* Someone who has asked their system for less motion gets a slideshow that holds still. */
 @media (prefers-reduced-motion:reduce){.biglwa-slide>img{transition:none}}
 #biglwaFeedPicker{display:none}
@@ -189,6 +227,7 @@ const STYLE = `
 .biglwa-feed-hero-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 3px 11px}
 .biglwa-feed-hero-head h3{margin:0;font:700 12px/1.3 system-ui;letter-spacing:.05em;text-transform:uppercase;color:#6f645c}
 .biglwa-feed-hero-head span{font:600 10px/1.3 system-ui;color:#9b8a7c}
+.biglwa-feed-hero-grid{display:grid;gap:12px}
 .biglwa-feed-hero-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .biglwa-feed-hero-row a,.biglwa-feed-hero-row>div{position:relative;display:block;overflow:hidden;
   aspect-ratio:4/3;border-radius:14px;background:#efe7dd;text-decoration:none;
@@ -404,7 +443,7 @@ function timestampMs(value) {
    disagree about what the feed contains. Slots with no picture are left as dashed gaps
    rather than shrinking the row, which keeps the row four wide until there is something
    to put in it. */
-const HERO_SLOTS = 4;
+const HERO_SLOTS = 8;
 let heroOn = null;
 let heroSignature = null;
 
@@ -428,9 +467,8 @@ function renderHero(force) {
   heroOn = anchor;
   heroSignature = signature;
 
-  /* The widget is explicitly the latest four POST slots, not four arbitrary images.
-     Posts without media keep their slot so the widget always represents the same four
-     newest feed records. */
+  /* The widget is the latest eight POST slots, not eight arbitrary images, so the preview is
+     two rows of four and always represents the same eight newest feed records. */
   const slots = posts.slice(0, HERO_SLOTS);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
@@ -449,12 +487,112 @@ function renderHero(force) {
 
   anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
-    "</span></div>" + '<div class="biglwa-feed-hero-row">' + cards + "</div>";
+    "</span></div>" + '<div class="biglwa-feed-hero-grid">' +
+    Array.from({ length: Math.ceil(cards.length / 4) }, (_, row) =>
+      '<div class="biglwa-feed-hero-row">' +
+      (cards ? cards.slice(row * 4, row * 4 + 4).join("") : "") +
+      "</div>").join("") +
+    "</div>";
 }
 
 /* Redrawing the list on every call would drop hover and focus state and pull the reader
    out of a card they are on, so the markup is only rebuilt when the posts or the viewer
    actually differ. A newly rendered feed route is a new list and still gets drawn. */
+/* The + and its tray are pure markup so the card stays a string template, but the tray is
+   built with the post's own picture and caption so the reader can see what they are sending. */
+function sendBar(post) {
+  return '<div class="biglwa-send" data-open="0">' +
+    '<button class="biglwa-send-toggle" type="button" data-send-toggle aria-expanded="false" ' +
+    'aria-label="Send this picture to a board, project or the map" title="Send to boards, projects or map">+</button>' +
+    '<div class="biglwa-send-tray">' +
+      '<button type="button" data-send-to="boards">Send to a board</button>' +
+      '<button type="button" data-send-to="projects">Send to a project</button>' +
+      '<input type="text" data-send-map-field placeholder="Map address, e.g. Rotterdam or 51.92, 4.48" aria-label="Map address for this picture">' +
+      '<button type="button" data-send-map>Pin on the map</button>' +
+      '<span class="biglwa-send-status" data-send-status aria-live="polite"></span>' +
+    "</div>" +
+  "</div>";
+}
+function sendStatus(tray, message) {
+  const out = tray && tray.querySelector("[data-send-status]");
+  if (out) out.textContent = message;
+}
+/* Boards and projects are the same local lists the module pages read and write, and a map pin
+   is the same record map-app.html stores, so a picture added here is already in those places
+   when the tray reports it is saved. No page change is involved. */
+function readLocalList(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch { return []; }
+}
+function writeLocalList(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+/* An address typed into the card is turned into coordinates here, so pinning a place does not
+   need the map page or its search box. Photon is the same geocoder map-app.html already uses. */
+async function geocodeAddress(query) {
+  const url = "https://photon.komoot.io/api/?limit=1&q=" + encodeURIComponent(query);
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("The address could not be looked up.");
+  const data = await response.json();
+  const feature = data && data.features && data.features[0];
+  if (!feature || !feature.geometry) throw new Error("No place matched that address.");
+  const coords = feature.geometry.coordinates;
+  const properties = feature.properties || {};
+  return {
+    lat: Number(coords[1]),
+    lng: Number(coords[0]),
+    label: [properties.name, properties.city, properties.country].filter(Boolean).join(", ")
+  };
+}
+async function sendPostTo(post, destination, tray, address) {
+  const picture = slideUrls(post)[0] || "";
+  const caption = (post.caption || "").trim();
+  const label = caption ? caption.split("\n")[0].slice(0, 60) : "Picture from Collective Feed";
+  if (destination === "map") {
+    if (!address) { sendStatus(tray, "Type a place or address to pin."); return; }
+    sendStatus(tray, "Looking up that address…");
+    try {
+      const place = await geocodeAddress(address);
+      const pins = readLocalList("biglwaMapPins");
+      const pin = {
+        id: (crypto.randomUUID ? crypto.randomUUID() : "pin-" + Date.now()),
+        title: place.label || address,
+        detail: label,
+        category: "Memory",
+        visibility: "private",
+        lat: place.lat,
+        lng: place.lng,
+        photo: picture,
+        sourceUrl: post.sourceUrl || "",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      writeLocalList("biglwaMapPins", [pin, ...pins]);
+      document.dispatchEvent(new CustomEvent("biglwa:map-pin-added", { detail: pin }));
+      sendStatus(tray, "Pinned on your map at " + (place.label || address) + ".");
+      if (tray) tray.dataset.open = "0";
+    } catch (error) {
+      sendStatus(tray, error.message || "That address could not be pinned.");
+    }
+    return;
+  }
+  const key = destination === "projects" ? "biglwaModule_projects" : "biglwaModule_boards";
+  const items = readLocalList(key);
+  const title = destination === "projects" ? label : (caption ? label : "Collective Feed picture");
+  items.unshift({
+    title,
+    meta: [picture, post.sourceUrl || ""].filter(Boolean).join(" · "),
+    photo: picture,
+    sourceUrl: post.sourceUrl || "",
+    date: new Date().toLocaleDateString()
+  });
+  writeLocalList(key, items);
+  sendStatus(tray, "Saved to your " + (destination === "projects" ? "projects" : "boards") + ".");
+  document.dispatchEvent(new CustomEvent("biglwa:" + destination + "-updated"));
+  if (tray) tray.dataset.open = "0";
+}
 async function publishDraft(postId) {
   /* Publishing went through its own two-path write that skipped the Archive entirely, so a
      draft promoted to the Collective Feed was missing from the account's Archive until the
@@ -487,7 +625,7 @@ function renderPosts(force) {
       : urls.length === 1
         ? '<img class="biglwa-pin-img" src="' + esc(urls[0]) + '" alt="Collective feed media" loading="lazy">'
         : slideshow(urls, "Collective feed media");
-    const link = post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
+    const link = !isInstagram && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     const tabs = isInstagram && urls.length > 1
       ? '<div class="biglwa-instagram-browser-tabs" aria-label="Instagram carousel tabs">' +
         urls.map((_, i) => '<button type="button" class="biglwa-instagram-browser-tab' + (i === 0 ? ' is-active' : '') + '" data-instagram-slide="' + i + '">' + (i + 1) + '</button>').join("") +
@@ -507,6 +645,7 @@ function renderPosts(force) {
       : '';
     return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + '" style="--feed-card-rim:' + esc(src.accent) + '" data-post-id="' + esc(post.id) + '">' +
       '<div>' + browserStrip + image + "</div>" + link +
+      sendBar(post) +
       (!isInstagram && managed
         ? '<div class="biglwa-post-actions">' +
           '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete from Collective Feed">&#10005;</button>' +
@@ -559,17 +698,8 @@ function startSlideshows(root) {
     const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot i"));
     const count = frame.querySelector(".biglwa-slide-count");
     if (photos.length < 2) continue;
-    /* The frame borrows the leading photo's shape once it can be measured, so the card is
-       not stuck on a fixed square for a post whose pictures are a different ratio. */
-    const shape = () => {
-      const lead = photos[0];
-      if (lead && lead.naturalWidth && lead.naturalHeight) {
-        frame.style.aspectRatio = (lead.naturalWidth / lead.naturalHeight).toFixed(4);
-      }
-    };
-    const lead = photos[0];
-    if (lead && lead.complete) shape();
-    else if (lead) lead.addEventListener("load", shape, { once: true });
+    /* The frame no longer borrows a fixed ratio: the photo on show is a normal in-flow
+       image, so the card is exactly as tall as that picture and the rim always ends on it. */
     let at = 0;
 
     const show = (next) => {
@@ -875,6 +1005,27 @@ async function wire(list, form) {
             card.querySelectorAll("[data-instagram-slide]").forEach((tab) => tab.classList.toggle("is-active", tab === instaTab));
           }
         }
+        return;
+      }
+      const sendToggle = event.target.closest("[data-send-toggle]");
+      if (sendToggle) {
+        const tray = sendToggle.closest(".biglwa-send");
+        if (tray) tray.dataset.open = tray.dataset.open === "1" ? "0" : "1";
+        return;
+      }
+      const sendTo = event.target.closest("[data-send-to]");
+      if (sendTo) {
+        const card = sendTo.closest(".biglwa-pin-post");
+        const post = card && posts.find((p) => p.id === card.dataset.postId);
+        if (post) sendPostTo(post, sendTo.dataset.sendTo, sendTo.closest(".biglwa-send"));
+        return;
+      }
+      const sendMap = event.target.closest("[data-send-map]");
+      if (sendMap) {
+        const field = sendMap.closest(".biglwa-send-tray").querySelector("[data-send-map-field]");
+        const card = sendMap.closest(".biglwa-pin-post");
+        const post = card && posts.find((p) => p.id === card.dataset.postId);
+        if (post && field) sendPostTo(post, "map", sendMap.closest(".biglwa-send"), field.value.trim());
         return;
       }
       const action = event.target.closest("[data-post-enlarge],[data-post-archive],[data-post-delete]");
