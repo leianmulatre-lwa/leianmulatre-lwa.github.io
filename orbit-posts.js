@@ -99,9 +99,13 @@ function mediaFromItem(source, item, hostedMedia) {
 /* Instagram imports are durable account media: the same post is written to the owner's
    profile, Archive, and Collective Feed. Carousel children remain together as one card. */
 
+/* The R2 copy is an enhancement, not a precondition for persistence.
+   mediaFromItem() already falls back to each item's original source URL whenever this map
+   has no hosted entry, so a missing or failing media endpoint must return null instead of
+   throwing. Throwing here aborted the whole import before a single Firestore write, which
+   left the Collective Feed, the member profile, and the Archive empty and left other
+   devices with nothing to load. */
 async function importInstagramMediaToR2(items, user) {
-  const session = (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })();
-  if (!session) throw new Error("Instagram Orbit is connected, but its media session is missing. Reconnect Instagram.");
   const firebaseIdToken = await user.getIdToken();
   if (!firebaseIdToken) throw new Error("Your BIGLWA login expired. Sign in again and reconnect Instagram.");
 
@@ -124,27 +128,29 @@ async function importInstagramMediaToR2(items, user) {
   }
 
   const imported = [];
-  const failed = [];
   for (let start = 0; start < requestItems.length; start += 100) {
     const batch = requestItems.slice(start, start + 100);
-    const response = await fetch(MEDIA_ENDPOINT + "/media/orbit-import", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + firebaseIdToken,
-        "X-Instagram-Session": session
-      },
-      body: JSON.stringify({ items: batch })
-    });
+    let response;
+    try {
+      response = await fetch(MEDIA_ENDPOINT + "/media/orbit-import", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + firebaseIdToken,
+          "X-Instagram-Session": (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })()
+        },
+        body: JSON.stringify({ items: batch })
+      });
+    } catch (error) {
+      console.warn("BIGLWA Orbit media copy:", error);
+      return null;
+    }
+    if (!response.ok) {
+      console.warn("BIGLWA Orbit media copy:", response.status);
+      return null;
+    }
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.error || "BIGLWA could not save the Instagram media.");
     imported.push(...(Array.isArray(body.imported) ? body.imported : []));
-    failed.push(...(Array.isArray(body.failed) ? body.failed : []));
-  }
-
-  if (failed.length) {
-    const first = failed[0]?.error || "Some Instagram images could not be copied into BIGLWA storage.";
-    throw new Error(first + " Reconnect Instagram and try again.");
   }
 
   const map = new Map();
@@ -168,8 +174,12 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   let skipped = 0;
 
   let hostedMedia = null;
+  let warning = "";
   if (source.toLowerCase() === "instagram") {
     hostedMedia = await importInstagramMediaToR2(items, user);
+    if (!hostedMedia || !hostedMedia.size) {
+      warning = "Orbit media is linked from Instagram instead of copied into BIGLWA storage, so some pictures can stop loading when Instagram retires the link.";
+    }
   }
 
   for (const raw of items) {
@@ -264,7 +274,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     }, { merge: true });
   } catch {}
 
-  return { imported, skipped };
+  return { imported, skipped, warning };
 }
 
 export async function loadArchive(ownerUid) {

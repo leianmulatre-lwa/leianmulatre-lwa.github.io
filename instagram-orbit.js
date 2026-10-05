@@ -4,7 +4,7 @@
 
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
-  var state = { connected: false, profile: null, media: [], error: '', importsSaved: 0 };
+  var state = { connected: false, profile: null, media: [], error: '', importError: '', sessionLookupError: '', importsSaved: 0 };
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -24,13 +24,23 @@
     } catch (error) { return ''; }
   }
   async function accountSession() {
-    const token = await firebaseAuthToken();
+    var token = await firebaseAuthToken();
     if (!token) return '';
     try {
-      const result = await fetch(API + '/session/account', { headers: { Authorization: 'Bearer ' + token } });
-      const body = await result.json().catch(function () { return {}; });
-      return body.connected ? (body.session || '') : '';
-    } catch (error) { return ''; }
+      var result = await fetch(API + '/session/account', { headers: { Authorization: 'Bearer ' + token } });
+      var body = await result.json().catch(function () { return {}; });
+      if (!result.ok) {
+        /* An unreachable account endpoint and an account with no Instagram session look
+           identical if both collapse to "not connected", so they are kept apart. */
+        state.sessionLookupError = result.status === 404
+          ? 'BIGLWA could not reach your account to restore Instagram on this device.'
+          : (body.error || 'Your account could not be read from BIGLWA.');
+        return '';
+      }
+      if (!body.connected) { state.sessionLookupError = ''; return ''; }
+      state.sessionLookupError = '';
+      return body.session || '';
+    } catch (error) { state.sessionLookupError = 'BIGLWA could not reach your account to restore Instagram on this device.'; return ''; }
   }
   async function persistAccount(profile, media) {
     try {
@@ -87,11 +97,28 @@
       savedSession = await accountSession();
       if (savedSession) saveSession(savedSession);
     }
-    if (!savedSession) return Promise.resolve();
+    if (!savedSession) {
+      if (state.sessionLookupError) status(state.sessionLookupError);
+      return Promise.resolve();
+    }
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) {
       state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render();
-      return Promise.all([importToFeed(), persistAccount(state.profile, state.media)]).then(function () {
+      /* Loading and saving fail for different reasons and need different words. Sharing one
+         catch made a failed save read as "Instagram could not load", so a member whose
+         connection was healthy saw a broken connection and never learned the save failed. */
+      return importToFeed().then(function (result) {
+        state.importError = '';
+        if (result && result.warning) status(result.warning);
+        return persistAccount(state.profile, state.media);
+      }).then(function () {
         render();
+        window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
+        return true;
+      }, function (importFailure) {
+        state.importError = importFailure.message;
+        state.error = '';
+        render();
+        status('Instagram is connected, but this device could not save it to your account: ' + importFailure.message);
         window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
         return true;
       });
@@ -122,6 +149,9 @@
   function feedHtml() {
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
+    }
+    if (state.importError) {
+      return '<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected but nothing was saved</b><small>' + escapeText(state.importError) + '</small></div></article>';
     }
     if (!state.connected) return '';
     var cards = state.media.slice(0, 20).map(function (item, index) {
