@@ -10,6 +10,33 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
     verifier stays in session storage: it is only needed for the one round trip. */
  const session=()=>{try{return localStorage.getItem(KEY)||''}catch{return ''}};
  const save=v=>{try{if(v)localStorage.setItem(KEY,v);else localStorage.removeItem(KEY)}catch{}};
+ async function firebaseIdToken(){
+  try{
+   const [{getAuth},{initializeApp,getApps}]=await Promise.all([
+    import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+    import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js')
+   ]);
+   const app=getApps()[0]||initializeApp({apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'});
+   const user=getAuth(app).currentUser;
+   return user?await user.getIdToken():'';
+  }catch{return ''}
+ }
+ async function recoverOrBindPinterestSession(){
+  const token=await firebaseIdToken();
+  if(!token)return '';
+  const local=session();
+  try{
+   if(local){
+    const res=await fetch(API+'session/claim',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+local},body:JSON.stringify({firebaseIdToken:token})});
+    const data=await res.json().catch(()=>({}));
+    if(res.ok&&data.session){save(data.session);return data.session}
+   }
+   const res=await fetch(API+'session/account',{headers:{Authorization:'Bearer '+token}});
+   const data=await res.json().catch(()=>({}));
+   if(res.ok&&data.connected&&data.session){save(data.session);return data.session}
+  }catch{}
+  return local;
+ }
 const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 function notice(text){message=text;render();let el=document.getElementById('pinterestNotice');if(!el){el=document.createElement('div');el.id='pinterestNotice';el.setAttribute('role','status');el.style.cssText='position:fixed;right:18px;bottom:18px;max-width:360px;padding:16px;background:#fff5eb;color:#302b28;border:1px solid #ccc;border-radius:12px;z-index:15000';document.body.append(el)}el.textContent=text;clearTimeout(notice.timer);notice.timer=setTimeout(()=>el.remove(),10000)}
 async function api(path,body){
@@ -78,6 +105,7 @@ async function connect(){await run(async()=>{
   try{return await pinsPromise}finally{pinsPromise=null}
  }
  async function restore(){
+  await recoverOrBindPinterestSession();
   if(!session())return;
   if(restorePromise)return restorePromise;
   restorePromise=run(async()=>{
@@ -97,7 +125,11 @@ async function connect(){await run(async()=>{
   if(!more){boardId=id;pins=[];pinsNext=''}
   await loadPins(id,more);
  })}
- async function disconnect(){await run(async()=>{await api('disconnect',{});save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={}})}
+ async function disconnect(){await run(async()=>{
+  const token=await firebaseIdToken();
+  const body=token?{firebaseIdToken:token}:{};
+  await api('disconnect',body);save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};restorePromise=null;boardsPromise=null;pinsPromise=null;
+ })}
  function image(pin){
   const images=pin.media?.images||pin.media?.items?.[0]?.images||{};
   const candidate=images['600x']?.url||images['400x300']?.url||Object.values(images).find(x=>x?.url)?.url||pin.media?.cover_image_url;
@@ -208,7 +240,11 @@ async function init(){
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
  if(handoff||error){url.searchParams.delete('pinterest_handoff');url.searchParams.delete('pinterest_error');history.replaceState(history.state,'',url.href)}
  if(error)notice(error);
- if(handoff){try{const result=await api('session',{handoff,verifier:sessionStorage.getItem('pinterestVerifier')||''});save(result.session);sessionStorage.removeItem('pinterestVerifier')}catch(e){notice(e.message);return}}
+ if(handoff){try{
+  const token=await firebaseIdToken();
+  const result=await api('session',{handoff,verifier:sessionStorage.getItem('pinterestVerifier')||'',firebaseIdToken:token});
+  save(result.session);sessionStorage.removeItem('pinterestVerifier');
+ }catch(e){notice(e.message);return}}
  render();await restore();
 }
 window.__biglwaPinterest={connect,restore,disconnect,render};
