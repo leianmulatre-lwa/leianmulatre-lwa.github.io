@@ -41,7 +41,7 @@
        own colour. */
     '#feedPageList>.module-list-item:not(.biglwa-instagram-card){position:relative;min-width:0;overflow:visible;',
     'border:1px solid #dfd4ca;border-radius:18px;background:#f1e9e1;padding:0;',
-    'box-shadow:3px 3px 0 var(--feed-card-rim,#bd3f47);display:block;width:100%;}',
+    'box-shadow:3px 3px 0 var(--feed-card-rim,#bd3f47),0 12px 24px -16px color-mix(in srgb,var(--feed-card-rim,#bd3f47) 58%,transparent);display:block;width:100%;}',
     '#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div{padding:11px 13px 13px}',
     '#feedPageList>.module-list-item:not(.biglwa-instagram-card) small{display:block;font:600 11px/1.4 system-ui;',
     'letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}',
