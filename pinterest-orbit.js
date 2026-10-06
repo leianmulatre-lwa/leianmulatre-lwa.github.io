@@ -45,8 +45,9 @@ async function connect(){await run(async()=>{
   try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render()}catch{}finally{}
  }
  async function importPinsToAccount(items){
-  const importer=window.__biglwaOrbitPosts?.importOrbitMedia;
-  if(typeof importer!=="function" || !Array.isArray(items) || !items.length)return;
+  if(!Array.isArray(items) || !items.length)return;
+  const importer=await waitForImporter();
+  if(typeof importer!=="function")return;
   try{
     const result=await importer("pinterest",items,profile);
     if(result?.warning)console.warn("BIGLWA Pinterest import:",result.warning);
