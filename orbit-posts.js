@@ -39,6 +39,7 @@ async function firebase() {
       where: store.where,
       orderBy: store.orderBy,
       limit: store.limit,
+      startAfter: store.startAfter,
       writeBatch: store.writeBatch,
       serverTimestamp: store.serverTimestamp
     };
@@ -469,54 +470,61 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   return { imported, skipped, partial, warning };
 }
 
-export async function loadArchive(ownerUid) {
-  /* getDoc was missing from this destructure. The migration block below calls it, so the
-     whole load threw "getDoc is not defined", the catch swallowed it as a warning, and the
-     Archive silently stayed empty for every account whose Instagram posts predated the
-     Archive collection. That was the actual reason imported media never appeared there. */
+export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
   const store = await firebase();
-  const { db, auth, collection, getDocs, query, doc, getDoc, setDoc, deleteDoc, orderBy, limit } = store;
+  const { db, auth, collection, getDocs, query, doc, getDoc, setDoc, deleteDoc, orderBy, limit, startAfter } = store;
   const uid = ownerUid || auth.currentUser?.uid;
   if (!uid) return [];
 
-  if (!ownerUid || auth.currentUser?.uid === uid) {
+  const size = Math.max(1, Math.min(48, Number(pageSize) || 48));
+
+  /* The Archive used to scan the entire posts collection every time it opened,
+     even when the Archive already existed. That made an otherwise simple page wait on
+     hundreds of Firestore documents before the first card could render. Only perform
+     the old-data bridge when the Archive collection is actually empty. */
+  if (!cursor && (!ownerUid || auth.currentUser?.uid === uid)) {
     try {
-      const oldSnap = await getDocs(collection(db, "users", uid, "posts"));
-      const instagram = oldSnap.docs.filter(d => String(d.data()?.source || "").toLowerCase() === "instagram");
-      for (const old of instagram) {
-        const data = old.data() || {};
-        const archiveRef = doc(db, "users", uid, "archive", old.id);
-        const archiveSnap = await getDoc(archiveRef);
-        if (archiveSnap.exists()) continue;
-        await setDoc(archiveRef, {
-          ...data,
-          archiveState: data.archiveState
-            || (data.state === "approved" ? "collective" : data.state === "archived" ? "archived" : "saved"),
-          migratedToArchive: true
-        }, { merge: true });
+      const existingArchive = await getDocs(query(collection(db, "users", uid, "archive"), limit(1)));
+      if (existingArchive.empty) {
+        const oldSnap = await getDocs(collection(db, "users", uid, "posts"));
+        const instagram = oldSnap.docs.filter(d => String(d.data()?.source || "").toLowerCase() === "instagram");
+        for (const old of instagram) {
+          const data = old.data() || {};
+          const archiveRef = doc(db, "users", uid, "archive", old.id);
+          const archiveSnap = await getDoc(archiveRef);
+          if (archiveSnap.exists()) continue;
+          await setDoc(archiveRef, {
+            ...data,
+            archiveState: data.archiveState
+              || (data.state === "approved" ? "collective" : data.state === "archived" ? "archived" : "saved"),
+            migratedToArchive: true
+          }, { merge: true });
+        }
       }
     } catch (error) {
       console.warn("BIGLWA Archive migration:", error);
     }
   }
 
-  /* Ordered by the stored numeric source time so the newest card is genuinely first.
-     Sorted on the raw string before, which mis-ordered epoch-seconds timestamps and put
-     cards with no timestamp at an arbitrary point. */
   let snap;
   try {
-    snap = await getDocs(query(
+    const base = query(
       collection(db, "users", uid, "archive"),
-      orderBy("sourceCreatedAtMs", "desc"),
-      limit(300)
-    ));
+      orderBy("sourceCreatedAtMs", "desc")
+    );
+    snap = cursor
+      ? await getDocs(query(base, startAfter(cursor), limit(size)))
+      : await getDocs(query(base, limit(size)));
   } catch (error) {
-    /* Documents written before the numeric field existed are not returned by an
-       orderBy on that field, so fall back to the unfiltered read rather than showing
-       an empty Archive. */
     console.warn("BIGLWA Archive ordered read:", error);
-    snap = await getDocs(collection(db, "users", uid, "archive"));
+    /* Keep the same page size on the fallback path so a missing index cannot suddenly
+       dump the whole Archive into the browser. */
+    const base = cursor
+      ? query(collection(db, "users", uid, "archive"), startAfter(cursor))
+      : query(collection(db, "users", uid, "archive"));
+    snap = await getDocs(query(base, limit(size)));
   }
+
   const now = Date.now();
   const rows = [];
   for (const d of snap.docs) {
@@ -543,6 +551,11 @@ export async function loadArchive(ownerUid) {
         || (data.state === "approved" ? "collective" : data.state === "archived" ? "archived" : "saved")
     });
   }
+
+  /* Arrays remain backward-compatible for callers, while the two paging fields let the
+     Archive wall fetch another small page instead of loading hundreds of photos at once. */
+  rows.nextCursor = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+  rows.hasMore = snap.docs.length === size;
   return rows.sort((a, b) => archiveTimeMs(b) - archiveTimeMs(a));
 }
 
