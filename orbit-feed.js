@@ -26,14 +26,21 @@
      the `source` field instead of a class. The two have to agree or one account would be
      two different colours on the same board. */
   var ACCENTS = {
-    'instagram-feed-item': { accent: '#f28c28', label: 'Instagram' },
-    'tiktok-feed-item': { accent: '#111111', label: 'TikTok' },
-    'pinterest-feed-item': { accent: '#e60023', label: 'Pinterest' },
-    'facebook-feed-item': { accent: '#1877f2', label: 'Facebook' },
-    'youtube-feed-item': { accent: '#d0202f', label: 'YouTube' },
-    'soundcloud-feed-item': { accent: '#e2622a', label: 'SoundCloud' }
+    'instagram-feed-item': { accent: '#f28c28', rim:'#a52a0c', glow:'#962fbf', hot:'#fa7e1e', label: 'Instagram' },
+    'tiktok-feed-item': { accent: '#111111', rim:'#111111', glow:'#25f4ee', hot:'#fe2c55', label: 'TikTok' },
+    'pinterest-feed-item': { accent: '#e60023', rim:'#e60023', glow:'#ff3554', hot:'#9f0018', label: 'Pinterest' },
+    'facebook-feed-item': { accent: '#1877f2', rim:'#1877f2', glow:'#5aa0ff', label: 'Facebook' },
+    'youtube-feed-item': { accent: '#d0202f', rim:'#d0202f', glow:'#fff6ec', hot:'#ff0033', label: 'YouTube' },
+    'soundcloud-feed-item': { accent: '#e2622a', rim:'#ff5500', glow:'#ffb13b', hot:'#c93f00', label: 'SoundCloud' }
   };
-  var FALLBACK = { accent: '#8a7a6c', label: 'Source' };
+  var FALLBACK = { accent: '#8a7a6c', rim:'#a52a0c', glow:'#d95f6d', label: 'Source' };
+  function shadowFor(look) {
+    if (look.label === 'YouTube') return '0 0 0 2px '+look.rim+',3px 3px 0 '+look.glow+',0 13px 28px -16px '+look.rim;
+    if (look.label === 'Instagram') return '3px 3px 0 '+look.rim+',-2px 9px 22px -15px '+look.glow+',8px 14px 26px -18px '+look.hot;
+    if (look.label === 'TikTok') return '3px 3px 0 '+look.rim+',-2px 8px 20px -14px '+look.glow+',8px 13px 24px -16px '+look.hot;
+    if (look.hot) return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow+',0 0 18px -12px '+look.hot;
+    return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow;
+  }
 
   var STYLE = [
     /* Connected-account cards use the same shell as the Collective Feed cards: warm
@@ -41,7 +48,7 @@
        own colour. */
     '#feedPageList>.module-list-item:not(.biglwa-instagram-card){position:relative;min-width:0;overflow:visible;',
     'border:1px solid #dfd4ca;border-radius:18px;background:#f1e9e1;padding:0;',
-    'box-shadow:3px 3px 0 var(--feed-card-rim,#bd3f47),0 12px 24px -16px color-mix(in srgb,var(--feed-card-rim,#bd3f47) 58%,transparent);display:block;width:100%;}',
+    'box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim,#bd3f47),0 12px 24px -16px rgba(216,95,109,.3));display:block;width:100%;}',
     '#feedPageList>.module-list-item:not(.biglwa-instagram-card)>div{padding:11px 13px 13px}',
     '#feedPageList>.module-list-item:not(.biglwa-instagram-card) small{display:block;font:600 11px/1.4 system-ui;',
     'letter-spacing:.03em;text-transform:uppercase;color:#8a7a6c}',
@@ -82,7 +89,8 @@
     var look = ACCENTS[source.marker] || FALLBACK;
     Array.prototype.forEach.call(nodes, function (node) {
       node.style.setProperty('--accent', look.accent);
-      node.style.setProperty('--feed-card-rim', look.accent);
+      node.style.setProperty('--feed-card-rim', look.rim || look.accent);
+      node.style.setProperty('--feed-card-shadow', shadowFor(look));
       /* A label left on a card by an older build is taken off rather than left hidden. */
       var stale = node.querySelector('.biglwa-feed-src');
       if (stale) stale.remove();
