@@ -133,19 +133,19 @@
        masonry wall, source-coloured shadow, browser-strip controls, and a live/off state. */
     #studioApp[data-module-key="archive"] .archive-wall-shell{display:block!important;padding:0!important;margin-top:18px}
     #studioApp[data-module-key="archive"] .archive-page-list{
-      display:block!important;column-count:5!important;column-width:auto!important;column-gap:18px!important;column-fill:balance;
+      display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start;
       margin:0!important
     }
-    #studioApp[data-module-key="archive"] .archive-page-list>*{break-inside:avoid;min-width:0;width:100%;margin:0 0 18px}
-    @media(max-width:1560px){#studioApp[data-module-key="archive"] .archive-page-list{column-count:4!important}}
-    @media(max-width:1180px){#studioApp[data-module-key="archive"] .archive-page-list{column-count:3!important}}
-    @media(max-width:820px){#studioApp[data-module-key="archive"] .archive-page-list{column-count:2!important}}
-    @media(max-width:520px){#studioApp[data-module-key="archive"] .archive-page-list{column-count:1!important}}
+    #studioApp[data-module-key="archive"] .archive-page-list>*{min-width:0;width:100%;margin:0}
+    @media(max-width:1180px){#studioApp[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:820px){#studioApp[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){#studioApp[data-module-key="archive"] .archive-page-list{grid-template-columns:1fr}}
     #studioApp[data-module-key="archive"] .archive-pin{
       --feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;
       border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
       box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim),0 14px 28px -18px rgba(216,95,109,.3));
-      transition:filter .2s ease,opacity .2s ease,box-shadow .2s ease
+      transition:filter .2s ease,opacity .2s ease,box-shadow .2s ease;
+      content-visibility:auto;contain-intrinsic-size:360px
     }
     #studioApp[data-module-key="archive"] .archive-pin.is-live{filter:grayscale(1);opacity:.9}
     #studioApp[data-module-key="archive"] .archive-pin.is-archived{filter:none;opacity:1}
@@ -923,97 +923,136 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     const postsApi=window.__biglwaOrbitPosts;
     const previewMode=document.documentElement.classList.contains('biglwa-preview-mode');
     const previewUsername=(()=>{try{return decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g,''))}catch{return ''}})();
+    let archiveMedia=[];
+    let archiveCursor=null;
+    let archiveHasMore=false;
+    let archiveInitialized=false;
+    let archiveLoading=false;
+
+    const loadInitial=async()=>{
+      const rows=previewMode
+        ? await window.BigLWAUserDirectory?.loadArchiveForUsername?.(previewUsername)||[]
+        : await postsApi?.loadArchive?.();
+      archiveMedia=Array.isArray(rows)?rows:[];
+      archiveCursor=rows?.nextCursor||null;
+      archiveHasMore=Boolean(rows?.hasMore);
+      archiveInitialized=true;
+    };
+
+    const loadMore=async()=>{
+      if(previewMode||archiveLoading||!archiveHasMore||!archiveCursor)return;
+      archiveLoading=true;
+      const button=$('#archiveLoadMore',body),status=$('#archiveInstagramStatus',body);
+      if(button)button.disabled=true;
+      if(status)status.textContent='Loading older Archive photos…';
+      try{
+        const rows=await postsApi?.loadArchive?.(undefined,48,archiveCursor);
+        const next=Array.isArray(rows)?rows:[];
+        archiveMedia=archiveMedia.concat(next);
+        archiveCursor=rows?.nextCursor||null;
+        archiveHasMore=Boolean(rows?.hasMore);
+        await draw();
+      }catch(error){
+        if(status)status.textContent=error?.message||'Older Archive photos could not be loaded.';
+      }finally{
+        archiveLoading=false;
+      }
+    };
+
     const draw=async()=>{
       const owner=!previewMode;
-      let media=[],settings={visibility:'private',friends:[]},profile=orbit?.state?.profile||{},status='';
+      let settings={visibility:'private',friends:[]},profile=orbit?.state?.profile||{},status='';
       try{
         if(owner){
           settings=await postsApi?.getArchiveSettings?.()||settings;
-          media=await postsApi?.loadArchive?.()||[];
+          if(!archiveInitialized) await loadInitial();
           profile=orbit?.state?.profile||profile;
         }else{
           const publicProfile=await window.BigLWAUserDirectory?.loadPublicProfile?.(previewUsername);
           settings={visibility:publicProfile?.archiveVisibility||'private',friends:[]};
+          profile=publicProfile||profile;
           if(settings.visibility!=='friends'){
             body.innerHTML=heading('archive')+'<div class="module-grid"><section class="module-card wide"><h2>Archive</h2><p>This Archive is private. The owner has not made it viewable to friends.</p></section></div>';
             return;
           }
-          media=await window.BigLWAUserDirectory?.loadArchiveForUsername?.(previewUsername)||[];
-          profile=publicProfile||profile;
-          if(!media.length)status='This friend has not shared any archived content yet.';
+          if(!archiveInitialized) await loadInitial();
+          if(!archiveMedia.length)status='This friend has not shared any archived content yet.';
         }
       }catch(error){
         console.error('BIGLWA Archive:',error);
         status=error?.message||'The Archive could not be loaded.';
       }
+
       const username=profile.username||profile.name||previewUsername||'BIGLWA member';
-      const cards=media.map((item,index)=>{
+      const cards=archiveMedia.map((item,index)=>{
         const pieces=archiveMediaPieces(item);
         const first=pieces[0]?.url||'';
         const caption=String(item.caption||'').trim();
-        const date=item.sourceCreatedAt?new Date(item.sourceCreatedAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'';
         const state=archiveStateFor(item);
         const live=state==='collective';
         const pending=state==='pending_delete';
         const archived=state==='archived';
         const source=String(item.source||'instagram').toLowerCase();
         const rim=archiveSourceRim(source);
-        const imageMarkup=first
-          ? ((String(pieces[0]?.mediaType||'').toUpperCase()==='VIDEO')
-              ? '<video src="'+esc(first)+'" poster="'+esc(pieces[0]?.thumbnailUrl||'')+'" muted playsinline preload="metadata" controls></video>'
-              : '<img src="'+esc(first)+'" alt="Archived media '+(index+1)+'" loading="lazy" decoding="async">')
-          : '<div class="biglwa-pin-empty"><small>Media unavailable</small></div>';
-        const count=pieces.length>1?'<span class="archive-photo-count">'+pieces.length+' photos</span>':'';
+        const shadow=archiveSourceShadow(source);
         const stateBadge=pending
           ? '<span class="archive-live-badge is-pending">DELETING</span>'
           : live
             ? '<span class="archive-live-badge">LIVE</span>'
             : '<span class="archive-live-badge is-archived">ARCHIVED</span>';
         const actions=owner
-          ? '<div class="archive-browser-actions" aria-label="Archive post actions">'+
+          ? '<div class="archive-browser-actions" aria-label="Archive photo actions">'+
             '<button type="button" data-archive-delete aria-label="Delete this post" title="Delete"></button>'+
             '<button type="button" data-archive-toggle aria-label="'+esc(live?'Turn live off and archive this post':'Turn live on and publish this post')+'" title="'+esc(live?'Archive':'Make live')+'" '+(pending?'disabled':'')+'></button>'+
             '<button type="button" data-archive-enlarge aria-label="Open this photo" title="Open this photo"></button>'+
             '</div>'
           : '';
-        const metaLine=live
-          ? '<small class="archive-state-line">LIVE · currently on Collective Feed</small>'
-          : archived
-            ? '<small class="archive-state-line">ARCHIVED · off Collective Feed</small>'
-            : pending
-              ? '<small class="archive-state-line archive-delete-warning">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</small>'
-              : '<small class="archive-state-line">Saved</small>';
-        return '<article class="archive-pin biglwa-pin-post is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+';--feed-card-shadow:'+archiveSourceShadow(source)+'" data-archive-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
+        const imageMarkup=first
+          ? ((String(pieces[0]?.mediaType||'').toUpperCase()==='VIDEO')
+              ? '<video src="'+esc(first)+'" poster="'+esc(pieces[0]?.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
+              : '<img src="'+esc(first)+'" alt="Archive photo '+(index+1)+'" loading="lazy" decoding="async">')
+          : '<div class="biglwa-pin-empty"><small>Media unavailable</small></div>';
+        const pendingMeta=pending
+          ? '<div class="archive-pending-note">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</div>'
+          : '';
+        return '<article class="archive-pin biglwa-pin biglwa-pin-post biglwa-instagram-card is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+';--feed-card-shadow:'+shadow+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
           '<div class="biglwa-instagram-browser-strip archive-browser-strip">'+stateBadge+actions+'</div>'+
-          '<div class="archive-media">'+imageMarkup+count+'</div>'+
-          '<div class="archive-meta"><b>'+esc(caption?caption.split('\n')[0].slice(0,70):(source==='instagram'?'Instagram photo':source))+'</b>'+
-          '<small>'+esc(caption||('@'+username)+(date?' · '+date:''))+'</small>'+metaLine+'</div>'+
+          '<div class="archive-media">'+imageMarkup+'</div>'+
+          pendingMeta+
           '</article>';
       }).join('');
-      const count=media.length;
+
+      const count=archiveMedia.length;
       const visibility=owner
         ? '<section class="module-card wide archive-visibility-card"><h2>Archive visibility</h2><p>Your Archive is private to you by default. Friends can only see it when you turn this on and add their BIGLWA username.</p>'+
           '<div class="archive-visibility-row"><label><span>Who can view this Archive?</span><select class="module-select" id="archiveVisibility"><option value="private" '+(settings.visibility==='private'?'selected':'')+'>Only me</option><option value="friends" '+(settings.visibility==='friends'?'selected':'')+'>Friends</option></select></label></div>'+
           '<div class="archive-friend-add"><input class="module-input" id="archiveFriendUsername" placeholder="@username"><button class="module-action" id="archiveAddFriend" type="button">Add friend</button><button class="module-action ghost" id="archiveRemoveFriend" type="button">Remove</button></div>'+
           '<div class="module-status" id="archiveFriendStatus">'+(settings.visibility==='friends'?(settings.friends?.length||0)+' friend access slot(s) enabled.':'Archive is private.')+'</div></section>'
         : '';
-      body.innerHTML=heading('archive',count?count+' photo'+(count===1?'':'s'):'')+
+
+      body.innerHTML=heading('archive',count?count+' photo'+(count===1?'':'s')+(archiveHasMore?' loaded':''):'')+
         '<div class="module-grid">'+
         '<section class="module-card wide archive-wall-shell">'+
-          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive</h2><p>Everything saved to your account lives here. <strong>LIVE</strong> means it is still on Collective Feed. Yellow switches it off and archives it.</p></div>'+
+          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive</h2><p>Saved photos use the same card wall as Collective Feed. <strong>LIVE</strong> means the photo is currently on Collective Feed. Yellow switches it off and archives it.</p></div>'+
           (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveOrbit" type="button">Manage Instagram connection</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>':'')+
           '</div>'+
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(orbit?.state?.connected?'Imported from @'+username+'.':'Connect Instagram in Orbit, then import your archive.'):'Shared with friends.'))+'</div>'+
           '<p class="archive-legend"><i class="is-live"></i>LIVE · on Collective Feed<i class="is-archived"></i>ARCHIVED · off Collective Feed</p>'+
           (cards?'<div class="archive-page-list" id="archivePageList">'+cards+'</div>':'<div class="archive-empty">No media has been imported yet.</div>')+
+          (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
+
       if(owner){
         $('#archiveOrbit',body)?.addEventListener('click',()=>openModule('orbit'));
         $('#archiveRefreshInstagram',body)?.addEventListener('click',async()=>{
           const button=$('#archiveRefreshInstagram',body),st=$('#archiveInstagramStatus',body);
           button.disabled=true;if(st)st.textContent='Refreshing Instagram into your Archive + Collective Feed…';
-          try{await orbit?.restore?.();await draw()}catch(error){if(st)st.textContent=error?.message||'Instagram could not be refreshed.'}finally{button.disabled=false}
+          try{
+            archiveInitialized=false;archiveMedia=[];archiveCursor=null;archiveHasMore=false;
+            await orbit?.restore?.();await draw();
+          }catch(error){if(st)st.textContent=error?.message||'Instagram could not be refreshed.'}finally{button.disabled=false}
         });
+        $('#archiveLoadMore',body)?.addEventListener('click',loadMore);
         $('#archiveVisibility',body)?.addEventListener('change',async(event)=>{
           const st=$('#archiveFriendStatus',body);event.target.disabled=true;
           try{const value=await postsApi?.setArchiveVisibility?.(event.target.value);if(st)st.textContent=value==='friends'?'Archive is viewable to the friends you add below.':'Archive is private to you.';await draw()}catch(error){if(st)st.textContent=error?.message||'Visibility could not be saved.'}finally{event.target.disabled=false}
@@ -1035,14 +1074,11 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
           const card=event.target.closest('[data-archive-id]');
           if(!card)return;
           const id=card.dataset.archiveId;
-          if(enlargeButton){
-            archiveOpenImage(card.dataset.archiveUrl);
-            return;
-          }
+          if(enlargeButton){archiveOpenImage(card.dataset.archiveUrl);return}
           if(toggleButton){
             toggleButton.disabled=true;
             try{
-              const current=archiveStateFor(media.find(row=>row.id===id)||{});
+              const current=archiveStateFor(archiveMedia.find(row=>row.id===id)||{});
               if(current==='collective') await postsApi?.archiveOrbitPost?.(id);
               else await postsApi?.publishOrbitPost?.(id);
               await draw();
@@ -1070,6 +1106,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     };
     draw();
   }
+
 
   function renderCloset(){
     const storage='biglwaModule_closet',depopKey='biglwaDepopPath';const items=readJSON(storage,[]),depop=localStorage.getItem(depopKey)||'';
