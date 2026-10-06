@@ -3,7 +3,7 @@
 if(window.__biglwaPinterest) return;
 const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/pinterest/';
 const KEY='biglwaPinterestSession';
- let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='',covers={};
+ let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  /* The session id is a credential that should outlive the tab, like the other two
     sources, so the connection does not vanish when the window is closed. The PKCE
@@ -15,7 +15,7 @@ function notice(text){message=text;render();let el=document.getElementById('pint
 async function api(path,body){
  const res=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session()},...(body?{body:JSON.stringify(body)}:{})});
  const data=await res.json().catch(()=>({}));
- if(!res.ok){if(res.status===401){save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={}}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
+ if(!res.ok){if(res.status===401){save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};restorePromise=null;boardsPromise=null;pinsPromise=null}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
  return data;
 }
 async function run(fn){
@@ -31,11 +31,16 @@ async function connect(){await run(async()=>{
  location.assign(API+'start?challenge='+encodeURIComponent(challenge));
 })}
  async function loadBoards(more=false){
-  const data=await api('boards'+(more&&boardsNext?'?bookmark='+encodeURIComponent(boardsNext):''));
-  boards=more?[...boards,...(data.items||[])]:data.items||[];boardsNext=data.bookmark||'';
-  /* Covers are fetched without blocking the board list: the grid is already usable with
-     placeholders, and the pictures arrive a moment later. */
-  loadCovers().then(render);
+  if(boardsPromise&&!more)return boardsPromise;
+  boardsPromise=(async()=>{
+   const data=await api('boards'+(more&&boardsNext?'?bookmark='+encodeURIComponent(boardsNext):''));
+   const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.boards)?data.boards:Array.isArray(data?.data?.items)?data.data.items:[];
+   boards=more?[...boards,...items]:items;boardsNext=data?.bookmark||data?.next_bookmark||'';
+   render();
+   loadCovers().then(render).catch(()=>{});
+   return boards;
+  })();
+  try{return await boardsPromise}finally{boardsPromise=null}
  }
   /* Six covers is what the preview shows, so asking for more would spend the rate limit on
      tiles nobody sees. The Worker caches per session, so this is cheap after the first call. */
@@ -57,17 +62,37 @@ async function connect(){await run(async()=>{
   }
  }
  async function loadPins(id,more){
-  const data=await api('boards/'+id+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
-  const nextItems=Array.isArray(data.items)?data.items:[];
-  pins=more?[...pins,...nextItems]:nextItems;pinsNext=data.bookmark||'';
-  /* Pinterest was previously only held in this renderer. Persist every page of returned
-     Pins into the same account/profile/Archive records as the other Orbit sources. */
-  await importPinsToAccount(nextItems);
+  if(!id)return[];
+  if(pinsPromise&&!more)return pinsPromise;
+  pinsPromise=(async()=>{
+   const data=await api('boards/'+id+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
+   const nextItems=Array.isArray(data?.items)?data.items:Array.isArray(data?.pins)?data.pins:Array.isArray(data?.data?.items)?data.data.items:[];
+   pins=more?[...pins,...nextItems]:nextItems;pinsNext=data?.bookmark||data?.next_bookmark||'';
+   render();
+   /* Pinterest was previously only held in this renderer. Persist every page of returned
+      Pins into the same account/profile/Archive records as the other Orbit sources. */
+   await importPinsToAccount(nextItems);
+   render();
+   return pins;
+  })();
+  try{return await pinsPromise}finally{pinsPromise=null}
  }
- async function restore(){if(!session())return;await run(async()=>{profile=await api('profile');connected=true;await loadBoards();
-  /* Opening the first board means the feed has Pins to show before anyone picks a
-     board, instead of an empty list that looks like the connection returned nothing. */
-  if(!boardId&&boards.length){boardId=boards[0].id;await loadPins(boardId)}})}
+ async function restore(){
+  if(!session())return;
+  if(restorePromise)return restorePromise;
+  restorePromise=run(async()=>{
+   profile=await api('profile');
+   connected=true;
+   render();
+   await loadBoards();
+   /* Opening the first board means the feed has Pins to show before anyone picks a
+      board, instead of an empty list that looks like the connection returned nothing. */
+   if(!boardId&&boards.length)boardId=String(boards[0].id||'');
+   if(boardId)await loadPins(boardId);
+   render();
+  });
+  try{return await restorePromise}finally{restorePromise=null}
+ }
  async function choose(id,more=false){if(!/^\d+$/.test(id))return;await run(async()=>{
   if(!more){boardId=id;pins=[];pinsNext=''}
   await loadPins(id,more);
@@ -99,7 +124,7 @@ async function connect(){await run(async()=>{
   if(!cards.length)return;
   list.insertAdjacentHTML('afterbegin',cards.join(''));
  }
- function boardNameFor(id){return boards.find(b=>b.id===id)?.name||''}
+ function boardNameFor(id){return boards.find(b=>String(b.id)===String(id))?.name||''}
   /* The board grid is three across and two down. That is deliberately not the four-column
      feed, so the two grids read as different things. Before a connection it is six empty
      slots rather than a prompt, which shows the shape of what is coming without pretending
@@ -150,6 +175,7 @@ async function connect(){await run(async()=>{
   '</div><p role="status">'+esc(message)+'</p>'+
   /* The grid sits outside the connected branch on purpose: the shape of what is coming is
      useful before anyone connects, and it is the same six slots either way. */
+  (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
   boardGrid()+
   (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
   (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
@@ -164,13 +190,19 @@ document.addEventListener('click',e=>{
  const b=e.target.closest('[data-pn-connect],[data-pn-open],[data-orbit-app="pinterest"],[data-pn-disconnect],[data-pn-refresh],[data-pn-more-boards],[data-pn-more-pins]');
  if(!b)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-pn-disconnect'))disconnect();
- else if(b.hasAttribute('data-pn-refresh'))run(async()=>{boardId='';pins=[];pinsNext='';await loadBoards()});
+ else if(b.hasAttribute('data-pn-refresh'))run(async()=>{boardId='';pins=[];pinsNext='';boards=[];boardsNext='';await loadBoards()});
  else if(b.hasAttribute('data-pn-more-boards'))run(()=>loadBoards(true));
  else if(b.hasAttribute('data-pn-more-pins'))choose(boardId,true);
  else if(connected){window.openBIGLWAModule?.('boards');render()}
  else connect();
 },true);
-document.addEventListener('biglwa:module-open',render);
+document.addEventListener('biglwa:module-open',()=>{
+ render();
+ const route=document.getElementById('moduleRouteName')?.textContent||'';
+ if(route==='Boards' && session()){
+  restore().catch(()=>{});
+ }
+});
 async function init(){
   const style=document.createElement('style');style.textContent='#pinterestBoards{font-size:16px}#pinterestBoards p,#pinterestBoards label{font-size:16px;line-height:1.5}#pinterestBoards button,#pinterestBoards select{font-size:14px;min-height:42px}#pinterestBoards button:disabled{opacity:.55;cursor:wait}.pinterest-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.pinterest-board{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:150px;overflow:hidden;border:1px solid #d8cec5;border-radius:14px;background:#fffaf3;color:#302b28;text-decoration:none;box-shadow:0 10px 22px -16px rgba(48,43,40,.6)}.pinterest-board img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pinterest-board strong,.pinterest-board small{position:relative;z-index:1;padding:0 12px;color:#fff;background:linear-gradient(180deg,transparent,rgba(24,16,14,.78) 62%);text-shadow:0 1px 3px rgba(0,0,0,.4)}.pinterest-board strong{padding-top:30px;font:600 15px/1.4 system-ui;overflow-wrap:anywhere}.pinterest-board small{padding-bottom:11px;font:600 12px/1.4 system-ui;opacity:.9}.pinterest-board.is-empty{display:grid;place-items:center;min-height:150px;border-style:dashed;background:repeating-linear-gradient(45deg,#fffaf3,#fffaf3 10px,#fdf3e9 10px,#fdf3e9 20px)}.pinterest-board.is-empty span{font:600 12px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}.pinterest-board:focus-visible{outline:3px solid #a53332}@media (max-width:760px){.pinterest-board-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}.pinterest-pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:16px;margin:20px 0}.pinterest-pin{border:1px solid #d8cec5;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#fffaf3;color:#302b28;text-decoration:none}.pinterest-pin img{width:100%;height:230px;object-fit:cover}.pinterest-pin span,.pinterest-pin small{padding:10px 12px;overflow-wrap:anywhere}.pinterest-pin small{font-size:13px;margin-top:auto}.pinterest-pin:focus-visible{outline:3px solid #a53332}';document.head.append(style);
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
