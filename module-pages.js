@@ -144,7 +144,7 @@
     #studioApp[data-module-key="archive"] .archive-pin{
       --feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;
       border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
-      box-shadow:3px 3px 0 var(--feed-card-rim),0 14px 28px -18px color-mix(in srgb,var(--feed-card-rim) 62%,transparent);
+      box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim),0 14px 28px -18px rgba(216,95,109,.3));
       transition:filter .2s ease,opacity .2s ease,box-shadow .2s ease
     }
     #studioApp[data-module-key="archive"] .archive-pin.is-live{filter:grayscale(1);opacity:.9}
@@ -888,15 +888,24 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     const days=Math.max(0,Math.ceil((ms-Date.now())/86400000));
     return days+" day"+(days===1?"":"s")+" until deletion";
   }
-  function archiveSourceRim(source){
+  function archiveSourceTheme(source){
     return ({
-      instagram:"#a52a0c",
-      tiktok:"#111111",
-      facebook:"#1877f2",
-      pinterest:"#e60023",
-      youtube:"#d0202f",
-      soundcloud:"#e2622a"
-    })[String(source||"").toLowerCase()]||"#a52a0c";
+      instagram:{rim:"#a52a0c",glow:"#962fbf",hot:"#fa7e1e"},
+      tiktok:{rim:"#111111",glow:"#25f4ee",hot:"#fe2c55"},
+      facebook:{rim:"#1877f2",glow:"#5aa0ff"},
+      pinterest:{rim:"#e60023",glow:"#ff3554",hot:"#9f0018"},
+      youtube:{rim:"#d0202f",glow:"#fff6ec",hot:"#ff0033"},
+      soundcloud:{rim:"#ff5500",glow:"#ffb13b",hot:"#c93f00"}
+    })[String(source||"").toLowerCase()]||{rim:"#a52a0c",glow:"#d95f6d"};
+  }
+  function archiveSourceRim(source){return archiveSourceTheme(source).rim}
+  function archiveSourceShadow(source){
+    const key=String(source||"").toLowerCase(),t=archiveSourceTheme(key);
+    if(key==="youtube") return "0 0 0 2px "+t.rim+",3px 3px 0 "+t.glow+",0 13px 28px -16px "+t.rim;
+    if(key==="instagram") return "3px 3px 0 "+t.rim+",-2px 9px 22px -15px "+t.glow+",8px 14px 26px -18px "+t.hot;
+    if(key==="tiktok") return "3px 3px 0 "+t.rim+",-2px 8px 20px -14px "+t.glow+",8px 13px 24px -16px "+t.hot;
+    if(t.hot) return "3px 3px 0 "+t.rim+",0 12px 25px -16px "+t.glow+",0 0 18px -12px "+t.hot;
+    return "3px 3px 0 "+t.rim+",0 12px 25px -16px "+t.glow;
   }
   function archiveMediaPieces(item){
     if(Array.isArray(item.mediaItems)&&item.mediaItems.length)return item.mediaItems.filter(piece=>piece&&piece.url);
@@ -974,7 +983,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
             : pending
               ? '<small class="archive-state-line archive-delete-warning">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</small>'
               : '<small class="archive-state-line">Saved</small>';
-        return '<article class="archive-pin biglwa-pin-post is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+'" data-archive-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
+        return '<article class="archive-pin biglwa-pin-post is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+';--feed-card-shadow:'+archiveSourceShadow(source)+'" data-archive-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
           '<div class="biglwa-instagram-browser-strip archive-browser-strip">'+stateBadge+actions+'</div>'+
           '<div class="archive-media">'+imageMarkup+count+'</div>'+
           '<div class="archive-meta"><b>'+esc(caption?caption.split('\n')[0].slice(0,70):(source==='instagram'?'Instagram photo':source))+'</b>'+
