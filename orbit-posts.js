@@ -62,11 +62,27 @@ function sourcePostIdFor(item, fallbackUrl) {
   return clean(item.id || item.pk || item.code || item.url || fallbackUrl);
 }
 
+function pinterestImageUrl(item) {
+  const images = item?.media?.images || item?.media?.items?.[0]?.images || {};
+  const candidate =
+    images["600x"]?.url ||
+    images["400x300"]?.url ||
+    images["237x"]?.url ||
+    Object.values(images).find((entry) => entry?.url)?.url ||
+    item?.media?.cover_image_url ||
+    "";
+  return clean(candidate);
+}
 function mediaPieces(item) {
   const children = Array.isArray(item?.children?.data)
     ? item.children.data.filter(child => child && (child.media_url || child.thumbnail_url))
     : [];
-  return children.length ? children : [item];
+  if (children.length) return children;
+  if (String(item?.source || "").toLowerCase() === "pinterest" || item?.media?.images || item?.media?.items?.[0]?.images) {
+    const src = pinterestImageUrl(item);
+    return src ? [{ media_url: src, thumbnail_url: src, media_type: "IMAGE" }] : [];
+  }
+  return [item];
 }
 
 /* A carousel can mix stills and video, and a video's media_url is an .mp4. Those used to be
@@ -81,8 +97,10 @@ function isPicturePiece(piece, parent) {
   return !/\.(mp4|mov|m4v|webm)(\?|$)/i.test(url);
 }
 function mediaFromItem(source, item, hostedMedia) {
-  const caption = clean(item.caption || item.title || item.description || "Shared from " + source);
-  const fallbackUrl = clean(item.media_url || item.thumbnail_url || item.url);
+  const normalizedSource = String(source || "").toLowerCase();
+  const caption = clean(item.caption || item.title || item.description || item.alt_text || "Shared from " + source);
+  const pinterestUrl = normalizedSource === "pinterest" ? pinterestImageUrl(item) : "";
+  const fallbackUrl = clean(item.media_url || item.thumbnail_url || item.url || pinterestUrl);
   const sourcePostId = sourcePostIdFor(item, fallbackUrl);
   const pieces = mediaPieces(item);
   const mediaItems = pieces.map((piece, index) => {
