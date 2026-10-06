@@ -107,7 +107,7 @@ const STYLE = `
    best were the orange ones, and the rest were left on an old per-position colour cycle
    where only every sixth card happened to land on orange, so the wall looked accidental. */
 .biglwa-pin{--feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
-  box-shadow:3px 3px 0 var(--feed-card-rim),0 12px 26px -18px rgba(var(--aura-rgb,216,95,109),.8)}
+  box-shadow:3px 3px 0 var(--feed-card-rim),0 12px 26px -18px color-mix(in srgb,var(--feed-card-rim) 62%,transparent)}
 .biglwa-pin::before{content:none}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
 #biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #d77b30}
@@ -170,7 +170,7 @@ const STYLE = `
   width:96%!important;margin-left:0!important;
   background:rgba(var(--aura-rgb,216,95,109),.09)!important;
   border-color:rgba(var(--aura-rgb,216,95,109),.2)!important;
-  box-shadow:3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#c13584)),0 12px 26px -18px rgba(var(--aura-rgb,216,95,109),.8)!important;
+  box-shadow:3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#c13584)),0 12px 26px -18px color-mix(in srgb,var(--feed-card-rim,var(--orbit-rim,#c13584)) 62%,transparent)!important;
   border-radius:11px!important;overflow:hidden!important
 }
 .biglwa-instagram-card .biglwa-instagram-browser-strip,
