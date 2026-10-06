@@ -725,7 +725,7 @@ function renderPosts(force) {
             : '') +
         '</div>'
       : '';
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + ';--feed-card-shadow:' + shadowOf(post.source) + '" data-post-id="' + esc(post.id) + '">' +
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + (String(post.source || "").toLowerCase() === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + ';--feed-card-shadow:' + shadowOf(post.source) + '" data-post-id="' + esc(post.id) + '">' +
       '<div>' + browserStrip + image + "</div>" + link +
       sendBar(post) +
       (!isInstagram && managed
