@@ -86,7 +86,9 @@ async function connect(){await run(async()=>{
  }
  function renderFeedList(list){
   list=list||document.getElementById('feedPageList');if(!list)return;
-  list.querySelectorAll('.pinterest-feed-item').forEach(el=>el.remove());
+  const durable=list.querySelectorAll('.biglwa-pin-post.pinterest-feed-item');
+  list.querySelectorAll('.pinterest-feed-item:not(.biglwa-pin-post)').forEach(el=>el.remove());
+  if(durable.length)return;
   const cards=feedPins().map(p=>{
    const src=image(p);
    const label=p.boardName||boardNameFor(p.board_id);
