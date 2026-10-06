@@ -84,13 +84,27 @@ const SOURCES = {
    black and Facebook is blue because those are the ones that were being mistaken for
    something else without it. */
 const FEED_RIM = "#a52a0c";
-const SOURCE_RIMS = {
-  instagram: "#a52a0c",
-  tiktok: "#111111",
-  facebook: "#1877f2",
-  pinterest: "#e60023"
+const SOURCE_THEMES = {
+  instagram: { rim:"#a52a0c", glow:"#962fbf", hot:"#fa7e1e" },
+  tiktok: { rim:"#111111", glow:"#25f4ee", hot:"#fe2c55" },
+  facebook: { rim:"#1877f2", glow:"#5aa0ff" },
+  pinterest: { rim:"#e60023", glow:"#ff3554", hot:"#9f0018" },
+  youtube: { rim:"#d0202f", glow:"#fff6ec", hot:"#ff0033" },
+  soundcloud: { rim:"#ff5500", glow:"#ffb13b", hot:"#c93f00" },
+  google: { rim:"#4285f4", glow:"#34a853", hot:"#fbbc04" },
+  drive: { rim:"#4285f4", glow:"#34a853", hot:"#fbbc04" },
+  calendar: { rim:"#4285f4", glow:"#fbbc04", hot:"#ea4335" }
 };
-const rimOf = (source) => SOURCE_RIMS[String(source || "").toLowerCase()] || FEED_RIM;
+const rimOf = (source) => (SOURCE_THEMES[String(source || "").toLowerCase()] || { rim:FEED_RIM }).rim;
+const shadowOf = (source) => {
+  const key = String(source || "").toLowerCase();
+  const theme = SOURCE_THEMES[key] || { rim:FEED_RIM, glow:"#d95f6d" };
+  if (key === "youtube") return "0 0 0 2px " + theme.rim + ",3px 3px 0 " + theme.glow + ",0 13px 28px -16px " + theme.rim;
+  if (key === "instagram") return "3px 3px 0 " + theme.rim + ",-2px 9px 22px -15px " + theme.glow + ",8px 14px 26px -18px " + theme.hot;
+  if (key === "tiktok") return "3px 3px 0 " + theme.rim + ",-2px 8px 20px -14px " + theme.glow + ",8px 13px 24px -16px " + theme.hot;
+  if (theme.hot) return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow + ",0 0 18px -12px " + theme.hot;
+  return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow;
+};
 const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
 
 const STYLE = `
@@ -106,8 +120,8 @@ const STYLE = `
 /* Every card wears the same blood-orange rim and the same soft glow. The cards that read
    best were the orange ones, and the rest were left on an old per-position colour cycle
    where only every sixth card happened to land on orange, so the wall looked accidental. */
-.biglwa-pin{--feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
-  box-shadow:3px 3px 0 var(--feed-card-rim),0 12px 26px -18px color-mix(in srgb,var(--feed-card-rim) 62%,transparent)}
+.biglwa-pin{--feed-card-rim:#a52a0c;--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px 25px -16px rgba(216,95,109,.35);position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
+  box-shadow:var(--feed-card-shadow)}
 .biglwa-pin::before{content:none}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
 #biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #d77b30}
@@ -170,7 +184,7 @@ const STYLE = `
   width:96%!important;margin-left:0!important;
   background:rgba(var(--aura-rgb,216,95,109),.09)!important;
   border-color:rgba(var(--aura-rgb,216,95,109),.2)!important;
-  box-shadow:3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#c13584)),0 12px 26px -18px color-mix(in srgb,var(--feed-card-rim,var(--orbit-rim,#c13584)) 62%,transparent)!important;
+  box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#c13584)),0 12px 24px -16px rgba(216,95,109,.3))!important;
   border-radius:11px!important;overflow:hidden!important
 }
 .biglwa-instagram-card .biglwa-instagram-browser-strip,
@@ -711,7 +725,7 @@ function renderPosts(force) {
             : '') +
         '</div>'
       : '';
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + '" data-post-id="' + esc(post.id) + '">' +
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + ';--feed-card-shadow:' + shadowOf(post.source) + '" data-post-id="' + esc(post.id) + '">' +
       '<div>' + browserStrip + image + "</div>" + link +
       sendBar(post) +
       (!isInstagram && managed
