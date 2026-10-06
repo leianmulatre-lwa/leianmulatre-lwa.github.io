@@ -663,7 +663,30 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	}
 </style>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f6f0e9;color:#292523;font:16px/1.45 system-ui,sans-serif}header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;border-bottom:1px solid #d8cec5}h1{font:32px/1 Georgia,serif;margin:0}a{color:inherit}button,input,select,textarea{font:inherit}button{cursor:pointer;min-height:44px;border:1px solid #bfb2a8;border-radius:9px;padding:9px 12px;background:#fff;color:#292523}button.primary{background:#292523;color:white}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #b83955;outline-offset:3px}input,select,textarea{width:100%;padding:10px;border:1px solid #bfb2a8;border-radius:8px;background:#fff;color:#292523}textarea{resize:vertical;min-height:76px}label{display:grid;gap:4px;font-size:14px}main{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;padding:16px}.map-side{min-width:0}#map{height:min(65vh,620px);min-height:340px;border:1px solid #c8bbb0;border-radius:12px;z-index:0}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.status{font-size:14px;margin:8px 0;min-height:22px}aside{min-width:0}h2{font:24px Georgia,serif;margin:0 0 12px}form{display:grid;gap:10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hint{font-size:13px;color:#695e56;margin:8px 0 14px}.saved{margin-top:24px}#pins{display:grid;gap:8px;max-height:350px;overflow:auto}.place-search-label{position:relative}.place-search-wrap{position:relative}.place-search-wrap input{width:100%}.place-suggestions{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:1200;max-height:300px;overflow:auto;border:1px solid #c8bbb0;border-radius:12px;background:#fffcf9;box-shadow:0 12px 28px rgba(40,28,22,.18);padding:5px}.place-suggestions[hidden]{display:none}.place-option{width:100%;border:0;background:transparent;color:inherit;text-align:left;padding:9px 10px;border-radius:9px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;cursor:pointer}.place-option:hover,.place-option:focus{background:#f1e8df;outline:none}.place-option strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.place-option small{grid-column:1/2;color:#756960;line-height:1.25}.place-option .place-kind{grid-column:2;grid-row:1/3;align-self:center;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border:1px solid #d8cec5;border-radius:999px;padding:3px 6px;color:#695e56}.place-search-status{font-size:12px;color:#695e56;margin:-5px 0 0;min-height:16px}.place-source{font-size:10px;color:#887a70;margin:-7px 0 2px}.place-source a{color:inherit}.map-safety{margin:2px 0 10px;padding:11px 12px;border:1px solid rgba(154,55,67,.28);border-radius:12px;background:rgba(154,55,67,.08);color:#5d252d;font:600 11px/1.5 system-ui}.map-safety strong{display:block;margin-bottom:3px;font-size:11px;letter-spacing:.015em}.map-safety em{font-style:normal;font-weight:800}.night-mode .map-safety{background:rgba(218,104,119,.10);border-color:rgba(239,150,164,.24);color:#f0c7cd}.night-mode .place-suggestions{background:#292523;border-color:#514a45}.night-mode .place-option:hover,.night-mode .place-option:focus{background:#39332f}.night-mode .place-option small,.night-mode .place-option .place-kind,.night-mode .place-search-status{color:#c9bdb4}.pin-row{border:1px solid #d8cec5;border-radius:10px;padding:10px;background:#fffcf9}.pin-row b{display:block;overflow-wrap:anywhere}.pin-row p{font-size:14px;margin:4px 0;overflow-wrap:anywhere}.pin-row .toolbar{margin:8px 0 0}.pin-dot{background:#ae2d49;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px #0006}.pin-dot.draft{background:#292523;border-style:dashed}.leaflet-container{font-family:system-ui}.leaflet-popup-content{font-size:14px;overflow-wrap:anywhere}.leaflet-control-attribution{font-size:11px}#tileStatus{color:#92213b}#undo[hidden]{display:none}.map-footer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #ddd3ca}.map-footer-actions button{width:100%}.leaflet-control-layers{border:1px solid #c8bbb0!important;border-radius:11px!important;background:rgba(255,252,249,.94)!important;box-shadow:0 6px 18px rgba(52,39,31,.14)!important;color:#292523}.leaflet-control-layers-expanded{padding:8px 10px!important}.leaflet-control-layers label{display:flex!important;grid-template-columns:none!important;align-items:center;gap:7px;font-size:12px;line-height:1.25;margin:3px 0}.leaflet-control-layers-selector{margin:0!important}.night-mode .leaflet-control-layers{background:rgba(42,38,36,.96)!important;color:#f4eee8}.embedded header{display:none}@media(max-width:760px){main{grid-template-columns:1fr;padding:10px}#map{height:48vh;min-height:300px}header{padding:14px 12px}h1{font-size:28px}aside{padding:4px}#pins{max-height:none}} 
+*{box-sizing:border-box}body{margin:0;background:#f6f0e9;color:#292523;font:16px/1.45 system-ui,sans-serif}header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;border-bottom:1px solid #d8cec5}h1{font:32px/1 Georgia,serif;margin:0}a{color:inherit}button,input,select,textarea{font:inherit}button{cursor:pointer;min-height:44px;border:1px solid #bfb2a8;border-radius:9px;padding:9px 12px;background:#fff;color:#292523}button.primary{background:#292523;color:white}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #b83955;outline-offset:3px}input,select,textarea{width:100%;padding:10px;border:1px solid #bfb2a8;border-radius:8px;background:#fff;color:#292523}textarea{resize:vertical;min-height:76px}label{display:grid;gap:4px;font-size:14px}main{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;padding:16px}.map-side{min-width:0}#map{height:min(65vh,620px);min-height:340px;border:1px solid #c8bbb0;border-radius:12px;z-index:0}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.status{font-size:14px;margin:8px 0;min-height:22px}aside{min-width:0}h2{font:24px Georgia,serif;margin:0 0 12px}form{display:grid;gap:10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hint{font-size:13px;color:#695e56;margin:8px 0 14px}.saved{margin-top:24px}#pins{display:grid;gap:8px;max-height:350px;overflow:auto}.place-search-label{position:relative}.place-search-wrap{position:relative}.place-search-wrap input{width:100%}.place-suggestions{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:1200;max-height:300px;overflow:auto;border:1px solid #c8bbb0;border-radius:12px;background:#fffcf9;box-shadow:0 12px 28px rgba(40,28,22,.18);padding:5px}.place-suggestions[hidden]{display:none}.place-option{width:100%;border:0;background:transparent;color:inherit;text-align:left;padding:9px 10px;border-radius:9px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;cursor:pointer}.place-option:hover,.place-option:focus{background:#f1e8df;outline:none}.place-option strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.place-option small{grid-column:1/2;color:#756960;line-height:1.25}.place-option .place-kind{grid-column:2;grid-row:1/3;align-self:center;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border:1px solid #d8cec5;border-radius:999px;padding:3px 6px;color:#695e56}.place-search-status{font-size:12px;color:#695e56;margin:-5px 0 0;min-height:16px}.place-source{font-size:10px;color:#887a70;margin:-7px 0 2px}.place-source a{color:inherit}.map-safety{margin:2px 0 10px;padding:11px 12px;border:1px solid rgba(154,55,67,.28);border-radius:12px;background:rgba(154,55,67,.08);color:#5d252d;font:600 11px/1.5 system-ui}.map-safety strong{display:block;margin-bottom:3px;font-size:11px;letter-spacing:.015em}.map-safety em{font-style:normal;font-weight:800}.night-mode .map-safety{background:rgba(218,104,119,.10);border-color:rgba(239,150,164,.24);color:#f0c7cd}.night-mode .place-suggestions{background:#292523;border-color:#514a45}.night-mode .place-option:hover,.night-mode .place-option:focus{background:#39332f}.night-mode .place-option small,.night-mode .place-option .place-kind,.night-mode .place-search-status{color:#c9bdb4}/* A pin that carries a photo shows it, and a published pin says so on its own row. */
+.label-note{font-size:11px;color:#8d8177;font-weight:500}
+.pin-public{display:flex;gap:9px;align-items:flex-start;margin:0 0 10px;padding:10px 11px;border:1px solid #d8cec5;border-radius:11px;background:#fdf8f3;cursor:pointer}
+.pin-public input{margin:2px 0 0;width:15px;height:15px;accent-color:#9a3743}
+.pin-public b{display:block;font-size:13px;font-weight:700}
+.pin-public em{display:block;margin-top:2px;font-size:12px;font-style:normal;font-weight:500;line-height:1.45;color:#695e56}
+.night-mode .pin-public{background:#332e2a;border-color:#514a45}
+.night-mode .pin-public em{color:#c9bdb4}
+.public-strip{margin-top:12px}
+.public-strip h2{display:flex;align-items:baseline;gap:8px;margin:0 0 3px;font-size:16px}
+.public-strip h2 span{font-size:12px;font-weight:600;color:#887a70}
+.public-strip .hint{margin:0 0 8px}
+.public-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:9px;max-height:250px;overflow:auto}
+.public-card{display:flex;flex-direction:column;gap:0;border:1px solid #d8cec5;border-radius:11px;overflow:hidden;background:#fffcf9;text-align:left;padding:0;cursor:pointer}
+.public-card img{display:block;width:100%;height:96px;object-fit:cover;background:#efe7dd}
+.public-card .public-no-photo{display:grid;place-items:center;height:96px;background:#f0e8e0;color:#a2948a;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.public-card b{padding:6px 8px 0;font-size:12px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.public-card small{padding:0 8px 7px;font-size:11px;font-weight:600;color:#887a70;overflow-wrap:anywhere}
+.public-card:hover{border-color:#9a3743}
+.night-mode .public-card,.night-mode .public-grid{background:#2b2622;border-color:#514a45}
+.pin-row{border:1px solid #d8cec5;border-radius:10px;padding:10px;background:#fffcf9}.pin-row .pin-photo{display:block;width:100%;height:150px;object-fit:cover;border-radius:8px;margin:0 0 8px;background:#efe7dd}
+.pin-row .pin-badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#efe3d8;color:#6b5f56}
+.pin-row .pin-badge.is-public{background:#dff0e2;color:#2c6b3d}
+.pin-row b{display:block;overflow-wrap:anywhere}.pin-row p{font-size:14px;margin:4px 0;overflow-wrap:anywhere}.pin-row .toolbar{margin:8px 0 0}.pin-dot{background:#ae2d49;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px #0006}.pin-dot.draft{background:#292523;border-style:dashed}.leaflet-container{font-family:system-ui}.leaflet-popup-content{font-size:14px;overflow-wrap:anywhere}.leaflet-control-attribution{font-size:11px}#tileStatus{color:#92213b}#undo[hidden]{display:none}.map-footer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #ddd3ca}.map-footer-actions button{width:100%}.leaflet-control-layers{border:1px solid #c8bbb0!important;border-radius:11px!important;background:rgba(255,252,249,.94)!important;box-shadow:0 6px 18px rgba(52,39,31,.14)!important;color:#292523}.leaflet-control-layers-expanded{padding:8px 10px!important}.leaflet-control-layers label{display:flex!important;grid-template-columns:none!important;align-items:center;gap:7px;font-size:12px;line-height:1.25;margin:3px 0}.leaflet-control-layers-selector{margin:0!important}.night-mode .leaflet-control-layers{background:rgba(42,38,36,.96)!important;color:#f4eee8}.embedded header{display:none}@media(max-width:760px){main{grid-template-columns:1fr;padding:10px}#map{height:48vh;min-height:300px}header{padding:14px 12px}h1{font-size:28px}aside{padding:4px}#pins{max-height:none}} 
 </style></head><body>
 <header><h1>Map</h1><a href="/studio">Back to Studio</a></header>
 <main><section class="map-side" aria-label="Map and location controls">
@@ -675,12 +698,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <label>Pin name<input id="pinName" required maxlength="160" placeholder="Name this place"></label>
 <label>Notes<textarea id="pinNotes" maxlength="3000" placeholder="A memory, project, or reason to return"></textarea></label>
 <label>Category<select id="pinCategory"><option>Place</option><option>Memory</option><option>Project</option><option>Event</option><option>Resource</option></select></label>
+<label>Photo <span class="label-note">optional</span><input id="pinPhotoUrl" type="url" placeholder="https://… picture to show on this pin"></label>
+<label class="pin-public"><input id="pinPublic" type="checkbox"><span><b>Make this pin public</b><em>Anyone signed in to BIGLWA can see this pin and its photo. Leave it off and only you can see it.</em></span></label>
 <div class="map-safety" role="note"><strong>Protect your location.</strong>Never risk your safety by entering your exact home address — or anyone else’s. Use a nearby public place, neighborhood, landmark, school, museum, restaurant, or other general location instead. Sharing someone’s private address or using the Map to dox another person can result in a permanent ban. <em>No doxxing anyone. Yes, even oligarchs.</em></div><label class="place-search-label">Address or place<div class="place-search-wrap"><input id="placeSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Museum, restaurant, school, address…"><div id="placeSuggestions" class="place-suggestions" role="listbox" hidden></div></div></label><p id="placeSearchStatus" class="place-search-status" role="status">Start typing a place name or address.</p><p class="place-source">Place search data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · Photon</p>
 <label>Detected area<input id="area" type="text" readonly placeholder="Neighborhood · city · region · country"></label>
 <div class="row"><label>Latitude<input id="lat" type="number" min="-90" max="90" step="any" required placeholder="Filled automatically"></label><label>Longitude<input id="lng" type="number" min="-180" max="180" step="any" required placeholder="Filled automatically"></label></div>
 <div class="toolbar"><button class="primary" type="submit">Save pin</button><button id="cancel" type="button">Clear selection</button></div></form>
 <p id="saveStatus" class="status" role="status"></p><button id="undo" type="button" hidden>Undo removal</button>
-<section class="saved"><h2>Saved pins <span id="count"></span></h2><div id="pins"></div><div class="map-footer-actions"><button id="fullscreenMap" type="button">Enlarge / full screen</button></div></section></aside></main>
+<section class="saved"><h2>Saved pins <span id="count"></span></h2><div id="pins"></div><div class="map-footer-actions"><button id="fullscreenMap" type="button">Enlarge / full screen</button></div></section>
+<section class="public-strip" id="publicStrip" hidden><h2>Photos near you <span id="publicCount"></span></h2><p class="hint">Public pins other people shared. Pick one to look at that spot on the map.</p><div class="public-grid" id="publicGrid"></div><p class="status" id="publicStatus" role="status"></p></section></aside></main>
 <script>/* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
@@ -697,6 +723,96 @@ svg.leaflet-image-layer.leaflet-interactive path {
   const uid=()=>crypto.randomUUID?crypto.randomUUID():'pin-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   const unique=a=>[...new Set(a.filter(Boolean).map(v=>String(v).trim()).filter(Boolean))];
   const words=s=>String(s||'').replace(/[_-]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase());
+
+  /* ---- Public pins -----------------------------------------------------------
+   * A pin lives in this browser until the owner asks for it to be public. Publishing
+   * copies it to Firestore under /mapPins, where the rules only let other accounts read
+   * it while isPublic is true, and only its owner can write or withdraw it. Photo or no
+   * photo, a public pin is listed for everyone; only the photo feeds the strip. */
+  const FIREBASE_CONFIG={apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'};
+  let store=null,storePromise=null,accountUid=null;
+  async function firestore(){
+    if(store)return store;
+    if(!storePromise)storePromise=(async()=>{
+      const [{initializeApp,getApps},fs,{getAuth,onAuthStateChanged}]=await Promise.all([
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')
+      ]);
+      const app=getApps().length?getApps()[0]:initializeApp(FIREBASE_CONFIG);
+      store={db:fs.getFirestore(app),auth:getAuth(app),collection:fs.collection,doc:fs.doc,setDoc:fs.setDoc,deleteDoc:fs.deleteDoc,getDocs:fs.getDocs,query:fs.query,where:fs.where,orderBy:fs.orderBy,limit:fs.limit,onSnapshot:fs.onSnapshot,serverTimestamp:fs.serverTimestamp};
+      store.account=await new Promise(resolve=>{
+        const stop=onAuthStateChanged(store.auth,user=>{resolve(user);stop()});
+      });
+      accountUid=store.account?store.account.uid:null;
+      return store;
+    })().catch(error=>{storePromise=null;throw error});
+    return storePromise;
+  }
+  const publicPhoto=pin=>{
+    const photo=String(pin&&pin.photo||'').trim();
+    return /^https?:\/\//i.test(photo)?photo:'';
+  };
+  async function writePublicPin(pin){
+    const who=await firestore().catch(()=>null);
+    if(!who||!who.account){$('saveStatus').textContent='Sign in to share a pin publicly. The pin is saved in this browser either way.';return}
+    const body={uid:who.account.uid,ownerName:who.account.displayName||'',title:pin.title||'Untitled pin',detail:pin.detail||'',category:pin.category||'Place',lat:Number(pin.lat),lng:Number(pin.lng),area:pin.area||'',city:pin.city||'',address:pin.address||'',photo:publicPhoto(pin),sourceUrl:pin.sourceUrl||'',isPublic:true,localId:pin.id,updatedAt:who.serverTimestamp()};
+    if(!pin.publishedId)body.createdAt=who.serverTimestamp();
+    await who.setDoc(who.doc(who.db,'mapPins',pin.publishedId||uid()),body);
+    pin.publishedId=pin.publishedId||pin.id;
+    return pin;
+  }
+  async function withdrawPublicPin(pin){
+    if(!pin.publishedId)return pin;
+    const who=await firestore().catch(()=>null);
+    if(who)await who.deleteDoc(who.doc(who.db,'mapPins',pin.publishedId));
+    delete pin.publishedId;
+    return pin;
+  }
+  /* Public pins are watched rather than fetched once, so a pin published by anyone shows
+     up here without a reload. The rules refuse to hand over anything that is not public,
+     so anything that arrives is already somebody's deliberate choice. */
+  function watchPublic(){
+    const strip=$('publicStrip'),grid=$('publicGrid'),status=$('publicStatus');
+    firestore().then(who=>{
+      if(!who.account){status.textContent='Sign in to see the pins other people share.';strip.hidden=false;return}
+      const q=who.query(who.collection(who.db,'mapPins'),who.where('isPublic','==',true),who.orderBy('updatedAt','desc'),who.limit(60));
+      return who.onSnapshot(q,snap=>{
+        const rows=[];
+        snap.forEach(doc=>{
+          const data=doc.data()||{};
+          rows.push({id:doc.id,publishedId:doc.id,...data});
+        });
+        drawPublic(rows);
+      },error=>{status.textContent='Public pins could not be loaded: '+(error&&error.message?error.message:'unknown problem')});
+    }).catch(error=>{status.textContent='Public pins could not be loaded: '+(error&&error.message?error.message:'unknown problem')});
+  }
+  let publicRows=[];
+  function drawPublic(rows){
+    publicRows=rows;
+    const strip=$('publicStrip'),grid=$('publicGrid');
+    strip.hidden=rows.length===0;
+    $('publicCount').textContent=rows.length?'('+rows.length+')':'';
+    if(!rows.length){grid.innerHTML='';return}
+    const sorted=rows.slice().sort((a,b)=>distanceFromView(a)-distanceFromView(b));
+    grid.innerHTML=sorted.map(pin=>{
+      const photo=publicPhoto(pin);
+      const where=[pin.city,pin.area].filter(Boolean).join(' · ')||'Somewhere on the map';
+      return '<button class="public-card" type="button" data-public-pin="'+escape(pin.publishedId||pin.id)+'" data-lat="'+escape(pin.lat)+'" data-lng="'+escape(pin.lng)+'">'+
+        (photo?'<img src="'+escape(photo)+'" alt="" loading="lazy">':'<span class="public-no-photo">No photo</span>')+
+        '<b>'+escape(pin.title||'Untitled pin')+'</b><small>'+escape(where)+'</small></button>';
+    }).join('');
+  }
+  /* Nearest first, so what a member sees under the map is what is actually around them
+     rather than whoever happened to publish most recently. */
+  function distanceFromView(pin){
+    const here=map?map.getCenter():null;
+    const lat=Number(pin.lat),lng=Number(pin.lng);
+    if(!here||!Number.isFinite(lat)||!Number.isFinite(lng))return Number.MAX_SAFE_INTEGER;
+    const dLat=(lat-here.lat)*111;
+    const dLng=(lng-here.lng)*111*Math.cos(here.lat*Math.PI/180);
+    return Math.sqrt(dLat*dLat+dLng*dLng);
+  }
   let map=null,draft=null,editing=null,removed=null,markers=new Map(),readError=false,placeMeta={};
   let searchTimer=null,searchAbort=null,reverseAbort=null,searchSeq=0,reverseSeq=0;
   const searchCache=new Map();
@@ -729,9 +845,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
   function hideSuggestions(){$('placeSuggestions').hidden=true;$('placeSuggestions').innerHTML='';}
   function draw(){
     const saved=pins.filter(valid);$('count').textContent='('+saved.length+')';$('fit').disabled=!map||!saved.length;
-    $('pins').innerHTML=saved.length?saved.map(p=>'<article class="pin-row"><b>'+escape(p.title||'Untitled pin')+'</b><p>'+escape(p.category||'Place')+(p.placeType?' · '+escape(p.placeType):'')+(p.area?' · '+escape(p.area):(p.detail?' · '+escape(p.detail):''))+'</p><div class="toolbar"><button type="button" data-edit="'+escape(p.id)+'">Open / edit</button><button type="button" data-remove="'+escape(p.id)+'">Remove</button></div></article>').join(''):'<p class="hint">No pins yet. Search for a place, choose a location, and save your first pin.</p>';
+    $('pins').innerHTML=saved.length?saved.map(p=>{const photo=publicPhoto(p);return '<article class="pin-row">'+
+      (photo?'<img class="pin-photo" src="'+escape(photo)+'" alt="" loading="lazy">':'')+
+      '<b>'+escape(p.title||'Untitled pin')+'</b><p>'+escape(p.category||'Place')+(p.placeType?' · '+escape(p.placeType):'')+(p.area?' · '+escape(p.area):(p.detail?' · '+escape(p.detail):''))+'</p>'+
+      '<span class="pin-badge'+(p.publishedId?' is-public':'')+'">'+(p.publishedId?'Public — everyone can see this':'Private to you')+'</span>'+
+      '<div class="toolbar"><button type="button" data-edit="'+escape(p.id)+'">Open / edit</button>'+
+      (p.publishedId?'<button type="button" data-unpublish="'+escape(p.id)+'">Make private</button>':'')+
+      '<button type="button" data-remove="'+escape(p.id)+'">Remove</button></div></article>'}).join(''):'<p class="hint">No pins yet. Search for a place, choose a location, and save your first pin.</p>';
     if(!map)return;markers.forEach(m=>m.remove());markers.clear();
-    saved.forEach(p=>{const detail=unique([p.address,p.area,p.detail]).map(escape).join('<br>');const m=L.marker([Number(p.lat),Number(p.lng)],{icon:icon(false),title:p.title||'Saved pin',alt:p.title||'Saved pin'}).addTo(map).bindPopup('<b>'+escape(p.title||'Untitled pin')+'</b>'+(detail?'<br>'+detail:''));m.on('click',()=>open(p.id));markers.set(String(p.id),m);});
+    saved.forEach(p=>{const detail=unique([p.address,p.area,p.detail]).map(escape).join('<br>');const photo=publicPhoto(p);const popup='<b>'+escape(p.title||'Untitled pin')+'</b>'+(detail?'<br>'+detail:'')+(photo?'<br><img src="'+escape(photo)+'" alt="" style="display:block;width:180px;margin-top:6px;border-radius:6px">':'');const m=L.marker([Number(p.lat),Number(p.lng)],{icon:icon(false),title:p.title||'Saved pin',alt:p.title||'Saved pin'}).addTo(map).bindPopup(popup);m.on('click',()=>open(p.id));markers.set(String(p.id),m);});
   }
   async function reverseLookup(lat,lng){
     const seq=++reverseSeq;
@@ -763,7 +885,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     if(draft){draft.remove();draft=null;}$('mapStatus').textContent=map?'Search for a place or tap the map.':'Enter an address or coordinates to save a pin.';
   }
   function open(id){
-    const p=pins.find(p=>String(p?.id)===String(id));if(!valid(p))return;editing=p.id;$('pinName').value=p.title||'';$('pinNotes').value=p.detail||'';$('pinCategory').value=categories.includes(p.category)?p.category:'Place';$('formTitle').textContent='Edit pin';
+    const p=pins.find(p=>String(p?.id)===String(id));if(!valid(p))return;editing=p.id;$('pinPhotoUrl').value=p.photo||'';$('pinPublic').checked=Boolean(p.publishedId);$('pinName').value=p.title||'';$('pinNotes').value=p.detail||'';$('pinCategory').value=categories.includes(p.category)?p.category:'Place';$('formTitle').textContent='Edit pin';
     const meta=recordMeta(p);stage(Number(p.lat),Number(p.lng),meta);if(map){map.setView([Number(p.lat),Number(p.lng)],14);markers.get(String(p.id))?.openPopup();}$('saveStatus').textContent='Change the name, notes, place, or location, then save.';
   }
   function resultLabel(props={}){
@@ -800,13 +922,27 @@ svg.leaflet-image-layer.leaflet-interactive path {
   $('placeSuggestions').addEventListener('click',e=>{const button=e.target.closest('[data-place-index]');if(!button)return;const feature=$('placeSuggestions')._features?.[Number(button.dataset.placeIndex)];if(feature)selectFeature(feature);});
   document.addEventListener('click',e=>{if(!e.target.closest('.place-search-label'))hideSuggestions();});
 
-  $('pinForm').addEventListener('submit',e=>{e.preventDefault();const title=$('pinName').value.trim(),lat=$('lat').value,lng=$('lng').value;if(!title||!valid({lat,lng})){$('saveStatus').textContent='Choose a place or point on the map and enter a pin name.';return;}const old=pins.find(p=>p?.id===editing);const meta={...recordMeta(old||{}),...placeMeta};const p={...old,...meta,id:editing||uid(),title,detail:$('pinNotes').value.trim(),category:$('pinCategory').value,visibility:old?.visibility||'private',lat:Number(lat),lng:Number(lng),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};const next=editing?pins.map(x=>x?.id===editing?p:x):[p,...pins];if(!persist(next))return;clear();draw();markers.get(String(p.id))?.openPopup();$('saveStatus').textContent='Pin saved in this browser.';});
+  $('pinForm').addEventListener('submit',e=>{e.preventDefault();const title=$('pinName').value.trim(),lat=$('lat').value,lng=$('lng').value;if(!title||!valid({lat,lng})){$('saveStatus').textContent='Choose a place or point on the map and enter a pin name.';return;}const old=pins.find(p=>p?.id===editing);const meta={...recordMeta(old||{}),...placeMeta};const p={...old,...meta,id:editing||uid(),title,detail:$('pinNotes').value.trim(),category:$('pinCategory').value,visibility:'private',photo:$('pinPhotoUrl').value.trim(),lat:Number(lat),lng:Number(lng),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};if(old?.publishedId)p.publishedId=old.publishedId;const next=editing?pins.map(x=>x?.id===editing?p:x):[p,...pins];if(!persist(next))return;clear();draw();markers.get(String(p.id))?.openPopup();$('saveStatus').textContent='Pin saved in this browser.';
+    if($('pinPublic').checked){
+      /* Publishing is a separate step from saving, so a slow or refused network never costs
+         the member their pin. It stays in this browser either way. */
+      $('saveStatus').textContent='Pin saved. Making it public…';
+      writePublicPin(p).then(()=>{if(persist(pins.map(x=>x?.id===p.id?p:x))){draw();$('saveStatus').textContent='Pin saved and shared — everyone can see it now.'}}).catch(error=>{$('saveStatus').textContent='Pin saved in this browser, but it could not be shared: '+(error&&error.message?error.message:'unknown problem')});
+    }});
   $('cancel').onclick=()=>{clear();$('saveStatus').textContent='';};
   $('drop').onclick=()=>{const p=map.getCenter();stage(p.lat,p.lng);$('pinName').focus();};
   $('fit').onclick=()=>{const points=pins.filter(valid).map(p=>[Number(p.lat),Number(p.lng)]);if(points.length)map.fitBounds(points,{padding:[35,35],maxZoom:14});};
   $('locate').onclick=()=>{if(!navigator.geolocation){$('mapStatus').textContent='Location is unavailable. Search for a place or select it on the map.';return;}$('mapStatus').textContent='Finding your location…';navigator.geolocation.getCurrentPosition(p=>{stage(p.coords.latitude,p.coords.longitude);map?.setView([p.coords.latitude,p.coords.longitude],14);},()=>{$('mapStatus').textContent='Could not get your location. Search for a place, tap the map, or enter coordinates instead.';},{timeout:10000,maximumAge:60000});};
-  $('pins').onclick=e=>{const edit=e.target.closest('[data-edit]'),remove=e.target.closest('[data-remove]');if(edit)open(edit.dataset.edit);if(remove){const id=remove.dataset.remove,p=pins.find(x=>String(x?.id)===id);if(p&&persist(pins.filter(x=>String(x?.id)!==id))){removed=p;$('undo').hidden=false;if(String(editing)===id)clear();draw();$('saveStatus').textContent='Pin removed. You can undo this.';}}};
+  $('pins').onclick=e=>{const edit=e.target.closest('[data-edit]'),remove=e.target.closest('[data-remove]'),unpublish=e.target.closest('[data-unpublish]');
+    if(edit)open(edit.dataset.edit);
+    if(unpublish){const id=unpublish.dataset.unpublish,p=pins.find(x=>String(x?.id)===id);if(!p)return;$('saveStatus').textContent='Making the pin private…';withdrawPublicPin(p).then(()=>{if(persist(pins.map(x=>x?.id===p.id?p:x))){draw();$('saveStatus').textContent='Pin is private to you again.'}}).catch(error=>{$('saveStatus').textContent='The pin could not be made private: '+(error&&error.message?error.message:'unknown problem')});return}
+    if(remove){const id=remove.dataset.remove,p=pins.find(x=>String(x?.id)===id);
+      /* A published pin has to leave Firestore too, or it would keep showing to everyone
+         after the member deleted it here. */
+      if(p&&p.publishedId){withdrawPublicPin(p).catch(()=>{});delete p.publishedId}
+      if(p&&persist(pins.filter(x=>String(x?.id)!==id))){removed=p;$('undo').hidden=false;if(String(editing)===id)clear();draw();$('saveStatus').textContent='Pin removed. You can undo this.';}}};
   $('undo').onclick=()=>{if(removed&&persist([removed,...pins])){removed=null;$('undo').hidden=true;draw();$('saveStatus').textContent='Pin restored.';}};
+  $('publicGrid').onclick=e=>{const card=e.target.closest('[data-public-pin]');if(!card||!map)return;const lat=Number(card.dataset.lat),lng=Number(card.dataset.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;map.setView([lat,lng],14);document.querySelector('.map-side')?.scrollIntoView({behavior:'smooth',block:'start'});};
   const syncFullscreenLabel=()=>{const button=$('fullscreenMap');if(button)button.textContent=document.fullscreenElement?'Exit full screen':'Enlarge / full screen';};
   $('fullscreenMap').onclick=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();}else if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();}else{window.open('/map-app.html','_blank','noopener');}}catch{window.open('/map-app.html','_blank','noopener');}};
   document.addEventListener('fullscreenchange',()=>{syncFullscreenLabel();setTimeout(()=>map?.invalidateSize(),60);});syncFullscreenLabel();
@@ -822,6 +958,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
     const baseLayers={Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain};let preferred='Street';try{const savedMode=localStorage.getItem('biglwaMapMode');if(savedMode&&baseLayers[savedMode])preferred=savedMode;}catch{}baseLayers[preferred].addTo(map);
     L.control.layers(baseLayers,null,{position:'topright',collapsed:false}).addTo(map);map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}$('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
     map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));$('drop').disabled=false;draw();if(pins.some(valid))$('fit').click();$('mapStatus').textContent='Search for a place or tap the map. Switch map modes in the upper-right.';
+    watchPublic();
+    /* The strip is sorted by how near each pin is, so panning or zooming re-ranks what is
+       shown underneath the map without another request. */
+    map.on('moveend zoomend',()=>{if(!$('publicStrip').hidden)drawPublic(publicRows)});
     const observer=new ResizeObserver(()=>map.invalidateSize());observer.observe($('map'));
   }catch{$('mapStatus').textContent='Map display is unavailable. You can still save pins using the address search or latitude and longitude.';}
 })();

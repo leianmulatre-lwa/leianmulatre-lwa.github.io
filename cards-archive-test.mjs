@@ -1,5 +1,6 @@
-// Covers the source rims, the Archive holding every source in grey while keeping its own
-// rim, the grouping that puts repeats of one picture together, and the orbit API chips.
+// Covers the source rims, the Archive holding every source in its own colour while
+// greying only the picture of a card switched off, the grouping that puts repeats of one
+// picture together, and the orbit API chips.
 import { readFileSync } from "node:fs";
 
 const feed = readFileSync(new URL("./feed-view.js", import.meta.url), "utf8");
@@ -12,21 +13,25 @@ function check(name, cond, extra = "") {
 }
 
 console.log("=== EACH SOURCE KEEPS ITS OWN RIM ===");
-check("TikTok is black", feed.includes('tiktok: "#111111"'));
-check("Facebook is blue", feed.includes('facebook: "#1877f2"'));
-check("Instagram is blood orange", feed.includes('instagram: "#a52a0c"'));
-check("anything without a rim of its own falls back to blood orange", feed.includes('|| FEED_RIM'));
+check("TikTok is black", feed.includes('tiktok: { rim:"#111111"'));
+check("Facebook is blue", feed.includes('facebook: { rim:"#1877f2"'));
+check("Instagram is blood orange", feed.includes('instagram: { rim:"#a52a0c"'));
+check("anything without a rim of its own falls back to blood orange", feed.includes('{ rim:FEED_RIM }'));
 check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
 check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
 check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
-console.log("\n=== THE ARCHIVE HOLDS EVERY SOURCE, IN GREY, RIM KEPT ===");
+console.log("\n=== THE ARCHIVE HOLDS EVERY SOURCE, COLOUR KEPT, GREY ONLY WHEN OFF ===");
 check("a card is read for its own source", pages.includes("const source=String(item.source||'instagram').toLowerCase();"));
 check("the rim comes from the source", pages.includes("const rim={instagram:'#a52a0c',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';"));
 check("the card is marked with its source", pages.includes("' archive-src-'+esc(source)+'\" style=\"--feed-card-rim:'+rim+'\""));
-check("both stored states are greyed together", pages.includes(".instagram-archive-card.is-archived,#studioApp[data-module-key=\"archive\"] .instagram-archive-card.is-collective{"));
-check("the grey keeps the source rim", /is-collective\{[^}]*box-shadow:3px 3px 0 var\(--feed-card-rim,#a52a0c\)[^}]*filter:grayscale\(1\)/.test(pages));
-check("a card on the Collective Feed is still grey here", pages.includes("Visible on Collective Feed · greyed here"));
+check("both stored states are grouped colour-first", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-archived{"));
+check("the colour keeps the source rim, not a blanket grey", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes("box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c)!important;filter:none;opacity:1}") && !pages.includes("filter:grayscale(1)!important;opacity:.86}"));
+check("only the picture of an off card goes grey", pages.includes(".instagram-archive-card.is-off .instagram-archive-media,") && pages.includes(".instagram-archive-card.is-archived .instagram-archive-media{filter:grayscale(1);opacity:.7}"));
+check("each card carries a Live switch", pages.includes("data-archive-live-input=\"'+esc(item.id)+'\""));
+check("the switch label is interactive", pages.includes("(posted?'Live':'Not live')+'</b>'"));
+check("the switch is wired to publish or archive", pages.includes("postsApi?.publishOrbitPost?.(id)") && pages.includes("postsApi?.setOrbitState?.(id,'archived')"));
+check("a card on the Collective Feed is coloured here", pages.includes("In color · on the Collective Feed"));
 check("the Archive no longer claims to be Instagram-only", !pages.includes("Instagram archive</h2>") && !pages.includes("Instagram posts imported"));
 
 console.log("\n=== GROUPED, WITH REPEATS SPOTTED ===");

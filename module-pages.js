@@ -99,7 +99,7 @@
     #studioApp .biglwa-instagram-preview-tile{display:block;min-width:0;padding:0;border:0;border-radius:10px;overflow:hidden;background:#f28c28;cursor:pointer;aspect-ratio:1/1}
     #studioApp .biglwa-instagram-preview-tile img{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
     #studioApp .biglwa-instagram-preview-tile:hover{transform:translateY(-1px);filter:brightness(1.03)}
-    #studioApp[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+    .module-workspace[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
     /* The Tools page opens with the drop area rather than a grid of separate tool cards,
        because the file you bring decides which conversions get offered. */
     .tool-intake{margin:0 0 18px}
@@ -129,102 +129,105 @@
     .tool-directory-item:hover{border-color:rgba(var(--aura-rgb,216,95,109),.44)}
     @media(max-width:900px){.tool-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:560px){.tool-directory-grid{grid-template-columns:1fr}.tool-drop{padding:32px 16px}}
-    /* Archive uses the same visual language as Collective Feed: a responsive
-       masonry wall, source-coloured shadow, browser-strip controls, and a live/off state. */
-    #studioApp[data-module-key="archive"] .archive-wall-shell{display:block!important;padding:0!important;margin-top:18px}
-    #studioApp[data-module-key="archive"] .archive-page-list{
-      display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start;
-      margin:0!important
-    }
-    #studioApp[data-module-key="archive"] .archive-page-list>*{min-width:0;width:100%;margin:0}
-    @media(max-width:1180px){#studioApp[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
-    @media(max-width:820px){#studioApp[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:520px){#studioApp[data-module-key="archive"] .archive-page-list{grid-template-columns:1fr}}
-    #studioApp[data-module-key="archive"] .archive-pin{
+
+    /* Archive uses the same visual language as Collective Feed: source-coloured rims,
+       a Live switch that keeps its colour when the picture above it goes grey, and a wall
+       that stays in columns. Cards from every source are kept in their own source block,
+       so the Archive is not an Instagram-only shelf. */
+    .module-workspace[data-module-key="archive"] .archive-wall-shell{display:block!important;padding:0!important;margin-top:18px}
+    .module-workspace[data-module-key="archive"] .archive-page-list{display:block!important;margin:0!important}
+    .module-workspace[data-module-key="archive"] .archive-source-group{margin:0 0 26px}
+    .module-workspace[data-module-key="archive"] .archive-group-head{display:flex;align-items:baseline;gap:10px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(80,70,64,.14);font:700 12px/1.3 system-ui;color:#3a332f}
+    .module-workspace[data-module-key="archive"] .archive-group-head em{font:700 9px/1.4 system-ui;font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:#8a7a6c}
+    .module-workspace[data-module-key="archive"] .archive-group-head .archive-group-repeats{color:#a8410f;background:rgba(168,65,15,.12);padding:2px 8px;border-radius:999px}
+    .module-workspace[data-module-key="archive"] .instagram-archive-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start}
+    @media(max-width:1180px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:820px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:1fr}}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card{
       --feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;
-      border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
-      box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim),0 14px 28px -18px rgba(216,95,109,.3));
-      transition:filter .2s ease,opacity .2s ease,box-shadow .2s ease;
+      border:1px solid rgba(var(--aura-rgb,216,95,109),.2);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.09);
+      box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c),0 12px 26px -18px rgba(var(--aura-rgb,216,95,109),.8);
+      transition:filter .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;
       content-visibility:auto;contain-intrinsic-size:360px
     }
-    #studioApp[data-module-key="archive"] .archive-pin.is-live{filter:grayscale(1);opacity:.9}
-    #studioApp[data-module-key="archive"] .archive-pin.is-archived{filter:none;opacity:1}
-    #studioApp[data-module-key="archive"] .archive-pin.is-pending-delete{
-      filter:none;opacity:1;background:#d96c67!important;border-color:#bd3f47!important;
-      box-shadow:3px 3px 0 #9e3636,0 14px 28px -18px rgba(158,54,54,.55)
-    }
-    #studioApp[data-module-key="archive"] .archive-browser-strip{
-      height:15px;padding:1px 4px!important;gap:3px;box-sizing:border-box;display:flex;align-items:center;
-      background:rgba(var(--aura-rgb,216,95,109),.17)!important;border:0!important;
-      border-radius:14px 14px 0 0;position:relative;z-index:8
-    }
-    #studioApp[data-module-key="archive"] .archive-live-badge{
-      display:inline-flex;align-items:center;padding:2px 5px;border-radius:999px;
-      font:800 6px/1 system-ui;letter-spacing:.08em;text-transform:uppercase;
-      color:#3f6b4a;background:rgba(63,107,74,.14);margin-right:auto
-    }
-    #studioApp[data-module-key="archive"] .archive-live-badge.is-archived{
-      color:#6e625b;background:rgba(110,98,91,.13)
-    }
-    #studioApp[data-module-key="archive"] .archive-live-badge.is-pending{
-      color:#fff;background:#bd3f47
-    }
-    #studioApp[data-module-key="archive"] .archive-browser-actions{display:flex;align-items:center;gap:3px;margin-left:auto}
-    #studioApp[data-module-key="archive"] .archive-browser-actions button{
+    /* Every stored card keeps the rim and colour of its own source whether it is on the
+       Collective Feed or not, so a card is recognised as the same one that hangs on the wall.
+       Only a card switched off is greyed, and then only its picture. */
+.module-workspace[data-module-key="archive"] .instagram-archive-card.is-collective,
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-live,
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-archived{background:rgba(var(--aura-rgb,216,95,109),.09)!important;border-color:rgba(var(--aura-rgb,216,95,109),.2)!important;box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c)!important;filter:none;opacity:1}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-media,
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-media{filter:grayscale(1);opacity:.7}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-piece,
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-piece{background:#c7c7c7!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-strip,
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-strip{background:#c7c7c7;border-bottom-color:#b9b9b9}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-pending-delete{background:#d96c67!important;border-color:#bd3f47!important;box-shadow:3px 3px 0 #9e3636!important;filter:none!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-strip{height:15px;padding:1px 4px;display:flex;align-items:center;gap:3px;background:rgba(var(--aura-rgb,216,95,109),.17);border-bottom:1px solid rgba(var(--aura-rgb,216,95,109),.18);position:relative;z-index:8}
+    .module-workspace[data-module-key="archive"] .instagram-archive-strip b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 7px/11px system-ui;color:rgba(75,45,20,.78)}
+    .module-workspace[data-module-key="archive"] .instagram-archive-strip i{width:8px;height:8px;flex:0 0 8px;border-radius:50%;display:block}
+    .module-workspace[data-module-key="archive"] .instagram-archive-strip i:nth-last-child(3){background:#bd3f47}
+    .module-workspace[data-module-key="archive"] .instagram-archive-strip i:nth-last-child(2){background:#d1ad2f}
+    .module-workspace[data-module-key="archive"] .instagram-archive-strip i:nth-last-child(1){background:#4e8f61}
+    .module-workspace[data-module-key="archive"] .archive-browser-actions{display:flex;align-items:center;gap:3px;margin-left:auto}
+    .module-workspace[data-module-key="archive"] .archive-browser-actions button{
       width:8px!important;height:8px!important;min-width:8px!important;padding:0!important;border:0!important;
       border-radius:50%!important;display:block!important;color:transparent!important;font-size:0!important;
       line-height:0!important;cursor:pointer;box-shadow:none!important
     }
-    #studioApp[data-module-key="archive"] .archive-browser-actions [data-archive-delete]{background:#bd3f47}
-    #studioApp[data-module-key="archive"] .archive-browser-actions [data-archive-toggle]{background:#d1ad2f}
-    #studioApp[data-module-key="archive"] .archive-browser-actions [data-archive-enlarge]{background:#4e8f61}
-    #studioApp[data-module-key="archive"] .archive-browser-actions button:disabled{opacity:.48;cursor:default}
-    #studioApp[data-module-key="archive"] .archive-media{position:relative;background:#c7c7c7}
-    #studioApp[data-module-key="archive"] .archive-pin.is-archived .archive-media{background:#efe7dd}
-    #studioApp[data-module-key="archive"] .archive-pin.is-pending-delete .archive-media{background:#d96c67}
-    #studioApp[data-module-key="archive"] .archive-media img,#studioApp[data-module-key="archive"] .archive-media video{
+    .module-workspace[data-module-key="archive"] .archive-browser-actions [data-archive-delete]{background:#bd3f47}
+    .module-workspace[data-module-key="archive"] .archive-browser-actions [data-archive-enlarge]{background:#4e8f61}
+    .module-workspace[data-module-key="archive"] .archive-browser-actions button:disabled{opacity:.48;cursor:default}
+    .module-workspace[data-module-key="archive"] .instagram-archive-media{display:grid;gap:1px;background:#c7c7c7}
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece{position:relative;min-width:0;background:#f28c28}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-collective .instagram-archive-piece{background:#c7c7c7!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-pending-delete .instagram-archive-piece{background:#d96c67!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece img,.module-workspace[data-module-key="archive"] .instagram-archive-piece video{
       display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;object-fit:contain;background:inherit
     }
-    #studioApp[data-module-key="archive"] .archive-photo-count{
-      position:absolute;right:8px;top:8px;z-index:3;padding:3px 8px;border-radius:999px;
-      background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui
-    }
-    #studioApp[data-module-key="archive"] .archive-meta{
-      padding:10px 12px 12px;background:#c7c7c7;color:#4f4f4f;
-      border-top:1px solid rgba(80,70,64,.12)
-    }
-    #studioApp[data-module-key="archive"] .archive-pin.is-archived .archive-meta{background:#f28c28;color:#5a321d}
-    #studioApp[data-module-key="archive"] .archive-pin.is-pending-delete .archive-meta{background:#d96c67;color:#fff}
-    #studioApp[data-module-key="archive"] .archive-meta b{
-      display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      font:700 9px/1.35 system-ui
-    }
-    #studioApp[data-module-key="archive"] .archive-meta small{
-      display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      color:inherit;opacity:.76;font:600 8px/1.35 system-ui
-    }
-    #studioApp[data-module-key="archive"] .archive-state-line{
-      display:block;margin-top:5px;font:800 7px/1.35 system-ui;letter-spacing:.03em;text-transform:uppercase
-    }
-    #studioApp[data-module-key="archive"] .archive-delete-warning{color:#fff}
-    #studioApp[data-module-key="archive"] .archive-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px}
-    #studioApp[data-module-key="archive"] .archive-toolbar-copy{min-width:0}
-    #studioApp[data-module-key="archive"] .archive-toolbar-copy h2{margin:0 0 4px}
-    #studioApp[data-module-key="archive"] .archive-toolbar-copy p{margin:0;max-width:720px}
-    #studioApp[data-module-key="archive"] .archive-toolbar-actions{display:flex;gap:7px;flex-wrap:wrap}
-    #studioApp[data-module-key="archive"] .archive-legend{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 14px;font:600 9px/1.4 system-ui;color:#6f645c}
-    #studioApp[data-module-key="archive"] .archive-legend i{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(80,70,64,.18)}
-    #studioApp[data-module-key="archive"] .archive-legend i.is-live{background:#c7c7c7}
-    #studioApp[data-module-key="archive"] .archive-legend i.is-archived{background:#f28c28;margin-left:8px}
-    #studioApp[data-module-key="archive"] .archive-empty{
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}
+    .module-workspace[data-module-key="archive"] .archive-media-meta{padding:7px 8px;background:#f1e9e1;border-top:1px solid rgba(80,70,64,.12)}
+    .module-workspace[data-module-key="archive"] .archive-media-meta span{display:block;font:700 9px/1.35 system-ui;color:#3a332f}
+    .module-workspace[data-module-key="archive"] .archive-media-meta small{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8a7a6c;font:600 8px/1.35 system-ui}
+    .module-workspace[data-module-key="archive"] .archive-state-line{display:block;margin-top:5px;font:800 7px/1.35 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#3f6b4a}
+    .module-workspace[data-module-key="archive"] .archive-delete-warning{color:#bd3f47}
+    .module-workspace[data-module-key="archive"] .archive-pending-note{position:relative;z-index:3;padding:6px 8px;background:#d96c67;color:#fff;font:700 8px/1.4 system-ui}
+    /* The Live switch sits at the bottom of the card and is the one thing that keeps its
+       colour when the picture above it has gone grey, so it can be turned back on. */
+    .module-workspace[data-module-key="archive"] .archive-live{position:relative;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 8px;background:#efe7df;border-top:1px solid rgba(var(--aura-rgb,216,95,109),.18);cursor:pointer}
+    .module-workspace[data-module-key="archive"] .archive-live input{position:absolute;opacity:0;width:1px;height:1px}
+    .module-workspace[data-module-key="archive"] .archive-live-track{position:relative;width:26px;height:15px;flex:0 0 26px;border-radius:999px;background:#c0b7ae;transition:background .18s ease}
+    .module-workspace[data-module-key="archive"] .archive-live-track i{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:transform .18s ease}
+    .module-workspace[data-module-key="archive"] .archive-live input:checked+.archive-live-track{background:rgb(var(--aura-rgb,216,95,109))}
+    .module-workspace[data-module-key="archive"] .archive-live input:checked+.archive-live-track i{transform:translateX(11px)}
+    .module-workspace[data-module-key="archive"] .archive-live b{font:800 9px/1.3 system-ui;color:#3a332f;letter-spacing:.02em;text-transform:uppercase}
+    .module-workspace[data-module-key="archive"] .archive-live em{flex:1 1 100%;font:600 9px/1.3 system-ui;font-style:normal;color:#8a7a6c}
+    .module-workspace[data-module-key="archive"] .archive-live.is-locked{cursor:default}
+    .module-workspace[data-module-key="archive"] .archive-live.is-locked .archive-live-track{background:#d3cbc4}
+    .module-workspace[data-module-key="archive"] .archive-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+    .module-workspace[data-module-key="archive"] .archive-toolbar-copy{min-width:0}
+    .module-workspace[data-module-key="archive"] .archive-toolbar-copy h2{margin:0 0 4px}
+    .module-workspace[data-module-key="archive"] .archive-toolbar-copy p{margin:0;max-width:720px}
+    .module-workspace[data-module-key="archive"] .archive-toolbar-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .module-workspace[data-module-key="archive"] .archive-legend{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 14px;font:600 9px/1.4 system-ui;color:#6f645c}
+    .module-workspace[data-module-key="archive"] .archive-legend i{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(80,70,64,.18)}
+    .module-workspace[data-module-key="archive"] .archive-legend i.is-live{background:#f28c28}
+    .module-workspace[data-module-key="archive"] .archive-legend i.is-archived{background:#c7c7c7;margin-left:8px}
+    .module-workspace[data-module-key="archive"] .archive-empty{
       padding:42px 24px;border:1px dashed #d8cec5;border-radius:14px;text-align:center;color:#81766f
     }
-    #studioApp[data-module-key="archive"] .archive-pin.archive-src-instagram{--feed-card-rim:#a52a0c}
-    #studioApp[data-module-key="archive"] .archive-pin.archive-src-tiktok{--feed-card-rim:#111111}
-    #studioApp[data-module-key="archive"] .archive-pin.archive-src-facebook{--feed-card-rim:#1877f2}
-    #studioApp[data-module-key="archive"] .archive-pin.archive-src-pinterest{--feed-card-rim:#e60023}
-    #studioApp[data-module-key="archive"] .archive-pin.archive-src-youtube{--feed-card-rim:#d0202f}
-    #studioApp[data-module-key="archive"] .archive-pin.archive-src-soundcloud{--feed-card-rim:#e2622a}
+    .module-workspace[data-module-key="archive"] .archive-visibility-card{display:grid;gap:10px}
+    .module-workspace[data-module-key="archive"] .archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}
+    .module-workspace[data-module-key="archive"] .archive-friend-add{display:flex;gap:7px}
+    .module-workspace[data-module-key="archive"] .archive-friend-add .module-input{flex:1}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram{--feed-card-rim:#a52a0c}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{--feed-card-rim:#111111}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{--feed-card-rim:#1877f2}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest{--feed-card-rim:#e60023}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{--feed-card-rim:#d0202f}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-soundcloud{--feed-card-rim:#e2622a}
+
     #studioApp #archive .archive-photo-preview{position:relative;display:block;width:100%;aspect-ratio:4/3;margin:10px 0 12px;padding:0;overflow:hidden;border:1px solid rgba(121,101,88,.22);border-radius:14px;background:#e9e1d9;box-shadow:0 6px 16px rgba(65,43,34,.10);cursor:pointer}
     #studioApp #archive .archive-photo-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 43%;filter:saturate(.96) contrast(1.01)}
     #studioApp #archive .archive-photo-preview::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26)}
@@ -518,14 +521,25 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
      not asked for a hand-pasted login path any more. The rest keep a plain profile link
      because there is nothing to authorize against here. */
   const ORBIT_APPS=[['instagram','IG','Instagram','#c1355a'],['facebook','FB','Facebook','#1877f2'],['tiktok','TT','TikTok','#111111'],['pinterest','P','Pinterest','#e60023'],['soundcloud','SC','SoundCloud','#e2622a'],['youtube','YT','YouTube','#d0202f'],['drive','GD','Google Drive','#0f9d58'],['calendar','GC','Google Calendar','#4285f4'],['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],['imdb','IMDb','IMDb','#e6a800']];
-  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest']);
+  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook']);
   const ORBIT_APP_NAMES=Object.fromEntries(ORBIT_APPS.map(([k,,n])=>[k,n]));
   /* Each API's chip wears that API's own colour. They were all one black pill, which read as
      a row of dead black dots with unreadable lettering rather than as a list of services.
      The lettering is pinned white on top so it survives the widget colour rules above. */
   const orbitBadge=(g,tint)=>'<span style="background:'+tint+'">'+esc(g)+'</span>';
   const orbitLinks=()=>readJSON('biglwaOrbitLinks',{});
-  const orbitConnected=()=>{try{return Object.values(window.__biglwaConnections?.connections?.()||{})}catch{return[]}};
+  const orbitConnected=()=>{
+    const rows=[];
+    try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}))}catch{}
+    /* Facebook authorises in the browser through its own SDK, so its state lives on the
+       client, not in the shared connections hub. It is merged here so the Orbit page's row
+       says Connected when that login has completed. */
+    try{
+      const fb=window.__biglwaFacebookOrbit?.state;
+      if(fb?.connected)rows.push({id:'facebook',name:fb.profile?.name||'Facebook',username:fb.profile?.name,link:fb.profile?.link||'',avatarUrl:fb.profile?.picture?.data?.url||''});
+    }catch{}
+    return rows;
+  };
   function orbitCount(key,value){
    if(value==null)return '';
    const n=Number(value);
@@ -555,11 +569,11 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
   }
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
-  const ORBIT_HANDS=()=>{const c=window.__biglwaConnections;if(!c)return false;const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest};return Object.values(map).every(Boolean)};
+  const ORBIT_HANDS=()=>{const c=window.__biglwaConnections;if(!c)return false;const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit};return Object.values(map).every(Boolean)};
    function renderOrbitPage(){
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. Everything else is a link you paste. Calendar syncing lives in Calendar, not Orbit.</p>${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n,t])=>{
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. Everything else is a link you paste. Calendar syncing lives in Calendar, not Orbit.</p><div class="module-status" id="orbitPageStatus"></div>${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k];
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
@@ -569,14 +583,14 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
        `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${ORBIT_HANDS()?'':'disabled'}>${row?'Reconnect':'Connect'} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}</div></div>`;
      }
      return `<div class="module-orbit-row"><header><b>${n}</b>${orbitBadge(g,t)}</header><label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
-     }).join('')}</div><div class="module-status" id="orbitPageStatus"></div></section></div>`;
+     }).join('')}</div></section></div>`;
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
     body.onclick=e=>{
-     const connect=e.target.closest('[data-orbit-connect]');
-     if(connect){const k=connect.dataset.orbitConnect;const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
+const connect=e.target.closest('[data-orbit-connect]');
+      if(connect){const k=connect.dataset.orbitConnect;const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
      const unlink=e.target.closest('[data-orbit-unlink]');
      if(unlink){const k=unlink.dataset.orbitUnlink;say('Unlinking…');window.__biglwaConnections?.forget?.(k).then(()=>{say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage()});return}
      const save=e.target.closest('[data-orbit-save]');
@@ -918,6 +932,51 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     if(!url)return;
     try{window.open(url,"_blank","noopener,noreferrer");}catch{}
   }
+
+  const PIECES_PER_CARD=4;
+  /* Two cards can be the same picture reached twice: the same photo saved to the wall and
+   also held in the Archive, or one carousel that arrived on two days. Sorting them together
+   and saying how many are involved makes the repeats visible straight away, instead of a
+   reader spotting them by eye across a wall of near-identical cards. */
+  function archiveFingerprint(item){
+    const pieces=Array.isArray(item.mediaItems)&&item.mediaItems.length
+      ? item.mediaItems.map(piece=>String(piece?.url||''))
+      : (Array.isArray(item.imageUrls)?item.imageUrls:[]);
+    const first=(pieces.find(Boolean)||String(item.imageUrl||'')).split('?')[0];
+    const caption=String(item.caption||'').trim().toLowerCase().slice(0,80);
+    return (caption?'c:'+caption:'|')+'|'+(first?first.split('/').pop():String(item.sourcePostId||item.id));
+  }
+  function archiveGroups(items){
+    const order=[];
+    const groups=new Map();
+    /* Sorted by source so the wall reads as source blocks rather than a mixed shelf. */
+    [...items.keys()].sort((a,b)=>{
+      const sa=String(items[a].source||'').toLowerCase(), sb=String(items[b].source||'').toLowerCase();
+      if(sa!==sb)return sa<sb?-1:1;
+      return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);
+    }).forEach(index=>{
+      const key=archiveFingerprint(items[index]);
+      if(!groups.has(key)){groups.set(key,[]);order.push(key)}
+      groups.get(key).push(index);
+    });
+    return {order,groups,sorted:order.flatMap(key=>groups.get(key))};
+  }
+  function groupCards(cardList,items,grouped){
+    const names={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube'};
+    const totalBySource=k=>items.filter(item=>String(item.source||'instagram').toLowerCase()===k).length;
+    return grouped.order.map(key=>{
+      const indexes=grouped.groups.get(key);
+      const source=String(items[indexes[0]].source||'instagram').toLowerCase();
+      const repeats=indexes.length>1;
+      return '<div class="archive-source-group" data-archive-source="'+esc(source)+'">'+
+        '<h3 class="archive-group-head">'+esc(names[source]||source)+
+        (repeats?'<em class="archive-group-repeats">'+indexes.length+' copies of one picture</em>':'<em class="archive-group-count">'+totalBySource(source)+' stored</em>')+
+        '</h3><div class="instagram-archive-grid" data-archive-group="'+esc(key)+'">'+
+        indexes.map(index=>cardList[index]).join('')+
+        '</div></div>';
+    }).join('');
+  }
+
   function renderArchive(){
     const orbit=window.__biglwaInstagramOrbit;
     const postsApi=window.__biglwaOrbitPosts;
@@ -961,6 +1020,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
 
     const draw=async()=>{
       const owner=!previewMode;
+      const media=archiveMedia;
       let settings={visibility:'private',friends:[]},profile=orbit?.state?.profile||{},status='';
       try{
         if(owner){
@@ -976,7 +1036,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
             return;
           }
           if(!archiveInitialized) await loadInitial();
-          if(!archiveMedia.length)status='This friend has not shared any archived content yet.';
+          if(!media.length)status='This friend has not shared any archived content yet.';
         }
       }catch(error){
         console.error('BIGLWA Archive:',error);
@@ -984,45 +1044,65 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
       }
 
       const username=profile.username||profile.name||previewUsername||'BIGLWA member';
-      const cards=archiveMedia.map((item,index)=>{
+      const cardList=media.map((item,index)=>{
         const pieces=archiveMediaPieces(item);
         const first=pieces[0]?.url||'';
         const caption=String(item.caption||'').trim();
+        const date=item.sourceCreatedAt?new Date(item.sourceCreatedAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'Archive';
         const state=archiveStateFor(item);
-        const live=state==='collective';
+        const posted=state==='collective';
         const pending=state==='pending_delete';
         const archived=state==='archived';
+        /* Every source is kept in the Archive, and each card keeps its own rim so a TikTok
+           card or a Facebook card can be told from an Instagram one at a glance. A card that
+           is live keeps its colour and appears on the Collective Feed; one switched off greys
+           its picture and stays here only. */
         const source=String(item.source||'instagram').toLowerCase();
-        const rim=archiveSourceRim(source);
-        const shadow=archiveSourceShadow(source);
-        const stateBadge=pending
-          ? '<span class="archive-live-badge is-pending">DELETING</span>'
-          : live
-            ? '<span class="archive-live-badge">LIVE</span>'
-            : '<span class="archive-live-badge is-archived">ARCHIVED</span>';
+        const rim={instagram:'#a52a0c',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';
+        const visualPieces=pieces.slice(0,PIECES_PER_CARD).map((piece,pieceIndex)=>{
+          const isVideo=String(piece.mediaType||'').toUpperCase()==='VIDEO'||/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(piece.url);
+          const visual=isVideo
+            ? '<video src="'+esc(piece.url)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
+            : '<img src="'+esc(piece.url)+'" alt="Archive item '+(index+1)+(pieces.length>1?' '+(pieceIndex+1):'')+'" loading="lazy" decoding="async">';
+          return '<div class="instagram-archive-piece">'+visual+(pieces.length>1&&pieceIndex===0?'<span>'+(pieceIndex+1)+'/'+pieces.length+'</span>':'')+'</div>';
+        }).join('');
+        const liveSwitch=pending
+          ? '<div class="archive-live is-locked"><span class="archive-live-track" aria-hidden="true"><i></i></span><b>Deleting soon</b></div>'
+          : owner
+            ? '<label class="archive-live" data-archive-live="'+esc(item.id)+'">'
+              +'<input type="checkbox" data-archive-live-input="'+esc(item.id)+'"'+(posted?' checked':'')+'>'
+              +'<span class="archive-live-track" aria-hidden="true"><i></i></span>'
+              +'<b>'+(posted?'Live':'Not live')+'</b>'
+              +'<em>'+(posted?'Showing on the Collective Feed':'Only kept here')+'</em>'
+              +'</label>'
+            : '<div class="archive-live is-locked"><span class="archive-live-track" aria-hidden="true"><i></i></span><b>'+(posted?'Live':'Not live')+'</b></div>';
+        const statusLine=posted
+          ? '<small class="archive-state-line">Live · on the Collective Feed</small>'
+          : archived
+            ? '<small class="archive-state-line">Not live · kept here only</small>'
+            : '';
         const actions=owner
           ? '<div class="archive-browser-actions" aria-label="Archive photo actions">'+
             '<button type="button" data-archive-delete aria-label="Delete this post" title="Delete"></button>'+
-            '<button type="button" data-archive-toggle aria-label="'+esc(live?'Turn live off and archive this post':'Turn live on and publish this post')+'" title="'+esc(live?'Archive':'Make live')+'" '+(pending?'disabled':'')+'></button>'+
             '<button type="button" data-archive-enlarge aria-label="Open this photo" title="Open this photo"></button>'+
             '</div>'
           : '';
-        const imageMarkup=first
-          ? ((String(pieces[0]?.mediaType||'').toUpperCase()==='VIDEO')
-              ? '<video src="'+esc(first)+'" poster="'+esc(pieces[0]?.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
-              : '<img src="'+esc(first)+'" alt="Archive photo '+(index+1)+'" loading="lazy" decoding="async">')
-          : '<div class="biglwa-pin-empty"><small>Media unavailable</small></div>';
+        const strip='<div class="instagram-archive-strip"><b>'+esc(caption?caption.split('\n')[0].slice(0,42):(pending?'Deleting soon':posted?'Live':'Archived'))+'</b>'+actions+'<i></i><i></i><i></i></div>';
         const pendingMeta=pending
           ? '<div class="archive-pending-note">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</div>'
           : '';
-        return '<article class="archive-pin biglwa-pin biglwa-pin-post biglwa-instagram-card is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+';--feed-card-shadow:'+shadow+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
-          '<div class="biglwa-instagram-browser-strip archive-browser-strip">'+stateBadge+actions+'</div>'+
-          '<div class="archive-media">'+imageMarkup+'</div>'+
+        return '<article class="instagram-archive-card '+(posted?'is-live':'is-off')+' is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
+          strip+
+          '<div class="instagram-archive-media">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Media unavailable</small></div>')+'</div>'+
           pendingMeta+
-          '</article>';
-      }).join('');
+          '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small>'+statusLine+'</div>'+
+          liveSwitch+
+        '</article>';
+      });
+      const grouped=archiveGroups(media);
+      const cards=groupCards(cardList,media,grouped);
 
-      const count=archiveMedia.length;
+      const count=media.length;
       const visibility=owner
         ? '<section class="module-card wide archive-visibility-card"><h2>Archive visibility</h2><p>Your Archive is private to you by default. Friends can only see it when you turn this on and add their BIGLWA username.</p>'+
           '<div class="archive-visibility-row"><label><span>Who can view this Archive?</span><select class="module-select" id="archiveVisibility"><option value="private" '+(settings.visibility==='private'?'selected':'')+'>Only me</option><option value="friends" '+(settings.visibility==='friends'?'selected':'')+'>Friends</option></select></label></div>'+
@@ -1030,15 +1110,15 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
           '<div class="module-status" id="archiveFriendStatus">'+(settings.visibility==='friends'?(settings.friends?.length||0)+' friend access slot(s) enabled.':'Archive is private.')+'</div></section>'
         : '';
 
-      body.innerHTML=heading('archive',count?count+' photo'+(count===1?'':'s')+(archiveHasMore?' loaded':''):'')+
+      body.innerHTML=heading('archive',count?count+' card'+(count===1?'':'s')+' stored':'')+
         '<div class="module-grid">'+
         '<section class="module-card wide archive-wall-shell">'+
-          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive</h2><p>Saved photos use the same card wall as Collective Feed. <strong>LIVE</strong> means the photo is currently on Collective Feed. Yellow switches it off and archives it.</p></div>'+
+          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive</h2><p>Saved photos use the same card wall as Collective Feed. Each keeps its own colour; turn the switch off and a photo grey here instead of showing live.</p></div>'+
           (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveOrbit" type="button">Manage Instagram connection</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>':'')+
           '</div>'+
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(orbit?.state?.connected?'Imported from @'+username+'.':'Connect Instagram in Orbit, then import your archive.'):'Shared with friends.'))+'</div>'+
-          '<p class="archive-legend"><i class="is-live"></i>LIVE · on Collective Feed<i class="is-archived"></i>ARCHIVED · off Collective Feed</p>'+
-          (cards?'<div class="archive-page-list" id="archivePageList">'+cards+'</div>':'<div class="archive-empty">No media has been imported yet.</div>')+
+          '<p class="archive-legend"><i class="is-live"></i>In color · on the Collective Feed<i class="is-archived"></i>Archived · grey here</p>'+
+          (cards?'<div class="archive-page-list">'+cards+'</div>':'<div class="archive-empty">No media has been imported yet.</div>')+
           (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
 
@@ -1067,28 +1147,25 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
           button.disabled=true;
           try{await postsApi?.addArchiveFriend?.(input.value);input.value='';if(st)st.textContent='Friend added to Archive access.';await draw()}catch(error){if(st)st.textContent=error?.message||'Friend could not be added.'}finally{button.disabled=false}
         });
+        Array.from(body.querySelectorAll('[data-archive-live-input]')).forEach(control=>control.addEventListener('change',async()=>{
+          const id=control.dataset.archiveLiveInput,st=$('#archiveInstagramStatus',body);
+          control.disabled=true;
+          try{
+            if(control.checked)await postsApi?.publishOrbitPost?.(id);
+            else await postsApi?.setOrbitState?.(id,'archived');
+            await draw();
+          }catch(error){
+            control.disabled=false;control.checked=!control.checked;
+            if(st)st.textContent=error?.message||'That card could not be updated.';
+          }
+        }));
         $('#archivePageList',body)?.addEventListener('click',async(event)=>{
           const deleteButton=event.target.closest('[data-archive-delete]');
-          const toggleButton=event.target.closest('[data-archive-toggle]');
           const enlargeButton=event.target.closest('[data-archive-enlarge]');
           const card=event.target.closest('[data-archive-id]');
           if(!card)return;
           const id=card.dataset.archiveId;
-          if(enlargeButton){archiveOpenImage(card.dataset.archiveUrl);return}
-          if(toggleButton){
-            toggleButton.disabled=true;
-            try{
-              const current=archiveStateFor(archiveMedia.find(row=>row.id===id)||{});
-              if(current==='collective') await postsApi?.archiveOrbitPost?.(id);
-              else await postsApi?.publishOrbitPost?.(id);
-              await draw();
-            }catch(error){
-              toggleButton.disabled=false;
-              const st=$('#archiveInstagramStatus',body);
-              if(st)st.textContent=error?.message||'That post could not be updated.';
-            }
-            return;
-          }
+          if(enlargeButton){archiveOpenImage(card.dataset.archiveUrl||'');return}
           if(deleteButton){
             if(!window.confirm('Remove this post from the Collective Feed? It will stay in your Archive for 30 days before deletion.')) return;
             deleteButton.disabled=true;
@@ -1106,7 +1183,6 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     };
     draw();
   }
-
 
   function renderCloset(){
     const storage='biglwaModule_closet',depopKey='biglwaDepopPath';const items=readJSON(storage,[]),depop=localStorage.getItem(depopKey)||'';

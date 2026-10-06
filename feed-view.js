@@ -46,6 +46,16 @@ const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c
 const looksLikeVideoFile = (u) => /\.(mp4|mov|m4v|webm)(\?|$)/i.test(String(u || ""));
 /* Every picture the post can show, so the card can tell a two-photo post from a
    thirteen-photo one before deciding what to draw. */
+/* A stored post can still hold a second picture of the same piece: a poster, or the
+   thumbnail the source handed back. It is only ever used when the main file fails. */
+const thumbnailFor = (post) => {
+  const items = Array.isArray(post?.mediaItems) ? post.mediaItems : [];
+  const poster = items.map((piece) => (piece && piece.thumbnailUrl) || "").find((url) => url && !looksLikeVideoFile(url));
+  if (poster) return poster;
+  const list = Array.isArray(post?.imageUrls) ? post.imageUrls : [];
+  return list.find((url) => typeof url === "string" && url && !looksLikeVideoFile(url) && url !== pictureUrls(post)[0]) || "";
+};
+
 const pictureUrls = (post) => {
   const items = Array.isArray(post.mediaItems) ? post.mediaItems : [];
   const fromItems = items.map((piece) => {
@@ -136,7 +146,10 @@ const STYLE = `
    to a board, a project or the map without leaving the page. Boards and projects are the same
    local lists the module pages read, and the map is the same pin list map-app.html writes, so
    anything added here shows up in those places immediately. */
-.biglwa-send{display:flex;justify-content:center;padding:6px 0 8px;background:rgba(var(--aura-rgb,216,95,109),.09)}
+/* The + sits centred under the picture on every card. Cards that borrow .module-list-item
+   used to land it in the second column of a two-column grid, which put it hard against the
+   right edge while every other card had it centred underneath. */
+.biglwa-send{display:flex;justify-content:center;align-items:center;width:100%;padding:6px 0 8px;background:rgba(var(--aura-rgb,216,95,109),.09)}
 .biglwa-send-toggle{width:26px;height:26px;border:1px solid rgba(var(--aura-rgb,216,95,109),.35);border-radius:50%;
   background:#fffdf9;color:rgb(var(--aura-rgb,216,95,109));font:800 17px/1 system-ui;cursor:pointer}
 .biglwa-send-toggle:hover{background:rgba(var(--aura-rgb,216,95,109),.14)}
@@ -180,8 +193,14 @@ const STYLE = `
    and carousel tabs that sit in the same strip like browser tabs. */
 /* Instagram uses one shared card treatment for both persisted Feed imports and the
    live Orbit cards. The live renderer no longer carries its own competing stylesheet. */
+/* These cards borrow .module-list-item, which is a two-column row meant for a small
+   label and a value. Left as a grid, the picture went into the first column and the
+   send tray into the second, so the rim shadow was drawn around a shape the card
+   no longer had and read as if it belonged to the card above. A media card is a
+   single block: the picture, then the tray underneath it. */
 .biglwa-instagram-card,.instagram-feed-item{
-  width:96%!important;margin-left:0!important;
+  display:block!important;grid-template-columns:none!important;align-items:stretch!important;
+  width:100%!important;max-width:100%!important;margin:0 0 18px!important;padding:0!important;
   background:rgba(var(--aura-rgb,216,95,109),.09)!important;
   border-color:rgba(var(--aura-rgb,216,95,109),.2)!important;
   box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#c13584)),0 12px 24px -16px rgba(216,95,109,.3))!important;
@@ -263,6 +282,11 @@ const STYLE = `
    once and held, and its pictures are contained inside that shape. */
 .biglwa-pin-img,.instagram-feed-item img,.instagram-feed-item video{
   display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;object-fit:contain
+}
+/* A saved video plays in place as a video, with its poster standing in until it is asked
+   to. It is given a quiet frame so a transparent or very short file cannot look broken. */
+.biglwa-pin-img[data-feed-video]{
+  background:#171310;min-height:140px;max-height:72vh;width:100%;border-radius:8px
 }
 .biglwa-slide>img{display:block;position:absolute;inset:0;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:contain;z-index:1}
 /* Someone who has asked their system for less motion gets a slideshow that holds still. */
@@ -677,6 +701,51 @@ async function publishDraft(postId) {
   if (typeof orbit?.setOrbitState !== "function") throw new Error("The feed is still loading. Try again in a moment.");
   return orbit.setOrbitState(postId, "approved");
 }
+/* A card that has no picture at all, and no thumbnail to stand in for one, is not worth
+   putting on the wall. It is left out rather than drawn as an empty frame. */
+function usablePost(post) {
+  return pictureUrls(post).length > 0;
+}
+
+function guardFeedPictures(list) {
+  let hidden = 0;
+  list.querySelectorAll("img[data-feed-media]").forEach((img) => {
+    img.addEventListener("error", () => {
+      const fallback = img.dataset.feedFallback;
+      if (fallback && img.src !== fallback) {
+        img.src = fallback;
+        img.dataset.feedFallback = "";
+        img.dataset.feedPreview = fallback;
+        const record = img.closest("[data-send-record]");
+        if (record) retargetFeedRecord(record, fallback);
+        return;
+      }
+      const pin = img.closest(".biglwa-pin-post");
+      if (pin) {
+        pin.remove();
+        hidden += 1;
+      }
+    });
+    if (img.complete && img.naturalWidth === 0) img.dispatchEvent(new Event("error"));
+  });
+  if (hidden) say(hidden + " saved card" + (hidden === 1 ? "" : "s") + " hidden because the picture would not load.");
+}
+
+/* When a saved card falls back to its thumbnail, the tray record is corrected so what gets
+   sent on to a board, a project or the map is the picture that actually renders. */
+function retargetFeedRecord(card, url) {
+  const raw = card.dataset.sendRecord;
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    data.imageUrls = [url];
+    card.dataset.sendRecord = JSON.stringify(data).replace(/"/g, "&quot;");
+    if (typeof registerSendCard === "function") registerSendCard(card);
+  } catch (error) {
+    console.warn("BIGLWA feed: could not correct a card picture", error);
+  }
+}
+
 function renderPosts(force) {
   const list = document.getElementById("feedPageList");
   if (!list) return;
@@ -690,7 +759,7 @@ function renderPosts(force) {
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
   stopSlideshows();
   if (!posts.length) return;
-  const html = posts.map((post) => {
+  const html = posts.filter(usablePost).map((post) => {
     const src = accentOf(post.source);
     void src;
     /* Counted before drawing, because a post with thirteen photos is a stack rather than
@@ -701,10 +770,19 @@ function renderPosts(force) {
     const managed = Boolean(me && post.uid === me);
     const isInstagram = String(post.source || "").toLowerCase() === "instagram";
     const shown = isStack ? urls.slice(0, 1) : urls;
+    /* The saved picture is preferred, and the link thumbnail is the way back if it is gone.
+       A post with neither cannot be offered as a card, so it is left off the wall. */
+    const fallbackSrc = thumbnailFor(post);
     const image = !shown.length
       ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
       : shown.length === 1
-        ? '<img class="biglwa-pin-img" src="' + esc(shown[0]) + '" alt="Collective feed media" loading="lazy">'
+        ? looksLikeVideoFile(shown[0])
+          ? '<video class="biglwa-pin-img" data-feed-video src="' + esc(shown[0]) + '"' +
+            (fallbackSrc ? ' poster="' + esc(fallbackSrc) + '"' : "") +
+            ' muted playsinline preload="none" controls></video>'
+          : '<img class="biglwa-pin-img" data-feed-media src="' + esc(shown[0]) + '"' +
+            (fallbackSrc && fallbackSrc !== shown[0] ? ' data-feed-fallback="' + esc(fallbackSrc) + '"' : "") +
+            ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="Collective feed media" loading="lazy">'
         : slideshow(shown, "Collective feed media");
     const link = !isInstagram && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     const carousel = !isStack && shown.length > 1;
@@ -739,6 +817,7 @@ function renderPosts(force) {
   }).join("");
   list.insertAdjacentHTML("afterbegin", html);
   startSlideshows(list);
+  guardFeedPictures(list);
 }
 
 /* A multi-photo post is drawn as a stack of pictures inside one frame shaped like the

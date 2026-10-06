@@ -124,6 +124,21 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
+    /* Map pins. A pin is private to its owner until they choose to publish it, which is
+       the whole point of the "make pin public" switch: everything is private by default
+       and nothing becomes readable to another account without the owner saying so.
+       A published pin carries a name, an area and a photo; the owner can withdraw it at
+       any time by setting isPublic back to false, and the strip under the map then stops
+       offering it to anyone else. */
+    match /mapPins/{pinId} {
+      allow read: if resource.data.isPublic == true
+        || isOwner(resource.data.uid);
+      allow create: if isOwner(request.resource.data.uid);
+      allow update: if isOwner(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid;
+      allow delete: if isOwner(resource.data.uid);
+    }
+
     // Wallpaper moderation queue. Members may open a review for their own media and
     // follow their own queue; only moderators can decide one.
     match /wallpaperReviews/{reviewId} {

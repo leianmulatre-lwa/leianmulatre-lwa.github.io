@@ -228,9 +228,15 @@
       var mediaItems = carousel ? children : [item];
       var first = mediaItems[0] || item;
       var media = first.media_url || first.thumbnail_url || '';
+      /* The full-size file is often gone or blocked while the thumbnail still resolves, so
+         each picture carries its own fallback. A picture with neither is left off the wall
+         rather than offered as a card that can only show a broken icon. */
+      var fallback = first.media_type === 'VIDEO' ? '' : (first.thumbnail_url || '');
       var visual = first.media_type === 'VIDEO'
         ? '<video data-instagram-media preload="metadata" poster="' + escapeText(first.thumbnail_url || '') + '" src="' + escapeText(first.media_url || '') + '" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd"></video>'
-        : '<img data-instagram-media src="' + escapeText(media) + '" alt="Instagram media" loading="lazy" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd">';
+        : '<img data-instagram-media src="' + escapeText(media) + '"' +
+          (fallback && fallback !== media ? ' data-instagram-fallback="' + escapeText(fallback) + '"' : '') +
+          ' data-instagram-preview="' + escapeText(media || fallback) + '" alt="Instagram media" loading="lazy" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd">';
       var tabs = carousel ? '<div class="biglwa-instagram-tabs" aria-label="Carousel photos">' + mediaItems.map(function (_, tabIndex) {
         return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
       }).join('') + '</div>' : '<span class="biglwa-instagram-tabs" aria-hidden="true"></span>';
@@ -267,7 +273,7 @@
       '</article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
-    return importStatusHtml() + cards.join('');
+    return '<div class="biglwa-instagram-wall">' + importStatusHtml() + cards.join('') + '</div>';
   }
   /* Instagram belongs in Archive. It is connected content, not a second renderer for
      the member's Studio/profile feed.
@@ -280,6 +286,7 @@
   function renderFeed(list) {
     list = list || one('#feedPageList');
     if (!list) return;
+    all('.biglwa-instagram-wall', list).forEach(function (wall) { wall.remove(); });
     all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
     var html = feedHtml();
     if (html) list.insertAdjacentHTML('afterbegin', html);
@@ -287,6 +294,69 @@
        their + tray to work the same way as the tray on a saved card. */
     if (window.__biglwaFeed && typeof window.__biglwaFeed.registerSendCard === 'function') {
       all('[data-send-record]', list).forEach(function (card) { window.__biglwaFeed.registerSendCard(card); });
+    }
+    guardPictures(list);
+  }
+  /* A card that cannot show a picture is not an option worth offering, so a picture that
+     fails is swapped for the thumbnail, and a card whose picture and thumbnail both fail is
+     taken off the wall. The preview that finally rendered is written back into the record
+     so the saved card keeps the picture that actually worked. */
+  function guardPictures(list) {
+    var dropped = 0;
+    all('img[data-instagram-media]', list).forEach(function (img) {
+      img.addEventListener('error', function () {
+        var fallback = img.getAttribute('data-instagram-fallback');
+        if (fallback && img.src !== fallback) {
+          img.src = fallback;
+          img.setAttribute('data-instagram-fallback', '');
+          img.setAttribute('data-instagram-preview', fallback);
+          var card = img.closest('[data-send-record]');
+          if (card) retargetSendRecord(card, fallback);
+          return;
+        }
+        var holder = img.closest('.biglwa-instagram-card');
+        if (holder) { holder.remove(); dropped += 1; }
+      });
+      if (img.complete && img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
+    });
+    all('video[data-instagram-media]', list).forEach(function (video) {
+      video.addEventListener('error', function () {
+        var poster = video.getAttribute('poster');
+        if (!poster) {
+          var holder = video.closest('.biglwa-instagram-card');
+          if (holder) { holder.remove(); dropped += 1; }
+          return;
+        }
+        var still = document.createElement('img');
+        still.setAttribute('data-instagram-media', '');
+        still.setAttribute('data-instagram-preview', poster);
+        still.src = poster;
+        still.alt = 'Instagram media';
+        still.style.cssText = 'display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd';
+        video.replaceWith(still);
+        var card = video.closest('[data-send-record]');
+        if (card) retargetSendRecord(card, poster);
+      });
+    });
+    if (dropped) {
+      var note = one('#biglwaInstagramStatus');
+      if (note) note.textContent = dropped + ' post' + (dropped === 1 ? '' : 's') + ' hidden because the picture would not load.';
+    }
+  }
+  /* When a picture falls back to its thumbnail, the card's own record is corrected so the
+     + tray, the Archive and the saved copy all point at the picture that loads. */
+  function retargetSendRecord(card, url) {
+    var record = card.getAttribute('data-send-record');
+    if (!record) return;
+    try {
+      var data = JSON.parse(record);
+      data.imageUrls = [url];
+      card.setAttribute('data-send-record', JSON.stringify(data).replace(/"/g, '&quot;'));
+      if (window.__biglwaFeed && typeof window.__biglwaFeed.registerSendCard === 'function') {
+        window.__biglwaFeed.registerSendCard(card);
+      }
+    } catch (error) {
+      console.warn('BIGLWA Instagram: could not correct a card picture', error);
     }
   }
   /* The feed module boots after this one, so the first render has no tray to hand out and
@@ -318,9 +388,19 @@
             video.src = next.media_url || '';
             video.style.cssText = 'display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd';
             old.replaceWith(video);
-          } else {
+          } else if (old.tagName === 'IMG') {
             old.src = media;
-            old.removeAttribute('poster');
+            old.setAttribute('data-instagram-fallback', next.thumbnail_url || '');
+            old.setAttribute('data-instagram-preview', media);
+          } else {
+            var replacement = document.createElement('img');
+            replacement.setAttribute('data-instagram-media', '');
+            replacement.setAttribute('data-instagram-fallback', next.thumbnail_url || '');
+            replacement.setAttribute('data-instagram-preview', media);
+            replacement.src = media;
+            replacement.alt = 'Instagram media';
+            replacement.style.cssText = 'display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd';
+            old.replaceWith(replacement);
           }
         }
         all('.biglwa-instagram-tab', card).forEach(function (button) { button.classList.remove('is-active'); });

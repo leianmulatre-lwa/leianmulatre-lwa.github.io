@@ -25,7 +25,7 @@ check("blood orange is the fallback rim for the wall", feed.includes("const FEED
 check("the rim is set on every card, from its own source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
 check("the old per-position colour cycle is gone", !feed.includes("nth-child(6n+2){--feed-card-rim"));
 check("the rim colour is not taken from the source accent any more", !feed.includes("esc(src.accent)"));
-check("every card carries the hard rim and the soft glow", /\.biglwa-pin\{--feed-card-rim:#a52a0c[^}]*box-shadow:3px 3px 0 var\(--feed-card-rim\),0 12px 26px/.test(feed));
+check("every card carries the hard rim and the soft glow", feed.includes(".biglwa-pin{--feed-card-rim:#a52a0c") && feed.includes("--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px") && feed.includes("box-shadow:var(--feed-card-shadow)"));
 check("the live Instagram cards use the same rim", orbit.includes('style="--feed-card-rim:#a52a0c"'));
 
 console.log("\n=== A SLIDESHOW CANNOT MOVE ITS CARD ===");
@@ -37,6 +37,13 @@ check("the frame is measured once and then left alone", feed.includes("let shape
 check("only the first photo is ever measured", /photos\.forEach\(\(img, i\) => \{\s*\n\s*if \(i > 0\) return;/.test(feed));
 check("a photo that fails leaves the frame as it was", feed.includes('img.addEventListener("error", () => { shaped = true; }'));
 check("a single picture still pushes its card", /\.biglwa-pin-img,[^}]*height:auto[^}]*object-fit:contain/.test(feed));
+
+console.log("\n=== A SAVED VIDEO PLAYS AS A VIDEO ===");
+check("a video file draws a video element, not a still", feed.includes("? looksLikeVideoFile(shown[0])") && feed.includes("data-feed-video src=\"' + esc(shown[0])"));
+check("the video keeps its poster as the stand-in", feed.includes('poster="\' + esc(fallbackSrc) + \'"') && feed.includes('preload="none" controls'));
+check("the video has a quiet frame", feed.includes(".biglwa-pin-img[data-feed-video]") && feed.includes("background:#171310;min-height:140px"));
+check("a picture file still draws an image", feed.includes("'<img class=\"biglwa-pin-img\" data-feed-media src=\"' + esc(shown[0])"));
+check("broken feed pictures are guarded after each draw", feed.includes("startSlideshows(list);") && feed.includes("guardFeedPictures(list);"));
 
 console.log("\n=== A POST WITH THIRTEEN PHOTOS IS A STACK ===");
 check("there is a threshold for a stack", feed.includes("const MANY_PHOTOS = 8"));

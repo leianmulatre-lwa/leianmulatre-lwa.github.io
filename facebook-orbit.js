@@ -98,6 +98,15 @@
       });
 
       document.body.classList.toggle('facebook-orbit-connected', state.connected);
+
+      /* The Orbit page's own Facebook row now uses the shared connect button
+         (data-orbit-connect) so it hands the click to this client. It is labelled from the
+         same state so a page left open shows Connected the moment login finishes. */
+      all('[data-orbit-connect="facebook"]').forEach(function (button) {
+        button.textContent = state.connected ? 'Reconnect Facebook' : 'Connect Facebook';
+        button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
+      });
+
       renderFeedImports();
     } catch (error) {
       window.console.error('BIGLWA Facebook Orbit render isolated:', error);
