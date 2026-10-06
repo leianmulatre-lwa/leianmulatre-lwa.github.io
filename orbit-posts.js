@@ -412,7 +412,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       ? "archived"
       : priorArchiveState === "archived" || priorState === "archived"
         ? "archived"
-        : item.source === "instagram"
+        : (item.source === "instagram" || item.source === "pinterest")
           ? "approved"
           : (existing?.state || "draft");
     const archiveState = priorArchiveState === "pending_delete"
