@@ -508,7 +508,37 @@ async function ttRoute(request, env) {
     const challenge = bytesToBase64Url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(body.verifier || '')))));
     if (challenge !== saved.challenge) ttFail('Reconnect TikTok from the same browser tab.', 401);
     await env.OAUTH_SESSIONS.delete(key);
-    return json({ session: saved.id }, 200, request, env);
+    const firebaseUid = await firebaseUidFromToken(String(body.firebaseIdToken || ''), env);
+    if (firebaseUid) {
+      const ttl = 31536000;
+      await env.OAUTH_SESSIONS.put('pn:firebase:' + firebaseUid, saved.id, { expirationTtl: ttl });
+    }
+    return json({ session: saved.id, persisted: !!firebaseUid }, 200, request, env);
+  }
+  if (path === '/pinterest/session/account' && request.method === 'GET') {
+    const header = request.headers.get('Authorization') || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+    const firebaseUid = await firebaseUidFromToken(token, env);
+    if (!firebaseUid) return json({ connected: false }, 200, request, env);
+    const sid = await env.OAUTH_SESSIONS.get('pn:firebase:' + firebaseUid);
+    if (!sid) return json({ connected: false }, 200, request, env);
+    const accountSession = await env.OAUTH_SESSIONS.get('pn:session:' + sid, 'json');
+    if (!accountSession || accountSession.expiresAt < Date.now()) {
+      await env.OAUTH_SESSIONS.delete('pn:firebase:' + firebaseUid);
+      return json({ connected: false }, 200, request, env);
+    }
+    return json({ connected: true, session: sid }, 200, request, env);
+  }
+  if (path === '/pinterest/session/claim' && request.method === 'POST') {
+    const providerId = (request.headers.get('Authorization') || '').replace(/^Bearer /, '');
+    if (!/^[A-Za-z0-9_-]{43}$/.test(providerId)) pnFail('Pinterest session expired. Please reconnect.', 401);
+    const existing = await env.OAUTH_SESSIONS.get('pn:session:' + providerId, 'json');
+    if (!existing || existing.expiresAt < Date.now()) pnFail('Pinterest session expired. Please reconnect.', 401);
+    const body = await request.json().catch(() => ({}));
+    const firebaseUid = await firebaseUidFromToken(String(body.firebaseIdToken || ''), env);
+    if (!firebaseUid) pnFail('Big LWA account session required.', 401);
+    await env.OAUTH_SESSIONS.put('pn:firebase:' + firebaseUid, providerId, { expirationTtl: 31536000 });
+    return json({ session: providerId, persisted: true }, 200, request, env);
   }
   const id = (request.headers.get('Authorization') || '').replace(/^Bearer /, '');
   let session = /^[A-Za-z0-9_-]{43}$/.test(id) ? await env.OAUTH_SESSIONS.get('tt:session:' + id, 'json') : null;
@@ -666,7 +696,10 @@ async function pnRoute(request, env) {
   let session = /^[A-Za-z0-9_-]{43}$/.test(id) ? await env.OAUTH_SESSIONS.get('pn:session:' + id, 'json') : null;
   if (!session) pnFail('Pinterest session expired. Please reconnect.', 401);
   if (path === '/pinterest/disconnect' && request.method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    const firebaseUid = await firebaseUidFromToken(String(body.firebaseIdToken || ''), env);
     await env.OAUTH_SESSIONS.delete('pn:session:' + id);
+    if (firebaseUid) await env.OAUTH_SESSIONS.delete('pn:firebase:' + firebaseUid);
     return json({ ok: true }, 200, request, env);
   }
 
