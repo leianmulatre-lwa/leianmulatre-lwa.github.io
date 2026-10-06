@@ -44,9 +44,24 @@ async function connect(){await run(async()=>{
   if(!ids.length)return;
   try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render()}catch{}finally{}
  }
+ async function importPinsToAccount(items){
+  const importer=window.__biglwaOrbitPosts?.importOrbitMedia;
+  if(typeof importer!=="function" || !Array.isArray(items) || !items.length)return;
+  try{
+    const result=await importer("pinterest",items,profile);
+    if(result?.warning)console.warn("BIGLWA Pinterest import:",result.warning);
+    window.dispatchEvent(new CustomEvent("biglwa:orbit-imported",{detail:{source:"pinterest",...result}}));
+  }catch(error){
+    console.warn("BIGLWA Pinterest account import:",error);
+  }
+ }
  async function loadPins(id,more){
   const data=await api('boards/'+id+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
-  pins=more?[...pins,...(data.items||[])]:data.items||[];pinsNext=data.bookmark||'';
+  const nextItems=Array.isArray(data.items)?data.items:[];
+  pins=more?[...pins,...nextItems]:nextItems;pinsNext=data.bookmark||'';
+  /* Pinterest was previously only held in this renderer. Persist every page of returned
+     Pins into the same account/profile/Archive records as the other Orbit sources. */
+  await importPinsToAccount(nextItems);
  }
  async function restore(){if(!session())return;await run(async()=>{profile=await api('profile');connected=true;await loadBoards();
   /* Opening the first board means the feed has Pins to show before anyone picks a
@@ -74,7 +89,7 @@ async function connect(){await run(async()=>{
   const cards=feedPins().map(p=>{
    const src=image(p);
    const label=p.boardName||boardNameFor(p.board_id);
-   return '<article class="module-list-item pinterest-feed-item"><div style="width:100%"><small>Pinterest'+(label?' · '+esc(label):'')+'</small><b style="display:block;margin:4px 0 8px">'+esc(p.title||p.description||p.alt_text||'Pinterest Pin')+'</b>'+
+   return '<article class="module-list-item pinterest-feed-item" data-post-id="pinterest_'+esc(p.id)+'"><div style="width:100%"><small>Pinterest'+(label?' · '+esc(label):'')+'</small><b style="display:block;margin:4px 0 8px">'+esc(p.title||p.description||p.alt_text||'Pinterest Pin')+'</b>'+
    (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'" style="display:block;width:100%;max-height:520px;object-fit:cover;border-radius:12px">':'')+
    '<a class="module-action ghost" href="https://www.pinterest.com/pin/'+esc(p.id)+'/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Pinterest</a></div></article>';
   });
@@ -108,6 +123,12 @@ async function connect(){await run(async()=>{
   return '<div class="pinterest-board-grid">'+tiles.join('')+'</div>';
  }
  if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('Pinterest','pinterest-feed-item',renderFeedList);
+ let importerWaits=0;
+ const waitForImporter=()=>new Promise(resolve=>{
+   const check=()=>{if(window.__biglwaOrbitPosts?.importOrbitMedia)return resolve(window.__biglwaOrbitPosts.importOrbitMedia);if(importerWaits++>=30)return resolve(null);setTimeout(check,200)};
+   check();
+ });
+
  function render(){
   document.querySelectorAll('[data-orbit-app="pinterest"]').forEach(el=>{el.classList.toggle('orbit-connected',connected);el.setAttribute('aria-label',connected?'Open Pinterest boards':'Connect Pinterest')});
   renderFeedList();
