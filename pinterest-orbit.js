@@ -8,8 +8,8 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
  /* The session id is a credential that should outlive the tab, like the other two
     sources, so the connection does not vanish when the window is closed. The PKCE
     verifier stays in session storage: it is only needed for the one round trip. */
- const session=()=>{try{return localStorage.getItem(KEY)||''}catch{return ''}};
- const save=v=>{try{if(v)localStorage.setItem(KEY,v);else localStorage.removeItem(KEY)}catch{}};
+ const session=()=>{for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(KEY);if(value)return value}catch{}}return ''};
+ const save=v=>{for(const store of [localStorage,sessionStorage]){try{if(v)store.setItem(KEY,v);else store.removeItem(KEY)}catch{}}};
  async function firebaseIdToken(){
   try{
    const [{getAuth},{initializeApp,getApps}]=await Promise.all([
