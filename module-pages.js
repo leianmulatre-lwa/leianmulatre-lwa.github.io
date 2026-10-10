@@ -180,11 +180,16 @@
     .module-workspace[data-module-key="archive"] .archive-browser-actions [data-archive-enlarge]{background:#4e8f61}
     .module-workspace[data-module-key="archive"] .archive-browser-actions button:disabled{opacity:.48;cursor:default}
     .module-workspace[data-module-key="archive"] .instagram-archive-media{display:grid;gap:1px;background:#c7c7c7}
-    .module-workspace[data-module-key="archive"] .instagram-archive-piece{position:relative;min-width:0;background:#f28c28}
+    /* A four-piece carousel is laid out as a 2x2 tile instead of one tower, and every piece
+       sits in a fixed frame, so a tall photo or a tall frame can never stretch one card into
+       a whole page and swallow its row. Same bounding idea as the feed slides. */
+    .module-workspace[data-module-key="archive"] .instagram-archive-media.is-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece{position:relative;min-width:0;overflow:hidden;background:#f28c28;aspect-ratio:5/6;min-height:112px;max-height:430px}
+    .module-workspace[data-module-key="archive"] .instagram-archive-media.is-tiles .instagram-archive-piece{aspect-ratio:1/1;max-height:390px}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.is-collective .instagram-archive-piece{background:#c7c7c7!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.is-pending-delete .instagram-archive-piece{background:#d96c67!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-piece img,.module-workspace[data-module-key="archive"] .instagram-archive-piece video{
-      display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;object-fit:contain;background:inherit
+      display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:inherit
     }
     .module-workspace[data-module-key="archive"] .instagram-archive-piece>span{position:absolute;right:7px;bottom:7px;padding:3px 5px;border-radius:999px;background:rgba(30,20,15,.7);color:#fff;font:800 7px/1 system-ui}
     .module-workspace[data-module-key="archive"] .archive-media-meta{padding:7px 8px;background:#f1e9e1;border-top:1px solid rgba(80,70,64,.12)}
@@ -193,6 +198,21 @@
     .module-workspace[data-module-key="archive"] .archive-state-line{display:block;margin-top:5px;font:800 7px/1.35 system-ui;letter-spacing:.03em;text-transform:uppercase;color:#3f6b4a}
     .module-workspace[data-module-key="archive"] .archive-delete-warning{color:#bd3f47}
     .module-workspace[data-module-key="archive"] .archive-pending-note{position:relative;z-index:3;padding:6px 8px;background:#d96c67;color:#fff;font:700 8px/1.4 system-ui}
+    /* Every Manage button in the Archive opens this popup, so Instagram is not the only
+       connection that can be reached from it. It reuses the Orbit page's row classes. */
+    .biglwa-popup-backdrop{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:18px;background:rgba(48,38,33,.44);backdrop-filter:blur(3px)}
+    .biglwa-popup{width:min(600px,96vw);max-height:86vh;overflow:auto;border:1px solid #ddd4ca;border-radius:18px;background:#fffaf3;box-shadow:3px 3px 0 rgba(80,70,64,.28),0 20px 44px -22px rgba(0,0,0,.4);padding:18px 20px}
+    .biglwa-popup>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .biglwa-popup h2{margin:0;font:700 15px/1.2 system-ui;color:#2f2a27}
+    .biglwa-popup p{margin:4px 0 0;font:500 10px/1.45 system-ui;color:#81766f}
+    .biglwa-popup-close{width:26px;height:26px;flex:0 0 26px;border:0;border-radius:50%;background:#f1e9e1;color:#5a4f48;font:700 15px/1 system-ui;cursor:pointer}
+    .biglwa-popup-rows{display:grid;gap:10px}
+    /* The source filter chips sit under the toolbar and say which sources feed the cards. */
+    .archive-filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .archive-filter-chip{border:1px solid #ddd3ca;background:rgba(255,255,255,.6);border-radius:999px;padding:5px 11px;font:700 9px/1 system-ui;color:#5c534c;cursor:pointer}
+    .archive-filter-chip.is-on{background:rgba(var(--aura-rgb,216,95,109),.16);border-color:rgba(var(--aura-rgb,216,95,109),.5);color:#8d3a49}
+    .archive-dupes{display:flex;align-items:center;gap:6px;margin-left:auto;font:700 9px/1.2 system-ui;color:#5c534c;cursor:pointer}
+    .archive-dupes input{accent-color:#a52a0c;width:14px;height:14px}
     /* The Live switch sits at the bottom of the card and is the one thing that keeps its
        colour when the picture above it has gone grey, so it can be turned back on. */
     .module-workspace[data-module-key="archive"] .archive-live{position:relative;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 8px;background:#efe7df;border-top:1px solid rgba(var(--aura-rgb,216,95,109),.18);cursor:pointer}
@@ -374,6 +394,24 @@
     .module-workspace .module-arcade-joystick{--stick:#dd5c70;position:relative;bottom:20px;z-index:2;width:44px;height:68px;filter:drop-shadow(0 5px 2px rgba(0,0,0,.35))}.module-workspace .module-arcade-joystick::before{content:"";position:absolute;left:50%;top:23px;width:8px;height:34px;border-radius:5px;background:linear-gradient(90deg,#171313,#5b5b5b,#151111);transform:translateX(-50%)}.module-workspace .module-arcade-joystick::after{content:"";position:absolute;left:50%;top:0;width:31px;height:31px;border-radius:50%;background:radial-gradient(circle at 36% 27%,rgba(255,255,255,.58),transparent 24%),var(--stick);box-shadow:inset -5px -6px 8px rgba(0,0,0,.22),0 0 0 2px rgba(17,10,9,.58);transform:translateX(-50%)}.module-workspace .module-arcade-joystick>i{position:absolute;left:50%;bottom:5px;width:40px;height:14px;border:3px solid #140c0a;border-radius:50%;background:#281714;transform:translateX(-50%);box-shadow:inset 0 2px 0 rgba(255,255,255,.1)}
     .module-workspace .module-arcade-joystick.is-yellow{--stick:#efc548}.module-workspace .module-arcade-joystick.is-red{--stick:rgb(var(--aura-rgb,216,95,109))}.module-workspace .module-arcade-joystick.is-green{--stick:#5ca975}
     @media(max-width:560px){.module-workspace .module-arcade-folder-depth{margin-inline:4px;padding:39px 5px 5px}.module-workspace .module-arcade-folder-depth::before{width:58%;height:54px}.module-workspace .module-game-viewport{height:420px;padding:9px;border-width:10px}.module-workspace .module-game-stage-head{min-height:96px;margin:0!important}.module-workspace .module-game-stage-head>span{display:none}.module-workspace .module-arcade-marquee img:first-child{width:min(29%,126px);height:auto!important}.module-workspace .module-arcade-marquee img:last-child{top:-28px;width:min(40%,180px)}}
+    /* Games run inside the cabinet now, in the emulator screen, instead of sending the reader
+       off to a whole other site. Play keeps them here; the Open ↗ link stays as the escape
+       hatch, styled the same as the converter links on the Tools page. */
+    .module-workspace .module-arcade-play{padding:24px!important}
+    .module-workspace .module-arcade-screen{position:relative;isolation:isolate;height:clamp(340px,46vw,560px);margin-top:19px;border:10px solid #141111;border-radius:16px;background:#020506;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(102,225,229,.16),inset 0 24px 30px rgba(0,0,0,.8);resize:both;min-width:240px;min-height:200px;max-width:100%}
+    .module-workspace .module-arcade-screen::after{content:"BIG LWA";position:absolute;right:0;bottom:0;left:0;z-index:1;padding:5px 10px;background:linear-gradient(to top,rgba(0,0,0,.72),transparent);color:#d9f7f8;font:800 7px/1 system-ui;letter-spacing:.18em;text-transform:uppercase;pointer-events:none;opacity:.7}
+    .module-workspace .module-arcade-screen iframe{display:block;width:100%;height:100%;border:0;background:#fff;transform-origin:top left}
+    .module-arcade-deck{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}
+    .module-arcade-play .module-game-stage-head>span{position:static;display:block;margin-top:10px;color:#564426!important}
+    .module-game-directory h2{font:400 24px/1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+    .module-game-directory-list{display:grid;gap:6px;margin-top:12px}
+    .module-game-directory-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e5dccf;background:rgba(255,255,255,.55);border-radius:11px;padding:8px 10px}
+    .module-game-directory-row b{display:flex;align-items:center;gap:9px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 11px/1.3 system-ui;color:#3a332f}
+    .module-game-directory-row b img{width:34px;height:20px;flex:0 0 auto;object-fit:cover;border-radius:4px;background:#eee5dc}
+    .module-game-directory-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+    .night-mode .module-game-directory-row{border-color:#514a45;background:#302c2a}
+    .night-mode .module-game-directory-row b{color:#e9e2da}
+    @media(max-width:560px){.module-workspace .module-arcade-screen{height:420px;border-width:8px}.module-game-directory-row{align-items:flex-start;flex-direction:column}.module-game-directory-actions{flex-wrap:wrap}}
     .module-station-preview{position:relative;isolation:isolate;height:clamp(250px,40vw,510px);margin:20px 0 0;overflow:hidden;border:9px solid #181313;border-radius:22px;background:#120d10;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06),0 17px 34px rgba(25,15,17,.22)}
     .module-station-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,8,12,.04),rgba(8,8,12,.12) 50%,rgba(8,8,12,.85));pointer-events:none}
     .module-station-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.98) contrast(1.06)}
@@ -751,13 +789,16 @@ const connect=e.target.closest('[data-orbit-connect]');
       {title:'five nights at freddy’s',image:'/assets/arcade/five-nights-at-freddys.jpg',href:'https://store.steampowered.com/app/319510/Five_Nights_at_Freddys/'},
       {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.coolmathgames.com/0-swords-and-sandals-2'}
     ];
-    const tile=game=>game.internal==='cultureQuiz'
+    const tile=(game,index)=>game.internal==='cultureQuiz'
       ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
-      :'<a class="module-game-tile" href="'+esc(game.href)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+esc(game.title)+'"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>open ↗</small></a>';
-    const track=items=>items.concat(items).map(tile).join('');
+      :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="Play '+esc(game.title)+' in the arcade"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ▶</small></button>';
+    const track=items=>items.concat(items).map(game=>tile(game,gameLibrary.indexOf(game))).join('');
+    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>Play in arcade</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Open ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"><img src="/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15" alt="ARCADE" width="550" height="130"></div><span>animated preview</span></div></div><div class="module-game-viewport" aria-label="Animated arcade library"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">External games open in a new tab. Suggestions are saved privately in this browser for review.</div></section>'+
+        '<section class="module-card module-game-stage wide"><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"><img src="/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15" alt="ARCADE" width="550" height="130"></div><span>animated preview</span></div></div><div class="module-game-viewport" aria-label="Animated arcade library"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Games run right here, in the arcade screen below. If a site refuses embedding, the Open ↗ link sends you there as a normal link, like on the converters page. Suggestions are saved privately in this browser for review.</div></section>'+
+        '<section class="module-card module-game-stage module-arcade-play wide" id="arcadeEmulator" hidden><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"><img src="/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15" alt="ARCADE" width="550" height="130"></div><span id="arcadeEmulatorTitle">now playing</span></div></div><div class="module-arcade-screen" id="arcadeScreen" aria-label="Game runs here"></div><div class="module-arcade-deck"><a class="module-action ghost" id="arcadeOpenExternal" href="#" target="_blank" rel="noopener noreferrer">Open ↗ in a new tab</a><button class="module-action ghost" id="arcadeFullscreen" type="button">Fullscreen</button><button class="module-action" id="arcadeClose" type="button">Back to arcade</button></div><div class="module-status" id="arcadeEmulatorStatus">Pick a game to run it inside the arcade.</div></section>'+
+        '<section class="module-card module-game-directory wide"><h2>all games</h2><p>A simple directory, like the converters page. Play runs the game in the arcade; Open ↗ goes there directly in your own tab.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></section>'+
         '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
         '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
           '<label><span>Game name</span><input class="module-input" name="title" required maxlength="80" placeholder="Game title"></label>'+
@@ -781,11 +822,38 @@ const connect=e.target.closest('[data-orbit-connect]');
       cultureContent.innerHTML='<span class="culture-quiz-progress">question '+(cultureIndex+1)+' of '+cultureQuestions.length+'</span><h3 class="culture-quiz-question">'+esc(item.q)+'</h3><div class="culture-quiz-options">'+item.a.map((answer,index)=>'<button type="button" data-culture-answer="'+index+'">'+esc(answer)+'</button>').join('')+'</div><div class="culture-quiz-feedback" id="cultureQuizFeedback">Choose an answer to reveal the context.</div>';
     };
     drawCultureQuestion();
-    $$('[data-play-culture-quiz]',body).forEach(button=>button.addEventListener('click',()=>{
-      cultureIndex=0;cultureScore=0;drawCultureQuestion();culturePanel.hidden=false;
-      culturePanel.scrollIntoView({behavior:'smooth',block:'center'});
-    }));
+    const openCultureQuiz=()=>{cultureIndex=0;cultureScore=0;drawCultureQuestion();culturePanel.hidden=false;culturePanel.scrollIntoView({behavior:'smooth',block:'center'})};
+    $$('[data-play-culture-quiz]',body).forEach(button=>button.addEventListener('click',openCultureQuiz));
+    $$('[data-directory-culture]',body).forEach(button=>button.addEventListener('click',openCultureQuiz));
+    const emulatorPanel=$('#arcadeEmulator',body);
+    const emulatorScreen=$('#arcadeScreen',body);
+    const emulatorTitle=$('#arcadeEmulatorTitle',body);
+    const emulatorStatus=$('#arcadeEmulatorStatus',body);
+    const emulatorOpen=$('#arcadeOpenExternal',body);
+    const playEmulator=game=>{
+      if(!game||!game.href)return;
+      emulatorTitle.textContent='now playing · '+game.title;
+      const frame=document.createElement('iframe');
+      frame.src=game.href;
+      frame.setAttribute('allow','autoplay; fullscreen; gamepad; encrypted-media; clipboard-write');
+      frame.setAttribute('referrerpolicy','no-referrer-when-downgrade');
+      frame.title='Play '+game.title;
+      emulatorScreen.replaceChildren(frame);
+      emulatorOpen.href=game.href;
+      emulatorStatus.textContent='Running '+game.title+' inside the arcade window. You can resize the window, go fullscreen, or use Open \u2197 if it won\u2019t load here.';
+      emulatorPanel.hidden=false;
+      emulatorPanel.scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    $$('[data-play-external]',body).forEach(button=>button.addEventListener('click',()=>playEmulator(gameLibrary[Number(button.dataset.playExternal)])));
+    $$('[data-directory-play]',body).forEach(button=>button.addEventListener('click',()=>playEmulator(gameLibrary[Number(button.closest('[data-directory-index]').dataset.directoryIndex)])));
+    const fullscreenButton=$('#arcadeFullscreen',body);
+    fullscreenButton.onclick=async()=>{
+      if(!document.fullscreenElement){try{await emulatorScreen.requestFullscreen()}catch{}}
+      else{try{await document.exitFullscreen()}catch{}}
+    };
+    document.addEventListener('fullscreenchange',()=>{fullscreenButton.textContent=document.fullscreenElement?'Exit fullscreen':'Fullscreen'});
     $('[data-close-culture-quiz]',culturePanel).onclick=()=>{culturePanel.hidden=true};
+    $('#arcadeClose',body).onclick=()=>{emulatorPanel.hidden=true;emulatorScreen.replaceChildren();emulatorOpen.removeAttribute('href');emulatorTitle.textContent='now playing'};
     cultureContent.onclick=event=>{
       const answerButton=event.target.closest('[data-culture-answer]');
       if(answerButton&&!cultureAnswered){
@@ -961,8 +1029,8 @@ const connect=e.target.closest('[data-orbit-connect]');
     });
     return {order,groups,sorted:order.flatMap(key=>groups.get(key))};
   }
-  function groupCards(cardList,items,grouped){
-    const names={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube'};
+    function groupCards(cardList,items,grouped,hideDupes){
+    const names={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'};
     const totalBySource=k=>items.filter(item=>String(item.source||'instagram').toLowerCase()===k).length;
     return grouped.order.map(key=>{
       const indexes=grouped.groups.get(key);
@@ -972,7 +1040,7 @@ const connect=e.target.closest('[data-orbit-connect]');
         '<h3 class="archive-group-head">'+esc(names[source]||source)+
         (repeats?'<em class="archive-group-repeats">'+indexes.length+' copies of one picture</em>':'<em class="archive-group-count">'+totalBySource(source)+' stored</em>')+
         '</h3><div class="instagram-archive-grid" data-archive-group="'+esc(key)+'">'+
-        indexes.map(index=>cardList[index]).join('')+
+        (repeats&&hideDupes?indexes.slice(0,1):indexes).map(index=>cardList[index]).join('')+
         '</div></div>';
     }).join('');
   }
@@ -987,6 +1055,10 @@ const connect=e.target.closest('[data-orbit-connect]');
     let archiveHasMore=false;
     let archiveInitialized=false;
     let archiveLoading=false;
+    const FILTER_KEY='biglwaArchiveFilters';
+    const sourceNameOf=item=>String(item.source||'instagram').toLowerCase();
+    const readFilters=()=>{let f={sources:[],hideDupes:false};try{f={sources:[],hideDupes:false,...JSON.parse(localStorage.getItem(FILTER_KEY)||'null')}}catch{}if(!Array.isArray(f.sources))f.sources=[];return f};
+    const saveFilters=f=>{try{localStorage.setItem(FILTER_KEY,JSON.stringify(f))}catch{}};
 
     const loadInitial=async()=>{
       const rows=previewMode
@@ -1023,7 +1095,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       const media=archiveMedia;
       let settings={visibility:'private',friends:[]},profile=orbit?.state?.profile||{},status='';
       try{
-        if(owner){
+            if(owner){
           settings=await postsApi?.getArchiveSettings?.()||settings;
           if(!archiveInitialized) await loadInitial();
           profile=orbit?.state?.profile||profile;
@@ -1043,8 +1115,15 @@ const connect=e.target.closest('[data-orbit-connect]');
         status=error?.message||'The Archive could not be loaded.';
       }
 
-      const username=profile.username||profile.name||previewUsername||'BIGLWA member';
-      const cardList=media.map((item,index)=>{
+    const username=profile.username||profile.name||previewUsername||'BIGLWA member';
+      const filters=readFilters();
+      const seenSources=[...new Set(media.map(sourceNameOf))];
+      const union=[...new Set([...seenSources,...filters.sources])];
+      const allowed=new Set(filters.sources);
+      const filtering=filters.sources.length>0;
+      const mediaShown=filtering?media.filter(item=>allowed.has(sourceNameOf(item))):media;
+      const hideDupes=filters.hideDupes;
+      const cardList=mediaShown.map((item,index)=>{
         const pieces=archiveMediaPieces(item);
         const first=pieces[0]?.url||'';
         const caption=String(item.caption||'').trim();
@@ -1093,16 +1172,16 @@ const connect=e.target.closest('[data-orbit-connect]');
           : '';
         return '<article class="instagram-archive-card '+(posted?'is-live':'is-off')+' is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
           strip+
-          '<div class="instagram-archive-media">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Media unavailable</small></div>')+'</div>'+
+          '<div class="instagram-archive-media'+(pieces.length>=4?' is-tiles':'')+'">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Media unavailable</small></div>')+'</div>'+
           pendingMeta+
           '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small>'+statusLine+'</div>'+
           liveSwitch+
         '</article>';
       });
-      const grouped=archiveGroups(media);
-      const cards=groupCards(cardList,media,grouped);
+    const grouped=archiveGroups(mediaShown);
+      const cards=groupCards(cardList,mediaShown,grouped,hideDupes);
 
-      const count=media.length;
+      const count=mediaShown.length;
       const visibility=owner
         ? '<section class="module-card wide archive-visibility-card"><h2>Archive visibility</h2><p>Your Archive is private to you by default. Friends can only see it when you turn this on and add their BIGLWA username.</p>'+
           '<div class="archive-visibility-row"><label><span>Who can view this Archive?</span><select class="module-select" id="archiveVisibility"><option value="private" '+(settings.visibility==='private'?'selected':'')+'>Only me</option><option value="friends" '+(settings.visibility==='friends'?'selected':'')+'>Friends</option></select></label></div>'+
@@ -1114,16 +1193,33 @@ const connect=e.target.closest('[data-orbit-connect]');
         '<div class="module-grid">'+
         '<section class="module-card wide archive-wall-shell">'+
           '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive</h2><p>Saved photos use the same card wall as Collective Feed. Each keeps its own colour; turn the switch off and a photo grey here instead of showing live.</p></div>'+
-          (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveOrbit" type="button">Manage Instagram connection</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>':'')+
+    (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveConnections" type="button">Manage connections</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
+          (union.length?'<div class="archive-filter-bar" id="archiveFilterBar">'+
+            union.map(k=>'<button type="button" class="archive-filter-chip '+((filtering?allowed.has(k):true)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'">'+esc({instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'}[k]||k)+'</button>').join('')+
+            '<label class="archive-dupes"><input type="checkbox" id="archiveHideDupes"'+(hideDupes?' checked':'')+'><span>Hide duplicates</span></label></div>':'')+
+          '':'')+
           '</div>'+
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(orbit?.state?.connected?'Imported from @'+username+'.':'Connect Instagram in Orbit, then import your archive.'):'Shared with friends.'))+'</div>'+
           '<p class="archive-legend"><i class="is-live"></i>In color · on the Collective Feed<i class="is-archived"></i>Archived · grey here</p>'+
-          (cards?'<div class="archive-page-list">'+cards+'</div>':'<div class="archive-empty">No media has been imported yet.</div>')+
+          (cards?'<div class="archive-page-list">'+cards+'</div>':'<div class="archive-empty">'+(media.length&&!mediaShown.length?'No cards match the filters you chose.':'No media has been imported yet.')+'</div>')+
           (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
 
-      if(owner){
-        $('#archiveOrbit',body)?.addEventListener('click',()=>openModule('orbit'));
+    if(owner){
+        $('#archiveConnections',body)?.addEventListener('click',()=>openConnectionsPopup());
+        const filterBar=$('#archiveFilterBar',body);
+        filterBar?.addEventListener('click',async(event)=>{
+          const chip=event.target.closest('[data-archive-source-filter]');
+          if(!chip)return;
+          const k=chip.dataset.archiveSourceFilter;
+          const f=readFilters();
+          if(!f.sources.length)f.sources=Array.from(filterBar.querySelectorAll('[data-archive-source-filter]')).map(n=>n.dataset.archiveSourceFilter);
+          if(f.sources.includes(k))f.sources=f.sources.filter(x=>x!==k);else f.sources.push(k);
+          saveFilters(f);await draw();
+        });
+        $('#archiveHideDupes',body)?.addEventListener('change',async(event)=>{
+          const f=readFilters();f.hideDupes=event.target.checked;saveFilters(f);await draw();
+        });
         $('#archiveRefreshInstagram',body)?.addEventListener('click',async()=>{
           const button=$('#archiveRefreshInstagram',body),st=$('#archiveInstagramStatus',body);
           button.disabled=true;if(st)st.textContent='Refreshing Instagram into your Archive + Collective Feed…';
@@ -1159,7 +1255,7 @@ const connect=e.target.closest('[data-orbit-connect]');
             if(st)st.textContent=error?.message||'That card could not be updated.';
           }
         }));
-        $('#archivePageList',body)?.addEventListener('click',async(event)=>{
+        $('.archive-page-list',body)?.addEventListener('click',async(event)=>{
           const deleteButton=event.target.closest('[data-archive-delete]');
           const enlargeButton=event.target.closest('[data-archive-enlarge]');
           const card=event.target.closest('[data-archive-id]');
@@ -1180,8 +1276,45 @@ const connect=e.target.closest('[data-orbit-connect]');
           }
         });
       }
-    };
+};
     draw();
+  }
+
+  /* The Archive's Manage button covers every Orbit connection at once: the same rows as the
+     Orbit page, so Instagram is not the only source that can be reached from here. OAuth ones
+     connect, reconnect, and unlink in place; the plain-link ones hand over to the Orbit page,
+     which already owns their paste-a-link fields. */
+  function openConnectionsPopup(){
+    const clients={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit};
+    const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
+    const rows=ORBIT_APPS.map(([k,g,n,t])=>{
+      if(ORBIT_CONNECTED.has(k)){
+        const row=connected[k];
+        return '<div class="module-orbit-row is-oauth" data-orbit-row="'+esc(k)+'"><header><b>'+esc(n)+'</b>'+orbitBadge(g,t)+(row?'<em class="orbit-state is-on">Connected</em>':'<em class="orbit-state">Not connected</em>')+'</header>'+
+          (row?'<div class="orbit-connected-card">'+(row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':'')+'<span><b>'+esc(row.name||row.username||'Connected')+'</b>'+(row.username?'<small>@'+esc(row.username)+'</small>':'')+'</span><a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a></div>':'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
+          '<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="'+esc(k)+'">'+(row?'Reconnect':'Connect')+' '+esc(n)+'</button>'+(row?'<button class="module-action ghost" type="button" data-orbit-unlink="'+esc(k)+'">Unlink</button>':'')+'</div></div>';
+      }
+      return '<div class="module-orbit-row"><header><b>'+esc(n)+'</b>'+orbitBadge(g,t)+'</header><p class="orbit-not-connected">'+(orbitLinks()[k]?'A public link is saved for this source.':'Kept as a plain profile link.')+'</p><div class="module-actions"><button class="module-action ghost" type="button" data-orbit-manage="'+esc(k)+'">Manage in Orbit</button></div></div>';
+    }).join('');
+    const root=document.createElement('div');
+    root.className='biglwa-popup-backdrop';
+    root.dataset.biglwaPopup='connections';
+    root.innerHTML='<div class="biglwa-popup" role="dialog" aria-modal="true" aria-label="Manage connections">'+
+      '<header><div><h2>Manage connections</h2><p>Connect, reconnect, or unlink every Orbit source from one place.</p></div><button class="biglwa-popup-close" type="button" aria-label="Close">×</button></header>'+
+      '<div class="biglwa-popup-rows">'+rows+'</div></div>';
+    document.body.appendChild(root);
+    const dismiss=()=>{root.remove();document.removeEventListener('keydown',onKey)};
+    const onKey=event=>{if(event.key==='Escape')dismiss()};
+    document.addEventListener('keydown',onKey);
+    root.addEventListener('click',event=>{
+      if(event.target.closest('.biglwa-popup-close')||event.target===root){dismiss();return}
+      const connect=event.target.closest('[data-orbit-connect]');
+      if(connect){const k=connect.dataset.orbitConnect;if(clients[k]?.connect)clients[k].connect();else {dismiss();openModule('orbit')}return}
+      const unlink=event.target.closest('[data-orbit-unlink]');
+      if(unlink){const k=unlink.dataset.orbitUnlink;unlink.disabled=true;window.__biglwaConnections?.forget?.(k).then(()=>{dismiss();openConnectionsPopup()});return}
+      const manage=event.target.closest('[data-orbit-manage]');
+      if(manage){dismiss();openModule('orbit');return}
+    });
   }
 
   function renderCloset(){

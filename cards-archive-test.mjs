@@ -43,7 +43,26 @@ check("a repeat is counted, not hidden", pages.includes("copies of one picture")
 check("each group is drawn under a source heading", pages.includes('class="archive-source-group"'));
 check("the groups are styled as blocks", pages.includes(".archive-source-group{margin:0 0 26px}") && pages.includes(".archive-group-head{"));
 check("a repeat group is called out", pages.includes(".archive-group-head .archive-group-repeats{"));
-check("the card list is built first, then grouped", pages.includes("const cardList=media.map(") && pages.includes("const cards=groupCards(cardList,media,grouped);"));
+check("the card list is built first, then grouped", pages.includes("const cardList=mediaShown.map(") && pages.includes("const cards=groupCards(cardList,mediaShown,grouped,hideDupes);"));
+
+console.log("\n=== A TALL PICTURE CANNOT SWALLOW A ROW ===");
+check("every Archive piece sits in a fixed frame", pages.includes("aspect-ratio:5/6;min-height:112px;max-height:430px"));
+check("media fill the frame instead of sizing themselves", pages.includes("position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:inherit") && !pages.includes("width:100%;height:auto;max-height:none;aspect-ratio:auto"));
+check("a four-piece carousel is laid out as tiles", pages.includes(".instagram-archive-media.is-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}"));
+check("the card marks a four-piece carousel", pages.includes("' is-tiles':'')+'\""));
+check("repeats can be hidden to one copy while still counted", pages.includes("indexes.slice(0,1):indexes)"));
+
+console.log("\n=== MANAGE POPUP FOR EVERY ORBIT CONNECTION ===");
+check("the toolbar opens a connections popup", pages.includes('id="archiveConnections"') && pages.includes("()=>openConnectionsPopup()"));
+check("the popup covers every Orbit source", pages.includes("ORBIT_APPS.map(([k,g,n,t])=>{") && pages.includes("root.className='biglwa-popup-backdrop'"));
+check("OAuth rows connect, reconnect, and unlink in place", pages.includes("data-orbit-connect=") && pages.includes("data-orbit-unlink=") && pages.includes("window.__biglwaConnections?.forget?.(k)"));
+check("plain-link rows hand over to the Orbit page", pages.includes('data-orbit-manage=') && pages.includes("dismiss();openModule('orbit')"));
+
+console.log("\n=== SOURCE FILTERS ON THE ARCHIVE WALL ===");
+check("filters persist in localStorage", pages.includes("const FILTER_KEY='biglwaArchiveFilters'"));
+check("the wall renders only allowed sources", pages.includes("mediaShown=filtering?media.filter(item=>allowed.has(sourceNameOf(item))):media"));
+check("a chip per source is offered", pages.includes("data-archive-source-filter=\"'+esc(k)+'\""));
+check("chips and the duplicates toggle save then redraw", pages.includes("saveFilters(f);await draw()"));
 
 console.log("\n=== ORBIT API CHIPS ===");
 check("each API carries its own colour", pages.includes("['facebook','FB','Facebook','#1877f2']") && pages.includes("['tiktok','TT','TikTok','#111111']"));
