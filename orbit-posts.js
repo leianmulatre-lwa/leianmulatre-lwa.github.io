@@ -265,8 +265,8 @@ async function bumpOwnerIndex(store, uid, owner, incoming) {
     const snap = await store.getDoc(ref);
     const current = snap.exists() ? snap.data() || {} : {};
     const counts = { ...(current.counts || {}) };
-    const incomingCount = Object.keys(incoming || {}).length;
-    if (incomingCount) counts[incoming] = (counts[incoming] || 0) + 1;
+    const incomingKey = String(incoming || "").toLowerCase();
+    if (incomingCount) counts[incomingKey] = (counts[incomingKey] || 0) + 1;
     await store.setDoc(ref, {
       uid,
       username: owner.username,
@@ -465,16 +465,19 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     const accountSnap = await getDoc(accountRef);
     const existingAccount = accountSnap.exists() ? accountSnap.data() || {} : {};
     const existingVisibility = existingAccount.archive?.visibility === "friends" ? "friends" : "private";
+    const sourceKey = String(source || "").toLowerCase();
+    const archiveUpdate = {
+      visibility: existingVisibility,
+      updatedAt: serverTimestamp()
+    };
+    archiveUpdate[sourceKey] = {
+      connected: true,
+      username: clean(profile?.username),
+      mediaCount: items.length,
+      syncedAt: serverTimestamp()
+    };
     await store.setDoc(accountRef, {
-      archive: {
-        visibility: existingVisibility,
-        instagram: {
-          connected: true,
-          username: clean(profile?.username),
-          mediaCount: items.length,
-          syncedAt: serverTimestamp()
-        }
-      },
+      archive: archiveUpdate,
       updatedAt: serverTimestamp()
     }, { merge: true });
   } catch {}

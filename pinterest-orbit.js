@@ -81,7 +81,7 @@ async function connect(){await run(async()=>{
   const importer=await waitForImporter();
   if(typeof importer!=="function")return;
   try{
-    const result=await importer("pinterest",items,profile);
+    const result=await importer("pinterest",items,profile, window.__biglwaIdentity || {});
     if(result?.warning)console.warn("BIGLWA Pinterest import:",result.warning);
     window.dispatchEvent(new CustomEvent("biglwa:orbit-imported",{detail:{source:"pinterest",...result}}));
   }catch(error){
