@@ -16,7 +16,7 @@ check("external game tiles are play buttons, not anchors", pages.includes('data-
 check("the small print says play, not open", pages.includes('<small>play ▶</small>'));
 check("no tile links straight out to the game site", !pages.includes('<small>open ↗</small>'));
 check("the tile reaches its game by index", pages.includes('gameLibrary[Number(button.dataset.playExternal)]'));
-check("the status line explains games run here", pages.includes("Games run right here, in the arcade screen"));
+check("the status line explains games run here", pages.includes("Games run right here in the arcade window below"));
 
 console.log("\n=== THE EMULATOR SCREEN ===");
 check("a hidden player stage exists", pages.includes('id="arcadeEmulator"') && pages.includes('id="arcadeScreen"'));
@@ -31,7 +31,7 @@ check("every game is listed under a Tools-page-style directory", pages.includes(
 check("the directory is built from the library", pages.includes("gameLibrary.map(seeAlso)"));
 check("external rows pair in-arcade play with a regular Open link", pages.includes("data-directory-play") && pages.includes('<a class="module-action ghost" href="\'+href+\'" target="_blank" rel="noopener noreferrer">Open ↗</a>'));
 check("culture quiz keeps its own in-arcade play from the directory", pages.includes("data-directory-culture"));
-check("the copy says Open ↗ is a normal link, like the converters page", pages.includes("like on the converters page") && pages.includes("A simple directory, like the converters page"));
+check("the copy says Open ↗ is a normal link, like the converters page", pages.includes("A simple directory, like the converters page") && pages.includes("Play runs the game in the arcade"));
 check("the old new-tab-only wording is gone", !pages.includes("External games open in a new tab."));
 
 console.log(`\n${pass} passed, ${fail} failed`);

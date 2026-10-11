@@ -21,6 +21,7 @@
   }
   async function connect() {
     try {
+      if (!crypto.subtle) throw new Error('TikTok needs a secure page (https) to connect from this browser.');
       const health = await api('health');
       if (!health.ok) throw new Error('TikTok setup is incomplete.');
       const bytes = crypto.getRandomValues(new Uint8Array(32));
