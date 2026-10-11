@@ -44,6 +44,9 @@ check("each group is drawn under a source heading", pages.includes('class="archi
 check("the groups are styled as blocks", pages.includes(".archive-source-group{margin:0 0 26px}") && pages.includes(".archive-group-head{"));
 check("a repeat group is called out", pages.includes(".archive-group-head .archive-group-repeats{"));
 check("the card list is built first, then grouped", pages.includes("const cardList=mediaShown.map(") && pages.includes("const cards=groupCards(cardList,mediaShown,grouped,hideDupes);"));
+check("the wall is four across on a wide screen", pages.includes(".instagram-archive-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))"));
+check("the wall folds to 3, then 2, then 1", pages.includes(".instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}") && pages.includes(".instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}") && pages.includes(".instagram-archive-grid{grid-template-columns:1fr}"));
+check("a flat card list still fills the same responsive wall", pages.includes(".archive-page-list:not(:has(.archive-source-group)){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))"));
 
 console.log("\n=== A TALL PICTURE CANNOT SWALLOW A ROW ===");
 check("every Archive piece sits in a fixed frame", pages.includes("aspect-ratio:5/6;min-height:112px;max-height:430px"));

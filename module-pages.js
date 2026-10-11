@@ -134,13 +134,20 @@
        a Live switch that keeps its colour when the picture above it goes grey, and a wall
        that stays in columns. Cards from every source are kept in their own source block,
        so the Archive is not an Instagram-only shelf. */
-    .module-workspace[data-module-key="archive"] .archive-wall-shell{display:block!important;padding:0!important;margin-top:18px}
+.module-workspace[data-module-key="archive"] .archive-wall-shell{display:block!important;padding:0!important;margin-top:18px}
     .module-workspace[data-module-key="archive"] .archive-page-list{display:block!important;margin:0!important}
+    /* A stale cached render used to paint the cards flat straight under the list, which the
+       block display above forced into one long vertical column. If a card is ever a direct
+       child again, it should sit in the same responsive wall as the grouped grid below. */
+    .module-workspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start;min-width:0}
+    @media(max-width:1180px){.module-workspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:820px){.module-workspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){.module-workspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){grid-template-columns:1fr}}
     .module-workspace[data-module-key="archive"] .archive-source-group{margin:0 0 26px}
     .module-workspace[data-module-key="archive"] .archive-group-head{display:flex;align-items:baseline;gap:10px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(80,70,64,.14);font:700 12px/1.3 system-ui;color:#3a332f}
     .module-workspace[data-module-key="archive"] .archive-group-head em{font:700 9px/1.4 system-ui;font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:#8a7a6c}
     .module-workspace[data-module-key="archive"] .archive-group-head .archive-group-repeats{color:#a8410f;background:rgba(168,65,15,.12);padding:2px 8px;border-radius:999px}
-    .module-workspace[data-module-key="archive"] .instagram-archive-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start}
+    .module-workspace[data-module-key="archive"] .instagram-archive-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:start;min-width:0}
     @media(max-width:1180px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
     @media(max-width:820px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:520px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:1fr}}
