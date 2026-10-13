@@ -414,7 +414,7 @@
     .module-workspace .module-game-viewport.is-playing{display:flex!important;flex-direction:column;gap:0;padding:0!important;overflow:hidden!important;animation:none!important}
     .module-workspace .module-game-viewport.is-playing::after{pointer-events:none}
     .module-workspace .module-game-viewport.is-playing>.arcade-player-head{z-index:9;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#221b19;color:#fff2d8;padding:9px 12px;font:700 12px/1.3 system-ui}
-    .module-workspace .module-game-viewport.is-playing>.arcade-player-head strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .module-workspace .module-game-viewport.is-playing>.arcade-player-head strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n    .module-workspace .arcade-unavailable{display:grid;place-content:center;gap:12px;height:100%;min-height:200px;background:#171313;color:#fff2d8;text-align:center;padding:24px}.module-workspace .arcade-unavailable p{max-width:480px;font:12px/1.5 system-ui}.module-workspace .arcade-unavailable a,.module-workspace .arcade-unavailable button{justify-self:center}
     .module-workspace .module-game-viewport.is-playing>iframe{z-index:2;display:block;border:0;background:#fff;width:100%;flex:1;min-height:0}
     .module-workspace .module-game-viewport.is-playing>.arcade-player-deck{z-index:9;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 12px;background:#221b19;color:#fff2d8}
     .module-workspace .arcade-player-deck span{margin-right:auto;font:600 10px/1.4 system-ui;opacity:.85}
@@ -860,6 +860,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       emulatorScreen.replaceChildren();
       culturePanel.hidden=false;
       emulatorScreen.append(culturePanel);
+      culturePanel.querySelectorAll('[data-arcade-return]').forEach(button=>button.remove());
       culturePanel.insertAdjacentHTML('afterbegin','<button type="button" class="module-action ghost arcade-return" data-arcade-return>← back to games</button>');
       emulatorScreen.scrollIntoView({behavior:'smooth',block:'center'});
     };
@@ -878,6 +879,10 @@ const connect=e.target.closest('[data-orbit-connect]');
       const back=document.createElement('button');
       back.type='button';back.className='module-action ghost';back.dataset.arcadeReturn='';back.textContent='← games';
       top.append(title,back);
+      if(uri.hostname==='store.steampowered.com'){
+        emulatorScreen.insertAdjacentHTML('beforeend','<div class="arcade-unavailable"><strong>This is a PC game, not a browser emulator.</strong><p>Five Nights at Freddy’s needs a separate installed copy. Big LWA cannot run the Steam store page as a game.</p><a class="module-action ghost" href="'+esc(uri.href)+'" target="_blank" rel="noopener noreferrer">View game ↗</a><button class="module-action" data-arcade-return type="button">← Back</button></div>');
+        return;
+      }
       const frame=document.createElement('iframe');
       frame.src=uri.href;
       frame.title='Play '+game.title;
