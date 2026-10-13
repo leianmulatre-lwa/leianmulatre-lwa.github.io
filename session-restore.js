@@ -19,7 +19,8 @@ async function getAuth(){
     const app=getApps()[0]||initializeApp(FIREBASE_CONFIG);
     return getAuth(app);
   })();
-  return authPromise;
+  try { return await authPromise; }
+  catch(error) { authPromise = null; throw error; }
 }
 const qs=()=>new URLSearchParams(location.search);
 const clean=v=>String(v||"").trim();
@@ -44,6 +45,7 @@ function finishAuth(user){
   document.body.classList.add("biglwa-auth-resolved");
   if(user) document.body.classList.add("biglwa-session-signed-in");
   else document.body.classList.remove("biglwa-session-signed-in");
+  document.dispatchEvent(new CustomEvent("biglwa:auth-state",{detail:{signedIn:!!user}}));
   if(user){
     try{
       const remote=window.__biglwaRemoteCustomization;
@@ -55,7 +57,7 @@ async function boot(){
   document.body.classList.add("biglwa-session-pending");
   try{
     const auth=await getAuth();
-    try{await auth.authStateReady()}catch{}
+    await auth.authStateReady();
     finishAuth(auth.currentUser);
     auth.onAuthStateChanged(user=>{
       finishAuth(user);
@@ -63,7 +65,20 @@ async function boot(){
     });
   }catch(error){
     console.warn("[BIGLWA] Session restore unavailable:",error);
-    finishAuth(null);
+    // A temporary SDK failure does not mean Firebase signed the user out.
+    // Retry before switching to the signed-out screen.
+    let recovered=false;
+    for(const delay of [350,1000,2400]){
+      await new Promise(resolve=>setTimeout(resolve,delay));
+      try{
+        const auth=await getAuth();
+        await auth.authStateReady();
+        finishAuth(auth.currentUser);
+        auth.onAuthStateChanged(finishAuth);
+        recovered=true;break;
+      }catch(e){console.warn("[BIGLWA] Session restore retry:",e)}
+    }
+    if(!recovered) finishAuth(null);
   }
   window.addEventListener("biglwa:customization-remote",event=>restoreLastView(event.detail));
   document.addEventListener("biglwa:module-open",event=>setLastView(event.detail?.key||""));

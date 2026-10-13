@@ -63,22 +63,28 @@ function sourcePostIdFor(item, fallbackUrl) {
 }
 
 function pinterestImageUrl(item) {
-  const images = item?.media?.images || item?.media?.items?.[0]?.images || {};
-  const candidate =
-    images["600x"]?.url ||
-    images["400x300"]?.url ||
-    images["237x"]?.url ||
-    Object.values(images).find((entry) => entry?.url)?.url ||
-    item?.media?.cover_image_url ||
-    "";
-  return clean(candidate);
+  // Pinterest endpoints have returned both media.images sizes and flat image_url fields.
+  const images = item?.media?.images || item?.media?.items?.[0]?.images || item?.images || {};
+  const entries = [images["600x"], images["400x300"], images["237x"], images.originals,
+    images.original, ...Object.values(images),
+    item?.image_url, item?.imageUrl, item?.image?.url,
+    item?.media?.cover_image_url, item?.media?.image_url,
+    item?.thumbnail_url, item?.media_url];
+  for (const entry of entries) {
+    const candidate = clean(typeof entry === "string" ? entry : entry?.url || entry?.src);
+    try {
+      const url = new URL(candidate);
+      if (url.protocol === "https:" && (url.hostname === "i.pinimg.com" || url.hostname.endsWith(".pinimg.com"))) return url.href;
+    } catch {}
+  }
+  return "";
 }
-function mediaPieces(item) {
+function mediaPieces(item, source) {
   const children = Array.isArray(item?.children?.data)
     ? item.children.data.filter(child => child && (child.media_url || child.thumbnail_url))
     : [];
   if (children.length) return children;
-  if (String(item?.source || "").toLowerCase() === "pinterest" || item?.media?.images || item?.media?.items?.[0]?.images) {
+  if (source === "pinterest" || String(item?.source || "").toLowerCase() === "pinterest" || item?.media?.images || item?.media?.items?.[0]?.images || item?.image_url || item?.imageUrl || item?.images) {
     const src = pinterestImageUrl(item);
     return src ? [{ media_url: src, thumbnail_url: src, media_type: "IMAGE" }] : [];
   }
@@ -100,15 +106,15 @@ function mediaFromItem(source, item, hostedMedia) {
   const normalizedSource = String(source || "").toLowerCase();
   const caption = clean(item.caption || item.title || item.description || item.alt_text || "Shared from " + source);
   const pinterestUrl = normalizedSource === "pinterest" ? pinterestImageUrl(item) : "";
-  const fallbackUrl = clean(item.media_url || item.thumbnail_url || item.url || pinterestUrl);
+  const fallbackUrl = normalizedSource === "pinterest" ? (pinterestUrl || clean(item.url)) : clean(item.media_url || item.thumbnail_url || item.url);
   const sourcePostId = sourcePostIdFor(item, fallbackUrl);
-  const pieces = mediaPieces(item);
+  const pieces = mediaPieces(item, normalizedSource);
   const mediaItems = pieces.map((piece, index) => {
     const originalUrl = clean(piece.media_url || piece.thumbnail_url);
     const slot = sourcePostId + ":" + index;
     const hosted = hostedMedia?.urls?.get(slot);
     const picture = isPicturePiece(piece, item);
-    const poster = clean(piece.thumbnail_url || "");
+    const poster = clean(hosted || piece.thumbnail_url || "");
     return {
       index,
       isPicture: picture,

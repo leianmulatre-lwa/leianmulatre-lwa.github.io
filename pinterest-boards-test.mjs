@@ -30,7 +30,7 @@ check("connect guards the secure context it needs for PKCE", pinterest.includes(
 check("the unsigned-in blocking gate is gone", !pinterest.includes("if(!session())throw new Error('Sign in to Big LWA first"));
 check("the worker knock is still checked first", pinterest.includes("await api('health');"));
 check("the oauth start is reached with a base64url challenge", pinterest.includes("location.assign(API+'start?challenge='+encodeURIComponent(challenge))"));
-check("the old account-session cache-buster is gone", index.includes("pinterest-orbit.js?v=20261008-secure-connect-1"));
+check("the old account-session cache-buster is gone", index.includes("pinterest-orbit.js?v=20261013-pin-images-1"));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

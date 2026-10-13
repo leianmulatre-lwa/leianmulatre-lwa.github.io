@@ -138,9 +138,13 @@ async function connect(){await run(async()=>{
   await api('disconnect',body);save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};restorePromise=null;boardsPromise=null;pinsPromise=null;
  })}
  function image(pin){
-  const images=pin.media?.images||pin.media?.items?.[0]?.images||{};
-  const candidate=images['600x']?.url||images['400x300']?.url||Object.values(images).find(x=>x?.url)?.url||pin.media?.cover_image_url;
-  try{const u=new URL(candidate);return u.protocol==='https:'&& (u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com'))?u.href:''}catch{return ''}
+  const images=pin?.media?.images||pin?.media?.items?.[0]?.images||pin?.images||{};
+  const candidates=[images['600x'],images['400x300'],images['237x'],images.originals,images.original,...Object.values(images),pin?.image_url,pin?.imageUrl,pin?.image?.url,pin?.media?.cover_image_url,pin?.media?.image_url,pin?.thumbnail_url,pin?.media_url];
+  for(const entry of candidates){
+   const candidate=typeof entry==='string'?entry:entry?.url||entry?.src;
+   try{const u=new URL(candidate);if(u.protocol==='https:'&&(u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com')))return u.href}catch{}
+  }
+  return '';
  }
  /* Pins reach the feed as cards, and Boards keeps its own grid, so both read this list. */
  function feedPins(){
@@ -157,7 +161,7 @@ async function connect(){await run(async()=>{
    const src=image(p);
    const label=p.boardName||boardNameFor(p.board_id);
    return '<article class="module-list-item pinterest-feed-item" data-post-id="pinterest_'+esc(p.id)+'"><div style="width:100%"><small>Pinterest'+(label?' · '+esc(label):'')+'</small><b style="display:block;margin:4px 0 8px">'+esc(p.title||p.description||p.alt_text||'Pinterest Pin')+'</b>'+
-   (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'" style="display:block;width:100%;max-height:520px;object-fit:cover;border-radius:12px">':'')+
+   (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'" style="display:block;width:100%;max-height:520px;object-fit:cover;border-radius:12px">':'<span>Image unavailable</span>')+
    '<a class="module-action ghost" href="https://www.pinterest.com/pin/'+esc(p.id)+'/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Pinterest</a></div></article>';
   });
   if(!cards.length)return;
@@ -178,7 +182,8 @@ async function connect(){await run(async()=>{
   }
   if(!boards.length)return'';
   const tiles=boards.slice(0,6).map(b=>{
-   const cover=covers[b.id];
+   const coverEntry=covers[b.id];
+   const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||coverEntry?.image_url||image(coverEntry||{});
    /* Boards are addressed by owner, so a profile with no username yet would otherwise
       produce a link with a hole in it. Falling back to the account root still opens
       Pinterest rather than a broken address. */

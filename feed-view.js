@@ -68,7 +68,10 @@ const pictureUrls = (post) => {
   if (fromItems.length) return fromItems.slice(0, SLIDE_SCAN);
   const list = Array.isArray(post.imageUrls) ? post.imageUrls.filter((u) => typeof u === "string" && u && !looksLikeVideoFile(u)) : [];
   if (list.length) return list.slice(0, SLIDE_SCAN);
-  return post.imageUrl && !looksLikeVideoFile(post.imageUrl) ? [post.imageUrl] : [];
+  // Older saved cards may only have thumbnailUrl. Never treat a destination link as an image.
+  const possible = [post.imageUrl, post.thumbnailUrl, post.previewImageUrl, post.preview?.imageUrl];
+  return possible.filter(url => typeof url === "string" && /^https:\/\//i.test(url) &&
+    !looksLikeVideoFile(url) && url !== post.sourceUrl).slice(0, 1);
 };
 /* What a card is actually allowed to draw. */
 const slideUrls = (post) => pictureUrls(post).slice(0, MAX_SLIDES);
