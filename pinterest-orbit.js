@@ -366,6 +366,12 @@ async function connect(){await run(async()=>{
   return '';
  }
  /* Pins reach the feed as cards, and Boards keeps its own grid, so both read this list. */
+ function imageAlternates(pin){
+  const images=pin?.media?.images||pin?.media?.items?.[0]?.images||pin?.images||{};
+  return [...new Set([images.originals,images.original,images['600x'],images['400x300'],images['237x'],...Object.values(images),pin?.image_url,pin?.imageUrl,pin?.image?.url,pin?.thumbnail_url,pin?.media_url].map(x=>typeof x==='string'?x:x?.url||x?.src).filter(x=>{
+   try{const u=new URL(x);return u.protocol==='https:'&&(u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com'))}catch{return false}
+  }))];
+ }
  function feedPins(){
   if(!connected)return[];
   const source=boardId?pins:boards.flatMap(b=>(b.pins||[]).map(p=>({...p,boardName:b.name})));
@@ -377,12 +383,12 @@ async function connect(){await run(async()=>{
   list.querySelectorAll('.pinterest-feed-item:not(.biglwa-pin-post)').forEach(el=>el.remove());
   if(durable.length)return;
   const cards=feedPins().map(p=>{
-    const src=image(p),url='https://www.pinterest.com/pin/'+encodeURIComponent(String(p.id))+'/';
+    const alternatives=imageAlternates(p),src=image(p)||alternatives[0]||'',url='https://www.pinterest.com/pin/'+encodeURIComponent(String(p.id))+'/';
     const alt=String(p.alt_text||p.title||p.description||'Pinterest Pin');
     const record={id:'pinterest_'+p.id,source:'pinterest',sourcePostId:String(p.id),caption:p.title||p.description||'',sourceUrl:url,imageUrls:src?[src]:[]};
     const tray=window.__biglwaFeed?.sendBarMarkup?.(false,url)||'';
     return '<article class="module-list-item pinterest-feed-item biglwa-unified-card" data-source-id="'+esc(p.id)+'" data-post-id="pinterest_'+esc(p.id)+'" data-send-record="'+esc(JSON.stringify(record))+'">'+
-      '<div class="biglwa-unified-media">'+(src?'<img data-biglwa-external-media src="'+esc(src)+'" loading="lazy" alt="'+esc(alt)+'">':'<div class="biglwa-unavailable-media">No Pinterest image available</div>')+'</div>'+
+      '<div class="biglwa-unified-media">'+(src?'<img data-biglwa-external-media data-biglwa-image-alternates="'+esc(JSON.stringify(alternatives))+'" src="'+esc(src)+'" loading="lazy" alt="'+esc(alt)+'">':'<div class="biglwa-unavailable-media">No Pinterest image available</div>')+'</div>'+
       '<span class="biglwa-unified-source">Pinterest</span>'+tray+'</article>';
   });
   if(!cards.length)return;
