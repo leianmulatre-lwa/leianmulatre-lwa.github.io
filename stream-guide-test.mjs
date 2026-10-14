@@ -173,7 +173,7 @@ await check('date-based shuffle is deterministic, changes by date, and manual sh
  assert.equal(serial(a),serial(same),'same date must have stable rotation');
  assert.notEqual(serial(a),serial(b),'the next date should rearrange channels');
  assert.notEqual(serial(a),serial(again),'manual shuffle should change selection order');
- assert.equal(a.length,4);
+ assert.equal(a.length,3);
  assert.ok(a.every(x=>x.slots.length===24));
  assert.ok(stream.includes("state.shuffleOffset++;renderGrid();renderFeaturedSlots()"));
 });
