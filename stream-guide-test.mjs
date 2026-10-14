@@ -341,13 +341,27 @@ await check('Daily Discovery thumbnails and arrows live inside the monitor, neve
  const tv=guide.find(row=>row.category==='lwa-tv').slots;
  assert.ok(tv.every(slot=>slot.kind==='feature'));
  assert.ok(!stream.includes('id="streamFeaturedSlots"'),'old block directory must be gone');
- assert.ok(stream.includes("panel.id='streamDiscoveryPicker'"),'picker belongs to media portal');
+ assert.ok(stream.includes("root.querySelector('#streamDiscoveryPicker')"),'picker belongs to right channel panel');
+ assert.ok(stream.includes('id="streamDiscoveryPicker" class="stream-discovery-picker"'),'right channel description owns the picker');
+ assert.ok(stream.includes("Math.min(3,queue.length)"),'display up to three discoveries at a time');
+ assert.ok(stream.includes('direction*3'),'arrows advance by a full three-item group');
+ assert.ok(!stream.includes("panel=portal.querySelector('#streamDiscoveryPicker')"),'picker must never cover the left video');
  assert.ok(stream.includes('data-discovery-prev'));
  assert.ok(stream.includes('data-discovery-next'));
  assert.ok(stream.includes('data-discovery-play'));
  assert.ok(stream.includes('https://i.ytimg.com/vi/'),'TV thumbnails use actual video IDs');
  assert.ok(stream.includes('https://archive.org/services/img/BettyBoopCartoons'),'Betty Boop has preview art');
  assert.ok(stream.includes("const queue=discoveryItems();"),'picker uses only playable discovery items');
- assert.ok(style.includes('.stream-discovery-picker'),'compact monitor overlay has real styles');
+ assert.ok(style.includes('.stream-channel-copy .stream-discovery-picker'),'right-hand gallery has real styles');
  assert.ok(style.includes('.stream-discovery-select img'),'thumbnail is visible');
+});
+
+await check('Studio preview projection keeps active iframe mounted and resizes without flicker',async()=>{
+ assert.ok(stream.includes("mediaPortal.style.transform='translate3d('"));
+ assert.ok(stream.includes("mediaResizeObserver=new ResizeObserver(scheduleMediaPosition)"));
+ assert.ok(stream.includes("mediaPortal.style.visibility='visible'"));
+ assert.ok(!stream.includes("mediaPortal.style.visibility=(rect.width>0"));
+ assert.ok(stream.includes("mediaPortal.style.pointerEvents=valid&&rect.bottom>0"));
+ assert.ok(!stream.includes("portal.querySelector('#streamDiscoveryPicker')"));
+ assert.ok(style.includes('.stream-screen.stream-preview-active::after'));
 });
