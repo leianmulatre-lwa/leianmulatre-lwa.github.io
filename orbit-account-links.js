@@ -16,7 +16,12 @@ const clean=(links)=>{
 // Keep legacy links available for an explicit one-time migration; never silently
 // attribute an unscoped browser link to whichever person logs in next.
 let localLegacy={};
-try{localLegacy=clean(JSON.parse(localStorage.getItem('biglwaOrbitLinks')||'{}'))}catch{}
+try {
+  localLegacy=clean(JSON.parse(localStorage.getItem('biglwaOrbitLinksLegacyBackupV1')||
+    localStorage.getItem('biglwaOrbitLinks')||'{}'));
+  if(Object.keys(localLegacy).length)
+    localStorage.setItem('biglwaOrbitLinksLegacyBackupV1',JSON.stringify(localLegacy));
+}catch{}
 let refs,uid='',links={},ready=false,generation=0;
 const broadcast=()=>{
   try{localStorage.setItem('biglwaOrbitLinks',JSON.stringify(links));}catch{}
@@ -88,6 +93,7 @@ async function importLocalLinks(){
     if(!links[id]){await save(id,url);imported++}
   }
   localLegacy={};
+  try{localStorage.removeItem('biglwaOrbitLinksLegacyBackupV1')}catch{}
   return imported;
 }
 export function startOrbitAccountLinks(){
