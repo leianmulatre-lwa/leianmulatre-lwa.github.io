@@ -34,7 +34,9 @@ function setLastView(key){
 }
 function restoreLastView(remote){
   if(location.pathname!="/studio")return;
-  const current=clean(qs().get("view")).toLowerCase();
+  // An explicit Studio panel beats an older last-view preference.
+  const panel=clean(qs().get('panel')).toLowerCase();
+  const current=['map','politc'].includes(panel)?panel:clean(qs().get("view")).toLowerCase();
   const saved=clean(remote?.customization?.session?.lastView)||lastViewFromLocal();
   if(current||!saved||typeof window.openBIGLWAModule!=="function")return;
   setTimeout(()=>{try{window.openBIGLWAModule(saved,"",false)}catch{}},140);
