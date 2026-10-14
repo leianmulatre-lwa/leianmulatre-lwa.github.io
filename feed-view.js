@@ -110,7 +110,7 @@ const slideUrls = (post) => pictureUrls(post).slice(0, MAX_SLIDES);
    show one shade for a post and another for the same account's live cards. */
 const SOURCES = {
   biglwa:   { label: "BIGLWA",    accent: "#c1355a" },
-  instagram:{ label: "Instagram", accent: "#f28c28" },
+  instagram:{ label: "Instagram", accent: "#7d3ec5" },
   tiktok:   { label: "TikTok",    accent: "#111111" },
   pinterest:{ label: "Pinterest", accent: "#e60023" },
   facebook: { label: "Facebook",  accent: "#1877f2" },
@@ -124,7 +124,7 @@ const SOURCES = {
    something else without it. */
 const FEED_RIM = "#a52a0c";
 const SOURCE_THEMES = {
-  instagram: { rim:"#f28c28", glow:"#8c3acb", hot:"#ffad42" },
+  instagram: { rim:"#7d3ec5", glow:"#ad82e7", hot:"#5d2999" },
   tiktok: { rim:"#111111", glow:"#25f4ee", hot:"#fe2c55" },
   facebook: { rim:"#1877f2", glow:"#5aa0ff" },
   pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" },
