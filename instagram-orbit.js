@@ -256,7 +256,7 @@
           return child.media_type === 'VIDEO' ? (child.thumbnail_url || '') : (child.media_url || '');
         }).filter(Boolean)
       }).replace(/"/g, '&quot;');
-      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#a52a0c" data-instagram-index="' + index + '"' +
+      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#f28c28;--feed-card-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb,0 14px 28px -13px #ffad42" data-instagram-index="' + index + '"' +
         ' data-post-id="' + cardId + '" data-send-record="' + sendRecord + '">' +
         '<div style="width:100%;padding:0">' +
           '<div class="biglwa-instagram-strip">' +
