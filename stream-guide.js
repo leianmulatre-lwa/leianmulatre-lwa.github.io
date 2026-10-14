@@ -136,66 +136,48 @@
   return true;
  }
  function ensureMediaPortal(){
-  // Retire the former overlay without recreating the running iframe/audio.
-  if(mediaPortal?.isConnected){
+  // Only one media surface exists. It is a child of the visible player frame,
+  // NEVER a fixed, page-level overlay that can float over Studio's search bar.
+  if(mediaPortal){
    mediaPortal.querySelector('#streamDiscoveryPicker')?.remove();
+   if(!mediaPortal.isConnected&&(mediaTarget?.isConnected||document.body)){
+    (mediaTarget?.isConnected?mediaTarget:document.body).appendChild(mediaPortal);
+   }
    return mediaPortal;
   }
   mediaPortal=document.createElement('div');
   mediaPortal.id='biglwaPersistentStreamPlayer';
   mediaPortal.className='biglwa-stream biglwa-persistent-stream-player';
-  mediaPortal.style.cssText='position:fixed;z-index:420;overflow:hidden;pointer-events:auto;box-sizing:border-box;';
+  mediaPortal.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:2;overflow:hidden;pointer-events:auto;box-sizing:border-box;transform:none;';
   mediaPortal.setAttribute('aria-label','Big LWA continuing Stream playback');
   mediaPortal.addEventListener('click',onClick);
   mediaPortal.addEventListener('play',()=>{
    if(state.selected)saveLastPlayed(state.selected);
   },true);
-  document.body.appendChild(mediaPortal);
+  (mediaTarget?.isConnected?mediaTarget:document.body).appendChild(mediaPortal);
   return mediaPortal;
  }
- // Fixed projection preserves the SAME active iframe/audio element while navigating.
- // Avoid flickering "hidden" visibility as Studio cards animate or scroll away.
- let mediaResizeObserver=null;
- function repositionMediaPortal(){
-  if(!mediaPortal?.isConnected)return;
-  let rect=mediaTarget?.isConnected?mediaTarget.getBoundingClientRect():null;
-  const valid=Boolean(rect&&rect.width>1&&rect.height>1);
-  const x=valid?rect.left:-20000,y=valid?rect.top:0;
-  mediaPortal.style.left='0px';
-  mediaPortal.style.top='0px';
-  mediaPortal.style.transform='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
-  if(valid){
-   mediaPortal.style.width=rect.width.toFixed(2)+'px';
-   mediaPortal.style.height=rect.height.toFixed(2)+'px';
-  }
-  mediaPortal.style.visibility='visible';
-  mediaPortal.style.pointerEvents=valid&&rect.bottom>0&&rect.top<window.innerHeight?'auto':'none';
- }
  function targetMedia(target){
-  if(mediaResizeObserver){mediaResizeObserver.disconnect();mediaResizeObserver=null;}
   mediaTarget=target||null;
-  if(!mediaTarget)return;
-  ensureMediaPortal();
-  if(typeof ResizeObserver!=='undefined'){
-   mediaResizeObserver=new ResizeObserver(scheduleMediaPosition);
-   mediaResizeObserver.observe(mediaTarget);
-  }
-  scheduleMediaPosition();
-  // CSS transformations settle over several frames when the Studio opens/closes.
-  let frames=0;
-  const settle=()=>{if(frames++>=15||mediaTarget!==target)return;repositionMediaPortal();requestAnimationFrame(settle);};
-  requestAnimationFrame(settle);
+  if(!mediaTarget?.isConnected)return;
+  const portal=ensureMediaPortal();
+  if(portal.parentElement!==mediaTarget)mediaTarget.appendChild(portal);
+  // Position is anchored to the card's own layout. No scroll listeners,
+  // transforms, ResizeObserver or animation frames are required.
+  portal.style.position='absolute';
+  portal.style.inset='0';
+  portal.style.width='100%';
+  portal.style.height='100%';
+  portal.style.transform='none';
+  portal.style.visibility='visible';
+  portal.style.pointerEvents='auto';
+  portal.style.zIndex='2';
  }
- let positionFrame=0;
  function scheduleMediaPosition(){
-  if(positionFrame)return;
-  positionFrame=requestAnimationFrame(()=>{positionFrame=0;repositionMediaPortal()});
+  // Called by existing playback code; it must not re-measure or chase scrolling.
+  if(mediaPortal&&mediaTarget?.isConnected&&mediaPortal.parentElement!==mediaTarget)
+   mediaTarget.appendChild(mediaPortal);
  }
- window.addEventListener?.('scroll',scheduleMediaPosition,true);
- window.addEventListener?.('resize',scheduleMediaPosition);
- window.visualViewport?.addEventListener?.('resize',scheduleMediaPosition);
- window.visualViewport?.addEventListener?.('scroll',scheduleMediaPosition);
- if(typeof document!=='undefined')document.addEventListener('biglwa:stream-updated',scheduleMediaPosition);
  function parkInStudio(){
   if(!mediaPortal?.isConnected||!mediaPortal.firstElementChild)return false;
   const screen=document.querySelector('#studioApp #stream .stream-screen');
