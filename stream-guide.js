@@ -31,6 +31,14 @@
  const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03']];
  // Each destination is an actual publisher/creator channel or a specifically
  // identified release. We do NOT invent YouTube video IDs or live statuses.
+ // The same five existing Internet Archive video files used by the login page.
+ const bettyBoopEpisodes=[
+  ["A Song a Day (1936)","https://archive.org/download/BettyBoopCartoons/Betty_Boop_A_Song_a_Day_1936_512kb.mp4"],
+  ["Is My Palm Read (1932)","https://archive.org/download/BettyBoopCartoons/Betty_Boop_Is_My_Palm_Read_1932_512kb.mp4"],
+  ["More Pep (1936)","https://archive.org/download/BettyBoopCartoons/Betty_Boop_More_Pep_1936_512kb.mp4"],
+  ["Betty Boop's Ker-Choo (1932)","https://archive.org/download/BettyBoopCartoons/Betty_Boops_KerCho_1932_512kb.mp4"],
+  ["The Candid Candidate (1937)","https://archive.org/download/BettyBoopCartoons/The_Candid_Candidate_1937_512kb.mp4"]
+ ];
  const featured=[
   {id:'owen-dreams',category:'podcast',title:'In Your Dreams with Owen Thiele',creator:'Unwell Network · Owen Thiele',subtitle:"Halsey's Mom Thought She Was Delusional",videoId:'iO9g2KEroiw',url:'https://www.youtube.com/watch?v=iO9g2KEroiw',source:'Podcast episode',provider:'youtube'},
   {id:'nyt-daily',category:'podcast',title:'The Daily',creator:'The New York Times',subtitle:'Daily news podcast · official listing',url:'https://podcasts.apple.com/us/podcast/the-daily/id1200361736',source:'Podcast',provider:'podcast'},
@@ -53,7 +61,8 @@
   {id:'cupquake',category:'lwa-tv',title:'iHasCupquake',creator:'iHasCupquake',subtitle:'Gaming, arts, DIY and adventures',url:'https://www.youtube.com/@ihascupquake/videos',source:'Creator channel',provider:'youtube'},
   {id:'alissa-violet',category:'lwa-tv',title:'Alissa Violet',creator:'Alissa Violet',subtitle:"I'm Back",videoId:'wdj19oCLpVw',url:'https://www.youtube.com/watch?v=wdj19oCLpVw',source:'Official YouTube video',provider:'youtube'},
   {id:'steyeuh',category:'lwa-tv',title:'Steyuh',creator:'Stei Campbell',subtitle:'Vlogs, humor and everyday adventures',url:'https://www.youtube.com/@steyeuh/videos',source:'Creator website-linked channel',provider:'youtube'},
-  {id:'lofi-girl-tv',category:'lwa-tv',title:'Lofi Girl · study radio',creator:'Lofi Girl',subtitle:'Lofi hip-hop beats to study and unwind',videoId:'X4VbdwhkE10',url:'https://www.youtube.com/watch?v=X4VbdwhkE10',source:'Official Lofi Girl video',provider:'youtube'}
+  {id:'lofi-girl-tv',category:'lwa-tv',title:'Lofi Girl · study radio',creator:'Lofi Girl',subtitle:'Lofi hip-hop beats to study and unwind',videoId:'X4VbdwhkE10',url:'https://www.youtube.com/watch?v=X4VbdwhkE10',source:'Official Lofi Girl video',provider:'youtube'},
+  {id:'betty-boop-classics',category:'lwa-tv',title:'Betty Boop · Classic Cartoons',creator:'Fleischer Studios · Internet Archive',subtitle:'Five animated shorts · choose an episode in the player',source:'Vintage cartoon collection',url:'https://archive.org/details/BettyBoopCartoons',provider:'archive-video',episodes:bettyBoopEpisodes}
  ];
  // Ballroom/CCTV = curated ballroom video archive, not real surveillance feeds.
  // Original channels keep attribution, playback control and embed restrictions.
@@ -71,7 +80,6 @@
  const youtubeLive=[
   {id:'lofi-girl-live',category:'live',title:'Lofi Girl · synthwave radio',creator:'Lofi Girl',subtitle:'Synthwave beats · original Lofi Girl stream',videoId:'MVPTGNGiI-4',url:'https://www.youtube.com/watch?v=MVPTGNGiI-4',source:'YouTube continuous music',provider:'youtube'},
   {id:'asmr-rain',category:'live',title:'Rain & thunder ASMR',creator:'Danny Louis',subtitle:'24/7-style rain and thunder ambience',videoId:'kBNaBktShA4',url:'https://www.youtube.com/watch?v=kBNaBktShA4',source:'ASMR · YouTube',provider:'youtube'},
-  {id:'weather-fox',category:'live',title:'FOX Weather',creator:'FOX Weather',subtitle:'Continuous weather coverage · live status may change',videoId:'FBEJvInz2d0',url:'https://www.youtube.com/watch?v=FBEJvInz2d0',source:'Weather · official YouTube',provider:'youtube'},
   {id:'frequencies-528',category:'live',title:'528 Hz · forest ambience',creator:'Meditative Mind',subtitle:'528 Hz frequency-based ambient music · recording',videoId:'09r8XdHRWe8',url:'https://www.youtube.com/watch?v=09r8XdHRWe8',source:'Frequencies · 528 Hz',provider:'youtube'},
   {id:'frequencies-528-cosmic',category:'live',title:'528 Hz · cosmic meditation',creator:'Meditative Mind',subtitle:'Solfeggio frequency-inspired ambient music · recording',videoId:'HfTJ9j5fVl0',url:'https://www.youtube.com/watch?v=HfTJ9j5fVl0',source:'Frequencies · 528 Hz',provider:'youtube'}
  ];
@@ -207,7 +215,7 @@
   if(category==='lwa-tv'){
    const videos=[...featured.filter(item=>item.category==='lwa-tv'),...ballroomChannels].map(item=>({
     kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
-    status:item.videoId?'WATCH ORIGINAL VIDEO':'YOUTUBE · CHANNEL VIDEOS'
+    status:item.provider==='archive-video'?'BETTY BOOP · FIVE EPISODES':item.videoId?'WATCH ORIGINAL VIDEO':'YOUTUBE · CHANNEL VIDEOS'
    }));
    return shuffled(videos,day,category,offset);
   }
@@ -283,7 +291,7 @@
    const attrs=twitch?'data-stream-twitch="'+escapeHTML(item.id)+'"':'data-stream-feature="'+escapeHTML(item.id)+'"';
    return '<button type="button" class="stream-source-slot is-creator'+(twitch?' is-twitch':isBallroom?' is-ballroom':'')+'" '+attrs+'>'+
     '<small>'+escapeHTML(item.source||'Original creator')+' · '+String(index+1).padStart(2,'0')+'</small>'+
-    (item.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(item.videoId)+'/mqdefault.jpg" alt="">':'<span class="stream-source-emblem" aria-hidden="true">'+(twitch?'◉':item.provider==='mixtape'?'♫':'▶')+'</span>')+
+    (item.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(item.videoId)+'/mqdefault.jpg" alt="">':'<span class="stream-source-emblem" aria-hidden="true">'+(item.provider==='archive-video'?'🎞':twitch?'◉':item.provider==='mixtape'?'♫':'▶')+'</span>')+
     '<b>'+escapeHTML(item.title)+'</b><span>'+escapeHTML(item.subtitle||item.creator)+'</span></button>';
   }).join('');
   const mode=isRadio?'LWA RADIO / ORIGINAL SOURCES':isTwitch?'TWITCH / LIVE CHANNELS':'LWA TV / CREATORS + BALLROOM / CCTV';
