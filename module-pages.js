@@ -17,6 +17,11 @@
     #studioApp #boards .studio-pinterest-board-preview button{display:block;min-width:0;height:94px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#dfc9c2;box-shadow:1px 2px 0 #dc2344;cursor:pointer}
     #studioApp #boards .studio-pinterest-board-preview img{display:block;width:100%;height:100%;object-fit:cover}
     #studioApp #boards .studio-pinterest-empty{grid-column:1/-1;padding:21px 10px;font:600 12px/1.5 system-ui;color:#806d63;text-align:center}
+    #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:none;min-height:0}
+    #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview button{height:91px!important;overflow:hidden!important}
+    #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview img{width:100%!important;height:100%!important;object-fit:cover!important}
+    #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview+.card-cta{margin-top:13px}
+
     .studio-map-mini{position:relative;display:block;width:100%;height:143px;margin:0 0 8px;padding:0;border:1px solid #a4b6aa;border-radius:13px;overflow:hidden;cursor:pointer;background:repeating-linear-gradient(35deg,transparent 0 34px,#c8e5d5 35px 46px,transparent 47px 72px),repeating-linear-gradient(118deg,#ecf2db 0 31px,#b5d9d1 32px 39px,#eaf0dc 40px 87px);box-shadow:2px 3px 0 #9fae9b}
     .studio-map-mini:before{content:"";position:absolute;inset:-20px;background:repeating-linear-gradient(135deg,transparent 0 36px,#faf7e0d1 37px 44px,transparent 45px 89px);pointer-events:none}
     .studio-map-mini-title,.studio-map-mini-count{position:absolute;z-index:2;left:8px;padding:4px 8px;border-radius:7px;background:#f8faeadd;font:800 9px/1.2 ui-monospace,monospace;color:#295b52}
@@ -2187,23 +2192,37 @@ const connect=e.target.closest('[data-orbit-connect]');
       card.dataset.widgetRoute='boards';
       let slot=$('#biglwaStudioBoardsPreview',card);
       if(!slot){
-        slot=document.createElement('div');slot.id='biglwaStudioBoardsPreview';
+        slot=document.createElement('div');
+        slot.id='biglwaStudioBoardsPreview';
         slot.className='studio-pinterest-board-preview';
-        slot.setAttribute('aria-label','Recent Pinterest Pins');
+        slot.setAttribute('aria-label','Your connected Pinterest Pins');
         const cta=$('.card-cta',card);
         if(cta)cta.before(slot);else card.appendChild(slot);
       }
-      const tiles=window.__biglwaPinterest?.getPreview?.()||[];
-      const signature=tiles.map(item=>item.url).join('|');
+      const state=window.__biglwaPinterest?.state;
+      const viewer=String(window.__biglwaIdentity?.uid||'');
+      const tiles=(state?.connected&&(!viewer||state.uid===viewer))
+        ?(window.__biglwaPinterest?.getPreview?.()||[]):[];
+      const signature=tiles.slice(0,9).map(item=>item.url).join('|');
+      if(tiles.length){
+        // The original static "ideas / people / places" collage must actually
+        // disappear. Previously it was left above the new live-Pin grid.
+        [...card.children].forEach(child=>{
+          if(child===slot||child.matches('.card-head,.sub,.card-cta,.widget-window-controls,.window-controls,.widget-drag-handle'))return;
+          child.remove();
+        });
+        card.classList.add('has-live-pinterest-preview');
+      }else{
+        // Do not falsely display the generic collage as a Pinterest account.
+        card.classList.remove('has-live-pinterest-preview');
+      }
       if(slot.dataset.signature===signature)return;
       slot.dataset.signature=signature;
-      if(!tiles.length){
-        slot.innerHTML='<p class="studio-pinterest-empty">Connect Pinterest or open Boards to load Pin previews.</p>';
-        return;
-      }
-      slot.innerHTML=tiles.slice(0,6).map((item,i)=>
-        '<button type="button" data-open="boards" aria-label="Open Pinterest Boards">'+
-        '<img src="'+esc(item.url)+'" loading="lazy" decoding="async" alt="Pinterest Pin '+(i+1)+'"></button>').join('');
+      slot.innerHTML=tiles.length
+        ?tiles.slice(0,9).map((item,i)=>
+          '<button type="button" data-open="boards" aria-label="Open Pinterest Boards">'+
+          '<img src="'+esc(item.url)+'" loading="lazy" decoding="async" alt="Pinterest Pin '+(i+1)+'"></button>').join('')
+        :'<button type="button" class="studio-pinterest-empty" data-open="boards">Connect Pinterest or open Boards to load your Pins.</button>';
     }
     const feedCard=$('#feed');
     if(feedCard){
