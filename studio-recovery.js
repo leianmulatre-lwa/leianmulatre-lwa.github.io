@@ -43,6 +43,17 @@
   let attempts=0;
   const timer=setInterval(()=>{ensure();if(++attempts>=30)clearInterval(timer)},500);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensure,{once:true});else ensure();
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('#studioApp #politc [data-open="politc"]');
+    if(!button||event.defaultPrevented)return;
+    if(typeof window.BigLWAOpenModule==='function'){
+      event.preventDefault();
+      window.BigLWAOpenModule('politc');
+    }else{
+      event.preventDefault();
+      location.assign('/studio/politc');
+    }
+  });
   window.addEventListener('pageshow',ensure);
   document.addEventListener('biglwa:module-close',ensure);
 })();
