@@ -678,6 +678,26 @@ async function streamRoute(request,env) {
 
 function pnFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
 function pnCallback(request) { return new URL('/pinterest/callback', request.url).href; }
+/* Keep the OAuth return on the very same first-party origin where the user
+   started. PIN PKCE verifier lives in sessionStorage and does not cross from
+   www.biglwa.com to biglwa.com. Never permit third-party redirect origins. */
+function pnSafeReturnTo(value, env) {
+  const fallback = studioUrl(env, 'boards');
+  if (!value) return fallback;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || !['biglwa.com', 'www.biglwa.com'].includes(url.hostname) || url.port) return fallback;
+    if (!['/', '/studio', '/studio/boards'].includes(url.pathname)) return fallback;
+    url.hash = '';
+    url.search = '';
+    if (url.pathname === '/') {
+      url.searchParams.set('route', 'studio');
+      url.searchParams.set('view', 'boards');
+    }
+    return url.href;
+  } catch { return fallback; }
+}
+
 function pnCookie(request) { return (request.headers.get('Cookie') || '').split(';').map(s => s.trim()).find(s => s.startsWith('__Host-pn_oauth='))?.slice(16) || ''; }
 function pnRedirect(location, cookie) { return new Response(null, { status: 302, headers: { Location: location, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'Set-Cookie': '__Host-pn_oauth=' + cookie + '; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=' + (cookie ? 600 : 0) } }); }
 async function pnToken(env, params) {
@@ -803,7 +823,8 @@ async function pnRoute(request, env) {
     const challenge = url.searchParams.get('challenge') || '';
     if (!/^[A-Za-z0-9_-]{43}$/.test(challenge)) pnFail('Start Pinterest connection from Orbit.', 400);
     const state = randomToken(32), browser = randomToken(32);
-    await env.OAUTH_SESSIONS.put('pn:state:' + state, JSON.stringify({ browser, challenge, callback: pnCallback(request) }), { expirationTtl: 600 });
+    const returnTo = pnSafeReturnTo(url.searchParams.get('return_to'), env);
+    await env.OAUTH_SESSIONS.put('pn:state:' + state, JSON.stringify({ browser, challenge, callback: pnCallback(request), returnTo }), { expirationTtl: 600 });
     const dest = new URL('https://www.pinterest.com/oauth/');
     dest.search = new URLSearchParams({ client_id: env.PINTEREST_APP_ID, response_type: 'code', scope: 'boards:read,pins:read,user_accounts:read', redirect_uri: pnCallback(request), state }).toString();
     return pnRedirect(dest.href, browser);
@@ -814,7 +835,7 @@ async function pnRoute(request, env) {
     const saved = await env.OAUTH_SESSIONS.get('pn:state:' + state, 'json');
     if (!saved || !pnCookie(request) || saved.browser !== pnCookie(request)) pnFail('Pinterest login expired or was opened in another browser. Start again from Orbit.', 400);
     await env.OAUTH_SESSIONS.delete('pn:state:' + state);
-    const destination = new URL(studioUrl(env, 'boards'));
+    const destination = new URL(pnSafeReturnTo(saved.returnTo, env));
     if (url.searchParams.has('error') || !url.searchParams.get('code')) {
       destination.searchParams.set('pinterest_error', 'Pinterest authorization was cancelled or denied. Please try again.');
       return pnRedirect(destination.href, '');
@@ -822,7 +843,7 @@ async function pnRoute(request, env) {
     const token = await pnToken(env, { grant_type: 'authorization_code', code: url.searchParams.get('code'), redirect_uri: saved.callback });
     const id = randomToken(32), handoff = randomToken(32);
     await pnSave(env, id, token);
-    await env.OAUTH_SESSIONS.put('pn:handoff:' + handoff, JSON.stringify({ id, challenge: saved.challenge }), { expirationTtl: 120 });
+    await env.OAUTH_SESSIONS.put('pn:handoff:' + handoff, JSON.stringify({ id, challenge: saved.challenge }), { expirationTtl: 600 });
     destination.searchParams.set('pinterest_handoff', handoff);
     return pnRedirect(destination.href, '');
   }
