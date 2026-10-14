@@ -1,0 +1,31 @@
+name: Arcade regression checks
+
+on:
+  pull_request:
+    paths:
+      - 'module-pages.js'
+      - 'games-arcade-test.mjs'
+      - 'index.html'
+  push:
+    branches:
+      - 'arcade-safe-game-launcher-20261013'
+      - 'main'
+    paths:
+      - 'module-pages.js'
+      - 'games-arcade-test.mjs'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  arcade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check Arcade JavaScript syntax
+        run: node --check module-pages.js
+      - name: Run Arcade regression checks
+        run: node games-arcade-test.mjs
