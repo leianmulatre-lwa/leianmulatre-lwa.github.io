@@ -39,8 +39,8 @@
   {id:'cn-regular',category:'lwa-tv',title:'Cartoon Network · Regular Show',creator:'Cartoon Network',subtitle:'Streaming Wars · Regular Show',videoId:'Uimuwd0kX9g',url:'https://www.youtube.com/watch?v=Uimuwd0kX9g',source:'Official cartoon clip',provider:'youtube'},
   {id:'markiplier-scary',category:'lwa-tv',title:'Markiplier',creator:'Markiplier',subtitle:'3 SCARY GAMES #9',videoId:'abHGyg4LKn4',url:'https://www.youtube.com/watch?v=abHGyg4LKn4',source:'Gaming / original video',provider:'youtube'},
   {id:'cory-sss',category:'lwa-tv',title:'CoryxKenshin',creator:'CoryxKenshin',subtitle:'Spooky Scary Sunday Is Back',videoId:'edk2uac_x0Y',url:'https://www.youtube.com/watch?v=edk2uac_x0Y',source:'Gaming / original video',provider:'youtube'},
-  {id:'teaspill',category:'lwa-tv',title:'Tea Spill',creator:'Tea Spill',subtitle:'Beauty, creator news and pop-culture commentary · latest videos',url:'https://www.youtube.com/@TeaSpill/videos',source:'Official creator channel',provider:'youtube'},
-  {id:'olandria',category:'lwa-tv',title:'Life With Olan',creator:'Olandria Carthen',subtitle:'Vlogs, travel, fashion and behind-the-scenes · latest videos',url:'https://www.youtube.com/@X_Olan/videos',source:'Creator-linked YouTube channel',provider:'youtube'},
+  {id:'teaspill',category:'lwa-tv',title:'Tea Spill',creator:'Tea Spill',subtitle:'Influencers have gone too far… (rage bait marketing)',videoId:'Qz5VZPMhw8Q',url:'https://www.youtube.com/watch?v=Qz5VZPMhw8Q',channelUrl:'https://www.youtube.com/@TeaSpill/videos',source:'Official YouTube episode',provider:'youtube'},
+  {id:'olandria',category:'lwa-tv',title:'Life With Olan',creator:'Olandria Carthen',subtitle:'My first vlog | red carpet ready',videoId:'lx1UP1nLMQw',url:'https://www.youtube.com/watch?v=lx1UP1nLMQw',channelUrl:'https://www.youtube.com/@X_Olan/videos',source:'Creator YouTube vlog',provider:'youtube'},
   {id:'larray',category:'lwa-tv',title:'Larray',creator:'Larray',subtitle:'Comedy, creator culture and vlogs',url:'https://www.youtube.com/@LARRAY/videos',source:'Creator channel',provider:'youtube'},
   {id:'quenlin',category:'lwa-tv',title:'Quenlin Blackwell',creator:'Quenlin Blackwell',subtitle:"Feeding Starving Celebrities ft. Charli D'Amelio",videoId:'XC7XiNVk_M4',url:'https://www.youtube.com/watch?v=XC7XiNVk_M4',source:'Official YouTube episode',provider:'youtube'},
   {id:'jacksepticeye',category:'lwa-tv',title:'Jacksepticeye',creator:'Jacksepticeye',subtitle:'Gaming, horror and comedy',url:'https://www.youtube.com/@jacksepticeye/videos',source:'Creator channel',provider:'youtube'},
@@ -277,6 +277,7 @@
   if(changed){renderGrid();renderFeaturedSlots();renderCategory();}
   const caption='<span>'+escapeHTML(label)+' / '+title+'</span>';
   const original=url?'<a href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Open original ↗</a>':'';
+  const channelLink=source.channelUrl?'<a href="'+escapeHTML(source.channelUrl)+'" target="_blank" rel="noopener noreferrer">More videos ↗</a>':'';
   if(source.provider==='twitch'&&/^[a-z0-9_]{2,25}$/i.test(source.twitchChannel||'')){
    const parent=encodeURIComponent(window.location.hostname);
    const channel=encodeURIComponent(source.twitchChannel);
@@ -286,7 +287,7 @@
     '<iframe title="'+title+' on Twitch" src="'+escapeHTML(player)+'" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>'+
     '<div class="stream-player-footer">TWITCH · stream availability is determined by the creator · '+original+'</div></div>';
   }else if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
-   monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+'</div>'+
+   monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+channelLink+'</div>'+
     '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>';
   }else{
    const type=source.provider==='youtube'?'creator channel':source.provider==='mixtape'?'mixtape':source.provider==='podcast'?'podcast':source.type||'radio station';
