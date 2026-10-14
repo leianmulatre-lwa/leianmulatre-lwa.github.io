@@ -998,7 +998,7 @@ function sqwipCleanLibrary(data) {
 }
 async function sqwipRoute(request,env) {
   if(request.method==='OPTIONS')return corsPreflight(request,env);
-  requireOrigin(request,env);
+  if(!allowedOrigin(request,env))mediaFail('Origin not allowed.',403);
   if(new URL(request.url).pathname!=='/sqwip/library')mediaFail('Not found.',404);
   if(!['GET','POST'].includes(request.method))mediaFail('Unsupported request.',405);
   const user=await mediaUser(request,env);
