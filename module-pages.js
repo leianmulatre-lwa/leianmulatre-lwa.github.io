@@ -10,6 +10,31 @@
   const style = document.createElement('style');
   style.id = 'biglwa-module-pages-style-v3';
   style.textContent = `
+  /* politc: monochrome wanted-board editorial styling */
+  .politc-board{--poster:#efe3cd;--ink:#28231e;display:grid;gap:18px}
+  .politc-board .politc-banner{background:#332a24;color:#f4e8d3;padding:24px;border:4px double #d3b992;letter-spacing:.09em;text-align:center}
+  .politc-banner h2{font:400 clamp(38px,6vw,74px)/1 "Bergamot Stitched",Georgia,serif;text-transform:lowercase;margin:5px 0}
+  .politc-banner p{margin:0;font:12px/1.5 system-ui;letter-spacing:.08em;text-transform:uppercase}
+  .politc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .politc-panel{background:var(--poster);color:var(--ink);border:2px solid #534739;outline:1px solid #a8977e;outline-offset:-7px;padding:19px;min-width:0}
+  .politc-panel h3{font:700 clamp(24px,3vw,40px)/1 Georgia,serif;letter-spacing:.085em;text-transform:uppercase;text-align:center;border-top:4px double #554637;border-bottom:4px double #554637;padding:10px 0;margin:0}
+  .politc-panel .politc-sub{text-align:center;font:italic 13px/1.5 Georgia,serif}
+  .politc-portraits{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin:17px 0}
+  .politc-person{border:1px solid #776554;background:#fbf5e8;padding:8px;text-align:center;min-width:0}
+  .politc-person img{width:100%;height:150px;object-fit:cover;filter:grayscale(1) contrast(1.15);display:block;background:#d4cdc2}
+  .politc-person strong{display:block;font:700 17px/1.2 Georgia,serif;overflow-wrap:anywhere;margin-top:8px}
+  .politc-person small{display:block;font:12px/1.45 Georgia,serif;margin:4px 0}
+  .politc-person button{border:1px solid #776554;background:transparent;color:inherit;padding:5px;cursor:pointer}
+  .politc-form{display:grid;gap:8px}.politc-form input,.politc-form textarea,.politc-form select{min-width:0;width:100%;box-sizing:border-box;border:1px solid #776554;background:#fff9ec;color:#272321;padding:9px;font:13px system-ui}
+  .politc-form button,.politc-source{display:inline-block;border:1px solid #493f33;padding:10px 12px;background:#342b25;color:#fff0d7;cursor:pointer;font:600 12px system-ui;text-decoration:none}
+  .politc-form label{font:600 12px system-ui}
+  .politc-resources{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-top:15px}
+  .politc-source{display:flex;flex-direction:column;gap:5px}.politc-source small{font-weight:400;color:#e9d7b9}
+  .politc-pendulum{width:100%;accent-color:#583e35}
+  .politc-value{font:600 14px system-ui;text-align:center;padding:12px;border:1px dashed #8d7b69}
+  .politc-note{font:12px/1.5 system-ui;opacity:.85}
+  @media(max-width:720px){.politc-grid{grid-template-columns:1fr}}
+
 
     .module-textarea.diary-lined{font:16px/28px Georgia,serif;min-height:360px;padding:14px 20px;background-color:#f5ecdf;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#bcc3c5 27px,#bcc3c5 28px);background-origin:content-box;background-attachment:local;color:#302b28}.night-mode .module-textarea.diary-lined{background-color:#302c28;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#59544e 27px,#59544e 28px);color:#f5ecdf}
     .module-workspace[hidden]{display:none!important}
@@ -617,9 +642,9 @@
   const body = $('#moduleWorkspaceBody');
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
-const known = new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews']);
-const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwib Note',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews'};
-  const desc = {create:'Start something and send it to the right part of BIGLWA.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'Publish a picture and a caption to the collective feed.',connect:'Invite friends to join BIGLWA.',camera:'A real browser photobooth: start the camera, pose, capture, retake, and save a frame without uploading it.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.'};
+const known = new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews','politc']);
+const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwib Note',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
+  const desc = {create:'Start something and send it to the right part of BIGLWA.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'Publish a picture and a caption to the collective feed.',connect:'Invite friends to join BIGLWA.',camera:'A real browser photobooth: start the camera, pose, capture, retake, and save a frame without uploading it.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'The people, politics, and power board — community nominations, the pendulum, voting resources, and world news.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
@@ -1007,7 +1032,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     </section>`;
   }
 
-  const TRENDING_ROOMS=[['lounge','The Lounge','BIGLWA home room'],['minecraft','#minecraft','Trending room'],['fortnite','#fortnite','Trending room'],['deadbydaylight','#deadbydaylight','Trending room'],['rocketleague','#rocketleague','Trending room'],['biglwa','#biglwa','Trending room'],['arcade','#arcade','Trending room'],['support','#support','Trending room'],['gov','#gov','Trending room'],['substack','#substack','Trending room']];
+  const TRENDING_ROOMS=[['lounge','The Lounge','BIGLWA home room'],['minecraft','#minecraft','Trending room'],['fortnite','#fortnite','Trending room'],['deadbydaylight','#deadbydaylight','Trending room'],['rocketleague','#rocketleague','Trending room'],['biglwa','#biglwa','Trending room'],['arcade','#arcade','Trending room'],['support','#support','Trending room'],['gov','#gov','Trending room'],['substack','#substack','Trending room'],['katseye','#katseye','Trending conversation'],['adela','#adela','Trending conversation']];
   const roomStorageKey = slug => slug==='lounge' ? 'biglwaRoomMessages' : 'biglwaRoomMessages_'+slug;
   const customRoomSlug = name => 'custom-'+name.toLowerCase().replace(/^#/,'').replace(/[^a-z0-9-]/g,'');
   const readCustomRooms = () => { const v=readJSON('biglwaCustomRooms',[]); return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x):[]; };
@@ -1018,6 +1043,56 @@ const connect=e.target.closest('[data-orbit-connect]');
     if(name&&name[0]!=='#')name='#'+name;
     return name;
   }
+
+  function renderPolitc(){
+    const categories=[
+      {id:'wcw',name:'WCW',subtitle:'Woman Crush Wednesday · appreciation & recognition'},
+      {id:'mcm',name:'MCM',subtitle:'Man Crush Monday · appreciation & recognition'},
+      {id:'hunting',name:'Hunting Season',subtitle:'Worst men · documented accountability, not harassment'},
+      {id:'cunting',name:'Cunting Season',subtitle:'Baddies · icons, creators & cultural standouts'}
+    ];
+    const storageKey='biglwaPolitcNominationsV1';
+    const items=readJSON(storageKey,[]);
+    const nominations=Array.isArray(items)?items:[];
+    const photoData = new Map();
+    const resources=[
+      ['Vote.gov','Federal registration and voter information','https://vote.gov/'],
+      ['US Election Assistance Commission','How elections work and official state election offices','https://www.eac.gov/voters'],
+      ['USA.gov election results','Find election results and voting information','https://www.usa.gov/voting-and-elections'],
+      ['Al Jazeera','International reporting and live coverage','https://www.aljazeera.com/'],
+      ['Genocide Watch','Country alerts and genocide-prevention research','https://www.genocidewatch.com/'],
+      ['United Nations','UN news, humanitarian reporting and resolutions','https://news.un.org/en/'],
+      ['UN Human Rights','Independent reporting, statements and investigations','https://www.ohchr.org/en']
+    ];
+    const portrait=(item)=>'<article class="politc-person">'+(item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'">':'<div style="height:150px;display:grid;place-items:center;border:1px dashed #8c7766;font:45px Georgia,serif" aria-hidden="true">?</div>')+
+      '<strong>'+esc(item.name)+'</strong>'+(item.note?'<small>'+esc(item.note)+'</small>':'')+
+      (item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer" style="display:block;margin:8px 0;font-size:12px">View source ↗</a>':'')+
+      '<button type="button" data-politc-delete="'+esc(item.id)+'" aria-label="Remove '+esc(item.name)+'">Remove</button></article>';
+    const panel=(cat)=>'<section class="politc-panel"><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p><div class="politc-portraits">'+nominations.filter(x=>x.category===cat.id).map(portrait).join('')+'</div>'+
+      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominate a person<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="Why this person belongs here"></textarea></label><label>Evidence / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Pin to '+esc(cat.name)+'</button><small>Saved on this device, not published to others.</small></form></section>';
+    const val=Math.min(100,Math.max(0,Number(localStorage.getItem('biglwaPolitcPendulum')||50)));
+    body.innerHTML=heading('politc')+'<div class="politc-board"><header class="politc-banner"><p>Big LWA presents · public square</p><h2>politc</h2><p>Wanted: voices, accountability, culture & civic literacy</p></header><div class="politc-grid">'+categories.map(panel).join('')+'</div>'+
+      '<section class="politc-panel"><h3>The Political Pendulum</h3><p class="politc-sub">Explore the ideological spectrum — an illustrative reflection tool, not a political identity test.</p><div style="display:flex;justify-content:space-between;gap:8px;font:600 12px system-ui"><span>Left</span><span>Center</span><span>Right</span></div><input class="politc-pendulum" id="politcPendulum" type="range" min="0" max="100" value="'+val+'" aria-label="Political pendulum position"><div class="politc-value" id="politcPendulumLabel"></div><p class="politc-note">The spectrum simplifies complex beliefs. No results are inferred about you and nothing is shared.</p></section>'+
+      '<section class="politc-panel"><h3>Vote · Data · Resources</h3><p class="politc-sub">Research, register, read critically, and follow humanitarian developments directly from their sources.</p><div class="politc-resources">'+resources.map(r=>'<a class="politc-source" target="_blank" rel="noopener noreferrer" href="'+esc(r[2])+'">'+esc(r[0])+'<small>'+esc(r[1])+'</small></a>').join('')+'</div><p class="politc-note">External sources open in a new tab. These are resource links, not an invented live news or election-data feed. Political news and estimates should be checked against primary sources.</p></section></div>';
+    const range=$('#politcPendulum',body),display=$('#politcPendulumLabel',body);
+    const setValue=()=>{const n=Number(range.value);display.textContent=n<35?'Left of center · '+n:n>65?'Right of center · '+n:'Near the center · '+n;localStorage.setItem('biglwaPolitcPendulum',String(n));};
+    range.addEventListener('input',setValue);setValue();
+    body.querySelectorAll('[data-politc-delete]').forEach(button=>button.addEventListener('click',()=>{
+      const next=nominations.filter(x=>String(x.id)!==button.dataset.politcDelete);try{writeJSON(storageKey,next);renderPolitc()}catch(e){alert('Unable to save changes on this device.')}
+    }));
+    body.querySelectorAll('[data-politc-form]').forEach(form=>form.addEventListener('submit',async(e)=>{
+      e.preventDefault();const fd=new FormData(form),name=String(fd.get('name')||'').trim(),note=String(fd.get('note')||'').trim(),source=String(fd.get('source')||'').trim();
+      if(!name)return;
+      const file=fd.get('photo');let photo='';
+      if(file instanceof File&&file.size){
+        if(file.size>2*1024*1024){alert('Please use an image smaller than 2 MB.');return;}
+        photo=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>resolve('');reader.readAsDataURL(file);});
+      }
+      try{writeJSON(storageKey,[...nominations,{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);renderPolitc()}
+      catch(err){alert('This browser could not save the nomination. Try a smaller photo.');}
+    }));
+  }
+
   function renderRoom(){
     let slug=String(localStorage.getItem('biglwaActiveRoom')||'lounge');
     const allRooms=roomList();
@@ -1976,7 +2051,7 @@ const connect=e.target.closest('[data-orbit-connect]');
   function openModule(rawKey, context='', push=true){
     stopCamera();let key=(rawKey||'').toLowerCase();
     if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project')key='projects';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
-    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',`/studio/${encodeURIComponent(key)}`)}catch{}}
+    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',`/studio/${encodeURIComponent(key)}`)}catch{}}
   }
   window.openBIGLWAModule=openModule;
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
