@@ -1,0 +1,38 @@
+// Prevent silent regressions to the saved politc + two-week Studio build.
+// This script checks local source only; it does not use account data or external APIs.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const read = file => fs.readFileSync(file, 'utf8');
+const index = read('index.html');
+const modules = read('module-pages.js');
+const recovery = read('studio-recovery.js');
+const robots = read('robots.txt');
+const sitemap = read('sitemap.xml');
+const about = read('about/index.html');
+const settings = read('settings/index.html');
+const required = ['base-v1.html','bootstrap-v2.html','studio-recovery.js','module-pages.js','studio-preview.js','pinterest-orbit.js','site-1.txt','site-2.txt','site-3.txt','site-4.txt','site-5.txt'];
+for (const file of required) assert.ok(fs.existsSync(file), 'Missing runtime file: '+file);
+assert.match(index, /<html lang="en">/);
+assert.match(index, /studio-recovery\\.js\\?v=/);
+assert.match(index, /module-pages\\.js\\?v=/);
+assert.match(index, /<noscript>/);
+assert.match(modules, /function renderPolitc\\(/);
+assert.match(modules, /else if\\(key==='politc'\\)renderPolitc\\(\\)/);
+assert.match(modules, /function miniCalendarMarkup\\(/);
+assert.match(modules, /miniCalendarMarkup\\(\\)/);
+assert.match(modules, /window\\.BigLWAOpenModule/);
+assert.match(recovery, /data-open="politc"/);
+assert.match(recovery, /biglwa-two-week-recovered/);
+assert.match(robots, /Sitemap: https:\\/\\/biglwa\\.com\\/sitemap\\.xml/);
+assert.match(sitemap, /https:\\/\\/biglwa\\.com\\/about\\//);
+assert.match(about, /rel="canonical"/);
+assert.match(settings, /noindex,nofollow/);
+const mainScript=index.match(/<script>([\\s\\S]*?)<\\/script>/i)?.[1];
+assert.ok(mainScript,'Missing main inline app loader');
+for (const [name, source] of [['index inline loader',mainScript],['module pages',modules],['Studio recovery',recovery]]) {
+  new vm.Script(source,{filename:name});
+  console.log('PASS syntax:',name);
+}
+console.log('PASS source integrity: politc route, two-week calendar, public SEO and required runtime files');
