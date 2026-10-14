@@ -322,7 +322,7 @@
   const station=stations[index];if(!station)return;
   showSource({title:station[0],category:'podcast',creator:station[1],
    subtitle:station[1]+' · '+station[2],source:'Campus radio',
-   url:station[3],audioUrl:index===1?'https://stream.kalx.berkeley.edu:8443/kalx-128.mp3':'',type:'radio station',provider:'radio'});
+   url:station[3],audioUrl:index===1?'https://stream.kalx.berkeley.edu:8443/kalx-128.mp3':index===3?'https://kcsb.streamguys1.com/live':'',type:'radio station',provider:'radio'});
  }
  function selectFeature(id){
   const source=[...featured,...ballroomChannels].find(item=>item.id===id);
