@@ -1874,7 +1874,17 @@ const connect=e.target.closest('[data-orbit-connect]');
            is live keeps its colour and appears on the Collective Feed; one switched off greys
            its picture and stays here only. */
         const source=String(item.source||'instagram').toLowerCase();
-        const rim={instagram:'#f28c28',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';
+        const themes={
+          instagram:{rim:'#7d3ec5',shadow:'3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999'},
+          pinterest:{rim:'#e60023',shadow:'3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026'},
+          tiktok:{rim:'#111111',shadow:'3px 3px 0 #111111,-2px 8px 20px -14px #25f4ee,8px 13px 24px -16px #fe2c55'},
+          facebook:{rim:'#1877f2',shadow:'3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff'},
+          youtube:{rim:'#d0202f',shadow:'0 0 0 2px #d0202f,3px 3px 0 #fff6ec,0 13px 28px -16px #d0202f'},
+          soundcloud:{rim:'#ff5500',shadow:'3px 3px 0 #ff5500,0 12px 25px -16px #ffb13b'},
+          google:{rim:'#4285f4',shadow:'3px 3px 0 #4285f4,0 12px 25px -16px #34a853'}
+        };
+        const visualTheme=themes[source]||{rim:'#a52a0c',shadow:'3px 3px 0 #a52a0c'};
+        const rim=visualTheme.rim;
         // Like Collective Feed, show ONE media frame per post—not a long tower.
         // Carousel buttons cycle through every item without growing the card.
         const visualPieces=pieces.length?archivePieceMarkup(pieces[0],0,pieces.length,index+1):'';
@@ -1897,16 +1907,17 @@ const connect=e.target.closest('[data-orbit-connect]');
             ? '<small class="archive-state-line">Not live · kept here only</small>'
             : '';
         const actions=owner
-          ? '<div class="archive-browser-actions" aria-label="Archive photo actions">'+
-            '<button type="button" data-archive-delete aria-label="Delete this post" title="Delete">×</button>'+
-            '<button type="button" data-archive-enlarge aria-label="Open this photo" title="Open this photo">↗</button>'+
+          ? '<div class="archive-browser-actions biglwa-feed-lights" aria-label="Archive window controls">'+
+             '<button type="button" data-archive-delete data-archive-light="delete" aria-label="Remove this post" title="Remove post (30-day recovery)"></button>'+
+             '<button type="button" data-archive-light="archive" aria-label="'+(posted?'Take off Collective Feed':'Publish to Collective Feed')+'" title="'+(posted?'Archive post':'Publish post')+'"></button>'+
+             '<button type="button" data-archive-enlarge data-archive-light="enlarge" aria-label="Enlarge image" title="Enlarge image"></button>'+
             '</div>'
           : '';
         const strip='<div class="instagram-archive-strip"><b>'+esc(caption?caption.split('\n')[0].slice(0,42):(pending?'Deleting soon':posted?'Live':'Archived'))+'</b>'+actions+'</div>';
         const pendingMeta=pending
           ? '<div class="archive-pending-note">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</div>'
           : '';
-        return '<article class="instagram-archive-card '+(posted?'is-live':'is-off')+' is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
+        return '<article class="instagram-archive-card '+(posted?'is-live':'is-off')+' is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+';--feed-card-shadow:'+visualTheme.shadow+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
           strip+
           '<div class="instagram-archive-media">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Image unavailable · original link may have expired</small></div>')+carouselControls+'</div>'+
           pendingMeta+
@@ -1938,7 +1949,7 @@ const connect=e.target.closest('[data-orbit-connect]');
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(media.length?'Imported cards are saved to your account.':'Connect Instagram or Pinterest in Orbit, then refresh imports.'):'Shared with friends.'))+'</div>'+
           '<div class="archive-color-guide" aria-label="Card shadow color key">'+
   '<b>SHADOW KEY</b>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · orange / purple</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · purple</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-pinterest" aria-hidden="true"></i>Pinterest · red</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-facebook" aria-hidden="true"></i>Facebook · blue</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-tiktok" aria-hidden="true"></i>TikTok · black</span>'+
@@ -2046,11 +2057,13 @@ const connect=e.target.closest('[data-orbit-connect]');
         }));
         $('.archive-page-list',body)?.addEventListener('click',async(event)=>{
           const deleteButton=event.target.closest('[data-archive-delete]');
+          const archiveLight=event.target.closest('[data-archive-light="archive"]');
           const enlargeButton=event.target.closest('[data-archive-enlarge]');
           const card=event.target.closest('[data-archive-id]');
           if(!card)return;
           const id=card.dataset.archiveId;
           if(enlargeButton){archiveOpenImage(card.dataset.archiveUrl||'');return}
+          if(archiveLight){const checkbox=card.querySelector('[data-archive-live-input]');if(checkbox&&!checkbox.disabled)checkbox.click();return}
           if(deleteButton){
             if(!window.confirm('Remove this post from the Collective Feed? It will stay in your Archive for 30 days before deletion.')) return;
             deleteButton.disabled=true;
