@@ -423,7 +423,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       if (snap.exists()) existingArchive = snap.data() || {};
     } catch {}
 
-    /* First import is live in Collective Feed. Once the owner has changed that card's
+    /* Pinterest imports are private drafts until explicitly published; Instagram retains its existing behavior. Once the owner has changed that card's
        state, a reconnect must respect the saved lifecycle rather than silently undoing it. */
     const priorArchiveState = clean(existingArchive?.archiveState);
     const priorState = clean(existing?.state || existingArchive?.state);
@@ -432,7 +432,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       ? "archived"
       : priorArchiveState === "archived" || priorState === "archived"
         ? "archived"
-        : (item.source === "instagram" || item.source === "pinterest")
+        : item.source === "instagram"
           ? "approved"
           : (existing?.state || "draft");
     const archiveState = priorArchiveState === "pending_delete"
