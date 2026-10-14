@@ -190,7 +190,7 @@ await check('each campus radio station occupies a distinct numbered hour in the 
  const radio=guide.find(row=>row.category==='podcast').slots;
  const stations=fakeWindow.BigLWAStreamGuide.stations;
  assert.equal(stations.length,16);
- assert.deepEqual(radio.slice(0,16).map(x=>x.title),stations.map(x=>x.name));
+ assert.deepEqual(Array.from(radio.slice(0,16),x=>x.title),Array.from(stations,x=>x.name));
  assert.equal(new Set(radio.slice(0,16).map(x=>x.index)).size,16);
  assert.ok(radio.some(x=>x.title.includes('Owen Thiele')));
  assert.ok(radio.some(x=>x.title==='The Daily'));
