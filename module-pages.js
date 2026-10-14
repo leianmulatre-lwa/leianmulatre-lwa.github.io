@@ -633,6 +633,22 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
   const orbitConnected=()=>{
     const rows=[];
     try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}).filter(row=>row&&row.id&&row.link))}catch{}
+    // The account mirror is asynchronous. If the Pinterest API has actually
+    // verified a signed-in user's profile, show that verified connection right
+    // away rather than falsely showing NOT CONNECTED until Firestore finishes.
+    // Never infer connectivity from a stale local session string alone.
+    try{
+      const pn=window.__biglwaPinterest?.state;
+      const viewerUid=String(window.__biglwaIdentity?.uid||'');
+      if(pn?.connected&&pn.uid&&(!viewerUid||pn.uid===viewerUid)&&pn.profile?.username){
+        const name=String(pn.profile.username).trim();
+        if(name)rows.push({id:'pinterest',label:'Pinterest',
+          username:name,name:pn.profile.business_name||name,
+          avatarUrl:pn.profile.profile_image||'',
+          link:'https://www.pinterest.com/'+encodeURIComponent(name)+'/',
+          verifiedFromProvider:true});
+      }
+    }catch{}
     /* Facebook authorises in the browser through its own SDK, so its state lives on the
        client, not in the shared connections hub. It is merged here so the Orbit page's row
        says Connected when that login has completed. */
@@ -709,6 +725,9 @@ const connect=e.target.closest('[data-orbit-connect]');
    /* The viewer is repainted by the connections watcher, not by the markup, so the current
       route is checked at fire time. Registering here also means the guard is genuinely once
       even if the module is opened and closed repeatedly. */
+   document.addEventListener('biglwa:pinterest-status',()=>{
+     if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
+   });
    let orbitWatched=false;
    function orbitWatch(){
      if(orbitWatched)return;
