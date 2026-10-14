@@ -368,4 +368,5 @@ await check('Studio player is contained inside its card and cannot float over th
  assert.ok(style.includes("#studioApp #stream .stream-screen.stream-preview-active{position:relative!important"),'Studio player is contained');
  assert.ok(style.includes('transform:none!important;will-change:auto!important'),'remove old composited layer wobble');
  assert.ok(!stream.includes("portal.querySelector('#streamDiscoveryPicker')"),'discovery does not cover player');
+ assert.ok(stream.includes('if(event.currentTarget===root&&mediaPortal?.contains(event.target))return;'),'nested radio controls never trigger twice');
 });
