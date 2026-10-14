@@ -183,9 +183,22 @@ await check('LWA Radio offers only direct in-site audio stations',async()=>{
  const radio=guide.filter(x=>x.kind==='station');
  const audio=guide.filter(x=>x.kind==='feature');
  assert.equal(radio.length,24);
- assert.equal(new Set(radio.map(x=>x.index)).size,3);
+ assert.equal(new Set(radio.map(x=>x.index)).size,7);
  assert.equal(audio.length,0,'external-only podcasts are not falsely labelled as playable radio');
  assert.ok(guide.every(x=>x.title&&x.subtitle&&x.status==='▶ PLAY IN BIG LWA'));
+});
+await check('UCLA Radio restored with official HTTPS MP3 and all sixteen schools remain searchable',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const guide=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(row=>row.category==='podcast').slots;
+ assert.ok(guide.some(item=>item.title==='UCLA Radio'),'UCLA Radio must be scheduled');
+ assert.ok(stream.includes("0:'https://live.uclaradio.com/listen/ucla_radio/radio.mp3'"),'UCLA source is direct MP3 audio');
+ assert.ok(stream.includes("7:'https://kzsu-streams.stanford.edu/kzsu-1-128.mp3'"),'Stanford uses an audio endpoint');
+ assert.ok(stream.includes("11:'https://floyd.wcbn.org:8443/wcbn-hi.mp3'"),'Michigan uses a live HTTPS MP3');
+ assert.ok(stream.includes("6:'https://stream.rcast.net/263501'"),'KSJS source uses HTTPS relay');
+ assert.ok(stream.includes("const selected=stations.map((station,index)=>({station,index}))"),'all station records remain in directory');
+ assert.ok(stream.includes("class=\"stream-station is-pending\""),'pending streams show station info without false Play buttons');
+ assert.ok(stream.includes("class=\"stream-station is-ready\""),'verified streams have a Play control');
+ assert.ok(stream.includes("all 16 campus stations"),'radio directory remains complete');
 });
 await check('creator rotation uses authentic channel URLs and no hypothetical placeholders',async()=>{
  const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
