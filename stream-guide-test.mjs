@@ -121,11 +121,11 @@ await check('submissions are disabled by default until the programming feature l
  assert.match((await disabled.json()).error,/future release/i);
  env.STREAM_REQUESTS_ENABLED='true'; // Existing editorial workflow remains regression-tested.
 });
-await check('LWA Radio keeps four actual channels without a request form',async()=>{
+await check('LWA Radio keeps three channels with Ballroom under TV without a request form',async()=>{
  assert.ok(stream.includes("['podcast','lwa radio'"));
  assert.ok(stream.includes("['lwa-tv','lwa tv'"));
  assert.ok(stream.includes("['live','live'"));
- assert.ok(stream.includes("['ballroom-cctv','ballroom / cctv'"));
+ assert.ok(!stream.includes("['ballroom-cctv','ballroom / cctv'"));
  const mount=stream.slice(stream.indexOf(' function mount(host){'),stream.indexOf(' function jumpNow()'));
  assert.ok(mount.includes('streamShuffleAgain'));
  assert.ok(mount.includes('stream-future'));
@@ -154,11 +154,11 @@ await check('Ballroom / CCTV has reliable original source destinations and a ful
  assert.ok(archive.some(x=>x.url==='https://artsandculture.google.com/project/ballroom'));
  assert.ok(archive.every(x=>x.url.startsWith('https://')));
  const schedule=api.getDailyGuide('2026-10-14');
- const row=schedule.find(x=>x.category==='ballroom-cctv');
+ const row=schedule.find(x=>x.category==='lwa-tv');
  assert.ok(row);assert.equal(row.slots.length,24);
- assert.ok(row.slots.every(x=>x.kind==='feature'&&archive.some(y=>y.id===x.id)));
- assert.ok(stream.includes("category==='ballroom-cctv'"));
- assert.ok(stream.includes('CCTV means curated ballroom video archives here, not live cameras'));
+ assert.ok(row.slots.some(x=>x.kind==='feature'&&archive.some(y=>y.id===x.id)));
+ assert.ok(stream.includes("category:'lwa-tv'"));
+ assert.ok(stream.includes('Ballroom / CCTV is part of LWA TV'));
  assert.ok(style.includes('.stream-slot.is-ballroom'));
  assert.ok(style.includes('.stream-source-slot.is-ballroom'));
 });
