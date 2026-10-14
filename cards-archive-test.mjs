@@ -49,11 +49,11 @@ check("the wall folds to 3, then 2, then 1", pages.includes(".instagram-archive-
 check("a flat card list still fills the same responsive wall", pages.includes(".archive-page-list:not(:has(.archive-source-group)){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))"));
 
 console.log("\n=== A TALL PICTURE CANNOT SWALLOW A ROW ===");
-check("every Archive piece sits inside a feed-like fixed-ratio media frame", pages.includes(".instagram-archive-piece{aspect-ratio:4/5;min-height:0!important;max-height:none!important}"));
-check("media fills the Archive frame without stretching the card", pages.includes("object-fit:contain;background:#f3e9df") && pages.includes("position:absolute;inset:0;width:100%;height:100%;object-fit:contain"));
+check("Archive derives each photo ratio, bounded against very wide images", pages.includes("aspect-ratio:var(--archive-photo-ratio,4/5)!important") && pages.includes("Math.max(.65,Math.min(1.55,w/h))"));
+check("images fill their frames without grey letterboxing",pages.includes("object-fit:cover!important") && pages.includes("background:transparent!important"));
 check("carousel media stays one card instead of showing a 2x2 tile wall", pages.includes("archive-carousel-actions") && pages.includes("function archivePieceMarkup(piece,index,total,cardIndex)"));
 check("the card renders one media frame with navigation", pages.includes("const visualPieces=pieces.length?archivePieceMarkup(pieces[0]") && pages.includes("data-archive-step") && pages.includes("archive-carousel-actions"));
-check("repeats can be hidden to one copy while still counted", pages.includes("indexes.slice(0,1):indexes)"));
+check("duplicate photos can hide repeated copies without breaking the source grid",pages.includes("const visible=hideDupes?indexes.slice(0,1):indexes;")&&pages.includes("if(!sourceGroups.has(source))sourceGroups.set(source,[]);"));
 
 check("first load uses the updated Archive media array", pages.indexOf("const media=archiveMedia;")>pages.indexOf("if(!archiveInitialized) await loadInitial();"));
 check("Pinterest images can fall back to known thumbnails", pages.includes("data-archive-fallback"));
@@ -79,7 +79,16 @@ check("both row shapes use the coloured chip", pages.includes("${orbitBadge(g,t)
 check("the row map unpacks the colour", pages.includes("ORBIT_APPS.map(([k,g,n,t])=>{"));
 check("the old one-black-pill markup is gone", !pages.includes("<span>${g}</span>"));
 
-console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
 check("Archive Instagram shadow layers orange and violet", pages.includes("box-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb"));
 check("Archive Pinterest shadow has orange depth", pages.includes("box-shadow:3px 3px 0 #f97316,6px 6px 0 -2px #ffae42"));
+
+check("each Archive card uses the shadow indicator instead of three dots",
+ pages.includes("const strip='<div class=\"instagram-archive-strip\"'") &&
+ !pages.includes("'+actions+'<i></i><i></i><i></i></div>'"));
+check("Archive has one source color key above the grid",
+ pages.includes('class="archive-color-guide"') &&
+ pages.includes('archive-key-instagram') && pages.includes('archive-key-pinterest'));
+check("Archive grid groups by source not every photo",
+ pages.includes('const sourceGroups=new Map()') && pages.includes('data-archive-group='+"'"+'+esc(source)'));
+console.log(`\n${pass} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);
