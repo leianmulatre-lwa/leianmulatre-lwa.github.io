@@ -1450,7 +1450,7 @@ const connect=e.target.closest('[data-orbit-connect]');
            is live keeps its colour and appears on the Collective Feed; one switched off greys
            its picture and stays here only. */
         const source=String(item.source||'instagram').toLowerCase();
-        const rim={instagram:'#a52a0c',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';
+        const rim={instagram:'#f28c28',tiktok:'#111111',facebook:'#1877f2',pinterest:'#f97316'}[source]||'#a52a0c';
         // Like Collective Feed, show ONE media frame per post—not a long tower.
         // Carousel buttons cycle through every item without growing the card.
         const visualPieces=pieces.length?archivePieceMarkup(pieces[0],0,pieces.length,index+1):'';
