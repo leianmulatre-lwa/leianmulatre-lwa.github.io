@@ -805,6 +805,16 @@ async function sendPostTo(post, destination, tray, address) {
     }
     return;
   }
+  if (destination === "projects" && picture && typeof window.__biglwaProjectCanvas?.addFeedImage === "function") {
+    try {
+      window.__biglwaProjectCanvas.addFeedImage(picture, label);
+      sendStatus(tray, "Added image to your Projects canvas.");
+      if (tray) tray.dataset.open = "0";
+    } catch (error) {
+      sendStatus(tray, error?.message || "Could not add image to Projects.");
+    }
+    return;
+  }
   const key = destination === "projects" ? "biglwaModule_projects" : "biglwaModule_boards";
   const items = readLocalList(key);
   const title = destination === "projects" ? label : (caption ? label : "Collective Feed picture");
