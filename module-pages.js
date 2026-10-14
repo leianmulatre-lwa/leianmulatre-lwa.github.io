@@ -410,6 +410,19 @@
     .module-workspace .module-arcade-screen iframe{display:block;width:100%;height:100%;border:0;background:#fff;transform-origin:top left}
     .module-arcade-deck{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}
     .module-arcade-play .module-game-stage-head>span{position:static;display:block;margin-top:10px;color:#564426!important}
+    /* The animated carousel and selected game share the SAME cabinet screen. */
+    .module-workspace .module-game-viewport.is-playing{display:flex!important;flex-direction:column;gap:0;padding:0!important;overflow:hidden!important;animation:none!important}
+    .module-workspace .module-game-viewport.is-playing::after{pointer-events:none}
+    .module-workspace .module-game-viewport.is-playing>.arcade-player-head{z-index:9;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#221b19;color:#fff2d8;padding:9px 12px;font:700 12px/1.3 system-ui}
+    .module-workspace .module-game-viewport.is-playing>.arcade-player-head strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n    .module-workspace .arcade-unavailable{display:grid;place-content:center;gap:12px;height:100%;min-height:200px;background:#171313;color:#fff2d8;text-align:center;padding:24px}.module-workspace .arcade-unavailable p{max-width:480px;font:12px/1.5 system-ui}.module-workspace .arcade-unavailable a,.module-workspace .arcade-unavailable button{justify-self:center}
+    .module-workspace .module-game-viewport.is-playing>iframe{z-index:2;display:block;border:0;background:#fff;width:100%;flex:1;min-height:0}
+    .module-workspace .module-game-viewport.is-playing>.arcade-player-deck{z-index:9;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 12px;background:#221b19;color:#fff2d8}
+    .module-workspace .arcade-player-deck span{margin-right:auto;font:600 10px/1.4 system-ui;opacity:.85}
+    .module-workspace .module-game-viewport.is-quiz{display:block!important;overflow-y:auto!important;background:#efe8dd;padding:12px!important}
+    .module-workspace .module-game-viewport.is-quiz .module-culture-quiz{display:block!important;margin:0!important;min-height:100%;background:transparent}
+    .module-workspace .module-game-viewport.is-quiz .arcade-return{margin:0 0 12px}
+    .module-workspace .module-game-viewport:fullscreen{width:100vw;height:100vh;max-height:none;border-radius:0}
+    @media(max-width:560px){.module-workspace .arcade-player-deck span{flex-basis:100%}}
     .module-game-directory h2{font:400 24px/1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
     .module-game-directory-list{display:grid;gap:6px;margin-top:12px}
     .module-game-directory-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e5dccf;background:rgba(255,255,255,.55);border-radius:11px;padding:8px 10px}
@@ -803,8 +816,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>Play in arcade</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Open ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"><img src="/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15" alt="ARCADE" width="550" height="130"></div><span>animated preview</span></div></div><div class="module-game-viewport" aria-label="Animated arcade library"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Games run right here in the arcade window below. Some sites won\u2019t load in an iframe — use the Open \u2197 link to play in a new tab. Suggestions are saved privately in this browser for review.</div></section>'+
-        '<section class="module-card module-game-stage module-arcade-play wide" id="arcadeEmulator" hidden><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"><img src="/assets/arcade-wordmark-transparent.png?v=20260917-arcade-depth-15" alt="ARCADE" width="550" height="130"></div><span id="arcadeEmulatorTitle">now playing</span></div></div><div class="module-arcade-screen" id="arcadeScreen" aria-label="Game runs here"></div><div class="module-arcade-deck"><a class="module-action ghost" id="arcadeOpenExternal" href="#" target="_blank" rel="noopener noreferrer">Open ↗ in a new tab</a><button class="module-action ghost" id="arcadeFullscreen" type="button">Fullscreen</button><button class="module-action" id="arcadeClose" type="button">Back to arcade</button></div><div class="module-status" id="arcadeEmulatorStatus">Pick a game to run it inside the arcade.</div></section>'+
+        '<section class="module-card module-game-stage wide"><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Select a game to replace this screen with the player. Some providers prevent embedding; use Open \u2197 when that happens. Suggestions are saved privately in this browser.</div></section>'+
         '<section class="module-card module-game-directory wide"><h2>all games</h2><p>A simple directory, like the converters page. Play runs the game in the arcade; Open ↗ goes there directly in your own tab.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></section>'+
         '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
         '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
@@ -829,38 +841,81 @@ const connect=e.target.closest('[data-orbit-connect]');
       cultureContent.innerHTML='<span class="culture-quiz-progress">question '+(cultureIndex+1)+' of '+cultureQuestions.length+'</span><h3 class="culture-quiz-question">'+esc(item.q)+'</h3><div class="culture-quiz-options">'+item.a.map((answer,index)=>'<button type="button" data-culture-answer="'+index+'">'+esc(answer)+'</button>').join('')+'</div><div class="culture-quiz-feedback" id="cultureQuizFeedback">Choose an answer to reveal the context.</div>';
     };
     drawCultureQuestion();
-    const openCultureQuiz=()=>{cultureIndex=0;cultureScore=0;drawCultureQuestion();culturePanel.hidden=false;culturePanel.scrollIntoView({behavior:'smooth',block:'center'})};
-    $$('[data-play-culture-quiz]',body).forEach(button=>button.addEventListener('click',openCultureQuiz));
-    $$('[data-directory-culture]',body).forEach(button=>button.addEventListener('click',openCultureQuiz));
-    const emulatorPanel=$('#arcadeEmulator',body);
     const emulatorScreen=$('#arcadeScreen',body);
     const emulatorTitle=$('#arcadeEmulatorTitle',body);
-    const emulatorStatus=$('#arcadeEmulatorStatus',body);
-    const emulatorOpen=$('#arcadeOpenExternal',body);
+    const previewMarkup=emulatorScreen.innerHTML;
+    const cultureOriginalParent=culturePanel.parentElement;
+    const restoreArcade=()=>{
+      if(document.fullscreenElement===emulatorScreen)document.exitFullscreen().catch(()=>{});
+      if(culturePanel.parentElement===emulatorScreen){culturePanel.hidden=true;cultureOriginalParent.append(culturePanel)}
+      emulatorScreen.classList.remove('is-playing','is-quiz');
+      emulatorScreen.innerHTML=previewMarkup;
+      emulatorTitle.textContent='choose a game';
+    };
+    const openCultureQuiz=()=>{
+      restoreArcade();
+      cultureIndex=0;cultureScore=0;drawCultureQuestion();
+      emulatorScreen.classList.add('is-playing','is-quiz');
+      emulatorTitle.textContent='now playing · culture quiz';
+      emulatorScreen.replaceChildren();
+      culturePanel.hidden=false;
+      emulatorScreen.append(culturePanel);
+      culturePanel.querySelectorAll('[data-arcade-return]').forEach(button=>button.remove());
+      culturePanel.insertAdjacentHTML('afterbegin','<button type="button" class="module-action ghost arcade-return" data-arcade-return>← back to games</button>');
+      emulatorScreen.scrollIntoView({behavior:'smooth',block:'center'});
+    };
+    $$('[data-directory-culture]',body).forEach(button=>button.addEventListener('click',openCultureQuiz));
     const playEmulator=game=>{
       if(!game||!game.href)return;
+      restoreArcade();
+      const uri=new URL(game.href);
+      if(uri.protocol!=='https:')return;
       emulatorTitle.textContent='now playing · '+game.title;
+      emulatorScreen.classList.add('is-playing');
+      const top=document.createElement('div');
+      top.className='arcade-player-head';
+      const title=document.createElement('strong');
+      title.textContent=game.title;
+      const back=document.createElement('button');
+      back.type='button';back.className='module-action ghost';back.dataset.arcadeReturn='';back.textContent='← games';
+      top.append(title,back);
+      if(uri.hostname==='store.steampowered.com'){
+        emulatorScreen.insertAdjacentHTML('beforeend','<div class="arcade-unavailable"><strong>This is a PC game, not a browser emulator.</strong><p>Five Nights at Freddy’s needs a separate installed copy. Big LWA cannot run the Steam store page as a game.</p><a class="module-action ghost" href="'+esc(uri.href)+'" target="_blank" rel="noopener noreferrer">View game ↗</a><button class="module-action" data-arcade-return type="button">← Back</button></div>');
+        return;
+      }
       const frame=document.createElement('iframe');
-      frame.src=game.href;
-      frame.setAttribute('allow','autoplay; fullscreen; gamepad; encrypted-media; clipboard-write');
-      frame.setAttribute('referrerpolicy','no-referrer-when-downgrade');
+      frame.src=uri.href;
       frame.title='Play '+game.title;
-      emulatorScreen.replaceChildren(frame);
-      emulatorOpen.href=game.href;
-      emulatorStatus.textContent='Running '+game.title+' inside the arcade window. You can resize the window, go fullscreen, or use Open \u2197 if it won\u2019t load here.';
-      emulatorPanel.hidden=false;
-      emulatorPanel.scrollIntoView({behavior:'smooth',block:'start'});
+      frame.setAttribute('allow','autoplay; fullscreen; gamepad');
+      frame.setAttribute('allowfullscreen','');
+      frame.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+      frame.setAttribute('loading','eager');
+      const toolbar=document.createElement('div');
+      toolbar.className='arcade-player-deck';
+      const explain=document.createElement('span');
+      explain.textContent='If this game blocks embedded play, use Open ↗.';
+      const full=document.createElement('button');
+      full.type='button';full.className='module-action ghost';full.dataset.arcadeFullscreen='';full.textContent='Fullscreen';
+      const open=document.createElement('a');
+      open.className='module-action ghost';open.href=uri.href;open.target='_blank';open.rel='noopener noreferrer';open.textContent='Open ↗';
+      toolbar.append(explain,full,open);
+      emulatorScreen.replaceChildren(top,frame,toolbar);
+      emulatorScreen.scrollIntoView({behavior:'smooth',block:'center'});
     };
-    $$('[data-play-external]',body).forEach(button=>button.addEventListener('click',()=>playEmulator(gameLibrary[Number(button.dataset.playExternal)])));
+    emulatorScreen.addEventListener('click',event=>{
+      const target=event.target.closest('button');
+      if(!target)return;
+      if(target.matches('[data-arcade-return]')){restoreArcade();return}
+      if(target.matches('[data-arcade-fullscreen]')){
+        if(document.fullscreenElement===emulatorScreen)document.exitFullscreen().catch(()=>{});
+        else emulatorScreen.requestFullscreen().catch(()=>{});
+        return;
+      }
+      if(target.matches('[data-play-culture-quiz]')){openCultureQuiz();return}
+      if(target.matches('[data-play-external]')){playEmulator(gameLibrary[Number(target.dataset.playExternal)]);return}
+    });
     $$('[data-directory-play]',body).forEach(button=>button.addEventListener('click',()=>playEmulator(gameLibrary[Number(button.closest('[data-directory-index]').dataset.directoryIndex)])));
-    const fullscreenButton=$('#arcadeFullscreen',body);
-    fullscreenButton.onclick=async()=>{
-      if(!document.fullscreenElement){try{await emulatorScreen.requestFullscreen()}catch{}}
-      else{try{await document.exitFullscreen()}catch{}}
-    };
-    document.addEventListener('fullscreenchange',()=>{fullscreenButton.textContent=document.fullscreenElement?'Exit fullscreen':'Fullscreen'});
-    $('[data-close-culture-quiz]',culturePanel).onclick=()=>{culturePanel.hidden=true};
-    $('#arcadeClose',body).onclick=()=>{emulatorPanel.hidden=true;emulatorScreen.replaceChildren();emulatorOpen.removeAttribute('href');emulatorTitle.textContent='now playing'};
+    $('[data-close-culture-quiz]',culturePanel).onclick=restoreArcade;
     cultureContent.onclick=event=>{
       const answerButton=event.target.closest('[data-culture-answer]');
       if(answerButton&&!cultureAnswered){
