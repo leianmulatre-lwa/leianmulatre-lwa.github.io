@@ -91,6 +91,7 @@ async function connect(){await run(async()=>{
   boardsPromise=(async()=>{
    const data=await api('boards'+(more&&boardsNext?'?bookmark='+encodeURIComponent(boardsNext):''));
    const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.boards)?data.boards:Array.isArray(data?.data?.items)?data.data.items:[];
+   if(!Array.isArray(data?.items)&&!Array.isArray(data?.boards)&&!Array.isArray(data?.data?.items))console.warn('Pinterest boards payload has no recognized items array:',Object.keys(data||{}));
    boards=more?[...boards,...items]:items;boardsNext=data?.bookmark||data?.next_bookmark||'';
    render();
    loadCovers().then(render).catch(()=>{});
@@ -238,16 +239,16 @@ async function connect(){await run(async()=>{
   }
   if(!boards.length)return'';
   const tiles=boards.slice(0,6).map(b=>{
-   const coverEntry=covers[b.id];const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry);
+   const coverEntry=covers[b.id];const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry)||image(b);
    /* Boards are addressed by owner, so a profile with no username yet would otherwise
       produce a link with a hole in it. Falling back to the account root still opens
       Pinterest rather than a broken address. */
    const owner=profile.username||profile.business_name;
    const href=owner?'https://www.pinterest.com/'+encodeURIComponent(owner)+'/'+encodeURIComponent(b.id)+'/':'https://www.pinterest.com/';
-   return '<a class="pinterest-board'+(cover?'':' is-empty')+'" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+
+   return '<button type="button" data-pn-board="'+esc(String(b.id))+'" class="pinterest-board'+(cover?'':' is-empty')+'" aria-label="Open '+esc(b.name)+' board">'+
     (cover?'<img loading="lazy" src="'+esc(cover)+'" alt="">':'<span>No cover yet</span>')+
     '<strong>'+esc(b.name)+'</strong>'+
-    (b.pin_count!=null?'<small>'+b.pin_count+' Pins</small>':'')+'</a>';
+    (b.pin_count!=null?'<small>'+b.pin_count+' Pins</small>':'')+'</button>';
   });
   /* Fewer than six boards still fill the grid, so the row never looks half drawn. */
   while(tiles.length<6)tiles.push('<div class="pinterest-board is-empty"><span>&nbsp;</span></div>');
@@ -295,6 +296,7 @@ async function connect(){await run(async()=>{
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
  if(!(e.target instanceof Element))return;
+ const tile=e.target.closest('[data-pn-board]');if(tile){e.preventDefault();e.stopImmediatePropagation();choose(tile.dataset.pnBoard);return;}
  const b=e.target.closest('[data-pn-connect],[data-pn-open],[data-orbit-app="pinterest"],[data-pn-disconnect],[data-pn-refresh],[data-pn-more-boards],[data-pn-more-pins],[data-pn-sync]');
  if(!b)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-pn-disconnect'))disconnect();
@@ -352,6 +354,6 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
  render();
 });
-window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render};
+window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
