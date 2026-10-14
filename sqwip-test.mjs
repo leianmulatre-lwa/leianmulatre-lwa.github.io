@@ -83,7 +83,7 @@ await check('deletion tombstones prevent cross-device resurrection',async()=>{
 await check('Diary journal remains separate and redundant cover label removed',async()=>{
  assert.ok(pages.includes('biglwaDraft_'));
  assert.ok(pages.includes('BigLWASqwip.mount(screenplay)'));
- assert.ok(pages.includes('Property of:'));
+ assert.ok(pages.includes('Journal · ${esc(profileUsername())}'));
  assert.ok(!pages.includes('<strong>Diary</strong><span>Property of:'));
  assert.ok(pages.includes('diaryWritingSection')&&pages.includes('sqwipWritingSection'));
 });
@@ -119,3 +119,13 @@ await check('new assets load before Diary and updated module is cache-busted',as
  assert.ok(index.indexOf(file)<index.indexOf('/module-pages.js?v='));
 });
 console.log(passed+' Sqwip integration checks passed');
+await check('Journal is optional public read-only; Sqwib Notes and screenplays remain private',async()=>{
+ assert.ok(pages.includes("diary:'Journal'"));
+ assert.ok(pages.includes("notes:'Sqwib Note'"));
+ assert.ok(pages.includes("key!=='diary'"),'visitor cannot open private Sqwib Note');
+ assert.ok(pages.includes("profile?.journalVisibility!=='public'"),'private Journal is never rendered to guests');
+ assert.ok(pages.includes("id=\"journalViewButton\""),'Journal has a reading mode');
+ assert.ok(pages.includes("id=\"journalPublish\""),'owner must explicitly opt in');
+ assert.ok(pages.includes("id=\"journalUnpublish\""),'owner can revoke public view');
+ assert.ok(style.includes('.diary-section-nav button[aria-selected="true"]'),'segmented switcher retains selection');
+});
