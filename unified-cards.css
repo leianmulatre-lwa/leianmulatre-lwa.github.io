@@ -1,0 +1,168 @@
+/* BIG LWA — source-aware cards.
+   Collective Feed defines the visual language; Archive and Boards use the same
+   paper, geometry, source shadows and compact window controls. */
+:root{
+  --lwa-card-paper:#fff8ef;
+  --lwa-card-border:#e4d4c8;
+  --lwa-instagram-rim:#7d3ec5;
+  --lwa-pinterest-rim:#e60023;
+}
+#feedPageList > :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card),
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card,
+#pinterestBoards :is(.pinterest-pin,.pn-saved-pin,.pinterest-board){
+  box-sizing:border-box!important;
+  position:relative!important;
+  min-width:0!important;
+  border:1px solid var(--lwa-card-border)!important;
+  border-radius:15px!important;
+  background:var(--lwa-card-paper)!important;
+  box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim,#a52a0c))!important;
+  isolation:isolate;
+}
+#pinterestBoards :is(.pinterest-pin,.pn-saved-pin,.pinterest-board){
+  --feed-card-rim:#e60023;
+  --feed-card-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026;
+  overflow:hidden!important;
+}
+#pinterestBoards :is(.pinterest-pin,.pn-saved-pin) :is(.pn-pin-photo,img),
+#pinterestBoards .pinterest-board .pinterest-board-media{
+  max-width:100%;
+}
+#pinterestBoards :is(.pinterest-pin,.pn-saved-pin,.pinterest-board) :is(img,video){
+  display:block;
+}
+#feedPageList > .biglwa-instagram-card,
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram{
+  --feed-card-rim:#7d3ec5!important;
+  --feed-card-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest{
+  --feed-card-rim:#e60023!important;
+  --feed-card-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{
+  --feed-card-rim:#1877f2!important;
+  --feed-card-shadow:3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{
+  --feed-card-rim:#111111!important;
+  --feed-card-shadow:3px 3px 0 #111111,-2px 8px 20px -14px #25f4ee,8px 13px 24px -16px #fe2c55!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{
+  --feed-card-rim:#d0202f!important;
+  --feed-card-shadow:0 0 0 2px #d0202f,3px 3px 0 #fff6ec,0 13px 28px -16px #d0202f!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-grid{
+  grid-auto-flow:row!important;
+  align-items:start!important;
+  gap:18px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card{
+  overflow:visible!important;
+  content-visibility:visible!important;
+  contain-intrinsic-size:auto!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-media{
+  overflow:hidden!important;
+  border-radius:14px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece{
+  border-radius:14px!important;
+  overflow:hidden!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece :is(img,video){
+  border-radius:14px!important;
+  object-fit:cover!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-strip{
+  background:transparent!important;
+  border-bottom:0!important;
+  height:20px!important;
+  padding:4px 58px 2px 9px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions.biglwa-feed-lights{
+  position:absolute!important;
+  top:7px!important;
+  right:7px!important;
+  left:auto!important;
+  bottom:auto!important;
+  z-index:30!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:3px!important;
+  width:auto!important;
+  height:auto!important;
+  margin:0!important;
+  padding:3px 5px!important;
+  border:1px solid #e1d2c5a9!important;
+  border-radius:999px!important;
+  background:#faf5eced!important;
+  box-shadow:0 3px 12px #0002!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions.biglwa-feed-lights button{
+  appearance:none!important;
+  box-sizing:border-box!important;
+  display:block!important;
+  flex:0 0 8px!important;
+  width:8px!important;
+  height:8px!important;
+  min-width:8px!important;
+  min-height:8px!important;
+  max-width:8px!important;
+  max-height:8px!important;
+  border:1px solid #0002!important;
+  border-radius:50%!important;
+  box-shadow:0 1px 2px #0002!important;
+  font-size:0!important;
+  line-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  cursor:pointer!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] [data-archive-light="delete"]{background:#dc5c63!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] [data-archive-light="archive"]{background:#eec449!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] [data-archive-light="enlarge"]{background:#50ab77!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button:focus-visible{
+  outline:3px solid #5835a1!important;outline-offset:3px!important
+}
+#feedPageList .biglwa-feed-lights{
+  top:7px!important;right:7px!important;left:auto!important;
+  padding:3px 5px!important;gap:3px!important;
+}
+#feedPageList .biglwa-feed-lights button{
+  width:8px!important;height:8px!important;
+  min-width:8px!important;min-height:8px!important;
+  padding:0!important;border-radius:50%!important;
+}
+#feedPageList details.biglwa-card-options{
+  position:absolute!important;left:8px!important;right:auto!important;
+  bottom:8px!important;top:auto!important;
+  opacity:0!important;pointer-events:none!important;
+  transition:opacity .14s ease!important;
+}
+#feedPageList details.biglwa-card-options > summary{
+  display:grid!important;place-items:center!important;
+  width:22px!important;height:22px!important;
+  min-width:22px!important;min-height:22px!important;
+  font:800 15px/1 system-ui!important;
+  padding:0!important;
+}
+#feedPageList :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card):is(:hover,:focus-within) > details.biglwa-card-options,
+#feedPageList details.biglwa-card-options[open]{
+  opacity:1!important;pointer-events:auto!important;
+}
+@media(hover:none){
+  #feedPageList details.biglwa-card-options{
+    opacity:1!important;pointer-events:auto!important;
+  }
+}
+/* An import-status message is never an empty purple media card. */
+#feedPageList > :is(.instagram-import-status,.biglwa-instagram-import-status){
+  --feed-card-rim:#d4cbc1!important;
+  --feed-card-shadow:none!important;
+  border:1px solid #e0d4c9!important;
+  box-shadow:none!important;
+  background:#f8f3eb!important;
+}
