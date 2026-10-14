@@ -26,7 +26,7 @@
      the `source` field instead of a class. The two have to agree or one account would be
      two different colours on the same board. */
   var ACCENTS = {
-    'instagram-feed-item': { accent: '#f28c28', rim:'#f28c28', glow:'#8c3acb', hot:'#ffad42', label: 'Instagram' },
+    'instagram-feed-item': { accent: '#7d3ec5', rim:'#7d3ec5', glow:'#ad82e7', hot:'#5d2999', label: 'Instagram' },
     'tiktok-feed-item': { accent: '#111111', rim:'#111111', glow:'#25f4ee', hot:'#fe2c55', label: 'TikTok' },
     'pinterest-feed-item': { accent: '#e60023', rim:'#e60023', glow:'#ff5269', hot:'#ae0026', label: 'Pinterest' },
     'facebook-feed-item': { accent: '#1877f2', rim:'#1877f2', glow:'#5aa0ff', label: 'Facebook' },
