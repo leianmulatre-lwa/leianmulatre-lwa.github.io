@@ -26,7 +26,7 @@ check("the rim is set on every card, from its own source", feed.includes("--feed
 check("the old per-position colour cycle is gone", !feed.includes("nth-child(6n+2){--feed-card-rim"));
 check("the rim colour is not taken from the source accent any more", !feed.includes("esc(src.accent)"));
 check("every card carries the hard rim and the soft glow", feed.includes(".biglwa-pin{--feed-card-rim:#a52a0c") && feed.includes("--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px") && feed.includes("box-shadow:var(--feed-card-shadow)"));
-check("the live Instagram cards use the same rim", orbit.includes('style="--feed-card-rim:#a52a0c"'));
+check("Instagram cards use the orange rim and purple shadow", orbit.includes('style="--feed-card-rim:#f28c28;--feed-card-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb'));
 
 console.log("\n=== A SLIDESHOW CANNOT MOVE ITS CARD ===");
 check("the frame starts at a fixed ratio", feed.includes(".biglwa-slide{position:relative;width:100%;aspect-ratio:4/5"));
@@ -63,3 +63,5 @@ check("the tray works from any card, not just saved posts", feed.includes("funct
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
+check("Instagram shadows are orange and purple", feed.includes('instagram: { rim:"#f28c28", glow:"#8c3acb", hot:"#ffad42" }'));
+check("Pinterest shadows are orange instead of red", feed.includes('pinterest: { rim:"#f97316", glow:"#ffae42", hot:"#de5e0d" }'));
