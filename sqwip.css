@@ -163,14 +163,27 @@
  .sqwip-root .sqwip-type-parenthetical .sqwip-text{margin-left:18%;margin-right:10%}
  .sqwip-root .sqwip-bottom{padding:0 7px}
 }
+
+.sqwip-root .sqwip-print-title{display:none;white-space:pre-line}
 @media print{
  @page{size:letter;margin:.75in .65in}
  body.sqwip-print-mode *{visibility:hidden!important}
  body.sqwip-print-mode .sqwip-root #sqwipPages,
- body.sqwip-print-mode .sqwip-root #sqwipPages *{visibility:visible!important}
+ body.sqwip-print-mode .sqwip-root #sqwipPages *,
+ body.sqwip-print-mode .sqwip-root .sqwip-print-title{visibility:visible!important}
+ body.sqwip-print-mode .sqwip-root .sqwip-paper{
+  position:absolute!important;inset:0 auto auto 0!important;width:100%!important;
+  margin:0!important;padding:0!important;box-shadow:none!important;
+  border:0!important;background:white!important;min-height:0!important
+ }
+ body.sqwip-print-mode .sqwip-root .sqwip-print-title{
+  display:flex!important;align-items:center;justify-content:center;min-height:9in;
+  margin:0!important;text-align:center;white-space:pre-line;
+  font:700 14pt/1.8 "Courier New",Courier,monospace;color:#111;
+  break-after:page;page-break-after:always
+ }
  body.sqwip-print-mode .sqwip-root #sqwipPages{
-  position:absolute!important;left:0!important;top:0!important;
-  width:100%!important;display:block!important;
+  position:static!important;display:block!important;width:100%!important;
   padding:0!important;margin:0!important
  }
  body.sqwip-print-mode .sqwip-root .sqwip-line{
