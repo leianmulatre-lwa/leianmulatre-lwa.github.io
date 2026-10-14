@@ -24,6 +24,17 @@
   ['KPSU','Portland State','Oregon','https://kpsu.org/']
  ];
  const categories=[['podcast','podcast / radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03']];
+ // Curated discovery items are not booked broadcasts, partnerships, or a live TV feed.
+ // Video IDs below link to the original verified uploader's YouTube content.
+ const featured=[
+  {id:'owen-dreams',category:'podcast',title:'In Your Dreams with Owen Thiele',creator:'Unwell Network · Owen Thiele',subtitle:"Halsey's Mom Thought She Was Delusional",videoId:'iO9g2KEroiw',url:'https://www.youtube.com/watch?v=iO9g2KEroiw',source:'Verified publisher episode'},
+  {id:'nyt-daily',category:'podcast',title:'The Daily',creator:'The New York Times',subtitle:'Daily news podcast · listen with publisher',url:'https://podcasts.apple.com/us/podcast/the-daily/id1200361736',source:'Publisher podcast'},
+  {id:'mrsinformation',category:'podcast',title:'Mr & Mrsinformation',creator:'Creator requested',subtitle:'Channel address not verified yet',source:'Awaiting channel link'},
+  {id:'cn-steven',category:'lwa-tv',title:'Cartoon Network',creator:'Cartoon Network',subtitle:'Steven Universe · Here Comes a Thought',videoId:'dHg50mdODFM',url:'https://www.youtube.com/watch?v=dHg50mdODFM',source:'Official YouTube clip'},
+  {id:'markiplier-scary',category:'lwa-tv',title:'Markiplier',creator:'Markiplier',subtitle:'3 SCARY GAMES #9',videoId:'abHGyg4LKn4',url:'https://www.youtube.com/watch?v=abHGyg4LKn4',source:'Official YouTube video'},
+  {id:'cory-sss',category:'lwa-tv',title:'CoryxKenshin',creator:'CoryxKenshin',subtitle:'Spooky Scary Sunday is Back',videoId:'edk2uac_x0Y',url:'https://www.youtube.com/watch?v=edk2uac_x0Y',source:'Official YouTube video'}
+ ];
+
  const escapeHTML=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const workerFetch=async (path,options={})=>{
   const res=await fetch(API+path,options);
@@ -73,10 +84,11 @@
    categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></section>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
-   '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>the lineup</h2><p>Times shown in your device timezone. Blank squares are unscheduled—not live broadcasts.</p></div>',
+   '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>the lineup</h2><p>Times shown in your device timezone. The named station/creator slots below are a directory, not confirmed broadcast times.</p></div>',
    '<label>Programming date <input id="streamDate" type="date" aria-label="Programming date" value="'+state.day+'"></label></div>',
    '<div class="stream-grid-scroll" tabindex="0" aria-label="Scroll horizontally through 24 hourly programming slots" id="streamGridScroll"><div class="stream-grid" id="streamGrid"></div></div>',
-   '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> programmed</span><span><i class="stream-guide-key open"></i> open slot</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
+   '<div id="streamFeaturedSlots" class="stream-featured-band" aria-label="Station and creator directory slots"></div>',
+   '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> approved program</span><span><i class="stream-guide-key open"></i> open hour</span><span><i class="stream-guide-key source"></i> curated / station slot (not scheduled)</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
    '<section class="stream-body" id="stream-category-content" role="tabpanel" aria-labelledby="stream-tab-podcast">',
    '<div class="stream-spotlight"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">CHANNEL 00 / standby</span><div class="stream-screen-center"><span>✳</span><strong>select a program</strong><small>the picture begins when the schedule is filled.</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></div>',
@@ -107,7 +119,7 @@
   root.querySelector('#streamJumpNow').onclick=()=>{
    state.day=localDay();date.value=state.day;renderGrid();jumpNow();
   };
-  paintCategories();renderGrid();renderCategory();renderRequests();
+  paintCategories();renderGrid();renderFeaturedSlots();renderCategory();renderRequests();
   refreshPublic();refreshAccount();
   const prefill=state.requestPrefill;
   if(prefill)prefillRequest(prefill);
@@ -159,6 +171,64 @@
   grid.innerHTML=first+hours+rows;
   const count=items.filter(x=>localDay(new Date(x.scheduledAt))===state.day).length;
   grid.setAttribute('aria-label',niceDate(state.day)+' programming, '+count+' approved slots');
+ }
+ // Every station gets its own independent selectable slot. These are not time bookings.
+ function renderFeaturedSlots(){
+  const panel=root?.querySelector('#streamFeaturedSlots');if(!panel)return;
+  const current=state.category;
+  const isRadio=current==='podcast';
+  const picks=featured.filter(entry=>entry.category===current);
+  const slots=isRadio?stations.map((station,index)=>
+    '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune '+escapeHTML(station[0])+' from '+escapeHTML(station[1])+'">'+
+    '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span></button>').join(''):'';
+  const videoTiles=picks.map((entry,index)=>{
+   const disabled=!entry.url;
+   const attrs=disabled?' disabled aria-disabled="true"':' data-stream-feature="'+escapeHTML(entry.id)+'"';
+   return '<button type="button" class="stream-source-slot is-creator'+(disabled?' is-unverified':'')+'"'+attrs+'>'+
+    '<small>'+escapeHTML(entry.source)+' / '+String(index+1).padStart(2,'0')+'</small>'+
+    (entry.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(entry.videoId)+'/mqdefault.jpg" alt="">':'')+
+    '<b>'+escapeHTML(entry.title)+'</b><span>'+escapeHTML(entry.subtitle||entry.creator)+'</span></button>';
+  }).join('');
+  if(current==='live'){
+    panel.innerHTML='<div class="stream-band-heading"><b>live channel selector</b><small>No public live broadcasts confirmed yet. Visit the hourly guide or propose an event.</small></div>';
+    return;
+  }
+  panel.innerHTML='<div class="stream-band-heading"><div><small>BIG LWA / '+(isRadio?'CAMPUS DIAL':'VIDEO GUIDE')+'</small><b>'+(isRadio?'every station, its own slot':'creator channels + selected videos')+'</b></div>'+
+   '<span>DIRECT LINKS · NO SIMULATED AIRTIME</span></div>'+
+   (slots?'<div class="stream-source-slots" aria-label="Sixteen individual campus radio station slots">'+slots+'</div>':'')+
+   (videoTiles?'<div class="stream-band-subtitle">'+(isRadio?'podcast video + publisher picks':'watch from the original YouTube creator')+'</div><div class="stream-source-slots is-video" aria-label="Curated independent creator slots">'+videoTiles+'</div>':'')+
+   '<p class="stream-band-note">These tiles are hand-picked links, not scheduled airtime, live simulcasts, or formal partnerships. Playback depends on the original provider allowing embeds.</p>';
+ }
+ function showSource(source) {
+  const monitor=root?.querySelector('#streamMonitor');if(!monitor||!source)return;
+  const title=escapeHTML(source.title),url=source.url;
+  const label=source.source||'Original provider';
+  state.selected={...source,isDiscovery:true};
+  state.category=source.category||state.category;
+  paintCategories();
+  const caption='<span>'+escapeHTML(label)+' / '+title+'</span>';
+  const original=url?'<a href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Open original ↗</a>':'';
+  if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
+    monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+'</div>'+
+      '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>';
+  } else {
+    monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
+      '<div class="stream-screen-center"><span>◉</span><strong>'+title+'</strong>'+
+      '<small>Independent '+escapeHTML(source.type||'source')+'. '+escapeHTML(source.subtitle||'Listen or watch at the official host.')+'</small>'+
+      (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Tune in at original website ↗</a>':'')+
+      '</div><span class="stream-screen-bottom">UNOFFICIAL DIRECTORY · NO REBROADCAST</span></div>';
+  }
+  monitor.scrollIntoView({behavior:'smooth',block:'center'});
+ }
+ function selectStation(index){
+  const station=stations[index];if(!station)return;
+  state.category='podcast';paintCategories();renderCategory();renderFeaturedSlots();renderGrid();
+  showSource({title:station[0],category:'podcast',creator:station[1],subtitle:station[1]+' · '+station[2],source:'Campus radio station',url:station[3],type:'radio station'});
+ }
+ function selectFeature(id){
+  const source=featured.find(item=>item.id===id);
+  if(!source||!source.url)return;
+  showSource(source);
  }
  function renderCategory(){
   if(!root)return;
@@ -294,11 +364,13 @@
   const button=event.target.closest('button');
   if(!button||!root.contains(button))return;
   if(button.matches('[data-stream-tab]')){
-   state.category=button.dataset.streamTab;state.selected=null;paintCategories();renderGrid();renderCategory();return;
+   state.category=button.dataset.streamTab;state.selected=null;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();return;
   }
+  if(button.matches('[data-stream-station]')){selectStation(Number(button.dataset.streamStation));return}
+  if(button.matches('[data-stream-feature]')){selectFeature(button.dataset.streamFeature);return}
   if(button.matches('[data-stream-program]')){selectProgram(button.dataset.streamProgram);return}
   if(button.matches('[data-stream-propose]')){
-   state.category=button.dataset.streamPropose;paintCategories();renderGrid();renderCategory();
+   state.category=button.dataset.streamPropose;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
    root.querySelector('#streamRequestForm').elements.category.value=state.category;
    root.querySelector('#streamRequest').scrollIntoView({behavior:'smooth',block:'center'});return;
   }
@@ -309,5 +381,5 @@
   if(button.matches('[data-stream-approve]'))review(button.dataset.streamApprove,button.dataset.streamOwner,'approved');
   if(button.matches('[data-stream-decline]'))review(button.dataset.streamDecline,button.dataset.streamOwner,'declined');
  }
- window.BigLWAStreamGuide={mount,prefillRequest,get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))}};
+ window.BigLWAStreamGuide={mount,prefillRequest,get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))}};
 })();
