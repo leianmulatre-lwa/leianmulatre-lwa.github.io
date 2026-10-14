@@ -29,7 +29,7 @@ const context={URL,URLSearchParams,Request,Response,Headers,TextEncoder,TextDeco
  btoa:s=>Buffer.from(s,'binary').toString('base64'),atob:s=>Buffer.from(s,'base64').toString('binary')};
 assert.ok(worker.includes('export default {'));
 vm.runInNewContext(worker.replace('export default {','const fakeWorker = {')+
- '\nglobalThis.testFns={route:pnRoute,save:pnSave,pinImage:pnPinImage};',context);
+ '\nglobalThis.testFns={route:fakeWorker.fetch.bind(fakeWorker),save:pnSave,pinImage:pnPinImage};',context);
 const {route,save,pinImage}=context.testFns;
 const req=(path,{method='GET',token='',body=null}={})=>new Request('https://worker.example'+path,{
  method,headers:{Origin:'https://biglwa.com',...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},
