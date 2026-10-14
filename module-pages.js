@@ -107,6 +107,8 @@
     .module-route{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#8b8179}
     .module-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;padding-bottom:22px;border-bottom:1px solid #d9d0c8}
     .module-heading h1{margin:0;font:500 clamp(34px,6vw,66px)/.95 Georgia,serif;letter-spacing:-.04em}
+    /* Match Feed's stitched-letter baseline with other widget heading edges. */
+    .module-workspace[data-module-key="feed"] .module-heading h1{transform:translateX(-12px)}
     .module-heading p{max-width:700px;margin:12px 0 0;font-size:13px;line-height:1.6;color:#6e655f}
     .module-badge{align-self:start;border:1px solid #d8cec5;border-radius:999px;padding:8px 11px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.56);color:#746a64}
     .module-heading-actions{align-self:start;display:grid;justify-items:end;gap:9px;max-width:310px}
