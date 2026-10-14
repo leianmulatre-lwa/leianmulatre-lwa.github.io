@@ -261,6 +261,7 @@
   state.followGuide=!persistentPlayback;
   paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
   if(!persistentPlayback&&!restoreLastPlayed())tuneCurrent();
+  renderFeaturedSlots();
   scheduleMediaPosition();
   lastGuideHour=localDay()+'|'+new Date().getHours();
   if(guideTimer)clearInterval(guideTimer);
@@ -472,8 +473,7 @@
    const playable=stream&&/^https:\/\//i.test(stream);
    surface.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
     '<div class="stream-screen-center"><span>♫</span><strong>'+title+'</strong>'+
-    (playable?'<button type="button" class="stream-radio-play" data-radio-play aria-label="Play or pause station">▶ Play</button><audio preload="auto" id="streamRadioAudio" src="'+escapeHTML(stream)+'"></audio><small id="streamRadioStatus" role="status">Ready to listen inside Big LWA</small>':'<small>This station has no verified embeddable direct stream yet. Its official listening page opens separately.</small>')+
-    (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Official station ↗</a>':'')+
+    (playable?'<button type="button" class="stream-radio-play" data-radio-play aria-label="Play or pause station">▶ Play</button><audio preload="none" id="streamRadioAudio" src="'+escapeHTML(stream)+'"></audio><small id="streamRadioStatus" role="status">Ready to listen here</small>':'<small>Not radio ready · no playable in-site audio stream</small>')+
     '</div><span class="stream-screen-bottom">DIRECT STATION STREAM · NO REHOSTING</span></div>';
   }else if(source.provider==='archive-video'&&Array.isArray(source.episodes)&&source.episodes.length){
    const episode=source.episodes[0];
@@ -501,6 +501,7 @@
     (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">'+cta+'</a>':'')+
     '</div><span class="stream-screen-bottom">ORIGINAL PUBLISHER · NO MIRRORED CONTENT</span></div>';
   }
+  renderFeaturedSlots();
   scheduleMediaPosition();
   if(!options.silent)monitor.scrollIntoView({behavior:'smooth',block:'center'});
  }
@@ -534,7 +535,7 @@
   });
  }
  function selectStation(index,options={}){
-  const station=stations[index];if(!station)return;
+  const station=stations[index];if(!station||!audioStreams[index])return;
   showSource({title:station[0],category:'podcast',creator:station[1],
    subtitle:station[1]+' · '+station[2],source:'Campus radio',
    url:station[3],stationIndex:index,audioUrl:audioStreams[index]||'',type:'radio station',provider:'radio'},options);
@@ -543,7 +544,7 @@
  }
  function selectFeature(id,options={}){
   const source=[...featured,...ballroomChannels,...youtubeLive].find(item=>item.id===id);
-  if(!source||!source.url)return;
+  if(!source||!source.url||!playableFeature(source))return;
   showSource(source,options);
  }
  function selectTwitch(id,options={}){
@@ -571,7 +572,7 @@
   const detail=root.querySelector('#streamSectionDetail');
   const cfg={
    podcast:['CH 01 / THE CAMPUS DIAL','lwa radio',
-    'Campus stations, original mixtapes, independent DJ sets and podcasts. Every source links to its original publisher.'],
+    'Play campus radio directly inside Big LWA. Only stations with a configured audio stream are radio ready.'],
    'lwa-tv':['CH 02 / THE PICTURE','lwa tv',
     'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
    live:['CH 03 / YOUTUBE + TWITCH','live',
@@ -579,12 +580,12 @@
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><span class="stream-discovery-label">↻ shuffled daily · direct creator sources</span></div>';
   if(state.category==='podcast'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / UNIVERSITY STATIONS</span><h3>campus frequencies</h3><p>All 16 campus stations remain individually selectable. Mixtapes, DJ sets and podcasts are in the radio rotation above.</p></div><label>Find your school <input id="streamStationSearch" type="search" placeholder="School, call letters or state" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Browse original station websites. This is a growing independent directory, not an official partnership. <a href="mailto:leian@biglwa.com?subject=Suggest%20a%20campus%20radio%20station">Suggest a missing station ↗</a></p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / PLAYABLE STATIONS</span><h3>press play, stay here</h3><p>Only direct audio streams are shown as ready. Stations requiring an external website are excluded until in-site playback is available.</p></div><label>Find ready station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Original station audio is streamed directly; listing does not imply an official affiliation.</p>';
    const filter=detail.querySelector('#streamStationSearch');
    filter.oninput=()=>renderStations(filter.value);
    renderStations('');
   }else if(state.category==='lwa-tv'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / ORIGINAL CREATOR CHANNELS</span><h3>what’s on your screen?</h3><p>Every selectable creator has a real YouTube channel or direct video link. Ballroom / CCTV is part of LWA TV. Clips may play here; browse entire channels through their original video pages.</p></div></div><p class="stream-directory-note">These are curated links, not official Big LWA channel partnerships or timed broadcasts.</p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / READY TO WATCH</span><h3>pick a video, stay here</h3><p>Use the thumbnail and arrows above to browse playable clips and cartoons. Channel-page links without a playable video are not shown as TV programs. Ballroom / CCTV remains within LWA TV.</p></div></div><p class="stream-directory-note">Original publishers control their own embedding permissions; this does not imply a Big LWA partnership.</p>';
   }else{
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / YOUTUBE + TWITCH</span><h3>relax, listen & watch</h3><p>Lofi Girl, rain ASMR, frequency-based music and Twitch broadcasts can play inside the monitor. Recorded videos are labeled as recordings; channels may be offline.</p></div></div><p class="stream-directory-note">Original players retain publisher attribution and their own embed restrictions.</p>';
   }
@@ -592,7 +593,7 @@
  function renderStations(query){
   const panel=root?.querySelector('#streamStations');if(!panel)return;
   const needle=String(query||'').toLowerCase().trim();
-  const selected=stations.map((station,index)=>({station,index})).filter(({station})=>station.join(' ').toLowerCase().includes(needle));
+  const selected=stations.map((station,index)=>({station,index})).filter(({station,index})=>Boolean(audioStreams[index])&&station.join(' ').toLowerCase().includes(needle));
   panel.innerHTML=selected.map(({station,index})=>
    '<button type="button" class="stream-station" data-stream-station="'+index+'"><span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span><div><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></div><span class="stream-station-go">'+(audioStreams[index]?'▶ Play':'Stream pending')+'</span></button>').join('')||
    '<p class="stream-station-empty">No station in this starter directory matches that search. Suggest a school below.</p>';
@@ -650,6 +651,7 @@
    '<a href="'+escapeHTML(item.youtubeUrl)+'" target="_blank" rel="noopener noreferrer">YouTube ↗</a></div>'+
    '<iframe title="'+escapeHTML(item.title)+'" src="https://www.youtube-nocookie.com/embed/'+escapeHTML(item.videoId)+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>'+
    '</div>';
+  renderFeaturedSlots();
   scheduleMediaPosition();
   if(!options.silent)monitor.scrollIntoView({behavior:'smooth',block:'center'});
  }
@@ -695,6 +697,9 @@
   const button=event.target.closest('button');
   if(!button||!(root?.contains(button)||mediaPortal?.contains(button)))return;
   if(button.matches('[data-stream-return]')){window.openBIGLWAModule?.('stream');return;}
+  if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
+  if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
+  if(button.matches('[data-discovery-play]')){playDiscovery();return;}
   if(button.matches('[data-radio-play]')){state.followGuide=false;saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
   if(button.matches('[data-stream-episode]')){state.followGuide=false;saveLastPlayed(state.selected);changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
   if(button.matches('[data-stream-tab]')){
