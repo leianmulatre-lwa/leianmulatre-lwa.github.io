@@ -251,10 +251,15 @@ async function connect(){await run(async()=>{
   return '<div class="pinterest-board-grid">'+tiles.join('')+'</div>';
  }
  if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('Pinterest','pinterest-feed-item',renderFeedList);
- let importerWaits=0;
  const waitForImporter=()=>new Promise(resolve=>{
-   const check=()=>{if(window.__biglwaOrbitPosts?.importOrbitMedia)return resolve(window.__biglwaOrbitPosts.importOrbitMedia);if(importerWaits++>=75)return resolve(null);setTimeout(check,200)};
-   check();
+  let attempts=0;
+  const check=()=>{
+    const fn=window.__biglwaOrbitPosts?.importOrbitMedia;
+    if(typeof fn==='function')return resolve(fn);
+    if(attempts++>=75)return resolve(null);
+    setTimeout(check,200);
+  };
+  check();
  });
 
  function render(){
