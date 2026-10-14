@@ -106,6 +106,14 @@ function isPicturePiece(piece, parent) {
   const url = clean(piece?.media_url || piece?.thumbnail_url || "");
   return !/\.(mp4|mov|m4v|webm)(\?|$)/i.test(url);
 }
+function isStoredOrbitUrl(url) {
+  try {
+    const parsed = new URL(String(url||''));
+    return parsed.protocol==='https:' &&
+      parsed.hostname==='biglwa-instagram-api.leianmulatre-284.workers.dev' &&
+      /^\/media\/orbit\/[A-Za-z0-9_-]+\//.test(parsed.pathname);
+  } catch { return false; }
+}
 function mediaFromItem(source, item, hostedMedia) {
   const normalizedSource = String(source || "").toLowerCase();
   const caption = clean(item.caption || item.title || item.description || item.alt_text || "Shared from " + source);
@@ -114,14 +122,19 @@ function mediaFromItem(source, item, hostedMedia) {
   const sourcePostId = sourcePostIdFor(item, fallbackUrl);
   const pieces = mediaPieces(item, normalizedSource);
   const mediaItems = pieces.map((piece, index) => {
-    const originalUrl = clean(piece.media_url || piece.thumbnail_url);
-    const slot = sourcePostId + ":" + index;
-    const hosted = hostedMedia?.urls?.get(slot);
     const picture = isPicturePiece(piece, item);
+    const originalUrl = clean(picture ? (piece.media_url || piece.thumbnail_url) : (piece.thumbnail_url || piece.media_url));
+    const slot = sourcePostId + ":" + index;
+    const hosted = clean(hostedMedia?.urls?.get(slot));
+    // Never store an expiring social CDN URL as a permanent Orbit image.
+    // An uncopied item stays in the provider list for a future retry, but not
+    // as a broken card in Collective Feed/Archive/Studio.
+    const durable = ['instagram','pinterest'].includes(normalizedSource);
+    if (durable && !hosted) return null;
     const poster = clean(hosted || piece.thumbnail_url || "");
     return {
       index,
-      isPicture: picture,
+      isPicture: picture || (!picture && !!piece.thumbnail_url && !!hosted),
       url: hosted || originalUrl,
       /* The Worker already stores Orbit media under orbit/<uid>/<name> and returns that
          owner-scoped key. It used to be discarded here, which left Firestore holding only
@@ -132,7 +145,7 @@ function mediaFromItem(source, item, hostedMedia) {
       thumbnailUrl: poster || (picture ? hosted || originalUrl : ""),
       mediaType: clean(piece.media_type || item.media_type || "IMAGE").toUpperCase()
     };
-  }).filter(piece => piece.url);
+  }).filter(piece => piece && piece.url);
   /* imageUrls is pictures only, so a feed card, the preview and the Archive never point an
      <img> at a video file. */
   const imageUrls = mediaItems.filter(piece => piece.isPicture && piece.thumbnailUrl)
@@ -308,13 +321,16 @@ async function importInstagramMediaToR2(items, user, source = 'instagram') {
     const fallbackUrl = source === 'pinterest' ? (pinterestImageUrl(raw) || clean(raw.url)) : clean(raw.media_url || raw.thumbnail_url || raw.url);
     const sourcePostId = sourcePostIdFor(raw, fallbackUrl);
     pieces.forEach((piece, index) => {
-      const url = clean(piece.media_url || piece.thumbnail_url);
+      // Video thumbnails belong in the image cache; copying the full MP4 wastes
+      // the import request and cannot be displayed in an <img> preview.
+      const video = !isPicturePiece(piece, raw);
+      const url = clean(video ? piece.thumbnail_url : (piece.media_url || piece.thumbnail_url));
       if (url) {
         requestItems.push({
           sourcePostId,
           index,
           url,
-          mediaType: clean(piece.media_type || raw.media_type || "IMAGE").toUpperCase()
+          mediaType: video ? "IMAGE" : clean(piece.media_type || raw.media_type || "IMAGE").toUpperCase()
         });
       }
     });
@@ -322,8 +338,10 @@ async function importInstagramMediaToR2(items, user, source = 'instagram') {
 
   const imported = [];
   let failedBatches = 0;
-  for (let start = 0; start < requestItems.length; start += 100) {
-    const batch = requestItems.slice(start, start + 100);
+  // Small requests avoid Worker request timeouts: copying 100 remote CDN images
+  // sequentially used to abort the batch and leave the feed with expiring URLs.
+  for (let start = 0; start < requestItems.length; start += 10) {
+    const batch = requestItems.slice(start, start + 10);
     let response;
     try {
       response = await fetch(MEDIA_ENDPOINT + "/media/orbit-import", {
@@ -399,10 +417,11 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       hostedMedia = null;
     }
     const notCopied = hostedMedia ? (hostedMedia.missing || 0) : items.length;
+    if(notCopied>0)partial+=notCopied;
     if (!hostedMedia || !hostedMedia.urls.size) {
-      warning = source + ' images are temporarily linked to the original platform. Storage copy was unavailable; retry Sync Pins or reconnect if images still fail.';
+      warning = source + ' images could not be stored in BIGLWA. They were not republished with temporary links; reconnect Orbit and retry syncing once permissions are available.';
     } else if (notCopied > 0) {
-      warning = notCopied + ' ' + source + ' image' + (notCopied === 1 ? '' : 's') + ' could not be copied into BIGLWA storage. Their original URLs may expire.';
+      warning = notCopied + ' ' + source + ' image' + (notCopied === 1 ? '' : 's') + ' could not be copied into BIGLWA storage. Only successfully hosted images were saved; reconnect to retry the rest.';
     }
   }
 
@@ -442,6 +461,16 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
         : state === "approved"
           ? "collective"
           : "saved";
+    // A healthy existing R2 copy must never be replaced by a failed/partial
+    // refresh (which previously reintroduced expired third-party URLs).
+    const managedExisting = Array.isArray(existing?.imageUrls) ? existing.imageUrls.filter(url=>isStoredOrbitUrl(url)) : [];
+    if(managedExisting.length && managedExisting.length >= item.imageUrls.length) {
+      item.imageUrls=managedExisting;
+      item.imageUrl=managedExisting[0];
+      item.imageKeys=Array.isArray(existing.imageKeys)?existing.imageKeys:[];
+      item.imageUrlKey=existing.imageUrlKey||null;
+      item.mediaItems=Array.isArray(existing.mediaItems)?existing.mediaItems:item.mediaItems;
+    }
     const data = {
       uid: owner.uid,
       username: owner.username,
