@@ -1502,10 +1502,20 @@ const connect=e.target.closest('[data-orbit-connect]');
         sourceGroups.get(source).push(index);
       }
     });
+    const repeatCount=source=>{
+      let count=0;
+      grouped.order.forEach(key=>{
+        const indices=grouped.groups.get(key)||[];
+        if(indices.length>1&&String(items[indices[0]]?.source||'instagram').toLowerCase()===source)
+          count+=indices.length-1;
+      });
+      return count;
+    };
     return [...sourceGroups].map(([source,indexes])=>
       '<section class="archive-source-group" data-archive-source="'+esc(source)+'">'+
       '<h3 class="archive-group-head">'+esc(names[source]||source)+
-      '<em class="archive-group-count">'+indexes.length+' stored'+(hideDupes?' (unique)':'')+'</em></h3>'+
+      '<em class="archive-group-count">'+indexes.length+' stored'+(hideDupes?' (unique)':'')+'</em>'+
+      (repeatCount(source)?'<em class="archive-group-repeats">'+repeatCount(source)+' additional copies of one picture or matching photos</em>':'')+'</h3>'+
       '<div class="instagram-archive-grid" data-archive-group="'+esc(source)+'">'+
       indexes.map(index=>cardList[index]).join('')+'</div></section>'
     ).join('');
