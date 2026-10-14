@@ -13,10 +13,16 @@ const clean=(links)=>{
   }
   return output;
 };
+// Keep legacy links available for an explicit one-time migration; never silently
+// attribute an unscoped browser link to whichever person logs in next.
+let localLegacy={};
+try{localLegacy=clean(JSON.parse(localStorage.getItem('biglwaOrbitLinks')||'{}'))}catch{}
 let refs,uid='',links={},ready=false,generation=0;
 const broadcast=()=>{
   try{localStorage.setItem('biglwaOrbitLinks',JSON.stringify(links));}catch{}
   window.dispatchEvent(new CustomEvent('biglwa:orbit-links-synced',{detail:{uid,links:{...links}}}));
+  const note=document.querySelector('#studioApp #orbit .orbit-note');
+  if(note)note.textContent='Profile links are saved to your BIGLWA account. Imported media is stored separately in your archive.';
   document.querySelectorAll('#studioApp [data-orbit-app]').forEach(el=>{
     const id=el.dataset.orbitApp;
     if(['instagram','pinterest','tiktok','facebook'].includes(id))return;
@@ -74,9 +80,19 @@ async function save(id,value){
   links=next;broadcast();
   return true;
 }
+async function importLocalLinks(){
+  if(!ready||!uid)throw Error('Sign in before importing local profile links.');
+  const candidate={...localLegacy};
+  let imported=0;
+  for(const [id,url] of Object.entries(candidate)){
+    if(!links[id]){await save(id,url);imported++}
+  }
+  localLegacy={};
+  return imported;
+}
 export function startOrbitAccountLinks(){
   if(window.BigLWAOrbitAccountLinks)return;
-  const api={get:()=>({...links}),save,ready:()=>ready,owner:()=>uid};
+  const api={get:()=>({...links}),save,ready:()=>ready,owner:()=>uid,localPending:()=>Object.keys(localLegacy).filter(k=>!links[k]),importLocalLinks};
   window.BigLWAOrbitAccountLinks=api;
   startIdentity();onIdentityChange(who=>load(who?.uid||''));
   load(identity()?.uid||'');
