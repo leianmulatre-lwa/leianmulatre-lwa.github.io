@@ -406,6 +406,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   let imported = 0;
   let skipped = 0;
   let partial = 0;
+  let copyFailures = 0;
 
   let hostedMedia = null;
   let warning = "";
@@ -417,7 +418,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       hostedMedia = null;
     }
     const notCopied = hostedMedia ? (hostedMedia.missing || 0) : items.length;
-    if(notCopied>0)partial+=notCopied;
+    copyFailures = notCopied;
     if (!hostedMedia || !hostedMedia.urls.size) {
       warning = source + ' images could not be stored in BIGLWA. They were not republished with temporary links; reconnect Orbit and retry syncing once permissions are available.';
     } else if (notCopied > 0) {
@@ -532,13 +533,16 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     }, { merge: true });
   } catch {}
 
+  if (skipped && ['instagram','pinterest'].includes(source.toLowerCase())) {
+    warning += (warning ? ' ' : '')+skipped+' item'+(skipped===1?'':'s')+
+      ' skipped until their media can be safely copied. Existing saved copies were kept.';
+  }
   if (partial) {
-    warning = (warning ? warning + " " : "")
-      + partial + " card" + (partial === 1 ? "" : "s")
-      + " could not be written to every list. Your BIGLWA security rules still need publishing.";
+    warning += (warning ? ' ' : '')+partial+' card'+(partial===1?'':'s')+
+      ' could not be written to every account list. Check your storage permissions.';
   }
 
-  return { imported, skipped, partial, warning };
+  return { imported, skipped, partial, copyFailures, warning };
 }
 
 export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
