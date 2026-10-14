@@ -1,0 +1,45 @@
+name: Pinterest integration checks
+
+on:
+  pull_request:
+    paths:
+      - 'cloudflare-worker-instagram.js'
+      - 'pinterest-orbit.js'
+      - 'orbit-connections.js'
+      - 'orbit-posts.js'
+      - 'module-pages.js'
+      - 'pinterest-*-test.mjs'
+      - '.github/workflows/pinterest-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'cloudflare-worker-instagram.js'
+      - 'pinterest-orbit.js'
+      - 'orbit-connections.js'
+      - 'orbit-posts.js'
+      - 'module-pages.js'
+      - 'pinterest-*-test.mjs'
+      - '.github/workflows/pinterest-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinterest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Check Worker syntax
+        run: node --input-type=module --check < cloudflare-worker-instagram.js
+      - name: Check frontend scripts
+        run: |
+          node --check pinterest-orbit.js
+          node --input-type=module --check < orbit-connections.js
+          node --input-type=module --check < orbit-posts.js
+          node --check module-pages.js
+      - name: Verify Pinterest account and media integration
+        run: |
+          node pinterest-account-test.mjs
+          node pinterest-boards-test.mjs
