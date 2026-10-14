@@ -649,6 +649,18 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
           verifiedFromProvider:true});
       }
     }catch{}
+    // Display verified TikTok authorization immediately, even while the public
+    // account mirror is catching up. Basic Login Kit does not expose @username,
+    // so do not invent a profile URL from the display name.
+    try{
+      const tt=window.__biglwaTikTokOrbit?.state;
+      const uid=String(window.__biglwaIdentity?.uid||'');
+      if(tt?.connected&&tt.uid&&(!uid||tt.uid===uid)&&tt.profile?.open_id){
+        rows.push({id:'tiktok',label:'TikTok',name:tt.profile.display_name||'TikTok account',
+          username:'',avatarUrl:tt.profile.avatar_url||'',
+          link:'https://www.tiktok.com/',verifiedFromProvider:true});
+      }
+    }catch{}
     /* Facebook authorises in the browser through its own SDK, so its state lives on the
        client, not in the shared connections hub. It is merged here so the Orbit page's row
        says Connected when that login has completed. */
@@ -725,6 +737,9 @@ const connect=e.target.closest('[data-orbit-connect]');
    /* The viewer is repainted by the connections watcher, not by the markup, so the current
       route is checked at fire time. Registering here also means the guard is genuinely once
       even if the module is opened and closed repeatedly. */
+   document.addEventListener('biglwa:tiktok-status',()=>{
+     if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
+   });
    document.addEventListener('biglwa:pinterest-status',()=>{
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
