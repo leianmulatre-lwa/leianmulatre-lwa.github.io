@@ -1,0 +1,64 @@
+/* Sqwip: Big LWA local-first screenplay workspace, embedded in Diary. */
+.module-workspace[data-module-key="diary"] #moduleSqwip{width:100%;min-width:0}
+.sqwip-shell{color:#2b2722;min-width:0;border:1px solid #b7aca1;border-radius:11px;overflow:hidden;background:#e9e5df;box-shadow:0 12px 28px -20px #3a332b}
+.sqwip-toolbar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:14px 17px;background:#161719;color:#f8f4eb}
+.sqwip-heading{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sqwip-heading small{font:800 10px/1.35 ui-monospace,monospace;letter-spacing:.08em;color:#d2ac72}
+.sqwip-heading strong{font:400 clamp(25px,4vw,39px)/1 "CS Bergamot Stitched",Georgia,serif}
+.sqwip-heading span{font:600 10px/1.4 ui-monospace,monospace;color:#cabeb0}
+.sqwip-document-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:end}
+.sqwip-document-label,.sqwip-editor-bar label{display:grid;gap:5px;font:800 9px/1.2 ui-monospace,monospace;letter-spacing:.06em}
+.sqwip-document-label select,.sqwip-editor-bar select{max-width:260px;min-width:120px;padding:8px 11px;border:1px solid #ac9f91;border-radius:5px;background:#fffef9;color:#302821;font:700 11px/1.3 system-ui}
+.sqwip-document-actions button,.sqwip-editor-bar button,.sqwip-append{padding:9px 12px;border:1px solid #928577;border-radius:5px;background:#f6f1e7;color:#211d1a;font:800 11px/1.2 ui-monospace,monospace;cursor:pointer}
+.sqwip-document-actions button:hover,.sqwip-editor-bar button:hover,.sqwip-append:hover{background:#f3ddb3}
+.sqwip-document-actions button.is-danger{background:#61302e;border-color:#a35b54;color:#fff0eb}
+.sqwip-document-actions button.is-danger:hover{background:#a43b34}
+.sqwip-shell button:focus-visible,.sqwip-shell select:focus-visible,.sqwip-shell textarea:focus-visible{outline:3px solid #dc9c4e;outline-offset:1px}
+.sqwip-editor-bar{display:flex;align-items:end;flex-wrap:wrap;gap:8px;padding:11px 15px;background:#e0d7cb;border-bottom:1px solid #b7a99b}
+.sqwip-editor-bar button{background:#f5f0e7}
+.sqwip-tool-spacer{flex:1}
+.sqwip-page-container{padding:28px clamp(8px,3.4vw,30px);background:repeating-linear-gradient(45deg,#d7d0c7 0 11px,#e4ded5 11px 22px);display:flex;justify-content:center}
+.sqwip-page{width:min(100%,850px);min-height:850px;box-sizing:border-box;background:#fffefc;padding:clamp(32px,6vw,80px) clamp(30px,6vw,86px) 80px;border:1px solid #b9b2aa;box-shadow:0 7px 23px rgba(37,29,24,.2);font:12pt/1.35 "Courier Prime","Courier New",Courier,monospace}
+.sqwip-title-block{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;min-height:110px;padding:12px 0 26px;margin:0 0 23px;border-bottom:1px dashed #d9d1c8}
+.sqwip-title-block strong{font:700 16pt/1.25 "Courier New",monospace;text-transform:uppercase;overflow-wrap:anywhere}
+.sqwip-title-block span{font:11pt/1.4 "Courier New",monospace;color:#777}
+.sqwip-blocks{display:grid;gap:2px}
+.sqwip-line{min-width:0;margin:0;position:relative}
+.sqwip-line-input{display:block;width:100%;min-width:0;overflow:hidden;resize:none;box-sizing:border-box;padding:3px 5px;margin:0;min-height:24px;border:1px solid transparent;border-radius:2px;background:transparent;color:#191919;white-space:pre-wrap;overflow-wrap:break-word;outline:0;font:12pt/1.38 "Courier Prime","Courier New",Courier,monospace}
+.sqwip-line-input::placeholder{color:#aaa4a0}
+.sqwip-line-input:focus{background:#fff7dc;border-color:#dbc391;box-shadow:inset 3px 0 0 #dba54a}
+.sqwip-line.type-scene{margin:13px 0 5px}
+.sqwip-line.type-scene textarea{font-weight:700;text-transform:uppercase}
+.sqwip-line.type-action textarea{font-weight:400}
+.sqwip-line.type-character{margin:13px 0 0;padding-left:37%;width:100%;box-sizing:border-box}
+.sqwip-line.type-character textarea{font-weight:700;text-transform:uppercase}
+.sqwip-line.type-dialogue{padding:0 17% 0 25%}
+.sqwip-line.type-parenthetical{padding:0 20% 0 32%}
+.sqwip-line.type-transition{padding-left:54%;margin:13px 0}
+.sqwip-line.type-transition textarea{text-transform:uppercase}
+.sqwip-line.type-note textarea{font-style:italic;color:#86612f}
+.sqwip-append{margin:28px auto 0;display:block;border:1px dashed #b5a98c;background:transparent;color:#716957}
+.sqwip-footer{display:flex;flex-wrap:wrap;gap:9px 18px;justify-content:space-between;align-items:center;background:#222126;color:#efe9de;padding:10px 15px;font:700 10px/1.35 ui-monospace,monospace}
+.sqwip-footer>span:first-child{color:#d6bd8e}
+@media(max-width:760px){
+ .sqwip-toolbar{align-items:flex-start}
+ .sqwip-page-container{padding:14px 7px}
+ .sqwip-page{padding:25px clamp(14px,4vw,28px) 45px;min-height:600px}
+ .sqwip-line.type-character{padding-left:27%}
+ .sqwip-line.type-dialogue{padding:0 8% 0 17%}
+ .sqwip-line.type-parenthetical{padding:0 12% 0 24%}
+ .sqwip-line.type-transition{padding-left:39%}
+ .sqwip-editor-bar{gap:6px}
+ .sqwip-document-actions button,.sqwip-editor-bar button{padding:8px}
+}
+@media print{
+ @page{size:letter;margin:.7in}
+ body *{visibility:hidden!important}
+ #moduleSqwip,#moduleSqwip *{visibility:visible!important}
+ #moduleSqwip{position:absolute!important;top:0!important;left:0!important;width:100%!important;margin:0!important;padding:0!important}
+ #moduleSqwip .sqwip-shell,#moduleSqwip .sqwip-page-container,#moduleSqwip .sqwip-page{border:0!important;box-shadow:none!important;background:white!important;padding:0!important;margin:0!important;min-height:0!important;width:100%!important}
+ #moduleSqwip .sqwip-toolbar,#moduleSqwip .sqwip-editor-bar,#moduleSqwip .sqwip-footer,#moduleSqwip .sqwip-append{display:none!important}
+ #moduleSqwip .sqwip-title-block{margin-bottom:32pt}
+ #moduleSqwip .sqwip-line,#moduleSqwip .sqwip-line-input{break-inside:avoid;page-break-inside:avoid}
+ #moduleSqwip .sqwip-line-input{resize:none;overflow:visible;white-space:pre-wrap;border:0;background:transparent!important;box-shadow:none!important;outline:0!important;color:black!important}
+}
