@@ -71,7 +71,7 @@
    }
    if(!details)return;
    const summary=details.querySelector('summary');
-   if(summary){summary.textContent='+';summary.setAttribute('aria-label','More actions: Save, post, or share');summary.setAttribute('title','More actions');}
+   if(summary){if(summary.textContent.trim()!=='+')summary.textContent='+';summary.setAttribute('aria-label','More actions: Save, post, or share');summary.setAttribute('title','More actions');}
    const tray=details.querySelector('.biglwa-send-tray');
    if(card.classList.contains('pinterest-feed-item')&&!card.classList.contains('biglwa-pin-post')&&tray&&!tray.querySelector('[data-publish-connected]')){
      const btn=document.createElement('button');btn.type='button';btn.textContent='Post to Collective Feed';btn.dataset.publishConnected='pinterest';
