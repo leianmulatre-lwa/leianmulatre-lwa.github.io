@@ -72,3 +72,6 @@ check("the centered plus button has been removed",!feed.includes('class="biglwa-
 check("menu still offers Boards and Projects and Map",feed.includes('data-send-to="boards"')&&feed.includes('data-send-to="projects"')&&feed.includes('data-send-map>Pin on Map'));
 check("post owner actions remain in the same menu",feed.includes("data-post-enlarge>View full media")&&feed.includes("data-post-archive>Archive this post"));
 check("menu is anchored top right",feed.includes("#feedPageList .biglwa-card-options{position:absolute!important;top:8px!important;right:8px!important"));
+
+check("Studio feed is exactly one row of four thumbnails",feed.includes("const HERO_SLOTS = 4;")&&feed.includes("cards.join(\"\")")&&!feed.includes("Array.from({ length: Math.ceil(cards.length / 4)"));
+check("Studio feed row has a four-column layout",pages.includes("#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{display:grid!important;grid-template-columns:repeat(4"));
