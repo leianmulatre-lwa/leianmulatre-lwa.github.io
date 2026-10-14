@@ -276,7 +276,9 @@ async function bumpOwnerIndex(store, uid, owner, incoming) {
     const current = snap.exists() ? snap.data() || {} : {};
     const counts = { ...(current.counts || {}) };
     const incomingKey = String(incoming || "").toLowerCase();
-    if (incomingCount) counts[incomingKey] = (counts[incomingKey] || 0) + 1;
+    // Count new records from the source only if not already represented.
+    // This is informational; the Archive collection is the authoritative source.
+    if (incomingKey) counts[incomingKey] = Math.max(Number(counts[incomingKey])||0,1);
     await store.setDoc(ref, {
       uid,
       username: owner.username,
@@ -296,14 +298,14 @@ async function bumpOwnerIndex(store, uid, owner, incoming) {
    throwing. Throwing here aborted the whole import before a single Firestore write, which
    left the Collective Feed, the member profile, and the Archive empty and left other
    devices with nothing to load. */
-async function importInstagramMediaToR2(items, user) {
+async function importInstagramMediaToR2(items, user, source = 'instagram') {
   const firebaseIdToken = await user.getIdToken();
-  if (!firebaseIdToken) throw new Error("Your BIGLWA login expired. Sign in again and reconnect Instagram.");
+  if (!firebaseIdToken) throw new Error("Your BIGLWA login expired. Sign in again to import Orbit images.");
 
   const requestItems = [];
   for (const raw of items) {
-    const pieces = mediaPieces(raw);
-    const fallbackUrl = clean(raw.media_url || raw.thumbnail_url || raw.url);
+    const pieces = mediaPieces(raw, source);
+    const fallbackUrl = source === 'pinterest' ? (pinterestImageUrl(raw) || clean(raw.url)) : clean(raw.media_url || raw.thumbnail_url || raw.url);
     const sourcePostId = sourcePostIdFor(raw, fallbackUrl);
     pieces.forEach((piece, index) => {
       const url = clean(piece.media_url || piece.thumbnail_url);
@@ -329,7 +331,13 @@ async function importInstagramMediaToR2(items, user) {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + firebaseIdToken,
-          "X-Instagram-Session": (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })()
+          ...(source === 'pinterest'
+            ? { "X-Pinterest-Session": (() => {
+                const key='biglwaPinterestSession:'+user.uid;
+                for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(key);if(value)return value;}catch{}}
+                return '';
+              })() }
+            : { "X-Instagram-Session": (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })() })
         },
         body: JSON.stringify({ items: batch })
       });
@@ -383,16 +391,18 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
 
   let hostedMedia = null;
   let warning = "";
-  if (source.toLowerCase() === "instagram") {
-    hostedMedia = await importInstagramMediaToR2(items, user);
-    /* A partial copy is the normal case when one video among many pictures fails, and it
-       used to pass completely silently. Naming the leftovers keeps the difference between
-       "saved" and "saved but still pointing at Instagram" visible to the person saving. */
-    const notCopied = hostedMedia ? (hostedMedia.missing || 0) : 0;
+  if (['instagram','pinterest'].includes(source.toLowerCase())) {
+    try {
+      hostedMedia = await importInstagramMediaToR2(items, user, source.toLowerCase());
+    } catch (error) {
+      console.warn('BIGLWA Orbit image copy:',error);
+      hostedMedia = null;
+    }
+    const notCopied = hostedMedia ? (hostedMedia.missing || 0) : items.length;
     if (!hostedMedia || !hostedMedia.urls.size) {
-      warning = "Orbit media is linked from Instagram instead of copied into BIGLWA storage, so some pictures can stop loading when Instagram retires the link.";
+      warning = source + ' images are temporarily linked to the original platform. Storage copy was unavailable; retry Sync Pins or reconnect if images still fail.';
     } else if (notCopied > 0) {
-      warning = notCopied + " image" + (notCopied === 1 ? "" : "s") + " could not be copied into BIGLWA storage and still load straight from Instagram. Use Save again in a moment to finish them.";
+      warning = notCopied + ' ' + source + ' image' + (notCopied === 1 ? '' : 's') + ' could not be copied into BIGLWA storage. Their original URLs may expire.';
     }
   }
 
@@ -460,6 +470,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     };
     if (!existing) data.createdAt = serverTimestamp();
 
+    if (auth.currentUser?.uid !== user.uid) throw new Error('Account changed during Orbit import. Sign in to the correct account and retry.');
     const written = await writePostRecords(store, user.uid, postId, data, {
       archiveState,
       archivedAt: archiveState === "collective" ? null : (existingArchive?.archivedAt || serverTimestamp()),
@@ -518,8 +529,10 @@ export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
       const existingArchive = await getDocs(query(collection(db, "users", uid, "archive"), limit(1)));
       if (existingArchive.empty) {
         const oldSnap = await getDocs(collection(db, "users", uid, "posts"));
-        const instagram = oldSnap.docs.filter(d => String(d.data()?.source || "").toLowerCase() === "instagram");
-        for (const old of instagram) {
+        // The bridge must include Pinterest, Facebook and other Orbit sources too;
+        // previously it only restored Instagram into Archive.
+        const imported = oldSnap.docs.filter(d => Boolean(d.data()?.orbitImported || d.data()?.source));
+        for (const old of imported) {
           const data = old.data() || {};
           const archiveRef = doc(db, "users", uid, "archive", old.id);
           const archiveSnap = await getDoc(archiveRef);
@@ -537,24 +550,14 @@ export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
     }
   }
 
-  let snap;
-  try {
-    const base = query(
-      collection(db, "users", uid, "archive"),
-      orderBy("sourceCreatedAtMs", "desc")
-    );
-    snap = cursor
-      ? await getDocs(query(base, startAfter(cursor), limit(size)))
-      : await getDocs(query(base, limit(size)));
-  } catch (error) {
-    console.warn("BIGLWA Archive ordered read:", error);
-    /* Keep the same page size on the fallback path so a missing index cannot suddenly
-       dump the whole Archive into the browser. */
-    const base = cursor
-      ? query(collection(db, "users", uid, "archive"), startAfter(cursor))
-      : query(collection(db, "users", uid, "archive"));
-    snap = await getDocs(query(base, limit(size)));
-  }
+  // Firestore orderBy(sourceCreatedAtMs) silently EXCLUDES older Archive docs
+  // with no such field. Read all cards in stable document-ID pages, then sort
+  // each page client-side. The nextCursor remains a Firestore document snapshot.
+  // This preserves older Pinterest/Instagram cards without creating an index.
+  const base = collection(db, "users", uid, "archive");
+  const snap = cursor
+    ? await getDocs(query(base, startAfter(cursor), limit(size)))
+    : await getDocs(query(base, limit(size)));
 
   const now = Date.now();
   const rows = [];

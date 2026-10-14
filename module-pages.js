@@ -190,6 +190,17 @@
     /* A four-piece carousel is laid out as a 2x2 tile instead of one tower, and every piece
        sits in a fixed frame, so a tall photo or a tall frame can never stretch one card into
        a whole page and swallow its row. Same bounding idea as the feed slides. */
+    /* Match the Collective Feed: one media frame per card, never a stack of
+       tall imported images that grows the wall down the page. */
+    .module-workspace[data-module-key="archive"] .instagram-archive-media{position:relative;display:block!important;overflow:hidden;min-width:0}
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece{aspect-ratio:4/5;min-height:0!important;max-height:none!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece img,
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece video{object-fit:contain;background:#f3e9df}
+    .module-workspace[data-module-key="archive"] .archive-carousel-actions{position:absolute;left:7px;right:7px;top:50%;transform:translateY(-50%);display:flex;justify-content:space-between;pointer-events:none;z-index:4}
+    .module-workspace[data-module-key="archive"] .archive-carousel-actions button{pointer-events:auto;width:28px;min-width:28px;height:32px;background:rgba(33,25,22,.72);border:1px solid rgba(255,255,255,.8);border-radius:9px;color:white;cursor:pointer;font:900 21px/1 system-ui;display:grid;place-items:center;box-shadow:0 2px 9px rgba(0,0,0,.2)}
+    .module-workspace[data-module-key="archive"] .archive-carousel-actions button:hover,
+    .module-workspace[data-module-key="archive"] .archive-carousel-actions button:focus-visible{background:#a8372d;outline:2px solid #fff}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card{content-visibility:visible;contain-intrinsic-size:auto}
     .module-workspace[data-module-key="archive"] .instagram-archive-media.is-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
     .module-workspace[data-module-key="archive"] .instagram-archive-piece{position:relative;min-width:0;overflow:hidden;background:#f28c28;aspect-ratio:5/6;min-height:112px;max-height:430px}
     .module-workspace[data-module-key="archive"] .instagram-archive-media.is-tiles .instagram-archive-piece{aspect-ratio:1/1;max-height:390px}
@@ -1224,12 +1235,42 @@ const connect=e.target.closest('[data-orbit-connect]');
     return "3px 3px 0 "+t.rim+",0 12px 25px -16px "+t.glow;
   }
   function archiveMediaPieces(item){
-    if(Array.isArray(item.mediaItems)&&item.mediaItems.length)return item.mediaItems.filter(piece=>piece&&piece.url);
-    if(Array.isArray(item.imageUrls)&&item.imageUrls.length)return item.imageUrls.filter(Boolean).map((url,i)=>({
+    const validImage=url=>{
+      if(typeof url!=='string'||!url.trim())return false;
+      try{
+        const parsed=new URL(url,location.origin);
+        if(!['http:','https:'].includes(parsed.protocol))return false;
+        if(/(^|\.)pinterest\.com$/.test(parsed.hostname)&&/^\/(pin|ideas|search)\b/.test(parsed.pathname))return false;
+        return true;
+      }catch{return false}
+    };
+    const fromPieces=Array.isArray(item.mediaItems)?item.mediaItems
+      .filter(piece=>piece&&(validImage(piece.url)||validImage(piece.thumbnailUrl)))
+      .map(piece=>({...piece,url:validImage(piece.url)?piece.url:piece.thumbnailUrl,
+        thumbnailUrl:validImage(piece.thumbnailUrl)?piece.thumbnailUrl:''})):[];
+    if(fromPieces.length)return fromPieces;
+    const fromUrls=Array.isArray(item.imageUrls)?item.imageUrls.filter(validImage):[];
+    if(fromUrls.length)return fromUrls.map((url,i)=>({
       index:i,url,thumbnailUrl:url,mediaType:item.mediaType||"IMAGE"
     }));
-    return item.imageUrl?[{index:0,url:item.imageUrl,thumbnailUrl:item.imageUrl,mediaType:item.mediaType||"IMAGE"}]:[];
+    if(validImage(item.imageUrl))return [{index:0,url:item.imageUrl,thumbnailUrl:item.imageUrl,mediaType:item.mediaType||"IMAGE"}];
+    const img=item?.media?.images||item?.images||{};
+    const candidates=[img['600x'],img.originals,img['237x'],item?.image_url,item?.thumbnail_url];
+    for(const entry of candidates){
+      const src=typeof entry==='string'?entry:entry?.url;
+      if(validImage(src))return [{index:0,url:src,thumbnailUrl:src,mediaType:'IMAGE'}];
+    }
+    return [];
   }
+  function archivePieceMarkup(piece,index,total,cardIndex){
+    const link=piece.url;
+    const isVideo=String(piece.mediaType||'').toUpperCase()==='VIDEO'||/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(link);
+    const visual=isVideo
+      ? '<video src="'+esc(link)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
+      : '<img src="'+esc(link)+'"'+(piece.thumbnailUrl&&piece.thumbnailUrl!==link?' data-archive-fallback="'+esc(piece.thumbnailUrl)+'"':'')+' alt="Archive item '+cardIndex+(total>1?' '+(index+1):'')+'" loading="lazy" decoding="async">';
+    return '<div class="instagram-archive-piece">'+visual+(total>1?'<span>'+(index+1)+'/'+total+'</span>':'')+'</div>';
+  }
+
   function archiveOpenImage(url){
     if(!url)return;
     try{window.open(url,"_blank","noopener,noreferrer");}catch{}
@@ -1326,7 +1367,8 @@ const connect=e.target.closest('[data-orbit-connect]');
 
     const draw=async()=>{
       const owner=!previewMode;
-      const media=archiveMedia;
+      // Do not capture archiveMedia before loadInitial() resolves. The first
+      // render previously kept the pre-fetch [] and falsely showed an empty wall.
       let settings={visibility:'private',friends:[]},profile=orbit?.state?.profile||{},status='';
       try{
             if(owner){
@@ -1342,13 +1384,14 @@ const connect=e.target.closest('[data-orbit-connect]');
             return;
           }
           if(!archiveInitialized) await loadInitial();
-          if(!media.length)status='This friend has not shared any archived content yet.';
+          if(!archiveMedia.length)status='This friend has not shared any archived content yet.';
         }
       }catch(error){
         console.error('BIGLWA Archive:',error);
         status=error?.message||'The Archive could not be loaded.';
       }
 
+    const media=archiveMedia;
     const username=profile.username||profile.name||previewUsername||'BIGLWA member';
       const filters=readFilters();
       const seenSources=[...new Set(media.map(sourceNameOf))];
@@ -1372,13 +1415,12 @@ const connect=e.target.closest('[data-orbit-connect]');
            its picture and stays here only. */
         const source=String(item.source||'instagram').toLowerCase();
         const rim={instagram:'#a52a0c',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';
-        const visualPieces=pieces.slice(0,PIECES_PER_CARD).map((piece,pieceIndex)=>{
-          const isVideo=String(piece.mediaType||'').toUpperCase()==='VIDEO'||/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(piece.url);
-          const visual=isVideo
-            ? '<video src="'+esc(piece.url)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
-            : '<img src="'+esc(piece.url)+'" alt="Archive item '+(index+1)+(pieces.length>1?' '+(pieceIndex+1):'')+'" loading="lazy" decoding="async">';
-          return '<div class="instagram-archive-piece">'+visual+(pieces.length>1&&pieceIndex===0?'<span>'+(pieceIndex+1)+'/'+pieces.length+'</span>':'')+'</div>';
-        }).join('');
+        // Like Collective Feed, show ONE media frame per post—not a long tower.
+        // Carousel buttons cycle through every item without growing the card.
+        const visualPieces=pieces.length?archivePieceMarkup(pieces[0],0,pieces.length,index+1):'';
+        const carouselControls=pieces.length>1
+          ? '<div class="archive-carousel-actions"><button type="button" data-archive-step="-1" aria-label="Previous photo">‹</button><button type="button" data-archive-step="1" aria-label="Next photo">›</button></div>'
+          : '';
         const liveSwitch=pending
           ? '<div class="archive-live is-locked"><span class="archive-live-track" aria-hidden="true"><i></i></span><b>Deleting soon</b></div>'
           : owner
@@ -1406,7 +1448,7 @@ const connect=e.target.closest('[data-orbit-connect]');
           : '';
         return '<article class="instagram-archive-card '+(posted?'is-live':'is-off')+' is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
           strip+
-          '<div class="instagram-archive-media'+(pieces.length>=4?' is-tiles':'')+'">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Media unavailable</small></div>')+'</div>'+
+          '<div class="instagram-archive-media">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Image unavailable · original link may have expired</small></div>')+carouselControls+'</div>'+
           pendingMeta+
           '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small>'+statusLine+'</div>'+
           liveSwitch+
@@ -1426,19 +1468,44 @@ const connect=e.target.closest('[data-orbit-connect]');
       body.innerHTML=heading('archive',count?count+' card'+(count===1?'':'s')+' stored':'')+
         '<div class="module-grid">'+
         '<section class="module-card wide archive-wall-shell">'+
-          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive</h2><p>Saved photos use the same card wall as Collective Feed. Each keeps its own colour; turn the switch off and a photo grey here instead of showing live.</p></div>'+
+          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive</h2><p>Each source has its own colored card rim, and carousels stay inside one card. Turn Live off to hide a post from Collective Feed while keeping it here.</p></div>'+
     (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveConnections" type="button">Manage connections</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
           (union.length?'<div class="archive-filter-bar" id="archiveFilterBar">'+
             union.map(k=>'<button type="button" class="archive-filter-chip '+((filtering?allowed.has(k):true)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'">'+esc({instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'}[k]||k)+'</button>').join('')+
             '<label class="archive-dupes"><input type="checkbox" id="archiveHideDupes"'+(hideDupes?' checked':'')+'><span>Hide duplicates</span></label></div>':'')+
           '':'')+
           '</div>'+
-          '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(orbit?.state?.connected?'Imported from @'+username+'.':'Connect Instagram in Orbit, then import your archive.'):'Shared with friends.'))+'</div>'+
+          '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(media.length?'Imported cards are saved to your account.':'Connect Instagram or Pinterest in Orbit, then refresh imports.'):'Shared with friends.'))+'</div>'+
           '<p class="archive-legend"><i class="is-live"></i>In color · on the Collective Feed<i class="is-archived"></i>Archived · grey here</p>'+
           (cards?'<div class="archive-page-list">'+cards+'</div>':'<div class="archive-empty">'+(media.length&&!mediaShown.length?'No cards match the filters you chose.':'No media has been imported yet.')+'</div>')+
           (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
 
+    // Both owners and approved friends can browse carousel cards. Old media
+    // URLs get a second chance via their saved thumbnail when an image fails.
+    const wall=$('.archive-page-list',body);
+    wall?.addEventListener('error',event=>{
+      const image=event.target.closest?.('img[data-archive-fallback]');
+      if(!image)return;
+      const fallback=image.dataset.archiveFallback;
+      image.removeAttribute('data-archive-fallback');
+      if(fallback)image.src=fallback;
+    },true);
+    wall?.addEventListener('click',event=>{
+      const arrow=event.target.closest('[data-archive-step]');
+      if(!arrow)return;
+      const card=arrow.closest('[data-archive-id]');
+      if(!card)return;
+      const item=mediaShown.find(row=>String(row.id)===String(card.dataset.archiveId));
+      if(!item)return;
+      const pieces=archiveMediaPieces(item);
+      if(pieces.length<2)return;
+      const index=(Number(card.dataset.archiveSlide||0)+Number(arrow.dataset.archiveStep)+pieces.length)%pieces.length;
+      card.dataset.archiveSlide=String(index);
+      card.dataset.archiveUrl=pieces[index].url;
+      const frame=card.querySelector('.instagram-archive-piece');
+      if(frame)frame.outerHTML=archivePieceMarkup(pieces[index],index,pieces.length,1);
+    });
     if(owner){
         $('#archiveConnections',body)?.addEventListener('click',()=>openConnectionsPopup());
         const filterBar=$('#archiveFilterBar',body);
@@ -1456,11 +1523,15 @@ const connect=e.target.closest('[data-orbit-connect]');
         });
         $('#archiveRefreshInstagram',body)?.addEventListener('click',async()=>{
           const button=$('#archiveRefreshInstagram',body),st=$('#archiveInstagramStatus',body);
-          button.disabled=true;if(st)st.textContent='Refreshing Instagram into your Archive + Collective Feed…';
+          button.disabled=true;if(st)st.textContent='Syncing connected Orbit sources, including Pinterest…';
           try{
+            // Do not let a disconnected Instagram account block Pinterest sync.
+            const sources=[orbit?.restore?.bind(orbit),window.__biglwaPinterest?.restore?.bind(window.__biglwaPinterest)].filter(Boolean);
+            await Promise.allSettled(sources.map(fn=>fn()));
+            if(window.__biglwaPinterest?.syncAllBoards)await window.__biglwaPinterest.syncAllBoards();
             archiveInitialized=false;archiveMedia=[];archiveCursor=null;archiveHasMore=false;
-            await orbit?.restore?.();await draw();
-          }catch(error){if(st)st.textContent=error?.message||'Instagram could not be refreshed.'}finally{button.disabled=false}
+            await draw();
+          }catch(error){if(st)st.textContent=error?.message||'The Archive could not refresh its connected Orbit imports.'}finally{button.disabled=false}
         });
         $('#archiveLoadMore',body)?.addEventListener('click',loadMore);
         $('#archiveVisibility',body)?.addEventListener('change',async(event)=>{

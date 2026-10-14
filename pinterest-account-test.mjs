@@ -9,18 +9,22 @@ const ui=readFileSync(new URL('./pinterest-orbit.js',import.meta.url),'utf8');
 const connections=readFileSync(new URL('./orbit-connections.js',import.meta.url),'utf8');
 const pages=readFileSync(new URL('./module-pages.js',import.meta.url),'utf8');
 const records=new Map();
+const copied=new Map();
 const kv={
  async get(k,type){const data=records.get(k);return data==null?null:type==='json'?JSON.parse(data):data},
  async put(k,v){records.set(k,v)},
  async delete(k){records.delete(k)}
 };
-const env={SITE_URL:'https://biglwa.com',PINTEREST_APP_ID:'fake-id',PINTEREST_APP_SECRET:'fake-secret',OAUTH_SESSIONS:kv};
+const env={SITE_URL:'https://biglwa.com',PINTEREST_APP_ID:'fake-id',PINTEREST_APP_SECRET:'fake-secret',OAUTH_SESSIONS:kv,
+ WALLPAPER_BUCKET:{async put(k,bytes,meta){copied.set(k,{bytes,meta})},async get(k){return copied.has(k)?copied.get(k):null}}};
 const mockFetch=async (request,options)=>{
  const req=typeof request==='string'?new Request(request,options):request,url=new URL(req.url);
  if(url.hostname==='identitytoolkit.googleapis.com'){
   const input=await req.json(),uid=({'token-one':'uid-one','token-two':'uid-two'})[input.idToken];
   return new Response(JSON.stringify({users:uid?[{localId:uid}]:[]}),{status:uid?200:400});
  }
+ if(url.hostname==='i.pinimg.com')
+  return new Response(new Uint8Array([137,80,78,71,13,10,26,10]),{status:200,headers:{'content-type':'image/png'}});
  if(url.hostname==='api.pinterest.com'&&url.pathname==='/v5/user_account')
   return new Response(JSON.stringify({username:'pintest',profile_image:'https://i.pinimg.com/a.jpg'}),{status:200});
  throw Error('Unexpected request '+url.href);
@@ -69,6 +73,28 @@ await check('linked account can fetch its Pinterest profile',async()=>{
  const response=await route(req('/pinterest/profile',{token:sid}),env);
  assert.equal(response.status,200);assert.equal((await response.json()).username,'pintest');
 });
+await check('Pinterest Pin image copy requires matching Firebase uid and Pinterest account',async()=>{
+ const items=[{sourcePostId:'123',index:0,url:'https://i.pinimg.com/originals/p1.png',mediaType:'IMAGE'}];
+ const body=JSON.stringify({items});
+ const good=new Request('https://worker.example/media/orbit-import',{method:'POST',
+  headers:{Origin:'https://biglwa.com',Authorization:'Bearer token-one','X-Pinterest-Session':sid,'Content-Type':'application/json'},body});
+ const ok=await route(good,env);
+ assert.equal(ok.status,200);
+ const data=await ok.json();
+ assert.equal(data.imported.length,1);
+ assert.ok(data.imported[0].url.includes('/media/orbit/uid-one/'));
+ assert.ok(data.imported[0].key.startsWith('uid-one/'));
+ assert.equal(copied.size,1);
+ assert.equal([...copied.values()][0].meta.customMetadata.source,'pinterest');
+ const mismatched=new Request('https://worker.example/media/orbit-import',{method:'POST',
+  headers:{Origin:'https://biglwa.com',Authorization:'Bearer token-two','X-Pinterest-Session':sid,'Content-Type':'application/json'},body});
+ assert.equal((await route(mismatched,env)).status,403);
+ const unapproved=new Request('https://worker.example/media/orbit-import',{method:'POST',
+  headers:{Origin:'https://biglwa.com',Authorization:'Bearer token-one','X-Pinterest-Session':sid,'Content-Type':'application/json'},
+  body:JSON.stringify({items:[{sourcePostId:'bad',index:0,url:'https://www.pinterest.com/pin/1'}]})});
+ assert.equal((await route(unapproved,env)).status,502);
+ assert.equal(copied.size,1);
+});
 await check('PKCE handoff requires a matching verifier',async()=>{
  const handoff='h'.repeat(43),otherSid='n'.repeat(43),verifier='v'.repeat(43);
  const digest=await webcrypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier));
@@ -103,6 +129,12 @@ await check('Orbit records and UI use verified Pinterest status',async()=>{
  assert.ok(!ui.includes('session()||storageGet(KEY)'), 'Legacy browser token must not attach to a new login');
  assert.ok(ui.includes('session/claim')&&ui.includes('session/account'));
  assert.ok(ui.includes('data-pn-sync')&&ui.includes('biglwa:orbit-imported'));
+ assert.ok(ui.includes('syncAllBoards,disconnect,render'));
+ assert.ok(posts.includes('"X-Pinterest-Session"'));
+ assert.ok(posts.includes("['instagram','pinterest'].includes(source.toLowerCase())"));
+ assert.ok(pages.includes("window.__biglwaPinterest.syncAllBoards()"));
+ assert.ok(pages.includes("const media=archiveMedia;"));
+ assert.ok(!posts.slice(posts.indexOf("export async function loadArchive"),posts.indexOf("export async function getArchiveSettings")).includes('orderBy("sourceCreatedAtMs"'));
  assert.ok(connections.includes('recoverPinterestSession(uid)')&&connections.includes('refreshSource'));
  assert.ok(pages.includes('ORBIT_HANDS=key=>')&&pages.includes('filter(row=>row&&row.id&&row.link)'));
 });
