@@ -160,6 +160,53 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    /* Veve public Sqwibs. Existing Sqwib drafts never enter Firestore:
+       only an explicit owner Publish action creates one of these documents.
+       Revocation removes text from all public queries and Veve reshares. */
+    match /sqwibs/{sqwibId} {
+      allow read: if resource.data.visibility == 'public'
+        || isOwner(resource.data.uid);
+      allow create: if isOwner(request.resource.data.uid)
+        && request.resource.data.keys().hasOnly([
+          'uid', 'text', 'visibility', 'allowResqwib', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1200
+        && request.resource.data.visibility == 'public'
+        && request.resource.data.allowResqwib is bool;
+      allow update: if isOwner(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.keys().hasOnly([
+          'uid', 'text', 'visibility', 'allowResqwib', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.text == resource.data.text
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.visibility in ['public','private']
+        && request.resource.data.allowResqwib is bool
+        && (request.resource.data.visibility == 'public'
+           || request.resource.data.allowResqwib == false);
+      allow delete: if isOwner(resource.data.uid);
+    }
+
+    /* A resqwib contains a reference only, never copied source text.
+       Publication is denied unless the original author explicitly allowed it.
+       Veve rechecks that permission every time it renders a reshare, so
+       unpublishing or disabling resqwibs immediately hides the source content. */
+    match /sqwibReshares/{reshareId} {
+      allow read: if true; // public reference metadata (uid and Sqwib id), not note content
+      allow create: if isOwner(request.resource.data.uid)
+        && reshareId == request.auth.uid + '_' + request.resource.data.sourceId
+        && request.resource.data.keys().hasOnly(['uid','sourceId','createdAt'])
+        && request.resource.data.sourceId is string
+        && exists(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId))
+        && get(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId)).data.visibility == 'public'
+        && get(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId)).data.allowResqwib == true
+        && get(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId)).data.uid != request.auth.uid;
+      allow update: if false;
+      allow delete: if isOwner(resource.data.uid);
+    }
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;
