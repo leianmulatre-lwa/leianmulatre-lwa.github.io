@@ -28,6 +28,12 @@
   /* politc: user-supplied Nyame Baatanpa Studio symbol */
   #studioApp #politc .politc-studio-symbol{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;flex-shrink:0}
   #studioApp #politc .politc-studio-symbol img{display:block;width:34px;height:34px;object-fit:contain}
+  #moduleWorkspace[data-module-key="politc"] .module-heading h1:before{
+    content:"";display:inline-block;width:37px;height:37px;vertical-align:-8px;margin-right:12px;
+    background:url("/assets/politc-nyame-baatanpa.svg?v=20261014-1") center/contain no-repeat
+  }
+  body.night-mode #moduleWorkspace[data-module-key="politc"] .module-heading h1:before{filter:invert(1)}
+
   body.night-mode #studioApp #politc .politc-studio-symbol img{filter:invert(1)}
   /* politc: monochrome wanted-board editorial styling */
   .politc-board{--poster:#efe3cd;--ink:#28231e;display:grid;gap:18px}
