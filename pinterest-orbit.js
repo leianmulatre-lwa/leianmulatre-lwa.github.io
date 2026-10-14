@@ -352,6 +352,6 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
  render();
 });
-window.__biglwaPinterest={connect,restore,disconnect,render};
+window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
