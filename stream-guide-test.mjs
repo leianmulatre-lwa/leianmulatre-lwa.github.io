@@ -159,7 +159,7 @@ await check('all sixteen unique campus stations and eight podcast/mixtape picks 
  assert.equal(audio.length,8);
  assert.ok(audio.some(x=>x.title==='The Daily'));
  assert.ok(audio.some(x=>x.title.includes('Owen Thiele')));
- assert.equal(audio.filter(x=>x.status==='ORIGINAL MIXTAPE').length,4);
+ assert.equal(audio.filter(x=>x.status==='ORIGINAL MIXTAPE').length,5);
  assert.ok(guide.every(x=>x.title&&x.subtitle&&x.status));
 });
 await check('creator rotation uses authentic channel URLs and no hypothetical placeholders',async()=>{
