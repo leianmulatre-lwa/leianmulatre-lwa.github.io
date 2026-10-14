@@ -158,7 +158,7 @@ await check('Ballroom sources remain credited but channel-only URLs never masque
  assert.ok(row);assert.equal(row.slots.length,24);
  assert.ok(row.slots.every(x=>!archive.some(y=>y.id===x.id)),'channel-only Ballroom destinations must not be shown as playable programs');
  assert.ok(stream.includes("category:'lwa-tv'"));
- assert.ok(stream.includes('Ballroom / CCTV is part of LWA TV'));
+ assert.ok(stream.includes('Ballroom / CCTV remains within LWA TV'));
  assert.ok(style.includes('.stream-slot.is-ballroom'));
  assert.ok(style.includes('.stream-source-slot.is-ballroom'));
 });
