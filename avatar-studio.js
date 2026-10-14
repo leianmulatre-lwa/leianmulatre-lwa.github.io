@@ -70,8 +70,7 @@
       '<button type="button" class="window-light green" data-avatar-widget-action="edit" aria-label="Customize Avatar" title="Customize Avatar"></button></div></div>'+
       '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Reorder Aura and Avatar widgets" title="Drag to move the Aura and Avatar widgets">'+
       '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
-      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Saved avatar preview"></div>'+
-      '<button type="button" class="biglwa-avatar-edit-link" data-avatar-edit>Customize avatar ↗</button>';
+      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Saved avatar preview"></div>';
     showAvatar();
   }
   function syncEditorPreview(){
@@ -295,7 +294,6 @@
   }
   document.addEventListener('click',async e=>{
     if(e.target.closest('[data-avatar-restore]')){e.preventDefault();setVisibility('shown');return}
-    if(e.target.closest('[data-avatar-edit]')){e.preventDefault();e.stopPropagation();openEditor();return}
     const origin=e.target.closest('#studioAvatarCard');
     const control=origin&&e.target.closest('[data-avatar-widget-action]');
     if(control){
@@ -571,11 +569,11 @@
   font-size:clamp(18px,1.35vw,23px)!important;padding-right:72px!important;text-transform:lowercase!important
 }
 #studioApp #studioAvatarCard .biglwa-avatar-media{
-  flex:1 1 68px!important;min-height:64px!important;max-height:75px!important;
+  flex:1 1 115px!important;min-height:98px!important;max-height:none!important;
   margin:0!important;border-radius:9px!important;overflow:hidden!important
 }
-#studioApp #studioAvatarCard .biglwa-avatar-media canvas{max-height:73px!important;width:auto!important}
-#studioApp #studioAvatarCard .biglwa-avatar-media img{max-height:73px!important;width:auto!important}
+#studioApp #studioAvatarCard .biglwa-avatar-media canvas{max-height:136px!important;width:auto!important}
+#studioApp #studioAvatarCard .biglwa-avatar-media img{max-height:136px!important;width:auto!important}
 #studioApp #studioAvatarCard .biglwa-avatar-empty{font:24px/1 Georgia,serif!important}
 #studioApp #studioAvatarCard .biglwa-avatar-empty span{font:700 9px/1.3 system-ui!important}
 #studioApp #studioAvatarCard .biglwa-avatar-edit-link{
