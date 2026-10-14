@@ -49,6 +49,30 @@
  #feedPageList .biglwa-unavailable-media{display:grid;place-items:center;min-height:145px;line-height:1.45;
    padding:20px;text-align:center;color:#5e5148;font:600 12px/1.5 system-ui;background:#ede4da}
  #feedPageList .biglwa-send-status{font:11px/1.4 system-ui!important;white-space:normal!important}
+ /* Small + appears on image hover or keyboard focus, not constantly over the artwork. */
+ #feedPageList .biglwa-card-options{right:auto!important;left:8px!important;bottom:8px!important;opacity:0;pointer-events:none;transition:opacity .13s ease!important}
+ #feedPageList .biglwa-card-options>summary{width:25px!important;height:25px!important;font:800 17px/1 system-ui!important;border-radius:50%!important}
+ #feedPageList :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card):is(:hover,:focus-within)>.biglwa-card-options,
+ #feedPageList .biglwa-card-options[open]{opacity:1!important;pointer-events:auto!important}
+ #feedPageList .biglwa-card-options .biglwa-send-tray{right:auto!important;left:0!important;bottom:34px!important}
+ @media(hover:none){#feedPageList .biglwa-card-options{opacity:1!important;pointer-events:auto!important}}
+ /* Three tiny window controls: only the owner can archive/remove a saved post. */
+ #feedPageList .biglwa-feed-lights{position:absolute;top:9px;left:9px;z-index:25;display:flex!important;gap:5px;align-items:center;
+   padding:5px 7px;background:#faf5ecce;border:1px solid #e1d2c5a9;border-radius:50px;box-shadow:0 3px 12px #0002}
+ #feedPageList .biglwa-feed-lights>button{display:block!important;flex:none!important;width:11px!important;height:11px!important;
+   min-height:11px!important;border:1px solid #0002!important;border-radius:50%!important;cursor:pointer!important;
+   padding:0!important;min-width:11px!important;line-height:0!important;font-size:0!important;box-shadow:0 1px 2px #0002!important}
+ #feedPageList .biglwa-feed-lights [data-feed-light="delete"]{background:#dc5c63!important}
+ #feedPageList .biglwa-feed-lights [data-feed-light="archive"]{background:#eec449!important}
+ #feedPageList .biglwa-feed-lights [data-feed-light="enlarge"]{background:#50ab77!important}
+ #feedPageList .biglwa-feed-lights button:disabled{opacity:.4!important;cursor:not-allowed!important}
+ #feedPageList .biglwa-feed-lights button:focus-visible{outline:3px solid #fff!important;outline-offset:2px!important}
+ #feedPageList .biglwa-unified-source{left:auto!important;right:9px!important;top:9px!important}
+ #biglwaFeedLightbox{border:0;padding:20px;border-radius:18px;background:#191716;color:#fff;max-height:90vh;max-width:min(88vw,1050px);box-shadow:0 18px 65px #0009}
+ #biglwaFeedLightbox::backdrop{background:#000b}
+ #biglwaFeedLightbox img,#biglwaFeedLightbox video{display:block;max-width:100%;max-height:78vh;margin:auto;object-fit:contain}
+ #biglwaFeedLightbox button{float:right;border:0;border-radius:9px;background:#fff;color:#292525;padding:5px 11px;cursor:pointer}
+ 
  `;
  const style=document.createElement('style');style.id='biglwaFeedPolishStyles';style.textContent=styles;document.head.appendChild(style);
  const fallbackMarkup=(url)=>'<details class="biglwa-send biglwa-card-options"><summary aria-label="More actions">+</summary>'+
@@ -70,6 +94,23 @@
      details=card.querySelector('details.biglwa-card-options');
    }
    if(!details)return;
+   if(!card.querySelector('.biglwa-feed-lights')){
+     const owned=card.dataset.feedOwned==='1';
+     const lights=document.createElement('div');lights.className='biglwa-feed-lights';
+     lights.setAttribute('role','group');lights.setAttribute('aria-label','Post window controls');
+     for(const [name,title] of [['delete','Remove post (30-day recovery)'],['archive','Archive post'],['enlarge','Enlarge image']]){
+       const button=document.createElement('button');button.type='button';
+       button.dataset.feedLight=name;
+       button.setAttribute('aria-label',title);button.title=title;
+       if(owned){
+         button.setAttribute('data-post-'+name,'');
+       }else{
+         button.dataset.liveFeedOp=name;
+       }
+       lights.append(button);
+     }
+     card.append(lights);
+   }
    const summary=details.querySelector('summary');
    if(summary){if(summary.textContent.trim()!=='+')summary.textContent='+';summary.setAttribute('aria-label','More actions: Save, post, or share');summary.setAttribute('title','More actions');}
    const tray=details.querySelector('.biglwa-send-tray');
@@ -114,7 +155,66 @@
  function boot(){obs.observe(document.body,{childList:true,subtree:true});schedule();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
  document.addEventListener('biglwa:feed-ready',schedule);
+ const lightbox=()=>{
+   let dialog=document.getElementById('biglwaFeedLightbox');
+   if(!dialog){
+     dialog=document.createElement('dialog');dialog.id='biglwaFeedLightbox';
+     dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
+     document.body.append(dialog);
+   }
+   return dialog;
+ };
+ async function findImportedCard(card) {
+   const api=window.__biglwaOrbitPosts;
+   if(!api?.loadArchive||!api?.setOrbitState)throw Error('Sign in to BIGLWA and sync Orbit first.');
+   let record={};try{record=JSON.parse(card.dataset.sendRecord||'{}')}catch{}
+   const source=String(record.source||(card.classList.contains('pinterest-feed-item')?'pinterest':'instagram')).toLowerCase();
+   const sourceId=String(record.sourcePostId||card.dataset.sourceId||'');
+   if(!sourceId)throw Error('This post has no saved Orbit identifier.');
+   let cursor=null;
+   for(let page=0;page<15;page++){
+     const batch=await api.loadArchive(null,48,cursor);
+     const found=batch.find(row=>String(row.sourcePostId||'')===sourceId&&String(row.source||'').toLowerCase()===source);
+     if(found)return found;
+     if(!batch.hasMore||!batch.nextCursor)break;
+     cursor=batch.nextCursor;
+   }
+   throw Error('This image is not saved to your account yet. Sync it in Orbit first.');
+ }
+ function showFeedNotice(card,message){
+   let msg=card.querySelector('.biglwa-feed-light-status');
+   if(!msg){msg=document.createElement('span');msg.className='biglwa-feed-light-status';msg.setAttribute('role','status');msg.style.cssText='display:block;padding:6px 9px;font:600 10px/1.3 system-ui;color:#48332b;background:#fff8e9';card.append(msg);}
+   msg.textContent=message;
+ }
  document.addEventListener('click',async event=>{
+   const button=event.target.closest?.('#feedPageList [data-live-feed-op]');
+   if(!button)return;
+   event.preventDefault();event.stopPropagation();
+   const card=button.closest('.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card');
+   if(!card)return;
+   const op=button.dataset.liveFeedOp;
+   if(op==='enlarge'){
+     const photo=card.querySelector('.biglwa-unified-media img,.biglwa-unified-media video,img[data-instagram-media],img[data-biglwa-external-media]');
+     if(!photo){showFeedNotice(card,'Image unavailable.');return;}
+     const dialog=lightbox(),view=photo.cloneNode(true);
+     view.removeAttribute('loading');view.style.cssText='';
+     if(view.tagName==='VIDEO')view.controls=true;
+     dialog.replaceChildren();
+     const close=document.createElement('button');close.textContent='Close ×';close.onclick=()=>dialog.close();
+     dialog.append(close,view);dialog.showModal();return;
+   }
+   if(op==='delete'&&!window.confirm('Remove this imported post from Collective Feed? It will remain recoverable in your Archive for 30 days.'))return;
+   button.disabled=true;
+   showFeedNotice(card,op==='archive'?'Archiving account post…':'Moving account post to recovery…');
+   try{
+     const record=await findImportedCard(card);
+     if(op==='delete'&&record.archiveState==='pending_delete')throw Error('This post is already pending deletion.');
+     await window.__biglwaOrbitPosts.setOrbitState(record.id,op==='archive'?'archived':'pending_delete');
+     card.remove();window.__biglwaFeed?.refresh?.();
+   }catch(error){showFeedNotice(card,error?.message||'Could not update this post.');}
+   finally{button.disabled=false}
+ });
+  document.addEventListener('click',async event=>{
    const publish=event.target.closest('[data-publish-connected]');
    if(publish){
      event.preventDefault();event.stopPropagation();
