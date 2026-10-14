@@ -286,3 +286,12 @@ body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .s
 .biglwa-stream .stream-source-slot.is-radio em{margin-top:auto;font:800 10px/1.3 ui-monospace,monospace;color:#963521;font-style:normal}
 .biglwa-stream .stream-source-slot.is-radio{touch-action:manipulation}
 .biglwa-stream .stream-screen.is-program iframe{min-height:260px;display:block}
+
+/* Betty Boop classics: episode selection stays inside the TV monitor. */
+.biglwa-stream .stream-screen.is-archive-player{aspect-ratio:auto;min-height:0;background:#171219}
+.biglwa-stream .stream-screen.is-archive-player video{display:block;width:100%;height:auto;max-height:min(57vh,570px);aspect-ratio:16/9;object-fit:contain;background:#070607;flex:auto}
+.biglwa-stream .stream-archive-episode-now{padding:10px 13px 3px;font:800 11px/1.4 ui-monospace,monospace;color:#ffe3b0}
+.biglwa-stream .stream-episode-list{display:flex;gap:7px;flex-wrap:wrap;max-height:150px;overflow-y:auto;padding:10px 13px 13px}
+.biglwa-stream .stream-episode-choice{flex:1 1 145px;padding:9px 10px;border:1px solid #9c7c6a;border-radius:6px;background:#332626;color:#fbe8cc!important;font:700 11px/1.3 system-ui,sans-serif!important;text-align:left}
+.biglwa-stream .stream-episode-choice.is-active{border-color:#ffd69a;background:#7b2d28;color:#fff0d3!important}
+.biglwa-stream .stream-episode-choice:focus-visible{outline:2px solid #ffda9a;outline-offset:2px}
