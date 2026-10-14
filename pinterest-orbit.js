@@ -88,7 +88,7 @@ let handoffPromise=null;
   });
  }
  function savedBoardsMarkup(){
-  if(!connected)return '';
+  if(!authUid)return '';
   const boardRows=savedLibrary.boards.map(board=>{
    const cols=(board.pins||[]).slice(0,16).map(pin=>
     '<article class="pn-saved-pin"><a href="'+esc(pin.url)+'" target="_blank" rel="noopener noreferrer">'+
@@ -355,7 +355,7 @@ async function connect(){await run(async()=>{
  function image(pin){
   if(!pin)return '';
   const imgs=pin.media?.images||pin.media?.items?.[0]?.images||pin.images||{};
-  const candidates=[imgs['600x'],imgs['400x300'],imgs['237x'],imgs.originals,imgs.original,...Object.values(imgs),pin.image_url,pin.imageUrl,pin.image?.url,pin.media?.cover_image_url,pin.media?.image_url,pin.thumbnail_url,pin.media_url];
+  const candidates=[imgs['600x'],imgs['400x300'],imgs['237x'],imgs.originals,imgs.original,...Object.values(imgs),pin.image_url,pin.imageUrl,pin.image?.url,typeof pin.image==='string'?pin.image:'',pin.media?.cover_image_url,pin.media?.image_url,pin.thumbnail_url,pin.media_url];
   for(const entry of candidates){
    const src=typeof entry==='string'?entry:entry?.url||entry?.src;
    try{const url=new URL(src);if(url.protocol==='https:'&&(url.hostname==='i.pinimg.com'||url.hostname.endsWith('.pinimg.com')))return url.href}catch{}
@@ -463,9 +463,8 @@ async function connect(){await run(async()=>{
     '<button type="button" data-pn-save-pin="'+id+'">Save</button>'+
     '<a href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View on Pinterest">↗</a></div></div></article>';
   }).join('')+'</div>'+
-  savedBoardsMarkup()+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
- (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'');
+ (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'')+savedBoardsMarkup();
 }
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
@@ -533,7 +532,7 @@ async function watchAuth(){
    if(uid===authUid)return;
    authUid=uid;
    resetView();
-   if(uid)restore().catch(error=>console.warn('Pinterest account restore:',error));
+   if(uid){loadSaved().catch(()=>{});restore().catch(error=>console.warn('Pinterest account restore:',error));}
   });
  }catch(error){console.warn('Pinterest auth observer:',error)}
 }
