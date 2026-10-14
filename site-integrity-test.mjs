@@ -21,6 +21,8 @@ const sessionRestore = read('session-restore.js');
 const orbitLinks = read('orbit-account-links.js');
 const orbitConnections = read('orbit-connections.js');
 const orbitFeed = read('orbit-feed.js');
+const projectCanvas = read('project-canvas.js');
+const tiktokOrbit = read('tiktok-orbit.js');
 const robots = read('robots.txt');
 const sitemap = read('sitemap.xml');
 const about = read('about/index.html');
@@ -46,6 +48,21 @@ assert.match(orbitLinks, /orbitLinksUpdatedAt/);
 assert.match(orbitLinks, /mergeFields:/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-heading h1\{transform:translateX\(-12px\)/);
 assert.match(orbitFeed, /rim:'#7d3ec5'/);
+assert.match(index, /feed-polish\.js\?v=20261014-window-lights-hover-3/);
+assert.match(index, /project-canvas\.js\?v=20261014-orbit-picker-drop-r2-2/);
+assert.match(index, /tiktok-orbit\.js\?v=20261014-oauth-return-debug-3/);
+assert.match(feedPolish, /biglwa-feed-lights/);
+assert.match(feedPolish, /data-feed-light/);
+assert.match(feedPolish, /data-post-/);
+assert.match(feedPolish, /data-live-feed-op/);
+assert.match(feedView, /data-feed-owned/);
+assert.match(projectCanvas, /CS Bergamot Stitched/);
+assert.match(projectCanvas, /loadOrbitImagePicker/);
+assert.match(projectCanvas, /uploadProjectImage/);
+assert.match(projectCanvas, /media\/feed-image/);
+assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
+assert.match(tiktokOrbit, /location\.origin \+ '\/\?route=studio&view=orbit'/);
+
 assert.match(feedView, /instagram: \{ rim:"#7d3ec5"/);
 
 assert.match(modules, /function renderPolitc\(/);
@@ -84,7 +101,7 @@ assert.match(about, /rel="canonical"/);
 assert.match(settings, /noindex,nofollow/);
 const mainScript=index.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(mainScript,'Missing main inline app loader');
-for (const [name, source] of [['index inline loader',mainScript],['module pages',modules],['Studio recovery',recovery],['Feed polish',feedPolish],['Map route guard',mapRouteGuard],['Politc route guard',politcRouteGuard]]) {
+for (const [name, source] of [['index inline loader',mainScript],['module pages',modules],['Studio recovery',recovery],['Feed polish',feedPolish],['Project canvas',projectCanvas],['TikTok Orbit',tiktokOrbit],['Map route guard',mapRouteGuard],['Politc route guard',politcRouteGuard]]) {
   new vm.Script(source,{filename:name});
   console.log('PASS syntax:',name);
 }
