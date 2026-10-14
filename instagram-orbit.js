@@ -273,8 +273,9 @@
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
     }
-    var importWarning = state.importError
-      ? '<article class="module-list-item instagram-import-status"><div><b>Some Instagram images still need to be saved</b><small>'+escapeText(state.importError)+'</small><button type="button" class="module-action" data-instagram-resave>Retry saving photos</button></div></article>'
+    var pendingCopies=state.connected&&state.media.some(item=>!(state.hostedById[String(item.id||'')]||[]).length);
+    var importWarning = state.importError||pendingCopies
+      ? '<article class="module-list-item instagram-import-status"><div><b>'+ (state.importError?'Instagram storage needs attention':'Finish saving Instagram images') +'</b><small>'+escapeText(state.importError||'Instagram source previews are visible while BIGLWA copies the originals to account storage.')+'</small><button type="button" class="module-action" data-instagram-resave>Retry saving photos</button></div></article>'
       : '';
     if (!state.connected) return '';
     var cards = state.media.slice(0, 20).map(function (item, index) {
@@ -291,9 +292,18 @@
       // Never show expiring CDN links as the connected card's permanent image.
       // For video or carousel posts, the persisted picture is the R2 poster.
       var media = hosted[0] || '';
-      var visual = media
-        ? '<img data-instagram-media src="' + escapeText(media) + '" data-instagram-preview="' + escapeText(media) + '" alt="Instagram media stored in BIGLWA" loading="lazy" style="display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd">'
-        : '<div class="biglwa-unavailable-media">Saving Instagram image to BIGLWA… Connect or sync Orbit if it does not appear.</div>';
+      // Provider pictures may be shown temporarily while the R2 copy is in
+      // progress, but only our own R2 URLs are persisted in account records.
+      var livePreview = !media && state.connected
+        ? String(first.thumbnail_url || first.media_url || item.thumbnail_url || item.media_url || '')
+        : '';
+      if(livePreview&&!/^https:\/\//i.test(livePreview))livePreview='';
+      var shown=media||livePreview;
+      var visual = shown
+        ? '<img data-instagram-media src="' + escapeText(shown) + '" data-instagram-preview="' + escapeText(shown) + '"' +
+          (media?' data-biglwa-hosted="true"':' data-biglwa-hosted="pending"') +
+          ' alt="Instagram media preview" loading="lazy" style="display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd">'
+        : '<div class="biglwa-unavailable-media">This Instagram image is not available yet. Choose Retry saving photos to restore its stored copy.</div>';
       var tabs = carousel ? '<div class="biglwa-instagram-tabs" aria-label="Carousel photos">' + mediaItems.map(function (_, tabIndex) {
         return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
       }).join('') + '</div>' : '<span class="biglwa-instagram-tabs" aria-hidden="true"></span>';
@@ -433,7 +443,7 @@
       var next = children[nextIndex];
       if (card && next) {
         var saved = state.hostedById[String(item.id || '')] || [];
-        var media = saved[nextIndex] || '';
+        var media = saved[nextIndex] || (state.connected?String(next.thumbnail_url||next.media_url||''):'');
         var old = card.querySelector('[data-instagram-media],.biglwa-unavailable-media');
         if(old){
           if(media){
