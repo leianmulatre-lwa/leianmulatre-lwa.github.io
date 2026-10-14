@@ -62,7 +62,8 @@ function openImagePicker(){
  const picker=$('#lwaProjectImagePicker');if(!picker)return;
  pickerStatus('Your Orbit images stay in BIGLWA media storage. Your project is a private draft on this browser.');
  const gallery=$('#lwaProjectOrbitGallery');if(gallery){gallery.hidden=true;gallery.replaceChildren()}
- picker.showModal();
+ if(typeof picker.showModal==='function')picker.showModal();else picker.setAttribute('open','');
+ loadOrbitImagePicker().catch(error=>pickerStatus(error?.message||'Could not load Orbit photos.'));
 }
 function getProjectImageToken(){
  return Promise.all([
@@ -93,32 +94,53 @@ async function uploadProjectImage(file){
 }
 async function loadOrbitImagePicker(){
  const panel=$('#lwaProjectOrbitGallery');if(!panel)return;
- panel.hidden=false;panel.replaceChildren();panel.textContent='Loading your account’s saved Orbit photos…';
+ panel.hidden=false;panel.replaceChildren();panel.textContent='Loading images saved to your BIGLWA account…';
  try{
-  const api=window.__biglwaOrbitPosts;
-  if(!api?.storedOrbitImageUrls)throw Error('Orbit storage is still loading. Reopen Projects in a moment.');
-  const groups=await Promise.allSettled(['instagram','pinterest'].map(source=>api.storedOrbitImageUrls(source)));
-  if(!panel.isConnected)return;
-  const images=[...new Set(groups.flatMap(res=>res.status==='fulfilled'?Object.values(res.value||{}).flat():[]))]
-    .filter(url=>typeof url==='string'&&url.startsWith('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/orbit/'))
-    .slice(0,160);
-  if(!images.length){
-    panel.textContent='No account-stored Orbit pictures were found yet. Try Sync in Orbit to copy older Instagram or Pinterest posts to BIGLWA.';
-    return;
-  }
-  panel.replaceChildren();
-  panel.__imageUrls=images;
-  for(const [index,url] of images.entries()){
-    const button=document.createElement('button');button.type='button';
-    button.dataset.selectOrbitImage=String(index);
-    button.title='Add stored image to project';
-    const image=document.createElement('img');image.src=url;image.alt='Orbit library image';image.loading='lazy';
-    image.onerror=()=>{button.remove();};
-    button.append(image);panel.append(button);
-  }
-  pickerStatus('Choose a photo to add to your current project.');
- }catch(error){panel.textContent=error?.message||'Could not load saved Orbit photos.'}
+   // Orbit is an ES module. It may load after Projects opens on a deep link.
+   const api=window.__biglwaOrbitPosts || await import('./orbit-posts.js');
+   if(!api?.storedOrbitImageUrls)throw Error('Orbit storage is unavailable. Sign in and retry.');
+   const saved=await api.storedOrbitImageUrls('');
+   if(!panel.isConnected)return;
+   const permitted=url=>{
+     try{const u=new URL(url);return u.protocol==='https:'&&
+        u.hostname==='biglwa-instagram-api.leianmulatre-284.workers.dev'&&
+        /^\\/media\\/(orbit|feed-image)\\/[a-zA-Z0-9_-]+\\//.test(u.pathname);
+     }catch{return false}
+   };
+   const images=[...new Set(Object.values(saved||{}).flat().filter(permitted))];
+   // Some older synced records store picture URLs only in Archive, not the Orbit index.
+   if(!images.length&&typeof api.loadArchive==='function'){
+     let cursor=null;
+     for(let page=0;page<5;page++){
+       const rows=await api.loadArchive(null,48,cursor);
+       for(const entry of rows||[]){
+         const urls=[entry.imageUrl,...(entry.imageUrls||[]),...(entry.mediaItems||[]).flatMap(x=>[x?.url,x?.thumbnailUrl])];
+         for(const url of urls)if(permitted(url)&&!images.includes(url))images.push(url);
+       }
+       if(!rows?.hasMore||!rows?.nextCursor)break;
+       cursor=rows.nextCursor;
+     }
+   }
+   if(!panel.isConnected)return;
+   if(!images.length){
+     panel.textContent='No stored Orbit images yet. In Orbit, connect or refresh Instagram/Pinterest and save the media to your account.';
+     pickerStatus('You can still upload or drop any JPG, PNG, WebP or GIF into this project.');
+     return;
+   }
+   panel.replaceChildren();
+   panel.__imageUrls=images.slice(0,250);
+   for(const [index,url] of panel.__imageUrls.entries()){
+     const button=document.createElement('button');button.type='button';
+     button.dataset.selectOrbitImage=String(index);
+     button.title='Add stored Orbit image to project';
+     const image=document.createElement('img');image.src=url;image.alt='Saved Orbit photo';image.loading='lazy';
+     image.onerror=()=>{button.disabled=true;button.title='Stored copy could not load; resync this image in Orbit';button.classList.add('is-unavailable')};
+     button.append(image);panel.append(button);
+   }
+   pickerStatus('Showing '+panel.__imageUrls.length+' stored account photo(s). Select one to add it to your project.');
+ }catch(error){panel.textContent=error?.message||'Could not load saved Orbit photos.';pickerStatus('You can still drag or upload an image directly.')}
 }
+
 document.addEventListener('biglwa:module-open',e=>{if(e.detail?.key==='projects'||e.detail?.key==='project')mount()});
 document.addEventListener('click',e=>{
  const root=e.target.closest('#lwaProjects');if(!root)return;
@@ -127,7 +149,7 @@ document.addEventListener('click',e=>{
  if(b.dataset.add){add(b.dataset.add);return}
  if(b.hasAttribute('data-new-board')){const title=prompt('Project title','New project');if(!title?.trim())return;const next={id:id(),title:title.trim(),items:[]};boards.push(next);current=next.id;save();render()}
  if(b.hasAttribute('data-rename')&&board()){const title=prompt('Rename project',board().title);if(title?.trim()){board().title=title.trim();save();render()}}
- if(b.hasAttribute('data-remove-board')&&board()&&confirm('Delete this project and its cards?')){boards=boards.filter(b=>b.id!==current);current=boards[0]?.id||'';save();render()}
+ if(b.hasAttribute('data-remove-board')&&board()&&confirm('Delete this project and its cards?')){boards=boards.filter(b=>b.id!==current);if(!boards.length)boards=[{id:id(),title:'My first project',items:[]}];current=boards[0].id;save();render()}
  if(b.dataset.delete&&board()){board().items=board().items.filter(i=>i.id!==b.dataset.delete);save();render()}
 });
 document.addEventListener('change',e=>{
