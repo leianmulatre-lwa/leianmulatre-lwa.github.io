@@ -398,16 +398,17 @@ async function connect(){await run(async()=>{
   }
   if(!boards.length)return'<p role="status">No Pinterest boards were returned. Use Refresh boards to retry.</p>';
   const tiles=boards.slice(0,6).map(b=>{
-   const coverEntry=covers[b.id];const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry)||image(b);
-   /* Boards are addressed by owner, so a profile with no username yet would otherwise
-      produce a link with a hole in it. Falling back to the account root still opens
-      Pinterest rather than a broken address. */
-   const owner=profile.username||profile.business_name;
-   const href=owner?'https://www.pinterest.com/'+encodeURIComponent(owner)+'/'+encodeURIComponent(b.id)+'/':'https://www.pinterest.com/';
+   const coverEntry=covers[b.id];
+   const urls=Array.isArray(coverEntry?.images)?coverEntry.images.filter(Boolean).slice(0,3):[];
+   const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry)||image(b);
+   if(!urls.length&&cover)urls.push(cover);
+   const previews=urls.map((url,index)=>
+    '<img class="pinterest-board-preview pn-cover-'+index+'" loading="lazy" src="'+esc(url)+'" alt="" aria-hidden="true">').join('');
    return '<button type="button" data-pn-board="'+esc(String(b.id))+'" class="pinterest-board'+(cover?'':' is-empty')+'" aria-label="Open '+esc(b.name)+' board">'+
-    (cover?'<img loading="lazy" src="'+esc(cover)+'" alt="">':'<span>No cover yet</span>')+
-    '<strong>'+esc(b.name)+'</strong>'+
-    (b.pin_count!=null?'<small>'+b.pin_count+' Pins</small>':'')+'</button>';
+    '<span class="pinterest-board-media">'+(previews||'<span>No cover yet</span>')+'</span>'+
+    '<span class="pinterest-board-copy"><strong>'+esc(b.name)+'</strong>'+
+    '<small>'+(b.pin_count!=null?esc(String(b.pin_count))+' Pins':'View Pins')+'</small></span>'+
+    '<span class="pinterest-board-stack" aria-hidden="true">▧ '+(b.pin_count||'')+'</span></button>';
   });
   /* Fewer than six boards still fill the grid, so the row never looks half drawn. */
   while(tiles.length<6)tiles.push('<div class="pinterest-board is-empty"><span>&nbsp;</span></div>');
@@ -448,13 +449,60 @@ async function connect(){await run(async()=>{
   (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
   (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
   (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
-  '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{const src=image(p);return '<a class="pinterest-pin" href="https://www.pinterest.com/pin/'+p.id+'/" target="_blank" rel="noopener noreferrer">'+(src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'">':'')+'<span>'+esc(p.title||p.description||'View Pin')+'</span><small>View on Pinterest ↗</small></a>'}).join('')+'</div>'+
+  '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\\d+$/.test(String(p.id||''))).map(p=>{
+   const src=image(p);const id=esc(String(p.id));
+   const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
+   const opts='<option value="default_saved">Saved</option>'+
+    savedLibrary.boards.filter(b=>b.id!=='default_saved').map(b=>'<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>').join('');
+   return '<article class="pinterest-pin" data-pn-pin-card="'+id+'">'+
+    '<a class="pn-pin-photo" href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View '+caption+' on Pinterest">'+
+    (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+caption+'">':'<span class="pn-pin-placeholder">Image unavailable</span>')+'</a>'+
+    '<div class="pn-pin-meta">'+(caption?'<p>'+caption+'</p>':'')+
+    '<div class="pn-pin-actions"><button type="button" data-pn-publish="'+id+'">Post to Collective</button>'+
+    '<label class="pn-save-select"><span>Board</span><select data-pn-target-board="'+id+'" aria-label="Save Pin into Big LWA board">'+opts+'</select></label>'+
+    '<button type="button" data-pn-save-pin="'+id+'">Save</button>'+
+    '<a href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View on Pinterest">↗</a></div></div></article>';
+  }).join('')+'</div>'+
+  savedBoardsMarkup()+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
  (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'');
 }
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
  if(!(e.target instanceof Element))return;
+ const newBoard=e.target.closest('[data-pn-new-board]');
+ if(newBoard){e.preventDefault();e.stopImmediatePropagation();newSavedBoard();return;}
+ const savePin=e.target.closest('[data-pn-save-pin]');
+ if(savePin){e.preventDefault();e.stopImmediatePropagation();
+  const id=savePin.dataset.pnSavePin;
+  const target=document.querySelector('[data-pn-target-board="'+id+'"]')?.value||'default_saved';
+  addSavedPin(id,target);return;}
+ const publish=e.target.closest('[data-pn-publish]');
+ if(publish){e.preventDefault();e.stopImmediatePropagation();publishPin(publish.dataset.pnPublish);return;}
+ const rename=e.target.closest('[data-pn-rename-board]');
+ if(rename){e.preventDefault();e.stopImmediatePropagation();
+  const id=rename.dataset.pnRenameBoard;
+  const item=savedLibrary.boards.find(b=>b.id===id);if(!item)return;
+  const title=window.prompt('Rename your Big LWA board:',item.title);
+  if(title==null)return;
+  const clean=title.trim().slice(0,100);if(!clean){notice('Board name cannot be empty.');return;}
+  editSaved(data=>{data.boards.find(b=>b.id===id).title=clean});return;}
+ const removeBoard=e.target.closest('[data-pn-remove-board]');
+ if(removeBoard){e.preventDefault();e.stopImmediatePropagation();
+  const id=removeBoard.dataset.pnRemoveBoard;
+  if(!window.confirm('Delete this Big LWA saved board and its saved Pin references? This does not delete the original Pinterest Pins.'))return;
+  editSaved(data=>{data.boards=data.boards.filter(b=>b.id!==id)});return;}
+ const editPin=e.target.closest('[data-pn-edit-saved]');
+ if(editPin){e.preventDefault();e.stopImmediatePropagation();
+  const bid=editPin.dataset.pnSavedFrom,id=editPin.dataset.pnEditSaved;
+  const item=savedLibrary.boards.find(b=>b.id===bid)?.pins.find(p=>p.id===id);if(!item)return;
+  const caption=window.prompt('Edit saved Pin caption:',item.title);
+  if(caption==null)return;
+  editSaved(data=>{data.boards.find(b=>b.id===bid).pins.find(p=>p.id===id).title=caption.trim().slice(0,300)||'Pinterest Pin'});return;}
+ const removePin=e.target.closest('[data-pn-remove-saved]');
+ if(removePin){e.preventDefault();e.stopImmediatePropagation();
+  const bid=removePin.dataset.pnSavedFrom,id=removePin.dataset.pnRemoveSaved;
+  editSaved(data=>{const b=data.boards.find(b=>b.id===bid);if(b)b.pins=b.pins.filter(p=>p.id!==id)});return;}
  const tile=e.target.closest('[data-pn-board]');if(tile){e.preventDefault();e.stopImmediatePropagation();choose(tile.dataset.pnBoard);return;}
  const b=e.target.closest('[data-pn-connect],[data-pn-open],[data-orbit-app="pinterest"],[data-pn-disconnect],[data-pn-refresh],[data-pn-more-boards],[data-pn-more-pins],[data-pn-sync]');
  if(!b)return;e.preventDefault();e.stopImmediatePropagation();
