@@ -183,7 +183,7 @@
       // Saved R2 URLs survive device changes. Restore these before refreshing from Instagram.
       try{
         const saved=await window.__biglwaOrbitPosts?.storedOrbitImageUrls?.('instagram');
-        if(saved)state.hostedById={...saved,...state.hostedById};
+        if(saved)state.hostedById={...state.hostedById,...saved};
       }catch(error){console.warn('Instagram stored photos restore:',error)}
       render();
       /* Loading and saving fail for different reasons and need different words. Sharing one
@@ -264,7 +264,7 @@
       retry = '<button type="button" class="module-action" data-instagram-resave>' +
         (state.importError ? 'Try saving again' : 'Save anything that did not make it') + '</button>';
     }
-    return '<article class="module-list-item instagram-feed-item biglwa-instagram-import-status" data-instagram-import-status><div>' +
+    return '<article class="module-list-item biglwa-instagram-import-status" data-instagram-import-status><div>' +
       '<b>Import status</b><small>' + escapeText(parts.join(' ')) + '</small>' +
       retry +
       '</div></article>';
@@ -353,7 +353,7 @@
     list = list || one('#feedPageList');
     if (!list) return;
     all('.biglwa-instagram-wall', list).forEach(function (wall) { wall.remove(); });
-    all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
+    all('.instagram-feed-item,.instagram-import-status,.biglwa-instagram-import-status', list).forEach(function (item) { item.remove(); });
     var html = feedHtml();
     if (html) list.insertAdjacentHTML('afterbegin', html);
     /* These cards are not saved posts, so the wall is told what each one holds in order for
