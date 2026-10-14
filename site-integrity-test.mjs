@@ -8,11 +8,12 @@ const read = file => fs.readFileSync(file, 'utf8');
 const index = read('index.html');
 const modules = read('module-pages.js');
 const recovery = read('studio-recovery.js');
+const feedPolish = read('feed-polish.js');
 const robots = read('robots.txt');
 const sitemap = read('sitemap.xml');
 const about = read('about/index.html');
 const settings = read('settings/index.html');
-const required = ['base-v1.html','bootstrap-v2.html','studio-recovery.js','module-pages.js','studio-preview.js','pinterest-orbit.js','site-1.txt','site-2.txt','site-3.txt','site-4.txt','site-5.txt'];
+const required = ['base-v1.html','bootstrap-v2.html','studio-recovery.js','feed-polish.js','module-pages.js','studio-preview.js','pinterest-orbit.js','site-1.txt','site-2.txt','site-3.txt','site-4.txt','site-5.txt'];
 for (const file of required) assert.ok(fs.existsSync(file), 'Missing runtime file: '+file);
 assert.match(index, /<html lang="en">/);
 assert.match(index, /studio-recovery\.js\?v=/);
@@ -24,6 +25,9 @@ assert.match(modules, /function miniCalendarMarkup\(/);
 assert.match(modules, /miniCalendarMarkup\(\)/);
 assert.match(modules, /window\.BigLWAOpenModule/);
 assert.match(recovery, /data-open="politc"/);
+assert.match(index, /feed-polish\\.js\\?v=/);
+assert.match(feedPolish, /data-publish-connected/);
+assert.match(feedPolish, /biglwa-card-options/);
 assert.match(recovery, /biglwa-two-week-recovered/);
 assert.match(robots, /Sitemap: https:\/\/biglwa\.com\/sitemap\.xml/);
 assert.match(sitemap, /https:\/\/biglwa\.com\/about\//);
@@ -31,7 +35,7 @@ assert.match(about, /rel="canonical"/);
 assert.match(settings, /noindex,nofollow/);
 const mainScript=index.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(mainScript,'Missing main inline app loader');
-for (const [name, source] of [['index inline loader',mainScript],['module pages',modules],['Studio recovery',recovery]]) {
+for (const [name, source] of [['index inline loader',mainScript],['module pages',modules],['Studio recovery',recovery],['Feed polish',feedPolish]]) {
   new vm.Script(source,{filename:name});
   console.log('PASS syntax:',name);
 }
