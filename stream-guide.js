@@ -47,19 +47,29 @@
   {id:'dream',category:'lwa-tv',title:'Dream',creator:'Dream',subtitle:'Minecraft Speedrunner Swap VS 3 Hunters',videoId:'IqcS1d3eXYc',url:'https://www.youtube.com/watch?v=IqcS1d3eXYc',source:'Official YouTube episode',provider:'youtube'},
   {id:'cupquake',category:'lwa-tv',title:'iHasCupquake',creator:'iHasCupquake',subtitle:'Gaming, arts, DIY and adventures',url:'https://www.youtube.com/@ihascupquake/videos',source:'Creator channel',provider:'youtube'},
   {id:'alissa-violet',category:'lwa-tv',title:'Alissa Violet',creator:'Alissa Violet',subtitle:"I'm Back",videoId:'wdj19oCLpVw',url:'https://www.youtube.com/watch?v=wdj19oCLpVw',source:'Official YouTube video',provider:'youtube'},
-  {id:'steyeuh',category:'lwa-tv',title:'Steyuh',creator:'Stei Campbell',subtitle:'Vlogs, humor and everyday adventures',url:'https://www.youtube.com/@steyeuh/videos',source:'Creator website-linked channel',provider:'youtube'}
+  {id:'steyeuh',category:'lwa-tv',title:'Steyuh',creator:'Stei Campbell',subtitle:'Vlogs, humor and everyday adventures',url:'https://www.youtube.com/@steyeuh/videos',source:'Creator website-linked channel',provider:'youtube'},
+  {id:'lofi-girl-tv',category:'lwa-tv',title:'Lofi Girl · study radio',creator:'Lofi Girl',subtitle:'Lofi hip-hop beats to study and unwind',videoId:'X4VbdwhkE10',url:'https://www.youtube.com/watch?v=X4VbdwhkE10',source:'Official Lofi Girl video',provider:'youtube'}
  ];
  // Ballroom/CCTV = curated ballroom video archive, not real surveillance feeds.
  // Original channels keep attribution, playback control and embed restrictions.
  const ballroomChannels=[
   {id:'ballroom-throwbacks',category:'lwa-tv',title:'Ballroom Throwbacks Television',creator:'BRTB TV',subtitle:'Balls, performance, runway and archival footage',url:'https://www.youtube.com/@BALLROOMTHROWBACKS/videos',source:'Ballroom video archive',provider:'youtube'},
-  {id:'open-to-all',category:'ballroom-cctv',title:'Open To All Entertainment',creator:'Open To All Entertainment',subtitle:'Ballroom event videos and community performances',url:'https://www.youtube.com/@opentoallent/videos',source:'Ballroom video channel',provider:'youtube'},
-  {id:'kendrick-mugler',category:'ballroom-cctv',title:'Kendrick Mugler TV',creator:'Kendrick Mugler',subtitle:'Ballroom footage and European scene archives',url:'https://www.youtube.com/c/kendrickmugler/videos',source:'Ballroom video channel',provider:'youtube'},
-  {id:'sugarchampagne',category:'ballroom-cctv',title:'Sugar Champagne',creator:'Sugar Champagne',subtitle:'Classic ballroom and historic event footage',url:'https://www.youtube.com/@sugarchampagne/videos',source:'Ballroom archive',provider:'youtube'},
-  {id:'philly-prodigy',category:'ballroom-cctv',title:'Philly Prodigy',creator:'Philly Prodigy',subtitle:'Ballroom clips and community footage',url:'https://www.youtube.com/@phillyprodigy09/videos',source:'Ballroom video archive',provider:'youtube'},
-  {id:'ballroom-in-focus',category:'ballroom-cctv',title:'Ballroom in Focus',creator:'Google Arts & Culture · Destination Tomorrow',subtitle:'Photography, oral history and archival storytelling',url:'https://artsandculture.google.com/project/ballroom',source:'Ballroom cultural archive',provider:'archive'}
+  {id:'open-to-all',category:'lwa-tv',title:'Open To All Entertainment',creator:'Open To All Entertainment',subtitle:'Ballroom event videos and community performances',url:'https://www.youtube.com/@opentoallent/videos',source:'Ballroom video channel',provider:'youtube'},
+  {id:'kendrick-mugler',category:'lwa-tv',title:'Kendrick Mugler TV',creator:'Kendrick Mugler',subtitle:'Ballroom footage and European scene archives',url:'https://www.youtube.com/c/kendrickmugler/videos',source:'Ballroom video channel',provider:'youtube'},
+  {id:'sugarchampagne',category:'lwa-tv',title:'Sugar Champagne',creator:'Sugar Champagne',subtitle:'Classic ballroom and historic event footage',url:'https://www.youtube.com/@sugarchampagne/videos',source:'Ballroom archive',provider:'youtube'},
+  {id:'philly-prodigy',category:'lwa-tv',title:'Philly Prodigy',creator:'Philly Prodigy',subtitle:'Ballroom clips and community footage',url:'https://www.youtube.com/@phillyprodigy09/videos',source:'Ballroom video archive',provider:'youtube'},
+  {id:'ballroom-in-focus',category:'lwa-tv',title:'Ballroom in Focus',creator:'Google Arts & Culture · Destination Tomorrow',subtitle:'Photography, oral history and archival storytelling',url:'https://artsandculture.google.com/project/ballroom',source:'Ballroom cultural archive',provider:'archive'}
  ];
  // These are destination channels, not assertions that the streamer is live.
+ // Live YouTube programming is embedded, not opened in another tab. The labels are
+ // intentionally "live-style" rather than guaranteed live: upstream broadcasts change.
+ const youtubeLive=[
+  {id:'lofi-girl-live',category:'live',title:'Lofi Girl · synthwave radio',creator:'Lofi Girl',subtitle:'Synthwave beats · original Lofi Girl stream',videoId:'MVPTGNGiI-4',url:'https://www.youtube.com/watch?v=MVPTGNGiI-4',source:'YouTube continuous music',provider:'youtube'},
+  {id:'asmr-rain',category:'live',title:'Rain & thunder ASMR',creator:'Danny Louis',subtitle:'24/7-style rain and thunder ambience',videoId:'kBNaBktShA4',url:'https://www.youtube.com/watch?v=kBNaBktShA4',source:'ASMR · YouTube',provider:'youtube'},
+  {id:'weather-fox',category:'live',title:'FOX Weather',creator:'FOX Weather',subtitle:'Continuous weather coverage · live status may change',videoId:'FBEJvInz2d0',url:'https://www.youtube.com/watch?v=FBEJvInz2d0',source:'Weather · official YouTube',provider:'youtube'},
+  {id:'frequencies-528',category:'live',title:'528 Hz · forest ambience',creator:'Meditative Mind',subtitle:'528 Hz frequency-based ambient music · recording',videoId:'09r8XdHRWe8',url:'https://www.youtube.com/watch?v=09r8XdHRWe8',source:'Frequencies · 528 Hz',provider:'youtube'},
+  {id:'frequencies-528-cosmic',category:'live',title:'528 Hz · cosmic meditation',creator:'Meditative Mind',subtitle:'Solfeggio frequency-inspired ambient music · recording',videoId:'HfTJ9j5fVl0',url:'https://www.youtube.com/watch?v=HfTJ9j5fVl0',source:'Frequencies · 528 Hz',provider:'youtube'}
+ ];
  const twitchChannels=[
   {id:'hasanabi',category:'live',title:'Hasan Piker · HasanAbi',creator:'Hasan Piker',subtitle:'News, politics, commentary and culture',url:'https://www.twitch.tv/hasanabi',twitchChannel:'hasanabi',provider:'twitch',source:'Twitch channel'},
   {id:'pokimane',category:'live',title:'Pokimane',creator:'Pokimane',subtitle:'Games, chat and community',url:'https://www.twitch.tv/pokimane',twitchChannel:'pokimane',provider:'twitch',source:'Twitch channel'},
@@ -196,6 +206,11 @@
    }));
    return shuffled(videos,day,category,offset);
   }
+  if(category==='live'){
+   const youtube=youtubeLive.map(item=>({kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,status:'YOUTUBE · EMBEDDED VIDEO'}));
+   const twitch=twitchChannels.map(channel=>({kind:'twitch',id:channel.id,title:channel.title,subtitle:channel.subtitle,status:'TWITCH · STATUS UNVERIFIED'}));
+   return shuffled([...youtube,...twitch],day,category,offset);
+  }
   const twitch=twitchChannels.map(channel=>({
    kind:'twitch',id:channel.id,title:channel.title,subtitle:channel.subtitle,
    status:'TWITCH CHANNEL · LIVE UNVERIFIED'
@@ -254,10 +269,10 @@
   const isRadio=kind==='podcast';
   const isTwitch=kind==='live';
   const isBallroom=false;
-  const entries=isTwitch?twitchChannels:kind==='lwa-tv'?[...featured.filter(item=>item.category===kind),...ballroomChannels]:featured.filter(item=>item.category===kind);
+  const entries=isTwitch?[...youtubeLive,...twitchChannels]:kind==='lwa-tv'?[...featured.filter(item=>item.category===kind),...ballroomChannels]:featured.filter(item=>item.category===kind);
   const radioSlots=isRadio?stations.map((station,index)=>
-   '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune to '+escapeHTML(station[0])+' at its original website">'+
-   '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span></button>').join(''):'';
+   '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Play '+escapeHTML(station[0])+' in Big LWA">'+
+   '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span><em>▶ Play</em></button>').join(''):'';
   const picks=entries.map((item,index)=>{
    const twitch=item.provider==='twitch';
    const attrs=twitch?'data-stream-twitch="'+escapeHTML(item.id)+'"':'data-stream-feature="'+escapeHTML(item.id)+'"';
@@ -325,7 +340,7 @@
    url:station[3],audioUrl:index===1?'https://stream.kalx.berkeley.edu:8443/kalx-128.mp3':index===3?'https://kcsb.streamguys1.com/live':'',type:'radio station',provider:'radio'});
  }
  function selectFeature(id){
-  const source=[...featured,...ballroomChannels].find(item=>item.id===id);
+  const source=[...featured,...ballroomChannels,...youtubeLive].find(item=>item.id===id);
   if(!source||!source.url)return;
   showSource(source);
  }
@@ -343,8 +358,8 @@
     'Campus stations, original mixtapes, independent DJ sets and podcasts. Every source links to its original publisher.'],
    'lwa-tv':['CH 02 / THE PICTURE','lwa tv',
     'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
-   live:['CH 03 / THE TWITCH DIAL','live',
-    'Tune to Twitch creator channels in the original Twitch player. Status is never assumed: the broadcaster may be offline.'],
+   live:['CH 03 / YOUTUBE + TWITCH','live',
+    'Watch original YouTube music, ASMR, weather and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><span class="stream-discovery-label">↻ shuffled daily · direct creator sources</span></div>';
   if(state.category==='podcast'){
@@ -355,7 +370,7 @@
   }else if(state.category==='lwa-tv'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / ORIGINAL CREATOR CHANNELS</span><h3>what’s on your screen?</h3><p>Every selectable creator has a real YouTube channel or direct video link. Ballroom / CCTV is part of LWA TV. Clips may play here; browse entire channels through their original video pages.</p></div></div><p class="stream-directory-note">These are curated links, not official Big LWA channel partnerships or timed broadcasts.</p>';
   }else{
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / TWITCH CHANNEL DIRECTORY</span><h3>the Twitch dial</h3><p>Browse HasanAbi, Pokimane, QTCinderella, Kai Cenat and Fuslie. The official Twitch player connects directly to their channels; it does not indicate that they are broadcasting right now.</p></div></div><p class="stream-directory-note">The player uses Twitch’s required parent domain and opens the broadcaster’s official channel as a fallback. A creator may be offline.</p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / YOUTUBE + TWITCH</span><h3>relax, listen & watch</h3><p>Lofi Girl, rain ASMR, weather coverage, frequency-based music and Twitch broadcasts can play inside the monitor. Recorded videos are labeled as recordings; channels may be offline.</p></div></div><p class="stream-directory-note">Original players retain publisher attribution and their own embed restrictions.</p>';
   }
  }
  function renderStations(query){
