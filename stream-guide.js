@@ -236,33 +236,32 @@
   const count=items.filter(x=>localDay(new Date(x.scheduledAt))===state.day).length;
   grid.setAttribute('aria-label',niceDate(state.day)+' daily shuffled guide, '+count+' approved programs, plus original-host channels and mixtapes');
  }
- // Every station gets its own independent selectable slot. These are not time bookings.
+ // Every source remains available in the directory regardless of daily rotation.
  function renderFeaturedSlots(){
   const panel=root?.querySelector('#streamFeaturedSlots');if(!panel)return;
-  const current=state.category;
-  const isRadio=current==='podcast';
-  const picks=featured.filter(entry=>entry.category===current);
-  const slots=isRadio?stations.map((station,index)=>
-    '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune '+escapeHTML(station[0])+' from '+escapeHTML(station[1])+'">'+
-    '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span></button>').join(''):'';
-  const videoTiles=picks.map((entry,index)=>{
-   const pending=!entry.url;
-   // Unverified picks still open a channel card requesting a source; no fabricated URL.
-   const attrs=' data-stream-feature="'+escapeHTML(entry.id)+'"';
-   return '<button type="button" class="stream-source-slot is-creator'+(pending?' is-unverified':'')+'"'+attrs+'>'+
-    '<small>'+escapeHTML(entry.source)+' / '+String(index+1).padStart(2,'0')+'</small>'+
-    (entry.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(entry.videoId)+'/mqdefault.jpg" alt="">':'')+
-    '<b>'+escapeHTML(entry.title)+'</b><span>'+escapeHTML(entry.subtitle||entry.creator)+'</span></button>';
+  const kind=state.category;
+  const isRadio=kind==='podcast';
+  const isTwitch=kind==='live';
+  const entries=isTwitch?twitchChannels:featured.filter(item=>item.category===kind);
+  const radioSlots=isRadio?stations.map((station,index)=>
+   '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune to '+escapeHTML(station[0])+' at its original website">'+
+   '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span></button>').join(''):'';
+  const picks=entries.map((item,index)=>{
+   const twitch=item.provider==='twitch';
+   const attrs=twitch?'data-stream-twitch="'+escapeHTML(item.id)+'"':'data-stream-feature="'+escapeHTML(item.id)+'"';
+   return '<button type="button" class="stream-source-slot is-creator'+(twitch?' is-twitch':'')+'" '+attrs+'>'+
+    '<small>'+escapeHTML(item.source||'Original creator')+' · '+String(index+1).padStart(2,'0')+'</small>'+
+    (item.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(item.videoId)+'/mqdefault.jpg" alt="">':'<span class="stream-source-emblem" aria-hidden="true">'+(twitch?'◉':item.provider==='mixtape'?'♫':'▶')+'</span>')+
+    '<b>'+escapeHTML(item.title)+'</b><span>'+escapeHTML(item.subtitle||item.creator)+'</span></button>';
   }).join('');
-  if(current==='live'){
-    panel.innerHTML='<div class="stream-band-heading"><b>live channel selector</b><small>No public live broadcasts confirmed yet. Visit the hourly guide or propose an event.</small></div>';
-    return;
-  }
-  panel.innerHTML='<div class="stream-band-heading"><div><small>BIG LWA / '+(isRadio?'CAMPUS DIAL':'VIDEO GUIDE')+'</small><b>'+(isRadio?'every station, its own slot':'creator channels + selected videos')+'</b></div>'+
-   '<span>DIRECT LINKS · NO SIMULATED AIRTIME</span></div>'+
-   (slots?'<div class="stream-source-slots" aria-label="Sixteen individual campus radio station slots">'+slots+'</div>':'')+
-   (videoTiles?'<div class="stream-band-subtitle">'+(isRadio?'podcast video + publisher picks':'watch from the original YouTube creator')+'</div><div class="stream-source-slots is-video" aria-label="Curated independent creator slots">'+videoTiles+'</div>':'')+
-   '<p class="stream-band-note">These tiles are hand-picked links, not scheduled airtime, live simulcasts, or formal partnerships. Playback depends on the original provider allowing embeds.</p>';
+  const mode=isRadio?'LWA RADIO / ORIGINAL SOURCES':isTwitch?'TWITCH / LIVE CHANNELS':'LWA TV / YOUTUBE CREATORS';
+  panel.innerHTML='<div class="stream-band-heading"><div><small>BIG LWA / DAILY DISCOVERY</small><b>'+
+   (isRadio?'radio + mixtape directory':isTwitch?'watch Twitch channels':'watch creator channels')+'</b></div>'+
+   '<span>'+escapeHTML(mode)+'</span></div>'+
+   (radioSlots?'<div class="stream-source-slots" aria-label="Individual campus radio station links">'+radioSlots+'</div>':'')+
+   (isRadio?'<div class="stream-band-subtitle">mixtapes, DJ sets + podcasts</div>':'')+
+   '<div class="stream-source-slots is-video'+(isTwitch?' is-twitch':'')+'" aria-label="Curated original-host channels and recordings">'+picks+'</div>'+
+   '<p class="stream-band-note">Daily picks are not scheduled broadcasts. Each source remains on its original website; Twitch may be offline and YouTube may restrict embedded viewing.</p>';
  }
  function showSource(source) {
   const monitor=root?.querySelector('#streamMonitor');if(!monitor||!source)return;
