@@ -263,10 +263,11 @@
    '<div class="stream-source-slots is-video'+(isTwitch?' is-twitch':'')+'" aria-label="Curated original-host channels and recordings">'+picks+'</div>'+
    '<p class="stream-band-note">Daily picks are not scheduled broadcasts. Each source remains on its original website; Twitch may be offline and YouTube may restrict embedded viewing.</p>';
  }
- function showSource(source) {
+ function showSource(source){
   const monitor=root?.querySelector('#streamMonitor');if(!monitor||!source)return;
-  const title=escapeHTML(source.title),url=source.url;
-  const label=source.source||'Original provider';
+  const title=escapeHTML(source.title);
+  const url=source.url||'';
+  const label=source.source||'Original creator channel';
   state.selected={...source,isDiscovery:true};
   const changed=Boolean(source.category&&source.category!==state.category);
   state.category=source.category||state.category;
@@ -274,26 +275,42 @@
   if(changed){renderGrid();renderFeaturedSlots();renderCategory();}
   const caption='<span>'+escapeHTML(label)+' / '+title+'</span>';
   const original=url?'<a href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Open original ↗</a>':'';
-  if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
-    monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+'</div>'+
-      '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>';
-  } else {
-    monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
-      '<div class="stream-screen-center"><span>◉</span><strong>'+title+'</strong>'+
-      '<small>Independent '+escapeHTML(source.type||'source')+'. '+escapeHTML(source.subtitle||'Listen or watch at the official host.')+'</small>'+
-      (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Tune in at original website ↗</a>':'<button type="button" class="stream-monitor-open" data-stream-scroll-request>Suggest a video link ↗</button>')+
-      '</div><span class="stream-screen-bottom">UNOFFICIAL DIRECTORY · NO REBROADCAST</span></div>';
+  if(source.provider==='twitch'&&/^[a-z0-9_]{2,25}$/i.test(source.twitchChannel||'')){
+   const parent=encodeURIComponent(window.location.hostname);
+   const channel=encodeURIComponent(source.twitchChannel);
+   // Twitch official embed requires the exact parent domain. No proxying or rehosting.
+   const player='https://player.twitch.tv/?channel='+channel+'&parent='+parent+'&autoplay=false&muted=true';
+   monitor.innerHTML='<div class="stream-screen is-program is-twitch-player"><div class="stream-player-label">'+caption+original+'</div>'+
+    '<iframe title="'+title+' on Twitch" src="'+escapeHTML(player)+'" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>'+
+    '<div class="stream-player-footer">TWITCH · stream availability is determined by the creator · '+original+'</div></div>';
+  }else if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
+   monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+'</div>'+
+    '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>';
+  }else{
+   const type=source.provider==='youtube'?'creator channel':source.provider==='mixtape'?'mixtape':source.provider==='podcast'?'podcast':source.type||'radio station';
+   const cta=source.provider==='youtube'?'Browse original videos ↗':source.provider==='mixtape'?'Play on original release ↗':source.provider==='podcast'?'Listen with publisher ↗':'Listen on station website ↗';
+   monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
+    '<div class="stream-screen-center"><span>'+(source.provider==='mixtape'?'♫':'◉')+'</span><strong>'+title+'</strong>'+
+    '<small>'+escapeHTML(source.subtitle||source.creator||type)+'. Original '+escapeHTML(type)+' remains on its own website.</small>'+
+    (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">'+cta+'</a>':'')+
+    '</div><span class="stream-screen-bottom">ORIGINAL PUBLISHER · NO MIRRORED CONTENT</span></div>';
   }
   monitor.scrollIntoView({behavior:'smooth',block:'center'});
  }
  function selectStation(index){
   const station=stations[index];if(!station)return;
-  state.category='podcast';paintCategories();renderCategory();renderFeaturedSlots();renderGrid();
-  showSource({title:station[0],category:'podcast',creator:station[1],subtitle:station[1]+' · '+station[2],source:'Campus radio station',url:station[3],type:'radio station'});
+  showSource({title:station[0],category:'podcast',creator:station[1],
+   subtitle:station[1]+' · '+station[2],source:'Campus radio',
+   url:station[3],type:'radio station',provider:'radio'});
  }
  function selectFeature(id){
   const source=featured.find(item=>item.id===id);
-  if(!source)return;
+  if(!source||!source.url)return;
+  showSource(source);
+ }
+ function selectTwitch(id){
+  const source=twitchChannels.find(item=>item.id===id);
+  if(!source||!source.url)return;
   showSource(source);
  }
  function renderCategory(){
@@ -301,23 +318,23 @@
   const copy=root.querySelector('#streamCategoryCopy');
   const detail=root.querySelector('#streamSectionDetail');
   const cfg={
-   podcast:['CH 01 / THE CAMPUS DIAL','podcast + radio',
-    'College voices, student-run stations, recorded conversations, campus news and underground sounds. Explore independent stations on their own sites.'],
+   podcast:['CH 01 / THE CAMPUS DIAL','lwa radio',
+    'Campus stations, original mixtapes, independent DJ sets and podcasts. Every source links to its original publisher.'],
    'lwa-tv':['CH 02 / THE PICTURE','lwa tv',
-    'Creator documentaries, commentary, music visuals, culture, style and stories that deserve a bigger screen. Videos enter the guide only after review.'],
-   live:['CH 03 / THE LIVE WIRE','live',
-    'Premieres, live sessions, town halls, creative sets and community broadcasts. Live listings are confirmed only once approved and scheduled.']
+    'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
+   live:['CH 03 / THE TWITCH DIAL','live',
+    'Tune to Twitch creator channels in the original Twitch player. Status is never assumed: the broadcaster may be offline.']
   }[state.category];
-  copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><button type="button" data-stream-scroll-request>request programming ↗</button></div>';
+  copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><span class="stream-discovery-label">↻ shuffled daily · direct creator sources</span></div>';
   if(state.category==='podcast'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">THE COLLEGE DIAL / UNIVERSITY RADIO DIRECTORY</span><h3>campus frequencies</h3><p>Browse official student and university stations. Their own websites handle listening, real playlists and current broadcast hours.</p></div><label>Find your school <input id="streamStationSearch" type="search" placeholder="School, call letters or state" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">This is a growing starter directory, not a claim to cover every state school. <a href="mailto:leian@biglwa.com?subject=Suggest%20a%20campus%20radio%20station">Suggest a missing station ↗</a></p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / UNIVERSITY STATIONS</span><h3>campus frequencies</h3><p>All 16 campus stations remain individually selectable. Mixtapes, DJ sets and podcasts are in the radio rotation above.</p></div><label>Find your school <input id="streamStationSearch" type="search" placeholder="School, call letters or state" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Browse original station websites. This is a growing independent directory, not an official partnership. <a href="mailto:leian@biglwa.com?subject=Suggest%20a%20campus%20radio%20station">Suggest a missing station ↗</a></p>';
    const filter=detail.querySelector('#streamStationSearch');
    filter.oninput=()=>renderStations(filter.value);
    renderStations('');
   }else if(state.category==='lwa-tv'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">CHANNEL 02 / COMMUNITY SCREENINGS</span><h3>make room for more voices.</h3><p>Artist profiles, social analysis, interviews, video essays and visual mixtapes belong here.</p></div></div><div class="stream-ideas"><article><span>01 / CULTURE</span><b>creator commentary</b><p>Pop-culture analysis and conversations—think TeaSpill-style breakdowns.</p></article><article><span>02 / PERSONALITIES</span><b>people to watch</b><p>Interviews, evolving stories and public figures, including Olandria-inspired coverage.</p></article><article><span>03 / VISUALS</span><b>short films + mixtapes</b><p>Filmmakers, visual artists and independent music creators.</p></article></div><p class="stream-directory-note">Examples are editorial inspiration, not announcements of partnerships with those creators.</p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / ORIGINAL CREATOR CHANNELS</span><h3>what’s on your screen?</h3><p>Every selectable creator has a real YouTube channel or direct video link. Clips may play here; browse entire channels through their original video pages.</p></div></div><p class="stream-directory-note">These are curated links, not official Big LWA channel partnerships or timed broadcasts.</p>';
   }else{
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">CHANNEL 03 / REAL-TIME SIGNAL</span><h3>the live wire</h3><p>Live premieres, community conversations and events can be proposed for the schedule. No audience or on-air figures are simulated.</p></div></div><div class="stream-live-wait"><span class="stream-live-lamp" aria-hidden="true"></span><div><strong>awaiting the next live program</strong><p>No event is presented as live until its broadcast has been verified and scheduled.</p></div><button type="button" data-stream-scroll-request>propose a live session ↗</button></div>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / TWITCH CHANNEL DIRECTORY</span><h3>the Twitch dial</h3><p>Browse HasanAbi, Pokimane, QTCinderella, Kai Cenat and Fuslie. The official Twitch player connects directly to their channels; it does not indicate that they are broadcasting right now.</p></div></div><p class="stream-directory-note">The player uses Twitch’s required parent domain and opens the broadcaster’s official channel as a fallback. A creator may be offline.</p>';
   }
  }
  function renderStations(query){
