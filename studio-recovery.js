@@ -31,29 +31,29 @@
       card.id='politc';card.className='card studio-politc-card';
       card.dataset.widgetRoute='politc';
       card.dataset.search='politc politics election nominees voter resources political pendulum wcw mcm hunting season cunting season';
-      card.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">⚖</span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Election countdown, candidates by location, political pendulum, wanted posters and global news sources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
+      card.innerHTML='<div class="card-head"><div><span class="card-icon politc-studio-symbol" aria-hidden="true"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34"></span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Election countdown, candidates by location, political pendulum, wanted posters and global news sources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
       const room=root.querySelector('#rooms');
       if(room?.parentElement===masonry)room.insertAdjacentElement('afterend',card);else masonry.appendChild(card);
+    }
+    const politc=root.querySelector('#politc');
+    if(politc){
+      politc.dataset.widgetRoute='politc';
+      const badge=politc.querySelector('.card-icon');
+      if(badge&&!badge.querySelector('img[src*="politc-nyame-baatanpa"]')){
+        badge.classList.add('politc-studio-symbol');
+        badge.innerHTML='<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34">';
+      }
+      politc.querySelectorAll('.card-cta,.arrow-btn').forEach(control=>{control.dataset.open='politc';control.setAttribute('aria-label','Open politc');});
     }
     return true;
   };
   const style=document.createElement('style');
   style.textContent='#studioApp #calendar .biglwa-two-week-recovered{display:grid;gap:6px;margin:10px 0;padding:12px;border:1px solid rgba(130,100,90,.22);border-radius:12px;background:rgba(255,255,255,.12)}#studioApp #calendar .calendar-mini-head{display:flex;justify-content:space-between;font:600 11px system-ui}#studioApp #calendar .calendar-mini-weekdays,#studioApp #calendar .calendar-mini-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}#studioApp #calendar .calendar-mini-weekdays span{text-align:center;font:700 9px system-ui}#studioApp #calendar .calendar-mini-grid span{display:grid;place-items:center;min-height:25px;border-radius:5px;background:rgba(150,140,130,.08);font:12px system-ui}#studioApp #calendar .calendar-mini-grid span.today{outline:2px solid currentColor;font-weight:800}';
+  style.textContent+='#studioApp #politc .politc-studio-symbol{display:inline-flex!important;width:38px!important;height:38px!important;align-items:center;justify-content:center}#studioApp #politc .politc-studio-symbol img{display:block;width:34px;height:34px;object-fit:contain}body.night-mode #studioApp #politc .politc-studio-symbol img{filter:invert(1)}';
   document.head.appendChild(style);
   let attempts=0;
   const timer=setInterval(()=>{ensure();if(++attempts>=30)clearInterval(timer)},500);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensure,{once:true});else ensure();
-  document.addEventListener('click',event=>{
-    const button=event.target.closest('#studioApp #politc [data-open="politc"]');
-    if(!button||event.defaultPrevented)return;
-    if(typeof window.BigLWAOpenModule==='function'){
-      event.preventDefault();
-      window.BigLWAOpenModule('politc');
-    }else{
-      event.preventDefault();
-      location.assign('/studio/politc');
-    }
-  });
   window.addEventListener('pageshow',ensure);
   document.addEventListener('biglwa:module-close',ensure);
 })();
