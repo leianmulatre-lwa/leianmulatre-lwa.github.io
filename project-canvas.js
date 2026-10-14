@@ -3,7 +3,7 @@
 if(window.__biglwaProjectCanvas)return;
 const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let active=null,boards=[],current='',drag=null,saveTimer=null;
+let active=null,boards=[],current='',drag=null,saveTimer=null,projectUploadBusy=false;
 const uid=()=>window.__biglwaIdentity?.uid||'guest';
 const key=()=> 'biglwaProjectCanvas:v1:'+uid();
 const id=()=>String(Date.now())+Math.random().toString(36).slice(2,7);
@@ -28,7 +28,7 @@ function card(item){
 }
 function render(){
  const root=$('#lwaProjects');if(!root)return;
- root.innerHTML='<div class="lwa-project-toolbar"><div><h2>projects · canvas</h2><p>Make room for ideas, references, and works in progress.</p></div><div class="lwa-project-controls"><button data-new-board>+ New project</button><select aria-label="Choose project" id="lwaProjectChoice">'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===current?' selected':'')+'>'+esc(b.title)+'</option>').join('')+'</select><button data-rename>Rename</button><button data-remove-board>Delete project</button></div></div><div class="lwa-project-tools"><button data-add="note">+ Note</button><button data-add="image">+ Image</button><button data-add="link">+ Link</button><button data-add="tasks">+ Tasks</button><span id="lwaProjectStatus" role="status">Saved in this browser · private draft</span></div><div class="lwa-project-board" id="lwaProjectBoard"><div class="lwa-project-guide">Drag cards to arrange your workspace · edit cards in place</div>'+(board()?.items||[]).map(card).join('')+'</div><p class="lwa-project-foot">Projects are currently browser-saved drafts, not yet synced across devices or shared with collaborators.</p>';
+ root.innerHTML='<div class="lwa-project-toolbar"><div><h2>projects · canvas</h2><p>Make room for ideas, references, and works in progress.</p></div><div class="lwa-project-controls"><button data-new-board>+ New project</button><select aria-label="Choose project" id="lwaProjectChoice">'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===current?' selected':'')+'>'+esc(b.title)+'</option>').join('')+'</select><button data-rename>Rename</button><button data-remove-board>Delete project</button></div></div><div class="lwa-project-tools"><button data-add="note">+ Note</button><button data-open-project-picker>+ Image</button><button data-add="link">+ Link</button><button data-add="tasks">+ Tasks</button><span id="lwaProjectStatus" role="status">Saved in this browser · private draft</span></div><div class="lwa-project-board" id="lwaProjectBoard"><div class="lwa-project-guide">Drag cards to arrange your workspace · edit cards in place</div>'+(board()?.items||[]).map(card).join('')+'</div><dialog id="lwaProjectImagePicker" aria-label="Add an image to Projects"><div class="lwa-project-picker-head"><h3>Add an image</h3><button type="button" data-close-project-picker aria-label="Close image picker">×</button></div><p>Choose an image from your connected Orbit library, or drop an image directly into this project.</p><div class="lwa-project-picker-actions"><button type="button" data-choose-orbit>Choose from Orbit</button><label class="lwa-project-file-label">Upload an image<input type="file" id="lwaProjectFileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label></div><div class="lwa-project-drop" id="lwaProjectDrop" tabindex="0" role="button" aria-label="Drop or select an image">Drop image here, or click to browse your files</div><div id="lwaProjectOrbitGallery" class="lwa-project-orbit-gallery" hidden></div><p class="lwa-project-picker-status" id="lwaProjectPickerStatus" role="status"></p></dialog><p class="lwa-project-foot">Project layouts are saved in this browser. Uploaded image files are copied into your account’s BIGLWA R2 media bucket.</p>';
 }
 function mount(){
  const body=$('#moduleWorkspaceBody');if(!body||$('#moduleRouteName')?.textContent!=='Projects')return;
@@ -39,14 +39,78 @@ function mount(){
 function add(type){
  if(!board())return;
  const item={id:id(),type,text:'',url:'',x:38+(board().items.length%5)*35,y:65+(board().items.length%5)*40};
- if(type==='image'){const url=prompt('Image URL (https://)');if(!url)return;try{const u=new URL(url);if(u.protocol!=='https:')throw Error();item.url=u.href}catch{return alert('Enter a valid HTTPS image URL.')}}
+ if(type==='image'){openImagePicker();return;}
  if(type==='link'){const url=prompt('Reference URL (https://)');if(!url)return;try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))throw Error();item.url=u.href}catch{return alert('Enter a valid web URL.')}}
  board().items.push(item);save();render();
+}
+
+function appendImage(url,label=''){
+ if(!board())throw Error('Create a project first.');
+ let parsed;try{parsed=new URL(url)}catch{throw Error('Invalid image location.')}
+ if(parsed.protocol!=='https:')throw Error('Only HTTPS images can be added.');
+ const item={id:id(),type:'image',text:label,url:parsed.href,
+  x:38+(board().items.length%5)*35,y:65+(board().items.length%5)*40};
+ board().items.push(item);save();render();
+}
+function pickerStatus(message){
+ const el=$('#lwaProjectPickerStatus');if(el)el.textContent=message;
+}
+function openImagePicker(){
+ if(!board()){setStatus('Create a project first.');return;}
+ const picker=$('#lwaProjectImagePicker');if(!picker)return;
+ pickerStatus('Your Orbit images stay in BIGLWA media storage. Your project is a private draft on this browser.');
+ const gallery=$('#lwaProjectOrbitGallery');if(gallery){gallery.hidden=true;gallery.replaceChildren()}
+ picker.showModal();
+}
+function getProjectImageToken(){
+ return Promise.all([
+  import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+  import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')
+ ]).then(async ([firebase,authAPI])=>{
+  const app=firebase.getApps()[0];
+  if(!app)throw Error('Sign in to upload your image.');
+  const auth=authAPI.getAuth(app);await auth.authStateReady();
+  if(!auth.currentUser)throw Error('Sign in to BIGLWA to save images.');
+  return auth.currentUser.getIdToken();
+ });
+}
+async function uploadProjectImage(file){
+ if(projectUploadBusy)return;
+ if(!file||!/^image\/(jpeg|png|webp|gif)$/.test(file.type))throw Error('Choose a JPG, PNG, WebP, or GIF image.');
+ if(file.size>8*1024*1024)throw Error('Images must be 8 MB or smaller.');
+ projectUploadBusy=true;pickerStatus('Saving image in your BIGLWA media bucket…');
+ try{
+  const token=await getProjectImageToken();
+  const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/feed-image',{
+   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':file.type},body:file
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.url)throw Error(data.error||'Upload could not be completed.');
+  appendImage(data.url,file.name.replace(/\.[^.]+$/,''));
+ }finally{projectUploadBusy=false}
+}
+async function loadOrbitImagePicker(){
+ const panel=$('#lwaProjectOrbitGallery');if(!panel)return;
+ panel.hidden=false;panel.textContent='Loading your saved Orbit photos…';
+ try{
+  const api=window.__biglwaOrbitPosts;
+  if(!api?.storedOrbitImageUrls)throw Error('Orbit is still loading. Please try again.');
+  const groups=await Promise.all(['instagram','pinterest'].map(source=>api.storedOrbitImageUrls(source)));
+  if(!panel.isConnected)return;
+  const images=[...new Set(groups.flatMap(group=>Object.values(group||{}).flat()))]
+    .filter(url=>typeof url==='string'&&url.startsWith('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/orbit/'))
+    .slice(0,150);
+  if(!images.length){panel.textContent='No stored Orbit images yet. Connect Instagram or Pinterest in Orbit, then sync photos.';return;}
+  panel.innerHTML=images.map((url,index)=>'<button type="button" data-select-orbit-image="'+index+'"><img src="'+esc(url)+'" alt="Saved Orbit picture" loading="lazy"></button>').join('');
+  panel.__imageUrls=images;
+  pickerStatus('Choose a saved image to add to your project.');
+ }catch(error){panel.textContent=error?.message||'Orbit photos could not load.'}
 }
 document.addEventListener('biglwa:module-open',e=>{if(e.detail?.key==='projects'||e.detail?.key==='project')mount()});
 document.addEventListener('click',e=>{
  const root=e.target.closest('#lwaProjects');if(!root)return;
  const b=e.target.closest('button');if(!b)return;
+ if(b.hasAttribute('data-open-project-picker')){openImagePicker();return}
  if(b.dataset.add){add(b.dataset.add);return}
  if(b.hasAttribute('data-new-board')){const title=prompt('Project title','New project');if(!title?.trim())return;const next={id:id(),title:title.trim(),items:[]};boards.push(next);current=next.id;save();render()}
  if(b.hasAttribute('data-rename')&&board()){const title=prompt('Rename project',board().title);if(title?.trim()){board().title=title.trim();save();render()}}
@@ -61,6 +125,38 @@ document.addEventListener('change',e=>{
 document.addEventListener('input',e=>{
  const itemEl=e.target.closest('#lwaProjects [data-card]');if(!itemEl||!board()||!e.target.dataset.field)return;
  const item=board().items.find(i=>i.id===itemEl.dataset.card);if(item){item[e.target.dataset.field]=e.target.value;save()}
+});
+
+document.addEventListener('click',async e=>{
+ const dialog=e.target.closest('#lwaProjectImagePicker');if(!dialog)return;
+ const btn=e.target.closest('button');
+ if(btn?.hasAttribute('data-close-project-picker')){dialog.close();return;}
+ if(btn?.hasAttribute('data-choose-orbit')){await loadOrbitImagePicker();return;}
+ if(btn?.hasAttribute('data-select-orbit-image')){
+   const url=$('#lwaProjectOrbitGallery')?.__imageUrls?.[Number(btn.dataset.selectOrbitImage)];
+   if(url)try{appendImage(url);setStatus('Added stored Orbit image to project.')}catch(error){pickerStatus(error.message)}
+   return;
+ }
+ if(e.target.closest('#lwaProjectDrop')){$('#lwaProjectFileInput')?.click();return;}
+});
+document.addEventListener('change',async e=>{
+ if(e.target.id!=='lwaProjectFileInput')return;
+ const file=e.target.files?.[0];if(!file)return;
+ try{await uploadProjectImage(file);setStatus('Uploaded image into your project and BIGLWA media storage.')}
+ catch(error){pickerStatus(error.message);}
+});
+document.addEventListener('dragover',e=>{
+ const drop=e.target.closest('#lwaProjectDrop,#lwaProjectBoard');if(!drop)return;
+ if(![...e.dataTransfer?.types||[]].includes('Files'))return;
+ e.preventDefault();drop.classList.add('is-drag-over');
+});
+document.addEventListener('dragleave',e=>e.target.closest('#lwaProjectDrop,#lwaProjectBoard')?.classList.remove('is-drag-over'));
+document.addEventListener('drop',async e=>{
+ const target=e.target.closest('#lwaProjectDrop,#lwaProjectBoard');if(!target)return;
+ const file=[...e.dataTransfer.files].find(f=>f.type.startsWith('image/'));
+ if(!file)return;e.preventDefault();target.classList.remove('is-drag-over');
+ try{await uploadProjectImage(file);setStatus('Dropped image saved to BIGLWA media storage.')}
+ catch(error){pickerStatus(error.message);setStatus(error.message);}
 });
 document.addEventListener('pointerdown',e=>{
  const handle=e.target.closest('#lwaProjects [data-drag]');if(!handle||e.target.closest('button'))return;
@@ -83,7 +179,8 @@ window.__biglwaProjectCanvas={mount};
 const css=document.createElement('style');css.textContent=`
 #lwaProjects{font-family:system-ui,sans-serif;color:#302b28}
 .lwa-project-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0 16px}
-.lwa-project-toolbar h2{font:600 30px Georgia,serif;margin:0}.lwa-project-toolbar p{font-size:13px;margin:5px 0;color:#766a61}
+.lwa-project-toolbar h2{font:400 32px/1.2 "CS Bergamot Stitched",Georgia,serif!important;margin:0}
+.module-workspace[data-module-key="projects"] .module-heading h1{font-family:"CS Bergamot Stitched",Georgia,serif!important}.lwa-project-toolbar p{font-size:13px;margin:5px 0;color:#766a61}
 .lwa-project-controls,.lwa-project-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 #lwaProjects button,#lwaProjects select{cursor:pointer;border:1px solid #d9ccc1;border-radius:10px;padding:10px 12px;background:#fff9f1;color:#302b28;font:600 12px system-ui}
 #lwaProjects button:hover{background:#f5dfc9}.lwa-project-tools{padding:12px 0}.lwa-project-tools span{margin-left:auto;font-size:11px;color:#756d66}
@@ -98,5 +195,20 @@ const css=document.createElement('style');css.textContent=`
 .lwa-project-item img{width:100%;max-height:250px;object-fit:cover;border-radius:8px}
 .lwa-project-item a{font-size:12px}.lwa-project-item small{font-size:10px}
 .lwa-project-foot{font-size:12px;color:#7c7167;padding:12px 0}
+#lwaProjectImagePicker{border:1px solid #cfc0b2;border-radius:18px;max-width:min(580px,92vw);
+ width:92vw;max-height:85vh;padding:20px;background:#fffaf2;color:#352923;box-shadow:0 22px 80px #0007}
+#lwaProjectImagePicker::backdrop{background:#14100cb0}
+.lwa-project-picker-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lwa-project-picker-head h3{font:400 29px "CS Bergamot Stitched",Georgia,serif!important;margin:0}
+.lwa-project-picker-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.lwa-project-file-label{display:inline-flex;align-items:center;padding:10px 12px;border:1px solid #d9ccc1;border-radius:10px;background:#fff1de;font:700 12px system-ui;cursor:pointer}
+.lwa-project-drop{display:grid;place-items:center;min-height:125px;padding:15px;border:2px dashed #b5a69a;border-radius:12px;text-align:center;font:600 13px/1.5 system-ui;cursor:pointer}
+.lwa-project-drop.is-drag-over,#lwaProjectBoard.is-drag-over{border-color:#bd4968;background:#fce6e9}
+.lwa-project-orbit-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:8px;max-height:290px;overflow:auto;margin:15px 0}
+.lwa-project-orbit-gallery[hidden]{display:none}
+.lwa-project-orbit-gallery button{height:104px!important;padding:0!important;overflow:hidden}
+.lwa-project-orbit-gallery img{width:100%;height:100%;object-fit:cover}
+.lwa-project-picker-status{font:600 11px/1.5 system-ui;color:#79675c}
+
 `;document.head.append(css);
 })();
