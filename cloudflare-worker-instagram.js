@@ -424,6 +424,11 @@ function corsHeaders(origin) {
  */
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname.startsWith('/stream/')) {
+      const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
+      try { return await streamRoute(request, config); }
+      catch (error) { return json({ error: error.publicMessage || 'Stream service is unavailable. Please try again.' }, error.status || 500, request, config); }
+    }
     if (new URL(request.url).pathname.startsWith('/media/')) {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
       try { return await mediaRoute(request, config); }
@@ -562,6 +567,129 @@ async function ttRoute(request, env) {
   const body = await response.json();
   if (!response.ok || (body.error && body.error.code !== 'ok')) ttFail('TikTok could not return ' + (videos ? 'videos. Check video.list access for this app.' : 'your profile. Check user.info.basic access for this app.'), 502);
   return json(videos ? { videos: body.data?.videos || [] } : (body.data?.user || {}), 200, request, env);
+}
+
+
+/* ── Big LWA Stream editorial system ──────────────────────────────────────────
+   Original video stays hosted on YouTube; R2 keeps private review requests.
+   No request becomes public programming until a verified moderator approves it.
+   Audio/radio stations are discoverable external links, not rebroadcast here. */
+const STREAM_REQUEST_PREFIX = 'stream/requests/';
+const STREAM_APPROVED_PREFIX = 'stream/approved/';
+const STREAM_CATEGORIES = ['podcast','lwa-tv','live'];
+function streamFail(message, status=400) {
+  const error=new Error(message);error.publicMessage=message;error.status=status;throw error;
+}
+function streamTrim(value,limit=160) { return String(value==null?'':value).trim().slice(0,limit); }
+function streamVideoId(value) {
+  let url;
+  try { url=new URL(String(value||'')); } catch { return ''; }
+  if(url.protocol!=='https:')return '';
+  const host=url.hostname.toLowerCase();
+  let id='';
+  if(host==='youtu.be') id=url.pathname.split('/')[1]||'';
+  else if(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com'].includes(host)) {
+    if(url.pathname==='/watch')id=url.searchParams.get('v')||'';
+    else if(/^\/(shorts|live|embed)\/[^/]+/.test(url.pathname))id=url.pathname.split('/')[2]||'';
+  }
+  return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
+}
+function streamOwnerKey(uid,id) {return STREAM_REQUEST_PREFIX+uid+'/'+id+'.json';}
+async function streamObjects(bucket,prefix,max=100) {
+  const list=await bucket.list({prefix,limit:Math.min(1000,max)});
+  const files=(list.objects||[]).slice(0,max);
+  const values=await Promise.all(files.map(async file=>{
+    try {const obj=await bucket.get(file.key);return obj?await obj.json():null;}catch{return null;}
+  }));
+  return values.filter(Boolean);
+}
+async function streamEditor(request,user,env) {
+  const header=request.headers.get('Authorization')||'';
+  const token=header.startsWith('Bearer ')?header.slice(7).trim():'';
+  // Reuse the existing Firestore moderationAdmins owner-lookup rule;
+  // credentials never enter R2 or become publicly readable.
+  const endpoint='https://firestore.googleapis.com/v1/projects/biglwa/databases/(default)/documents/moderationAdmins/'+encodeURIComponent(user.uid);
+  const response=await fetch(endpoint,{headers:{Authorization:'Bearer '+token}});
+  if(!response.ok)streamFail('Stream editorial access required.',403);
+  const doc=await response.json().catch(()=>({}));
+  if(doc.fields?.active?.booleanValue===false)streamFail('Stream editorial access required.',403);
+  return true;
+}
+function streamPublic(item) {
+  return {id:item.id,title:item.title,category:item.category,videoId:item.videoId,
+    youtubeUrl:item.youtubeUrl,scheduledAt:item.scheduledAt,creditedCreator:item.creditedCreator||''};
+}
+async function streamRoute(request,env) {
+  if(request.method==='OPTIONS')return corsPreflight(request,env);
+  if(!allowedOrigin(request,env))streamFail('Origin not allowed.',403);
+  const path=new URL(request.url).pathname;
+  const bucket=mediaBucket(env);
+  if(path==='/stream/health'&&request.method==='GET')
+    return json({ok:true,service:'Big LWA Stream',requests:true,scheduled:true},200,request,env);
+  if(path==='/stream/programming'&&request.method==='GET') {
+    const published=await streamObjects(bucket,STREAM_APPROVED_PREFIX,160);
+    return json({items:published.filter(x=>x.status==='approved'&&x.videoId&&x.scheduledAt)
+      .map(streamPublic).sort((a,b)=>String(a.scheduledAt).localeCompare(String(b.scheduledAt)))},200,request,env);
+  }
+  if(!['/stream/requests','/stream/editorial'].includes(path))streamFail('Not found.',404);
+  if(!['GET','POST'].includes(request.method))streamFail('Not found.',404);
+  const user=await mediaUser(request,env);
+  if(path==='/stream/requests'&&request.method==='GET') {
+    const own=await streamObjects(bucket,STREAM_REQUEST_PREFIX+user.uid+'/',80);
+    return json({items:own.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,40)},200,request,env);
+  }
+  if(path==='/stream/requests'&&request.method==='POST') {
+    if(Number(request.headers.get('Content-Length')||0)>12000)streamFail('Submission is too large.',413);
+    const data=await request.json().catch(()=>({}));
+    const title=streamTrim(data.title,110);
+    const videoId=streamVideoId(data.youtubeUrl);
+    const category=streamTrim(data.category,16);
+    const note=streamTrim(data.note,550);
+    const creditedCreator=streamTrim(data.creditedCreator,80);
+    const timePreference=streamTrim(data.timePreference,100);
+    const rights=streamTrim(data.rights,20);
+    if(title.length<4||!videoId||!STREAM_CATEGORIES.includes(category))
+      streamFail('Add a title, valid YouTube video link and programming category.');
+    if(!['my-video','nomination'].includes(rights))
+      streamFail('Please say whether you own the video or are nominating someone else.');
+    const own=await streamObjects(bucket,STREAM_REQUEST_PREFIX+user.uid+'/',80);
+    if(own.filter(x=>Date.now()-Date.parse(x.createdAt)<86400000).length>=5)
+      streamFail('You can submit up to five programming requests per day.',429);
+    const id=randomToken(12), now=new Date().toISOString();
+    const entry={id,uid:user.uid,title,videoId,category,note,creditedCreator,timePreference,
+      rights,status:'pending',youtubeUrl:'https://www.youtube.com/watch?v='+videoId,createdAt:now};
+    await bucket.put(streamOwnerKey(user.uid,id),JSON.stringify(entry),{
+      httpMetadata:{contentType:'application/json'},
+      customMetadata:{kind:'stream-submission',status:'pending'}
+    });
+    return json({ok:true,id,status:'pending',message:'Sent for editorial review. No airtime is guaranteed.'},201,request,env);
+  }
+  await streamEditor(request,user,env);
+  if(request.method==='GET') {
+    const all=await streamObjects(bucket,STREAM_REQUEST_PREFIX,160);
+    return json({items:all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))},200,request,env);
+  }
+  const data=await request.json().catch(()=>({}));
+  const uid=streamTrim(data.uid,128),id=streamTrim(data.id,64);
+  const decision=streamTrim(data.decision,12);
+  if(!/^[\w-]{4,128}$/.test(uid)||!/^[A-Za-z0-9_-]{12,64}$/.test(id)||!['approved','declined'].includes(decision))
+    streamFail('Invalid review request.');
+  const original=await bucket.get(streamOwnerKey(uid,id));
+  if(!original)streamFail('Submission not found.',404);
+  const entry=await original.json();
+  if(entry.uid!==uid||entry.id!==id)streamFail('Submission mismatch.',409);
+  const scheduledAt=decision==='approved'?new Date(String(data.scheduledAt||'')) : null;
+  if(decision==='approved'&&(!Number.isFinite(scheduledAt?.valueOf())||scheduledAt.valueOf()<Date.now()-3600000||
+    scheduledAt.valueOf()>Date.now()+366*86400000))
+    streamFail('Choose a valid future programming date and time.');
+  const updated={...entry,status:decision,scheduledAt:decision==='approved'?scheduledAt.toISOString():null,
+    reviewedAt:new Date().toISOString(),reviewer:user.uid};
+  await bucket.put(streamOwnerKey(uid,id),JSON.stringify(updated),{httpMetadata:{contentType:'application/json'}});
+  const publishedKey=STREAM_APPROVED_PREFIX+id+'.json';
+  if(decision==='approved'){
+    await bucket.put(publishedKey,JSON.stringify(updated),{httpMetadata:{contentType:'application/json'}});
+  } else await bucket.delete(publishedKey);
+  return json({ok:true,id,status:decision},200,request,env);
 }
 
 function pnFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
