@@ -2150,7 +2150,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     document.querySelectorAll('#studioApp [data-open="notes"],#studioApp a[href="#notes"]').forEach(control=>{
       const leaf=[...control.querySelectorAll('b,span,small')].filter(node=>!node.children.length);
       if(!leaf.length&&!control.children.length)leaf.push(control);
-      leaf.forEach(node=>{if(/^(qwiky|quick|sqwib)\\s*note$/i.test(node.textContent.trim()))node.textContent='Sqwib Note'});
+      leaf.forEach(node=>{if(/^(qwiky|quick|sqwib)\s*note$/i.test(node.textContent.trim()))node.textContent='Sqwib Note'});
     });
     const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
     if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Black-and-white photobooth preview');cameraPreview.innerHTML='<img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy">'}
