@@ -6,6 +6,110 @@ const KEY='biglwaPinterestSession';
 const PENDING_KEY='biglwaPinterestPendingHandoffV2';
 const OAUTH_UID_KEY='biglwaPinterestOauthStartingUid';
 let handoffPromise=null;
+ let savedLibrary={version:1,boards:[]}, savedUid='',savedBusy=false,savedError='';
+ const pinById=id=>pins.find(p=>String(p.id)===String(id))||savedLibrary.boards.flatMap(b=>b.pins||[]).find(p=>String(p.id)===String(id));
+ async function savedRequest(method='GET',library){
+  const token=await firebaseIdToken();
+  if(!token||!authUid)throw new Error('Sign in to save Pinterest Pins on Big LWA.');
+  const uid=authUid;
+  const response=await fetch(API+'saved',{
+   method,headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+   ...(method==='POST'?{body:JSON.stringify(library)}:{})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||'Unable to save collections to your account.');
+  if(uid!==authUid)throw new Error('Account changed while saving Pins.');
+  return result.library;
+ }
+ async function loadSaved(){
+  if(!authUid)return;
+  if(savedUid===authUid)return;
+  try{
+   const result=await savedRequest();
+   savedLibrary=result||{version:1,boards:[]};
+   savedUid=authUid;savedError='';
+  }catch(error){savedError=error.message||'Saved collections could not load.'}
+  render();
+ }
+ async function editSaved(mutator){
+  if(savedBusy)return;
+  savedBusy=true;
+  try{
+   const next=JSON.parse(JSON.stringify(savedLibrary));
+   mutator(next);
+   const result=await savedRequest('POST',next);
+   savedLibrary=result;savedUid=authUid;savedError='';
+   notice('Saved to your Big LWA collections.');
+  }catch(error){savedError=error.message||'Could not update saved Pins.';notice(savedError)}
+  finally{savedBusy=false;render()}
+ }
+ async function newSavedBoard(){
+  const title=window.prompt('New Big LWA board name (private, not on Pinterest):');
+  if(title==null)return;
+  const clean=title.trim().slice(0,100);
+  if(!clean){notice('Add a board name.');return;}
+  if(savedLibrary.boards.length>=40){notice('Maximum 40 saved boards.');return;}
+  const id='board_'+Array.from(crypto.getRandomValues(new Uint8Array(12))).map(n=>n.toString(16).padStart(2,'0')).join('');
+  await editSaved(data=>{data.boards.push({id,title:clean,pins:[]})});
+ }
+ async function addSavedPin(pinId,board){
+  const source=pinById(pinId);
+  if(!source){notice('Open that board to load this Pin first.');return}
+  const target=board||'default_saved';
+  await editSaved(data=>{
+   let collection=data.boards.find(b=>b.id===target);
+   if(!collection){
+    if(target!=='default_saved')throw new Error('Choose a valid saved board.');
+    collection={id:'default_saved',title:'Saved',pins:[]};
+    data.boards.unshift(collection);
+   }
+   if(collection.pins.some(p=>p.id===String(pinId)))throw new Error('This Pin is already saved to that collection.');
+   collection.pins.unshift({id:String(pinId),title:String(source.title||source.description||'Pinterest Pin').slice(0,300),
+    image:image(source),url:'https://www.pinterest.com/pin/'+pinId+'/'});
+  });
+ }
+ async function publishPin(pinId){
+  const pin=pinById(pinId);
+  if(!pin){notice('Load that Pinterest Pin first.');return}
+  await run(async()=>{
+   const importer=await waitForImporter();
+   const publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
+   if(typeof importer!=='function'||typeof publisher!=='function')throw new Error('Collective Feed publisher is not ready. Refresh and try again.');
+   const source={...pin,id:String(pinId),image_url:image(pin)||pin.image||'',
+     url:'https://www.pinterest.com/pin/'+pinId+'/'};
+   const imported=await importer('pinterest',[source],profile,window.__biglwaIdentity||{});
+   if(!imported||!imported.imported||imported.partial)throw new Error('Pinterest card was not fully saved to your account. Try Sync Pins first.');
+   const input=new TextEncoder().encode('pinterest:'+pinId);
+   const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',input));
+   const postId='orbit_'+Array.from(digest).map(n=>n.toString(16).padStart(2,'0')).join('').slice(0,40);
+   await publisher(postId);
+   window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published:1}}));
+   notice('Pin posted to Collective Feed.');
+  });
+ }
+ function savedBoardsMarkup(){
+  if(!connected)return '';
+  const boardRows=savedLibrary.boards.map(board=>{
+   const cols=(board.pins||[]).slice(0,16).map(pin=>
+    '<article class="pn-saved-pin"><a href="'+esc(pin.url)+'" target="_blank" rel="noopener noreferrer">'+
+    (pin.image?'<img src="'+esc(pin.image)+'" loading="lazy" alt="">':'')+'</a>'+
+    '<span>'+esc(pin.title)+'</span>'+
+    '<div class="pn-saved-pin-actions"><button type="button" data-pn-edit-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Edit</button>'+
+    '<button type="button" data-pn-remove-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Remove</button>'+
+    '<button type="button" data-pn-publish="'+esc(pin.id)+'">Post to Feed</button></div></article>').join('');
+   return '<section class="pn-saved-board" data-pn-collection="'+esc(board.id)+'">'+
+    '<header><h4>'+esc(board.title)+' <small>('+board.pins.length+')</small></h4>'+
+    '<button type="button" data-pn-rename-board="'+esc(board.id)+'">Rename</button>'+
+    '<button type="button" data-pn-remove-board="'+esc(board.id)+'">Delete board</button></header>'+
+    '<div class="pn-saved-pin-grid">'+(cols||'<p>Save Pins from above to this board.</p>')+'</div></section>';
+  }).join('');
+  return '<section class="pn-saved-section" aria-label="Your saved Big LWA boards">'+
+   '<div class="pn-saved-heading"><div><h3>Saved on Big LWA</h3><p>Your private collections sync to your account. They do not modify Pinterest boards.</p></div>'+
+   '<button type="button" class="module-action" data-pn-new-board>+ New board</button></div>'+
+   (savedError?'<p role="alert">'+esc(savedError)+'</p>':'')+
+   (boardRows||'<p>Save a Pin to start a collection, or create a new board.</p>')+'</section>';
+ }
+
  let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null;
  let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false,diagnostic='Awaiting Pinterest account synchronization';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -22,6 +126,7 @@ let handoffPromise=null;
  };
  const resetView=()=>{
   connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};
+  savedLibrary={version:1,boards:[]};savedUid='';savedError='';
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
   restorePromise=null;boardsPromise=null;pinsPromise=null;lastImport={imported:0,skipped:0,partial:0};importError='';
   render();
@@ -200,6 +305,7 @@ async function connect(){await run(async()=>{
     if(!profile||typeof profile!=='object'||!profile.username)
      throw new Error('Pinterest did not return a readable authorized profile. Check your Pinterest API permissions.');
     connected=true;
+    await loadSaved();
     diagnostic='Pinterest connected as @'+profile.username+'.';
     document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:true,uid:authUid,username:profile.username}}));
     render();
