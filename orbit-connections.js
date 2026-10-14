@@ -69,14 +69,38 @@ const clean = (v) => String(v == null ? "" : v).trim();
 
 /* Both the other sources keep their credential in local storage, and Pinterest now does
    too, but a session left behind by an older build is still worth finding. */
-function readSession(key) {
+function readSession(key, accountUid) {
+  // The Pinterest session is bound to a Firebase UID; never read another person's
+  // credential from the previous global browser-storage slot.
+  const uid = accountUid || identity()?.uid;
+  const scoped = key === "biglwaPinterestSession"
+    ? (uid ? key + ":" + uid : "")
+    : key;
+  if (!scoped) return "";
   for (const store of [localStorage, sessionStorage]) {
-    try {
-      const value = store.getItem(key);
-      if (value) return value;
-    } catch { /* storage disabled */ }
+    try { const value = store.getItem(scoped); if (value) return value; }
+    catch { /* storage disabled */ }
   }
   return "";
+}
+async function recoverPinterestSession(uid) {
+  try {
+    const { auth } = await firebase();
+    await auth.authStateReady();
+    if (!uid || auth.currentUser?.uid !== uid) return "";
+    const token = await auth.currentUser.getIdToken();
+    const result = await fetch(WORKER + "/pinterest/session/account", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (!result.ok) return "";
+    const payload = await result.json();
+    if (!payload?.connected || !payload.session) return "";
+    try { localStorage.setItem("biglwaPinterestSession:" + uid, payload.session); } catch { }
+    return payload.session;
+  } catch (error) {
+    console.warn("Pinterest account recovery:", error);
+    return "";
+  }
 }
 
 let refs;
@@ -127,15 +151,28 @@ export function connectedIds() {
    A device with no local credential never gets this far: it keeps what the account says
    and reports the connection as needing to be re-authorised here. */
 async function syncSource(source, uid) {
-  const session = readSession(source.sessionKey);
+  let session = readSession(source.sessionKey, uid);
+  if (!session && source.id === "pinterest") session = await recoverPinterestSession(uid);
   if (!session) return { outcome: "no-session" };
-  const headers = { Authorization: "Bearer " + session };
+  let headers = { Authorization: "Bearer " + session };
   let profile;
   try {
     const response = await fetch(WORKER + source.profile, { headers });
-    if (response.status === 401) return { outcome: "rejected" };
-    if (!response.ok) return { outcome: "stale" };
-    profile = await response.json();
+    if (response.status === 401 && source.id === "pinterest") {
+      // A stale local credential is not proof that the account was disconnected.
+      try { localStorage.removeItem("biglwaPinterestSession:" + uid); } catch {}
+      session = await recoverPinterestSession(uid);
+      if (!session) return { outcome: "no-session" };
+      headers = { Authorization: "Bearer " + session };
+      const retry = await fetch(WORKER + source.profile, { headers });
+      if (retry.status === 401) return { outcome: "rejected" };
+      if (!retry.ok) return { outcome: "stale" };
+      profile = await retry.json();
+    } else {
+      if (response.status === 401) return { outcome: "rejected" };
+      if (!response.ok) return { outcome: "stale" };
+      profile = await response.json();
+    }
   } catch {
     /* A network blip must not delete a working connection. */
     return { outcome: "stale" };
@@ -176,17 +213,20 @@ async function syncSource(source, uid) {
     connectedAt: current[source.id]?.connectedAt || new Date().toISOString(),
     lastCheckedAt: new Date().toISOString()
   };
-  await write(uid, source.id, record);
+  const persisted = await write(uid, source.id, record);
+  if (!persisted) window.dispatchEvent(new CustomEvent("biglwa:orbit-connection-save-error", { detail: { source: source.id } }));
   return { outcome: "updated", record };
 }
 
 async function write(uid, id, record) {
-  if (!uid) return;
+  if (!uid) return false;
   try {
     const { db, doc, setDoc, serverTimestamp } = await firebase();
     await setDoc(doc(db, "users", uid), { connections: { [id]: record }, updatedAt: serverTimestamp() }, { merge: true });
-  } catch {
-    /* Firestore being unreachable should not stop the studio working. */
+    return true;
+  } catch (error) {
+    console.warn("BIG LWA could not persist Orbit connection:", id, error);
+    return false;
   }
 }
 
@@ -304,6 +344,31 @@ export function refresh(uid) {
   return refreshing;
 }
 
+/* Refresh a single newly authorized source immediately rather than waiting for
+ * a full Instagram/TikTok/Pinterest pass already in progress. */
+export async function refreshSource(id, uid) {
+  const who = uid || identity()?.uid;
+  const source = SOURCES.find(entry => entry.id === id);
+  if (!who || !source) return { outcome: "no-session" };
+  const { auth } = await firebase();
+  await auth.authStateReady();
+  if (auth.currentUser?.uid !== who) return { outcome: "no-session" };
+  const result = await syncSource(source, who);
+  if (auth.currentUser?.uid !== who) return { outcome: "no-session" };
+  const next = { ...current };
+  if (result.outcome === "updated") next[id] = result.record;
+  else if (result.outcome === "rejected") {
+    delete next[id];
+    await clearStored(who, id);
+  } else if (next[id]) {
+    next[id] = { ...next[id], needsReauth: result.outcome === "no-session" };
+  }
+  current = next;
+  emit();
+  await mirrorPublic(who, next);
+  return result;
+}
+
 async function clearStored(uid, id) {
   try {
     const { db, doc, setDoc, serverTimestamp } = await firebase();
@@ -320,14 +385,21 @@ export async function forget(id) {
   const session = readSession(source.sessionKey);
   if (session) {
     try {
+      const pinterestBody = id === "pinterest"
+        ? JSON.stringify({ firebaseIdToken: await (await firebase()).auth.currentUser?.getIdToken() })
+        : null;
       await fetch(WORKER + "/" + id + "/disconnect", {
         method: "POST",
-        headers: { Authorization: "Bearer " + session }
+        headers: { Authorization: "Bearer " + session, ...(pinterestBody ? { "Content-Type": "application/json" } : {}) },
+        ...(pinterestBody ? { body: pinterestBody } : {})
       });
     } catch { /* the local copies are cleared regardless */ }
   }
   for (const store of [localStorage, sessionStorage]) {
-    try { store.removeItem(source.sessionKey); } catch { /* storage disabled */ }
+    try {
+      store.removeItem(source.sessionKey);
+      if (id === "pinterest" && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
+    } catch { /* storage disabled */ }
   }
   const who = identity()?.uid;
   if (who) await clearStored(who, id);
@@ -352,8 +424,8 @@ export async function startConnections() {
   onIdentityChange(begin);
   /* The Orbit page is a classic script and cannot import this module, so the connected
      accounts are published on the window for it to read and to subscribe to. */
-  window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, forget };
+  window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget };
   return begin(identity());
 }
 
-export default { connections, onConnectionsChange, connectedIds, refresh, forget, startConnections };
+export default { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget, startConnections };

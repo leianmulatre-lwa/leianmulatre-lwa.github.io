@@ -4,7 +4,7 @@
  */
 import { uploadProfilePhoto, removeProfilePhoto, loadProfilePhoto } from "./account-photo.js";
 import { onIdentityChange, identity, startIdentity } from "./account-identity.js";
-import { onConnectionsChange, forget, startConnections } from "./orbit-connections.js";
+import { onConnectionsChange, forget, startConnections } from "./orbit-connections.js?v=20261013-pinterest-binding-1";
 
 const el = (id) => document.getElementById(id);
 const say = (node, text, tone) => {
