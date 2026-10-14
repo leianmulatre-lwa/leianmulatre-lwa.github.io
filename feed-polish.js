@@ -57,17 +57,17 @@
  #feedPageList .biglwa-card-options .biglwa-send-tray{right:auto!important;left:0!important;bottom:34px!important}
  @media(hover:none){#feedPageList .biglwa-card-options{opacity:1!important;pointer-events:auto!important}}
  /* Three tiny window controls: only the owner can archive/remove a saved post. */
- #feedPageList .biglwa-feed-lights{position:absolute;top:9px;left:9px;z-index:25;display:flex!important;gap:5px;align-items:center;
-   padding:5px 7px;background:#faf5ecce;border:1px solid #e1d2c5a9;border-radius:50px;box-shadow:0 3px 12px #0002}
- #feedPageList .biglwa-feed-lights>button{display:block!important;flex:none!important;width:11px!important;height:11px!important;
-   min-height:11px!important;border:1px solid #0002!important;border-radius:50%!important;cursor:pointer!important;
-   padding:0!important;min-width:11px!important;line-height:0!important;font-size:0!important;box-shadow:0 1px 2px #0002!important}
+ #feedPageList .biglwa-feed-lights{position:absolute;top:8px;right:8px;left:auto!important;z-index:25;display:flex!important;gap:3px;align-items:center;
+   padding:3px 5px;background:#faf5ecce;border:1px solid #e1d2c5a9;border-radius:30px;box-shadow:0 3px 12px #0002}
+ #feedPageList .biglwa-feed-lights>button{display:block!important;flex:none!important;width:8px!important;height:8px!important;
+   min-height:8px!important;border:1px solid #0002!important;border-radius:50%!important;cursor:pointer!important;
+   padding:0!important;min-width:8px!important;line-height:0!important;font-size:0!important;box-shadow:0 1px 2px #0002!important}
  #feedPageList .biglwa-feed-lights [data-feed-light="delete"]{background:#dc5c63!important}
  #feedPageList .biglwa-feed-lights [data-feed-light="archive"]{background:#eec449!important}
  #feedPageList .biglwa-feed-lights [data-feed-light="enlarge"]{background:#50ab77!important}
  #feedPageList .biglwa-feed-lights button:disabled{opacity:.4!important;cursor:not-allowed!important}
  #feedPageList .biglwa-feed-lights button:focus-visible{outline:3px solid #fff!important;outline-offset:2px!important}
- #feedPageList .biglwa-unified-source{left:auto!important;right:9px!important;top:9px!important}
+ #feedPageList .biglwa-unified-source{left:9px!important;right:auto!important;top:9px!important}
  #biglwaFeedLightbox{border:0;padding:20px;border-radius:18px;background:#191716;color:#fff;max-height:90vh;max-width:min(88vw,1050px);box-shadow:0 18px 65px #0009}
  #biglwaFeedLightbox::backdrop{background:#000b}
  #biglwaFeedLightbox img,#biglwaFeedLightbox video{display:block;max-width:100%;max-height:78vh;margin:auto;object-fit:contain}
