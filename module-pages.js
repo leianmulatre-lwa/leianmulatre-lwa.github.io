@@ -22,6 +22,10 @@
     #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview img{width:100%!important;height:100%!important;object-fit:cover!important}
     #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview+.card-cta{margin-top:13px}
 
+
+    #studioApp #map .studio-map-preview-slot{width:100%;min-width:0;overflow:hidden;padding:0;display:block}
+    #studioApp #map .studio-mini-map{display:block;width:100%;height:205px!important;min-height:205px;border:1px solid #a2b7ac;border-radius:14px;background:#d9e8dc;box-shadow:2px 3px 0 #9fae9b;overflow:hidden}
+    #studioApp #map .studio-mini-map-caption{font:650 11px/1.4 system-ui,sans-serif;padding:5px 2px 1px;color:#6d736b}
     .studio-map-mini{position:relative;display:block;width:100%;height:143px;margin:0 0 8px;padding:0;border:1px solid #a4b6aa;border-radius:13px;overflow:hidden;cursor:pointer;background:repeating-linear-gradient(35deg,transparent 0 34px,#c8e5d5 35px 46px,transparent 47px 72px),repeating-linear-gradient(118deg,#ecf2db 0 31px,#b5d9d1 32px 39px,#eaf0dc 40px 87px);box-shadow:2px 3px 0 #9fae9b}
     .studio-map-mini:before{content:"";position:absolute;inset:-20px;background:repeating-linear-gradient(135deg,transparent 0 36px,#faf7e0d1 37px 44px,transparent 45px 89px);pointer-events:none}
     .studio-map-mini-title,.studio-map-mini-count{position:absolute;z-index:2;left:8px;padding:4px 8px;border-radius:7px;background:#f8faeadd;font:800 9px/1.2 ui-monospace,monospace;color:#295b52}
@@ -359,7 +363,14 @@
     #studioApp #diary .studio-private-writing,
     #studioApp #diary .studio-public-journal-heading{display:block;position:relative;z-index:4;padding:15px;color:#5f4237;background:#f8eddfb5;font:800 12px/1.45 Georgia,serif}
     #studioApp #diary .studio-public-journal-excerpt{position:relative;z-index:4;text-align:left;padding:8px 20px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font:600 12px/1.65 Georgia,serif;color:#3e342e}
-    #studioApp #diary .diary-page .studio-journal-initial{position:absolute;z-index:9;left:11%;top:11%;display:grid;place-items:center;width:28px;height:28px;max-width:30%;border:1px solid #bdafa1;border-radius:4px;background:#fff9e9e8;color:#322b2a;font:900 20px/1 Georgia,serif;box-shadow:1px 2px 3px #28211c38;pointer-events:none;transform:rotate(-2deg)}
+    #studioApp #diary .diary-page .studio-journal-initial{
+      position:absolute;z-index:9;left:11%;top:11%;width:46px;height:46px;max-width:none;
+      display:flex;justify-content:center;align-items:center;box-sizing:border-box;
+      border:1px solid #bdafa1;border-radius:5px;background:#fff9e9ed;color:#292323;
+      font-family:"CS Bergamot Stitched",Georgia,serif!important;font-weight:400!important;
+      font-size:35px!important;line-height:1!important;letter-spacing:0!important;text-align:center;
+      box-shadow:1px 2px 4px #28211c38;pointer-events:none;transform:rotate(-2deg)
+    }
     #studioApp #diary .studio-diary-preview small{display:block;margin:0 0 6px;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a6d67}
     #studioApp #diary .studio-diary-preview p{display:-webkit-box;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:5;white-space:pre-wrap;overflow-wrap:anywhere;font:600 14px/28px Georgia,"Times New Roman",serif}
     body.night-mode #studioApp #diary .diary-page.has-saved-writing{filter:saturate(.86) brightness(.82)}
@@ -2078,38 +2089,43 @@ const connect=e.target.closest('[data-orbit-connect]');
     const mapCard=$('#map');if(!mapCard)return;
     let slot=$('.studio-map-preview-slot',mapCard);
     if(!slot){
-      slot=document.createElement('div');slot.className='studio-map-preview-slot';slot.setAttribute('aria-live','polite');
+      slot=document.createElement('div');
+      slot.className='studio-map-preview-slot';
+      slot.setAttribute('aria-label','Interactive street map preview with saved pins');
       const oldVisual=$('.studio-map-visual',mapCard),cta=$('.card-cta',mapCard);
-      if(oldVisual)oldVisual.replaceWith(slot);else if(cta)mapCard.insertBefore(slot,cta);else mapCard.appendChild(slot);
+      if(oldVisual)oldVisual.replaceWith(slot);
+      else if(cta)cta.before(slot);else mapCard.appendChild(slot);
+    }
+    // Real Leaflet map, as used by the full Map page. Do not redraw or reload
+    // the iframe on focus/scroll: doing so makes tile layers flicker or reset.
+    let mini=$('#biglwaStudioMiniMap',slot);
+    if(!mini){
+      slot.replaceChildren();
+      mini=document.createElement('iframe');
+      mini.id='biglwaStudioMiniMap';
+      mini.className='studio-mini-map';
+      mini.title='Interactive mini map — pan, zoom, and see saved locations';
+      mini.src='/map-app.html?embed=1&preview=1&v=20261014-real-studio-mini-1';
+      mini.loading='lazy';
+      mini.referrerPolicy='same-origin';
+      mini.setAttribute('allow','geolocation \'self\'');
+      slot.appendChild(mini);
+      const status=document.createElement('p');
+      status.className='studio-mini-map-caption';
+      status.textContent='Pan & zoom here · Open Map for pins and editing';
+      slot.appendChild(status);
     }
     const pins=readMapPreviewPins();
-    const visible=pins.slice(0,4);
-    const markerPins=visible.filter(p=>Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng)));
-    const lats=markerPins.map(pin=>Number(pin.lat));
-    const lngs=markerPins.map(pin=>Number(pin.lng));
-    const minLat=Math.min(...lats),maxLat=Math.max(...lats);
-    const minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
-    // Relative preview positions, not a disclosure of an exact address.
-    const dots=markerPins.map((pin,index)=>{
-      const x=48+(Number(pin.lng)-(minLng||0))/Math.max(maxLng-minLng,0.012)*52-26;
-      const y=48-(Number(pin.lat)-(minLat||0))/Math.max(maxLat-minLat,0.012)*52+26;
-      return '<span class="studio-map-preview-marker" style="left:'+Math.max(9,Math.min(91,x)).toFixed(1)+'%;top:'+Math.max(9,Math.min(91,y)).toFixed(1)+'%" aria-hidden="true">'+(index+1)+'</span>';
-    }).join('');
-    const mapVisual='<button type="button" class="studio-map-mini" data-open="map" aria-label="Open interactive Map">'+
-      '<span class="studio-map-mini-title">YOUR PINNED WORLD</span>'+dots+
-      '<span class="studio-map-mini-count">'+pins.length+' saved spot'+(pins.length===1?'':'s')+'</span></button>';
-    if(!pins.length){
-      slot.innerHTML=mapVisual+'<p class="studio-map-preview-empty">Open Map to create your first pin.</p>';
-      return;
+    const caption=$('.studio-mini-map-caption',slot);
+    if(caption){
+      caption.textContent=pins.length
+        ?pins.length+' saved spot'+(pins.length===1?'':'s')+' · pan and zoom the map'
+        :'Interactive map · pan and zoom here · Open Map to add a pin';
     }
-    const rows=visible.slice(0,3).map(pin=>{
-      const title=pin.title||pin.placeName||'Pinned spot';
-      const meta=pin.area||pin.placeType||pin.category||'Saved place';
-      return '<div class="studio-map-pin-row"><span class="studio-map-pin-dot" aria-hidden="true"></span><div class="studio-map-pin-copy"><b>'+esc(title)+'</b><small>'+esc(meta)+'</small></div></div>';
-    }).join('');
-    const more=pins.length>3?'<div class="studio-map-more">+'+(pins.length-3)+' more pinned spots</div>':'';
-    slot.innerHTML=mapVisual+'<div class="studio-map-pins-preview"><div class="studio-map-pins-tab"><span>Pinned Spots</span><b>'+pins.length+'</b></div><div class="studio-map-pins-list">'+rows+'</div>'+more+'</div>';
-
+    if(mini.dataset.pinCount!==String(pins.length)){
+      mini.dataset.pinCount=String(pins.length);
+      if(mini.contentWindow)mini.contentWindow.postMessage({type:'biglwa:map-preview-refresh'},location.origin);
+    }
   }
 
   function enhanceStudioCards(){
