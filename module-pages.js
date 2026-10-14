@@ -1224,12 +1224,42 @@ const connect=e.target.closest('[data-orbit-connect]');
     return "3px 3px 0 "+t.rim+",0 12px 25px -16px "+t.glow;
   }
   function archiveMediaPieces(item){
-    if(Array.isArray(item.mediaItems)&&item.mediaItems.length)return item.mediaItems.filter(piece=>piece&&piece.url);
-    if(Array.isArray(item.imageUrls)&&item.imageUrls.length)return item.imageUrls.filter(Boolean).map((url,i)=>({
+    const validImage=url=>{
+      if(typeof url!=='string'||!url.trim())return false;
+      try{
+        const parsed=new URL(url,location.origin);
+        if(!['http:','https:'].includes(parsed.protocol))return false;
+        if(/(^|\.)pinterest\.com$/.test(parsed.hostname)&&/^\/(pin|ideas|search)\b/.test(parsed.pathname))return false;
+        return true;
+      }catch{return false}
+    };
+    const fromPieces=Array.isArray(item.mediaItems)?item.mediaItems
+      .filter(piece=>piece&&(validImage(piece.url)||validImage(piece.thumbnailUrl)))
+      .map(piece=>({...piece,url:validImage(piece.url)?piece.url:piece.thumbnailUrl,
+        thumbnailUrl:validImage(piece.thumbnailUrl)?piece.thumbnailUrl:''})):[];
+    if(fromPieces.length)return fromPieces;
+    const fromUrls=Array.isArray(item.imageUrls)?item.imageUrls.filter(validImage):[];
+    if(fromUrls.length)return fromUrls.map((url,i)=>({
       index:i,url,thumbnailUrl:url,mediaType:item.mediaType||"IMAGE"
     }));
-    return item.imageUrl?[{index:0,url:item.imageUrl,thumbnailUrl:item.imageUrl,mediaType:item.mediaType||"IMAGE"}]:[];
+    if(validImage(item.imageUrl))return [{index:0,url:item.imageUrl,thumbnailUrl:item.imageUrl,mediaType:item.mediaType||"IMAGE"}];
+    const img=item?.media?.images||item?.images||{};
+    const candidates=[img['600x'],img.originals,img['237x'],item?.image_url,item?.thumbnail_url];
+    for(const entry of candidates){
+      const src=typeof entry==='string'?entry:entry?.url;
+      if(validImage(src))return [{index:0,url:src,thumbnailUrl:src,mediaType:'IMAGE'}];
+    }
+    return [];
   }
+  function archivePieceMarkup(piece,index,total,cardIndex){
+    const link=piece.url;
+    const isVideo=String(piece.mediaType||'').toUpperCase()==='VIDEO'||/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(link);
+    const visual=isVideo
+      ? '<video src="'+esc(link)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
+      : '<img src="'+esc(link)+'"'+(piece.thumbnailUrl&&piece.thumbnailUrl!==link?' data-archive-fallback="'+esc(piece.thumbnailUrl)+'"':'')+' alt="Archive item '+cardIndex+(total>1?' '+(index+1):'')+'" loading="lazy" decoding="async">';
+    return '<div class="instagram-archive-piece">'+visual+(total>1?'<span>'+(index+1)+'/'+total+'</span>':'')+'</div>';
+  }
+
   function archiveOpenImage(url){
     if(!url)return;
     try{window.open(url,"_blank","noopener,noreferrer");}catch{}
@@ -1326,7 +1356,8 @@ const connect=e.target.closest('[data-orbit-connect]');
 
     const draw=async()=>{
       const owner=!previewMode;
-      const media=archiveMedia;
+      // Do not capture archiveMedia before loadInitial() resolves. The first
+      // render previously kept the pre-fetch [] and falsely showed an empty wall.
       let settings={visibility:'private',friends:[]},profile=orbit?.state?.profile||{},status='';
       try{
             if(owner){
@@ -1342,13 +1373,14 @@ const connect=e.target.closest('[data-orbit-connect]');
             return;
           }
           if(!archiveInitialized) await loadInitial();
-          if(!media.length)status='This friend has not shared any archived content yet.';
+          if(!archiveMedia.length)status='This friend has not shared any archived content yet.';
         }
       }catch(error){
         console.error('BIGLWA Archive:',error);
         status=error?.message||'The Archive could not be loaded.';
       }
 
+    const media=archiveMedia;
     const username=profile.username||profile.name||previewUsername||'BIGLWA member';
       const filters=readFilters();
       const seenSources=[...new Set(media.map(sourceNameOf))];
@@ -1372,13 +1404,12 @@ const connect=e.target.closest('[data-orbit-connect]');
            its picture and stays here only. */
         const source=String(item.source||'instagram').toLowerCase();
         const rim={instagram:'#a52a0c',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';
-        const visualPieces=pieces.slice(0,PIECES_PER_CARD).map((piece,pieceIndex)=>{
-          const isVideo=String(piece.mediaType||'').toUpperCase()==='VIDEO'||/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(piece.url);
-          const visual=isVideo
-            ? '<video src="'+esc(piece.url)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
-            : '<img src="'+esc(piece.url)+'" alt="Archive item '+(index+1)+(pieces.length>1?' '+(pieceIndex+1):'')+'" loading="lazy" decoding="async">';
-          return '<div class="instagram-archive-piece">'+visual+(pieces.length>1&&pieceIndex===0?'<span>'+(pieceIndex+1)+'/'+pieces.length+'</span>':'')+'</div>';
-        }).join('');
+        // Like Collective Feed, show ONE media frame per post—not a long tower.
+        // Carousel buttons cycle through every item without growing the card.
+        const visualPieces=pieces.length?archivePieceMarkup(pieces[0],0,pieces.length,index+1):'';
+        const carouselControls=pieces.length>1
+          ? '<div class="archive-carousel-actions"><button type="button" data-archive-step="-1" aria-label="Previous photo">‹</button><button type="button" data-archive-step="1" aria-label="Next photo">›</button></div>'
+          : '';
         const liveSwitch=pending
           ? '<div class="archive-live is-locked"><span class="archive-live-track" aria-hidden="true"><i></i></span><b>Deleting soon</b></div>'
           : owner
@@ -1406,7 +1437,7 @@ const connect=e.target.closest('[data-orbit-connect]');
           : '';
         return '<article class="instagram-archive-card '+(posted?'is-live':'is-off')+' is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
           strip+
-          '<div class="instagram-archive-media'+(pieces.length>=4?' is-tiles':'')+'">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Media unavailable</small></div>')+'</div>'+
+          '<div class="instagram-archive-media">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Image unavailable · original link may have expired</small></div>')+carouselControls+'</div>'+
           pendingMeta+
           '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small>'+statusLine+'</div>'+
           liveSwitch+
@@ -1439,6 +1470,31 @@ const connect=e.target.closest('[data-orbit-connect]');
           (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
 
+    // Both owners and approved friends can browse carousel cards. Old media
+    // URLs get a second chance via their saved thumbnail when an image fails.
+    const wall=$('.archive-page-list',body);
+    wall?.addEventListener('error',event=>{
+      const image=event.target.closest?.('img[data-archive-fallback]');
+      if(!image)return;
+      const fallback=image.dataset.archiveFallback;
+      image.removeAttribute('data-archive-fallback');
+      if(fallback)image.src=fallback;
+    },true);
+    wall?.addEventListener('click',event=>{
+      const arrow=event.target.closest('[data-archive-step]');
+      if(!arrow)return;
+      const card=arrow.closest('[data-archive-id]');
+      if(!card)return;
+      const item=mediaShown.find(row=>String(row.id)===String(card.dataset.archiveId));
+      if(!item)return;
+      const pieces=archiveMediaPieces(item);
+      if(pieces.length<2)return;
+      const index=(Number(card.dataset.archiveSlide||0)+Number(arrow.dataset.archiveStep)+pieces.length)%pieces.length;
+      card.dataset.archiveSlide=String(index);
+      card.dataset.archiveUrl=pieces[index].url;
+      const frame=card.querySelector('.instagram-archive-piece');
+      if(frame)frame.outerHTML=archivePieceMarkup(pieces[index],index,pieces.length,1);
+    });
     if(owner){
         $('#archiveConnections',body)?.addEventListener('click',()=>openConnectionsPopup());
         const filterBar=$('#archiveFilterBar',body);
