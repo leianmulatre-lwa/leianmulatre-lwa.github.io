@@ -242,7 +242,12 @@
   targetMedia(root.querySelector('#streamMonitor'));
   mediaPortal?.classList.remove('is-studio-preview');
   mediaPortal?.querySelector('[data-stream-return]')?.remove();
-  if(studioTarget){studioTarget.classList.remove('stream-preview-active');studioTarget=null;}
+  if(studioTarget){
+   studioTarget.classList.remove('stream-preview-active');
+   const photo=studioTarget.querySelector('.stream-station-photo');
+   if(photo)photo.hidden=false;
+   studioTarget=null;
+  }
   const date=root.querySelector('#streamDate');
   const now=new Date();
   date.min=localDay(new Date(now.getFullYear(),now.getMonth(),now.getDate()-7));
