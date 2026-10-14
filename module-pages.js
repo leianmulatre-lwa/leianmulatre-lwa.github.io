@@ -870,7 +870,8 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
    function renderOrbitPage(){
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. All public profile links are saved to your BIGLWA account. Connected photos are copied to BIGLWA media storage when source access permits. Calendar syncing lives in Calendar.</p><div class="module-status" id="orbitPageStatus"></div>${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n,t])=>{
+    const legacyCount=window.BigLWAOrbitAccountLinks?.localPending?.()?.length||0;
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. All public profile links are saved to your BIGLWA account. Connected photos are copied to BIGLWA media storage when source access permits. Calendar syncing lives in Calendar.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k];
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
@@ -886,6 +887,15 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
     body.onclick=async e=>{
+     const importLinks=e.target.closest('#orbitImportLocalLinks');
+     if(importLinks){
+       importLinks.disabled=true;say('Importing saved browser links…');
+       try{
+         const count=await window.BigLWAOrbitAccountLinks?.importLocalLinks?.();
+         say((count||0)+' profile link(s) saved to your account.');renderOrbitPage();
+       }catch(error){say(error?.message||'Could not import browser links.');importLinks.disabled=false}
+       return;
+     }
 const connect=e.target.closest('[data-orbit-connect]');
       if(connect){const k=connect.dataset.orbitConnect;const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
      const unlink=e.target.closest('[data-orbit-unlink]');
