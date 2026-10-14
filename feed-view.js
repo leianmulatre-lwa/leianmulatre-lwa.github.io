@@ -63,7 +63,7 @@ const pictureUrls = (post) => {
     /* A video can only ever be drawn by its poster. */
     if (piece.isPicture === false) return looksLikeVideoFile(piece.url) ? piece.thumbnailUrl || "" : "";
     const poster = piece.thumbnailUrl && !looksLikeVideoFile(piece.thumbnailUrl) ? piece.thumbnailUrl : "";
-    return poster || piece.url;
+    return (piece.key && piece.url) ? piece.url : (poster || piece.url);
   }).filter((u) => u && !looksLikeVideoFile(u));
   if (fromItems.length) return fromItems.slice(0, SLIDE_SCAN);
   const list = Array.isArray(post.imageUrls) ? post.imageUrls.filter((u) => typeof u === "string" && u && !looksLikeVideoFile(u)) : [];
@@ -371,19 +371,19 @@ const STYLE = `
   border:1px solid #fff9e8ab;border-radius:20px;padding:5px 9px;
   color:#fffdf7;background:rgba(40,30,29,.76);backdrop-filter:blur(6px);
   font:750 9px/1.1 ui-monospace,monospace;letter-spacing:.04em;pointer-events:none}
-#feedPageList .biglwa-card-options{position:absolute!important;top:8px!important;right:8px!important;
+#feedPageList .biglwa-card-options{position:absolute!important;top:auto!important;bottom:8px!important;right:8px!important;
   z-index:15!important;display:block!important;width:auto!important;min-width:0!important;
   margin:0!important;padding:0!important;background:transparent!important;border:0!important;
   box-shadow:none!important;overflow:visible!important}
-#feedPageList .biglwa-card-options>summary{list-style:none;cursor:pointer;width:34px;height:31px;
+#feedPageList .biglwa-card-options>summary{list-style:none;cursor:pointer;width:34px;height:34px;
   display:grid;place-items:center;border:1px solid #fffdf3b5;border-radius:11px;
-  color:#fff9ee;background:rgba(39,29,29,.83);font:900 14px/1 system-ui;
-  letter-spacing:1px;backdrop-filter:blur(8px)}
+  color:#fff9ee;background:rgba(39,29,29,.83);font:800 24px/1 system-ui;
+  letter-spacing:0;backdrop-filter:blur(8px)}
 #feedPageList .biglwa-card-options>summary::-webkit-details-marker{display:none}
 #feedPageList .biglwa-card-options>summary:hover,#feedPageList .biglwa-card-options>summary:focus-visible{
   background:#a2394b;outline:2px solid #f5daba;outline-offset:1px}
 #feedPageList .biglwa-card-options .biglwa-send-tray{
-  display:none;position:absolute;top:37px;right:0;z-index:20;min-width:195px;max-width:min(250px,82vw);
+  display:none;position:absolute;top:auto;bottom:40px;right:0;z-index:20;min-width:195px;max-width:min(250px,82vw);
   width:max-content;flex-direction:column;align-items:stretch;gap:5px;box-sizing:border-box;
   border:1px solid #c8b0a1;border-radius:12px;padding:9px;background:#fffbf4;
   color:#40322d;box-shadow:0 12px 23px #35251c42}
@@ -639,7 +639,7 @@ function sendBar(post, managed = false) {
 }
 function sendBarMarkup(managed = false, sourceUrl = '') {
   return '<details class="biglwa-send biglwa-card-options" data-open="0">' +
-    '<summary aria-label="More options for this Collective Feed card" title="Post options">•••</summary>' +
+    '<summary aria-label="More options for this Collective Feed card" title="More actions">+</summary>' +
     '<div class="biglwa-send-tray" role="group" aria-label="Post options">' +
       '<button type="button" data-send-to="boards">Save to Boards</button>' +
       '<button type="button" data-send-to="projects">Add to Projects</button>' +
@@ -764,27 +764,34 @@ function usablePost(post) {
 }
 
 function guardFeedPictures(list) {
-  let hidden = 0;
-  list.querySelectorAll("img[data-feed-media]").forEach((img) => {
-    img.addEventListener("error", () => {
-      const fallback = img.dataset.feedFallback;
-      if (fallback && img.src !== fallback) {
-        img.src = fallback;
-        img.dataset.feedFallback = "";
-        img.dataset.feedPreview = fallback;
-        const record = img.closest("[data-send-record]");
-        if (record) retargetFeedRecord(record, fallback);
+  list.querySelectorAll("img[data-feed-media]").forEach(img => {
+    if(img.dataset.feedGuarded)return;
+    img.dataset.feedGuarded="1";
+    const card=img.closest(".biglwa-pin-post");
+    const post=card&&posts.find(row=>String(row.id)===String(card.dataset.postId));
+    const alternatives=[
+      img.dataset.feedFallback,
+      ...(post?.mediaItems||[]).flatMap(piece=>[piece?.key&&piece?.url,piece?.url,piece?.thumbnailUrl]),
+      ...(post?.imageUrls||[]),post?.imageUrl
+    ].filter(url=>typeof url==="string" && /^(https?:\/\/|data:image\/|blob:)/i.test(url) && !looksLikeVideoFile(url));
+    const seen=new Set([img.getAttribute("src")||""]);
+    img.addEventListener("error",()=>{
+      const next=alternatives.find(url=>!seen.has(url));
+      if(next){
+        seen.add(next);img.src=next;img.dataset.feedPreview=next;
+        const record=img.closest("[data-send-record]");
+        if(record)retargetFeedRecord(record,next);
         return;
       }
-      const pin = img.closest(".biglwa-pin-post");
-      if (pin) {
-        pin.remove();
-        hidden += 1;
-      }
+      const fallback=document.createElement("div");
+      fallback.className="biglwa-unavailable-media";
+      fallback.setAttribute("role","status");
+      fallback.textContent="Image unavailable — original source may have expired.";
+      img.replaceWith(fallback);
+      card?.classList.add("biglwa-image-unavailable");
     });
-    if (img.complete && img.naturalWidth === 0) img.dispatchEvent(new Event("error"));
+    if(img.complete && img.naturalWidth===0) img.dispatchEvent(new Event("error"));
   });
-  if (hidden) say(hidden + " saved card" + (hidden === 1 ? "" : "s") + " hidden because the picture would not load.");
 }
 
 /* When a saved card falls back to its thumbnail, the tray record is corrected so what gets
