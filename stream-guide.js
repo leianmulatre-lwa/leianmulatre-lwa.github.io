@@ -23,10 +23,16 @@
   ['KWVA 88.1','University of Oregon','Oregon','https://kwva.uoregon.edu/'],
   ['KPSU','Portland State','Oregon','https://kpsu.org/']
  ];
+ // Direct HTTPS station audio. Station websites are not interchangeable
+ // with stream endpoints; these URLs point to actual stream hosts or audio proxies.
  const audioStreams={
+  0:'https://live.uclaradio.com/listen/ucla_radio/radio.mp3',
   1:'https://stream.kalx.berkeley.edu:8443/kalx-128.mp3',
   3:'https://kcsb.streamguys1.com/live',
-  4:'https://kzscfms1-geckohost.radioca.st/kzschigh'
+  4:'https://kzscfms1-geckohost.radioca.st/kzschigh',
+  6:'https://stream.rcast.net/263501',
+  7:'https://kzsu-streams.stanford.edu/kzsu-1-128.mp3',
+  11:'https://floyd.wcbn.org:8443/wcbn-hi.mp3'
  };
  const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03']];
  // Each destination is an actual publisher/creator channel or a specifically
@@ -533,6 +539,10 @@
   const status=mediaPortal?.querySelector('#streamRadioStatus');
   button.disabled=true;
   if(status)status.textContent='Connecting to station…';
+  audio.addEventListener('error',()=>{
+   button.disabled=false;button.textContent='▶ Play';
+   if(status)status.textContent='This live stream is currently unavailable; try another station.';
+  },{once:true});
   Promise.resolve(audio.play()).then(()=>{
    button.textContent='Ⅱ Pause';button.disabled=false;
    if(status)status.textContent='Playing live · original station stream';
@@ -589,7 +599,7 @@
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
   if(state.category==='podcast'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / PLAYABLE STATIONS</span><h3>press play, stay here</h3><p>Only direct audio streams are shown as ready. Stations requiring an external website are excluded until in-site playback is available.</p></div><label>Find ready station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Original station audio is streamed directly; listing does not imply an official affiliation.</p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / COLLEGE DIAL</span><h3>all 16 campus stations</h3><p>Press Play to listen directly in Big LWA. The complete campus directory is kept below; stations still missing an in-site audio source are marked pending rather than removed.</p></div><label>Find a station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Audio streams remain hosted by their original broadcasters or listed stream relays. No partnership is implied.</p>';
    const filter=detail.querySelector('#streamStationSearch');
    filter.oninput=()=>renderStations(filter.value);
    renderStations('');
@@ -603,10 +613,22 @@
  function renderStations(query){
   const panel=root?.querySelector('#streamStations');if(!panel)return;
   const needle=String(query||'').toLowerCase().trim();
-  const selected=stations.map((station,index)=>({station,index})).filter(({station,index})=>Boolean(audioStreams[index])&&station.join(' ').toLowerCase().includes(needle));
-  panel.innerHTML=selected.map(({station,index})=>
-   '<button type="button" class="stream-station" data-stream-station="'+index+'"><span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span><div><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></div><span class="stream-station-go">'+(audioStreams[index]?'▶ Play':'Stream pending')+'</span></button>').join('')||
-   '<p class="stream-station-empty">No station in this starter directory matches that search. Suggest a school below.</p>';
+  // Keep ALL original campus stations findable. If no usable HTTPS audio
+  // endpoint has been identified, explain that honestly instead of deleting it.
+  const selected=stations.map((station,index)=>({station,index}))
+   .filter(({station})=>station.join(' ').toLowerCase().includes(needle))
+   .sort((a,b)=>Number(Boolean(audioStreams[b.index]))-Number(Boolean(audioStreams[a.index]))||a.index-b.index);
+  panel.innerHTML=selected.map(({station,index})=>{
+   const ready=Boolean(audioStreams[index]);
+   const label='<span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span>'+
+    '<span class="stream-station-details"><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></span>';
+   return ready
+    ?'<button type="button" class="stream-station is-ready" data-stream-station="'+index+'" aria-label="Play '+escapeHTML(station[0])+' in Big LWA">'+label+'<span class="stream-station-go">▶ Play</span></button>'
+    :'<div class="stream-station is-pending">'+label+
+      '<span class="stream-station-pending"><small>In-site audio source pending</small>'+
+      '<a href="'+escapeHTML(station[3])+'" target="_blank" rel="noopener noreferrer" aria-label="Station website for '+escapeHTML(station[0])+'">Station info ↗</a></span></div>';
+  }).join('')||
+   '<p class="stream-station-empty">No college stations match that search.</p>';
  }
  async function refreshPublic(){
   try{
