@@ -28,7 +28,7 @@
   var ACCENTS = {
     'instagram-feed-item': { accent: '#f28c28', rim:'#f28c28', glow:'#8c3acb', hot:'#ffad42', label: 'Instagram' },
     'tiktok-feed-item': { accent: '#111111', rim:'#111111', glow:'#25f4ee', hot:'#fe2c55', label: 'TikTok' },
-    'pinterest-feed-item': { accent: '#e60023', rim:'#f97316', glow:'#ffae42', hot:'#de5e0d', label: 'Pinterest' },
+    'pinterest-feed-item': { accent: '#e60023', rim:'#e60023', glow:'#ff5269', hot:'#ae0026', label: 'Pinterest' },
     'facebook-feed-item': { accent: '#1877f2', rim:'#1877f2', glow:'#5aa0ff', label: 'Facebook' },
     'youtube-feed-item': { accent: '#d0202f', rim:'#d0202f', glow:'#fff6ec', hot:'#ff0033', label: 'YouTube' },
     'soundcloud-feed-item': { accent: '#e2622a', rim:'#ff5500', glow:'#ffb13b', hot:'#c93f00', label: 'SoundCloud' }
