@@ -785,7 +785,7 @@ const connect=e.target.closest('[data-orbit-connect]');
         host.innerHTML='<h2>🔒 Sqwib Note</h2><p>This note is private to its owner.</p>';
         return;
       }
-      const username=(()=>{try{return decodeURIComponent(location.pathname.replace(/^\\/+|\\/+$/g,''))}catch{return ''}})();
+      const username=(()=>{try{return decodeURIComponent(location.pathname.split('/').filter(Boolean)[0]||'')}catch{return ''}})();
       const reader=window.BigLWAUserDirectory?.loadPublicProfile?.(username);
       if(!reader){host.innerHTML='<h2>Journal</h2><p>Journal reading is unavailable.</p>';return;}
       Promise.resolve(reader).then(profile=>{
@@ -794,7 +794,7 @@ const connect=e.target.closest('[data-orbit-connect]');
           host.innerHTML='<h2>Journal</h2><p>This Journal has not been shared publicly.</p>';return;
         }
         host.innerHTML='<h2>Journal</h2><p class="journal-reader-intro">An entry from '+esc(profile.name||profile.username||'this member')+'</p>'+
-          '<article class="journal-reading-sheet">'+esc(profile.publicJournal).replace(/\\n/g,'<br>')+'</article>';
+          '<article class="journal-reading-sheet">'+esc(profile.publicJournal).split(String.fromCharCode(10)).join('<br>')+'</article>';
       }).catch(()=>{if(host.isConnected)host.innerHTML='<h2>Journal</h2><p>Could not load Journal.</p>'});
       return;
     }
