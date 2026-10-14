@@ -435,7 +435,9 @@
     try {
       var data = JSON.parse(record);
       data.imageUrls = [url];
-      card.setAttribute('data-send-record', JSON.stringify(data).replace(/"/g, '&quot;'));
+      // setAttribute takes a value, not HTML source. Escaping quotes here makes
+      // JSON.parse(card.dataset.sendRecord) fail after thumbnail fallback.
+      card.setAttribute('data-send-record', JSON.stringify(data));
       if (window.__biglwaFeed && typeof window.__biglwaFeed.registerSendCard === 'function') {
         window.__biglwaFeed.registerSendCard(card);
       }
