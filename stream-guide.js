@@ -23,7 +23,7 @@
   ['KWVA 88.1','University of Oregon','Oregon','https://kwva.uoregon.edu/'],
   ['KPSU','Portland State','Oregon','https://kpsu.org/']
  ];
- const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03'],['ballroom-cctv','ballroom / cctv','CH 04']];
+ const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03']];
  // Each destination is an actual publisher/creator channel or a specifically
  // identified release. We do NOT invent YouTube video IDs or live statuses.
  const featured=[
@@ -52,7 +52,7 @@
  // Ballroom/CCTV = curated ballroom video archive, not real surveillance feeds.
  // Original channels keep attribution, playback control and embed restrictions.
  const ballroomChannels=[
-  {id:'ballroom-throwbacks',category:'ballroom-cctv',title:'Ballroom Throwbacks Television',creator:'BRTB TV',subtitle:'Balls, performance, runway and archival footage',url:'https://www.youtube.com/@BALLROOMTHROWBACKS/videos',source:'Ballroom video archive',provider:'youtube'},
+  {id:'ballroom-throwbacks',category:'lwa-tv',title:'Ballroom Throwbacks Television',creator:'BRTB TV',subtitle:'Balls, performance, runway and archival footage',url:'https://www.youtube.com/@BALLROOMTHROWBACKS/videos',source:'Ballroom video archive',provider:'youtube'},
   {id:'open-to-all',category:'ballroom-cctv',title:'Open To All Entertainment',creator:'Open To All Entertainment',subtitle:'Ballroom event videos and community performances',url:'https://www.youtube.com/@opentoallent/videos',source:'Ballroom video channel',provider:'youtube'},
   {id:'kendrick-mugler',category:'ballroom-cctv',title:'Kendrick Mugler TV',creator:'Kendrick Mugler',subtitle:'Ballroom footage and European scene archives',url:'https://www.youtube.com/c/kendrickmugler/videos',source:'Ballroom video channel',provider:'youtube'},
   {id:'sugarchampagne',category:'ballroom-cctv',title:'Sugar Champagne',creator:'Sugar Champagne',subtitle:'Classic ballroom and historic event footage',url:'https://www.youtube.com/@sugarchampagne/videos',source:'Ballroom archive',provider:'youtube'},
@@ -109,7 +109,7 @@
   root=host;root.classList.add('biglwa-stream');
   state.day=localDay();
   root.innerHTML=[
-   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / FOUR-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span></div>',
+   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / THREE-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span></div>',
    '<div class="stream-channels" role="tablist" aria-label="Stream category">',
    categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></nav>',
@@ -190,18 +190,11 @@
    return shuffled([...radio,...mixes],day,category,offset);
   }
   if(category==='lwa-tv'){
-   const videos=featured.filter(item=>item.category==='lwa-tv').map(item=>({
+   const videos=[...featured.filter(item=>item.category==='lwa-tv'),...ballroomChannels].map(item=>({
     kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
     status:item.videoId?'WATCH ORIGINAL VIDEO':'YOUTUBE · CHANNEL VIDEOS'
    }));
    return shuffled(videos,day,category,offset);
-  }
-  if(category==='ballroom-cctv'){
-   const ballroom=ballroomChannels.map(item=>({
-    kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
-    status:item.provider==='archive'?'BALLROOM CULTURAL ARCHIVE':'BALLROOM / ORIGINAL VIDEO CHANNEL'
-   }));
-   return shuffled(ballroom,day,category,offset);
   }
   const twitch=twitchChannels.map(channel=>({
    kind:'twitch',id:channel.id,title:channel.title,subtitle:channel.subtitle,
@@ -259,8 +252,8 @@
   const kind=state.category;
   const isRadio=kind==='podcast';
   const isTwitch=kind==='live';
-  const isBallroom=kind==='ballroom-cctv';
-  const entries=isTwitch?twitchChannels:kind==='ballroom-cctv'?ballroomChannels:featured.filter(item=>item.category===kind);
+  const isBallroom=false;
+  const entries=isTwitch?twitchChannels:kind==='lwa-tv'?[...featured.filter(item=>item.category===kind),...ballroomChannels]:featured.filter(item=>item.category===kind);
   const radioSlots=isRadio?stations.map((station,index)=>
    '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune to '+escapeHTML(station[0])+' at its original website">'+
    '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span></button>').join(''):'';
@@ -272,9 +265,9 @@
     (item.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(item.videoId)+'/mqdefault.jpg" alt="">':'<span class="stream-source-emblem" aria-hidden="true">'+(twitch?'◉':item.provider==='mixtape'?'♫':'▶')+'</span>')+
     '<b>'+escapeHTML(item.title)+'</b><span>'+escapeHTML(item.subtitle||item.creator)+'</span></button>';
   }).join('');
-  const mode=isRadio?'LWA RADIO / ORIGINAL SOURCES':isTwitch?'TWITCH / LIVE CHANNELS':kind==='ballroom-cctv'?'BALLROOM / CCTV ARCHIVES':'LWA TV / YOUTUBE CREATORS';
+  const mode=isRadio?'LWA RADIO / ORIGINAL SOURCES':isTwitch?'TWITCH / LIVE CHANNELS':'LWA TV / CREATORS + BALLROOM / CCTV';
   panel.innerHTML='<div class="stream-band-heading"><div><small>BIG LWA / DAILY DISCOVERY</small><b>'+
-   (isRadio?'radio + mixtape directory':isTwitch?'watch Twitch channels':kind==='ballroom-cctv'?'ballroom tapes + archives':'watch creator channels')+'</b></div>'+
+   (isRadio?'radio + mixtape directory':isTwitch?'watch Twitch channels':'watch creators + ballroom / cctv')+'</b></div>'+
    '<span>'+escapeHTML(mode)+'</span></div>'+
    (radioSlots?'<div class="stream-source-slots" aria-label="Individual campus radio station links">'+radioSlots+'</div>':'')+
    (isRadio?'<div class="stream-band-subtitle">mixtapes, DJ sets + podcasts</div>':'')+
@@ -302,6 +295,14 @@
    monitor.innerHTML='<div class="stream-screen is-program is-twitch-player"><div class="stream-player-label">'+caption+original+'</div>'+
     '<iframe title="'+title+' on Twitch" src="'+escapeHTML(player)+'" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>'+
     '<div class="stream-player-footer">TWITCH · stream availability is determined by the creator · '+original+'</div></div>';
+  }else if(source.provider==='radio'){
+   const stream=source.audioUrl||'';
+   const playable=stream&&/^https:\/\//i.test(stream);
+   monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
+    '<div class="stream-screen-center"><span>♫</span><strong>'+title+'</strong>'+
+    (playable?'<audio controls autoplay preload="none" style="width:min(100%,540px);margin:18px auto" src="'+escapeHTML(stream)+'">Your browser does not support audio playback.</audio><small>Live audio from the original station · press play if autoplay is blocked.</small>':'<small>This station has no verified embeddable direct stream yet. Its official listening page opens separately.</small>')+
+    (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Official station ↗</a>':'')+
+    '</div><span class="stream-screen-bottom">DIRECT STATION STREAM · NO REHOSTING</span></div>';
   }else if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
    monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+channelLink+'</div>'+
     '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>';
@@ -320,7 +321,7 @@
   const station=stations[index];if(!station)return;
   showSource({title:station[0],category:'podcast',creator:station[1],
    subtitle:station[1]+' · '+station[2],source:'Campus radio',
-   url:station[3],type:'radio station',provider:'radio'});
+   url:station[3],audioUrl:index===1?'https://stream.kalx.berkeley.edu:8443/kalx-128.mp3':'',type:'radio station',provider:'radio'});
  }
  function selectFeature(id){
   const source=[...featured,...ballroomChannels].find(item=>item.id===id);
@@ -343,8 +344,6 @@
     'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
    live:['CH 03 / THE TWITCH DIAL','live',
     'Tune to Twitch creator channels in the original Twitch player. Status is never assumed: the broadcaster may be offline.'],
-   'ballroom-cctv':['CH 04 / BALLROOM ARCHIVES','ballroom / cctv',
-    'Original ballroom footage: voguing, runway, history, balls and community archives. CCTV is a cultural video channel, not surveillance.']
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><span class="stream-discovery-label">↻ shuffled daily · direct creator sources</span></div>';
   if(state.category==='podcast'){
@@ -353,9 +352,7 @@
    filter.oninput=()=>renderStations(filter.value);
    renderStations('');
   }else if(state.category==='lwa-tv'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / ORIGINAL CREATOR CHANNELS</span><h3>what’s on your screen?</h3><p>Every selectable creator has a real YouTube channel or direct video link. Clips may play here; browse entire channels through their original video pages.</p></div></div><p class="stream-directory-note">These are curated links, not official Big LWA channel partnerships or timed broadcasts.</p>';
-  }else if(state.category==='ballroom-cctv'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">BALLROOM / CCTV · SCENE ARCHIVES</span><h3>the ballroom tape library</h3><p>Explore original footage from Ballroom Throwbacks, Open To All Entertainment, Kendrick Mugler TV, Sugar Champagne, Philly Prodigy and Ballroom in Focus.</p></div></div><p class="stream-directory-note">CCTV means curated ballroom video archives here, not live cameras or real-time monitoring. Every tape links directly to its original publisher. Sources are not Big LWA partners by implication.</p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / ORIGINAL CREATOR CHANNELS</span><h3>what’s on your screen?</h3><p>Every selectable creator has a real YouTube channel or direct video link. Ballroom / CCTV is part of LWA TV. Clips may play here; browse entire channels through their original video pages.</p></div></div><p class="stream-directory-note">These are curated links, not official Big LWA channel partnerships or timed broadcasts.</p>';
   }else{
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / TWITCH CHANNEL DIRECTORY</span><h3>the Twitch dial</h3><p>Browse HasanAbi, Pokimane, QTCinderella, Kai Cenat and Fuslie. The official Twitch player connects directly to their channels; it does not indicate that they are broadcasting right now.</p></div></div><p class="stream-directory-note">The player uses Twitch’s required parent domain and opens the broadcaster’s official channel as a fallback. A creator may be offline.</p>';
   }
@@ -363,8 +360,8 @@
  function renderStations(query){
   const panel=root?.querySelector('#streamStations');if(!panel)return;
   const needle=String(query||'').toLowerCase().trim();
-  const selected=stations.filter(s=>s.join(' ').toLowerCase().includes(needle));
-  panel.innerHTML=selected.map((station,index)=>
+  const selected=stations.map((station,index)=>({station,index})).filter(({station})=>station.join(' ').toLowerCase().includes(needle));
+  panel.innerHTML=selected.map(({station,index})=>
    '<a class="stream-station" target="_blank" rel="noopener noreferrer" href="'+escapeHTML(station[3])+'"><span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span><div><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></div><span class="stream-station-go">listen ↗</span></a>').join('')||
    '<p class="stream-station-empty">No station in this starter directory matches that search. Suggest a school below.</p>';
  }
