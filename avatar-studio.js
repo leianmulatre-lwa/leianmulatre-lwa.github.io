@@ -314,6 +314,10 @@
       queued=true;requestAnimationFrame(()=>{queued=false;mount();});
     });
     obs.observe(document.body,{subtree:true,childList:true});
+    // Body and document theme toggles do not necessarily mutate Aura's own style.
+    const paletteWatch=new MutationObserver(()=>requestAnimationFrame(position));
+    paletteWatch.observe(document.body,{attributes:true,attributeFilter:['class','style']});
+    paletteWatch.observe(document.documentElement,{attributes:true,attributeFilter:['class','style']});
     let count=0;const timer=setInterval(()=>{mount();if(++count>60)clearInterval(timer)},600);
     window.addEventListener('resize',()=>requestAnimationFrame(position));
     window.addEventListener('pageshow',mount);
