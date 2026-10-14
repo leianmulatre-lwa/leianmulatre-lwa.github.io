@@ -580,14 +580,35 @@ async function pnToken(env, params) {
   }
   return token;
 }
+function pnSessionLifetime(session) {
+  const until = Number(session?.refreshExpiresAt || session?.expiresAt || 0);
+  if (!until) return 86400;
+  return Math.max(60, Math.min(31536000, Math.ceil((until - Date.now()) / 1000)));
+}
 async function pnSave(env, id, token, previous) {
-  const pnl = Math.max(60, Math.min(Number(token.refresh_token_expires_in || token.expires_in || 86400), 31536000));
-  const saved = { ...token, expiresAt: Date.now() + Number(token.expires_in || 86400) * 1000 };
-  /* A refresh replaces the whole record, so the cover cache is carried across by hand.
-     Without this the reader would pay for six more Pinterest calls every hour. */
-  if (previous && previous.pinCovers) saved.pinCovers = previous.pinCovers;
-  await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(saved), { expirationTtl: pnl });
+  const now = Date.now();
+  const refreshExpiresAt = previous?.refreshExpiresAt || (now + Number(token.refresh_token_expires_in || token.expires_in || 86400) * 1000);
+  const saved = {
+    ...token,
+    expiresAt: now + Number(token.expires_in || 86400) * 1000,
+    refreshExpiresAt,
+    ...(previous?.firebaseUid ? { firebaseUid: previous.firebaseUid } : {}),
+    ...(previous?.pinCovers ? { pinCovers: previous.pinCovers } : {})
+  };
+  const ttl = pnSessionLifetime(saved);
+  await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(saved), { expirationTtl: ttl });
+  // Refreshing a Pinterest token must not discard the binding to its BIG LWA owner.
+  if (saved.firebaseUid) await env.OAUTH_SESSIONS.put('pn:firebase:' + saved.firebaseUid, id, { expirationTtl: ttl });
   return saved;
+}
+async function pnBindSession(env, id, session, uid) {
+  if (!uid) pnFail('Sign in to BIG LWA before connecting Pinterest.', 401);
+  if (session.firebaseUid && session.firebaseUid !== uid) pnFail('This Pinterest connection belongs to a different BIG LWA account.', 403);
+  session.firebaseUid = uid;
+  const ttl = pnSessionLifetime(session);
+  await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(session), { expirationTtl: ttl });
+  await env.OAUTH_SESSIONS.put('pn:firebase:' + uid, id, { expirationTtl: ttl });
+  return { session: id, connected: true, persisted: true };
 }
 
 /* Pinterest's board list carries a name and a pin count but no dependable cover picture, so a
@@ -643,7 +664,7 @@ async function pnBoardCovers(request, env, session, id) {
       if (image) { covers[boardId] = image; cached[boardId] = image; }
     }
     session.pinCovers = { at: Date.now(), map: cached };
-    await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(session));
+    await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(session), { expirationTtl: pnSessionLifetime(session) });
   }
   return { covers, missing: missing.filter((boardId) => !covers[boardId]) };
 }
@@ -689,17 +710,49 @@ async function pnRoute(request, env) {
     if (!saved) pnFail('Pinterest connection expired. Please reconnect.', 401);
     const challenge = bytesToBase64Url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(body.verifier || '')))));
     if (challenge !== saved.challenge) pnFail('Reconnect Pinterest from the same browser tab.', 401);
+    const uid = await firebaseUidFromToken(String(body.firebaseIdToken || ''), env);
+    if (!uid) pnFail('Sign in to BIG LWA to finish connecting Pinterest.', 401);
+    const existing = await env.OAUTH_SESSIONS.get('pn:session:' + saved.id, 'json');
+    if (!existing) pnFail('Pinterest connection expired. Please reconnect.', 401);
+    const linked = await pnBindSession(env, saved.id, existing, uid);
     await env.OAUTH_SESSIONS.delete(key);
-    return json({ session: saved.id }, 200, request, env);
+    return json(linked, 200, request, env);
   }
+  // Recover an existing Pinterest connection from the verified BIG LWA account on any device.
+  if (path === '/pinterest/session/account' && request.method === 'GET') {
+    const header = request.headers.get('Authorization') || '';
+    const uid = await firebaseUidFromToken(header.startsWith('Bearer ') ? header.slice(7).trim() : '', env);
+    if (!uid) pnFail('Sign in to BIG LWA to restore Pinterest.', 401);
+    const id = await env.OAUTH_SESSIONS.get('pn:firebase:' + uid);
+    if (!id) return json({ connected: false }, 200, request, env);
+    const existing = await env.OAUTH_SESSIONS.get('pn:session:' + id, 'json');
+    if (!existing || existing.firebaseUid !== uid || (existing.expiresAt < Date.now() && !existing.refresh_token)) {
+      await env.OAUTH_SESSIONS.delete('pn:firebase:' + uid);
+      return json({ connected: false }, 200, request, env);
+    }
+    return json({ connected: true, session: id }, 200, request, env);
+  }
+  if (path === '/pinterest/session/claim' && request.method === 'POST') {
+    const header = request.headers.get('Authorization') || '';
+    const id = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+    if (!/^[A-Za-z0-9_-]{43}$/.test(id)) pnFail('Pinterest session expired. Please reconnect.', 401);
+    const existing = await env.OAUTH_SESSIONS.get('pn:session:' + id, 'json');
+    if (!existing) pnFail('Pinterest session expired. Please reconnect.', 401);
+    const body = await request.json().catch(() => ({}));
+    const uid = await firebaseUidFromToken(String(body.firebaseIdToken || ''), env);
+    if (!uid) pnFail('Sign in to BIG LWA to restore Pinterest.', 401);
+    return json(await pnBindSession(env, id, existing, uid), 200, request, env);
+  }
+
   const id = (request.headers.get('Authorization') || '').replace(/^Bearer /, '');
   let session = /^[A-Za-z0-9_-]{43}$/.test(id) ? await env.OAUTH_SESSIONS.get('pn:session:' + id, 'json') : null;
   if (!session) pnFail('Pinterest session expired. Please reconnect.', 401);
   if (path === '/pinterest/disconnect' && request.method === 'POST') {
     const body = await request.json().catch(() => ({}));
     const firebaseUid = await firebaseUidFromToken(String(body.firebaseIdToken || ''), env);
+    if (!firebaseUid || (session.firebaseUid && session.firebaseUid !== firebaseUid)) pnFail('Sign in to the linked BIG LWA account to disconnect Pinterest.', 403);
     await env.OAUTH_SESSIONS.delete('pn:session:' + id);
-    if (firebaseUid) await env.OAUTH_SESSIONS.delete('pn:firebase:' + firebaseUid);
+    await env.OAUTH_SESSIONS.delete('pn:firebase:' + firebaseUid);
     return json({ ok: true }, 200, request, env);
   }
 
