@@ -687,6 +687,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .pin-row .pin-badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#efe3d8;color:#6b5f56}
 .pin-row .pin-badge.is-public{background:#dff0e2;color:#2c6b3d}
 .pin-row b{display:block;overflow-wrap:anywhere}.pin-row p{font-size:14px;margin:4px 0;overflow-wrap:anywhere}.pin-row .toolbar{margin:8px 0 0}.pin-dot{background:#ae2d49;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px #0006}.pin-dot.draft{background:#292523;border-style:dashed}.leaflet-container{font-family:system-ui}.leaflet-popup-content{font-size:14px;overflow-wrap:anywhere}.leaflet-control-attribution{font-size:11px}#tileStatus{color:#92213b}#undo[hidden]{display:none}.map-footer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #ddd3ca}.map-footer-actions button{width:100%}.leaflet-control-layers{border:1px solid #c8bbb0!important;border-radius:11px!important;background:rgba(255,252,249,.94)!important;box-shadow:0 6px 18px rgba(52,39,31,.14)!important;color:#292523}.leaflet-control-layers-expanded{padding:8px 10px!important}.leaflet-control-layers label{display:flex!important;grid-template-columns:none!important;align-items:center;gap:7px;font-size:12px;line-height:1.25;margin:3px 0}.leaflet-control-layers-selector{margin:0!important}.night-mode .leaflet-control-layers{background:rgba(42,38,36,.96)!important;color:#f4eee8}.embedded header{display:none}@media(max-width:760px){main{grid-template-columns:1fr;padding:10px}#map{height:48vh;min-height:300px}header{padding:14px 12px}h1{font-size:28px}aside{padding:4px}#pins{max-height:none}} 
+/* Studio uses this very same Leaflet map, sized as an interactive card. */
+body.preview{height:100vh;min-height:0;overflow:hidden;background:#d6e7dd}
+body.preview header,body.preview aside,body.preview .toolbar,body.preview .hint,body.preview .status{display:none!important}
+body.preview main{display:block!important;width:100%!important;height:100vh!important;min-height:0!important;padding:0!important;margin:0!important;max-width:none!important;overflow:hidden}
+body.preview .map-side{position:relative!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;margin:0!important;padding:0!important;overflow:hidden;border:0!important;border-radius:0!important}
+body.preview #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;background:#e1ecdf}
+body.preview .leaflet-container{cursor:grab}
+body.preview .leaflet-control-attribution{font-size:8px}
 </style></head><body>
 <header><h1>Map</h1><a href="/studio">Back to Studio</a></header>
 <main><section class="map-side" aria-label="Map and location controls">
@@ -717,6 +725,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 (() => {
   'use strict';
   if(new URLSearchParams(location.search).has('embed'))document.body.classList.add('embedded');
+  if(new URLSearchParams(location.search).has('preview'))document.body.classList.add('preview');
   const $=id=>document.getElementById(id),key='biglwaMapPins',categories=['Place','Memory','Project','Event','Resource'];
   const GEOCODER_BASE='https://photon.komoot.io';
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -963,6 +972,20 @@ svg.leaflet-image-layer.leaflet-interactive path {
        shown underneath the map without another request. */
     map.on('moveend zoomend',()=>{if(!$('publicStrip').hidden)drawPublic(publicRows)});
     const observer=new ResizeObserver(()=>map.invalidateSize());observer.observe($('map'));
+    if(document.body.classList.contains('preview')){
+      // Let Leaflet size itself once the Studio card is visible.
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        map.invalidateSize();
+        const validPoints=pins.filter(valid).map(p=>[Number(p.lat),Number(p.lng)]);
+        if(validPoints.length===1)map.setView(validPoints[0],12);
+        else if(validPoints.length>1)map.fitBounds(validPoints,{padding:[22,22],maxZoom:13});
+        else map.setView([25,0],2);
+      }));
+      window.addEventListener('message',event=>{
+        if(event.origin!==location.origin||event.data?.type!=='biglwa:map-preview-refresh')return;
+        pins=read();draw();map.invalidateSize();
+      });
+    }
   }catch{$('mapStatus').textContent='Map display is unavailable. You can still save pins using the address search or latitude and longitude.';}
 })();
 </script></body></html>
