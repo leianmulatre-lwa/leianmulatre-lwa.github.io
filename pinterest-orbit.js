@@ -128,6 +128,7 @@ let handoffPromise=null;
  };
  const resetView=()=>{
   connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};
+  hostedPinUrls.clear();
   savedLibrary={version:1,boards:[]};savedUid='';savedError='';
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
   restorePromise=null;boardsPromise=null;pinsPromise=null;lastImport={imported:0,skipped:0,partial:0};importError='';
@@ -311,6 +312,15 @@ async function connect(){await run(async()=>{
      throw new Error('Pinterest did not return a readable authorized profile. Check your Pinterest API permissions.');
     connected=true;
     await loadSaved();
+    // Restore media URLs from the signed-in owner's saved posts before trying
+    // to fetch Pinterest again; these are account records, not browser storage.
+    try{
+      const saved=await window.__biglwaOrbitPosts?.storedOrbitImageUrls?.('pinterest');
+      for(const [id,urls] of Object.entries(saved||{})){
+        if(Array.isArray(urls)&&urls.length)hostedPinUrls.set(id,urls);
+      }
+      document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
+    }catch(error){console.warn('Pinterest hosted photo restore:',error)}
     diagnostic='Pinterest connected as @'+profile.username+'.';
     document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:true,uid:authUid,username:profile.username}}));
     render();
