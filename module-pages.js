@@ -13,6 +13,11 @@
 
     .module-textarea.diary-lined{font:16px/28px Georgia,serif;min-height:360px;padding:14px 20px;background-color:#f5ecdf;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#bcc3c5 27px,#bcc3c5 28px);background-origin:content-box;background-attachment:local;color:#302b28}.night-mode .module-textarea.diary-lined{background-color:#302c28;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#59544e 27px,#59544e 28px);color:#f5ecdf}
     .module-workspace[hidden]{display:none!important}
+    #studioApp #boards .studio-pinterest-board-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:9px 0;overflow:hidden;border-radius:12px;min-height:128px}
+    #studioApp #boards .studio-pinterest-board-preview button{display:block;min-width:0;height:94px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#dfc9c2;box-shadow:1px 2px 0 #dc2344;cursor:pointer}
+    #studioApp #boards .studio-pinterest-board-preview img{display:block;width:100%;height:100%;object-fit:cover}
+    #studioApp #boards .studio-pinterest-empty{grid-column:1/-1;padding:21px 10px;font:600 12px/1.5 system-ui;color:#806d63;text-align:center}
+
     .main.module-view>.hero,.main.module-view>.masonry,.main.module-view>.site-policy-footer{display:none!important}
     .module-workspace{position:relative;z-index:4;min-height:calc(100vh - 66px);padding:34px clamp(18px,4vw,54px) 110px;background:linear-gradient(180deg,rgba(246,240,233,.94),rgba(239,231,223,.97));color:#272321}
     .module-shell{max-width:1720px;margin:0 auto}
@@ -1898,49 +1903,91 @@ const connect=e.target.closest('[data-orbit-connect]');
       [...card.children].forEach(el=>{if(!el.matches('.card-head,.widget-window-controls,.window-controls'))el.remove()});
       const content=document.createElement('div');content.innerHTML=(id==='calendar'?miniCalendarMarkup():'')+'<p>'+copy+'</p><button class="module-action" type="button" data-open="'+key+'">'+(key==='calendar'?'Open Calendar':'Invite friends')+'</button>';card.append(content);
     }
-    function syncInstagramFeedPreview(feedCard){
+    function syncCollectiveFeedPreview(feedCard){
       if(!feedCard)return;
-      const hero=$('#biglwaFeedHero',feedCard);
-      if(!hero)return;
-      const state=window.__biglwaInstagramOrbit?.state;
-      const live=Array.isArray(state?.media)?state.media:[];
-      const archiveLoader=window.__biglwaOrbitPosts?.loadArchive;
-      const draw=(records)=>{
-        const pieces=[];
-        (Array.isArray(records)?records:[]).forEach(item=>{
-          const children=Array.isArray(item?.children?.data)?item.children.data.filter(x=>x&&(x.media_url||x.thumbnail_url)):[];
-          if(children.length) pieces.push(...children.map(x=>({url:x.media_url||x.thumbnail_url,type:x.media_type||item.media_type})));
-          else if(item?.media_url||item?.thumbnail_url) pieces.push({url:item.media_url||item.thumbnail_url,type:item.media_type});
-        });
-        const four=pieces.filter(x=>x.url).slice(0,4);
-        if(!four.length)return;
-        hero.hidden=false;
+      const hero=$('#biglwaFeedHero',feedCard);if(!hero)return;
+      const api=window.__biglwaOrbitPosts;
+      if(typeof api?.loadArchive!=='function')return;
+      const uid=String(window.__biglwaIdentity?.uid||'');
+      const serial=String(Date.now());hero.dataset.previewRequest=serial;
+      api.loadArchive().then(records=>{
+        if(!hero.isConnected||hero.dataset.previewRequest!==serial)return;
+        // Only PUBLIC Collective Feed items belong in this preview. Imported
+        // Pinterest drafts must not be presented as published posts.
+        const usable=(Array.isArray(records)?records:[])
+          .filter(item=>item&&item.state==='approved'&&item.archiveState!=='pending_delete')
+          .sort((a,b)=>(Number(b.sourceCreatedAtMs)||0)-(Number(a.sourceCreatedAtMs)||0));
+        const items=[];
+        const seen=new Set();
+        for(const item of usable){
+          const candidates=[...(Array.isArray(item.imageUrls)?item.imageUrls:[]),
+            item.imageUrl,item.thumbnailUrl];
+          const url=candidates.find(candidate=>{
+            if(typeof candidate!=='string'||!candidate.startsWith('https://'))return false;
+            return true;
+          });
+          if(!url||seen.has(url))continue;
+          seen.add(url);
+          items.push({url,source:String(item.source||'BIG LWA')});
+          if(items.length>=4)break;
+        }
+        hero.replaceChildren();
+        if(!items.length){
+          hero.hidden=true;hero.dataset.empty='1';return;
+        }
+        hero.hidden=false;delete hero.dataset.empty;
         hero.classList.add('biglwa-instagram-feed-preview');
-        hero.setAttribute('aria-label','Four latest Instagram photos from connected account');
-        hero.innerHTML=four.map((item,i)=>'<button type="button" class="biglwa-instagram-preview-tile" data-open="archive" aria-label="Open Instagram Archive"><img src="'+esc(item.url)+'" alt="Instagram photo '+(i+1)+'" loading="lazy" decoding="async"></button>').join('');
-      };
-      if(live.length){draw(live);return;}
-      if(typeof archiveLoader==='function'){
-        archiveLoader().then(records=>draw(records)).catch(()=>{});
-      }
+        hero.setAttribute('aria-label','Recently published Collective Feed photos, including Pinterest');
+        hero.innerHTML=items.map((item,i)=>'<button type="button" class="biglwa-instagram-preview-tile" data-open="feed" aria-label="Open published '+esc(item.source)+' post in Collective Feed"><img src="'+esc(item.url)+'" alt="'+esc(item.source)+' Collective Feed photo '+(i+1)+'" loading="lazy" decoding="async"></button>').join('');
+      }).catch(error=>console.warn('Studio Collective preview:',error));
     }
-
+    function syncStudioBoardsPreview(){
+      const card=$('#boards');if(!card)return;
+      card.dataset.widgetRoute='boards';
+      let slot=$('#biglwaStudioBoardsPreview',card);
+      if(!slot){
+        slot=document.createElement('div');slot.id='biglwaStudioBoardsPreview';
+        slot.className='studio-pinterest-board-preview';
+        slot.setAttribute('aria-label','Recent Pinterest Pins');
+        const cta=$('.card-cta',card);
+        if(cta)cta.before(slot);else card.appendChild(slot);
+      }
+      const tiles=window.__biglwaPinterest?.getPreview?.()||[];
+      const signature=tiles.map(item=>item.url).join('|');
+      if(slot.dataset.signature===signature)return;
+      slot.dataset.signature=signature;
+      if(!tiles.length){
+        slot.innerHTML='<p class="studio-pinterest-empty">Connect Pinterest or open Boards to load Pin previews.</p>';
+        return;
+      }
+      slot.innerHTML=tiles.slice(0,6).map((item,i)=>
+        '<button type="button" data-open="boards" aria-label="Open Pinterest Boards">'+
+        '<img src="'+esc(item.url)+'" loading="lazy" decoding="async" alt="Pinterest Pin '+(i+1)+'"></button>').join('');
+    }
     const feedCard=$('#feed');
     if(feedCard){
       feedCard.dataset.widgetRoute='feed';
       let hero=$('#biglwaFeedHero',feedCard);
       if(!hero){
-        hero=document.createElement('div');
-        hero.id='biglwaFeedHero';
-        hero.className='biglwa-feed-hero';
-        hero.setAttribute('aria-label','Four latest Collective Feed posts');
+        hero=document.createElement('div');hero.id='biglwaFeedHero';hero.className='biglwa-feed-hero';
         const cta=$('.card-cta',feedCard);
-        if(cta)feedCard.insertBefore(hero,cta);else feedCard.appendChild(hero);
+        if(cta)cta.before(hero);else feedCard.appendChild(hero);
       }
-      hero.setAttribute('aria-label','Four latest Collective Feed post thumbnails');
-      if(window.__biglwaFeed?.refresh){setTimeout(()=>window.__biglwaFeed.refresh(),0)}
-      syncInstagramFeedPreview(feedCard);
-      window.addEventListener('biglwa:instagram-restored',()=>syncInstagramFeedPreview(feedCard),{once:true});
+      syncCollectiveFeedPreview(feedCard);
+      const refresh=()=>syncCollectiveFeedPreview(feedCard);
+      if(!feedCard.dataset.previewBound){
+        feedCard.dataset.previewBound='1';
+        window.addEventListener('biglwa:orbit-imported',refresh);
+        window.addEventListener('biglwa:orbit-state-changed',refresh);
+        document.addEventListener('biglwa:pinterest-status',refresh);
+      }
+    }
+    syncStudioBoardsPreview();
+    const boardsCard=$('#boards');
+    if(boardsCard&&!boardsCard.dataset.pinPreviewBound){
+      boardsCard.dataset.pinPreviewBound='1';
+      document.addEventListener('biglwa:pinterest-preview-updated',syncStudioBoardsPreview);
+      document.addEventListener('biglwa:pinterest-status',syncStudioBoardsPreview);
     }
     let mapCard=$('#map');
     if(!mapCard){
