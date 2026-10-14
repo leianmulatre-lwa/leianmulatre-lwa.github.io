@@ -115,7 +115,7 @@ await check('client displays 24 times and three independent channels',async()=>{
  assert.ok(stream.includes("['podcast','podcast / radio'"));
  assert.ok(stream.includes("['lwa-tv','lwa tv'"));
  assert.ok(stream.includes("['live','live'"));
- assert.ok(stream.includes("stream-slot is"));
+ assert.ok(stream.includes("const classes='stream-slot '"));
 });
 await check('campus directory includes official UCLA Radio and state school stations',async()=>{
  for(const school of ['https://uclaradio.com/','https://kvrx.org/','https://wcbn.org/','https://wsum.org/'])
