@@ -15,7 +15,7 @@ function check(name, cond, extra = "") {
 console.log("=== EACH SOURCE KEEPS ITS OWN RIM ===");
 check("TikTok is black", feed.includes('tiktok: { rim:"#111111"'));
 check("Facebook is blue", feed.includes('facebook: { rim:"#1877f2"'));
-check("Instagram is orange with purple shadow", feed.includes('instagram: { rim:"#f28c28", glow:"#8c3acb"'));
+check("Instagram is purple", feed.includes('instagram: { rim:"#7d3ec5", glow:"#ad82e7"'));
 check("anything without a rim of its own falls back to blood orange", feed.includes('{ rim:FEED_RIM }'));
 check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
 check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
@@ -23,8 +23,8 @@ check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
 console.log("\n=== THE ARCHIVE HOLDS EVERY SOURCE, COLOUR KEPT, GREY ONLY WHEN OFF ===");
 check("a card is read for its own source", pages.includes("const source=String(item.source||'instagram').toLowerCase();"));
-check("the rim comes from the source", pages.includes("const rim={instagram:'#f28c28',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';"));
-check("the card is marked with its source", pages.includes("' archive-src-'+esc(source)+'\" style=\"--feed-card-rim:'+rim+'\""));
+check("the rim comes from the source palette", pages.includes("const visualTheme=themes[source]") && pages.includes("instagram:{rim:'#7d3ec5'"));
+check("the card is marked with its source and shadow", pages.includes("' archive-src-'+esc(source)+'\" style=\"--feed-card-rim:'+rim+';--feed-card-shadow:'+visualTheme.shadow"));
 check("both stored states are grouped colour-first", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-archived{"));
 check("the colour keeps the source rim, not a blanket grey", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes("box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c)!important;filter:none;opacity:1}") && !pages.includes("filter:grayscale(1)!important;opacity:.86}"));
 check("only the picture of an off card goes grey", pages.includes(".instagram-archive-card.is-off .instagram-archive-media,") && pages.includes(".instagram-archive-card.is-archived .instagram-archive-media{filter:grayscale(1);opacity:.7}"));
@@ -79,7 +79,7 @@ check("both row shapes use the coloured chip", pages.includes("${orbitBadge(g,t)
 check("the row map unpacks the colour", pages.includes("ORBIT_APPS.map(([k,g,n,t])=>{"));
 check("the old one-black-pill markup is gone", !pages.includes("<span>${g}</span>"));
 
-check("Archive Instagram shadow layers orange and violet", pages.includes("box-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb"));
+check("Archive Instagram shadow uses purple tones", pages.includes("box-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7"));
 check("Archive Pinterest shadow has red depth", pages.includes("box-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269"));
 
 check("each Archive card uses the shadow indicator instead of three dots",

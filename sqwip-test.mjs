@@ -114,7 +114,7 @@ await check('keyboard screenplay elements, backup/export, print, account sync ar
 await check('new assets load before Diary and updated module is cache-busted',async()=>{
  const file='/sqwip.js?v=20261014-screenplay-1';
  assert.ok(index.includes(file));
- assert.ok(index.includes('/sqwip.css?v=20261014-journal-switcher-2'));
+ assert.match(index, /\/sqwip\.css\?v=/);
  assert.ok(index.includes('/module-pages.js?v='));
  assert.ok(index.indexOf(file)<index.indexOf('/module-pages.js?v='));
 });

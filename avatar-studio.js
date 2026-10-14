@@ -20,12 +20,13 @@
     });
     return firebasePromise;
   }
-  const setStatus=(message)=>{const el=one('#biglwaAvatarStatus');if(el)el.textContent=message};
+  const setStatus=message=>{for(const id of ['#biglwaAvatarStatus','#biglwaAvatarCompactStatus']){const el=one(id);if(el)el.textContent=message;}};
   function disposeViewer(){try{state.skinViewer?.dispose()}catch{}state.skinViewer=null;}
   function mediaNode(){
     return one('#biglwaAvatarMedia');
   }
   function showAvatar(){
+    syncEditorPreview();
     const view=mediaNode();if(!view)return;
     disposeViewer();
     view.replaceChildren();
@@ -64,19 +65,64 @@
     const card=one('#studioAvatarCard');if(!card)return;
     card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
       '<div class="widget-window-controls avatar-window-controls" role="group" aria-label="Avatar widget controls">'+
-        '<button type="button" class="window-light red" data-avatar-widget-action="remove" aria-label="Remove Avatar widget" title="Remove Avatar widget"></button>'+
-        '<button type="button" class="window-light yellow" data-avatar-widget-action="archive" aria-label="Archive Avatar widget" title="Archive Avatar widget"></button>'+
-        '<button type="button" class="window-light green" data-avatar-widget-action="expand" aria-label="Enlarge Avatar widget" title="Enlarge Avatar widget"></button></div></div>'+
-      '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Move Aura and Avatar widgets" title="Drag to move the Aura / Avatar pair">'+
-        '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
-      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Avatar preview"></div>'+
-      '<div class="biglwa-avatar-actions" role="group" aria-label="Avatar sources">'+
-        '<button type="button" data-avatar-source="minecraft">Minecraft</button>'+
-        '<button type="button" data-avatar-source="mii">Mii editor</button>'+
-        '<button type="button" data-avatar-source="imvu">IMVU / Unity</button></div>'+
-      '<div class="biglwa-avatar-source" id="biglwaAvatarSource"></div>'+
-      '<small id="biglwaAvatarStatus" role="status">Choose a character source above.</small>';
+      '<button type="button" class="window-light red" data-avatar-widget-action="remove" aria-label="Remove Avatar widget" title="Remove widget"></button>'+
+      '<button type="button" class="window-light yellow" data-avatar-widget-action="archive" aria-label="Archive Avatar widget" title="Archive widget"></button>'+
+      '<button type="button" class="window-light green" data-avatar-widget-action="edit" aria-label="Customize Avatar" title="Customize Avatar"></button></div></div>'+
+      '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Reorder Aura and Avatar widgets" title="Drag to move the Aura and Avatar widgets">'+
+      '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
+      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Saved avatar preview"></div>'+
+      '<button type="button" class="biglwa-avatar-edit-link" data-avatar-edit>Customize avatar ↗</button>';
     showAvatar();
+  }
+  function syncEditorPreview(){
+    const preview=one('#biglwaAvatarProfilePreview');if(!preview)return;
+    const currentUrl=state.avatar?.url||'';
+    if(preview.dataset.avatarSrc===currentUrl)return;
+    preview.dataset.avatarSrc=currentUrl;
+    preview.replaceChildren();
+    if(state.avatar?.url){const img=new Image();img.src=state.avatar.url;img.alt='Your saved character';preview.append(img)}
+    else preview.innerHTML='<span aria-hidden="true">◉</span><small>No saved character yet</small>';
+  }
+  function mountEditor(){
+    const panel=one('#studioApp #wallpaperPanel'),tabs=one('#profileEditorTabs',panel||document);
+    if(!panel||!tabs)return false;
+    if(!one('[data-profile-editor-tab="avatar"]',tabs)){
+      const tab=document.createElement('button');
+      tab.type='button';tab.setAttribute('role','tab');tab.dataset.profileEditorTab='avatar';
+      tab.setAttribute('aria-controls','profileAvatarEditor');tab.setAttribute('aria-selected','false');
+      tab.textContent='Avatar';tabs.append(tab);
+    }
+    let section=one('#profileAvatarEditor',panel);
+    if(!section){
+      section=document.createElement('section');section.id='profileAvatarEditor';
+      section.className='customize-section biglwa-avatar-profile-section';
+      section.dataset.profileEditorPane='avatar';section.setAttribute('role','tabpanel');section.hidden=true;
+      section.innerHTML='<h3>Character studio</h3>'+
+        '<p>Build or import a character here. Studio displays the saved result without squeezing these controls into its preview.</p>'+
+        '<div class="biglwa-avatar-editor-layout"><div class="biglwa-avatar-profile-preview" id="biglwaAvatarProfilePreview" aria-label="Your current avatar"></div>'+
+        '<div class="biglwa-avatar-editor-tools">'+
+          '<div class="biglwa-avatar-actions" role="group" aria-label="Character creation choices">'+
+            '<button type="button" data-avatar-source="minecraft">Minecraft skin</button>'+
+            '<button type="button" data-avatar-source="mii">Mii character maker</button>'+
+            '<button type="button" data-avatar-source="imvu">IMVU / Unity</button>'+
+          '</div><div class="biglwa-avatar-source" id="biglwaAvatarSource"></div>'+
+          '<p id="biglwaAvatarStatus" role="status" aria-live="polite">Choose a character source to get started.</p>'+
+        '</div></div>';
+      panel.append(section);
+    }
+    syncEditorPreview();
+    return true;
+  }
+  function openEditor(){
+    mountEditor();
+    const profile=one('#studioApp .profile-card');
+    const trigger=one('#editProfileBtn',profile||document);
+    if(!profile?.classList.contains('profile-is-editing')&&trigger)trigger.click();
+    mountEditor();
+    const tab=one('#profileEditorTabs [data-profile-editor-tab="avatar"]');
+    if(tab)tab.click();
+    // Editing remains within the member's familiar Customize Profile workspace.
+    one('#profileAvatarEditor')?.scrollIntoView?.({block:'nearest',behavior:'smooth'});
   }
   function source(name){
     const mount=one('#biglwaAvatarSource');if(!mount)return;
@@ -237,33 +283,34 @@
     position();return true;
   }
   document.addEventListener('click',async e=>{
-    if(e.target.closest('[data-avatar-restore]')){e.preventDefault();setVisibility('shown');return;}
-    const origin=e.target.closest('#studioAvatarCard');if(!origin)return;
-    const control=e.target.closest('[data-avatar-widget-action]');
+    if(e.target.closest('[data-avatar-restore]')){e.preventDefault();setVisibility('shown');return}
+    if(e.target.closest('[data-avatar-edit]')){e.preventDefault();e.stopPropagation();openEditor();return}
+    const origin=e.target.closest('#studioAvatarCard');
+    const control=origin&&e.target.closest('[data-avatar-widget-action]');
     if(control){
-      e.preventDefault();
-      if(control.dataset.avatarWidgetAction==='expand'){
-        const active=origin.classList.toggle('avatar-is-expanded');
-        control.setAttribute('aria-pressed',String(active));
-        control.title=active?'Return Avatar to Studio':'Enlarge Avatar widget';
-      }else if(control.dataset.avatarWidgetAction==='archive')setVisibility('archived');
-      else if(confirm('Remove the Avatar widget from Studio? Your saved character stays in your BIG LWA account and can be restored.'))setVisibility('removed');
+      e.preventDefault();e.stopPropagation();
+      if(control.dataset.avatarWidgetAction==='edit')openEditor();
+      else if(control.dataset.avatarWidgetAction==='archive')setVisibility('archived');
+      else if(window.confirm('Remove the Avatar widget from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
       return;
     }
+    const panel=e.target.closest('#profileAvatarEditor');
+    if(!panel)return;
     const sourceButton=e.target.closest('[data-avatar-source]');
-    if(sourceButton){source(sourceButton.dataset.avatarSource);return}
+    if(sourceButton){e.preventDefault();source(sourceButton.dataset.avatarSource);return}
     if(e.target.closest('[data-avatar-unity-open]')){
-      const sourceArea=one('#biglwaAvatarSource');if(!sourceArea)return;
+      const sourceArea=one('#biglwaAvatarSource',panel);if(!sourceArea)return;
       try{
         const resp=await fetch('/avatar/unity/index.html',{cache:'no-store'});
         const manifest=resp.ok?await resp.text():'';
-        if(resp.ok&&/(createUnityInstance|UnityLoader)/.test(manifest)){const frame=document.createElement('iframe');frame.title='Licensed Unity WebGL avatar scene';
+        if(resp.ok&&/(createUnityInstance|UnityLoader)/.test(manifest)){
+          const frame=document.createElement('iframe');frame.title='Licensed Unity WebGL avatar scene';
           frame.sandbox='allow-scripts allow-same-origin';frame.src='/avatar/unity/index.html';
-          frame.style.cssText='width:100%;height:300px;border:0;border-radius:10px';
+          frame.style.cssText='width:100%;min-height:340px;border:0;border-radius:10px';
           frame.dataset.biglwaUnityFrame='1';sourceArea.replaceChildren(frame);
-          setStatus('Unity WebGL build detected. The avatar scene can communicate with BIGLWA through the approved bridge.');
-        }else setStatus('No licensed Unity WebGL export is installed yet.');
-      }catch{setStatus('Unity WebGL build is not installed yet.')}
+          setStatus('Unity WebGL build found. Use your authorized IMVU integration.');
+        }else setStatus('A licensed Unity WebGL export is not installed yet. IMVUnity .unitypackage files cannot run directly in a browser.');
+      }catch{setStatus('Unity WebGL is not installed yet.')}
     }
   });
   document.addEventListener('keydown',event=>{
@@ -287,7 +334,7 @@
       return;
     }
     if(event.data?.type!=='biglwa:unity-ready')return;
-    const frame=one('#studioAvatarCard [data-biglwa-unity-frame]');
+    const frame=one('#profileAvatarEditor [data-biglwa-unity-frame]');
     if(!frame||event.source!==frame.contentWindow)return;
     frame.contentWindow.postMessage({
       type:'biglwa:avatar-context',
@@ -296,7 +343,7 @@
     setStatus('Unity scene connected. Live IMVU avatars still require an approved integration.');
   });
   document.addEventListener('change',async e=>{
-    const file=e.target.closest('#studioAvatarCard [data-avatar-import]');
+    const file=e.target.closest('#profileAvatarEditor [data-avatar-import]');
     if(!file?.files?.length)return;
     await save(file.files[0],file.dataset.avatarKind||one('#biglwaAvatarSource')?.dataset.kind||'mii');
     file.value='';
@@ -311,7 +358,7 @@
     const obs=new MutationObserver(()=>{
       watchAura();
       if(queued)return;
-      queued=true;requestAnimationFrame(()=>{queued=false;mount();});
+      queued=true;requestAnimationFrame(()=>{queued=false;mount();mountEditor();});
     });
     obs.observe(document.body,{subtree:true,childList:true});
     // Body and document theme toggles do not necessarily mutate Aura's own style.
@@ -322,7 +369,7 @@
     window.addEventListener('resize',()=>requestAnimationFrame(position));
     window.addEventListener('pageshow',mount);
     window.addEventListener('biglwa:identity-updated',()=>{appearanceUid=null;state.loadedUid='';restore();mount()});
-    mount();watchAura();
+    mount();mountEditor();watchAura();
   }
   const style=document.createElement('style');style.id='biglwaAvatarLayoutV3';style.textContent=`
 #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair{
@@ -457,6 +504,127 @@
   #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair{grid-template-columns:minmax(0,1fr)!important}
   #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair>.aura-card{min-height:170px!important}
   #studioApp #studioAvatarCard{min-height:215px!important}
+}
+
+/* Keep Avatar a preview; all source selectors live in Customize Profile. */
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair){
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;
+  grid-auto-flow:row!important;align-content:start!important;overflow:visible!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.profile-card{
+  grid-column:1!important;grid-row:1!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+  grid-column:1!important;grid-row:2!important;width:100%!important;max-width:none!important;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;
+  grid-auto-flow:row!important;grid-auto-rows:min-content!important;align-items:stretch!important;
+  overflow:visible!important;box-sizing:border-box!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{
+  grid-column:span 2!important;grid-row:auto!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;min-height:0!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar{
+  grid-column:1!important;grid-row:3!important;position:relative!important;margin-top:4px!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card,
+#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{
+  height:184px!important;min-height:184px!important;max-height:184px!important;
+  overflow:hidden!important;box-sizing:border-box!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card{
+  grid-template-columns:70px minmax(0,1fr)!important;column-gap:8px!important;
+  padding:14px 12px!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card .aura-orb{
+  width:66px!important;min-width:0!important;height:66px!important;max-height:66px!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{
+  padding:10px 11px!important;gap:6px!important;
+  border-radius:var(--widget-radius,18px)!important;background:var(--avatar-panel-bg,#cec3b9)!important;
+  background-image:var(--avatar-panel-image,none)!important;color:var(--avatar-panel-ink,#302725)!important;
+}
+#studioApp #studioAvatarCard .avatar-window-controls{top:4px!important;right:2px!important;gap:5px!important}
+#studioApp #studioAvatarCard .biglwa-avatar-head{flex:0 0 24px!important;height:24px!important}
+#studioApp #studioAvatarCard .biglwa-avatar-head .card-kicker{
+  font-family:"CS Bergamot Stitched",Georgia,serif!important;font-weight:400!important;
+  font-size:clamp(18px,1.35vw,23px)!important;padding-right:72px!important;text-transform:lowercase!important
+}
+#studioApp #studioAvatarCard .biglwa-avatar-media{
+  flex:1 1 68px!important;min-height:64px!important;max-height:75px!important;
+  margin:0!important;border-radius:9px!important;overflow:hidden!important
+}
+#studioApp #studioAvatarCard .biglwa-avatar-media canvas{max-height:73px!important;width:auto!important}
+#studioApp #studioAvatarCard .biglwa-avatar-media img{max-height:73px!important;width:auto!important}
+#studioApp #studioAvatarCard .biglwa-avatar-empty{font:24px/1 Georgia,serif!important}
+#studioApp #studioAvatarCard .biglwa-avatar-empty span{font:700 9px/1.3 system-ui!important}
+#studioApp #studioAvatarCard .biglwa-avatar-edit-link{
+  display:block!important;flex:0 0 28px!important;width:100%!important;min-height:28px!important;
+  padding:6px!important;box-sizing:border-box!important;border:1px solid rgba(80,65,50,.2)!important;
+  border-radius:8px!important;background:rgba(255,255,255,.36)!important;color:inherit!important;
+  font:700 10px/1.3 system-ui!important;cursor:pointer!important;text-align:center!important;
+}
+#studioApp #studioAvatarCard .biglwa-avatar-edit-link:hover{background:rgba(255,255,255,.6)!important}
+#studioApp #profileAvatarEditor{display:block;min-width:0;overflow:visible!important}
+#studioApp #profileAvatarEditor[hidden]{display:none!important}
+#studioApp #profileAvatarEditor .biglwa-avatar-editor-layout{
+  display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);gap:20px;align-items:start;
+  margin-top:15px;
+}
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview{
+  display:grid;place-items:center;min-height:210px;aspect-ratio:1;
+  border:1px solid rgba(100,80,70,.27);border-radius:16px;
+  background:rgba(255,255,255,.25);color:var(--widget-ink,#493c41);overflow:hidden;
+}
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview img{display:block;max-width:95%;max-height:235px;object-fit:contain}
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview>span{font:65px Georgia,serif;opacity:.6}
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview>small{font:650 11px system-ui}
+#studioApp #profileAvatarEditor .biglwa-avatar-editor-tools{display:grid;gap:12px;min-width:0}
+#studioApp #profileAvatarEditor .biglwa-avatar-actions{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;
+}
+#studioApp #profileAvatarEditor .biglwa-avatar-actions button,
+#studioApp #profileAvatarEditor :is(.biglwa-avatar-upload,.biglwa-avatar-source button,.biglwa-avatar-source a){
+  box-sizing:border-box;min-width:0;width:100%;min-height:38px;padding:9px 12px;
+  border:1px solid rgba(80,70,60,.25);border-radius:9px;
+  background:rgba(255,255,255,.48);color:inherit;font:700 12px/1.3 system-ui;
+  display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;cursor:pointer;
+}
+#studioApp #profileAvatarEditor .biglwa-avatar-source{display:grid;gap:8px;min-width:0;font:12px/1.4 system-ui}
+#studioApp #profileAvatarEditor .biglwa-avatar-source p{margin:5px 0!important}
+#studioApp #profileAvatarEditor #biglwaMiiEditorFrame{width:100%!important;height:750px!important;min-height:750px!important;border-radius:12px}
+#studioApp #profileAvatarEditor #biglwaAvatarStatus{display:block;font:12px/1.45 system-ui;min-height:18px;margin:0}
+#studioApp .profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])){
+  position:fixed!important;inset:4vh auto auto 50%!important;transform:translateX(-50%)!important;
+  z-index:10040!important;display:grid!important;grid-template-columns:170px minmax(0,1fr)!important;
+  width:min(1040px,calc(100vw - 40px))!important;max-width:none!important;
+  height:min(92vh,950px)!important;max-height:92vh!important;min-height:0!important;
+  overflow:auto!important;border-radius:18px!important;
+  background:var(--widget-bg,#f8f2eb)!important;box-shadow:0 0 0 100vmax rgba(20,14,17,.58),0 24px 65px rgba(0,0,0,.27)!important;
+}
+#studioApp .profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])) #wallpaperPanel{
+  max-height:none!important;overflow:visible!important;min-width:0!important
+}
+#studioApp .profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])) .profile-identity-rail{
+  position:sticky!important;top:0!important;align-self:start!important;max-height:87vh!important;
+}
+@media(max-width:900px){
+  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important
+  }
+  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{grid-column:1/-1!important}
+  #studioApp .profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])){grid-template-columns:minmax(0,1fr)!important}
+  #studioApp .profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])) .profile-identity-rail{display:none!important}
+}
+@media(max-width:620px){
+  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{grid-template-columns:1fr!important}
+  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-column:1!important;
+  }
+  #studioApp #profileAvatarEditor .biglwa-avatar-editor-layout{grid-template-columns:minmax(0,1fr)}
+  #studioApp #profileAvatarEditor .biglwa-avatar-profile-preview{max-width:200px;min-height:150px}
+  #studioApp #profileAvatarEditor .biglwa-avatar-actions{grid-template-columns:minmax(0,1fr)}
+  #studioApp .profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])){width:calc(100vw - 20px)!important;left:50%!important;top:2vh!important;height:96vh!important;max-height:96vh!important}
 }
 `;
   document.head.append(style);
