@@ -402,6 +402,7 @@
     return String(control?.dataset?.sidebarRoute||control?.dataset?.policyRoute||control?.dataset?.open||(control?.getAttribute?.('href')||'').replace(/^.*#/,'')||'').trim().toLowerCase();
   }
   function navigationLabel(control,key){
+    if(key==='diary')return 'Journal';
     if(key==='notes')return 'Sqwib Note';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
@@ -505,6 +506,20 @@
   function widgetId(el,index){return el.dataset.widgetId||el.id||(['profile-card','music-card','aura-card'].find(c=>el.classList.contains(c))||`widget-${index+1}`).replace(/-card$/,'')}
   function widgetLabel(el,id){return el.dataset.widgetLabel||$('h1,h2,.card-kicker',el)?.textContent?.trim()||id.replace(/[-_]/g,' ')}
   function widgetRoute(el,id){return el.dataset.widgetRoute||$('.arrow-btn[data-open]',el)?.dataset.open||id}
+  function renameJournalNavigation(){
+    // Preserve existing data-open="diary" routes/storage, change labels only.
+    document.querySelectorAll('#studioApp [data-open="diary"],#studioApp [data-sidebar-route="diary"]').forEach(control=>{
+      const children=control.querySelectorAll('b,span');
+      for(const el of children){
+        if(/^diary$/i.test(el.textContent.trim()))el.textContent='Journal';
+      }
+      if(/^open diary$/i.test(control.getAttribute('aria-label')||''))control.setAttribute('aria-label','Open Journal');
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',renameJournalNavigation,{once:true});
+  else renameJournalNavigation();
+  document.addEventListener('biglwa:module-close',renameJournalNavigation);
+
   const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools']);
   function greenControlAction(route,id){
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
