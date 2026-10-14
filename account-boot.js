@@ -7,7 +7,7 @@ import { startIdentity, refreshIdentity, identity } from "./account-identity.js"
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
 import { startConnections } from "./orbit-connections.js?v=20261014-ig-account-recovery-4";
-import { startFeed } from "./feed-view.js?v=20261014-instagram-purple-9";
+import { startFeed } from "./feed-view.js?v=20261014-owned-controls-10";
 
 function boot() {
   startIdentity();
