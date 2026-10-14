@@ -113,9 +113,10 @@
     .module-workspace[data-module-key="feed"]{
       --shared-heading-inset:clamp(18px,4vw,54px);
       --feed-canvas-inset:clamp(10px,1.4vw,24px);
+      --feed-heading-offset:calc(var(--shared-heading-inset) - var(--feed-canvas-inset));
     }
     .module-workspace[data-module-key="feed"] :is(.module-top,.module-heading){
-      width:calc(100% - 2 * (var(--shared-heading-inset) - var(--feed-canvas-inset)));
+      width:calc(100% - var(--feed-heading-offset) - var(--feed-heading-offset));
       max-width:1720px;
       margin-left:auto;
       margin-right:auto;
