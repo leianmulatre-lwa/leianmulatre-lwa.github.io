@@ -43,6 +43,20 @@ let checks=0;
 async function check(name,fn){await fn();checks++;console.log('PASS '+name)}
 const sid='s'.repeat(43),now=Date.now();
 records.set('pn:session:'+sid,JSON.stringify({access_token:'access',refresh_token:'refresh',expiresAt:now+3600000,refreshExpiresAt:now+86400000}));
+await check('Pinterest OAuth returns to the exact trusted Big LWA origin',async()=>{
+ const challenge='p'.repeat(43);
+ const callback=await route(req('/pinterest/start?challenge='+challenge+'&return_to='+encodeURIComponent('https://www.biglwa.com/studio/boards')),env);
+ assert.equal(callback.status,302);
+ const oauth=new URL(callback.headers.get('location'));
+ const state=oauth.searchParams.get('state');
+ const stored=JSON.parse(records.get('pn:state:'+state));
+ assert.equal(stored.returnTo,'https://www.biglwa.com/studio/boards');
+ assert.equal(stored.challenge,challenge);
+ const untrusted=await route(req('/pinterest/start?challenge='+challenge+'&return_to='+encodeURIComponent('https://not-biglwa.com/studio/boards')),env);
+ assert.equal(untrusted.status,302);
+ const state2=new URL(untrusted.headers.get('location')).searchParams.get('state');
+ assert.ok(JSON.parse(records.get('pn:state:'+state2)).returnTo.startsWith('https://biglwa.com/'));
+});
 await check('anonymous account recovery refused',async()=>{
  assert.equal((await route(req('/pinterest/session/account'),env)).status,401);
 });
@@ -130,6 +144,10 @@ await check('Orbit records and UI use verified Pinterest status',async()=>{
  assert.ok(ui.includes('session/claim')&&ui.includes('session/account'));
  assert.ok(ui.includes('data-pn-sync')&&ui.includes('biglwa:orbit-imported'));
  assert.ok(ui.includes('syncAllBoards,disconnect,render'));
+ assert.ok(ui.includes("biglwaPinterestPendingHandoffV2"),'failed handoff remains pending for safe retry');
+ assert.ok(ui.includes('mapping.session!==result.session'),'connection mapping is verified after OAuth handoff');
+ assert.ok(ui.includes("biglwa:pinterest-status"),'verified Pinterest client sends a status update');
+ assert.ok(pages.includes("pn?.connected&&pn.uid"),'Orbit card consults the signed-in verified provider state');
  assert.ok(posts.includes('"X-Pinterest-Session"'));
  assert.ok(posts.includes("['instagram','pinterest'].includes(source.toLowerCase())"));
  assert.ok(pages.includes("window.__biglwaPinterest.syncAllBoards()"));
