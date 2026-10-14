@@ -1138,7 +1138,7 @@ const connect=e.target.closest('[data-orbit-connect]');
         project.innerHTML='<p class="politc-note">Live tracker data unavailable. Open the source to see its latest published statuses.</p>';
       }
     };
-    const cached=readJSON('biglwaPolitcLastVerified',null);if(cached&&cached.checkedAt)showPolitcData(cached,true);
+    let lastVerified=readJSON('biglwaPolitcLastVerified',null);if(lastVerified&&lastVerified.checkedAt)showPolitcData(lastVerified,true);
     const refreshPolitc=async()=>{
       refresh.disabled=true;refresh.textContent='Checking sources…';
       try{
@@ -1147,10 +1147,10 @@ const connect=e.target.closest('[data-orbit-connect]');
         const data=await response.json();if(!data||data.version!==1)throw Error('Invalid live data');
         if(!balance.isConnected||!project.isConnected)return;
         if(data.congress?.state==='ok'||data.project2025?.state==='ok'){
-          writeJSON('biglwaPolitcLastVerified',data);showPolitcData(data);
-        }else if(!cached){balance.textContent='Could not verify live Congress data.';project.textContent='Could not verify tracker data.'}
+          writeJSON('biglwaPolitcLastVerified',data);lastVerified=data;showPolitcData(data);
+        }else if(!lastVerified){balance.textContent='Could not verify live Congress data.';project.textContent='Could not verify tracker data.'}
       }catch(error){
-        if(!cached){balance.textContent='Live balance unavailable — see source link.';project.textContent='Live tracker unavailable — see source link.'}
+        if(!lastVerified){balance.textContent='Live balance unavailable — see source link.';project.textContent='Live tracker unavailable — see source link.'}
         console.warn('BIGLWA politc live refresh:',error);
       }finally{if(refresh.isConnected){refresh.disabled=false;refresh.textContent='↻ Refresh live data'}}
     };
