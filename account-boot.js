@@ -7,7 +7,7 @@ import { startIdentity, refreshIdentity, identity } from "./account-identity.js"
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
 import { startConnections } from "./orbit-connections.js?v=20261014-tiktok-account-recovery-3";
-import { startFeed } from "./feed-view.js?v=20261014-studio-hero-runtime-fix-3";
+import { startFeed } from "./feed-view.js?v=20261014-pinterest-red-4";
 
 function boot() {
   startIdentity();
