@@ -26,9 +26,9 @@
      the `source` field instead of a class. The two have to agree or one account would be
      two different colours on the same board. */
   var ACCENTS = {
-    'instagram-feed-item': { accent: '#f28c28', rim:'#a52a0c', glow:'#962fbf', hot:'#fa7e1e', label: 'Instagram' },
+    'instagram-feed-item': { accent: '#f28c28', rim:'#f28c28', glow:'#8c3acb', hot:'#ffad42', label: 'Instagram' },
     'tiktok-feed-item': { accent: '#111111', rim:'#111111', glow:'#25f4ee', hot:'#fe2c55', label: 'TikTok' },
-    'pinterest-feed-item': { accent: '#e60023', rim:'#e60023', glow:'#ff3554', hot:'#9f0018', label: 'Pinterest' },
+    'pinterest-feed-item': { accent: '#e60023', rim:'#f97316', glow:'#ffae42', hot:'#de5e0d', label: 'Pinterest' },
     'facebook-feed-item': { accent: '#1877f2', rim:'#1877f2', glow:'#5aa0ff', label: 'Facebook' },
     'youtube-feed-item': { accent: '#d0202f', rim:'#d0202f', glow:'#fff6ec', hot:'#ff0033', label: 'YouTube' },
     'soundcloud-feed-item': { accent: '#e2622a', rim:'#ff5500', glow:'#ffb13b', hot:'#c93f00', label: 'SoundCloud' }
@@ -36,7 +36,8 @@
   var FALLBACK = { accent: '#8a7a6c', rim:'#a52a0c', glow:'#d95f6d', label: 'Source' };
   function shadowFor(look) {
     if (look.label === 'YouTube') return '0 0 0 2px '+look.rim+',3px 3px 0 '+look.glow+',0 13px 28px -16px '+look.rim;
-    if (look.label === 'Instagram') return '3px 3px 0 '+look.rim+',-2px 9px 22px -15px '+look.glow+',8px 14px 26px -18px '+look.hot;
+    if (look.label === 'Instagram') return '3px 3px 0 '+look.rim+',7px 7px 0 -2px '+look.glow+',0 14px 28px -13px '+look.hot;
+    if (look.label === 'Pinterest') return '3px 3px 0 '+look.rim+',6px 6px 0 -2px '+look.glow+',0 14px 26px -14px '+look.hot;
     if (look.label === 'TikTok') return '3px 3px 0 '+look.rim+',-2px 8px 20px -14px '+look.glow+',8px 13px 24px -16px '+look.hot;
     if (look.hot) return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow+',0 0 18px -12px '+look.hot;
     return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow;
