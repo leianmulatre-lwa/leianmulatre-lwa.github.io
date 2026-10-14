@@ -119,6 +119,7 @@
    '<section class="stream-future" aria-label="Future programming features"><span>COMING LATER · COMMUNITY PROGRAMMING</span><strong>creator time-slot requests</strong><p>Time-slot requests, premieres and scheduled submissions will arrive in a future Stream release. Explore the curated rotation for now.</p></section>',
    '<p class="stream-disclaimer">Station links lead to their respective operators; listing does not imply affiliation, permission to rebroadcast, or an official programming partnership. No affiliation or live-broadcast status is implied by the creator directory.</p>'
   ].join('');
+  state.defaultMonitorMarkup=root.querySelector('#streamMonitor')?.innerHTML||'';
   const date=root.querySelector('#streamDate');
   const now=new Date();
   date.min=localDay(new Date(now.getFullYear(),now.getMonth(),now.getDate()-7));
@@ -444,8 +445,13 @@
   const button=event.target.closest('button');
   if(!button||!root.contains(button))return;
   if(button.matches('[data-stream-tab]')){
+   const changing=state.category!==button.dataset.streamTab;
    state.category=button.dataset.streamTab;
    state.selected=null;
+   if(changing&&state.defaultMonitorMarkup){
+    const monitor=root.querySelector('#streamMonitor');
+    if(monitor)monitor.innerHTML=state.defaultMonitorMarkup;
+   }
    paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
    return;
   }
