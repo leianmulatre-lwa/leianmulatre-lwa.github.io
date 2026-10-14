@@ -6,6 +6,7 @@ const KEY='biglwaPinterestSession';
 const PENDING_KEY='biglwaPinterestPendingHandoffV2';
 const OAUTH_UID_KEY='biglwaPinterestOauthStartingUid';
 let handoffPromise=null;
+ const hostedPinUrls=new Map(); // Hosted copies from the signed-in user's R2 Orbit import.
  let savedLibrary={version:1,boards:[]}, savedUid='',savedBusy=false,savedError='';
  const pinById=id=>pins.find(p=>String(p.id)===String(id))||savedLibrary.boards.flatMap(b=>b.pins||[]).find(p=>String(p.id)===String(id));
  async function savedRequest(method='GET',library){
@@ -270,6 +271,7 @@ async function connect(){await run(async()=>{
   try{
     const result=await importer('pinterest',items,profile,window.__biglwaIdentity||{});
     lastImport=result||lastImport;
+    for(const [id,urls] of Object.entries(result?.hostedById||{})){if(urls.some(Boolean))hostedPinUrls.set(String(id),urls.filter(Boolean));}
     importError=result?.warning||'';
     if(result?.warning)console.warn('BIG LWA Pinterest import:',result.warning);
     window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',...result}}));
@@ -383,7 +385,7 @@ async function connect(){await run(async()=>{
   list.querySelectorAll('.pinterest-feed-item:not(.biglwa-pin-post)').forEach(el=>el.remove());
   if(durable.length)return;
   const cards=feedPins().map(p=>{
-    const alternatives=imageAlternates(p),src=image(p)||alternatives[0]||'',url='https://www.pinterest.com/pin/'+encodeURIComponent(String(p.id))+'/';
+    const alternatives=hostedPinUrls.get(String(p.id))||[],src=alternatives[0]||'',url='https://www.pinterest.com/pin/'+encodeURIComponent(String(p.id))+'/';
     const alt=String(p.alt_text||p.title||p.description||'Pinterest Pin');
     const record={id:'pinterest_'+p.id,source:'pinterest',sourcePostId:String(p.id),caption:p.title||p.description||'',sourceUrl:url,imageUrls:src?[src]:[]};
     const tray=window.__biglwaFeed?.sendBarMarkup?.(false,url)||'';
@@ -462,7 +464,7 @@ async function connect(){await run(async()=>{
   (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
   (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
   '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
-   const src=image(p);const id=esc(String(p.id));
+   const src=(hostedPinUrls.get(String(p.id))||[])[0]||'';const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
    const opts='<option value="default_saved">Saved</option>'+
     savedLibrary.boards.filter(b=>b.id!=='default_saved').map(b=>'<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>').join('');
@@ -597,13 +599,13 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,
     try{const parsed=new URL(url);if(parsed.protocol!=='https:')return;}catch{return}
     seen.add(url);out.push({id:String(id||''),url});
    };
-   pins.forEach(pin=>include(pin.id,image(pin)));
+   pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||''));
    boards.forEach(board=>{
     const cover=covers[board.id];
     const urls=Array.isArray(cover?.images)?cover.images:[cover?.url||cover];
     urls.filter(Boolean).forEach(url=>include(board.id,url));
    });
-   savedLibrary.boards.forEach(board=>board.pins.forEach(pin=>include(pin.id,pin.image)));
+   savedLibrary.boards.forEach(board=>board.pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||'')));
    return out;
   },
   get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError,diagnostic})};
