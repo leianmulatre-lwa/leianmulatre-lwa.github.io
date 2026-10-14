@@ -847,13 +847,17 @@ async function pnBoardCovers(request, env, session, id) {
     /* Sequential rather than parallel: the limit here exists to be gentle with Pinterest,
        and six covers arriving a second apart looks the same as six arriving together. */
     for (const boardId of missing) {
-      const response = await fetch('https://api.pinterest.com/v5/boards/' + boardId + '/pins?page_size=1', {
+      const response = await fetch('https://api.pinterest.com/v5/boards/' + boardId + '/pins?page_size=3', {
         headers: { Authorization: 'Bearer ' + session.access_token }
       });
       if (!response.ok) continue;
       const data = await response.json().catch(() => ({}));
-      const image = pnPinImage((data.items || [])[0]);
-      if (image) { covers[boardId] = image; cached[boardId] = image; }
+      const images=(data.items||[]).slice(0,3).map(pnPinImage).filter(Boolean);
+      if(images.length){
+        const cover={url:images[0],images};
+        covers[boardId]=cover;
+        cached[boardId]=cover;
+      }
     }
     session.pinCovers = { at: Date.now(), map: cached };
     await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(session), { expirationTtl: pnSessionLifetime(session) });
