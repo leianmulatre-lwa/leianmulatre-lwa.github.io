@@ -70,13 +70,37 @@ const clean = (v) => String(v == null ? "" : v).trim();
 /* Both the other sources keep their credential in local storage, and Pinterest now does
    too, but a session left behind by an older build is still worth finding. */
 function readSession(key) {
+  // The Pinterest session is bound to a Firebase UID; never read another person's
+  // credential from the previous global browser-storage slot.
+  const uid = identity()?.uid;
+  const scoped = key === "biglwaPinterestSession"
+    ? (uid ? key + ":" + uid : "")
+    : key;
+  if (!scoped) return "";
   for (const store of [localStorage, sessionStorage]) {
-    try {
-      const value = store.getItem(key);
-      if (value) return value;
-    } catch { /* storage disabled */ }
+    try { const value = store.getItem(scoped); if (value) return value; }
+    catch { /* storage disabled */ }
   }
   return "";
+}
+async function recoverPinterestSession(uid) {
+  try {
+    const { auth } = await firebase();
+    await auth.authStateReady();
+    if (!uid || auth.currentUser?.uid !== uid) return "";
+    const token = await auth.currentUser.getIdToken();
+    const result = await fetch(WORKER + "/pinterest/session/account", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (!result.ok) return "";
+    const payload = await result.json();
+    if (!payload?.connected || !payload.session) return "";
+    try { localStorage.setItem("biglwaPinterestSession:" + uid, payload.session); } catch { }
+    return payload.session;
+  } catch (error) {
+    console.warn("Pinterest account recovery:", error);
+    return "";
+  }
 }
 
 let refs;
@@ -127,15 +151,28 @@ export function connectedIds() {
    A device with no local credential never gets this far: it keeps what the account says
    and reports the connection as needing to be re-authorised here. */
 async function syncSource(source, uid) {
-  const session = readSession(source.sessionKey);
+  let session = readSession(source.sessionKey);
+  if (!session && source.id === "pinterest") session = await recoverPinterestSession(uid);
   if (!session) return { outcome: "no-session" };
-  const headers = { Authorization: "Bearer " + session };
+  let headers = { Authorization: "Bearer " + session };
   let profile;
   try {
     const response = await fetch(WORKER + source.profile, { headers });
-    if (response.status === 401) return { outcome: "rejected" };
-    if (!response.ok) return { outcome: "stale" };
-    profile = await response.json();
+    if (response.status === 401 && source.id === "pinterest") {
+      // A stale local credential is not proof that the account was disconnected.
+      try { localStorage.removeItem("biglwaPinterestSession:" + uid); } catch {}
+      session = await recoverPinterestSession(uid);
+      if (!session) return { outcome: "no-session" };
+      headers = { Authorization: "Bearer " + session };
+      const retry = await fetch(WORKER + source.profile, { headers });
+      if (retry.status === 401) return { outcome: "rejected" };
+      if (!retry.ok) return { outcome: "stale" };
+      profile = await retry.json();
+    } else {
+      if (response.status === 401) return { outcome: "rejected" };
+      if (!response.ok) return { outcome: "stale" };
+      profile = await response.json();
+    }
   } catch {
     /* A network blip must not delete a working connection. */
     return { outcome: "stale" };
@@ -320,14 +357,21 @@ export async function forget(id) {
   const session = readSession(source.sessionKey);
   if (session) {
     try {
+      const pinterestBody = id === "pinterest"
+        ? JSON.stringify({ firebaseIdToken: await (await firebase()).auth.currentUser?.getIdToken() })
+        : null;
       await fetch(WORKER + "/" + id + "/disconnect", {
         method: "POST",
-        headers: { Authorization: "Bearer " + session }
+        headers: { Authorization: "Bearer " + session, ...(pinterestBody ? { "Content-Type": "application/json" } : {}) },
+        ...(pinterestBody ? { body: pinterestBody } : {})
       });
     } catch { /* the local copies are cleared regardless */ }
   }
   for (const store of [localStorage, sessionStorage]) {
-    try { store.removeItem(source.sessionKey); } catch { /* storage disabled */ }
+    try {
+      store.removeItem(source.sessionKey);
+      if (id === "pinterest" && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
+    } catch { /* storage disabled */ }
   }
   const who = identity()?.uid;
   if (who) await clearStored(who, id);
