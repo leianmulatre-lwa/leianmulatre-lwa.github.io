@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261014-politc-retry-23';
+        script.src = '/module-pages.js?v=20261014-calendar-aligned-28';
         document.head.appendChild(script);
       }, 250);
     }
