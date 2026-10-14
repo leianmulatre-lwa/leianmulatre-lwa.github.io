@@ -16,10 +16,11 @@ const TYPES=[
 const TYPE_NAMES=new Map(TYPES.map(entry=>[entry[0],entry[1]]));
 const KEYS=TYPES.map(entry=>entry[0]);
 const IDLE_KEY='biglwaSqwipV1';
+const CLOUD_API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/sqwip/library';
 const MAX_DOCS=36,MAX_BLOCKS=1500,MAX_CHARS=15000,MAX_FILE=2*1024*1024;
-let host=null,state=null,namespace='',timer=null,selectedBlock='',loadingError='',listening=false;
+let host=null,state=null,namespace='',timer=null,cloudTimer=null,cloudReady=false,cloudUid='',verifiedUid='',syncPending=false,selectedBlock='',loadingError='',listening=false;
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-const uid=()=>String(window.__biglwaIdentity?.uid||'').trim();
+const uid=()=>String(window.__biglwaIdentity?.uid||verifiedUid||'').trim();
 const key=()=>IDLE_KEY+':'+(uid()||'browser-guest');
 const newId=()=>typeof crypto?.randomUUID==='function'?crypto.randomUUID():'sq_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);
 function block(type='action',text=''){return {id:newId(),type:TYPE_NAMES.has(type)?type:'action',text:String(text||'').slice(0,MAX_CHARS)}}
@@ -39,20 +40,21 @@ function loadStore(){
   if(raw){
    const parsed=JSON.parse(raw);
    const docs=(Array.isArray(parsed?.documents)?parsed.documents:[]).slice(0,MAX_DOCS).map(cleanDocument).filter(Boolean);
-   if(docs.length)return {documents:docs,selectedId:docs.some(d=>d.id===parsed.selectedId)?parsed.selectedId:docs[0].id};
+   if(docs.length)return {documents:docs,selectedId:docs.some(d=>d.id===parsed.selectedId)?parsed.selectedId:docs[0].id,
+    deletedIds:Array.isArray(parsed.deletedIds)?parsed.deletedIds.filter(x=>typeof x==='string').slice(0,200):[]};
   }
  }catch(error){console.warn('SQWIP load:',error);loadingError='Saved scripts could not be opened. Export any recoverable browser data before clearing storage.'}
  const first=newDoc();
- return {documents:[first],selectedId:first.id};
+ return {documents:[first],selectedId:first.id,deletedIds:[]};
 }
 const current=()=>state?.documents.find(d=>d.id===state.selectedId)||state?.documents[0];
 function saveNow(){
  if(!state)return false;
  clearTimeout(timer);
- const d=current();if(d)d.updatedAt=Date.now();
  try{
   localStorage.setItem(namespace,JSON.stringify(state));
-  setStatus('Saved in this browser · export a backup',true);
+  setStatus(uid()?(cloudReady?'Saved locally · syncing account…':'Saved locally · connecting account…'):'Saved in this browser · export a backup',true);
+  if(cloudReady&&uid()===cloudUid)scheduleCloudSave();
   updateCounts();return true;
  }catch(error){
   console.error('SQWIP browser save:',error);
@@ -61,6 +63,7 @@ function saveNow(){
  }
 }
 function queueSave(){
+ const doc=current();if(doc)doc.updatedAt=Date.now();
  const status=host?.querySelector('#sqwipSaveStatus');
  if(status){status.textContent='Saving…';status.dataset.ok='false'}
  clearTimeout(timer);timer=setTimeout(saveNow,420);
@@ -277,6 +280,85 @@ async function importFile(file){
   refreshSelector();queueSave();setStatus('Script imported · saved in this browser',true);
  }catch(error){console.warn('SQWIP import:',error);setStatus('Could not import that Fountain, text or Sqwip JSON file.',false)}
 }
+async function getAuthUser(){
+ const [{getApps,initializeApp},{getAuth}]=await Promise.all([
+  import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+  import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')
+ ]);
+ const app=getApps()[0]||initializeApp({apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'});
+ const auth=getAuth(app);await auth.authStateReady();
+ return auth.currentUser;
+}
+function scheduleCloudSave(){
+ if(!cloudReady||!cloudUid||!state)return;
+ clearTimeout(cloudTimer);cloudTimer=setTimeout(pushToCloud,1000);
+}
+async function pushToCloud(){
+ if(!cloudReady||cloudUid!==uid()||!state||syncPending)return;
+ syncPending=true;
+ const currentScope=namespace, currentUser=cloudUid;
+ try{
+  const user=await getAuthUser();
+  if(user?.uid!==currentUser||namespace!==currentScope)return;
+  const token=await user.getIdToken();
+  const snapshot=JSON.stringify(state);
+  const response=await fetch(CLOUD_API,{method:'POST',headers:{
+   Origin:location.origin,'Content-Type':'application/json',Authorization:'Bearer '+token
+  },body:snapshot});
+  if(!response.ok)throw Error((await response.json().catch(()=>({}))).error||'Could not sync');
+  if(namespace===currentScope)setStatus('Saved to your BIG LWA account',true);
+ }catch(error){
+  console.warn('Sqwip account autosave:',error);
+  if(namespace===currentScope)setStatus('Saved in this browser · account sync unavailable · export backup',false);
+ }finally{syncPending=false}
+}
+async function syncFromCloud(){
+ const scope=namespace;
+ let user;
+ try{user=await getAuthUser()}catch(error){
+  if(namespace===scope)setStatus('Saved in this browser · unable to connect account storage',false);
+  return;
+ }
+ const firebaseUid=user?.uid||'';
+ verifiedUid=firebaseUid;
+ if(namespace!==scope)return;
+ if(firebaseUid&&scope!==IDLE_KEY+':'+firebaseUid){
+  // Never silently copy one member's draft into another member's account.
+  mount(host);return;
+ }
+ if(!firebaseUid)return;
+ try{
+  const token=await user.getIdToken();
+  const response=await fetch(CLOUD_API,{method:'GET',headers:{Authorization:'Bearer '+token}});
+  if(!response.ok)throw Error((await response.json().catch(()=>({}))).error||'Cloud read unavailable');
+  const result=await response.json();
+  if(namespace!==scope||uid()!==firebaseUid)return;
+  const cloud=result.library||{};
+  const deletedIds=Array.from(new Set([...(state.deletedIds||[]),...(cloud.deletedIds||[])])).slice(-200);
+  const docs=new Map();
+  (Array.isArray(cloud.documents)?cloud.documents:[]).forEach(raw=>{
+   const doc=cleanDocument(raw);if(doc&&!deletedIds.includes(doc.id))docs.set(doc.id,doc);
+  });
+  state.documents.forEach(doc=>{
+   if(deletedIds.includes(doc.id))return;
+   const saved=docs.get(doc.id);
+   if(!saved||(doc.updatedAt||0)>=(saved.updatedAt||0))docs.set(doc.id,doc);
+  });
+  const all=[...docs.values()].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,MAX_DOCS);
+  if(!all.length)all.push(newDoc());
+  state={documents:all,selectedId:all.some(d=>d.id===state.selectedId)?state.selectedId:all[0].id,deletedIds};
+  cloudReady=true;cloudUid=firebaseUid;selectedBlock='';
+  refreshSelector();
+  try{localStorage.setItem(namespace,JSON.stringify(state))}catch{}
+  setStatus('Synced with your BIG LWA account',true);
+  scheduleCloudSave();
+ }catch(error){
+  console.warn('Sqwip cloud read:',error);
+  cloudReady=false;
+  if(namespace===scope)setStatus('Saved in this browser · account sync unavailable · export backup',false);
+ }
+}
+
 function onClick(event){
  const button=event.target.closest('button');if(!button||!host.contains(button))return;
  const jump=button.dataset.sqwipJump;
@@ -298,6 +380,7 @@ function onClick(event){
  if(button.id==='sqwipDelete'){
   if(state.documents.length===1){setStatus('Keep at least one script. You can clear its contents or create a new draft.',false);return}
   if(!window.confirm('Delete this script from this browser? This cannot be undone without a saved backup.'))return;
+  state.deletedIds=Array.from(new Set([...(state.deletedIds||[]),state.selectedId])).slice(-200);
   state.documents=state.documents.filter(doc=>doc.id!==state.selectedId);
   state.selectedId=state.documents[0].id;saveNow();refreshSelector();
  }
@@ -346,6 +429,7 @@ function onPaste(event){
 function mount(root){
  if(!root)return;
  if(host&&host!==root)saveNow();
+ clearTimeout(cloudTimer);cloudReady=false;cloudUid='';
  host=root;state=loadStore();selectedBlock='';
  host.classList.add('sqwip-root');
  host.innerHTML='<div class="sqwip-shell">'+
@@ -374,7 +458,9 @@ function mount(root){
  host.addEventListener('keydown',event=>{const el=event.target.closest('.sqwip-text');if(el)handleBlockKey(event,el)});
  host.addEventListener('paste',onPaste);
  refreshSelector();
- if(loadingError)setStatus(loadingError,false);else setStatus('Saved in this browser · export a backup',true);
+ if(loadingError)setStatus(loadingError,false);
+ else setStatus(uid()?'Opening your account scripts…':'Saved in this browser · sign in for account sync',true);
+ Promise.resolve().then(syncFromCloud).catch(error=>console.warn('Sqwip account sync:',error));
 }
 if(!listening){
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
