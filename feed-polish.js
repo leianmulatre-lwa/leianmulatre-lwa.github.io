@@ -90,8 +90,12 @@
    }
    card.querySelectorAll('img[data-biglwa-external-media]').forEach(img=>{
      if(img.dataset.biglwaGuarded)return;img.dataset.biglwaGuarded='1';
+     const alternates=(()=>{try{return JSON.parse(img.dataset.biglwaImageAlternates||'[]')}catch{return[]}})();
+     const seen=new Set([img.getAttribute('src')]);
      img.addEventListener('error',()=>{
-       // This image came directly from a connected service. Don't draw a blank card when its signed CDN URL expires.
+       const nextImage=alternates.find(src=>typeof src==='string'&&!seen.has(src));
+       if(nextImage){seen.add(nextImage);img.src=nextImage;return;}
+       // All available embed resolutions failed: keep the card and its original-source link.
        const source=card.dataset.sourceId?'https://www.pinterest.com/pin/'+encodeURIComponent(card.dataset.sourceId)+'/':'';
        const panel=document.createElement('div');panel.className='biglwa-unavailable-media';
        panel.textContent='Source image unavailable — try reconnecting or syncing this account.';
