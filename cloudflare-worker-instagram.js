@@ -388,7 +388,10 @@ function redirectError(destination, message) {
 function allowedOrigin(request, env) {
   const origin = request.headers.get('Origin') || '';
   const siteOrigin = new URL(env.SITE_URL).origin;
-  return origin === siteOrigin ? origin : '';
+  // Both official first-party domains are legitimate; the OAuth callback
+  // returns to the same one that held the browser's PKCE verifier.
+  const trusted = new Set([siteOrigin, 'https://biglwa.com', 'https://www.biglwa.com']);
+  return trusted.has(origin) ? origin : '';
 }
 
 function requireOrigin(request, env) {
