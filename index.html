@@ -94,19 +94,19 @@ const scripts='<script>document.body.classList.add("biglwa-session-pending")' + 
 
 
     // Preserve crawlable document metadata after the legacy loader rewrites the page.
-    if(!/<html[^>]*\\blang=/i.test(html))html=html.replace(/<html(?=[\\s>])/i,'<html lang="en"');
-    const seoPath=location.pathname.replace(/\\/+$/,'')||'/';
+    if(!/<html[^>]*\blang=/i.test(html))html=html.replace(/<html(?=[\s>])/i,'<html lang="en"');
+    const seoPath=location.pathname.replace(/\/+$/,'')||'/';
     if(seoPath==='/'||seoPath==='/login'){
       const homeTitle='Big LWA | Creative Social Network for Art, Music & Culture';
       const homeDescription='Big LWA is a creative social network for music, art, projects, learning, and community. Build a personal studio and connect your creative work.';
-      html=html.replace(/<title>[^<]*<\\/title>/i,'<title>'+homeTitle+'</title>');
-      if(!/<meta\\s+name=["']description["']/i.test(html))
+      html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+homeTitle+'</title>');
+      if(!/<meta\s+name=["']description["']/i.test(html))
         html=html.replace('</head>','<meta name="description" content="'+homeDescription+'"></head>');
-      if(!/<link\\s+rel=["']canonical["']/i.test(html))
+      if(!/<link\s+rel=["']canonical["']/i.test(html))
         html=html.replace('</head>','<link rel="canonical" href="https://biglwa.com/"></head>');
-      if(!/<meta\\s+property=["']og:title["']/i.test(html))
+      if(!/<meta\s+property=["']og:title["']/i.test(html))
         html=html.replace('</head>','<meta property="og:type" content="website"><meta property="og:site_name" content="Big LWA"><meta property="og:title" content="'+homeTitle+'"><meta property="og:description" content="'+homeDescription+'"><meta property="og:url" content="https://biglwa.com/"></head>');
-    }else if(/^\\/(studio|settings|archive)(\\/|$)/.test(seoPath)&&!/<meta\\s+name=["']robots["'][^>]*noindex/i.test(html)){
+    }else if(/^\/(studio|settings|archive)(\/|$)/.test(seoPath)&&!/<meta\s+name=["']robots["'][^>]*noindex/i.test(html)){
       html=html.replace('</head>','<meta name="robots" content="noindex,nofollow"></head>');
     }
     return html;
