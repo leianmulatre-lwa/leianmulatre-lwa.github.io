@@ -121,10 +121,11 @@ await check('submissions are disabled by default until the programming feature l
  assert.match((await disabled.json()).error,/future release/i);
  env.STREAM_REQUESTS_ENABLED='true'; // Existing editorial workflow remains regression-tested.
 });
-await check('LWA Radio keeps three real channels without a request form',async()=>{
+await check('LWA Radio keeps four actual channels without a request form',async()=>{
  assert.ok(stream.includes("['podcast','lwa radio'"));
  assert.ok(stream.includes("['lwa-tv','lwa tv'"));
  assert.ok(stream.includes("['live','live'"));
+ assert.ok(stream.includes("['ballroom-cctv','ballroom / cctv'"));
  const mount=stream.slice(stream.indexOf(' function mount(host){'),stream.indexOf(' function jumpNow()'));
  assert.ok(mount.includes('streamShuffleAgain'));
  assert.ok(mount.includes('stream-future'));
@@ -133,6 +134,33 @@ await check('LWA Radio keeps three real channels without a request form',async()
  assert.ok(!stream.includes('awaiting the next live program'));
  assert.ok(pages.includes('feedStreamExplore'));
  assert.ok(!pages.includes('feedStreamRequest'));
+});
+await check('only the active channel is rendered, and standby stage sits above rotation',async()=>{
+ const mount=stream.slice(stream.indexOf(' function mount(host){'),stream.indexOf(' function jumpNow()'));
+ assert.ok(mount.indexOf('id="streamPlayerStage"')>=0);
+ assert.ok(mount.indexOf('id="streamPlayerStage"')<mount.indexOf('<section class="stream-guide"'));
+ assert.ok(stream.includes("categories.filter(cat=>cat[0]===state.category).map("));
+ assert.ok(stream.includes('data-stream-tab'));
+ assert.ok(stream.includes("paintCategories();renderGrid();renderFeaturedSlots();renderCategory()"));
+ assert.ok(style.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
+});
+await check('Ballroom / CCTV has reliable original source destinations and a full 24-slot daily rotation',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const api=win.BigLWAStreamGuide;
+ const archive=api.ballroom;
+ assert.ok(archive.length>=5);
+ assert.ok(archive.some(x=>x.id==='ballroom-throwbacks'&&x.url.includes('@BALLROOMTHROWBACKS')));
+ assert.ok(archive.some(x=>x.id==='open-to-all'&&x.url.includes('@opentoallent')));
+ assert.ok(archive.some(x=>x.url==='https://artsandculture.google.com/project/ballroom'));
+ assert.ok(archive.every(x=>x.url.startsWith('https://')));
+ const schedule=api.getDailyGuide('2026-10-14');
+ const row=schedule.find(x=>x.category==='ballroom-cctv');
+ assert.ok(row);assert.equal(row.slots.length,24);
+ assert.ok(row.slots.every(x=>x.kind==='feature'&&archive.some(y=>y.id===x.id)));
+ assert.ok(stream.includes("category==='ballroom-cctv'"));
+ assert.ok(stream.includes('CCTV means curated ballroom video archives here, not live cameras'));
+ assert.ok(style.includes('.stream-slot.is-ballroom'));
+ assert.ok(style.includes('.stream-source-slot.is-ballroom'));
 });
 await check('date-based shuffle is deterministic, changes by date, and manual shuffle works',async()=>{
  const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
@@ -145,7 +173,7 @@ await check('date-based shuffle is deterministic, changes by date, and manual sh
  assert.equal(serial(a),serial(same),'same date must have stable rotation');
  assert.notEqual(serial(a),serial(b),'the next date should rearrange channels');
  assert.notEqual(serial(a),serial(again),'manual shuffle should change selection order');
- assert.equal(a.length,3);
+ assert.equal(a.length,4);
  assert.ok(a.every(x=>x.slots.length===24));
  assert.ok(stream.includes("state.shuffleOffset++;renderGrid();renderFeaturedSlots()"));
 });
@@ -256,9 +284,9 @@ await check('Stream shares the same Studio header and page width as other widget
  assert.ok(style.includes('.stream-nav-meta'),'compact nav matches shared Studio geometry');
 });
 await check('frontend script versions and future features are intentional',async()=>{
- assert.ok(index.includes('stream-guide.js?v=20261014-shared-studio-layout-1'));
- assert.ok(index.includes('stream-guide.css?v=20261014-shared-studio-layout-1'));
- assert.ok(index.includes('module-pages.js?v=20261014-diary-sqwip-1'));
+ assert.ok(index.includes('stream-guide.js?v=20261014-ballroom-single-channel-1'));
+ assert.ok(index.includes('stream-guide.css?v=20261014-ballroom-single-channel-1'));
+ assert.ok(index.includes('module-pages.js?v=20261014-stream-ballroom-1'));
  assert.ok(style.includes('.stream-shuffle-button'));
  assert.ok(style.includes('.stream-future'));
  assert.ok(style.includes('.stream-player-footer'));
