@@ -1,0 +1,32 @@
+name: Diary Sqwip editor
+on:
+  pull_request:
+    paths:
+      - 'sqwip-editor.js'
+      - 'sqwip-editor.css'
+      - 'sqwip-editor-test.mjs'
+      - 'module-pages.js'
+      - 'index.html'
+      - '.github/workflows/sqwip-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'sqwip-editor.js'
+      - 'sqwip-editor.css'
+      - 'sqwip-editor-test.mjs'
+      - 'module-pages.js'
+      - 'index.html'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sqwip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Sqwip and Studio JavaScript
+        run: |
+          node --check sqwip-editor.js
+          node --check module-pages.js
+      - name: Test screenplay editing, Fountain and Diary integration
+        run: node sqwip-editor-test.mjs
