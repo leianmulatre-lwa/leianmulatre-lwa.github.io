@@ -6,7 +6,7 @@
 import { startIdentity, refreshIdentity, identity } from "./account-identity.js";
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
-import { startConnections } from "./orbit-connections.js?v=20261014-tiktok-account-recovery-2";
+import { startConnections } from "./orbit-connections.js?v=20261014-tiktok-account-recovery-3";
 import { startFeed } from "./feed-view.js?v=20261014-orange-purple-shadows-2";
 
 function boot() {
