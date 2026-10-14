@@ -377,14 +377,17 @@ async function connect(){await run(async()=>{
   list.querySelectorAll('.pinterest-feed-item:not(.biglwa-pin-post)').forEach(el=>el.remove());
   if(durable.length)return;
   const cards=feedPins().map(p=>{
-   const src=image(p);
-   const label=p.boardName||boardNameFor(p.board_id);
-   return '<article class="module-list-item pinterest-feed-item" data-post-id="pinterest_'+esc(p.id)+'"><div style="width:100%"><small>Pinterest'+(label?' · '+esc(label):'')+'</small><b style="display:block;margin:4px 0 8px">'+esc(p.title||p.description||p.alt_text||'Pinterest Pin')+'</b>'+
-   (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'" style="display:block;width:100%;max-height:520px;object-fit:cover;border-radius:12px">':'')+
-   '<a class="module-action ghost" href="https://www.pinterest.com/pin/'+esc(p.id)+'/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Pinterest</a></div></article>';
+    const src=image(p),url='https://www.pinterest.com/pin/'+encodeURIComponent(String(p.id))+'/';
+    const alt=String(p.alt_text||p.title||p.description||'Pinterest Pin');
+    const record={id:'pinterest_'+p.id,source:'pinterest',sourcePostId:String(p.id),caption:p.title||p.description||'',sourceUrl:url,imageUrls:src?[src]:[]};
+    const tray=window.__biglwaFeed?.sendBarMarkup?.(false,url)||'';
+    return '<article class="module-list-item pinterest-feed-item biglwa-unified-card" data-source-id="'+esc(p.id)+'" data-post-id="pinterest_'+esc(p.id)+'" data-send-record="'+esc(JSON.stringify(record))+'">'+
+      '<div class="biglwa-unified-media">'+(src?'<img data-biglwa-external-media src="'+esc(src)+'" loading="lazy" alt="'+esc(alt)+'">':'<div class="biglwa-unavailable-media">No Pinterest image available</div>')+'</div>'+
+      '<span class="biglwa-unified-source">Pinterest</span>'+tray+'</article>';
   });
   if(!cards.length)return;
   list.insertAdjacentHTML('afterbegin',cards.join(''));
+  list.querySelectorAll('.pinterest-feed-item[data-send-record]').forEach(el=>window.__biglwaFeed?.registerSendCard?.(el));
  }
  function boardNameFor(id){return boards.find(b=>String(b.id)===String(id))?.name||''}
   /* The board grid is three across and two down. That is deliberately not the four-column
