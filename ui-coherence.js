@@ -520,7 +520,7 @@
   else renameJournalNavigation();
   document.addEventListener('biglwa:module-close',renameJournalNavigation);
 
-  const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools']);
+  const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools','politc','politic']);
   function greenControlAction(route,id){
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
