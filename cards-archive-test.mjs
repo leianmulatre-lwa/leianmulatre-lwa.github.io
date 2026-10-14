@@ -31,7 +31,7 @@ check("only the picture of an off card goes grey", pages.includes(".instagram-ar
 check("each card carries a Live switch", pages.includes("data-archive-live-input=\"'+esc(item.id)+'\""));
 check("the switch label is interactive", pages.includes("(posted?'Live':'Not live')+'</b>'"));
 check("the switch is wired to publish or archive", pages.includes("postsApi?.publishOrbitPost?.(id)") && pages.includes("postsApi?.setOrbitState?.(id,'archived')"));
-check("a card on the Collective Feed is coloured here", pages.includes("In color · on the Collective Feed"));
+check("a card on the Collective Feed is coloured here", pages.includes("Card shadow = origin · Live = on Collective Feed"));
 check("the Archive no longer claims to be Instagram-only", !pages.includes("Instagram archive</h2>") && !pages.includes("Instagram posts imported"));
 
 console.log("\n=== GROUPED, WITH REPEATS SPOTTED ===");
@@ -39,7 +39,7 @@ check("a card is fingerprinted", pages.includes("function archiveFingerprint(ite
 check("cards are bucketed by that fingerprint", pages.includes("const groups=new Map();"));
 check("cards are sorted into source blocks", pages.includes("const sa=String(items[a].source||'').toLowerCase(), sb=String(items[b].source||'').toLowerCase();"));
 check("newest first inside a source", pages.includes("return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);"));
-check("a repeat is counted, not hidden", pages.includes("copies of one picture"));
+check("a repeat is counted, not hidden", pages.includes("additional copies of one picture"));
 check("each group is drawn under a source heading", pages.includes('class="archive-source-group"'));
 check("the groups are styled as blocks", pages.includes(".archive-source-group{margin:0 0 26px}") && pages.includes(".archive-group-head{"));
 check("a repeat group is called out", pages.includes(".archive-group-head .archive-group-repeats{"));
@@ -83,12 +83,12 @@ check("Archive Instagram shadow layers orange and violet", pages.includes("box-s
 check("Archive Pinterest shadow has orange depth", pages.includes("box-shadow:3px 3px 0 #f97316,6px 6px 0 -2px #ffae42"));
 
 check("each Archive card uses the shadow indicator instead of three dots",
- pages.includes("const strip='<div class=\"instagram-archive-strip\"'") &&
+ pages.includes("const strip='<div class=\"instagram-archive-strip\">") &&
  !pages.includes("'+actions+'<i></i><i></i><i></i></div>'"));
 check("Archive has one source color key above the grid",
  pages.includes('class="archive-color-guide"') &&
  pages.includes('archive-key-instagram') && pages.includes('archive-key-pinterest'));
 check("Archive grid groups by source not every photo",
- pages.includes('const sourceGroups=new Map()') && pages.includes('data-archive-group='+"'"+'+esc(source)'));
+ pages.includes('const sourceGroups=new Map()') && pages.includes('data-archive-group="\'+esc(source)'));
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
