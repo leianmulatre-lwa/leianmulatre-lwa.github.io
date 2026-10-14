@@ -33,6 +33,8 @@
     #studioApp #map .studio-map-preview-slot{width:100%;min-width:0;overflow:hidden;padding:0;display:block}
     #studioApp #map .studio-mini-map{display:block;width:100%;height:205px!important;min-height:205px;border:1px solid #a2b7ac;border-radius:14px;background:#d9e8dc;box-shadow:2px 3px 0 #9fae9b;overflow:hidden}
     #studioApp #map .studio-mini-map-caption{font:650 11px/1.4 system-ui,sans-serif;padding:5px 2px 1px;color:#6d736b}
+    #studioApp #map .studio-mini-map-caption .studio-mini-map-open{display:inline-flex;padding:2px 5px;border:0;border-radius:5px;background:transparent;color:#8b3642;font:750 11px/1.3 system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+    #studioApp #map .studio-mini-map-caption .studio-mini-map-open:focus-visible{outline:2px solid #9f3546;outline-offset:2px}
     .studio-map-mini{position:relative;display:block;width:100%;height:143px;margin:0 0 8px;padding:0;border:1px solid #a4b6aa;border-radius:13px;overflow:hidden;cursor:pointer;background:repeating-linear-gradient(35deg,transparent 0 34px,#c8e5d5 35px 46px,transparent 47px 72px),repeating-linear-gradient(118deg,#ecf2db 0 31px,#b5d9d1 32px 39px,#eaf0dc 40px 87px);box-shadow:2px 3px 0 #9fae9b}
     .studio-map-mini:before{content:"";position:absolute;inset:-20px;background:repeating-linear-gradient(135deg,transparent 0 36px,#faf7e0d1 37px 44px,transparent 45px 89px);pointer-events:none}
     .studio-map-mini-title,.studio-map-mini-count{position:absolute;z-index:2;left:8px;padding:4px 8px;border-radius:7px;background:#f8faeadd;font:800 9px/1.2 ui-monospace,monospace;color:#295b52}
@@ -2114,21 +2116,22 @@ const connect=e.target.closest('[data-orbit-connect]');
       mini.className='studio-mini-map';
       mini.title='Interactive mini map — pan, zoom, and see saved locations';
       mini.src='/map-app.html?embed=1&preview=1&v=20261014-real-studio-mini-1';
-      mini.loading='lazy';
+      mini.loading='eager';
       mini.referrerPolicy='same-origin';
       mini.setAttribute('allow','geolocation \'self\'');
       slot.appendChild(mini);
       const status=document.createElement('p');
       status.className='studio-mini-map-caption';
-      status.textContent='Pan & zoom here · Open Map for pins and editing';
+      status.innerHTML='Drag to explore · +/- to zoom · <button type="button" class="studio-mini-map-open" data-open="map">Open full map ↗</button>';
       slot.appendChild(status);
     }
     const pins=readMapPreviewPins();
     const caption=$('.studio-mini-map-caption',slot);
     if(caption){
-      caption.textContent=pins.length
-        ?pins.length+' saved spot'+(pins.length===1?'':'s')+' · pan and zoom the map'
-        :'Interactive map · pan and zoom here · Open Map to add a pin';
+      const message=pins.length
+        ?pins.length+' saved spot'+(pins.length===1?'':'s')+' · drag to explore'
+        :'Interactive map · drag to explore and zoom';
+      caption.innerHTML='<span>'+message+'</span> · <button type="button" class="studio-mini-map-open" data-open="map">Open full map ↗</button>';
     }
     if(mini.dataset.pinCount!==String(pins.length)){
       mini.dataset.pinCount=String(pins.length);
