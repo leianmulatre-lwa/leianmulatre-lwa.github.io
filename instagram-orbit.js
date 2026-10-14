@@ -22,8 +22,25 @@
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (error) { return ''; } }
-  function saveSession(value) { try { if (value) localStorage.setItem(SESSION_KEY, value); else localStorage.removeItem(SESSION_KEY); } catch (error) {} }
+  function scopedSessionKey(uid) { return uid ? SESSION_KEY + ':' + uid : ''; }
+  function session() {
+    const uid=window.__biglwaIdentity?.uid || '';
+    if(!uid)return '';
+    const key=scopedSessionKey(uid);
+    for(const store of [localStorage,sessionStorage]){
+      try{const value=store.getItem(key);if(value)return value}catch{}
+    }
+    // Legacy global tokens may be unbound to this account; do not silently
+    // use a previous member's authorization just because the device has one.
+    return '';
+  }
+  function saveSession(value) {
+    const uid=window.__biglwaIdentity?.uid || '';
+    if(!uid)return;
+    const key=scopedSessionKey(uid);
+    try{if(value)localStorage.setItem(key,value);else localStorage.removeItem(key)}catch{}
+    try{localStorage.removeItem(SESSION_KEY)}catch{}
+  }
   async function firebaseContext() {
     const app = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js');
     const authMod = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
@@ -34,12 +51,19 @@
   async function firebaseAuthToken() {
     try {
       const ctx = await firebaseContext();
+      // OAuth handoff can return before Firebase finishes restoring this login.
+      // Waiting here is essential: otherwise the Worker creates only a browser
+      // credential and cannot connect Instagram to the member's account.
+      await ctx.auth.authStateReady();
       return ctx.auth.currentUser ? await ctx.auth.currentUser.getIdToken() : '';
     } catch (error) { return ''; }
   }
   async function accountSession() {
     var token = await firebaseAuthToken();
-    if (!token) return '';
+    if (!token) {
+      state.sessionLookupError='Sign in to your BIGLWA account to restore Instagram.';
+      return '';
+    }
     try {
       var result = await fetch(API + '/session/account', { headers: { Authorization: 'Bearer ' + token } });
       var body = await result.json().catch(function () { return {}; });
@@ -131,14 +155,26 @@
      return goes to the site root the app actually runs from. */
   function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/?route=studio&view=orbit')); }
   async function restore() {
-    var savedSession = session();
-    if (!savedSession) {
-      savedSession = await accountSession();
-      if (savedSession) saveSession(savedSession);
+    // The canonical connection belongs to the authenticated account on the
+    // Worker, not this device. Refresh it first on every restore.
+    var savedSession = await accountSession();
+    if(savedSession)saveSession(savedSession);
+    else if(!state.sessionLookupError){
+      // The Worker confirmed there is no authorized account connection.
+      // Keep the public profile record and saved R2 photos; only hide live import.
+      state.connected=false;
+      state.profile=null;
+      state.media=[];
+      state.error='';
+      render();
+      return false;
+    } else {
+      // A transient account-service fault should not erase an existing session.
+      savedSession=session();
     }
-    if (!savedSession) {
-      if (state.sessionLookupError) status(state.sessionLookupError);
-      return Promise.resolve();
+    if(!savedSession) {
+      if(state.sessionLookupError)status(state.sessionLookupError);
+      return false;
     }
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(async function (responses) {
       state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = '';
@@ -171,9 +207,17 @@
       /* Only an expired credential may end the connection. A dropped connection or an
          Instagram-side fault used to discard the session, so one bad moment forced the
          member through the whole authorisation flow again. */
-      if (error.status === 401) { saveSession(''); state.connected = false; }
+      if (error.status === 401) {
+        // A browser credential can be stale even when the Firebase-linked
+        // account is healthy. Retry recovery once without disconnecting.
+        return accountSession().then(next=>{
+          if(next && next!==savedSession){saveSession(next);return restore();}
+          state.error='Instagram authorization expired. Reconnect to refresh permission.';
+          state.connected=false;render();return false;
+        });
+      }
       state.error = error.message;
-      render();
+      render();return false;
     });
   }
   function consumeHandoff() {
@@ -182,7 +226,14 @@
     if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); }
     if (!handoff) return restore();
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
-    return firebaseAuthToken().then(function (firebaseIdToken) { return api('/session/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handoff: handoff, firebaseIdToken: firebaseIdToken }) }); }).then(function (result) { saveSession(result.session); return restore(); }).then(function () { status('Instagram is connected to Orbit.'); }).catch(function (failure) { status(failure.message); });
+    return firebaseAuthToken().then(function (firebaseIdToken) {
+      if(!firebaseIdToken)throw new Error('Sign in to BIGLWA before linking Instagram. Connection was not saved.');
+      return api('/session/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handoff: handoff, firebaseIdToken: firebaseIdToken }) });
+    }).then(function (result) {
+      if(!result.persisted || !result.session)throw new Error('Instagram was not linked to your BIGLWA account. Please retry.');
+      saveSession(result.session);
+      return restore();
+    }).then(function () { status('Instagram is linked to your BIGLWA account.'); }).catch(function (failure) { status(failure.message); });
   }
   function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; state.hostedById = {}; render(); status('Instagram disconnected from Orbit.'); }); }
   function render() {
@@ -427,7 +478,7 @@
       if (card) card.remove();
       return;
     }
- var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); connect(); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
+ var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); if(!state.connected)connect(); else window.openBIGLWAModule?.('orbit'); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
   window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { render(); consumeHandoff(); }, { once: true }); else { render(); consumeHandoff(); }
 }());
