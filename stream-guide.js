@@ -196,7 +196,7 @@
   if(category==='podcast'){
    const radio=stations.map((station,index)=>({
     kind:'station',index,title:station[0],subtitle:station[1],
-    status:'CAMPUS RADIO · ORIGINAL STATION'
+    status:audioStreams[index]?'▶ PLAY HERE':'STREAM PENDING'
    }));
    const mixes=featured.filter(item=>item.category==='podcast').map(item=>({
     kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
@@ -277,7 +277,7 @@
   const entries=isTwitch?[...youtubeLive,...twitchChannels]:kind==='lwa-tv'?[...featured.filter(item=>item.category===kind),...ballroomChannels]:featured.filter(item=>item.category===kind);
   const radioSlots=isRadio?stations.map((station,index)=>
    '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Play '+escapeHTML(station[0])+' in Big LWA">'+
-   '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span><em>▶ Play</em></button>').join(''):'';
+   '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span><em>'+(audioStreams[index]?'▶ Play':'Stream pending')+'</em></button>').join(''):'';
   const picks=entries.map((item,index)=>{
    const twitch=item.provider==='twitch';
    const attrs=twitch?'data-stream-twitch="'+escapeHTML(item.id)+'"':'data-stream-feature="'+escapeHTML(item.id)+'"';
@@ -326,7 +326,7 @@
     '</div><span class="stream-screen-bottom">DIRECT STATION STREAM · NO REHOSTING</span></div>';
   }else if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
    monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+channelLink+'</div>'+
-    '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>';
+    '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0&autoplay=1&playsinline=1" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="eager"></iframe></div>';
   }else{
    const type=source.provider==='archive'?'cultural archive':source.provider==='youtube'?'creator channel':source.provider==='mixtape'?'mixtape':source.provider==='podcast'?'podcast':source.type||'radio station';
    const cta=source.provider==='archive'?'Explore original archive ↗':source.provider==='youtube'?'Browse original videos ↗':source.provider==='mixtape'?'Play on original release ↗':source.provider==='podcast'?'Listen with publisher ↗':'Listen on station website ↗';
@@ -399,7 +399,7 @@
   const needle=String(query||'').toLowerCase().trim();
   const selected=stations.map((station,index)=>({station,index})).filter(({station})=>station.join(' ').toLowerCase().includes(needle));
   panel.innerHTML=selected.map(({station,index})=>
-   '<button type="button" class="stream-station" data-stream-station="'+index+'"><span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span><div><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></div><span class="stream-station-go">tune in ↗</span></button>').join('')||
+   '<button type="button" class="stream-station" data-stream-station="'+index+'"><span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span><div><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></div><span class="stream-station-go">'+(audioStreams[index]?'▶ Play':'Stream pending')+'</span></button>').join('')||
    '<p class="stream-station-empty">No station in this starter directory matches that search. Suggest a school below.</p>';
  }
  async function refreshPublic(){
