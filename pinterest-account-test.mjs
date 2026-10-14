@@ -15,8 +15,8 @@ const kv={
  async delete(k){records.delete(k)}
 };
 const env={SITE_URL:'https://biglwa.com',PINTEREST_APP_ID:'fake-id',PINTEREST_APP_SECRET:'fake-secret',OAUTH_SESSIONS:kv};
-const mockFetch=async request=>{
- const req=typeof request==='string'?new Request(request):request,url=new URL(req.url);
+const mockFetch=async (request,options)=>{
+ const req=typeof request==='string'?new Request(request,options):request,url=new URL(req.url);
  if(url.hostname==='identitytoolkit.googleapis.com'){
   const input=await req.json(),uid=({'token-one':'uid-one','token-two':'uid-two'})[input.idToken];
   return new Response(JSON.stringify({users:uid?[{localId:uid}]:[]}),{status:uid?200:400});
