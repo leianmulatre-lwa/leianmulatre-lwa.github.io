@@ -12,6 +12,6 @@ assert.ok(frontend.includes('session/account') && frontend.includes('session/cla
 assert.ok(frontend.includes("const scopedKey=uid=>KEY+':'+uid"), 'sessions isolated by Firebase UID');
 assert.ok(frontend.includes('data-pn-sync'), 'profile-sync control is rendered');
 assert.ok(frontend.includes('importPinsToAccount(nextItems)'), 'Pin pages import to profile');
-assert.ok(index.includes('pinterest-orbit.js?v=20261013-profile-sync-1'), 'browser loads new frontend');
+assert.ok(index.includes('pinterest-orbit.js?v=20261013-profile-isolation-2'), 'browser loads new frontend');
 assert.ok(index.includes('orbit-posts.js?v=20261013-pin-image-import-1'), 'browser loads fixed importer');
 console.log('11 Pinterest Boards checks passed');

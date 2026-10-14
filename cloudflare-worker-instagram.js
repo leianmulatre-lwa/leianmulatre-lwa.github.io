@@ -604,6 +604,13 @@ async function pnSave(env, id, token, previous) {
 async function pnBindSession(env, id, session, uid) {
   if (!uid) pnFail('Sign in to BIG LWA before connecting Pinterest.', 401);
   if (session.firebaseUid && session.firebaseUid !== uid) pnFail('This Pinterest connection belongs to a different BIG LWA account.', 403);
+  // Only one active Pinterest authorization is associated with each BIG LWA user.
+  // On reconnect, revoke the previous session so an older browser cannot revive it.
+  const previousId = await env.OAUTH_SESSIONS.get('pn:firebase:' + uid);
+  if (previousId && previousId !== id) {
+    const previous = await env.OAUTH_SESSIONS.get('pn:session:' + previousId, 'json');
+    if (previous?.firebaseUid === uid) await env.OAUTH_SESSIONS.delete('pn:session:' + previousId);
+  }
   session.firebaseUid = uid;
   const ttl = pnSessionLifetime(session);
   await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(session), { expirationTtl: ttl });

@@ -39,7 +39,10 @@ const KEY='biglwaPinterestSession';
  async function recoverOrBindPinterestSession(){
   const token=await firebaseIdToken();
   if(!token||!authUid){resetView();return ''}
-  const local=session()||storageGet(KEY); // Legacy browser key only after server verifies ownership.
+  // A device-wide legacy credential might belong to another person who used this
+  // browser. Never silently claim it for the currently signed-in account.
+  const local=session();
+  if(storageGet(KEY))storageDrop(KEY);
   if(local){
    try{
     const res=await fetch(API+'session/claim',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+local},body:JSON.stringify({firebaseIdToken:token})});
