@@ -17,8 +17,15 @@
     #studioApp #boards .studio-pinterest-board-preview button{display:block;min-width:0;height:94px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#dfc9c2;box-shadow:1px 2px 0 #dc2344;cursor:pointer}
     #studioApp #boards .studio-pinterest-board-preview img{display:block;width:100%;height:100%;object-fit:cover}
     #studioApp #boards .studio-pinterest-empty{grid-column:1/-1;padding:21px 10px;font:600 12px/1.5 system-ui;color:#806d63;text-align:center}
-    #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:none;min-height:0}
+    #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,91px);gap:5px;max-height:187px;min-height:0;align-content:start}
     #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview button{height:91px!important;overflow:hidden!important}
+    #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview button:nth-child(n+7){display:none!important}
+    #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-template-rows:minmax(0,1fr)!important;gap:7px!important;overflow:hidden!important}
+    #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-row{display:contents!important}
+    #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid>a,
+    #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-empty{min-width:0;aspect-ratio:1/1;overflow:hidden}
+    #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid img{display:block;width:100%;height:100%;object-fit:cover}
+
     #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview img{width:100%!important;height:100%!important;object-fit:cover!important}
     #studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview+.card-cta{margin-top:13px}
 
@@ -2219,10 +2226,10 @@ const connect=e.target.closest('[data-orbit-connect]');
       const viewer=String(window.__biglwaIdentity?.uid||'');
       const tiles=(state?.connected&&(!viewer||state.uid===viewer))
         ?(window.__biglwaPinterest?.getPreview?.()||[]):[];
-      const signature=tiles.slice(0,9).map(item=>item.url).join('|');
-      if(tiles.length){
-        // The original static "ideas / people / places" collage must actually
-        // disappear. Previously it was left above the new live-Pin grid.
+      const signature=tiles.slice(0,6).map(item=>item.url).join('|');
+      if(state?.connected&&(!viewer||state.uid===viewer)){
+        // After Pinterest connects, don't allow static placeholder art
+        // to remain behind the live pin grid, even while Pins are loading.
         [...card.children].forEach(child=>{
           if(child===slot||child.matches('.card-head,.sub,.card-cta,.widget-window-controls,.window-controls,.widget-drag-handle'))return;
           child.remove();
@@ -2235,10 +2242,10 @@ const connect=e.target.closest('[data-orbit-connect]');
       if(slot.dataset.signature===signature)return;
       slot.dataset.signature=signature;
       slot.innerHTML=tiles.length
-        ?tiles.slice(0,9).map((item,i)=>
+        ?tiles.slice(0,6).map((item,i)=>
           '<button type="button" data-open="boards" aria-label="Open Pinterest Boards">'+
           '<img src="'+esc(item.url)+'" loading="lazy" decoding="async" alt="Pinterest Pin '+(i+1)+'"></button>').join('')
-        :'<button type="button" class="studio-pinterest-empty" data-open="boards">Connect Pinterest or open Boards to load your Pins.</button>';
+        :'<button type="button" class="studio-pinterest-empty" data-open="boards">'+(state?.connected?'Open Boards to load your Pins':'Connect Pinterest to preview your Pins')+'</button>';
     }
     const feedCard=$('#feed');
     if(feedCard){
