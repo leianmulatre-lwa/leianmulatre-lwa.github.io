@@ -424,6 +424,11 @@ function corsHeaders(origin) {
  */
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname.startsWith('/sqwip/')) {
+      const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
+      try { return await sqwipRoute(request, config); }
+      catch (error) { return json({ error: error.publicMessage || 'Sqwip script storage is unavailable.' }, error.status || 500, request, config); }
+    }
     if (new URL(request.url).pathname.startsWith('/stream/')) {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
       try { return await streamRoute(request, config); }
@@ -962,6 +967,64 @@ const MEDIA_MAX_PHOTO = 8 * 1024 * 1024;
 const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos', 'feed-image': 'feed-images', orbit: 'orbit' };
 
 function mediaFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
+
+/* Sqwip screenplays belong ONLY to the authenticated BIG LWA user.
+ * The cloud document is not stored in /posts or public R2 media URLs. */
+const SQWIP_TYPES = new Set(['scene','action','character','dialogue','parenthetical','transition','shot']);
+function sqwipCleanLibrary(data) {
+  const input=Array.isArray(data?.documents)?data.documents:[];
+  if(input.length>36) mediaFail('Sqwip library exceeds 36 scripts.',413);
+  const docs=input.map(script=>{
+    if(!/^[A-Za-z0-9_-]{3,128}$/.test(String(script?.id||'')))mediaFail('Invalid screenplay ID.');
+    const blocks=Array.isArray(script.blocks)?script.blocks:[];
+    if(blocks.length>1500)mediaFail('A screenplay exceeds 1500 elements.',413);
+    return {
+      id:String(script.id),title:String(script.title||'Untitled Screenplay').slice(0,130),
+      author:String(script.author||'').slice(0,100),
+      updatedAt:Number(script.updatedAt)||Date.now(),
+      blocks:blocks.map(line=>{
+        if(!/^[A-Za-z0-9_-]{3,128}$/.test(String(line?.id||'')))mediaFail('Invalid screenplay element.');
+        const type=String(line.type||'action');
+        if(!SQWIP_TYPES.has(type))mediaFail('Unsupported screenplay element.');
+        const text=String(line.text||'');
+        if(text.length>15000)mediaFail('A screenplay element is too long.',413);
+        return {id:String(line.id),type,text};
+      })
+    };
+  });
+  const selected=String(data?.selectedId||'');
+  const deletedIds=Array.isArray(data?.deletedIds)?data.deletedIds.filter(id=>/^[A-Za-z0-9_-]{3,128}$/.test(String(id))).slice(0,200):[];
+  return {version:1,selectedId:docs.some(d=>d.id===selected)?selected:(docs[0]?.id||''),documents:docs.filter(doc=>!deletedIds.includes(doc.id)),deletedIds};
+}
+async function sqwipRoute(request,env) {
+  if(request.method==='OPTIONS')return corsPreflight(request,env);
+  if(!allowedOrigin(request,env))mediaFail('Origin not allowed.',403);
+  if(new URL(request.url).pathname!=='/sqwip/library')mediaFail('Not found.',404);
+  if(!['GET','POST'].includes(request.method))mediaFail('Unsupported request.',405);
+  const user=await mediaUser(request,env);
+  const key='sqwip/'+user.uid+'/library.json';
+  const bucket=mediaBucket(env);
+  if(request.method==='GET'){
+    const object=await bucket.get(key);
+    if(!object)return json({ok:true,library:{version:1,selectedId:'',documents:[],deletedIds:[]}},200,request,env);
+    const saved=await object.json().catch(()=>null);
+    return json({ok:true,library:sqwipCleanLibrary(saved)},200,request,env);
+  }
+  const length=Number(request.headers.get('content-length')||0);
+  if(length>1500000)mediaFail('Screenplay library exceeds the 1.5 MB storage limit.',413);
+  const raw=await request.text();
+  if(raw.length>1500000)mediaFail('Screenplay library exceeds the 1.5 MB storage limit.',413);
+  let submitted;
+  try{submitted=JSON.parse(raw)}catch{mediaFail('Invalid screenplay JSON.')}
+  const library=sqwipCleanLibrary(submitted);
+  const encoded=JSON.stringify(library);
+  if(encoded.length>1500000)mediaFail('Screenplay library exceeds the 1.5 MB storage limit.',413);
+  await bucket.put(key,encoded,{
+    httpMetadata:{contentType:'application/json; charset=utf-8',cacheControl:'private, no-store'},
+    customMetadata:{uid:user.uid,kind:'sqwip-screenplays'}
+  });
+  return json({ok:true,count:library.documents.length},200,request,env);
+}
 
 function mediaBucket(env) {
   const bucket = env.WALLPAPER_BUCKET || env.MEDIA_BUCKET || env.R2_BUCKET;

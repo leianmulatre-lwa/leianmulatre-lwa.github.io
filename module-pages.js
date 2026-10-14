@@ -725,8 +725,8 @@ const connect=e.target.closest('[data-orbit-connect]');
 
   function renderWriting(key){
     const storage=`biglwaDraft_${key}`;
-    const title=key==='diary'?`<div class="module-diary-cover-label"><strong>Diary</strong><span>Property of: ${esc(profileUsername())}</span></div>`:'<div class="module-qwiky-label"><strong>Qwiky Note</strong><span>pin it before it floats away</span></div>';
-    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button><button class="module-action secondary" id="moduleWritingFeed" type="button">Upload to Collective Feed</button></div><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves while you write</div></form></section></div>`;
+    const title=key==='diary'?`<div class="module-diary-cover-label is-compact"><span>Property of: ${esc(profileUsername())}</span></div><nav class="diary-section-nav" role="tablist" aria-label="Diary sections"><button type="button" data-diary-view="diary" role="tab" aria-controls="diaryWritingSection" aria-selected="true">diary</button><button type="button" data-diary-view="sqwip" role="tab" aria-controls="sqwipWritingSection" aria-selected="false">sqwip</button></nav>`:'<div class="module-qwiky-label"><strong>Qwiky Note</strong><span>pin it before it floats away</span></div>';
+    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="Diary journal"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button><button class="module-action secondary" id="moduleWritingFeed" type="button">Upload to Collective Feed</button></div><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves while you write</div></form></div>${key==='diary'?'<div id="sqwipWritingSection" role="tabpanel" aria-label="Sqwip screenplay maker" hidden></div>':''}</section></div>`;
     const form=$('#moduleWritingForm',body),area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;
     const save=(explicit=false)=>{
       localStorage.setItem(storage,area.value);
@@ -736,6 +736,23 @@ const connect=e.target.closest('[data-orbit-connect]');
     };
     area.addEventListener('input',()=>{status.textContent='Saving…';status.classList.remove('ok');clearTimeout(t);t=setTimeout(()=>save(false),350)});
     form.addEventListener('submit',event=>{event.preventDefault();clearTimeout(t);save(true)});
+    if(key==='diary'){
+      // Diary journal and Sqwip screenplays are different drafts and storage keys.
+      const tabs=Array.from(body.querySelectorAll('[data-diary-view]'));
+      const notebook=$('#diaryWritingSection',body),screenplay=$('#sqwipWritingSection',body);
+      tabs.forEach(tab=>tab.addEventListener('click',()=>{
+        const showSqwip=tab.dataset.diaryView==='sqwip';
+        notebook.hidden=showSqwip;
+        screenplay.hidden=!showSqwip;
+        tabs.forEach(btn=>btn.setAttribute('aria-selected',String(btn===tab)));
+        if(showSqwip&&!screenplay.dataset.sqwipMounted){
+          if(window.BigLWASqwip?.mount){
+            window.BigLWASqwip.mount(screenplay);
+            screenplay.dataset.sqwipMounted='true';
+          }else screenplay.textContent='Sqwip is loading. Refresh to open the screenplay editor.';
+        }
+      }));
+    }
     $('#moduleWritingFeed',body).onclick=async()=>{const value=area.value.trim(),status=$('#moduleWritingStatus',body);if(!value){status.textContent='Write something first.';status.classList.remove('ok');return}const button=$('#moduleWritingFeed',body);button.disabled=true;status.textContent='Uploading draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:key,title:key==='diary'?'Diary entry':'Qwiky Note',caption:value});status.textContent='Saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload this draft.';status.classList.remove('ok')}finally{button.disabled=false}};
   }
 

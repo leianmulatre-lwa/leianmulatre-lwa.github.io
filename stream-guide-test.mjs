@@ -258,7 +258,7 @@ await check('Stream shares the same Studio header and page width as other widget
 await check('frontend script versions and future features are intentional',async()=>{
  assert.ok(index.includes('stream-guide.js?v=20261014-shared-studio-layout-1'));
  assert.ok(index.includes('stream-guide.css?v=20261014-shared-studio-layout-1'));
- assert.ok(index.includes('module-pages.js?v=20261014-archive-load-pin-cards-1'));
+ assert.ok(index.includes('module-pages.js?v=20261014-diary-sqwip-1'));
  assert.ok(style.includes('.stream-shuffle-button'));
  assert.ok(style.includes('.stream-future'));
  assert.ok(style.includes('.stream-player-footer'));
