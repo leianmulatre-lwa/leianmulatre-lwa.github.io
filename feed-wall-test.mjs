@@ -64,4 +64,4 @@ check("the tray works from any card, not just saved posts", feed.includes("funct
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 check("Instagram shadows are orange and purple", feed.includes('instagram: { rim:"#f28c28", glow:"#8c3acb", hot:"#ffad42" }'));
-check("Pinterest shadows are orange instead of red", feed.includes('pinterest: { rim:"#f97316", glow:"#ffae42", hot:"#de5e0d" }'));
+check("Pinterest shadows remain Pinterest red", feed.includes('pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" }'));
