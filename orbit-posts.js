@@ -402,6 +402,7 @@ async function importInstagramMediaToR2(items, user, source = 'instagram') {
 
 export async function storedOrbitImageUrls(source = '') {
   const store=await firebase();
+  await store.auth.authStateReady();
   const uid=store.auth.currentUser?.uid;
   if(!uid)return {};
   const expected=clean(source).toLowerCase();
@@ -409,8 +410,12 @@ export async function storedOrbitImageUrls(source = '') {
   // Read only the account owner's existing post indexes, not other users' data.
   // R2 URLs are reconstructed from durable keys as well as saved media URLs.
   try{
-    const snap=await store.getDocs(store.query(store.collection(store.db,'users',uid,'posts'),store.limit(500)));
-    for(const doc of snap.docs){
+    // Saved R2 copies may exist in Archive even when a post has never been
+    // published to Collective Feed. Reading only /posts hid those pictures.
+    const paths=['posts','archive'];
+    for(const path of paths){
+      const snap=await store.getDocs(store.query(store.collection(store.db,'users',uid,path),store.limit(500)));
+      for(const doc of snap.docs){
       const post=doc.data()||{};
       if(expected&&clean(post.source).toLowerCase()!==expected)continue;
       const id=clean(post.sourcePostId);
@@ -432,7 +437,8 @@ export async function storedOrbitImageUrls(source = '') {
       for(const url of (Array.isArray(post.imageUrls)?post.imageUrls:[]))add(url);
       for(const key of (Array.isArray(post.imageKeys)?post.imageKeys:[]))fromKey(key);
       add(post.imageUrl);fromKey(post.imageUrlKey);
-      if(urls.length)result[id]=urls;
+      if(urls.length)result[id]=[...new Set([...(result[id]||[]),...urls])];
+      }
     }
   }catch(error){console.warn('BIGLWA stored media restore:',error)}
   return result;
