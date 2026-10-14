@@ -796,7 +796,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
      a row of dead black dots with unreadable lettering rather than as a list of services.
      The lettering is pinned white on top so it survives the widget colour rules above. */
   const orbitBadge=(g,tint)=>'<span style="background:'+tint+'">'+esc(g)+'</span>';
-  const orbitLinks=()=>readJSON('biglwaOrbitLinks',{});
+  const orbitLinks=()=>window.BigLWAOrbitAccountLinks?.get?.() ?? readJSON('biglwaOrbitLinks',{});
   const orbitConnected=()=>{
     const rows=[];
     try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}).filter(row=>row&&row.id&&row.link))}catch{}
@@ -870,7 +870,7 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
    function renderOrbitPage(){
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. Everything else is a link you paste. Calendar syncing lives in Calendar, not Orbit.</p><div class="module-status" id="orbitPageStatus"></div>${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n,t])=>{
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. All public profile links are saved to your BIGLWA account. Connected photos are copied to BIGLWA media storage when source access permits. Calendar syncing lives in Calendar.</p><div class="module-status" id="orbitPageStatus"></div>${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k];
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
@@ -885,13 +885,25 @@ const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',co
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
-    body.onclick=e=>{
+    body.onclick=async e=>{
 const connect=e.target.closest('[data-orbit-connect]');
       if(connect){const k=connect.dataset.orbitConnect;const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
      const unlink=e.target.closest('[data-orbit-unlink]');
      if(unlink){const k=unlink.dataset.orbitUnlink;say('Unlinking…');window.__biglwaConnections?.forget?.(k).then(()=>{say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage()});return}
      const save=e.target.closest('[data-orbit-save]');
-     if(save){const k=save.dataset.orbitSave,url=$('[data-orbit-path="'+k+'"]',body).value.trim(),all=orbitLinks();url?all[k]=url:delete all[k];writeJSON('biglwaOrbitLinks',all);say((ORBIT_APP_NAMES[k]||'Orbit')+' link saved.');renderOrbitPage();return}
+     if(save){
+       const k=save.dataset.orbitSave,url=$('[data-orbit-path="'+k+'"]',body).value.trim();
+       const manager=window.BigLWAOrbitAccountLinks;
+       save.disabled=true;say('Saving '+(ORBIT_APP_NAMES[k]||'Orbit')+' link to your account…');
+       try{
+         if(!manager?.save)throw Error('Account link storage is still loading.');
+         await manager.save(k,url);
+         say((ORBIT_APP_NAMES[k]||'Orbit')+' link saved to your BIGLWA account.');
+         renderOrbitPage();
+       }catch(error){say(error?.message||'Could not save this Orbit link.')}
+       finally{save.disabled=false}
+       return;
+     }
      const open=e.target.closest('[data-orbit-open]');
      if(open){safeOpen(orbitLinks()[open.dataset.orbitOpen])}
     };
@@ -908,6 +920,9 @@ const connect=e.target.closest('[data-orbit-connect]');
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
    document.addEventListener('biglwa:pinterest-status',()=>{
+     if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
+   });
+   window.addEventListener('biglwa:orbit-links-synced',()=>{
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
    let orbitWatched=false;
