@@ -144,7 +144,7 @@ await check('only the active channel is rendered, and standby stage sits above r
  assert.ok(stream.includes("paintCategories();renderGrid();renderFeaturedSlots();renderCategory()"));
  assert.ok(style.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
 });
-await check('Ballroom / CCTV has reliable original source destinations and a full 24-slot daily rotation',async()=>{
+await check('Ballroom sources remain credited but channel-only URLs never masquerade as playable TV',async()=>{
  const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
  const api=win.BigLWAStreamGuide;
  const archive=api.ballroom;
@@ -156,7 +156,7 @@ await check('Ballroom / CCTV has reliable original source destinations and a ful
  const schedule=api.getDailyGuide('2026-10-14');
  const row=schedule.find(x=>x.category==='lwa-tv');
  assert.ok(row);assert.equal(row.slots.length,24);
- assert.ok(row.slots.some(x=>x.kind==='feature'&&archive.some(y=>y.id===x.id)));
+ assert.ok(row.slots.every(x=>!archive.some(y=>y.id===x.id)),'channel-only Ballroom destinations must not be shown as playable programs');
  assert.ok(stream.includes("category:'lwa-tv'"));
  assert.ok(stream.includes('Ballroom / CCTV is part of LWA TV'));
  assert.ok(style.includes('.stream-slot.is-ballroom'));
@@ -177,18 +177,15 @@ await check('date-based shuffle is deterministic, changes by date, and manual sh
  assert.ok(a.every(x=>x.slots.length===24));
  assert.ok(stream.includes("state.shuffleOffset++;renderGrid();renderFeaturedSlots()"));
 });
-await check('all sixteen unique campus stations and eight podcast/mixtape picks occupy LWA Radio',async()=>{
+await check('LWA Radio offers only direct in-site audio stations',async()=>{
  const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
  const guide=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(x=>x.category==='podcast').slots;
  const radio=guide.filter(x=>x.kind==='station');
  const audio=guide.filter(x=>x.kind==='feature');
- assert.equal(radio.length,16);
- assert.equal(new Set(radio.map(x=>x.index)).size,16);
- assert.equal(audio.length,8);
- assert.ok(audio.some(x=>x.title==='The Daily'));
- assert.ok(audio.some(x=>x.title.includes('Owen Thiele')));
- assert.equal(audio.filter(x=>x.status==='ORIGINAL MIXTAPE').length,5);
- assert.ok(guide.every(x=>x.title&&x.subtitle&&x.status));
+ assert.equal(radio.length,24);
+ assert.equal(new Set(radio.map(x=>x.index)).size,3);
+ assert.equal(audio.length,0,'external-only podcasts are not falsely labelled as playable radio');
+ assert.ok(guide.every(x=>x.title&&x.subtitle&&x.status==='▶ PLAY IN BIG LWA'));
 });
 await check('creator rotation uses authentic channel URLs and no hypothetical placeholders',async()=>{
  const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
@@ -209,8 +206,10 @@ await check('creator rotation uses authentic channel URLs and no hypothetical pl
  assert.equal(tv.length,24);
  assert.ok(tv.every(x=>x.kind==='feature'));
  const allIds=new Set(tv.map(x=>x.id));
- for(const source of catalog.filter(x=>x.category==='lwa-tv'))
-  assert.ok(allIds.has(source.id),'TV guide missing '+source.title);
+ for(const source of catalog.filter(x=>x.category==='lwa-tv'&&(x.videoId||x.provider==='archive-video')))
+  assert.ok(allIds.has(source.id),'TV guide missing a playable clip: '+source.title);
+ for(const source of catalog.filter(x=>x.category==='lwa-tv'&&!x.videoId&&x.provider!=='archive-video'))
+  assert.ok(!allIds.has(source.id),'Channel link shown as a video: '+source.title);
 });
 await check('radio mixtapes link to actual Soulection releases',async()=>{
  const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
@@ -334,4 +333,21 @@ await check('Studio preview preserves a single mounted Stream media instance',as
  assert.ok(pages.includes("window.BigLWAStreamGuide?.parkInStudio?.()"),'module navigation parks the player before clearing DOM');
  assert.ok(style.includes('.biglwa-persistent-stream-player'),'portal player is styled for both screens');
  assert.ok(index.includes('ui-coherence.js?v='));
+});
+
+await check('Daily Discovery thumbnails and arrows live inside the monitor, never a large directory',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const guide=win.BigLWAStreamGuide.getDailyGuide('2026-10-14');
+ const tv=guide.find(row=>row.category==='lwa-tv').slots;
+ assert.ok(tv.every(slot=>slot.kind==='feature'));
+ assert.ok(!stream.includes('id="streamFeaturedSlots"'),'old block directory must be gone');
+ assert.ok(stream.includes("panel.id='streamDiscoveryPicker'"),'picker belongs to media portal');
+ assert.ok(stream.includes('data-discovery-prev'));
+ assert.ok(stream.includes('data-discovery-next'));
+ assert.ok(stream.includes('data-discovery-play'));
+ assert.ok(stream.includes('https://i.ytimg.com/vi/'),'TV thumbnails use actual video IDs');
+ assert.ok(stream.includes('https://archive.org/services/img/BettyBoopCartoons'),'Betty Boop has preview art');
+ assert.ok(stream.includes("const queue=discoveryItems();"),'picker uses only playable discovery items');
+ assert.ok(style.includes('.stream-discovery-picker'),'compact monitor overlay has real styles');
+ assert.ok(style.includes('.stream-discovery-select img'),'thumbnail is visible');
 });
