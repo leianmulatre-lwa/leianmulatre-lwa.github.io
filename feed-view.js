@@ -95,10 +95,10 @@ const SOURCES = {
    something else without it. */
 const FEED_RIM = "#a52a0c";
 const SOURCE_THEMES = {
-  instagram: { rim:"#a52a0c", glow:"#962fbf", hot:"#fa7e1e" },
+  instagram: { rim:"#f28c28", glow:"#8c3acb", hot:"#ffad42" },
   tiktok: { rim:"#111111", glow:"#25f4ee", hot:"#fe2c55" },
   facebook: { rim:"#1877f2", glow:"#5aa0ff" },
-  pinterest: { rim:"#e60023", glow:"#ff3554", hot:"#9f0018" },
+  pinterest: { rim:"#f97316", glow:"#ffae42", hot:"#de5e0d" },
   youtube: { rim:"#d0202f", glow:"#fff6ec", hot:"#ff0033" },
   soundcloud: { rim:"#ff5500", glow:"#ffb13b", hot:"#c93f00" },
   google: { rim:"#4285f4", glow:"#34a853", hot:"#fbbc04" },
@@ -110,7 +110,8 @@ const shadowOf = (source) => {
   const key = String(source || "").toLowerCase();
   const theme = SOURCE_THEMES[key] || { rim:FEED_RIM, glow:"#d95f6d" };
   if (key === "youtube") return "0 0 0 2px " + theme.rim + ",3px 3px 0 " + theme.glow + ",0 13px 28px -16px " + theme.rim;
-  if (key === "instagram") return "3px 3px 0 " + theme.rim + ",-2px 9px 22px -15px " + theme.glow + ",8px 14px 26px -18px " + theme.hot;
+  if (key === "instagram") return "3px 3px 0 " + theme.rim + ",7px 7px 0 -2px " + theme.glow + ",0 14px 28px -13px " + theme.hot;
+  if (key === "pinterest") return "3px 3px 0 " + theme.rim + ",6px 6px 0 -2px " + theme.glow + ",0 14px 26px -14px " + theme.hot;
   if (key === "tiktok") return "3px 3px 0 " + theme.rim + ",-2px 8px 20px -14px " + theme.glow + ",8px 13px 24px -16px " + theme.hot;
   if (theme.hot) return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow + ",0 0 18px -12px " + theme.hot;
   return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow;
