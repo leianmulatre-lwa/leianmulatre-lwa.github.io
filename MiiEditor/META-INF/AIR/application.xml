@@ -1,0 +1,25 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<application appId="com.miieditor.MiiEditor" version="0.7.57b" xmlns="http://ns.adobe.com/air/application/1.0.M4">
+	<name>Mii Editor</name>
+	<description>Create and edit Miis on your PC.</description>
+	<title>Mii Editor</title>
+	<copyright>Copyright 2007 MiiEditor.com</copyright>
+	<rootContent systemChrome="standard" transparent="false" visible="true">
+		classicGUI.swf
+	</rootContent>
+	<installFolder>senocular</installFolder>
+	<icon>
+		<image128x128>icons/MiiEditor_128.png</image128x128>
+		<image48x48>icons/MiiEditor_48.png</image48x48>
+		<image32x32>icons/MiiEditor_32.png</image32x32>
+		<image16x16>icons/MiiEditor_16.png</image16x16>
+	</icon>
+	<fileTypes>
+		<fileType>
+			<name>Mii</name>
+			<extension>mii</extension>
+			<description>Mii Binary</description>
+			<contentType>binary/x-mii</contentType>
+		</fileType>
+	</fileTypes>
+</application>
