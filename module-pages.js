@@ -1707,7 +1707,8 @@ const connect=e.target.closest('[data-orbit-connect]');
 
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
-    stopCamera();let key=(rawKey||'').toLowerCase();if(key==='room')key='rooms';if(key==='project')key='projects';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
+    stopCamera();let key=(rawKey||'').toLowerCase();
+    if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project')key='projects';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
     if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',`/studio/${encodeURIComponent(key)}`)}catch{}}
   }
   window.openBIGLWAModule=openModule;
@@ -1725,7 +1726,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     }
   });
 
-  function closeModule(push=true){stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
+  function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
   workspace.addEventListener('change',event=>{
     const control=event.target.closest('[data-silent-update]');if(!control)return;
