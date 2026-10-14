@@ -71,7 +71,7 @@
   const d=new Date(day+'T12:00:00');
   return Number.isFinite(d.valueOf())?d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):day;
  };
- const state={category:'podcast',day:localDay(),programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null};
+ const state={category:'podcast',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null};
  let root=null;
  let mostRecentUser='';
  async function getUserToken(){
@@ -100,52 +100,37 @@
   state.day=localDay();
   root.innerHTML=[
    '<section class="stream-top">',
-   '<div class="stream-fine"><span><i class="stream-dot"></i> big lwa television network</span><span>independent · community programmed</span><span id="streamGuideClock"></span></div>',
+   '<div class="stream-fine"><span><i class="stream-dot"></i> big lwa television network</span><span>original creators · daily rotation</span><span id="streamGuideClock"></span></div>',
    '<div class="stream-mast"><div><span class="stream-overline">THE PROGRAMMING GUIDE / VOL. 001</span><h1>stream<span class="stream-mast-spark">✳</span></h1><p>independent voices. endless channels. one collective.</p></div>',
    '<div class="stream-testcard" aria-hidden="true"><div class="stream-bars"><span></span><span></span><span></span><span></span><span></span><span></span></div><b>BIG LWA</b><small>CHANNEL SELECT / 03</small></div></div>',
    '<div class="stream-channels" role="tablist" aria-label="Stream category">',
    categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></section>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
-   '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>the lineup</h2><p>Every hourly square now features a station, creator or live-show idea. CURATED tiles are on-demand suggestions—not actual broadcasts at those hours. Approved airtime is marked separately.</p></div>',
-   '<label>Programming date <input id="streamDate" type="date" aria-label="Programming date" value="'+state.day+'"></label></div>',
-   '<div class="stream-grid-scroll" tabindex="0" aria-label="Scroll horizontally through 24 hourly programming slots" id="streamGridScroll"><div class="stream-grid" id="streamGrid"></div></div>',
+   '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
+   '<div class="stream-date-actions"><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
+   '<div class="stream-grid-scroll" tabindex="0" aria-label="Scroll through 24 daily discovery slots for each of three channels" id="streamGridScroll"><div class="stream-grid" id="streamGrid"></div></div>',
    '<div id="streamFeaturedSlots" class="stream-featured-band" aria-label="Station and creator directory slots"></div>',
-   '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> approved program</span><span><i class="stream-guide-key open"></i> live show concept</span><span><i class="stream-guide-key source"></i> curated / on-demand (not scheduled)</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
+   '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> future approved program</span><span><i class="stream-guide-key source"></i> daily curator picks</span><span><i class="stream-guide-key open"></i> Twitch channel · status unverified</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
    '<section class="stream-body" id="stream-category-content" role="tabpanel" aria-labelledby="stream-tab-podcast">',
-   '<div class="stream-spotlight"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">CHANNEL 00 / standby</span><div class="stream-screen-center"><span>✳</span><strong>select a program</strong><small>the picture begins when the schedule is filled.</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
+   '<div class="stream-spotlight"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">CHANNEL 00 / standby</span><div class="stream-screen-center"><span>✳</span><strong>choose a channel</strong><small>explore today’s shuffle · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></div>',
    '<div class="stream-section-detail" id="streamSectionDetail"></div></section>',
-   '<section class="stream-request" id="streamRequest"><div class="stream-request-head"><span class="stream-eyebrow">BIG LWA · OPEN CALL</span><h2>request a time slot</h2><p>Uploaded to YouTube? Paste a video link to propose it for the Stream lineup. Requests are private until approved by an editor. Submission does not guarantee airtime.</p></div>',
-   '<form id="streamRequestForm" class="stream-request-form">',
-   '<label>Youtube video URL <input required type="url" name="youtubeUrl" maxlength="350" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off"></label>',
-   '<label>Program / episode title <input required name="title" maxlength="110" minlength="4" placeholder="What is the show called?"></label>',
-   '<label>Channel <select name="category"><option value="podcast">CH 01 · podcast / radio</option><option value="lwa-tv">CH 02 · lwa tv</option><option value="live">CH 03 · live</option></select></label>',
-   '<label>Creator / channel credit <input name="creditedCreator" maxlength="80" placeholder="Who created it?"></label>',
-   '<label>Preferred programming time <input name="timePreference" maxlength="100" placeholder="e.g. Friday evenings, Pacific time"></label>',
-   '<label class="stream-wide">Why should we program this? <textarea name="note" maxlength="550" rows="3" placeholder="Tell us about the episode, guests, or its community relevance."></textarea></label>',
-   '<fieldset class="stream-wide stream-rights"><legend>About this video</legend>',
-   '<label><input required type="radio" name="rights" value="my-video"> My work / I can authorize programming</label>',
-   '<label><input required type="radio" name="rights" value="nomination"> I am nominating another creator for review</label></fieldset>',
-   '<div class="stream-request-action stream-wide"><button type="submit" class="stream-submit-btn">send for programming review ↗</button><p id="streamRequestStatus" role="status" aria-live="polite"></p></div>',
-   '</form><div id="streamMyRequests" class="stream-my-requests"></div></section>',
-   '<section id="streamEditorial" class="stream-editorial" hidden></section>',
-   '<p class="stream-disclaimer">Station links lead to their respective operators; listing does not imply affiliation, permission to rebroadcast, or an official programming partnership. Actual programming appears only after editorial approval.</p>'
+   '<section class="stream-future" aria-label="Future programming features"><span>COMING LATER · COMMUNITY PROGRAMMING</span><strong>creator time-slot requests</strong><p>Time-slot requests, premieres and scheduled submissions will arrive in a future Stream release. Explore the curated rotation for now.</p></section>',
+   '<p class="stream-disclaimer">Station links lead to their respective operators; listing does not imply affiliation, permission to rebroadcast, or an official programming partnership. No affiliation or live-broadcast status is implied by the creator directory.</p>'
   ].join('');
   const date=root.querySelector('#streamDate');
   const now=new Date();
   date.min=localDay(new Date(now.getFullYear(),now.getMonth(),now.getDate()-7));
   date.max=localDay(new Date(now.getFullYear()+1,now.getMonth(),now.getDate()));
-  date.addEventListener('change',()=>{state.day=date.value||localDay();renderGrid()});
+  date.addEventListener('change',()=>{state.day=date.value||localDay();state.shuffleOffset=0;renderGrid();renderFeaturedSlots()});
   root.addEventListener('click',onClick);
-  root.querySelector('#streamRequestForm').addEventListener('submit',onSubmit);
+  root.querySelector('#streamShuffleAgain').onclick=()=>{state.shuffleOffset++;renderGrid();renderFeaturedSlots()};
   root.querySelector('#streamJumpNow').onclick=()=>{
    state.day=localDay();date.value=state.day;renderGrid();jumpNow();
   };
-  paintCategories();renderGrid();renderFeaturedSlots();renderCategory();renderRequests();
-  refreshPublic();refreshAccount();
-  const prefill=state.requestPrefill;
-  if(prefill)prefillRequest(prefill);
+  paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
+  refreshPublic();
  }
  function jumpNow(){
   const hour=new Date().getHours();
