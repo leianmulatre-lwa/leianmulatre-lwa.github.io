@@ -45,3 +45,11 @@ assert.ok(!menu.includes("document.querySelectorAll('.login-public-footer nav, .
 assert.ok(menu.includes("document.querySelectorAll('.login-public-footer nav a[href=\"/settings\"]').forEach(link=>link.remove())"),'old cached Settings link is removed from login footer');
 assert.ok(feed.includes("const withImage=posts.filter"),'Studio Feed preview count crash is fixed');
 console.log('Pinterest masonry, Saved, Studio and login footer regressions passed');
+
+assert.ok(pages.includes("tiles.slice(0,6).map("),'Studio Boards shows six Pins only');
+assert.ok(pages.includes("const signature=tiles.slice(0,6).map"),'Studio Boards renders exactly two rows');
+assert.ok(pages.includes("grid-template-rows:repeat(2,91px)"),'Studio Boards CSS sets two rows, not three');
+assert.ok(pages.includes("state?.connected&&(!viewer||state.uid===viewer)"),'static board placeholders are removed after connecting');
+assert.ok(pages.includes("studio-mini-map-open"),'the Studio map has an open-full-map action');
+assert.ok(pages.includes("mini.loading='eager'"),'real mini-map loads on Studio without scrolling to it');
+console.log('Studio Boards two-row preview and interactive Map checks passed');
