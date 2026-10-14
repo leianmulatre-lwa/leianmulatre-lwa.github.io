@@ -636,7 +636,9 @@ function renderHero(force) {
   heroSignature = signature;
 
   /* Studio shows ONE compact row of the four latest approved Feed posts. */
-  const slots = posts.slice(0, HERO_SLOTS);
+  // Preview the latest images that have a verified R2 URL, not expired Instagram links.
+  const storedPosts=posts.filter(p=>pictureUrls(p).length);
+  const slots=storedPosts.slice(0,HERO_SLOTS);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
@@ -653,12 +655,12 @@ function renderHero(force) {
       "</a>";
   });
 
-  const withImage=posts.filter(post=>slideUrls(post).length>0);
-  const rest=Math.max(0,posts.length-slots.length);
-  const requiresSync=slots.some(post=>post.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
+  const withImage=storedPosts;
+  const rest=Math.max(0,withImage.length-slots.length);
+  const requiresSync=posts.some(post=>post.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
   anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
-    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + cards.join("") + "</div>" +
+    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):'<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync">No locally stored images yet</div>') + "</div>" +
     (requiresSync?'<button type="button" class="biglwa-feed-resync" data-feed-resync>↻ Restore imported photos</button><small class="biglwa-feed-sync-note" role="status">Reconnect Orbit if the original service no longer allows image downloads.</small>':'');
   anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
     img.addEventListener('error',()=>{
