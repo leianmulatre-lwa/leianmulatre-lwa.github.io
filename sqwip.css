@@ -196,3 +196,61 @@
  }
  body.sqwip-print-mode .sqwip-root .sqwip-text:empty::before{content:none!important}
 }
+/* Journal / screenplay selector: one quiet control, not two floating buttons. */
+.module-workspace[data-module-key="diary"] .diary-section-nav{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px!important;
+ width:min(520px,100%);margin:14px 0 18px;padding:5px!important;
+ border:1px solid #a99682!important;border-radius:13px!important;
+ background:#d8cabb!important;box-shadow:inset 0 2px 5px #3c261b21!important
+}
+.module-workspace[data-module-key="diary"] .diary-section-nav button{
+ width:100%;min-height:48px;padding:9px 12px!important;
+ display:flex;align-items:center;justify-content:center;gap:9px;
+ border:1px solid transparent!important;border-radius:9px!important;
+ background:transparent!important;color:#6c564a!important;
+ font:800 13px/1.3 system-ui,sans-serif!important;letter-spacing:0!important;
+ box-shadow:none!important;transition:background .15s ease,color .15s ease
+}
+.module-workspace[data-module-key="diary"] .diary-section-nav button[aria-selected="true"]{
+ border-color:#c4a488!important;background:#fff8ea!important;
+ color:#321f21!important;box-shadow:0 2px 5px #3323172c!important
+}
+.module-workspace[data-module-key="diary"] .diary-section-nav button small{
+ display:inline-flex;padding:3px 7px;border:1px solid #beafa3;border-radius:999px;
+ color:#715f53;background:#efe7da;font:750 10px/1.2 system-ui,sans-serif;letter-spacing:0
+}
+.module-workspace[data-module-key="diary"] .diary-section-nav button:focus-visible{
+ outline:2px solid #a73a46!important;outline-offset:2px!important
+}
+.module-workspace[data-module-key="diary"] .module-diary-cover-label.is-compact{
+ display:inline-flex!important;width:auto;min-height:0!important;
+ padding:10px 16px!important;border:1px solid #b7a596!important;
+ border-radius:7px!important;background:#fff7e6!important;
+ box-shadow:0 3px 0 #c1aea0!important;transform:none!important
+}
+.module-workspace[data-module-key="diary"] .module-diary-cover-label.is-compact::before,
+.module-workspace[data-module-key="diary"] .module-diary-cover-label.is-compact::after{display:none!important}
+.module-workspace[data-module-key="diary"] .module-diary-cover-label.is-compact span{font:750 12px/1.3 Georgia,serif!important;letter-spacing:.015em!important}
+.module-workspace[data-module-key="diary"] .journal-owner-share{
+ display:grid;gap:12px;padding:16px;margin:18px 0;
+ border:1px solid #d3bdac;border-radius:13px;background:#fcf7ed
+}
+.module-workspace[data-module-key="diary"] .journal-owner-share b{font:800 15px/1.2 Georgia,serif}
+.module-workspace[data-module-key="diary"] .journal-owner-share p{font:500 12px/1.5 system-ui;margin:5px 0}
+.module-workspace[data-module-key="diary"] .journal-owner-share-actions{display:flex;gap:8px;flex-wrap:wrap}
+.module-workspace[data-module-key="diary"] .journal-reader-panel[hidden],
+.module-workspace[data-module-key="diary"] .journal-owner-share[hidden]{display:none!important}
+.module-workspace[data-module-key="diary"] .journal-reader-panel{padding:18px;margin:12px 0;background:#eee1d0;border-radius:14px}
+.module-workspace[data-module-key="diary"] .journal-reader-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:13px}
+.module-workspace[data-module-key="diary"] .journal-reading-sheet,
+.module-workspace #publicWritingReader .journal-reading-sheet{
+ min-height:300px;max-width:850px;margin:0 auto;padding:35px clamp(20px,5vw,55px);
+ border-left:2px solid #d3797e;border-radius:7px;background:
+ repeating-linear-gradient(to bottom,#fffdf7 0,#fffdf7 31px,#d8e2e5 32px);
+ box-shadow:3px 6px 16px #51402a26;white-space:pre-wrap;overflow-wrap:anywhere;
+ font:500 16px/32px Georgia,serif;color:#382a25
+}
+@media(max-width:520px){
+ .module-workspace[data-module-key="diary"] .diary-section-nav button{font-size:11px!important;gap:5px;padding:8px!important}
+ .module-workspace[data-module-key="diary"] .diary-section-nav button small{font-size:8px}
+}
