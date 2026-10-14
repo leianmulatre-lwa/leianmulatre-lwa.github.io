@@ -210,11 +210,12 @@
   if(!root)return;
   const items=state.programs;
   const first='<div class="stream-grid-corner">BIG LWA<br>24 HRS</div>';
-  const hours=Array.from({length:24},(_,hour)=>'<div class="stream-hour" data-stream-hour="'+hour+'"><span>'+labelHour(hour)+'</span><small>'+String(hour).padStart(2,'0')+':00</small></div>').join('');
+  const hourOrder=Array.from({length:24},(_,i)=>(i+(state.day===localDay()?new Date().getHours():0))%24);
+  const hours=hourOrder.map(hour=>'<div class="stream-hour" data-stream-hour="'+hour+'"><span>'+labelHour(hour)+'</span><small>'+String(hour).padStart(2,'0')+':00</small></div>').join('');
   const rows=categories.filter(cat=>cat[0]===state.category).map(cat=>{
    const key=cat[0],chosen=key===state.category;
    const heading='<button type="button" class="stream-row-label'+(chosen?' is-current':'')+'" data-stream-tab="'+key+'"><small>'+cat[2]+'</small><b>'+cat[1]+'</b><span>'+(chosen?'TUNED IN':'TUNE IN')+'</span></button>';
-   const squares=Array.from({length:24},(_,hour)=>{
+   const squares=hourOrder.map(hour=>{
     const show=items.find(item=>{
      if(item.category!==key||!item.scheduledAt)return false;
      const date=new Date(item.scheduledAt);
@@ -300,7 +301,7 @@
    const playable=stream&&/^https:\/\//i.test(stream);
    monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
     '<div class="stream-screen-center"><span>♫</span><strong>'+title+'</strong>'+
-    (playable?'<audio controls autoplay preload="none" style="width:min(100%,540px);margin:18px auto" src="'+escapeHTML(stream)+'">Your browser does not support audio playback.</audio><small>Live audio from the original station · press play if autoplay is blocked.</small>':'<small>This station has no verified embeddable direct stream yet. Its official listening page opens separately.</small>')+
+    (playable?'<button type="button" class="stream-radio-play" data-radio-play aria-label="Play or pause station">▶ Play</button><audio preload="none" id="streamRadioAudio" src="'+escapeHTML(stream)+'"></audio><small>Live audio from the original station.</small>':'<small>This station has no verified embeddable direct stream yet. Its official listening page opens separately.</small>')+
     (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Official station ↗</a>':'')+
     '</div><span class="stream-screen-bottom">DIRECT STATION STREAM · NO REHOSTING</span></div>';
   }else if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
@@ -460,6 +461,7 @@
  function onClick(event){
   const button=event.target.closest('button');
   if(!button||!root.contains(button))return;
+  if(button.matches('[data-radio-play]')){const audio=root.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused){audio.play().then(()=>button.textContent='Ⅱ Pause').catch(()=>{button.textContent='Playback unavailable';});}else{audio.pause();button.textContent='▶ Play';}return;}
   if(button.matches('[data-stream-tab]')){
    const changing=state.category!==button.dataset.streamTab;
    state.category=button.dataset.streamTab;
