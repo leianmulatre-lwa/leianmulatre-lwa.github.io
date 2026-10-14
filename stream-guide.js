@@ -222,7 +222,7 @@
     });
     const pick=show?null:guidePick(key,hour);
     const current=localDay()===state.day&&new Date().getHours()===hour;
-    const classes='stream-slot '+(show?'is-booked':key==='ballroom-cctv'?'is-ballroom':pick?.kind==='twitch'?'is-twitch':'is-curated')+(chosen?' is-selected':'')+(current?' is-now':'');
+    const classes='stream-slot '+(show?'is-booked':pick?.kind==='twitch'?'is-twitch':'is-curated')+(chosen?' is-selected':'')+(current?' is-now':'');
     const title=show?show.title:pick.title;
     const details=show?(show.creditedCreator||'LWA programming'):pick.subtitle;
     const status=show?'APPROVED / PROGRAMMED':pick.status;
@@ -362,7 +362,7 @@
   const needle=String(query||'').toLowerCase().trim();
   const selected=stations.map((station,index)=>({station,index})).filter(({station})=>station.join(' ').toLowerCase().includes(needle));
   panel.innerHTML=selected.map(({station,index})=>
-   '<a class="stream-station" target="_blank" rel="noopener noreferrer" href="'+escapeHTML(station[3])+'"><span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span><div><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></div><span class="stream-station-go">listen ↗</span></a>').join('')||
+   '<button type="button" class="stream-station" data-stream-station="'+index+'"><span class="stream-station-no">'+String(index+1).padStart(2,'0')+'</span><div><b>'+escapeHTML(station[0])+'</b><small>'+escapeHTML(station[1])+' · '+escapeHTML(station[2])+'</small></div><span class="stream-station-go">tune in ↗</span></button>').join('')||
    '<p class="stream-station-empty">No station in this starter directory matches that search. Suggest a school below.</p>';
  }
  async function refreshPublic(){
