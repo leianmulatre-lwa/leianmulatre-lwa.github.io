@@ -141,20 +141,44 @@ async function connect(){await run(async()=>{
  }
  async function restore(){
   await recoverOrBindPinterestSession();
-  if(!session())return;
+  if(!session()){resetView();return}
   if(restorePromise)return restorePromise;
   restorePromise=run(async()=>{
-   profile=await api('profile');
-   connected=true;
-   render();
-   await loadBoards();
-   /* Opening the first board means the feed has Pins to show before anyone picks a
-      board, instead of an empty list that looks like the connection returned nothing. */
-   if(!boardId&&boards.length)boardId=String(boards[0].id||'');
-   if(boardId)await loadPins(boardId);
-   render();
+    profile=await api('profile');
+    connected=true;render();
+    // Persist the connected account's public details, not its bearer token.
+    try{await window.__biglwaConnections?.refresh?.(authUid)}catch(error){console.warn('Pinterest connection mirror:',error)}
+    await loadBoards();
+    if(!boardId&&boards.length)boardId=String(boards[0].id||'');
+    if(boardId)await loadPins(boardId);
+    render();
   });
   try{return await restorePromise}finally{restorePromise=null}
+ }
+ async function syncAllBoards(){
+  if(!connected||syncingAll)return;
+  syncingAll=true;importError='';message='Syncing Pinterest boards to your profile…';render();
+  let count=0,processed=0;
+  try{
+   // Do not exhaust the API or upload thousands of records in one click.
+   // Up to six boards, first page of 25 Pins each. Selecting a board syncs more.
+   for(const board of boards.slice(0,6)){
+    if(!/^\d+$/.test(String(board?.id||'')))continue;
+    const data=await api('boards/'+board.id+'/pins');
+    const items=Array.isArray(data?.items)?data.items:[];
+    if(!items.length)continue;
+    const result=await importPinsToAccount(items);
+    count+=result?.imported||0;
+    processed++;
+    message='Saved '+count+' Pins from '+processed+' boards to your profile…';
+    render();
+   }
+   message='Synced '+count+' Pins from '+processed+' boards. Open individual boards to sync additional pages.';
+   await window.__biglwaConnections?.refresh?.(authUid);
+  }catch(error){
+   importError=error?.message||'Pinterest sync failed. Try again.';
+   message='';
+  }finally{syncingAll=false;render()}
  }
  async function choose(id,more=false){if(!/^\d+$/.test(id))return;await run(async()=>{
   if(!more){boardId=id;pins=[];pinsNext=''}
@@ -163,7 +187,7 @@ async function connect(){await run(async()=>{
  async function disconnect(){await run(async()=>{
   const token=await firebaseIdToken();
   const body=token?{firebaseIdToken:token}:{};
-  await api('disconnect',body);save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};restorePromise=null;boardsPromise=null;pinsPromise=null;
+  await api('disconnect',body);save('');resetView();await window.__biglwaConnections?.forget?.('pinterest');
  })}
  function image(pin){
   const images=pin.media?.images||pin.media?.items?.[0]?.images||{};
