@@ -347,6 +347,10 @@
     #studioApp #diary .diary-page.has-saved-writing::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 12%,rgba(198,70,83,.48) 12% 12.5%,transparent 12.5%),repeating-linear-gradient(to bottom,transparent 0,transparent 27px,rgba(96,132,157,.28) 28px);pointer-events:none}
     #studioApp #diary .studio-diary-preview{position:absolute;inset:14px 16px 12px 15%;z-index:2;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;text-align:left;color:#312a27}
     #studioApp #diary .diary-page{position:relative;isolation:isolate}
+    #studioApp #notes .studio-private-writing,
+    #studioApp #diary .studio-private-writing,
+    #studioApp #diary .studio-public-journal-heading{display:block;position:relative;z-index:4;padding:15px;color:#5f4237;background:#f8eddfb5;font:800 12px/1.45 Georgia,serif}
+    #studioApp #diary .studio-public-journal-excerpt{position:relative;z-index:4;text-align:left;padding:8px 20px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font:600 12px/1.65 Georgia,serif;color:#3e342e}
     #studioApp #diary .diary-page .studio-journal-initial{position:absolute;z-index:9;left:11%;top:11%;display:grid;place-items:center;width:28px;height:28px;max-width:30%;border:1px solid #bdafa1;border-radius:4px;background:#fff9e9e8;color:#322b2a;font:900 20px/1 Georgia,serif;box-shadow:1px 2px 3px #28211c38;pointer-events:none;transform:rotate(-2deg)}
     #studioApp #diary .studio-diary-preview small{display:block;margin:0 0 6px;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a6d67}
     #studioApp #diary .studio-diary-preview p{display:-webkit-box;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:5;white-space:pre-wrap;overflow-wrap:anywhere;font:600 14px/28px Georgia,"Times New Roman",serif}
@@ -1970,6 +1974,33 @@ const connect=e.target.closest('[data-orbit-connect]');
     try{return String(localStorage.getItem('biglwaDraft_'+key)||'').trim()}catch{return ''}
   }
   function syncWritingPreviews(){
+    // A signed-out visitor must never inherit the device owner's locally
+    // stored writing. Journal shares only an explicit public snapshot.
+    if(document.documentElement.classList.contains('biglwa-preview-mode')){
+      const note=$('#studioApp #notes .note-paper');
+      if(note){
+        note.innerHTML='<span class="studio-private-writing">🔒 Sqwib Note · private</span>';
+        note.setAttribute('aria-label','Sqwib Note is private');
+      }
+      const page=$('#studioApp #diary .diary-page');
+      if(page){
+        const username=(()=>{try{return decodeURIComponent(location.pathname.split('/').filter(Boolean)[0]||'')}catch{return ''}})();
+        if(page.dataset.publicJournalUsername!==username){
+          page.dataset.publicJournalUsername=username;
+          page.innerHTML='<span class="studio-private-writing">Journal · checking visibility…</span>';
+          Promise.resolve(window.BigLWAUserDirectory?.loadPublicProfile?.(username)).then(profile=>{
+            if(!page.isConnected||page.dataset.publicJournalUsername!==username)return;
+            if(profile?.journalVisibility==='public'&&profile.publicJournal){
+              page.innerHTML='<span class="studio-public-journal-heading">Journal · viewable</span><p class="studio-public-journal-excerpt"></p>';
+              page.querySelector('p').textContent=String(profile.publicJournal).slice(0,165);
+            }else{
+              page.innerHTML='<span class="studio-private-writing">🔒 Journal · private</span>';
+            }
+          }).catch(()=>{if(page.isConnected)page.innerHTML='<span class="studio-private-writing">Journal unavailable</span>'});
+        }
+      }
+      return;
+    }
     const journalInitial=()=>{
       let name='';
       try{
