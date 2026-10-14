@@ -52,7 +52,7 @@
  /* Small + appears on image hover or keyboard focus, not constantly over the artwork. */
  #feedPageList .biglwa-card-options{right:auto!important;left:8px!important;bottom:8px!important;opacity:0;pointer-events:none;transition:opacity .13s ease!important}
  #feedPageList .biglwa-card-options>summary{width:25px!important;height:25px!important;font:800 17px/1 system-ui!important;border-radius:50%!important}
- #feedPageList :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card):is(:hover,:focus-within)>.biglwa-card-options,
+ #feedPageList :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card):is(:has(.biglwa-unified-media:hover),:focus-within)>.biglwa-card-options,
  #feedPageList .biglwa-card-options[open]{opacity:1!important;pointer-events:auto!important}
  #feedPageList .biglwa-card-options .biglwa-send-tray{right:auto!important;left:0!important;bottom:34px!important}
  @media(hover:none){#feedPageList .biglwa-card-options{opacity:1!important;pointer-events:auto!important}}
@@ -106,6 +106,9 @@
          button.setAttribute('data-post-'+name,'');
        }else{
          button.dataset.liveFeedOp=name;
+       }
+       if(!owned&&card.classList.contains('biglwa-pin-post')&&name!=='enlarge'){
+         button.disabled=true;button.title='Only the owner can archive or remove this post.';
        }
        lights.append(button);
      }
