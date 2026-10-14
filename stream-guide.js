@@ -153,21 +153,38 @@
   document.body.appendChild(mediaPortal);
   return mediaPortal;
  }
+ // Fixed projection preserves the SAME active iframe/audio element while navigating.
+ // Avoid flickering "hidden" visibility as Studio cards animate or scroll away.
+ let mediaResizeObserver=null;
  function repositionMediaPortal(){
-  if(!mediaPortal?.isConnected||!mediaTarget?.isConnected)return;
-  const rect=mediaTarget.getBoundingClientRect();
-  mediaPortal.style.left=Math.round(rect.left)+'px';
-  mediaPortal.style.top=Math.round(rect.top)+'px';
-  mediaPortal.style.width=Math.round(rect.width)+'px';
-  mediaPortal.style.height=Math.round(rect.height)+'px';
-  mediaPortal.style.pointerEvents='auto';
-  mediaPortal.style.visibility=(rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<window.innerHeight)?'visible':'hidden';
+  if(!mediaPortal?.isConnected)return;
+  let rect=mediaTarget?.isConnected?mediaTarget.getBoundingClientRect():null;
+  const valid=Boolean(rect&&rect.width>1&&rect.height>1);
+  const x=valid?rect.left:-20000,y=valid?rect.top:0;
+  mediaPortal.style.left='0px';
+  mediaPortal.style.top='0px';
+  mediaPortal.style.transform='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
+  if(valid){
+   mediaPortal.style.width=rect.width.toFixed(2)+'px';
+   mediaPortal.style.height=rect.height.toFixed(2)+'px';
+  }
+  mediaPortal.style.visibility='visible';
+  mediaPortal.style.pointerEvents=valid&&rect.bottom>0&&rect.top<window.innerHeight?'auto':'none';
  }
  function targetMedia(target){
+  if(mediaResizeObserver){mediaResizeObserver.disconnect();mediaResizeObserver=null;}
   mediaTarget=target||null;
   if(!mediaTarget)return;
   ensureMediaPortal();
+  if(typeof ResizeObserver!=='undefined'){
+   mediaResizeObserver=new ResizeObserver(scheduleMediaPosition);
+   mediaResizeObserver.observe(mediaTarget);
+  }
   scheduleMediaPosition();
+  // CSS transformations settle over several frames when the Studio opens/closes.
+  let frames=0;
+  const settle=()=>{if(frames++>=15||mediaTarget!==target)return;repositionMediaPortal();requestAnimationFrame(settle);};
+  requestAnimationFrame(settle);
  }
  let positionFrame=0;
  function scheduleMediaPosition(){
@@ -176,6 +193,8 @@
  }
  window.addEventListener?.('scroll',scheduleMediaPosition,true);
  window.addEventListener?.('resize',scheduleMediaPosition);
+ window.visualViewport?.addEventListener?.('resize',scheduleMediaPosition);
+ window.visualViewport?.addEventListener?.('scroll',scheduleMediaPosition);
  if(typeof document!=='undefined')document.addEventListener('biglwa:stream-updated',scheduleMediaPosition);
  function parkInStudio(){
   if(!mediaPortal?.isConnected||!mediaPortal.firstElementChild)return false;
