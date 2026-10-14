@@ -204,7 +204,10 @@
       '<label>Show<select id="veveScope">'+scope.map(k=>'<option value="'+e(k)+'" '+(state.active===k?'selected':'')+'>'+e(k==='all'?'everything':names[k])+'</option>').join('')+'</select></label>'+
       '<button type="button" data-veve-settings aria-expanded="'+state.showSettings+'">⚙ customize</button>'+
       '<button type="button" data-veve-refresh aria-label="Refresh discovery feed">↻ refresh</button></div></div>'+
-      '<div class="veve-message" id="veveMessage" role="status">'+e(state.loadError||'Public content only · no inferred follower activity or fabricated trends')+'</div>'+
+      '<div class="veve-message" id="veveMessage" role="status">'+e(state.loadError||
+        (state.prefs.sort==='popular'&&!state.items.some(p=>score(p)>0)
+          ?'No verified engagement counts yet — showing the most recent published posts instead.'
+          :'Public content only · no inferred follower activity or fabricated trends'))+'</div>'+
       settingsMarkup()+
       (sectionHtml||'<div class="veve-empty">Nothing is selected. Open Customize to bring back sections.</div>');
   }
