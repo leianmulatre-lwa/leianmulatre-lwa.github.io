@@ -34,7 +34,7 @@ const cases=[
  ['game preview can be restored', arcade.includes("if(target.matches('[data-arcade-preview]')){if(selectedGame)showGameLinks(selectedGame)")],
  ['quit restores animated carousel', arcade.includes('emulatorScreen.innerHTML=previewMarkup')],
  ['media loads from same site', arcade.includes("cover.src=game.image")],
- ['updated script version used', shell.includes('module-pages.js?v=20261014-stream-future-1')]
+ ['updated script version used', shell.includes('module-pages.js?v=20261014-shared-studio-layout-1')]
 ];
 let failed=0;
 for (const [name,ok] of cases){
