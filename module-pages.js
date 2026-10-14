@@ -2387,6 +2387,17 @@ const connect=e.target.closest('[data-orbit-connect]');
       mapCard.querySelectorAll('.card-cta').forEach(button=>{button.dataset.open='map'});
       syncMapCardPreview();
     }
+    if(!$('#politc')){
+      const masonry=$('#studioApp .masonry');
+      if(masonry){
+        const card=document.createElement('article');
+        card.id='politc';card.className='card studio-politc-card';
+        card.dataset.widgetRoute='politc';
+        card.dataset.search='politc politics political pendulum votes election voting united nations un al jazeera genocide watch wcw mcm hunting season cunting season';
+        card.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">⚖</span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Wanted posters, WCW, MCM, Hunting Season, Cunting Season, the political pendulum, and world civic resources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
+        const roomsCard=$('#rooms');if(roomsCard&&roomsCard.parentElement===masonry)roomsCard.insertAdjacentElement('afterend',card);else masonry.appendChild(card);
+      }
+    }
     if(!$('#tools')){
       const masonry=$('#studioApp .masonry');
       if(masonry){
