@@ -2140,6 +2140,18 @@ const connect=e.target.closest('[data-orbit-connect]');
   }
 
   function enhanceStudioCards(){
+    // Update legacy Studio dock/navigation copy as well as the Journal widget.
+    // Preserve the existing route IDs ("diary", "notes") and their saved data.
+    document.querySelectorAll('#studioApp [data-open="diary"],#studioApp a[href="#diary"]').forEach(control=>{
+      const leaf=[...control.querySelectorAll('b,span,small')].filter(node=>!node.children.length);
+      if(!leaf.length&&!control.children.length)leaf.push(control);
+      leaf.forEach(node=>{if(/^diary$/i.test(node.textContent.trim()))node.textContent='Journal'});
+    });
+    document.querySelectorAll('#studioApp [data-open="notes"],#studioApp a[href="#notes"]').forEach(control=>{
+      const leaf=[...control.querySelectorAll('b,span,small')].filter(node=>!node.children.length);
+      if(!leaf.length&&!control.children.length)leaf.push(control);
+      leaf.forEach(node=>{if(/^(qwiky|quick|sqwib)\\s*note$/i.test(node.textContent.trim()))node.textContent='Sqwib Note'});
+    });
     const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
     if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Black-and-white photobooth preview');cameraPreview.innerHTML='<img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy">'}
     const archiveCard=$('#archive');
