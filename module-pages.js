@@ -195,12 +195,15 @@
     .module-workspace[data-module-key="archive"] .instagram-archive-strip i:nth-last-child(1){background:#4e8f61}
     .module-workspace[data-module-key="archive"] .archive-browser-actions{display:flex;align-items:center;gap:3px;margin-left:auto}
     .module-workspace[data-module-key="archive"] .archive-browser-actions button{
-      width:8px!important;height:8px!important;min-width:8px!important;padding:0!important;border:0!important;
-      border-radius:50%!important;display:block!important;color:transparent!important;font-size:0!important;
-      line-height:0!important;cursor:pointer;box-shadow:none!important
+      width:19px!important;height:18px!important;min-width:19px!important;padding:0!important;
+      display:grid!important;place-items:center!important;border:1px solid #b8a99d!important;
+      border-radius:4px!important;background:#faf1e7!important;color:#593e35!important;
+      font:800 13px/1 system-ui!important;cursor:pointer;box-shadow:none!important
     }
-    .module-workspace[data-module-key="archive"] .archive-browser-actions [data-archive-delete]{background:#bd3f47}
-    .module-workspace[data-module-key="archive"] .archive-browser-actions [data-archive-enlarge]{background:#4e8f61}
+    .module-workspace[data-module-key="archive"] .archive-browser-actions button:hover,
+    .module-workspace[data-module-key="archive"] .archive-browser-actions button:focus-visible{
+      border-color:var(--feed-card-rim)!important;outline:1px solid var(--feed-card-rim)!important
+    }
     .module-workspace[data-module-key="archive"] .archive-browser-actions button:disabled{opacity:.48;cursor:default}
     .module-workspace[data-module-key="archive"] .instagram-archive-media{display:grid;gap:1px;background:#c7c7c7}
     /* A four-piece carousel is laid out as a 2x2 tile instead of one tower, and every piece
@@ -304,7 +307,7 @@
       background:#f28c28!important;box-shadow:2px 3px 0 #f28c28,4px 5px 0 #8c3acb!important
     }
     .module-workspace[data-module-key="archive"] .archive-key-pinterest{
-      background:#f97316!important;box-shadow:2px 3px 0 #f97316,4px 5px 0 #ffae42!important
+      background:#e60023!important;box-shadow:2px 3px 0 #e60023,4px 5px 0 #ae0026!important
     }
     .module-workspace[data-module-key="archive"] .archive-key-facebook{
       background:#1877f2!important;box-shadow:2px 3px 0 #1877f2!important
@@ -332,7 +335,7 @@
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram:not(.is-pending-delete){--feed-card-rim:#f28c28;box-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb,0 14px 28px -13px #ffad42!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{--feed-card-rim:#111111}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{--feed-card-rim:#1877f2}
-    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest:not(.is-pending-delete){--feed-card-rim:#f97316;box-shadow:3px 3px 0 #f97316,6px 6px 0 -2px #ffae42,0 14px 26px -14px #de5e0d!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest:not(.is-pending-delete){--feed-card-rim:#e60023;box-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{--feed-card-rim:#d0202f}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-soundcloud{--feed-card-rim:#e2622a}
 
@@ -1403,7 +1406,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       instagram:{rim:"#a52a0c",glow:"#962fbf",hot:"#fa7e1e"},
       tiktok:{rim:"#111111",glow:"#25f4ee",hot:"#fe2c55"},
       facebook:{rim:"#1877f2",glow:"#5aa0ff"},
-      pinterest:{rim:"#e60023",glow:"#ff3554",hot:"#9f0018"},
+      pinterest:{rim:"#e60023",glow:"#ff5269",hot:"#ae0026"},
       youtube:{rim:"#d0202f",glow:"#fff6ec",hot:"#ff0033"},
       soundcloud:{rim:"#ff5500",glow:"#ffb13b",hot:"#c93f00"}
     })[String(source||"").toLowerCase()]||{rim:"#a52a0c",glow:"#d95f6d"};
@@ -1615,7 +1618,7 @@ const connect=e.target.closest('[data-orbit-connect]');
            is live keeps its colour and appears on the Collective Feed; one switched off greys
            its picture and stays here only. */
         const source=String(item.source||'instagram').toLowerCase();
-        const rim={instagram:'#f28c28',tiktok:'#111111',facebook:'#1877f2',pinterest:'#f97316'}[source]||'#a52a0c';
+        const rim={instagram:'#f28c28',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';
         // Like Collective Feed, show ONE media frame per post—not a long tower.
         // Carousel buttons cycle through every item without growing the card.
         const visualPieces=pieces.length?archivePieceMarkup(pieces[0],0,pieces.length,index+1):'';
@@ -1639,8 +1642,8 @@ const connect=e.target.closest('[data-orbit-connect]');
             : '';
         const actions=owner
           ? '<div class="archive-browser-actions" aria-label="Archive photo actions">'+
-            '<button type="button" data-archive-delete aria-label="Delete this post" title="Delete"></button>'+
-            '<button type="button" data-archive-enlarge aria-label="Open this photo" title="Open this photo"></button>'+
+            '<button type="button" data-archive-delete aria-label="Delete this post" title="Delete">×</button>'+
+            '<button type="button" data-archive-enlarge aria-label="Open this photo" title="Open this photo">↗</button>'+
             '</div>'
           : '';
         const strip='<div class="instagram-archive-strip"><b>'+esc(caption?caption.split('\n')[0].slice(0,42):(pending?'Deleting soon':posted?'Live':'Archived'))+'</b>'+actions+'</div>';
@@ -1680,7 +1683,7 @@ const connect=e.target.closest('[data-orbit-connect]');
           '<div class="archive-color-guide" aria-label="Card shadow color key">'+
   '<b>SHADOW KEY</b>'+
   '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · orange / purple</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-pinterest" aria-hidden="true"></i>Pinterest · orange</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-pinterest" aria-hidden="true"></i>Pinterest · red</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-facebook" aria-hidden="true"></i>Facebook · blue</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-tiktok" aria-hidden="true"></i>TikTok · black</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-other" aria-hidden="true"></i>Other source</span>'+
