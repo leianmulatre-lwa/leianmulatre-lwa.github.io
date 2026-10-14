@@ -73,7 +73,7 @@ function readSession(key, accountUid) {
   // The Pinterest session is bound to a Firebase UID; never read another person's
   // credential from the previous global browser-storage slot.
   const uid = accountUid || identity()?.uid;
-  const scoped = key === "biglwaPinterestSession"
+  const scoped = ["biglwaPinterestSession","biglwaTikTokSession"].includes(key)
     ? (uid ? key + ":" + uid : "")
     : key;
   if (!scoped) return "";
@@ -82,6 +82,20 @@ function readSession(key, accountUid) {
     catch { /* storage disabled */ }
   }
   return "";
+}
+async function recoverTikTokSession(uid) {
+  try{
+    const {auth}=await firebase();
+    await auth.authStateReady();
+    if(!uid||auth.currentUser?.uid!==uid)return "";
+    const token=await auth.currentUser.getIdToken();
+    const response=await fetch(WORKER+"/tiktok/session/account",{headers:{Authorization:"Bearer "+token}});
+    if(!response.ok)return "";
+    const data=await response.json();
+    if(!data?.connected||!data.session)return "";
+    try{localStorage.setItem("biglwaTikTokSession:"+uid,data.session)}catch{}
+    return data.session;
+  }catch{return ""}
 }
 async function recoverPinterestSession(uid) {
   try {
@@ -153,6 +167,7 @@ export function connectedIds() {
 async function syncSource(source, uid) {
   let session = readSession(source.sessionKey, uid);
   if (!session && source.id === "pinterest") session = await recoverPinterestSession(uid);
+  if (!session && source.id === "tiktok") session = await recoverTikTokSession(uid);
   if (!session) return { outcome: "no-session" };
   let headers = { Authorization: "Bearer " + session };
   let profile;
