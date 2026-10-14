@@ -87,7 +87,7 @@ async function connect(){await run(async()=>{
   location.assign(API+'start?challenge='+encodeURIComponent(challenge));
  })}
  async function loadBoards(more=false){
-  if(boardsPromise&&!more)return boardsPromise;
+  if(boardsPromise)return boardsPromise;
   boardsPromise=(async()=>{
    const data=await api('boards'+(more&&boardsNext?'?bookmark='+encodeURIComponent(boardsNext):''));
    const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.boards)?data.boards:Array.isArray(data?.data?.items)?data.data.items:[];
@@ -129,9 +129,9 @@ async function connect(){await run(async()=>{
  }
  async function loadPins(id,more){
   if(!id)return[];
-  if(pinsPromise&&!more)return pinsPromise;
+  if(pinsPromise)return pinsPromise;
   pinsPromise=(async()=>{
-   const data=await api('boards/'+id+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
+   const data=await api('boards/'+encodeURIComponent(id)+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
    const nextItems=Array.isArray(data?.items)?data.items:Array.isArray(data?.pins)?data.pins:Array.isArray(data?.data?.items)?data.data.items:[];
    pins=more?[...pins,...nextItems]:nextItems;pinsNext=data?.bookmark||data?.next_bookmark||'';
    render();
@@ -237,7 +237,7 @@ async function connect(){await run(async()=>{
    const tile='<button type="button" class="pinterest-board is-empty" data-pn-connect'+(disabled||'')+'><span>Connect Pinterest</span></button>';
    return '<div class="pinterest-board-grid">'+Array.from({length:6},()=>tile).join('')+'</div>';
   }
-  if(!boards.length)return'';
+  if(!boards.length)return'<p role="status">No Pinterest boards were returned. Use Refresh boards to retry.</p>';
   const tiles=boards.slice(0,6).map(b=>{
    const coverEntry=covers[b.id];const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry)||image(b);
    /* Boards are addressed by owner, so a profile with no username yet would otherwise
