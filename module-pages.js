@@ -259,10 +259,10 @@
     .module-workspace[data-module-key="archive"] .archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}
     .module-workspace[data-module-key="archive"] .archive-friend-add{display:flex;gap:7px}
     .module-workspace[data-module-key="archive"] .archive-friend-add .module-input{flex:1}
-    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram{--feed-card-rim:#f28c28;box-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb,0 14px 28px -13px #ffad42}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram:not(.is-pending-delete){--feed-card-rim:#f28c28;box-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb,0 14px 28px -13px #ffad42!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{--feed-card-rim:#111111}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{--feed-card-rim:#1877f2}
-    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest{--feed-card-rim:#f97316;box-shadow:3px 3px 0 #f97316,6px 6px 0 -2px #ffae42,0 14px 26px -14px #de5e0d}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest:not(.is-pending-delete){--feed-card-rim:#f97316;box-shadow:3px 3px 0 #f97316,6px 6px 0 -2px #ffae42,0 14px 26px -14px #de5e0d!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{--feed-card-rim:#d0202f}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-soundcloud{--feed-card-rim:#e2622a}
 
