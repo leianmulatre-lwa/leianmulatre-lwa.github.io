@@ -446,7 +446,7 @@
    'lwa-tv':['CH 02 / THE PICTURE','lwa tv',
     'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
    live:['CH 03 / YOUTUBE + TWITCH','live',
-    'Watch original YouTube music, ASMR, weather and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
+    'Watch YouTube music, ASMR and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><span class="stream-discovery-label">↻ shuffled daily · direct creator sources</span></div>';
   if(state.category==='podcast'){
@@ -457,7 +457,7 @@
   }else if(state.category==='lwa-tv'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / ORIGINAL CREATOR CHANNELS</span><h3>what’s on your screen?</h3><p>Every selectable creator has a real YouTube channel or direct video link. Ballroom / CCTV is part of LWA TV. Clips may play here; browse entire channels through their original video pages.</p></div></div><p class="stream-directory-note">These are curated links, not official Big LWA channel partnerships or timed broadcasts.</p>';
   }else{
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / YOUTUBE + TWITCH</span><h3>relax, listen & watch</h3><p>Lofi Girl, rain ASMR, weather coverage, frequency-based music and Twitch broadcasts can play inside the monitor. Recorded videos are labeled as recordings; channels may be offline.</p></div></div><p class="stream-directory-note">Original players retain publisher attribution and their own embed restrictions.</p>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / YOUTUBE + TWITCH</span><h3>relax, listen & watch</h3><p>Lofi Girl, rain ASMR, frequency-based music and Twitch broadcasts can play inside the monitor. Recorded videos are labeled as recordings; channels may be offline.</p></div></div><p class="stream-directory-note">Original players retain publisher attribution and their own embed restrictions.</p>';
   }
  }
  function renderStations(query){
@@ -564,8 +564,8 @@
  function onClick(event){
   const button=event.target.closest('button');
   if(!button||!root.contains(button))return;
-  if(button.matches('[data-radio-play]')){const audio=root.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=root.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
-  if(button.matches('[data-stream-episode]')){changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
+  if(button.matches('[data-radio-play]')){state.followGuide=false;const audio=root.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=root.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
+  if(button.matches('[data-stream-episode]')){state.followGuide=false;changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
   if(button.matches('[data-stream-tab]')){
    const changing=state.category!==button.dataset.streamTab;
    state.category=button.dataset.streamTab;
