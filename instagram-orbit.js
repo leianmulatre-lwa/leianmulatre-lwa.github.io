@@ -114,7 +114,7 @@
     state.importsSkipped = result.skipped || 0;
     state.importsPartial = result.partial || 0;
     state.importWarning = (result && result.warning) || '';
-    state.hostedById = (result && result.hostedById) || {};
+    state.hostedById = {...state.hostedById,...((result && result.hostedById) || {})};
     renderFeed();
     window.dispatchEvent(new CustomEvent('biglwa:orbit-imported', {
       detail: { source: 'instagram', imported: state.importsSaved }
