@@ -371,13 +371,14 @@
     #studioApp #diary .studio-public-journal-heading{display:block;position:relative;z-index:4;padding:15px;color:#5f4237;background:#f8eddfb5;font:800 12px/1.45 Georgia,serif}
     #studioApp #diary .studio-public-journal-excerpt{position:relative;z-index:4;text-align:left;padding:8px 20px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font:600 12px/1.65 Georgia,serif;color:#3e342e}
     #studioApp #diary .diary-page .studio-journal-initial{
-      position:absolute;z-index:9;left:11%;top:11%;width:46px;height:46px;max-width:none;
-      display:flex;justify-content:center;align-items:center;box-sizing:border-box;
+      position:absolute;z-index:9;left:12.5%;top:12%;width:62px;height:62px;max-width:none;
+      display:grid!important;place-items:center!important;box-sizing:border-box;padding:0!important;
       border:1px solid #bdafa1;border-radius:5px;background:#fff9e9ed;color:#292323;
-      font-family:"CS Bergamot Stitched",Georgia,serif!important;font-weight:400!important;
-      font-size:35px!important;line-height:1!important;letter-spacing:0!important;text-align:center;
+      font-family:"CS Bergamot Stitched",Georgia,serif!important;font-weight:700!important;
+      font-size:49px!important;line-height:1!important;letter-spacing:0!important;text-align:center!important;
       box-shadow:1px 2px 4px #28211c38;pointer-events:none;transform:rotate(-2deg)
     }
+    @media(max-width:520px){#studioApp #diary .diary-page .studio-journal-initial{width:53px;height:53px;font-size:42px!important}}
     #studioApp #diary .studio-diary-preview small{display:block;margin:0 0 6px;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a6d67}
     #studioApp #diary .studio-diary-preview p{display:-webkit-box;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:5;white-space:pre-wrap;overflow-wrap:anywhere;font:600 14px/28px Georgia,"Times New Roman",serif}
     body.night-mode #studioApp #diary .diary-page.has-saved-writing{filter:saturate(.86) brightness(.82)}
