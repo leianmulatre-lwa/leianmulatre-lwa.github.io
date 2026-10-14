@@ -4,6 +4,7 @@
 
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
+  var activeAccountUid = '';
   var state = { connected: false, profile: null, media: [], hostedById: {}, error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
   /* The same figures the Orbit panel shows, readable from the console, so a silent
      zero-import can be diagnosed without guessing. */
@@ -24,7 +25,7 @@
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function scopedSessionKey(uid) { return uid ? SESSION_KEY + ':' + uid : ''; }
   function session() {
-    const uid=window.__biglwaIdentity?.uid || '';
+    const uid=activeAccountUid || window.__biglwaIdentity?.uid || '';
     if(!uid)return '';
     const key=scopedSessionKey(uid);
     for(const store of [localStorage,sessionStorage]){
@@ -35,7 +36,7 @@
     return '';
   }
   function saveSession(value) {
-    const uid=window.__biglwaIdentity?.uid || '';
+    const uid=activeAccountUid || window.__biglwaIdentity?.uid || '';
     if(!uid)return;
     const key=scopedSessionKey(uid);
     try{if(value)localStorage.setItem(key,value);else localStorage.removeItem(key)}catch{}
@@ -55,6 +56,7 @@
       // Waiting here is essential: otherwise the Worker creates only a browser
       // credential and cannot connect Instagram to the member's account.
       await ctx.auth.authStateReady();
+      activeAccountUid=ctx.auth.currentUser?.uid||'';
       return ctx.auth.currentUser ? await ctx.auth.currentUser.getIdToken() : '';
     } catch (error) { return ''; }
   }
