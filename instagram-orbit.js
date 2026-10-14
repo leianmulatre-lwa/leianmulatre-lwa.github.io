@@ -140,8 +140,14 @@
       if (state.sessionLookupError) status(state.sessionLookupError);
       return Promise.resolve();
     }
-    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) {
-      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render();
+    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(async function (responses) {
+      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = '';
+      // Saved R2 URLs survive device changes. Restore these before refreshing from Instagram.
+      try{
+        const saved=await window.__biglwaOrbitPosts?.storedOrbitImageUrls?.('instagram');
+        if(saved)state.hostedById={...saved,...state.hostedById};
+      }catch(error){console.warn('Instagram stored photos restore:',error)}
+      render();
       /* Loading and saving fail for different reasons and need different words. Sharing one
          catch made a failed save read as "Instagram could not load", so a member whose
          connection was healthy saw a broken connection and never learned the save failed. */
@@ -178,7 +184,7 @@
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
     return firebaseAuthToken().then(function (firebaseIdToken) { return api('/session/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handoff: handoff, firebaseIdToken: firebaseIdToken }) }); }).then(function (result) { saveSession(result.session); return restore(); }).then(function () { status('Instagram is connected to Orbit.'); }).catch(function (failure) { status(failure.message); });
   }
-  function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; render(); status('Instagram disconnected from Orbit.'); }); }
+  function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; state.hostedById = {}; render(); status('Instagram disconnected from Orbit.'); }); }
   function render() {
     try {
       all('[data-orbit-app="instagram"]').forEach(function (tile) { tile.classList.toggle('orbit-connected', state.connected); tile.setAttribute('aria-label', state.connected ? 'View connected Instagram account' : 'Connect Instagram'); var small = one('small', tile); if (small) small.textContent = state.connected ? 'Connected' : 'Connect'; });
@@ -214,10 +220,9 @@
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
     }
-    if (state.importError) {
-      return '<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected but nothing was saved</b><small>' + escapeText(state.importError) + '</small>' +
-        '<button type="button" class="module-action" data-instagram-resave>Try saving again</button></div></article>';
-    }
+    var importWarning = state.importError
+      ? '<article class="module-list-item instagram-import-status"><div><b>Some Instagram images still need to be saved</b><small>'+escapeText(state.importError)+'</small><button type="button" class="module-action" data-instagram-resave>Retry saving photos</button></div></article>'
+      : '';
     if (!state.connected) return '';
     var cards = state.media.slice(0, 20).map(function (item, index) {
       var children = item.children && Array.isArray(item.children.data) ? item.children.data.filter(function (child) {
@@ -271,7 +276,7 @@
       '</article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
-    return importStatusHtml() + cards.join('');
+    return importWarning + importStatusHtml() + cards.join('');
   }
   /* Instagram belongs in Archive. It is connected content, not a second renderer for
      the member's Studio/profile feed.
