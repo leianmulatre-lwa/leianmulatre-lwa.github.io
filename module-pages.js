@@ -798,7 +798,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     }
     const storage=`biglwaDraft_${key}`;
     const title=key==='diary'?`<div class="module-diary-cover-label is-compact"><span>Journal · ${esc(profileUsername())}</span></div><nav class="diary-section-nav" role="tablist" aria-label="Writing desk"><button type="button" data-diary-view="diary" role="tab" aria-controls="diaryWritingSection" aria-selected="true"><span aria-hidden="true">▤</span> Journal</button><button type="button" data-diary-view="sqwip" role="tab" aria-controls="sqwipWritingSection" aria-selected="false"><span aria-hidden="true">♢</span> Sqwip <small>private</small></button></nav>` :'<div class="module-qwiky-label"><strong>Sqwib Note</strong><span>🔒 private · pin it before it floats away</span></div>';
-    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="Diary journal"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button><button class="module-action secondary" id="moduleWritingFeed" type="button">Upload to Collective Feed</button></div><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves while you write</div></form></div>${key==='diary'?'<div id="sqwipWritingSection" role="tabpanel" aria-label="Sqwip screenplay maker" hidden></div>':''}</section></div>`;
+    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="Diary journal"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button>${key==='diary'?'<button class="module-action secondary" id="moduleWritingFeed" type="button">Send to Collective Feed drafts</button><button class="module-action ghost" id="journalViewButton" type="button">View journal</button>':''}</div><div class="module-status" id="moduleWritingStatus">${key==='diary'?'Private draft · choose to make a snapshot viewable':'🔒 Locked note · only you can read this'}</div></form></div>${key==='diary'?'<section class="journal-owner-share" id="journalShareControls"><div><b>Journal visibility</b><p>Private by default. Publishing shares only the current Journal text—not Sqwip or Sqwib.</p></div><div class="journal-owner-share-actions"><button type="button" class="module-action" id="journalPublish">Make journal viewable</button><button type="button" class="module-action ghost" id="journalUnpublish">Hide shared journal</button></div><p id="journalShareStatus" role="status">Only you can see this draft until you publish it.</p></section><section id="journalReaderPanel" class="journal-reader-panel" hidden><div class="journal-reader-controls"><b>Journal · reading mode</b><button type="button" class="module-action ghost" id="journalReturnEdit">✎ Edit journal</button></div><article class="journal-reading-sheet" id="journalReaderText"></article></section><div id="sqwipWritingSection" role="tabpanel" aria-label="Private Sqwip screenplay maker" hidden></div>':''}</section></div>`;
     const form=$('#moduleWritingForm',body),area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;
     const save=(explicit=false)=>{
       localStorage.setItem(storage,area.value);
@@ -825,7 +825,41 @@ const connect=e.target.closest('[data-orbit-connect]');
         }
       }));
     }
-    $('#moduleWritingFeed',body).onclick=async()=>{const value=area.value.trim(),status=$('#moduleWritingStatus',body);if(!value){status.textContent='Write something first.';status.classList.remove('ok');return}const button=$('#moduleWritingFeed',body);button.disabled=true;status.textContent='Uploading draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:key,title:key==='diary'?'Journal entry':'Sqwib Note',caption:value});status.textContent='Saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload this draft.';status.classList.remove('ok')}finally{button.disabled=false}};
+    if(key==='diary'){
+      const reader=$('#journalReaderPanel',body),readerText=$('#journalReaderText',body);
+      const journalSection=$('#diaryWritingSection',body),share=$('#journalShareControls',body);
+      const view=$('#journalViewButton',body),back=$('#journalReturnEdit',body);
+      const syncReader=()=>{readerText.textContent=area.value.trim()||'Your journal has no entries yet.';};
+      view.onclick=()=>{
+        syncReader();journalSection.hidden=true;share.hidden=true;
+        reader.hidden=false;reader.scrollIntoView({behavior:'smooth',block:'start'});
+      };
+      back.onclick=()=>{reader.hidden=true;journalSection.hidden=false;share.hidden=false;area.focus()};
+      const publish=$('#journalPublish',body),unpublish=$('#journalUnpublish',body),shareStatus=$('#journalShareStatus',body);
+      const setVisibility=async viewable=>{
+        const api=window.BigLWAUserDirectory?.publishJournal;
+        if(typeof api!=='function'){shareStatus.textContent='The public Journal service is still loading. Refresh and retry.';return}
+        if(viewable&&!area.value.trim()){shareStatus.textContent='Write an entry before making the Journal viewable.';return}
+        publish.disabled=true;unpublish.disabled=true;
+        shareStatus.textContent=viewable?'Publishing read-only Journal…':'Hiding shared Journal…';
+        try{
+          const result=await api(area.value,viewable);
+          shareStatus.textContent=result.viewable?'Journal viewable on your public profile as a read-only snapshot.':'Journal hidden from public view. Your private draft remains saved.';
+        }catch(err){
+          shareStatus.textContent=err?.message||'The Journal visibility change was not saved.';
+        }finally{publish.disabled=false;unpublish.disabled=false}
+      };
+      publish.onclick=()=>setVisibility(true);
+      unpublish.onclick=()=>setVisibility(false);
+      const currentUser=profileUsername().replace(/^@/,'');
+      window.BigLWAUserDirectory?.loadPublicProfile?.(currentUser).then(profile=>{
+        if(!shareStatus.isConnected)return;
+        shareStatus.textContent=profile?.journalVisibility==='public'
+          ?'A Journal snapshot is viewable on your profile. Changes remain private until you publish again.'
+          :'Private · only you can see this draft.';
+      }).catch(()=>{});
+    }
+    if($('#moduleWritingFeed',body))$('#moduleWritingFeed',body).onclick=async()=>{const value=area.value.trim(),status=$('#moduleWritingStatus',body);if(!value){status.textContent='Write something first.';status.classList.remove('ok');return}const button=$('#moduleWritingFeed',body);button.disabled=true;status.textContent='Uploading draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:key,title:key==='diary'?'Journal entry':'Sqwib Note',caption:value});status.textContent='Saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload this draft.';status.classList.remove('ok')}finally{button.disabled=false}};
   }
 
   function renderFeed(){
