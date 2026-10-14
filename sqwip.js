@@ -207,6 +207,8 @@ function refreshSelector(){
  const title=host.querySelector('#sqwipTitle'),author=host.querySelector('#sqwipAuthor');
  if(title)title.value=d?.title||'';
  if(author)author.value=d?.author||'';
+ const printTitle=host.querySelector('#sqwipPrintTitle');
+ if(printTitle&&d)printTitle.textContent=d.title+'\nby '+(d.author||'Anonymous');
  renderBlocks();
 }
 function downloadable(text,name,type){
@@ -314,13 +316,15 @@ function onInput(event){
   const d=current();if(!d)return;
   if(event.target.id==='sqwipTitle')d.title=event.target.value.slice(0,130);
   else d.author=event.target.value.slice(0,100);
+  const printTitle=host.querySelector('#sqwipPrintTitle');
+  if(printTitle)printTitle.textContent=d.title+'\nby '+(d.author||'Anonymous');
   queueSave();
  }
 }
 function onChange(event){
  const target=event.target;
  if(target.id==='sqwipScriptSelect'){
-  saveNow();state.selectedId=target.value;selectedBlock='';refreshSelector();return;
+  saveNow();state.selectedId=target.value;selectedBlock='';refreshSelector();queueSave();return;
  }
  if(target.id==='sqwipElementType'){setType(target.value);return}
  if(target.id==='sqwipImportFile'){importFile(target.files?.[0]);target.value=''}
@@ -357,7 +361,7 @@ function mount(root){
   '<div class="sqwip-workbench"><aside class="sqwip-sidebar"><div id="sqwipScenes"></div><div class="sqwip-shortcuts"><b>Writing shortcuts</b>'+
   '<p><kbd>Enter</kbd> next element</p><p><kbd>Tab</kbd> cycle format</p><p><kbd>Shift + Tab</kbd> previous</p><p><kbd>Alt + 1–7</kbd> choose element</p><p><kbd>⌘ / Ctrl + Enter</kbd> new scene</p><p><kbd>⌘ / Ctrl + S</kbd> save</p></div></aside>'+
   '<div class="sqwip-paper-wrap"><div class="sqwip-paper" role="document" aria-label="Screenplay editor">'+
-  '<div class="sqwip-paper-heading">BIG LWA / SQWIP · DRAFT</div><div id="sqwipPages"></div></div>'+
+  '<div class="sqwip-paper-heading">BIG LWA / SQWIP · DRAFT</div><div class="sqwip-print-title" id="sqwipPrintTitle"></div><div id="sqwipPages"></div></div>'+
   '<footer class="sqwip-bottom"><span id="sqwipPageCount"></span><button type="button" id="sqwipSave">Save now</button></footer></div></div>'+
   '</div>';
  host.addEventListener('click',onClick);
