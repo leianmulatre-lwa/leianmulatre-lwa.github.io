@@ -931,7 +931,7 @@ function renderPosts(force) {
     const browserStrip = '';
     const provider=String(post.source || 'biglwa').toLowerCase();
     const sourceLabel=provider==='instagram'?'Instagram':provider==='pinterest'?'Pinterest':provider.charAt(0).toUpperCase()+provider.slice(1);
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + (String(post.source || "").toLowerCase() === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + ';--feed-card-shadow:' + shadowOf(post.source) + '" data-post-id="' + esc(post.id) + '">' +
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + (String(post.source || "").toLowerCase() === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + ';--feed-card-shadow:' + shadowOf(post.source) + '" data-post-id="' + esc(post.id) + '" data-feed-owned="' + (managed?'1':'0') + '">' +
       '<div class="biglwa-unified-media">' + browserStrip + image + "</div>" + link +
       '<span class="biglwa-unified-source" aria-label="Source: '+esc(sourceLabel)+'">'+esc(sourceLabel)+'</span>' +
       sendBar(post, managed) +
