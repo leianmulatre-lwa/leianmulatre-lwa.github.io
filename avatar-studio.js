@@ -179,6 +179,16 @@
       pair.dataset.widgetId='aura-avatar-pair';
       pair.dataset.widgetLabel='Aura and Avatar';
       rail.insertBefore(pair,aura.parentElement===rail?aura:rail.firstChild);
+      // Honor the existing Studio drag order, even though this paired slot is
+      // created after the main widget rail has restored its own children.
+      try{
+        const order=JSON.parse(localStorage.getItem('biglwaWidgetOrderV2')||'{}')[rail.id];
+        if(Array.isArray(order)&&order.includes('aura-avatar-pair')){
+          const after=order.slice(order.indexOf('aura-avatar-pair')+1)
+            .map(id=>[...rail.children].find(el=>el.dataset?.widgetId===id)).find(Boolean);
+          if(after)rail.insertBefore(pair,after);else rail.append(pair);
+        }
+      }catch{}
     }
     if(pair.parentElement!==rail)rail.appendChild(pair);
     if(aura.parentElement!==pair)pair.prepend(aura);
