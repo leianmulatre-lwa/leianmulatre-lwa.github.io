@@ -132,7 +132,7 @@ await check('Orbit records and UI use verified Pinterest status',async()=>{
  assert.ok(ui.includes('syncAllBoards,disconnect,render'));
  assert.ok(posts.includes('"X-Pinterest-Session"'));
  assert.ok(posts.includes("['instagram','pinterest'].includes(source.toLowerCase())"));
- assert.ok(pages.includes("window.__biglwaPinterest?.syncAllBoards()"));
+ assert.ok(pages.includes("window.__biglwaPinterest.syncAllBoards()"));
  assert.ok(pages.includes("const media=archiveMedia;"));
  assert.ok(!posts.slice(posts.indexOf("export async function loadArchive"),posts.indexOf("export async function getArchiveSettings")).includes('orderBy("sourceCreatedAtMs"'));
  assert.ok(connections.includes('recoverPinterestSession(uid)')&&connections.includes('refreshSource'));
