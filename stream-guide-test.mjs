@@ -291,7 +291,7 @@ await check('Stream shares the same Studio header and page width as other widget
 await check('frontend script versions and future features are intentional',async()=>{
  assert.ok(index.includes('stream-guide.js?v='));
  assert.ok(index.includes('stream-guide.css?v='));
- assert.ok(index.includes('module-pages.js?v=20261014-stream-ballroom-1'));
+ assert.ok(index.includes('module-pages.js?v='));
  assert.ok(style.includes('.stream-shuffle-button'));
  assert.ok(style.includes('.stream-future'));
  assert.ok(style.includes('.stream-player-footer'));
@@ -302,8 +302,8 @@ console.log(passed+' Stream integration checks passed');
 
 await check('in-site playback uses source streams and YouTube embeds',async()=>{
  assert.ok(stream.includes('https://kzscfms1-geckohost.radioca.st/kzschigh'));
- assert.ok(stream.includes('const audio=root?.querySelector(\'#streamRadioAudio\')'));
- assert.ok(stream.includes('playRadio(audio,root.querySelector(\'[data-radio-play]\'))'));
+ assert.ok(stream.includes('const audio=mediaPortal?.querySelector(\'#streamRadioAudio\')'));
+ assert.ok(stream.includes('playRadio(audio,mediaPortal.querySelector(\'[data-radio-play]\'))'));
  assert.ok(stream.includes('autoplay=1&playsinline=1'));
  assert.ok(stream.includes("id:'lofi-girl-tv'"));
  assert.ok(style.includes('.stream-radio-play'));
@@ -321,4 +321,17 @@ await check('TV includes the existing five Betty Boop episodes, without FOX, and
  assert.ok(stream.includes('changeArchiveEpisode((active+1)%source.episodes.length)'));
  assert.ok(stream.includes('data-stream-episode'));
  assert.ok(style.includes('.stream-episode-choice'));
+});
+
+await check('Studio preview preserves a single mounted Stream media instance',async()=>{
+ assert.ok(stream.includes('document.body.appendChild(mediaPortal)'),'media portal must be outside re-rendered modules');
+ assert.ok(stream.includes("if(!persistentPlayback&&!restoreLastPlayed())tuneCurrent()"),'reopening Stream must not recreate a playing iframe');
+ assert.ok(stream.includes("targetMedia(root.querySelector('#streamMonitor'))"),'reopening Stream retargets the existing player');
+ assert.ok(stream.includes("function parkInStudio()"),'Stream exposes a parking transition');
+ assert.ok(stream.includes("mediaPortal.classList.add('is-studio-preview')"),'Studio shows an actual media player');
+ assert.ok(stream.includes('mediaPortal.addEventListener(\'click\',onClick)'),'Studio player controls remain interactive');
+ assert.ok(stream.includes('playbackKey=()=>accountUid()?LAST_PLAYED_KEY+accountUid():\'\''),'last source keyed per account');
+ assert.ok(pages.includes("window.BigLWAStreamGuide?.parkInStudio?.()"),'module navigation parks the player before clearing DOM');
+ assert.ok(style.includes('.biglwa-persistent-stream-player'),'portal player is styled for both screens');
+ assert.ok(index.includes('ui-coherence.js?v='));
 });
