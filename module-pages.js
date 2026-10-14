@@ -268,6 +268,60 @@
     .module-workspace[data-module-key="archive"] .archive-legend i{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(80,70,64,.18)}
     .module-workspace[data-module-key="archive"] .archive-legend i.is-live{background:#f28c28}
     .module-workspace[data-module-key="archive"] .archive-legend i.is-archived{background:#c7c7c7;margin-left:8px}
+    
+    /* Crop photos to the card (never letterbox), but size each frame from its
+       photograph's aspect ratio to preserve composition where possible. */
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece{
+      aspect-ratio:var(--archive-photo-ratio,4/5)!important;
+      height:auto!important;min-height:0!important;max-height:none!important;
+      background:transparent!important
+    }
+    .module-workspace[data-module-key="archive"] .instagram-archive-media{
+      background:transparent!important;overflow:hidden!important
+    }
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece img,
+    .module-workspace[data-module-key="archive"] .instagram-archive-piece video{
+      width:100%!important;height:100%!important;object-fit:cover!important;
+      object-position:center!important;background:transparent!important
+    }
+    .module-workspace[data-module-key="archive"] .instagram-archive-strip i{display:none!important}
+    .module-workspace[data-module-key="archive"] .archive-color-guide{
+      display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 22px;
+      padding:13px 16px;border:1px solid #d3bdb0;border-radius:12px;
+      background:rgba(255,250,242,.66);font:650 11px/1.45 system-ui;color:#594b43
+    }
+    .module-workspace[data-module-key="archive"] .archive-color-guide>b{
+      font:850 10px/1.3 ui-monospace,monospace;color:#443630;letter-spacing:.075em
+    }
+    .module-workspace[data-module-key="archive"] .archive-color-guide-item{
+      display:inline-flex;align-items:center;gap:9px;white-space:nowrap
+    }
+    .module-workspace[data-module-key="archive"] .archive-color-guide-item>i{
+      display:inline-block;flex:0 0 13px;width:13px;height:13px;border:1px solid #fff5ed;
+      border-radius:4px;background:#d7c8b5;box-shadow:2px 3px 0 #9b8075
+    }
+    .module-workspace[data-module-key="archive"] .archive-key-instagram{
+      background:#f28c28!important;box-shadow:2px 3px 0 #f28c28,4px 5px 0 #8c3acb!important
+    }
+    .module-workspace[data-module-key="archive"] .archive-key-pinterest{
+      background:#f97316!important;box-shadow:2px 3px 0 #f97316,4px 5px 0 #ffae42!important
+    }
+    .module-workspace[data-module-key="archive"] .archive-key-facebook{
+      background:#1877f2!important;box-shadow:2px 3px 0 #1877f2!important
+    }
+    .module-workspace[data-module-key="archive"] .archive-key-tiktok{
+      background:#191919!important;box-shadow:2px 3px 0 #111!important
+    }
+    .module-workspace[data-module-key="archive"] .archive-key-other{
+      background:#8f756e!important;box-shadow:2px 3px 0 #96736c!important
+    }
+    .module-workspace[data-module-key="archive"] .archive-color-guide small{
+      flex-basis:100%;color:#816d63;font:600 10px/1.45 system-ui
+    }
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-piece,
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-piece{
+      background:transparent!important
+    }
     .module-workspace[data-module-key="archive"] .archive-empty{
       padding:42px 24px;border:1px dashed #d8cec5;border-radius:14px;text-align:center;color:#81766f
     }
@@ -1575,7 +1629,7 @@ const connect=e.target.closest('[data-orbit-connect]');
             '<button type="button" data-archive-enlarge aria-label="Open this photo" title="Open this photo"></button>'+
             '</div>'
           : '';
-        const strip='<div class="instagram-archive-strip"><b>'+esc(caption?caption.split('\n')[0].slice(0,42):(pending?'Deleting soon':posted?'Live':'Archived'))+'</b>'+actions+'<i></i><i></i><i></i></div>';
+        const strip='<div class="instagram-archive-strip"><b>'+esc(caption?caption.split('\n')[0].slice(0,42):(pending?'Deleting soon':posted?'Live':'Archived'))+'</b>'+actions+'</div>';
         const pendingMeta=pending
           ? '<div class="archive-pending-note">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</div>'
           : '';
@@ -1609,7 +1663,15 @@ const connect=e.target.closest('[data-orbit-connect]');
           '':'')+
           '</div>'+
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(media.length?'Imported cards are saved to your account.':'Connect Instagram or Pinterest in Orbit, then refresh imports.'):'Shared with friends.'))+'</div>'+
-          '<p class="archive-legend"><i class="is-live"></i>In color · on the Collective Feed<i class="is-archived"></i>Archived · grey here</p>'+
+          '<div class="archive-color-guide" aria-label="Card shadow color key">'+
+  '<b>SHADOW KEY</b>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · orange / purple</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-pinterest" aria-hidden="true"></i>Pinterest · orange</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-facebook" aria-hidden="true"></i>Facebook · blue</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-tiktok" aria-hidden="true"></i>TikTok · black</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-other" aria-hidden="true"></i>Other source</span>'+
+  '<small>Card shadow = origin · Live = on Collective Feed · Grey photo = not live</small>'+
+ '</div>'+
           (cards?'<div class="archive-page-list">'+cards+'</div>':'<div class="archive-empty">'+(media.length&&!mediaShown.length?'No cards match the filters you chose.':'No media has been imported yet.')+'</div>')+
           (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
@@ -1617,6 +1679,22 @@ const connect=e.target.closest('[data-orbit-connect]');
     // Both owners and approved friends can browse carousel cards. Old media
     // URLs get a second chance via their saved thumbnail when an image fails.
     const wall=$('.archive-page-list',body);
+    // Derive the image's natural proportions on load, clamped to avoid a
+    // panoramic thumbnail swallowing the whole grid. Carousel slides update too.
+    const fitArchivePhoto=media=>{
+      if(!(media instanceof HTMLElement))return;
+      const w=media.naturalWidth||media.videoWidth||0,h=media.naturalHeight||media.videoHeight||0;
+      if(!w||!h)return;
+      const ratio=Math.max(.65,Math.min(1.55,w/h));
+      media.closest('.instagram-archive-piece')?.style.setProperty('--archive-photo-ratio',String(ratio));
+    };
+    wall?.addEventListener('load',event=>{
+      if(event.target.matches?.('.instagram-archive-piece img'))fitArchivePhoto(event.target);
+    },true);
+    wall?.addEventListener('loadedmetadata',event=>{
+      if(event.target.matches?.('.instagram-archive-piece video'))fitArchivePhoto(event.target);
+    },true);
+    wall?.querySelectorAll('.instagram-archive-piece img').forEach(img=>{if(img.complete)fitArchivePhoto(img)});
     wall?.addEventListener('error',event=>{
       const image=event.target.closest?.('img[data-archive-fallback]');
       if(!image)return;
