@@ -112,7 +112,7 @@
       const user=f.auth.currentUser;
       if(!user)throw Error('Sign in to BIGLWA to save your avatar.');
       const uid=user.uid,token=await user.getIdToken();
-      const response=await fetch(API+'/media/feed-image',{
+      const response=await fetch(API+'/media/profile-photo',{
         method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':file.type},body:file
       });
       const result=await response.json().catch(()=>({}));
@@ -136,7 +136,7 @@
       const snap=await f.getDoc(f.doc(f.db,'users',user.uid));
       if(state.loadedUid!==user.uid)return;
       const avatar=snap.data()?.studioAvatar;
-      if(avatar?.url&&['minecraft','mii','imvu'].includes(avatar.type)&&avatar.url.startsWith(API+'/media/feed-image/')){
+      if(avatar?.url&&['minecraft','mii','imvu'].includes(avatar.type)&&(avatar.url.startsWith(API+'/media/profile-photo/')||avatar.url.startsWith(API+'/media/feed-image/'))){
         state.avatar={type:avatar.type,url:avatar.url};
         showAvatar();setStatus('Saved avatar restored from your account.');
       }
