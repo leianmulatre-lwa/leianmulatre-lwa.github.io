@@ -73,7 +73,7 @@ function readSession(key, accountUid) {
   // The Pinterest session is bound to a Firebase UID; never read another person's
   // credential from the previous global browser-storage slot.
   const uid = accountUid || identity()?.uid;
-  const scoped = ["biglwaPinterestSession","biglwaTikTokSession"].includes(key)
+  const scoped = ["biglwaPinterestSession","biglwaTikTokSession","biglwaInstagramSession"].includes(key)
     ? (uid ? key + ":" + uid : "")
     : key;
   if (!scoped) return "";
@@ -82,6 +82,22 @@ function readSession(key, accountUid) {
     catch { /* storage disabled */ }
   }
   return "";
+}
+async function recoverInstagramSession(uid) {
+  try{
+    const {auth}=await firebase();
+    await auth.authStateReady();
+    if(!uid||auth.currentUser?.uid!==uid)return "";
+    const firebaseIdToken=await auth.currentUser.getIdToken();
+    const response=await fetch(WORKER+"/session/account",{
+      headers:{Authorization:"Bearer "+firebaseIdToken}
+    });
+    if(!response.ok)return "";
+    const body=await response.json().catch(()=>({}));
+    if(!body?.connected||!body.session)return "";
+    try{localStorage.setItem("biglwaInstagramSession:"+uid,body.session)}catch{}
+    return body.session;
+  }catch{return ""}
 }
 async function recoverTikTokSession(uid) {
   try{
@@ -165,7 +181,12 @@ export function connectedIds() {
    A device with no local credential never gets this far: it keeps what the account says
    and reports the connection as needing to be re-authorised here. */
 async function syncSource(source, uid) {
-  let session = readSession(source.sessionKey, uid);
+  // The account-linked Worker is authoritative for Instagram credentials;
+  // local storage is only an optional per-device cache.
+  let session=source.id==="instagram"
+    ? await recoverInstagramSession(uid)
+    : readSession(source.sessionKey,uid);
+  if(!session && source.id==="instagram")session=readSession(source.sessionKey,uid);
   if (!session && source.id === "pinterest") session = await recoverPinterestSession(uid);
   if (!session && source.id === "tiktok") session = await recoverTikTokSession(uid);
   if (!session) return { outcome: "no-session" };
@@ -173,7 +194,17 @@ async function syncSource(source, uid) {
   let profile;
   try {
     const response = await fetch(WORKER + source.profile, { headers });
-    if (response.status === 401 && source.id === "pinterest") {
+    if(response.status===401 && source.id==="instagram"){
+      // Recheck the account instead of deleting its public connection merely
+      // because a cached browser token or provider request expired.
+      session=await recoverInstagramSession(uid);
+      if(!session)return {outcome:"no-session"};
+      headers={Authorization:"Bearer "+session};
+      const retry=await fetch(WORKER+source.profile,{headers});
+      if(retry.status===401)return {outcome:"stale"};
+      if(!retry.ok)return {outcome:"stale"};
+      profile=await retry.json();
+    }else if (response.status === 401 && source.id === "pinterest") {
       // A stale local credential is not proof that the account was disconnected.
       try { localStorage.removeItem("biglwaPinterestSession:" + uid); } catch {}
       session = await recoverPinterestSession(uid);
@@ -413,7 +444,7 @@ export async function forget(id) {
   for (const store of [localStorage, sessionStorage]) {
     try {
       store.removeItem(source.sessionKey);
-      if (["pinterest","tiktok"].includes(id) && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
+      if (["pinterest","tiktok","instagram"].includes(id) && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
     } catch { /* storage disabled */ }
   }
   const who = identity()?.uid;
