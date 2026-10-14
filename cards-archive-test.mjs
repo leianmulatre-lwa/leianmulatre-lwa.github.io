@@ -15,7 +15,7 @@ function check(name, cond, extra = "") {
 console.log("=== EACH SOURCE KEEPS ITS OWN RIM ===");
 check("TikTok is black", feed.includes('tiktok: { rim:"#111111"'));
 check("Facebook is blue", feed.includes('facebook: { rim:"#1877f2"'));
-check("Instagram is blood orange", feed.includes('instagram: { rim:"#a52a0c"'));
+check("Instagram is orange with purple shadow", feed.includes('instagram: { rim:"#f28c28", glow:"#8c3acb"'));
 check("anything without a rim of its own falls back to blood orange", feed.includes('{ rim:FEED_RIM }'));
 check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
 check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
@@ -23,7 +23,7 @@ check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
 console.log("\n=== THE ARCHIVE HOLDS EVERY SOURCE, COLOUR KEPT, GREY ONLY WHEN OFF ===");
 check("a card is read for its own source", pages.includes("const source=String(item.source||'instagram').toLowerCase();"));
-check("the rim comes from the source", pages.includes("const rim={instagram:'#a52a0c',tiktok:'#111111',facebook:'#1877f2',pinterest:'#e60023'}[source]||'#a52a0c';"));
+check("the rim comes from the source", pages.includes("const rim={instagram:'#f28c28',tiktok:'#111111',facebook:'#1877f2',pinterest:'#f97316'}[source]||'#a52a0c';"));
 check("the card is marked with its source", pages.includes("' archive-src-'+esc(source)+'\" style=\"--feed-card-rim:'+rim+'\""));
 check("both stored states are grouped colour-first", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-archived{"));
 check("the colour keeps the source rim, not a blanket grey", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes("box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c)!important;filter:none;opacity:1}") && !pages.includes("filter:grayscale(1)!important;opacity:.86}"));
@@ -81,3 +81,5 @@ check("the old one-black-pill markup is gone", !pages.includes("<span>${g}</span
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
+check("Archive Instagram shadow layers orange and violet", pages.includes("box-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb"));
+check("Archive Pinterest shadow has orange depth", pages.includes("box-shadow:3px 3px 0 #f97316,6px 6px 0 -2px #ffae42"));
