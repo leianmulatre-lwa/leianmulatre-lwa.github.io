@@ -578,7 +578,7 @@ function timestampMs(value) {
    disagree about what the feed contains. Slots with no picture are left as dashed gaps
    rather than shrinking the row, which keeps the row four wide until there is something
    to put in it. */
-const HERO_SLOTS = 8;
+const HERO_SLOTS = 4;
 let heroOn = null;
 let heroSignature = null;
 
@@ -602,8 +602,7 @@ function renderHero(force) {
   heroOn = anchor;
   heroSignature = signature;
 
-  /* The widget is the latest eight POST slots, not eight arbitrary images, so the preview is
-     two rows of four and always represents the same eight newest feed records. */
+  /* Studio shows ONE compact row of the four latest approved Feed posts. */
   const slots = posts.slice(0, HERO_SLOTS);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
@@ -618,18 +617,14 @@ function renderHero(force) {
       (many ? '<span class="biglwa-feed-hero-count">' + urls.length + " photos</span>" : "") +
       '<img src="' + esc(first) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy">' +
       "</a>";
-  }).join("");
+  });
 
   const withImage=posts.filter(post=>slideUrls(post).length>0);
   const rest=Math.max(0,posts.length-slots.length);
   anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
-    "</span></div>" + '<div class="biglwa-feed-hero-grid">' +
-    Array.from({ length: Math.ceil(cards.length / 4) }, (_, row) =>
-      '<div class="biglwa-feed-hero-row">' +
-      (cards ? cards.slice(row * 4, row * 4 + 4).join("") : "") +
-      "</div>").join("") +
-    "</div>";
+    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + cards.join("") + "</div>";
+
 }
 
 /* Redrawing the list on every call would drop hover and focus state and pull the reader
