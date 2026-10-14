@@ -151,37 +151,52 @@
   const select=root.querySelector('select[name="category"]');
   if(select&&!select.dataset.edited)select.value=state.category;
  }
- // Fill unused hourly squares with the actual station/video directory. Directory
- // picks are NOT scheduled broadcasts: only editor-approved entries are on-air.
- const liveIdeas=[
-  'Creator premieres','Student DJ sets','Campus conversations','Community open mic',
-  'Independent interviews','Live music sessions','Artist Q&A','Student news roundtable'
- ];
- function guidePick(category,hour){
+ // Deterministic daily shuffle: same date shows the same ordering after refresh.
+ // The Shuffle Again control changes only the user's current view.
+ function dailySeed(day,category,offset=0){
+  const seedText=String(day)+'|'+String(category)+'|'+String(offset);
+  let n=2166136261;
+  for(let i=0;i<seedText.length;i++)n=Math.imul(n^seedText.charCodeAt(i),16777619);
+  return n>>>0;
+ }
+ function shuffled(items,day,category,offset=0){
+  const results=items.slice();
+  let seed=dailySeed(day,category,offset)||1;
+  for(let i=results.length-1;i>0;i--){
+   seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;
+   const j=(seed>>>0)%(i+1);
+   [results[i],results[j]]=[results[j],results[i]];
+  }
+  return results;
+ }
+ function dailyPlaylist(category,day=state.day,offset=state.shuffleOffset){
   if(category==='podcast'){
-   // Every station gets an actual square in the timeline, not just a tile below it.
-   if(hour<stations.length){
-    const station=stations[hour];
-    return {kind:'station',index:hour,title:station[0],subtitle:station[1],status:'RADIO DIRECTORY'};
-   }
-   const podcasts=featured.filter(x=>x.category==='podcast');
-   const choice=hour-stations.length;
-   if(choice<podcasts.length){
-    const entry=podcasts[choice];
-    return {kind:'feature',id:entry.id,title:entry.title,subtitle:entry.subtitle,status:entry.url?'PODCAST PICK':'IDEA · LINK NEEDED'};
-   }
-   const stationIndex=(choice-podcasts.length)%stations.length;
-   const station=stations[stationIndex];
-   return {kind:'station',index:stationIndex,title:station[0],subtitle:station[1],status:'RADIO DIRECTORY'};
+   const radio=stations.map((station,index)=>({
+    kind:'station',index,title:station[0],subtitle:station[1],
+    status:'CAMPUS RADIO · ORIGINAL STATION'
+   }));
+   const mixes=featured.filter(item=>item.category==='podcast').map(item=>({
+    kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
+    status:item.provider==='mixtape'?'ORIGINAL MIXTAPE':'PODCAST · ORIGINAL SOURCE'
+   }));
+   return shuffled([...radio,...mixes],day,category,offset);
   }
   if(category==='lwa-tv'){
-   const videos=featured.filter(x=>x.category==='lwa-tv');
-   const entry=videos[hour%videos.length];
-   return {kind:'feature',id:entry.id,title:entry.title,subtitle:entry.subtitle,
-    status:entry.url?'VIDEO PICK':'IDEA · LINK NEEDED'};
+   const videos=featured.filter(item=>item.category==='lwa-tv').map(item=>({
+    kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
+    status:item.videoId?'WATCH ORIGINAL VIDEO':'YOUTUBE · CHANNEL VIDEOS'
+   }));
+   return shuffled(videos,day,category,offset);
   }
-  const name=liveIdeas[hour%liveIdeas.length];
-  return {kind:'concept',hour,title:name,subtitle:'Propose a live session',status:'LIVE IDEA · NOT ON AIR'};
+  const twitch=twitchChannels.map(channel=>({
+   kind:'twitch',id:channel.id,title:channel.title,subtitle:channel.subtitle,
+   status:'TWITCH CHANNEL · LIVE UNVERIFIED'
+  }));
+  return shuffled(twitch,day,category,offset);
+ }
+ function guidePick(category,hour,day=state.day,offset=state.shuffleOffset){
+  const queue=dailyPlaylist(category,day,offset);
+  return queue.length?queue[hour%queue.length]:null;
  }
  function renderGrid(){
   if(!root)return;
@@ -199,7 +214,7 @@
     });
     const pick=show?null:guidePick(key,hour);
     const current=localDay()===state.day&&new Date().getHours()===hour;
-    const classes='stream-slot '+(show?'is-booked':pick.kind==='concept'?'is-concept':'is-curated')+(chosen?' is-selected':'')+(current?' is-now':'');
+    const classes='stream-slot '+(show?'is-booked':pick?.kind==='twitch'?'is-twitch':'is-curated')+(chosen?' is-selected':'')+(current?' is-now':'');
     const title=show?show.title:pick.title;
     const details=show?(show.creditedCreator||'LWA programming'):pick.subtitle;
     const status=show?'APPROVED / PROGRAMMED':pick.status;
@@ -208,8 +223,9 @@
     const attrs=show?' data-stream-program="'+escapeHTML(show.id)+'"':
      pick.kind==='station'?' data-stream-station="'+pick.index+'"':
      pick.kind==='feature'?' data-stream-feature="'+escapeHTML(pick.id)+'"':
-      ' data-stream-concept="'+hour+'"';
-    const context=show?'Approved broadcast':'Directory suggestion, not confirmed airtime';
+     pick.kind==='twitch'?' data-stream-twitch="'+escapeHTML(pick.id)+'"':
+      ' data-stream-slot-fallback="'+hour+'"';
+    const context=show?'Approved broadcast':'Daily discovery pick, not scheduled airtime';
     return '<button type="button" class="'+classes+'" data-stream-slot="'+key+'"'+attrs+
      ' aria-label="'+escapeHTML(title+', '+context+', '+cat[1]+' guide at '+labelHour(hour))+'">'+text+'</button>';
    }).join('');
@@ -218,7 +234,7 @@
   const grid=root.querySelector('#streamGrid');
   grid.innerHTML=first+hours+rows;
   const count=items.filter(x=>localDay(new Date(x.scheduledAt))===state.day).length;
-  grid.setAttribute('aria-label',niceDate(state.day)+' channel guide, '+count+' approved scheduled programs, plus curated sources and ideas');
+  grid.setAttribute('aria-label',niceDate(state.day)+' daily shuffled guide, '+count+' approved programs, plus original-host channels and mixtapes');
  }
  // Every station gets its own independent selectable slot. These are not time bookings.
  function renderFeaturedSlots(){
