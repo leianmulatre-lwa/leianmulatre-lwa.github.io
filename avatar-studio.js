@@ -130,7 +130,7 @@
   async function restore(){
     try{
       const f=await firebase();await f.auth.authStateReady();
-      const user=f.auth.currentUser;if(!user)return;
+      const user=f.auth.currentUser;if(!user){state.loadedUid='';state.avatar=null;showAvatar();return;}
       if(state.loadedUid===user.uid)return;
       state.loadedUid=user.uid;
       const snap=await f.getDoc(f.doc(f.db,'users',user.uid));
@@ -143,29 +143,34 @@
     }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
   }
   function position(){
-    const hero=one('#studioApp .hero'),aura=one('#studioApp .aura-card'),card=one('#studioAvatarCard');if(!hero||!aura||!card)return;
+    const hero=one('#studioApp .hero'),aura=one('#studioApp .aura-card'),card=one('#studioAvatarCard');
+    if(!hero||!aura||!card)return;
     const h=hero.getBoundingClientRect(),a=aura.getBoundingClientRect();
     if(!h.width||!a.width)return;
-    const x=a.left-h.left,y=a.top-h.top;
-    const original=state.layout?.originalAuraWidth||a.width;
     if(!state.layout)state.layout={originalAuraWidth:a.width};
-    let ax=x,aw=a.width;
-    if(original>=460){
-      const minA=Math.max(220,Math.floor(original*2/3));
-      aw=minA;
-      aura.style.setProperty('width',aw+'px','important');
-      card.style.cssText='position:absolute!important;left:'+(ax+aw+10)+'px!important;top:'+y+'px!important;width:'+Math.max(150,original-aw-10)+'px!important;min-height:'+Math.max(210,a.height)+'px!important';
-    }else{
-      // On dense desktop layouts, don't steal space from the existing Aura.
-      const available=h.width-(ax+aw+25);
-      if(available>=170){
-        card.style.cssText='position:absolute!important;left:'+(ax+aw+10)+'px!important;top:'+y+'px!important;width:'+Math.min(240,available-10)+'px!important;min-height:'+Math.max(220,a.height)+'px!important';
-      }else{
-        card.style.cssText='position:absolute!important;left:'+ax+'px!important;top:'+(y+a.height+12)+'px!important;width:'+Math.max(170,Math.min(360,aw))+'px!important;min-height:220px!important';
-        hero.style.setProperty('min-height',Math.ceil(y+a.height+265)+'px','important');
-      }
+    const original=state.layout.originalAuraWidth;
+    const space=h.right-a.left-16;
+    // Wide screens: the avatar occupies half the Aura width, sharing one row.
+    if(original>=460&&space>=460&&window.innerWidth>800){
+      const auraWidth=Math.max(220,Math.floor((original-10)*2/3));
+      const avatarWidth=Math.floor(auraWidth/2);
+      aura.style.setProperty('width',auraWidth+'px','important');
+      const r=aura.getBoundingClientRect();
+      card.style.cssText='position:absolute!important;left:'+(r.right-h.left+10)+'px!important;top:'+(r.top-h.top)+'px!important;width:'+avatarWidth+'px!important;min-height:'+Math.max(195,r.height)+'px!important';
+      hero.style.setProperty('min-height',Math.ceil(r.bottom-h.top+18)+'px','important');
+      return;
     }
+    aura.style.removeProperty('width');
+    const r=aura.getBoundingClientRect();
+    const rightSpace=h.right-r.right-18;
+    if(rightSpace>=180&&window.innerWidth>700){
+      card.style.cssText='position:absolute!important;left:'+(r.right-h.left+10)+'px!important;top:'+(r.top-h.top)+'px!important;width:'+Math.min(230,Math.max(150,Math.floor(r.width/2)),rightSpace-9)+'px!important;min-height:'+Math.max(195,r.height)+'px!important';
+      return;
+    }
+    card.style.cssText='position:absolute!important;left:'+(r.left-h.left)+'px!important;top:'+(r.bottom-h.top+12)+'px!important;width:'+Math.max(180,Math.min(r.width,360))+'px!important;min-height:195px!important';
+    hero.style.setProperty('min-height',Math.ceil(r.bottom-h.top+230)+'px','important');
   }
+
   function mount(){
     const hero=one('#studioApp .hero'),aura=one('#studioApp .aura-card');
     if(!hero||!aura)return false;
@@ -183,14 +188,27 @@
     if(e.target.closest('[data-avatar-unity-open]')){
       const sourceArea=one('#biglwaAvatarSource');if(!sourceArea)return;
       try{
-        const resp=await fetch('/avatar/unity/index.html',{method:'HEAD',cache:'no-store'});
-        if(resp.ok){const frame=document.createElement('iframe');frame.title='Licensed Unity WebGL avatar scene';
+        const resp=await fetch('/avatar/unity/index.html',{cache:'no-store'});
+        const manifest=resp.ok?await resp.text():'';
+        if(resp.ok&&/(createUnityInstance|UnityLoader)/.test(manifest)){const frame=document.createElement('iframe');frame.title='Licensed Unity WebGL avatar scene';
           frame.sandbox='allow-scripts allow-same-origin';frame.src='/avatar/unity/index.html';
           frame.style.cssText='width:100%;height:300px;border:0;border-radius:10px';
-          sourceArea.replaceChildren(frame);
+          frame.dataset.biglwaUnityFrame='1';sourceArea.replaceChildren(frame);
+          setStatus('Unity WebGL build detected. The avatar scene can communicate with BIGLWA through the approved bridge.');
         }else setStatus('No licensed Unity WebGL export is installed yet.');
       }catch{setStatus('Unity WebGL build is not installed yet.')}
     }
+  });
+  // A licensed WebGL build gets the stored image URL, never a member's access token.
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.data?.type!=='biglwa:unity-ready')return;
+    const frame=one('#studioAvatarCard [data-biglwa-unity-frame]');
+    if(!frame||event.source!==frame.contentWindow)return;
+    frame.contentWindow.postMessage({
+      type:'biglwa:avatar-context',
+      avatar:state.avatar?{type:state.avatar.type,url:state.avatar.url}:null
+    },location.origin);
+    setStatus('Unity scene connected. Live IMVU avatars still require an approved integration.');
   });
   document.addEventListener('change',async e=>{
     const file=e.target.closest('#studioAvatarCard [data-avatar-import]');
