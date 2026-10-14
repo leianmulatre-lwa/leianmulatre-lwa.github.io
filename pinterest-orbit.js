@@ -147,7 +147,7 @@ async function connect(){await run(async()=>{
     profile=await api('profile');
     connected=true;render();
     // Persist the connected account's public details, not its bearer token.
-    try{await window.__biglwaConnections?.refresh?.(authUid)}catch(error){console.warn('Pinterest connection mirror:',error)}
+    try{await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid) || window.__biglwaConnections?.refresh?.(authUid))}catch(error){console.warn('Pinterest connection mirror:',error)}
     await loadBoards();
     if(!boardId&&boards.length)boardId=String(boards[0].id||'');
     if(boardId)await loadPins(boardId);
@@ -174,7 +174,7 @@ async function connect(){await run(async()=>{
     render();
    }
    message='Synced '+count+' Pins from '+processed+' boards. Open individual boards to sync additional pages.';
-   await window.__biglwaConnections?.refresh?.(authUid);
+   await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid) || window.__biglwaConnections?.refresh?.(authUid));
   }catch(error){
    importError=error?.message||'Pinterest sync failed. Try again.';
    message='';
@@ -344,6 +344,11 @@ async function init(){
  await restore();
  watchAuth().catch(()=>{});
 }
+window.addEventListener('biglwa:orbit-connection-save-error',event=>{
+ if(event.detail?.source!=='pinterest')return;
+ importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
+ render();
+});
 window.__biglwaPinterest={connect,restore,disconnect,render};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
