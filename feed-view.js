@@ -56,7 +56,36 @@ const thumbnailFor = (post) => {
   return list.find((url) => typeof url === "string" && url && !looksLikeVideoFile(url) && url !== pictureUrls(post)[0]) || "";
 };
 
+const orbitMediaBase = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
+const managedOrbitUrl = (url) => {
+  try {
+    const parsed=new URL(String(url||''));
+    return parsed.origin===orbitMediaBase && /^\/media\/orbit\/[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(parsed.pathname);
+  } catch { return false; }
+};
+const orbitUrlFromKey = (key) => {
+  const value=String(key||'').replace(/^orbit\//,'');
+  return /^[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(value) ? orbitMediaBase+"/media/orbit/"+value : "";
+};
+const durableOrbitPhotos = (post) => {
+  const pictures=[];
+  const add=url=>{if(managedOrbitUrl(url)&&!pictures.includes(url))pictures.push(url)};
+  for(const piece of (Array.isArray(post.mediaItems)?post.mediaItems:[])){
+    if(!piece||piece.isPicture===false)continue;
+    add(piece.url);add(piece.thumbnailUrl);
+    const url=orbitUrlFromKey(piece.key);
+    add(url);
+  }
+  for(const url of (Array.isArray(post.imageUrls)?post.imageUrls:[]))add(url);
+  for(const key of (Array.isArray(post.imageKeys)?post.imageKeys:[]))add(orbitUrlFromKey(key));
+  add(post.imageUrl);add(orbitUrlFromKey(post.imageUrlKey));
+  return pictures;
+};
 const pictureUrls = (post) => {
+  // An imported Orbit image cannot be treated as durable until its bytes were
+  // copied to our R2 media store. Legacy CDN links need a source resync.
+  if(post?.orbitImported && ['instagram','pinterest'].includes(String(post.source||'').toLowerCase()))
+    return durableOrbitPhotos(post).slice(0,SLIDE_SCAN);
   const items = Array.isArray(post.mediaItems) ? post.mediaItems : [];
   const fromItems = items.map((piece) => {
     if (!piece) return "";
@@ -134,6 +163,10 @@ const STYLE = `
 .biglwa-pin{--feed-card-rim:#a52a0c;--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px 25px -16px rgba(216,95,109,.35);position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
   box-shadow:var(--feed-card-shadow)}
 .biglwa-pin::before{content:none}
+#biglwaFeedHero .biglwa-feed-needs-sync{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-height:76px;border-radius:8px;background:#ede7e1;color:#61564c!important;font:700 10px/1.4 system-ui;text-decoration:none!important}
+#biglwaFeedHero .biglwa-feed-needs-sync span{font:24px/1 Georgia,serif}
+#biglwaFeedHero .biglwa-feed-resync{display:block;margin:8px 0 0;padding:7px 10px;border:1px solid #b9a499;border-radius:9px;background:#f6e9e1;color:#513d38;font:700 10px/1.2 system-ui;cursor:pointer}
+#biglwaFeedHero .biglwa-feed-sync-note{display:block;margin:4px 0;font:10px/1.3 system-ui;color:#786e67}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
 #biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #d77b30}
 #biglwaOrbitDrafts .biglwa-draft-card:nth-child(6n+2){box-shadow:3px 3px 0 #d1ad2f}.biglwa-draft-card:nth-child(6n+3){box-shadow:3px 3px 0 #4e8f61}.biglwa-draft-card:nth-child(6n+4){box-shadow:3px 3px 0 #416fa9}
@@ -610,7 +643,8 @@ function renderHero(force) {
     const urls = slideUrls(post);
     const first = urls[0];
     if (!first) {
-      return '<div class="biglwa-feed-hero-empty" style="--accent:' + src.accent + '">No thumbnail</div>';
+      return '<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync" style="--accent:' + src.accent + '">' +
+        '<span role="img" aria-label="Image waiting for storage">▧</span><small>Image needs sync</small></div>';
     }
     const many = urls.length > 1;
     return '<a style="--accent:' + src.accent + '" href="' + esc(first) + '" target="_blank" rel="noopener noreferrer">' +
@@ -621,11 +655,47 @@ function renderHero(force) {
 
   const withImage=posts.filter(post=>slideUrls(post).length>0);
   const rest=Math.max(0,posts.length-slots.length);
+  const requiresSync=slots.some(post=>post.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
   anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
-    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + cards.join("") + "</div>";
+    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + cards.join("") + "</div>" +
+    (requiresSync?'<button type="button" class="biglwa-feed-resync" data-feed-resync>↻ Restore imported photos</button><small class="biglwa-feed-sync-note" role="status">Reconnect Orbit if the original service no longer allows image downloads.</small>':'');
+  anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
+    img.addEventListener('error',()=>{
+      const slot=img.closest('a');
+      if(!slot)return;
+      const note=document.createElement('span');
+      note.className='biglwa-feed-hero-empty biglwa-feed-needs-sync';
+      note.textContent='Stored image unavailable — retry Sync';
+      slot.replaceWith(note);
+    });
+    if(img.complete&&img.naturalWidth===0)img.dispatchEvent(new Event('error'));
+  });
 
 }
+
+let repairingFeedImages=false;
+document.addEventListener('click',async event=>{
+  const trigger=event.target.closest('[data-feed-resync]');
+  if(!trigger||repairingFeedImages)return;
+  repairingFeedImages=true;trigger.disabled=true;trigger.textContent='Syncing account images…';
+  const status=document.querySelector('#biglwaFeedHero .biglwa-feed-sync-note');
+  try{
+    const instagram=window.__biglwaInstagramOrbit;
+    const pinterest=window.__biglwaPinterest;
+    const attempted=[];
+    if(instagram?.state?.connected&&typeof instagram.restore==='function'){
+      attempted.push('Instagram');await instagram.restore();
+    }
+    if(pinterest?.state?.connected&&typeof pinterest.syncAllBoards==='function'){
+      attempted.push('Pinterest');await pinterest.syncAllBoards();
+    }
+    if(!attempted.length)throw Error('Connect Instagram or Pinterest in Orbit first.');
+    await loadPosts();
+    if(status)status.textContent=attempted.join(' & ')+' synced. Media copies will appear if the source allowed download.';
+  }catch(error){if(status)status.textContent=error?.message||'Images could not be copied. Reconnect Orbit and retry.';}
+  finally{repairingFeedImages=false;if(trigger.isConnected){trigger.disabled=false;trigger.textContent='↻ Restore imported photos';}}
+});
 
 /* Redrawing the list on every call would drop hover and focus state and pull the reader
    out of a card they are on, so the markup is only rebuilt when the posts or the viewer
