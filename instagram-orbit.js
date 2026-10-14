@@ -267,13 +267,14 @@
               '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram"></a>' +
             '</div>' +
           '</div>' +
-          visual +
+          '<div class="biglwa-unified-media">' + visual + '</div>' +
         '</div>' +
+        '<span class="biglwa-unified-source">Instagram</span>' +
         sendBar +
       '</article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
-    return '<div class="biglwa-instagram-wall">' + importStatusHtml() + cards.join('') + '</div>';
+    return importStatusHtml() + cards.join('');
   }
   /* Instagram belongs in Archive. It is connected content, not a second renderer for
      the member's Studio/profile feed.
@@ -315,7 +316,7 @@
           return;
         }
         var holder = img.closest('.biglwa-instagram-card');
-        if (holder) { holder.remove(); dropped += 1; }
+        if (holder) { const unavailable=document.createElement('div'); unavailable.className='biglwa-unavailable-media'; unavailable.textContent='Instagram image unavailable — open original source.'; img.replaceWith(unavailable); holder.classList.add('biglwa-image-unavailable'); dropped += 1; }
       });
       if (img.complete && img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
     });
