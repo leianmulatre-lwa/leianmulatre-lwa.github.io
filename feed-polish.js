@@ -124,8 +124,11 @@
    if(card.classList.contains('biglwa-instagram-card')&&tray&&!tray.dataset.instagramMoved){
      const actions=card.querySelector('.biglwa-instagram-actions');
      if(actions){
-       const hide=actions.querySelector('[data-instagram-hide]');if(hide){hide.textContent='Archive / hide from Feed';hide.setAttribute('aria-label','Archive or hide');tray.appendChild(hide);}
-       const original=actions.querySelector('[data-instagram-open]');if(original){original.textContent='Open on Instagram ↗';tray.appendChild(original);}
+       // The shared top-right lights handle delete/archive/enlarge. Keep only
+       // the provider link in the + tray, avoiding duplicate hidden actions.
+       const original=actions.querySelector('[data-instagram-open]');
+       if(original){original.textContent='Open on Instagram ↗';tray.appendChild(original);}
+       actions.remove();
      }
      tray.dataset.instagramMoved='1';
    }
