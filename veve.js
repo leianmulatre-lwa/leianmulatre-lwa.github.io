@@ -83,8 +83,10 @@
     }catch(err){state.items=[];state.loadError='Collective photos could not load: '+(err?.message||'Try refreshing');}
     try{
       if(window.BigLWASqwibs){
-        const [pub,resh]=await Promise.all([window.BigLWASqwibs.publicSqwibs(70),window.BigLWASqwibs.publicResqwibs()]);
-        state.sqwibs=pub;state.resqwibs=resh.filter(r=>pub.some(p=>p.id===r.sourceId&&p.allowResqwib===true));
+        const pub=await window.BigLWASqwibs.publicSqwibs(70);
+        state.sqwibs=pub;
+        const resh=await window.BigLWASqwibs.publicResqwibs().catch(()=>[]);
+        state.resqwibs=resh.filter(r=>pub.some(p=>p.id===r.sourceId&&p.allowResqwib===true));
       }else{state.sqwibs=[];state.resqwibs=[]}
     }catch(err){state.sqwibs=[];state.resqwibs=[];state.loadError+=(state.loadError?' ':'')+'Sqwib discovery is not available until its security rules are published.';}
     state.loading=false;
@@ -110,11 +112,12 @@
   }
   function sqwibMarkup(p,reshared=false){
     const allowed=p.allowResqwib===true,own=state.uid&&p.uid===state.uid;
+    const iResqwibbed=!!state.uid&&state.resqwibs.some(r=>r.uid===state.uid&&r.sourceId===p.id);
     return '<article class="veve-tile veve-note" data-veve-sqwib="'+e(p.id)+'">'+
       '<div class="veve-note-head"><span>sqwib · public</span>'+(reshared?'<b>resqwibbed</b>':'')+'</div>'+
       '<p>'+e(String(p.text||'').slice(0,1200))+'</p>'+
       '<div class="veve-note-actions">'+
-      (allowed&&!own?'<button type="button" data-veve-reshare="'+e(p.id)+'" aria-label="Resqwib this note">↻ resqwib</button>':
+      (allowed&&!own?'<button type="button" data-veve-reshare="'+e(p.id)+'" aria-label="'+(iResqwibbed?'Undo resqwib':'Resqwib this note')+'">↻ '+(iResqwibbed?'undo resqwib':'resqwib')+'</button>':
        own?'<span>your sqwib</span>':'<span>resqwibs disabled by author</span>')+'</div></article>';
   }
   function quickCard(kind,title,detail,destination,footer=''){
@@ -250,7 +253,13 @@
       }
       if(b.hasAttribute('data-veve-reshare')){
         b.disabled=true;
-        try{await window.BigLWASqwibs.resqwib(b.dataset.veveReshare);say('Resqwibbed with author permission.')}
+        try{
+          const id=b.dataset.veveReshare;
+          const already=state.resqwibs.some(r=>r.uid===state.uid&&r.sourceId===id);
+          if(already)await window.BigLWASqwibs.undoResqwib(id);
+          else await window.BigLWASqwibs.resqwib(id);
+          say(already?'Resqwib removed.':'Resqwibbed with author permission.');
+        }
         catch(err){b.disabled=false;say(err?.message||'Could not resqwib.')}
       }
     });
