@@ -39,6 +39,7 @@ let handoffPromise=null;
    mutator(next);
    const result=await savedRequest('POST',next);
    savedLibrary=result;savedUid=authUid;savedError='';
+   document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
    notice('Saved to your Big LWA collections.');
   }catch(error){savedError=error.message||'Could not update saved Pins.';notice(savedError)}
   finally{savedBusy=false;render()}
@@ -245,6 +246,7 @@ async function connect(){await run(async()=>{
    if(!Array.isArray(data?.items)&&!Array.isArray(data?.boards)&&!Array.isArray(data?.data?.items))console.warn('Pinterest boards payload has no recognized items array:',Object.keys(data||{}));
    boards=more?[...boards,...items]:items;boardsNext=data?.bookmark||data?.next_bookmark||'';
    diagnostic=items.length?'Pinterest returned '+items.length+' boards.':'Pinterest returned zero boards. Confirm the connected account and the Pinterest app board-read permission.';
+   document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
    render();
    loadCovers().then(render).catch(()=>{});
    return boards;
@@ -256,7 +258,7 @@ async function connect(){await run(async()=>{
  async function loadCovers(){
   const ids=boards.filter(b=>/^\d+$/.test(String(b.id||''))).slice(0,6);
   if(!ids.length)return;
-  try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render()}catch{}finally{}
+  try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render();document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'))}catch{}finally{}
  }
  async function importPinsToAccount(items){
   if(!Array.isArray(items)||!items.length)return {imported:0,skipped:0,partial:0};
@@ -287,6 +289,7 @@ async function connect(){await run(async()=>{
    const nextItems=Array.isArray(data?.items)?data.items:Array.isArray(data?.pins)?data.pins:Array.isArray(data?.data?.items)?data.data.items:[];
    pins=more?[...pins,...nextItems]:nextItems;pinsNext=data?.bookmark||data?.next_bookmark||'';
    diagnostic=nextItems.length?'Pinterest returned '+nextItems.length+' Pins from the selected board.':'Pinterest returned zero Pins for board '+id+'. Check access and whether the board contains Pins.';
+   document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
    render();
    /* Pinterest was previously only held in this renderer. Persist every page of returned
       Pins into the same account/profile/Archive records as the other Orbit sources. */
@@ -577,6 +580,23 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
  render();
 });
-window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError,diagnostic})};
+window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,
+  getPreview(){
+   const seen=new Set(),out=[];
+   const include=(id,url)=>{
+    if(!url||seen.has(url)||out.length>=8)return;
+    try{const parsed=new URL(url);if(parsed.protocol!=='https:')return;}catch{return}
+    seen.add(url);out.push({id:String(id||''),url});
+   };
+   pins.forEach(pin=>include(pin.id,image(pin)));
+   boards.forEach(board=>{
+    const cover=covers[board.id];
+    const urls=Array.isArray(cover?.images)?cover.images:[cover?.url||cover];
+    urls.filter(Boolean).forEach(url=>include(board.id,url));
+   });
+   savedLibrary.boards.forEach(board=>board.pins.forEach(pin=>include(pin.id,pin.image)));
+   return out;
+  },
+  get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError,diagnostic})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
