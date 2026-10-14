@@ -11,7 +11,7 @@ function load(){
  try{boards=JSON.parse(localStorage.getItem(key())||'[]');if(!Array.isArray(boards))boards=[]}catch{boards=[]}
  if(!boards.length){
   let legacy=[];try{legacy=JSON.parse(localStorage.getItem('biglwaModule_projects')||'[]')}catch{}
-  if(Array.isArray(legacy)&&legacy.length)boards=legacy.map((p,i)=>({id:id(),title:p.title||'Untitled project',items:[{id:id(),type:'note',text:p.detail||p.meta||'',x:48,y:45}]}));
+  if(Array.isArray(legacy)&&legacy.length)boards=legacy.map((p,i)=>({id:id(),title:p.title||'Untitled project',items:[{id:id(),type:/^https:\/\//i.test(p.photo||'')?'image':'note',url:/^https:\/\//i.test(p.photo||'')?p.photo:'',text:p.detail||p.title||p.meta||'',x:48,y:45}]}));
  }
  // The old empty state made every + button silently return because board() was null.
  if(!boards.length)boards=[{id:id(),title:'My first project',items:[]}];
@@ -210,7 +210,16 @@ document.addEventListener('pointerup',()=>{
  if(item){item.x=parseInt(drag.el.style.left,10)||0;item.y=parseInt(drag.el.style.top,10)||0;save()}
  drag=null;
 });
-window.__biglwaProjectCanvas={mount,openImagePicker,loadOrbitImagePicker};
+// A photo sent from the Collective Feed belongs on the current canvas, not in
+// the retired biglwaModule_projects list. Persist synchronously across navigation.
+function addFeedImage(url,label=''){
+ if(!boards.length)load();
+ appendImage(url,label);
+ clearTimeout(saveTimer);
+ localStorage.setItem(key(),JSON.stringify(boards));
+ return true;
+}
+window.__biglwaProjectCanvas={mount,openImagePicker,loadOrbitImagePicker,addFeedImage};
  // Deep links and lazy script loading can fire biglwa:module-open before this script is ready.
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
    if(document.querySelector('#moduleWorkspace:not([hidden])[data-module-key="projects"]'))mount();
