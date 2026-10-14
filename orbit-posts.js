@@ -355,7 +355,15 @@ async function importInstagramMediaToR2(items, user, source = 'instagram') {
                 for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(key);if(value)return value;}catch{}}
                 return '';
               })() }
-            : { "X-Instagram-Session": (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })() })
+            : { "X-Instagram-Session": (() => {
+                // The credential belongs to the signed-in Firebase member, never
+                // to the last person who happened to use this browser.
+                const key='biglwaInstagramSession:'+user.uid;
+                for(const store of [localStorage,sessionStorage]){
+                  try{const value=store.getItem(key);if(value)return value}catch{}
+                }
+                return '';
+              })() })
         },
         body: JSON.stringify({ items: batch })
       });
