@@ -81,6 +81,7 @@ await check('PKCE handoff requires a matching verifier',async()=>{
  const good=await route(req('/pinterest/session',{method:'POST',body:{handoff,verifier,firebaseIdToken:'token-one'}}),env);
  assert.equal(good.status,200);
  assert.equal(JSON.parse(records.get('pn:session:'+otherSid)).firebaseUid,'uid-one');
+ assert.equal(records.has('pn:session:'+sid),false,'Previous authorization revoked on reconnect');
 });
 await check('Pinterest worker chooses image CDN not pin-page URLs',async()=>{
  assert.equal(pinImage({image_url:'https://i.pinimg.com/originals/p1.jpg'}),'https://i.pinimg.com/originals/p1.jpg');
@@ -99,6 +100,7 @@ await check('flat image_url saves as picture, plain Pin link does not',async()=>
 });
 await check('Orbit records and UI use verified Pinterest status',async()=>{
  assert.ok(ui.includes("const scopedKey=uid=>KEY+':'+uid"));
+ assert.ok(!ui.includes('session()||storageGet(KEY)'), 'Legacy browser token must not attach to a new login');
  assert.ok(ui.includes('session/claim')&&ui.includes('session/account'));
  assert.ok(ui.includes('data-pn-sync')&&ui.includes('biglwa:orbit-imported'));
  assert.ok(connections.includes('recoverPinterestSession(uid)')&&connections.includes('refreshSource'));
