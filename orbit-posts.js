@@ -542,7 +542,17 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       ' could not be written to every account list. Check your storage permissions.';
   }
 
-  return { imported, skipped, partial, copyFailures, warning };
+  // The connected-source wall can immediately paint the same durable URLs as
+  // the persisted account/Archive/Collective records, without borrowing a CDN link.
+  const hostedById = {};
+  if(hostedMedia?.urls instanceof Map) {
+    for(const raw of items){
+      const sourceId = sourcePostIdFor(raw, source.toLowerCase()==='pinterest' ? pinterestImageUrl(raw) : clean(raw.media_url||raw.thumbnail_url||raw.url));
+      const urls=mediaPieces(raw,source.toLowerCase()).map((_,index)=>hostedMedia.urls.get(sourceId+':'+index)||'');
+      if(urls.some(Boolean))hostedById[sourceId]=urls;
+    }
+  }
+  return { imported, skipped, partial, copyFailures, warning, hostedById };
 }
 
 export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
