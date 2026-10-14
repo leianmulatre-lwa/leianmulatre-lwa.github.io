@@ -356,6 +356,23 @@
     all('.instagram-feed-item,.instagram-import-status,.biglwa-instagram-import-status', list).forEach(function (item) { item.remove(); });
     var html = feedHtml();
     if (html) list.insertAdjacentHTML('afterbegin', html);
+    // Account import health is page-level information, not a photo. Keep it
+    // above the Pinterest-style wall instead of consuming a masonry slot.
+    var module = list.closest('.module-workspace[data-module-key="feed"]');
+    var grid = module && one('.module-grid', module);
+    if(grid){
+      var statusRail=one('#biglwaFeedImportStatusRail',module);
+      if(!statusRail){
+        statusRail=document.createElement('aside');
+        statusRail.id='biglwaFeedImportStatusRail';
+        statusRail.className='biglwa-feed-import-rail';
+        statusRail.setAttribute('aria-label','Connected account import status');
+        grid.insertAdjacentElement('beforebegin',statusRail);
+      }
+      statusRail.querySelectorAll('[data-instagram-import-status],.instagram-import-status').forEach(function(n){n.remove()});
+      all('[data-instagram-import-status],.instagram-import-status',list).forEach(function(n){statusRail.appendChild(n)});
+      statusRail.hidden=!statusRail.children.length;
+    }
     /* These cards are not saved posts, so the wall is told what each one holds in order for
        their + tray to work the same way as the tray on a saved card. */
     if (window.__biglwaFeed && typeof window.__biglwaFeed.registerSendCard === 'function') {
