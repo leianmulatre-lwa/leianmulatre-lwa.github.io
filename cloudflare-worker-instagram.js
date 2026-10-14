@@ -442,6 +442,11 @@ export default {
       try { return await mediaRoute(request, config); }
       catch (error) { return json({ error: error.publicMessage || 'Media service error. Please try again.' }, error.status || 500, request, config); }
     }
+    if (new URL(request.url).pathname === '/pinterest/saved') {
+      const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
+      try{return await pnSavedRoute(request,config);}
+      catch(error){return json({error:error.publicMessage||'Could not update saved collections.'},error.status||502,request,config);}
+    }
     if (new URL(request.url).pathname.startsWith('/pinterest/')) {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
       try { return await pnRoute(request, config); }
@@ -854,6 +859,64 @@ async function pnBoardCovers(request, env, session, id) {
     await env.OAUTH_SESSIONS.put('pn:session:' + id, JSON.stringify(session), { expirationTtl: pnSessionLifetime(session) });
   }
   return { covers, missing: missing.filter((boardId) => !covers[boardId]) };
+}
+/* Big LWA user-owned collections are separate from Pinterest boards.
+ * Current Pinterest OAuth grant is read-only. These collections are saved in
+ * account-scoped R2, never sent to Pinterest without a future write grant. */
+function pnSanitizeSavedLibrary(raw){
+  const input=Array.isArray(raw?.boards)?raw.boards:[];
+  if(input.length>40)pnFail('Maximum 40 saved collections.',413);
+  const seen=new Set();let all=0;
+  const boards=input.map(board=>{
+    const id=String(board?.id||'').trim();
+    const title=String(board?.title||'').trim().slice(0,100);
+    if(!/^[a-zA-Z0-9_-]{3,80}$/.test(id)||!title||seen.has(id))pnFail('Invalid or duplicate saved collection.',400);
+    seen.add(id);
+    const rawPins=Array.isArray(board.pins)?board.pins:[];
+    if(rawPins.length>400)pnFail('Maximum 400 Pins per collection.',413);
+    const ids=new Set();const pins=[];
+    for(const p of rawPins){
+      const pinId=String(p?.id||'').trim();
+      if(!/^\d{6,25}$/.test(pinId)||ids.has(pinId))continue;
+      ids.add(pinId);
+      const pinTitle=String(p.title||'Pinterest Pin').slice(0,300);
+      const src=String(p.image||'');
+      let image='';
+      try{
+        const parsed=new URL(src);
+        if(parsed.protocol==='https:'&&(parsed.hostname==='i.pinimg.com'||parsed.hostname.endsWith('.pinimg.com')))image=parsed.href;
+      }catch{}
+      pins.push({id:pinId,title:pinTitle,image,url:'https://www.pinterest.com/pin/'+pinId+'/'});
+    }
+    all+=pins.length;
+    return {id,title,pins};
+  });
+  if(all>1200)pnFail('Maximum 1,200 saved Pins across collections.',413);
+  return {version:1,boards};
+}
+async function pnSavedRoute(request,env){
+  if(request.method==='OPTIONS')return corsPreflight(request,env);
+  if(!allowedOrigin(request,env))pnFail('Origin not allowed.',403);
+  if(!['GET','POST'].includes(request.method))pnFail('Unsupported action.',405);
+  const user=await mediaUser(request,env);
+  const bucket=mediaBucket(env);
+  const key='pinterest/saved/'+user.uid+'/library.json';
+  if(request.method==='GET'){
+    const stored=await bucket.get(key);
+    const saved=stored?await stored.json().catch(()=>null):null;
+    return json({ok:true,library:pnSanitizeSavedLibrary(saved)},200,request,env);
+  }
+  const length=Number(request.headers.get('Content-Length')||0);
+  if(length>350000)pnFail('Saved collections exceed storage size.',413);
+  const raw=await request.text();
+  if(raw.length>350000)pnFail('Saved collections exceed storage size.',413);
+  let data;try{data=JSON.parse(raw)}catch{pnFail('Invalid saved-collection data.',400)}
+  const library=pnSanitizeSavedLibrary(data);
+  await bucket.put(key,JSON.stringify(library),{
+    httpMetadata:{contentType:'application/json; charset=utf-8',cacheControl:'private, no-store'},
+    customMetadata:{uid:user.uid,kind:'biglwa-pinterest-saved'}
+  });
+  return json({ok:true,library},200,request,env);
 }
 async function pnRoute(request, env) {
   const url = new URL(request.url), path = url.pathname;
