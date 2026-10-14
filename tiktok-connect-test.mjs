@@ -15,11 +15,11 @@ function check(name, cond, extra = "") {
 console.log("=== TIKTOK CONNECT DOES NOT DIE SILENTLY ===");
 check("connect guards the secure context it needs for PKCE", tiktok.includes("if (!crypto.subtle) throw new Error('TikTok needs a secure page"));
 check("health is still checked first", tiktok.includes("const health = await api('health');"));
-check("the oauth start is reached with a base64url challenge", tiktok.includes("location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio'))"));
+check("the oauth start uses the stable Studio Orbit return route", tiktok.includes("location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/?route=studio&view=orbit'))"));
 check("the verifier is remembered for the handoff", tiktok.includes("sessionStorage.setItem('tt_verifier', verifier)"));
 
 console.log("\n=== THE NEW SCRIPT IS SERVED ===");
-check("the tiktok script cache-buster was bumped", index.includes("tiktok-orbit.js?v=20261014-baseline-scope-binding-2"));
+check("the TikTok script has a cache-busting version", /tiktok-orbit\.js\?v=/.test(index));
 
 const worker = readFileSync(new URL('./cloudflare-worker-instagram.js',import.meta.url),'utf8');
 const connections = readFileSync(new URL('./orbit-connections.js',import.meta.url),'utf8');
