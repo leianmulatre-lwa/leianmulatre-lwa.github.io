@@ -4,7 +4,7 @@ if(window.__biglwaPinterest) return;
 const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/pinterest/';
 const KEY='biglwaPinterestSession';
  let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null;
- let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false;
+ let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false,diagnostic='Awaiting Pinterest account synchronization';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const scopedKey=uid=>KEY+':'+uid;
  const storageGet=key=>{for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(key);if(value)return value}catch{}}return ''};
@@ -56,6 +56,7 @@ const KEY='biglwaPinterestSession';
    const data=await res.json().catch(()=>({}));
    if(res.ok&&data.connected&&data.session){save(data.session);return data.session}
   }catch{}
+  diagnostic='No Pinterest session is linked to this Big LWA login. Reconnect Pinterest from Orbit.';
   return '';
  }
 const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -63,7 +64,7 @@ function notice(text){message=text;render();let el=document.getElementById('pint
 async function api(path,body){
  const res=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session()},...(body?{body:JSON.stringify(body)}:{})});
  const data=await res.json().catch(()=>({}));
- if(!res.ok){if(res.status===401){save('');resetView()}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
+ if(!res.ok){diagnostic='Pinterest '+path+' failed (HTTP '+res.status+'): '+String(data.error||'API request rejected');if(res.status===401){save('');resetView()}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
  return data;
 }
 async function run(fn){
@@ -93,6 +94,7 @@ async function connect(){await run(async()=>{
    const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.boards)?data.boards:Array.isArray(data?.data?.items)?data.data.items:[];
    if(!Array.isArray(data?.items)&&!Array.isArray(data?.boards)&&!Array.isArray(data?.data?.items))console.warn('Pinterest boards payload has no recognized items array:',Object.keys(data||{}));
    boards=more?[...boards,...items]:items;boardsNext=data?.bookmark||data?.next_bookmark||'';
+   diagnostic=items.length?'Pinterest returned '+items.length+' boards.':'Pinterest returned zero boards. Confirm the connected account and the Pinterest app board-read permission.';
    render();
    loadCovers().then(render).catch(()=>{});
    return boards;
@@ -102,7 +104,7 @@ async function connect(){await run(async()=>{
   /* Six covers is what the preview shows, so asking for more would spend the rate limit on
      tiles nobody sees. The Worker caches per session, so this is cheap after the first call. */
  async function loadCovers(){
-  const ids=boards.filter(b=>/^\d+$/.test(b.id)).slice(0,6);
+  const ids=boards.filter(b=>/^\d+$/.test(String(b.id||''))).slice(0,6);
   if(!ids.length)return;
   try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render()}catch{}finally{}
  }
@@ -134,6 +136,7 @@ async function connect(){await run(async()=>{
    const data=await api('boards/'+encodeURIComponent(id)+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
    const nextItems=Array.isArray(data?.items)?data.items:Array.isArray(data?.pins)?data.pins:Array.isArray(data?.data?.items)?data.data.items:[];
    pins=more?[...pins,...nextItems]:nextItems;pinsNext=data?.bookmark||data?.next_bookmark||'';
+   diagnostic=nextItems.length?'Pinterest returned '+nextItems.length+' Pins from the selected board.':'Pinterest returned zero Pins for board '+id+'. Check access and whether the board contains Pins.';
    render();
    /* Pinterest was previously only held in this renderer. Persist every page of returned
       Pins into the same account/profile/Archive records as the other Orbit sources. */
@@ -145,7 +148,7 @@ async function connect(){await run(async()=>{
  }
  async function restore(){
   await recoverOrBindPinterestSession();
-  if(!session()){resetView();return}
+  if(!session()){resetView();diagnostic='No linked Pinterest authorization found for this Big LWA account.';render();return}
   if(restorePromise)return restorePromise;
   restorePromise=run(async()=>{
     profile=await api('profile');
@@ -207,7 +210,7 @@ async function connect(){await run(async()=>{
  function feedPins(){
   if(!connected)return[];
   const source=boardId?pins:boards.flatMap(b=>(b.pins||[]).map(p=>({...p,boardName:b.name})));
-  return source.filter(p=>/^\d+$/.test(p.id)).slice(0,24);
+  return source.filter(p=>/^\d+$/.test(String(p.id||''))).slice(0,24);
  }
  function renderFeedList(list){
   list=list||document.getElementById('feedPageList');if(!list)return;
@@ -281,7 +284,7 @@ async function connect(){await run(async()=>{
  const disabled=busy?' disabled':'';
  panel.innerHTML='<h2>Pinterest boards</h2><p>'+(connected?'Connected as '+esc(profile.username||profile.business_name||'your Pinterest account'):'Connect Pinterest to browse your public boards and Pins here.')+'</p><div class="module-actions">'+
  (connected?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>Refresh boards</button><button type="button" class="module-action" data-pn-sync'+(busy||syncingAll?' disabled':'')+'>Sync Pins to my profile</button><button type="button" class="module-action" data-pn-disconnect'+disabled+'>Disconnect</button>':'<button type="button" class="module-action" data-pn-connect'+disabled+'>Connect Pinterest</button>')+
-  '</div><p role="status">'+esc(message)+'</p>'+(importError?'<p role="alert">'+esc(importError)+'</p>':'')+
+  '</div><p role="status">'+esc(message)+'</p><p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>'+(importError?'<p role="alert">'+esc(importError)+'</p>':'')+
   /* The grid sits outside the connected branch on purpose: the shape of what is coming is
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
@@ -289,7 +292,7 @@ async function connect(){await run(async()=>{
   (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
   (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
   (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
-  '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(p.id)).map(p=>{const src=image(p);return '<a class="pinterest-pin" href="https://www.pinterest.com/pin/'+p.id+'/" target="_blank" rel="noopener noreferrer">'+(src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'">':'')+'<span>'+esc(p.title||p.description||'View Pin')+'</span><small>View on Pinterest ↗</small></a>'}).join('')+'</div>'+
+  '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{const src=image(p);return '<a class="pinterest-pin" href="https://www.pinterest.com/pin/'+p.id+'/" target="_blank" rel="noopener noreferrer">'+(src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'">':'')+'<span>'+esc(p.title||p.description||'View Pin')+'</span><small>View on Pinterest ↗</small></a>'}).join('')+'</div>'+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
  (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'');
 }
@@ -354,6 +357,6 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
  render();
 });
-window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError})};
+window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError,diagnostic})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
