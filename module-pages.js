@@ -156,6 +156,10 @@
     @media(max-width:820px){.module-workspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:520px){.module-workspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){grid-template-columns:1fr}}
     .module-workspace[data-module-key="archive"] .archive-source-group{margin:0 0 26px}
+    .module-workspace[data-module-key="archive"] .archive-source-group{display:block;width:100%;min-width:0;grid-column:1/-1;clear:both}
+    .module-workspace[data-module-key="archive"] .instagram-archive-grid{width:100%;min-width:0;max-width:none;grid-auto-flow:row;justify-content:stretch}
+    .module-workspace[data-module-key="archive"] .instagram-archive-grid>.instagram-archive-card{width:100%;min-width:0;max-width:none}
+
     .module-workspace[data-module-key="archive"] .archive-group-head{display:flex;align-items:baseline;gap:10px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(80,70,64,.14);font:700 12px/1.3 system-ui;color:#3a332f}
     .module-workspace[data-module-key="archive"] .archive-group-head em{font:700 9px/1.4 system-ui;font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:#8a7a6c}
     .module-workspace[data-module-key="archive"] .archive-group-head .archive-group-repeats{color:#a8410f;background:rgba(168,65,15,.12);padding:2px 8px;border-radius:999px}
@@ -1369,18 +1373,26 @@ const connect=e.target.closest('[data-orbit-connect]');
   }
     function groupCards(cardList,items,grouped,hideDupes){
     const names={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'};
-    const totalBySource=k=>items.filter(item=>String(item.source||'instagram').toLowerCase()===k).length;
-    return grouped.order.map(key=>{
-      const indexes=grouped.groups.get(key);
-      const source=String(items[indexes[0]].source||'instagram').toLowerCase();
-      const repeats=indexes.length>1;
-      return '<div class="archive-source-group" data-archive-source="'+esc(source)+'">'+
-        '<h3 class="archive-group-head">'+esc(names[source]||source)+
-        (repeats?'<em class="archive-group-repeats">'+indexes.length+' copies of one picture</em>':'<em class="archive-group-count">'+totalBySource(source)+' stored</em>')+
-        '</h3><div class="instagram-archive-grid" data-archive-group="'+esc(key)+'">'+
-        (repeats&&hideDupes?indexes.slice(0,1):indexes).map(index=>cardList[index]).join('')+
-        '</div></div>';
-    }).join('');
+    // Fingerprints identify duplicates, not layout rows. All posts from a
+    // source belong in ONE full-width grid; otherwise unique photos create
+    // an endless series of single-card horizontal rows.
+    const sourceGroups=new Map();
+    grouped.order.forEach(fingerprint=>{
+      const indexes=grouped.groups.get(fingerprint)||[];
+      const visible=hideDupes?indexes.slice(0,1):indexes;
+      for(const index of visible){
+        const source=String(items[index]?.source||'instagram').toLowerCase();
+        if(!sourceGroups.has(source))sourceGroups.set(source,[]);
+        sourceGroups.get(source).push(index);
+      }
+    });
+    return [...sourceGroups].map(([source,indexes])=>
+      '<section class="archive-source-group" data-archive-source="'+esc(source)+'">'+
+      '<h3 class="archive-group-head">'+esc(names[source]||source)+
+      '<em class="archive-group-count">'+indexes.length+' stored'+(hideDupes?' (unique)':'')+'</em></h3>'+
+      '<div class="instagram-archive-grid" data-archive-group="'+esc(source)+'">'+
+      indexes.map(index=>cardList[index]).join('')+'</div></section>'
+    ).join('');
   }
 
   function renderArchive(){
