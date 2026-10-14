@@ -136,7 +136,11 @@
   return true;
  }
  function ensureMediaPortal(){
-  if(mediaPortal?.isConnected)return mediaPortal;
+  // Retire the former overlay without recreating the running iframe/audio.
+  if(mediaPortal?.isConnected){
+   mediaPortal.querySelector('#streamDiscoveryPicker')?.remove();
+   return mediaPortal;
+  }
   mediaPortal=document.createElement('div');
   mediaPortal.id='biglwaPersistentStreamPlayer';
   mediaPortal.className='biglwa-stream biglwa-persistent-stream-player';
@@ -406,39 +410,42 @@
  }
  function renderFeaturedSlots(){
   if(!root)return;
+  // The program is on the LEFT. Discovery lives only in the RIGHT channel box.
+  const panel=root.querySelector('#streamDiscoveryPicker');
+  if(!panel)return;
   const queue=discoveryItems();
-  const portal=ensureMediaPortal();
-  let panel=portal.querySelector('#streamDiscoveryPicker');
-  if(!panel){panel=document.createElement('div');panel.id='streamDiscoveryPicker';panel.className='stream-discovery-picker';portal.appendChild(panel);}
-  if(!queue.length){panel.hidden=true;return;}
+  if(!queue.length){panel.hidden=true;panel.replaceChildren();return;}
   panel.hidden=false;
   const key=state.category;
-  const index=((discoveryCursor[key]??(state.day===localDay()?new Date().getHours():0))%queue.length+queue.length)%queue.length;
-  discoveryCursor[key]=index;
-  const pick=queue[index];
-  const image=escapeHTML(discoveryThumb(pick));
-  const sourceType=pick.kind==='station'?'RADIO':pick.kind==='twitch'?'TWITCH':'TV';
-  panel.innerHTML='<div class="stream-discovery-eyebrow"><span>DAILY DISCOVERY</span><span>'+String(index+1).padStart(2,'0')+' / '+String(queue.length).padStart(2,'0')+'</span></div>'+
-   '<div class="stream-discovery-body">'+
-   '<button type="button" class="stream-discovery-arrow" data-discovery-prev aria-label="Previous discovery">‹</button>'+
-   '<button type="button" class="stream-discovery-select" data-discovery-play aria-label="'+escapeHTML('Play '+pick.title)+'">'+
-   '<img src="'+image+'" alt="'+escapeHTML(pick.title)+' thumbnail" loading="eager" decoding="async">'+
-   '<span class="stream-discovery-info"><b>'+escapeHTML(pick.title)+'</b><small>'+sourceType+' · '+(pick.kind==='station'?'▶ LISTEN':'▶ WATCH')+'</small></span>'+
-   '</button>'+
-   '<button type="button" class="stream-discovery-arrow" data-discovery-next aria-label="Next discovery">›</button></div>';
-  const img=panel.querySelector('img');
-  if(img)img.onerror=()=>{img.onerror=null;img.src='/assets/station-radio-room.webp';};
+  const start=((discoveryCursor[key]??(state.day===localDay()?new Date().getHours():0))%queue.length+queue.length)%queue.length;
+  discoveryCursor[key]=start;
+  const picks=Array.from({length:Math.min(3,queue.length)},(_,index)=>queue[(start+index)%queue.length]);
+  const cards=picks.map((pick,index)=>{
+   const position=(start+index)%queue.length;
+   const label=pick.kind==='station'?'▶ LISTEN':pick.kind==='twitch'?'▶ TUNE IN':'▶ WATCH';
+   return '<button type="button" class="stream-discovery-select" data-discovery-play="'+position+'" aria-label="'+escapeHTML(label+' '+pick.title)+'">'+
+    '<img src="'+escapeHTML(discoveryThumb(pick))+'" alt="'+escapeHTML(pick.title)+' thumbnail" loading="eager" decoding="async">'+
+    '<span class="stream-discovery-info"><b>'+escapeHTML(pick.title)+'</b><small>'+label+'</small></span></button>';
+  }).join('');
+  panel.innerHTML='<div class="stream-discovery-eyebrow"><span>DAILY DISCOVERY</span><span>'+String(start+1).padStart(2,'0')+' / '+String(queue.length).padStart(2,'0')+'</span></div>'+
+   '<div class="stream-discovery-gallery">'+cards+'</div>'+
+   '<div class="stream-discovery-pagination"><button type="button" class="stream-discovery-arrow" data-discovery-prev aria-label="Previous three discoveries">‹</button>'+
+   '<span>browse more channels</span>'+
+   '<button type="button" class="stream-discovery-arrow" data-discovery-next aria-label="Next three discoveries">›</button></div>';
+  panel.querySelectorAll('img').forEach(img=>{img.onerror=()=>{
+   img.onerror=null;img.src='/assets/station-radio-room.webp';
+  };});
  }
  function browseDiscovery(direction){
   const queue=discoveryItems();if(!queue.length)return;
   const key=state.category;
   const current=discoveryCursor[key]??new Date().getHours();
-  discoveryCursor[key]=((current+direction)%queue.length+queue.length)%queue.length;
+  discoveryCursor[key]=((current+direction*3)%queue.length+queue.length)%queue.length;
   renderFeaturedSlots();
  }
- function playDiscovery(){
+ function playDiscovery(index){
   const queue=discoveryItems();if(!queue.length)return;
-  const pick=queue[(discoveryCursor[state.category]??0)%queue.length];
+  const pick=queue[Number.isInteger(index)&&index>=0&&index<queue.length?index:(discoveryCursor[state.category]??0)%queue.length];
   if(!pick)return;
   state.followGuide=false;
   if(pick.kind==='station')selectStation(pick.index);
@@ -578,7 +585,8 @@
    live:['CH 03 / YOUTUBE + TWITCH','live',
     'Watch YouTube music, ASMR and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
   }[state.category];
-  copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><span class="stream-discovery-label">↻ shuffled daily · direct creator sources</span></div>';
+  copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
+   '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
   if(state.category==='podcast'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / PLAYABLE STATIONS</span><h3>press play, stay here</h3><p>Only direct audio streams are shown as ready. Stations requiring an external website are excluded until in-site playback is available.</p></div><label>Find ready station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Original station audio is streamed directly; listing does not imply an official affiliation.</p>';
    const filter=detail.querySelector('#streamStationSearch');
@@ -589,6 +597,7 @@
   }else{
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / YOUTUBE + TWITCH</span><h3>relax, listen & watch</h3><p>Lofi Girl, rain ASMR, frequency-based music and Twitch broadcasts can play inside the monitor. Recorded videos are labeled as recordings; channels may be offline.</p></div></div><p class="stream-directory-note">Original players retain publisher attribution and their own embed restrictions.</p>';
   }
+  renderFeaturedSlots();
  }
  function renderStations(query){
   const panel=root?.querySelector('#streamStations');if(!panel)return;
@@ -699,7 +708,7 @@
   if(button.matches('[data-stream-return]')){window.openBIGLWAModule?.('stream');return;}
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
-  if(button.matches('[data-discovery-play]')){playDiscovery();return;}
+  if(button.matches('[data-discovery-play]')){playDiscovery(Number(button.dataset.discoveryPlay));return;}
   if(button.matches('[data-radio-play]')){state.followGuide=false;saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
   if(button.matches('[data-stream-episode]')){state.followGuide=false;saveLastPlayed(state.selected);changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
   if(button.matches('[data-stream-tab]')){
