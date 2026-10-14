@@ -1957,41 +1957,17 @@ const connect=e.target.closest('[data-orbit-connect]');
     }
     function syncCollectiveFeedPreview(feedCard){
       if(!feedCard)return;
-      const hero=$('#biglwaFeedHero',feedCard);if(!hero)return;
-      const api=window.__biglwaOrbitPosts;
-      if(typeof api?.loadArchive!=='function')return;
-      const uid=String(window.__biglwaIdentity?.uid||'');
-      const serial=String(Date.now());hero.dataset.previewRequest=serial;
-      api.loadArchive().then(records=>{
-        if(!hero.isConnected||hero.dataset.previewRequest!==serial)return;
-        // Only PUBLIC Collective Feed items belong in this preview. Imported
-        // Pinterest drafts must not be presented as published posts.
-        const usable=(Array.isArray(records)?records:[])
-          .filter(item=>item&&item.state==='approved'&&item.archiveState!=='pending_delete')
-          .sort((a,b)=>(Number(b.sourceCreatedAtMs)||0)-(Number(a.sourceCreatedAtMs)||0));
-        const items=[];
-        const seen=new Set();
-        for(const item of usable){
-          const candidates=[...(Array.isArray(item.imageUrls)?item.imageUrls:[]),
-            item.imageUrl,item.thumbnailUrl];
-          const url=candidates.find(candidate=>{
-            if(typeof candidate!=='string'||!candidate.startsWith('https://'))return false;
-            return true;
-          });
-          if(!url||seen.has(url))continue;
-          seen.add(url);
-          items.push({url,source:String(item.source||'BIG LWA')});
-          if(items.length>=4)break;
-        }
-        hero.replaceChildren();
-        if(!items.length){
-          hero.hidden=true;hero.dataset.empty='1';return;
-        }
-        hero.hidden=false;delete hero.dataset.empty;
-        hero.classList.add('biglwa-instagram-feed-preview');
-        hero.setAttribute('aria-label','Recently published Collective Feed photos, including Pinterest');
-        hero.innerHTML=items.map((item,i)=>'<button type="button" class="biglwa-instagram-preview-tile" data-open="feed" aria-label="Open published '+esc(item.source)+' post in Collective Feed"><img src="'+esc(item.url)+'" alt="'+esc(item.source)+' Collective Feed photo '+(i+1)+'" loading="lazy" decoding="async"></button>').join('');
-      }).catch(error=>console.warn('Studio Collective preview:',error));
+      const hero=$('#biglwaFeedHero',feedCard);
+      if(!hero)return;
+      // Use the SAME approved Firestore posts as Collective Feed, not a private
+      // Archive import or Instagram-only data. feed-view.js owns rendering.
+      const feed=window.__biglwaFeed;
+      if(feed?.refresh){
+        Promise.resolve(feed.refresh()).catch(error=>
+          console.warn('Studio Collective Feed thumbnail refresh:',error));
+      }else if(feed?.renderHero){
+        feed.renderHero(true);
+      }
     }
     function syncStudioBoardsPreview(){
       const card=$('#boards');if(!card)return;
@@ -2029,6 +2005,8 @@ const connect=e.target.closest('[data-orbit-connect]');
       const refresh=()=>syncCollectiveFeedPreview(feedCard);
       if(!feedCard.dataset.previewBound){
         feedCard.dataset.previewBound='1';
+        document.addEventListener('biglwa:feed-ready',refresh);
+
         window.addEventListener('biglwa:orbit-imported',refresh);
         window.addEventListener('biglwa:orbit-state-changed',refresh);
         document.addEventListener('biglwa:pinterest-status',refresh);
