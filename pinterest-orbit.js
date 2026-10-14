@@ -60,7 +60,7 @@ function notice(text){message=text;render();let el=document.getElementById('pint
 async function api(path,body){
  const res=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session()},...(body?{body:JSON.stringify(body)}:{})});
  const data=await res.json().catch(()=>({}));
- if(!res.ok){if(res.status===401){save('');connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};restorePromise=null;boardsPromise=null;pinsPromise=null}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
+ if(!res.ok){if(res.status===401){save('');resetView()}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
  return data;
 }
 async function run(fn){
@@ -69,6 +69,7 @@ async function run(fn){
  finally{busy=false;render()}
 }
 async function connect(){await run(async()=>{
+  if(!await firebaseIdToken())throw new Error('Sign in to BIG LWA before connecting Pinterest.');
   /* PKCE needs crypto.subtle, which only exists on secure contexts. Instagram never
      needs it, so its connect button worked on any page while Pinterest died silently.
      Say so instead of throwing a dead click. */
@@ -102,15 +103,24 @@ async function connect(){await run(async()=>{
   try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render()}catch{}finally{}
  }
  async function importPinsToAccount(items){
-  if(!Array.isArray(items) || !items.length)return;
+  if(!Array.isArray(items)||!items.length)return {imported:0,skipped:0,partial:0};
   const importer=await waitForImporter();
-  if(typeof importer!=="function")return;
+  if(typeof importer!=='function'){
+    importError='Pins loaded, but the account importer was unavailable. Refresh to save them.';
+    render();return null;
+  }
   try{
-    const result=await importer("pinterest",items,profile, window.__biglwaIdentity || {});
-    if(result?.warning)console.warn("BIGLWA Pinterest import:",result.warning);
-    window.dispatchEvent(new CustomEvent("biglwa:orbit-imported",{detail:{source:"pinterest",...result}}));
+    const result=await importer('pinterest',items,profile,window.__biglwaIdentity||{});
+    lastImport=result||lastImport;
+    importError=result?.warning||'';
+    if(result?.warning)console.warn('BIG LWA Pinterest import:',result.warning);
+    window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',...result}}));
+    render();
+    return result;
   }catch(error){
-    console.warn("BIGLWA Pinterest account import:",error);
+    importError=error?.message||'Pinterest pins loaded, but could not be saved to your profile.';
+    console.warn('BIG LWA Pinterest account import:',error);
+    render();return null;
   }
  }
  async function loadPins(id,more){
