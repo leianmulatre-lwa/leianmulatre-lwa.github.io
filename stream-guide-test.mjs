@@ -219,7 +219,7 @@ await check('radio mixtapes link to actual Soulection releases',async()=>{
   'https://soulection.lnk.to/NeptunesTribute','https://radio.soulection.com/'];
  for(const link of links)assert.ok(catalog.some(x=>x.url===link),'missing real mixtape or radio page '+link);
 });
-await check('Live guide uses real Twitch channels rather than nonexistent live-show proposals',async()=>{
+await check('Live guide mixes embeddable YouTube sources and real Twitch channels',async()=>{
  const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
  const catalog=win.BigLWAStreamGuide.twitch;
  for(const name of ['hasanabi','pokimane','qtcinderella','kaicenat','fuslie'])
@@ -227,8 +227,13 @@ await check('Live guide uses real Twitch channels rather than nonexistent live-s
  assert.ok(catalog.every(x=>x.url==='https://www.twitch.tv/'+x.twitchChannel));
  const live=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(x=>x.category==='live').slots;
  assert.equal(live.length,24);
- assert.ok(live.every(x=>x.kind==='twitch'&&x.status.includes('UNVERIFIED')));
- assert.ok(live.every(x=>x.id&&catalog.some(y=>y.id===x.id)));
+ assert.ok(live.some(x=>x.kind==='twitch'&&x.status.includes('UNVERIFIED')));
+ assert.ok(live.some(x=>x.kind==='feature'&&x.status.includes('YOUTUBE')));
+ assert.ok(live.filter(x=>x.kind==='twitch').every(x=>catalog.some(y=>y.id===x.id)));
+ assert.ok(stream.includes("id:'lofi-girl-live'"));
+ assert.ok(stream.includes("id:'asmr-rain'"));
+ assert.ok(stream.includes("id:'weather-fox'"));
+ assert.ok(stream.includes("id:'frequencies-528'"));
  assert.ok(stream.includes('https://player.twitch.tv/?channel='));
  assert.ok(stream.includes('monitor.innerHTML=state.defaultMonitorMarkup'),'switching categories stops old embedded media');
  assert.ok(stream.includes("encodeURIComponent(window.location.hostname)"),'Twitch embed must pass the actual parent domain');
@@ -294,3 +299,12 @@ await check('frontend script versions and future features are intentional',async
  assert.ok(!stream.includes('request a time slot</h2>'));
 });
 console.log(passed+' Stream integration checks passed');
+
+await check('in-site playback uses source streams and YouTube embeds',async()=>{
+ assert.ok(stream.includes('https://kzscfms1-geckohost.radioca.st/kzschigh'));
+ assert.ok(stream.includes('const audio=root?.querySelector(\'#streamRadioAudio\')'));
+ assert.ok(stream.includes('playRadio(audio,root.querySelector(\'[data-radio-play]\'))'));
+ assert.ok(stream.includes('autoplay=1&playsinline=1'));
+ assert.ok(stream.includes("id:'lofi-girl-tv'"));
+ assert.ok(style.includes('.stream-radio-play'));
+});
