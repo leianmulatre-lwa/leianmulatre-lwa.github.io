@@ -993,7 +993,8 @@ function sqwipCleanLibrary(data) {
     };
   });
   const selected=String(data?.selectedId||'');
-  return {version:1,selectedId:docs.some(d=>d.id===selected)?selected:(docs[0]?.id||''),documents:docs};
+  const deletedIds=Array.isArray(data?.deletedIds)?data.deletedIds.filter(id=>/^[A-Za-z0-9_-]{3,128}$/.test(String(id))).slice(0,200):[];
+  return {version:1,selectedId:docs.some(d=>d.id===selected)?selected:(docs[0]?.id||''),documents:docs.filter(doc=>!deletedIds.includes(doc.id)),deletedIds};
 }
 async function sqwipRoute(request,env) {
   if(request.method==='OPTIONS')return corsPreflight(request,env);
@@ -1005,7 +1006,7 @@ async function sqwipRoute(request,env) {
   const bucket=mediaBucket(env);
   if(request.method==='GET'){
     const object=await bucket.get(key);
-    if(!object)return json({ok:true,library:{version:1,selectedId:'',documents:[]}},200,request,env);
+    if(!object)return json({ok:true,library:{version:1,selectedId:'',documents:[],deletedIds:[]}},200,request,env);
     const saved=await object.json().catch(()=>null);
     return json({ok:true,library:sqwipCleanLibrary(saved)},200,request,env);
   }
