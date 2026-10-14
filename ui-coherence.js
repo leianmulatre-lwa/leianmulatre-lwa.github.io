@@ -1170,15 +1170,40 @@
     try{const saved=JSON.parse(localStorage.getItem('biglwaModule_stream')||'[]');const title=Array.isArray(saved)&&saved[0]?.title?String(saved[0].title).trim():'';return title||'After Hours: u up?'}catch{return 'After Hours: u up?'}
   }
 
+  // A cached thumbnail must not destroy or obscure the live Studio media projection.
+  // Keep one image node and only change its src when the actual last selection changes.
+  function lastStreamThumbnail(){
+    const fallback='/assets/station-radio-room.webp?v=20260916-station-1';
+    const uid=String(window.__biglwaIdentity?.uid||'').trim();
+    if(!uid)return fallback;
+    let watched;
+    try{watched=JSON.parse(localStorage.getItem('biglwaStreamLastPlayedV1:'+uid)||'null')}catch{return fallback}
+    if(!watched||watched.kind==='station')return fallback;
+    const player=window.BigLWAStreamGuide;
+    if(watched.kind==='feature'){
+      const entry=(player?.featured||[]).find(item=>item.id===watched.id);
+      if(entry?.videoId&&/^[A-Za-z0-9_-]{11}$/.test(entry.videoId))
+       return 'https://i.ytimg.com/vi/'+entry.videoId+'/hqdefault.jpg';
+      if(entry?.provider==='archive-video')return 'https://archive.org/services/img/BettyBoopCartoons';
+    }
+    if(watched.kind==='program')return fallback;
+    return fallback;
+  }
+
   function syncStreamWidget(){
     const app=$('#studioApp');if(!app)return;
     const streamTitle=latestStreamTitle();
+    const streamThumbnail=lastStreamThumbnail();
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
       const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
       const screen=$('.stream-screen',card)||card;
       if(screen.classList.contains('stream-preview-active'))return;
       let photo=$('.stream-station-photo',screen);
-      if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.src='/assets/station-radio-room.webp?v=20260916-station-1';photo.alt='Sticker-covered radio booth lit in red and blue with a host at a microphone';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
+      if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
+      if(photo.getAttribute('src')!==streamThumbnail)photo.src=streamThumbnail;
+      photo.alt=streamThumbnail.includes('i.ytimg.com')?'Last watched Stream video thumbnail':streamThumbnail.includes('archive.org')?'Betty Boop Stream video thumbnail':'Radio booth Stream preview';
+      photo.hidden=false;
+      photo.onerror=()=>{photo.onerror=null;photo.src='/assets/station-radio-room.webp?v=20260916-station-1'};
       const title=$('strong',screen);if(title)title.textContent=streamTitle;
       const counts=$$('span,.stream-watching-count',screen).filter(el=>/watching|viewers?|watchers?|streaming/i.test(el.textContent));
       const count=counts.shift();counts.forEach(extra=>extra.remove());
