@@ -6,6 +6,9 @@
   const KEY = 'biglwaTikTokSession';
   const PENDING_KEY = 'biglwaTikTokPendingHandoffV2';
   const START_UID = 'biglwaTikTokStartingUid';
+  // Capture OAuth response before module-pages rewrites the Studio URL.
+  const CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
+  const CALLBACK_ERROR=(()=>{try{return new URL(location.href).searchParams.get('tiktok_error')||''}catch{return''}})();
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
   const scopedKey = () => authUid ? KEY + ':' + authUid : '';
   const getSession = () => { try { return scopedKey() ? localStorage.getItem(scopedKey()) || '' : ''; } catch { return ''; } };
@@ -49,7 +52,12 @@
       if (!crypto.subtle) throw new Error('TikTok needs a secure page (https) to connect from this browser.');
       if (!await firebaseIdToken() || !authUid) throw new Error('Sign in to Big LWA before connecting TikTok.');
       const health = await api('health');
-      if (!health.ok) throw new Error('TikTok setup is incomplete.');
+      if(!health.ok)throw Error('TikTok Worker setup is incomplete: '+(health.missing||[]).join(', '));
+      const expected='https://biglwa-instagram-api.leianmulatre-284.workers.dev/tiktok/callback';
+      if(health.callback!==expected)throw Error('TikTok callback mismatch: '+(health.callback||'unknown')+'. Check the Login Kit Web redirect URI.');
+      // A configured client key is not proof TikTok has approved the app.
+      // An authorization-page "check client key" error may mean Login Kit
+      // is not enabled for Web or its app is still in review.
       const bytes = crypto.getRandomValues(new Uint8Array(32));
       const verifier = Array.from(bytes, b => b.toString(16).padStart(2,'0')).join('');
       sessionStorage.setItem('tt_verifier', verifier);
@@ -57,7 +65,7 @@
       sessionStorage.removeItem(PENDING_KEY);
       const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
       const challenge = btoa(String.fromCharCode(...digest)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-      location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio'));
+      location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/?route=studio&view=orbit'));
     } catch (e) { notice(e.message); }
   }
   async function restore() {
@@ -118,13 +126,19 @@
   }
   if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('TikTok','tiktok-feed-item',renderFeedList);
   async function init() {
-    const url=new URL(location.href),handoff=url.searchParams.get('tiktok_handoff'),error=url.searchParams.get('tiktok_error');
+    const url=new URL(location.href),handoff=url.searchParams.get('tiktok_handoff')||CALLBACK_HANDOFF,error=url.searchParams.get('tiktok_error')||CALLBACK_ERROR;
     if(handoff)sessionStorage.setItem(PENDING_KEY,JSON.stringify({handoff,receivedAt:Date.now()}));
     if(handoff||error){
       url.searchParams.delete('tiktok_handoff');url.searchParams.delete('tiktok_error');
       history.replaceState(history.state,'',url.href);
     }
-    if(error)notice(error);
+    if(error){
+      const explanation=/client.?key|invalid.?client/i.test(error)
+        ? 'TikTok rejected the app credentials on its authorization page. The Worker key exists; check that the TikTok app has Login Kit enabled for Web, production approval or a permitted test account, and the exact redirect URI.'
+        : error;
+      notice(explanation);
+      console.warn('[Big LWA TikTok Login Kit]',error);
+    }
     const pendingRaw=sessionStorage.getItem(PENDING_KEY)||'';
     if(pendingRaw){
       try{
