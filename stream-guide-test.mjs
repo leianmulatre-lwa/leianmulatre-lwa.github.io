@@ -323,7 +323,7 @@ await check('TV includes the existing five Betty Boop episodes, without FOX, and
 });
 
 await check('Studio preview preserves a single mounted Stream media instance',async()=>{
- assert.ok(stream.includes('document.body.appendChild(mediaPortal)'),'media portal must be outside re-rendered modules');
+ assert.ok(stream.includes('if(portal.parentElement!==mediaTarget)mediaTarget.appendChild(portal)'),'media portal is attached to its visible player frame');
  assert.ok(stream.includes("if(!persistentPlayback&&!restoreLastPlayed())tuneCurrent()"),'reopening Stream must not recreate a playing iframe');
  assert.ok(stream.includes("targetMedia(root.querySelector('#streamMonitor'))"),'reopening Stream retargets the existing player');
  assert.ok(stream.includes("function parkInStudio()"),'Stream exposes a parking transition');
@@ -356,12 +356,16 @@ await check('Daily Discovery thumbnails and arrows live inside the monitor, neve
  assert.ok(style.includes('.stream-discovery-select img'),'thumbnail is visible');
 });
 
-await check('Studio preview projection keeps active iframe mounted and resizes without flicker',async()=>{
- assert.ok(stream.includes("mediaPortal.style.transform='translate3d('"));
- assert.ok(stream.includes("mediaResizeObserver=new ResizeObserver(scheduleMediaPosition)"));
- assert.ok(stream.includes("mediaPortal.style.visibility='visible'"));
- assert.ok(!stream.includes("mediaPortal.style.visibility=(rect.width>0"));
- assert.ok(stream.includes("mediaPortal.style.pointerEvents=valid&&rect.bottom>0"));
- assert.ok(!stream.includes("portal.querySelector('#streamDiscoveryPicker')"));
- assert.ok(style.includes('.stream-screen.stream-preview-active::after'));
+await check('Studio player is contained inside its card and cannot float over the search bar',async()=>{
+ assert.ok(stream.includes("mediaPortal.style.cssText='position:absolute;inset:0;"),'player starts as a local layer');
+ assert.ok(stream.includes("portal.style.position='absolute'"),'player is card-local on every navigation');
+ assert.ok(stream.includes("portal.style.transform='none'"),'player does not chase scrolling with transforms');
+ assert.ok(stream.includes("portal.parentElement!==mediaTarget"),'player is moved into its real frame');
+ assert.ok(!stream.includes("position:fixed;z-index:420"),'no high stacking fixed portal');
+ assert.ok(!stream.includes("new ResizeObserver(scheduleMediaPosition)"),'no geometry feedback loop');
+ assert.ok(!stream.includes("window.addEventListener?.('scroll',scheduleMediaPosition"),'no per-scroll repositioning');
+ assert.ok(style.includes(".biglwa-stream .stream-monitor{position:relative!important"),'full Stream monitor clips the portal');
+ assert.ok(style.includes("#studioApp #stream .stream-screen.stream-preview-active{position:relative!important"),'Studio player is contained');
+ assert.ok(style.includes('transform:none!important;will-change:auto!important'),'remove old composited layer wobble');
+ assert.ok(!stream.includes("portal.querySelector('#streamDiscoveryPicker')"),'discovery does not cover player');
 });
