@@ -318,3 +318,46 @@ body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .s
 .biglwa-persistent-stream-player.is-studio-preview .stream-preview-return{display:inline-flex}
 #studioApp #stream .stream-screen.stream-preview-active{min-height:238px;padding:0!important;box-shadow:inset 0 0 0 1px #8f6143;isolation:isolate}
 #studioApp #stream .stream-screen.stream-preview-active .stream-station-photo{display:none!important}
+
+/* Daily Discovery lives in the top-left corner of the persistent TV/audio monitor.
+   The tile previews a video without replacing the currently playing iframe. */
+.biglwa-persistent-stream-player .stream-discovery-picker{
+ position:absolute;z-index:24;left:10px;top:10px;width:min(328px,calc(100% - 20px));max-width:100%;
+ padding:9px 10px 10px;border:1px solid rgba(255,222,168,.75);border-radius:10px;
+ color:#fff6e2;background:rgba(27,19,21,.91);box-shadow:0 5px 23px #0704088c;
+ backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ pointer-events:auto
+}
+.biglwa-persistent-stream-player .stream-discovery-picker[hidden]{display:none!important}
+.biglwa-persistent-stream-player .stream-discovery-eyebrow{display:flex;justify-content:space-between;gap:8px;color:#edbc7c;font:800 9px/1.3 ui-monospace,monospace;letter-spacing:.08em}
+.biglwa-persistent-stream-player .stream-discovery-body{display:flex;gap:6px;align-items:stretch;margin-top:7px;min-width:0}
+.biglwa-persistent-stream-player .stream-discovery-arrow{
+ flex:0 0 28px;display:grid;place-items:center;border:1px solid #947260;border-radius:5px;
+ background:#4b302b;color:#fff5df;font:900 25px/1 Georgia,serif;cursor:pointer
+}
+.biglwa-persistent-stream-player .stream-discovery-arrow:hover,.biglwa-persistent-stream-player .stream-discovery-arrow:focus-visible{background:#af4332;outline:2px solid #ffda99}
+.biglwa-persistent-stream-player .stream-discovery-select{
+ display:flex;flex:1;gap:8px;min-width:0;align-items:center;border:1px solid #755b51;border-radius:6px;
+ background:#302328;color:#fff5e2;padding:4px;text-align:left;cursor:pointer
+}
+.biglwa-persistent-stream-player .stream-discovery-select:hover,.biglwa-persistent-stream-player .stream-discovery-select:focus-visible{border-color:#efbe7d;outline:2px solid #efbe7d}
+.biglwa-persistent-stream-player .stream-discovery-select img{
+ display:block;flex:0 0 82px;width:82px;height:54px;object-fit:cover;
+ border-radius:3px;background:#221618
+}
+.biglwa-persistent-stream-player .stream-discovery-info{min-width:0;display:flex;flex-direction:column;gap:5px}
+.biglwa-persistent-stream-player .stream-discovery-info b{font:700 11px/1.25 Georgia,serif;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.biglwa-persistent-stream-player .stream-discovery-info small{color:#e5b976;font:800 9px/1.2 ui-monospace,monospace}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-picker{width:min(244px,calc(100% - 14px));left:5px;top:38px;padding:5px 6px;max-height:100px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-eyebrow{font-size:7px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-body{gap:3px;margin-top:3px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-arrow{flex-basis:19px;font-size:19px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-select{padding:2px;gap:5px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-select img{flex-basis:52px;width:52px;height:38px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-info b{font-size:9px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-discovery-info small{font-size:7px}
+@media(max-width:520px){
+ .biglwa-persistent-stream-player:not(.is-studio-preview) .stream-discovery-picker{width:min(255px,calc(100% - 14px));left:7px;top:7px;padding:5px}
+ .biglwa-persistent-stream-player:not(.is-studio-preview) .stream-discovery-select img{flex-basis:60px;width:60px;height:40px}
+ .biglwa-persistent-stream-player:not(.is-studio-preview) .stream-discovery-arrow{flex-basis:22px;font-size:22px}
+}
