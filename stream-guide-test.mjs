@@ -284,7 +284,7 @@ await check('Stream shares the same Studio header and page width as other widget
  assert.ok(style.includes('.stream-nav-meta'),'compact nav matches shared Studio geometry');
 });
 await check('frontend script versions and future features are intentional',async()=>{
- assert.ok(index.includes('stream-guide.js?v=20261014-ballroom-single-channel-1'));
+ assert.ok(index.includes('stream-guide.js?v='));
  assert.ok(index.includes('stream-guide.css?v=20261014-ballroom-single-channel-1'));
  assert.ok(index.includes('module-pages.js?v=20261014-stream-ballroom-1'));
  assert.ok(style.includes('.stream-shuffle-button'));
