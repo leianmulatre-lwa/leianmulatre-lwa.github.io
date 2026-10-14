@@ -294,13 +294,13 @@
       var media = hosted[0] || '';
       // Provider pictures may be shown temporarily while the R2 copy is in
       // progress, but only our own R2 URLs are persisted in account records.
-      var livePreview = !media && state.connected
-        ? String(first.thumbnail_url || first.media_url || item.thumbnail_url || item.media_url || '')
-        : '';
-      if(livePreview&&!/^https:\/\//i.test(livePreview))livePreview='';
+      var sourcePreview = String(first.thumbnail_url || first.media_url || item.thumbnail_url || item.media_url || '');
+      if(sourcePreview&&!/^https:\/\//i.test(sourcePreview))sourcePreview='';
+      var livePreview = !media && state.connected ? sourcePreview : '';
       var shown=media||livePreview;
       var visual = shown
         ? '<img data-instagram-media src="' + escapeText(shown) + '" data-instagram-preview="' + escapeText(shown) + '"' +
+          (media&&sourcePreview&&sourcePreview!==media?' data-instagram-fallback="'+escapeText(sourcePreview)+'"':'') +
           (media?' data-biglwa-hosted="true"':' data-biglwa-hosted="pending"') +
           ' alt="Instagram media preview" loading="lazy" style="display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd">'
         : '<div class="biglwa-unavailable-media">This Instagram image is not available yet. Choose Retry saving photos to restore its stored copy.</div>';
@@ -317,18 +317,19 @@
         : '';
       var sendRecord = JSON.stringify({
         id: cardId,
+        source: 'instagram',
+        sourcePostId: String(item.id || ''),
         caption: item.caption || '',
         sourceUrl: item.permalink || '',
-        imageUrls: hosted.filter(Boolean)
+        imageUrls: hosted.length ? hosted.filter(Boolean) : (shown ? [shown] : [])
       }).replace(/"/g, '&quot;');
       return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#7d3ec5;--feed-card-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999" data-instagram-index="' + index + '"' +
-        ' data-post-id="' + cardId + '" data-send-record="' + sendRecord + '">' +
+        ' data-post-id="' + cardId + '" data-source-id="' + escapeText(item.id || '') + '" data-send-record="' + sendRecord + '">' +
         '<div style="width:100%;padding:0">' +
           '<div class="biglwa-instagram-strip">' +
             tabs +
             '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
-              '<button type="button" data-instagram-hide aria-label="Remove from feed" title="Remove from feed"></button>' +
-              '<button type="button" data-instagram-hide aria-label="Archive" title="Archive"></button>' +
+
               '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram"></a>' +
             '</div>' +
           '</div>' +
