@@ -4,12 +4,24 @@ if(window.__biglwaPinterest) return;
 const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/pinterest/';
 const KEY='biglwaPinterestSession';
  let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null;
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- /* The session id is a credential that should outlive the tab, like the other two
-    sources, so the connection does not vanish when the window is closed. The PKCE
-    verifier stays in session storage: it is only needed for the one round trip. */
- const session=()=>{for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(KEY);if(value)return value}catch{}}return ''};
- const save=v=>{for(const store of [localStorage,sessionStorage]){try{if(v)store.setItem(KEY,v);else store.removeItem(KEY)}catch{}}};
+ let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false;
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const scopedKey=uid=>KEY+':'+uid;
+ const storageGet=key=>{for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(key);if(value)return value}catch{}}return ''};
+ const storageDrop=key=>{for(const store of [localStorage,sessionStorage]){try{store.removeItem(key)}catch{}}};
+ const session=()=>{const uid=authUid||window.__biglwaIdentity?.uid||'';return uid?storageGet(scopedKey(uid)):''};
+ const save=value=>{
+  const uid=authUid||window.__biglwaIdentity?.uid||'';
+  if(!uid)return;
+  if(value){try{localStorage.setItem(scopedKey(uid),value)}catch{try{sessionStorage.setItem(scopedKey(uid),value)}catch{}}}
+  else storageDrop(scopedKey(uid));
+  storageDrop(KEY);
+ };
+ const resetView=()=>{
+  connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};
+  restorePromise=null;boardsPromise=null;pinsPromise=null;lastImport={imported:0,skipped:0,partial:0};importError='';
+  render();
+ };
  async function firebaseIdToken(){
   try{
    const [{getAuth},{initializeApp,getApps}]=await Promise.all([
@@ -17,25 +29,31 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
     import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js')
    ]);
    const app=getApps()[0]||initializeApp({apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'});
-   const user=getAuth(app).currentUser;
+   const auth=getAuth(app);
+   await auth.authStateReady();
+   const user=auth.currentUser;
+   authUid=user?.uid||'';
    return user?await user.getIdToken():'';
   }catch{return ''}
  }
  async function recoverOrBindPinterestSession(){
   const token=await firebaseIdToken();
-  if(!token)return '';
-  const local=session();
-  try{
-   if(local){
+  if(!token||!authUid){resetView();return ''}
+  const local=session()||storageGet(KEY); // Legacy browser key only after server verifies ownership.
+  if(local){
+   try{
     const res=await fetch(API+'session/claim',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+local},body:JSON.stringify({firebaseIdToken:token})});
     const data=await res.json().catch(()=>({}));
     if(res.ok&&data.session){save(data.session);return data.session}
-   }
+    if(res.status===401||res.status===403){storageDrop(scopedKey(authUid));storageDrop(KEY)}
+   }catch{ /* Use account recovery if the claim request is temporarily unavailable. */ }
+  }
+  try{
    const res=await fetch(API+'session/account',{headers:{Authorization:'Bearer '+token}});
    const data=await res.json().catch(()=>({}));
    if(res.ok&&data.connected&&data.session){save(data.session);return data.session}
   }catch{}
-  return local;
+  return '';
  }
 const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 function notice(text){message=text;render();let el=document.getElementById('pinterestNotice');if(!el){el=document.createElement('div');el.id='pinterestNotice';el.setAttribute('role','status');el.style.cssText='position:fixed;right:18px;bottom:18px;max-width:360px;padding:16px;background:#fff5eb;color:#302b28;border:1px solid #ccc;border-radius:12px;z-index:15000';document.body.append(el)}el.textContent=text;clearTimeout(notice.timer);notice.timer=setTimeout(()=>el.remove(),10000)}
