@@ -695,9 +695,9 @@
   const body = $('#moduleWorkspaceBody');
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
-const known = new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',calendar:'Calendar',orbit:'Orbit',feed:'Feed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwib Note',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
-  const desc = {create:'Start something and send it to the right part of BIGLWA.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'Publish a picture and a caption to the collective feed.',connect:'Invite friends to join BIGLWA.',camera:'A real browser photobooth: start the camera, pose, capture, retake, and save a frame without uploading it.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'The people, politics, and power board — community nominations, the pendulum, voting resources, and world news.'};
+const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews','politc']);
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'Feed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwib Note',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
+  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'Publish a picture and a caption to the collective feed.',connect:'Invite friends to join BIGLWA.',camera:'A real browser photobooth: start the camera, pose, capture, retake, and save a frame without uploading it.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'The people, politics, and power board — community nominations, the pendulum, voting resources, and world news.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
@@ -1005,6 +1005,69 @@ const connect=e.target.closest('[data-orbit-connect]');
     };
     area.addEventListener('input',()=>{status.textContent='Saving…';status.classList.remove('ok');clearTimeout(t);t=setTimeout(()=>save(false),350)});
     form.addEventListener('submit',event=>{event.preventDefault();clearTimeout(t);save(true)});
+    if(key==='notes'){
+      const publisher=$('#diaryWritingSection',body);
+      if(publisher){
+        const areaSection=document.createElement('section');
+        areaSection.id='sqwibPublishArea';
+        areaSection.innerHTML='<h3>publish a sqwib</h3>'+
+          '<p>Your draft above stays private. Only pressing Publish shares a copy on Veve. Each note controls whether other people may resqwib it.</p>'+
+          '<label class="sqwib-permission"><input type="checkbox" id="sqwibAllowResqwib"><span>Allow others to resqwib this published note (off by default)</span></label>'+
+          '<button type="button" data-sqwib-control="publish">Publish public Sqwib</button>'+
+          '<p id="sqwibPublishStatus" role="status">Your draft is not public.</p>'+
+          '<div id="sqwibPublishedList" aria-label="Your published Sqwibs"></div>';
+        publisher.append(areaSection);
+        const publicApi=()=>window.BigLWASqwibs;
+        const announce=m=>{const node=$('#sqwibPublishStatus',areaSection);if(node)node.textContent=m};
+        const list=$('#sqwibPublishedList',areaSection);
+        const refreshSqwibs=async()=>{
+          if(!publicApi())return;
+          try{
+            const published=await publicApi().mySqwibs();
+            if(!list.isConnected)return;
+            list.innerHTML=published.length?published.map(item=>
+              '<article class="sqwib-published-item" data-sqwib-id="'+esc(item.id)+'"><p>'+esc(String(item.text||'').slice(0,240))+'</p>'+
+              '<div class="sqwib-published-actions"><span>'+(item.visibility==='public'?'Public':'Unpublished')+'</span>'+
+              (item.visibility==='public'
+                ?'<label class="sqwib-permission"><input type="checkbox" data-sqwib-allow="'+esc(item.id)+'" '+(item.allowResqwib===true?'checked':'')+'> resqwibs allowed</label>'+
+                 '<button type="button" data-sqwib-control="unpublish" data-sqwib-id="'+esc(item.id)+'">Unpublish</button>'
+                :'')+'</div></article>').join(''):'<p>No published Sqwibs yet.</p>';
+          }catch(error){announce('Could not read published Sqwibs: '+(error?.message||'Check account permissions'))}
+        };
+        const pub=$('[data-sqwib-control="publish"]',areaSection);
+        pub.onclick=async()=>{
+          const raw=area.value.trim();
+          if(!raw){announce('Write something above before publishing.');return}
+          if(raw.length>1200){announce('Public Sqwibs must be 1,200 characters or fewer. Your private draft remains unchanged.');return}
+          if(!publicApi()){announce('Account publishing is still loading. Try again shortly.');return}
+          pub.disabled=true;announce('Publishing your Sqwib publicly…');
+          try{
+            await publicApi().publish(raw,$('#sqwibAllowResqwib',areaSection).checked);
+            announce('Published to Veve. Your private working draft remains on this device.');
+            await refreshSqwibs();
+          }catch(error){announce(error?.message||'Could not publish. Your note remains private.')}
+          finally{pub.disabled=false}
+        };
+        areaSection.addEventListener('click',async event=>{
+          const btn=event.target.closest('[data-sqwib-control="unpublish"]');
+          if(!btn)return;
+          btn.disabled=true;
+          try{await publicApi().unpublish(btn.dataset.sqwibId);announce('Sqwib unpublished. Its resqwib copies are no longer displayed.');await refreshSqwibs()}
+          catch(error){announce(error?.message||'Could not change visibility.');btn.disabled=false}
+        });
+        areaSection.addEventListener('change',async event=>{
+          const input=event.target.closest('[data-sqwib-allow]');
+          if(!input)return;
+          input.disabled=true;
+          try{await publicApi().permission(input.dataset.sqwibAllow,input.checked);
+            announce(input.checked?'Author permission enabled for resqwibs.':'Resqwib permission withdrawn. Existing reshares are hidden from Veve.');
+            await refreshSqwibs()
+          }catch(error){announce(error?.message||'Could not update permission.');input.checked=!input.checked}
+          finally{input.disabled=false}
+        });
+        refreshSqwibs();
+      }
+    }
     if(key==='notes'){
       // Sqwib Note owns Sqwip. Existing screenplay documents retain their original
       // account-scoped and cloud storage keys; Journal no longer mounts the editor.
@@ -2213,13 +2276,19 @@ const connect=e.target.closest('[data-orbit-connect]');
     };
   }
 
+  function renderVeve(){
+    body.innerHTML=heading('veve')+'<div id="biglwaVeve" class="veve-root"><p role="status">Loading public discovery…</p></div>';
+    const root=$('#biglwaVeve',body);
+    if(window.BigLWAVeve?.mount)window.BigLWAVeve.mount(root);
+    else root.innerHTML='<p role="alert">Veve is loading. Please refresh and try again.</p>';
+  }
   function renderCreate(){const mods=['calendar','feed','projects','trophies','camera','diary','boards','closet','archive','stream','map','orbit'];body.innerHTML=heading('create')+`<div class="module-grid"><section class="module-card wide"><h2>Choose where this belongs</h2><div class="module-launchers">${mods.map(k=>`<button class="module-launcher" type="button" data-module-launch="${k}"><b>${labels[k]}</b><small>${desc[k]}</small></button>`).join('')}</div></section></div>`;body.onclick=e=>{const b=e.target.closest('[data-module-launch]');if(b)openModule(b.dataset.moduleLaunch)}};
 
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
     stopCamera();let key=(rawKey||'').toLowerCase();if(key==='politic'||key==='politics')key='politc';
     if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project')key='projects';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
-    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',(key==='map'||key==='politc')?`/studio?panel=${encodeURIComponent(key)}`:`/studio/${encodeURIComponent(key)}`)}catch{}}
+    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='veve')renderVeve();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',(key==='map'||key==='politc')?`/studio?panel=${encodeURIComponent(key)}`:`/studio/${encodeURIComponent(key)}`)}catch{}}
   }
   window.openBIGLWAModule=openModule;
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
@@ -2598,7 +2667,7 @@ const connect=e.target.closest('[data-orbit-connect]');
   document.addEventListener('biglwa:writing-saved',syncWritingPreviews);
   document.addEventListener('biglwa:module-close',()=>{syncMapCardPreview();syncWritingPreviews()});
 
-  document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const directory=e.target.closest('.hero-action-bar a[href^="#"]');const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!directory&&!mobile&&!trigger)return;let key=mobile?'create':directory?(directory.getAttribute('href')||'').replace(/^#/,''):trigger.dataset.open;if(key==='home'){e.preventDefault();e.stopImmediatePropagation();closeModule();window.scrollTo({top:0,behavior:'smooth'});return}if(key==='desk')key='create';const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key||!known.has(String(key).toLowerCase()))return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
+  document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const directory=e.target.closest('.hero-action-bar a[href^="#"]');const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!directory&&!mobile&&!trigger)return;let key=mobile?'veve':directory?(directory.getAttribute('href')||'').replace(/^#/,''):trigger.dataset.open;if(key==='home'){e.preventDefault();e.stopImmediatePropagation();closeModule();window.scrollTo({top:0,behavior:'smooth'});return}if(key==='desk')key='create';const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key||!known.has(String(key).toLowerCase()))return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
   const cleanStudioModulePath=()=>{try{const parts=location.pathname.replace(/^\/+|\/+$/g,'').split('/').filter(Boolean).map(x=>decodeURIComponent(x).toLowerCase());if(parts[0]!=='studio'||parts.length!==2)return '';return known.has(parts[1])?parts[1]:''}catch{return ''}};
   const routeViewFromUrl=()=>{const params=new URLSearchParams(location.search);if(location.pathname.replace(/\/+$/,'')==='/studio'&&['map','politc'].includes(params.get('panel')))return params.get('panel');const legacy=params.get('view');return legacy&&known.has(legacy.toLowerCase())?legacy.toLowerCase():cleanStudioModulePath()};
   const canonicalizeLegacyView=()=>{const legacy=new URLSearchParams(location.search).get('view');if(!legacy||!known.has(legacy.toLowerCase()))return;try{history.replaceState({biglwaModule:legacy.toLowerCase()},'',['map','politc'].includes(legacy.toLowerCase())?`/studio?panel=${encodeURIComponent(legacy.toLowerCase())}`:`/studio/${encodeURIComponent(legacy.toLowerCase())}`)}catch{}};
