@@ -392,6 +392,44 @@ async function importInstagramMediaToR2(items, user, source = 'instagram') {
   return map;
 }
 
+export async function storedOrbitImageUrls(source = '') {
+  const store=await firebase();
+  const uid=store.auth.currentUser?.uid;
+  if(!uid)return {};
+  const expected=clean(source).toLowerCase();
+  const result={};
+  // Read only the account owner's existing post indexes, not other users' data.
+  // R2 URLs are reconstructed from durable keys as well as saved media URLs.
+  try{
+    const snap=await store.getDocs(store.query(store.collection(store.db,'users',uid,'posts'),store.limit(500)));
+    for(const doc of snap.docs){
+      const post=doc.data()||{};
+      if(expected&&clean(post.source).toLowerCase()!==expected)continue;
+      const id=clean(post.sourcePostId);
+      if(!id)continue;
+      const urls=[];
+      const add=value=>{
+        const url=clean(value);
+        if(isStoredOrbitUrl(url)&&!urls.includes(url))urls.push(url);
+      };
+      const fromKey=key=>{
+        const value=clean(key).replace(/^orbit\//,'');
+        if(!/^[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(value))return;
+        add(MEDIA_ENDPOINT+'/media/orbit/'+value);
+      };
+      for(const piece of (Array.isArray(post.mediaItems)?post.mediaItems:[])){
+        if(!piece||piece.isPicture===false)continue;
+        add(piece.url);add(piece.thumbnailUrl);fromKey(piece.key);
+      }
+      for(const url of (Array.isArray(post.imageUrls)?post.imageUrls:[]))add(url);
+      for(const key of (Array.isArray(post.imageKeys)?post.imageKeys:[]))fromKey(key);
+      add(post.imageUrl);fromKey(post.imageUrlKey);
+      if(urls.length)result[id]=urls;
+    }
+  }catch(error){console.warn('BIGLWA stored media restore:',error)}
+  return result;
+}
+
 export async function importOrbitMedia(source, items, profile, identityRecord) {
   const store = await firebase();
   const { db, auth, getDoc, serverTimestamp } = store;
@@ -544,12 +582,12 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
 
   // The connected-source wall can immediately paint the same durable URLs as
   // the persisted account/Archive/Collective records, without borrowing a CDN link.
-  const hostedById = {};
+  const hostedById = await storedOrbitImageUrls(source);
   if(hostedMedia?.urls instanceof Map) {
     for(const raw of items){
       const sourceId = sourcePostIdFor(raw, source.toLowerCase()==='pinterest' ? pinterestImageUrl(raw) : clean(raw.media_url||raw.thumbnail_url||raw.url));
       const urls=mediaPieces(raw,source.toLowerCase()).map((_,index)=>hostedMedia.urls.get(sourceId+':'+index)||'');
-      if(urls.some(Boolean))hostedById[sourceId]=urls;
+      if(urls.some(Boolean))hostedById[sourceId]=[...new Set([...urls.filter(Boolean),...(hostedById[sourceId]||[])])];
     }
   }
   return { imported, skipped, partial, copyFailures, warning, hostedById };
@@ -797,6 +835,7 @@ export async function savePostRecords(ownerUid, postId, data, archiveExtra = {})
 
 window.__biglwaOrbitPosts = {
   importOrbitMedia,
+  storedOrbitImageUrls,
   publishOrbitPost,
   archiveOrbitPost,
   setOrbitState,
