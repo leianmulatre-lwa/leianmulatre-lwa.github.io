@@ -104,7 +104,7 @@ async function loadOrbitImagePicker(){
    const permitted=url=>{
      try{const u=new URL(url);return u.protocol==='https:'&&
         u.hostname==='biglwa-instagram-api.leianmulatre-284.workers.dev'&&
-        /^\\/media\\/(orbit|feed-image)\\/[a-zA-Z0-9_-]+\\//.test(u.pathname);
+        new RegExp('^/media/(orbit|feed-image)/[A-Za-z0-9_-]+/').test(u.pathname);
      }catch{return false}
    };
    const images=[...new Set(Object.values(saved||{}).flat().filter(permitted))];
