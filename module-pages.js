@@ -444,6 +444,18 @@
     .module-workspace .arcade-quickgame span{font:600 10px/1.3 system-ui;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
     .module-workspace .arcade-quickgame:focus-visible{outline:3px solid #efc76d;outline-offset:2px}
     @media(max-width:690px){.module-workspace .arcade-game-feature{grid-template-columns:1fr}.module-workspace .arcade-game-cover{height:170px;object-position:center}.module-workspace .arcade-game-launcher{gap:14px}.module-workspace .arcade-game-details h3{font-size:25px}}
+
+    /* Collapsible directory: native details/summary handles keyboard, pointer and touch. */
+    .module-game-directory details{width:100%}
+    .module-game-directory .arcade-directory-toggle{display:flex;gap:12px;align-items:center;cursor:pointer;list-style:none;padding:4px 2px 8px;user-select:none}
+    .module-game-directory .arcade-directory-toggle::-webkit-details-marker{display:none}
+    .module-game-directory .arcade-directory-toggle>span:first-child{font:400 24px/1.2 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+    .module-game-directory .arcade-directory-toggle small{font:600 11px/1.35 system-ui;color:#74675e;margin-left:auto}
+    .module-game-directory .arcade-directory-chevron{font:700 24px/1 system-ui;transition:transform .2s ease;transform:rotate(0deg)}
+    .module-game-directory details[open] .arcade-directory-chevron{transform:rotate(180deg)}
+    .module-game-directory .arcade-directory-toggle:focus-visible{outline:3px solid #a53332;outline-offset:4px;border-radius:5px}
+    .module-game-directory details>p{margin:2px 0 12px}
+    .night-mode .module-game-directory .arcade-directory-toggle small{color:#ddd0c1}
     .module-game-directory h2{font:400 24px/1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
     .module-game-directory-list{display:grid;gap:6px;margin-top:12px}
     .module-game-directory-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e5dccf;background:rgba(255,255,255,.55);border-radius:11px;padding:8px 10px}
@@ -834,11 +846,11 @@ const connect=e.target.closest('[data-orbit-connect]');
       ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
       :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="Play '+esc(game.title)+' in the arcade"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>choose ▶</small></button>';
     const track=items=>items.concat(items).map(game=>tile(game,gameLibrary.indexOf(game))).join('');
-    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>View game</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Open ↗</a>')+'</div></div>'};
+    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>Play in screen</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Open ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Select a game to open its link preview in this screen. External providers may block embedding; pop-out play keeps Big LWA open.</div></section>'+
-        '<section class="module-card module-game-directory wide"><h2>all games</h2><p>Browse previews in the cabinet, open games in a pop-out, or visit their official websites. Some sites block embedded players.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></section>'+
+        '<section class="module-card module-game-stage wide"><div class="module-arcade-folder-depth"><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Games try loading directly from the original provider in this screen. If embedding is blocked, use Game links or Pop-out.</div></section>'+
+        '<section class="module-card module-game-directory wide"><details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle"><span>all games</span><small>'+gameLibrary.length+' titles · expand or collapse</small><span class="arcade-directory-chevron" aria-hidden="true">⌄</span></summary><p>Choose a game to try playing in the cabinet, or open it directly at the original game provider.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></details></section>'+
         '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
         '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
           '<label><span>Game name</span><input class="module-input" name="title" required maxlength="80" placeholder="Game title"></label>'+
@@ -953,20 +965,20 @@ const connect=e.target.closest('[data-orbit-connect]');
       description.textContent=steam
         ? 'This is a PC game sold through Steam, not a browser game. Open its listing to play with an installed copy.'
         : blocked
-          ? 'This provider restricts embedded game windows. Launch it in a pop-out to keep Big LWA open in the background.'
-          : 'This game is hosted on another website. Open a pop-out to keep Big LWA visible, or try the in-screen player if the provider permits it.';
+          ? 'This provider usually restricts embedded windows. You can still try the original game URL here, or launch it in a pop-out.'
+          : 'This game stays hosted by its original provider. Try it inside Big LWA, or open the original game page.';
       const actions=document.createElement('div');
       actions.className='arcade-game-launch-actions';
       if(!steam){
         actions.append(makeAction('Play in pop-out ↗','arcadePopup',''));
       }
       actions.append(createOpenLink(uri,steam?'View on Steam ↗':'Open game page ↗','ghost'));
-      if(!blocked && !steam) actions.append(makeAction('Try in this screen','arcadeTryEmbed','ghost'));
+      if(!steam) actions.append(makeAction('Try in this screen','arcadeTryEmbed','ghost'));
       actions.append(makeAction('Copy game link','arcadeCopy','ghost'));
       const note=document.createElement('small');
       note.className='arcade-game-notice';
       note.setAttribute('role','status');
-      note.textContent=blocked?'This site does not authorize a Big LWA embedded player.':'External games run on their original provider websites.';
+      note.textContent=blocked?'Embedding may be denied by this provider; the original host link remains available.':'External games remain hosted by their original providers.';
       details.append(label,heading,description,actions,note);
       const feature=document.createElement('div');
       feature.className='arcade-game-feature';
@@ -1001,7 +1013,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     const tryEmbedded=()=>{
       if(!selectedGame?.href)return;
       const uri=new URL(selectedGame.href);
-      if(uri.protocol!=='https:' || restrictsEmbed(uri))return showGameLinks(selectedGame);
+      if(uri.protocol!=='https:' || uri.hostname==='store.steampowered.com')return showGameLinks(selectedGame);
       const game=selectedGame;
       emulatorScreen.classList.remove('is-launcher');
       emulatorScreen.classList.add('is-embed');
@@ -1016,9 +1028,18 @@ const connect=e.target.closest('[data-orbit-connect]');
       const deck=document.createElement('div');
       deck.className='arcade-player-deck';
       const help=document.createElement('span');
-      help.textContent='If the site refuses to connect, return to links and use a pop-out.';
-      deck.append(help,makeAction('← game links','arcadePreview','ghost'),makeAction('Pop-out ↗','arcadePopup','ghost'),makeAction('Fullscreen','arcadeFullscreen','ghost'),createOpenLink(uri,'Open ↗','ghost'));
+      help.textContent=restrictsEmbed(uri)?'Provider may refuse the embed. Use Game links or Pop-out if it does.':'If the player does not load, use Game links or Pop-out.';
+      deck.append(help,makeAction('Game links','arcadePreview','ghost'),makeAction('Pop-out ↗','arcadePopup','ghost'),makeAction('Fullscreen','arcadeFullscreen','ghost'),createOpenLink(uri,'Open ↗','ghost'));
       emulatorScreen.replaceChildren(head,frame,deck);
+    };
+    // First attempt the original host directly; never proxy, copy, or rewrite
+    // third-party frame security headers or claim to host their game.
+    const playGame=game=>{
+      if(!game?.href)return;
+      showGameLinks(game);
+      try{
+        if(new URL(game.href).hostname!=='store.steampowered.com')tryEmbedded();
+      }catch{}
     };
     const popOutGame=()=>{
       if(!selectedGame?.href)return;
@@ -1052,7 +1073,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       if(target.matches('[data-arcade-select-game]')){
         const game=gameLibrary[Number(target.dataset.arcadeSelectGame)];
         if(game?.internal==='cultureQuiz'){selectedGame=null;openCultureQuiz()}
-        else showGameLinks(game);
+        else playGame(game);
         return;
       }
       if(target.matches('[data-arcade-fullscreen]')){
@@ -1061,9 +1082,9 @@ const connect=e.target.closest('[data-orbit-connect]');
         return;
       }
       if(target.matches('[data-play-culture-quiz]')){selectedGame=null;openCultureQuiz();return}
-      if(target.matches('[data-play-external]')){showGameLinks(gameLibrary[Number(target.dataset.playExternal)]);return}
+      if(target.matches('[data-play-external]')){playGame(gameLibrary[Number(target.dataset.playExternal)]);return}
     });
-    $$('[data-directory-play]',body).forEach(button=>button.addEventListener('click',()=>showGameLinks(gameLibrary[Number(button.closest('[data-directory-index]').dataset.directoryIndex)])));
+    $('[data-directory-play]',body).forEach(button=>button.addEventListener('click',()=>playGame(gameLibrary[Number(button.closest('[data-directory-index]').dataset.directoryIndex)])));
     $('[data-close-culture-quiz]',culturePanel).onclick=restoreArcade;
     cultureContent.onclick=event=>{
       const answerButton=event.target.closest('[data-culture-answer]');
