@@ -529,8 +529,10 @@ export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
       const existingArchive = await getDocs(query(collection(db, "users", uid, "archive"), limit(1)));
       if (existingArchive.empty) {
         const oldSnap = await getDocs(collection(db, "users", uid, "posts"));
-        const instagram = oldSnap.docs.filter(d => String(d.data()?.source || "").toLowerCase() === "instagram");
-        for (const old of instagram) {
+        // The bridge must include Pinterest, Facebook and other Orbit sources too;
+        // previously it only restored Instagram into Archive.
+        const imported = oldSnap.docs.filter(d => Boolean(d.data()?.orbitImported || d.data()?.source));
+        for (const old of imported) {
           const data = old.data() || {};
           const archiveRef = doc(db, "users", uid, "archive", old.id);
           const archiveSnap = await getDoc(archiveRef);
@@ -548,24 +550,14 @@ export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
     }
   }
 
-  let snap;
-  try {
-    const base = query(
-      collection(db, "users", uid, "archive"),
-      orderBy("sourceCreatedAtMs", "desc")
-    );
-    snap = cursor
-      ? await getDocs(query(base, startAfter(cursor), limit(size)))
-      : await getDocs(query(base, limit(size)));
-  } catch (error) {
-    console.warn("BIGLWA Archive ordered read:", error);
-    /* Keep the same page size on the fallback path so a missing index cannot suddenly
-       dump the whole Archive into the browser. */
-    const base = cursor
-      ? query(collection(db, "users", uid, "archive"), startAfter(cursor))
-      : query(collection(db, "users", uid, "archive"));
-    snap = await getDocs(query(base, limit(size)));
-  }
+  // Firestore orderBy(sourceCreatedAtMs) silently EXCLUDES older Archive docs
+  // with no such field. Read all cards in stable document-ID pages, then sort
+  // each page client-side. The nextCursor remains a Firestore document snapshot.
+  // This preserves older Pinterest/Instagram cards without creating an index.
+  const base = collection(db, "users", uid, "archive");
+  const snap = cursor
+    ? await getDocs(query(base, startAfter(cursor), limit(size)))
+    : await getDocs(query(base, limit(size)));
 
   const now = Date.now();
   const rows = [];
