@@ -33,7 +33,9 @@
   {id:'cn-steven',category:'lwa-tv',title:'Cartoon Network',creator:'Cartoon Network',subtitle:'Steven Universe · Here Comes a Thought',videoId:'dHg50mdODFM',url:'https://www.youtube.com/watch?v=dHg50mdODFM',source:'Official YouTube clip'},
   {id:'cn-regular',category:'lwa-tv',title:'Cartoon Network · Regular Show',creator:'Cartoon Network',subtitle:'Streaming Wars · Regular Show',videoId:'Uimuwd0kX9g',url:'https://www.youtube.com/watch?v=Uimuwd0kX9g',source:'Official YouTube clip'},
   {id:'markiplier-scary',category:'lwa-tv',title:'Markiplier',creator:'Markiplier',subtitle:'3 SCARY GAMES #9',videoId:'abHGyg4LKn4',url:'https://www.youtube.com/watch?v=abHGyg4LKn4',source:'Official YouTube video'},
-  {id:'cory-sss',category:'lwa-tv',title:'CoryxKenshin',creator:'CoryxKenshin',subtitle:'Spooky Scary Sunday is Back',videoId:'edk2uac_x0Y',url:'https://www.youtube.com/watch?v=edk2uac_x0Y',source:'Official YouTube video'}
+  {id:'cory-sss',category:'lwa-tv',title:'CoryxKenshin',creator:'CoryxKenshin',subtitle:'Spooky Scary Sunday is Back',videoId:'edk2uac_x0Y',url:'https://www.youtube.com/watch?v=edk2uac_x0Y',source:'Official YouTube video'},
+  {id:'teaspill-request',category:'lwa-tv',title:'TeaSpill',creator:'Suggested creator',subtitle:'Pop-culture commentary · channel link under review',source:'Requested creator idea'},
+  {id:'olandria-request',category:'lwa-tv',title:'Olandria coverage',creator:'Suggested programming',subtitle:'Interviews and personality features · video link under review',source:'Requested programming idea'}
  ];
 
  const escapeHTML=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -85,11 +87,11 @@
    categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></section>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
-   '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>the lineup</h2><p>Times shown in your device timezone. The named station/creator slots below are a directory, not confirmed broadcast times.</p></div>',
+   '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>the lineup</h2><p>Every hourly square now features a station, creator or live-show idea. CURATED tiles are on-demand suggestions—not actual broadcasts at those hours. Approved airtime is marked separately.</p></div>',
    '<label>Programming date <input id="streamDate" type="date" aria-label="Programming date" value="'+state.day+'"></label></div>',
    '<div class="stream-grid-scroll" tabindex="0" aria-label="Scroll horizontally through 24 hourly programming slots" id="streamGridScroll"><div class="stream-grid" id="streamGrid"></div></div>',
    '<div id="streamFeaturedSlots" class="stream-featured-band" aria-label="Station and creator directory slots"></div>',
-   '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> approved program</span><span><i class="stream-guide-key open"></i> open hour</span><span><i class="stream-guide-key source"></i> curated / station slot (not scheduled)</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
+   '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> approved program</span><span><i class="stream-guide-key open"></i> live show concept</span><span><i class="stream-guide-key source"></i> curated / on-demand (not scheduled)</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
    '<section class="stream-body" id="stream-category-content" role="tabpanel" aria-labelledby="stream-tab-podcast">',
    '<div class="stream-spotlight"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">CHANNEL 00 / standby</span><div class="stream-screen-center"><span>✳</span><strong>select a program</strong><small>the picture begins when the schedule is filled.</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></div>',
@@ -144,34 +146,74 @@
   const select=root.querySelector('select[name="category"]');
   if(select&&!select.dataset.edited)select.value=state.category;
  }
+ // Fill unused hourly squares with the actual station/video directory. Directory
+ // picks are NOT scheduled broadcasts: only editor-approved entries are on-air.
+ const liveIdeas=[
+  'Creator premieres','Student DJ sets','Campus conversations','Community open mic',
+  'Independent interviews','Live music sessions','Artist Q&A','Student news roundtable'
+ ];
+ function guidePick(category,hour){
+  if(category==='podcast'){
+   // Every station gets an actual square in the timeline, not just a tile below it.
+   if(hour<stations.length){
+    const station=stations[hour];
+    return {kind:'station',index:hour,title:station[0],subtitle:station[1],status:'RADIO DIRECTORY'};
+   }
+   const podcasts=featured.filter(x=>x.category==='podcast');
+   const choice=hour-stations.length;
+   if(choice<podcasts.length){
+    const entry=podcasts[choice];
+    return {kind:'feature',id:entry.id,title:entry.title,subtitle:entry.subtitle,status:entry.url?'PODCAST PICK':'IDEA · LINK NEEDED'};
+   }
+   const stationIndex=(choice-podcasts.length)%stations.length;
+   const station=stations[stationIndex];
+   return {kind:'station',index:stationIndex,title:station[0],subtitle:station[1],status:'RADIO DIRECTORY'};
+  }
+  if(category==='lwa-tv'){
+   const videos=featured.filter(x=>x.category==='lwa-tv');
+   const entry=videos[hour%videos.length];
+   return {kind:'feature',id:entry.id,title:entry.title,subtitle:entry.subtitle,
+    status:entry.url?'VIDEO PICK':'IDEA · LINK NEEDED'};
+  }
+  const name=liveIdeas[hour%liveIdeas.length];
+  return {kind:'concept',hour,title:name,subtitle:'Propose a live session',status:'LIVE IDEA · NOT ON AIR'};
+ }
  function renderGrid(){
   if(!root)return;
   const items=state.programs;
-  const rowLabel=cat=>categories.find(x=>x[0]===cat);
   const first='<div class="stream-grid-corner">BIG LWA<br>24 HRS</div>';
   const hours=Array.from({length:24},(_,hour)=>'<div class="stream-hour" data-stream-hour="'+hour+'"><span>'+labelHour(hour)+'</span><small>'+String(hour).padStart(2,'0')+':00</small></div>').join('');
   const rows=categories.map(cat=>{
    const key=cat[0],chosen=key===state.category;
-   const heading='<button type="button" class="stream-row-label'+(chosen?' is-current':'')+'" data-stream-tab="'+key+'"><small>'+cat[2]+'</small><b>'+cat[1]+'</b><span>'+ (chosen?'TUNED IN':'TUNE IN') +'</span></button>';
+   const heading='<button type="button" class="stream-row-label'+(chosen?' is-current':'')+'" data-stream-tab="'+key+'"><small>'+cat[2]+'</small><b>'+cat[1]+'</b><span>'+(chosen?'TUNED IN':'TUNE IN')+'</span></button>';
    const squares=Array.from({length:24},(_,hour)=>{
     const show=items.find(item=>{
      if(item.category!==key||!item.scheduledAt)return false;
      const date=new Date(item.scheduledAt);
      return localDay(date)===state.day&&date.getHours()===hour;
     });
+    const pick=show?null:guidePick(key,hour);
     const current=localDay()===state.day&&new Date().getHours()===hour;
-    const classes='stream-slot '+(show?'is-booked':'is-open')+(chosen?' is-selected':'')+(current?' is-now':'');
-    const text=show?'<strong>'+escapeHTML(show.title)+'</strong><small>'+escapeHTML(show.creditedCreator||'LWA programming')+'</small>':
-      '<strong>—</strong><small>open slot</small>';
-    const attrs=show?' data-stream-program="'+escapeHTML(show.id)+'"':' data-stream-propose="'+key+'"';
-    return '<button type="button" class="'+classes+'" data-stream-slot="'+key+'"'+attrs+' aria-label="'+escapeHTML((show?show.title:'Open programming slot')+', '+cat[1]+' at '+labelHour(hour))+'">'+text+'</button>';
+    const classes='stream-slot '+(show?'is-booked':pick.kind==='concept'?'is-concept':'is-curated')+(chosen?' is-selected':'')+(current?' is-now':'');
+    const title=show?show.title:pick.title;
+    const details=show?(show.creditedCreator||'LWA programming'):pick.subtitle;
+    const status=show?'APPROVED / PROGRAMMED':pick.status;
+    const text='<span class="stream-slot-status">'+escapeHTML(status)+'</span>'+
+      '<strong>'+escapeHTML(title)+'</strong><small>'+escapeHTML(details)+'</small>';
+    const attrs=show?' data-stream-program="'+escapeHTML(show.id)+'"':
+     pick.kind==='station'?' data-stream-station="'+pick.index+'"':
+     pick.kind==='feature'?' data-stream-feature="'+escapeHTML(pick.id)+'"':
+      ' data-stream-concept="'+hour+'"';
+    const context=show?'Approved broadcast':'Directory suggestion, not confirmed airtime';
+    return '<button type="button" class="'+classes+'" data-stream-slot="'+key+'"'+attrs+
+     ' aria-label="'+escapeHTML(title+', '+context+', '+cat[1]+' guide at '+labelHour(hour))+'">'+text+'</button>';
    }).join('');
    return heading+squares;
   }).join('');
   const grid=root.querySelector('#streamGrid');
   grid.innerHTML=first+hours+rows;
   const count=items.filter(x=>localDay(new Date(x.scheduledAt))===state.day).length;
-  grid.setAttribute('aria-label',niceDate(state.day)+' programming, '+count+' approved slots');
+  grid.setAttribute('aria-label',niceDate(state.day)+' channel guide, '+count+' approved scheduled programs, plus curated sources and ideas');
  }
  // Every station gets its own independent selectable slot. These are not time bookings.
  function renderFeaturedSlots(){
@@ -183,9 +225,10 @@
     '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune '+escapeHTML(station[0])+' from '+escapeHTML(station[1])+'">'+
     '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span></button>').join(''):'';
   const videoTiles=picks.map((entry,index)=>{
-   const disabled=!entry.url;
-   const attrs=disabled?' disabled aria-disabled="true"':' data-stream-feature="'+escapeHTML(entry.id)+'"';
-   return '<button type="button" class="stream-source-slot is-creator'+(disabled?' is-unverified':'')+'"'+attrs+'>'+
+   const pending=!entry.url;
+   // Unverified picks still open a channel card requesting a source; no fabricated URL.
+   const attrs=' data-stream-feature="'+escapeHTML(entry.id)+'"';
+   return '<button type="button" class="stream-source-slot is-creator'+(pending?' is-unverified':'')+'"'+attrs+'>'+
     '<small>'+escapeHTML(entry.source)+' / '+String(index+1).padStart(2,'0')+'</small>'+
     (entry.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(entry.videoId)+'/mqdefault.jpg" alt="">':'')+
     '<b>'+escapeHTML(entry.title)+'</b><span>'+escapeHTML(entry.subtitle||entry.creator)+'</span></button>';
@@ -216,7 +259,7 @@
     monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
       '<div class="stream-screen-center"><span>◉</span><strong>'+title+'</strong>'+
       '<small>Independent '+escapeHTML(source.type||'source')+'. '+escapeHTML(source.subtitle||'Listen or watch at the official host.')+'</small>'+
-      (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Tune in at original website ↗</a>':'')+
+      (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Tune in at original website ↗</a>':'<button type="button" class="stream-monitor-open" data-stream-scroll-request>Suggest a video link ↗</button>')+
       '</div><span class="stream-screen-bottom">UNOFFICIAL DIRECTORY · NO REBROADCAST</span></div>';
   }
   monitor.scrollIntoView({behavior:'smooth',block:'center'});
@@ -228,7 +271,7 @@
  }
  function selectFeature(id){
   const source=featured.find(item=>item.id===id);
-  if(!source||!source.url)return;
+  if(!source)return;
   showSource(source);
  }
  function renderCategory(){
@@ -369,6 +412,15 @@
   }
   if(button.matches('[data-stream-station]')){selectStation(Number(button.dataset.streamStation));return}
   if(button.matches('[data-stream-feature]')){selectFeature(button.dataset.streamFeature);return}
+  if(button.matches('[data-stream-concept]')){
+   const hour=Number(button.dataset.streamConcept);
+   state.category='live';paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
+   const form=root.querySelector('#streamRequestForm');
+   form.elements.category.value='live';
+   if(!form.elements.timePreference.value)form.elements.timePreference.value=niceDate(state.day)+' · '+labelHour(hour);
+   form.scrollIntoView({behavior:'smooth',block:'center'});
+   return;
+  }
   if(button.matches('[data-stream-program]')){selectProgram(button.dataset.streamProgram);return}
   if(button.matches('[data-stream-propose]')){
    state.category=button.dataset.streamPropose;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
@@ -382,5 +434,5 @@
   if(button.matches('[data-stream-approve]'))review(button.dataset.streamApprove,button.dataset.streamOwner,'approved');
   if(button.matches('[data-stream-decline]'))review(button.dataset.streamDecline,button.dataset.streamOwner,'declined');
  }
- window.BigLWAStreamGuide={mount,prefillRequest,get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))}};
+ window.BigLWAStreamGuide={mount,prefillRequest,get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))}};
 })();
