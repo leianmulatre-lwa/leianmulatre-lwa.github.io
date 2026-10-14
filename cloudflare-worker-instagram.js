@@ -624,19 +624,25 @@ const PN_COVER_LIMIT = 12;
 const PN_COVER_TTL = 6 * 60 * 60 * 1000;
 
 function pnPinImage(pin) {
-  const images = pin?.media?.images || pin?.media?.items?.[0]?.images || {};
-  const candidate = images['600x']?.url || images['400x300']?.url || images['237x']?.url ||
-    Object.values(images).find((entry) => entry?.url)?.url || pin?.media?.cover_image_url;
-  if (!candidate) return '';
-  try {
-    const parsed = new URL(candidate);
-    /* Only Pinterest's own image host is echoed back, so a bad record cannot turn the
-       preview into a request to somewhere the reader did not choose. */
-    if (parsed.protocol !== 'https:') return '';
-    const host = parsed.hostname.toLowerCase();
-    if (host !== 'pinimg.com' && !host.endsWith('.pinimg.com')) return '';
-    return parsed.href;
-  } catch { return ''; }
+  if (!pin) return '';
+  const images = pin?.media?.images || pin?.media?.items?.[0]?.images || pin?.images || {};
+  const candidates = [
+    images['600x'], images['400x300'], images['237x'], images.originals,
+    images.original, ...Object.values(images),
+    pin.image_url, pin.imageUrl, pin.image?.url, pin.media?.cover_image_url,
+    pin.media?.image_url, pin.thumbnail_url, pin.media_url
+  ];
+  for (const item of candidates) {
+    const raw = typeof item === 'string' ? item : item?.url || item?.src;
+    try {
+      const url = new URL(raw);
+      const host = url.hostname.toLowerCase();
+      if (url.protocol === 'https:' && (host === 'i.pinimg.com' || host.endsWith('.pinimg.com'))) {
+        return url.href;
+      }
+    } catch { /* Ignore invalid candidates. */ }
+  }
+  return '';
 }
 
 async function pnBoardCovers(request, env, session, id) {
