@@ -248,8 +248,10 @@
   const title=escapeHTML(source.title),url=source.url;
   const label=source.source||'Original provider';
   state.selected={...source,isDiscovery:true};
+  const changed=Boolean(source.category&&source.category!==state.category);
   state.category=source.category||state.category;
   paintCategories();
+  if(changed){renderGrid();renderFeaturedSlots();renderCategory();}
   const caption='<span>'+escapeHTML(label)+' / '+title+'</span>';
   const original=url?'<a href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Open original ↗</a>':'';
   if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
@@ -351,7 +353,7 @@
  function selectProgram(id){
   const item=state.programs.find(p=>p.id===id);
   if(!item)return;
-  state.selected=item;state.category=item.category;paintCategories();renderGrid();renderCategory();
+  state.selected=item;state.category=item.category;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
   const monitor=root.querySelector('#streamMonitor');
   monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+
    '<span>'+escapeHTML(categories.find(c=>c[0]===item.category)?.[2]||'CH')+' / '+escapeHTML(item.title)+'</span>'+
