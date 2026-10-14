@@ -194,7 +194,7 @@
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
     #studioApp #camera .contact-sheet.photobooth-reference-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 46%;filter:contrast(1.02);transform:scale(1.09);transform-origin:center 46%}
     #studioApp .biglwa-instagram-feed-preview{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0 12px;padding:0;background:transparent;min-height:0}
-    #studioApp .biglwa-instagram-preview-tile{display:block;min-width:0;padding:0;border:0;border-radius:10px;overflow:hidden;background:#f28c28;cursor:pointer;aspect-ratio:1/1}
+    #studioApp .biglwa-instagram-preview-tile{display:block;min-width:0;padding:0;border:0;border-radius:10px;overflow:hidden;background:#7d3ec5;cursor:pointer;aspect-ratio:1/1}
     #studioApp .biglwa-instagram-preview-tile img{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
     #studioApp .biglwa-instagram-preview-tile:hover{transform:translateY(-1px);filter:brightness(1.03)}
     .module-workspace[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
@@ -390,7 +390,7 @@
       border-radius:4px;background:#d7c8b5;box-shadow:2px 3px 0 #9b8075
     }
     .module-workspace[data-module-key="archive"] .archive-key-instagram{
-      background:#f28c28!important;box-shadow:2px 3px 0 #f28c28,4px 5px 0 #8c3acb!important
+      background:#7d3ec5!important;box-shadow:2px 3px 0 #7d3ec5,4px 5px 0 #ad82e7!important
     }
     .module-workspace[data-module-key="archive"] .archive-key-pinterest{
       background:#e60023!important;box-shadow:2px 3px 0 #e60023,4px 5px 0 #ae0026!important
@@ -418,7 +418,7 @@
     .module-workspace[data-module-key="archive"] .archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}
     .module-workspace[data-module-key="archive"] .archive-friend-add{display:flex;gap:7px}
     .module-workspace[data-module-key="archive"] .archive-friend-add .module-input{flex:1}
-    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram:not(.is-pending-delete){--feed-card-rim:#f28c28;box-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb,0 14px 28px -13px #ffad42!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram:not(.is-pending-delete){--feed-card-rim:#7d3ec5;box-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{--feed-card-rim:#111111}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{--feed-card-rim:#1877f2}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest:not(.is-pending-delete){--feed-card-rim:#e60023;box-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026!important}
