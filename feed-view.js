@@ -350,6 +350,59 @@ const STYLE = `
   text-decoration:none;background:rgba(31,142,74,.1);border:1px solid rgba(31,142,74,.34);color:#1f7a45;flex:none}
 .biglwa-lightbox-view:hover{background:rgba(31,142,74,.16);color:#166238}
 @media (max-width:640px){.biglwa-lightbox-stage img{max-height:62vh}}
+/* Hybrid of Pinterest's airy masonry and Instagram's compact post chrome.
+   All sources share shape, placement, accessibility and action positions. */
+#feedPageList .biglwa-pin-post,
+#feedPageList .biglwa-instagram-card,
+#feedPageList .pinterest-feed-item{
+  position:relative!important;display:inline-block!important;vertical-align:top!important;
+  box-sizing:border-box!important;width:100%!important;min-width:0!important;
+  padding:0!important;margin:0 0 19px!important;border-radius:15px!important;
+  border:1px solid #e4d4c8!important;background:#fff8ef!important;
+  box-shadow:var(--feed-card-shadow,4px 5px 0 var(--feed-card-rim,#bc3548),0 13px 27px -17px #4b3934a1)!important;
+  overflow:visible!important;isolation:isolate
+}
+#feedPageList .biglwa-unified-media{overflow:hidden;border-radius:14px 14px 0 0;min-height:0;background:#e7ddd2;line-height:0}
+#feedPageList .biglwa-unified-media>img,
+#feedPageList .biglwa-unified-media>.biglwa-pin-img{width:100%!important;height:auto!important;max-height:none!important;object-fit:cover!important;display:block!important;aspect-ratio:auto!important;border-radius:14px 14px 0 0!important}
+#feedPageList .biglwa-unified-media .biglwa-slide{border-radius:14px 14px 0 0}
+#feedPageList .biglwa-unified-media .biglwa-slide>img{object-fit:cover!important}
+#feedPageList .biglwa-unified-source{position:absolute;left:9px;top:9px;z-index:7;
+  border:1px solid #fff9e8ab;border-radius:20px;padding:5px 9px;
+  color:#fffdf7;background:rgba(40,30,29,.76);backdrop-filter:blur(6px);
+  font:750 9px/1.1 ui-monospace,monospace;letter-spacing:.04em;pointer-events:none}
+#feedPageList .biglwa-card-options{position:absolute!important;top:8px!important;right:8px!important;
+  z-index:15!important;display:block!important;width:auto!important;min-width:0!important;
+  margin:0!important;padding:0!important;background:transparent!important;border:0!important;
+  box-shadow:none!important;overflow:visible!important}
+#feedPageList .biglwa-card-options>summary{list-style:none;cursor:pointer;width:34px;height:31px;
+  display:grid;place-items:center;border:1px solid #fffdf3b5;border-radius:11px;
+  color:#fff9ee;background:rgba(39,29,29,.83);font:900 14px/1 system-ui;
+  letter-spacing:1px;backdrop-filter:blur(8px)}
+#feedPageList .biglwa-card-options>summary::-webkit-details-marker{display:none}
+#feedPageList .biglwa-card-options>summary:hover,#feedPageList .biglwa-card-options>summary:focus-visible{
+  background:#a2394b;outline:2px solid #f5daba;outline-offset:1px}
+#feedPageList .biglwa-card-options .biglwa-send-tray{
+  display:none;position:absolute;top:37px;right:0;z-index:20;min-width:195px;max-width:min(250px,82vw);
+  width:max-content;flex-direction:column;align-items:stretch;gap:5px;box-sizing:border-box;
+  border:1px solid #c8b0a1;border-radius:12px;padding:9px;background:#fffbf4;
+  color:#40322d;box-shadow:0 12px 23px #35251c42}
+#feedPageList .biglwa-card-options[open] .biglwa-send-tray{display:flex!important}
+#feedPageList .biglwa-card-options .biglwa-send-tray button,
+#feedPageList .biglwa-card-options .biglwa-send-tray a{display:block;text-align:left;
+  width:100%;min-width:0;padding:8px 10px;border-radius:7px;border:0;
+  background:#f4e9df;color:#3c302d;font:700 11px/1.2 system-ui;text-decoration:none}
+#feedPageList .biglwa-card-options .biglwa-send-tray button:hover,
+#feedPageList .biglwa-card-options .biglwa-send-tray a:hover{background:#f3ced2}
+#feedPageList .biglwa-card-options .biglwa-send-tray input{width:100%;min-width:0;box-sizing:border-box;
+  border:1px solid #d1bcb1;border-radius:7px;padding:8px;font:500 11px/1.3 system-ui}
+#feedPageList .biglwa-card-options .biglwa-send-status{white-space:normal}
+#feedPageList .biglwa-send-toggle{display:none!important}
+#feedPageList .biglwa-instagram-browser-strip{display:none!important}
+#feedPageList .biglwa-post-actions{display:none!important}
+#feedPageList .pinterest-feed-item{--feed-card-rim:#e60023}
+@media(max-width:520px){#feedPageList .biglwa-card-options .biglwa-send-tray{max-width:min(220px,87vw)}}
+
 `;
 
 function installStyle() {
@@ -584,22 +637,27 @@ function renderHero(force) {
    actually differ. A newly rendered feed route is a new list and still gets drawn. */
 /* The + and its tray are pure markup so the card stays a string template, but the tray is
    built with the post's own picture and caption so the reader can see what they are sending. */
-function sendBar(post) {
-  void post;
-  return sendBarMarkup();
+/* One unified top-right menu for Instagram, Pinterest and all Collective cards.
+   No floating + below the image: actions remain one click away in the menu. */
+function sendBar(post, managed = false) {
+  return sendBarMarkup(managed, post?.sourceUrl || '');
 }
-function sendBarMarkup() {
-  return '<div class="biglwa-send" data-open="0">' +
-    '<button class="biglwa-send-toggle" type="button" data-send-toggle aria-expanded="false" ' +
-    'aria-label="Send this picture to a board, project or the map" title="Send to boards, projects or map">+</button>' +
-    '<div class="biglwa-send-tray">' +
-      '<button type="button" data-send-to="boards">Send to a board</button>' +
-      '<button type="button" data-send-to="projects">Send to a project</button>' +
-      '<input type="text" data-send-map-field placeholder="Map address, e.g. Rotterdam or 51.92, 4.48" aria-label="Map address for this picture">' +
-      '<button type="button" data-send-map>Pin on the map</button>' +
-      '<span class="biglwa-send-status" data-send-status aria-live="polite"></span>' +
-    "</div>" +
-  "</div>";
+function sendBarMarkup(managed = false, sourceUrl = '') {
+  return '<details class="biglwa-send biglwa-card-options" data-open="0">' +
+    '<summary aria-label="More options for this Collective Feed card" title="Post options">•••</summary>' +
+    '<div class="biglwa-send-tray" role="group" aria-label="Post options">' +
+      '<button type="button" data-send-to="boards">Save to Boards</button>' +
+      '<button type="button" data-send-to="projects">Add to Projects</button>' +
+      '<input type="text" data-send-map-field placeholder="Place or map coordinates" aria-label="Place or map coordinates">' +
+      '<button type="button" data-send-map>Pin on Map</button>' +
+      (managed ?
+        '<button type="button" data-post-enlarge>View full media</button>' +
+        '<button type="button" data-post-archive>Archive this post</button>' +
+        '<button type="button" data-post-delete>Remove from Feed</button>'
+        : '') +
+      (sourceUrl ? '<a href="' + esc(sourceUrl) + '" target="_blank" rel="noopener noreferrer">Original post ↗</a>' : '') +
+      '<span class="biglwa-send-status" data-send-status role="status" aria-live="polite"></span>' +
+    '</div></details>';
 }
 /* Live source cards, such as the connected Instagram ones, are not in `posts`, so they
    hand their own picture record in here. That lets the same + tray sit under every card on
@@ -794,28 +852,15 @@ function renderPosts(force) {
         shown.map((_, i) => '<button type="button" class="biglwa-instagram-browser-tab' + (i === 0 ? ' is-active' : '') + '" data-instagram-slide="' + i + '">' + (i + 1) + '</button>').join("") +
         '</div>'
       : '<span class="biglwa-instagram-browser-tabs" aria-hidden="true"></span>';
-    const browserStrip = isInstagram
-      ? '<div class="biglwa-instagram-browser-strip">' +
-          tabs +
-          (managed
-            ? '<div class="biglwa-instagram-browser-actions" aria-label="Instagram post actions">' +
-              '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete"></button>' +
-              '<button type="button" data-post-archive aria-label="Archive" title="Archive"></button>' +
-              '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge"></button>' +
-              '</div>'
-            : '') +
-        '</div>'
-      : '';
+    // Use the same card header for every source; slideshow arrow controls
+    // still work without the Instagram-only traffic-light header.
+    const browserStrip = '';
+    const provider=String(post.source || 'biglwa').toLowerCase();
+    const sourceLabel=provider==='instagram'?'Instagram':provider==='pinterest'?'Pinterest':provider.charAt(0).toUpperCase()+provider.slice(1);
     return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + (String(post.source || "").toLowerCase() === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + ';--feed-card-shadow:' + shadowOf(post.source) + '" data-post-id="' + esc(post.id) + '">' +
-      '<div>' + browserStrip + image + "</div>" + link +
-      sendBar(post) +
-      (!isInstagram && managed
-        ? '<div class="biglwa-post-actions">' +
-          '<button type="button" data-post-delete aria-label="Delete from Collective Feed" title="Delete from Collective Feed">&#10005;</button>' +
-          '<button type="button" data-post-archive aria-label="Archive" title="Archive">&#9662;</button>' +
-          '<button type="button" data-post-enlarge aria-label="Enlarge" title="Enlarge">&#8599;</button>' +
-          "</div>"
-        : "") +
+      '<div class="biglwa-unified-media">' + browserStrip + image + "</div>" + link +
+      '<span class="biglwa-unified-source" aria-label="Source: '+esc(sourceLabel)+'">'+esc(sourceLabel)+'</span>' +
+      sendBar(post, managed) +
       "</article>";
   }).join("");
   list.insertAdjacentHTML("afterbegin", html);
