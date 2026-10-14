@@ -704,6 +704,9 @@
   }catch(error){status.textContent=error.message||'Could not save the decision.'}
  }
  function onClick(event){
+  // When the persistent player sits inside Stream, clicks bubble to the page
+  // listener too. Handle Play/Pause only once or it will immediately pause.
+  if(event.currentTarget===root&&mediaPortal?.contains(event.target))return;
   const button=event.target.closest('button');
   if(!button||!(root?.contains(button)||mediaPortal?.contains(button)))return;
   if(button.matches('[data-stream-return]')){window.openBIGLWAModule?.('stream');return;}
