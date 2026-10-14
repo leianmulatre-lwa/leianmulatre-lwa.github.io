@@ -141,8 +141,8 @@ html.biglwa-preview-mode #${MENU_ID}{display:none!important}
     window.addEventListener('resize', () => close(menu, trigger));
   }
 
-  /* Signed-out visitors cannot open the menu, so leave a route to Settings in the two
-     footers they can actually reach: the sign-in screen and the studio footer. */
+  /* Settings is an account action, not a link on the public login screen.
+     Keep it in the signed-in account menu and Studio footer only. */
   function addFooterLink(nav) {
     if (!nav || nav.querySelector('a[href="/settings"]')) return;
     const link = document.createElement('a');
@@ -154,7 +154,10 @@ html.biglwa-preview-mode #${MENU_ID}{display:none!important}
   }
 
   function addFooterLinks() {
-    document.querySelectorAll('.login-public-footer nav, .site-policy-footer nav').forEach(addFooterLink);
+    // Remove stale dynamically inserted links from the public login footer,
+    // including ones placed by an older cached version of this script.
+    document.querySelectorAll('.login-public-footer nav a[href="/settings"]').forEach(link=>link.remove());
+    document.querySelectorAll('.site-policy-footer nav').forEach(addFooterLink);
   }
 
   function watchFooters() {
