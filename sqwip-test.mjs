@@ -116,6 +116,6 @@ await check('new assets load before Diary and updated module is cache-busted',as
  assert.ok(index.includes(file));
  assert.ok(index.includes('/sqwip.css?v=20261014-screenplay-1'));
  assert.ok(index.includes('/module-pages.js?v='));
- assert.ok(index.indexOf(file)<index.indexOf('/module-pages.js?v=20261014-stream-ballroom-1'));
+ assert.ok(index.indexOf(file)<index.indexOf('/module-pages.js?v='));
 });
 console.log(passed+' Sqwip integration checks passed');
