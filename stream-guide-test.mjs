@@ -232,10 +232,10 @@ await check('Live guide mixes embeddable YouTube sources and real Twitch channel
  assert.ok(live.filter(x=>x.kind==='twitch').every(x=>catalog.some(y=>y.id===x.id)));
  assert.ok(stream.includes("id:'lofi-girl-live'"));
  assert.ok(stream.includes("id:'asmr-rain'"));
- assert.ok(stream.includes("id:'weather-fox'"));
+ assert.ok(!stream.includes("id:'weather-fox'"),'FOX Weather must be removed');
  assert.ok(stream.includes("id:'frequencies-528'"));
  assert.ok(stream.includes('https://player.twitch.tv/?channel='));
- assert.ok(stream.includes('monitor.innerHTML=state.defaultMonitorMarkup'),'switching categories stops old embedded media');
+ assert.ok(stream.includes('if(changing||!state.selected)tuneCurrent()'),'switching channels tunes the current pick');
  assert.ok(stream.includes("encodeURIComponent(window.location.hostname)"),'Twitch embed must pass the actual parent domain');
  assert.ok(stream.includes('autoplay=false&muted=true'));
  assert.ok(stream.includes("if(button.matches('[data-stream-twitch]'))"));
@@ -262,7 +262,7 @@ await check('every discovery link leads directly to a secure original provider',
   const parsed=new URL(url);
   assert.equal(parsed.protocol,'https:');
   assert.ok(['youtube.com','www.youtube.com','twitch.tv','www.twitch.tv','linktr.ee',
-   'soulection.lnk.to','radio.soulection.com','podcasts.apple.com',
+   'soulection.lnk.to','radio.soulection.com','podcasts.apple.com','archive.org',
    'uclaradio.com','kalx.berkeley.edu','kdvs.org','kcsbweb.as.ucsb.edu',
    'kzsc.org','kcr.sdsu.edu','ksjs.org','kzsu.stanford.edu','kvrx.org','radiok.org',
    'wsum.org','wcbn.org','wvfs.fsu.edu','wuog.org','kwva.uoregon.edu','kpsu.org']
@@ -307,4 +307,18 @@ await check('in-site playback uses source streams and YouTube embeds',async()=>{
  assert.ok(stream.includes('autoplay=1&playsinline=1'));
  assert.ok(stream.includes("id:'lofi-girl-tv'"));
  assert.ok(style.includes('.stream-radio-play'));
+});
+
+await check('TV includes the existing five Betty Boop episodes, without FOX, and opens current guide pick',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const betty=win.BigLWAStreamGuide.featured.find(x=>x.id==='betty-boop-classics');
+ assert.ok(betty&&betty.provider==='archive-video');
+ assert.equal(betty.episodes.length,5);
+ assert.ok(betty.episodes.every(ep=>ep[1].startsWith('https://archive.org/download/BettyBoopCartoons/')));
+ assert.ok(!stream.includes('choose a channel'));
+ assert.ok(stream.includes('tuneCurrent();'));
+ assert.ok(stream.includes("const pick=guidePick(state.category,hour);"));
+ assert.ok(stream.includes('changeArchiveEpisode((active+1)%source.episodes.length)'));
+ assert.ok(stream.includes('data-stream-episode'));
+ assert.ok(style.includes('.stream-episode-choice'));
 });
