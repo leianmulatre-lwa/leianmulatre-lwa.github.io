@@ -503,6 +503,14 @@
     @media(max-width:850px){.module-game-source-grid{grid-template-columns:1fr}}
     @media(max-width:560px){.culture-quiz-options{grid-template-columns:1fr}.culture-quiz-head{align-items:start}}
     
+    .politc-live-track{display:flex;width:100%;height:19px;overflow:hidden;border-radius:12px;background:#ddd5c9;border:1px solid #aa9d90}
+    .politc-live-track>span{display:block;height:100%;flex:none}
+    .politc-live-chamber{display:grid;gap:8px;margin:13px 0;padding:8px 0}
+    .politc-live-chamber>strong{font:700 17px Georgia,serif}
+    .politc-live-chamber>small{font:600 12px/1.4 system-ui}
+    .politc-live-progress{height:20px;width:100%;overflow:hidden;background:#ddd6ce;border-radius:13px;border:1px solid #ab9c8f;margin:12px 0}
+    .politc-live-progress>span{display:block;height:100%;background:#6e5f7c;transition:width .3s ease}
+    .politc-live-state{padding:10px 0;min-height:60px}
     /* Widget pages share the Studio customization and carry the blur through the page edge. */
     .module-workspace{position:relative;isolation:isolate;border-radius:0;min-height:calc(100vh - 66px);padding-bottom:54px;-webkit-backdrop-filter:blur(var(--widget-blur,18px));backdrop-filter:blur(var(--widget-blur,18px));background:linear-gradient(180deg,color-mix(in srgb,var(--widget-bg,rgba(246,240,233,.94)) 96%,transparent) 0%,color-mix(in srgb,var(--widget-bg,rgba(239,231,223,.96)) 92%,transparent) 100%);color:var(--widget-ink,#272321)}
     .module-workspace:before{content:none}
@@ -1083,7 +1091,9 @@ const connect=e.target.closest('[data-orbit-connect]');
     const nomineeCards=()=>savedState==='CA'?'<div class="politc-portraits">'+caNominees.map(([name,party])=>'<article class="politc-person"><div style="height:100px;display:grid;place-items:center;background:#ddd4c7;font:28px Georgia,serif" aria-hidden="true">'+esc(name.split(' ').map(x=>x[0]).join(''))+'</div><strong>'+esc(name)+'</strong><small>'+esc(party)+' · Governor</small></article>').join('')+'</div><p class="politc-note">California statewide governor nominees. District and local candidates vary by residential address. Verify against the official certified list.</p>': '<p class="politc-note">Candidates vary by state, county and voting district. Use “See my ballot & nominees” to view the applicable roster; no names are guessed from a ZIP code.</p>';
     const electionPanel='<section class="politc-panel" style="grid-column:1/-1;background:var(--widget-bg,#f7f3eb);color:var(--widget-ink,#28231e);border:1px solid rgba(120,120,120,.22);outline:0;border-radius:var(--widget-radius,16px)"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><span style="font:600 11px system-ui;letter-spacing:.12em;text-transform:uppercase">Election desk · United States</span><h3 style="text-align:left;border:0;padding:5px 0;font:400 30px Georgia,serif;letter-spacing:0;text-transform:none">November 3, 2026 · General Election</h3></div><div id="politcCountdown" style="font:700 clamp(22px,4vw,44px)/1.2 Georgia,serif" aria-live="off"></div></div><p class="politc-note">Countdown to Election Day (Pacific time). Earlier state or local special elections may have different dates.</p><div class="politc-form" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end"><label>Voting state<select id="politcState"><option value="">Choose state</option>'+stateOptions+'</select></label><label>ZIP code (optional)<input id="politcZip" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" placeholder="Your voting ZIP" value="'+esc(savedZip)+'"></label><a class="politc-source" href="https://www.vote411.org/ballot" target="_blank" rel="noopener noreferrer">See my ballot & nominees ↗</a></div><p class="politc-note">Select your voting residence, not your current physical location. ZIP alone cannot identify every voting district. Your selection is stored only on this device.</p><h3 style="font:400 25px Georgia,serif;text-align:left;border:0;padding:8px 0;letter-spacing:0;text-transform:none">Nominees & candidates <span id="politcStateLabel" style="font:13px system-ui"></span></h3><div id="politcNominees">'+nomineeCards()+'</div><div class="politc-resources" id="politcElectionLinks"></div></section>';
     body.innerHTML=heading('politc')+'<div class="politc-board"><div class="politc-grid">'+electionPanel+categories.map(panel).join('')+'</div>'+
-      '<section class="politc-panel"><h3>The Political Pendulum</h3><p class="politc-sub">Explore the ideological spectrum — an illustrative reflection tool, not a political identity test.</p><div style="display:flex;justify-content:space-between;gap:8px;font:600 12px system-ui"><span>Left</span><span>Center</span><span>Right</span></div><input class="politc-pendulum" id="politcPendulum" type="range" min="0" max="100" value="'+val+'" aria-label="Political pendulum position"><div class="politc-value" id="politcPendulumLabel"></div><p class="politc-note">The spectrum simplifies complex beliefs. No results are inferred about you and nothing is shared.</p></section>'+
+      '<section class="politc-panel"><h3>Political Pendulum · Live</h3><p class="politc-sub">Current congressional seat balance, updated from published membership data. This is not a measure of public opinion or ideology.</p><div id="politcLiveBalance" aria-live="polite" class="politc-live-state">Checking House and Senate membership…</div><p class="politc-note"><a href="https://github.com/unitedstates/congress-legislators" target="_blank" rel="noopener noreferrer">Congress Legislators data ↗</a> · Independents shown separately.</p></section>'+
+      '<section class="politc-panel"><h3>Project 2025 Tracker · Live</h3><p class="politc-sub">Community-reported policy implementation status, not an endorsement.</p><div id="politcProject2025" aria-live="polite" class="politc-live-state">Checking tracked objectives…</div><p class="politc-note"><a href="https://www.project2025.observer/en" target="_blank" rel="noopener noreferrer">View Project 2025 Tracker and its underlying evidence ↗</a></p></section>'+
+      '<div style="display:flex;justify-content:flex-end;grid-column:1/-1"><button type="button" class="politc-source" id="politcLiveRefresh" style="cursor:pointer">↻ Refresh live data</button></div>'+
       '<section class="politc-panel"><h3>Vote · Data · Resources</h3><p class="politc-sub">Research, register, read critically, and follow humanitarian developments directly from their sources.</p><div class="politc-resources">'+resources.map(r=>'<a class="politc-source" target="_blank" rel="noopener noreferrer" href="'+esc(r[2])+'">'+esc(r[0])+'<small>'+esc(r[1])+'</small></a>').join('')+'</div><p class="politc-note">External sources open in a new tab. These are resource links, not an invented live news or election-data feed. Political news and estimates should be checked against primary sources.</p></section></div>';
     const stateSelect=$('#politcState',body),zipField=$('#politcZip',body),nomineeArea=$('#politcNominees',body),stateLabel=$('#politcStateLabel',body),links=$('#politcElectionLinks',body),clock=$('#politcCountdown',body);
     const updateClock=()=>{const ms=electionDate-Date.now();clock.textContent=ms>0?Math.ceil(ms/86400000)+' days left':ms>-86400000?'Election Day':'Election passed';};
@@ -1096,9 +1106,58 @@ const connect=e.target.closest('[data-orbit-connect]');
       links.innerHTML=urls.map(([label,url])=>'<a class="politc-source" href="'+url+'" target="_blank" rel="noopener noreferrer">'+esc(label)+' ↗</a>').join('');
     };
     stateSelect.addEventListener('change',syncElection);zipField.addEventListener('change',syncElection);syncElection();
-    const range=$('#politcPendulum',body),display=$('#politcPendulumLabel',body);
-    const setValue=()=>{const n=Number(range.value);display.textContent=n<35?'Left of center · '+n:n>65?'Right of center · '+n:'Near the center · '+n;localStorage.setItem('biglwaPolitcPendulum',String(n));};
-    range.addEventListener('input',setValue);setValue();
+    const balance=$('#politcLiveBalance',body),project=$('#politcProject2025',body),refresh=$('#politcLiveRefresh',body);
+    const liveEndpoint='https://biglwa-politc-live.leianmulatre-284.workers.dev/politc';
+    const percent=(n,total)=>total>0?Math.max(0,Math.min(100,(Number(n)||0)*100/total)):0;
+    const number=n=>Number(n||0).toLocaleString();
+    const chamber=(title,data)=>{
+      const total=Number(data?.occupied)||0;if(total<=0)return '';
+      const d=Number(data.Democrat)||0,r=Number(data.Republican)||0,i=Number(data.Independent)||0,o=Number(data.Other)||0;
+      return '<div class="politc-live-chamber"><strong>'+esc(title)+'</strong><div class="politc-live-track" role="img" aria-label="'+esc(title)+': '+number(d)+' Democratic, '+number(r)+' Republican, '+number(i+o)+' other seats">'+
+        '<span style="width:'+percent(d,total)+'%;background:#3d76b7"></span>'+
+        '<span style="width:'+percent(i+o,total)+'%;background:#8b8b8b"></span>'+
+        '<span style="width:'+percent(r,total)+'%;background:#b44b50"></span></div>'+
+        '<small>Democratic '+number(d)+' · Republican '+number(r)+' · Independent / other '+number(i+o)+' · '+number(total)+' occupied</small></div>';
+    };
+    const timestamp=iso=>{const date=new Date(iso);return Number.isNaN(date.getTime())?'Date unavailable':date.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})};
+    const showPolitcData=(data,isCached=false)=>{
+      const checked='<p class="politc-note">'+(isCached?'Previously checked':'Checked')+' '+esc(timestamp(data.checkedAt))+(isCached?' · cached, not current':' · refreshes about every 15 minutes')+'</p>';
+      if(data.congress?.state==='ok'&&data.congress.house?.occupied&&data.congress.senate?.occupied){
+        balance.innerHTML=chamber('House of Representatives',data.congress.house)+chamber('Senate',data.congress.senate)+checked;
+      }else{
+        balance.innerHTML='<p class="politc-note">Live membership data unavailable. <a href="https://clerk.house.gov/" target="_blank" rel="noopener noreferrer">House Clerk</a> · <a href="https://www.senate.gov/senators/" target="_blank" rel="noopener noreferrer">Senate</a>.</p>';
+      }
+      const p=data.project2025;
+      if(p?.state==='ok'&&p.total>0){
+        const weighted=Math.min(100,Math.max(0,Number(p.weightedPct)||0));
+        project.innerHTML='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><strong style="font:600 28px Georgia,serif">'+number(weighted)+'%</strong><small>'+number(p.total)+' tracked objectives</small></div>'+
+          '<div class="politc-live-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+weighted+'" aria-label="Project 2025 Tracker weighted progress"><span style="width:'+weighted+'%"></span></div>'+
+          '<p style="font:600 12px/1.6 system-ui">'+number(p.done)+' completed · '+number(p.inProgress)+' in progress · '+number(p.notStarted)+' remaining</p>'+
+          '<p class="politc-note">Tracker method: completed counts fully; in progress counts half. Not a percentage of laws passed or effects on people.</p>'+checked;
+      }else{
+        project.innerHTML='<p class="politc-note">Live tracker data unavailable. Open the source to see its latest published statuses.</p>';
+      }
+    };
+    const cached=readJSON('biglwaPolitcLastVerified',null);if(cached&&cached.checkedAt)showPolitcData(cached,true);
+    const refreshPolitc=async()=>{
+      refresh.disabled=true;refresh.textContent='Checking sources…';
+      try{
+        const response=await fetch(liveEndpoint,{cache:'no-store'});
+        if(!response.ok)throw Error('Live endpoint unavailable');
+        const data=await response.json();if(!data||data.version!==1)throw Error('Invalid live data');
+        if(!balance.isConnected||!project.isConnected)return;
+        if(data.congress?.state==='ok'||data.project2025?.state==='ok'){
+          writeJSON('biglwaPolitcLastVerified',data);showPolitcData(data);
+        }else if(!cached){balance.textContent='Could not verify live Congress data.';project.textContent='Could not verify tracker data.'}
+      }catch(error){
+        if(!cached){balance.textContent='Live balance unavailable — see source link.';project.textContent='Live tracker unavailable — see source link.'}
+        console.warn('BIGLWA politc live refresh:',error);
+      }finally{if(refresh.isConnected){refresh.disabled=false;refresh.textContent='↻ Refresh live data'}}
+    };
+    refresh.addEventListener('click',refreshPolitc);
+    if(window.__biglwaPolitcLiveTimer)clearInterval(window.__biglwaPolitcLiveTimer);
+    window.__biglwaPolitcLiveTimer=setInterval(()=>{if(!balance.isConnected){clearInterval(window.__biglwaPolitcLiveTimer);return;}refreshPolitc();},900000);
+    refreshPolitc();
     body.querySelectorAll('[data-politc-delete]').forEach(button=>button.addEventListener('click',()=>{
       const next=nominations.filter(x=>String(x.id)!==button.dataset.politcDelete);try{writeJSON(storageKey,next);renderPolitc()}catch(e){alert('Unable to save changes on this device.')}
     }));
