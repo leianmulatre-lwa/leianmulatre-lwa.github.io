@@ -1,0 +1,85 @@
+/* Veve uses the same image-first paper language as Collective Feed.
+   Cards vary in height naturally, with responsive columns and no fake engagement. */
+.module-workspace[data-module-key="veve"] .module-shell{max-width:1880px!important;width:100%!important}
+.module-workspace[data-module-key="veve"] .module-heading{display:none!important}
+#biglwaVeve{max-width:1810px;margin:0 auto;padding:12px 8px 60px;min-height:400px}
+.veve-top{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:end;margin:0 0 12px}
+.veve-intro{min-width:min(100%,310px);max-width:690px}
+.veve-intro>span{display:block;font:800 10px/1.3 Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;opacity:.7}
+.veve-intro h1{font:400 clamp(40px,5.5vw,78px)/1 "CS Bergamot Stitched",Georgia,serif!important;letter-spacing:.02em;margin:6px 0 1px;text-transform:lowercase}
+.veve-intro p{margin:8px 0;color:var(--module-muted,#756c67);font:500 13px/1.5 Inter,system-ui,sans-serif}
+.veve-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:8px}
+.veve-toolbar label{display:grid;gap:4px;font:700 10px/1.2 Inter,system-ui,sans-serif;text-transform:uppercase;letter-spacing:.07em}
+.veve-toolbar :is(select,button){appearance:none;min-height:36px;border:1px solid #a99a90;border-radius:9px;background:var(--widget-bg,#fff6ef);color:inherit;padding:7px 12px;font:650 12px Inter,system-ui,sans-serif;cursor:pointer}
+.veve-toolbar select{max-width:175px}
+.veve-message{min-height:20px;margin:0 0 16px;color:var(--module-muted,#71645f);font:500 11px/1.4 Inter,system-ui,sans-serif}
+.veve-settings{padding:20px;margin:8px 0 20px;border:1px solid #c7b5a9;border-radius:16px;background:var(--widget-bg,#fff6ec);box-shadow:3px 4px 0 rgba(113,90,80,.12)}
+.veve-settings-title h2,.veve-section-heading h2{margin:0;font:400 clamp(20px,2.6vw,29px)/1.15 "CS Bergamot Stitched",Georgia,serif!important;text-transform:lowercase}
+.veve-settings-title p,.veve-settings-note{font:500 12px/1.45 Inter,system-ui,sans-serif;color:var(--module-muted,#71645f)}
+.veve-settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:15px 0}
+.veve-setting-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(123,90,75,.06);border:1px solid #aa9d926e;border-radius:9px;padding:8px}
+.veve-setting-row label{display:flex;align-items:center;gap:8px;font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+.veve-setting-row input{accent-color:#ab536c}
+.veve-move{display:flex;gap:4px}
+.veve-move button{min-width:29px;min-height:27px;border:1px solid #a6988d;border-radius:6px;background:rgba(255,255,255,.58);color:inherit;cursor:pointer}
+.veve-move button:disabled{opacity:.35;cursor:default}
+.veve-section{margin:0 0 29px}
+.veve-section-heading{display:flex;align-items:baseline;gap:12px;margin:0 0 13px;padding:0 3px 8px;border-bottom:1px solid rgba(105,88,79,.17)}
+.veve-section-heading h2{font-size:clamp(20px,2.3vw,30px)!important}
+.veve-masonry{columns:5 185px;column-gap:16px;column-fill:balance}
+.veve-tile{display:inline-block;vertical-align:top;position:relative;break-inside:avoid;page-break-inside:avoid;width:100%;margin:0 0 17px;padding:0;overflow:hidden;border:1px solid rgba(87,67,58,.17);border-radius:15px;background:var(--widget-bg,#f7efe8);color:var(--widget-ink,#2c2525);box-shadow:3px 4px 0 rgba(111,77,86,.14)}
+.veve-photo{--veve-rim:#a52a0c;box-shadow:3px 3px 0 var(--veve-rim),6px 6px 0 -2px rgba(101,53,64,.24)}
+.veve-photo[data-veve-origin="instagram"]{--veve-rim:#7d3ec5}
+.veve-photo[data-veve-origin="pinterest"]{--veve-rim:#e60023}
+.veve-photo[data-veve-origin="tiktok"]{--veve-rim:#111}
+.veve-photo[data-veve-origin="facebook"]{--veve-rim:#1877f2}
+.veve-photo[data-veve-origin="youtube"]{--veve-rim:#d0202f}
+.veve-photo-frame{position:relative;min-height:100px;overflow:hidden;border-radius:14px}
+.veve-photo-frame img{width:100%;height:auto;display:block;max-height:440px;object-fit:cover;background:#e3d8cf}
+.veve-provider{position:absolute;top:9px;left:9px;border:1px solid #fff7;border-radius:99px;background:#261f23dd;color:#fff;padding:6px 10px;font:700 11px/1.2 "CS Bergamot Stitched",Georgia,serif;letter-spacing:.01em}
+.veve-open-source{position:absolute;right:8px;top:8px;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#fff9efed;color:#292425;text-decoration:none;font:700 15px sans-serif}
+.veve-caption{margin:0;padding:10px 12px 12px;font:500 12px/1.5 Inter,system-ui,sans-serif;overflow-wrap:anywhere}
+.veve-note{background:#f2db67;color:#443422;padding:18px 15px 19px;border-radius:4px 5px 23px 5px;box-shadow:4px 5px 0 #ac873d5e}
+.veve-note:after{content:"";position:absolute;bottom:0;right:0;width:22px;height:22px;background:linear-gradient(135deg,transparent 48%,#caad53 50%);pointer-events:none}
+.veve-note-head{display:flex;gap:8px;justify-content:space-between;align-items:start;font:900 10px/1.1 Inter,system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.veve-note-head b{font-size:8px;color:#6b4c27}
+.veve-note>p{font:600 clamp(13px,1.2vw,16px)/1.45 Georgia,serif;white-space:pre-wrap;overflow-wrap:anywhere;margin:18px 0 26px}
+.veve-note-actions{font:700 10px Inter,system-ui,sans-serif;opacity:.8}
+.veve-note-actions button{border:1px solid #a7894e;padding:7px 11px;background:rgba(255,255,255,.28);border-radius:10px;cursor:pointer;color:inherit;font:inherit}
+.veve-resource,.veve-book{padding:18px;min-height:166px}
+.veve-resource h3,.veve-book h3{font:400 19px/1.24 Georgia,serif;margin:12px 0 6px}
+.veve-resource p,.veve-book p{font:500 12px/1.5 Inter,system-ui,sans-serif;margin:0 0 13px;opacity:.84}
+.veve-eyebrow{display:inline-block;font:800 9px/1.3 Inter,system-ui,sans-serif;text-transform:uppercase;letter-spacing:.13em;opacity:.7}
+.veve-resource :is(button,a),.veve-book>a{border:0;background:none;color:inherit;text-align:left;padding:3px 0;text-decoration:underline;text-underline-offset:3px;font:750 11px/1.35 Inter,system-ui,sans-serif;cursor:pointer}
+.veve-resource small{display:block;margin:9px 0 0;opacity:.65;font:500 10px/1.4 Inter,system-ui,sans-serif}
+.veve-resource-politc{background:#e9ded2}
+.veve-resource-rooms{background:#ded8e9}
+.veve-resource-arcade{background:#d9e4de}
+.veve-book{background:#ede1cf;border-radius:4px 15px 15px 4px;border-left:8px solid #8c594b}
+.veve-resource-sponsored{background:repeating-linear-gradient(-45deg,#eee5e1,#eee5e1 9px,#e9e0dc 9px,#e9e0dc 18px)}
+.veve-empty,.veve-loading{border:1px dashed #bea99b;border-radius:15px;padding:30px;font:600 13px/1.45 system-ui}
+#sqwibPublishArea{margin-top:22px;padding:18px;border:1px solid rgba(98,80,60,.2);border-radius:12px;background:rgba(255,241,185,.3)}
+#sqwibPublishArea h3{font:400 23px/1.1 "CS Bergamot Stitched",Georgia,serif;margin:0 0 7px}
+#sqwibPublishArea p{font:500 12px/1.5 Inter,system-ui,sans-serif;max-width:700px}
+#sqwibPublishArea .sqwib-permission{display:flex;align-items:flex-start;gap:9px;margin:14px 0;font:700 12px/1.5 Inter,system-ui,sans-serif}
+#sqwibPublishArea .sqwib-permission input{margin-top:3px;accent-color:#aa596c}
+#sqwibPublishArea [data-sqwib-control]{min-height:32px;padding:7px 11px;border:1px solid rgba(70,50,34,.3);border-radius:8px;background:#fff4ce;color:inherit;font:700 11px system-ui;cursor:pointer}
+#sqwibPublishArea .sqwib-published-item{display:grid;gap:7px;margin-top:13px;padding:11px;border:1px solid rgba(90,70,44,.2);border-radius:10px;background:rgba(255,255,255,.35)}
+#sqwibPublishArea .sqwib-published-item p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+#sqwibPublishArea .sqwib-published-item .sqwib-published-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#sqwibPublishArea .sqwib-published-actions span{font:700 11px/1.3 system-ui}
+.biglwa-feed-import-rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:8px 0 20px}
+.biglwa-feed-import-rail[hidden]{display:none!important}
+.biglwa-feed-import-rail .biglwa-instagram-import-status,.biglwa-feed-import-rail .instagram-import-status{
+  display:flex!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;
+  margin:0!important;padding:14px 18px!important;border-radius:13px!important;
+  border:1px solid rgba(101,80,70,.2)!important;box-shadow:none!important;
+  background:var(--widget-bg,#fff7ec)!important;color:inherit!important;
+}
+.biglwa-feed-import-rail .biglwa-instagram-import-status b{font:650 13px Inter,system-ui,sans-serif!important}
+.biglwa-feed-import-rail .biglwa-instagram-import-status small{font:550 11px/1.45 Inter,system-ui,sans-serif!important;overflow-wrap:anywhere!important}
+.biglwa-feed-import-rail [data-instagram-resave]{min-height:30px}
+@media(max-width:1500px){.veve-masonry{columns:4 170px}}
+@media(max-width:1100px){.veve-masonry{columns:3 170px}}
+@media(max-width:720px){#biglwaVeve{padding:10px 5px}.veve-masonry{columns:2 145px;column-gap:11px}.veve-toolbar{width:100%}.veve-settings-grid{grid-template-columns:1fr}}
+@media(max-width:430px){.veve-masonry{columns:2 125px;column-gap:9px}.veve-resource,.veve-book{padding:13px}.veve-resource h3,.veve-book h3{font-size:16px}}
