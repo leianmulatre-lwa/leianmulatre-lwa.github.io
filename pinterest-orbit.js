@@ -300,10 +300,26 @@ document.addEventListener('click',e=>{
 document.addEventListener('biglwa:module-open',()=>{
  render();
  const route=document.getElementById('moduleRouteName')?.textContent||'';
- if(route==='Boards' && session()){
+ if(route==='Boards' && (session()||authUid)){
   restore().catch(()=>{});
  }
 });
+async function watchAuth(){
+ try{
+  const [{getAuth},{initializeApp,getApps}]=await Promise.all([
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js')
+  ]);
+  const app=getApps()[0]||initializeApp({apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'});
+  getAuth(app).onAuthStateChanged(user=>{
+   const uid=user?.uid||'';
+   if(uid===authUid)return;
+   authUid=uid;
+   resetView();
+   if(uid)restore().catch(error=>console.warn('Pinterest account restore:',error));
+  });
+ }catch(error){console.warn('Pinterest auth observer:',error)}
+}
 async function init(){
   const style=document.createElement('style');style.textContent='#pinterestBoards{font-size:16px}#pinterestBoards p,#pinterestBoards label{font-size:16px;line-height:1.5}#pinterestBoards button,#pinterestBoards select{font-size:14px;min-height:42px}#pinterestBoards button:disabled{opacity:.55;cursor:wait}.pinterest-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.pinterest-board{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:150px;overflow:hidden;border:1px solid #d8cec5;border-radius:14px;background:#fffaf3;color:#302b28;text-decoration:none;box-shadow:0 10px 22px -16px rgba(48,43,40,.6)}.pinterest-board img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pinterest-board strong,.pinterest-board small{position:relative;z-index:1;padding:0 12px;color:#fff;background:linear-gradient(180deg,transparent,rgba(24,16,14,.78) 62%);text-shadow:0 1px 3px rgba(0,0,0,.4)}.pinterest-board strong{padding-top:30px;font:600 15px/1.4 system-ui;overflow-wrap:anywhere}.pinterest-board small{padding-bottom:11px;font:600 12px/1.4 system-ui;opacity:.9}.pinterest-board.is-empty{display:grid;place-items:center;min-height:150px;width:100%;cursor:pointer;font:inherit;color:inherit;border-style:dashed;background:repeating-linear-gradient(45deg,#fffaf3,#fffaf3 10px,#fdf3e9 10px,#fdf3e9 20px)}.pinterest-board.is-empty:hover:not(:disabled){border-color:#a53332;border-style:solid}.pinterest-board.is-empty span{font:600 12px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}.pinterest-board:focus-visible{outline:3px solid #a53332}@media (max-width:760px){.pinterest-board-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}.pinterest-pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:16px;margin:20px 0}.pinterest-pin{border:1px solid #d8cec5;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#fffaf3;color:#302b28;text-decoration:none}.pinterest-pin img{width:100%;height:230px;object-fit:cover}.pinterest-pin span,.pinterest-pin small{padding:10px 12px;overflow-wrap:anywhere}.pinterest-pin small{font-size:13px;margin-top:auto}.pinterest-pin:focus-visible{outline:3px solid #a53332}';document.head.append(style);
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
@@ -319,8 +335,9 @@ async function init(){
  /* Pinterest sends the tab back to the app, not to a module, so after the round trip the
     Boards page was never reopened and the freshly fetched boards stayed invisible. Reopen it
     and let the module-open listener run restore(), so the connection visibly lands. */
- if(returning&&typeof window.openBIGLWAModule==='function'){window.openBIGLWAModule('boards');return}
+ if(returning&&typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('boards');
  await restore();
+ watchAuth().catch(()=>{});
 }
 window.__biglwaPinterest={connect,restore,disconnect,render};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
