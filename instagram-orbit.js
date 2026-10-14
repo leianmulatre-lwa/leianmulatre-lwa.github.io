@@ -4,7 +4,7 @@
 
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
-  var state = { connected: false, profile: null, media: [], error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
+  var state = { connected: false, profile: null, media: [], hostedById: {}, error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
   /* The same figures the Orbit panel shows, readable from the console, so a silent
      zero-import can be diagnosed without guessing. */
   window.__biglwaInstagramDiagnostics = state;
@@ -88,6 +88,8 @@
     state.importsSkipped = result.skipped || 0;
     state.importsPartial = result.partial || 0;
     state.importWarning = (result && result.warning) || '';
+    state.hostedById = (result && result.hostedById) || {};
+    renderFeed();
     window.dispatchEvent(new CustomEvent('biglwa:orbit-imported', {
       detail: { source: 'instagram', imported: state.importsSaved }
     }));
@@ -227,16 +229,13 @@
       var carousel = item.media_type === 'CAROUSEL_ALBUM' && children.length > 1 && !manyPhotos;
       var mediaItems = carousel ? children : [item];
       var first = mediaItems[0] || item;
-      var media = first.media_url || first.thumbnail_url || '';
-      /* The full-size file is often gone or blocked while the thumbnail still resolves, so
-         each picture carries its own fallback. A picture with neither is left off the wall
-         rather than offered as a card that can only show a broken icon. */
-      var fallback = first.media_type === 'VIDEO' ? '' : (first.thumbnail_url || '');
-      var visual = first.media_type === 'VIDEO'
-        ? '<video data-instagram-media preload="metadata" poster="' + escapeText(first.thumbnail_url || '') + '" src="' + escapeText(first.media_url || '') + '" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd"></video>'
-        : '<img data-instagram-media src="' + escapeText(media) + '"' +
-          (fallback && fallback !== media ? ' data-instagram-fallback="' + escapeText(fallback) + '"' : '') +
-          ' data-instagram-preview="' + escapeText(media || fallback) + '" alt="Instagram media" loading="lazy" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd">';
+      var hosted = state.hostedById[String(item.id || '')] || [];
+      // Never show expiring CDN links as the connected card's permanent image.
+      // For video or carousel posts, the persisted picture is the R2 poster.
+      var media = hosted[0] || '';
+      var visual = media
+        ? '<img data-instagram-media src="' + escapeText(media) + '" data-instagram-preview="' + escapeText(media) + '" alt="Instagram media stored in BIGLWA" loading="lazy" style="display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd">'
+        : '<div class="biglwa-unavailable-media">Saving Instagram image to BIGLWA… Connect or sync Orbit if it does not appear.</div>';
       var tabs = carousel ? '<div class="biglwa-instagram-tabs" aria-label="Carousel photos">' + mediaItems.map(function (_, tabIndex) {
         return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
       }).join('') + '</div>' : '<span class="biglwa-instagram-tabs" aria-hidden="true"></span>';
@@ -252,9 +251,7 @@
         id: cardId,
         caption: item.caption || '',
         sourceUrl: item.permalink || '',
-        imageUrls: (children.length ? children : [item]).map(function (child) {
-          return child.media_type === 'VIDEO' ? (child.thumbnail_url || '') : (child.media_url || '');
-        }).filter(Boolean)
+        imageUrls: hosted.filter(Boolean)
       }).replace(/"/g, '&quot;');
       return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#f28c28;--feed-card-shadow:3px 3px 0 #f28c28,7px 7px 0 -2px #8c3acb,0 14px 28px -13px #ffad42" data-instagram-index="' + index + '"' +
         ' data-post-id="' + cardId + '" data-send-record="' + sendRecord + '">' +
@@ -377,31 +374,23 @@
       var nextIndex = Number(tab.getAttribute('data-instagram-tab'));
       var next = children[nextIndex];
       if (card && next) {
-        var media = next.media_url || next.thumbnail_url || '';
-        var old = card.querySelector('[data-instagram-media]');
-        if (old) {
-          if (next.media_type === 'VIDEO') {
-            var video = document.createElement('video');
-            video.setAttribute('data-instagram-media','');
-            video.controls = false;
-            video.preload = 'metadata';
-            video.poster = next.thumbnail_url || '';
-            video.src = next.media_url || '';
-            video.style.cssText = 'display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd';
-            old.replaceWith(video);
-          } else if (old.tagName === 'IMG') {
-            old.src = media;
-            old.setAttribute('data-instagram-fallback', next.thumbnail_url || '');
-            old.setAttribute('data-instagram-preview', media);
-          } else {
-            var replacement = document.createElement('img');
-            replacement.setAttribute('data-instagram-media', '');
-            replacement.setAttribute('data-instagram-fallback', next.thumbnail_url || '');
-            replacement.setAttribute('data-instagram-preview', media);
-            replacement.src = media;
-            replacement.alt = 'Instagram media';
-            replacement.style.cssText = 'display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd';
-            old.replaceWith(replacement);
+        var saved = state.hostedById[String(item.id || '')] || [];
+        var media = saved[nextIndex] || '';
+        var old = card.querySelector('[data-instagram-media],.biglwa-unavailable-media');
+        if(old){
+          if(media){
+            var img=document.createElement('img');
+            img.setAttribute('data-instagram-media','');
+            img.setAttribute('data-instagram-preview',media);
+            img.loading='lazy';img.src=media;
+            img.alt='Instagram picture stored in BIGLWA';
+            img.style.cssText='display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd';
+            old.replaceWith(img);
+          }else{
+            var placeholder=document.createElement('div');
+            placeholder.className='biglwa-unavailable-media';
+            placeholder.textContent='This carousel image has not been copied to BIGLWA yet.';
+            old.replaceWith(placeholder);
           }
         }
         all('.biglwa-instagram-tab', card).forEach(function (button) { button.classList.remove('is-active'); });
