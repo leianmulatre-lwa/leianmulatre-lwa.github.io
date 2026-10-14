@@ -734,7 +734,13 @@ const connect=e.target.closest('[data-orbit-connect]');
        than left to overwrite the real feed on its next render. The shell stays here so
        the route still has a heading, a composer to upgrade, and the shared list the
        connected sources pour into. */
-    body.innerHTML=heading('feed')+`<div id="biglwaOrbitDrafts" hidden></div><div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><p>Share a link with an automatic thumbnail, or add a photo with it. No caption field is stored.</p><form class="module-form" id="feedComposer"><input class="module-input" name="url" type="url" inputmode="url" placeholder="Paste a link"><label class="biglwa-pick" style="width:max-content"><input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">Add a photo <span style="font-weight:500;color:#8b8179">(optional)</span></label><button class="module-action" type="submit">Post to Collective Feed</button></form></section><section class="module-card wide"><h2>Collective Feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
+    body.innerHTML=heading('feed')+`<div id="biglwaOrbitDrafts" hidden></div><div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><p>Share a link with an automatic thumbnail, or add a photo with it. No caption field is stored.</p><form class="module-form" id="feedComposer"><input class="module-input" name="url" type="url" inputmode="url" placeholder="Paste a link"><label class="biglwa-pick" style="width:max-content"><input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">Add a photo <span style="font-weight:500;color:#8b8179">(optional)</span></label><button class="module-action" type="submit">Post to Collective Feed</button><button class="module-action ghost" type="button" id="feedStreamRequest">Request Stream programming ↗</button></form></section><section class="module-card wide"><h2>Collective Feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
+    const programmingRequest=$('#feedStreamRequest',body);
+    if(programmingRequest)programmingRequest.onclick=()=>{
+      const entered=$('#feedComposer [name="url"]',body)?.value.trim()||'';
+      window.openBIGLWAModule?.('stream');
+      if(entered)window.BigLWAStreamGuide?.prefillRequest(entered);
+    };
   }
 
   function renderConnect(){
