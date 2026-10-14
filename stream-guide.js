@@ -109,19 +109,19 @@
   root=host;root.classList.add('biglwa-stream');
   state.day=localDay();
   root.innerHTML=[
-   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / THREE-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span></div>',
+   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / FOUR-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span></div>',
    '<div class="stream-channels" role="tablist" aria-label="Stream category">',
    categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></nav>',
+   '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">CHANNEL 00 / standby</span><div class="stream-screen-center"><span>✳</span><strong>choose a channel</strong><small>explore today’s shuffle · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
+   '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
    '<div class="stream-date-actions"><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
-   '<div class="stream-grid-scroll" tabindex="0" aria-label="Scroll through 24 daily discovery slots for each of three channels" id="streamGridScroll"><div class="stream-grid" id="streamGrid"></div></div>',
+   '<div class="stream-grid-scroll" tabindex="0" aria-label="Scroll through 24 daily discovery slots for the selected channel" id="streamGridScroll"><div class="stream-grid" id="streamGrid"></div></div>',
    '<div id="streamFeaturedSlots" class="stream-featured-band" aria-label="Station and creator directory slots"></div>',
    '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> future approved program</span><span><i class="stream-guide-key source"></i> daily curator picks</span><span><i class="stream-guide-key open"></i> Twitch channel · status unverified</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
    '<section class="stream-body" id="stream-category-content" role="tabpanel" aria-labelledby="stream-tab-podcast">',
-   '<div class="stream-spotlight"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">CHANNEL 00 / standby</span><div class="stream-screen-center"><span>✳</span><strong>choose a channel</strong><small>explore today’s shuffle · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
-   '<div class="stream-channel-copy" id="streamCategoryCopy"></div></div>',
    '<div class="stream-section-detail" id="streamSectionDetail"></div></section>',
    '<section class="stream-future" aria-label="Future programming features"><span>COMING LATER · COMMUNITY PROGRAMMING</span><strong>creator time-slot requests</strong><p>Time-slot requests, premieres and scheduled submissions will arrive in a future Stream release. Explore the curated rotation for now.</p></section>',
    '<p class="stream-disclaimer">Station links lead to their respective operators; listing does not imply affiliation, permission to rebroadcast, or an official programming partnership. No affiliation or live-broadcast status is implied by the creator directory.</p>'
@@ -196,6 +196,13 @@
    }));
    return shuffled(videos,day,category,offset);
   }
+  if(category==='ballroom-cctv'){
+   const ballroom=ballroomChannels.map(item=>({
+    kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
+    status:item.provider==='archive'?'BALLROOM CULTURAL ARCHIVE':'BALLROOM / ORIGINAL VIDEO CHANNEL'
+   }));
+   return shuffled(ballroom,day,category,offset);
+  }
   const twitch=twitchChannels.map(channel=>({
    kind:'twitch',id:channel.id,title:channel.title,subtitle:channel.subtitle,
    status:'TWITCH CHANNEL · LIVE UNVERIFIED'
@@ -211,7 +218,7 @@
   const items=state.programs;
   const first='<div class="stream-grid-corner">BIG LWA<br>24 HRS</div>';
   const hours=Array.from({length:24},(_,hour)=>'<div class="stream-hour" data-stream-hour="'+hour+'"><span>'+labelHour(hour)+'</span><small>'+String(hour).padStart(2,'0')+':00</small></div>').join('');
-  const rows=categories.map(cat=>{
+  const rows=categories.filter(cat=>cat[0]===state.category).map(cat=>{
    const key=cat[0],chosen=key===state.category;
    const heading='<button type="button" class="stream-row-label'+(chosen?' is-current':'')+'" data-stream-tab="'+key+'"><small>'+cat[2]+'</small><b>'+cat[1]+'</b><span>'+(chosen?'TUNED IN':'TUNE IN')+'</span></button>';
    const squares=Array.from({length:24},(_,hour)=>{
@@ -252,7 +259,7 @@
   const kind=state.category;
   const isRadio=kind==='podcast';
   const isTwitch=kind==='live';
-  const entries=isTwitch?twitchChannels:featured.filter(item=>item.category===kind);
+  const entries=isTwitch?twitchChannels:kind==='ballroom-cctv'?ballroomChannels:featured.filter(item=>item.category===kind);
   const radioSlots=isRadio?stations.map((station,index)=>
    '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune to '+escapeHTML(station[0])+' at its original website">'+
    '<small>RADIO · '+String(index+1).padStart(2,'0')+'</small><b>'+escapeHTML(station[0])+'</b><span>'+escapeHTML(station[1])+'</span></button>').join(''):'';
@@ -264,9 +271,9 @@
     (item.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(item.videoId)+'/mqdefault.jpg" alt="">':'<span class="stream-source-emblem" aria-hidden="true">'+(twitch?'◉':item.provider==='mixtape'?'♫':'▶')+'</span>')+
     '<b>'+escapeHTML(item.title)+'</b><span>'+escapeHTML(item.subtitle||item.creator)+'</span></button>';
   }).join('');
-  const mode=isRadio?'LWA RADIO / ORIGINAL SOURCES':isTwitch?'TWITCH / LIVE CHANNELS':'LWA TV / YOUTUBE CREATORS';
+  const mode=isRadio?'LWA RADIO / ORIGINAL SOURCES':isTwitch?'TWITCH / LIVE CHANNELS':kind==='ballroom-cctv'?'BALLROOM / CCTV ARCHIVES':'LWA TV / YOUTUBE CREATORS';
   panel.innerHTML='<div class="stream-band-heading"><div><small>BIG LWA / DAILY DISCOVERY</small><b>'+
-   (isRadio?'radio + mixtape directory':isTwitch?'watch Twitch channels':'watch creator channels')+'</b></div>'+
+   (isRadio?'radio + mixtape directory':isTwitch?'watch Twitch channels':kind==='ballroom-cctv'?'ballroom tapes + archives':'watch creator channels')+'</b></div>'+
    '<span>'+escapeHTML(mode)+'</span></div>'+
    (radioSlots?'<div class="stream-source-slots" aria-label="Individual campus radio station links">'+radioSlots+'</div>':'')+
    (isRadio?'<div class="stream-band-subtitle">mixtapes, DJ sets + podcasts</div>':'')+
@@ -298,8 +305,8 @@
    monitor.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+channelLink+'</div>'+
     '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>';
   }else{
-   const type=source.provider==='youtube'?'creator channel':source.provider==='mixtape'?'mixtape':source.provider==='podcast'?'podcast':source.type||'radio station';
-   const cta=source.provider==='youtube'?'Browse original videos ↗':source.provider==='mixtape'?'Play on original release ↗':source.provider==='podcast'?'Listen with publisher ↗':'Listen on station website ↗';
+   const type=source.provider==='archive'?'cultural archive':source.provider==='youtube'?'creator channel':source.provider==='mixtape'?'mixtape':source.provider==='podcast'?'podcast':source.type||'radio station';
+   const cta=source.provider==='archive'?'Explore original archive ↗':source.provider==='youtube'?'Browse original videos ↗':source.provider==='mixtape'?'Play on original release ↗':source.provider==='podcast'?'Listen with publisher ↗':'Listen on station website ↗';
    monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
     '<div class="stream-screen-center"><span>'+(source.provider==='mixtape'?'♫':'◉')+'</span><strong>'+title+'</strong>'+
     '<small>'+escapeHTML(source.subtitle||source.creator||type)+'. Original '+escapeHTML(type)+' remains on its own website.</small>'+
@@ -315,7 +322,7 @@
    url:station[3],type:'radio station',provider:'radio'});
  }
  function selectFeature(id){
-  const source=featured.find(item=>item.id===id);
+  const source=[...featured,...ballroomChannels].find(item=>item.id===id);
   if(!source||!source.url)return;
   showSource(source);
  }
@@ -334,7 +341,9 @@
    'lwa-tv':['CH 02 / THE PICTURE','lwa tv',
     'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
    live:['CH 03 / THE TWITCH DIAL','live',
-    'Tune to Twitch creator channels in the original Twitch player. Status is never assumed: the broadcaster may be offline.']
+    'Tune to Twitch creator channels in the original Twitch player. Status is never assumed: the broadcaster may be offline.'],
+   'ballroom-cctv':['CH 04 / BALLROOM ARCHIVES','ballroom / cctv',
+    'Original ballroom footage: voguing, runway, history, balls and community archives. CCTV is a cultural video channel, not surveillance.']
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p><div class="stream-channel-actions"><span class="stream-discovery-label">↻ shuffled daily · direct creator sources</span></div>';
   if(state.category==='podcast'){
@@ -344,6 +353,8 @@
    renderStations('');
   }else if(state.category==='lwa-tv'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / ORIGINAL CREATOR CHANNELS</span><h3>what’s on your screen?</h3><p>Every selectable creator has a real YouTube channel or direct video link. Clips may play here; browse entire channels through their original video pages.</p></div></div><p class="stream-directory-note">These are curated links, not official Big LWA channel partnerships or timed broadcasts.</p>';
+  }else if(state.category==='ballroom-cctv'){
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">BALLROOM / CCTV · SCENE ARCHIVES</span><h3>the ballroom tape library</h3><p>Explore original footage from Ballroom Throwbacks, Open To All Entertainment, Kendrick Mugler TV, Sugar Champagne, Philly Prodigy and Ballroom in Focus.</p></div></div><p class="stream-directory-note">CCTV means curated ballroom video archives here, not live cameras or real-time monitoring. Every tape links directly to its original publisher. Sources are not Big LWA partners by implication.</p>';
   }else{
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / TWITCH CHANNEL DIRECTORY</span><h3>the Twitch dial</h3><p>Browse HasanAbi, Pokimane, QTCinderella, Kai Cenat and Fuslie. The official Twitch player connects directly to their channels; it does not indicate that they are broadcasting right now.</p></div></div><p class="stream-directory-note">The player uses Twitch’s required parent domain and opens the broadcaster’s official channel as a fallback. A creator may be offline.</p>';
   }
@@ -467,5 +478,5 @@
   if(button.matches('[data-stream-twitch]')){selectTwitch(button.dataset.streamTwitch);return}
   if(button.matches('[data-stream-program]')){selectProgram(button.dataset.streamProgram);return}
  }
- window.BigLWAStreamGuide={mount,prefillRequest,get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
+ window.BigLWAStreamGuide={mount,prefillRequest,get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
