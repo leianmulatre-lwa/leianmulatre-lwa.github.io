@@ -221,7 +221,28 @@ function readSocials(raw){
   }).slice(0,8);
 }
 
-/* Signed-out safe: usernames docs are world readable by Firestore rules. */
+/* The only journal publication endpoint: explicit owner action, private by
+ * default. Never mirror local screenplay/Sqwip or Sqwib Note content here. */
+async function publishJournal(rawText,viewable){
+  const {db,auth}=await getFirebase();
+  await auth.authStateReady();
+  const user=auth.currentUser;
+  if(!user)throw new Error('Sign in before changing Journal visibility.');
+  const username=localUsername();
+  if(!username)throw new Error('Save a username to share your Journal.');
+  const text=String(rawText||'').trim();
+  if(viewable&&!text)throw new Error('Write a Journal entry before sharing it.');
+  if(text.length>12000)throw new Error('Public Journal exceeds 12,000 characters.');
+  const {doc,setDoc,getDoc,deleteField,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+  const profileRef=doc(db,'usernames',username);
+  const existing=await getDoc(profileRef);
+  if(!existing.exists()||existing.data()?.uid!==user.uid)
+   throw new Error('Your public username could not be verified. Save profile details and retry.');
+  await setDoc(profileRef,{journalVisibility:viewable?'public':'private',
+    publicJournal:viewable?text:deleteField(),updatedAt:serverTimestamp()},{merge:true});
+  return {viewable:!!viewable,username,text:viewable?text:''};
+}
+
 async function loadPublicProfile(rawUsername){
   const username=normalize(rawUsername);
   if(!validUsername(username))return null;
@@ -245,6 +266,8 @@ async function loadPublicProfile(rawUsername){
       url:clean(data.url)||("/"+encodeURIComponent(username)),
       socials:readSocials(data.socials),
       archiveVisibility:data.archiveVisibility==='friends'?'friends':'private',
+      journalVisibility:data.journalVisibility==='public'?'public':'private',
+      publicJournal:data.journalVisibility==='public'?String(data.publicJournal||'').slice(0,12000):'',
       look:look?{
         appearance:{
           widgetColor:clean(look.widgetColor),
@@ -392,7 +415,7 @@ async function loadArchiveForUsername(rawUsername){
   }
 }
 
-window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername};
+window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
 
 (async()=>{
   try{
