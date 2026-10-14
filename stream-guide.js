@@ -57,7 +57,7 @@
   {id:'kendrick-mugler',category:'ballroom-cctv',title:'Kendrick Mugler TV',creator:'Kendrick Mugler',subtitle:'Ballroom footage and European scene archives',url:'https://www.youtube.com/c/kendrickmugler/videos',source:'Ballroom video channel',provider:'youtube'},
   {id:'sugarchampagne',category:'ballroom-cctv',title:'Sugar Champagne',creator:'Sugar Champagne',subtitle:'Classic ballroom and historic event footage',url:'https://www.youtube.com/@sugarchampagne/videos',source:'Ballroom archive',provider:'youtube'},
   {id:'philly-prodigy',category:'ballroom-cctv',title:'Philly Prodigy',creator:'Philly Prodigy',subtitle:'Ballroom clips and community footage',url:'https://www.youtube.com/@phillyprodigy09/videos',source:'Ballroom video archive',provider:'youtube'},
-  {id:'ballroom-in-focus',category:'ballroom-cctv',title:'Ballroom in Focus',creator:'Google Arts & Culture · Destination Tomorrow',subtitle:'Photography, oral history and archival storytelling',url:'https://artsandculture.google.com/project/ballroom-archive',source:'Ballroom cultural archive',provider:'archive'}
+  {id:'ballroom-in-focus',category:'ballroom-cctv',title:'Ballroom in Focus',creator:'Google Arts & Culture · Destination Tomorrow',subtitle:'Photography, oral history and archival storytelling',url:'https://artsandculture.google.com/project/ballroom',source:'Ballroom cultural archive',provider:'archive'}
  ];
  // These are destination channels, not assertions that the streamer is live.
  const twitchChannels=[
@@ -229,7 +229,7 @@
     });
     const pick=show?null:guidePick(key,hour);
     const current=localDay()===state.day&&new Date().getHours()===hour;
-    const classes='stream-slot '+(show?'is-booked':pick?.kind==='twitch'?'is-twitch':'is-curated')+(chosen?' is-selected':'')+(current?' is-now':'');
+    const classes='stream-slot '+(show?'is-booked':key==='ballroom-cctv'?'is-ballroom':pick?.kind==='twitch'?'is-twitch':'is-curated')+(chosen?' is-selected':'')+(current?' is-now':'');
     const title=show?show.title:pick.title;
     const details=show?(show.creditedCreator||'LWA programming'):pick.subtitle;
     const status=show?'APPROVED / PROGRAMMED':pick.status;
@@ -259,6 +259,7 @@
   const kind=state.category;
   const isRadio=kind==='podcast';
   const isTwitch=kind==='live';
+  const isBallroom=kind==='ballroom-cctv';
   const entries=isTwitch?twitchChannels:kind==='ballroom-cctv'?ballroomChannels:featured.filter(item=>item.category===kind);
   const radioSlots=isRadio?stations.map((station,index)=>
    '<button type="button" class="stream-source-slot is-radio" data-stream-station="'+index+'" aria-label="Tune to '+escapeHTML(station[0])+' at its original website">'+
@@ -266,7 +267,7 @@
   const picks=entries.map((item,index)=>{
    const twitch=item.provider==='twitch';
    const attrs=twitch?'data-stream-twitch="'+escapeHTML(item.id)+'"':'data-stream-feature="'+escapeHTML(item.id)+'"';
-   return '<button type="button" class="stream-source-slot is-creator'+(twitch?' is-twitch':'')+'" '+attrs+'>'+
+   return '<button type="button" class="stream-source-slot is-creator'+(twitch?' is-twitch':isBallroom?' is-ballroom':'')+'" '+attrs+'>'+
     '<small>'+escapeHTML(item.source||'Original creator')+' · '+String(index+1).padStart(2,'0')+'</small>'+
     (item.videoId?'<img loading="lazy" src="https://i.ytimg.com/vi/'+escapeHTML(item.videoId)+'/mqdefault.jpg" alt="">':'<span class="stream-source-emblem" aria-hidden="true">'+(twitch?'◉':item.provider==='mixtape'?'♫':'▶')+'</span>')+
     '<b>'+escapeHTML(item.title)+'</b><span>'+escapeHTML(item.subtitle||item.creator)+'</span></button>';
