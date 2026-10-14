@@ -117,6 +117,7 @@
    ?{kind:'station',index:source.stationIndex}
    :source.isProgram?{kind:'program',id:source.id}
    :{kind:'feature',id:source.id};
+  entry.title=String(source.title||'Stream').slice(0,120);
   if(entry.kind==='station'&&!Number.isInteger(entry.index))return;
   if(entry.kind!=='station'&&!entry.id)return;
   try{localStorage.setItem(key,JSON.stringify(entry))}catch{}
@@ -168,9 +169,9 @@
   if(positionFrame)return;
   positionFrame=requestAnimationFrame(()=>{positionFrame=0;repositionMediaPortal()});
  }
- window.addEventListener('scroll',scheduleMediaPosition,true);
- window.addEventListener('resize',scheduleMediaPosition);
- document.addEventListener('biglwa:stream-updated',scheduleMediaPosition);
+ window.addEventListener?.('scroll',scheduleMediaPosition,true);
+ window.addEventListener?.('resize',scheduleMediaPosition);
+ if(typeof document!=='undefined')document.addEventListener('biglwa:stream-updated',scheduleMediaPosition);
  function parkInStudio(){
   if(!mediaPortal?.isConnected||!mediaPortal.firstElementChild)return false;
   const screen=document.querySelector('#studioApp #stream .stream-screen');
@@ -676,5 +677,5 @@
   if(button.matches('[data-stream-twitch]')){state.followGuide=false;selectTwitch(button.dataset.streamTwitch);return}
   if(button.matches('[data-stream-program]')){state.followGuide=false;selectProgram(button.dataset.streamProgram);return}
  }
- window.BigLWAStreamGuide={mount,parkInStudio,prefillRequest,get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
+ window.BigLWAStreamGuide={mount,parkInStudio,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
