@@ -413,7 +413,7 @@ export async function forget(id) {
   for (const store of [localStorage, sessionStorage]) {
     try {
       store.removeItem(source.sessionKey);
-      if (id === "pinterest" && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
+      if (["pinterest","tiktok"].includes(id) && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
     } catch { /* storage disabled */ }
   }
   const who = identity()?.uid;
