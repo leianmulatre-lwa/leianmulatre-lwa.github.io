@@ -123,6 +123,48 @@ await check('campus directory includes official UCLA Radio and state school stat
  assert.ok(stream.includes('streamStationSearch'));
  assert.ok(stream.includes('listing does not imply affiliation'));
 });
+await check('each university radio station has an independent selectable guide slot',async()=>{
+ const fakeWindow={};
+ vm.runInNewContext(stream,{window:fakeWindow,console,Date,URL});
+ const stations=fakeWindow.BigLWAStreamGuide.stations;
+ assert.equal(stations.length,16);
+ assert.equal(new Set(stations.map(station=>station.url)).size,stations.length);
+ assert.ok(stations.every(station=>station.url.startsWith('https://')));
+ assert.ok(stream.includes('data-stream-station'));
+ assert.ok(stream.includes('function selectStation(index)'));
+ assert.ok(stream.includes("renderFeaturedSlots();renderCategory();renderRequests()"));
+ assert.ok(stream.includes('DIRECT LINKS · NO SIMULATED AIRTIME'));
+ assert.ok(stream.includes('These tiles are hand-picked links, not scheduled airtime'));
+});
+await check('requested shows include real official video IDs and publisher links',async()=>{
+ const fakeWindow={};vm.runInNewContext(stream,{window:fakeWindow,console,Date,URL});
+ const entries=fakeWindow.BigLWAStreamGuide.featured;
+ const urls=[
+  'https://www.youtube.com/watch?v=dHg50mdODFM',
+  'https://www.youtube.com/watch?v=abHGyg4LKn4',
+  'https://www.youtube.com/watch?v=edk2uac_x0Y',
+  'https://www.youtube.com/watch?v=iO9g2KEroiw',
+  'https://podcasts.apple.com/us/podcast/the-daily/id1200361736'
+ ];
+ for(const url of urls)assert.ok(entries.some(x=>x.url===url),'missing '+url);
+ assert.ok(entries.some(x=>x.title==='Mr & Mrsinformation'&&!x.url),'unverified creator cannot be given a fabricated channel URL');
+ assert.ok(entries.some(x=>x.title==='The Daily'&&x.category==='podcast'));
+ assert.ok(entries.some(x=>x.title==='Cartoon Network'&&x.category==='lwa-tv'));
+ assert.ok(stream.includes('https://www.youtube-nocookie.com/embed/'));
+ assert.ok(stream.includes("if(!source||!source.url)return;"));
+});
+await check('video and station buttons tune the existing monitor rather than creating bogus scheduled programs',async()=>{
+ assert.ok(stream.includes("class=\"stream-source-slot is-radio\""));
+ assert.ok(stream.includes("class=\"stream-source-slot is-creator"));
+ assert.ok(stream.includes('function showSource(source)'));
+ assert.ok(stream.includes('function selectFeature(id)'));
+ assert.ok(stream.includes('function selectStation(index)'));
+ assert.ok(stream.includes("if(button.matches('[data-stream-station]'))"));
+ assert.ok(stream.includes("if(button.matches('[data-stream-feature]'))"));
+ assert.ok(stream.includes('UNOFFICIAL DIRECTORY · NO REBROADCAST'));
+ assert.ok(stream.includes("state.programs=Array.isArray(result.items)?result.items.filter"));
+ assert.ok(!stream.includes("state.programs=featured"));
+});
 await check('YouTube requests are user-authenticated and moderation-gated',async()=>{
  assert.ok(stream.includes("await authRequest('requests',data)"));
  assert.ok(stream.includes("stream-editorial"));
@@ -131,8 +173,8 @@ await check('YouTube requests are user-authenticated and moderation-gated',async
 });
 await check('page wires Stream controller and broadcast styles',async()=>{
  assert.ok(pages.includes("window.BigLWAStreamGuide?.mount"));
- assert.ok(index.includes('/stream-guide.js?v=20261013-retro-guide-1'));
- assert.ok(index.includes('/stream-guide.css?v=20261013-retro-guide-1'));
+ assert.ok(index.includes('/stream-guide.js?v=20261013-radio-creator-slots-1'));
+ assert.ok(index.includes('/stream-guide.css?v=20261013-radio-creator-slots-1'));
  assert.ok(style.includes('.stream-grid-scroll'));
  assert.ok(style.includes('.stream-mast'));
 });
