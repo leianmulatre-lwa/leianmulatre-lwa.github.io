@@ -533,7 +533,10 @@ async function ttRoute(request, env) {
     if(!uid)return json({error:'Sign in to Big LWA first.'},401,request,env);
     const id=await env.OAUTH_SESSIONS.get('tt:firebase:'+uid);
     const session=id?await env.OAUTH_SESSIONS.get('tt:session:'+id,'json'):null;
-    return json(session&&session.expiresAt>Date.now()?{connected:true,session:id}:{connected:false},200,request,env);
+    // An expired access token remains recoverable if its refresh grant is valid.
+    // The profile route refreshes the access token after account restoration.
+    return json(session&&(session.expiresAt>Date.now()||!!session.refresh_token)
+      ?{connected:true,session:id}:{connected:false},200,request,env);
   }
   if (path === '/tiktok/session' && request.method === 'POST') {
     const body = await request.json();
