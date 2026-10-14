@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Big LWA · Character Maker</title>
+<style>
+:root{color-scheme:light;--ink:#332a28;--line:#bdaea5;--paper:#fffaf2;--accent:#ca536b}
+*{box-sizing:border-box}body{margin:0;padding:12px;background:transparent;color:var(--ink);font:13px/1.35 system-ui,Arial,sans-serif}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-width:760px;margin:auto}
+h1{font:500 19px/1.2 Georgia,serif;margin:0}p{margin:2px 0 8px;font-size:11px;color:#6b5c54}
+canvas{display:block;margin:auto;max-width:100%;height:auto;aspect-ratio:1;background:linear-gradient(150deg,#fffdf9,#e9e2dc);border:1px solid var(--line);border-radius:12px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:4px 0}
+label{display:grid;gap:4px;font:600 10px/1.4 system-ui}
+select,input{width:100%;min-width:0;padding:8px 6px;border:1px solid #cbb8ad;border-radius:8px;background:#fffaf3;color:#362d2c;font:12px/1.2 system-ui}
+input[type=color]{height:34px;padding:2px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+button{flex:1 1 auto;border:1px solid #cdb4ac;border-radius:9px;background:#f7eee4;color:#3a2c29;font:700 11px/1.3 system-ui;padding:9px 10px;cursor:pointer}
+button.primary{background:#cb566c;border-color:#bd4e63;color:white}
+#status{font-size:11px;min-height:1.3em;color:#63504d}
+@media(min-width:620px){main{grid-template-columns:minmax(0,330px) minmax(260px,1fr);align-items:start}}
+</style></head><body>
+<main><section><h1>Character maker</h1><p>Create a Mii-inspired look here in Big LWA. This makes a PNG avatar; it doesn't export Nintendo Mii data.</p>
+<canvas id="portrait" width="512" height="512" aria-label="Live avatar drawing"></canvas>
+</section><section>
+<div class="controls">
+<label>Face shape<select id="face"><option value="oval">Oval</option><option value="round">Round</option><option value="square">Square</option><option value="heart">Heart</option></select></label>
+<label>Complexion<input id="skin" type="color" value="#c28b65"></label>
+<label>Hairstyle<select id="hair"><option value="crop">Short</option><option value="swoop">Side sweep</option><option value="bob">Bob</option><option value="curly">Curls</option><option value="buns">Buns</option><option value="bald">Bald</option></select></label>
+<label>Hair color<input id="hairColor" type="color" value="#362322"></label>
+<label>Eyes<select id="eyes"><option value="round">Round</option><option value="almond">Almond</option><option value="sleepy">Sleepy</option><option value="smile">Smiling</option></select></label>
+<label>Eye color<input id="eyeColor" type="color" value="#473d32"></label>
+<label>Eyebrows<select id="brows"><option value="soft">Soft</option><option value="straight">Straight</option><option value="arched">Arched</option></select></label>
+<label>Mouth<select id="mouth"><option value="smile">Smile</option><option value="neutral">Neutral</option><option value="grin">Grin</option><option value="open">Open</option></select></label>
+<label>Glasses<select id="glasses"><option value="none">None</option><option value="round">Round</option><option value="square">Square</option></select></label>
+<label>Outfit<input id="shirt" type="color" value="#ad455e"></label>
+</div>
+<div class="actions"><button type="button" id="random">Randomize</button><button type="button" id="download">Download PNG</button><button type="button" class="primary" id="save">Save to Big LWA</button></div>
+<div id="status" role="status">Changes preview instantly.</div></section></main>
+<script>
+(()=>{
+const canvas=document.querySelector('#portrait'),ctx=canvas.getContext('2d'),Q=id=>document.getElementById(id);
+const fields=['face','skin','hair','hairColor','eyes','eyeColor','brows','mouth','glasses','shirt'];
+function fillPath(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);points.slice(1).forEach(p=>ctx.lineTo(...p));ctx.closePath();ctx.fill()}
+function ellipse(x,y,rx,ry,color,stroke='',lw=1){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke()}}
+function line(x1,y1,x2,y2,color,width=4){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.lineWidth=width;ctx.strokeStyle=color;ctx.lineCap='round';ctx.stroke()}
+function curve(points,color,width=4){ctx.beginPath();ctx.moveTo(points[0],points[1]);ctx.bezierCurveTo(...points.slice(2));ctx.lineWidth=width;ctx.lineCap='round';ctx.strokeStyle=color;ctx.stroke()}
+function render(){
+ const s=Object.fromEntries(fields.map(k=>[k,Q(k).value]));
+ ctx.clearRect(0,0,512,512);
+ const bg=ctx.createLinearGradient(0,0,512,512);bg.addColorStop(0,'#f8f3ee');bg.addColorStop(1,'#e5dbd5');ctx.fillStyle=bg;ctx.fillRect(0,0,512,512);
+ ellipse(256,533,192,153,s.shirt);ellipse(256,486,95,62,s.skin);
+ // ears and head
+ ellipse(118,269,21,38,s.skin);ellipse(394,269,21,38,s.skin);
+ let fw=s.face==='round'?130:s.face==='square'?121:117,fh=s.face==='round'?154:177;
+ ctx.fillStyle=s.skin;ctx.beginPath();
+ if(s.face==='square'){ctx.moveTo(145,140);ctx.lineTo(367,140);ctx.lineTo(375,342);ctx.quadraticCurveTo(256,400,137,342);ctx.closePath()}
+ else if(s.face==='heart'){ctx.moveTo(256,140);ctx.bezierCurveTo(110,85,109,247,152,321);ctx.quadraticCurveTo(255,440,360,321);ctx.bezierCurveTo(404,247,395,86,256,140)}
+ else ctx.ellipse(256,258,fw,fh,0,0,Math.PI*2);
+ ctx.fill();
+ const hc=s.hairColor;
+ if(s.hair==='crop'){ellipse(256,161,121,74,hc);ellipse(183,177,62,50,hc);ellipse(329,177,58,50,hc)}
+ if(s.hair==='swoop'){ellipse(256,161,124,82,hc);fillPath([[149,157],[349,101],[374,210],[294,183],[174,216]],hc)}
+ if(s.hair==='bob'){ellipse(256,180,143,126,hc);ellipse(256,252,116,162,s.skin);fillPath([[127,290],[150,180],[173,289]],hc);fillPath([[339,289],[361,178],[388,288]],hc)}
+ if(s.hair==='curly'){for(let i=0;i<10;i++){const a=Math.PI*1.02+i*Math.PI/9;ellipse(256+117*Math.cos(a),236+110*Math.sin(a),30,31,hc)}}
+ if(s.hair==='buns'){ellipse(148,160,53,52,hc);ellipse(364,160,53,52,hc);ellipse(256,156,118,64,hc)}
+ const eyeY=268,eyeXs=[208,304];
+ eyeXs.forEach((x,i)=>{
+  if(s.eyes==='smile'){curve([x-23,eyeY+5,x-9,eyeY-9,x+11,eyeY-9,x+23,eyeY+5],hc,5);return}
+  ellipse(x,eyeY,s.eyes==='almond'?29:25,s.eyes==='sleepy'?10:17,'#fffdfa','#403335',2);
+  ellipse(x,eyeY,10,s.eyes==='sleepy'?8:12,s.eyeColor);ellipse(x,eyeY,5,8,'#141415');ellipse(x-3,eyeY-5,3,3,'#fff');
+  if(s.eyes==='sleepy')line(x-22,eyeY-6,x+22,eyeY-6,hc,5);
+ });
+ eyeXs.forEach(x=>{
+  if(s.brows==='arched')curve([x-22,239,x-4,221,x+12,222,x+23,239],hc,7);
+  else if(s.brows==='straight')line(x-21,232,x+20,232,hc,7);
+  else curve([x-21,235,x-5,226,x+8,227,x+21,232],hc,6);
+ });
+ // small nose and expression
+ curve([256,280,252,300,250,317,262,319],'#865f51',3);
+ if(s.mouth==='smile')curve([211,352,232,376,282,376,304,352],'#7b3b44',5);
+ if(s.mouth==='neutral')line(223,362,289,362,'#7b3b44',5);
+ if(s.mouth==='grin'){ellipse(256,359,45,14,'#fff8ed','#7b3b44',4)}
+ if(s.mouth==='open')ellipse(256,363,20,26,'#703a42','#87424c',4);
+ if(s.glasses!=='none'){
+  ctx.strokeStyle='#423d3d';ctx.lineWidth=5;
+  eyeXs.forEach(x=>{ctx.beginPath();if(s.glasses==='round')ctx.ellipse(x,268,39,36,0,0,Math.PI*2);else ctx.roundRect(x-39,236,78,64,12);ctx.stroke()});
+  line(247,260,265,260,'#423d3d',4);line(169,250,125,242,'#423d3d',4);line(343,250,388,242,'#423d3d',4);
+ }
+}
+fields.forEach(k=>Q(k).addEventListener('input',render));
+Q('random').addEventListener('click',()=>{
+ const options=k=>[...Q(k).options||[]].map(x=>x.value);
+ for(const k of ['face','hair','eyes','brows','mouth','glasses']){const vals=options(k);Q(k).value=vals[Math.floor(Math.random()*vals.length)]}
+ const colors=['#2a1d1d','#773d2a','#9b613e','#e3b88c','#bb788a','#3c5676'];
+ Q('hairColor').value=colors[Math.floor(Math.random()*colors.length)];Q('shirt').value=colors[Math.floor(Math.random()*colors.length)];render();
+});
+Q('download').addEventListener('click',()=>{const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='biglwa-character.png';a.click();});
+Q('save').addEventListener('click',()=>{
+ if(window.parent===window){Q('status').textContent='Open this editor from Big LWA Studio to save to your account.';return}
+ Q('status').textContent='Saving to your account…';
+ window.parent.postMessage({type:'biglwa:mii-created',image:canvas.toDataURL('image/png')},location.origin);
+});
+window.addEventListener('message',event=>{if(event.origin===location.origin&&event.data?.type==='biglwa:mii-save-result')Q('status').textContent=event.data.message;});
+render();
+})();
+</script>
+</body></html>
