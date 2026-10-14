@@ -50,7 +50,7 @@ assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-headi
 assert.match(orbitFeed, /rim:'#7d3ec5'/);
 assert.match(index, /feed-polish\.js\?v=20261014-window-lights-hover-3/);
 assert.match(index, /project-canvas\.js\?v=20261014-orbit-picker-drop-r2-2/);
-assert.match(index, /tiktok-orbit\.js\?v=20261014-oauth-return-debug-3/);
+assert.match(index, /tiktok-orbit\.js\?v=20261014-oauth-return-diagnostics-4/);
 assert.match(feedPolish, /biglwa-feed-lights/);
 assert.match(feedPolish, /data-feed-light/);
 assert.match(feedPolish, /data-post-/);
@@ -61,6 +61,8 @@ assert.match(projectCanvas, /loadOrbitImagePicker/);
 assert.match(projectCanvas, /uploadProjectImage/);
 assert.match(projectCanvas, /media\/feed-image/);
 assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
+assert.match(tiktokOrbit, /lastError/);
+assert.match(modules, /providerError/);
 assert.match(tiktokOrbit, /location\.origin \+ '\/\?route=studio&view=orbit'/);
 
 assert.match(feedView, /instagram: \{ rim:"#7d3ec5"/);
