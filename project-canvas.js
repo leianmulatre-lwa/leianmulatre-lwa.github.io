@@ -13,6 +13,8 @@ function load(){
   let legacy=[];try{legacy=JSON.parse(localStorage.getItem('biglwaModule_projects')||'[]')}catch{}
   if(Array.isArray(legacy)&&legacy.length)boards=legacy.map((p,i)=>({id:id(),title:p.title||'Untitled project',items:[{id:id(),type:'note',text:p.detail||p.meta||'',x:48,y:45}]}));
  }
+ // The old empty state made every + button silently return because board() was null.
+ if(!boards.length)boards=[{id:id(),title:'My first project',items:[]}];
  current=boards.some(b=>b.id===current)?current:(boards[0]?.id||'');
 }
 function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(key(),JSON.stringify(boards))}catch(e){setStatus('Could not save in this browser. Check storage space.')}},160)}
@@ -56,7 +58,7 @@ function pickerStatus(message){
  const el=$('#lwaProjectPickerStatus');if(el)el.textContent=message;
 }
 function openImagePicker(){
- if(!board()){setStatus('Create a project first.');return;}
+ if(!board()){load();if(!board()){setStatus('Create a project first.');return;}}
  const picker=$('#lwaProjectImagePicker');if(!picker)return;
  pickerStatus('Your Orbit images stay in BIGLWA media storage. Your project is a private draft on this browser.');
  const gallery=$('#lwaProjectOrbitGallery');if(gallery){gallery.hidden=true;gallery.replaceChildren()}
@@ -91,26 +93,37 @@ async function uploadProjectImage(file){
 }
 async function loadOrbitImagePicker(){
  const panel=$('#lwaProjectOrbitGallery');if(!panel)return;
- panel.hidden=false;panel.textContent='Loading your saved Orbit photos…';
+ panel.hidden=false;panel.replaceChildren();panel.textContent='Loading your account’s saved Orbit photos…';
  try{
   const api=window.__biglwaOrbitPosts;
-  if(!api?.storedOrbitImageUrls)throw Error('Orbit is still loading. Please try again.');
-  const groups=await Promise.all(['instagram','pinterest'].map(source=>api.storedOrbitImageUrls(source)));
+  if(!api?.storedOrbitImageUrls)throw Error('Orbit storage is still loading. Reopen Projects in a moment.');
+  const groups=await Promise.allSettled(['instagram','pinterest'].map(source=>api.storedOrbitImageUrls(source)));
   if(!panel.isConnected)return;
-  const images=[...new Set(groups.flatMap(group=>Object.values(group||{}).flat()))]
+  const images=[...new Set(groups.flatMap(res=>res.status==='fulfilled'?Object.values(res.value||{}).flat():[]))]
     .filter(url=>typeof url==='string'&&url.startsWith('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/orbit/'))
-    .slice(0,150);
-  if(!images.length){panel.textContent='No stored Orbit images yet. Connect Instagram or Pinterest in Orbit, then sync photos.';return;}
-  panel.innerHTML=images.map((url,index)=>'<button type="button" data-select-orbit-image="'+index+'"><img src="'+esc(url)+'" alt="Saved Orbit picture" loading="lazy"></button>').join('');
+    .slice(0,160);
+  if(!images.length){
+    panel.textContent='No account-stored Orbit pictures were found yet. Try Sync in Orbit to copy older Instagram or Pinterest posts to BIGLWA.';
+    return;
+  }
+  panel.replaceChildren();
   panel.__imageUrls=images;
-  pickerStatus('Choose a saved image to add to your project.');
- }catch(error){panel.textContent=error?.message||'Orbit photos could not load.'}
+  for(const [index,url] of images.entries()){
+    const button=document.createElement('button');button.type='button';
+    button.dataset.selectOrbitImage=String(index);
+    button.title='Add stored image to project';
+    const image=document.createElement('img');image.src=url;image.alt='Orbit library image';image.loading='lazy';
+    image.onerror=()=>{button.remove();};
+    button.append(image);panel.append(button);
+  }
+  pickerStatus('Choose a photo to add to your current project.');
+ }catch(error){panel.textContent=error?.message||'Could not load saved Orbit photos.'}
 }
 document.addEventListener('biglwa:module-open',e=>{if(e.detail?.key==='projects'||e.detail?.key==='project')mount()});
 document.addEventListener('click',e=>{
  const root=e.target.closest('#lwaProjects');if(!root)return;
  const b=e.target.closest('button');if(!b)return;
- if(b.hasAttribute('data-open-project-picker')){openImagePicker();return}
+ if(b.hasAttribute('data-open-project-picker')){e.preventDefault();openImagePicker();return}
  if(b.dataset.add){add(b.dataset.add);return}
  if(b.hasAttribute('data-new-board')){const title=prompt('Project title','New project');if(!title?.trim())return;const next={id:id(),title:title.trim(),items:[]};boards.push(next);current=next.id;save();render()}
  if(b.hasAttribute('data-rename')&&board()){const title=prompt('Rename project',board().title);if(title?.trim()){board().title=title.trim();save();render()}}
@@ -175,7 +188,12 @@ document.addEventListener('pointerup',()=>{
  if(item){item.x=parseInt(drag.el.style.left,10)||0;item.y=parseInt(drag.el.style.top,10)||0;save()}
  drag=null;
 });
-window.__biglwaProjectCanvas={mount};
+window.__biglwaProjectCanvas={mount,openImagePicker,loadOrbitImagePicker};
+ // Deep links and lazy script loading can fire biglwa:module-open before this script is ready.
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
+   if(document.querySelector('#moduleWorkspace:not([hidden])[data-module-key="projects"]'))mount();
+ },{once:true});
+ else if(document.querySelector('#moduleWorkspace:not([hidden])[data-module-key="projects"]'))mount();
 const css=document.createElement('style');css.textContent=`
 #lwaProjects{font-family:system-ui,sans-serif;color:#302b28}
 .lwa-project-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:16px 0}
