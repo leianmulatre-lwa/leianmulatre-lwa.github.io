@@ -98,7 +98,7 @@ const SOURCE_THEMES = {
   instagram: { rim:"#f28c28", glow:"#8c3acb", hot:"#ffad42" },
   tiktok: { rim:"#111111", glow:"#25f4ee", hot:"#fe2c55" },
   facebook: { rim:"#1877f2", glow:"#5aa0ff" },
-  pinterest: { rim:"#f97316", glow:"#ffae42", hot:"#de5e0d" },
+  pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" },
   youtube: { rim:"#d0202f", glow:"#fff6ec", hot:"#ff0033" },
   soundcloud: { rim:"#ff5500", glow:"#ffb13b", hot:"#c93f00" },
   google: { rim:"#4285f4", glow:"#34a853", hot:"#fbbc04" },
