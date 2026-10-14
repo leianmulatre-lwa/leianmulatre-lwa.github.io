@@ -23,6 +23,11 @@
   ['KWVA 88.1','University of Oregon','Oregon','https://kwva.uoregon.edu/'],
   ['KPSU','Portland State','Oregon','https://kpsu.org/']
  ];
+ const audioStreams={
+  1:'https://stream.kalx.berkeley.edu:8443/kalx-128.mp3',
+  3:'https://kcsb.streamguys1.com/live',
+  4:'https://kzscfms1-geckohost.radioca.st/kzschigh'
+ };
  const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03']];
  // Each destination is an actual publisher/creator channel or a specifically
  // identified release. We do NOT invent YouTube video IDs or live statuses.
@@ -316,7 +321,7 @@
    const playable=stream&&/^https:\/\//i.test(stream);
    monitor.innerHTML='<div class="stream-screen is-external"><span class="stream-monitor-kicker">'+caption+'</span>'+
     '<div class="stream-screen-center"><span>♫</span><strong>'+title+'</strong>'+
-    (playable?'<button type="button" class="stream-radio-play" data-radio-play aria-label="Play or pause station">▶ Play</button><audio preload="none" id="streamRadioAudio" src="'+escapeHTML(stream)+'"></audio><small>Live audio from the original station.</small>':'<small>This station has no verified embeddable direct stream yet. Its official listening page opens separately.</small>')+
+    (playable?'<button type="button" class="stream-radio-play" data-radio-play aria-label="Play or pause station">▶ Play</button><audio preload="auto" id="streamRadioAudio" src="'+escapeHTML(stream)+'"></audio><small id="streamRadioStatus" role="status">Ready to listen inside Big LWA</small>':'<small>This station has no verified embeddable direct stream yet. Its official listening page opens separately.</small>')+
     (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">Official station ↗</a>':'')+
     '</div><span class="stream-screen-bottom">DIRECT STATION STREAM · NO REHOSTING</span></div>';
   }else if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
@@ -333,11 +338,27 @@
   }
   monitor.scrollIntoView({behavior:'smooth',block:'center'});
  }
+ function playRadio(audio,button){
+  if(!audio||!button)return;
+  const status=root?.querySelector('#streamRadioStatus');
+  button.disabled=true;
+  if(status)status.textContent='Connecting to station…';
+  Promise.resolve(audio.play()).then(()=>{
+   button.textContent='Ⅱ Pause';button.disabled=false;
+   if(status)status.textContent='Playing live · original station stream';
+  }).catch(error=>{
+   button.textContent='▶ Play';button.disabled=false;
+   if(status)status.textContent='Stream unavailable or blocked. Try Play again.';
+   console.warn('Big LWA radio stream unavailable:',error?.name||'playback error');
+  });
+ }
  function selectStation(index){
   const station=stations[index];if(!station)return;
   showSource({title:station[0],category:'podcast',creator:station[1],
    subtitle:station[1]+' · '+station[2],source:'Campus radio',
-   url:station[3],audioUrl:index===1?'https://stream.kalx.berkeley.edu:8443/kalx-128.mp3':index===3?'https://kcsb.streamguys1.com/live':'',type:'radio station',provider:'radio'});
+   url:station[3],audioUrl:audioStreams[index]||'',type:'radio station',provider:'radio'});
+  const audio=root?.querySelector('#streamRadioAudio');
+  if(audio)playRadio(audio,root.querySelector('[data-radio-play]'));
  }
  function selectFeature(id){
   const source=[...featured,...ballroomChannels,...youtubeLive].find(item=>item.id===id);
@@ -476,7 +497,7 @@
  function onClick(event){
   const button=event.target.closest('button');
   if(!button||!root.contains(button))return;
-  if(button.matches('[data-radio-play]')){const audio=root.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused){audio.play().then(()=>button.textContent='Ⅱ Pause').catch(()=>{button.textContent='Playback unavailable';});}else{audio.pause();button.textContent='▶ Play';}return;}
+  if(button.matches('[data-radio-play]')){const audio=root.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=root.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
   if(button.matches('[data-stream-tab]')){
    const changing=state.category!==button.dataset.streamTab;
    state.category=button.dataset.streamTab;
