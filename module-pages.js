@@ -10,6 +10,10 @@
   const style = document.createElement('style');
   style.id = 'biglwa-module-pages-style-v3';
   style.textContent = `
+  /* politc: user-supplied Nyame Baatanpa Studio symbol */
+  #studioApp #politc .politc-studio-symbol{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;flex-shrink:0}
+  #studioApp #politc .politc-studio-symbol img{display:block;width:34px;height:34px;object-fit:contain}
+  body.night-mode #studioApp #politc .politc-studio-symbol img{filter:invert(1)}
   /* politc: monochrome wanted-board editorial styling */
   .politc-board{--poster:#efe3cd;--ink:#28231e;display:grid;gap:18px}
   .politc-board .politc-banner{background:#332a24;color:#f4e8d3;padding:24px;border:4px double #d3b992;letter-spacing:.09em;text-align:center}
@@ -1099,7 +1103,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     const updateClock=()=>{const ms=electionDate-Date.now();clock.textContent=ms>0?Math.ceil(ms/86400000)+' days left':ms>-86400000?'Election Day':'Election passed';};
     updateClock();const ticker=setInterval(()=>{if(!body.contains(clock)){clearInterval(ticker);return;}updateClock();},60000);
     const syncElection=()=>{
-      const code=stateSelect.value;localStorage.setItem('biglwaPolitcVotingState',code);localStorage.setItem('biglwaPolitcVotingZip',zipField.value.trim());
+      const code=stateSelect.value;try{localStorage.setItem('biglwaPolitcVotingState',code);localStorage.setItem('biglwaPolitcVotingZip',zipField.value.trim())}catch{}
       stateLabel.textContent=code?'· '+states.find(x=>x[0]===code)?.[1]:'· Select a state';
       nomineeArea.innerHTML=code==='CA'?'<div class="politc-portraits">'+caNominees.map(([name,party])=>'<article class="politc-person"><div style="height:100px;display:grid;place-items:center;background:#ddd4c7;font:28px Georgia,serif" aria-hidden="true">'+esc(name.split(' ').map(x=>x[0]).join(''))+'</div><strong>'+esc(name)+'</strong><small>'+esc(party)+' · Governor</small></article>').join('')+'</div><p class="politc-note">These are the statewide governor nominees; district and local ballots depend on residence.</p>':'<p class="politc-note">Nominee lists depend on the state and voting district. Open your official ballot guide to see the verified candidates for your address.</p>';
       const urls=code==='CA'?[['Certified California candidates','https://elections.cdn.sos.ca.gov/statewide-elections/2026-general/cert-list-candidates.pdf'],['California ballot lookup','https://www.sos.ca.gov/elections/polling-place'],['California voter guide','https://www.sos.ca.gov/elections/upcoming-elections/general-election-november-3-2026']]:[['Find state election office','https://www.usa.gov/state-election-office'],['Look up candidates by address','https://www.vote411.org/ballot']];
@@ -2130,7 +2134,7 @@ const connect=e.target.closest('[data-orbit-connect]');
 
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
-    stopCamera();let key=(rawKey||'').toLowerCase();
+    stopCamera();let key=(rawKey||'').toLowerCase();if(key==='politic'||key==='politics')key='politc';
     if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project')key='projects';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
     if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));window.scrollTo({top:0,behavior:'instant'});if(push){try{history.pushState({biglwaModule:key},'',key==='map'?'/studio?panel=map':`/studio/${encodeURIComponent(key)}`)}catch{}}
   }
@@ -2476,9 +2480,20 @@ const connect=e.target.closest('[data-orbit-connect]');
         card.id='politc';card.className='card studio-politc-card';
         card.dataset.widgetRoute='politc';
         card.dataset.search='politc politics political pendulum votes election voting united nations un al jazeera genocide watch wcw mcm hunting season cunting season';
-        card.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">⚖</span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Wanted posters, WCW, MCM, Hunting Season, Cunting Season, the political pendulum, and world civic resources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
+        card.innerHTML='<div class="card-head"><div><span class="card-icon politc-studio-symbol" aria-hidden="true"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34"></span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Wanted posters, WCW, MCM, Hunting Season, Cunting Season, the political pendulum, and world civic resources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
         const roomsCard=$('#rooms');if(roomsCard&&roomsCard.parentElement===masonry)roomsCard.insertAdjacentElement('afterend',card);else masonry.appendChild(card);
       }
+    }
+    // Recovered Studio cards must receive the same symbol and route as newly created cards.
+    const politcCard=$('#studioApp #politc');
+    if(politcCard){
+      politcCard.dataset.widgetRoute='politc';
+      const badge=$('.card-icon',politcCard);
+      if(badge&&!badge.querySelector('img[src*="politc-nyame-baatanpa"]')){
+        badge.classList.add('politc-studio-symbol');
+        badge.innerHTML='<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34">';
+      }
+      politcCard.querySelectorAll('.card-cta,.arrow-btn').forEach(button=>{button.dataset.open='politc';button.setAttribute('aria-label','Open politc');});
     }
     if(!$('#tools')){
       const masonry=$('#studioApp .masonry');
