@@ -10,6 +10,7 @@
   const CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
   const CALLBACK_ERROR=(()=>{try{return new URL(location.href).searchParams.get('tiktok_error')||''}catch{return''}})();
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
+  let lastError='';
   const scopedKey = () => authUid ? KEY + ':' + authUid : '';
   const getSession = () => { try { return scopedKey() ? localStorage.getItem(scopedKey()) || '' : ''; } catch { return ''; } };
   const save = value => { if (!scopedKey()) return; try { if (value) localStorage.setItem(scopedKey(), value); else localStorage.removeItem(scopedKey()); } catch {} };
@@ -37,6 +38,7 @@
   }
   const esc = value => String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function notice(message) {
+    lastError=String(message||'');statusUpdate();
     let el = document.getElementById('tiktok-status');
     if (!el) { el = document.createElement('div'); el.id = 'tiktok-status'; el.setAttribute('role','status'); el.style.cssText='position:fixed;bottom:20px;right:20px;z-index:15000;max-width:360px;background:#fff5eb;color:#292322;padding:16px;border-radius:12px;box-shadow:0 5px 24px #0003'; document.body.appendChild(el); }
     el.textContent = message; clearTimeout(notice.timer); notice.timer = setTimeout(() => el.remove(), 12000);
@@ -51,6 +53,7 @@
     try {
       if (!crypto.subtle) throw new Error('TikTok needs a secure page (https) to connect from this browser.');
       if (!await firebaseIdToken() || !authUid) throw new Error('Sign in to Big LWA before connecting TikTok.');
+      lastError='';statusUpdate();
       const health = await api('health');
       if(!health.ok)throw Error('TikTok Worker setup is incomplete: '+(health.missing||[]).join(', '));
       const expected='https://biglwa-instagram-api.leianmulatre-284.workers.dev/tiktok/callback';
@@ -173,6 +176,6 @@
     else if(e.target.closest('[data-orbit-app="tiktok"],[data-tt-connect]')) { e.preventDefault(); e.stopImmediatePropagation(); connected?restore():connect(); }
     else if(e.target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render,100);
   },true);
-  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}}};
+  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 }());
