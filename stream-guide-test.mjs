@@ -170,8 +170,10 @@ await check('creator rotation uses authentic channel URLs and no hypothetical pl
  for(const title of names)assert.ok(catalog.some(x=>x.title===title),'Missing creator '+title);
  const olandria=catalog.find(x=>x.id==='olandria');
  const tea=catalog.find(x=>x.id==='teaspill');
- assert.equal(olandria.url,'https://www.youtube.com/@X_Olan/videos');
- assert.equal(tea.url,'https://www.youtube.com/@TeaSpill/videos');
+ assert.equal(olandria.channelUrl,'https://www.youtube.com/@X_Olan/videos');
+ assert.equal(olandria.videoId,'lx1UP1nLMQw');
+ assert.equal(tea.channelUrl,'https://www.youtube.com/@TeaSpill/videos');
+ assert.equal(tea.videoId,'Qz5VZPMhw8Q');
  assert.ok(catalog.every(x=>x.url?.startsWith('https://')));
  assert.ok(!catalog.some(x=>/under review|channel link under|creator requested|suggested programming/i.test(x.source+' '+x.subtitle)));
  assert.ok(!catalog.some(x=>x.id==='mrsinformation'||x.id==='teaspill-request'||x.id==='olandria-request'));
@@ -200,6 +202,7 @@ await check('Live guide uses real Twitch channels rather than nonexistent live-s
  assert.ok(live.every(x=>x.kind==='twitch'&&x.status.includes('UNVERIFIED')));
  assert.ok(live.every(x=>x.id&&catalog.some(y=>y.id===x.id)));
  assert.ok(stream.includes('https://player.twitch.tv/?channel='));
+ assert.ok(stream.includes('monitor.innerHTML=state.defaultMonitorMarkup'),'switching categories stops old embedded media');
  assert.ok(stream.includes("encodeURIComponent(window.location.hostname)"),'Twitch embed must pass the actual parent domain');
  assert.ok(stream.includes('autoplay=false&muted=true'));
  assert.ok(stream.includes("if(button.matches('[data-stream-twitch]'))"));
