@@ -359,3 +359,21 @@ body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .s
  .biglwa-stream .stream-discovery-select img{width:90px;height:57px}
  .biglwa-stream .stream-discovery-gallery{gap:7px}
 }
+
+/* Studio Stream containment fix: the same surface is positioned inside its
+   own player frame, never as a viewport-fixed sheet above the search bar. */
+.biglwa-stream .stream-monitor{position:relative!important;isolation:isolate;overflow:hidden!important}
+#studioApp #stream .stream-screen.stream-preview-active{position:relative!important;isolation:isolate!important;overflow:hidden!important;clip-path:inset(0 round 13px)}
+.biglwa-persistent-stream-player,
+.biglwa-persistent-stream-player.is-studio-preview{
+ position:absolute!important;inset:0!important;
+ left:0!important;right:0!important;top:0!important;bottom:0!important;
+ width:100%!important;height:100%!important;
+ transform:none!important;will-change:auto!important;transition:none!important;
+ overflow:hidden!important;z-index:2!important;
+ contain:layout style paint;isolation:isolate;pointer-events:auto;
+}
+#studioApp #stream .stream-screen.stream-preview-active>.biglwa-persistent-stream-player{
+ border-radius:9px!important;max-width:100%;max-height:100%;
+}
+.biglwa-persistent-stream-player>.stream-screen{height:100%!important;min-height:0!important;overflow:hidden!important}
