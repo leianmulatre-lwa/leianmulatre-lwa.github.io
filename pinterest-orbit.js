@@ -22,6 +22,7 @@ let handoffPromise=null;
  };
  const resetView=()=>{
   connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};
+  document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
   restorePromise=null;boardsPromise=null;pinsPromise=null;lastImport={imported:0,skipped:0,partial:0};importError='';
   render();
  };
@@ -196,7 +197,12 @@ async function connect(){await run(async()=>{
   if(restorePromise)return restorePromise;
   restorePromise=run(async()=>{
     profile=await api('profile');
-    connected=true;render();
+    if(!profile||typeof profile!=='object'||!profile.username)
+     throw new Error('Pinterest did not return a readable authorized profile. Check your Pinterest API permissions.');
+    connected=true;
+    diagnostic='Pinterest connected as @'+profile.username+'.';
+    document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:true,uid:authUid,username:profile.username}}));
+    render();
     // Persist the connected account's public details, not its bearer token.
     try{await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid) || window.__biglwaConnections?.refresh?.(authUid))}catch(error){console.warn('Pinterest connection mirror:',error)}
     await loadBoards();
@@ -412,6 +418,6 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
  render();
 });
-window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError,diagnostic})};
+window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,selectedBoard:boardId,hasSession:Boolean(session()),busy,importError,diagnostic})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
