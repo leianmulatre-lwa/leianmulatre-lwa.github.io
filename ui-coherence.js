@@ -1170,6 +1170,7 @@
     try{const saved=JSON.parse(localStorage.getItem('biglwaModule_stream')||'[]');const title=Array.isArray(saved)&&saved[0]?.title?String(saved[0].title).trim():'';return title||'After Hours: u up?'}catch{return 'After Hours: u up?'}
   }
 
+  const unavailableStreamThumbs=new Set();
   // A cached thumbnail must not destroy or obscure the live Studio media projection.
   // Keep one image node and only change its src when the actual last selection changes.
   function lastStreamThumbnail(){
@@ -1182,9 +1183,14 @@
     const player=window.BigLWAStreamGuide;
     if(watched.kind==='feature'){
       const entry=(player?.featured||[]).find(item=>item.id===watched.id);
-      if(entry?.videoId&&/^[A-Za-z0-9_-]{11}$/.test(entry.videoId))
-       return 'https://i.ytimg.com/vi/'+entry.videoId+'/hqdefault.jpg';
-      if(entry?.provider==='archive-video')return 'https://archive.org/services/img/BettyBoopCartoons';
+      if(entry?.videoId&&/^[A-Za-z0-9_-]{11}$/.test(entry.videoId)){
+       const thumb='https://i.ytimg.com/vi/'+entry.videoId+'/hqdefault.jpg';
+       return unavailableStreamThumbs.has(thumb)?fallback:thumb;
+      }
+      if(entry?.provider==='archive-video'){
+       const thumb='https://archive.org/services/img/BettyBoopCartoons';
+       return unavailableStreamThumbs.has(thumb)?fallback:thumb;
+      }
     }
     if(watched.kind==='program')return fallback;
     return fallback;
@@ -1203,7 +1209,11 @@
       if(photo.getAttribute('src')!==streamThumbnail)photo.src=streamThumbnail;
       photo.alt=streamThumbnail.includes('i.ytimg.com')?'Last watched Stream video thumbnail':streamThumbnail.includes('archive.org')?'Betty Boop Stream video thumbnail':'Radio booth Stream preview';
       photo.hidden=false;
-      photo.onerror=()=>{photo.onerror=null;photo.src='/assets/station-radio-room.webp?v=20260916-station-1'};
+      photo.onerror=()=>{
+       unavailableStreamThumbs.add(photo.getAttribute('src')||'');
+       photo.onerror=null;
+       photo.src='/assets/station-radio-room.webp?v=20260916-station-1';
+      };
       const title=$('strong',screen);if(title)title.textContent=streamTitle;
       const counts=$$('span,.stream-watching-count',screen).filter(el=>/watching|viewers?|watchers?|streaming/i.test(el.textContent));
       const count=counts.shift();counts.forEach(extra=>extra.remove());
