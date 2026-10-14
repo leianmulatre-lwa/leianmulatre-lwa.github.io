@@ -54,7 +54,7 @@ check("the live Instagram cards use the same rule", orbit.includes("var manyPhot
 
 console.log("\n=== EVERY CARD HAS A + ===");
 check("the tray markup is shareable", feed.includes("function sendBarMarkup()"));
-check("the feed hands it out", feed.includes("window.__biglwaFeed = { loadPosts, renderPosts, refresh: loadPosts, sendBarMarkup, registerSendCard }"));
+check("the feed hands it out", feed.includes("window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard }"));
 check("the live cards draw it", orbit.includes("window.__biglwaFeed.sendBarMarkup()"));
 check("the live cards carry a post id and picture record", orbit.includes('data-post-id="\' + cardId + \'" data-send-record="\' + sendRecord + \'"'));
 check("the live cards are registered with the feed", orbit.includes("window.__biglwaFeed.registerSendCard(card)"));
