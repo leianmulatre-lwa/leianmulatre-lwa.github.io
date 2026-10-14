@@ -458,7 +458,10 @@
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
     availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
-    let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button';create.innerHTML='＋<span>Create</span>'}
+    let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
+    create.classList.add('studio-veve-launcher');
+    create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
+    create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
     const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
     const split=Math.ceil(links.length/2);bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));bar.style.setProperty('--studio-action-count',String(links.length+1));
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
