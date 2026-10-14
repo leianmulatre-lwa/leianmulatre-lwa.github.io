@@ -52,8 +52,8 @@ check("a stack shows one picture", feed.includes("const shown = isStack ? urls.s
 check("a stack draws no tabs", feed.includes("const carousel = !isStack && shown.length > 1"));
 check("the live Instagram cards use the same rule", orbit.includes("var manyPhotos = children.length >= 8") && orbit.includes("children.length > 1 && !manyPhotos"));
 
-console.log("\n=== EVERY CARD HAS A + ===");
-check("the tray markup is shareable", feed.includes("function sendBarMarkup()"));
+console.log("\n=== EVERY CARD SHARES A TOP-RIGHT THREE-DOT MENU ===");
+check("the actions menu markup is shareable", feed.includes("function sendBarMarkup(managed = false, sourceUrl = '')"));
 check("the feed hands it out", feed.includes("window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard }"));
 check("the live cards draw it", orbit.includes("window.__biglwaFeed.sendBarMarkup()"));
 check("the live cards carry a post id and picture record", orbit.includes('data-post-id="\' + cardId + \'" data-send-record="\' + sendRecord + \'"'));
@@ -65,3 +65,10 @@ console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 check("Instagram shadows are orange and purple", feed.includes('instagram: { rim:"#f28c28", glow:"#8c3acb", hot:"#ffad42" }'));
 check("Pinterest shadows remain Pinterest red", feed.includes('pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" }'));
+
+check("Collective cards share one three-dot menu",feed.includes('class="biglwa-send biglwa-card-options"')&&feed.includes('Post options">•••'));
+check("Pinterests and Instagrams use the same menu markup",feed.includes("sendBar(post, managed)")&&feed.includes("biglwa-pinterest-card"));
+check("the centered plus button has been removed",!feed.includes('class="biglwa-send-toggle" type="button"'));
+check("menu still offers Boards and Projects and Map",feed.includes('data-send-to="boards"')&&feed.includes('data-send-to="projects"')&&feed.includes('data-send-map>Pin on Map'));
+check("post owner actions remain in the same menu",feed.includes("data-post-enlarge>View full media")&&feed.includes("data-post-archive>Archive this post"));
+check("menu is anchored top right",feed.includes("#feedPageList .biglwa-card-options{position:absolute!important;top:8px!important;right:8px!important"));
