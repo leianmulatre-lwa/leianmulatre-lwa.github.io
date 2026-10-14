@@ -1158,6 +1158,15 @@
   }
 
   function latestStreamTitle(){
+    const current=window.BigLWAStreamGuide?.lastWatchedTitle;
+    if(current)return String(current);
+    const uid=String(window.__biglwaIdentity?.uid||'').trim();
+    if(uid){
+      try{
+        const last=JSON.parse(localStorage.getItem('biglwaStreamLastPlayedV1:'+uid)||'null');
+        if(last?.title)return String(last.title).slice(0,120);
+      }catch{}
+    }
     try{const saved=JSON.parse(localStorage.getItem('biglwaModule_stream')||'[]');const title=Array.isArray(saved)&&saved[0]?.title?String(saved[0].title).trim():'';return title||'After Hours: u up?'}catch{return 'After Hours: u up?'}
   }
 
@@ -1167,6 +1176,7 @@
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
       const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
       const screen=$('.stream-screen',card)||card;
+      if(screen.classList.contains('stream-preview-active'))return;
       let photo=$('.stream-station-photo',screen);
       if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.src='/assets/station-radio-room.webp?v=20260916-station-1';photo.alt='Sticker-covered radio booth lit in red and blue with a host at a microphone';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
       const title=$('strong',screen);if(title)title.textContent=streamTitle;
