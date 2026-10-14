@@ -18,7 +18,7 @@ const KEYS=TYPES.map(entry=>entry[0]);
 const IDLE_KEY='biglwaSqwipV1';
 const CLOUD_API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/sqwip/library';
 const MAX_DOCS=36,MAX_BLOCKS=1500,MAX_CHARS=15000,MAX_FILE=2*1024*1024;
-let host=null,state=null,namespace='',timer=null,cloudTimer=null,cloudReady=false,cloudUid='',verifiedUid='',syncPending=false,selectedBlock='',loadingError='',listening=false;
+let host=null,state=null,namespace='',timer=null,cloudTimer=null,cloudReady=false,cloudUid='',verifiedUid='',syncPending=false,cloudDirty=false,selectedBlock='',loadingError='',listening=false;
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const uid=()=>String(window.__biglwaIdentity?.uid||verifiedUid||'').trim();
 const key=()=>IDLE_KEY+':'+(uid()||'browser-guest');
@@ -291,11 +291,12 @@ async function getAuthUser(){
 }
 function scheduleCloudSave(){
  if(!cloudReady||!cloudUid||!state)return;
+ cloudDirty=true;
  clearTimeout(cloudTimer);cloudTimer=setTimeout(pushToCloud,1000);
 }
 async function pushToCloud(){
  if(!cloudReady||cloudUid!==uid()||!state||syncPending)return;
- syncPending=true;
+ syncPending=true;cloudDirty=false;
  const currentScope=namespace, currentUser=cloudUid;
  try{
   const user=await getAuthUser();
@@ -303,14 +304,17 @@ async function pushToCloud(){
   const token=await user.getIdToken();
   const snapshot=JSON.stringify(state);
   const response=await fetch(CLOUD_API,{method:'POST',headers:{
-   Origin:location.origin,'Content-Type':'application/json',Authorization:'Bearer '+token
+   'Content-Type':'application/json',Authorization:'Bearer '+token
   },body:snapshot});
   if(!response.ok)throw Error((await response.json().catch(()=>({}))).error||'Could not sync');
   if(namespace===currentScope)setStatus('Saved to your BIG LWA account',true);
  }catch(error){
   console.warn('Sqwip account autosave:',error);
   if(namespace===currentScope)setStatus('Saved in this browser · account sync unavailable · export backup',false);
- }finally{syncPending=false}
+ }finally{
+  syncPending=false;
+  if(cloudDirty&&cloudReady&&namespace===currentScope)scheduleCloudSave();
+ }
 }
 async function syncFromCloud(){
  const scope=namespace;
@@ -429,11 +433,11 @@ function onPaste(event){
 function mount(root){
  if(!root)return;
  if(host&&host!==root)saveNow();
- clearTimeout(cloudTimer);cloudReady=false;cloudUid='';
+ clearTimeout(cloudTimer);cloudReady=false;cloudUid='';cloudDirty=false;
  host=root;state=loadStore();selectedBlock='';
  host.classList.add('sqwip-root');
  host.innerHTML='<div class="sqwip-shell">'+
-  '<div class="sqwip-top"><div><span class="sqwip-eyebrow">BIG LWA · THE WRITER’S DESK</span><h2>sqwip<span class="sqwip-cursor">_</span></h2><p>Screenplay formatting, scenes and dialogue. Private browser autosave · export a backup.</p></div>'+
+  '<div class="sqwip-top"><div><span class="sqwip-eyebrow">BIG LWA · THE WRITER’S DESK</span><h2>sqwip<span class="sqwip-cursor">_</span></h2><p>Screenplay formatting, scenes and dialogue. BIG LWA account sync with local backup.</p></div>'+
   '<div class="sqwip-doc-toolbar"><label>Screenplay <select id="sqwipScriptSelect" aria-label="Choose screenplay"></select></label><button id="sqwipNew" type="button">+ New</button><button id="sqwipDuplicate" type="button">Duplicate</button><button id="sqwipDelete" type="button" class="sqwip-danger">Delete</button></div></div>'+
   '<div class="sqwip-details"><label>Title <input id="sqwipTitle" maxlength="130" placeholder="Untitled Screenplay" autocomplete="off"></label>'+
   '<label>Written by <input id="sqwipAuthor" maxlength="100" placeholder="Author" autocomplete="off"></label>'+
