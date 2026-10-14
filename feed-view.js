@@ -567,6 +567,8 @@ function renderHero(force) {
       "</a>";
   }).join("");
 
+  const withImage=posts.filter(post=>slideUrls(post).length>0);
+  const rest=Math.max(0,posts.length-slots.length);
   anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
     "</span></div>" + '<div class="biglwa-feed-hero-grid">' +
@@ -1303,7 +1305,7 @@ export async function startFeed() {
   });
   watch();
   if (identity()) await loadPosts();
-  window.__biglwaFeed = { loadPosts, renderPosts, refresh: loadPosts, sendBarMarkup, registerSendCard };
+  window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard };
   /* The connected source cards render before this module finishes booting, so they are told
      the wall is ready and they can add their own + tray then. */
   document.dispatchEvent(new CustomEvent("biglwa:feed-ready"));
