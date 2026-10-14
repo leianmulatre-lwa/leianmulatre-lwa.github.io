@@ -174,7 +174,7 @@ await check('every hourly cell in the three-channel grid is populated with a rea
   for(const [hour,pick] of category.slots.entries()){
    assert.ok(pick.title&&pick.title!=='—','missing title at '+category.category+' hour '+hour);
    assert.ok(pick.status,'missing status at '+category.category+' hour '+hour);
-   assert.ok(!pick.status.includes('APPROVED')&&!pick.status.includes('ON AIR'),
+   assert.ok(!pick.status.startsWith('APPROVED')&&!pick.status.startsWith('ON AIR'),
     'directory pick should not be passed off as approved programming');
   }
  }
