@@ -774,6 +774,28 @@ const connect=e.target.closest('[data-orbit-connect]');
   }
 
   function renderWriting(key){
+    // Visitors can read an explicitly shared Journal snapshot, but NEVER
+    // the owner's unshared local drafts, Sqwib notes or Sqwip screenplays.
+    if(document.documentElement.classList.contains('biglwa-preview-mode')){
+      body.innerHTML=heading(key)+'<div class="module-grid"><section class="module-card wide" id="publicWritingReader"><h2>'+ (key==='diary'?'Journal':'Sqwib Note') +'</h2><p>Checking access…</p></section></div>';
+      const host=$('#publicWritingReader',body);
+      if(key!=='diary'){
+        host.innerHTML='<h2>🔒 Sqwib Note</h2><p>This note is private to its owner.</p>';
+        return;
+      }
+      const username=(()=>{try{return decodeURIComponent(location.pathname.replace(/^\\/+|\\/+$/g,''))}catch{return ''}})();
+      const reader=window.BigLWAUserDirectory?.loadPublicProfile?.(username);
+      if(!reader){host.innerHTML='<h2>Journal</h2><p>Journal reading is unavailable.</p>';return;}
+      Promise.resolve(reader).then(profile=>{
+        if(!host.isConnected)return;
+        if(profile?.journalVisibility!=='public'||!profile.publicJournal){
+          host.innerHTML='<h2>Journal</h2><p>This Journal has not been shared publicly.</p>';return;
+        }
+        host.innerHTML='<h2>Journal</h2><p class="journal-reader-intro">An entry from '+esc(profile.name||profile.username||'this member')+'</p>'+
+          '<article class="journal-reading-sheet">'+esc(profile.publicJournal).replace(/\\n/g,'<br>')+'</article>';
+      }).catch(()=>{if(host.isConnected)host.innerHTML='<h2>Journal</h2><p>Could not load Journal.</p>'});
+      return;
+    }
     const storage=`biglwaDraft_${key}`;
     const title=key==='diary'?`<div class="module-diary-cover-label is-compact"><span>Journal · ${esc(profileUsername())}</span></div><nav class="diary-section-nav" role="tablist" aria-label="Writing desk"><button type="button" data-diary-view="diary" role="tab" aria-controls="diaryWritingSection" aria-selected="true"><span aria-hidden="true">▤</span> Journal</button><button type="button" data-diary-view="sqwip" role="tab" aria-controls="sqwipWritingSection" aria-selected="false"><span aria-hidden="true">♢</span> Sqwip <small>private</small></button></nav>` :'<div class="module-qwiky-label"><strong>Sqwib Note</strong><span>🔒 private · pin it before it floats away</span></div>';
     body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="Diary journal"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button><button class="module-action secondary" id="moduleWritingFeed" type="button">Upload to Collective Feed</button></div><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves while you write</div></form></div>${key==='diary'?'<div id="sqwipWritingSection" role="tabpanel" aria-label="Sqwip screenplay maker" hidden></div>':''}</section></div>`;
