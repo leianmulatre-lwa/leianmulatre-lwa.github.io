@@ -49,12 +49,15 @@ check("the wall folds to 3, then 2, then 1", pages.includes(".instagram-archive-
 check("a flat card list still fills the same responsive wall", pages.includes(".archive-page-list:not(:has(.archive-source-group)){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))"));
 
 console.log("\n=== A TALL PICTURE CANNOT SWALLOW A ROW ===");
-check("every Archive piece sits in a fixed frame", pages.includes("aspect-ratio:5/6;min-height:112px;max-height:430px"));
-check("media fill the frame instead of sizing themselves", pages.includes("position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:inherit") && !pages.includes("width:100%;height:auto;max-height:none;aspect-ratio:auto"));
-check("a four-piece carousel is laid out as tiles", pages.includes(".instagram-archive-media.is-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}"));
-check("the card marks a four-piece carousel", pages.includes("' is-tiles':'')+'\""));
+check("every Archive piece sits inside a feed-like fixed-ratio media frame", pages.includes(".instagram-archive-piece{aspect-ratio:4/5;min-height:0!important;max-height:none!important}"));
+check("media fills the Archive frame without stretching the card", pages.includes("object-fit:contain;background:#f3e9df") && pages.includes("position:absolute;inset:0;width:100%;height:100%;object-fit:contain"));
+check("carousel media stays one card instead of showing a 2x2 tile wall", pages.includes("archive-carousel-actions") && pages.includes("function archivePieceMarkup(piece,index,total,cardIndex)"));
+check("the card renders one media frame with navigation", pages.includes("const visualPieces=pieces.length?archivePieceMarkup(pieces[0]") && pages.includes("data-archive-step") && pages.includes("archive-carousel-actions"));
 check("repeats can be hidden to one copy while still counted", pages.includes("indexes.slice(0,1):indexes)"));
 
+check("first load uses the updated Archive media array", pages.indexOf("const media=archiveMedia;")>pages.indexOf("if(!archiveInitialized) await loadInitial();"));
+check("Pinterest images can fall back to known thumbnails", pages.includes("data-archive-fallback"));
+check("Archive refresh includes Pinterest", pages.includes("window.__biglwaPinterest?.syncAllBoards()"));
 console.log("\n=== MANAGE POPUP FOR EVERY ORBIT CONNECTION ===");
 check("the toolbar opens a connections popup", pages.includes('id="archiveConnections"') && pages.includes("()=>openConnectionsPopup()"));
 check("the popup covers every Orbit source", pages.includes("ORBIT_APPS.map(([k,g,n,t])=>{") && pages.includes("root.className='biglwa-popup-backdrop'"));
