@@ -3,6 +3,9 @@
 if(window.__biglwaPinterest) return;
 const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/pinterest/';
 const KEY='biglwaPinterestSession';
+const PENDING_KEY='biglwaPinterestPendingHandoffV2';
+const OAUTH_UID_KEY='biglwaPinterestOauthStartingUid';
+let handoffPromise=null;
  let connected=false,profile={},boards=[],pins=[],boardId='',boardsNext='',pinsNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null;
  let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false,diagnostic='Awaiting Pinterest account synchronization';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -78,15 +81,56 @@ async function connect(){await run(async()=>{
      needs it, so its connect button worked on any page while Pinterest died silently.
      Say so instead of throwing a dead click. */
   if(!crypto.subtle)throw new Error('Connect Pinterest from a secure page (https) before this browser will allow it.');
-  await api('health');
+  const health=await api('health');
+  if(!health.ok)throw new Error('Pinterest Worker settings are incomplete.');
   /* The worker only answers the redirect when the challenge is a real base64url PKCE
      value; any other shape comes back as "Start Pinterest connection from Orbit." and
      the tab lands on a JSON error page that reads as the button doing nothing. */
   const verifier=encode(crypto.getRandomValues(new Uint8Array(32)));
   sessionStorage.setItem('pinterestVerifier',verifier);
+  sessionStorage.setItem(OAUTH_UID_KEY,authUid);
+  sessionStorage.removeItem(PENDING_KEY);
   const challenge=encode(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
-  location.assign(API+'start?challenge='+encodeURIComponent(challenge));
+  const returnTo=location.origin+'/studio/boards';
+  location.assign(API+'start?challenge='+encodeURIComponent(challenge)+'&return_to='+encodeURIComponent(returnTo));
  })}
+
+ async function finishPinterestHandoff(){
+  if(handoffPromise)return handoffPromise;
+  const raw=storageGet(PENDING_KEY);if(!raw)return false;
+  handoffPromise=(async()=>{
+   let pending;
+   try{pending=JSON.parse(raw)}catch{storageDrop(PENDING_KEY);return false}
+   if(!pending?.handoff || !/^[A-Za-z0-9_-]{43}$/.test(pending.handoff)) {
+    storageDrop(PENDING_KEY);return false;
+   }
+   if(Date.now()-Number(pending.receivedAt||0)>600000){
+    storageDrop(PENDING_KEY);
+    throw new Error('Pinterest authorization return expired. Please reconnect.');
+   }
+   const token=await firebaseIdToken();
+   if(!token || !authUid)throw new Error('Sign in to Big LWA to finish linking Pinterest.');
+   const startUid=sessionStorage.getItem(OAUTH_UID_KEY)||'';
+   if(startUid && startUid!==authUid)throw new Error('Finish connecting Pinterest from the same Big LWA account used to start.');
+   const verifier=sessionStorage.getItem('pinterestVerifier')||'';
+   if(!/^[A-Za-z0-9_-]{43}$/.test(verifier))throw new Error('Pinterest verification was lost. Connect from the same browser and domain, then try again.');
+   const result=await api('session',{handoff:pending.handoff,verifier,firebaseIdToken:token});
+   if(!result.connected||!result.persisted||!result.session)throw new Error('Pinterest authorization did not finish binding to your Big LWA account.');
+   save(result.session);
+   // A successful OAuth callback is not enough: verify the mapping is readable
+   // from a fresh account-scoped request, just like on a different device.
+   const check=await fetch(API+'session/account',{headers:{Authorization:'Bearer '+token}});
+   const mapping=await check.json().catch(()=>({}));
+   if(!check.ok||!mapping.connected||mapping.session!==result.session)
+    throw new Error('Pinterest approved, but your Big LWA account could not restore the connection.');
+   storageDrop(PENDING_KEY);
+   sessionStorage.removeItem('pinterestVerifier');
+   sessionStorage.removeItem(OAUTH_UID_KEY);
+   diagnostic='Pinterest authorization linked to this Big LWA account.';
+   return true;
+  })();
+  try{return await handoffPromise}finally{handoffPromise=null}
+ }
  async function loadBoards(more=false){
   if(boardsPromise)return boardsPromise;
   boardsPromise=(async()=>{
@@ -336,14 +380,25 @@ async function watchAuth(){
 async function init(){
   const style=document.createElement('style');style.textContent='#pinterestBoards{font-size:16px}#pinterestBoards p,#pinterestBoards label{font-size:16px;line-height:1.5}#pinterestBoards button,#pinterestBoards select{font-size:14px;min-height:42px}#pinterestBoards button:disabled{opacity:.55;cursor:wait}.pinterest-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.pinterest-board{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:150px;overflow:hidden;border:1px solid #d8cec5;border-radius:14px;background:#fffaf3;color:#302b28;text-decoration:none;box-shadow:0 10px 22px -16px rgba(48,43,40,.6)}.pinterest-board img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pinterest-board strong,.pinterest-board small{position:relative;z-index:1;padding:0 12px;color:#fff;background:linear-gradient(180deg,transparent,rgba(24,16,14,.78) 62%);text-shadow:0 1px 3px rgba(0,0,0,.4)}.pinterest-board strong{padding-top:30px;font:600 15px/1.4 system-ui;overflow-wrap:anywhere}.pinterest-board small{padding-bottom:11px;font:600 12px/1.4 system-ui;opacity:.9}.pinterest-board.is-empty{display:grid;place-items:center;min-height:150px;width:100%;cursor:pointer;font:inherit;color:inherit;border-style:dashed;background:repeating-linear-gradient(45deg,#fffaf3,#fffaf3 10px,#fdf3e9 10px,#fdf3e9 20px)}.pinterest-board.is-empty:hover:not(:disabled){border-color:#a53332;border-style:solid}.pinterest-board.is-empty span{font:600 12px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}.pinterest-board:focus-visible{outline:3px solid #a53332}@media (max-width:760px){.pinterest-board-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}.pinterest-pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:16px;margin:20px 0}.pinterest-pin{border:1px solid #d8cec5;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#fffaf3;color:#302b28;text-decoration:none}.pinterest-pin img{width:100%;height:230px;object-fit:cover}.pinterest-pin span,.pinterest-pin small{padding:10px 12px;overflow-wrap:anywhere}.pinterest-pin small{font-size:13px;margin-top:auto}.pinterest-pin:focus-visible{outline:3px solid #a53332}';document.head.append(style);
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
- if(handoff||error){url.searchParams.delete('pinterest_handoff');url.searchParams.delete('pinterest_error');history.replaceState(history.state,'',url.href)}
+ if(handoff){
+  try{sessionStorage.setItem(PENDING_KEY,JSON.stringify({handoff,receivedAt:Date.now()}))}catch{}
+ }
+ if(handoff||error){
+  url.searchParams.delete('pinterest_handoff');
+  url.searchParams.delete('pinterest_error');
+  history.replaceState(history.state,'',url.href);
+ }
  if(error)notice(error);
- let returning=false;
- if(handoff){returning=true;try{
-  const token=await firebaseIdToken();
-  const result=await api('session',{handoff,verifier:sessionStorage.getItem('pinterestVerifier')||'',firebaseIdToken:token});
-  save(result.session);sessionStorage.removeItem('pinterestVerifier');
- }catch(e){notice(e.message);return}}
+ let returning=Boolean(handoff||storageGet(PENDING_KEY));
+ if(returning){
+  try{await finishPinterestHandoff()}
+  catch(e){
+   diagnostic=e.message||'Pinterest authorization could not be completed.';
+   notice(diagnostic);
+   // Keep a time-limited pending handoff to allow another attempt after account
+   // restoration; do not return before auth and UI listeners are installed.
+  }
+ }
  render();
  /* Pinterest sends the tab back to the app, not to a module, so after the round trip the
     Boards page was never reopened and the freshly fetched boards stayed invisible. Reopen it
