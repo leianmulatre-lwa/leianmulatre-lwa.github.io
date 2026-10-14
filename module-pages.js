@@ -1,11 +1,26 @@
 (() => {
   if (window.__biglwaModulePagesReadyV3) return;
-  window.__biglwaModulePagesReadyV3 = true;
-
   const $ = (s, root=document) => root.querySelector(s);
   const $$ = (s, root=document) => [...root.querySelectorAll(s)];
   const main = $('.main');
-  if (!main) return;
+  if (!main) {
+    // The Studio shell can mount after this script. Retry without marking the module ready.
+    if (!window.__biglwaModulePagesWaitingForMain) {
+      window.__biglwaModulePagesWaitingForMain = true;
+      let attempts = 0;
+      const wait = setInterval(() => {
+        if (!document.querySelector('.main') && attempts++ < 90) return;
+        clearInterval(wait);
+        window.__biglwaModulePagesWaitingForMain = false;
+        if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
+        const script = document.createElement('script');
+        script.src = '/module-pages.js?v=20261014-politc-retry-23';
+        document.head.appendChild(script);
+      }, 250);
+    }
+    return;
+  }
+  window.__biglwaModulePagesReadyV3 = true;
 
   const style = document.createElement('style');
   style.id = 'biglwa-module-pages-style-v3';
