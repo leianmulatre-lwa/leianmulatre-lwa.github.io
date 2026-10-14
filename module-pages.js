@@ -17,6 +17,13 @@
     #studioApp #boards .studio-pinterest-board-preview button{display:block;min-width:0;height:94px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#dfc9c2;box-shadow:1px 2px 0 #dc2344;cursor:pointer}
     #studioApp #boards .studio-pinterest-board-preview img{display:block;width:100%;height:100%;object-fit:cover}
     #studioApp #boards .studio-pinterest-empty{grid-column:1/-1;padding:21px 10px;font:600 12px/1.5 system-ui;color:#806d63;text-align:center}
+    .studio-map-mini{position:relative;display:block;width:100%;height:143px;margin:0 0 8px;padding:0;border:1px solid #a4b6aa;border-radius:13px;overflow:hidden;cursor:pointer;background:repeating-linear-gradient(35deg,transparent 0 34px,#c8e5d5 35px 46px,transparent 47px 72px),repeating-linear-gradient(118deg,#ecf2db 0 31px,#b5d9d1 32px 39px,#eaf0dc 40px 87px);box-shadow:2px 3px 0 #9fae9b}
+    .studio-map-mini:before{content:"";position:absolute;inset:-20px;background:repeating-linear-gradient(135deg,transparent 0 36px,#faf7e0d1 37px 44px,transparent 45px 89px);pointer-events:none}
+    .studio-map-mini-title,.studio-map-mini-count{position:absolute;z-index:2;left:8px;padding:4px 8px;border-radius:7px;background:#f8faeadd;font:800 9px/1.2 ui-monospace,monospace;color:#295b52}
+    .studio-map-mini-title{top:9px}.studio-map-mini-count{bottom:8px}
+    .studio-map-preview-marker{position:absolute;z-index:3;display:grid;place-items:center;width:23px;height:23px;border:2px solid white;border-radius:50%;background:#c02f41;color:white;font:800 10px system-ui;box-shadow:0 2px 5px #283b3d66;transform:translate(-50%,-50%)}
+    .studio-map-preview-empty{margin:6px 0;font:600 11px/1.3 system-ui;color:#6d7b67}
+
 
     .main.module-view>.hero,.main.module-view>.masonry,.main.module-view>.site-policy-footer{display:none!important}
     .module-workspace{position:relative;z-index:4;min-height:calc(100vh - 66px);padding:34px clamp(18px,4vw,54px) 110px;background:linear-gradient(180deg,rgba(246,240,233,.94),rgba(239,231,223,.97));color:#272321}
@@ -1708,7 +1715,37 @@ const connect=e.target.closest('[data-orbit-connect]');
 
   let activeMap=null;
   function renderMap(){
-    body.innerHTML=heading('map')+`<style>#biglwaMapApp{width:100%;height:820px;border:0;border-radius:16px;background:#f6f0e9}@media(max-width:760px){#biglwaMapApp{height:1250px}}</style><iframe id="biglwaMapApp" src="/map-app.html?v=20260918-safety-notice-2&embed=1" title="BIGLWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>`;
+    // The map is an isolated embedded app. If its data/API fails it must never
+    // redirect the signed-in Studio or trigger a sign-out/navigation fallback.
+    body.innerHTML=heading('map')+`<style>#biglwaMapApp{width:100%;height:820px;border:0;border-radius:16px;background:#f6f0e9;display:block}#biglwaMapStatus{margin:0 0 10px;font:600 12px/1.45 system-ui;color:#6b5448}@media(max-width:760px){#biglwaMapApp{height:1050px}}</style>
+      <section aria-label="BIG LWA map">
+      <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
+      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261014-studio-map-stable-3" loading="eager" referrerpolicy="same-origin"
+       title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
+      <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
+      </section>`;
+    const frame=$('#biglwaMapApp',body),status=$('#biglwaMapStatus',body);
+    if(!frame||!status)return;
+    let ready=false;
+    const timer=setTimeout(()=>{
+      if(!frame.isConnected||ready)return;
+      status.textContent='Map is taking longer than expected. You can retry without leaving or signing out of Studio.';
+    },12000);
+    frame.addEventListener('load',()=>{
+      ready=true;clearTimeout(timer);
+      if(!frame.isConnected)return;
+      status.textContent='Map opened in Studio. Your account session remains on the main page.';
+    });
+    frame.addEventListener('error',()=>{
+      clearTimeout(timer);
+      status.textContent='The map could not load. Select Reload map only; your Studio remains open.';
+    });
+    const retry=$('#biglwaMapRetry',body);
+    if(retry)retry.onclick=()=>{
+      ready=false;
+      status.textContent='Retrying the map without reloading Studio…';
+      frame.src='/map-app.html?embed=1&v=20261014-studio-map-stable-3';
+    };
   }
 
   /* Wallpaper moderation. Reachable only from the member's own profile, and only the
@@ -1828,18 +1865,33 @@ const connect=e.target.closest('[data-orbit-connect]');
       if(oldVisual)oldVisual.replaceWith(slot);else if(cta)mapCard.insertBefore(slot,cta);else mapCard.appendChild(slot);
     }
     const pins=readMapPreviewPins();
+    const visible=pins.slice(0,4);
+    const markerPins=visible.filter(p=>Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng)));
+    const lats=markerPins.map(pin=>Number(pin.lat));
+    const lngs=markerPins.map(pin=>Number(pin.lng));
+    const minLat=Math.min(...lats),maxLat=Math.max(...lats);
+    const minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
+    // Relative preview positions, not a disclosure of an exact address.
+    const dots=markerPins.map((pin,index)=>{
+      const x=48+(Number(pin.lng)-(minLng||0))/Math.max(maxLng-minLng,0.012)*52-26;
+      const y=48-(Number(pin.lat)-(minLat||0))/Math.max(maxLat-minLat,0.012)*52+26;
+      return '<span class="studio-map-preview-marker" style="left:'+Math.max(9,Math.min(91,x)).toFixed(1)+'%;top:'+Math.max(9,Math.min(91,y)).toFixed(1)+'%" aria-hidden="true">'+(index+1)+'</span>';
+    }).join('');
+    const mapVisual='<button type="button" class="studio-map-mini" data-open="map" aria-label="Open interactive Map">'+
+      '<span class="studio-map-mini-title">YOUR PINNED WORLD</span>'+dots+
+      '<span class="studio-map-mini-count">'+pins.length+' saved spot'+(pins.length===1?'':'s')+'</span></button>';
     if(!pins.length){
-      slot.innerHTML='<div class="studio-map-visual" role="img" aria-label="Map placeholder until you save a pinned spot"></div>';
+      slot.innerHTML=mapVisual+'<p class="studio-map-preview-empty">Open Map to create your first pin.</p>';
       return;
     }
-    const visible=pins.slice(0,3);
-    const rows=visible.map(pin=>{
+    const rows=visible.slice(0,3).map(pin=>{
       const title=pin.title||pin.placeName||'Pinned spot';
-      const meta=pin.area||pin.address||pin.placeType||pin.category||'Saved place';
+      const meta=pin.area||pin.placeType||pin.category||'Saved place';
       return '<div class="studio-map-pin-row"><span class="studio-map-pin-dot" aria-hidden="true"></span><div class="studio-map-pin-copy"><b>'+esc(title)+'</b><small>'+esc(meta)+'</small></div></div>';
     }).join('');
-    const more=pins.length>visible.length?'<div class="studio-map-more">+'+(pins.length-visible.length)+' more pinned spot'+(pins.length-visible.length===1?'':'s')+'</div>':'';
-    slot.innerHTML='<div class="studio-map-pins-preview"><div class="studio-map-pins-tab"><span>Pinned Spots</span><b>'+pins.length+'</b></div><div class="studio-map-pins-list">'+rows+'</div>'+more+'</div>';
+    const more=pins.length>3?'<div class="studio-map-more">+'+(pins.length-3)+' more pinned spots</div>':'';
+    slot.innerHTML=mapVisual+'<div class="studio-map-pins-preview"><div class="studio-map-pins-tab"><span>Pinned Spots</span><b>'+pins.length+'</b></div><div class="studio-map-pins-list">'+rows+'</div>'+more+'</div>';
+
   }
 
   function enhanceStudioCards(){
