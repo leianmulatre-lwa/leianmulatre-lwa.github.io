@@ -190,9 +190,14 @@ async function connect(){await run(async()=>{
   await api('disconnect',body);save('');resetView();await window.__biglwaConnections?.forget?.('pinterest');
  })}
  function image(pin){
-  const images=pin.media?.images||pin.media?.items?.[0]?.images||{};
-  const candidate=images['600x']?.url||images['400x300']?.url||Object.values(images).find(x=>x?.url)?.url||pin.media?.cover_image_url;
-  try{const u=new URL(candidate);return u.protocol==='https:'&& (u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com'))?u.href:''}catch{return ''}
+  if(!pin)return '';
+  const imgs=pin.media?.images||pin.media?.items?.[0]?.images||pin.images||{};
+  const candidates=[imgs['600x'],imgs['400x300'],imgs['237x'],imgs.originals,imgs.original,...Object.values(imgs),pin.image_url,pin.imageUrl,pin.image?.url,pin.media?.cover_image_url,pin.media?.image_url,pin.thumbnail_url,pin.media_url];
+  for(const entry of candidates){
+   const src=typeof entry==='string'?entry:entry?.url||entry?.src;
+   try{const url=new URL(src);if(url.protocol==='https:'&&(url.hostname==='i.pinimg.com'||url.hostname.endsWith('.pinimg.com')))return url.href}catch{}
+  }
+  return '';
  }
  /* Pins reach the feed as cards, and Boards keeps its own grid, so both read this list. */
  function feedPins(){
@@ -230,7 +235,7 @@ async function connect(){await run(async()=>{
   }
   if(!boards.length)return'';
   const tiles=boards.slice(0,6).map(b=>{
-   const cover=covers[b.id];
+   const coverEntry=covers[b.id];const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry);
    /* Boards are addressed by owner, so a profile with no username yet would otherwise
       produce a link with a hole in it. Falling back to the account root still opens
       Pinterest rather than a broken address. */
@@ -248,7 +253,7 @@ async function connect(){await run(async()=>{
  if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('Pinterest','pinterest-feed-item',renderFeedList);
  let importerWaits=0;
  const waitForImporter=()=>new Promise(resolve=>{
-   const check=()=>{if(window.__biglwaOrbitPosts?.importOrbitMedia)return resolve(window.__biglwaOrbitPosts.importOrbitMedia);if(importerWaits++>=30)return resolve(null);setTimeout(check,200)};
+   const check=()=>{if(window.__biglwaOrbitPosts?.importOrbitMedia)return resolve(window.__biglwaOrbitPosts.importOrbitMedia);if(importerWaits++>=75)return resolve(null);setTimeout(check,200)};
    check();
  });
 
@@ -266,8 +271,8 @@ async function connect(){await run(async()=>{
  panel.setAttribute('aria-busy',String(busy));
  const disabled=busy?' disabled':'';
  panel.innerHTML='<h2>Pinterest boards</h2><p>'+(connected?'Connected as '+esc(profile.username||profile.business_name||'your Pinterest account'):'Connect Pinterest to browse your public boards and Pins here.')+'</p><div class="module-actions">'+
- (connected?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>Refresh boards</button><button type="button" class="module-action" data-pn-disconnect'+disabled+'>Disconnect</button>':'<button type="button" class="module-action" data-pn-connect'+disabled+'>Connect Pinterest</button>')+
-  '</div><p role="status">'+esc(message)+'</p>'+
+ (connected?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>Refresh boards</button><button type="button" class="module-action" data-pn-sync'+(busy||syncingAll?' disabled':'')+'>Sync Pins to my profile</button><button type="button" class="module-action" data-pn-disconnect'+disabled+'>Disconnect</button>':'<button type="button" class="module-action" data-pn-connect'+disabled+'>Connect Pinterest</button>')+
+  '</div><p role="status">'+esc(message)+'</p>'+(importError?'<p role="alert">'+esc(importError)+'</p>':'')+
   /* The grid sits outside the connected branch on purpose: the shape of what is coming is
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
@@ -282,9 +287,10 @@ async function connect(){await run(async()=>{
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
  if(!(e.target instanceof Element))return;
- const b=e.target.closest('[data-pn-connect],[data-pn-open],[data-orbit-app="pinterest"],[data-pn-disconnect],[data-pn-refresh],[data-pn-more-boards],[data-pn-more-pins]');
+ const b=e.target.closest('[data-pn-connect],[data-pn-open],[data-orbit-app="pinterest"],[data-pn-disconnect],[data-pn-refresh],[data-pn-more-boards],[data-pn-more-pins],[data-pn-sync]');
  if(!b)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-pn-disconnect'))disconnect();
+ else if(b.hasAttribute('data-pn-sync'))syncAllBoards();
  else if(b.hasAttribute('data-pn-refresh'))run(async()=>{boardId='';pins=[];pinsNext='';boards=[];boardsNext='';await loadBoards()});
  else if(b.hasAttribute('data-pn-more-boards'))run(()=>loadBoards(true));
  else if(b.hasAttribute('data-pn-more-pins'))choose(boardId,true);
