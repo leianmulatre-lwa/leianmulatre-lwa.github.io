@@ -141,6 +141,9 @@
   mediaPortal.style.cssText='position:fixed;z-index:420;overflow:hidden;pointer-events:auto;box-sizing:border-box;';
   mediaPortal.setAttribute('aria-label','Big LWA continuing Stream playback');
   mediaPortal.addEventListener('click',onClick);
+  mediaPortal.addEventListener('play',()=>{
+   if(state.selected)saveLastPlayed(state.selected);
+  },true);
   document.body.appendChild(mediaPortal);
   return mediaPortal;
  }
@@ -152,7 +155,7 @@
   mediaPortal.style.width=Math.round(rect.width)+'px';
   mediaPortal.style.height=Math.round(rect.height)+'px';
   mediaPortal.style.pointerEvents='auto';
-  mediaPortal.style.visibility=(rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<innerHeight)?'visible':'hidden';
+  mediaPortal.style.visibility=(rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<window.innerHeight)?'visible':'hidden';
  }
  function targetMedia(target){
   mediaTarget=target||null;
@@ -174,6 +177,13 @@
   if(!screen)return false;
   studioTarget=screen;
   screen.classList.add('stream-preview-active');
+  mediaPortal.classList.add('is-studio-preview');
+  if(!mediaPortal.querySelector('[data-stream-return]')){
+   const back=document.createElement('button');
+   back.type='button';back.className='stream-preview-return';back.dataset.streamReturn='';
+   back.textContent='↗ Open Stream';back.setAttribute('aria-label','Return to Stream with playback preserved');
+   mediaPortal.appendChild(back);
+  }
   const oldPhoto=screen.querySelector('.stream-station-photo');
   if(oldPhoto)oldPhoto.hidden=true;
   state.followGuide=false;
@@ -229,6 +239,8 @@
   state.defaultMonitorMarkup=root.querySelector('#streamMonitor')?.innerHTML||'';
   const persistentPlayback=Boolean(mediaPortal?.firstElementChild&&state.selected);
   targetMedia(root.querySelector('#streamMonitor'));
+  mediaPortal?.classList.remove('is-studio-preview');
+  mediaPortal?.querySelector('[data-stream-return]')?.remove();
   if(studioTarget){studioTarget.classList.remove('stream-preview-active');studioTarget=null;}
   const date=root.querySelector('#streamDate');
   const now=new Date();
@@ -405,7 +417,7 @@
   const url=source.url||'';
   const label=source.source||'Original creator channel';
   state.selected={...source,isDiscovery:true};
-  saveLastPlayed(source);
+  if(!options.silent)saveLastPlayed(source);
   const changed=Boolean(source.category&&source.category!==state.category);
   state.category=source.category||state.category;
   paintCategories();
@@ -597,7 +609,7 @@
  function selectProgram(id,options={}){
   const item=state.programs.find(p=>p.id===id);
   if(!item)return;
-  state.selected=item;saveLastPlayed({...item,isProgram:true});state.category=item.category;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
+  state.selected=item;if(!options.silent)saveLastPlayed({...item,isProgram:true});state.category=item.category;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
   const monitor=root.querySelector('#streamMonitor');
   ensureMediaPortal().innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+
    '<span>'+escapeHTML(categories.find(c=>c[0]===item.category)?.[2]||'CH')+' / '+escapeHTML(item.title)+'</span>'+
@@ -648,8 +660,9 @@
  function onClick(event){
   const button=event.target.closest('button');
   if(!button||!(root?.contains(button)||mediaPortal?.contains(button)))return;
-  if(button.matches('[data-radio-play]')){state.followGuide=false;const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
-  if(button.matches('[data-stream-episode]')){state.followGuide=false;changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
+  if(button.matches('[data-stream-return]')){window.openBIGLWAModule?.('stream');return;}
+  if(button.matches('[data-radio-play]')){state.followGuide=false;saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
+  if(button.matches('[data-stream-episode]')){state.followGuide=false;saveLastPlayed(state.selected);changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
   if(button.matches('[data-stream-tab]')){
    const changing=state.category!==button.dataset.streamTab;
    state.category=button.dataset.streamTab;
