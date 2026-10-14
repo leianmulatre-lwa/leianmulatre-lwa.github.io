@@ -388,6 +388,16 @@
     body.night-mode .module-workspace .module-heading h1,body.night-mode .module-workspace .module-card h2,body.night-mode .module-workspace .module-card h3,body.night-mode .module-workspace .module-qwiky-label strong{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-synthesis:none!important;letter-spacing:0!important;text-shadow:none!important}
     .module-workspace .module-action{background:rgb(var(--aura-rgb,216,95,109));color:var(--aura-button-ink,#fff)}
     .module-workspace .module-card:has(.diary-lined){border:9px solid #111113;border-left-width:18px;background-color:#0b0b0d;background-image:url("/assets/composition-texture.webp?v=20260917-composition-2");background-size:340px 227px;background-blend-mode:normal;box-shadow:inset 6px 0 0 rgba(255,255,255,.25),0 14px 30px rgba(0,0,0,.28)}
+    /* Diary now shares its notebook top with a compact Diary | Sqwip switcher.
+       The old redundant "Diary / Property of" sticker is intentionally removed. */
+    .module-workspace[data-module-key="diary"] .module-diary-switch{display:flex;align-items:center;gap:8px;margin:0 0 13px;padding:2px 0 12px;border-bottom:1px solid rgba(20,20,22,.27)}
+    .module-workspace[data-module-key="diary"] .module-diary-switch button{border:2px solid #111;padding:10px 23px;border-radius:6px;font:400 clamp(19px,3vw,27px)/1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase;color:#181818;background:#fffdf4;cursor:pointer}
+    .module-workspace[data-module-key="diary"] .module-diary-switch button.is-on{background:#171719;color:#fff;border-color:#171719}
+    .module-workspace[data-module-key="diary"] .module-diary-switch button:focus-visible{outline:3px solid #daab40;outline-offset:2px}
+    .module-workspace[data-module-key="diary"] .module-diary-switch span{font:600 19px/1 Georgia,serif}
+    .module-workspace[data-module-key="diary"] #moduleDiaryWriting[hidden],
+    .module-workspace[data-module-key="diary"] #moduleSqwip[hidden]{display:none!important}
+    .module-workspace[data-module-key="diary"] .module-card:has(#moduleSqwip){width:100%;min-width:0}
     .module-workspace .module-diary-cover-label{position:relative;display:grid;gap:7px;width:min(420px,calc(100% - 28px));margin:0 0 18px;padding:18px 22px 17px;border:4px double #171717;border-radius:4px 15px 15px 4px;background:#fff;color:#111;box-shadow:0 6px 0 rgba(0,0,0,.2);transform:rotate(-.35deg)}
     .module-workspace .module-diary-cover-label::before,.module-workspace .module-diary-cover-label::after{content:"";position:absolute;left:22px;right:22px;height:2px;background:#171717;opacity:.72}.module-workspace .module-diary-cover-label::before{top:58px}.module-workspace .module-diary-cover-label::after{top:91px}
     .module-workspace .module-diary-cover-label strong,.module-workspace .module-diary-cover-label span{position:relative;z-index:1;font-family:"Arial Rounded MT Bold","Comic Sans MS",Impact,sans-serif;font-weight:900;letter-spacing:-.035em}.module-workspace .module-diary-cover-label strong{font-size:31px;line-height:1}.module-workspace .module-diary-cover-label span{font-size:15px;line-height:1.1}
@@ -725,8 +735,10 @@ const connect=e.target.closest('[data-orbit-connect]');
 
   function renderWriting(key){
     const storage=`biglwaDraft_${key}`;
-    const title=key==='diary'?`<div class="module-diary-cover-label"><strong>Diary</strong><span>Property of: ${esc(profileUsername())}</span></div>`:'<div class="module-qwiky-label"><strong>Qwiky Note</strong><span>pin it before it floats away</span></div>';
-    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button><button class="module-action secondary" id="moduleWritingFeed" type="button">Upload to Collective Feed</button></div><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves while you write</div></form></section></div>`;
+    const title=key==='diary'
+      ? '<nav class="module-diary-switch" aria-label="Diary workspace"><button type="button" class="is-on" data-diary-view="diary" aria-selected="true">diary</button><button type="button" data-diary-view="sqwip" aria-selected="false">sqwip <span>✎</span></button></nav>'
+      : '<div class="module-qwiky-label"><strong>Qwiky Note</strong><span>pin it before it floats away</span></div>';
+    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="moduleDiaryWriting"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button><button class="module-action secondary" id="moduleWritingFeed" type="button">Upload to Collective Feed</button></div><div class="module-status" id="moduleWritingStatus">Private to this browser · autosaves while you write</div></form></div>${key==='diary'?'<div id="moduleSqwip" hidden></div>':''}</section></div>`;
     const form=$('#moduleWritingForm',body),area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;
     const save=(explicit=false)=>{
       localStorage.setItem(storage,area.value);
@@ -737,6 +749,27 @@ const connect=e.target.closest('[data-orbit-connect]');
     area.addEventListener('input',()=>{status.textContent='Saving…';status.classList.remove('ok');clearTimeout(t);t=setTimeout(()=>save(false),350)});
     form.addEventListener('submit',event=>{event.preventDefault();clearTimeout(t);save(true)});
     $('#moduleWritingFeed',body).onclick=async()=>{const value=area.value.trim(),status=$('#moduleWritingStatus',body);if(!value){status.textContent='Write something first.';status.classList.remove('ok');return}const button=$('#moduleWritingFeed',body);button.disabled=true;status.textContent='Uploading draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:key,title:key==='diary'?'Diary entry':'Qwiky Note',caption:value});status.textContent='Saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload this draft.';status.classList.remove('ok')}finally{button.disabled=false}};
+    if(key==='diary'){
+      const tabs=Array.from(body.querySelectorAll('[data-diary-view]'));
+      const writing=$('#moduleDiaryWriting',body),sqwip=$('#moduleSqwip',body);
+      tabs.forEach(tab=>tab.addEventListener('click',()=>{
+        const selected=tab.dataset.diaryView;
+        const showingSqwip=selected==='sqwip';
+        writing.hidden=showingSqwip;sqwip.hidden=!showingSqwip;
+        for(const button of tabs){
+          const chosen=button.dataset.diaryView===selected;
+          button.classList.toggle('is-on',chosen);
+          button.setAttribute('aria-selected',String(chosen));
+        }
+        if(showingSqwip){
+          if(window.BigLWASqwip?.mount&&!sqwip.dataset.initialized){
+            window.BigLWASqwip.mount(sqwip);sqwip.dataset.initialized='true';
+          }else if(!window.BigLWASqwip?.mount){
+            sqwip.innerHTML='<p class="module-status">Sqwip is loading. Refresh the page to try again.</p>';
+          }
+        }
+      }));
+    }
   }
 
   function renderFeed(){
