@@ -236,10 +236,29 @@ await check('every discovery link leads directly to a secure original provider',
    .includes(parsed.hostname),'unknown or fabricated host '+parsed.hostname);
  }
 });
+await check('Stream shares the same Studio header and page width as other widgets',async()=>{
+ const moduleHeader=pages.includes("else if(key==='stream'){body.innerHTML=heading('stream')+");
+ assert.ok(moduleHeader,'Stream must use the same heading() component as the other widgets');
+ assert.ok(pages.includes("const heading = (key, extra='')"),'the common Studio heading still exists');
+ assert.ok(pages.includes('.module-shell{max-width:1720px'),'shared Studio container width must remain 1720px');
+ assert.ok(!style.includes('.module-workspace[data-module-key="stream"] .module-shell{max-width:1320px}'),
+  'Stream must not override global Studio width with a narrower cap');
+ assert.ok(style.includes('.biglwa-stream{width:100%;min-width:0;max-width:none}'));
+ const mount=stream.slice(stream.indexOf(' function mount(host){'),stream.indexOf(' function jumpNow()'));
+ assert.ok(mount.includes('class="stream-nav"'),'Stream retains a compact channel selector');
+ assert.ok(mount.includes('class="stream-channels" role="tablist"'),'three channels remain navigable');
+ assert.ok(!mount.includes('class="stream-mast"'),'duplicate hero header must be removed');
+ assert.ok(!mount.includes('class="stream-testcard"'),'extra testcard masthead must be removed');
+ assert.ok(!mount.includes('<h1>stream'),'Stream should use the shared H1 from heading()');
+ assert.ok(mount.includes('stream-guide'),'retro TV guide remains intact');
+ assert.ok(mount.includes('streamMonitor'),'TV player remains intact');
+ assert.ok(mount.includes('streamShuffleAgain'),'daily shuffle stays available');
+ assert.ok(style.includes('.stream-nav-meta'),'compact nav matches shared Studio geometry');
+});
 await check('frontend script versions and future features are intentional',async()=>{
- assert.ok(index.includes('stream-guide.js?v=20261014-radio-daily-shuffle-1'));
- assert.ok(index.includes('stream-guide.css?v=20261014-radio-daily-shuffle-1'));
- assert.ok(index.includes('module-pages.js?v=20261014-stream-future-1'));
+ assert.ok(index.includes('stream-guide.js?v=20261014-shared-studio-layout-1'));
+ assert.ok(index.includes('stream-guide.css?v=20261014-shared-studio-layout-1'));
+ assert.ok(index.includes('module-pages.js?v=20261014-shared-studio-layout-1'));
  assert.ok(style.includes('.stream-shuffle-button'));
  assert.ok(style.includes('.stream-future'));
  assert.ok(style.includes('.stream-player-footer'));
