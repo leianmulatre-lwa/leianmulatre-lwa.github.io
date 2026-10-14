@@ -1911,7 +1911,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     body.innerHTML=heading('map')+`<style>#biglwaMapApp{width:100%;height:820px;border:0;border-radius:16px;background:#f6f0e9;display:block}#biglwaMapStatus{margin:0 0 10px;font:600 12px/1.45 system-ui;color:#6b5448}@media(max-width:760px){#biglwaMapApp{height:1050px}}</style>
       <section aria-label="BIG LWA map">
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
-      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261014-studio-map-stable-3" loading="eager" referrerpolicy="same-origin"
+      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261014-studio-real-map-controls-4" loading="eager" referrerpolicy="same-origin"
        title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
@@ -1935,7 +1935,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     if(retry)retry.onclick=()=>{
       ready=false;
       status.textContent='Retrying the map without reloading Studio…';
-      frame.src='/map-app.html?embed=1&v=20261014-studio-map-stable-3';
+      frame.src='/map-app.html?embed=1&v=20261014-studio-real-map-controls-4';
     };
   }
 
@@ -2115,7 +2115,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       mini.id='biglwaStudioMiniMap';
       mini.className='studio-mini-map';
       mini.title='Interactive mini map — pan, zoom, and see saved locations';
-      mini.src='/map-app.html?embed=1&preview=1&v=20261014-real-studio-mini-1';
+      mini.src='/map-app.html?embed=1&preview=1&v=20261014-studio-real-map-controls-2';
       mini.loading='eager';
       mini.referrerPolicy='same-origin';
       mini.setAttribute('allow','geolocation \'self\'');
