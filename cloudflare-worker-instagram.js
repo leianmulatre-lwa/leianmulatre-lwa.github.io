@@ -1055,7 +1055,7 @@ async function mediaRoute(request, env) {
       methods: [
         'POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>',
         'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>',
-        'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>', 'POST /media/orbit-import', 'GET /media/orbit/<uid>/<file>'
+        'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>', 'POST /media/orbit-import (Instagram or Pinterest)', 'GET /media/orbit/<uid>/<file>'
       ]
     }, 200, request, env);
   }
@@ -1071,14 +1071,18 @@ async function mediaRoute(request, env) {
 
 async function orbitMediaImport(request, env) {
   const user = await mediaUser(request, env);
-  const orbitSessionId = String(request.headers.get('X-Instagram-Session') || '').trim();
-  if (!orbitSessionId) mediaFail('Instagram Orbit session required. Reconnect Instagram and try again.', 401);
-  const session = await env.OAUTH_SESSIONS.get('session:' + orbitSessionId, 'json');
-  if (!session || !session.accessToken || session.expiresAt < Date.now()) {
-    mediaFail('Instagram session expired. Reconnect Instagram and try again.', 401);
+  const pinterestSessionId = String(request.headers.get('X-Pinterest-Session') || '').trim();
+  const isPinterest = !!pinterestSessionId;
+  const provider = isPinterest ? 'Pinterest' : 'Instagram';
+  const orbitSessionId = isPinterest ? pinterestSessionId : String(request.headers.get('X-Instagram-Session') || '').trim();
+  if (!orbitSessionId) mediaFail('An authorized Orbit session is required. Reconnect your account and try again.', 401);
+  // A Pinterest import must belong to this Firebase user, not just a browser tab.
+  const session = await env.OAUTH_SESSIONS.get((isPinterest ? 'pn:session:' : 'session:') + orbitSessionId, 'json');
+  if (!session || (isPinterest ? (!session.access_token || session.expiresAt < Date.now()) : (!session.accessToken || session.expiresAt < Date.now()))) {
+    mediaFail(provider + ' session expired. Reconnect Orbit and try again.', 401);
   }
   if (!session.firebaseUid || session.firebaseUid !== user.uid) {
-    mediaFail('Reconnect Instagram while signed into this BIGLWA account.', 403);
+    mediaFail('Reconnect ' + provider + ' while signed into this BIGLWA account.', 403);
   }
 
   const body = await request.json().catch(() => ({}));
@@ -1094,67 +1098,74 @@ async function orbitMediaImport(request, env) {
     const rawUrl = String(item.url || '').trim();
     const mediaType = String(item.mediaType || 'IMAGE').toUpperCase();
     if (!sourcePostId || !rawUrl) {
-      failed.push({ sourcePostId, index, error: 'Missing Instagram media URL.' });
+      failed.push({ sourcePostId, index, error: 'Missing Orbit media URL.' });
       continue;
     }
 
     let target;
     try { target = new URL(rawUrl); }
-    catch { failed.push({ sourcePostId, index, error: 'Instagram returned an invalid media URL.' }); continue; }
+    catch { failed.push({ sourcePostId, index, error: provider + ' returned an invalid media URL.' }); continue; }
 
-    if (target.protocol !== 'https:' || !isInstagramMediaHost(target.hostname)) {
-      failed.push({ sourcePostId, index, error: 'Instagram returned an unsupported media host.' });
+    if (target.protocol !== 'https:' || !(isPinterest ? isPinterestMediaHost(target.hostname) : isInstagramMediaHost(target.hostname))) {
+      failed.push({ sourcePostId, index, error: provider + ' returned an unsupported media host.' });
       continue;
     }
 
-    let response = await fetch(target.toString(), {
-      redirect: 'follow',
-      headers: { 'User-Agent': 'BIGLWA-Orbit-Media/1.0' }
-    });
-    if (!response.ok) {
-      target.searchParams.set('access_token', session.accessToken);
+    let response;
+    try {
       response = await fetch(target.toString(), {
-        redirect: 'follow',
+        redirect: isPinterest ? 'manual' : 'follow',
         headers: { 'User-Agent': 'BIGLWA-Orbit-Media/1.0' }
       });
+      // Pinterest CDN only: never follow arbitrary redirects or send tokens to URLs.
+      if (!isPinterest && !response.ok) {
+        target.searchParams.set('access_token', session.accessToken);
+        response = await fetch(target.toString(), {
+          redirect: 'follow',
+          headers: { 'User-Agent': 'BIGLWA-Orbit-Media/1.0' }
+        });
+      }
+    } catch {
+      failed.push({ sourcePostId, index, error: provider + ' image could not be retrieved.' });
+      continue;
     }
     let finalUrl = '';
     try { finalUrl = new URL(response.url || target.toString()); } catch {
       finalUrl = null;
     }
-    if (!response.ok || !finalUrl || !isInstagramMediaHost(finalUrl.hostname)) {
-      failed.push({ sourcePostId, index, error: 'Instagram would not provide this media file.' });
+    if (!response.ok || !finalUrl || !(isPinterest ? isPinterestMediaHost(finalUrl.hostname) : isInstagramMediaHost(finalUrl.hostname))) {
+      failed.push({ sourcePostId, index, error: provider + ' would not provide this media file.' });
       continue;
     }
 
     const contentType = String(response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    if (!MEDIA_IMAGE_TYPES.includes(contentType) && !MEDIA_VIDEO_TYPES.includes(contentType)) {
-      failed.push({ sourcePostId, index, error: 'Instagram returned an unsupported media type.' });
+    if (!MEDIA_IMAGE_TYPES.includes(contentType) && (isPinterest || !MEDIA_VIDEO_TYPES.includes(contentType))) {
+      failed.push({ sourcePostId, index, error: provider + ' returned an unsupported media type.' });
       continue;
     }
 
     const limit = MEDIA_VIDEO_TYPES.includes(contentType) ? MEDIA_MAX_VIDEO : MEDIA_MAX_IMAGE;
     const declared = Number(response.headers.get('content-length') || 0);
     if (declared && declared > limit) {
-      failed.push({ sourcePostId, index, error: 'This Instagram media file is too large for BIGLWA storage.' });
+      failed.push({ sourcePostId, index, error: 'This Orbit media file is too large for BIGLWA storage.' });
       continue;
     }
 
     const bytes = await response.arrayBuffer();
     if (!bytes.byteLength || bytes.byteLength > limit) {
-      failed.push({ sourcePostId, index, error: 'This Instagram media file could not be stored.' });
+      failed.push({ sourcePostId, index, error: 'This Orbit media file could not be stored.' });
       continue;
     }
 
     const ext = MEDIA_EXTENSIONS[contentType] || (mediaType === 'VIDEO' ? 'mp4' : 'jpg');
-    const fingerprint = await sha256Hex(sourcePostId + ':' + index);
+    const fingerprint = await sha256Hex(provider.toLowerCase() + ':' + sourcePostId + ':' + index);
     const name = fingerprint.slice(0, 40) + '.' + ext;
     const key = MEDIA_FOLDERS.orbit + '/' + user.uid + '/' + name;
     await mediaBucket(env).put(key, bytes, {
       httpMetadata: { contentType, cacheControl: 'public, max-age=31536000, immutable' },
       customMetadata: {
         uid: user.uid,
-        source: 'instagram',
+        source: provider.toLowerCase(),
         sourcePostId,
         index: String(index),
         mediaType,
@@ -1172,11 +1183,15 @@ async function orbitMediaImport(request, env) {
   }
 
   if (failed.length && !imported.length) {
-    mediaFail('BIGLWA could not copy the Instagram images. Reconnect Instagram and try again.', 502);
+    mediaFail('BIGLWA could not copy the ' + provider + ' images. Try again or reconnect Orbit.', 502);
   }
   return json({ ok: true, imported, failed }, 200, request, env);
 }
 
+function isPinterestMediaHost(hostname) {
+  const host = String(hostname || '').toLowerCase().replace(/\.$/, '');
+  return host === 'i.pinimg.com' || (host.endsWith('.pinimg.com') && host.length > '.pinimg.com'.length);
+}
 function isInstagramMediaHost(hostname) {
   const host = String(hostname || '').toLowerCase().replace(/\.$/, '');
   return host === 'instagram.com' || host.endsWith('.instagram.com')
