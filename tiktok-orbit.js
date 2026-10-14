@@ -4,9 +4,34 @@
   if (window.__biglwaTikTokOrbit) return;
   const API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   const KEY = 'biglwaTikTokSession';
-  let connected = false, profile = {}, videos = [];
-  const getSession = () => { try { return localStorage.getItem(KEY) || ''; } catch { return ''; } };
-  const save = value => { if (value) localStorage.setItem(KEY, value); else localStorage.removeItem(KEY); };
+  const PENDING_KEY = 'biglwaTikTokPendingHandoffV2';
+  const START_UID = 'biglwaTikTokStartingUid';
+  let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
+  const scopedKey = () => authUid ? KEY + ':' + authUid : '';
+  const getSession = () => { try { return scopedKey() ? localStorage.getItem(scopedKey()) || '' : ''; } catch { return ''; } };
+  const save = value => { if (!scopedKey()) return; try { if (value) localStorage.setItem(scopedKey(), value); else localStorage.removeItem(scopedKey()); } catch {} };
+  async function firebaseIdToken() {
+    try {
+      const [{ getAuth }, { initializeApp, getApps }] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js')
+      ]);
+      const app = getApps()[0] || initializeApp({
+        apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+        authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
+        appId:'1:83232670555:web:e04927b20458390b3b507e'
+      });
+      const auth = getAuth(app);
+      await auth.authStateReady();
+      authUid = auth.currentUser?.uid || '';
+      return auth.currentUser ? auth.currentUser.getIdToken() : '';
+    } catch { authUid = ''; return ''; }
+  }
+  function statusUpdate() {
+    document.dispatchEvent(new CustomEvent('biglwa:tiktok-status', {
+      detail:{ connected, uid:authUid, profile:connected?{...profile}:{} }
+    }));
+  }
   const esc = value => String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function notice(message) {
     let el = document.getElementById('tiktok-status');
@@ -22,27 +47,52 @@
   async function connect() {
     try {
       if (!crypto.subtle) throw new Error('TikTok needs a secure page (https) to connect from this browser.');
+      if (!await firebaseIdToken() || !authUid) throw new Error('Sign in to Big LWA before connecting TikTok.');
       const health = await api('health');
       if (!health.ok) throw new Error('TikTok setup is incomplete.');
       const bytes = crypto.getRandomValues(new Uint8Array(32));
       const verifier = Array.from(bytes, b => b.toString(16).padStart(2,'0')).join('');
       sessionStorage.setItem('tt_verifier', verifier);
+      sessionStorage.setItem(START_UID,authUid);
+      sessionStorage.removeItem(PENDING_KEY);
       const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
       const challenge = btoa(String.fromCharCode(...digest)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-      location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge));
+      location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio'));
     } catch (e) { notice(e.message); }
   }
   async function restore() {
-    if (!getSession()) return;
-    try {
-      profile = await api('profile'); connected = true;
-      try { videos = (await api('videos')).videos || []; } catch (e) { notice(e.message); }
+    if(restoreBusy)return;
+    restoreBusy=true;
+    try{
+      const token=await firebaseIdToken();
+      if(!token||!authUid){connected=false;profile={};videos=[];render();statusUpdate();return;}
+      if(!getSession()){
+        const response=await fetch(API+'/tiktok/session/account',{headers:{Authorization:'Bearer '+token}});
+        const result=await response.json().catch(()=>({}));
+        if(response.ok&&result.connected&&result.session)save(result.session);
+      }
+      if(!getSession()){connected=false;profile={};videos=[];render();statusUpdate();return;}
+      profile=await api('profile');
+      if(!profile?.open_id)throw new Error('TikTok profile authorization could not be verified.');
+      connected=true;render();statusUpdate();
+      try{
+        const result=await api('videos');
+        videos=result.videos||[];
+        // Basic-profile-only login is functional without video.list approval.
+        if(result.videoPermissionPending)console.info('TikTok connected; video.list access awaits TikTok app approval.');
+      }catch(e){videos=[];console.warn('TikTok optional video listing:',e.message);}
       render();
-    } catch (e) { connected = false; render(); notice(e.message); }
+      window.__biglwaConnections?.refreshSource?.('tiktok',authUid)?.catch?.(()=>{});
+    }catch(e){connected=false;profile={};videos=[];render();statusUpdate();notice(e.message);}
+    finally{restoreBusy=false;}
   }
   async function disconnect() {
-    try { await api('disconnect', {}); save(''); connected=false; profile={}; videos=[]; render(); notice('TikTok disconnected from Orbit.'); }
-    catch(e) { notice(e.message); }
+    try {
+      if(getSession())await api('disconnect', {});
+      save('');connected=false;profile={};videos=[];render();statusUpdate();
+      window.__biglwaConnections?.forget?.('tiktok')?.catch?.(()=>{});
+      notice('TikTok disconnected from Orbit.');
+    }catch(e){notice(e.message);}
   }
   function render() {
     document.querySelectorAll('[data-orbit-app="tiktok"]').forEach(el => { el.classList.toggle('orbit-connected',connected); el.setAttribute('aria-label',connected?'Refresh TikTok':'Connect TikTok'); });
@@ -68,14 +118,40 @@
   }
   if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('TikTok','tiktok-feed-item',renderFeedList);
   async function init() {
-    const url = new URL(location.href), handoff=url.searchParams.get('tiktok_handoff'), error=url.searchParams.get('tiktok_error');
-    if (handoff||error) { url.searchParams.delete('tiktok_handoff'); url.searchParams.delete('tiktok_error'); history.replaceState(history.state,'',url.href); }
-    if(error) notice(error);
-    if(handoff) {
-      try { const result=await api('session',{handoff,verifier:sessionStorage.getItem('tt_verifier')||''}); save(result.session); sessionStorage.removeItem('tt_verifier'); }
-      catch(e) { notice(e.message); return; }
+    const url=new URL(location.href),handoff=url.searchParams.get('tiktok_handoff'),error=url.searchParams.get('tiktok_error');
+    if(handoff)sessionStorage.setItem(PENDING_KEY,JSON.stringify({handoff,receivedAt:Date.now()}));
+    if(handoff||error){
+      url.searchParams.delete('tiktok_handoff');url.searchParams.delete('tiktok_error');
+      history.replaceState(history.state,'',url.href);
     }
-    render(); await restore();
+    if(error)notice(error);
+    const pendingRaw=sessionStorage.getItem(PENDING_KEY)||'';
+    if(pendingRaw){
+      try{
+        const pending=JSON.parse(pendingRaw);
+        if(Date.now()-Number(pending.receivedAt||0)>600000)throw new Error('TikTok sign-in expired. Please reconnect.');
+        const token=await firebaseIdToken();
+        if(!token||!authUid)throw new Error('Sign in to Big LWA to finish linking TikTok.');
+        const startedBy=sessionStorage.getItem(START_UID)||'';
+        if(startedBy&&startedBy!==authUid)throw new Error('Finish TikTok authorization with the same Big LWA account.');
+        const verifier=sessionStorage.getItem('tt_verifier')||'';
+        if(!/^[a-f0-9]{64}$/.test(verifier))throw new Error('TikTok verification was lost. Start again from the same browser and domain.');
+        const result=await api('session',{handoff:pending.handoff,verifier,firebaseIdToken:token});
+        if(!result.session||!result.persisted)throw new Error('TikTok authorized but could not link to this Big LWA account.');
+        save(result.session);
+        const check=await fetch(API+'/tiktok/session/account',{headers:{Authorization:'Bearer '+token}});
+        const verified=await check.json().catch(()=>({}));
+        if(!check.ok||!verified.connected||verified.session!==result.session)
+          throw new Error('TikTok connection is not recoverable on your Big LWA account yet.');
+        sessionStorage.removeItem(PENDING_KEY);
+        sessionStorage.removeItem('tt_verifier');
+        sessionStorage.removeItem(START_UID);
+      }catch(e){
+        notice(e.message);
+        // Keep the short-lived handoff for login restoration; the user can retry.
+      }
+    }
+    render();await restore();
   }
   document.addEventListener('click',e=>{
     if (!(e.target instanceof Element)) return;
@@ -83,6 +159,6 @@
     else if(e.target.closest('[data-orbit-app="tiktok"],[data-tt-connect]')) { e.preventDefault(); e.stopImmediatePropagation(); connected?restore():connect(); }
     else if(e.target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render,100);
   },true);
-  window.__biglwaTikTokOrbit={connect,restore,disconnect,render};
+  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 }());
