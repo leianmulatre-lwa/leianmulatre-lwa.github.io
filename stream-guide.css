@@ -117,7 +117,41 @@
 .biglwa-stream .stream-screen.is-external .stream-screen-center{max-width:80%;padding:0 10px}
 .biglwa-stream .stream-screen.is-external .stream-screen-center small{max-width:440px}
 @media(max-width:980px){.biglwa-stream .stream-source-slots{grid-template-columns:repeat(3,minmax(0,1fr))}.biglwa-stream .stream-source-slots.is-video{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:620px){.biglwa-stream .stream-featured-band{padding:15px 9px}.biglwa-stream .stream-source-slots{grid-template-columns:repeat(2,minmax(0,1fr))}.biglwa-stream .stream-source-slot{padding:10px;min-height:96px}.biglwa-stream .stream-source-slot b{font-size:13px}.biglwa-stream .stream-source-slots.is-video{grid-template-columns:1fr 1fr}.biglwa-stream .stream-source-slot.is-creator{min-height:170px}.biglwa-stream .stream-source-slot.is-creator>img{height:80px}.biglwa-stream .stream-band-heading{align-items:flex-start;flex-direction:column}.biglwa-stream .stream-band-heading>span{text-align:left}.biglwa-stream .stream-guide-foot{gap:10px}}
+@media(max-width:620px){.biglwa-stream .stream-featured-band{padding:15px 9px}.biglwa-stream .stream-source-slots{grid-template-columns:repeat(2,minmax(0,1fr))}.biglwa-stream .stream-source-slot{padding:10px;min-height:96px}.biglwa-stream .stream-source-slot b{font-size:13px}.biglwa-stream .stream-source-slots.is-video{grid-template-columns:1fr 1fr}.biglwa-stream .stream-source-slot.is-creator{min-height:170px}.biglwa-stream .stream-source-slot.is-creator>img{height:80px}.biglwa-stream .stream-band-heading{align-items:flex-start;flex-direction:column}.biglwa-stream .stream-band-heading>span{text-align:left}
+/* Real daily rotation: source discovery remains distinct from verified airtime. */
+.biglwa-stream .stream-date-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:end}
+.biglwa-stream .stream-shuffle-button{min-height:40px;white-space:nowrap;padding:9px 13px;background:#b7382d;color:#fff6df;border:1px solid #622a25;border-radius:5px;font:800 11px/1.4 ui-monospace,monospace;box-shadow:2px 2px 0 #c6a487}
+.biglwa-stream .stream-shuffle-button:hover,.biglwa-stream .stream-shuffle-button:focus-visible{background:#7c2622;outline:2px solid #e6b668;outline-offset:2px}
+.biglwa-stream .stream-source-slot .stream-source-emblem{height:clamp(70px,10vw,130px);min-height:70px;width:100%;display:flex;align-items:center;justify-content:center;border-radius:3px;border:1px solid #9a7e68;background:radial-gradient(circle,#886c61,#191516);font:800 47px/1 Georgia,serif;color:#f0d7b1}
+.biglwa-stream .stream-source-slot.is-twitch{background:#362344;border-color:#80629c}
+.biglwa-stream .stream-source-slot.is-twitch .stream-source-emblem{background:radial-gradient(circle,#784ca8,#22162c);color:#fff0dd}
+.biglwa-stream .stream-slot.is-twitch{background:#cdb5e2;color:#39243f;border-bottom:4px solid #8052a1}
+.biglwa-stream .stream-slot.is-twitch.is-selected{background:#e0c7f6}
+.biglwa-stream .stream-slot.is-twitch .stream-slot-status{color:#5d377e}
+.biglwa-stream .stream-guide-key.open{background:#cdb5e2}
+.biglwa-stream .stream-source-slots.is-twitch{grid-template-columns:repeat(3,minmax(0,1fr))}
+.biglwa-stream .stream-player-footer{padding:9px 12px;background:#201923;color:#f8e5ff;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font:800 10px/1.45 monospace}
+.biglwa-stream .stream-player-footer a{color:#efc8ff;margin-left:auto}
+.biglwa-stream .stream-screen.is-twitch-player{min-height:380px}
+.biglwa-stream .stream-screen.is-twitch-player iframe{min-height:300px}
+.biglwa-stream .stream-discovery-label{font:800 10px/1.4 ui-monospace,monospace;color:#7b4b38;text-transform:uppercase}
+.biglwa-stream .stream-future{margin:27px 0 22px;border:1px dashed #a18a78;border-radius:7px;background:#e6dac4;padding:15px 19px;display:grid;gap:4px}
+.biglwa-stream .stream-future span{color:#a43a32;font:800 10px/1.5 ui-monospace,monospace;letter-spacing:.07em}
+.biglwa-stream .stream-future strong{font:400 23px/1.1 "CS Bergamot Stitched",Georgia,serif}
+.biglwa-stream .stream-future p{margin:0;color:#685649;font:600 11px/1.55 system-ui}
+@media(max-width:850px){.biglwa-stream .stream-source-slots.is-twitch{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){
+ .biglwa-stream .stream-guide-head .stream-date-actions{width:100%}
+ .biglwa-stream .stream-guide-head .stream-date-actions label{flex:1}
+ .biglwa-stream .stream-guide-head .stream-date-actions input{width:100%}
+ .biglwa-stream .stream-shuffle-button{align-self:end}
+ .biglwa-stream .stream-source-slots.is-twitch{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .biglwa-stream .stream-screen.is-twitch-player iframe{display:none}
+ .biglwa-stream .stream-screen.is-twitch-player .stream-player-footer{min-height:250px;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+ .biglwa-stream .stream-player-footer a{margin:0}
+}
+
+.biglwa-stream .stream-guide-foot{gap:10px}}
 
 .biglwa-stream .stream-guide-foot{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 15px;background:#efe3ce;color:#705346;font:700 10px/1.4 ui-monospace,monospace}
 .biglwa-stream .stream-guide-foot span{display:inline-flex;gap:7px;align-items:center}

@@ -35,7 +35,7 @@ const ctx={URL,URLSearchParams,Request,Response,Headers,TextEncoder,TextDecoder,
 vm.runInNewContext(worker.replace('export default {','const fakeWorker = {')+
  '\nglobalThis.streamTest={fetch:fakeWorker.fetch.bind(fakeWorker),videoId:streamVideoId};',ctx);
 const {fetch:handler,videoId}=ctx.streamTest;
-const env={SITE_URL:'https://biglwa.com',PINTEREST_APP_ID:'test',PINTEREST_APP_SECRET:'test',
+const env={SITE_URL:'https://biglwa.com',STREAM_REQUESTS_ENABLED:'true',PINTEREST_APP_ID:'test',PINTEREST_APP_SECRET:'test',
  WALLPAPER_BUCKET:fakeR2,OAUTH_SESSIONS:{get:async()=>null,put:async()=>{},delete:async()=>{}}};
 const call=(path,{token='',method='GET',body=null,origin='https://biglwa.com'}={})=>{
  const req=new Request('https://worker.test'+path,{
@@ -110,126 +110,140 @@ await check('unapproved nominations never appear in public schedule',async()=>{
  assert.equal(res.status,201);
  assert.equal((await (await call('/stream/programming')).json()).items.length,1);
 });
-await check('client displays 24 times and three independent channels',async()=>{
- assert.ok(stream.includes("Array.from({length:24}"));
- assert.ok(stream.includes("['podcast','podcast / radio'"));
+await check('submissions are disabled by default until the programming feature launches',async()=>{
+ env.STREAM_REQUESTS_ENABLED='false';
+ const health=await call('/stream/health');
+ assert.equal(health.status,200);
+ assert.equal((await health.json()).requests,false);
+ const disabled=await call('/stream/requests',{method:'POST',token:'owner-token',
+  body:{title:'New episode',youtubeUrl:videoUrl,category:'lwa-tv',rights:'my-video'}});
+ assert.equal(disabled.status,403);
+ assert.match((await disabled.json()).error,/future release/i);
+ env.STREAM_REQUESTS_ENABLED='true'; // Existing editorial workflow remains regression-tested.
+});
+await check('LWA Radio keeps three real channels without a request form',async()=>{
+ assert.ok(stream.includes("['podcast','lwa radio'"));
  assert.ok(stream.includes("['lwa-tv','lwa tv'"));
  assert.ok(stream.includes("['live','live'"));
- assert.ok(stream.includes("const classes='stream-slot '"));
+ const mount=stream.slice(stream.indexOf(' function mount(host){'),stream.indexOf(' function jumpNow()'));
+ assert.ok(mount.includes('streamShuffleAgain'));
+ assert.ok(mount.includes('stream-future'));
+ assert.ok(!mount.includes('streamRequestForm'));
+ assert.ok(!mount.includes('data-stream-scroll-request'));
+ assert.ok(!stream.includes('awaiting the next live program'));
+ assert.ok(pages.includes('feedStreamExplore'));
+ assert.ok(!pages.includes('feedStreamRequest'));
 });
-await check('campus directory includes official UCLA Radio and state school stations',async()=>{
- for(const school of ['https://uclaradio.com/','https://kvrx.org/','https://wcbn.org/','https://wsum.org/'])
-  assert.ok(stream.includes(school));
- assert.ok(stream.includes('streamStationSearch'));
- assert.ok(stream.includes('listing does not imply affiliation'));
+await check('date-based shuffle is deterministic, changes by date, and manual shuffle works',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const app=win.BigLWAStreamGuide;
+ const a=app.getDailyGuide('2026-10-13');
+ const same=app.getDailyGuide('2026-10-13');
+ const b=app.getDailyGuide('2026-10-14');
+ const again=app.getDailyGuide('2026-10-13',1);
+ const serial=value=>JSON.stringify(value);
+ assert.equal(serial(a),serial(same),'same date must have stable rotation');
+ assert.notEqual(serial(a),serial(b),'the next date should rearrange channels');
+ assert.notEqual(serial(a),serial(again),'manual shuffle should change selection order');
+ assert.equal(a.length,3);
+ assert.ok(a.every(x=>x.slots.length===24));
+ assert.ok(stream.includes("state.shuffleOffset++;renderGrid();renderFeaturedSlots()"));
 });
-await check('each university radio station has an independent selectable guide slot',async()=>{
- const fakeWindow={};
- vm.runInNewContext(stream,{window:fakeWindow,console,Date,URL});
- const stations=fakeWindow.BigLWAStreamGuide.stations;
- assert.equal(stations.length,16);
- assert.equal(new Set(stations.map(station=>station.url)).size,stations.length);
- assert.ok(stations.every(station=>station.url.startsWith('https://')));
- assert.ok(stream.includes('data-stream-station'));
- assert.ok(stream.includes('function selectStation(index)'));
- assert.ok(stream.includes("renderFeaturedSlots();renderCategory();renderRequests()"));
- assert.ok(stream.includes('DIRECT LINKS · NO SIMULATED AIRTIME'));
- assert.ok(stream.includes('These tiles are hand-picked links, not scheduled airtime'));
+await check('all sixteen unique campus stations and eight podcast/mixtape picks occupy LWA Radio',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const guide=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(x=>x.category==='podcast').slots;
+ const radio=guide.filter(x=>x.kind==='station');
+ const audio=guide.filter(x=>x.kind==='feature');
+ assert.equal(radio.length,16);
+ assert.equal(new Set(radio.map(x=>x.index)).size,16);
+ assert.equal(audio.length,8);
+ assert.ok(audio.some(x=>x.title==='The Daily'));
+ assert.ok(audio.some(x=>x.title.includes('Owen Thiele')));
+ assert.equal(audio.filter(x=>x.status==='ORIGINAL MIXTAPE').length,5);
+ assert.ok(guide.every(x=>x.title&&x.subtitle&&x.status));
 });
-await check('requested shows include real official video IDs and publisher links',async()=>{
- const fakeWindow={};vm.runInNewContext(stream,{window:fakeWindow,console,Date,URL});
- const entries=fakeWindow.BigLWAStreamGuide.featured;
- const urls=[
-  'https://www.youtube.com/watch?v=dHg50mdODFM',
-  'https://www.youtube.com/watch?v=abHGyg4LKn4',
-  'https://www.youtube.com/watch?v=edk2uac_x0Y',
-  'https://www.youtube.com/watch?v=iO9g2KEroiw',
-  'https://podcasts.apple.com/us/podcast/the-daily/id1200361736'
- ];
- for(const url of urls)assert.ok(entries.some(x=>x.url===url),'missing '+url);
- assert.ok(entries.some(x=>x.title==='Mr & Mrsinformation'&&!x.url),'unverified creator cannot be given a fabricated channel URL');
- assert.ok(entries.some(x=>x.title==='The Daily'&&x.category==='podcast'));
- assert.ok(entries.some(x=>x.title==='Cartoon Network'&&x.category==='lwa-tv'));
- assert.ok(stream.includes('https://www.youtube-nocookie.com/embed/'));
- assert.ok(stream.includes("if(!source)return;"),'a source with no verified link still has a channel card');
+await check('creator rotation uses authentic channel URLs and no hypothetical placeholders',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const catalog=win.BigLWAStreamGuide.featured;
+ const names=['Tea Spill','Life With Olan','Larray','Quenlin Blackwell','Jacksepticeye',
+  'Dream','iHasCupquake','Alissa Violet','Steyuh','Markiplier','CoryxKenshin','Cartoon Network'];
+ for(const title of names)assert.ok(catalog.some(x=>x.title===title),'Missing creator '+title);
+ const olandria=catalog.find(x=>x.id==='olandria');
+ const tea=catalog.find(x=>x.id==='teaspill');
+ assert.equal(olandria.channelUrl,'https://www.youtube.com/@X_Olan/videos');
+ assert.equal(olandria.videoId,'lx1UP1nLMQw');
+ assert.equal(tea.channelUrl,'https://www.youtube.com/@TeaSpill/videos');
+ assert.equal(tea.videoId,'Qz5VZPMhw8Q');
+ assert.ok(catalog.every(x=>x.url?.startsWith('https://')));
+ assert.ok(!catalog.some(x=>/under review|channel link under|creator requested|suggested programming/i.test(x.source+' '+x.subtitle)));
+ assert.ok(!catalog.some(x=>x.id==='mrsinformation'||x.id==='teaspill-request'||x.id==='olandria-request'));
+ const tv=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(x=>x.category==='lwa-tv').slots;
+ assert.equal(tv.length,24);
+ assert.ok(tv.every(x=>x.kind==='feature'));
+ const allIds=new Set(tv.map(x=>x.id));
+ for(const source of catalog.filter(x=>x.category==='lwa-tv'))
+  assert.ok(allIds.has(source.id),'TV guide missing '+source.title);
 });
-await check('video and station buttons tune the existing monitor rather than creating bogus scheduled programs',async()=>{
- assert.ok(stream.includes("class=\"stream-source-slot is-radio\""));
- assert.ok(stream.includes("class=\"stream-source-slot is-creator"));
- assert.ok(stream.includes('function showSource(source)'));
- assert.ok(stream.includes('function selectFeature(id)'));
- assert.ok(stream.includes('function selectStation(index)'));
- assert.ok(stream.includes("if(button.matches('[data-stream-station]'))"));
- assert.ok(stream.includes("if(button.matches('[data-stream-feature]'))"));
- assert.ok(stream.includes('UNOFFICIAL DIRECTORY · NO REBROADCAST'));
- assert.ok(stream.includes("state.programs=Array.isArray(result.items)?result.items.filter"));
- assert.ok(!stream.includes("state.programs=featured"));
+await check('radio mixtapes link to actual Soulection releases',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const catalog=win.BigLWAStreamGuide.featured;
+ const links=['https://soulection.lnk.to/RadioMixtape001','https://soulection.lnk.to/UNTITLED',
+  'https://soulection.lnk.to/NeptunesTribute','https://radio.soulection.com/'];
+ for(const link of links)assert.ok(catalog.some(x=>x.url===link),'missing real mixtape or radio page '+link);
 });
-await check('every hourly cell in the three-channel grid is populated with a real directory pick or clear live idea',async()=>{
- const fakeWindow={};vm.runInNewContext(stream,{window:fakeWindow,console,Date,URL});
- const guide=fakeWindow.BigLWAStreamGuide.guideSlots;
- assert.equal(guide.length,3);
- for(const category of guide){
-  assert.equal(category.slots.length,24,'24 hours for '+category.category);
-  for(const [hour,pick] of category.slots.entries()){
-   assert.ok(pick.title&&pick.title!=='—','missing title at '+category.category+' hour '+hour);
-   assert.ok(pick.status,'missing status at '+category.category+' hour '+hour);
-   assert.ok(!pick.status.startsWith('APPROVED')&&!pick.status.startsWith('ON AIR'),
-    'directory pick should not be passed off as approved programming');
-  }
- }
- assert.ok(!stream.includes("'<strong>—</strong><small>open slot</small>'"),
-  'the old blank hourly cells must be removed');
- assert.ok(stream.includes("const pick=show?null:guidePick(key,hour)"),
-  'approved real schedules must take precedence over directory picks');
+await check('Live guide uses real Twitch channels rather than nonexistent live-show proposals',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const catalog=win.BigLWAStreamGuide.twitch;
+ for(const name of ['hasanabi','pokimane','qtcinderella','kaicenat','fuslie'])
+  assert.ok(catalog.some(x=>x.twitchChannel===name),'Missing Twitch channel '+name);
+ assert.ok(catalog.every(x=>x.url==='https://www.twitch.tv/'+x.twitchChannel));
+ const live=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(x=>x.category==='live').slots;
+ assert.equal(live.length,24);
+ assert.ok(live.every(x=>x.kind==='twitch'&&x.status.includes('UNVERIFIED')));
+ assert.ok(live.every(x=>x.id&&catalog.some(y=>y.id===x.id)));
+ assert.ok(stream.includes('https://player.twitch.tv/?channel='));
+ assert.ok(stream.includes('monitor.innerHTML=state.defaultMonitorMarkup'),'switching categories stops old embedded media');
+ assert.ok(stream.includes("encodeURIComponent(window.location.hostname)"),'Twitch embed must pass the actual parent domain');
+ assert.ok(stream.includes('autoplay=false&muted=true'));
+ assert.ok(stream.includes("if(button.matches('[data-stream-twitch]'))"));
+ assert.ok(!stream.includes('data-stream-concept'));
+});
+await check('curated Stream remains distinct from genuine approved programs',async()=>{
+ assert.ok(stream.includes("const pick=show?null:guidePick(key,hour)"));
  assert.ok(stream.includes("show?'APPROVED / PROGRAMMED':pick.status"));
-});
-await check('each campus radio station occupies a distinct numbered hour in the Podcast grid',async()=>{
- const fakeWindow={};vm.runInNewContext(stream,{window:fakeWindow,console,Date,URL});
- const guide=fakeWindow.BigLWAStreamGuide.guideSlots;
- const radio=guide.find(row=>row.category==='podcast').slots;
- const stations=fakeWindow.BigLWAStreamGuide.stations;
- assert.equal(stations.length,16);
- assert.deepEqual(Array.from(radio.slice(0,16),x=>x.title),Array.from(stations,x=>x.name));
- assert.equal(new Set(radio.slice(0,16).map(x=>x.index)).size,16);
- assert.ok(radio.some(x=>x.title.includes('Owen Thiele')));
- assert.ok(radio.some(x=>x.title==='The Daily'));
- assert.ok(radio.some(x=>x.title==='Mr & Mrsinformation'));
- assert.ok(radio.every(x=>['station','feature'].includes(x.kind)));
-});
-await check('LWA TV grid includes creator favorites while Live grid only shows explicitly unscheduled concepts',async()=>{
- const fakeWindow={};vm.runInNewContext(stream,{window:fakeWindow,console,Date,URL});
- const guide=fakeWindow.BigLWAStreamGuide.guideSlots;
- const tv=guide.find(row=>row.category==='lwa-tv').slots;
- for(const title of ['Cartoon Network','Markiplier','CoryxKenshin','TeaSpill','Olandria coverage'])
-  assert.ok(tv.some(x=>x.title===title),'missing '+title+' in hourly TV grid');
- assert.ok(tv.every(x=>x.kind==='feature'),'LWA TV tiles should open videos or show a link-verification card');
- const live=guide.find(row=>row.category==='live').slots;
- assert.ok(live.every(x=>x.kind==='concept'));
- assert.ok(live.every(x=>x.status.includes('NOT ON AIR')));
- assert.ok(stream.includes("if(button.matches('[data-stream-concept]'))"),'Live ideas must open the request form');
- assert.ok(stream.includes("form.elements.timePreference.value=niceDate(state.day)+' · '+labelHour(hour)"));
-});
-await check('curated slots are visually distinct from green approved broadcasts',async()=>{
+ assert.ok(stream.includes('not an assertion of live broadcasts'));
  assert.ok(style.includes('.stream-slot.is-curated'));
- assert.ok(style.includes('.stream-slot.is-concept'));
+ assert.ok(style.includes('.stream-slot.is-twitch'));
  assert.ok(style.includes('.stream-slot.is-booked'));
- assert.ok(style.includes('.stream-slot-status'));
- assert.ok(stream.includes("pick.kind==='concept'?'is-concept':'is-curated'"));
- assert.ok(stream.includes('not confirmed airtime'));
- assert.ok(stream.includes('Every hourly square now features a station'));
 });
-await check('YouTube requests are user-authenticated and moderation-gated',async()=>{
- assert.ok(stream.includes("await authRequest('requests',data)"));
- assert.ok(stream.includes("stream-editorial"));
- assert.ok(worker.includes('await streamEditor(request,user,env)'));
- assert.ok(worker.includes("entry.status")||worker.includes("status:decision"));
+await check('every discovery link leads directly to a secure original provider',async()=>{
+ const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const a=win.BigLWAStreamGuide;
+ const links=[
+  ...a.stations.map(x=>x.url),
+  ...a.featured.map(x=>x.url),
+  ...a.twitch.map(x=>x.url)
+ ];
+ assert.equal(links.length,16+a.featured.length+a.twitch.length);
+ for(const url of links) {
+  const parsed=new URL(url);
+  assert.equal(parsed.protocol,'https:');
+  assert.ok(['youtube.com','www.youtube.com','twitch.tv','www.twitch.tv','linktr.ee',
+   'soulection.lnk.to','radio.soulection.com','podcasts.apple.com',
+   'uclaradio.com','kalx.berkeley.edu','kdvs.org','kcsbweb.as.ucsb.edu',
+   'kzsc.org','kcr.sdsu.edu','ksjs.org','kzsu.stanford.edu','kvrx.org','radiok.org',
+   'wsum.org','wcbn.org','wvfs.fsu.edu','wuog.org','kwva.uoregon.edu','kpsu.org']
+   .includes(parsed.hostname),'unknown or fabricated host '+parsed.hostname);
+ }
 });
-await check('page wires Stream controller and broadcast styles',async()=>{
- assert.ok(pages.includes("window.BigLWAStreamGuide?.mount"));
- assert.ok(index.includes('/stream-guide.js?v=20261013-populated-hourly-grid-1'));
- assert.ok(index.includes('/stream-guide.css?v=20261013-populated-hourly-grid-1'));
- assert.ok(style.includes('.stream-grid-scroll'));
- assert.ok(style.includes('.stream-mast'));
+await check('frontend script versions and future features are intentional',async()=>{
+ assert.ok(index.includes('stream-guide.js?v=20261014-radio-daily-shuffle-1'));
+ assert.ok(index.includes('stream-guide.css?v=20261014-radio-daily-shuffle-1'));
+ assert.ok(index.includes('module-pages.js?v=20261014-stream-future-1'));
+ assert.ok(style.includes('.stream-shuffle-button'));
+ assert.ok(style.includes('.stream-future'));
+ assert.ok(style.includes('.stream-player-footer'));
+ assert.ok(worker.includes("env.STREAM_REQUESTS_ENABLED!=='true'"));
+ assert.ok(!stream.includes('request a time slot</h2>'));
 });
 console.log(passed+' Stream integration checks passed');

@@ -625,12 +625,16 @@ async function streamRoute(request,env) {
   const path=new URL(request.url).pathname;
   const bucket=mediaBucket(env);
   if(path==='/stream/health'&&request.method==='GET')
-    return json({ok:true,service:'Big LWA Stream',requests:true,scheduled:true},200,request,env);
+    return json({ok:true,service:'Big LWA Stream',requests:env.STREAM_REQUESTS_ENABLED==='true',scheduled:true},200,request,env);
   if(path==='/stream/programming'&&request.method==='GET') {
     const published=await streamObjects(bucket,STREAM_APPROVED_PREFIX,160);
     return json({items:published.filter(x=>x.status==='approved'&&x.videoId&&x.scheduledAt)
       .map(streamPublic).sort((a,b)=>String(a.scheduledAt).localeCompare(String(b.scheduledAt)))},200,request,env);
   }
+  // Requests are a FUTURE feature. The API must reject POST even if an older
+  // cached frontend or client attempts to use the old submission form.
+  if(path==='/stream/requests'&&request.method==='POST'&&env.STREAM_REQUESTS_ENABLED!=='true')
+    streamFail('Creator programming requests are coming in a future release.',403);
   if(!['/stream/requests','/stream/editorial'].includes(path))streamFail('Not found.',404);
   if(!['GET','POST'].includes(request.method))streamFail('Not found.',404);
   const user=await mediaUser(request,env);
