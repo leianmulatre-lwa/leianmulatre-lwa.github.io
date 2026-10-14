@@ -6,7 +6,7 @@
 import { startIdentity, refreshIdentity, identity } from "./account-identity.js";
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
-import { startConnections } from "./orbit-connections.js";
+import { startConnections } from "./orbit-connections.js?v=20261013-pinterest-binding-1";
 import { startFeed } from "./feed-view.js?v=20261006-archive-grid-1";
 
 function boot() {
