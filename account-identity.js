@@ -113,6 +113,9 @@ export function patchIdentity(patch) {
 
 export async function refreshIdentity() {
   const { db, auth } = await firebase();
+  // Provider authorization is not the BIG LWA session. An interim null while
+  // Firebase restores its saved account must never paint a signed-out user.
+  await auth.authStateReady();
   const user = auth.currentUser;
   if (!user) {
     if (current) { current = null; emit(); }
