@@ -160,6 +160,10 @@ async function standaloneSave(){
       {studioAvatar:{type:'mii',url:result.url,preset:preset(),updatedAt:f.serverTimestamp()}},
       {mergeFields:['studioAvatar']});
     status.textContent='Character saved to your Big LWA account and ready for Arcade.';
+    try{
+      const channel=new BroadcastChannel('biglwa-avatar');
+      channel.postMessage({type:'saved',uid:user.uid});channel.close();
+    }catch{}
     window.dispatchEvent(new CustomEvent('biglwa:character-saved'));
   }catch(error){status.textContent='Could not save: '+(error.message||'Try again.')}
 }
