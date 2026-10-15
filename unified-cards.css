@@ -166,3 +166,83 @@
   box-shadow:none!important;
   background:#f8f3eb!important;
 }
+
+/* 2026-10-14 archive geometry: no title strip and no dead-white footer.
+   The entire archive card clips to the same radius as Collective Feed. */
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card{
+  overflow:hidden!important;border-radius:15px!important;background:var(--lwa-card-paper)!important;
+  padding:0!important;min-height:0!important;height:auto!important;display:block!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-strip{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-media{
+  display:block!important;position:relative!important;min-height:0!important;
+  overflow:hidden!important;border-radius:14px!important;background:#dfd4c9!important;
+  padding:0!important;margin:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece{
+  position:relative!important;width:100%!important;
+  aspect-ratio:var(--archive-photo-ratio,4/5)!important;
+  min-height:0!important;max-height:none!important;overflow:hidden!important;
+  margin:0!important;border-radius:0!important;background:transparent!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece :is(img,video){
+  position:absolute!important;inset:0!important;
+  display:block!important;width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center!important;
+  border-radius:0!important;background:transparent!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions.biglwa-feed-lights{
+  position:absolute!important;top:8px!important;right:8px!important;
+  left:auto!important;bottom:auto!important;z-index:40!important;
+  margin:0!important;transform:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay{
+  position:absolute!important;bottom:0!important;left:0!important;right:0!important;
+  z-index:12!important;display:flex!important;align-items:flex-end!important;
+  gap:6px!important;min-height:38px!important;max-height:66px!important;
+  padding:17px 8px 7px!important;margin:0!important;
+  border-radius:0 0 14px 14px!important;
+  background:linear-gradient(transparent,rgba(28,20,18,.78) 52%,rgba(28,20,18,.91))!important;
+  color:#fff!important;pointer-events:none;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-media-meta{
+  display:flex!important;flex:1 1 auto!important;min-width:0!important;
+  flex-direction:column!important;justify-content:end!important;
+  padding:0!important;margin:0!important;border:0!important;background:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-media-meta span{
+  font:700 10px/1.25 system-ui!important;color:#fff!important;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-media-meta small{
+  display:block!important;margin:1px 0 0!important;
+  font:500 9px/1.3 system-ui!important;color:#fffde7!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-state-line{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-live{
+  display:inline-flex!important;align-items:center!important;flex:0 0 auto!important;
+  gap:5px!important;flex-wrap:nowrap!important;min-width:0!important;
+  padding:5px 7px!important;margin:0!important;border:1px solid #ffffff73!important;
+  border-radius:999px!important;background:#231b1ace!important;color:white!important;
+  cursor:pointer!important;pointer-events:auto!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-live b{
+  font:800 9px/1 system-ui!important;color:#fff!important;white-space:nowrap!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-live em{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-live-track{
+  display:block!important;width:23px!important;height:13px!important;flex:0 0 23px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-live-track i{
+  top:2px!important;left:2px!important;width:9px!important;height:9px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay .archive-live input:checked+.archive-live-track i{
+  transform:translateX(10px)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-pending-note{
+  position:absolute!important;top:29px!important;left:8px!important;right:8px!important;
+  z-index:22!important;margin:0!important;border-radius:8px!important;
+  background:rgba(153,41,42,.88)!important;color:#fff!important;
+  padding:6px 8px!important;font:700 10px/1.3 system-ui!important;
+}
