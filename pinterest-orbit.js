@@ -716,6 +716,11 @@ async function init(){
  if(returning&&authUid&&typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('boards');
  if(authUid)await restore().catch(error=>console.warn('Pinterest provider restore:',error));
 }
+window.addEventListener('biglwa:session-verified',event=>{
+ if(event.detail?.signedIn)return;
+ clearTimeout(notice.timer);
+ document.getElementById('pinterestNotice')?.remove();
+});
 window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  if(event.detail?.source!=='pinterest')return;
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
