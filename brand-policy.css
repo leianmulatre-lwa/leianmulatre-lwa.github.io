@@ -855,3 +855,39 @@ body.about-site {
   .policy-page .policy-top .biglwa-policy-emblem{width:126px!important;height:70px!important;flex-basis:126px!important}
   .policy-page .policy-card::before{width:124px;height:94px;margin-top:-34px}
 }
+
+/* Supporter carousel: logos only. Remove the padded white tiles, borders and
+   shadows from both login and public pages. PNG alpha stays transparent. */
+#loginPage .supporter-logo,
+.public-page-footer .supporter-logo{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 auto!important;min-width:0!important;width:auto!important;
+ height:62px!important;max-width:none!important;
+ margin:0!important;padding:0!important;
+ border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+ outline-offset:4px!important;overflow:visible!important;
+}
+#loginPage .supporter-logo:hover,
+.public-page-footer .supporter-logo:hover{
+ background:transparent!important;box-shadow:none!important;
+}
+#loginPage .supporter-logo img,
+.public-page-footer .supporter-logo img{
+ display:block!important;width:auto!important;max-width:152px!important;
+ height:auto!important;max-height:54px!important;
+ border:0!important;margin:0!important;padding:0!important;
+ background:transparent!important;box-shadow:none!important;
+ object-fit:contain!important;opacity:1!important;filter:none!important;
+}
+#loginPage .supporter-group,
+.public-page-footer .supporter-group{align-items:center!important;gap:29px!important;padding-right:29px!important}
+#loginPage .supporter-viewport,
+.public-page-footer .supporter-viewport{background:transparent!important;border:0!important;box-shadow:none!important}
+#loginPage .supporter-logo:focus-visible,
+.public-page-footer .supporter-logo:focus-visible{outline:2px solid #f9e5c7!important}
+@media(max-width:650px){
+ #loginPage .supporter-logo,.public-page-footer .supporter-logo{height:52px!important}
+ #loginPage .supporter-logo img,.public-page-footer .supporter-logo img{max-width:120px!important;max-height:45px!important}
+ #loginPage .supporter-group,.public-page-footer .supporter-group{gap:20px!important;padding-right:20px!important}
+}
