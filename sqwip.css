@@ -327,3 +327,10 @@
   width:8.5in!important;min-height:11in!important;margin:0!important
  }
 }
+
+/* The page-scroller is nested in the editor area so the footer and page
+   navigation remain in place while the manuscript moves horizontally. */
+.sqwip-root .sqwip-editor-area{width:100%;min-width:0;max-width:100%;display:flex;flex-direction:column;overflow:hidden}
+.sqwip-root .sqwip-editor-area>.sqwip-paper-wrap{flex:1 1 auto;min-width:0}
+.sqwip-root .sqwip-editor-area>.sqwip-bottom{flex:0 0 auto;width:100%!important;padding:8px 20px!important}
+@media(max-width:690px){.sqwip-root .sqwip-editor-area>.sqwip-bottom{padding:8px!important}}
