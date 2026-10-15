@@ -36,6 +36,8 @@ jobs:
           node --check feed-polish.js
           node --check module-pages.js
           node --check feed-view.js
+          node --check avatar-studio.js
+          node --check avatar/minecraft-mannequin.js
           node veve-arcade-regression-test.mjs
       - name: Stage public files without development-only paths
         run: |
