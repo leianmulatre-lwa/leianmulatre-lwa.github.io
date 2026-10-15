@@ -47,6 +47,14 @@ jobs:
           node veve-arcade-regression-test.mjs
           node --check avatar/arcade-character.js
           node mii-webport-test.mjs
+      - name: Verify imported cards, auth, video trim and accessible media UI
+        run: |
+          node --check instagram-orbit.js
+          node --check session-restore.js
+          node --check studio-experience.js
+          node --check tools-studio.js
+          node --check tools-video-trim.js
+          node feed-auth-tools-regression-test.mjs
       - name: Stage public files without development-only paths
         run: |
           mkdir -p "$RUNNER_TEMP/biglwa-public"
