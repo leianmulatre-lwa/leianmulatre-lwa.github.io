@@ -357,20 +357,6 @@
   // A licensed WebGL build gets the stored image URL, never a member's access token.
   window.addEventListener('message',async event=>{
     if(event.origin!==location.origin)return;
-    if(event.data?.type==='biglwa:mii-created'){
-      const frame=one('#biglwaMiiEditorFrame');
-      if(!frame||event.source!==frame.contentWindow)return;
-      let ok=false;
-      try{
-        const png=event.data.image;
-        if(typeof png!=='string'||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(png)||png.length>1100000)throw Error('Character export is too large or invalid.');
-        const response=await fetch(png);
-        const blob=await response.blob();
-        ok=Boolean(await save(new File([blob],'biglwa-mii-avatar.png',{type:'image/png'}),'mii'));
-      }catch(error){setStatus(error?.message||'Could not save this character.');}
-      frame.contentWindow?.postMessage({type:'biglwa:mii-save-result',message:ok?'Character saved to your BIG LWA account.':'Saving failed. Check the Avatar status and try again.'},location.origin);
-      return;
-    }
     if(event.data?.type!=='biglwa:unity-ready')return;
     const frame=one('#profileAvatarEditor [data-biglwa-unity-frame]');
     if(!frame||event.source!==frame.contentWindow)return;
