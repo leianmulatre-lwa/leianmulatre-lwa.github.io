@@ -1217,6 +1217,34 @@ let lightbox = null;
 function openLightbox(post, index) {
   closeLightbox();
   const playable=playableVideo(post);
+  let embedded='';
+  if(!playable&&post?.sourceUrl){
+    try{
+      const u=new URL(post.sourceUrl);
+      if(['youtube.com','www.youtube.com','youtu.be','m.youtube.com'].includes(u.hostname)){
+        const id=u.hostname==='youtu.be'?u.pathname.slice(1):u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v');
+        if(/^[A-Za-z0-9_-]{11}$/.test(id||''))embedded='https://www.youtube-nocookie.com/embed/'+id;
+      }else if(['www.tiktok.com','tiktok.com','m.tiktok.com'].includes(u.hostname)){
+        const id=u.pathname.match(/\/video\/(\d{9,25})/)?.[1];if(id)embedded='https://www.tiktok.com/player/v1/'+id;
+      }else if(['instagram.com','www.instagram.com'].includes(u.hostname)){
+        const m=u.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)\/?/);
+        if(m)embedded='https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
+      }
+    }catch{}
+  }
+  if(embedded){
+    const box=document.createElement('div');box.className='biglwa-lightbox';
+    box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+    box.setAttribute('aria-label','Preview source on Big LWA');
+    box.innerHTML='<button type="button" class="biglwa-lightbox-close" data-lightbox-close aria-label="Close">×</button>'+
+      '<div class="biglwa-lightbox-stage"><iframe title="In-page post preview" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen style="display:block;width:min(900px,90vw);height:min(75vh,650px);border:0;border-radius:12px;background:#fff"></iframe></div>'+
+      '<a href="'+esc(post.sourceUrl)+'" target="_blank" rel="noopener noreferrer" style="color:#fff">Original source ↗</a>';
+    box.querySelector('iframe').src=embedded;
+    box.addEventListener('click',event=>{if(event.target===box||event.target.closest('[data-lightbox-close]'))closeLightbox()});
+    document.body.append(box);lightbox={box,urls:[],index:0};
+    document.documentElement.style.overflow='hidden';box.querySelector('button')?.focus({preventScroll:true});
+    return;
+  }
   if(playable&&(!Array.isArray(post.mediaItems)||post.mediaItems.length<=1)){
     const box=document.createElement('div');box.className='biglwa-lightbox';
     box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
