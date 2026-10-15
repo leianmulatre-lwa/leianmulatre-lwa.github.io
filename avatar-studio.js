@@ -188,6 +188,14 @@
     mount.dataset.kind=name;
     cardStatus(name);
   }
+  try{
+    const avatarChannel=new BroadcastChannel('biglwa-avatar');
+    avatarChannel.addEventListener('message',event=>{
+      if(event.data?.type!=='saved'||!event.data.uid)return;
+      if(event.data.uid!==(state.loadedUid||current()))return;
+      state.loadedUid='';restore();
+    });
+  }catch{}
   function cardStatus(name){
     setStatus(name==='mii'?'Character webport ready. Customize a Mii-style look and save it to your account for Arcade.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
   }
