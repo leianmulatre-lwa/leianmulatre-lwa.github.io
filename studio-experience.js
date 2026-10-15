@@ -531,11 +531,20 @@
   function readOrders(){try{return JSON.parse(localStorage.getItem(ORDER_KEY)||'{}')}catch{return{}}}
   function saveOrder(parent){
     if(!parent?.id)return;
-    const order=readOrders();order[parent.id]=[...parent.children].filter(child=>child.dataset?.widgetId).map(child=>child.dataset.widgetId);
+    // One authoritative layout writer. The old V2 key never synced to the
+    // account and fought with ui-coherence restoring a different saved order.
+    if(window.BigLWAStudioLayout?.save){
+      window.BigLWAStudioLayout.save();return;
+    }
+    const order=readOrders();
+    order[parent.id]=[...parent.children].filter(child=>child.dataset?.widgetId).map(child=>child.dataset.widgetId);
     try{localStorage.setItem(ORDER_KEY,JSON.stringify(order))}catch{}
   }
   function restoreOrder(parent){
     if(!parent?.id)return;
+    // ui-coherence runs before Studio Experience and restores the account's
+    // v4 snapshot. Never reapply an unrelated v2 order during a later reload.
+    if(window.BigLWAStudioLayout)return;
     const ids=readOrders()[parent.id];if(!Array.isArray(ids))return;
     ids.forEach(id=>{const child=[...parent.children].find(item=>item.dataset?.widgetId===id);if(child)parent.appendChild(child)});
   }
@@ -562,7 +571,7 @@
     app.addEventListener('pointerup',event=>{if(!state||event.pointerId!==state.pointerId)return;saveOrder(state.parent);clear()});
     app.addEventListener('pointercancel',clear);
     app.addEventListener('keydown',event=>{
-      const handle=event.target.closest('[data-studio-drag-handle]');if(!handle||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
+      const handle=event.target.closest('[data-studio-drag-handle]');if(event.altKey||!handle||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
       const widget=handle.closest('[data-widget-id]'),parent=widget?.parentElement;if(!widget||!parent)return;
       const previous=['ArrowUp','ArrowLeft'].includes(event.key),sibling=previous?widget.previousElementSibling:widget.nextElementSibling;if(!sibling?.dataset?.widgetId)return;
       event.preventDefault();parent.insertBefore(widget,previous?sibling:sibling.nextSibling);saveOrder(parent);handle.focus();
