@@ -212,6 +212,12 @@
        if(['youtube.com','www.youtube.com','youtu.be','m.youtube.com'].includes(u.hostname)){
          const id=u.hostname==='youtu.be'?u.pathname.slice(1):u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v');
          if(/^[A-Za-z0-9_-]{11}$/.test(id||''))embed='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1';
+       }else if(['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(u.hostname)){
+         const m=u.pathname.match(/\/video\/(\d{9,25})/);
+         if(m)embed='https://www.tiktok.com/player/v1/'+m[1];
+       }else if(['instagram.com','www.instagram.com'].includes(u.hostname)){
+         const m=u.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)\/?/);
+         if(m)embed='https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
        }
      }catch{}
      const photo=card.querySelector('.biglwa-unified-media img,.biglwa-unified-media video,img[data-instagram-media],img[data-biglwa-external-media]');
