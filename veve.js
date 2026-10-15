@@ -220,10 +220,19 @@
       const posts=rank(state.items).filter(p=>String(p.source||'').toLowerCase()==='mcm'&&picture(p)).slice(0,5);
       return posts.map(p=>photoMarkup(p,key)).join('')||quickCard('mcm','mcm community picks','Nominations live in politc. No rankings or winners are claimed until real nominations are available.','politc');
     }
-    if(key==='games')return [['2048','2048'],['crossword','crossword'],['culture quiz','culture']].map(([label,id])=>
-      '<article class="veve-tile veve-game"><span class="veve-eyebrow">arcade · play in veve</span>'+
-      '<h3>'+e(label)+'</h3><p>'+e(id==='2048'?'Merge matching tiles to reach 2048.':id==='crossword'?'Fill the grid from the clues.':'Culture questions and context.')+'</p>'+
-      '<button type="button" data-veve-game="'+e(id)+'">Play here ▶</button></article>').join('');
+    if(key==='games')return [
+      {label:'2048',id:'2048',image:'/assets/arcade/2048.svg',description:'Merge matching tiles to reach 2048.'},
+      {label:'crossword',id:'crossword',image:'/assets/arcade/crossword.svg',description:'Fill the grid from the clues.'},
+      {label:'culture quiz',id:'culture',image:'/assets/culture-quiz-cubes.png',description:'Explore the culture quiz in Arcade.'}
+    ].map(game=>
+      '<article class="veve-tile veve-game">'+
+      '<button class="veve-game-cover" type="button" data-veve-game="'+e(game.id)+'" aria-label="Play '+e(game.label)+' in Big LWA">'+
+      '<img loading="lazy" decoding="async" src="'+e(game.image)+'" alt="" aria-hidden="true">'+
+      '<span class="veve-game-cover-title">'+e(game.label)+'</span>'+
+      '</button>'+
+      '<div class="veve-game-info"><span class="veve-eyebrow">arcade · playable here</span>'+
+      '<h3>'+e(game.label)+'</h3><p>'+e(game.description)+'</p>'+
+      '<button type="button" data-veve-game="'+e(game.id)+'">Play here ▶</button></div></article>').join('');
     if(key==='books'){
       const bibliography=[
         ['Frankenstein','Mary Shelley','https://www.gutenberg.org/ebooks/84'],
@@ -250,9 +259,53 @@
     const root=state.mounted;if(!root?.isConnected)return;
     if(!state.prefs)state.prefs=validPrefs(null);
     const ordered=state.prefs.sections.filter(k=>state.prefs.enabled.includes(k)&&(state.active==='all'||state.active===k));
-    // A single mixed Pinterest-style wall, not a footer row of destination links.
+    // CSS columns flow top-to-bottom before moving right. Appending all photos
+    // and then all resource cards made the resources stack in the last column.
+    // Weave real public photos and the non-image cards into one stable daily mix,
+    // without changing the sort order of the photos themselves.
+    const tileNodes=(markup)=>{
+      const template=document.createElement('template');
+      template.innerHTML=markup;
+      return [...template.content.children].filter(n=>n.matches('article.veve-tile')).map(n=>n.outerHTML);
+    };
+    const seen=new Set(),images=[],extras=[];
+    for(const key of ordered){
+      const tiles=tileNodes(blocks(key));
+      for(const tile of tiles){
+        const pid=tile.match(/data-veve-post="([^"]+)"/)?.[1]||'';
+        if(pid&&seen.has(pid))continue;
+        if(pid)seen.add(pid);
+        (tile.includes('class="veve-tile veve-photo"')?images:extras).push(tile);
+      }
+    }
+    // Deterministic per day: reloading the page won't shuffle cards in front
+    // of someone's pointer. Do not fake any engagement or alter privacy rules.
+    const salt=new Date().toISOString().slice(0,10);
+    let seed=[...salt].reduce((n,c)=>((n*31+c.charCodeAt(0))>>>0),2166136261);
+    const random=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;};
+    const mixedExtras=[...extras];
+    for(let i=mixedExtras.length-1;i>0;i--){
+      const j=Math.floor(random()*(i+1));[mixedExtras[i],mixedExtras[j]]=[mixedExtras[j],mixedExtras[i]];
+    }
+    const mixed=[];
+    if(images.length){
+      let since=0;
+      for(let i=0;i<images.length;i++){
+        if(mixedExtras.length&&(since>=2+Math.floor(random()*2)||i===images.length-1&&mixedExtras.length>images.length/3)){
+          mixed.push(mixedExtras.shift());since=0;
+        }
+        mixed.push(images[i]);since++;
+      }
+    }
+    // When there are fewer public photos, sprinkle remaining resources by index
+    // rather than gathering every resource at the far-right end.
+    while(mixedExtras.length){
+      const tile=mixedExtras.shift(),possible=mixed.length+1;
+      const target=Math.min(possible-1,Math.floor(random()*possible));
+      mixed.splice(target,0,tile);
+    }
     const sectionHtml='<section class="veve-section"><div class="veve-masonry">'+
-      ordered.map(key=>blocks(key)).join('')+'</div></section>';
+      mixed.join('')+'</div></section>';
     const select=['latest','popular','daily'].map(k=>'<option value="'+k+'" '+(state.prefs.sort===k?'selected':'')+'>'+
        ({latest:'most recent',popular:'most activity',daily:'daily mix'}[k])+'</option>').join('');
     const scope=['all',...state.prefs.sections.filter(k=>state.prefs.enabled.includes(k))];
@@ -274,7 +327,10 @@
     let d=document.querySelector('#biglwaVevePreview');
     if(!d){
       d=document.createElement('dialog');d.id='biglwaVevePreview';
-      d.innerHTML='<button type="button" data-veve-close aria-label="Close preview">×</button><div id="vevePreviewStage"></div><a id="vevePreviewOriginal" target="_blank" rel="noopener noreferrer" hidden>View original ↗</a>';
+      d.innerHTML='<button type="button" data-veve-close aria-label="Close preview">×</button>'+
+        '<div id="vevePreviewStage"></div>'+
+        '<section id="vevePreviewCaption" aria-label="Full post caption" hidden><span id="vevePreviewProvider"></span><p id="vevePreviewCaptionText"></p></section>'+
+        '<a id="vevePreviewOriginal" target="_blank" rel="noopener noreferrer" hidden>View original ↗</a>';
       d.addEventListener('click',ev=>{if(ev.target===d||ev.target.closest('[data-veve-close]'))d.close()});
       d.addEventListener('close',()=>{d.querySelector('#vevePreviewStage').replaceChildren()});
       document.body.append(d);
@@ -296,6 +352,11 @@
       el=document.createElement('p');el.textContent='This provider does not supply an embeddable preview.';
     }
     target.append(el);
+    const caption=String(post.caption??post.title??post.description??'').trim();
+    const panel=d.querySelector('#vevePreviewCaption');
+    panel.hidden=!caption;
+    d.querySelector('#vevePreviewCaptionText').textContent=caption;
+    d.querySelector('#vevePreviewProvider').textContent=String(post.source||'BIG LWA')+' · full caption';
     const original=d.querySelector('#vevePreviewOriginal');original.hidden=!link;if(link)original.href=link;
     d.showModal();
   }
@@ -305,6 +366,7 @@
     stage.replaceChildren();const frame=document.createElement('iframe');
     frame.title=kind==='2048'?'2048 game':'Crossword puzzle';frame.className='veve-game-player';
     frame.src='/arcade-puzzles.html?game='+encodeURIComponent(kind);stage.append(frame);
+    d.querySelector('#vevePreviewCaption').hidden=true;
     d.querySelector('#vevePreviewOriginal').hidden=true;d.showModal();
   }
   let listenersInstalled=false;
@@ -356,6 +418,7 @@
         const d=viewDialog(),stage=d.querySelector('#vevePreviewStage');stage.replaceChildren();
         const frame=document.createElement('iframe');frame.className='veve-reading-frame';frame.title='Public-domain book preview';
         frame.src=b.dataset.veveReader;stage.append(frame);
+        d.querySelector('#vevePreviewCaption').hidden=true;
         const original=d.querySelector('#vevePreviewOriginal');original.hidden=false;original.href=frame.src;d.showModal();return;
       }
       if(b.hasAttribute('data-veve-route')){window.openBIGLWAModule?.(b.dataset.veveRoute);return}
