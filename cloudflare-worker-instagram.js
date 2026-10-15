@@ -55,8 +55,7 @@ const DEFAULT_INSTAGRAM_REDIRECT_URI = 'https://biglwa-instagram-api.leianmulatr
    nothing to show for it. Every return path goes to the root so the handoff survives. */
 function studioUrl(env, view) {
   const target = new URL(env.SITE_URL || 'https://biglwa.com');
-  target.pathname = '/';
-  target.searchParams.set('route', 'studio');
+  target.pathname = '/studio';
   if (view) target.searchParams.set('view', view);
   return target.toString();
 }
@@ -502,8 +501,7 @@ function ttReturnUrl(raw, env) {
     const page=new URL(raw);
     if(page.protocol!=='https:' || !['biglwa.com','www.biglwa.com'].includes(page.hostname) || page.port) return fallback;
     if(!['/','/studio','/studio/'].includes(page.pathname))return fallback;
-    page.hash='';page.search='';
-    if(page.pathname==='/'){page.searchParams.set('route','studio');page.searchParams.set('view','orbit');}
+    page.hash='';page.pathname='/studio';page.search='?view=orbit';
     return page.href;
   }catch{return fallback;}
 }
@@ -763,18 +761,15 @@ function pnCallback(request) { return new URL('/pinterest/callback', request.url
    started. PIN PKCE verifier lives in sessionStorage and does not cross from
    www.biglwa.com to biglwa.com. Never permit third-party redirect origins. */
 function pnSafeReturnTo(value, env) {
-  const fallback = studioUrl(env, 'boards');
+  const fallback = studioUrl(env, 'orbit');
   if (!value) return fallback;
   try {
     const url = new URL(value);
     if (url.protocol !== 'https:' || !['biglwa.com', 'www.biglwa.com'].includes(url.hostname) || url.port) return fallback;
     if (!['/', '/studio', '/studio/boards'].includes(url.pathname)) return fallback;
     url.hash = '';
-    url.search = '';
-    if (url.pathname === '/') {
-      url.searchParams.set('route', 'studio');
-      url.searchParams.set('view', 'boards');
-    }
+    url.pathname = '/studio';
+    url.search = '?view=orbit';
     return url.href;
   } catch { return fallback; }
 }
