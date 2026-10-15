@@ -58,4 +58,4 @@ Q('#checkCross').onclick=()=>{let wrong=0,complete=0;for(const [i,input] of inpu
 Q('#resetCross').onclick=()=>{inputs.forEach(input=>{input.value='';input.parentElement.classList.remove('correct','wrong')});Q('#crossStatus').textContent='';inputs.values().next().value?.focus()};
 const tabs=document.querySelectorAll('[data-tab]');function setTab(kind){tabs.forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===kind)));Q('#game2048').hidden=kind!=='2048';Q('#gameCrossword').hidden=kind!=='crossword';Q('#gameQuest').hidden=kind!=='quest';}tabs.forEach(b=>b.onclick=()=>setTab(b.dataset.tab));setTab(['2048','crossword','quest'].includes(new URL(location.href).searchParams.get('game'))?new URL(location.href).searchParams.get('game'):'2048');
 })();
-</script><script src="/avatar/arcade-character.js?v=20261014-character-quest-3" defer></script></body></html>
+</script><script src="/avatar/arcade-character.js?v=20261014-character-quest-4" defer></script></body></html>
