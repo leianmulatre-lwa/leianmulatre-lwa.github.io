@@ -53,7 +53,7 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
 <a class="skip" href="#main">Skip to content</a>
 <header>
   <a class="brand" href="/" aria-label="Big LWA home"><span class="biglwa-stitched-crest" aria-hidden="true"></span></a>
-  <nav aria-label="Main navigation"><a href="#account">Account</a><a href="#support">Support</a><a href="#rights">Rights</a><a href="/studio">Back to Studio</a></nav>
+  <nav aria-label="Main navigation"><a href="#account">Account</a><a href="#cache">Cache &amp; layout</a><a href="#support">Support</a><a href="#rights">Rights</a><a href="/studio">Back to Studio</a></nav>
 </header>
 <main id="main">
   <div class="hero">
@@ -133,8 +133,29 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
     </div>
   </section>
 
+  <section id="cache">
+    <div class="section-head"><h2>Cache &amp; layout</h2><span class="number">02 / Your workspace</span></div>
+    <div class="grid">
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Clear temporary cache</h3>
+        <p>Remove downloaded offline files and temporary site caches if images or widgets look outdated. Your saved layout, posts, projects, Orbit connections, account settings, and sign-in are not deleted.</p>
+        <div class="row"><button type="button" id="clearTemporaryCache" class="secondary">Clear cached site files</button></div>
+        <p class="status" id="clearCacheStatus" role="status" aria-live="polite">Only temporary cache files will be removed.</p>
+        <p style="font-size:12px;color:var(--muted)">Note: browsers also keep their own HTTP cache; this button clears Big LWA's accessible Cache Storage, not all browser history.</p>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Stable Studio layout</h3>
+        <p>Politc, Tools, Calendar, and other essentials appear early by default. When you move a widget or change your shortcut bar, BIG LWA saves its position to your account. Nothing should shuffle just because you reload or change devices.</p>
+        <div class="row"><a class="button secondary" href="/studio">Open your Studio</a></div>
+        <p class="status" id="layoutSaveStatus" role="status" aria-live="polite">Your saved arrangement is separate from temporary caches. To move a widget using a keyboard, focus its drag handle and hold Alt while pressing an arrow key.</p>
+      </article>
+    </div>
+  </section>
+
   <section id="support">
-    <div class="section-head"><h2>Support</h2><span class="number">02 / Support</span></div>
+    <div class="section-head"><h2>Support</h2><span class="number">03 / Support</span></div>
     <div class="grid">
       <article class="card">
         <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -164,7 +185,7 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
   </section>
 
   <section id="rights">
-    <div class="section-head"><h2>Rights and data</h2><span class="number">03 / Rights</span></div>
+    <div class="section-head"><h2>Rights and data</h2><span class="number">04 / Rights</span></div>
     <p>Big LWA is still being built, so here is plainly what you can hold us to and where the promises are written down.</p>
     <div class="grid">
       <article class="card">
@@ -200,6 +221,7 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
 <script src="/supporter-logos.js?v=20260913-public-supporters-2"></script>
 <script src="/policy-card-cohesion.js?v=20260913-public-supporters-4"></script>
 <script src="/settings-account.js?v=20260926-account-settings-1"></script>
+<script src="/settings-cache.js?v=20261014-safe-cache-1"></script>
 <script type="module" src="/settings-photo.js?v=20260927-photo-2"></script>
 </body>
 </html>
