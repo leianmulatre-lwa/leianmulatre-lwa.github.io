@@ -939,12 +939,8 @@ function renderPosts(force) {
             ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="Collective feed media" loading="lazy">'
         : slideshow(shown, "Collective feed media");
     const link = !isInstagram && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
-    const carousel = !isStack && shown.length > 1;
-    const tabs = carousel
-      ? '<div class="biglwa-instagram-browser-tabs" aria-label="Instagram carousel tabs">' +
-        shown.map((_, i) => '<button type="button" class="biglwa-instagram-browser-tab' + (i === 0 ? ' is-active' : '') + '" data-instagram-slide="' + i + '">' + (i + 1) + '</button>').join("") +
-        '</div>'
-      : '<span class="biglwa-instagram-browser-tabs" aria-hidden="true"></span>';
+    // Carousels are controlled directly on their photo: dots below, arrows on hover.
+    // Numbered browser tabs belong to the retired feed header and are not rendered.
     // Use the same card header for every source; slideshow arrow controls
     // still work without the Instagram-only traffic-light header.
     const browserStrip = '';
@@ -969,11 +965,12 @@ function slideshow(urls, alt) {
   const frames = urls.map((url, i) =>
     '<img src="' + esc(url) + '" alt="' + esc(alt) + '" loading="lazy"' + (i ? ' aria-hidden="true"' : "") +
     (i ? "" : ' class="is-on"') + ">").join("");
-  const dots = urls.map((_, i) => "<i" + (i ? "" : ' class="is-on"') + "></i>").join("");
+  const dots = urls.map((_, i) =>
+    '<button type="button" class="biglwa-slide-pip' + (i ? '' : ' is-on') + '" data-slide-index="' + i +
+    '" aria-label="Show photo ' + (i + 1) + ' of ' + urls.length + '" aria-current="' + (i ? 'false' : 'true') + '"></button>').join('');
   return '<div class="biglwa-slide" data-biglwa-slideshow aria-roledescription="carousel" aria-label="' +
     esc(alt) + '">' + frames +
-    '<span class="biglwa-slide-count">1 / ' + urls.length + "</span>" +
-    '<div class="biglwa-slide-dot">' + dots + "</div>" +
+    '<div class="biglwa-slide-dot" role="group" aria-label="Carousel positions">' + dots + "</div>" +
     '<button type="button" class="biglwa-slide-btn prev" data-slide-step="-1" aria-label="Previous photo">&#8249;</button>' +
     '<button type="button" class="biglwa-slide-btn next" data-slide-step="1" aria-label="Next photo">&#8250;</button>' +
     "</div>";
@@ -997,7 +994,7 @@ function stopSlideshows() {
 function startSlideshows(root) {
   for (const frame of (root || document).querySelectorAll("[data-biglwa-slideshow]")) {
     const photos = Array.from(frame.querySelectorAll("img"));
-    const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot i"));
+    const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot button"));
     const count = frame.querySelector(".biglwa-slide-count");
     if (photos.length < 2) continue;
     /* The frame is measured once, from the first photo, and then left alone for good. It
@@ -1029,7 +1026,10 @@ function startSlideshows(root) {
         if (i === at) img.removeAttribute("aria-hidden");
         else img.setAttribute("aria-hidden", "true");
       });
-      dots.forEach((dot, i) => dot.classList.toggle("is-on", i === at));
+      dots.forEach((dot, i) => {
+        dot.classList.toggle("is-on", i === at);
+        dot.setAttribute("aria-current", i === at ? "true" : "false");
+      });
       if (count) count.textContent = at + 1 + " / " + photos.length;
     };
 
@@ -1048,14 +1048,20 @@ function startSlideshows(root) {
 
     frame.addEventListener("click", (event) => {
       const step = event.target.closest("[data-slide-step]");
-      if (!step) return;
-      event.preventDefault();
-      show(at + Number(step.dataset.slideStep));
+      const pip = event.target.closest("[data-slide-index]");
+      if (!step && !pip) return;
+      event.preventDefault();event.stopPropagation();
+      show(pip ? Number(pip.dataset.slideIndex) : at + Number(step.dataset.slideStep));
     });
     /* Hovering or tabbing into a card means the reader is looking at it, so it holds still. */
     frame.addEventListener("mouseenter", hold);
     frame.addEventListener("mouseleave", play);
     frame.addEventListener("focusin", hold);
+    frame.addEventListener("keydown", event=>{
+      if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;
+      event.preventDefault();event.stopPropagation();hold();
+      show(at+(event.key==='ArrowRight'?1:-1));
+    });
     frame.addEventListener("focusout", (event) => { if (!frame.contains(event.relatedTarget)) play(); });
 
     show(0);
