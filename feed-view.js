@@ -43,7 +43,12 @@ const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (c
    shows a broken image icon, so anything that is obviously a video file is dropped here too.
    A video contributes its poster instead, which is what keeps a reel or a video-only post
    from rendering as an empty card. */
-const looksLikeVideoFile = (u) => /\.(mp4|mov|m4v|webm)(\?|$)/i.test(String(u || ""));
+const looksLikeVideoFile = (u) => /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(String(u || ""));
+const playableVideo = post => {
+  const candidates=[post?.videoUrl,post?.video_url,post?.mediaUrl,
+    ...(Array.isArray(post?.mediaItems)?post.mediaItems.filter(p=>p&&(p.isPicture===false||/^video/i.test(p.mediaType||p.type||''))).map(p=>p.url):[])];
+  return candidates.find(url=>typeof url==='string'&&/^https:\/\//i.test(url)&&looksLikeVideoFile(url))||'';
+};
 /* Every picture the post can show, so the card can tell a two-photo post from a
    thirteen-photo one before deciding what to draw. */
 /* A stored post can still hold a second picture of the same piece: a poster, or the
@@ -842,7 +847,7 @@ async function publishDraft(postId) {
 /* A card that has no picture at all, and no thumbnail to stand in for one, is not worth
    putting on the wall. It is left out rather than drawn as an empty frame. */
 function usablePost(post) {
-  return pictureUrls(post).length > 0;
+  return pictureUrls(post).length > 0 || Boolean(playableVideo(post));
 }
 
 function guardFeedPictures(list) {
@@ -918,7 +923,11 @@ function renderPosts(force) {
     /* The saved picture is preferred, and the link thumbnail is the way back if it is gone.
        A post with neither cannot be offered as a card, so it is left off the wall. */
     const fallbackSrc = thumbnailFor(post);
-    const image = !shown.length
+    const playable = playableVideo(post);
+    const soleVideo = playable && (!Array.isArray(post.mediaItems)||post.mediaItems.length<=1);
+    const image = soleVideo
+      ? '<video class="biglwa-pin-img" data-feed-video src="'+esc(playable)+'"'+(shown[0]||fallbackSrc?' poster="'+esc(shown[0]||fallbackSrc)+'"':'')+' muted playsinline preload="metadata" controls autoplay loop></video>'
+      : !shown.length
       ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
       : shown.length === 1
         ? looksLikeVideoFile(shown[0])
@@ -1207,6 +1216,21 @@ async function deletePost(post, action) {
 let lightbox = null;
 function openLightbox(post, index) {
   closeLightbox();
+  const playable=playableVideo(post);
+  if(playable&&(!Array.isArray(post.mediaItems)||post.mediaItems.length<=1)){
+    const box=document.createElement('div');box.className='biglwa-lightbox';
+    box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+    box.setAttribute('aria-label','Watch video in Big LWA');
+    box.innerHTML='<button type="button" class="biglwa-lightbox-close" data-lightbox-close aria-label="Close">×</button>'+
+      '<div class="biglwa-lightbox-stage"><video controls autoplay playsinline preload="metadata" style="width:100%;max-width:min(960px,92vw);max-height:75vh;object-fit:contain"'+
+      (thumbnailFor(post)?' poster="'+esc(thumbnailFor(post))+'"':'')+'></video></div>'+
+      (post.sourceUrl?'<a href="'+esc(post.sourceUrl)+'" target="_blank" rel="noopener noreferrer" style="color:white">Original source ↗</a>':'');
+    const vid=box.querySelector('video');vid.src=playable;
+    box.addEventListener('click',event=>{if(event.target===box||event.target.closest('[data-lightbox-close]'))closeLightbox()});
+    document.body.append(box);lightbox={box,urls:[playable],index:0};
+    document.documentElement.style.overflow='hidden';box.querySelector('button')?.focus({preventScroll:true});
+    return;
+  }
   const urls = slideUrls(post);
   if (!urls.length) return;
   const many = urls.length > 1;
@@ -1434,7 +1458,9 @@ export async function startFeed() {
   });
   watch();
   if (identity()) await loadPosts();
-  window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard };
+  window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard,
+    previewPost(id){const post=posts.find(p=>String(p.id)===String(id));if(post){openLightbox(post,0);return true}return false;}
+  };
   /* The connected source cards render before this module finishes booting, so they are told
      the wall is ready and they can add their own + tray then. */
   document.dispatchEvent(new CustomEvent("biglwa:feed-ready"));
