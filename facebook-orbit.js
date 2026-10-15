@@ -154,28 +154,53 @@
     return photo && photo.images && photo.images.length ? photo.images[0].source : '';
   }
 
+  // Connected Facebook media is a preview, not a published Big LWA post.
+  // Use the same image-first shell, blue shadow, and compact in-image actions.
+  function safeLink(value) {
+    try { var url=new URL(String(value||''));return url.protocol==='https:'?url.href:''; }
+    catch (_) { return ''; }
+  }
+  function facebookCard(item,kind) {
+    var title=String(item.name||item.title||item.description||'Shared from Facebook').slice(0,180);
+    var src=safeLink(kind==='video'?(item.picture||''):photoUrl(item));
+    var clip=kind==='video'?safeLink(item.source):'';
+    var url=safeLink(kind==='video'?item.permalink_url:item.link);
+    if(!src&&!clip)return '';
+    var id=String(item.id||'').replace(/[^a-zA-Z0-9_-]/g,'');
+    var poster=src?'<img src="'+escapeText(src)+'" loading="lazy" decoding="async" alt="'+escapeText(title)+'">':'';
+    var visual=kind==='video'&&clip
+      ? '<video src="'+escapeText(clip)+'" '+(src?'poster="'+escapeText(src)+'" ':'')+' muted playsinline controls preload="metadata"></video>'
+      : poster;
+    var record=JSON.stringify({id:'facebook-'+id,source:'facebook',sourcePostId:id,caption:title,
+      sourceUrl:url,imageUrls:src?[src]:[],videoUrl:clip}).replace(/"/g,'&quot;');
+    return '<article class="module-list-item facebook-feed-item biglwa-unified-card" data-facebook-media="'+kind+
+      '" data-post-id="facebook-'+escapeText(id)+'" data-source-id="'+escapeText(id)+'" data-send-record="'+record+
+      '" style="--feed-card-rim:#1877f2;--feed-card-shadow:3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff">'+
+      '<div class="biglwa-unified-media facebook-card-media">'+visual+
+        '<div class="facebook-card-overlay"><span>'+escapeText(title)+'</span></div>'+
+      '</div><span class="biglwa-unified-source">Facebook</span>'+
+      (url?'<a class="facebook-card-source" href="'+escapeText(url)+'" target="_blank" rel="noopener noreferrer" aria-label="View original on Facebook">Original ↗</a>':'')+
+      '</article>';
+  }
   function renderFeedImports() {
-    var list = one('#feedPageList');
-    if (!list) { return; }
-    all('.facebook-feed-item', list).forEach(function (item) { item.remove(); });
-    if (!state.connected) { return; }
-
-    var items = [];
-    state.photos.forEach(function (photo) {
-      var source = photoUrl(photo);
-      if (!source) { return; }
-      items.push('<article class="module-list-item facebook-feed-item" data-facebook-media="photo"><div style="width:100%"><small>Facebook · photo</small><b style="display:block;margin:4px 0 8px">' + escapeText(photo.name || 'Shared from Facebook') + '</b><img src="' + escapeText(source) + '" alt="' + escapeText(photo.name || 'Facebook photo') + '" loading="lazy" style="display:block;width:100%;max-height:460px;object-fit:cover;border-radius:12px">' + (photo.link ? '<a class="module-action ghost" href="' + escapeText(photo.link) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Facebook</a>' : '') + '</div></article>');
-    });
-    state.videos.forEach(function (video) {
-      var title = video.title || video.description || 'Shared from Facebook';
-      var media = video.source ? '<video controls preload="metadata" poster="' + escapeText(video.picture || '') + '" style="display:block;width:100%;max-height:460px;border-radius:12px;background:#171414"><source src="' + escapeText(video.source) + '"></video>' : (video.picture ? '<img src="' + escapeText(video.picture) + '" alt="' + escapeText(title) + '" loading="lazy" style="display:block;width:100%;max-height:460px;object-fit:cover;border-radius:12px">' : '');
-      items.push('<article class="module-list-item facebook-feed-item" data-facebook-media="video"><div style="width:100%"><small>Facebook · video</small><b style="display:block;margin:4px 0 8px">' + escapeText(title) + '</b>' + media + (video.permalink_url ? '<a class="module-action ghost" href="' + escapeText(video.permalink_url) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Facebook</a>' : '') + '</div></article>');
-    });
-
-    if (!items.length) {
-      items.push('<article class="module-list-item facebook-feed-item"><div><b>Facebook is connected</b><small>No approved photos or videos were returned. Meta may still require testing access or App Review for those permissions.</small></div></article>');
+    var list=one('#feedPageList');
+    if(!list)return;
+    all('.facebook-feed-item',list).forEach(function(card){card.remove();});
+    if(!state.connected)return;
+    var items=[];
+    state.photos.forEach(function(photo){var html=facebookCard(photo,'photo');if(html)items.push(html);});
+    state.videos.forEach(function(video){var html=facebookCard(video,'video');if(html)items.push(html);});
+    if(!items.length) {
+      // A status belongs to the page/status rail, never inside the masonry as a fake picture.
+      showStatus('Facebook connected. No accessible photos or videos returned. Check Meta permissions.');
+      return;
     }
-    list.insertAdjacentHTML('afterbegin', items.join(''));
+    list.insertAdjacentHTML('afterbegin',items.join(''));
+    if(window.__biglwaFeed?.registerSendCard){
+      all('.facebook-feed-item[data-send-record]',list).forEach(function(card){
+        try{window.__biglwaFeed.registerSendCard(card);}catch(error){console.warn('Facebook Feed action:',error);}
+      });
+    }
   }
 
   function connect() {
