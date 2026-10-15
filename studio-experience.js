@@ -114,6 +114,19 @@
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(3n){animation-duration:.9s;animation-delay:.12s}
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(4n){animation-delay:.24s}
       @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.32)}50%{transform:scaleY(1)}}
+      #studioApp .music-card.stereo-music-widget .stereo-eject{
+        width:30px!important;height:27px!important;min-width:30px!important;
+        display:inline-grid!important;place-items:center!important;padding:0!important;
+        border:1px solid #4c5652!important;border-radius:5px!important;
+        background:linear-gradient(#454e4b,#212726)!important;color:#a7efae!important;
+        font:700 18px/1 system-ui!important;cursor:pointer!important;box-shadow:inset 0 1px 0 #ffffff1e!important;
+      }
+      #studioApp .music-card.stereo-music-widget .stereo-eject:focus-visible{
+        outline:2px solid #baffc0!important;outline-offset:2px!important;
+      }
+      #studioApp .music-card.stereo-music-widget .stereo-control-deck{
+        grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto!important;
+      }
       #studioApp .music-card .stereo-control-deck{display:grid;grid-template-columns:1fr auto 1fr;gap:7px;align-items:center;padding:0 58px}
       #studioApp .music-card .stereo-faux-button,#studioApp .music-card #playBtn{height:25px!important;min-width:36px!important;padding:0 9px!important;border:1px solid #090909!important;border-radius:4px!important;background:linear-gradient(#484b4b,#202222)!important;color:#cbd0ca!important;box-shadow:inset 0 1px rgba(255,255,255,.13),0 2px 0 #090909!important;font:800 10px/1 system-ui!important}
       #studioApp .music-card #playBtn{min-width:46px!important;color:#8fff93!important;text-shadow:0 0 6px rgba(100,255,110,.65)!important}
@@ -619,9 +632,11 @@
     const deck=document.createElement('div');deck.className='stereo-control-deck';
     const rewind=document.createElement('span');rewind.className='stereo-faux-button';rewind.setAttribute('aria-hidden','true');rewind.textContent='◀◀';
     const forward=document.createElement('span');forward.className='stereo-faux-button';forward.setAttribute('aria-hidden','true');forward.textContent='▶▶';
+    const eject=document.createElement('button');eject.type='button';eject.className='stereo-eject';eject.id='studioMusicEject';
+    eject.textContent='⏏';eject.setAttribute('aria-label','Eject current track and choose a different song');eject.title='Replace track';
     const kicker=$('.card-kicker',card);
     if(kicker)kicker.insertAdjacentElement('afterend',shell);else card.prepend(shell);
-    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,progress);deck.append(rewind,play,forward);
+    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,progress);deck.append(rewind,play,forward,eject);
     art.id='studioAlbumArt';art.innerHTML='<span aria-hidden="true">♪</span><img alt="Album cover" hidden>';
     copy.classList.add('music-copy');const title=$('strong',copy),artist=$('span',copy);if(title)title.id='studioMusicTitle';if(artist)artist.id='studioMusicArtist';
     const audio=document.createElement('audio');audio.id='studioAudio';audio.preload='metadata';card.appendChild(audio);
@@ -635,6 +650,14 @@
     audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});
+    eject.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      const selector=$('#studioTrackInput',card);
+      if(!selector)return;
+      selector.value='';
+      setMusicStatus('Choose a new song. Your current track remains until you confirm a replacement.');
+      selector.click();
+    });
     $('#chooseStudioTrack',card).addEventListener('click',()=>$('#studioTrackInput',card).click());$('#chooseStudioCover',card).addEventListener('click',()=>$('#studioCoverInput',card).click());
     $('#editStudioMusicMeta',card).addEventListener('click',()=>{editor.classList.toggle('is-open');$('#studioTrackTitle',editor).value=$('#studioMusicTitle',card).textContent;$('#studioTrackArtist',editor).value=$('#studioMusicArtist',card).textContent});
     $('#saveStudioMusicMeta',editor).addEventListener('click',async()=>{try{await updateMusic({title:$('#studioTrackTitle',editor).value.trim()||'Your track',artist:$('#studioTrackArtist',editor).value.trim()||'Add artist'});editor.classList.remove('is-open')}catch{setMusicStatus('The track details could not be saved.')}});
