@@ -1346,6 +1346,8 @@ const connect=e.target.closest('[data-orbit-connect]');
   function renderGames(){
     const gameLibrary=[
       {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
+      {title:'2048',image:'/assets/arcade/2048.svg',href:'https://biglwa.com/arcade-puzzles.html?game=2048'},
+      {title:'crossword',image:'/assets/arcade/crossword.svg',href:'https://biglwa.com/arcade-puzzles.html?game=crossword'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-and-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
