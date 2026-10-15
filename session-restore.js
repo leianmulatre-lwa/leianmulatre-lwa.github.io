@@ -53,20 +53,44 @@ function finishAuth(user){
     }catch{}
   }
 }
-async function boot(){
-  document.body.classList.add("biglwa-session-pending");
+let lastConfirmedUid,authListenerAttached=false,starting=false;
+function resolveVerifiedUser(user){
+  const uid=user?.uid||'';
+  // Multiple widgets all listen for Firebase auth. A repeated notification
+  // about the same user is NOT another sign-in or a reason to repaint pages.
+  if(lastConfirmedUid===uid)return;
+  lastConfirmedUid=uid;
+  finishAuth(user);
+  try{window.dispatchEvent(new CustomEvent('biglwa:session-verified',{detail:{uid,signedIn:!!uid}}))}catch{}
+  if(user) setTimeout(()=>restoreLastView(window.__biglwaRemoteCustomization),250);
+}
+async function verifySession(attempt=0){
+  if(starting)return;starting=true;
   try{
     const auth=await getAuth();
-    try{await auth.authStateReady()}catch{}
-    finishAuth(auth.currentUser);
-    auth.onAuthStateChanged(user=>{
-      finishAuth(user);
-      if(user) setTimeout(()=>restoreLastView(window.__biglwaRemoteCustomization),250);
-    });
+    await auth.authStateReady();
+    resolveVerifiedUser(auth.currentUser);
+    if(!authListenerAttached){
+      authListenerAttached=true;
+      auth.onAuthStateChanged(user=>resolveVerifiedUser(user),
+        error=>{console.warn('[BIGLWA] Auth observation interrupted:',error);});
+    }
   }catch(error){
-    console.warn("[BIGLWA] Session restore unavailable:",error);
-    finishAuth(null);
-  }
+    // Offline/CDN failure is not equivalent to signing out. Never force the
+    // login screen during a transient initialization error.
+    console.warn('[BIGLWA] Session verification delayed:',error);
+    document.body.classList.add('biglwa-session-check-delayed');
+    if(attempt<3)setTimeout(()=>{starting=false;verifySession(attempt+1)},1000*(attempt+1));
+    else{
+      document.body.classList.remove('biglwa-session-pending');
+      document.body.classList.add('biglwa-auth-check-unavailable');
+      window.dispatchEvent(new CustomEvent('biglwa:session-check-failed'));
+    }
+  }finally{starting=false;}
+}
+async function boot(){
+  document.body.classList.add("biglwa-session-pending");
+  verifySession();
   window.addEventListener("biglwa:customization-remote",event=>restoreLastView(event.detail));
   document.addEventListener("biglwa:module-open",event=>setLastView(event.detail?.key||""));
   document.addEventListener("biglwa:module-close",()=>{
