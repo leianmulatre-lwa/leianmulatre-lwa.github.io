@@ -139,7 +139,7 @@ function pageFragments(text,type){
  for(let i=0;i<input.length;i++){
   const ch=input[i],wrap=ch==='\n'||column>=cols;
   if(wrap){if(rows>=13){if(i>from){out.push(input.slice(from,i));from=i}rows=1}else rows++;column=0}
-  if(ch!=='\\n')column++;
+  if(ch!=='\n')column++;
  }
  out.push(input.slice(from));return out;
 }
