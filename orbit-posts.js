@@ -312,8 +312,13 @@ async function bumpOwnerIndex(store, uid, owner, incoming) {
    left the Collective Feed, the member profile, and the Archive empty and left other
    devices with nothing to load. */
 async function importInstagramMediaToR2(items, user, source = 'instagram') {
-  const firebaseIdToken = await user.getIdToken();
-  if (!firebaseIdToken) throw new Error("Your BIGLWA login expired. Sign in again to import Orbit images.");
+  // The Firebase account and the linked external service have different
+  // lifetimes. Token retrieval/network failures must not imply the member
+  // signed out just because a Pinterest grant expired.
+  let firebaseIdToken = '';
+  try { firebaseIdToken = await user.getIdToken(); }
+  catch (error) { console.warn('BIG LWA media token retrieval delayed:', error); }
+  if (!firebaseIdToken) throw new Error("BIG LWA media authorization is temporarily unavailable. Your session was not signed out.");
 
   const requestItems = [];
   for (const raw of items) {
@@ -349,6 +354,7 @@ async function importInstagramMediaToR2(items, user, source = 'instagram') {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + firebaseIdToken,
+          "X-Orbit-Provider": source === 'pinterest' ? 'pinterest' : 'instagram',
           ...(source === 'pinterest'
             ? { "X-Pinterest-Session": (() => {
                 const key='biglwaPinterestSession:'+user.uid;
@@ -447,8 +453,11 @@ export async function storedOrbitImageUrls(source = '') {
 export async function importOrbitMedia(source, items, profile, identityRecord) {
   const store = await firebase();
   const { db, auth, getDoc, serverTimestamp } = store;
+  // A slow Firebase restore is not a sign-out. Wait for the authoritative
+  // account state, independently of the Pinterest token/connection status.
+  await auth.authStateReady();
   const user = auth.currentUser;
-  if (!user) throw new Error("Sign in to save Orbit imports to your account.");
+  if (!user) throw new Error("Sign in to Big LWA to save account media. Connecting Pinterest is not required.");
   if (!Array.isArray(items) || !items.length) return { imported: 0, skipped: 0, partial: 0, warning: "" };
 
   /* Resolved once per import rather than per card, and it falls back to the account doc so

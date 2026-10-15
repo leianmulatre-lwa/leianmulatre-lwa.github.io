@@ -209,13 +209,20 @@ let handoffPromise=null;
    const auth=getAuth(app);
    await auth.authStateReady();
    const user=auth.currentUser;
-   authUid=user?.uid||'';
-   return user?await user.getIdToken():'';
-  }catch{return ''}
+   // A Pinterest provider failure can never reset the Big LWA UID.
+   if(!user || (authUid&&user.uid!==authUid))return '';
+   const token=await user.getIdToken();
+   if(auth.currentUser?.uid!==user.uid)return '';
+   if(!authUid)authUid=user.uid;
+   return token;
+  }catch(error){
+   console.warn('[Big LWA] Pinterest token temporarily unavailable:',error);
+   return '';
+  }
  }
  async function recoverOrBindPinterestSession(){
   const token=await firebaseIdToken();
-  if(!token||!authUid){diagnostic='Pinterest authorization is awaiting account verification.';return ''}
+  if(!token||!authUid){diagnostic='Pinterest is waiting for the existing Big LWA session. Your login remains unchanged.';return ''}
   // A device-wide legacy credential might belong to another person who used this
   // browser. Never silently claim it for the currently signed-in account.
   const local=session();
@@ -286,7 +293,7 @@ async function run(fn){
  finally{busy=false;render()}
 }
 async function connect(){await run(async()=>{
-  if(!await firebaseIdToken())throw new Error('Sign in to BIG LWA before connecting Pinterest.');
+  if(!await firebaseIdToken())throw new Error('Pinterest cannot verify the current account yet. Retry without signing out of Big LWA.');
   /* PKCE needs crypto.subtle, which only exists on secure contexts. Instagram never
      needs it, so its connect button worked on any page while Pinterest died silently.
      Say so instead of throwing a dead click. */
@@ -320,7 +327,7 @@ async function connect(){await run(async()=>{
     throw new Error('Pinterest authorization return expired. Please reconnect.');
    }
    const token=await firebaseIdToken();
-   if(!token || !authUid)throw new Error('Sign in to Big LWA to finish linking Pinterest.');
+   if(!token || !authUid)throw new Error('Pinterest connection is waiting for Big LWA session restoration. Retry without signing out.');
    const startUid=sessionStorage.getItem(OAUTH_UID_KEY)||'';
    if(startUid && startUid!==authUid)throw new Error('Finish connecting Pinterest from the same Big LWA account used to start.');
    const verifier=sessionStorage.getItem('pinterestVerifier')||'';
@@ -659,14 +666,19 @@ async function watchAuth(){
    import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js')
   ]);
   const app=getApps()[0]||initializeApp({apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'});
-  getAuth(app).onAuthStateChanged(user=>{
+  const auth=getAuth(app);
+  await auth.authStateReady();
+  authUid=auth.currentUser?.uid||'';
+  // Watch only Firebase transitions; a Pinterest 401 cannot change authUid.
+  auth.onAuthStateChanged(user=>{
    const uid=user?.uid||'';
    if(uid===authUid)return;
    authUid=uid;
    resetView();
    if(uid){loadSaved().catch(()=>{});restore().catch(error=>console.warn('Pinterest account restore:',error));}
   });
- }catch(error){console.warn('Pinterest auth observer:',error)}
+  return authUid;
+ }catch(error){console.warn('Pinterest auth observer:',error);return ''}
 }
 async function init(){
   const style=document.createElement('style');style.textContent='#pinterestBoards{font-size:16px}#pinterestBoards p,#pinterestBoards label{font-size:16px;line-height:1.5}#pinterestBoards button,#pinterestBoards select{font-size:14px;min-height:42px}#pinterestBoards button:disabled{opacity:.55;cursor:wait}.pinterest-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.pinterest-board{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:150px;overflow:hidden;border:1px solid #d8cec5;border-radius:14px;background:#fffaf3;color:#302b28;text-decoration:none;box-shadow:0 10px 22px -16px rgba(48,43,40,.6)}.pinterest-board img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pinterest-board strong,.pinterest-board small{position:relative;z-index:1;padding:0 12px;color:#fff;background:linear-gradient(180deg,transparent,rgba(24,16,14,.78) 62%);text-shadow:0 1px 3px rgba(0,0,0,.4)}.pinterest-board strong{padding-top:30px;font:600 15px/1.4 system-ui;overflow-wrap:anywhere}.pinterest-board small{padding-bottom:11px;font:600 12px/1.4 system-ui;opacity:.9}.pinterest-board.is-empty{display:grid;place-items:center;min-height:150px;width:100%;cursor:pointer;font:inherit;color:inherit;border-style:dashed;background:repeating-linear-gradient(45deg,#fffaf3,#fffaf3 10px,#fdf3e9 10px,#fdf3e9 20px)}.pinterest-board.is-empty:hover:not(:disabled){border-color:#a53332;border-style:solid}.pinterest-board.is-empty span{font:600 12px/1.4 system-ui;color:#9b8a7c;text-align:center;padding:8px}.pinterest-board:focus-visible{outline:3px solid #a53332}@media (max-width:760px){.pinterest-board-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}.pinterest-pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:16px;margin:20px 0}.pinterest-pin{border:1px solid #d8cec5;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#fffaf3;color:#302b28;text-decoration:none}.pinterest-pin img{width:100%;height:230px;object-fit:cover}.pinterest-pin span,.pinterest-pin small{padding:10px 12px;overflow-wrap:anywhere}.pinterest-pin small{font-size:13px;margin-top:auto}.pinterest-pin:focus-visible{outline:3px solid #a53332}';document.head.append(style);
@@ -686,8 +698,9 @@ async function init(){
   history.replaceState(history.state,'',url.href);
  }
  if(error)notice(error);
+ await watchAuth();
  let returning=Boolean(handoff||storageGet(PENDING_KEY));
- if(returning){
+ if(returning&&authUid){
   try{await finishPinterestHandoff()}
   catch(e){
    diagnostic=e.message||'Pinterest authorization could not be completed.';
@@ -700,9 +713,8 @@ async function init(){
  /* Pinterest sends the tab back to the app, not to a module, so after the round trip the
     Boards page was never reopened and the freshly fetched boards stayed invisible. Reopen it
     and let the module-open listener run restore(), so the connection visibly lands. */
- if(returning&&typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('boards');
- await restore();
- watchAuth().catch(()=>{});
+ if(returning&&authUid&&typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('boards');
+ if(authUid)await restore().catch(error=>console.warn('Pinterest provider restore:',error));
 }
 window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  if(event.detail?.source!=='pinterest')return;
