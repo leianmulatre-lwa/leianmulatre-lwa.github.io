@@ -127,7 +127,7 @@
       }
       if(u.hostname==='www.instagram.com'||u.hostname==='instagram.com'){
         const m=u.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)\/?/);
-        if(m)return 'https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
+        if(m&&(m[1]!=='p'||post.isVideo===true||(post.mediaItems||[]).some(x=>x?.isPicture===false||/^video/i.test(x?.mediaType||''))))return 'https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
       }
       if(u.hostname==='vimeo.com'){
         const id=u.pathname.split('/').filter(Boolean)[0];
