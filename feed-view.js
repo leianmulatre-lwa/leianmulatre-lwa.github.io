@@ -157,6 +157,7 @@ const STYLE = `
    its column instead of lining up with the row of its neighbours. The wall now takes the
    width the page gives it, so a wide window gets a wider wall instead of a narrow strip. */
 #feedPageList{display:block!important;column-count:5!important;column-width:auto!important;column-gap:18px!important;column-fill:balance}
+.biglwa-lightbox-caption{color:#fff8f2;font:500 13px/1.6 system-ui;max-width:720px;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;margin:6px 0 12px}
 #feedPageList>*{break-inside:avoid;min-width:0;width:100%;margin:0 0 18px}
 @media (max-width:1560px){#feedPageList{column-count:4!important}}
 @media (max-width:1180px){#feedPageList{column-count:3!important}}
@@ -936,7 +937,7 @@ function renderPosts(force) {
             ' muted playsinline preload="none" controls></video>'
           : '<img class="biglwa-pin-img" data-feed-media src="' + esc(shown[0]) + '"' +
             (fallbackSrc && fallbackSrc !== shown[0] ? ' data-feed-fallback="' + esc(fallbackSrc) + '"' : "") +
-            ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="Collective feed media" loading="lazy">'
+            ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="' + esc(String(post.caption||'Collective feed media').slice(0,160)) + '" loading="lazy">'
         : slideshow(shown, "Collective feed media");
     const link = !isInstagram && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     // Carousels are controlled directly on their photo: dots below, arrows on hover.
@@ -1128,6 +1129,7 @@ async function removeImage(key, uid) {
 async function submit(form) {
   const data = new FormData(form);
   const url = String(data.get("url") || "").trim();
+  const caption = String(data.get("caption") || "").trim().slice(0,500);
   const picker = document.getElementById("biglwaFeedPicker");
   const file = picker?.files?.[0] || null;
   if (!url && !file) { say("Add a link or a photo first.", "bad"); return; }
@@ -1139,7 +1141,7 @@ async function submit(form) {
   try {
     const publisher = window.__biglwaCollectivePublish;
     if (!publisher?.createFeedDraft) throw new Error("The collective feed uploader is still loading. Try again in a moment.");
-    const draft = await publisher.createFeedDraft({ url, blob: file || null });
+    const draft = await publisher.createFeedDraft({ url, blob: file || null, caption });
     await publishDraft(draft.id);
     form.reset();
     document.getElementById("biglwaFeedThumbs")?.remove();
@@ -1153,9 +1155,8 @@ async function submit(form) {
   }
 }
 
-/* The Feed composer is deliberately small: one link, plus one optional photo.
-   A link gets its thumbnail from the server-side Open Graph preview; the photo replaces
-   that thumbnail when supplied. No caption is collected or stored here. */
+/* Post media comes from a link or photo. The optional account-backed caption
+   stays off the image; it appears in its expanded viewer. */
 function upgradeComposer(form) {
   if (!form || form.dataset.bigUpgrade) return;
   form.dataset.bigUpgrade = "1";
@@ -1293,6 +1294,7 @@ function openLightbox(post, index) {
       : "") +
     "</div>" +
     '<div class="biglwa-lightbox-meta">' +
+    (post.caption?'<p class="biglwa-lightbox-caption">'+esc(String(post.caption).slice(0,500))+'</p>':'')+
     '<a class="biglwa-lightbox-view" target="_blank" rel="noopener noreferrer">View full size</a>' +
     "</div>";
   document.body.appendChild(box);
