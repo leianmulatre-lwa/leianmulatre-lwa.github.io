@@ -30,7 +30,7 @@ const tests=[
  ['No Flash emulation',!editor.includes('ruffle.js')&&!studio.includes('@ruffle-rs')],
  ['Original not misrepresented as native',editor.includes("not Nintendo's proprietary Mii file format")],
  ['Quest and legacy puzzles',arcade.includes('data-tab="quest"')&&arcade.includes('data-tab="2048"')&&arcade.includes('data-tab="crossword"')],
- ['Arcade account character',quest.includes("snap.data()?.studioAvatar")&&quest.includes('playing as')],
+ ['Arcade account character',quest.includes(".data()?.studioAvatar")&&quest.includes('playing as')],
  ['Quest accessible controls',quest.includes("grid.addEventListener('touchstart'")&&quest.includes("document.addEventListener('keydown'")&&arcade.includes('role="grid"')],
  ['Arcade directory and Veve linked',modules.includes('game=quest')&&veve.includes("id:'quest'")],
  ['Artwork',existsSync(new URL('./assets/arcade/character-quest.svg',import.meta.url))]
