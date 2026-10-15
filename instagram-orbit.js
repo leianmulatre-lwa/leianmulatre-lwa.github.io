@@ -167,7 +167,7 @@
   }
   /* /studio is a stub that rebuilds the query and would drop the handoff code, so the
      return goes to the site root the app actually runs from. */
-  function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/?route=studio&view=orbit')); }
+  function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent(window.location.origin + '/studio?view=orbit')); }
   async function restore({silent=false}={}) {
     // The canonical connection belongs to the authenticated account on the
     // Worker, not this device. Refresh it first on every restore.
