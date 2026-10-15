@@ -98,6 +98,64 @@
     });
   }
 
+  // The individual Orbit renderers prepend complete provider batches. CSS columns
+  // then puts Instagram in the left columns and Pinterest/Facebook at the far
+  // right. Interleave the *rendered* cards deterministically so providers are
+  // distributed across the wall, preserving relative order inside each source.
+  function feedSource(card){
+    if(card.classList.contains('pinterest-feed-item')||card.classList.contains('biglwa-pinterest-card'))return 'pinterest';
+    if(card.classList.contains('facebook-feed-item')||card.classList.contains('biglwa-facebook-card'))return 'facebook';
+    if(card.classList.contains('instagram-feed-item')||card.classList.contains('biglwa-instagram-card'))return 'instagram';
+    if(card.classList.contains('tiktok-feed-item')||card.classList.contains('biglwa-tiktok-card'))return 'tiktok';
+    const key=String(card.dataset.feedSource||card.dataset.source||'').toLowerCase();
+    if(key)return key;
+    const raw=card.dataset.sendRecord||'';
+    if(raw){
+      try{const obj=JSON.parse(raw);if(obj.source)return String(obj.source).toLowerCase()}catch{}
+    }
+    return 'biglwa';
+  }
+  function mixFeedCards(cards){
+    const buckets=new Map();
+    for(const card of cards){
+      const source=feedSource(card);
+      if(!buckets.has(source))buckets.set(source,[]);
+      buckets.get(source).push(card);
+    }
+    const total=cards.length,used=new Map();
+    for(const key of buckets.keys())used.set(key,0);
+    const result=[];
+    while(result.length<total){
+      let winner=null,score=-Infinity;
+      for(const [source,group] of buckets){
+        const count=used.get(source);
+        if(count>=group.length)continue;
+        // Largest deficit from a proportional spread wins the next slot.
+        const deficit=(result.length+1)*group.length/total-count;
+        if(deficit>score+1e-9){score=deficit;winner=source}
+      }
+      if(winner===null)break;
+      result.push(buckets.get(winner)[used.get(winner)]);
+      used.set(winner,used.get(winner)+1);
+    }
+    return result;
+  }
+  function interleaveFeedSources(list){
+    if(document.activeElement&&list.contains(document.activeElement))return;
+    const children=Array.from(list.children);
+    const eligible=children.filter(node=>node.matches(
+      '.biglwa-pin-post,.instagram-feed-item,.pinterest-feed-item,.facebook-feed-item,.biglwa-facebook-card,.biglwa-tiktok-card,.tiktok-feed-item,.youtube-feed-item'
+    )&&!node.matches('.instagram-import-status,.biglwa-instagram-import-status'));
+    if(eligible.length<3)return;
+    const mixed=mixFeedCards(eligible);
+    const slots=new Set(eligible);
+    let n=0;const desired=children.map(child=>slots.has(child)?mixed[n++]:child);
+    if(desired.every((child,index)=>child===children[index]))return;
+    // Move real nodes (do not recreate cards, destroy media state or restart
+    // hover/slideshow controls). The next observer pass sees identical order.
+    list.append(...desired);
+  }
+
   function sweep() {
     queued = false;
     var list = document.getElementById('feedPageList');
@@ -117,6 +175,7 @@
       }
       if (nodes.length) paint(source, nodes);
     });
+    interleaveFeedSources(list);
   }
 
   function schedule() {
