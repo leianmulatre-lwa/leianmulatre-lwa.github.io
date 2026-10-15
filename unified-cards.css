@@ -401,3 +401,18 @@
  opacity:1!important;pointer-events:auto!important;
  }
 }
+
+/* Archive privacy state affects the photograph, NOT its interactive overlay.
+   Previously the grayscale filter on the whole media wrapper also greyed the
+   Live switch after it was moved into that wrapper. */
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card:is(.is-off,.is-archived) .instagram-archive-media{
+ filter:none!important;opacity:1!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card:is(.is-off,.is-archived) .instagram-archive-piece :is(img,video){
+ filter:grayscale(1)!important;opacity:.7!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card:is(.is-off,.is-archived) .archive-card-overlay,
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card:is(.is-off,.is-archived) .archive-browser-actions,
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card:is(.is-off,.is-archived) .archive-carousel-dots{
+ filter:none!important;opacity:1!important;
+}
