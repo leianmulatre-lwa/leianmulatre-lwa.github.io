@@ -841,18 +841,21 @@
     const syncDock=()=>syncPrimaryWidgetDock(app);
     const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
     const widgets=$$(selector,app);
-    const minimized=readWidgetShortcuts();
+    // Restore from this account's scoped snapshot, not another signed-in
+    // member's old browser-wide widget state.
+    const scoped=scopedLayout();
+    const minimized=Array.isArray(scoped?.docked)?scoped.docked:readWidgetShortcuts();
     const saveMinimized=()=>writeWidgetShortcuts($$(selector,app).filter(widget=>widget.classList.contains('widget-is-minimized')).map(widget=>widget.dataset.widgetId).filter(Boolean));
     const addRestore=widget=>{
       const id=widget.dataset.widgetId,targetDock=restoreDockForWidget(app,widget,dock);if(!id||!targetDock||$('[data-shortcut-row="'+CSS.escape(id)+'"]',app))return true;
-      targetDock.appendChild(shortcutButtonMarkup(widget));syncDock();saveMinimized();return true;
+      targetDock.appendChild(shortcutButtonMarkup(widget));syncDock();return true;
     };
     widgets.forEach((widget,index)=>{
       if(!widget.dataset.widgetId)widget.dataset.widgetId=widgetId(widget,index);
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
       if(minimized.includes(widget.dataset.widgetId)){widget.classList.add('widget-is-minimized','widget-is-docked');addRestore(widget)}else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
     });
-    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
     // Never save during startup or on periodic run(): restoring the local
     // state is not a user edit and must not overwrite account settings.
     syncDock();syncPrimaryWidgetDock(app);
