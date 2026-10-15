@@ -21,42 +21,79 @@
     return firebasePromise;
   }
   const setStatus=message=>{for(const id of ['#biglwaAvatarStatus','#biglwaAvatarCompactStatus']){const el=one(id);if(el)el.textContent=message;}};
-  function disposeViewer(){try{state.skinViewer?.dispose()}catch{}state.skinViewer=null;}
-  function mediaNode(){
-    return one('#biglwaAvatarMedia');
+  function disposeViewer(root){
+    if(!root)return;
+    try{root._biglwaMinecraftModel?.dispose()}catch{}
+    root._biglwaMinecraftModel=null;
   }
+  let mannequinPromise=null;
+  function loadMannequin(){
+    if(window.BigLWAMinecraftViewer)return Promise.resolve(window.BigLWAMinecraftViewer);
+    if(!mannequinPromise){
+      mannequinPromise=new Promise((resolve,reject)=>{
+        const script=document.createElement('script');
+        script.src='/avatar/minecraft-mannequin.js?v=20261014-model-2';
+        script.async=true;
+        script.onload=()=>window.BigLWAMinecraftViewer?resolve(window.BigLWAMinecraftViewer):reject(Error('Minecraft model script loaded without the viewer.'));
+        script.onerror=()=>reject(Error('Minecraft model could not load from BIG LWA.'));
+        document.head.append(script);
+      }).catch(error=>{mannequinPromise=null;throw error});
+    }
+    return mannequinPromise;
+  }
+  async function renderMinecraftModel(root,skin,large=false){
+    if(!root)return false;
+    const key=(skin||'default')+':'+(large?'large':'small');
+    if(root.dataset.minecraftSkin===key&&root._biglwaMinecraftModel)return true;
+    disposeViewer(root);
+    root.dataset.minecraftSkin=key;
+    root.replaceChildren();
+    const loading=document.createElement('span');
+    loading.className='biglwa-minecraft-loading';
+    loading.textContent='Loading Minecraft character…';
+    root.append(loading);
+    try{
+      const viewer=await loadMannequin();
+      if(!root.isConnected||root.dataset.minecraftSkin!==key)return false;
+      const texture=skin||viewer.defaultSkin();
+      if(!texture)throw Error('Could not create Minecraft preview texture.');
+      const model=viewer.mount(root,texture,{large,
+        onError:error=>{if(root.dataset.minecraftSkin===key)setStatus(error?.message||'Minecraft texture could not load.');}
+      });
+      root._biglwaMinecraftModel=model;
+      await model.ready;
+      return true;
+    }catch(error){
+      if(root.isConnected&&root.dataset.minecraftSkin===key){
+        disposeViewer(root);
+        root.replaceChildren();
+        const alert=document.createElement('p');
+        alert.className='biglwa-minecraft-error';alert.textContent='3D Minecraft character unavailable: '+(error?.message||'Could not render skin.');
+        root.append(alert);
+        setStatus(alert.textContent);
+      }
+      return false;
+    }
+  }
+  function mediaNode(){return one('#biglwaAvatarMedia')}
   function showAvatar(){
     syncEditorPreview();
     const view=mediaNode();if(!view)return;
-    disposeViewer();
-    view.replaceChildren();
     const a=state.avatar;
-    if(!a?.url){view.innerHTML='<div class="biglwa-avatar-empty" aria-hidden="true">◉<span>your character</span></div>';return;}
-    if(a.type==='minecraft'){
-      const canvas=document.createElement('canvas');canvas.width=220;canvas.height=260;view.append(canvas);
-      const render=()=>{
-        if(!window.skinview3d?.SkinViewer){showImageFallback(view,a.url);setStatus('3D preview unavailable. Your saved Minecraft skin is still ready.');return;}
-        try{
-          const viewer=new window.skinview3d.SkinViewer({canvas,width:220,height:260,skin:a.url,zoom:0.8});
-          viewer.autoRotate=true;
-          if(window.skinview3d.IdleAnimation)viewer.animation=new window.skinview3d.IdleAnimation();
-          state.skinViewer=viewer;
-        }catch(error){showImageFallback(view,a.url);setStatus(error?.message||'3D preview not available on this device.');}
-      };
-      if(window.skinview3d?.SkinViewer){render();return;}
-      if(!state.skinLibrary){
-        state.skinLibrary=new Promise((resolve,reject)=>{
-          const script=document.createElement('script');
-          script.src='https://cdn.jsdelivr.net/npm/skinview3d@3.4.2/bundles/skinview3d.bundle.min.js';
-          script.async=true;script.onload=resolve;script.onerror=()=>reject(Error('Could not load the Minecraft preview engine.'));
-          document.head.append(script);
-        }).catch(error=>{state.skinLibrary=null;throw error});
-      }
-      state.skinLibrary.then(()=>{if(mediaNode()===view&&state.avatar?.url===a.url)render()}).catch(()=>{if(mediaNode()===view)showImageFallback(view,a.url)});
-    }else showImageFallback(view,a.url);
+    if(a?.type==='minecraft'&&a.url){
+      renderMinecraftModel(view,a.url,false);
+      return;
+    }
+    disposeViewer(view);view.dataset.minecraftSkin='';
+    view.replaceChildren();
+    if(!a?.url){
+      view.innerHTML='<div class="biglwa-avatar-empty" aria-hidden="true">◉<span>your character</span></div>';
+      return;
+    }
+    showImageFallback(view,a.url);
   }
   function showImageFallback(view,url){
-    disposeViewer();view.replaceChildren();
+    disposeViewer(view);view.replaceChildren();
     const image=new Image();image.src=url;image.alt='Saved avatar image';image.loading='lazy';
     image.onerror=()=>{view.textContent='Stored avatar image could not be loaded.'};
     view.append(image);
@@ -75,11 +112,14 @@
   }
   function syncEditorPreview(){
     const preview=one('#biglwaAvatarProfilePreview');if(!preview)return;
-    const currentUrl=state.avatar?.url||'';
-    if(preview.dataset.avatarSrc===currentUrl)return;
-    preview.dataset.avatarSrc=currentUrl;
-    preview.replaceChildren();
-    if(state.avatar?.url){const img=new Image();img.src=state.avatar.url;img.alt='Your saved character';preview.append(img)}
+    const url=state.avatar?.url||'';
+    const kind=state.avatar?.type||'';
+    const key=kind+':'+url;
+    if(preview.dataset.avatarSrc===key)return;
+    preview.dataset.avatarSrc=key;
+    if(kind==='minecraft'&&url){renderMinecraftModel(preview,url,false);return}
+    disposeViewer(preview);preview.replaceChildren();
+    if(url){const img=new Image();img.src=url;img.alt='Your saved character';preview.append(img)}
     else preview.innerHTML='<span aria-hidden="true">◉</span><small>No saved character yet</small>';
   }
   function mountEditor(){
@@ -127,8 +167,16 @@
     const mount=one('#biglwaAvatarSource');if(!mount)return;
     const input='<label class="biglwa-avatar-upload">Import image<input type="file" data-avatar-import accept="image/png,image/jpeg,image/webp" hidden></label>';
     if(name==='minecraft'){
-      mount.innerHTML='<p>Upload a Minecraft skin texture (64 × 64 or 64 × 32) for a 3D preview.</p>'+
-        '<label class="biglwa-avatar-upload">Import Minecraft skin<input type="file" data-avatar-import data-avatar-kind="minecraft" accept="image/png" hidden></label>';
+      mount.innerHTML='<p>Your Minecraft character appears below. Import a skin PNG to wrap its texture around the head, body, arms, and legs, then rotate the character to inspect it.</p>'+
+        '<div id="biglwaMinecraftEditorModel" class="biglwa-minecraft-editor-model" aria-label="3D Minecraft character preview"></div>'+
+        '<div class="biglwa-minecraft-controls">'+
+          '<button type="button" data-minecraft-turn="-35" aria-label="Rotate Minecraft character left">↶ Rotate</button>'+
+          '<button type="button" data-minecraft-turn="35" aria-label="Rotate Minecraft character right">Rotate ↷</button>'+
+        '</div>'+
+        '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Minecraft skin PNG<input type="file" data-avatar-import data-avatar-kind="minecraft" accept="image/png" aria-label="Choose a Minecraft skin PNG"></label>'+
+        '<button type="button" data-minecraft-save'+(state.minecraftDraftFile?'':' disabled')+'>Save skin to my account</button>'+
+        '<small class="biglwa-minecraft-note">Supports standard 64×64 or 64×32 skins and HD versions. Drag the character to turn it; use ← and → when focused.</small>';
+      renderMinecraftModel(one('#biglwaMinecraftEditorModel',mount),state.minecraftDraftUrl||((state.avatar?.type==='minecraft'&&state.avatar.url)||''),true);
     }else if(name==='mii'){
       // Uploaded MiiEditor is Adobe AIR + SWF, not HTML/JS. A modern browser
       // cannot execute it as a normal file. No loading spinner, Flash emulator
@@ -147,7 +195,7 @@
     cardStatus(name);
   }
   function cardStatus(name){
-    setStatus(name==='mii'?'Original AIR files retained; browser editing needs a proper web port. You can save a Mii image to your account now.':name==='minecraft'?'Choose a skin PNG to import.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
+    setStatus(name==='mii'?'Original AIR files retained; browser editing needs a proper web port. You can save a Mii image to your account now.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
   }
   async function verifySkin(file){
     if(file.type!=='image/png')throw Error('Minecraft skins must be PNG files.');
@@ -156,9 +204,9 @@
       const img=await new Promise((resolve,reject)=>{
         const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Cannot read skin PNG.'));image.src=url;
       });
-      if(!((img.naturalWidth===64&&[32,64].includes(img.naturalHeight))||
-        (img.naturalWidth===128&&[64,128].includes(img.naturalHeight))))
-          throw Error('Use a Minecraft skin texture (64×64, 64×32 or HD 128px equivalent).');
+      if(img.naturalWidth<64||img.naturalWidth>1024||img.naturalWidth%64!==0||
+        !(img.naturalHeight===img.naturalWidth||img.naturalHeight*2===img.naturalWidth))
+          throw Error('Use a Minecraft skin PNG (64×64, 64×32, or a proportional HD skin).');
     }finally{URL.revokeObjectURL(url)}
   }
   async function save(file,kind){
