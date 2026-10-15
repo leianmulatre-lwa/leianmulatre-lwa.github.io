@@ -1257,7 +1257,9 @@ async function orbitMediaImport(request, env) {
   }
   if (!orbitSessionId) mediaFail('Reconnect ' + provider + ' in Orbit. Your BIG LWA login is still active.', 401);
   let session = await env.OAUTH_SESSIONS.get((isPinterest ? 'pn:session:' : 'session:') + orbitSessionId, 'json');
-  if (!session || !session.firebaseUid || session.firebaseUid !== user.uid)
+  if (session?.firebaseUid && session.firebaseUid !== user.uid)
+    mediaFail('The ' + provider + ' connection belongs to a different BIG LWA account.', 403);
+  if (!session || !session.firebaseUid)
     mediaFail('Reconnect ' + provider + ' in Orbit. Your BIG LWA login is still active.', 401);
   if (isPinterest) {
     // Match the existing Pinterest profile/boards auto-refresh behavior on
