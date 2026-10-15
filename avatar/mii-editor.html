@@ -8,19 +8,20 @@ main{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-width:760px;m
 h1{font:500 19px/1.2 Georgia,serif;margin:0}p{margin:2px 0 8px;font-size:11px;color:#6b5c54}
 canvas{display:block;margin:auto;max-width:100%;height:auto;aspect-ratio:1;background:linear-gradient(150deg,#fffdf9,#e9e2dc);border:1px solid var(--line);border-radius:12px}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:4px 0}
-label{display:grid;gap:4px;font:600 10px/1.4 system-ui}
+label{display:grid;gap:4px;font:600 10px/1.4 system-ui}.full-field{grid-column:1/-1}
 select,input{width:100%;min-width:0;padding:8px 6px;border:1px solid #cbb8ad;border-radius:8px;background:#fffaf3;color:#362d2c;font:12px/1.2 system-ui}
 input[type=color]{height:34px;padding:2px}
 .actions{display:flex;flex-wrap:wrap;gap:8px}
-button{flex:1 1 auto;border:1px solid #cdb4ac;border-radius:9px;background:#f7eee4;color:#3a2c29;font:700 11px/1.3 system-ui;padding:9px 10px;cursor:pointer}
+button,.button-label,.game-link{flex:1 1 auto;display:inline-flex;justify-content:center;align-items:center;border:1px solid #cdb4ac;border-radius:9px;background:#f7eee4;color:#3a2c29;font:700 11px/1.3 system-ui;padding:9px 10px;cursor:pointer;text-decoration:none;text-align:center}button:focus-visible,.button-label:focus-within,.game-link:focus-visible{outline:3px solid #ca536b;outline-offset:2px}
 button.primary{background:#cb566c;border-color:#bd4e63;color:white}
-#status{font-size:11px;min-height:1.3em;color:#63504d}
+#status{font-size:11px;min-height:1.3em;color:#63504d}.button-label input{width:1px;height:1px;position:absolute;opacity:0;pointer-events:none}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 @media(min-width:620px){main{grid-template-columns:minmax(0,330px) minmax(260px,1fr);align-items:start}}
 </style></head><body>
-<main><section><h1>Character maker</h1><p>Create a Mii-inspired look here in Big LWA. This makes a PNG avatar; it doesn't export Nintendo Mii data.</p>
+<main><section><h1>lwa character port</h1><p>Build a classic Mii-style character on the web. Edit and save it to your Big LWA profile, then take it into Arcade. This port uses Big LWA character data, not Nintendo's proprietary Mii file format.</p>
 <canvas id="portrait" width="512" height="512" aria-label="Live avatar drawing"></canvas>
 </section><section>
 <div class="controls">
+<label class="full-field">Character name<input id="characterName" type="text" maxlength="32" value="My character" autocomplete="off" aria-label="Character name"></label>
 <label>Face shape<select id="face"><option value="oval">Oval</option><option value="round">Round</option><option value="square">Square</option><option value="heart">Heart</option></select></label>
 <label>Complexion<input id="skin" type="color" value="#c28b65"></label>
 <label>Hairstyle<select id="hair"><option value="crop">Short</option><option value="swoop">Side sweep</option><option value="bob">Bob</option><option value="curly">Curls</option><option value="buns">Buns</option><option value="bald">Bald</option></select></label>
@@ -32,12 +33,41 @@ button.primary{background:#cb566c;border-color:#bd4e63;color:white}
 <label>Glasses<select id="glasses"><option value="none">None</option><option value="round">Round</option><option value="square">Square</option></select></label>
 <label>Outfit<input id="shirt" type="color" value="#ad455e"></label>
 </div>
-<div class="actions"><button type="button" id="random">Randomize</button><button type="button" id="download">Download PNG</button><button type="button" class="primary" id="save">Save to Big LWA</button></div>
-<div id="status" role="status">Changes preview instantly.</div></section></main>
+<div class="actions"><button type="button" id="random">Randomize</button><button type="button" id="download">Download PNG</button><button type="button" id="export">Export character</button><label for="import" class="button-label">Import character<input id="import" type="file" accept=".json,application/json" hidden></label></div>
+<div class="actions"><button type="button" class="primary" id="save">Save to Big LWA</button><a class="game-link" href="/arcade-puzzles.html?game=quest">Play in Arcade ↗</a></div>
+<div id="status" role="status" aria-live="polite">Changes preview instantly. Save when ready.</div></section></main>
 <script>
 (()=>{
 const canvas=document.querySelector('#portrait'),ctx=canvas.getContext('2d'),Q=id=>document.getElementById(id);
 const fields=['face','skin','hair','hairColor','eyes','eyeColor','brows','mouth','glasses','shirt'];
+const FORMAT='biglwa-character-v1';
+const validFields={
+  face:['oval','round','square','heart'],hair:['crop','swoop','bob','curly','buns','bald'],
+  eyes:['round','almond','sleepy','smile'],brows:['soft','straight','arched'],
+  mouth:['smile','neutral','grin','open'],glasses:['none','round','square']
+};
+const colorFields=['skin','hairColor','eyeColor','shirt'];
+function preset(){
+  const features=Object.fromEntries(fields.map(k=>[k,Q(k).value]));
+  return {format:FORMAT,version:1,name:Q('characterName').value.trim().slice(0,32)||'My character',features};
+}
+function usePreset(value){
+  if(!value||value.format!==FORMAT||!value.features||typeof value.features!=='object')throw Error('Not a Big LWA character file. Original Wii .mii files are not supported by this port.');
+  for(const field of fields){
+    const requested=value.features[field];
+    if(validFields[field]&&!validFields[field].includes(requested))continue;
+    if(colorFields.includes(field)&&!(typeof requested==='string'&&/^#[0-9a-fA-F]{6}$/.test(requested)))continue;
+    if(typeof requested==='string')Q(field).value=requested;
+  }
+  Q('characterName').value=String(value.name||'My character').slice(0,32);
+  render();
+}
+function exportPreset(){
+  const file=new Blob([JSON.stringify(preset(),null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(file),a=document.createElement('a');
+  a.href=url;a.download='biglwa-character.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 function fillPath(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);points.slice(1).forEach(p=>ctx.lineTo(...p));ctx.closePath();ctx.fill()}
 function ellipse(x,y,rx,ry,color,stroke='',lw=1){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke()}}
 function line(x1,y1,x2,y2,color,width=4){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.lineWidth=width;ctx.strokeStyle=color;ctx.lineCap='round';ctx.stroke()}
@@ -93,13 +123,84 @@ Q('random').addEventListener('click',()=>{
  Q('hairColor').value=colors[Math.floor(Math.random()*colors.length)];Q('shirt').value=colors[Math.floor(Math.random()*colors.length)];render();
 });
 Q('download').addEventListener('click',()=>{const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='biglwa-character.png';a.click();});
-Q('save').addEventListener('click',()=>{
- if(window.parent===window){Q('status').textContent='Open this editor from Big LWA Studio to save to your account.';return}
- Q('status').textContent='Saving to your account…';
- window.parent.postMessage({type:'biglwa:mii-created',image:canvas.toDataURL('image/png')},location.origin);
+Q('export').addEventListener('click',exportPreset);
+Q('import').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];if(!file)return;
+  try{
+    if(file.size>15000)throw Error('Character file is too large.');
+    usePreset(JSON.parse(await file.text()));
+    Q('status').textContent='Character loaded. Save to keep it on your Big LWA account.';
+  }catch(error){Q('status').textContent=error.message||'Could not import character.'}
+  event.target.value='';
 });
-window.addEventListener('message',event=>{if(event.origin===location.origin&&event.data?.type==='biglwa:mii-save-result')Q('status').textContent=event.data.message;});
+async function standaloneSave(){
+  const status=Q('status');
+  try{
+    const [a,b,f]=await Promise.all([
+      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+    ]);
+    const app=a.getApps()[0]||a.initializeApp({
+      apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+      authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
+      appId:'1:83232670555:web:e04927b20458390b3b507e'
+    });
+    const auth=b.getAuth(app);await auth.authStateReady();
+    const user=auth.currentUser;
+    if(!user){status.textContent='Sign in to Big LWA before saving your character.';return}
+    const file=await new Promise(resolve=>canvas.toBlob(blob=>resolve(blob),'image/png'));
+    if(!file)throw Error('Could not export character image.');
+    const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-photo',{
+      method:'POST',headers:{Authorization:'Bearer '+await user.getIdToken(),'Content-Type':'image/png'},body:file
+    });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||!result.url)throw Error(result.error||'Image upload failed.');
+    await f.setDoc(f.doc(f.getFirestore(app),'users',user.uid),
+      {studioAvatar:{type:'mii',url:result.url,preset:preset(),updatedAt:f.serverTimestamp()}},
+      {mergeFields:['studioAvatar']});
+    status.textContent='Character saved to your Big LWA account and ready for Arcade.';
+    window.dispatchEvent(new CustomEvent('biglwa:character-saved'));
+  }catch(error){status.textContent='Could not save: '+(error.message||'Try again.')}
+}
+Q('save').addEventListener('click',async()=>{
+ Q('status').textContent='Saving to your Big LWA account…';
+ if(window.parent!==window){
+   window.parent.postMessage({type:'biglwa:mii-created',image:canvas.toDataURL('image/png'),preset:preset()},location.origin);
+ }else await standaloneSave();
+});
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==window.parent)return;
+ if(event.data?.type==='biglwa:mii-save-result')Q('status').textContent=String(event.data.message||'Save finished.');
+ if(event.data?.type==='biglwa:mii-load'&&event.data.preset){
+   try{usePreset(event.data.preset);Q('status').textContent='Your saved Big LWA character is ready to edit.';}
+   catch(error){Q('status').textContent=error.message||'Character could not be restored.';}
+ }
+});
 render();
+if(window.parent!==window)window.parent.postMessage({type:'biglwa:mii-ready'},location.origin);
+else{
+  // In standalone mode, pull the account's saved editable character.
+  (async()=>{
+    try{
+      const [a,b,f]=await Promise.all([
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+      ]);
+      const app=a.getApps()[0]||a.initializeApp({
+        apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+        authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
+        appId:'1:83232670555:web:e04927b20458390b3b507e'
+      });
+      const auth=b.getAuth(app);await auth.authStateReady();
+      if(!auth.currentUser)return;
+      const snap=await f.getDoc(f.doc(f.getFirestore(app),'users',auth.currentUser.uid));
+      const saved=snap.data()?.studioAvatar;
+      if(saved?.type==='mii'&&saved.preset)usePreset(saved.preset);
+    }catch(error){console.warn('[Big LWA] Character restore skipped:',error)}
+  })();
+}
 })();
 </script>
 </body></html>
