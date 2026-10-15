@@ -1238,19 +1238,43 @@ async function mediaRoute(request, env) {
 
 
 async function orbitMediaImport(request, env) {
+  // Account identity comes solely from Firebase. A Pinterest grant failure
+  // must not be reported as a failed BIG LWA login.
   const user = await mediaUser(request, env);
+  const declaredProvider = String(request.headers.get('X-Orbit-Provider') || '').trim().toLowerCase();
+  if (declaredProvider && !['pinterest', 'instagram'].includes(declaredProvider))
+    mediaFail('Unrecognized Orbit source.', 400);
   const pinterestSessionId = String(request.headers.get('X-Pinterest-Session') || '').trim();
-  const isPinterest = !!pinterestSessionId;
+  const isPinterest = declaredProvider === 'pinterest' || (!declaredProvider && !!pinterestSessionId);
   const provider = isPinterest ? 'Pinterest' : 'Instagram';
-  const orbitSessionId = isPinterest ? pinterestSessionId : String(request.headers.get('X-Instagram-Session') || '').trim();
-  if (!orbitSessionId) mediaFail('An authorized Orbit session is required. Reconnect your account and try again.', 401);
-  // A Pinterest import must belong to this Firebase user, not just a browser tab.
-  const session = await env.OAUTH_SESSIONS.get((isPinterest ? 'pn:session:' : 'session:') + orbitSessionId, 'json');
-  if (!session || (isPinterest ? (!session.access_token || session.expiresAt < Date.now()) : (!session.accessToken || session.expiresAt < Date.now()))) {
-    mediaFail(provider + ' session expired. Reconnect Orbit and try again.', 401);
+  let orbitSessionId = isPinterest ? pinterestSessionId : String(request.headers.get('X-Instagram-Session') || '').trim();
+  // Pinterest's UID-bound account session is authoritative, including when the
+  // browser has lost its optional local cache. Never fall back to Instagram.
+  if (isPinterest) {
+    const linkedId = await env.OAUTH_SESSIONS.get('pn:firebase:' + user.uid);
+    if (linkedId) orbitSessionId = linkedId;
+    else if (!orbitSessionId) mediaFail('Reconnect Pinterest in Orbit. Your BIG LWA login is still active.', 401);
   }
-  if (!session.firebaseUid || session.firebaseUid !== user.uid) {
-    mediaFail('Reconnect ' + provider + ' while signed into this BIGLWA account.', 403);
+  if (!orbitSessionId) mediaFail('Reconnect ' + provider + ' in Orbit. Your BIG LWA login is still active.', 401);
+  let session = await env.OAUTH_SESSIONS.get((isPinterest ? 'pn:session:' : 'session:') + orbitSessionId, 'json');
+  if (!session || !session.firebaseUid || session.firebaseUid !== user.uid)
+    mediaFail('Reconnect ' + provider + ' in Orbit. Your BIG LWA login is still active.', 401);
+  if (isPinterest) {
+    // Match the existing Pinterest profile/boards auto-refresh behavior on
+    // the R2 media-import endpoint, too.
+    if (session.expiresAt < Date.now() + 60000) {
+      if (!session.refresh_token || (session.refreshExpiresAt && session.refreshExpiresAt <= Date.now()))
+        mediaFail('Pinterest authorization expired. Reconnect Pinterest only; BIG LWA is still signed in.', 401);
+      let fresh;
+      try { fresh = await pnToken(env, { grant_type: 'refresh_token', refresh_token: session.refresh_token }); }
+      catch { mediaFail('Pinterest refresh failed. Reconnect Pinterest in Orbit; your BIG LWA login is unchanged.', 401); }
+      if (!fresh.refresh_token) fresh.refresh_token = session.refresh_token;
+      session = await pnSave(env, orbitSessionId, fresh, session);
+    }
+    if (!session.access_token)
+      mediaFail('Reconnect Pinterest in Orbit. Your BIG LWA login is still active.', 401);
+  } else if (!session.accessToken || session.expiresAt < Date.now()) {
+    mediaFail('Instagram authorization expired. Reconnect Instagram in Orbit; your BIG LWA login is unchanged.', 401);
   }
 
   const body = await request.json().catch(() => ({}));
