@@ -10,6 +10,11 @@ on:
       - 'module-pages.js'
       - 'mii-webport-test.mjs'
       - 'studio-layout-cache-test.mjs'
+      - 'profile-music-test.mjs'
+      - 'profile-music.js'
+      - 'studio-experience.js'
+      - 'studio-preview.js'
+      - 'cloudflare-worker-instagram.js'
       - 'login-path-and-guide-test.mjs'
       - 'tutorial-symbol-key-test.mjs'
       - 'orbit-session-stability-test.mjs'
@@ -30,6 +35,8 @@ jobs:
         run: |
           node site-integrity-test.mjs
           node studio-layout-cache-test.mjs
+          node profile-music-test.mjs
+          node --check profile-music.js
           node veve-arcade-regression-test.mjs
           node mii-webport-test.mjs
           node feed-auth-tools-regression-test.mjs

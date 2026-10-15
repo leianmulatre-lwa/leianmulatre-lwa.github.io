@@ -449,7 +449,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Instagram-Session, X-Pinterest-Session, X-Orbit-Provider',
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     'Vary': 'Origin'
   };
 }
@@ -1238,10 +1238,147 @@ async function mediaLinkPreview(request, env) {
   const title = decode(meta('og:title') || meta('twitter:title')) || target.hostname;
   return json({ url: target.toString(), title: title.slice(0, 240), imageUrl: image.slice(0, 2000), siteName: target.hostname }, 200, request, env);
 }
+// Profile music lives in the same R2 bucket as account media, but NEVER in
+// Pinterest/Instagram session storage. Songs are private until their owner
+// explicitly turns on public playback. Files are streamed to the browser.
+const MUSIC_TYPES={
+  'audio/mpeg':'mp3','audio/mp3':'mp3','audio/mp4':'m4a','audio/x-m4a':'m4a','audio/aac':'aac',
+  'audio/ogg':'ogg','audio/wav':'wav','audio/x-wav':'wav','audio/webm':'webm',
+  'audio/flac':'flac','audio/x-flac':'flac'
+};
+const MUSIC_LIMIT=75*1024*1024;
+const MUSIC_PREFIX='profile-music/';
+function musicSafe(value,length=100){return String(value||'').trim().slice(0,length)}
+function musicId(value){return /^[A-Za-z0-9_-]{12,100}$/.test(value||'')}
+function musicMetadata(entry){return {
+  id:entry.id,title:entry.title,artist:entry.artist,public:entry.public===true,
+  createdAt:entry.createdAt,updatedAt:entry.updatedAt,
+  size:entry.size,contentType:entry.contentType
+}}
+async function musicRoute(request,env){
+  const url=new URL(request.url),parts=url.pathname.split('/').filter(Boolean);
+  const root='/media/profile-music';
+  if(request.method==='OPTIONS')return corsPreflight(request,env);
+  const method=request.method,bucket=mediaBucket(env);
+  if(['POST','PATCH','DELETE'].includes(method)&&!allowedOrigin(request,env))
+    mediaFail('Origin not allowed.',403);
+  // POST binary track. Authenticate with Firebase; never read provider cookies.
+  if(method==='POST'&&url.pathname===root){
+    const user=await mediaUser(request,env);
+    const mime=String(request.headers.get('content-type')||'').split(';')[0].toLowerCase();
+    if(!MUSIC_TYPES[mime])mediaFail('Choose a supported MP3, M4A, AAC, OGG, WAV or WebM audio file.');
+    const declared=Number(request.headers.get('content-length')||0);
+    if(declared>MUSIC_LIMIT)mediaFail('Audio uploads must be under 75 MB.',413);
+    const prefix=MUSIC_PREFIX+user.uid+'/',existing=await bucket.list({prefix,limit:100});
+    if(existing.objects.filter(o=>o.key.endsWith('.json')).length>=12)
+      mediaFail('Your profile can contain up to 12 songs.',413);
+    const bytes=await request.arrayBuffer();
+    if(!bytes.byteLength||bytes.byteLength>MUSIC_LIMIT)mediaFail('Audio must be between 1 byte and 75 MB.',413);
+    const id=randomToken(16),name=id+'.'+MUSIC_TYPES[mime],createdAt=Date.now();
+    const item={id,title:musicSafe(url.searchParams.get('title'))||'Untitled track',
+      artist:musicSafe(url.searchParams.get('artist'))||'Unknown artist',public:false,
+      createdAt,updatedAt:createdAt,size:bytes.byteLength,contentType:mime,file:name};
+    await bucket.put(prefix+name,bytes,{
+      httpMetadata:{contentType:mime,cacheControl:'private, no-store'},
+      customMetadata:{uid:user.uid,kind:'profile-music',trackId:id}
+    });
+    try{
+      await bucket.put(prefix+id+'.json',JSON.stringify(item),{
+        httpMetadata:{contentType:'application/json',cacheControl:'private, no-store'},
+        customMetadata:{uid:user.uid,kind:'profile-music-metadata'}
+      });
+    }catch(error){await bucket.delete(prefix+name);throw error;}
+    return json({ok:true,track:musicMetadata(item)},200,request,env);
+  }
+  if(parts[0]!=='media'||parts[1]!=='profile-music')mediaFail('Not found.',404);
+  const uid=String(parts[2]||'');
+  if(!/^[A-Za-z0-9_-]{2,128}$/.test(uid))mediaFail('Invalid profile.',404);
+  const privateView=uid==='me';
+  let viewer=null;
+  if(privateView||method==='PATCH'||method==='DELETE'||(method==='GET'&&request.headers.has('Authorization'))){
+    viewer=await mediaUser(request,env);
+  }
+  const ownerId=privateView?viewer.uid:uid;
+  const owner=!!viewer&&viewer.uid===ownerId;
+  if(method==='GET'&&parts.length===3){
+    const listed=await bucket.list({prefix:MUSIC_PREFIX+ownerId+'/',limit:100});
+    const tracks=[];
+    for(const object of listed.objects.filter(item=>item.key.endsWith('.json')).slice(0,25)){
+      const doc=await bucket.get(object.key);
+      const data=doc?await doc.json().catch(()=>null):null;
+      if(data?.id&&musicId(data.id)&&(data.public===true||owner)){
+        const track=musicMetadata(data);
+        track.url=url.origin+root+'/'+ownerId+'/'+data.id;
+        tracks.push(track);
+      }
+    }
+    tracks.sort((a,b)=>b.createdAt-a.createdAt);
+    return json({ok:true,uid:ownerId,owner,tracks},200,request,env);
+  }
+  const id=String(parts[3]||'');
+  if(!musicId(id)||parts.length!==4)mediaFail('Track not found.',404);
+  const metadataKey=MUSIC_PREFIX+ownerId+'/'+id+'.json';
+  const record=await bucket.get(metadataKey);
+  const entry=record?await record.json().catch(()=>null):null;
+  if(!entry||entry.id!==id)mediaFail('Track not found.',404);
+  if(method==='PATCH'){
+    if(!owner)mediaFail('You can edit only your own music.',403);
+    const raw=await request.text();
+    if(raw.length>3000)mediaFail('Invalid song details.',413);
+    let values={};try{values=JSON.parse(raw)}catch{mediaFail('Invalid song details.')}
+    if(values.title!==undefined)entry.title=musicSafe(values.title)||'Untitled track';
+    if(values.artist!==undefined)entry.artist=musicSafe(values.artist)||'Unknown artist';
+    if(values.public!==undefined)entry.public=values.public===true;
+    entry.updatedAt=Date.now();
+    await bucket.put(metadataKey,JSON.stringify(entry),{
+      httpMetadata:{contentType:'application/json',cacheControl:'private, no-store'},
+      customMetadata:{uid:ownerId,kind:'profile-music-metadata'}
+    });
+    return json({ok:true,track:musicMetadata(entry)},200,request,env);
+  }
+  if(method==='DELETE'){
+    if(!owner)mediaFail('You can remove only your own music.',403);
+    await bucket.delete([MUSIC_PREFIX+ownerId+'/'+entry.file,metadataKey]);
+    return json({ok:true},200,request,env);
+  }
+  if(method==='GET'){
+    if(!entry.public&&!owner)mediaFail('Track not available.',404);
+    const audioKey=MUSIC_PREFIX+ownerId+'/'+entry.file;
+    const range=request.headers.get('Range');
+    let rangeOpt;
+    if(range&&/^bytes=\d+-\d*$/.test(range)){
+      const [,start,end]=/^bytes=(\d+)-(\d*)$/.exec(range)||[];
+      const offset=Number(start);
+      const length=end?Number(end)-offset+1:undefined;
+      if(Number.isSafeInteger(offset)&&offset<entry.size&&
+         (length===undefined||(Number.isSafeInteger(length)&&length>0)))
+        rangeOpt={offset,...(length?{length}: {})};
+    }
+    const object=await bucket.get(audioKey,rangeOpt?{range:rangeOpt}:{});
+    if(!object)mediaFail('Track file not found.',404);
+    const headers=new Headers({
+      'Content-Type':entry.contentType,'Accept-Ranges':'bytes',
+      'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'
+    });
+    const origin=request.headers.get('Origin');
+    if(origin&&allowedOrigin(request,env)){
+      headers.set('Access-Control-Allow-Origin',origin);headers.set('Vary','Origin');
+    }
+    if(rangeOpt){
+      const end=Math.min(entry.size-1,rangeOpt.offset+(rangeOpt.length||entry.size)-1);
+      headers.set('Content-Range','bytes '+rangeOpt.offset+'-'+end+'/'+entry.size);
+      headers.set('Content-Length',String(end-rangeOpt.offset+1));
+    }else headers.set('Content-Length',String(entry.size));
+    return new Response(object.body,{status:rangeOpt?206:200,headers});
+  }
+  mediaFail('Unsupported action.',405);
+}
+
 async function mediaRoute(request, env) {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
   if (url.pathname === '/media/link-preview' && request.method === 'POST') return mediaLinkPreview(request, env);
+  if(url.pathname.startsWith('/media/profile-music'))return musicRoute(request,env);
   const segment = mediaSegment(url.pathname);
   /* Lets the site confirm the binding is wired without signing anyone in. */
   if (url.pathname === '/media/health' && request.method === 'GET') {
@@ -1257,7 +1394,7 @@ async function mediaRoute(request, env) {
       methods: [
         'POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>',
         'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>',
-        'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>', 'POST /media/orbit-import (Instagram or Pinterest)', 'GET /media/orbit/<uid>/<file>'
+        'POST /media/profile-music', 'GET /media/profile-music/<uid>', 'PATCH /media/profile-music/<uid>/<trackId>', 'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>', 'POST /media/orbit-import (Instagram or Pinterest)', 'GET /media/orbit/<uid>/<file>'
       ]
     }, 200, request, env);
   }
