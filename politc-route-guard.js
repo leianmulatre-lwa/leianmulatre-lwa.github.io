@@ -33,7 +33,7 @@
       let finished=false;
       const done=()=>{if(finished)return;finished=true;clearTimeout(timeout);resolve(window.openBIGLWAModule||window.BigLWAOpenModule||null);};
       const script=document.createElement('script');
-      script.src='/module-pages.js?v=20261014-arcade-manila-folder-32';
+      script.src='/module-pages.js?v=20261014-arcade-puzzles-34';
       script.onload=done;script.onerror=done;
       const timeout=setTimeout(done,7000);
       document.head.appendChild(script);
