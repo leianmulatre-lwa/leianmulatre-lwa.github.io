@@ -1,0 +1,26 @@
+name: Single login and Studio guide regression
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'session-restore.js'
+      - 'studio-onboarding.js'
+      - 'module-pages.js'
+      - 'login-path-and-guide-test.mjs'
+      - 'feed-auth-tools-regression-test.mjs'
+      - 'veve-studio-pinterest-regression-test.mjs'
+      - '.github/workflows/login-paths-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  login-and-guide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical login routes and tutorial restoration
+        run: |
+          node login-path-and-guide-test.mjs
+          node feed-auth-tools-regression-test.mjs
+          node veve-studio-pinterest-regression-test.mjs
