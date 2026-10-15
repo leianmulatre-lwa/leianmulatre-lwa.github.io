@@ -87,3 +87,30 @@
 #studioApp #mobileCreate.studio-veve-launcher{display:grid!important;place-content:center!important;justify-items:center!important;gap:3px!important;color:inherit!important}
 #studioApp #mobileCreate .studio-veve-mark{display:block;font:500 23px/1 Georgia,serif!important;min-height:23px}
 #studioApp #mobileCreate.studio-veve-launcher>span:last-child{font-family:"CS Bergamot Stitched",Georgia,serif!important;font-weight:400!important;font-size:13px!important;text-transform:lowercase!important}
+
+/* Discovery is one continuous wall; resource cards are tiles, never a hyperlink footer. */
+.veve-photo-frame video.veve-inline-video{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#160f14;border-radius:13px}
+.veve-photo-frame img{cursor:zoom-in}
+.veve-video-fallback{display:grid;place-content:center;min-height:170px;background:linear-gradient(130deg,#2c282d,#684b56);color:#fff;font:700 14px system-ui}
+.veve-media-open{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;border:1px solid #ffffffd1;background:#292127cc;color:#fff;font:700 17px system-ui;cursor:pointer;opacity:0;transition:opacity .16s}
+.veve-photo-frame:hover .veve-media-open,.veve-photo-frame:focus-within .veve-media-open{opacity:1}
+.veve-lights{position:absolute;top:8px;right:8px;display:flex;gap:3px;padding:4px;border-radius:20px;background:#fff5e6d8;z-index:4}
+.veve-lights>button{width:10px;height:10px;min-width:10px;min-height:10px;padding:0;border:1px solid #276744;border-radius:50%;background:#48b67b;cursor:pointer}
+.veve-usage{font:650 10px/1.35 Inter,system-ui,sans-serif;padding:0 12px 9px;margin:0;opacity:.7}
+.veve-source-credit{display:block;padding:0 12px 12px;color:inherit;font:700 10px/1.2 Inter,system-ui,sans-serif;text-decoration:underline;text-underline-offset:3px}
+.veve-resource{isolation:isolate}
+.veve-resource .veve-card-hit{position:absolute;inset:0;display:block;width:100%;height:100%;min-height:0;border:0;background:transparent;cursor:pointer;font-size:0}
+.veve-resource .veve-card-hit:focus-visible{outline:3px solid #6e5265;outline-offset:-4px}
+.veve-game{padding:19px;background:#d8e7df;min-height:192px}
+.veve-game h3{font:600 36px/1 Georgia,serif;margin:12px 0}
+.veve-game p{font:500 12px/1.45 Inter,system-ui,sans-serif}
+.veve-game button,.veve-book button{display:block;border:1px solid #63574f;border-radius:9px;background:#fff7e9;color:#302822;padding:9px 12px;font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+#biglwaVevePreview{width:min(1000px,94vw);max-width:94vw;max-height:94vh;padding:46px 17px 16px;border:1px solid #685247;border-radius:15px;background:#231d1b;color:#fff;box-shadow:0 25px 95px #0009;overflow:auto}
+#biglwaVevePreview::backdrop{background:#000b}
+#biglwaVevePreview>[data-veve-close]{position:absolute;right:12px;top:10px;border:0;border-radius:8px;background:#fff5e9;color:#211918;cursor:pointer;padding:6px 12px;font:700 18px system-ui}
+#vevePreviewStage{display:grid;place-items:center;min-height:210px}
+#vevePreviewStage :is(img,video){display:block;max-width:100%;max-height:76vh;object-fit:contain;border-radius:8px}
+#vevePreviewStage iframe{width:min(860px,85vw);height:min(72vh,740px);border:0;border-radius:9px;background:#fff}
+#biglwaVevePreview #vevePreviewOriginal{display:block;margin-top:11px;color:#fff5e5;text-align:center;font:700 12px Inter,system-ui,sans-serif}
+#biglwaVevePreview #vevePreviewOriginal[hidden]{display:none}
+@media(hover:none){.veve-media-open{opacity:1}}
