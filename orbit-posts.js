@@ -453,8 +453,11 @@ export async function storedOrbitImageUrls(source = '') {
 export async function importOrbitMedia(source, items, profile, identityRecord) {
   const store = await firebase();
   const { db, auth, getDoc, serverTimestamp } = store;
+  // A slow Firebase restore is not a sign-out. Wait for the authoritative
+  // account state, independently of the Pinterest token/connection status.
+  await auth.authStateReady();
   const user = auth.currentUser;
-  if (!user) throw new Error("Sign in to save Orbit imports to your account.");
+  if (!user) throw new Error("Sign in to Big LWA to save account media. Connecting Pinterest is not required.");
   if (!Array.isArray(items) || !items.length) return { imported: 0, skipped: 0, partial: 0, warning: "" };
 
   /* Resolved once per import rather than per card, and it falls back to the account doc so
