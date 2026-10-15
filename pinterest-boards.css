@@ -48,3 +48,9 @@
 @media(max-width:1000px){#pinterestBoards .pinterest-board-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#pinterestBoards .pinterest-pin-grid{columns:4 175px}}
 @media(max-width:610px){#pinterestBoards .pinterest-board-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#pinterestBoards .pinterest-board{height:190px;min-height:190px}#pinterestBoards .pinterest-pin-grid{columns:2 140px;column-gap:11px}#pinterestBoards .pinterest-pin{margin-bottom:12px}}
 @media(max-width:360px){#pinterestBoards .pinterest-pin-grid{columns:2 118px}#pinterestBoards .pinterest-board-copy strong{font-size:12px}}
+
+/* A locked saved board remains owner-only and cannot publish Pins until unlocked. */
+#pinterestBoards .pn-saved-board[data-locked="true"]{border-left:4px solid #b84961;padding-left:12px;background:linear-gradient(100deg,rgba(185,73,97,.055),transparent)}
+#pinterestBoards .pn-board-lock-label{display:inline-block;vertical-align:middle;background:#582a37;color:#fff;border-radius:999px;padding:5px 8px;font:700 10px/1 system-ui}
+#pinterestBoards [data-pn-lock-board][aria-pressed="true"]{background:#5b3140!important;color:#fff!important;border-color:#5b3140!important}
+#pinterestBoards .pn-saved-pin-actions button:disabled{opacity:.42;cursor:not-allowed}
