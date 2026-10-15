@@ -2,6 +2,8 @@
 // conversions that suit it are offered straight away. Anything that cannot be done
 // inside a browser is offered as a link out instead of pretending otherwise.
 
+const MAX_LOCAL_FILE_BYTES=500*1024*1024;
+const MEMORY_HEAVY_TRANSCODE=125*1024*1024;
 const ONLINE_TOOLS = [
   {name:'CloudConvert',best:'Almost anything to almost anything',url:'https://cloudconvert.com/'},
   {name:'Zamzar',best:'One-off odd formats, including archives and documents',url:'https://www.zamzar.com/'},
@@ -248,13 +250,24 @@ export function mountToolsStudio(root,helper){
   };
   let current=null;
   let busy=false;
+  let activeTrimmer=null;
+  let trimmerImport=null;
+  async function loadTrimmer(){
+    if(!trimmerImport)trimmerImport=import('./tools-video-trim.js?v=20261014-local-trim-1').catch(error=>{trimmerImport=null;throw error});
+    return trimmerImport;
+  }
 
+  if(!document.getElementById('biglwaToolsTrimCss')){
+    const style=document.createElement('style');style.id='biglwaToolsTrimCss';
+    style.textContent='.tool-trim-area{margin:16px 0;padding:15px;border:1px solid #bdaba0;border-radius:13px;background:#faf5ec}.tool-trim-area h3{margin:0 0 8px;font:700 20px Georgia,serif}.tool-trim-timeline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}.tool-trim-timeline label{display:grid;gap:5px;min-width:0;font:700 12px system-ui}.tool-trim-timeline input{width:100%;box-sizing:border-box;padding:9px;border:1px solid #bfa99a;border-radius:7px;background:#fff}.tool-trim-area [data-trim-status]{font:600 11px/1.45 system-ui}.tool-trim-area .tool-actions{display:flex;flex-wrap:wrap;gap:8px}.tool-trim-area [data-trim-preview]:focus-visible,.tool-trim-area [data-trim-export]:focus-visible{outline:3px solid #b05769;outline-offset:2px}@media(max-width:500px){.tool-trim-timeline{grid-template-columns:1fr}}';
+    document.head.appendChild(style);
+  }
   root.innerHTML=`
     <section class="tool-intake">
       <div class="tool-drop" id="toolDrop" tabindex="0" role="button" aria-label="Drop a file here or choose one">
         <strong>Drop a file here</strong>
         <span>Video, audio, images, PDFs, archives, documents, anything.</span>
-        <em>BIGLWA works out what it is and offers the conversions that suit it.</em>
+        <em>Local files up to 500 MB. Native video trimming doesn't upload. Full conversion may be limited by memory.</em>
         <button class="module-action" type="button" id="toolPick">Choose a file</button>
         <input id="toolFile" type="file" multiple hidden>
       </div>
@@ -353,8 +366,14 @@ export function mountToolsStudio(root,helper){
   }
 
   async function handle(file){
+    if(!file)return;
+    if(file.size>MAX_LOCAL_FILE_BYTES){
+      statusEl.textContent='File too large: '+sizeText(file.size)+'. Maximum: 500 MB per file. Nothing was uploaded.';
+      resultEl.innerHTML='';groupsEl.replaceChildren();return;
+    }
+    activeTrimmer?.dispose();activeTrimmer=null;
     current=file;
-    statusEl.textContent='Looking at '+file.name+'…';
+    statusEl.textContent='Looking at '+file.name+' ('+sizeText(file.size)+')…';
     resultEl.innerHTML='';
     const found=await sniff(file);
     const kind=found.kind;
@@ -405,7 +424,7 @@ export function mountToolsStudio(root,helper){
 
     let localHtml='';
     if(kind==='video'||kind==='audio'){
-      localHtml='<p class="tool-note">Video and audio conversions run on an FFmpeg build inside this tab. Nothing is uploaded. It is slower than a desktop encoder and long files need patience.</p>'+
+      localHtml='<p class="tool-note">Local conversion uses FFmpeg inside the browser, not an upload. Files over 125 MB may exceed available memory during full conversion. Use Trim video below or a desktop tool for large re-encoding; 500 MB is the local selection/trim limit, not a full conversion guarantee.</p>'+
         '<div class="tool-actions" data-kind="'+kind+'">'+operationButtons(local)+'</div>';
     }else if(kind==='image'){
       localHtml='<p class="tool-note">Image conversions are drawn and re-encoded in this tab, so nothing is uploaded.</p>'+
@@ -418,9 +437,24 @@ export function mountToolsStudio(root,helper){
       '<section class="module-card wide tool-group"><h2>'+escapeHtml(file.name)+'</h2>'+
       '<div class="tool-facts">'+meta.map(fact=>'<span>'+escapeHtml(fact)+'</span>').join('')+'</div>'+
       localHtml+
+      (kind==='video'?'<section id="biglwaVideoTrim" class="tool-trim-area" aria-label="Trim selected video"><p role="status">Preparing trim…</p></section>':'')+
       '<h3>Or use a converter online</h3><p class="tool-note">'+escapeHtml(online.note)+'</p>'+
       '<div class="tool-actions">'+links.map(link=>'<a class="module-action ghost" href="'+link.url+'" target="_blank" rel="noopener nofollow">'+escapeHtml(link.name)+'</a>').join('')+'</div></section>';
 
+    if(kind==='video'){
+      try{
+        const {mountVideoTrimmer}=await loadTrimmer();
+        if(current!==file)return;
+        activeTrimmer=mountVideoTrimmer(groupsEl.querySelector('#biglwaVideoTrim'),file,{
+          download,
+          onStatus:message=>{if(statusEl)statusEl.textContent=file.name+' · '+message},
+          onProgress:value=>setProgress(value,'Trimming video…')
+        });
+      }catch(error){
+        const area=groupsEl.querySelector('#biglwaVideoTrim');
+        if(area)area.textContent='Trim tools could not load: '+(error.message||'reload and retry.');
+      }
+    }
     groupsEl.querySelectorAll('button[data-op]').forEach(button=>{
       button.addEventListener('click',()=>{
         const key=button.dataset.op;
@@ -440,6 +474,10 @@ export function mountToolsStudio(root,helper){
         const table=kindAttr==='video'?VIDEO_OPS:AUDIO_OPS;
         const op=table[key];
         if(!op)return;
+        if(file.size>MEMORY_HEAVY_TRANSCODE){
+          statusEl.textContent='This '+sizeText(file.size)+' file was accepted for preview/trim, but full FFmpeg conversion exceeds the safer 125 MB in-browser threshold and could crash the tab. Try Trim video above or HandBrake for full conversion.';
+          return;
+        }
         return run(label,progress=>runEngine(file,op,progress));
       });
     });
