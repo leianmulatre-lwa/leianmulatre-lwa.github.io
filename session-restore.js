@@ -18,7 +18,7 @@ async function getAuth(){
     ]);
     const app=getApps()[0]||initializeApp(FIREBASE_CONFIG);
     return getAuth(app);
-  })();
+  })().catch(error=>{authPromise=null;throw error});
   return authPromise;
 }
 const qs=()=>new URLSearchParams(location.search);
@@ -42,6 +42,19 @@ function restoreLastView(remote){
   setTimeout(()=>{try{window.openBIGLWAModule(saved,"",false)}catch{}},140);
 }
 function finishAuth(user){
+  // Some legacy login routes can be painted before the Firebase callback.
+  // Once Firebase has verified the member, do not leave them on a duplicate
+  // credential form. Public profile and policy pages are never overridden.
+  if(user && !document.documentElement.classList.contains('biglwa-preview-mode') &&
+    ['/', '/login', '/studio'].includes(location.pathname)){
+    const login=document.getElementById('loginPage');
+    const studio=document.getElementById('studioApp');
+    if(login?.classList.contains('is-active') && studio){
+      login.classList.remove('is-active');
+      studio.classList.add('is-active');
+      if(location.pathname==='/login')try{history.replaceState(history.state,'','/studio')}catch{}
+    }
+  }
   document.body.classList.remove("biglwa-session-pending");
   document.body.classList.add("biglwa-auth-resolved");
   if(user) document.body.classList.add("biglwa-session-signed-in");
