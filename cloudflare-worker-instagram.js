@@ -192,7 +192,7 @@ async function refreshInstagramSession(env, id, current) {
   const now=Date.now();
   const fourteenDays=14 * 24 * 60 * 60 * 1000;
   const oneDay=24 * 60 * 60 * 1000;
-  if(!current.longLived || current.expiresAt-now>fourteenDays ||
+  if(!(current.longLived || (current.longLived == null && current.expiresAt-Number(current.createdAt||now)>2*oneDay)) || current.expiresAt-now>fourteenDays ||
       now-Number(current.lastRefreshAt||current.createdAt||now)<oneDay) return current;
   try{
     const url=new URL(INSTAGRAM_GRAPH_URL+'/refresh_access_token');
