@@ -8,7 +8,7 @@
 
   function readWidgetShortcuts(){
     try{
-      const saved=JSON.parse(localStorage.getItem(DOCKED_WIDGET_KEY)||'null');
+      const saved=scopedLayout()?.docked??JSON.parse(localStorage.getItem(DOCKED_WIDGET_KEY)||'null');
       if(Array.isArray(saved))return [...new Set(saved.map(String).filter(Boolean))];
       return [];
     }catch{return[]}
@@ -75,11 +75,24 @@
     if(!app)return;
     const uid=layoutUid();
     const saved=scopedLayout();
-    const legacy=readJson('biglwaWidgetOrder',{});
+    const legacyOwner='biglwaLegacyLayoutOwnerV4';
+    let owner='';try{owner=localStorage.getItem(legacyOwner)||''}catch{}
+    let legacy={};
+    // The old unscoped key may belong to a different login on a shared device.
+    // Migrate it only to the original account (or the first known account).
+    if(!owner||owner===uid){
+      legacy=readJson('biglwaWidgetOrder',{});
+      if(!owner&&uid!=='guest')try{localStorage.setItem(legacyOwner,uid)}catch{}
+    }
     const order=saved?.order&&typeof saved.order==='object'?saved.order:legacy;
-    if(app.dataset.biglwaLayoutAppliedUid!==uid){
+    const signature=studioParents(app).map(parent=>parent.id+':'+[...parent.children]
+      .map(x=>x.dataset.widgetId||'').filter(Boolean).sort().join('|')).join(';');
+    // Late-loaded cards may appear after initial Studio creation. Restore only
+    // when the account or membership changed, never on a timer alone.
+    if(app.dataset.biglwaLayoutAppliedUid!==uid||app.dataset.biglwaLayoutMembership!==signature){
       applyStudioOrder(app,order&&Object.keys(order).length?order:null);
       app.dataset.biglwaLayoutAppliedUid=uid;
+      app.dataset.biglwaLayoutMembership=signature;
     }
   }
   function syncLayoutToAccount(){
@@ -113,7 +126,7 @@
 
   function readNavigationShortcuts(fallback=[]){
     try{
-      const saved=JSON.parse(localStorage.getItem(NAV_SHORTCUT_KEY)||'null');
+      const saved=scopedLayout()?.navigation??JSON.parse(localStorage.getItem(NAV_SHORTCUT_KEY)||'null');
       if(Array.isArray(saved))return [...new Set(saved.map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
     }catch{}
     return [...new Set(fallback.map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
