@@ -61,7 +61,7 @@ assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT p
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
-assert.ok(home.includes('studio-onboarding.js?v=20261014-visual-symbol-guide-4'));
+assert.ok(home.includes('studio-onboarding.js?v=20261015-three-colored-o-5'));
 assert.ok(home.includes('session-restore.js?v=20261014-persistence-stability-6'));
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');
@@ -118,3 +118,32 @@ assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5
 assert.ok(home.includes('brand-policy.css?v=20261014-logo-alpha-no-tiles-8'));
 assert.ok(home.includes('pinterest-orbit.js?v=20261014-silent-login-25'));
 console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
+
+/* Step 3 visually colors the actual three "o" letters without changing the
+ * text a screen reader or copy-and-paste user encounters. */
+assert.ok(onboarding.includes('"visual":"colored-dots-title"'));
+const colorStart=onboarding.indexOf(' function renderTourTitle(root,step){');
+const colorEnd=onboarding.indexOf(' function renderSymbolKey(root){',colorStart);
+assert.ok(colorStart>=0&&colorEnd>colorStart,'tutorial has DOM-based colored-letter renderer');
+function node(tag){return {tagName:tag,children:[],textContent:'',className:'',
+ replaceChildren(...children){this.children=[...children];this.textContent=''},
+ append(...children){this.children.push(...children)}}}
+const dom={createElement:tag=>node(tag),createTextNode:s=>({tagName:'#text',textContent:s})};
+const renderHeading=new Function('document',onboarding.slice(colorStart,colorEnd)+'\nreturn renderTourTitle;')(dom);
+const heading=node('h2');
+renderHeading(heading,{title:'The three colored dots',visual:'colored-dots-title'});
+assert.equal(heading.children.map(child=>child.textContent).join(''),'The three colored dots');
+const colored=heading.children.filter(child=>(child.className||'').includes('tour-dot-letter'));
+assert.deepEqual(colored.map(child=>[child.textContent,child.className]),[
+ ['o','tour-dot-letter tour-dot-red'],
+ ['o','tour-dot-letter tour-dot-yellow'],
+ ['o','tour-dot-letter tour-dot-green']
+]);
+assert.ok(onboarding.includes('#biglwaTutorialDialog h2 .tour-dot-red{color:#d95762}'));
+assert.ok(onboarding.includes('#biglwaTutorialDialog h2 .tour-dot-yellow{color:#e0b92e}'));
+assert.ok(onboarding.includes('#biglwaTutorialDialog h2 .tour-dot-green{color:#56ae77}'));
+assert.ok(onboarding.includes('font:inherit;letter-spacing:inherit;line-height:inherit'),
+ 'colored characters inherit the original title font and layout');
+renderHeading(heading,{title:'Another tutorial step'});
+assert.equal(heading.textContent,'Another tutorial step','normal titles remain plain text');
+console.log('PASS · three o letters are red, yellow, green in unchanged heading typography');
