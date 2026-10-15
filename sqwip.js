@@ -18,7 +18,7 @@ const KEYS=TYPES.map(entry=>entry[0]);
 const IDLE_KEY='biglwaSqwipV1';
 const CLOUD_API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/sqwip/library';
 const MAX_DOCS=36,MAX_BLOCKS=1500,MAX_CHARS=15000,MAX_FILE=2*1024*1024;
-let host=null,state=null,namespace='',timer=null,cloudTimer=null,cloudReady=false,cloudUid='',verifiedUid='',syncPending=false,cloudDirty=false,selectedBlock='',loadingError='',listening=false;
+let host=null,state=null,namespace='',timer=null,pageTimer=null,cloudTimer=null,cloudReady=false,cloudUid='',verifiedUid='',syncPending=false,cloudDirty=false,selectedBlock='',loadingError='',listening=false;
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const uid=()=>String(window.__biglwaIdentity?.uid||verifiedUid||'').trim();
 const key=()=>IDLE_KEY+':'+(uid()||'browser-guest');
@@ -83,15 +83,19 @@ function positionOf(element){
  try{probe.setEnd(selection.anchorNode,selection.anchorOffset);return probe.toString().length}
  catch{return element.textContent.length}
 }
+function editorsFor(id){return [...(host?.querySelectorAll('.sqwip-text[data-id="'+CSS.escape(id)+'"]')||[])]}
+function lineText(id){return editorsFor(id).map(e=>e.textContent||'').join('')}
+function logicalCaret(editor){const peers=editorsFor(editor.dataset.id);return peers.slice(0,Math.max(0,peers.indexOf(editor))).reduce((a,e)=>a+(e.textContent||'').length,0)+positionOf(editor)}
 function focusBlock(id,caret='end'){
- const element=host?.querySelector('.sqwip-text[data-id="'+CSS.escape(id)+'"]');
- if(!element)return;
- element.focus();
- const node=element.firstChild||element.appendChild(document.createTextNode(''));
- const length=node.textContent?.length||0;
- const n=caret==='start'?0:typeof caret==='number'?Math.min(Math.max(caret,0),length):length;
- const range=document.createRange();range.setStart(node,n);range.collapse(true);
- const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
+ const peers=editorsFor(id);if(!peers.length)return;
+ let remaining=caret==='start'?0:typeof caret==='number'?Math.max(0,caret):peers.reduce((n,e)=>n+(e.textContent||'').length,0);
+ let el=peers.at(-1),pos=(el.textContent||'').length;
+ for(const part of peers){const len=(part.textContent||'').length;if(remaining<=len){el=part;pos=remaining;break}remaining-=len}
+ el.focus({preventScroll:true});
+ const node=el.firstChild||el.appendChild(document.createTextNode(''));
+ const range=document.createRange();range.setStart(node,Math.min(pos,node.textContent.length));range.collapse(true);
+ const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+ el.closest('.sqwip-page')?.scrollIntoView({block:'nearest',inline:'nearest'});
  selectedBlock=id;updateTypePicker();
 }
 function nextType(type){
@@ -114,7 +118,7 @@ function estimatePages(doc){
 function updateCounts(){
  const d=current();if(!d)return;
  const el=host?.querySelector('#sqwipPageCount');
- if(el)el.textContent=estimatePages(d)+' estimated page(s) · '+wordCount(d)+' words · '+d.blocks.length+' elements';
+ if(el){const pages=host?.querySelectorAll('#sqwipPages>.sqwip-page').length||estimatePages(d);el.textContent=pages+' page'+(pages===1?'':'s')+' · '+wordCount(d)+' words · '+d.blocks.length+' elements';}
  const scenes=host?.querySelector('#sqwipScenes');
  if(scenes&&scenes.dataset.signature!==d.blocks.filter(x=>x.type==='scene').map(x=>x.id+':'+x.text).join('|'))renderScenes();
 }
@@ -125,21 +129,54 @@ function renderScenes(){
  panel.innerHTML='<strong>Scenes</strong>'+(scenes.length?scenes.map((line,i)=>
   '<button type="button" data-sqwip-jump="'+esc(line.id)+'">'+String(i+1).padStart(2,'0')+' · '+esc(line.text.trim()||'Untitled scene')+'</button>').join(''):'<p>Add a scene heading to start an outline.</p>');
 }
+// Fixed-length screenplay pages continue horizontally. Large elements render
+// in editable fragments sharing one original block ID, so exports and cloud
+// saves retain the complete screenplay without artificial break markers.
+function pageFragments(text,type){
+ const cols=({dialogue:37,parenthetical:34,character:42,transition:58,scene:59,shot:59,action:61})[type]||61;
+ const input=String(text||'');if(!input)return [''];
+ const out=[];let from=0,rows=1,column=0;
+ for(let i=0;i<input.length;i++){
+  const ch=input[i],wrap=ch==='\\n'||column>=cols;
+  if(wrap){if(rows>=13){if(i>from){out.push(input.slice(from,i));from=i}rows=1}else rows++;column=0}
+  if(ch!=='\\n')column++;
+ }
+ out.push(input.slice(from));return out;
+}
 function renderBlocks(focusId='',caret='end'){
- const doc=current(),container=host?.querySelector('#sqwipPages');if(!container||!doc)return;
+ const doc=current(),container=host?.querySelector('#sqwipPages');if(!doc||!container)return;
  if(!doc.blocks.length)doc.blocks.push(block('scene'));
- container.innerHTML=doc.blocks.map((item,i)=>
-  '<div class="sqwip-line sqwip-type-'+item.type+'" data-sqwip-line="'+esc(item.id)+'">'+
-   '<span class="sqwip-line-num" aria-hidden="true">'+(i+1)+'</span>'+
-   '<div class="sqwip-text" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="false"'+
-     ' data-id="'+esc(item.id)+'" data-placeholder="'+esc(TYPES.find(x=>x[0]===item.type)?.[2]||'')+'" aria-label="'+esc(TYPE_NAMES.get(item.type))+'"></div></div>'
-  ).join('');
- doc.blocks.forEach(item=>{
-  const editor=container.querySelector('.sqwip-text[data-id="'+CSS.escape(item.id)+'"]');
-  if(editor)editor.textContent=item.text;
- });
+ container.replaceChildren();
+ let sheetCount=0,body;
+ function nextSheet(){
+  sheetCount++;
+  const page=document.createElement('section');page.className='sqwip-page';page.dataset.sqwipPage=String(sheetCount);
+  page.innerHTML='<div class="sqwip-paper-heading">BIG LWA / SQWIP · DRAFT <span>PAGE '+String(sheetCount).padStart(2,'0')+'</span></div><div class="sqwip-page-body"></div>';
+  container.append(page);body=page.querySelector('.sqwip-page-body');
+ }
+ nextSheet();
+ doc.blocks.forEach((item,i)=>pageFragments(item.text,item.type).forEach((part,j)=>{
+  const row=document.createElement('div');
+  row.className='sqwip-line sqwip-type-'+item.type+(j?' sqwip-continuation':'');
+  row.dataset.sqwipLine=item.id;
+  row.innerHTML='<span class="sqwip-line-num" aria-hidden="true">'+(j?'':i+1)+'</span>'+
+   '<div class="sqwip-text" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="false" data-id="'+esc(item.id)+'" data-part="'+j+'" data-placeholder="'+
+   esc(j?'continued…':TYPES.find(x=>x[0]===item.type)?.[2]||'')+'" aria-label="'+esc(TYPE_NAMES.get(item.type))+'"></div>';
+  row.querySelector('.sqwip-text').textContent=part;
+  body.append(row);
+  if(body.scrollHeight>body.clientHeight+1&&body.children.length>1){row.remove();nextSheet();body.append(row)}
+ }));
+ container.querySelectorAll('.sqwip-page').forEach(page=>page.setAttribute('aria-label','Screenplay page '+page.dataset.sqwipPage+' of '+sheetCount));
  renderScenes();updateCounts();
  if(focusId)requestAnimationFrame(()=>focusBlock(focusId,caret));
+}
+function schedulePagination(){
+ clearTimeout(pageTimer);
+ pageTimer=setTimeout(()=>{
+  if(!host?.isConnected)return;
+  const active=document.activeElement?.closest?.('.sqwip-text');
+  renderBlocks(active?active.dataset.id:'',active?logicalCaret(active):'end');
+ },240);
 }
 function setType(type){
  const d=current(),line=currentLine();
@@ -158,7 +195,7 @@ function insertAfter(anchorId,type='action',text='',caret='end'){
 }
 function handleEnter(editor){
  const doc=current(),line=currentLine();if(!doc||!line)return;
- const offset=positionOf(editor),text=editor.textContent||'';
+ const offset=logicalCaret(editor),text=lineText(line.id);
  const before=text.slice(0,offset),after=text.slice(offset);
  line.text=before.slice(0,MAX_CHARS);
  const upcoming=nextType(line.type);
@@ -192,6 +229,7 @@ function handleBlockKey(event,editor){
  }
  if(event.key==='Enter'){event.preventDefault();handleEnter(editor);return}
  if(event.key==='Backspace'&&positionOf(editor)===0){
+  if(Number(editor.dataset.part)>0){event.preventDefault();focusBlock(line.id,logicalCaret(editor)-1);return}
   if(handleBackspace(editor))event.preventDefault();return;
  }
  if(['ArrowUp','ArrowDown'].includes(event.key)){
@@ -396,8 +434,8 @@ function onInput(event){
  if(editor){
   const line=current()?.blocks.find(item=>item.id===editor.dataset.id);
   if(!line)return;
-  line.text=(editor.textContent||'').replace(/\u00a0/g,' ').slice(0,MAX_CHARS);
-  selectedBlock=line.id;queueSave();return;
+  line.text=lineText(line.id).replace(/\u00a0/g,' ').slice(0,MAX_CHARS);
+  selectedBlock=line.id;queueSave();schedulePagination();return;
  }
  if(event.target.id==='sqwipTitle'||event.target.id==='sqwipAuthor'){
   const d=current();if(!d)return;
@@ -428,12 +466,12 @@ function onPaste(event){
   range.collapse(false);selection.removeAllRanges();selection.addRange(range);
  }
  const line=current()?.blocks.find(item=>item.id===editor.dataset.id);
- if(line){line.text=(editor.textContent||'').slice(0,MAX_CHARS);queueSave()}
+ if(line){line.text=lineText(line.id).slice(0,MAX_CHARS);queueSave();schedulePagination()}
 }
 function mount(root){
  if(!root)return;
  if(host&&host!==root)saveNow();
- clearTimeout(cloudTimer);cloudReady=false;cloudUid='';cloudDirty=false;
+ clearTimeout(pageTimer);clearTimeout(cloudTimer);cloudReady=false;cloudUid='';cloudDirty=false;
  host=root;state=loadStore();selectedBlock='';
  host.classList.add('sqwip-root');
  host.innerHTML='<div class="sqwip-shell">'+
@@ -448,8 +486,8 @@ function mount(root){
   '<div class="sqwip-file-actions"><button type="button" id="sqwipImportButton">Import</button><button type="button" data-sqwip-export="fountain">.fountain</button><button type="button" data-sqwip-export="text">.txt</button><button type="button" data-sqwip-export="json">Backup</button><button type="button" data-sqwip-export="print">Print / PDF</button><input id="sqwipImportFile" type="file" accept=".fountain,.txt,.json,text/plain,application/json" hidden></div></div>'+
   '<div class="sqwip-workbench"><aside class="sqwip-sidebar"><div id="sqwipScenes"></div><div class="sqwip-shortcuts"><b>Writing shortcuts</b>'+
   '<p><kbd>Enter</kbd> next element</p><p><kbd>Tab</kbd> cycle format</p><p><kbd>Shift + Tab</kbd> previous</p><p><kbd>Alt + 1–7</kbd> choose element</p><p><kbd>⌘ / Ctrl + Enter</kbd> new scene</p><p><kbd>⌘ / Ctrl + S</kbd> save</p></div></aside>'+
-  '<div class="sqwip-paper-wrap"><div class="sqwip-paper" role="document" aria-label="Screenplay editor">'+
-  '<div class="sqwip-paper-heading">BIG LWA / SQWIP · DRAFT</div><div class="sqwip-print-title" id="sqwipPrintTitle"></div><div id="sqwipPages"></div></div>'+
+  '<div class="sqwip-paper-wrap"><div class="sqwip-paper" role="document" aria-label="Screenplay pages flowing right">'+
+  '<div class="sqwip-print-title" id="sqwipPrintTitle"></div><div id="sqwipPages" aria-label="Screenplay pages"></div></div>'+
   '<footer class="sqwip-bottom"><span id="sqwipPageCount"></span><button type="button" id="sqwipSave">Save now</button></footer></div></div>'+
   '</div>';
  host.addEventListener('click',onClick);
