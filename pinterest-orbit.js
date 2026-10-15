@@ -600,7 +600,7 @@ async function init(){
   if(!document.getElementById('pinterestBoardsStyle')){
    const link=document.createElement('link');
    link.id='pinterestBoardsStyle';link.rel='stylesheet';
-   link.href='/pinterest-boards.css?v=20261014-masonry-collections-1';
+   link.href='/pinterest-boards.css?v=20261014-board-locks-2';
    document.head.append(link);
   }
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
