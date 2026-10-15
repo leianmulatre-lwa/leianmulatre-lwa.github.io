@@ -1343,7 +1343,7 @@ const connect=e.target.closest('[data-orbit-connect]');
   function renderTools(){
     body.innerHTML=heading('tools')+'<div class="tool-studio" id="toolStudio"></div>';
     /* The intake page is its own module so the file work stays away from the module router. */
-    import('/tools-studio.js?v=20261014-trim-500mb-2')
+    import('/tools-studio.js?v=20261014-artcraft-creative-lab-3')
       .then(mod=>mod.mountToolsStudio($('#toolStudio',body),{downloadBlob}))
       .catch(error=>{
         $('#toolStudio',body).innerHTML='<section class="module-card wide"><h2>Tools could not start</h2><p>Give the page a refresh and it will load again.</p></section>';
