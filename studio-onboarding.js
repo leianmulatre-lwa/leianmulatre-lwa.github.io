@@ -8,7 +8,7 @@
  const DISMISSED='biglwaStudioTutorialDismissed:v1:';
  const steps=[
   {"title":"Your creative Studio","area":"Studio","body":"Your Studio holds your profile, projects, music and widgets. The left sidebar is your shortcut desk; the header opens full pages."},
-  {"title":"Symbol key","area":"Studio icons","body":"Hanger = Projects, chess piece = Arcade, notebook = Journal, map pin = Map, planets = Orbit connections, Feed = public posts and Archive = your saved media."},
+  {"title":"Symbol key","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
   {"title":"The three colored dots","area":"Widget and post controls","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
   {"title":"Your workspace","area":"Studio","body":"Drag widget handles to arrange the Studio, use controls to customize it, and view your own public profile as others see it. Layout preferences are attached to your Big LWA account."},
   {"title":"Connect your world","area":"Orbit","key":"orbit","body":"Orbit links external accounts such as Pinterest and Instagram. Imported media goes first to your account-linked private collection for review. If a provider session expires, reconnect only that provider."},
@@ -19,6 +19,80 @@
   {"title":"Creative tools","area":"Tools","key":"tools","body":"Tools converts files and trims video locally. ArtCraft has browser creative editors when the installed versions are available. Export your result to keep a copy."},
   {"title":"All yours","area":"Studio","body":"The pink tutorial card can be removed with X. Reopen this guide anytime from the Studio sidebar. You control publication, deletion, and public visibility."}
  ];
+ // Prefer the user's REAL rendered navigation symbols. Their shortcut bar can
+ // be customized, so the guide also searches the Sidebar and Studio widgets.
+ // Fallbacks match existing Big LWA assets/glyphs, never generic UI clip art.
+ const symbolKey=[
+  {label:'Projects',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
+  {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},
+  {label:'Journal',key:'diary',detail:'Entries and writing',fallback:'▱'},
+  {label:'Map',key:'map',detail:'Pinned places',fallback:'⌖'},
+  {label:'Orbit / Connect',key:'connect',detail:'Linked accounts and people',fallback:'⌘'},
+  {label:'Collective Feed',key:'feed',detail:'Published posts',fallbackAsset:'/assets/feed-symbol-generated.png'},
+  {label:'Archive',key:'archive',detail:'Your saved media',fallback:'▥'},
+  {label:'Boards',key:'boards',detail:'Pins and collections',fallback:'⊞'},
+  {label:'Sqwib Note',key:'notes',detail:'Quick notes',fallbackAsset:'/assets/quick-notes-symbol-generated.png'},
+  {label:'Calendar',key:'calendar',detail:'Dates and events',fallback:'▦'},
+  {label:'Veve',key:'veve',detail:'Discover what’s happening',fallback:'✺'},
+  {label:'Library',key:'library',detail:'Books and collections',fallback:'▥'}
+ ];
+ function findRealSymbol(entry){
+  const key=entry.key;
+  const candidates=[
+   '#studioApp .sidebar-navigation-row[data-sidebar-route-row="'+key+'"] .sidebar-route-icon',
+   '#studioApp .sidebar-widget-restore-row[data-shortcut-row="'+key+'"] .sidebar-route-icon',
+   '#studioApp .sidebar-navigation-open[data-sidebar-route="'+key+'"] .sidebar-route-icon',
+   '#studioApp #'+key+' .card-head .card-icon',
+   '#studioApp .hero-action-bar a[data-shortcut-route="'+key+'"]',
+   '#studioApp .hero-action-bar a[href="#'+key+'"]',
+   '#studioApp .mobile-dock a[href="#'+key+'"]'
+  ];
+  if(key==='diary')candidates.splice(3,0,'#studioApp #diary .card-icon');
+  if(key==='connect')candidates.splice(3,0,'#studioApp #connect .card-icon');
+  if(key==='games')candidates.splice(3,0,'#studioApp #games .card-icon');
+  if(key==='veve')candidates.splice(3,0,'#studioApp [data-open="veve"] .card-icon');
+  for(const selector of candidates){
+   const source=$(selector);
+   if(!source)continue;
+   if(source.matches('a,button')){
+    // Shortcut links contain the glyph AND its label. Copy only the symbol.
+    const nodes=[...source.childNodes].filter(node=>{
+     if(node.nodeType===3)return !!node.textContent.trim();
+     if(node.nodeType!==1)return false;
+     if(node.matches('span:last-child')&&node.textContent.trim()&&
+        !node.querySelector('img,svg'))return false;
+     return node.matches('img,svg,span')||!!node.querySelector('img,svg');
+    });
+    if(nodes.length)return nodes[0].cloneNode(true);
+   }else if(source.querySelector('img,svg')){
+    // Keep the site's project SVG / custom archive mark intact.
+    return source.cloneNode(true);
+   }else if(source.textContent?.trim()){
+    return source.cloneNode(true);
+   }
+  }
+  return null;
+ }
+ function renderSymbolKey(root){
+  root.replaceChildren();
+  for(const entry of symbolKey){
+   const row=document.createElement('li');row.className='tour-symbol-item';
+   const glyph=document.createElement('span');glyph.className='tour-symbol-mark';
+   glyph.setAttribute('aria-hidden','true');
+   const mark=findRealSymbol(entry);
+   if(mark){glyph.append(mark);}
+   else if(entry.fallbackAsset){
+    const img=document.createElement('img');img.src=entry.fallbackAsset;img.alt='';
+    img.loading='lazy';glyph.append(img);
+   }else{
+    glyph.textContent=entry.fallback||'•';
+   }
+   const description=document.createElement('span');description.className='tour-symbol-description';
+   const name=document.createElement('strong');name.textContent=entry.label;
+   const detail=document.createElement('small');detail.textContent=entry.detail;
+   description.append(name,detail);row.append(glyph,description);root.append(row);
+  }
+ }
  let index=0,card=null,dialog=null,currentUid='guest';
  const $=(q,root=document)=>root.querySelector(q);
  const uid=()=>String(window.__biglwaIdentity?.uid||'guest');
@@ -67,7 +141,39 @@
     width:34px;height:34px;cursor:pointer;font:700 20px system-ui}
    #biglwaTutorialDialog h2{font:700 clamp(25px,4vw,38px)/1.05 Georgia,serif;margin:12px 0 15px}
    #biglwaTutorialDialog p{font:500 15px/1.65 system-ui;margin:0 0 19px;overflow-wrap:anywhere}
-   #biglwaTutorialDialog .tour-step{font:800 11px system-ui;letter-spacing:.08em;text-transform:uppercase}
+   #biglwaTutorialDialog .tour-symbol-key:not([hidden]){
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+    list-style:none;padding:0;margin:0 0 21px
+   }
+   #biglwaTutorialDialog .tour-symbol-key[hidden]{display:none!important}
+   #biglwaTutorialDialog .tour-symbol-item{
+    display:flex;align-items:center;gap:10px;min-width:0;
+    padding:8px 9px;border:1px solid rgba(130,87,82,.28);
+    border-radius:12px;background:rgba(255,255,255,.43)
+   }
+   #biglwaTutorialDialog .tour-symbol-mark{
+    width:42px;height:42px;flex:0 0 42px;box-sizing:border-box;overflow:hidden;
+    display:grid;place-items:center;border:1px solid rgba(130,87,82,.28);
+    border-radius:10px;background:#fae6d8;color:#39272b;font:700 26px/1 Georgia,serif
+   }
+   #biglwaTutorialDialog .tour-symbol-mark>span,
+   #biglwaTutorialDialog .tour-symbol-mark .sidebar-route-icon,
+   #biglwaTutorialDialog .tour-symbol-mark .card-icon{
+    display:grid;place-items:center;width:100%;height:100%;
+    line-height:1!important;margin:0!important;padding:0!important;
+    background:transparent!important;border:0!important;box-shadow:none!important;
+    transform:none!important
+   }
+   #biglwaTutorialDialog .tour-symbol-mark .biglwa-archive-horizontal-symbol{transform:rotate(90deg)!important}
+   #biglwaTutorialDialog .tour-symbol-mark img,
+   #biglwaTutorialDialog .tour-symbol-mark svg{
+    display:block;width:28px;max-width:28px;height:28px;max-height:28px;
+    object-fit:contain;filter:brightness(0) saturate(100%);margin:auto
+   }
+   #biglwaTutorialDialog .tour-symbol-description{display:grid;gap:2px;min-width:0}
+   #biglwaTutorialDialog .tour-symbol-description strong{font:700 13px/1.25 system-ui}
+   #biglwaTutorialDialog .tour-symbol-description small{font:500 11px/1.35 system-ui;color:#765e5a}
+      #biglwaTutorialDialog .tour-step{font:800 11px system-ui;letter-spacing:.08em;text-transform:uppercase}
    #biglwaTutorialDialog .tour-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
    #biglwaTutorialDialog .tour-controls button{min-height:38px;padding:10px 13px;
     border-radius:10px;border:1px solid #9d7871;background:#fffaf4;color:#322424;
@@ -75,7 +181,12 @@
    #biglwaTutorialDialog .tour-controls [data-tour-next]{background:#462830;color:#fff}
    #biglwaTutorialDialog .tour-controls [data-tour-try]{margin-left:auto}
    #biglwaTutorialDialog button:focus-visible{outline:3px solid #b35d78;outline-offset:3px}
-   @media(max-width:480px){#biglwaTutorialDialog{padding:18px}
+   @media(max-width:480px){
+    #biglwaTutorialDialog .tour-symbol-key:not([hidden]){grid-template-columns:1fr}
+    #biglwaTutorialDialog .tour-symbol-item{padding:6px 8px}
+    #biglwaTutorialDialog .tour-symbol-mark{width:36px;height:36px;flex-basis:36px}
+   }
+      @media(max-width:480px){#biglwaTutorialDialog{padding:18px}
     #studioApp .manifesto-card .biglwa-tour-actions{top:8px;right:8px}
     #studioApp .manifesto-card .biglwa-tour-actions button{padding:6px 8px!important;font-size:10px!important}}
    @media(prefers-reduced-motion:reduce){#biglwaTutorialDialog *{scroll-behavior:auto!important}}
@@ -96,7 +207,12 @@
   const step=steps[index];
   $('#biglwaTourPosition',dialog).textContent='Big LWA tutorial · '+(index+1)+' of '+steps.length+' · '+step.area;
   $('#biglwaTourTitle',dialog).textContent=step.title;
-  $('#biglwaTourBody',dialog).textContent=step.body;
+  const body=$('#biglwaTourBody',dialog);
+  body.textContent=step.body;
+  body.hidden=step.visual==='symbols';
+  const legend=$('#biglwaTourSymbolLegend',dialog);
+  legend.hidden=step.visual!=='symbols';
+  if(!legend.hidden)renderSymbolKey(legend);
   const back=$('[data-tour-back]',dialog),next=$('[data-tour-next]',dialog),tryIt=$('[data-tour-try]',dialog);
   back.disabled=index===0;next.textContent=index===steps.length-1?'Finish and remove tutorial':'Next →';
   tryIt.hidden=!step.key;tryIt.textContent='Open '+step.area+' ↗';
@@ -107,6 +223,7 @@
   dialog.innerHTML='<div class="tutorial-head"><span id="biglwaTourPosition" class="tour-step"></span>'+
    '<button type="button" data-tour-close aria-label="Close tutorial">×</button></div>'+
    '<h2 id="biglwaTourTitle"></h2><p id="biglwaTourBody"></p>'+
+   '<ul id="biglwaTourSymbolLegend" class="tour-symbol-key" aria-label="Big LWA symbols and their destinations" hidden></ul>'+
    '<div class="tour-controls"><button type="button" data-tour-back>← Back</button>'+
    '<button type="button" data-tour-next>Next →</button>'+
    '<button type="button" data-tour-try hidden>Open section ↗</button></div>';

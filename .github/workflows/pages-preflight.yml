@@ -11,6 +11,7 @@ on:
       - 'mii-webport-test.mjs'
       - 'studio-layout-cache-test.mjs'
       - 'login-path-and-guide-test.mjs'
+      - 'tutorial-symbol-key-test.mjs'
       - 'orbit-session-stability-test.mjs'
       - 'instagram-orbit.js'
       - 'cloudflare-worker-instagram.js'
@@ -33,6 +34,7 @@ jobs:
           node mii-webport-test.mjs
           node feed-auth-tools-regression-test.mjs
           node login-path-and-guide-test.mjs
+          node tutorial-symbol-key-test.mjs
           node orbit-session-stability-test.mjs
           node veve-studio-pinterest-regression-test.mjs
           node --check session-restore.js
