@@ -13,7 +13,7 @@
   const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
   const order=arr=>[...new Set(arr.filter(x=>groups.includes(x)))].concat(groups.filter(x=>!arr.includes(x)));
   const defaults={sections:groups,enabled:groups.filter(x=>x!=='ads'),sort:'latest'};
-  const state={items:[],sqwibs:[],resqwibs:[],loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all'};
+  const state={items:[],sqwibs:[],resqwibs:[],loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map()};
   let firebasePromise=null;
   async function fb(){
     if(!firebasePromise)firebasePromise=Promise.all([
@@ -79,7 +79,18 @@
     try{
       const f=await fb();
       const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(100)));
-      state.items=rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved');
+      // Query public posts only. Do not load private board data into discovery.
+      state.items=rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true);
+      state.sourceCounts=new Map();
+      for(const p of state.items){
+        if(String(p.source||'').toLowerCase()!=='pinterest')continue;
+        const key=String(p.sourcePostId||p.sourceUrl||'').trim();
+        const owner=String(p.uid||'').trim();
+        if(key&&owner){
+          if(!state.sourceCounts.has(key))state.sourceCounts.set(key,new Set());
+          state.sourceCounts.get(key).add(owner);
+        }
+      }
     }catch(err){state.items=[];state.loadError='Collective photos could not load: '+(err?.message||'Try refreshing');}
     try{
       if(window.BigLWASqwibs){
@@ -91,24 +102,62 @@
     }catch(err){state.sqwibs=[];state.resqwibs=[];state.loadError+=(state.loadError?' ':'')+'Sqwib discovery is not available until its security rules are published.';}
     state.loading=false;
   }
+  const videoFile=x=>/\.(mp4|webm|m4v|mov)(?:\?|#|$)/i.test(String(x||''));
+  function video(post){
+    const pieces=Array.isArray(post.mediaItems)?post.mediaItems:[];
+    return [post.videoUrl,post.video_url,post.mediaUrl,...pieces.filter(x=>x&&(x.isPicture===false||/^video/i.test(x.mediaType||x.type||''))).map(x=>x.url),
+      ...(Array.isArray(post.imageUrls)?post.imageUrls:[])].map(safeUrl).find(x=>videoFile(x))||'';
+  }
   function picture(post){
-    const entries=[post.imageUrl,post.mediaUrl,...(Array.isArray(post.imageUrls)?post.imageUrls:[]),
-      ...(Array.isArray(post.mediaItems)?post.mediaItems.flatMap(x=>[x?.url,x?.thumbnailUrl]):[])];
-    return entries.map(safeUrl).find(Boolean)||'';
+    const entries=[post.imageUrl,post.thumbnailUrl,...(Array.isArray(post.imageUrls)?post.imageUrls:[]),
+      ...(Array.isArray(post.mediaItems)?post.mediaItems.flatMap(x=>[x?.thumbnailUrl,x?.isPicture===false?'':x?.url]):[])];
+    return entries.map(safeUrl).find(x=>x&&!videoFile(x))||'';
+  }
+  function videoEmbed(post){
+    const link=safeUrl(post.sourceUrl||post.permalink||'');
+    try{
+      const u=new URL(link);
+      if(['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(u.hostname)){
+        const id=u.hostname==='youtu.be'?u.pathname.slice(1):u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v');
+        if(/^[a-zA-Z0-9_-]{11}$/.test(id||''))return 'https://www.youtube-nocookie.com/embed/'+id;
+      }
+      if(u.hostname==='vimeo.com'){
+        const id=u.pathname.split('/').filter(Boolean)[0];
+        if(/^\d+$/.test(id||''))return 'https://player.vimeo.com/video/'+id;
+      }
+    }catch{}
+    return '';
+  }
+  function usage(post){
+    if(String(post.source||'').toLowerCase()!=='pinterest')return '';
+    const ids=state.sourceCounts.get(String(post.sourcePostId||post.sourceUrl||''))?.size||0;
+    // Counts are based on the loaded public sample, not a claim about all members.
+    return ids>=10?(Math.floor(ids/10)*10)+'+ public accounts':ids>0?'under 10 public accounts':'';
   }
   function sectionBar(key,extra=''){
     return '<div class="veve-section-heading"><h2>'+e(names[key])+'</h2>'+extra+'</div>';
   }
   function photoMarkup(post,section){
-    const url=picture(post),src=String(post.source||'BIG LWA').toLowerCase();
-    if(!url)return '';
+    const url=picture(post),direct=video(post),embed=videoEmbed(post),src=String(post.source||'BIG LWA').toLowerCase();
+    if(!url&&!direct&&!embed)return '';
     const label=src==='pinterest'?'Pinterest':src==='instagram'?'Instagram':src==='tiktok'?'TikTok':src==='facebook'?'Facebook':src==='youtube'?'YouTube':'Big LWA';
     const caption=String(post.caption||post.title||'').slice(0,240),link=safeUrl(post.sourceUrl||post.permalink);
-    return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'">'+
-      '<div class="veve-photo-frame"><img src="'+e(url)+'" loading="lazy" decoding="async" alt="'+e(caption||'Published collective photo')+'">'+
+    const clip=Boolean(direct||embed),single=(Array.isArray(post.mediaItems)?post.mediaItems.length<=1:true);
+    const ratio=Number(post.aspectRatio||post.videoAspectRatio||0);
+    const match=single&&(!ratio||ratio>.15&&ratio<5);
+    const videoMarkup=direct&&match
+      ?'<video class="veve-inline-video" src="'+e(direct)+'" '+(url?'poster="'+e(url)+'" ':'')+'autoplay muted loop playsinline controls preload="metadata"></video>'
+      :url?'<img src="'+e(url)+'" loading="lazy" decoding="async" alt="'+e(caption||'Published collective media')+'">':
+         '<div class="veve-video-fallback">Video preview</div>';
+    return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-post="'+e(post.id)+'">'+
+      '<div class="veve-photo-frame">'+videoMarkup+
       '<span class="veve-provider">'+e(label)+'</span>'+
-      (link?'<a class="veve-open-source" href="'+e(link)+'" target="_blank" rel="noopener noreferrer" aria-label="Open original published post">↗</a>':'')+
-      '</div>'+(caption?'<p class="veve-caption">'+e(caption)+'</p>':'')+'</article>';
+      '<button type="button" class="veve-media-open" data-veve-view="'+e(post.id)+'" aria-label="'+(clip?'Watch video in Veve':'Enlarge media in Veve')+'" title="Preview here">'+(clip?'▶':'↗')+'</button>'+
+      '<span class="veve-lights"><button type="button" data-veve-view="'+e(post.id)+'" aria-label="Enlarge or play media" title="View in Veve"></button></span>'+
+      '</div>'+(caption?'<p class="veve-caption">'+e(caption)+'</p>':'')+
+      (usage(post)?'<p class="veve-usage">'+e(usage(post))+' using this Pin · among loaded public posts</p>':'')+
+      (src==='pinterest'&&link?'<a class="veve-source-credit" href="'+e(link)+'" target="_blank" rel="noopener noreferrer">Original Pinterest Pin ↗</a>':'')+
+      '</article>';
   }
   function sqwibMarkup(p,reshared=false){
     const allowed=p.allowResqwib===true,own=state.uid&&p.uid===state.uid;
@@ -123,7 +172,7 @@
   function quickCard(kind,title,detail,destination,footer=''){
     return '<article class="veve-tile veve-resource veve-resource-'+e(kind)+'"><span class="veve-eyebrow">'+e(kind)+'</span>'+
       '<h3>'+e(title)+'</h3><p>'+e(detail)+'</p>'+
-      (destination?'<button type="button" data-veve-route="'+e(destination)+'">Explore ↗</button>':'')+
+      (destination?'<button type="button" class="veve-card-hit" data-veve-route="'+e(destination)+'" aria-label="Explore '+e(title)+' in Big LWA"></button>':'')+
       (footer?'<small>'+e(footer)+'</small>':'')+'</article>';
   }
   function nextFederalElection(){
@@ -163,14 +212,17 @@
       const posts=rank(state.items).filter(p=>String(p.source||'').toLowerCase()==='mcm'&&picture(p)).slice(0,5);
       return posts.map(p=>photoMarkup(p,key)).join('')||quickCard('mcm','mcm community picks','Nominations live in politc. No rankings or winners are claimed until real nominations are available.','politc');
     }
-    if(key==='games')return quickCard('arcade','find something to play','Discover the Big LWA game directory. A public popularity ranking requires actual game engagement data.','games');
+    if(key==='games')return [['2048','2048'],['crossword','crossword'],['culture quiz','culture']].map(([label,id])=>
+      '<article class="veve-tile veve-game"><span class="veve-eyebrow">arcade · play in veve</span>'+
+      '<h3>'+e(label)+'</h3><p>'+e(id==='2048'?'Merge matching tiles to reach 2048.':id==='crossword'?'Fill the grid from the clues.':'Culture questions and context.')+'</p>'+
+      '<button type="button" data-veve-game="'+e(id)+'">Play here ▶</button></article>').join('');
     if(key==='books'){
       const bibliography=[
         ['Frankenstein','Mary Shelley','https://www.gutenberg.org/ebooks/84'],
         ['Narrative of the Life of Frederick Douglass','Frederick Douglass','https://www.gutenberg.org/ebooks/23'],
         ['Pride and Prejudice','Jane Austen','https://www.gutenberg.org/ebooks/1342']
       ];
-      return bibliography.map(b=>'<article class="veve-tile veve-book"><span class="veve-eyebrow">public-domain reading pick</span><h3>'+e(b[0])+'</h3><p>'+e(b[1])+'</p><a href="'+e(b[2])+'" target="_blank" rel="noopener noreferrer">Read on Project Gutenberg ↗</a></article>').join('');
+      return bibliography.map(b=>'<article class="veve-tile veve-book"><span class="veve-eyebrow">public-domain reading pick</span><h3>'+e(b[0])+'</h3><p>'+e(b[1])+'</p><button type="button" data-veve-reader="'+e(b[2])+'">Preview reading ↗</button></article>').join('');
     }
     if(key==='closet')return quickCard('closet','community closet','Browse your closet space. Member listings are not treated as publicly available until their owners choose to publish them.','closet');
     if(key==='ads')return quickCard('sponsored','No sponsored placements','Veve will identify paid placements clearly. Nothing is labeled as sponsored until a genuine approved campaign exists.',null);
@@ -190,11 +242,9 @@
     const root=state.mounted;if(!root?.isConnected)return;
     if(!state.prefs)state.prefs=validPrefs(null);
     const ordered=state.prefs.sections.filter(k=>state.prefs.enabled.includes(k)&&(state.active==='all'||state.active===k));
-    const sectionHtml=ordered.map(key=>{
-      const cards=blocks(key);
-      return '<section class="veve-section veve-section-'+e(key)+'" data-veve-section="'+e(key)+'">'+
-        sectionBar(key)+'<div class="veve-masonry">'+cards+'</div></section>';
-    }).join('');
+    // A single mixed Pinterest-style wall, not a footer row of destination links.
+    const sectionHtml='<section class="veve-section"><div class="veve-masonry">'+
+      ordered.map(key=>blocks(key)).join('')+'</div></section>';
     const select=['latest','popular','daily'].map(k=>'<option value="'+k+'" '+(state.prefs.sort===k?'selected':'')+'>'+
        ({latest:'most recent',popular:'most activity',daily:'daily mix'}[k])+'</option>').join('');
     const scope=['all',...state.prefs.sections.filter(k=>state.prefs.enabled.includes(k))];
@@ -212,6 +262,43 @@
       (sectionHtml||'<div class="veve-empty">Nothing is selected. Open Customize to bring back sections.</div>');
   }
   function say(message){const el=state.mounted?.querySelector('#veveMessage');if(el)el.textContent=String(message);}
+  function viewDialog(){
+    let d=document.querySelector('#biglwaVevePreview');
+    if(!d){
+      d=document.createElement('dialog');d.id='biglwaVevePreview';
+      d.innerHTML='<button type="button" data-veve-close aria-label="Close preview">×</button><div id="vevePreviewStage"></div><a id="vevePreviewOriginal" target="_blank" rel="noopener noreferrer" hidden>View original ↗</a>';
+      d.addEventListener('click',ev=>{if(ev.target===d||ev.target.closest('[data-veve-close]'))d.close()});
+      d.addEventListener('close',()=>{d.querySelector('#vevePreviewStage').replaceChildren()});
+      document.body.append(d);
+    }
+    return d;
+  }
+  function openMedia(post){
+    const d=viewDialog(),target=d.querySelector('#vevePreviewStage'),link=safeUrl(post.sourceUrl||post.permalink);
+    const direct=video(post),embed=videoEmbed(post),still=picture(post);
+    target.replaceChildren();
+    let el;
+    if(direct){
+      el=document.createElement('video');el.src=direct;el.controls=true;el.autoplay=true;el.playsInline=true;el.poster=still||'';el.preload='metadata';
+    }else if(embed){
+      el=document.createElement('iframe');el.src=embed+'?autoplay=1';el.title='Video preview';el.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';el.allowFullscreen=true;el.referrerPolicy='strict-origin-when-cross-origin';
+    }else if(still){
+      el=document.createElement('img');el.src=still;el.alt='Full-size post preview';
+    }else{
+      el=document.createElement('p');el.textContent='This provider does not supply an embeddable preview.';
+    }
+    target.append(el);
+    const original=d.querySelector('#vevePreviewOriginal');original.hidden=!link;if(link)original.href=link;
+    d.showModal();
+  }
+  function openGame(kind){
+    if(kind==='culture'){window.openBIGLWAModule?.('games');return;}
+    const d=viewDialog(),stage=d.querySelector('#vevePreviewStage');
+    stage.replaceChildren();const frame=document.createElement('iframe');
+    frame.title=kind==='2048'?'2048 game':'Crossword puzzle';frame.className='veve-game-player';
+    frame.src='/arcade-puzzles.html?game='+encodeURIComponent(kind);stage.append(frame);
+    d.querySelector('#vevePreviewOriginal').hidden=true;d.showModal();
+  }
   let listenersInstalled=false;
   function bind(){
     if(listenersInstalled)return;listenersInstalled=true;
@@ -246,6 +333,17 @@
     });
     root.addEventListener('click',async ev=>{
       const b=ev.target.closest('button');if(!b)return;
+      if(b.hasAttribute('data-veve-view')){
+        const p=state.items.find(p=>String(p.id)===String(b.dataset.veveView));
+        if(p)openMedia(p);return;
+      }
+      if(b.hasAttribute('data-veve-game')){openGame(b.dataset.veveGame);return}
+      if(b.hasAttribute('data-veve-reader')){
+        const d=viewDialog(),stage=d.querySelector('#vevePreviewStage');stage.replaceChildren();
+        const frame=document.createElement('iframe');frame.className='veve-reading-frame';frame.title='Public-domain book preview';
+        frame.src=b.dataset.veveReader;stage.append(frame);
+        const original=d.querySelector('#vevePreviewOriginal');original.hidden=false;original.href=frame.src;d.showModal();return;
+      }
       if(b.hasAttribute('data-veve-route')){window.openBIGLWAModule?.(b.dataset.veveRoute);return}
       if(b.hasAttribute('data-veve-refresh')){await refresh();return}
       if(b.hasAttribute('data-veve-settings')){state.showSettings=!state.showSettings;draw();return}
