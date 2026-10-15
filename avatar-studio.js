@@ -178,15 +178,10 @@
         '<small class="biglwa-minecraft-note">Supports standard 64×64 or 64×32 skins and HD versions. Drag the character to turn it; use ← and → when focused.</small>';
       renderMinecraftModel(one('#biglwaMinecraftEditorModel',mount),state.minecraftDraftUrl||((state.avatar?.type==='minecraft'&&state.avatar.url)||''),true);
     }else if(name==='mii'){
-      // Uploaded MiiEditor is Adobe AIR + SWF, not HTML/JS. A modern browser
-      // cannot execute it as a normal file. No loading spinner, Flash emulator
-      // or unrelated replacement editor is presented as if it were the original.
-      mount.innerHTML='<section class="biglwa-mii-legacy-status" role="status">'+
-        '<strong>Original Mii Editor · desktop archive</strong>'+
-        '<p>Your uploaded 2007 Mii Editor is an Adobe AIR application (<code>classicGUI.swf</code>), not a browser-based editor. Its original editing interface cannot run here without a supported runtime or a real web port.</p>'+
-        '<a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/tree/main/MiiEditor" target="_blank" rel="noopener noreferrer">View your original Mii Editor files ↗</a>'+
-        '</section>'+
-        '<p>To use an avatar on BIG LWA now, upload a PNG, JPG, or WebP snapshot of your Mii.</p>'+input;
+      mount.innerHTML='<p>Build your Mii-style character in Big LWA. Save it to your account, return to edit it, or take it into the Arcade. The original 2007 AIR app is archived separately; this is a native web recreation, not Nintendo Mii-format emulation.</p>'+
+        '<iframe id="biglwaMiiEditorFrame" title="Big LWA Mii character maker webport" loading="eager" src="/avatar/mii-editor.html?v=20261014-webport-1" allow="clipboard-write"></iframe>'+
+        '<p class="biglwa-mii-port-links"><a href="/arcade-puzzles.html?game=quest">Play with your character in Arcade ↗</a> · <a href="/avatar/mii-editor.html" target="_blank" rel="noopener noreferrer">Open editor full-page ↗</a></p>';
+    }
     }else{
       mount.innerHTML='<p>Import an IMVU avatar snapshot now. Live IMVU models need an authorized Unity WebGL export; a .unitypackage is not directly browser-runnable.</p>'+input+
         '<button type="button" data-avatar-unity-open>Open installed Unity scene</button>';
@@ -195,7 +190,7 @@
     cardStatus(name);
   }
   function cardStatus(name){
-    setStatus(name==='mii'?'Original AIR files retained; browser editing needs a proper web port. You can save a Mii image to your account now.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
+    setStatus(name==='mii'?'Character webport ready. Customize a Mii-style look and save it to your account for Arcade.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
   }
   async function verifySkin(file){
     if(file.type!=='image/png')throw Error('Minecraft skins must be PNG files.');
@@ -209,7 +204,54 @@
           throw Error('Use a Minecraft skin PNG (64×64, 64×32, or a proportional HD skin).');
     }finally{URL.revokeObjectURL(url)}
   }
-  async function save(file,kind){
+  const MII_FIELDS={
+    face:['oval','round','square','heart'],hair:['crop','swoop','bob','curly','buns','bald'],
+    eyes:['round','almond','sleepy','smile'],brows:['soft','straight','arched'],
+    mouth:['smile','neutral','grin','open'],glasses:['none','round','square']
+  };
+  function validateMiiPreset(raw){
+    if(!raw||raw.format!=='biglwa-character-v1'||!raw.features||typeof raw.features!=='object')return null;
+    const features={};
+    for(const [key,allowed] of Object.entries(MII_FIELDS)){
+      const value=raw.features[key];
+      features[key]=allowed.includes(value)?value:allowed[0];
+    }
+    for(const key of ['skin','hairColor','eyeColor','shirt']){
+      const value=raw.features[key];
+      features[key]=typeof value==='string'&&/^#[0-9a-fA-F]{6}$/.test(value)?value:'#896755';
+    }
+    return {format:'biglwa-character-v1',version:1,name:String(raw.name||'My character').slice(0,32),features};
+  }
+  function sendSavedMiiToFrame(){
+    const frame=one('#biglwaMiiEditorFrame');
+    if(frame?.contentWindow){
+      frame.contentWindow.postMessage({type:'biglwa:mii-load',
+        preset:state.avatar?.type==='mii'?state.avatar.preset:null},location.origin);
+    }
+  }
+  window.addEventListener('message',async event=>{
+    if(event.origin!==location.origin)return;
+    const frame=one('#biglwaMiiEditorFrame');
+    if(!frame||event.source!==frame.contentWindow)return;
+    if(event.data?.type==='biglwa:mii-ready'){sendSavedMiiToFrame();return;}
+    if(event.data?.type!=='biglwa:mii-created')return;
+    const payload=event.data.image;
+    const preset=validateMiiPreset(event.data.preset);
+    if(!preset||typeof payload!=='string'||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(payload)||payload.length>1400000){
+      frame.contentWindow.postMessage({type:'biglwa:mii-save-result',message:'Invalid character data. Please try again.'},location.origin);
+      return;
+    }
+    try{
+      const blob=await (await fetch(payload)).blob();
+      const saved=await save(new File([blob],'biglwa-character.png',{type:'image/png'}),'mii',preset);
+      frame.contentWindow?.postMessage({type:'biglwa:mii-save-result',message:saved?
+        'Saved to your Big LWA profile. Your character is ready for Arcade.':
+        'Account save failed. Sign in and retry.'},location.origin);
+    }catch(error){frame.contentWindow?.postMessage({
+      type:'biglwa:mii-save-result',message:error?.message||'Character save failed.'
+    },location.origin)}
+  });
+  async function save(file,kind,preset=null){
     if(state.busy)return;
     if(!['minecraft','mii','imvu'].includes(kind))throw Error('Choose an avatar source first.');
     if(!['image/png','image/jpeg','image/webp'].includes(file?.type))throw Error('Choose PNG, JPG, or WebP.');
@@ -227,10 +269,12 @@
       const result=await response.json().catch(()=>({}));
       if(!response.ok||!result.url)throw Error(result.error||'Avatar image could not be uploaded.');
       await f.setDoc(f.doc(f.db,'users',uid),{
-        studioAvatar:{type:kind,url:result.url,updatedAt:f.serverTimestamp()}
+        studioAvatar:{type:kind,url:result.url,
+          ...(kind==='mii'&&preset?{preset:validateMiiPreset(preset)}:{}),
+          updatedAt:f.serverTimestamp()}
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched before avatar was saved.');
-      state.avatar={type:kind,url:result.url};
+      state.avatar={type:kind,url:result.url,...(kind==='mii'&&preset?{preset:validateMiiPreset(preset)}:{})};
       showAvatar();setStatus(kind==='minecraft'?'Minecraft skin saved to your 3D avatar.':'Avatar saved to your BIG LWA account.');
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:kind}}));
       return true;
@@ -247,8 +291,9 @@
       if(state.loadedUid!==user.uid)return;
       const avatar=snap.data()?.studioAvatar;
       if(avatar?.url&&['minecraft','mii','imvu'].includes(avatar.type)&&(avatar.url.startsWith(API+'/media/profile-photo/')||avatar.url.startsWith(API+'/media/feed-image/'))){
-        state.avatar={type:avatar.type,url:avatar.url};
-        showAvatar();setStatus('Saved avatar restored from your account.');
+        state.avatar={type:avatar.type,url:avatar.url,
+          ...(avatar.type==='mii'&&avatar.preset?{preset:validateMiiPreset(avatar.preset)}:{})};
+        showAvatar();sendSavedMiiToFrame();setStatus('Saved avatar restored from your account.');
       }
     }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
   }
@@ -775,6 +820,15 @@
   text-align:center;font:600 11px/1.45 system-ui;
 }
 
+#studioApp #profileAvatarEditor #biglwaMiiEditorFrame{
+  width:100%!important;min-height:655px!important;height:min(700px,75vh)!important;
+  display:block!important;border:1px solid rgba(86,65,58,.25)!important;
+  background:#faf1e9!important;border-radius:12px!important;
+}
+#studioApp #profileAvatarEditor .biglwa-mii-port-links{font:700 12px/1.5 system-ui!important}
+@media(max-width:680px){#studioApp #profileAvatarEditor #biglwaMiiEditorFrame{
+  height:910px!important;min-height:910px!important
+}}
 #studioApp #profileAvatarEditor .biglwa-mii-legacy-status{
   max-width:690px;padding:15px 16px;margin:4px 0 11px;
   border:1px solid rgba(100,80,70,.22);border-radius:12px;
