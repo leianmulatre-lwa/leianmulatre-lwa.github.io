@@ -143,5 +143,32 @@
       holder.removeEventListener('keydown',keyDown);img.onload=null;img.onerror=null;holder.remove();
     }};
   }
-  window.BigLWAMinecraftViewer={mount};
+  // Visible preview before the user uploads anything. This is a generated
+  // neutral character skin, not a copyrighted game texture.
+  let previewAtlas='';
+  function defaultSkin(){
+    if(previewAtlas)return previewAtlas;
+    const c=document.createElement('canvas');c.width=64;c.height=64;
+    const ctx=c.getContext('2d');
+    if(!ctx)return '';
+    const fill=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
+    fill('#b78e70',0,0,64,64);
+    // Distinguish body, legs, arms and head using the same UV locations as
+    // a real exported Minecraft 64x64 skin. Upload replaces every face.
+    fill('#9b7457',0,0,32,16);
+    fill('#b88d6b',0,8,32,8);
+    fill('#5b4039',8,0,8,3);
+    fill('#5b4039',8,8,8,2);
+    fill('#332722',10,12,1,1);fill('#332722',13,12,1,1);
+    fill('#5185a9',16,16,24,16);
+    fill('#4c789e',16,32,24,16);
+    fill('#5185a9',32,48,16,16);
+    fill('#5185a9',40,16,16,16);
+    fill('#384e72',0,16,16,16);
+    fill('#384e72',16,48,16,16);
+    // Opaque head overlay isn't needed for default preview.
+    previewAtlas=c.toDataURL('image/png');
+    return previewAtlas;
+  }
+  window.BigLWAMinecraftViewer={mount,defaultSkin};
 })();
