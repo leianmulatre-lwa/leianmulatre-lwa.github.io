@@ -61,7 +61,9 @@ async function loadCharacter(){
     });
     const auth=b.getAuth(app);await auth.authStateReady();
     const user=auth.currentUser;
-    uid=user?.uid||'guest';
+    const nextUid=user?.uid||'guest';
+    if(uid!==nextUid)character={name:'Guest',url:'',type:'guest'};
+    uid=nextUid;
     if(!user){refreshIdentity();return;}
     const record=(await f.getDoc(f.doc(f.getFirestore(app),'users',user.uid))).data()?.studioAvatar||null;
     if(auth.currentUser?.uid!==user.uid)return;
