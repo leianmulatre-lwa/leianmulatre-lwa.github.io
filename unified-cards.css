@@ -363,3 +363,41 @@
  #feedPageList .instagram-carousel-arrow{opacity:1!important;pointer-events:auto!important}
 }
 /* Facebook hover overlay stays within the photo; avoid extra white caption bars. */
+
+/* Archive carousel shares Feed navigation but keeps space for its bottom metadata. */
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-actions{
+ position:absolute!important;top:50%!important;left:7px!important;right:7px!important;
+ z-index:18!important;display:flex!important;justify-content:space-between!important;
+ transform:translateY(-50%)!important;pointer-events:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-actions button{
+ display:grid!important;place-items:center!important;
+ width:29px!important;height:29px!important;min-width:29px!important;
+ padding:0!important;border-radius:50%!important;border:1px solid #fff9!important;
+ background:#161419b8!important;color:#fff!important;
+ font:700 23px/1 Georgia,serif!important;box-shadow:0 2px 8px #0005!important;
+ opacity:0!important;pointer-events:none!important;transition:opacity .14s!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-media:is(:hover,:focus-within) .archive-carousel-actions button{
+ opacity:1!important;pointer-events:auto!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dots{
+ position:absolute!important;bottom:62px!important;left:0!important;right:0!important;
+ z-index:19!important;display:flex!important;gap:5px!important;align-items:center!important;
+ justify-content:center!important;padding:0 42px!important;pointer-events:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dots button{
+ display:block!important;flex:0 0 7px!important;width:7px!important;height:7px!important;
+ min-width:7px!important;min-height:7px!important;max-width:7px!important;
+ padding:0!important;border:1px solid #0008!important;border-radius:50%!important;
+ background:#ffffffa3!important;box-shadow:0 1px 4px #0006!important;
+ font-size:0!important;cursor:pointer!important;pointer-events:auto!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dots button.is-active{
+ background:#fff!important;box-shadow:0 0 0 1px #0008,0 0 0 2px #fff8!important;
+}
+@media(hover:none){
+ #studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-actions button{
+ opacity:1!important;pointer-events:auto!important;
+ }
+}
