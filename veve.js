@@ -332,6 +332,12 @@
       }
     });
     root.addEventListener('click',async ev=>{
+      const previewImage=ev.target.closest('.veve-photo-frame img,.veve-video-fallback');
+      if(previewImage){
+        const id=previewImage.closest('[data-veve-post]')?.dataset.vevePost;
+        const p=state.items.find(p=>String(p.id)===String(id));
+        if(p)openMedia(p);return;
+      }
       const b=ev.target.closest('button');if(!b)return;
       if(b.hasAttribute('data-veve-view')){
         const p=state.items.find(p=>String(p.id)===String(b.dataset.veveView));
