@@ -200,11 +200,35 @@
    if(!card)return;
    const op=button.dataset.liveFeedOp;
    if(op==='enlarge'){
+     // Source metadata can contain a playable video even when the visible card is only a poster.
+     if(window.__biglwaFeed?.previewPost?.(card.dataset.postId))return;
+     let record={};try{record=JSON.parse(card.dataset.sendRecord||'{}')}catch{}
+     const link=String(record.sourceUrl||card.querySelector('[data-instagram-open]')?.href||'');
+     const video=String(record.videoUrl||record.video_url||record.mediaUrl||
+       (Array.isArray(record.mediaItems)?record.mediaItems.find(x=>x?.isPicture===false)?.url:'')||'');
+     let embed='';
+     try{
+       const u=new URL(link);
+       if(['youtube.com','www.youtube.com','youtu.be','m.youtube.com'].includes(u.hostname)){
+         const id=u.hostname==='youtu.be'?u.pathname.slice(1):u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v');
+         if(/^[A-Za-z0-9_-]{11}$/.test(id||''))embed='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1';
+       }
+     }catch{}
      const photo=card.querySelector('.biglwa-unified-media img,.biglwa-unified-media video,img[data-instagram-media],img[data-biglwa-external-media]');
-     if(!photo){showFeedNotice(card,'Image unavailable.');return;}
-     const dialog=lightbox(),view=photo.cloneNode(true);
-     view.removeAttribute('loading');view.style.cssText='';
-     if(view.tagName==='VIDEO')view.controls=true;
+     if(!photo&&!video&&!embed){showFeedNotice(card,'Playable media not available for this source.');return;}
+     const dialog=lightbox();
+     let view;
+     if(/^https:\/\//.test(video)&&/\.(mp4|webm|m4v)(\?|#|$)/i.test(video)){
+       view=document.createElement('video');view.src=video;view.controls=true;view.autoplay=true;view.playsInline=true;
+       if(photo?.tagName==='IMG')view.poster=photo.src;
+     }else if(embed){
+       view=document.createElement('iframe');view.src=embed;view.title='Video preview';
+       view.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';view.allowFullscreen=true;
+       view.style.cssText='display:block;width:min(86vw,850px);height:min(75vh,480px);border:0';
+     }else{
+       view=photo.cloneNode(true);view.removeAttribute('loading');view.style.cssText='';
+       if(view.tagName==='VIDEO')view.controls=true;
+     }
      dialog.replaceChildren();
      const close=document.createElement('button');close.textContent='Close ×';close.onclick=()=>dialog.close();
      dialog.append(close,view);dialog.showModal();return;
