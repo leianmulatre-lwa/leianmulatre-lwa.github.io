@@ -133,7 +133,69 @@
     .module-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(250px,.75fr);gap:14px;margin-top:20px}
     .module-card{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(55,42,34,.05)}
     .module-card.wide{grid-column:1/-1}.module-card h2{font:600 18px/1.1 Georgia,serif;margin:0 0 6px}.module-card>p{margin:0 0 14px;font-size:11px;line-height:1.55;color:#766c66}
-    .module-form{display:grid;gap:8px}.module-form.two{grid-template-columns:1fr 1fr}.module-form.three{grid-template-columns:1.3fr 1fr .8fr}
+    /* Feed composer: one readable workspace rather than a stack of import banners
+       and full-width buttons. Buttons keep their intrinsic text width. */
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-card{padding:clamp(14px,2vw,22px);overflow:visible}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-head{
+      display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:8px 16px;margin-bottom:12px
+    }
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-head h2{margin:0 0 6px}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-head p{
+      font:500 11px/1.5 system-ui;margin:0;color:#736760;max-width:650px
+    }
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-form{display:grid;gap:12px;min-width:0}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-fields{
+      display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;min-width:0
+    }
+    .module-workspace[data-module-key="feed"] .biglwa-feed-field{display:grid;gap:6px;min-width:0;font:700 11px/1.3 system-ui}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-field span{font:500 10px/1.3 system-ui;color:#80716d}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-field .module-input{
+      width:100%;max-width:100%;min-width:0;box-sizing:border-box;margin:0;
+      font:500 12px/1.45 system-ui;padding:11px 12px;border-radius:10px;min-height:42px
+    }
+    .module-workspace[data-module-key="feed"] #feedComposerCaption{
+      resize:vertical;min-height:62px;max-height:180px;overflow-y:auto;white-space:pre-wrap
+    }
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-actions{
+      display:flex;flex-wrap:wrap;align-items:center;gap:10px;min-width:0
+    }
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-actions .module-action,
+    .module-workspace[data-module-key="feed"] #feedStreamExplore{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:auto!important;max-width:100%;min-width:0;min-height:38px;
+      box-sizing:border-box;padding:10px 15px!important;line-height:1.3!important;
+      text-align:center;white-space:normal;overflow-wrap:anywhere;flex:none
+    }
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-actions .biglwa-feed-publish-button{flex:0 1 auto}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-photo-picker{
+      display:inline-flex;align-items:center;justify-content:center;gap:6px;
+      min-height:38px;width:auto!important;max-width:100%;box-sizing:border-box;
+      margin:0;padding:9px 14px;border:1px dashed #ac948a;border-radius:10px;
+      cursor:pointer;font:700 11px/1.35 system-ui;white-space:normal
+    }
+    .module-workspace[data-module-key="feed"] .biglwa-feed-photo-picker>span{font-weight:500;color:#83726b}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-photo-picker>input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-photo-picker:focus-within{outline:2px solid #a54d69;outline-offset:2px}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-status:empty{display:none}
+    .module-workspace[data-module-key="feed"] #biglwaFeedImportStatusRail{margin:0 0 12px;padding:0}
+    .module-workspace[data-module-key="feed"] #biglwaFeedImportStatusRail[hidden]{display:none!important}
+    .module-workspace[data-module-key="feed"] #biglwaFeedImportStatusRail .biglwa-instagram-import-status,
+    .module-workspace[data-module-key="feed"] #biglwaFeedImportStatusRail .instagram-import-status{
+      margin:0!important;padding:9px 12px!important;border:1px solid #dacdc4!important;
+      border-radius:10px!important;box-shadow:none!important;background:rgba(255,255,255,.36)!important
+    }
+    .module-workspace[data-module-key="feed"] #biglwaFeedImportStatusRail small{font:500 11px/1.4 system-ui}
+    .module-workspace[data-module-key="feed"] #biglwaFeedImportStatusRail b{font:700 11px/1.2 system-ui}
+    .module-workspace[data-module-key="feed"] #biglwaFeedImportStatusRail .module-action{
+      width:auto!important;max-width:100%;margin:6px 0 0;padding:8px 12px!important;min-height:32px
+    }
+    .module-workspace[data-module-key="feed"] #biglwaFeedThumbs{grid-column:1/-1;max-width:145px}
+    @media(max-width:680px){
+      .module-workspace[data-module-key="feed"] .biglwa-feed-compose-fields{grid-template-columns:1fr}
+      .module-workspace[data-module-key="feed"] .biglwa-feed-compose-actions{align-items:stretch}
+      .module-workspace[data-module-key="feed"] .biglwa-feed-compose-actions .module-action{flex:1 1 190px}
+    }
+        .module-form{display:grid;gap:8px}.module-form.two{grid-template-columns:1fr 1fr}.module-form.three{grid-template-columns:1.3fr 1fr .8fr}
     .module-input,.module-textarea,.module-select{width:100%;min-width:0;box-sizing:border-box;border:1px solid #d8cec5;background:rgba(255,255,255,.76);border-radius:11px;padding:10px 11px;font:11px/1.35 system-ui;color:#302b28;outline:none}
     .module-textarea{min-height:230px;resize:vertical;line-height:1.65}
     .module-input:focus,.module-textarea:focus,.module-select:focus{border-color:rgba(var(--aura-rgb,216,95,109),.7);box-shadow:0 0 0 3px rgba(var(--aura-rgb,216,95,109),.10)}
@@ -1131,7 +1193,28 @@ const connect=e.target.closest('[data-orbit-connect]');
        than left to overwrite the real feed on its next render. The shell stays here so
        the route still has a heading, a composer to upgrade, and the shared list the
        connected sources pour into. */
-    body.innerHTML=heading('feed')+`<div id="biglwaOrbitDrafts" hidden></div><div class="module-grid"><section class="module-card"><h2>Post to the feed</h2><p>Share a link with an automatic thumbnail, or add a photo with it. No caption field is stored.</p><form class="module-form" id="feedComposer"><input class="module-input" name="url" type="url" inputmode="url" placeholder="Paste a link"><label class="biglwa-pick" style="width:max-content"><input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">Add a photo <span style="font-weight:500;color:#8b8179">(optional)</span></label><button class="module-action" type="submit">Post to Collective Feed</button><button class="module-action ghost" type="button" id="feedStreamExplore">Explore Stream ↗</button></form></section><section class="module-card wide"><h2>Collective Feed</h2><div class="module-list" id="feedPageList"></div></section></div>`;
+    body.innerHTML=heading('feed')+`<div class="module-grid biglwa-feed-module-grid">
+       <section class="module-card wide biglwa-feed-compose-card" aria-labelledby="biglwaFeedComposeHeading">
+        <div class="biglwa-feed-compose-head">
+         <div><h2 id="biglwaFeedComposeHeading">post to the feed</h2><p>Share a link or photo, with an optional caption. Your caption is saved with your post.</p></div>
+         <button class="module-action ghost" type="button" id="feedStreamExplore">Explore Stream ↗</button>
+        </div>
+        <div id="biglwaFeedImportStatusRail" class="biglwa-feed-import-rail" aria-label="Connected account import status" hidden></div>
+        <div id="biglwaOrbitDrafts" hidden></div>
+        <form class="module-form biglwa-feed-compose-form" id="feedComposer">
+         <div class="biglwa-feed-compose-fields">
+          <label class="biglwa-feed-field" for="feedComposerUrl">Link <span>(optional)</span><input class="module-input" id="feedComposerUrl" name="url" type="url" inputmode="url" placeholder="Paste a link to share"></label>
+          <label class="biglwa-feed-field" for="feedComposerCaption">Caption <span>(optional · 500 characters)</span><textarea class="module-input" id="feedComposerCaption" name="caption" maxlength="500" rows="2" placeholder="Add a caption or context…"></textarea></label>
+         </div>
+         <div class="biglwa-feed-compose-actions">
+          <label class="biglwa-pick biglwa-feed-photo-picker"><input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">＋ Add photo <span>(optional)</span></label>
+          <button class="module-action biglwa-feed-publish-button" type="submit">Post to Collective Feed</button>
+         </div>
+         <output class="module-status biglwa-feed-compose-status" id="biglwaFeedStatus" role="status" aria-live="polite"></output>
+        </form>
+       </section>
+       <section class="module-card wide biglwa-feed-wall-card"><h2>Collective Feed</h2><div class="module-list" id="feedPageList"></div></section>
+      </div>`;
     const streamExplore=$('#feedStreamExplore',body);
     if(streamExplore)streamExplore.onclick=()=>window.openBIGLWAModule?.('stream');
   }
