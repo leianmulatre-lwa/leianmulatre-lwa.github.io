@@ -2,7 +2,7 @@
   'use strict';
   if (window.__biglwaFacebookOrbit) { return; }
 
-  var APP_ID = '3959002817740866';
+  var APP_ID = '1370423431874443';
   var API_VERSION = 'v25.0';
   var sdkPromise = null;
   var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '', noMediaNotified:false };
