@@ -53,7 +53,7 @@ jobs:
           node --check session-restore.js
           node --check studio-experience.js
           node --check tools-studio.js
-          node --check tools-craft.js
+          node --input-type=module --check < tools-craft.js
           node --check tools-video-trim.js
           node feed-auth-tools-regression-test.mjs
       - name: Check Veve onboarding, Pinterest and supporter presentation
