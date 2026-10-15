@@ -12,6 +12,7 @@ on:
       - 'brand-policy.css'
       - 'policy-card-cohesion.js'
       - 'module-pages.js'
+      - 'orbit-badge-layout-test.mjs'
       - 'mii-webport-test.mjs'
       - 'studio-layout-cache-test.mjs'
       - 'profile-music-test.mjs'
@@ -45,6 +46,7 @@ jobs:
           node mii-webport-test.mjs
           node feed-auth-tools-regression-test.mjs
           node feed-mixed-caption-test.mjs
+          node orbit-badge-layout-test.mjs
           node login-path-and-guide-test.mjs
           node tutorial-symbol-key-test.mjs
           node orbit-session-stability-test.mjs
