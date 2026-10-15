@@ -13,15 +13,24 @@ const levels=[
   {walls:[8,15,29,30,36,11,39],stars:[6,22,40],exit:48}
 ];
 const rows=7,cols=7;
-function portrait(url,label){
-  const host=$('.arcade-identity-portrait');if(!host)return;
-  host.replaceChildren();
-  if(!url){host.textContent='◉';return;}
+function characterVisual(url,type,label){
+  if(!url)return document.createTextNode('◉');
+  if(type==='minecraft'){
+    const head=document.createElement('span');head.className='minecraft-head';
+    head.style.backgroundImage='url("'+url.replace(/"/g,'%22')+'")';
+    head.setAttribute('role','img');head.setAttribute('aria-label',label+' Minecraft character face');
+    return head;
+  }
   const img=new Image();img.src=url;img.alt=label+' character portrait';
-  img.onerror=()=>host.textContent='◉';host.append(img);
+  img.onerror=()=>img.replaceWith(document.createTextNode('◉'));img.className='quest-player';
+  return img;
 }
-function validPortrait(record){
-  if(record?.type!=='mii'||typeof record?.url!=='string')return '';
+function portrait(url,type,label){
+  const host=$('.arcade-identity-portrait');if(!host)return;
+  host.replaceChildren(characterVisual(url,type,label));
+}
+function validAvatarUrl(record){
+  if(!['mii','minecraft'].includes(record?.type)||typeof record?.url!=='string')return '';
   try{
     const url=new URL(record.url);
     return url.protocol==='https:'&&url.href.startsWith(API+'/media/profile-photo/')?url.href:'';
@@ -36,7 +45,7 @@ function refreshIdentity(){
     :'Sign in and save a character to play as them. '));
   const editor=document.createElement('a');editor.href='/avatar/mii-editor.html';
   editor.textContent='Edit character ↗';detail.append(editor);
-  portrait(character.url,name);
+  portrait(character.url,character.type,name);
   draw();
 }
 async function loadCharacter(){
@@ -56,7 +65,7 @@ async function loadCharacter(){
     if(!user){refreshIdentity();return;}
     const record=(await f.getDoc(f.doc(f.getFirestore(app),'users',user.uid))).data()?.studioAvatar||null;
     if(auth.currentUser?.uid!==user.uid)return;
-    const url=validPortrait(record);
+    const url=validAvatarUrl(record);
     character={
       type:record?.type||'guest',
       name:record?.type==='mii'?String(record?.preset?.name||'Your character').slice(0,32):record?.type==='minecraft'?'Minecraft player':'Your character',
@@ -84,9 +93,7 @@ function draw(){
     cell.setAttribute('aria-label','row '+(y+1)+', column '+(x+1)+': '+
       (i===player?'your character':walls.has(i)?'wall':stars.has(i)?'star':i===data.exit?'portal':'empty'));
     if(i===player){
-      if(character.url){const img=new Image();img.src=character.url;img.alt='';
-        img.className='quest-player';img.onerror=()=>{cell.textContent='◉'};cell.append(img);
-      }else cell.textContent='◉';
+      cell.append(characterVisual(character.url,character.type,character.name));
     }else if(stars.has(i))cell.textContent='★';
     else if(i===data.exit)cell.textContent='◎';
     host.append(cell);
