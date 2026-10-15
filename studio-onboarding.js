@@ -9,7 +9,7 @@
  const steps=[
   {"title":"Your creative Studio","area":"Studio","body":"Your Studio holds your profile, projects, music and widgets. The left sidebar is your shortcut desk; the header opens full pages."},
   {"title":"Symbol key","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
-  {"title":"The three colored dots","area":"Widget and post controls","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
+  {"title":"The three colored dots","area":"Widget and post controls","visual":"colored-dots-title","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
   {"title":"Your workspace","area":"Studio","body":"Drag widget handles to arrange the Studio, use controls to customize it, and view your own public profile as others see it. Layout preferences are attached to your Big LWA account."},
   {"title":"Connect your world","area":"Orbit","key":"orbit","body":"Orbit links external accounts such as Pinterest and Instagram. Imported media goes first to your account-linked private collection for review. If a provider session expires, reconnect only that provider."},
   {"title":"Where do imports go?","area":"Orbit → Archive","key":"archive","body":"Imported photos and Pins are saved in your Archive/import library, NOT posted publicly by connection alone. Select media and explicitly publish to Collective Feed. Archiving or switching Live off hides a published post."},
@@ -72,6 +72,36 @@
    }
   }
   return null;
+ }
+ // Keep the stitched heading's typography intact. Only the three real "o"
+ // characters in "colored dots" receive the traffic-light colors.
+ // Build DOM nodes rather than inject HTML so screen readers still read a
+ // normal heading and every other tutorial title stays unchanged.
+ function renderTourTitle(root,step){
+  root.replaceChildren();
+  if(step.visual!=='colored-dots-title'){
+   root.textContent=step.title;
+   return;
+  }
+  const pieces=[
+   {text:'The three c'},
+   {text:'o',color:'red'},
+   {text:'l'},
+   {text:'o',color:'yellow'},
+   {text:'red d'},
+   {text:'o',color:'green'},
+   {text:'ts'}
+  ];
+  for(const item of pieces){
+   if(!item.color){
+    root.append(document.createTextNode(item.text));
+    continue;
+   }
+   const letter=document.createElement('span');
+   letter.className='tour-dot-letter tour-dot-'+item.color;
+   letter.textContent=item.text;
+   root.append(letter);
+  }
  }
  function renderSymbolKey(root){
   root.replaceChildren();
@@ -141,6 +171,15 @@
     width:34px;height:34px;cursor:pointer;font:700 20px system-ui}
    #biglwaTutorialDialog h2{font:700 clamp(25px,4vw,38px)/1.05 Georgia,serif;margin:12px 0 15px}
    #biglwaTutorialDialog p{font:500 15px/1.65 system-ui;margin:0 0 19px;overflow-wrap:anywhere}
+   /* Three window lights in the heading — these spans inherit the heading
+      font, weight, baseline and size, changing only the letters' colors. */
+   #biglwaTutorialDialog h2 .tour-dot-letter{
+    font:inherit;letter-spacing:inherit;line-height:inherit;
+    display:inline;color:inherit
+   }
+   #biglwaTutorialDialog h2 .tour-dot-red{color:#d95762}
+   #biglwaTutorialDialog h2 .tour-dot-yellow{color:#e0b92e}
+   #biglwaTutorialDialog h2 .tour-dot-green{color:#56ae77}
    #biglwaTutorialDialog .tour-symbol-key:not([hidden]){
     display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
     list-style:none;padding:0;margin:0 0 21px
@@ -206,7 +245,7 @@
   if(!dialog)return;
   const step=steps[index];
   $('#biglwaTourPosition',dialog).textContent='Big LWA tutorial · '+(index+1)+' of '+steps.length+' · '+step.area;
-  $('#biglwaTourTitle',dialog).textContent=step.title;
+  renderTourTitle($('#biglwaTourTitle',dialog),step);
   const body=$('#biglwaTourBody',dialog);
   body.textContent=step.body;
   body.hidden=step.visual==='symbols';
