@@ -7,7 +7,7 @@ const PENDING_KEY='biglwaPinterestPendingHandoffV2';
 const OAUTH_UID_KEY='biglwaPinterestOauthStartingUid';
 let handoffPromise=null;
  const hostedPinUrls=new Map(); // Hosted copies from the signed-in user's R2 Orbit import.
- let savedLibrary={version:1,boards:[]}, savedUid='',savedBusy=false,savedError='';
+ let savedLibrary={version:1,boards:[]}, savedUid='',savedBusy=false,savedError='',boardLocks={};
  const pinById=id=>pins.find(p=>String(p.id)===String(id))||savedLibrary.boards.flatMap(b=>b.pins||[]).find(p=>String(p.id)===String(id));
  async function savedRequest(method='GET',library){
   const token=await firebaseIdToken();
@@ -29,6 +29,18 @@ let handoffPromise=null;
    const result=await savedRequest();
    savedLibrary=result||{version:1,boards:[]};
    savedUid=authUid;savedError='';
+   try{
+     const [{getApps},{getAuth},{getFirestore,doc,getDoc}]=await Promise.all([
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+     ]);
+     const app=getApps()[0],user=app&&getAuth(app).currentUser;
+     if(user?.uid===authUid){
+       const snap=await getDoc(doc(getFirestore(app),'users',authUid));
+       boardLocks=(snap.exists()&&snap.data().pinterestBoardLocks)||{};
+     }
+   }catch(err){console.warn('Big LWA board lock restore:',err);boardLocks={}}
   }catch(error){savedError=error.message||'Saved collections could not load.'}
   render();
  }
@@ -44,6 +56,25 @@ let handoffPromise=null;
    notice('Saved to your Big LWA collections.');
   }catch(error){savedError=error.message||'Could not update saved Pins.';notice(savedError)}
   finally{savedBusy=false;render()}
+ }
+ async function toggleSavedBoardLock(id){
+   if(savedBusy||!authUid)return;
+   const board=savedLibrary.boards.find(b=>b.id===id);if(!board)return;
+   const next={...boardLocks,[id]:boardLocks[id]!==true};
+   savedBusy=true;render();
+   try{
+     const [{getApps},{getAuth},{getFirestore,doc,setDoc}]=await Promise.all([
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+     ]);
+     const app=getApps()[0],user=app&&getAuth(app).currentUser;
+     if(!user||user.uid!==authUid)throw Error('Sign in to manage board locks.');
+     await setDoc(doc(getFirestore(app),'users',authUid),{pinterestBoardLocks:next},{merge:true});
+     boardLocks=next;
+     notice(next[id]?'Board locked. Only you can see this collection, and posting its Pins requires unlocking.':'Board unlocked. Publishing still requires your approval.');
+   }catch(error){notice('Could not sync lock to your account: '+(error?.message||'try again'))}
+   finally{savedBusy=false;render()}
  }
  async function newSavedBoard(){
   const title=window.prompt('New Big LWA board name (private, not on Pinterest):');
@@ -70,7 +101,8 @@ let handoffPromise=null;
     image:image(source),url:'https://www.pinterest.com/pin/'+pinId+'/'});
   });
  }
- async function publishPin(pinId){
+ async function publishPin(pinId,fromBoard=''){
+  if(fromBoard&&boardLocks[fromBoard]===true){notice('Unlock this board before publishing any of its saved Pins.');return;}
   const pin=pinById(pinId);
   if(!pin){notice('Load that Pinterest Pin first.');return}
   await run(async()=>{
@@ -98,15 +130,16 @@ let handoffPromise=null;
     '<span>'+esc(pin.title)+'</span>'+
     '<div class="pn-saved-pin-actions"><button type="button" data-pn-edit-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Edit</button>'+
     '<button type="button" data-pn-remove-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Remove</button>'+
-    '<button type="button" data-pn-publish="'+esc(pin.id)+'">Post to Feed</button></div></article>').join('');
-   return '<section class="pn-saved-board" data-pn-collection="'+esc(board.id)+'">'+
-    '<header><h4>'+esc(board.title)+' <small>('+board.pins.length+')</small></h4>'+
+    '<button type="button" data-pn-publish="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'"'+(boardLocks[board.id]===true?' disabled title="Unlock this board to publish"':'')+'>Post to Feed</button></div></article>').join('');
+   return '<section class="pn-saved-board" data-pn-collection="'+esc(board.id)+'" data-locked="'+(boardLocks[board.id]===true?'true':'false')+'">'+
+    '<header><h4>'+esc(board.title)+' <small>('+board.pins.length+')</small> '+(boardLocks[board.id]===true?'<span class="pn-board-lock-label">🔒 locked</span>':'')+'</h4>'+
+    '<button type="button" data-pn-lock-board="'+esc(board.id)+'" aria-pressed="'+(boardLocks[board.id]===true?'true':'false')+'">'+(boardLocks[board.id]===true?'Unlock board':'Lock board')+'</button>'+
     '<button type="button" data-pn-rename-board="'+esc(board.id)+'">Rename</button>'+
     '<button type="button" data-pn-remove-board="'+esc(board.id)+'">Delete board</button></header>'+
     '<div class="pn-saved-pin-grid">'+(cols||'<p>Save Pins from above to this board.</p>')+'</div></section>';
   }).join('');
   return '<section class="pn-saved-section" aria-label="Your saved Big LWA boards">'+
-   '<div class="pn-saved-heading"><div><h3>Saved on Big LWA</h3><p>Your private collections sync to your account. They do not modify Pinterest boards.</p></div>'+
+   '<div class="pn-saved-heading"><div><h3>Saved on Big LWA</h3><p>Collections sync privately. Locking a board prevents publishing from it until you unlock it; Pins you separately publish can appear anonymously in Veve.</p></div>'+
    '<button type="button" class="module-action" data-pn-new-board>+ New board</button></div>'+
    (savedError?'<p role="alert">'+esc(savedError)+'</p>':'')+
    (boardRows||'<p>Save a Pin to start a collection, or create a new board.</p>')+'</section>';
@@ -129,7 +162,7 @@ let handoffPromise=null;
  const resetView=()=>{
   connected=false;profile={};boards=[];pins=[];boardId='';boardsNext='';pinsNext='';covers={};
   hostedPinUrls.clear();
-  savedLibrary={version:1,boards:[]};savedUid='';savedError='';
+  savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
   restorePromise=null;boardsPromise=null;pinsPromise=null;lastImport={imported:0,skipped:0,partial:0};importError='';
   render();
@@ -493,6 +526,8 @@ async function connect(){await run(async()=>{
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
  if(!(e.target instanceof Element))return;
+ const lock=e.target.closest('[data-pn-lock-board]');
+ if(lock){e.preventDefault();e.stopImmediatePropagation();toggleSavedBoardLock(lock.dataset.pnLockBoard);return;}
  const newBoard=e.target.closest('[data-pn-new-board]');
  if(newBoard){e.preventDefault();e.stopImmediatePropagation();newSavedBoard();return;}
  const savePin=e.target.closest('[data-pn-save-pin]');
@@ -501,7 +536,7 @@ document.addEventListener('click',e=>{
   const target=document.querySelector('[data-pn-target-board="'+id+'"]')?.value||'default_saved';
   addSavedPin(id,target);return;}
  const publish=e.target.closest('[data-pn-publish]');
- if(publish){e.preventDefault();e.stopImmediatePropagation();publishPin(publish.dataset.pnPublish);return;}
+ if(publish){e.preventDefault();e.stopImmediatePropagation();publishPin(publish.dataset.pnPublish,publish.dataset.pnSavedFrom||'');return;}
  const rename=e.target.closest('[data-pn-rename-board]');
  if(rename){e.preventDefault();e.stopImmediatePropagation();
   const id=rename.dataset.pnRenameBoard;
