@@ -338,9 +338,6 @@
           '</div>' +
           '<div class="biglwa-unified-media'+(carousel?' instagram-carousel-frame':'')+'" data-instagram-current="0">' + visual + controls + '</div>' +
         '</div>' +
-          '</div>' +
-          '<div class="biglwa-unified-media">' + visual + '</div>' +
-        '</div>' +
         '<span class="biglwa-unified-source">Instagram</span>' +
         sendBar +
       '</article>';
