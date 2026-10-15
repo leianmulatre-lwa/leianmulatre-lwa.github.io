@@ -26,7 +26,7 @@ APPS = (
 )
 MAX_ZIP_BYTES = 90 * 1024 * 1024
 MAX_EXPANDED_BYTES = 180 * 1024 * 1024
-MAX_ASSET_BYTES = 25 * 1024 * 1024
+MAX_ASSET_BYTES = 80 * 1024 * 1024  # GitHub Pages, not Cloudflare Pages
 
 
 def download(url: str, limit: int = MAX_ZIP_BYTES) -> bytes:
@@ -86,7 +86,7 @@ def install_zip(archive: bytes, slug: str, version: str, dest: Path) -> int:
             if not relative or relative.startswith(".") or PurePosixPath(relative).name in {".htaccess", "_headers"}:
                 continue
             if member.file_size > MAX_ASSET_BYTES:
-                raise ValueError("Individual asset exceeds safe hosting limit")
+                raise ValueError(f"Individual asset too large for GitHub Pages: {name} ({member.file_size} bytes)")
             expanded += member.file_size
             if expanded > MAX_EXPANDED_BYTES:
                 raise ValueError("Expanded release exceeds size limit")
