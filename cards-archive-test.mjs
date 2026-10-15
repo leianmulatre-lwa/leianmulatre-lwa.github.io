@@ -82,9 +82,11 @@ check("the old one-black-pill markup is gone", !pages.includes("<span>${g}</span
 check("Archive Instagram shadow uses purple tones", pages.includes("box-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7"));
 check("Archive Pinterest shadow has red depth", pages.includes("box-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269"));
 
-check("each Archive card uses the shadow indicator instead of three dots",
- pages.includes("const strip='<div class=\"instagram-archive-strip\">") &&
- !pages.includes("'+actions+'<i></i><i></i><i></i></div>'"));
+check("Archive places its colored light controls within the image frame rather than a title strip",
+ pages.includes("'<div class=\"instagram-archive-media\">'+") &&
+ pages.includes("carouselControls+actions+") &&
+ pages.includes("archive-card-overlay") &&
+ !pages.includes("const strip='<div class=\"instagram-archive-strip\">"));
 check("Archive has one source color key above the grid",
  pages.includes('class="archive-color-guide"') &&
  pages.includes('archive-key-instagram') && pages.includes('archive-key-pinterest'));
