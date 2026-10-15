@@ -217,7 +217,7 @@
          if(m)embed='https://www.tiktok.com/player/v1/'+m[1];
        }else if(['instagram.com','www.instagram.com'].includes(u.hostname)){
          const m=u.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)\/?/);
-         if(m)embed='https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
+         if(m&&(m[1]!=='p'||record.isVideo===true||(record.mediaItems||[]).some(x=>x?.isPicture===false||/^video/i.test(x?.mediaType||''))))embed='https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
        }
      }catch{}
      const photo=card.querySelector('.biglwa-unified-media img,.biglwa-unified-media video,img[data-instagram-media],img[data-biglwa-external-media]');
