@@ -25,6 +25,11 @@ const mockFetch=async (request,options)=>{
  }
  if(url.hostname==='i.pinimg.com')
   return new Response(new Uint8Array([137,80,78,71,13,10,26,10]),{status:200,headers:{'content-type':'image/png'}});
+ if(url.hostname==='api.pinterest.com'&&url.pathname==='/v5/oauth/token'){
+  const form=new URLSearchParams(await req.text());
+  assert.equal(form.get('grant_type'),'refresh_token');
+  return new Response(JSON.stringify({access_token:'refreshed-access',expires_in:3600,token_type:'bearer'}),{status:200});
+ }
  if(url.hostname==='api.pinterest.com'&&url.pathname==='/v5/user_account')
   return new Response(JSON.stringify({username:'pintest',profile_image:'https://i.pinimg.com/a.jpg'}),{status:200});
  throw Error('Unexpected request '+url.href);
@@ -108,6 +113,45 @@ await check('Pinterest Pin image copy requires matching Firebase uid and Pintere
   body:JSON.stringify({items:[{sourcePostId:'bad',index:0,url:'https://www.pinterest.com/pin/1'}]})});
  assert.equal((await route(unapproved,env)).status,502);
  assert.equal(copied.size,1);
+});
+await check('expired Pinterest access token auto-refreshes without touching Firebase login',async()=>{
+ const previous=JSON.parse(records.get('pn:session:'+sid));
+ records.set('pn:session:'+sid,JSON.stringify({...previous,expiresAt:Date.now()-1000,refreshExpiresAt:Date.now()+86400000}));
+ const items=[{sourcePostId:'124',index:0,url:'https://i.pinimg.com/originals/p2.png',mediaType:'IMAGE'}];
+ // Simulate a second browser without the old Pinterest header: explicit
+ // provider identity lets the Worker use the account-bound session.
+ const response=await route(new Request('https://worker.example/media/orbit-import',{method:'POST',headers:{
+  Origin:'https://biglwa.com',Authorization:'Bearer token-one','X-Orbit-Provider':'pinterest','Content-Type':'application/json'
+ },body:JSON.stringify({items})}),env);
+ assert.equal(response.status,200,'Pinterest expiration must not fail the Firebase-authorized import');
+ const data=await response.json();
+ assert.equal(data.imported.length,1);
+ assert.equal(data.imported[0].sourcePostId,'124');
+ const refreshed=JSON.parse(records.get('pn:session:'+sid));
+ assert.equal(refreshed.firebaseUid,'uid-one');
+ assert.equal(refreshed.access_token,'refreshed-access');
+ assert.equal(refreshed.refresh_token,previous.refresh_token,'refresh rotation fallback is retained');
+ assert.equal(records.get('pn:firebase:uid-one'),sid,'owner binding survives provider token refresh');
+});
+await check('unlinked Pinterest cannot accidentally turn into an Instagram import or log out member',async()=>{
+ records.delete('pn:firebase:uid-one');
+ const response=await route(new Request('https://worker.example/media/orbit-import',{method:'POST',headers:{
+  Origin:'https://biglwa.com',Authorization:'Bearer token-one','X-Orbit-Provider':'pinterest','Content-Type':'application/json'
+ },body:JSON.stringify({items:[{sourcePostId:'125',index:0,url:'https://i.pinimg.com/originals/another.png'}]})}),env);
+ assert.equal(response.status,401);
+ const error=await response.json();
+ assert.match(String(error.error),/Pinterest/);
+ assert.match(String(error.error),/login is still active/);
+ assert.doesNotMatch(String(error.error),/Instagram/);
+ records.set('pn:firebase:uid-one',sid);
+});
+await check('frontend waits for Firebase but never changes Big LWA login because of Pinterest',async()=>{
+ assert.ok(ui.includes('await watchAuth();'));
+ assert.ok(ui.includes('if(authUid)await restore()'));
+ assert.ok(!ui.includes("authUid=user?.uid||''"),'provider token request cannot clear the member UID');
+ assert.ok(posts.includes('"X-Orbit-Provider": source === \'pinterest\''),'request identifies source even without provider cache');
+ assert.ok(worker.includes('X-Orbit-Provider'),'worker CORS supports source header');
+ assert.ok(worker.includes("pnToken(env, { grant_type: 'refresh_token', refresh_token: session.refresh_token })"));
 });
 await check('PKCE handoff requires a matching verifier',async()=>{
  const handoff='h'.repeat(43),otherSid='n'.repeat(43),verifier='v'.repeat(43);
