@@ -215,7 +215,7 @@ let handoffPromise=null;
  }
  async function recoverOrBindPinterestSession(){
   const token=await firebaseIdToken();
-  if(!token||!authUid){resetView();return ''}
+  if(!token||!authUid){diagnostic='Pinterest authorization is awaiting account verification.';return ''}
   // A device-wide legacy credential might belong to another person who used this
   // browser. Never silently claim it for the currently signed-in account.
   const local=session();
@@ -238,11 +238,35 @@ let handoffPromise=null;
  }
 const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 function notice(text){message=text;render();let el=document.getElementById('pinterestNotice');if(!el){el=document.createElement('div');el.id='pinterestNotice';el.setAttribute('role','status');el.style.cssText='position:fixed;right:18px;bottom:18px;max-width:360px;padding:16px;background:#fff5eb;color:#302b28;border:1px solid #ccc;border-radius:12px;z-index:15000';document.body.append(el)}el.textContent=text;clearTimeout(notice.timer);notice.timer=setTimeout(()=>el.remove(),10000)}
+// A Pinterest token expiring must never affect Firebase login.
 async function api(path,body){
- const res=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session()},...(body?{body:JSON.stringify(body)}:{})});
- const data=await res.json().catch(()=>({}));
- if(!res.ok){diagnostic='Pinterest '+path+' failed (HTTP '+res.status+'): '+String(data.error||'API request rejected');if(res.status===401){save('');resetView()}throw new Error(data.error||'Pinterest is not ready yet. Please try again after setup.')}
- return data;
+ const request=async bearer=>{
+  const res=await fetch(API+path,{method:body?'POST':'GET',
+   headers:{'Content-Type':'application/json',Authorization:'Bearer '+bearer},
+   ...(body?{body:JSON.stringify(body)}:{})});
+  return {res,data:await res.json().catch(()=>({}))};
+ };
+ let response=await request(session());
+ if(response.res.status===401&&path!=='disconnect'&&path!=='session'){
+  const previous=session();
+  const recovered=await recoverOrBindPinterestSession().catch(()=>'');
+  if(recovered&&recovered!==previous)response=await request(recovered);
+ }
+ if(!response.res.ok){
+  const reason=String(response.data.error||'Pinterest request rejected.');
+  diagnostic='Pinterest '+path+' failed (HTTP '+response.res.status+'): '+reason;
+  if(response.res.status===401||response.res.status===403){
+   connected=false;
+   // Do not clear other Orbit connections, owner data or the main account.
+   diagnostic='Pinterest authorization expired. You remain signed into Big LWA; reconnect only Pinterest in Orbit.';
+   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{
+    detail:{connected:false,uid:authUid,needsReconnect:true}
+   }));
+   throw Error(diagnostic);
+  }
+  throw Error(reason);
+ }
+ return response.data;
 }
 async function run(fn){
  if(busy)return;busy=true;message='Loading Pinterest…';render();
@@ -369,7 +393,7 @@ async function connect(){await run(async()=>{
  }
  async function restore(){
   await recoverOrBindPinterestSession();
-  if(!session()){resetView();diagnostic='No linked Pinterest authorization found for this Big LWA account.';render();return}
+  if(!session()){connected=false;diagnostic='Pinterest needs reconnection; Big LWA sign-in is unchanged.';render();return}
   if(restorePromise)return restorePromise;
   restorePromise=run(async()=>{
     profile=await api('profile');
