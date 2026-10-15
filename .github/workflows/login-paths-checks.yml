@@ -7,6 +7,7 @@ on:
       - 'studio-onboarding.js'
       - 'module-pages.js'
       - 'login-path-and-guide-test.mjs'
+      - 'tutorial-symbol-key-test.mjs'
       - 'studio-layout-cache-test.mjs'
       - 'feed-auth-tools-regression-test.mjs'
       - 'veve-studio-pinterest-regression-test.mjs'
@@ -24,5 +25,6 @@ jobs:
         run: |
           node studio-layout-cache-test.mjs
           node login-path-and-guide-test.mjs
+          node tutorial-symbol-key-test.mjs
           node feed-auth-tools-regression-test.mjs
           node veve-studio-pinterest-regression-test.mjs
