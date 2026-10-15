@@ -254,3 +254,76 @@
  .module-workspace[data-module-key="notes"] .diary-section-nav button{font-size:11px!important;gap:5px;padding:8px!important}
  .module-workspace[data-module-key="notes"] .diary-section-nav button small{font-size:8px}
 }
+
+/* SQWIP horizontal screenplay pagination (letter-sized sheets).
+   Page bodies have a strict writing height measured by sqwip.js. */
+.sqwip-root .sqwip-paper-wrap{
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;
+ scroll-snap-type:x proximity;scrollbar-gutter:stable;
+ padding:24px 22px 16px!important
+}
+.sqwip-root .sqwip-paper{
+ width:max-content!important;min-width:0!important;max-width:none!important;
+ min-height:0!important;margin:0!important;padding:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important
+}
+.sqwip-root #sqwipPages{
+ display:flex!important;flex-direction:row!important;align-items:flex-start!important;
+ gap:26px!important;width:max-content!important;min-width:100%!important;
+ margin:0!important;padding:0!important
+}
+.sqwip-root #sqwipPages>.sqwip-page{
+ flex:0 0 816px!important;width:816px!important;height:1056px!important;
+ min-height:1056px!important;max-height:1056px!important;
+ padding:40px 82px 52px!important;margin:0!important;
+ border:1px solid #ddd5cc!important;border-radius:2px!important;
+ background:var(--sqwip-paper,#fffdfa)!important;
+ color:var(--sqwip-ink,#302a27)!important;
+ box-shadow:0 12px 40px #3b302326!important;
+ box-sizing:border-box!important;overflow:hidden!important;scroll-snap-align:start
+}
+.sqwip-root .sqwip-page-body{height:870px!important;min-height:870px!important;overflow:visible!important}
+.sqwip-root .sqwip-page .sqwip-paper-heading{
+ display:flex!important;justify-content:space-between!important;gap:16px!important
+}
+.sqwip-root .sqwip-page .sqwip-line{max-width:100%}
+.sqwip-root .sqwip-page .sqwip-continuation .sqwip-line-num{color:transparent!important}
+.sqwip-root .sqwip-page .sqwip-text{max-width:100%}
+.sqwip-root .sqwip-bottom{max-width:none!important;width:100%!important;margin:10px 0!important}
+.sqwip-root .sqwip-bottom .sqwip-page-nav{display:flex;gap:6px;margin-left:auto;align-items:center}
+.sqwip-root .sqwip-bottom .sqwip-page-nav button{min-height:32px;min-width:36px}
+@media(max-width:690px){
+ .sqwip-root .sqwip-paper-wrap{padding:13px 8px!important}
+ .sqwip-root #sqwipPages{gap:14px!important}
+ .sqwip-root #sqwipPages>.sqwip-page{flex-basis:816px!important;width:816px!important;padding:40px 82px 52px!important}
+ .sqwip-root .sqwip-text{font-size:12pt!important}
+ .sqwip-root .sqwip-line{grid-template-columns:24px minmax(0,1fr)!important;gap:8px!important}
+ .sqwip-root .sqwip-type-character .sqwip-text{margin-left:32%!important}
+ .sqwip-root .sqwip-type-dialogue .sqwip-text{margin-left:20%!important;margin-right:16%!important}
+ .sqwip-root .sqwip-type-parenthetical .sqwip-text{margin-left:26%!important;margin-right:20%!important}
+}
+@media print{
+ @page{size:letter;margin:0}
+ body.sqwip-print-mode .sqwip-root .sqwip-paper-wrap{
+  padding:0!important;overflow:visible!important;width:auto!important
+ }
+ body.sqwip-print-mode .sqwip-root .sqwip-paper{
+  position:static!important;width:auto!important;min-width:0!important
+ }
+ body.sqwip-print-mode .sqwip-root #sqwipPages{
+  display:block!important;width:100%!important;min-width:0!important
+ }
+ body.sqwip-print-mode .sqwip-root #sqwipPages>.sqwip-page{
+  display:block!important;position:relative!important;inset:auto!important;
+  width:8.5in!important;height:11in!important;min-height:11in!important;max-height:11in!important;
+  padding:.6in .75in!important;margin:0!important;box-shadow:none!important;border:0!important;
+  break-after:page!important;page-break-after:always!important;overflow:hidden!important
+ }
+ body.sqwip-print-mode .sqwip-root .sqwip-page-body{
+  height:9.1in!important;min-height:0!important;overflow:hidden!important
+ }
+ body.sqwip-print-mode .sqwip-root .sqwip-print-title{
+  width:8.5in!important;min-height:11in!important;margin:0!important
+ }
+}
