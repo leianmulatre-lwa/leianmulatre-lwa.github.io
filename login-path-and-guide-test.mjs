@@ -133,7 +133,7 @@ const renderHeading=new Function('document',onboarding.slice(colorStart,colorEnd
 const heading=node('h2');
 renderHeading(heading,{title:'The three colored dots',visual:'colored-dots-title'});
 assert.equal(heading.children.map(child=>child.textContent).join(''),'The three colored dots');
-const colored=heading.children.filter(child=>child.className.includes('tour-dot-letter'));
+const colored=heading.children.filter(child=>(child.className||'').includes('tour-dot-letter'));
 assert.deepEqual(colored.map(child=>[child.textContent,child.className]),[
  ['o','tour-dot-letter tour-dot-red'],
  ['o','tour-dot-letter tour-dot-yellow'],
