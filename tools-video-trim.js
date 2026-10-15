@@ -2,10 +2,10 @@
    Handles large inputs via a blob URL and real-time MediaRecorder playback,
    avoiding a full file.arrayBuffer()/FFmpeg in-memory copy. */
 export function mountVideoTrimmer(root,file,{download,onStatus,onProgress}={}){
-  let source='',cancelled=false,recording=false,recorder=null,output=[];
+  let source='',cancelled=false,recording=false,recorder=null,output=[],stopCurrent=null;
   const supported=typeof MediaRecorder!=='undefined'&&
     ('captureStream' in HTMLMediaElement.prototype||'webkitCaptureStream' in HTMLMediaElement.prototype);
-  const formats=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
+  const formats=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=avc1,mp4a.40.2','video/mp4']
     .filter(m=>typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(m));
   const safeText=text=>{const p=root.querySelector('[data-trim-status]');if(p)p.textContent=text;onStatus?.(text);};
   root.innerHTML='<h3>Trim video</h3>'+
@@ -71,7 +71,7 @@ export function mountVideoTrimmer(root,file,{download,onStatus,onProgress}={}){
     if(recording||!supported||!mime)return;
     let begin,end;
     try{[begin,end]=range()}catch(e){safeText(e.message);return}
-    media.pause();recording=true;output=[];
+    media.pause();cancelled=false;recording=true;output=[];
     exportEl.disabled=true;previewEl.disabled=true;cancelEl.hidden=false;
     safeText('Preparing the clip…');
     try{
@@ -94,9 +94,10 @@ export function mountVideoTrimmer(root,file,{download,onStatus,onProgress}={}){
         if(media.currentTime>=end-.045)stop();
       };
       function stop(){
-        media.pause();media.removeEventListener('timeupdate',onTime);
+        media.pause();media.removeEventListener('timeupdate',onTime);stopCurrent=null;
         if(recorder?.state==='recording')recorder.stop();
       }
+      stopCurrent=stop;
       recorder.start(1000);
       media.addEventListener('timeupdate',onTime);
       safeText('Trimming in real time — keep this tab open. This may take '+Math.ceil(end-begin)+' seconds.');
@@ -105,20 +106,21 @@ export function mountVideoTrimmer(root,file,{download,onStatus,onProgress}={}){
       if(cancelled)throw Error('Trim cancelled.');
       if(!output.length)throw Error('The browser produced no video data.');
       const blob=new Blob(output,{type:mime});
-      const filename=file.name.replace(/\.[^.]+$/,'')+'-trimmed.webm';
+      const extension=mime.includes('mp4')?'mp4':'webm';
+      const filename=file.name.replace(/\.[^.]+$/,'')+'-trimmed.'+extension;
       if(download)download(blob,filename);
       else{
         const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
       }
       onProgress?.(1);
-      safeText('Downloaded '+filename+' ('+(blob.size/1024/1024).toFixed(1)+' MB). WebM output; audio support depends on this browser.');
+      safeText('Downloaded '+filename+' ('+(blob.size/1024/1024).toFixed(1)+' MB). Output codec and audio support depend on the browser.');
     }catch(e){safeText(e?.message||'Trim failed. Try a shorter clip or use a desktop editor.')}
     finally{
-      media.pause();recording=false;recorder=null;output=[];
+      media.pause();stopCurrent=null;recording=false;recorder=null;output=[];
       exportEl.disabled=!supported;previewEl.disabled=false;cancelEl.hidden=true;
     }
   }
   exportEl.addEventListener('click',exportClip);
-  cancelEl.onclick=()=>{cancelled=true;if(recorder?.state==='recording')recorder.stop();media.pause();safeText('Trim stopped.');};
-  return {dispose(){cancelled=true;if(recorder?.state==='recording')try{recorder.stop()}catch{};media.pause();media.removeAttribute('src');media.load();URL.revokeObjectURL(source);root.replaceChildren()}};
+  cancelEl.onclick=()=>{cancelled=true;if(stopCurrent)stopCurrent();else if(recorder?.state==='recording')recorder.stop();media.pause();safeText('Trim stopped.');};
+  return {dispose(){cancelled=true;if(stopCurrent)stopCurrent();else if(recorder?.state==='recording')try{recorder.stop()}catch{};media.pause();media.removeAttribute('src');media.load();URL.revokeObjectURL(source);root.replaceChildren()}};
 }
