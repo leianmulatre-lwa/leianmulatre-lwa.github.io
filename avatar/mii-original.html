@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Big LWA · Original Mii Editor</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#f8f0e6;color:#3b302e;font:12px/1.5 system-ui,sans-serif}
+body{padding:10px}header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+h1{font:500 23px/1.1 Georgia,serif;margin:0}.tag{font:700 10px/1.25 system-ui;color:#865251}
+nav{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+button{padding:7px 11px;border:1px solid #c9a99b;border-radius:8px;background:#fff9f1;color:#3b302e;font:700 11px/1.2 system-ui;cursor:pointer}
+button[aria-pressed="true"]{background:#47302d;color:#fff}button:focus-visible{outline:3px solid #bc5877;outline-offset:2px}
+#player{display:grid;place-items:center;width:100%;height:365px;overflow:hidden;border:1px solid #bda99b;border-radius:11px;background:#f3e7da;position:relative}
+#player ruffle-player{display:block;width:100%;height:100%}
+#fallback{width:100%;height:390px;border:1px solid #d8c9bc;border-radius:11px;background:#fff}
+#fallback[hidden],#player[hidden]{display:none}
+#status{min-height:19px;margin:8px 0 4px;font:600 11px/1.4 system-ui}
+.note{margin:3px 0;font:10px/1.45 system-ui;color:#776962}
+@media(max-width:520px){#player{height:320px}#fallback{height:365px}}
+</style></head><body>
+<header><h1>mii editor</h1><span class="tag">BIG LWA · archive edition</span></header>
+<nav aria-label="Character maker mode">
+<button type="button" id="originalMode" aria-pressed="true">original 2007 editor</button>
+<button type="button" id="webMode" aria-pressed="false">browser-friendly editor</button>
+</nav>
+<div id="player" aria-label="Original Mii Editor from the uploaded Adobe AIR application"></div>
+<iframe id="fallback" title="Big LWA avatar editor" hidden loading="lazy" allow="clipboard-write"></iframe>
+<p id="status" role="status">Preparing your uploaded original Mii Editor…</p>
+<p class="note">Original files: <code>/MiiEditor/classicGUI.swf</code>. This is an Adobe AIR-era program; Flash emulation may not support desktop functions or native Mii export. Switch to the browser editor to save a PNG to Big LWA.</p>
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s),stage=$('#player'),fallback=$('#fallback'),status=$('#status');
+let originalStarted=false;
+function say(s){status.textContent=s;}
+function mode(which){
+ const isOriginal=which==='original';
+ stage.hidden=!isOriginal;fallback.hidden=isOriginal;
+ $('#originalMode').setAttribute('aria-pressed',String(isOriginal));
+ $('#webMode').setAttribute('aria-pressed',String(!isOriginal));
+ if(isOriginal){startOriginal();return;}
+ if(!fallback.src||fallback.getAttribute('src')===null)fallback.src='/avatar/mii-editor.html?v=20261014-browser-fallback-1';
+ say('Browser editor ready. Use Save to Big LWA for an account-backed PNG avatar.');
+}
+function startOriginal(){
+ if(originalStarted)return;originalStarted=true;
+ say('Loading the original Mii Editor SWF with a browser Flash emulator…');
+ const boot=async()=>{
+  try{
+   const api=window.RufflePlayer?.newest?.();
+   if(!api)throw Error('Flash emulator did not initialize.');
+   const player=api.createPlayer();
+   player.style.width='100%';player.style.height='100%';
+   stage.replaceChildren(player);
+   await player.ruffle().load({url:'/MiiEditor/classicGUI.swf',allowScriptAccess:false});
+   say('Original Mii Editor loaded. If AIR-only functions do not respond, use the browser-friendly editor to save an avatar.');
+  }catch(error){
+   say('The original AIR editor could not run in this browser. Choose “browser-friendly editor” to create and save your avatar.');
+   console.warn('Big LWA original Mii Editor:',error);
+  }
+ };
+ const script=document.createElement('script');
+ script.src='https://unpkg.com/@ruffle-rs/ruffle@latest/ruffle.js';
+ script.async=true;script.onload=boot;script.onerror=()=>say('The Flash emulator is unavailable. Choose the browser-friendly editor instead.');
+ document.head.append(script);
+}
+$('#originalMode').addEventListener('click',()=>mode('original'));
+$('#webMode').addEventListener('click',()=>mode('web'));
+// The fallback's PNG must reach the actual Avatar Studio iframe listener;
+// relay only the recognized image-save handshake from our same-origin child.
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin)return;
+ if(event.source===fallback.contentWindow&&event.data?.type==='biglwa:mii-created'){
+  window.parent.postMessage(event.data,location.origin);
+ }else if(event.source===window.parent&&event.data?.type==='biglwa:mii-save-result'){
+  fallback.contentWindow?.postMessage(event.data,location.origin);
+ }
+});
+mode('original');
+})();
+</script></body></html>
