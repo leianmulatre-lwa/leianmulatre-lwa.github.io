@@ -304,9 +304,16 @@
           (media?' data-biglwa-hosted="true"':' data-biglwa-hosted="pending"') +
           ' alt="Instagram media preview" loading="lazy" style="display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd">'
         : '<div class="biglwa-unavailable-media">This Instagram image is not available yet. Choose Retry saving photos to restore its stored copy.</div>';
-      var tabs = carousel ? '<div class="biglwa-instagram-tabs" aria-label="Carousel photos">' + mediaItems.map(function (_, tabIndex) {
-        return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
-      }).join('') + '</div>' : '<span class="biglwa-instagram-tabs" aria-hidden="true"></span>';
+      var controls=carousel
+        ? '<div class="instagram-carousel-dots" role="group" aria-label="Carousel positions">' +
+          mediaItems.map(function (_,pos){
+            return '<button type="button" class="instagram-carousel-dot'+(pos===0?' is-active':'')+
+              '" data-instagram-tab="'+pos+'" aria-label="Show photo '+(pos+1)+' of '+mediaItems.length+
+              '" aria-current="'+(pos===0?'true':'false')+'"></button>';
+          }).join('')+'</div>'+
+          '<button type="button" class="instagram-carousel-arrow is-prev" data-instagram-step="-1" aria-label="Previous photo">‹</button>'+
+          '<button type="button" class="instagram-carousel-arrow is-next" data-instagram-step="1" aria-label="Next photo">›</button>'
+        : '';
       var link = item.permalink || '#';
       var cardId = 'instagram-' + escapeText(item.id || ('item-' + index));
       /* The + tray belongs on every card on the wall, so these cards carry one too. The
@@ -326,12 +333,11 @@
       return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#7d3ec5;--feed-card-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999" data-instagram-index="' + index + '"' +
         ' data-post-id="' + cardId + '" data-source-id="' + escapeText(item.id || '') + '" data-send-record="' + sendRecord + '">' +
         '<div style="width:100%;padding:0">' +
-          '<div class="biglwa-instagram-strip">' +
-            tabs +
-            '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
-
-              '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram"></a>' +
-            '</div>' +
+          '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
+            '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram"></a>' +
+          '</div>' +
+          '<div class="biglwa-unified-media'+(carousel?' instagram-carousel-frame':'')+'" data-instagram-current="0">' + visual + controls + '</div>' +
+        '</div>' +
           '</div>' +
           '<div class="biglwa-unified-media">' + visual + '</div>' +
         '</div>' +
@@ -451,15 +457,18 @@
   document.addEventListener('biglwa:feed-ready', function () { renderFeed(); });
   if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
   document.addEventListener('click', function (event) {
-    var tab = event.target && event.target.closest ? event.target.closest('[data-instagram-tab]') : null;
+    var tab = event.target && event.target.closest ? event.target.closest('[data-instagram-tab],[data-instagram-step]') : null;
     if (tab) {
+      event.preventDefault();event.stopPropagation();
       var card = tab.closest('.instagram-feed-item');
       var cardIndex = card ? Number(card.getAttribute('data-instagram-index')) : -1;
       var item = state.media[cardIndex];
       var children = item && item.children && Array.isArray(item.children.data) ? item.children.data.filter(function (child) {
         return child && (child.media_url || child.thumbnail_url);
       }) : [];
-      var nextIndex = Number(tab.getAttribute('data-instagram-tab'));
+      var nextIndex = tab.hasAttribute('data-instagram-step')
+        ? (Number(card?.querySelector('[data-instagram-current]')?.dataset.instagramCurrent||0)+Number(tab.dataset.instagramStep)+children.length)%children.length
+        : Number(tab.getAttribute('data-instagram-tab'));
       var next = children[nextIndex];
       if (card && next) {
         var saved = state.hostedById[String(item.id || '')] || [];
@@ -481,8 +490,13 @@
             old.replaceWith(placeholder);
           }
         }
-        all('.biglwa-instagram-tab', card).forEach(function (button) { button.classList.remove('is-active'); });
-        tab.classList.add('is-active');
+        var frame=card.querySelector('.instagram-carousel-frame');
+        if(frame)frame.dataset.instagramCurrent=String(nextIndex);
+        all('.instagram-carousel-dot',card).forEach(function(button) {
+          var active=Number(button.dataset.instagramTab)===nextIndex;
+          button.classList.toggle('is-active',active);
+          button.setAttribute('aria-current',active?'true':'false');
+        });
       }
       return;
     }
