@@ -541,6 +541,9 @@
 /* The full-width solo layout must outrank the older hero rail rule that
    unconditionally reapplied repeat(2) even after Avatar was removed. */
 #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
+  /* A solo Aura OR solo Avatar uses the full available top row, not just one
+     of the rail's old columns. This also prevents a blank sibling-sized slot. */
+  grid-column:1/-1!important;
   grid-template-columns:minmax(0,1fr)!important;
 }
 #studioApp .hero-widget-rail>#biglwaAuraAvatarPair.is-avatar-hidden>.aura-card,
