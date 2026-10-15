@@ -1777,7 +1777,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     const visual=isVideo
       ? '<video src="'+esc(link)+'" poster="'+esc(piece.thumbnailUrl||'')+'" muted playsinline preload="none" controls></video>'
       : '<img src="'+esc(link)+'"'+(piece.thumbnailUrl&&piece.thumbnailUrl!==link?' data-archive-fallback="'+esc(piece.thumbnailUrl)+'"':'')+' alt="Archive item '+cardIndex+(total>1?' '+(index+1):'')+'" loading="lazy" decoding="async">';
-    return '<div class="instagram-archive-piece">'+visual+(total>1?'<span>'+(index+1)+'/'+total+'</span>':'')+'</div>';
+    return '<div class="instagram-archive-piece">'+visual+'</div>';
   }
 
   function archiveOpenImage(url){
@@ -1956,7 +1956,10 @@ const connect=e.target.closest('[data-orbit-connect]');
         // Carousel buttons cycle through every item without growing the card.
         const visualPieces=pieces.length?archivePieceMarkup(pieces[0],0,pieces.length,index+1):'';
         const carouselControls=pieces.length>1
-          ? '<div class="archive-carousel-actions"><button type="button" data-archive-step="-1" aria-label="Previous photo">‹</button><button type="button" data-archive-step="1" aria-label="Next photo">›</button></div>'
+          ? '<div class="archive-carousel-actions"><button type="button" data-archive-step="-1" aria-label="Previous photo">‹</button><button type="button" data-archive-step="1" aria-label="Next photo">›</button></div>'+
+            '<div class="archive-carousel-dots" role="group" aria-label="Carousel positions">'+
+             pieces.slice(0,12).map((_,n)=>'<button type="button" data-archive-index="'+n+'" class="archive-carousel-dot'+(n===0?' is-active':'')+'" aria-current="'+(n===0?'true':'false')+'" aria-label="Show photo '+(n+1)+' of '+pieces.length+'"></button>').join('')+
+            '</div>'
           : '';
         const liveSwitch=pending
           ? '<div class="archive-live is-locked"><span class="archive-live-track" aria-hidden="true"><i></i></span><b>Deleting soon</b></div>'
@@ -2060,15 +2063,23 @@ const connect=e.target.closest('[data-orbit-connect]');
     },true);
     wall?.addEventListener('click',event=>{
       const arrow=event.target.closest('[data-archive-step]');
-      if(!arrow)return;
-      const card=arrow.closest('[data-archive-id]');
+      const dot=event.target.closest('[data-archive-index]');
+      if(!arrow&&!dot)return;
+      event.preventDefault();event.stopPropagation();
+      const card=(arrow||dot).closest('[data-archive-id]');
       if(!card)return;
       const item=mediaShown.find(row=>String(row.id)===String(card.dataset.archiveId));
       if(!item)return;
       const pieces=archiveMediaPieces(item);
       if(pieces.length<2)return;
-      const index=(Number(card.dataset.archiveSlide||0)+Number(arrow.dataset.archiveStep)+pieces.length)%pieces.length;
+      const index=dot?Number(dot.dataset.archiveIndex)
+        :(Number(card.dataset.archiveSlide||0)+Number(arrow.dataset.archiveStep)+pieces.length)%pieces.length;
       card.dataset.archiveSlide=String(index);
+      card.querySelectorAll('[data-archive-index]').forEach(button=>{
+        const active=Number(button.dataset.archiveIndex)===index;
+        button.classList.toggle('is-active',active);
+        button.setAttribute('aria-current',active?'true':'false');
+      });
       card.dataset.archiveUrl=pieces[index].url;
       const frame=card.querySelector('.instagram-archive-piece');
       if(frame)frame.outerHTML=archivePieceMarkup(pieces[index],index,pieces.length,1);
