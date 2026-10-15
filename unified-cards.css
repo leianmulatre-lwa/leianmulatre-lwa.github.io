@@ -416,3 +416,35 @@
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card:is(.is-off,.is-archived) .archive-carousel-dots{
  filter:none!important;opacity:1!important;
 }
+
+/* 2026-10-14: Stable single-photo viewport for every carousel. Prevent a
+   later generic "img {height:auto;position:static}" rule from stacking
+   inactive photos vertically, which doubled photos inside one Instagram card. */
+#feedPageList :is(.biglwa-pin-post,.biglwa-instagram-card,.instagram-feed-item) .biglwa-slide{
+ position:relative!important;display:block!important;overflow:hidden!important;
+ width:100%!important;min-height:0!important;isolation:isolate!important;
+ aspect-ratio:var(--lwa-slide-ratio,4 / 5);
+}
+#feedPageList :is(.biglwa-pin-post,.biglwa-instagram-card,.instagram-feed-item) .biglwa-slide>img{
+ position:absolute!important;inset:0!important;display:block!important;
+ width:100%!important;height:100%!important;max-height:none!important;
+ margin:0!important;padding:0!important;object-fit:cover!important;
+ border-radius:0!important;opacity:0!important;visibility:hidden!important;
+ pointer-events:none!important;z-index:1!important;
+}
+#feedPageList :is(.biglwa-pin-post,.biglwa-instagram-card,.instagram-feed-item) .biglwa-slide>img.is-on{
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+}
+#feedPageList .instagram-carousel-frame{
+ display:block!important;position:relative!important;overflow:hidden!important;
+ aspect-ratio:4/5!important;contain:layout paint;
+}
+#feedPageList .instagram-carousel-frame>img[data-instagram-media]{
+ position:absolute!important;inset:0!important;display:block!important;
+ width:100%!important;height:100%!important;max-height:none!important;
+ object-fit:cover!important;margin:0!important;padding:0!important;
+}
+/* Never stack a duplicate imported photo above its own preview. */
+#feedPageList .biglwa-unified-media>img[data-instagram-media]{
+ max-width:100%!important;overflow:hidden!important;
+}
