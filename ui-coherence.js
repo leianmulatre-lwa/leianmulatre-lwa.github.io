@@ -19,20 +19,97 @@
     syncLayoutToAccount();
     return next;
   }
-  function syncLayoutToAccount(){
-    if(window.__biglwaAccountHydrated!==true)return;
-    try{
-      const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
-      const docked=readJson(DOCKED_WIDGET_KEY);
-      const order=readJson('biglwaWidgetOrder');
-      const shortcuts=readJson(NAV_SHORTCUT_KEY);
-      window.BigLWAUserDirectory?.saveCustomizations?.({layout:{
-        docked:Array.isArray(docked)?docked:[],
-        order:order&&typeof order==='object'?order:{},
-        navigation:Array.isArray(shortcuts)?shortcuts:[]
-      }});
-    }catch{}
+  // Layout is account-scoped. Browser boot may restore it, but ONLY an
+  // intentional user interaction is allowed to write back to the account.
+  const LAYOUT_LOCAL_PREFIX='biglwaStudioLayoutV4:';
+  const IMPORTANT_FIRST=['politc','politic','tools','calendar','map','projects','notes','diary','stream','feed','archive','boards','library','games','music','aura'];
+  const layoutUid=()=>String(window.__biglwaIdentity?.uid||'guest');
+  const readJson=(key,fallback=null)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
+  const scopedLayoutKey=()=>LAYOUT_LOCAL_PREFIX+layoutUid();
+  const scopedLayout=()=>readJson(scopedLayoutKey(),null);
+  let cloudLayoutTimer=0;
+  function defaultPriority(key){
+    const i=IMPORTANT_FIRST.indexOf(String(key||'').toLowerCase());
+    return i<0?IMPORTANT_FIRST.length:i;
   }
+  function sortPreferred(items,identify){
+    return items.map((item,i)=>({item,i,key:identify(item)}))
+      .sort((a,b)=>defaultPriority(a.key)-defaultPriority(b.key)||a.i-b.i)
+      .map(x=>x.item);
+  }
+  function studioParents(app){
+    // Several old layouts have an unnamed masonry parent, so their order was
+    // never persisted. Give each movable region one permanent, stable key.
+    const masonry=$('.masonry',app);
+    if(masonry&&!masonry.id)masonry.id='biglwaStudioMasonry';
+    const rail=$('.hero-widget-rail',app);
+    if(rail&&!rail.id)rail.id='heroWidgetRail';
+    return [rail,masonry].filter(Boolean);
+  }
+  function realDomOrder(app){
+    const order={};
+    for(const parent of studioParents(app)){
+      const children=[...parent.children].filter(el=>el.dataset.widgetId);
+      if(children.length)order[parent.id]=children.map(el=>el.dataset.widgetId);
+    }
+    return order;
+  }
+  function applyStudioOrder(app,order){
+    if(!app)return;
+    for(const parent of studioParents(app)){
+      const saved=Array.isArray(order?.[parent.id])?order[parent.id]:null;
+      const elements=[...parent.children].filter(el=>el.dataset.widgetId);
+      if(!elements.length)continue;
+      const rank=new Map((saved||[]).map((id,i)=>[String(id),i]));
+      const ordered=saved
+        ? elements.map((el,i)=>({el,i})).sort((a,b)=>{
+            const ra=rank.has(a.el.dataset.widgetId)?rank.get(a.el.dataset.widgetId):10000+defaultPriority(a.el.dataset.widgetRoute||a.el.dataset.widgetId);
+            const rb=rank.has(b.el.dataset.widgetId)?rank.get(b.el.dataset.widgetId):10000+defaultPriority(b.el.dataset.widgetRoute||b.el.dataset.widgetId);
+            return ra-rb||a.i-b.i;
+          }).map(x=>x.el)
+        : sortPreferred(elements,el=>el.dataset.widgetRoute||el.dataset.widgetId);
+      ordered.forEach(el=>parent.appendChild(el));
+    }
+  }
+  function restoreLocalStudioOrder(app){
+    if(!app)return;
+    const uid=layoutUid();
+    const saved=scopedLayout();
+    const legacy=readJson('biglwaWidgetOrder',{});
+    const order=saved?.order&&typeof saved.order==='object'?saved.order:legacy;
+    if(app.dataset.biglwaLayoutAppliedUid!==uid){
+      applyStudioOrder(app,order&&Object.keys(order).length?order:null);
+      app.dataset.biglwaLayoutAppliedUid=uid;
+    }
+  }
+  function syncLayoutToAccount(){
+    // Call only after manual reorder, minimize/restore or shortcut modification.
+    const app=$('#studioApp');
+    if(!app)return;
+    const now=Date.now();
+    const snapshot={
+      order:realDomOrder(app),
+      docked:readJson(DOCKED_WIDGET_KEY,[]),
+      navigation:readJson(NAV_SHORTCUT_KEY,[]),
+      updatedAtMs:now
+    };
+    try{
+      localStorage.setItem('biglwaWidgetOrder',JSON.stringify(snapshot.order));
+      localStorage.setItem(scopedLayoutKey(),JSON.stringify(snapshot));
+    }catch{}
+    clearTimeout(cloudLayoutTimer);
+    cloudLayoutTimer=setTimeout(async()=>{
+      if(window.__biglwaAccountHydrated!==true||!window.BigLWAUserDirectory?.saveCustomizations)return;
+      const latest=scopedLayout();
+      if(!latest||latest.updatedAtMs!==snapshot.updatedAtMs)return;
+      await window.BigLWAUserDirectory.saveCustomizations({layout:snapshot});
+    },650);
+  }
+  window.BigLWAStudioLayout={
+    snapshot:()=>scopedLayout(),
+    save:()=>syncLayoutToAccount(),
+    apply:()=>{const app=$('#studioApp');if(app)applyStudioOrder(app,scopedLayout()?.order)}
+  };
 
   function readNavigationShortcuts(fallback=[]){
     try{
@@ -41,10 +118,10 @@
     }catch{}
     return [...new Set(fallback.map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
   }
-  function writeNavigationShortcuts(items){
+  function writeNavigationShortcuts(items,persist=true){
     const next=[...new Set((items||[]).map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
     try{localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(next))}catch{}
-    syncLayoutToAccount();
+    if(persist)syncLayoutToAccount();
     return next;
   }
 
@@ -55,6 +132,10 @@
       #studioApp .widget-drag-handle{position:absolute!important;top:13px!important;left:50%!important;z-index:20!important;display:grid!important;place-items:center!important;width:23px!important;height:18px!important;margin:0!important;padding:0!important;border:0!important;border-radius:6px!important;background:rgba(55,47,43,.10)!important;color:var(--widget-muted,#746e68)!important;cursor:grab!important;touch-action:none!important;line-height:1!important;transform:translateX(-50%)!important}
       #studioApp .widget-drag-handle:active{cursor:grabbing!important}
       #studioApp .widget-drag-handle svg{width:12px!important;height:12px!important;display:block!important}
+      #studioApp .biglwa-order-sr-status{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}
+      #studioApp [data-studio-drag-handle]:focus-visible{outline:3px solid #427d5f!important;outline-offset:3px!important}
+      @media(prefers-reduced-motion:reduce){#studioApp .biglwa-drop-slot{transition:none!important;transform:none!important}}
+
       #studioApp .widget-drag-handle:focus-visible{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:2px}
       #studioApp .topbar{grid-template-columns:minmax(150px,180px) minmax(360px,1fr) minmax(250px,350px)!important;gap:14px!important;align-items:center!important}
       #studioApp .topbar::before{content:none!important;display:none!important}
@@ -452,8 +533,14 @@
     if(!initialNavigationShortcuts?.length)return;
     let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
     let hasSavedShortcuts=false;try{hasSavedShortcuts=localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
-    if(!hasSavedShortcuts)shortcuts=initialNavigationShortcuts.filter(key=>navigationCatalog.has(key)).slice(0,SHORTCUT_LIMIT);
-    shortcuts=writeNavigationShortcuts(shortcuts);
+    if(!hasSavedShortcuts){
+      // Default a useful accessibility-first dock once. Existing saved orders
+      // are always honored, including people who choose another arrangement.
+      const choices=['politc','tools','calendar','map','projects','diary','notes','feed','archive'];
+      shortcuts=[...choices.filter(k=>navigationCatalog.has(k)),
+        ...initialNavigationShortcuts.filter(k=>navigationCatalog.has(k))].filter((k,i,a)=>a.indexOf(k)===i).slice(0,SHORTCUT_LIMIT);
+    }
+    shortcuts=writeNavigationShortcuts(shortcuts,false);
     shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
     availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
@@ -765,8 +852,9 @@
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
       if(minimized.includes(widget.dataset.widgetId)){widget.classList.add('widget-is-minimized','widget-is-docked');addRestore(widget)}else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
     });
-    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
-    saveMinimized();
+    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
+    // Never save during startup or on periodic run(): restoring the local
+    // state is not a user edit and must not overwrite account settings.
     syncDock();syncPrimaryWidgetDock(app);
     if(document.documentElement.dataset.biglwaWidgetCaptureBound!=='1'){
       document.documentElement.dataset.biglwaWidgetCaptureBound='1';
@@ -814,25 +902,39 @@
       const red=event.target.closest('[data-dock-widget]');
       if(red){event.preventDefault();event.stopPropagation();const widget=red.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized','widget-is-docked');addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
     });
-    const orderKey='biglwaWidgetOrder';
-    const readOrder=()=>{try{return JSON.parse(localStorage.getItem(orderKey)||'{}')}catch{return{}}};
+    studioParents(app);
+    restoreLocalStudioOrder(app);
     const writeOrder=()=>{
-      const order=readOrder();
-      $$(selector,app).forEach(w=>{
-        const p=w.parentNode;if(!p||!p.id)return;
-        const id=w.dataset.widgetId;if(!id)return;
-        if(!order[p.id])order[p.id]=[];
-        const list=order[p.id];
-        if(!list.includes(id))list.push(id);
-      });
-      Object.keys(order).forEach(k=>{if(!$('#'+CSS.escape(k),app))delete order[k]});
-      try{localStorage.setItem(orderKey,JSON.stringify(order))}catch{}
+      const snapshot=realDomOrder(app);
+      try{localStorage.setItem('biglwaWidgetOrder',JSON.stringify(snapshot))}catch{}
       syncLayoutToAccount();
     };
-    const savedOrder=readOrder();
-    Object.keys(savedOrder).forEach(key=>{
-      const parent=$('#'+CSS.escape(key),app);if(!parent)return;
-      savedOrder[key].forEach(id=>{const w=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(w&&w.parentNode===parent)parent.appendChild(w)});
+    // Handles support keyboard reordering for people who cannot drag.
+    $$('[data-studio-drag-handle]',app).forEach(handle=>{
+      handle.setAttribute('aria-keyshortcuts','Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown');
+      handle.title='Drag to reorder, or hold Alt and press an arrow key';
+    });
+    let reorderStatus=$('#biglwaStudioOrderStatus',app);
+    if(!reorderStatus){
+      reorderStatus=document.createElement('span');
+      reorderStatus.id='biglwaStudioOrderStatus';reorderStatus.setAttribute('role','status');
+      reorderStatus.setAttribute('aria-live','polite');
+      reorderStatus.className='biglwa-order-sr-status';
+      app.append(reorderStatus);
+    }
+    app.addEventListener('keydown',event=>{
+      const handle=event.target.closest?.('[data-studio-drag-handle]');
+      if(!handle||!event.altKey||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      const widget=handle.closest('[data-widget-id]'),parent=widget?.parentElement;
+      if(!widget||!parent)return;
+      const siblings=[...parent.children].filter(el=>el.dataset.widgetId);
+      const at=siblings.indexOf(widget),direction=['ArrowLeft','ArrowUp'].includes(event.key)?-1:1;
+      const other=siblings[at+direction];if(!other)return;
+      event.preventDefault();event.stopPropagation();
+      if(direction<0)parent.insertBefore(widget,other);else parent.insertBefore(other,widget);
+      writeOrder();handle.focus({preventScroll:true});
+      reorderStatus.textContent=(widget.dataset.widgetLabel||widget.dataset.widgetId)+
+        ' moved to position '+(at+direction+1)+' of '+siblings.length+'. Layout saved.';
     });
     let dragStart=null,ghost=null,dragMove=0,dragSlot=null,dragOffX=0,dragOffY=0;
     app.addEventListener('pointerdown',event=>{
@@ -873,6 +975,7 @@
         const before=event.clientY<dragSlot.getBoundingClientRect().top+dragSlot.getBoundingClientRect().height/2;
         parent.insertBefore(widget,before?dragSlot:dragSlot.nextSibling);
         writeOrder();
+        reorderStatus.textContent=(widget.dataset.widgetLabel||widget.dataset.widgetId)+' moved. Layout saved.';
       }
       if(dragSlot)dragSlot.classList.remove('biglwa-drop-slot');
       if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
@@ -965,11 +1068,23 @@
     if(custom.appearance&&typeof custom.appearance==='object'){try{localStorage.setItem('biglwaWidgetStyle',JSON.stringify(custom.appearance))}catch{}}
     if(custom.wallpaper&&typeof custom.wallpaper==='object'){try{localStorage.setItem('biglwaWallpaperSettings',JSON.stringify(custom.wallpaper))}catch{}}
     if(custom.layout&&typeof custom.layout==='object'){
-      const layout=custom.layout;
-      if(Array.isArray(layout.docked)){try{localStorage.setItem('biglwaDockedWidgetsV3',JSON.stringify(layout.docked))}catch{}}
-      if(layout.order&&typeof layout.order==='object'){try{localStorage.setItem('biglwaWidgetOrder',JSON.stringify(layout.order))}catch{}}
-      if(Array.isArray(layout.navigation)){try{localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(layout.navigation))}catch{}}
-      applyRemoteLayout(layout);
+      const remoteLayout=custom.layout,local=scopedLayout();
+      // Never allow a delayed Firebase read to jump widgets back after the
+      // owner has reordered them on this device. Newer timestamps win.
+      const localTime=Number(local?.updatedAtMs)||0;
+      const remoteTime=Number(remoteLayout?.updatedAtMs)||0;
+      const chosen=localTime>remoteTime?local:remoteLayout;
+      if(chosen&&typeof chosen==='object'){
+        try{
+          localStorage.setItem(scopedLayoutKey(),JSON.stringify(chosen));
+          if(Array.isArray(chosen.docked))localStorage.setItem(DOCKED_WIDGET_KEY,JSON.stringify(chosen.docked));
+          if(chosen.order&&typeof chosen.order==='object')localStorage.setItem('biglwaWidgetOrder',JSON.stringify(chosen.order));
+          if(Array.isArray(chosen.navigation))localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(chosen.navigation));
+        }catch{}
+        applyRemoteLayout(chosen);
+        applyStudioOrder($('#studioApp'),chosen.order);
+        syncSidebarShortcutSystem();
+      }
     }
     try{window.BIGLWAStudioAppearance?.apply?.(custom)}catch{}
   }
@@ -1312,7 +1427,7 @@
     }
   }
 
-  function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
   if(document.documentElement.dataset.biglwaCustomizationSyncBound!=='1'){
     document.documentElement.dataset.biglwaCustomizationSyncBound='1';
     window.addEventListener('biglwa:customization-remote',event=>{
