@@ -629,6 +629,8 @@ function activate(profile){
   document.documentElement.classList.add("biglwa-preview-mode");
   showStudioScreen();
   applyIdentity(profile);
+  // Announce the public profile owner, never the viewer's own Firebase UID.
+  window.dispatchEvent(new CustomEvent('biglwa:public-profile-ready',{detail:{uid:profile.uid,username:profile.username}}));
   renderSocials(profile);
   applyLook(profile.look);
   buildBanner();
