@@ -4,7 +4,7 @@
 (()=>{
   if(window.BigLWAVeve)return;
   const CDN='https://www.gstatic.com/firebasejs/12.18.0/';
-  const groups=['photos','sqwibs','pinterest','rooms','politc','mcm','games','books','closet','ads'];
+  const groups=['politc','photos','sqwibs','pinterest','rooms','games','books','closet','mcm','ads'];
   const names={photos:'collective photos',sqwibs:'sqwibs',pinterest:'pinterest vibe',rooms:'the lounge',politc:'politc',mcm:'mcm',games:'arcade',books:'books',closet:'closet',ads:'sponsored'};
   const route={rooms:'rooms',politc:'politc',mcm:'politc',games:'games',books:'library',closet:'closet',pinterest:'boards',photos:'feed',sqwibs:'notes'};
   const e=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -71,7 +71,8 @@
         const hash=x=>{let h=2166136261;for(const c of day+String(x.id||'')){h=Math.imul(h^c.charCodeAt(0),16777619)}return h>>>0;};
         return hash(a)-hash(b);
       }
-      return time(b.createdAt||b.sourceCreatedAt)-time(a.createdAt||a.sourceCreatedAt);
+      const dateDiff=time(b.createdAt||b.sourceCreatedAt)-time(a.createdAt||a.sourceCreatedAt);
+      return dateDiff||String(a.id||'').localeCompare(String(b.id||''));
     });
   }
   async function load(){
@@ -261,7 +262,7 @@
     const ordered=state.prefs.sections.filter(k=>state.prefs.enabled.includes(k)&&(state.active==='all'||state.active===k));
     // CSS columns flow top-to-bottom before moving right. Appending all photos
     // and then all resource cards made the resources stack in the last column.
-    // Weave real public photos and the non-image cards into one stable daily mix,
+    // Weave public photos and non-image cards into one stable account layout,
     // without changing the sort order of the photos themselves.
     const tileNodes=(markup)=>{
       const template=document.createElement('template');
@@ -278,19 +279,16 @@
         (tile.includes('class="veve-tile veve-photo"')?images:extras).push(tile);
       }
     }
-    // Deterministic per day: reloading the page won't shuffle cards in front
-    // of someone's pointer. Do not fake any engagement or alter privacy rules.
-    const salt=new Date().toISOString().slice(0,10);
+    // Never reshuffle convenience areas because the date changed.
+    // Account and section choices determine stable positions.
+    const salt=String(state.uid||'guest')+'|'+ordered.join(',');
     let seed=[...salt].reduce((n,c)=>((n*31+c.charCodeAt(0))>>>0),2166136261);
     const random=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;};
     const mixedExtras=[...extras];
-    for(let i=mixedExtras.length-1;i>0;i--){
-      const j=Math.floor(random()*(i+1));[mixedExtras[i],mixedExtras[j]]=[mixedExtras[j],mixedExtras[i]];
-    }
     const mixed=[];
     if(!images.length)mixed.push(...mixedExtras);
     else {
-      // Spread resources into roughly even slots, jittered one image either way.
+      // Spread resources into predictable slots with fixed minimal jitter.
       // Keep the photo order consistent with Sort while avoiding resource clusters.
       const positions=[];
       for(let k=0;k<mixedExtras.length;k++){
