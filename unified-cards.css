@@ -448,3 +448,28 @@
 #feedPageList .biglwa-unified-media>img[data-instagram-media]{
  max-width:100%!important;overflow:hidden!important;
 }
+
+/* Collective Feed uses the same tactile lift as Boards, without changing the
+   masonry geometry, keyboard order or hit targets on each hover. */
+@media (hover:hover) and (pointer:fine){
+ #feedPageList>:is(.biglwa-pin-post,.instagram-feed-item,.pinterest-feed-item,.facebook-feed-item){
+  transform:translate3d(0,0,0) scale(1)!important;
+  transform-origin:center center!important;
+  transition:transform .23s cubic-bezier(.2,.7,.2,1),box-shadow .23s ease!important;
+  will-change:auto;
+ }
+ #feedPageList>:is(.biglwa-pin-post,.instagram-feed-item,.pinterest-feed-item,.facebook-feed-item):is(:hover,:focus-within){
+  transform:translate3d(0,-5px,0) scale(1.008)!important;
+  z-index:8!important;
+  box-shadow:var(--feed-card-shadow,3px 4px 0 var(--feed-card-rim,#c04d63)),0 16px 22px -13px #2112166b!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #feedPageList>:is(.biglwa-pin-post,.instagram-feed-item,.pinterest-feed-item,.facebook-feed-item){
+  transition:none!important;transform:none!important;will-change:auto!important;
+ }
+ #feedPageList>:is(.biglwa-pin-post,.instagram-feed-item,.pinterest-feed-item,.facebook-feed-item):is(:hover,:focus-within){
+  transform:none!important;
+  outline:2px solid var(--feed-card-rim,#ad6587);outline-offset:3px;
+ }
+}
