@@ -19,7 +19,8 @@
   will-change:transform}
 .biglwa-mc-stage .biglwa-mc-part{position:absolute;transform-style:preserve-3d}
 .biglwa-mc-stage .biglwa-mc-face{position:absolute;display:block;box-sizing:border-box;
-  background-repeat:no-repeat;image-rendering:pixelated;backface-visibility:hidden}
+  background-color:#bf9472;background-repeat:no-repeat;image-rendering:pixelated;backface-visibility:hidden}
+.biglwa-mc-stage .biglwa-mc-hat .biglwa-mc-face{background-color:transparent}
 .biglwa-mc-stage .biglwa-mc-help{position:absolute;bottom:5px;right:8px;
   font:600 9px/1.2 system-ui;color:inherit;opacity:.62;pointer-events:none}
 .biglwa-mc-stage.biglwa-mc-large{height:286px;min-height:230px;
