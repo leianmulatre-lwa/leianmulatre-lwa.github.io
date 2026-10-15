@@ -86,7 +86,16 @@ assert.match(veve, /where\('state','==','approved'\)/);
 assert.match(veve, /BigLWASqwibs\.publicSqwibs/);
 assert.match(veve, /vevePrefs/);
 assert.match(instagramOrbit, /biglwaFeedImportStatusRail/);
-assert.match(avatarStudio, /skinview3d\.bundle\.min\.js/);
+const minecraftModel=read('avatar/minecraft-mannequin.js');
+assert.match(avatarStudio, /\/avatar\/minecraft-mannequin\.js/);
+assert.match(avatarStudio, /renderMinecraftModel/);
+assert.match(avatarStudio, /data-avatar-kind="minecraft"/);
+assert.match(avatarStudio, /data-minecraft-save/);
+assert.match(minecraftModel, /function bodyPart/);
+assert.match(minecraftModel, /function makeFace/);
+assert.match(minecraftModel, /function defaultSkin/);
+assert.match(minecraftModel, /pointermove/);
+assert.doesNotMatch(avatarStudio, /skinview3d\.bundle\.min\.js/);
 assert.match(avatarStudio, /studioAvatar:/);
 // The uploaded 2007 original is Adobe AIR, not browser-native. Do not
 // show a dead loader or substitute editor while presenting it as the original.
