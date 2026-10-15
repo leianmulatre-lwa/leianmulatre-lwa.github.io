@@ -97,13 +97,15 @@ assert.match(minecraftModel, /function defaultSkin/);
 assert.match(minecraftModel, /pointermove/);
 assert.doesNotMatch(avatarStudio, /skinview3d\.bundle\.min\.js/);
 assert.match(avatarStudio, /studioAvatar:/);
-// The uploaded 2007 original is Adobe AIR, not browser-native. Do not
-// show a dead loader or substitute editor while presenting it as the original.
-assert.match(avatarStudio, /biglwa-mii-legacy-status/);
-assert.match(avatarStudio, /github\.com\/leianmulatre-lwa\/leianmulatre-lwa\.github\.io\/tree\/main\/MiiEditor/);
+// The original proprietary AIR archive stays intact, while our independent
+// HTML5 character port is now usable in Studio and games without Flash/Ruffle.
+assert.match(avatarStudio, /<iframe id="biglwaMiiEditorFrame"/);
+assert.match(avatarStudio, /\/avatar\/mii-editor\.html/);
+assert.match(avatarStudio, /biglwa:mii-created/);
+assert.match(avatarStudio, /biglwa:mii-save-result/);
+assert.match(avatarStudio, /preset:validateMiiPreset\(preset\)/);
 assert.match(read('avatar/mii-original.html'), /MiiEditor\/classicGUI\.swf/);
 assert.doesNotMatch(read('avatar/mii-original.html'), /ruffle|mii-editor\.html|<iframe/i);
-assert.doesNotMatch(avatarStudio, /<iframe id="biglwaMiiEditorFrame"/);
 assert.match(avatarStudio, /profileAvatarEditor/);
 assert.match(avatarStudio, /data-avatar-widget-action="edit"/);
 assert.doesNotMatch(avatarStudio, /data-avatar-edit>/);
@@ -117,6 +119,13 @@ assert.ok(fs.existsSync('avatar/mii-editor.html'),'Missing on-site avatar editor
 const avatarMaker=read('avatar/mii-editor.html');
 assert.match(avatarMaker, /biglwa:mii-created/);
 assert.match(avatarMaker, /Save to Big LWA/);
+assert.match(avatarMaker, /biglwa-character-v1/);
+assert.match(avatarMaker, /standaloneSave/);
+assert.match(avatarMaker, /biglwa:mii-ready/);
+assert.match(read('arcade-puzzles.html'), /data-tab="quest"/);
+assert.match(read('avatar/arcade-character.js'), /biglwaQuestCompleted/);
+assert.match(modules, /character quest/);
+assert.match(veve, /id:'quest'/);
 assert.match(avatarStudio, /\/avatar\/unity\/index\.html/);
 
 assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
