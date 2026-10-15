@@ -283,6 +283,10 @@
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched before avatar was saved.');
       state.avatar={type:kind,url:result.url,...(kind==='mii'&&preset?{preset:validateMiiPreset(preset)}:{})};
       showAvatar();setStatus(kind==='minecraft'?'Minecraft skin saved to your 3D avatar.':'Avatar saved to your BIG LWA account.');
+      try{
+        const channel=new BroadcastChannel('biglwa-avatar');
+        channel.postMessage({type:'saved',uid});channel.close();
+      }catch{}
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:kind}}));
       return true;
     }catch(error){setStatus(error?.message||'Avatar could not be saved.');return false;}
