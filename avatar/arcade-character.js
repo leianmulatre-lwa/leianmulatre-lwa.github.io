@@ -43,7 +43,7 @@ function refreshIdentity(){
   detail.replaceChildren(document.createTextNode(signedIn
     ?(character.url?'Character connected to your account. ':'Save a character to your account. ')
     :'Sign in and save a character to play as them. '));
-  const editor=document.createElement('a');editor.href='/avatar/mii-editor.html';
+  const editor=document.createElement('a');editor.href='/avatar/mii-editor.html?v=20261014-webport-2';
   editor.textContent='Edit character ↗';detail.append(editor);
   portrait(character.url,character.type,name);
   draw();
