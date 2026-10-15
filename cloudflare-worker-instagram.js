@@ -414,7 +414,7 @@ function json(body, status, request, env) {
 function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Instagram-Session, X-Pinterest-Session',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Instagram-Session, X-Pinterest-Session, X-Orbit-Provider',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Vary': 'Origin'
   };
