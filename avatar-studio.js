@@ -420,6 +420,9 @@
       card.className='biglwa-avatar-card';card.setAttribute('aria-label','Avatar Studio widget');
       card.dataset.search='avatar mii minecraft imvu character';
       rail.append(card);render();restore();
+    }else if(!one('#biglwaAvatarMedia',one('#studioAvatarCard'))){
+      // Recover a widget whose children were replaced by Studio layout restore.
+      render();restore();
     }
     position();return true;
   }
@@ -537,9 +540,11 @@
     const paletteWatch=new MutationObserver(()=>requestAnimationFrame(position));
     paletteWatch.observe(document.body,{attributes:true,attributeFilter:['class','style']});
     paletteWatch.observe(document.documentElement,{attributes:true,attributeFilter:['class','style']});
-    let count=0;const timer=setInterval(()=>{mount();if(++count>60)clearInterval(timer)},600);
+    let count=0;const timer=setInterval(()=>{if(mount()||++count>120)clearInterval(timer)},600);
     window.addEventListener('resize',()=>requestAnimationFrame(position));
     window.addEventListener('pageshow',mount);
+    window.addEventListener('biglwa:session-verified',()=>requestAnimationFrame(()=>{mount();restore()}));
+    document.addEventListener('biglwa:module-close',()=>requestAnimationFrame(mount));
     window.addEventListener('biglwa:identity-updated',()=>{clearMinecraftDraft();appearanceUid=null;state.loadedUid='';restore();mount()});
     mount();mountEditor();watchAura();
   }
