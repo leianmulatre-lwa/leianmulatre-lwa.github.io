@@ -22,9 +22,9 @@ const checks=[
  ['Studio tutorial optional and dismissible',onboarding.includes('data-tour-dismiss')&&onboarding.includes('is-tutorial-dismissed')],
  ['Tutorial dismissal stored per user',onboarding.includes('biglwaStudioTutorialDismissed:v1:')&&onboarding.includes('studioTutorialDismissed:true')],
  ['Tutorial can be reopened from Settings',settings.includes('/studio?tutorial=1')],
- ['Journal initial shifted down',modules.includes('top:34%!important')],
+ ['Journal initial shifted down',modules.includes('top:37%!important')],
  ['Supporter carousel uses bare PNG logos',brand.includes('.supporter-logo img')&&brand.includes('background:transparent!important')],
- ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&index.includes('pinterest-orbit.js?v=20261014-expiry-board-publication-22')],
+ ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&index.includes('pinterest-orbit.js?v=20261014-session-isolation-23')],
  ['Board publish CSS loads',pinterest.includes('pinterest-boards.css?v=20261014-board-publish-4')&&boardsCss.includes('pn-board-publish-tools')]
 ];
 for(const [name,ok] of checks)console.log((ok?'PASS':'FAIL')+' · '+name);

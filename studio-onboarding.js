@@ -7,13 +7,17 @@
  window.__biglwaStudioOnboarding=true;
  const DISMISSED='biglwaStudioTutorialDismissed:v1:';
  const steps=[
-  {title:'Welcome to Big LWA',area:'Studio',body:'This is your creative home. Your Studio holds your work, profile and widgets. Move tools where they feel convenient — your arrangement is saved.'},
-  {title:'Find your way',area:'Studio',body:'Use the left shortcuts and the top navigation to open tools. Keyboard users can focus a widget handle, hold Alt and use the arrow keys to reorder it.'},
-  {title:'Discover with Veve',area:'Veve',key:'veve',body:'Veve is an image-first discovery wall with public photos, games and ideas. Select photos to open their full captions, and customize which sections appear.'},
-  {title:'Connect in Orbit',area:'Orbit',key:'orbit',body:'Orbit brings connected services together. Imported material starts privately; choose what to publish to Collective Feed.'},
-  {title:'Create and collect',area:'Boards',key:'boards',body:'Collect Pinterest Pins in Boards, lock personal collections, or explicitly publish selected Pins to Veve. A locked board never publishes automatically.'},
-  {title:'Learn and make',area:'Politc / Tools',key:'tools',body:'Politc offers civic resources. Tools provides local file utilities, including video trimming. Open either when you need it.'},
-  {title:'Keep what matters',area:'Journal',key:'diary',body:'Journal stays private unless you deliberately choose to share it. Your saved Studio layout stays in place after refreshing or changing devices.'}
+  {"title":"Your creative Studio","area":"Studio","body":"Your Studio holds your profile, projects, music and widgets. The left sidebar is your shortcut desk; the header opens full pages."},
+  {"title":"Symbol key","area":"Studio icons","body":"Hanger = Projects, chess piece = Arcade, notebook = Journal, map pin = Map, planets = Orbit connections, Feed = public posts and Archive = your saved media."},
+  {"title":"The three colored dots","area":"Widget and post controls","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
+  {"title":"Your workspace","area":"Studio","body":"Drag widget handles to arrange the Studio, use controls to customize it, and view your own public profile as others see it. Layout preferences are attached to your Big LWA account."},
+  {"title":"Connect your world","area":"Orbit","key":"orbit","body":"Orbit links external accounts such as Pinterest and Instagram. Imported media goes first to your account-linked private collection for review. If a provider session expires, reconnect only that provider."},
+  {"title":"Where do imports go?","area":"Orbit → Archive","key":"archive","body":"Imported photos and Pins are saved in your Archive/import library, NOT posted publicly by connection alone. Select media and explicitly publish to Collective Feed. Archiving or switching Live off hides a published post."},
+  {"title":"Collective Feed vs Veve","area":"Veve","key":"veve","body":"Collective Feed contains content users deliberately share. Veve is the wider discovery wall for public photos, Sqwibs, games, and ideas. Importing through Orbit does not automatically publish to Veve."},
+  {"title":"Boards and privacy","area":"Boards","key":"boards","body":"Boards gather Pins and collections. Private and locked boards do not automatically publish; choose what to share."},
+  {"title":"Journal, Sqwib and Sqwip","area":"Journal","key":"diary","body":"Journal entries are private until their owner turns on sharing. Sqwib sharing/reposting follows the author’s permissions. Sqwip creates screenplay pages to the right."},
+  {"title":"Creative tools","area":"Tools","key":"tools","body":"Tools converts files and trims video locally. ArtCraft has browser creative editors when the installed versions are available. Export your result to keep a copy."},
+  {"title":"All yours","area":"Studio","body":"The pink tutorial card can be removed with X. Reopen this guide anytime from the Studio sidebar. You control publication, deletion, and public visibility."}
  ];
  let index=0,card=null,dialog=null,currentUid='guest';
  const $=(q,root=document)=>root.querySelector(q);
@@ -38,6 +42,16 @@
     border-radius:99px!important;background:#fff5e4ed!important;color:#382827!important;
     font:750 11px/1.1 system-ui!important;cursor:pointer!important;min-height:32px!important
    }
+   #studioApp .manifesto-card .biglwa-tour-actions{z-index:100!important}
+   #studioApp .manifesto-card .biglwa-tour-actions button[data-tour-start]{min-width:136px!important}
+   #studioApp .sidebar .biglwa-guide-launcher{
+    display:flex!important;align-items:center!important;width:calc(100% - 20px)!important;
+    margin:10px!important;padding:10px 12px!important;cursor:pointer!important;text-align:left!important;
+    border:1px solid rgba(170,112,123,.45)!important;border-radius:11px!important;
+    background:#f8e3e9!important;color:#422735!important;font:800 11px/1.35 system-ui!important;
+    position:relative!important;z-index:10!important
+   }
+   #studioApp .sidebar .biglwa-guide-launcher:focus-visible{outline:3px solid #884652!important;outline-offset:2px}
    #studioApp .manifesto-card .biglwa-tour-actions button[data-tour-dismiss]{
     width:34px!important;min-width:34px!important;padding:7px!important;font-size:17px!important
    }
@@ -115,7 +129,18 @@
   style();index=0;ensureDialog();renderStep();
   if(!dialog.open)dialog.showModal();
  }
+ function ensureSidebarGuide(){
+  const sidebar=$('#studioApp .sidebar');if(!sidebar)return;
+  if($('.biglwa-guide-launcher',sidebar))return;
+  const button=document.createElement('button');
+  button.type='button';button.className='biglwa-guide-launcher';
+  button.textContent='ⓘ Site guide · symbols & tools';
+  button.setAttribute('aria-label','Open guide to Big LWA symbols, controls, Orbit and publishing');
+  button.addEventListener('click',openTour);
+  (sidebar.querySelector('.sidebar-top')||sidebar).append(button);
+ }
  function attach(){
+  style();ensureSidebarGuide();
   const next=$('#studioApp .manifesto-card');
   if(!next)return false;
   card=next;style();currentUid=uid();
@@ -123,7 +148,7 @@
   if(!$('.biglwa-tour-actions',card)){
    const actions=document.createElement('div');actions.className='biglwa-tour-actions';
    const start=document.createElement('button');start.type='button';start.dataset.tourStart='';
-   start.textContent='Explore Big LWA';start.setAttribute('aria-label','Start the Big LWA website tutorial');
+   start.textContent='? Take the site tour';start.setAttribute('aria-label','Start the Big LWA website tutorial');
    const remove=document.createElement('button');remove.type='button';remove.dataset.tourDismiss='';
    remove.textContent='×';remove.title='Remove tutorial card';remove.setAttribute('aria-label','Remove tutorial card from Studio');
    actions.append(start,remove);card.append(actions);
@@ -145,9 +170,17 @@
  });
  document.addEventListener('biglwa:module-close',attach);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});
- if(!attach()){
-  const observer=new MutationObserver(()=>{if(attach())observer.disconnect()});
-  observer.observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(()=>observer.disconnect(),20000);
- }
+ // Reapply the guide when delayed Studio layout restoration replaces its
+ // card. Keep the sidebar launcher available after dismissing the card.
+ window.BigLWASiteGuide={open:openTour};
+ let pending=false;
+ const observer=new MutationObserver(()=>{
+  if(card?.isConnected && $('.biglwa-tour-actions',card) &&
+     $('#studioApp .sidebar .biglwa-guide-launcher'))return;
+  if(pending)return;
+  pending=true;
+  requestAnimationFrame(()=>{pending=false;attach()});
+ });
+ observer.observe(document.documentElement,{subtree:true,childList:true});
+ attach();
 })();
