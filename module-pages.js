@@ -1979,16 +1979,21 @@ const connect=e.target.closest('[data-orbit-connect]');
              '<button type="button" data-archive-enlarge data-archive-light="enlarge" aria-label="Enlarge image" title="Enlarge image"></button>'+
             '</div>'
           : '';
-        const strip='<div class="instagram-archive-strip"><b>'+esc(caption?caption.split('\n')[0].slice(0,42):(pending?'Deleting soon':posted?'Live':'Archived'))+'</b>'+actions+'</div>';
         const pendingMeta=pending
           ? '<div class="archive-pending-note">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</div>'
           : '';
+        // The card is ONE clipped photograph, with tiny controls and metadata
+        // inside its bounds. There is no separate blank title bar or white footer.
         return '<article class="instagram-archive-card '+(posted?'is-live':'is-off')+' is-'+esc(state.replace(/_/g,'-'))+' archive-src-'+esc(source)+'" style="--feed-card-rim:'+rim+';--feed-card-shadow:'+visualTheme.shadow+'" data-archive-id="'+esc(item.id)+'" data-post-id="'+esc(item.id)+'" data-archive-url="'+esc(first)+'">'+
-          strip+
-          '<div class="instagram-archive-media">'+(visualPieces||'<div class="biglwa-pin-empty"><small>Image unavailable · original link may have expired</small></div>')+carouselControls+'</div>'+
-          pendingMeta+
-          '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small>'+statusLine+'</div>'+
-          liveSwitch+
+          '<div class="instagram-archive-media">'+
+            (visualPieces||'<div class="biglwa-pin-empty"><small>Image unavailable · original link may have expired</small></div>')+
+            carouselControls+actions+
+            '<div class="archive-card-overlay">'+
+              '<div class="archive-media-meta"><span>'+esc(date)+'</span><small>'+esc(caption||'@'+username)+'</small>'+statusLine+'</div>'+
+              liveSwitch+
+            '</div>'+
+            pendingMeta+
+          '</div>'+
         '</article>';
       });
     const grouped=archiveGroups(mediaShown);
