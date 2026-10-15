@@ -88,15 +88,19 @@ assert.match(veve, /vevePrefs/);
 assert.match(instagramOrbit, /biglwaFeedImportStatusRail/);
 assert.match(avatarStudio, /skinview3d\.bundle\.min\.js/);
 assert.match(avatarStudio, /studioAvatar:/);
-// The original Adobe AIR SWF is attempted in the on-site compatibility wrapper.
-// Its browser-friendly PNG-save editor remains a working fallback.
-assert.match(avatarStudio, /\/avatar\/mii-original\.html/);
+// The uploaded 2007 original is Adobe AIR, not browser-native. Do not
+// show a dead loader or substitute editor while presenting it as the original.
+assert.match(avatarStudio, /biglwa-mii-legacy-status/);
+assert.match(avatarStudio, /MiiEditor\/tree\/main\/MiiEditor/);
 assert.match(read('avatar/mii-original.html'), /MiiEditor\/classicGUI\.swf/);
-assert.match(read('avatar/mii-original.html'), /\/avatar\/mii-editor\.html/);
+assert.doesNotMatch(read('avatar/mii-original.html'), /ruffle|mii-editor\.html|<iframe/i);
+assert.doesNotMatch(avatarStudio, /<iframe id="biglwaMiiEditorFrame"/);
 assert.match(avatarStudio, /profileAvatarEditor/);
 assert.match(avatarStudio, /data-avatar-widget-action="edit"/);
 assert.doesNotMatch(avatarStudio, /data-avatar-edit>/);
 assert.match(avatarStudio, /--biglwa-top-slot-count/);
+assert.match(avatarStudio, /grid-auto-rows:206px/);
+assert.match(avatarStudio, /The pair is ONE card-sized slot/);
 assert.match(avatarStudio, /grid-column:auto!important/);
 assert.match(avatarStudio, /Avatar is an ordinary tab/);
 assert.doesNotMatch(avatarStudio, /z-index:10040/);
