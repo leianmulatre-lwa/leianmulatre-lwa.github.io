@@ -162,6 +162,13 @@
  function boot(){obs.observe(document.body,{childList:true,subtree:true});schedule();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
  document.addEventListener('biglwa:feed-ready',schedule);
+ // Connected Facebook photos should preview inside the feed on click.
+ document.addEventListener('click',event=>{
+   const photo=event.target.closest?.('#feedPageList .facebook-feed-item .facebook-card-media>img');
+   if(!photo)return;
+   const preview=photo.closest('.facebook-feed-item')?.querySelector('[data-live-feed-op="enlarge"]');
+   if(preview){event.preventDefault();event.stopPropagation();preview.click();}
+ });
  const lightbox=()=>{
    let dialog=document.getElementById('biglwaFeedLightbox');
    if(!dialog){
