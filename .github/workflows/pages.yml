@@ -55,6 +55,12 @@ jobs:
           node --check tools-studio.js
           node --check tools-video-trim.js
           node feed-auth-tools-regression-test.mjs
+      - name: Check Veve onboarding, Pinterest and supporter presentation
+        run: |
+          node --check veve.js
+          node --check pinterest-orbit.js
+          node --check studio-onboarding.js
+          node veve-studio-pinterest-regression-test.mjs
       - name: Stage public files without development-only paths
         run: |
           mkdir -p "$RUNNER_TEMP/biglwa-public"
