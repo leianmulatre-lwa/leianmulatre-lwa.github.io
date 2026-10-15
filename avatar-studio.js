@@ -231,7 +231,7 @@
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched before avatar was saved.');
       state.avatar={type:kind,url:result.url};
-      showAvatar();setStatus('Avatar saved to your BIGLWA account.');
+      showAvatar();setStatus(kind==='minecraft'?'Minecraft skin saved to your 3D avatar.':'Avatar saved to your BIG LWA account.');
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:kind}}));
       return true;
     }catch(error){setStatus(error?.message||'Avatar could not be saved.');return false;}
@@ -369,8 +369,37 @@
     }
     position();return true;
   }
+  function clearMinecraftDraft(){
+    if(state.minecraftDraftUrl){URL.revokeObjectURL(state.minecraftDraftUrl);state.minecraftDraftUrl='';}
+    state.minecraftDraftFile=null;
+  }
+  async function saveMinecraftDraft(){
+    const file=state.minecraftDraftFile;
+    if(!file||state.busy){setStatus(state.busy?'Saving your skin…':'Select a Minecraft skin PNG first.');return}
+    const saveButton=one('[data-minecraft-save]');
+    if(saveButton){saveButton.disabled=true;saveButton.textContent='Saving character…';}
+    const ok=await save(file,'minecraft');
+    if(ok){
+      const newSkin=state.avatar?.url||'';
+      // Recreate the editor viewer from the permanent account URL before
+      // releasing the local selected-file URL.
+      const host=one('#biglwaMinecraftEditorModel');
+      if(host&&newSkin)await renderMinecraftModel(host,newSkin,true);
+      clearMinecraftDraft();
+      setStatus('Your Minecraft skin is on your 3D character and saved to your BIG LWA account.');
+    }else setStatus('The character preview is ready, but the account save failed. Choose “Save skin to my account” to retry.');
+    if(saveButton){saveButton.disabled=!state.minecraftDraftFile;saveButton.textContent='Save skin to my account';}
+  }
   document.addEventListener('click',async e=>{
     if(e.target.closest('[data-avatar-restore]')){e.preventDefault();setVisibility('shown');return}
+    const rotate=e.target.closest('#profileAvatarEditor [data-minecraft-turn]');
+    if(rotate){
+      e.preventDefault();one('#biglwaMinecraftEditorModel')?._biglwaMinecraftModel?.rotate(Number(rotate.dataset.minecraftTurn)||35);
+      return;
+    }
+    if(e.target.closest('#profileAvatarEditor [data-minecraft-save]')){
+      e.preventDefault();await saveMinecraftDraft();return;
+    }
     const origin=e.target.closest('#studioAvatarCard');
     const control=origin&&e.target.closest('[data-avatar-widget-action]');
     if(control){
@@ -415,10 +444,27 @@
     setStatus('Unity scene connected. Live IMVU avatars still require an approved integration.');
   });
   document.addEventListener('change',async e=>{
-    const file=e.target.closest('#profileAvatarEditor [data-avatar-import]');
-    if(!file?.files?.length)return;
-    await save(file.files[0],file.dataset.avatarKind||one('#biglwaAvatarSource')?.dataset.kind||'mii');
-    file.value='';
+    const input=e.target.closest('#profileAvatarEditor [data-avatar-import]');
+    if(!input?.files?.length)return;
+    const file=input.files[0];
+    const kind=input.dataset.avatarKind||one('#biglwaAvatarSource')?.dataset.kind||'mii';
+    if(kind==='minecraft'){
+      try{
+        await verifySkin(file);
+        // The local object URL is shown immediately: no account or network
+        // request is needed to see the PNG mapped onto the mannequin.
+        if(state.minecraftDraftUrl)URL.revokeObjectURL(state.minecraftDraftUrl);
+        state.minecraftDraftFile=file;
+        state.minecraftDraftUrl=URL.createObjectURL(file);
+        await renderMinecraftModel(one('#biglwaMinecraftEditorModel'),state.minecraftDraftUrl,true);
+        const retry=one('#profileAvatarEditor [data-minecraft-save]');
+        if(retry)retry.disabled=false;
+        setStatus('Skin applied to your Minecraft character. Saving it to your account…');
+        await saveMinecraftDraft();
+      }catch(error){setStatus(error?.message||'Could not preview the Minecraft skin.');}
+      input.value='';return;
+    }
+    await save(file,kind);input.value='';
   });
   let started=false;
   function start(){
@@ -440,7 +486,7 @@
     let count=0;const timer=setInterval(()=>{mount();if(++count>60)clearInterval(timer)},600);
     window.addEventListener('resize',()=>requestAnimationFrame(position));
     window.addEventListener('pageshow',mount);
-    window.addEventListener('biglwa:identity-updated',()=>{appearanceUid=null;state.loadedUid='';restore();mount()});
+    window.addEventListener('biglwa:identity-updated',()=>{clearMinecraftDraft();appearanceUid=null;state.loadedUid='';restore();mount()});
     mount();mountEditor();watchAura();
   }
   const style=document.createElement('style');style.id='biglwaAvatarLayoutV4';style.textContent=`
@@ -696,6 +742,41 @@
 }
 #studioApp #profileAvatarEditor .biglwa-avatar-source{display:grid;gap:8px;min-width:0;font:12px/1.4 system-ui}
 #studioApp #profileAvatarEditor .biglwa-avatar-source p{margin:5px 0!important}
+#studioApp #profileAvatarEditor .biglwa-minecraft-editor-model{
+  display:grid;place-items:center;min-height:286px;height:286px;overflow:hidden;
+  border-radius:12px;background:rgba(255,255,255,.14);
+}
+#studioApp .biglwa-avatar-media>.biglwa-mc-stage{height:100%!important;min-height:0!important}
+#studioApp .biglwa-avatar-profile-preview>.biglwa-mc-stage{min-height:210px!important;height:100%!important}
+#studioApp #profileAvatarEditor .biglwa-minecraft-controls{
+  display:flex;justify-content:center;gap:8px;align-items:center;margin:0!important;
+}
+#studioApp #profileAvatarEditor .biglwa-minecraft-controls button{
+  width:auto!important;flex:1 1 auto!important;max-width:160px!important;
+  min-height:28px!important;padding:5px 8px!important;
+}
+#studioApp #profileAvatarEditor .biglwa-minecraft-file-label{
+  display:grid!important;gap:5px!important;justify-items:stretch!important;cursor:pointer!important;
+}
+#studioApp #profileAvatarEditor .biglwa-minecraft-file-label input[type="file"]{
+  display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  font:11px/1.2 system-ui;color:inherit;
+}
+#studioApp #profileAvatarEditor [data-minecraft-save]{
+  display:block!important;border-radius:8px;border:1px solid #467b56;
+  background:#e9f3e7;color:#24452f;min-height:36px;
+  font:700 12px/1.2 system-ui;cursor:pointer;
+}
+#studioApp #profileAvatarEditor [data-minecraft-save]:disabled{opacity:.55;cursor:not-allowed}
+#studioApp #profileAvatarEditor .biglwa-minecraft-note{
+  display:block;max-width:70ch;font:11px/1.45 system-ui;opacity:.78;
+}
+#studioApp .biglwa-minecraft-loading,
+#studioApp .biglwa-minecraft-error{
+  display:grid;place-items:center;min-height:100%;margin:0;padding:9px;
+  text-align:center;font:600 11px/1.45 system-ui;
+}
+
 #studioApp #profileAvatarEditor .biglwa-mii-legacy-status{
   max-width:690px;padding:15px 16px;margin:4px 0 11px;
   border:1px solid rgba(100,80,70,.22);border-radius:12px;
