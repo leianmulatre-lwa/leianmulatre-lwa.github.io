@@ -184,21 +184,31 @@
   };
 
   const makeSupporterLogo = (supporter) => {
-    const wrapper = document.createElement(supporter.href ? 'a' : 'span');
-    wrapper.className = 'supporter-logo';
-    if (supporter.href) {
-      wrapper.href = supporter.href;
-      wrapper.target = '_blank';
-      wrapper.rel = 'noopener noreferrer';
-    }
-
+    // These are genuine PNG logos in a ribbon, not cards. Return the PNG
+    // itself for unlinked entries; old span wrappers picked up rounded
+    // white-tile styles from cached CSS on the login and policy pages.
     const logo = document.createElement('img');
+    logo.className = 'supporter-logo supporter-logo-image';
     logo.src = supporter.src;
     logo.alt = supporter.name;
     logo.loading = 'lazy';
     logo.decoding = 'async';
-    wrapper.append(logo);
-    return wrapper;
+    // Inline styles defeat stale versions of the old white-card stylesheet.
+    for (const [name, value] of Object.entries({
+      background:'transparent', 'background-image':'none',
+      border:'0', 'border-radius':'0', 'box-shadow':'none',
+      padding:'0', margin:'0', 'min-width':'0', 'min-height':'0',
+      width:'auto', height:'auto', 'max-width':'152px', 'max-height':'54px',
+      'object-fit':'contain'
+    })) logo.style.setProperty(name, value, 'important');
+    if (!supporter.href) return logo;
+    const link = document.createElement('a');
+    link.className = 'supporter-link';
+    link.href = supporter.href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.append(logo);
+    return link;
   };
 
   const makeSupporterSection = (className) => {
