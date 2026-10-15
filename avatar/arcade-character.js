@@ -139,5 +139,11 @@ grid.addEventListener('touchend',event=>{
   move(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));
 },{passive:true});
 window.addEventListener('focus',loadCharacter);
+try{
+  const channel=new BroadcastChannel('biglwa-avatar');
+  channel.addEventListener('message',event=>{
+    if(event.data?.type==='saved'&&event.data.uid===uid)loadCharacter();
+  });
+}catch{}
 begin(0);loadCharacter();
 })();
