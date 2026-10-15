@@ -130,8 +130,15 @@
       mount.innerHTML='<p>Upload a Minecraft skin texture (64 × 64 or 64 × 32) for a 3D preview.</p>'+
         '<label class="biglwa-avatar-upload">Import Minecraft skin<input type="file" data-avatar-import data-avatar-kind="minecraft" accept="image/png" hidden></label>';
     }else if(name==='mii'){
-      mount.innerHTML='<p>Original Mii Editor files found in your MiiEditor repository folder. Try the legacy editor or switch to the browser-friendly editor to save a PNG to your BIG LWA account.</p>'+
-        '<iframe id="biglwaMiiEditorFrame" title="Original Mii Editor with Big LWA browser fallback" loading="lazy" src="/avatar/mii-original.html?v=20261014-github-original-1" allow="clipboard-write"></iframe>'+input;
+      // Uploaded MiiEditor is Adobe AIR + SWF, not HTML/JS. A modern browser
+      // cannot execute it as a normal file. No loading spinner, Flash emulator
+      // or unrelated replacement editor is presented as if it were the original.
+      mount.innerHTML='<section class="biglwa-mii-legacy-status" role="status">'+
+        '<strong>Original Mii Editor · desktop archive</strong>'+
+        '<p>Your uploaded 2007 Mii Editor is an Adobe AIR application (<code>classicGUI.swf</code>), not a browser-based editor. Its original editing interface cannot run here without a supported runtime or a real web port.</p>'+
+        '<a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/tree/main/MiiEditor" target="_blank" rel="noopener noreferrer">View your original Mii Editor files ↗</a>'+
+        '</section>'+
+        '<p>To use an avatar on BIG LWA now, upload a PNG, JPG, or WebP snapshot of your Mii.</p>'+input;
     }else{
       mount.innerHTML='<p>Import an IMVU avatar snapshot now. Live IMVU models need an authorized Unity WebGL export; a .unitypackage is not directly browser-runnable.</p>'+input+
         '<button type="button" data-avatar-unity-open>Open installed Unity scene</button>';
@@ -140,7 +147,7 @@
     cardStatus(name);
   }
   function cardStatus(name){
-    setStatus(name==='mii'?'Original Mii Editor is available to try; choose the browser editor to save a PNG avatar.':name==='minecraft'?'Choose a skin PNG to import.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
+    setStatus(name==='mii'?'Original AIR files retained; browser editing needs a proper web port. You can save a Mii image to your account now.':name==='minecraft'?'Choose a skin PNG to import.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
   }
   async function verifySkin(file){
     if(file.type!=='image/png')throw Error('Minecraft skins must be PNG files.');
@@ -402,7 +409,7 @@
     window.addEventListener('biglwa:identity-updated',()=>{appearanceUid=null;state.loadedUid='';restore();mount()});
     mount();mountEditor();watchAura();
   }
-  const style=document.createElement('style');style.id='biglwaAvatarLayoutV3';style.textContent=`
+  const style=document.createElement('style');style.id='biglwaAvatarLayoutV4';style.textContent=`
 #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair{
   position:relative!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
   gap:10px!important;align-items:stretch!important;align-content:start!important;
@@ -530,7 +537,7 @@
 }
 #studioApp #studioAvatarCard.avatar-is-expanded .biglwa-avatar-media{flex:0 0 180px!important;max-height:240px!important}
 #studioApp #studioAvatarCard.avatar-is-expanded .biglwa-avatar-actions{max-width:480px!important}
-#studioApp #studioAvatarCard.avatar-is-expanded #biglwaMiiEditorFrame{min-height:580px!important;height:580px!important}
+
 @media(max-width:620px){
   #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair{grid-template-columns:minmax(0,1fr)!important}
   #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair>.aura-card{min-height:170px!important}
@@ -538,12 +545,10 @@
 }
 
 
-/* The full-width solo layout must outrank the older hero rail rule that
-   unconditionally reapplied repeat(2) even after Avatar was removed. */
+/* The pair is ONE card-sized slot in the row. If one A is hidden,
+   the remaining A fills that slot, not the entire rail. */
 #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
-  /* A solo Aura OR solo Avatar uses the full available top row, not just one
-     of the rail's old columns. This also prevents a blank sibling-sized slot. */
-  grid-column:1/-1!important;
+  grid-column:auto!important;grid-row:1!important;
   grid-template-columns:minmax(0,1fr)!important;
 }
 #studioApp .hero-widget-rail>#biglwaAuraAvatarPair.is-avatar-hidden>.aura-card,
@@ -573,11 +578,11 @@
 #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
   grid-column:1!important;grid-row:2!important;width:100%!important;max-width:none!important;
   display:grid!important;grid-template-columns:repeat(var(--biglwa-top-slot-count,3),minmax(0,1fr))!important;
-  gap:14px!important;grid-auto-flow:row!important;grid-auto-rows:min-content!important;
+  gap:14px!important;grid-auto-flow:row!important;grid-auto-rows:206px!important;
   align-items:stretch!important;overflow:visible!important;box-sizing:border-box!important;
 }
 #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{
-  grid-column:auto!important;grid-row:auto!important;
+  grid-column:auto!important;grid-row:1!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;min-height:0!important;
   width:100%!important;min-width:0!important;max-width:100%!important;gap:8px!important;
 }
@@ -657,7 +662,14 @@
 }
 #studioApp #profileAvatarEditor .biglwa-avatar-source{display:grid;gap:8px;min-width:0;font:12px/1.4 system-ui}
 #studioApp #profileAvatarEditor .biglwa-avatar-source p{margin:5px 0!important}
-#studioApp #profileAvatarEditor #biglwaMiiEditorFrame{width:100%!important;height:750px!important;min-height:750px!important;border-radius:12px}
+#studioApp #profileAvatarEditor .biglwa-mii-legacy-status{
+  max-width:690px;padding:15px 16px;margin:4px 0 11px;
+  border:1px solid rgba(100,80,70,.22);border-radius:12px;
+  background:rgba(255,255,255,.27);color:inherit;
+}
+#studioApp #profileAvatarEditor .biglwa-mii-legacy-status strong{display:block;margin-bottom:6px;font:700 16px Georgia,serif}
+#studioApp #profileAvatarEditor .biglwa-mii-legacy-status p{margin:0 0 9px!important;max-width:75ch}
+#studioApp #profileAvatarEditor .biglwa-mii-legacy-status a{font:700 12px/1.4 system-ui;text-underline-offset:3px;color:inherit}
 #studioApp #profileAvatarEditor #biglwaAvatarStatus{display:block;font:12px/1.45 system-ui;min-height:18px;margin:0}
 /* Avatar is an ordinary tab of the existing profile banner, NOT a fixed modal. */
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])){
@@ -665,7 +677,7 @@
   bottom:auto!important;transform:none!important;z-index:auto!important;
   display:grid!important;grid-template-columns:minmax(150px,184px) minmax(0,1fr)!important;
   grid-column:1!important;grid-row:1!important;
-  width:100%!important;height:auto!important;min-height:570px!important;max-height:none!important;
+  width:100%!important;height:auto!important;min-height:370px!important;max-height:none!important;
   overflow:visible!important;padding:0!important;margin:0!important;isolation:isolate!important;
   box-shadow:var(--widget-shadow,0 10px 22px rgba(30,15,18,.1))!important;
 }
