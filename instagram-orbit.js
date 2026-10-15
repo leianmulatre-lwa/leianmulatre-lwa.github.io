@@ -63,7 +63,7 @@
   async function accountSession() {
     var token = await firebaseAuthToken();
     if (!token) {
-      state.sessionLookupError='Sign in to your BIGLWA account to restore Instagram.';
+      state.sessionLookupError=''; // An external connection is optional, not a Big LWA login.
       return '';
     }
     try {
@@ -149,14 +149,26 @@
     return fetch(API + path, settings).then(function (response) { return response.json().catch(function () { return {}; }).then(function (body) { if (!response.ok) { var failure = new Error(body.error || 'Instagram request failed.'); failure.status = response.status; throw failure; } return body; }); });
   }
   function status(message) {
-    var toast = one('#biglwaInstagramStatus');
-    if (!toast) { toast = document.createElement('div'); toast.id = 'biglwaInstagramStatus'; toast.setAttribute('role', 'status'); toast.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:12000;max-width:330px;padding:11px 14px;border:1px solid rgba(80,70,64,.2);border-radius:12px;background:rgba(250,247,241,.96);box-shadow:0 12px 34px rgba(0,0,0,.14);font:600 11px/1.4 system-ui;color:#302b28'; document.body.appendChild(toast); }
-    toast.textContent = message; clearTimeout(status.timer); status.timer = setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 6000);
+    // Provider notifications can never overlay the Big LWA sign-in screen.
+    const studio=document.getElementById('studioApp');
+    const login=document.getElementById('loginPage');
+    const active=!!activeAccountUid && !!studio?.classList.contains('is-active') && !login?.classList.contains('is-active');
+    if(!active){one('#biglwaInstagramStatus')?.remove();return}
+    var toast=one('#biglwaInstagramStatus');
+    if(!toast){
+      toast=document.createElement('div');toast.id='biglwaInstagramStatus';
+      toast.setAttribute('role','status');
+      toast.style.cssText='position:fixed;right:18px;bottom:18px;z-index:12000;max-width:330px;padding:11px 14px;border:1px solid rgba(80,70,64,.2);border-radius:12px;background:rgba(250,247,241,.96);box-shadow:0 12px 34px rgba(0,0,0,.14);font:600 11px/1.4 system-ui;color:#302b28';
+      document.body.appendChild(toast);
+    }
+    toast.textContent=message;
+    clearTimeout(status.timer);
+    status.timer=setTimeout(function(){toast.remove()},6000);
   }
   /* /studio is a stub that rebuilds the query and would drop the handoff code, so the
      return goes to the site root the app actually runs from. */
   function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/?route=studio&view=orbit')); }
-  async function restore() {
+  async function restore({silent=false}={}) {
     // The canonical connection belongs to the authenticated account on the
     // Worker, not this device. Refresh it first on every restore.
     var savedSession = await accountSession();
@@ -175,7 +187,7 @@
       savedSession=session();
     }
     if(!savedSession) {
-      if(state.sessionLookupError)status(state.sessionLookupError);
+      if(state.sessionLookupError&&!silent)status(state.sessionLookupError);
       return false;
     }
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(async function (responses) {
@@ -191,7 +203,7 @@
          connection was healthy saw a broken connection and never learned the save failed. */
       return saveToFeedWithRetry().then(function (result) {
         state.importError = '';
-        if (result && result.warning) status(result.warning);
+        if (result && result.warning && !silent) status(result.warning);
         return persistAccount(state.profile, state.media);
       }).then(function () {
         render();
@@ -201,7 +213,7 @@
         state.importError = importFailure.message;
         state.error = '';
         render();
-        status('Instagram is connected, but this device could not save it to your account: ' + importFailure.message);
+        if(!silent)status('Instagram is connected, but this device could not save it to your account: ' + importFailure.message);
         window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
         return true;
       });
@@ -213,7 +225,7 @@
         // A browser credential can be stale even when the Firebase-linked
         // account is healthy. Retry recovery once without disconnecting.
         return accountSession().then(next=>{
-          if(next && next!==savedSession){saveSession(next);return restore();}
+          if(next && next!==savedSession){saveSession(next);return restore({silent});}
           state.error='Instagram authorization expired. Reconnect to refresh permission.';
           state.connected=false;render();return false;
         });
@@ -223,10 +235,14 @@
     });
   }
   function consumeHandoff() {
-    var url = new URL(window.location.href); var handoff = url.searchParams.get('instagram_handoff') || RETURNED_HANDOFF; var error = url.searchParams.get('instagram_error') || RETURNED_ERROR;
+    var url=new URL(window.location.href);
+    var handoff=url.searchParams.get('instagram_handoff')||RETURNED_HANDOFF;
+    var error=url.searchParams.get('instagram_error')||RETURNED_ERROR;
+    // OAuth one-time codes must not replay after other auth state changes.
+    RETURNED_HANDOFF='';RETURNED_ERROR='';
     window.__biglwaInstagramReturnCode = handoff;
     if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); }
-    if (!handoff) return restore();
+    if (!handoff) return restore({silent:true});
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
     return firebaseAuthToken().then(function (firebaseIdToken) {
       if(!firebaseIdToken)throw new Error('Sign in to BIGLWA before linking Instagram. Connection was not saved.');
@@ -523,5 +539,32 @@
     }
  var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); if(!state.connected)connect(); else window.openBIGLWAModule?.('orbit'); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
   window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { render(); consumeHandoff(); }, { once: true }); else { render(); consumeHandoff(); }
+  // Do not touch providers until a persisted Big LWA Firebase account has
+  // actually been restored. Provider errors have no right to change login.
+  function bootProvider(){
+    render();
+    firebaseContext().then(async function(ctx){
+      await ctx.auth.authStateReady();
+      var lastUid;
+      ctx.auth.onAuthStateChanged(function(user){
+        const uid=user?.uid||'';
+        if(uid===lastUid)return;
+        lastUid=uid;activeAccountUid=uid;
+        if(!uid){
+          state.connected=false;state.error='';state.sessionLookupError='';
+          one('#biglwaInstagramStatus')?.remove();
+          render();return;
+        }
+        consumeHandoff().catch(function(error){
+          console.warn('Instagram background account recovery:',error);
+        });
+      },function(error){console.warn('Instagram auth observation delayed:',error)});
+    }).catch(function(error){console.warn('Instagram awaiting Big LWA session:',error)});
+  }
+  window.addEventListener('biglwa:session-verified',function(event){
+    if(!event.detail?.signedIn)one('#biglwaInstagramStatus')?.remove();
+  });
+  if(document.readyState==='loading')
+    document.addEventListener('DOMContentLoaded',bootProvider,{once:true});
+  else bootProvider();
 }());
