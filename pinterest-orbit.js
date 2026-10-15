@@ -287,9 +287,9 @@ async function api(path,body){
  }
  return response.data;
 }
-async function run(fn){
- if(busy)return;busy=true;message='Loading Pinterest…';render();
- try{await fn();message=''}catch(e){notice(e.message)}
+async function run(fn,{silent=false}={}){
+ if(busy)return;busy=true;if(!silent)message='Loading Pinterest…';render();
+ try{await fn();if(!silent)message=''}catch(e){diagnostic=e?.message||'Pinterest unavailable. Reconnect in Orbit.';if(!silent)notice(diagnostic);else console.warn('Pinterest background restore:',diagnostic)}
  finally{busy=false;render()}
 }
 async function connect(){await run(async()=>{
@@ -439,7 +439,7 @@ async function connect(){await run(async()=>{
     if(!boardId&&boards.length)boardId=String(boards[0].id||'');
     if(boardId)await loadPins(boardId);
     render();
-  });
+  },{silent:true});
   try{return await restorePromise}finally{restorePromise=null}
  }
  async function syncAllBoards(){
