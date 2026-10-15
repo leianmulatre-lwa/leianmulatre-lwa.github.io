@@ -137,7 +137,7 @@ function pageFragments(text,type){
  const input=String(text||'');if(!input)return [''];
  const out=[];let from=0,rows=1,column=0;
  for(let i=0;i<input.length;i++){
-  const ch=input[i],wrap=ch==='\\n'||column>=cols;
+  const ch=input[i],wrap=ch==='\n'||column>=cols;
   if(wrap){if(rows>=13){if(i>from){out.push(input.slice(from,i));from=i}rows=1}else rows++;column=0}
   if(ch!=='\\n')column++;
  }
@@ -403,6 +403,18 @@ async function syncFromCloud(){
 
 function onClick(event){
  const button=event.target.closest('button');if(!button||!host.contains(button))return;
+ if(button.id==='sqwipPrevPage'||button.id==='sqwipNextPage'){
+  const wrap=host.querySelector('.sqwip-paper-wrap');
+  const sheets=[...host.querySelectorAll('#sqwipPages>.sqwip-page')];
+  if(wrap&&sheets.length){
+   const x=wrap.scrollLeft;
+   let i=sheets.findIndex(sheet=>sheet.offsetLeft-wrap.querySelector('#sqwipPages').offsetLeft>=x-20);
+   if(i<0)i=sheets.length-1;
+   const next=Math.max(0,Math.min(sheets.length-1,i+(button.id==='sqwipNextPage'?1:-1)));
+   wrap.scrollTo({left:sheets[next].offsetLeft-sheets[0].offsetLeft,behavior:'smooth'});
+  }
+  return;
+ }
  const jump=button.dataset.sqwipJump;
  if(jump){focusBlock(jump,'start');return}
  if(button.dataset.sqwipAdd){const d=current();insertAfter(selectedBlock||d.blocks.at(-1)?.id,button.dataset.sqwipAdd);return}
@@ -475,7 +487,7 @@ function mount(root){
  host=root;state=loadStore();selectedBlock='';
  host.classList.add('sqwip-root');
  host.innerHTML='<div class="sqwip-shell">'+
-  '<div class="sqwip-top"><div><span class="sqwip-eyebrow">BIG LWA · THE WRITER’S DESK</span><h2>sqwip<span class="sqwip-cursor">_</span></h2><p>Screenplay formatting, scenes and dialogue. BIG LWA account sync with local backup.</p></div>'+
+  '<div class="sqwip-top"><div><span class="sqwip-eyebrow">BIG LWA · THE WRITER’S DESK</span><h2>sqwip<span class="sqwip-cursor">_</span></h2><p>Screenplay pages continue to the right as you write. Scroll sideways or use the arrows below · account-synced with local backup.</p></div>'+
   '<div class="sqwip-doc-toolbar"><label>Screenplay <select id="sqwipScriptSelect" aria-label="Choose screenplay"></select></label><button id="sqwipNew" type="button">+ New</button><button id="sqwipDuplicate" type="button">Duplicate</button><button id="sqwipDelete" type="button" class="sqwip-danger">Delete</button></div></div>'+
   '<div class="sqwip-details"><label>Title <input id="sqwipTitle" maxlength="130" placeholder="Untitled Screenplay" autocomplete="off"></label>'+
   '<label>Written by <input id="sqwipAuthor" maxlength="100" placeholder="Author" autocomplete="off"></label>'+
@@ -488,7 +500,7 @@ function mount(root){
   '<p><kbd>Enter</kbd> next element</p><p><kbd>Tab</kbd> cycle format</p><p><kbd>Shift + Tab</kbd> previous</p><p><kbd>Alt + 1–7</kbd> choose element</p><p><kbd>⌘ / Ctrl + Enter</kbd> new scene</p><p><kbd>⌘ / Ctrl + S</kbd> save</p></div></aside>'+
   '<div class="sqwip-paper-wrap"><div class="sqwip-paper" role="document" aria-label="Screenplay pages flowing right">'+
   '<div class="sqwip-print-title" id="sqwipPrintTitle"></div><div id="sqwipPages" aria-label="Screenplay pages"></div></div>'+
-  '<footer class="sqwip-bottom"><span id="sqwipPageCount"></span><button type="button" id="sqwipSave">Save now</button></footer></div></div>'+
+  '<footer class="sqwip-bottom"><span id="sqwipPageCount"></span><div class="sqwip-page-nav" role="group" aria-label="Move between screenplay pages"><button type="button" id="sqwipPrevPage" aria-label="Previous screenplay page">←</button><button type="button" id="sqwipNextPage" aria-label="Next screenplay page">→</button></div><button type="button" id="sqwipSave">Save now</button></footer></div></div>'+
   '</div>';
  host.addEventListener('click',onClick);
  host.addEventListener('input',onInput);
