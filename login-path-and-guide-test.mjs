@@ -66,3 +66,55 @@ assert.ok(home.includes('session-restore.js?v=20261014-auth-screen-repair-5'));
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');
 console.log('PASS · pink card guide, sidebar relaunch, Orbit explanation, journal offset');
+
+
+const pinterest=read('pinterest-orbit.js'), supporters=read('policy-card-cohesion.js'), brand=read('brand-policy.css');
+const nStart=pinterest.indexOf('function notice(text){'),nEnd=pinterest.indexOf('// A Pinterest token expiring',nStart);
+assert.ok(nStart>0&&nEnd>nStart,'Pinterest notice handler exists');
+const nSource=pinterest.slice(nStart,nEnd);
+function pinterestToastCount(uid,studioActive,loginActive){
+  const appended=[];
+  const document={
+    getElementById(id){
+      if(id==='studioApp')return {classList:{contains:()=>studioActive}};
+      if(id==='loginPage')return {classList:{contains:()=>loginActive}};
+      if(id==='pinterestNotice')return appended[0]||null;
+      return null;
+    },
+    createElement(){return {setAttribute(){},style:{cssText:''},remove(){},textContent:''}},
+    body:{append(el){appended.push(el)}}
+  };
+  const f=new Function('document','authUid','render','setTimeout','clearTimeout',
+    'let message="";'+nSource+'\nnotice("Pinterest session expired. Please reconnect");');
+  f(document,uid,()=>{},()=>1,()=>{});
+  return appended.length;
+}
+assert.equal(pinterestToastCount('uid',false,true),0,'expired Pinterest cannot show a popup on login screen');
+assert.equal(pinterestToastCount('',true,false),0,'anonymous visitor never receives provider popup');
+assert.equal(pinterestToastCount('uid',true,false),1,'a signed-in Studio can show a requested Pinterest notice');
+assert.ok(pinterest.includes('},{silent:true})'),'Pinterest startup restore never emits foreground notices');
+assert.ok(session.includes('guardLoginScreen()')&&session.includes('auth.currentUser?.uid===lastConfirmedUid'),
+  'Firebase-verified owner repairs any late legacy login repaint');
+assert.ok(home.includes("getAuth(getApps()[0] || initializeApp(firebaseConfig))"),
+  'legacy login reuses the same Firebase app as Orbit and session restore');
+assert.ok(home.includes("import { initializeApp, getApps }"),
+  'legacy Firebase import installs the getApps deduplication patch');
+
+const sStart=supporters.indexOf('const makeSupporterLogo = (supporter) => {');
+const sEnd=supporters.indexOf('const makeSupporterSection',sStart);
+assert.ok(sStart>0&&sEnd>sStart);
+const maker=new Function('document',supporters.slice(sStart,sEnd)+'\nreturn makeSupporterLogo;')({
+ createElement(tag){
+  return {tagName:tag.toUpperCase(),style:{setProperty(){}},append(){},
+    setAttribute(){}};
+ }
+});
+const bare=maker({name:'UCLA',src:'/assets/supporters/ucla.png'});
+assert.equal(bare.tagName,'IMG','supporters without links render as bare PNGs, not white cards');
+assert.ok(bare.className.includes('supporter-logo-image'));
+assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
+  'original white supporter tile declarations removed rather than overridden');
+assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
+assert.ok(home.includes('brand-policy.css?v=20261014-logo-alpha-no-tiles-8'));
+assert.ok(home.includes('pinterest-orbit.js?v=20261014-silent-login-25'));
+console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
