@@ -163,9 +163,11 @@
       '<span class="veve-provider">'+e(label)+'</span>'+
       '<button type="button" class="veve-media-open" data-veve-view="'+e(post.id)+'" aria-label="'+(clip?'Watch video in Veve':'Enlarge media in Veve')+'" title="Preview here">'+(clip?'▶':'↗')+'</button>'+
       '<span class="veve-lights"><button type="button" data-veve-view="'+e(post.id)+'" aria-label="Enlarge or play media" title="View in Veve"></button></span>'+
-      '</div>'+(caption?'<p class="veve-caption">'+e(caption)+'</p>':'')+
-      (usage(post)?'<p class="veve-usage">'+e(usage(post))+' using this Pin · among loaded public posts</p>':'')+
-      (src==='pinterest'&&link?'<a class="veve-source-credit" href="'+e(link)+'" target="_blank" rel="noopener noreferrer">Original Pinterest Pin ↗</a>':'')+
+      '</div>'+
+      ((usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
+        (usage(post)?'<span class="veve-usage">'+e(usage(post))+' using this Pin</span>':'')+
+        (src==='pinterest'&&link?'<a class="veve-source-credit" href="'+e(link)+'" target="_blank" rel="noopener noreferrer">Original Pin ↗</a>':'')+
+        '</div>':'')+
       '</article>';
   }
   function sqwibMarkup(p,reshared=false){
