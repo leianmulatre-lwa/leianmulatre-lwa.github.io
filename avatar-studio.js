@@ -32,7 +32,7 @@
     if(!mannequinPromise){
       mannequinPromise=new Promise((resolve,reject)=>{
         const script=document.createElement('script');
-        script.src='/avatar/minecraft-mannequin.js?v=20261014-model-3';
+        script.src='/avatar/minecraft-mannequin.js?v=20261014-model-4';
         script.async=true;
         script.onload=()=>window.BigLWAMinecraftViewer?resolve(window.BigLWAMinecraftViewer):reject(Error('Minecraft model script loaded without the viewer.'));
         script.onerror=()=>reject(Error('Minecraft model could not load from BIG LWA.'));
