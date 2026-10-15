@@ -224,6 +224,7 @@
     if(key==='games')return [
       {label:'2048',id:'2048',image:'/assets/arcade/2048.svg',description:'Merge matching tiles to reach 2048.'},
       {label:'crossword',id:'crossword',image:'/assets/arcade/crossword.svg',description:'Fill the grid from the clues.'},
+      {label:'character quest',id:'quest',image:'/assets/arcade/character-quest.svg',description:'Play a three-level adventure with your saved Big LWA character.'},
       {label:'culture quiz',id:'culture',image:'/assets/culture-quiz-cubes.png',description:'Explore the culture quiz in Arcade.'}
     ].map(game=>
       '<article class="veve-tile veve-game">'+
@@ -363,7 +364,7 @@
     if(kind==='culture'){window.openBIGLWAModule?.('games');return;}
     const d=viewDialog(),stage=d.querySelector('#vevePreviewStage');
     stage.replaceChildren();const frame=document.createElement('iframe');
-    frame.title=kind==='2048'?'2048 game':'Crossword puzzle';frame.className='veve-game-player';
+    frame.title=kind==='2048'?'2048 game':kind==='quest'?'Character Quest game':'Crossword puzzle';frame.className='veve-game-player';
     frame.src='/arcade-puzzles.html?game='+encodeURIComponent(kind);stage.append(frame);
     d.querySelector('#vevePreviewCaption').hidden=true;
     d.querySelector('#vevePreviewOriginal').hidden=true;d.showModal();
