@@ -398,7 +398,16 @@
       #studioApp #stream .stream-screen>.on-air,#studioApp #stream .stream-screen>strong,#studioApp #stream .stream-screen>span,#studioApp #stream .stream-screen>.stream-wave{position:relative;z-index:2}
       #studioApp #stream .stream-screen>strong{display:block;margin-top:102px;font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-size:24px;line-height:1;color:#fff;text-shadow:0 2px 13px rgba(0,0,0,.9)}
       #studioApp #stream .stream-screen>span{display:block;margin-top:7px;color:rgba(255,255,255,.82);font:700 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-      #studioApp #stream .stream-wave{position:absolute;left:18px;right:18px;bottom:54px;height:28px;opacity:.74}
+      #studioApp #stream .stream-wave{position:absolute;left:18px;right:18px;bottom:12px;height:18px;opacity:.67}
+      /* Keep temporary Stream/Sir Clips labels separate from the soundwave.
+         Moving the wave to a reserved lower band preserves legibility. */
+      #studioApp #stream .stream-screen{padding-bottom:44px!important}
+      #studioApp #stream .stream-screen>strong{margin-top:78px!important;position:relative!important;z-index:2!important}
+      #studioApp #stream .stream-screen>span{position:relative!important;z-index:2!important;max-width:100%!important;overflow-wrap:anywhere!important}
+      #studioApp #stream .stream-screen>.stream-wave{
+        position:absolute!important;left:18px!important;right:18px!important;top:auto!important;bottom:12px!important;
+        z-index:1!important;height:18px!important;max-height:18px!important;pointer-events:none!important;
+      }
       #studioApp #stream .on-air{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(16,12,15,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
       /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
       #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
