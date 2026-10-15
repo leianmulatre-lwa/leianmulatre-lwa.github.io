@@ -141,3 +141,22 @@
     opacity:1!important;transform:none!important;pointer-events:auto!important;
   }
 }
+
+/* Publishing a board is explicit. Locked collections cannot publish. */
+#pinterestBoards .pn-board-publish-tools{
+ display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+ margin:12px 0 16px;padding:11px 13px;
+ border:1px solid #cfb6aa;border-radius:11px;background:#fff4e9ad;
+}
+#pinterestBoards .pn-board-publish-tools small{
+ font:600 10px/1.45 system-ui;color:#6a514d;
+}
+#pinterestBoards [data-pn-publish-board]{
+ white-space:normal!important;cursor:pointer!important;
+}
+#pinterestBoards [data-pn-publish-board]:disabled{
+ opacity:.45!important;cursor:not-allowed!important;
+}
+#pinterestBoards [data-pn-publish-board]:focus-visible{
+ outline:3px solid #ba4a71!important;outline-offset:3px!important;
+}
