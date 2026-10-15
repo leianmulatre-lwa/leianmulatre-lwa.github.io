@@ -5,7 +5,7 @@
   var APP_ID = '3959002817740866';
   var API_VERSION = 'v25.0';
   var sdkPromise = null;
-  var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '' };
+  var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '', noMediaNotified:false };
 
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
@@ -145,6 +145,7 @@
         if (profile) { state.profile = profile; }
         state.photos = photos && photos.data ? photos.data : [];
         state.videos = videos && videos.data ? videos.data : [];
+        state.noMediaNotified=false;
         render();
       });
     });
@@ -169,7 +170,7 @@
     var id=String(item.id||'').replace(/[^a-zA-Z0-9_-]/g,'');
     var poster=src?'<img src="'+escapeText(src)+'" loading="lazy" decoding="async" alt="'+escapeText(title)+'">':'';
     var visual=kind==='video'&&clip
-      ? '<video src="'+escapeText(clip)+'" '+(src?'poster="'+escapeText(src)+'" ':'')+' muted playsinline controls preload="metadata"></video>'
+      ? '<video src="'+escapeText(clip)+'" '+(src?'poster="'+escapeText(src)+'" ':'')+' muted playsinline controls autoplay loop preload="metadata"></video>'
       : poster;
     var record=JSON.stringify({id:'facebook-'+id,source:'facebook',sourcePostId:id,caption:title,
       sourceUrl:url,imageUrls:src?[src]:[],videoUrl:clip}).replace(/"/g,'&quot;');
@@ -192,7 +193,10 @@
     state.videos.forEach(function(video){var html=facebookCard(video,'video');if(html)items.push(html);});
     if(!items.length) {
       // A status belongs to the page/status rail, never inside the masonry as a fake picture.
-      showStatus('Facebook connected. No accessible photos or videos returned. Check Meta permissions.');
+      if(!state.noMediaNotified){
+        state.noMediaNotified=true;
+        showStatus('Facebook connected. No accessible photos or videos returned. Check Meta permissions.');
+      }
       return;
     }
     list.insertAdjacentHTML('afterbegin',items.join(''));
