@@ -181,7 +181,6 @@
       mount.innerHTML='<p>Build your Mii-style character in Big LWA. Save it to your account, return to edit it, or take it into the Arcade. The original 2007 AIR app is archived separately; this is a native web recreation, not Nintendo Mii-format emulation.</p>'+
         '<iframe id="biglwaMiiEditorFrame" title="Big LWA Mii character maker webport" loading="eager" src="/avatar/mii-editor.html?v=20261014-webport-1" allow="clipboard-write"></iframe>'+
         '<p class="biglwa-mii-port-links"><a href="/arcade-puzzles.html?game=quest">Play with your character in Arcade ↗</a> · <a href="/avatar/mii-editor.html" target="_blank" rel="noopener noreferrer">Open editor full-page ↗</a></p>';
-    }
     }else{
       mount.innerHTML='<p>Import an IMVU avatar snapshot now. Live IMVU models need an authorized Unity WebGL export; a .unitypackage is not directly browser-runnable.</p>'+input+
         '<button type="button" data-avatar-unity-open>Open installed Unity scene</button>';
