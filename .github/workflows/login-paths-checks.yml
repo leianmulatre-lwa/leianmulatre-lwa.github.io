@@ -7,6 +7,7 @@ on:
       - 'studio-onboarding.js'
       - 'module-pages.js'
       - 'login-path-and-guide-test.mjs'
+      - 'studio-layout-cache-test.mjs'
       - 'feed-auth-tools-regression-test.mjs'
       - 'veve-studio-pinterest-regression-test.mjs'
       - '.github/workflows/login-paths-checks.yml'
@@ -21,6 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify canonical login routes and tutorial restoration
         run: |
+          node studio-layout-cache-test.mjs
           node login-path-and-guide-test.mjs
           node feed-auth-tools-regression-test.mjs
           node veve-studio-pinterest-regression-test.mjs

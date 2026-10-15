@@ -22,11 +22,11 @@ const checks=[
  ['Settings Cache section',settings.includes('id="cache"')&&settings.includes('id="clearTemporaryCache"')],
  ['Cache preserves layouts, sign-in, projects',!cache.includes('localStorage.clear(')&&!cache.includes('sessionStorage.clear(')&&!cache.includes('indexedDB.deleteDatabase(')],
  ['Settings cache script installed',settings.includes('/settings-cache.js?v=20261014-safe-cache-1')],
- ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261014-stable-layout-8')],
+ ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261014-stream-wave-9')],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
- ['Direct drag latest cache',home.includes('studio-experience.js?v=20261014-shared-order-1')]
+ ['Direct drag latest cache',home.includes('studio-experience.js?v=20261014-eject-song-2')]
 ];
 for(const [label,ok] of checks){console.log((ok?'PASS':'FAIL')+' · '+label)}
 assert.ok(checks.every(([,ok])=>ok),'Studio layout/cache accessibility regression');
