@@ -248,6 +248,28 @@
     pair.classList.toggle('is-avatar-hidden',avatarHidden);
     pair.classList.toggle('is-aura-hidden',Boolean(auraHidden));
     pair.classList.toggle('are-both-hidden',avatarHidden&&Boolean(auraHidden));
+    // Make either remaining A take the pair's full width. Update from the same
+    // source of truth used by the Avatar restore control, including after reload.
+    pair.dataset.visibleMembers=avatarHidden&&auraHidden?'none':avatarHidden?'aura':auraHidden?'avatar':'both';
+    // If Avatar was removed/archived, show its missing A in the GREEN sidebar
+    // alongside minimized Aura. This row is not a canonical widget row: its
+    // button deliberately uses data-avatar-restore so the Avatar handler owns it.
+    const greenDock=one('#studioApp #minimizedWidgetDock');
+    let sidebarRestore=one('#biglwaAvatarSidebarRestore',app);
+    if(avatarHidden&&greenDock){
+      if(!sidebarRestore){
+        sidebarRestore=document.createElement('div');
+        sidebarRestore.id='biglwaAvatarSidebarRestore';
+        sidebarRestore.className='sidebar-shortcut-row sidebar-avatar-restore-row is-minimized';
+        sidebarRestore.dataset.shortcutRow='avatar';
+        sidebarRestore.innerHTML='<span aria-hidden="true"></span>'+
+          '<button type="button" class="sidebar-shortcut-open" data-avatar-restore aria-label="Restore Avatar to Studio" title="Avatar removed · restore Avatar"><span class="sidebar-route-icon" aria-hidden="true">A<sup>+</sup></span></button>'+
+          '<span class="sidebar-minimized-state" aria-hidden="true">↥</span>';
+      }
+      if(sidebarRestore.parentElement!==greenDock)greenDock.append(sidebarRestore);
+      const primary=one('#studioSidebarPrimary',app);
+      if(primary)primary.hidden=false;
+    }else if(sidebarRestore){sidebarRestore.remove();}
     // The pair always consumes ONE ordinary top-widget slot, split into two halves.
     // Recalculate that slot count when music, Guest Check, Aura or Avatar is hidden.
     const topCards=[...rail.children].filter(el=>
@@ -266,7 +288,7 @@
       restore.textContent='Restore Avatar +';
       aura.append(restore);
     }
-    restore.hidden=!avatarHidden;
+    restore.hidden=!avatarHidden||Boolean(auraHidden);
     // Honor the member's Aura palette and theme rather than hardcoding beige.
     const colors=getComputedStyle(aura);
     const tokens={
@@ -513,6 +535,28 @@
   #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair{grid-template-columns:minmax(0,1fr)!important}
   #studioApp .hero-widget-rail>.biglwa-aura-avatar-pair>.aura-card{min-height:170px!important}
   #studioApp #studioAvatarCard{min-height:215px!important}
+}
+
+
+/* The full-width solo layout must outrank the older hero rail rule that
+   unconditionally reapplied repeat(2) even after Avatar was removed. */
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
+  grid-template-columns:minmax(0,1fr)!important;
+}
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair.is-avatar-hidden>.aura-card,
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair.is-aura-hidden>#studioAvatarCard{
+  grid-column:1/-1!important;width:100%!important;min-width:0!important;max-width:100%!important;
+}
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair.is-avatar-hidden>#studioAvatarCard{display:none!important}
+#studioApp #biglwaAvatarSidebarRestore .sidebar-route-icon{
+  position:relative;font:900 21px/1 Georgia,serif;letter-spacing:-.07em;
+}
+#studioApp #biglwaAvatarSidebarRestore .sidebar-route-icon sup{
+  position:absolute;right:-8px;top:-5px;font:900 10px/1 system-ui;color:#397d53;
+}
+#studioApp #biglwaAvatarSidebarRestore.is-minimized::after{
+  content:"";position:absolute;right:20px;top:4px;width:6px;height:6px;
+  border-radius:50%;background:#5b9e6f;box-shadow:0 0 0 2px #5b9e6f24;
 }
 
 /* Keep Avatar a preview; all source selectors live in Customize Profile. */
