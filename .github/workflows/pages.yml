@@ -29,6 +29,14 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Verify politc, calendar, and site SEO integrity
         run: node site-integrity-test.mjs
+      - name: Verify Veve, Arcade puzzles, media and board lock integration
+        run: |
+          node --check veve.js
+          node --check pinterest-orbit.js
+          node --check feed-polish.js
+          node --check module-pages.js
+          node --check feed-view.js
+          node veve-arcade-regression-test.mjs
       - name: Stage public files without development-only paths
         run: |
           mkdir -p "$RUNNER_TEMP/biglwa-public"
