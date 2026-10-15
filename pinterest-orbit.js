@@ -246,6 +246,16 @@ async function api(path,body){
    ...(body?{body:JSON.stringify(body)}:{})});
   return {res,data:await res.json().catch(()=>({}))};
  };
+ // Pinterest expiry never means the Firebase session expired.
+ if(!session()&&path!=='health'&&path!=='session'&&path!=='disconnect'){
+  const recovered=await recoverOrBindPinterestSession().catch(()=>'');
+  if(!recovered){
+   connected=false;
+   diagnostic='Reconnect Pinterest in Orbit. Your Big LWA login is still active.';
+   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid,needsReconnect:true}}));
+   throw Error(diagnostic);
+  }
+ }
  let response=await request(session());
  if(response.res.status===401&&path!=='disconnect'&&path!=='session'){
   const previous=session();
@@ -256,6 +266,8 @@ async function api(path,body){
   const reason=String(response.data.error||'Pinterest request rejected.');
   diagnostic='Pinterest '+path+' failed (HTTP '+response.res.status+'): '+reason;
   if(response.res.status===401||response.res.status===403){
+   // Clear the provider cache only: saved media and Firebase auth are untouched.
+   if(path!=='session')save('');
    connected=false;
    // Do not clear other Orbit connections, owner data or the main account.
    diagnostic='Pinterest authorization expired. You remain signed into Big LWA; reconnect only Pinterest in Orbit.';
@@ -289,7 +301,8 @@ async function connect(){await run(async()=>{
   sessionStorage.setItem(OAUTH_UID_KEY,authUid);
   sessionStorage.removeItem(PENDING_KEY);
   const challenge=encode(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
-  const returnTo=location.origin+'/studio/boards';
+  // Use the canonical Studio route for OAuth return; avoid a login-gated deep link.
+  const returnTo=location.origin+'/studio';
   location.assign(API+'start?challenge='+encodeURIComponent(challenge)+'&return_to='+encodeURIComponent(returnTo));
  })}
 

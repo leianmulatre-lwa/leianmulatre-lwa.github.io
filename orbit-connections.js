@@ -211,7 +211,11 @@ async function syncSource(source, uid) {
       if (!session) return { outcome: "no-session" };
       headers = { Authorization: "Bearer " + session };
       const retry = await fetch(WORKER + source.profile, { headers });
-      if (retry.status === 401) return { outcome: "rejected" };
+      if (retry.status === 401) {
+        // Pinterest grant expiry requires reconnect, not removing the account link.
+        try { localStorage.removeItem("biglwaPinterestSession:" + uid); } catch {}
+        return { outcome: "no-session" };
+      }
       if (!retry.ok) return { outcome: "stale" };
       profile = await retry.json();
     } else {
