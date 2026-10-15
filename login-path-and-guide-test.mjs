@@ -62,7 +62,7 @@ assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtre
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
 assert.ok(home.includes('studio-onboarding.js?v=20261014-studio-guide-3'));
-assert.ok(home.includes('session-restore.js?v=20261014-auth-screen-repair-5'));
+assert.ok(home.includes('session-restore.js?v=20261014-persistence-stability-6'));
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');
 console.log('PASS · pink card guide, sidebar relaunch, Orbit explanation, journal offset');

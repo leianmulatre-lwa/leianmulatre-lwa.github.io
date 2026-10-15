@@ -11,6 +11,9 @@ on:
       - 'mii-webport-test.mjs'
       - 'studio-layout-cache-test.mjs'
       - 'login-path-and-guide-test.mjs'
+      - 'orbit-session-stability-test.mjs'
+      - 'instagram-orbit.js'
+      - 'cloudflare-worker-instagram.js'
       - '.github/workflows/pages.yml'
       - '.github/workflows/pages-preflight.yml'
   workflow_dispatch:
@@ -30,6 +33,7 @@ jobs:
           node mii-webport-test.mjs
           node feed-auth-tools-regression-test.mjs
           node login-path-and-guide-test.mjs
+          node orbit-session-stability-test.mjs
           node veve-studio-pinterest-regression-test.mjs
           node --check session-restore.js
           node --check pinterest-orbit.js

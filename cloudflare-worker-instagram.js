@@ -2,7 +2,7 @@ const INSTAGRAM_AUTHORIZE_URL = 'https://www.instagram.com/oauth/authorize';
 const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
 const OAUTH_SCOPES = 'instagram_business_basic,instagram_business_manage_messages';
-const SESSION_TTL = 60 * 60 * 24 * 30;
+const SESSION_TTL = 60 * 60 * 24 * 60; // align storage with valid long-lived Instagram access tokens
 const FIREBASE_WEB_API_KEY = 'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY';
 
 const instagramWorker = {
@@ -97,7 +97,7 @@ async function startOAuth(url, env) {
   authorization.searchParams.set('response_type', 'code');
   authorization.searchParams.set('state', state);
   authorization.searchParams.set('scope', OAUTH_SCOPES);
-  authorization.searchParams.set('force_reauth', 'true');
+  // Do not force the user to log in to Instagram on every Orbit reconnection.
   return Response.redirect(authorization.toString(), 302);
 }
 
@@ -140,7 +140,7 @@ async function finishOAuth(url, env) {
   const expiresIn = Number((longLived ? longToken.expires_in : shortToken.expires_in) || 3600);
   const sessionId = randomToken(32);
   const userId = String(shortToken.user_id || '');
-  const session = { accessToken, userId, createdAt: Date.now(), expiresAt: Date.now() + expiresIn * 1000 };
+  const session = { accessToken, userId, longLived, createdAt: Date.now(), expiresAt: Date.now() + expiresIn * 1000 };
   await env.OAUTH_SESSIONS.put('session:' + sessionId, JSON.stringify(session), { expirationTtl: Math.min(expiresIn, SESSION_TTL) });
   if (userId) await env.OAUTH_SESSIONS.put('user:' + userId, sessionId, { expirationTtl: Math.min(expiresIn, SESSION_TTL) });
   const handoff = randomToken(24);
@@ -183,6 +183,38 @@ async function firebaseUidFromToken(idToken, env) {
   } catch (_) { return ''; }
 }
 
+// Keep Instagram's *provider* session alive where Meta permits it. This is
+// wholly separate from Firebase and does not create, change or end Big LWA auth.
+// Long-lived Instagram Login tokens become refreshable after 24h, while still
+// valid. An inaccessible Meta endpoint leaves the existing grant untouched.
+async function refreshInstagramSession(env, id, current) {
+  if (!current || !current.accessToken || current.expiresAt <= Date.now()) return current;
+  const now=Date.now();
+  const fourteenDays=14 * 24 * 60 * 60 * 1000;
+  const oneDay=24 * 60 * 60 * 1000;
+  if(!(current.longLived || (current.longLived == null && current.expiresAt-Number(current.createdAt||now)>2*oneDay)) || current.expiresAt-now>fourteenDays ||
+      now-Number(current.lastRefreshAt||current.createdAt||now)<oneDay) return current;
+  try{
+    const url=new URL(INSTAGRAM_GRAPH_URL+'/refresh_access_token');
+    url.searchParams.set('grant_type','ig_refresh_token');
+    url.searchParams.set('access_token',current.accessToken);
+    const response=await fetch(url.toString());
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok||!payload.access_token||Number(payload.expires_in)<=0)
+      return current;
+    const next={...current,accessToken:payload.access_token,
+      expiresAt:now+Number(payload.expires_in)*1000,lastRefreshAt:now,longLived:true};
+    const seconds=Math.min(SESSION_TTL,Math.max(60,Math.ceil((next.expiresAt-now)/1000)));
+    await env.OAUTH_SESSIONS.put('session:'+id,JSON.stringify(next),{expirationTtl:seconds});
+    if(next.firebaseUid)await env.OAUTH_SESSIONS.put('firebase:'+next.firebaseUid,id,{expirationTtl:seconds});
+    if(next.userId)await env.OAUTH_SESSIONS.put('user:'+next.userId,id,{expirationTtl:seconds});
+    return next;
+  }catch(error){
+    console.warn('Instagram token refresh temporarily unavailable:',error);
+    return current;
+  }
+}
+
 async function accountSession(request, env) {
   requireOrigin(request, env);
   const header = request.headers.get('Authorization') || '';
@@ -193,9 +225,10 @@ async function accountSession(request, env) {
   if (!sessionId) return json({ connected: false }, 200, request, env);
   const session = await env.OAUTH_SESSIONS.get('session:' + sessionId, 'json');
   if (!session || session.expiresAt < Date.now()) {
-    await env.OAUTH_SESSIONS.delete('firebase:' + uid);
-    return json({ connected: false }, 200, request, env);
+    return json({ connected: false, needsReconnect: true }, 200, request, env);
   }
+  // A provider refresh never invalidates the logged-in Firebase identity.
+  await refreshInstagramSession(env,sessionId,session);
   return json({ connected: true, session: sessionId }, 200, request, env);
 }
 
@@ -205,7 +238,8 @@ async function sessionFromRequest(request, env) {
   if (!sessionId) return null;
   const session = await env.OAUTH_SESSIONS.get('session:' + sessionId, 'json');
   if (!session || session.expiresAt < Date.now()) return null;
-  return { id: sessionId, ...session };
+  const refreshed=await refreshInstagramSession(env,sessionId,session);
+  return { id: sessionId, ...refreshed };
 }
 
 async function graph(path, session, fields) {

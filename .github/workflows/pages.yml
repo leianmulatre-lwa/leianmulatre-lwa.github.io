@@ -57,6 +57,7 @@ jobs:
           node --check tools-video-trim.js
           node feed-auth-tools-regression-test.mjs
           node login-path-and-guide-test.mjs
+          node orbit-session-stability-test.mjs
       - name: Check Veve onboarding, Pinterest and supporter presentation
         run: |
           node --check veve.js
