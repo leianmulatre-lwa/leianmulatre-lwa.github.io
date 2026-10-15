@@ -101,6 +101,44 @@ let handoffPromise=null;
     image:image(source),url:'https://www.pinterest.com/pin/'+pinId+'/'});
   });
  }
+ async function publishOnePin(pin,importer,publisher){
+  const id=String(pin?.id||'');
+  if(!/^\d+$/.test(id))throw Error('Invalid Pin identifier.');
+  const media={...pin,id,image_url:image(pin)||pin.image||'',url:'https://www.pinterest.com/pin/'+id+'/'};
+  if(!media.image_url)throw Error('Missing Pin image. Sync this Pin first.');
+  const imported=await importer('pinterest',[media],profile,window.__biglwaIdentity||{});
+  if(!imported?.imported||imported.partial)throw Error('Pin '+id+' did not finish importing.');
+  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('pinterest:'+id)));
+  const postId='orbit_'+Array.from(digest).map(n=>n.toString(16).padStart(2,'0')).join('').slice(0,40);
+  await publisher(postId);
+ }
+ async function publishBoardToVeve(id,saved){
+  const board=saved?savedLibrary.boards.find(b=>String(b.id)===String(id)):boards.find(b=>String(b.id)===String(id));
+  if(!board){notice('Select a board before publishing.');return;}
+  if(saved&&boardLocks[id]===true){notice('Unlock this board before publishing.');return;}
+  const loaded=saved?board.pins||[]:String(boardId)===String(id)?pins:[];
+  const list=loaded.filter(p=>/^\d+$/.test(String(p.id||''))&&(image(p)||p.image)).slice(0,20);
+  if(!list.length){notice('No Pin images loaded. Open or sync the board first.');return;}
+  const note=loaded.length>list.length?' Only the first 20 loaded Pins will publish this time.':'';
+  if(!window.confirm('Publish '+list.length+' Pins from "'+String(board.title||board.name||'Board').slice(0,100)+
+    '" to the public Collective Feed and Veve? Veve will not display your account name.'+note))return;
+  await run(async()=>{
+   const importer=await waitForImporter(),publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
+   if(typeof importer!=='function'||typeof publisher!=='function')throw Error('Account publishing is unavailable. Refresh and retry.');
+   let posted=0,failed=0;
+   for(const pin of list){
+    if(saved&&boardLocks[id]===true)break;
+    try{await publishOnePin(pin,importer,publisher);posted++}catch(err){failed++;console.warn('[BIG LWA] Pinterest publish:',pin.id,err)}
+    const status=document.querySelector('#pinterestBoards [role="status"]');
+    if(status)status.textContent='Publishing '+(posted+failed)+'/'+list.length+' Pins…';
+   }
+   if(posted){
+    window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published:posted}}));
+    window.BigLWAVeve?.refresh?.();
+   }
+   notice(posted+' Pins posted to Collective Feed and Veve.'+(failed?' '+failed+' failed; retry those Pins individually.':''));
+  });
+ }
  async function publishPin(pinId,fromBoard=''){
   if(fromBoard&&boardLocks[fromBoard]===true){notice('Unlock this board before publishing any of its saved Pins.');return;}
   const pin=pinById(pinId);
@@ -109,14 +147,7 @@ let handoffPromise=null;
    const importer=await waitForImporter();
    const publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
    if(typeof importer!=='function'||typeof publisher!=='function')throw new Error('Collective Feed publisher is not ready. Refresh and try again.');
-   const source={...pin,id:String(pinId),image_url:image(pin)||pin.image||'',
-     url:'https://www.pinterest.com/pin/'+pinId+'/'};
-   const imported=await importer('pinterest',[source],profile,window.__biglwaIdentity||{});
-   if(!imported||!imported.imported||imported.partial)throw new Error('Pinterest card was not fully saved to your account. Try Sync Pins first.');
-   const input=new TextEncoder().encode('pinterest:'+pinId);
-   const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',input));
-   const postId='orbit_'+Array.from(digest).map(n=>n.toString(16).padStart(2,'0')).join('').slice(0,40);
-   await publisher(postId);
+   await publishOnePin(pin,importer,publisher);
    window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published:1}}));
    notice('Pin posted to Collective Feed.');
   });
@@ -134,6 +165,7 @@ let handoffPromise=null;
    return '<section class="pn-saved-board" data-pn-collection="'+esc(board.id)+'" data-locked="'+(boardLocks[board.id]===true?'true':'false')+'">'+
     '<header><h4>'+esc(board.title)+' <small>('+board.pins.length+')</small> '+(boardLocks[board.id]===true?'<span class="pn-board-lock-label">🔒 locked</span>':'')+'</h4>'+
     '<button type="button" data-pn-lock-board="'+esc(board.id)+'" aria-pressed="'+(boardLocks[board.id]===true?'true':'false')+'">'+(boardLocks[board.id]===true?'Unlock board':'Lock board')+'</button>'+
+    '<button type="button" data-pn-publish-board="'+esc(board.id)+'" data-pn-board-kind="saved"'+(boardLocks[board.id]===true||!(board.pins||[]).length?' disabled':'')+'>Post board to Veve</button>'+
     '<button type="button" data-pn-rename-board="'+esc(board.id)+'">Rename</button>'+
     '<button type="button" data-pn-remove-board="'+esc(board.id)+'">Delete board</button></header>'+
     '<div class="pn-saved-pin-grid">'+(cols||'<p>Save Pins from above to this board.</p>')+'</div></section>';
@@ -506,6 +538,7 @@ async function connect(){await run(async()=>{
   (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
   (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
   (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
+  (boardId&&pins.length?'<div class="pn-board-publish-tools"><button type="button" class="module-action" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+disabled+'>Post loaded board Pins to Veve</button><small>Only Pins you explicitly publish become public.</small></div>':'')+
   '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
    const src=(hostedPinUrls.get(String(p.id))||[])[0]||'';const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
@@ -535,6 +568,9 @@ document.addEventListener('click',e=>{
   const id=savePin.dataset.pnSavePin;
   const target=document.querySelector('[data-pn-target-board="'+id+'"]')?.value||'default_saved';
   addSavedPin(id,target);return;}
+ const boardPublish=e.target.closest('[data-pn-publish-board]');
+ if(boardPublish){e.preventDefault();e.stopImmediatePropagation();
+   publishBoardToVeve(boardPublish.dataset.pnPublishBoard,boardPublish.dataset.pnBoardKind==='saved');return;}
  const publish=e.target.closest('[data-pn-publish]');
  if(publish){e.preventDefault();e.stopImmediatePropagation();publishPin(publish.dataset.pnPublish,publish.dataset.pnSavedFrom||'');return;}
  const rename=e.target.closest('[data-pn-rename-board]');
