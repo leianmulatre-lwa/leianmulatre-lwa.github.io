@@ -112,7 +112,7 @@ await check('keyboard screenplay elements, backup/export, print, account sync ar
  assert.ok(style.includes('@media print')&&style.includes('.sqwip-print-title'));
 });
 await check('new assets load before Diary and updated module is cache-busted',async()=>{
- const file='/sqwip.js?v=20261014-screenplay-1';
+ const file='/sqwip.js?v=20261014-horizontal-pages-2';
  assert.ok(index.includes(file));
  assert.match(index, /\/sqwip\.css\?v=/);
  assert.ok(index.includes('/module-pages.js?v='));
@@ -128,4 +128,35 @@ await check('Journal is optional public read-only; Sqwib Notes and screenplays r
  assert.ok(pages.includes("id=\"journalPublish\""),'owner must explicitly opt in');
  assert.ok(pages.includes("id=\"journalUnpublish\""),'owner can revoke public view');
  assert.ok(style.includes('.diary-section-nav button[aria-selected="true"]'),'segmented switcher retains selection');
+});
+
+await check('horizontal sheets paginate while preserving original screenplay text',async()=>{
+ const start=client.indexOf('function pageFragments(text,type){');
+ const end=client.indexOf('\nfunction renderBlocks(',start);
+ assert.ok(start>0&&end>start,'pagination helper exists');
+ const testFragment=client.slice(start,end);
+ const split=vm.runInNewContext(testFragment+'\npageFragments',{});
+ const single='An extremely long action element. '.repeat(150);
+ const chunks=split(single,'action');
+ assert.ok(chunks.length>1,'long paragraphs continue on another sheet');
+ assert.equal(chunks.join(''),single,'pagination never discards or duplicates text');
+ const withNewlines=Array(65).fill('A short screenplay line').join('\n');
+ assert.equal(split(withNewlines,'dialogue').join(''),withNewlines,'newline boundaries remain intact');
+ assert.ok(client.includes('body.scrollHeight>body.clientHeight'),'DOM geometry triggers new page');
+ assert.ok(client.includes("data-part="),'multiple fragments retain shared block identity');
+ assert.ok(client.includes('lineText(line.id)'),'edited fragments rejoin before account save');
+ assert.ok(client.includes('sqwipPrevPage')&&client.includes('sqwipNextPage'),'page buttons wired');
+ assert.ok(client.includes('sqwip-editor-area'),'navigation remains outside the scroller');
+ assert.ok(style.includes('flex-direction:row!important'),'pages flow horizontally');
+ assert.ok(style.includes('height:1056px!important'),'physical sheet has a fixed height');
+ assert.ok(style.includes('break-after:page!important'),'paper printing breaks per sheet');
+ assert.ok(index.includes('sqwip.css?v=20261014-horizontal-pages-4'),'fresh CSS is loaded');
+});
+await check('Politc includes Epstein Observer and links to primary records',async()=>{
+ assert.ok(pages.includes('https://epstein.observer/'));
+ assert.ok(pages.includes('id="politcEpsteinObserver"'));
+ assert.ok(pages.includes('https://www.justice.gov/epstein'));
+ assert.ok(pages.includes('https://vault.fbi.gov/jeffrey-epstein/'));
+ assert.ok(pages.includes('Inclusion or mention in records is not evidence of criminal wrongdoing.'));
+ assert.ok(index.includes('module-pages.js?v=20261014-epstein-observer-40'));
 });
