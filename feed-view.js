@@ -987,12 +987,20 @@ const calmMotion = () => {
 };
 
 function stopSlideshows() {
-  for (const timer of running) clearInterval(timer);
+  // Hold using each controller so its own timer pointer is reset too.
+  // Clearing raw interval IDs left stale pointers and caused duplicate
+  // slideshow listeners every time the browser tab became visible.
+  document.querySelectorAll('[data-biglwa-slideshow]').forEach(frame=>frame._biglwaSlideController?.hold());
+  for(const timer of running)clearInterval(timer);
   running.clear();
 }
 
 function startSlideshows(root) {
   for (const frame of (root || document).querySelectorAll("[data-biglwa-slideshow]")) {
+    if(frame._biglwaSlideController){
+      if(!document.hidden)frame._biglwaSlideController.play();
+      continue;
+    }
     const photos = Array.from(frame.querySelectorAll("img"));
     const dots = Array.from(frame.querySelectorAll(".biglwa-slide-dot button"));
     const count = frame.querySelector(".biglwa-slide-count");
@@ -1040,11 +1048,12 @@ function startSlideshows(root) {
       timer = null;
     };
     const play = () => {
-      if (timer || calmMotion() || !frame.isConnected) return;
+      if (timer || document.hidden || calmMotion() || !frame.isConnected) return;
       timer = setInterval(() => show(at + 1), SLIDE_MS);
       running.add(timer);
     };
     let timer = null;
+    frame._biglwaSlideController={hold,play};
 
     frame.addEventListener("click", (event) => {
       const step = event.target.closest("[data-slide-step]");
