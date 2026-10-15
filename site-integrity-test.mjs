@@ -91,7 +91,7 @@ assert.match(avatarStudio, /studioAvatar:/);
 // The uploaded 2007 original is Adobe AIR, not browser-native. Do not
 // show a dead loader or substitute editor while presenting it as the original.
 assert.match(avatarStudio, /biglwa-mii-legacy-status/);
-assert.match(avatarStudio, /MiiEditor\/tree\/main\/MiiEditor/);
+assert.match(avatarStudio, /github\.com\/leianmulatre-lwa\/leianmulatre-lwa\.github\.io\/tree\/main\/MiiEditor/);
 assert.match(read('avatar/mii-original.html'), /MiiEditor\/classicGUI\.swf/);
 assert.doesNotMatch(read('avatar/mii-original.html'), /ruffle|mii-editor\.html|<iframe/i);
 assert.doesNotMatch(avatarStudio, /<iframe id="biglwaMiiEditorFrame"/);
