@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'feed-mixed-caption-test.mjs'
+      - 'feed-view.js'
+      - 'orbit-feed.js'
+      - 'collective-publish.js'
       - 'pinterest-orbit.js'
       - 'session-restore.js'
       - 'brand-policy.css'
@@ -40,6 +44,7 @@ jobs:
           node veve-arcade-regression-test.mjs
           node mii-webport-test.mjs
           node feed-auth-tools-regression-test.mjs
+          node feed-mixed-caption-test.mjs
           node login-path-and-guide-test.mjs
           node tutorial-symbol-key-test.mjs
           node orbit-session-stability-test.mjs
