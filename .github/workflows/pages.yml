@@ -53,6 +53,7 @@ jobs:
           node --check session-restore.js
           node --check studio-experience.js
           node --check tools-studio.js
+          node --input-type=module --check < tools-craft.js
           node --check tools-video-trim.js
           node feed-auth-tools-regression-test.mjs
       - name: Check Veve onboarding, Pinterest and supporter presentation
@@ -73,6 +74,11 @@ jobs:
             --exclude='.env*' \
             --exclude='*.log' \
             --exclude='.DS_Store'
+      - name: Stage verified open-source ArtCraft browser editions
+        run: python3 .github/scripts/stage-craft-apps.py "$RUNNER_TEMP/biglwa-public"
+      - name: Validate ArtCraft staging manifest
+        run: |
+          python3 -c "import json,pathlib,os; d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'biglwa-public/craftapps/manifest.json').read_text()); assert d['schema']==1 and len(d['apps'])==4"
       - name: Upload public site
         uses: actions/upload-pages-artifact@v3
         with:

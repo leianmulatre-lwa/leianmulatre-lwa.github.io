@@ -1,0 +1,49 @@
+name: ArtCraft browser editor integration checks
+on:
+  pull_request:
+    paths:
+      - 'tools-craft.js'
+      - 'tools-craft.css'
+      - 'tools-studio.js'
+      - 'module-pages.js'
+      - '.github/scripts/stage-craft-apps.py'
+      - '.github/workflows/craft-apps-checks.yml'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  craft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate BIG LWA Tools code
+        run: |
+          node --check tools-studio.js
+          node --input-type=module --check < tools-craft.js
+          node --check module-pages.js
+          python3 -m py_compile .github/scripts/stage-craft-apps.py
+          node tools-studio-test.mjs
+      - name: Download and verify licensed ArtCraft WASM release artifacts
+        run: |
+          mkdir -p "${RUNNER_TEMP}/craft-test"
+          python3 .github/scripts/stage-craft-apps.py "${RUNNER_TEMP}/craft-test"
+      - name: Check browser apps are genuinely runnable release builds
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'craft-test/craftapps'
+          manifest=json.loads((root/'manifest.json').read_text())
+          print(manifest)
+          assert len(manifest['apps'])==4
+          for row in manifest['apps']:
+              app=root/row['id']
+              assert row['available'],f"No verified WebAssembly build for {row['id']}"
+              assert (app/'index.html').exists(),f"No editor HTML for {row['id']}"
+              assert any(app.rglob('*.wasm')),f"No WASM editor for {row['id']}"
+              assert (app/'upstream-licenses/LICENSE-MIT').exists()
+              assert (app/'upstream-licenses/LICENSE-APACHE').exists()
+          PY

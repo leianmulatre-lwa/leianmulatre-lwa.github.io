@@ -276,6 +276,7 @@ export function mountToolsStudio(root,helper){
     </section>
     <section class="tool-result" id="toolResult"></section>
     <section class="tool-groups" id="toolGroups"></section>
+    <section class="module-card wide" id="craftSuite" aria-label="ArtCraft creative suite"><p role="status">Loading ArtCraft creative editors…</p></section>
     <section class="module-card wide tool-directory">
       <h2>Online converters</h2>
       <p>These run on someone else's server, so your file leaves this device. Use them for the conversions a browser cannot do.</p>
@@ -293,6 +294,16 @@ export function mountToolsStudio(root,helper){
       <div class="module-status" id="toolLinkStatus">Nothing opened yet.</div>
       <p class="tool-note">BIGLWA does not scrape or re-encode other people's posts, so it cannot strip a watermark off a TikTok or Reels someone else posted. For your own uploads, save them from the app, which gives you the clean copy without any added watermark, then convert that file here.</p>
     </section>`;
+
+  // Independently load creative editors; file conversions and video trim still
+  // work even when the external ArtCraft release build is unavailable.
+  import('./tools-craft.js?v=20261014-artcraft-1')
+    .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
+    .catch(error=>{
+      console.warn('BIGLWA ArtCraft integration:',error);
+      const el=root.querySelector('#craftSuite');
+      if(el)el.innerHTML='<h2>artcraft · creative lab</h2><p>The editor library could not load. <a href="https://getartcraft.com/apps" target="_blank" rel="noopener noreferrer">GetArtCraft apps ↗</a></p>';
+    });
 
   const statusEl=root.querySelector('#toolStatus');
   const resultEl=root.querySelector('#toolResult');
