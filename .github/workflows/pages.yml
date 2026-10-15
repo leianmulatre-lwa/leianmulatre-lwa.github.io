@@ -45,6 +45,8 @@ jobs:
           node --check avatar-studio.js
           node --check avatar/minecraft-mannequin.js
           node veve-arcade-regression-test.mjs
+          node --check avatar/arcade-character.js
+          node mii-webport-test.mjs
       - name: Stage public files without development-only paths
         run: |
           mkdir -p "$RUNNER_TEMP/biglwa-public"
