@@ -88,7 +88,11 @@ assert.match(veve, /vevePrefs/);
 assert.match(instagramOrbit, /biglwaFeedImportStatusRail/);
 assert.match(avatarStudio, /skinview3d\.bundle\.min\.js/);
 assert.match(avatarStudio, /studioAvatar:/);
-assert.match(avatarStudio, /\/avatar\/mii-editor\.html/);
+// The original Adobe AIR SWF is attempted in the on-site compatibility wrapper.
+// Its browser-friendly PNG-save editor remains a working fallback.
+assert.match(avatarStudio, /\/avatar\/mii-original\.html/);
+assert.match(read('avatar/mii-original.html'), /MiiEditor\/classicGUI\.swf/);
+assert.match(read('avatar/mii-original.html'), /\/avatar\/mii-editor\.html/);
 assert.match(avatarStudio, /profileAvatarEditor/);
 assert.match(avatarStudio, /data-avatar-widget-action="edit"/);
 assert.doesNotMatch(avatarStudio, /data-avatar-edit>/);
