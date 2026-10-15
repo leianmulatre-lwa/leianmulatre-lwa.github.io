@@ -166,7 +166,12 @@ async function owner(){
 }
 async function visitor(profile){
  const uid=String(profile?.uid||'');if(!uid)return;
- state.uid=uid;state.owner=false;state.selected='';state.tracks=[];await refresh();
+ state.uid=uid;state.owner=false;state.selected='';state.tracks=[];
+ // A public profile must not inherit a song saved in the visitor's browser.
+ const audio=$('#studioAudio');if(audio){audio.pause();audio.removeAttribute('src');audio.load()}
+ const title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');
+ if(title)title.textContent='Profile songs';if(artist)artist.textContent='Choose a published track';
+ await refresh();
 }
 async function boot(){
  if(!ensure())return;
