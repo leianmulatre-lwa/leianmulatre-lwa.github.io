@@ -309,7 +309,7 @@ async function connect(){await run(async()=>{
   sessionStorage.removeItem(PENDING_KEY);
   const challenge=encode(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
   // Use the canonical Studio route for OAuth return; avoid a login-gated deep link.
-  const returnTo=location.origin+'/studio';
+  const returnTo=location.origin+'/studio?view=orbit';
   location.assign(API+'start?challenge='+encodeURIComponent(challenge)+'&return_to='+encodeURIComponent(returnTo));
  })}
 
