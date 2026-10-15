@@ -121,6 +121,14 @@
         const id=u.hostname==='youtu.be'?u.pathname.slice(1):u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v');
         if(/^[a-zA-Z0-9_-]{11}$/.test(id||''))return 'https://www.youtube-nocookie.com/embed/'+id;
       }
+      if(u.hostname==='www.tiktok.com'||u.hostname==='tiktok.com'||u.hostname==='m.tiktok.com'){
+        const m=u.pathname.match(/\/video\/(\d{9,25})/);
+        if(m)return 'https://www.tiktok.com/player/v1/'+m[1];
+      }
+      if(u.hostname==='www.instagram.com'||u.hostname==='instagram.com'){
+        const m=u.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)\/?/);
+        if(m)return 'https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
+      }
       if(u.hostname==='vimeo.com'){
         const id=u.pathname.split('/').filter(Boolean)[0];
         if(/^\d+$/.test(id||''))return 'https://player.vimeo.com/video/'+id;
