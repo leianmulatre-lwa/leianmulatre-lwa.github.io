@@ -498,8 +498,8 @@ function mount(root){
   '<div class="sqwip-file-actions"><button type="button" id="sqwipImportButton">Import</button><button type="button" data-sqwip-export="fountain">.fountain</button><button type="button" data-sqwip-export="text">.txt</button><button type="button" data-sqwip-export="json">Backup</button><button type="button" data-sqwip-export="print">Print / PDF</button><input id="sqwipImportFile" type="file" accept=".fountain,.txt,.json,text/plain,application/json" hidden></div></div>'+
   '<div class="sqwip-workbench"><aside class="sqwip-sidebar"><div id="sqwipScenes"></div><div class="sqwip-shortcuts"><b>Writing shortcuts</b>'+
   '<p><kbd>Enter</kbd> next element</p><p><kbd>Tab</kbd> cycle format</p><p><kbd>Shift + Tab</kbd> previous</p><p><kbd>Alt + 1–7</kbd> choose element</p><p><kbd>⌘ / Ctrl + Enter</kbd> new scene</p><p><kbd>⌘ / Ctrl + S</kbd> save</p></div></aside>'+
-  '<div class="sqwip-paper-wrap"><div class="sqwip-paper" role="document" aria-label="Screenplay pages flowing right">'+
-  '<div class="sqwip-print-title" id="sqwipPrintTitle"></div><div id="sqwipPages" aria-label="Screenplay pages"></div></div>'+
+  '<div class="sqwip-editor-area"><div class="sqwip-paper-wrap"><div class="sqwip-paper" role="document" aria-label="Screenplay pages flowing right">'+
+  '<div class="sqwip-print-title" id="sqwipPrintTitle"></div><div id="sqwipPages" aria-label="Screenplay pages"></div></div></div>'+
   '<footer class="sqwip-bottom"><span id="sqwipPageCount"></span><div class="sqwip-page-nav" role="group" aria-label="Move between screenplay pages"><button type="button" id="sqwipPrevPage" aria-label="Previous screenplay page">←</button><button type="button" id="sqwipNextPage" aria-label="Next screenplay page">→</button></div><button type="button" id="sqwipSave">Save now</button></footer></div></div>'+
   '</div>';
  host.addEventListener('click',onClick);
