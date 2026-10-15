@@ -267,7 +267,7 @@ export function mountToolsStudio(root,helper){
       <div class="tool-drop" id="toolDrop" tabindex="0" role="button" aria-label="Drop a file here or choose one">
         <strong>Drop a file here</strong>
         <span>Video, audio, images, PDFs, archives, documents, anything.</span>
-        <em>Local files up to 500 MB. Native video trimming doesn't upload. Full conversion may be limited by memory.</em>
+        <em>BIGLWA works out what it is and offers the conversions that suit it. Files up to 500 MB are accepted locally; large video trimming does not upload.</em>
         <button class="module-action" type="button" id="toolPick">Choose a file</button>
         <input id="toolFile" type="file" multiple hidden>
       </div>
