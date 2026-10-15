@@ -1228,7 +1228,7 @@ function openLightbox(post, index) {
         const id=u.pathname.match(/\/video\/(\d{9,25})/)?.[1];if(id)embedded='https://www.tiktok.com/player/v1/'+id;
       }else if(['instagram.com','www.instagram.com'].includes(u.hostname)){
         const m=u.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)\/?/);
-        if(m)embedded='https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
+        if(m&&(m[1]!=='p'||post.isVideo===true||(post.mediaItems||[]).some(x=>x?.isPicture===false||/^video/i.test(x?.mediaType||''))))embedded='https://www.instagram.com/'+m[1]+'/'+m[2]+'/embed/';
       }
     }catch{}
   }
