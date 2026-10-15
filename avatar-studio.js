@@ -130,8 +130,8 @@
       mount.innerHTML='<p>Upload a Minecraft skin texture (64 × 64 or 64 × 32) for a 3D preview.</p>'+
         '<label class="biglwa-avatar-upload">Import Minecraft skin<input type="file" data-avatar-import data-avatar-kind="minecraft" accept="image/png" hidden></label>';
     }else if(name==='mii'){
-      mount.innerHTML='<p>Build and save a Mii-inspired avatar right here on BIG LWA.</p>'+
-        '<iframe id="biglwaMiiEditorFrame" title="Big LWA on-site character maker" loading="lazy" src="/avatar/mii-editor.html?v=20261014-mii-maker-1" allow="clipboard-write"></iframe>'+input;
+      mount.innerHTML='<p>Original Mii Editor files found in your MiiEditor repository folder. Try the legacy editor or switch to the browser-friendly editor to save a PNG to your BIG LWA account.</p>'+
+        '<iframe id="biglwaMiiEditorFrame" title="Original Mii Editor with Big LWA browser fallback" loading="lazy" src="/avatar/mii-original.html?v=20261014-github-original-1" allow="clipboard-write"></iframe>'+input;
     }else{
       mount.innerHTML='<p>Import an IMVU avatar snapshot now. Live IMVU models need an authorized Unity WebGL export; a .unitypackage is not directly browser-runnable.</p>'+input+
         '<button type="button" data-avatar-unity-open>Open installed Unity scene</button>';
@@ -140,7 +140,7 @@
     cardStatus(name);
   }
   function cardStatus(name){
-    setStatus(name==='mii'?'Edit below, then choose Save to Big LWA.':name==='minecraft'?'Choose a skin PNG to import.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
+    setStatus(name==='mii'?'Original Mii Editor is available to try; choose the browser editor to save a PNG avatar.':name==='minecraft'?'Choose a skin PNG to import.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
   }
   async function verifySkin(file){
     if(file.type!=='image/png')throw Error('Minecraft skins must be PNG files.');
