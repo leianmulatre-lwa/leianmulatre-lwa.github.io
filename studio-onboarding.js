@@ -83,7 +83,7 @@
   $('#biglwaTourPosition',dialog).textContent='Big LWA tutorial · '+(index+1)+' of '+steps.length+' · '+step.area;
   $('#biglwaTourTitle',dialog).textContent=step.title;
   $('#biglwaTourBody',dialog).textContent=step.body;
-  const back=$('[data-tour-back]',dialog),next=$('[data-tour-next]',tryIt=$('[data-tour-try]',dialog);
+  const back=$('[data-tour-back]',dialog),next=$('[data-tour-next]',dialog),tryIt=$('[data-tour-try]',dialog);
   back.disabled=index===0;next.textContent=index===steps.length-1?'Finish and remove tutorial':'Next →';
   tryIt.hidden=!step.key;tryIt.textContent='Open '+step.area+' ↗';
  }
@@ -112,8 +112,7 @@
   document.body.append(dialog);return dialog;
  }
  function openTour(){
-  style();index=0;renderStep();
-  ensureDialog();renderStep();
+  style();index=0;ensureDialog();renderStep();
   if(!dialog.open)dialog.showModal();
  }
  function attach(){
