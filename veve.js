@@ -288,21 +288,22 @@
       const j=Math.floor(random()*(i+1));[mixedExtras[i],mixedExtras[j]]=[mixedExtras[j],mixedExtras[i]];
     }
     const mixed=[];
-    if(images.length){
-      let since=0;
-      for(let i=0;i<images.length;i++){
-        if(mixedExtras.length&&(since>=2+Math.floor(random()*2)||i===images.length-1&&mixedExtras.length>images.length/3)){
-          mixed.push(mixedExtras.shift());since=0;
-        }
-        mixed.push(images[i]);since++;
+    if(!images.length)mixed.push(...mixedExtras);
+    else {
+      // Spread resources into roughly even slots, jittered one image either way.
+      // Keep the photo order consistent with Sort while avoiding resource clusters.
+      const positions=[];
+      for(let k=0;k<mixedExtras.length;k++){
+        const ideal=(k+1)*(images.length+1)/(mixedExtras.length+1);
+        const target=Math.max(0,Math.min(images.length,Math.round(ideal+(random()-.5)*1.3)));
+        positions.push(target);
       }
-    }
-    // When there are fewer public photos, sprinkle remaining resources by index
-    // rather than gathering every resource at the far-right end.
-    while(mixedExtras.length){
-      const tile=mixedExtras.shift(),possible=mixed.length+1;
-      const target=Math.min(possible-1,Math.floor(random()*possible));
-      mixed.splice(target,0,tile);
+      positions.sort((a,b)=>a-b);
+      let cursor=0;
+      for(let i=0;i<=images.length;i++){
+        while(cursor<positions.length&&positions[cursor]===i)mixed.push(mixedExtras[cursor++]);
+        if(i<images.length)mixed.push(images[i]);
+      }
     }
     const sectionHtml='<section class="veve-section"><div class="veve-masonry">'+
       mixed.join('')+'</div></section>';
