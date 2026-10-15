@@ -12,9 +12,9 @@
   background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.14),transparent 70%);
   user-select:none;-webkit-user-select:none;touch-action:pan-y;outline:none}
 .biglwa-mc-stage:focus-visible{outline:2px solid #4b966c;outline-offset:-2px}
-.biglwa-mc-stage .biglwa-mc-scene{position:relative;width:176px;height:175px;
+.biglwa-mc-stage .biglwa-mc-scene{position:relative;width:132px;height:138px;
   perspective:680px;perspective-origin:50% 40%;transform-style:preserve-3d}
-.biglwa-mc-stage .biglwa-mc-turntable{position:absolute;width:0;height:0;left:50%;top:18px;
+.biglwa-mc-stage .biglwa-mc-turntable{position:absolute;width:0;height:0;left:50%;top:2px;
   transform-style:preserve-3d;transform:rotateX(-9deg) rotateY(-27deg);
   will-change:transform}
 .biglwa-mc-stage .biglwa-mc-part{position:absolute;transform-style:preserve-3d}
