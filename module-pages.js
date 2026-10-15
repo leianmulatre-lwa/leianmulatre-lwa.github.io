@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261014-arcade-puzzles-34';
+        script.src = '/module-pages.js?v=20261014-archive-dots-folder-36';
         document.head.appendChild(script);
       }, 250);
     }
