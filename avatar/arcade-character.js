@@ -30,9 +30,12 @@ function validPortrait(record){
 function refreshIdentity(){
   const name=String(character.name||'Guest').slice(0,32),signedIn=uid!=='guest';
   $('.arcade-identity strong').textContent=signedIn?'playing as '+name:'playing as guest';
-  $('.arcade-identity small').textContent=signedIn
-    ?(character.url?'Character connected to your Big LWA account.':'Open the character editor to give this account a character.')
-    :'Sign in and save a character to use your own face in these games.';
+  const detail=$('.arcade-identity small');
+  detail.replaceChildren(document.createTextNode(signedIn
+    ?(character.url?'Character connected to your account. ':'Save a character to your account. ')
+    :'Sign in and save a character to play as them. '));
+  const editor=document.createElement('a');editor.href='/avatar/mii-editor.html';
+  editor.textContent='Edit character ↗';detail.append(editor);
   portrait(character.url,name);
   draw();
 }
