@@ -2,7 +2,7 @@
 (()=>{
  if(window.__biglwaFeedPolishV1)return;window.__biglwaFeedPolishV1=true;
  const styles=`
- #feedPageList>.biglwa-pin-post,#feedPageList>.pinterest-feed-item,#feedPageList>.biglwa-instagram-card{
+ #feedPageList>.biglwa-pin-post,#feedPageList>.pinterest-feed-item,#feedPageList>.biglwa-instagram-card,#feedPageList>.facebook-feed-item{
    box-sizing:border-box!important;position:relative!important;display:inline-block!important;vertical-align:top!important;
    padding:0!important;margin:0 0 18px!important;width:100%!important;min-width:0!important;
    border-radius:15px!important;border:1px solid #e4d4c8!important;background:#fff8ef!important;
@@ -52,7 +52,7 @@
  /* Small + appears on image hover or keyboard focus, not constantly over the artwork. */
  #feedPageList .biglwa-card-options{right:auto!important;left:8px!important;bottom:8px!important;opacity:0;pointer-events:none;transition:opacity .13s ease!important}
  #feedPageList .biglwa-card-options>summary{width:25px!important;height:25px!important;font:800 17px/1 system-ui!important;border-radius:50%!important}
- #feedPageList :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card):is(:has(.biglwa-unified-media:hover),:focus-within)>.biglwa-card-options,
+ #feedPageList :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card,.facebook-feed-item):is(:has(.biglwa-unified-media:hover),:focus-within)>.biglwa-card-options,
  #feedPageList .biglwa-card-options[open]{opacity:1!important;pointer-events:auto!important}
  #feedPageList .biglwa-card-options .biglwa-send-tray{right:auto!important;left:0!important;bottom:34px!important}
  @media(hover:none){#feedPageList .biglwa-card-options{opacity:1!important;pointer-events:auto!important}}
@@ -87,8 +87,9 @@
    if(!card.isConnected)return;
    let details=card.querySelector('details.biglwa-card-options');
    if(!details){
-     const source=card.querySelector('[data-instagram-open]')?.getAttribute('href')||
-        (card.dataset.sourceId?'https://www.pinterest.com/pin/'+encodeURIComponent(card.dataset.sourceId)+'/':'');
+     let data={};try{data=JSON.parse(card.dataset.sendRecord||'{}')}catch{}
+     const source=data.sourceUrl||card.querySelector('[data-instagram-open]')?.getAttribute('href')||
+        (card.classList.contains('pinterest-feed-item')&&card.dataset.sourceId?'https://www.pinterest.com/pin/'+encodeURIComponent(card.dataset.sourceId)+'/':'');
      const markup=window.__biglwaFeed?.sendBarMarkup?.(false,source)||fallbackMarkup(sanitizeUrl(source));
      card.insertAdjacentHTML('beforeend',markup);
      details=card.querySelector('details.biglwa-card-options');
@@ -107,7 +108,7 @@
        }else{
          button.dataset.liveFeedOp=name;
        }
-       if(!owned&&card.classList.contains('biglwa-pin-post')&&name!=='enlarge'){
+       if(!owned&&(card.classList.contains('biglwa-pin-post')||card.classList.contains('facebook-feed-item'))&&name!=='enlarge'){
          button.disabled=true;button.title='Only the owner can archive or remove this post.';
        }
        lights.append(button);
@@ -155,7 +156,7 @@
    });
  }
  let queued=false;
- function scan(){queued=false;document.querySelectorAll('#feedPageList .biglwa-pin-post,#feedPageList .pinterest-feed-item,#feedPageList .biglwa-instagram-card').forEach(normalizeCard);}
+ function scan(){queued=false;document.querySelectorAll('#feedPageList .biglwa-pin-post,#feedPageList .pinterest-feed-item,#feedPageList .biglwa-instagram-card,#feedPageList .facebook-feed-item').forEach(normalizeCard);}
  function schedule(){if(queued)return;queued=true;requestAnimationFrame(scan);}
  const obs=new MutationObserver(muts=>{if(muts.some(m=>m.addedNodes.length||m.removedNodes.length))schedule();});
  function boot(){obs.observe(document.body,{childList:true,subtree:true});schedule();}
@@ -174,7 +175,7 @@
    const api=window.__biglwaOrbitPosts;
    if(!api?.loadArchive||!api?.setOrbitState)throw Error('Sign in to BIGLWA and sync Orbit first.');
    let record={};try{record=JSON.parse(card.dataset.sendRecord||'{}')}catch{}
-   const source=String(record.source||(card.classList.contains('pinterest-feed-item')?'pinterest':'instagram')).toLowerCase();
+   const source=String(record.source||(card.classList.contains('facebook-feed-item')?'facebook':card.classList.contains('pinterest-feed-item')?'pinterest':'instagram')).toLowerCase();
    const sourceId=String(record.sourcePostId||card.dataset.sourceId||'');
    if(!sourceId)throw Error('This post has no saved Orbit identifier.');
    let cursor=null;
@@ -196,7 +197,7 @@
    const button=event.target.closest?.('#feedPageList [data-live-feed-op]');
    if(!button)return;
    event.preventDefault();event.stopPropagation();
-   const card=button.closest('.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card');
+   const card=button.closest('.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card,.facebook-feed-item');
    if(!card)return;
    const op=button.dataset.liveFeedOp;
    if(op==='enlarge'){
