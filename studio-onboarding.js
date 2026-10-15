@@ -138,7 +138,7 @@
  }
  window.addEventListener('biglwa:identity-updated',()=>{if(card){currentUid=uid();card.classList.toggle('is-tutorial-dismissed',readDismissed())}});
  window.addEventListener('biglwa:customization-remote',event=>{
-  if(event.detail?.session?.studioTutorialDismissed===true){
+  if(event.detail?.customization?.session?.studioTutorialDismissed===true){
    try{localStorage.setItem(key(),'1')}catch{}
    card?.classList.add('is-tutorial-dismissed');
   }
