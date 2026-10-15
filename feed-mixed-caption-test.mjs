@@ -35,7 +35,7 @@ const helpers=new Function('document',orbit.slice(start,end)+'\nreturn {mixFeedC
 });
 const card=(source,i)=>{
  const name=source==='instagram'?'instagram-feed-item':source==='pinterest'?'pinterest-feed-item':'facebook-feed-item';
- return {name:source+'-'+i,classList:{contains:value=>value===name},dataset:{},matches:()=>true};
+ return {name:source+'-'+i,classList:{contains:value=>value===name},dataset:{},matches:selector=>selector.startsWith('.biglwa-pin-post,')};
 };
 const cards=[
  ...Array.from({length:24},(_,i)=>card('instagram',i)),
