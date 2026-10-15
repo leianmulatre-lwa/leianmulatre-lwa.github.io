@@ -441,7 +441,7 @@
     #studioApp #diary .studio-public-journal-heading{display:block;position:relative;z-index:4;padding:15px;color:#5f4237;background:#f8eddfb5;font:800 12px/1.45 Georgia,serif}
     #studioApp #diary .studio-public-journal-excerpt{position:relative;z-index:4;text-align:left;padding:8px 20px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font:600 12px/1.65 Georgia,serif;color:#3e342e}
     #studioApp #diary .diary-page .studio-journal-initial{
-      position:absolute!important;z-index:9;left:50%!important;top:28%!important;
+      position:absolute!important;z-index:9;left:50%!important;top:34%!important;
       width:64px!important;height:64px!important;max-width:20%!important;
       display:flex!important;align-items:center!important;justify-content:center!important;
       box-sizing:border-box!important;padding:0!important;margin:0!important;
