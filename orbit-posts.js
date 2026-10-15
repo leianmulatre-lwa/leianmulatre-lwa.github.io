@@ -312,8 +312,13 @@ async function bumpOwnerIndex(store, uid, owner, incoming) {
    left the Collective Feed, the member profile, and the Archive empty and left other
    devices with nothing to load. */
 async function importInstagramMediaToR2(items, user, source = 'instagram') {
-  const firebaseIdToken = await user.getIdToken();
-  if (!firebaseIdToken) throw new Error("Your BIGLWA login expired. Sign in again to import Orbit images.");
+  // The Firebase account and the linked external service have different
+  // lifetimes. Token retrieval/network failures must not imply the member
+  // signed out just because a Pinterest grant expired.
+  let firebaseIdToken = '';
+  try { firebaseIdToken = await user.getIdToken(); }
+  catch (error) { console.warn('BIG LWA media token retrieval delayed:', error); }
+  if (!firebaseIdToken) throw new Error("BIG LWA media authorization is temporarily unavailable. Your session was not signed out.");
 
   const requestItems = [];
   for (const raw of items) {
@@ -349,6 +354,7 @@ async function importInstagramMediaToR2(items, user, source = 'instagram') {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + firebaseIdToken,
+          "X-Orbit-Provider": source === 'pinterest' ? 'pinterest' : 'instagram',
           ...(source === 'pinterest'
             ? { "X-Pinterest-Session": (() => {
                 const key='biglwaPinterestSession:'+user.uid;
