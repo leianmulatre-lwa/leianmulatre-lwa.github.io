@@ -204,7 +204,19 @@
     .module-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
     .module-list{display:grid;gap:8px;margin-top:12px}.module-list-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #dfd6cd;background:rgba(255,255,255,.5);border-radius:13px;padding:11px 12px}.module-list-item b,.module-list-item small{display:block}.module-list-item b{font-size:11px}.module-list-item small{font-size:9px;color:#857b74;margin-top:3px}.module-list-item button{border:0;background:transparent;color:#8b7e76;font-size:10px;cursor:pointer}
     .module-status{min-height:16px;margin-top:7px;font-size:9px;color:#81766f}.module-status.ok{color:#477650}
-    .module-orbit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.module-orbit-row{border:1px solid #ddd3ca;background:rgba(255,255,255,.52);border-radius:14px;padding:11px}.module-orbit-row header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.module-orbit-row header b{font-size:11px}.module-orbit-row header span,.module-workspace .module-orbit-row header span{min-width:28px;height:26px;padding:0 7px;border-radius:999px;display:grid;place-items:center;background:#292523;color:#fff!important;font-size:8px;font-weight:800;-webkit-text-fill-color:#fff}
+    .module-orbit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.module-orbit-row{position:relative;border:1px solid #ddd3ca;background:rgba(255,255,255,.52);border-radius:14px;padding:11px 11px 44px}.module-orbit-row header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.module-orbit-row header b{font-size:11px}.module-orbit-row header span,.module-workspace .module-orbit-row header span{min-width:28px;height:26px;padding:0 7px;border-radius:999px;display:grid;place-items:center;background:#292523;color:#fff!important;font-size:8px;font-weight:800;-webkit-text-fill-color:#fff}
+    /* Platform marker sits diagonally opposite the connection-status pill,
+       away from titles, buttons, inputs, and profile information. */
+    .module-orbit-row>.orbit-platform-badge,
+    .module-workspace .module-orbit-row>.orbit-platform-badge{
+      position:absolute;right:11px;bottom:10px;top:auto;left:auto;
+      display:grid;place-items:center;min-width:27px;height:27px;
+      width:auto;padding:0 7px;box-sizing:border-box;border-radius:999px;
+      color:#fff!important;-webkit-text-fill-color:#fff!important;
+      font:800 8px/1 system-ui;letter-spacing:.01em;
+      pointer-events:none;z-index:1
+    }
+    .module-orbit-row header>.orbit-state{margin-left:auto}
     .orbit-field-label{display:block;font:700 8px/1.2 system-ui;letter-spacing:.08em;text-transform:uppercase;color:#8b8179;margin:8px 0 4px}
     /* Quick links: the same list the owner connects and a visitor clicks. Each source
        carries its own colour so a row of links is readable at a glance. */
@@ -875,7 +887,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   /* Each API's chip wears that API's own colour. They were all one black pill, which read as
      a row of dead black dots with unreadable lettering rather than as a list of services.
      The lettering is pinned white on top so it survives the widget colour rules above. */
-  const orbitBadge=(g,tint)=>'<span style="background:'+tint+'">'+esc(g)+'</span>';
+  const orbitBadge=(g,tint)=>'<span class="orbit-platform-badge" aria-hidden="true" style="background:'+tint+'">'+esc(g)+'</span>';
   const orbitLinks=()=>window.BigLWAOrbitAccountLinks?.get?.() ?? readJSON('biglwaOrbitLinks',{});
   const orbitConnected=()=>{
     const rows=[];
@@ -956,13 +968,13 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       const row=connected[k];
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
       const providerError=k==='tiktok'?String(window.__biglwaTikTokOrbit?.state?.lastError||''):'';
-      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${orbitBadge(g,t)}${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>`+
+      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>${orbitBadge(g,t)}`+
        (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span><a class="orbit-hotlink" href="${esc(row.link)}" target="_blank" rel="noopener noreferrer">Open ↗</a></div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
        `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${ORBIT_HANDS(k)?'':'disabled'}>${row?'Reconnect':'Connect'} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}</div></div>`;
      }
-     return `<div class="module-orbit-row"><header><b>${n}</b>${orbitBadge(g,t)}</header><label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
+     return `<div class="module-orbit-row"><header><b>${n}</b></header>${orbitBadge(g,t)}<label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
      }).join('')}</div></section></div>`;
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
@@ -2267,11 +2279,11 @@ const connect=e.target.closest('[data-orbit-connect]');
     const rows=ORBIT_APPS.map(([k,g,n,t])=>{
       if(ORBIT_CONNECTED.has(k)){
         const row=connected[k];
-        return '<div class="module-orbit-row is-oauth" data-orbit-row="'+esc(k)+'"><header><b>'+esc(n)+'</b>'+orbitBadge(g,t)+(row?'<em class="orbit-state is-on">Connected</em>':'<em class="orbit-state">Not connected</em>')+'</header>'+
+        return '<div class="module-orbit-row is-oauth" data-orbit-row="'+esc(k)+'"><header><b>'+esc(n)+'</b>'+(row?'<em class="orbit-state is-on">Connected</em>':'<em class="orbit-state">Not connected</em>')+'</header>'+orbitBadge(g,t)+
           (row?'<div class="orbit-connected-card">'+(row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':'')+'<span><b>'+esc(row.name||row.username||'Connected')+'</b>'+(row.username?'<small>@'+esc(row.username)+'</small>':'')+'</span><a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a></div>':'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
           '<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="'+esc(k)+'">'+(row?'Reconnect':'Connect')+' '+esc(n)+'</button>'+(row?'<button class="module-action ghost" type="button" data-orbit-unlink="'+esc(k)+'">Unlink</button>':'')+'</div></div>';
       }
-      return '<div class="module-orbit-row"><header><b>'+esc(n)+'</b>'+orbitBadge(g,t)+'</header><p class="orbit-not-connected">'+(orbitLinks()[k]?'A public link is saved for this source.':'Kept as a plain profile link.')+'</p><div class="module-actions"><button class="module-action ghost" type="button" data-orbit-manage="'+esc(k)+'">Manage in Orbit</button></div></div>';
+      return '<div class="module-orbit-row"><header><b>'+esc(n)+'</b>'+'</header>'+orbitBadge(g,t)+'<p class="orbit-not-connected">'+(orbitLinks()[k]?'A public link is saved for this source.':'Kept as a plain profile link.')+'</p><div class="module-actions"><button class="module-action ghost" type="button" data-orbit-manage="'+esc(k)+'">Manage in Orbit</button></div></div>';
     }).join('');
     const root=document.createElement('div');
     root.className='biglwa-popup-backdrop';
