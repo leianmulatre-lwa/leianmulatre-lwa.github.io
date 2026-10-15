@@ -244,7 +244,7 @@ let handoffPromise=null;
   return '';
  }
 const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-function notice(text){message=text;render();let el=document.getElementById('pinterestNotice');if(!el){el=document.createElement('div');el.id='pinterestNotice';el.setAttribute('role','status');el.style.cssText='position:fixed;right:18px;bottom:18px;max-width:360px;padding:16px;background:#fff5eb;color:#302b28;border:1px solid #ccc;border-radius:12px;z-index:15000';document.body.append(el)}el.textContent=text;clearTimeout(notice.timer);notice.timer=setTimeout(()=>el.remove(),10000)}
+function notice(text){message=text;render();if(!authUid || !document.getElementById('studioApp')?.classList.contains('is-active') || document.getElementById('loginPage')?.classList.contains('is-active')){document.getElementById('pinterestNotice')?.remove();return}let el=document.getElementById('pinterestNotice');if(!el){el=document.createElement('div');el.id='pinterestNotice';el.setAttribute('role','status');el.style.cssText='position:fixed;right:18px;bottom:18px;max-width:360px;padding:16px;background:#fff5eb;color:#302b28;border:1px solid #ccc;border-radius:12px;z-index:15000';document.body.append(el)}el.textContent=text;clearTimeout(notice.timer);notice.timer=setTimeout(()=>el.remove(),10000)}
 // A Pinterest token expiring must never affect Firebase login.
 async function api(path,body){
  const request=async bearer=>{
@@ -287,9 +287,9 @@ async function api(path,body){
  }
  return response.data;
 }
-async function run(fn){
- if(busy)return;busy=true;message='Loading Pinterest…';render();
- try{await fn();message=''}catch(e){notice(e.message)}
+async function run(fn,{silent=false}={}){
+ if(busy)return;busy=true;if(!silent)message='Loading Pinterest…';render();
+ try{await fn();if(!silent)message=''}catch(e){diagnostic=e?.message||'Pinterest unavailable. Reconnect in Orbit.';if(!silent)notice(diagnostic);else console.warn('Pinterest background restore:',diagnostic)}
  finally{busy=false;render()}
 }
 async function connect(){await run(async()=>{
@@ -439,7 +439,7 @@ async function connect(){await run(async()=>{
     if(!boardId&&boards.length)boardId=String(boards[0].id||'');
     if(boardId)await loadPins(boardId);
     render();
-  });
+  },{silent:true});
   try{return await restorePromise}finally{restorePromise=null}
  }
  async function syncAllBoards(){
@@ -716,6 +716,11 @@ async function init(){
  if(returning&&authUid&&typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('boards');
  if(authUid)await restore().catch(error=>console.warn('Pinterest provider restore:',error));
 }
+window.addEventListener('biglwa:session-verified',event=>{
+ if(event.detail?.signedIn)return;
+ clearTimeout(notice.timer);
+ document.getElementById('pinterestNotice')?.remove();
+});
 window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  if(event.detail?.source!=='pinterest')return;
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';

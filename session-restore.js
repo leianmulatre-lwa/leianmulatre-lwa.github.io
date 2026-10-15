@@ -66,7 +66,30 @@ function finishAuth(user){
     }catch{}
   }
 }
-let lastConfirmedUid,authListenerAttached=false,starting=false;
+let lastConfirmedUid,authListenerAttached=false,starting=false,repairingScreen=false;
+async function repairLateLoginPaint(){
+  if(!lastConfirmedUid||repairingScreen)return;
+  const login=document.getElementById('loginPage');
+  if(!login?.classList.contains('is-active'))return;
+  repairingScreen=true;
+  try{
+    const auth=await getAuth();
+    await auth.authStateReady();
+    // Only Firebase can establish sign-in. A Pinterest status/401 is never
+    // enough to open or close the Big LWA login screen.
+    if(auth.currentUser?.uid===lastConfirmedUid &&
+       document.getElementById('loginPage')?.classList.contains('is-active')){
+      finishAuth(auth.currentUser);
+    }
+  }catch(error){console.warn('[BIGLWA] Login display verification delayed:',error)}
+  finally{repairingScreen=false}
+}
+function guardLoginScreen(){
+  const login=document.getElementById('loginPage');
+  if(!login)return;
+  const observer=new MutationObserver(()=>{if(lastConfirmedUid)repairLateLoginPaint()});
+  observer.observe(login,{attributes:true,attributeFilter:['class']});
+}
 function resolveVerifiedUser(user){
   const uid=user?.uid||'';
   // Multiple widgets all listen for Firebase auth. A repeated notification
@@ -103,6 +126,7 @@ async function verifySession(attempt=0){
 }
 async function boot(){
   document.body.classList.add("biglwa-session-pending");
+  guardLoginScreen();
   verifySession();
   window.addEventListener("biglwa:customization-remote",event=>restoreLastView(event.detail));
   document.addEventListener("biglwa:module-open",event=>setLastView(event.detail?.key||""));
