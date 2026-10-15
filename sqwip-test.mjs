@@ -132,15 +132,15 @@ await check('Journal is optional public read-only; Sqwib Notes and screenplays r
 
 await check('horizontal sheets paginate while preserving original screenplay text',async()=>{
  const start=client.indexOf('function pageFragments(text,type){');
- const end=client.indexOf('\\nfunction renderBlocks(',start);
+ const end=client.indexOf('\nfunction renderBlocks(',start);
  assert.ok(start>0&&end>start,'pagination helper exists');
  const testFragment=client.slice(start,end);
- const split=vm.runInNewContext(testFragment+'\\npageFragments',{});
+ const split=vm.runInNewContext(testFragment+'\npageFragments',{});
  const single='An extremely long action element. '.repeat(150);
  const chunks=split(single,'action');
  assert.ok(chunks.length>1,'long paragraphs continue on another sheet');
  assert.equal(chunks.join(''),single,'pagination never discards or duplicates text');
- const withNewlines=Array(65).fill('A short screenplay line').join('\\n');
+ const withNewlines=Array(65).fill('A short screenplay line').join('\n');
  assert.equal(split(withNewlines,'dialogue').join(''),withNewlines,'newline boundaries remain intact');
  assert.ok(client.includes('body.scrollHeight>body.clientHeight'),'DOM geometry triggers new page');
  assert.ok(client.includes("data-part="),'multiple fragments retain shared block identity');
