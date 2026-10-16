@@ -26,7 +26,7 @@ assert.ok(collections.includes('deletedIds[current.id]=timestamp()'),'Deleted no
 assert.ok(collections.includes('Cloud sync unavailable')||collections.includes('Cloud sync needs your private Firestore permissions'));
 assert.ok(planets.includes('box-shadow:3px 3px 0 #f36b21')&&planets.includes('box-shadow:3px 3px 0 #d70024'));
 assert.ok(planets.includes('#ffebec 73%')&&planets.includes('#f2899b'));
-assert.ok(google.includes("window.__biglwaPendingOAuthProvider=key"));
-assert.ok(orbit.includes("setup")||orbit.includes("Setup"));
+assert.ok(google.includes("window.openBIGLWAModule('orbit')")&&!google.includes("hide planetary"));
+assert.ok(orbit.includes("data-orbit-save")&&orbit.includes("data-orbit-open"),'New provider profile URLs remain usable');
 assert.ok(!rules.includes('accountIsPublic(resource.data.uid)'), 'Do not break public Feed queries until filters are migrated');
 console.log('PASS Meta OAuth scope, safe private profile controls, deletion requests, owner-only writing sync, provider setup and planet palette');
