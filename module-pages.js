@@ -963,8 +963,13 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     try {
       const url=new URL(String(raw||'').trim());
       if(!['http:','https:'].includes(url.protocol))return '';
-      return url.hostname.toLowerCase().replace(/^www\./,'')+
-        decodeURIComponent(url.pathname).replace(/\/+$/,'').toLowerCase();
+      const host=url.hostname.toLowerCase().replace(/^(?:www|m|mobile)\./,'').replace(/^twitter\.com$/,'x.com');
+      const path=decodeURIComponent(url.pathname).replace(/\/+$/,'').toLowerCase();
+      const identity=new URLSearchParams();
+      for(const key of ['id','v','user','username','page_id','channel']){
+        if(url.searchParams.has(key))identity.set(key,url.searchParams.get(key)||'');
+      }
+      return host+path+(identity.size?'?'+identity.toString():'');
     }catch{return ''}
   }
   function orbitQuickLinks(){
