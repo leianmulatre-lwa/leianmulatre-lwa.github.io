@@ -1,6 +1,10 @@
 name = "biglwa-instagram-api"
 main = "cloudflare-worker-instagram.js"
 compatibility_date = "2026-09-11"
+# Preserve dashboard-managed values when deploying a Worker version.
+# In particular, a newly rotated TikTok client secret must never be replaced by
+# a repository deploy. Secret values are never committed to GitHub.
+keep_vars = true
 
 # These bindings mirror what is already live on the Worker. A bare
 # `wrangler deploy worker.js` would have removed every one of them, which would
@@ -21,3 +25,7 @@ bucket_name = "wallpaper-bucket"
 
 # INSTAGRAM_APP_SECRET, PINTEREST_APP_SECRET, STATE_SECRET and TIKTOK_CLIENT_SECRET
 # stay as encrypted Worker secrets and are not restated here.
+# All existing provider credentials are managed as encrypted Cloudflare secrets.
+# Wrangler validates these names at deploy time; the actual values remain on Cloudflare.
+[secrets]
+required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "X_CLIENT_SECRET"]
