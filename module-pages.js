@@ -1416,13 +1416,20 @@ const connect=e.target.closest('[data-orbit-connect]');
       'curated-25':'bell hooks','curated-26':'Toni Morrison',
       'curated-27':'Nina Simone','curated-28':'Tarana Burke'
     };
+    // Wikimedia Commons files checked by title; these portraits remain usable
+    // even if the Wikipedia API request is blocked on the visitor's browser.
+    const verifiedPosterPhotos={
+      'curated-1':'https://commons.wikimedia.org/wiki/Special:FilePath/Zendaya_2024.jpg?width=480',
+      'curated-2':'https://commons.wikimedia.org/wiki/Special:FilePath/Beyonc%C3%A9_accepts_the_Innovator_award_at_iHeart_Awards_2024.jpg?width=480',
+      'curated-3':'https://commons.wikimedia.org/wiki/Special:FilePath/Rihanna_Fenty_2018.png?width=480'
+    };
     const portrait=item=>{
       const monogram=String(item.name||'').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toLocaleUpperCase();
       const record=item.category==='hunting';
       const wiki=wikiPortraits[item.id]||'';
       return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+'">'+
         '<div class="politc-poster-eyebrow">'+(record?'PUBLIC RECORD · CASE FILE':'WANTED · FOR ICON STATUS')+'</div>'+
-        '<div class="politc-poster-photo"'+(wiki?' data-politc-wiki="'+esc(wiki)+'"':'')+'>'+
+        '<div class="politc-poster-photo"'+(wiki?' data-politc-wiki="'+esc(wiki)+'"':'')+(verifiedPosterPhotos[item.id]?' data-politc-verified="'+esc(verifiedPosterPhotos[item.id])+'"':'')+'>'+
          (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'" loading="lazy" decoding="async">':
           '<span class="politc-poster-monogram" aria-hidden="true">'+esc(monogram)+'</span>')+
         '</div>'+
@@ -1569,7 +1576,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       image.onerror=()=>{};
       image.src=url;
     };
-    portraits.forEach(el=>{const val=cache.get(el.dataset.politcWiki);if(val)hydrateImage(el,val)});
+    portraits.forEach(el=>{const val=el.dataset.politcVerified||cache.get(el.dataset.politcWiki);if(val)hydrateImage(el,val)});
     if(pending.length){
       const titles=[...new Set(pending.map(el=>el.dataset.politcWiki))];
       const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
@@ -1582,7 +1589,7 @@ const connect=e.target.closest('[data-orbit-connect]');
         const found=new Map(pages.map(page=>[String(page.title||''),String(page.thumbnail?.source||'')]));
         const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
         for(const name of titles){const resolved=redirects.get(name)||name;cache.set(name,found.get(resolved)||'');}
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki));
+        for(const el of portraits)hydrateImage(el,el.dataset.politcVerified||cache.get(el.dataset.politcWiki));
       }).catch(async()=>{
         // Wikipedia's multi-title endpoint can be denied by browsers or a privacy
         // extension. Try per-person article summaries as a second source; only
@@ -1596,7 +1603,7 @@ const connect=e.target.closest('[data-orbit-connect]');
             cache.set(name,String(info.thumbnail?.source||info.originalimage?.source||''));
           }catch{cache.set(name,'')}
         }));
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki));
+        for(const el of portraits)hydrateImage(el,el.dataset.politcVerified||cache.get(el.dataset.politcWiki));
       });
     }
     body.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
