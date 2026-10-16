@@ -512,7 +512,25 @@ function ttReturnUrl(raw, env) {
 function ttCookie(request) { return (request.headers.get('Cookie') || '').split(';').map(s => s.trim()).find(s => s.startsWith('__Host-tt_oauth='))?.slice(16) || ''; }
 function ttRedirect(location, cookie) { return new Response(null, { status: 302, headers: { Location: location, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'Set-Cookie': '__Host-tt_oauth=' + cookie + '; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=' + (cookie ? 600 : 0) } }); }
 async function ttToken(env, params) {
-  const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', { method: 'POST', body: new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, client_secret: env.TIKTOK_CLIENT_SECRET, ...params }) });
+  // TikTok Login Kit Web requires application/x-www-form-urlencoded.
+  // Keep values and keys explicit; secrets are never logged or reflected.
+  const body = new URLSearchParams();
+  body.set('client_key', String(env.TIKTOK_CLIENT_KEY||'').trim());
+  body.set('client_secret', String(env.TIKTOK_CLIENT_SECRET||'').trim());
+  body.set('grant_type', String(params.grant_type||''));
+  if (params.grant_type === 'authorization_code') {
+    if (!params.code || !params.redirect_uri) ttFail('TikTok authorization data is incomplete. Restart from Orbit.', 400);
+    body.set('code', String(params.code));
+    body.set('redirect_uri', String(params.redirect_uri));
+  } else if (params.grant_type === 'refresh_token') {
+    if (!params.refresh_token) ttFail('TikTok refresh authorization is missing. Reconnect from Orbit.', 401);
+    body.set('refresh_token', String(params.refresh_token));
+  } else ttFail('Unsupported TikTok token grant.', 400);
+  const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},
+    body
+  });
   const token = await response.json().catch(() => ({}));
   if (!response.ok || !token.access_token) {
     /* TikTok names the reason precisely: an invalid client_key/secret, a redirect URI
@@ -522,7 +540,10 @@ async function ttToken(env, params) {
     const code = token.error_code ?? (token.error && typeof token.error === 'object' ? token.error.code : token.error);
     const detail = token.error_description || (token.error && typeof token.error === 'object' ? token.error.message : '');
     const reason = detail || (code ? 'TikTok reported ' + code : 'TikTok returned HTTP ' + response.status + '.');
-    ttFail('TikTok rejected this connection — ' + reason + (code ? ' (code ' + code + ')' : ''), 502);
+    // TikTok's log_id lets support identify the failed exchange without
+    // disclosing the one-time authorization code or client secret.
+    const logId = /^[A-Za-z0-9_-]{8,100}$/.test(String(token.log_id||'')) ? String(token.log_id) : '';
+    ttFail('TikTok rejected this connection — ' + reason + (code ? ' (code ' + code + ')' : '') + (logId ? ' · TikTok log ID: '+logId : ''), 502);
   }
   return token;
 }
@@ -560,7 +581,15 @@ async function ttRoute(request, env) {
       destination.searchParams.set('tiktok_error', providerError?'TikTok authorization failed: '+providerError:'TikTok authorization was cancelled or denied. Please try again.');
       return ttRedirect(destination.href, '');
     }
-    const token = await ttToken(env, { grant_type: 'authorization_code', code: url.searchParams.get('code'), redirect_uri: saved.callback });
+    let token;
+    try {
+      token = await ttToken(env, { grant_type: 'authorization_code', code: url.searchParams.get('code'), redirect_uri: saved.callback });
+    } catch (error) {
+      // Do not strand people on a JSON response at the secret-bearing callback URL.
+      // A failed code cannot be reused; return to Orbit to start a fresh attempt.
+      destination.searchParams.set('tiktok_error', (error.publicMessage || 'TikTok authorization could not be completed.').slice(0,450));
+      return ttRedirect(destination.href, '');
+    }
     const id = randomToken(32), handoff = randomToken(32);
     await ttSave(env, id, token);
     await env.OAUTH_SESSIONS.put('tt:handoff:' + handoff, JSON.stringify({ id, challenge: saved.challenge }), { expirationTtl: 600 });
