@@ -267,6 +267,29 @@ const PREVIEW_CSS = `
 html.biglwa-preview-mode .topbar{top:var(--biglwa-preview-banner-h,0px)!important}
 html.biglwa-preview-mode .page-wallpaper{top:calc(66px + var(--biglwa-preview-banner-h,0px))!important}
 html.biglwa-preview-mode .policy-top{top:var(--biglwa-preview-banner-h,0px)!important}
+/* An explicitly private member shows only identity/banner, avatar, Aura, music and Guest Check.
+   These restrictions complement owner-only Firestore rules; styling alone is not a
+   substitute for protecting privately stored documents. */
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .masonry,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .sidebar,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero-action-bar,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .studio-primary-actions,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .module-workspace,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card .bio,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card .meta-row,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card .biglwa-social-row,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card #weeklyMoodCard{
+  display:none!important;
+}
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero-widget-rail>.hero-widget:not(.aura-card):not(.music-card):not(.guest-check-card){
+  display:none!important;
+}
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero-widget-rail{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+}
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero{
+  min-height:0!important;
+}
 /* Visitor view: nothing that implies the visitor owns this studio. */
 html.biglwa-preview-mode #studioApp .widget-window-controls,
 html.biglwa-preview-mode #studioApp .widget-drag-handle,
@@ -524,7 +547,7 @@ function standDown(){
   unbindGate();
   closePrompt(true);
   removeBanner();
-  document.documentElement.classList.remove("biglwa-preview-mode");
+  document.documentElement.classList.remove("biglwa-preview-mode","biglwa-preview-private");
   restoreAppearance();
   clearPreviewIdentity();
   const me=localProfile();
@@ -627,6 +650,7 @@ function activate(profile){
   preview.title="@"+preview.username+"'s Studio - BIGLWA";
   preview.active=true;
   document.documentElement.classList.add("biglwa-preview-mode");
+  document.documentElement.classList.toggle("biglwa-preview-private",profile.accountVisibility==='private');
   showStudioScreen();
   applyIdentity(profile);
   // Announce the public profile owner, never the viewer's own Firebase UID.
