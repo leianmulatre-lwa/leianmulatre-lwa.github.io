@@ -287,7 +287,10 @@
     if (pendingOAuth) {
       event.preventDefault();
       event.stopImmediatePropagation();
-      showStatus(pendingOAuth.querySelector('b').textContent + ' OAuth is being prepared. No account has been connected yet.');
+      const key=pendingOAuth.dataset.orbitApp||'';
+      window.__biglwaPendingOAuthProvider=key;
+      window.BigLWAOpenModule?.('orbit');
+      showStatus(pendingOAuth.querySelector('b').textContent+' login is not active yet. The Orbit page explains what must be configured first.');
       return;
     }
     var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
