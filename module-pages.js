@@ -988,13 +988,11 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
   const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit};return Boolean(map[key])};
-  const planetaryMarkup=(links)=>'<div class="module-planetary"><button type="button" class="module-action ghost module-planetary-toggle" id="modulePlanetaryToggle" aria-expanded="false" aria-controls="modulePlanetaryList">view planetary</button><div class="module-planetary-list" id="modulePlanetaryList" hidden>'+
-    PLANETARY_APPS.map(([k,g,n,t])=>'<div class="module-orbit-row is-planetary"><header><b>'+esc(n)+'</b></header>'+orbitBadge(g,t)+'<label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="'+esc(k)+'" value="'+esc(links[k]||'')+'" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="'+esc(k)+'">Save</button><button class="module-action ghost" type="button" data-orbit-open="'+esc(k)+'" '+(links[k]?'':'disabled')+'>Open profile</button></div></div>').join('')+'</div></div>';
    function renderOrbitPage(){
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
     const legacyCount=window.BigLWAOrbitAccountLinks?.localPending?.()?.length||0;
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. All public profile links are saved to your BIGLWA account. Connected photos are copied to BIGLWA media storage when source access permits. Calendar syncing lives in Calendar.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${ORBIT_APPS.map(([k,g,n,t])=>{
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. Every Orbit destination is shown here: connect supported accounts or save a public link. Links are saved to your BIGLWA account, and connected media is imported only when the provider permits it.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
@@ -1006,18 +1004,12 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${ORBIT_HANDS(k)&&!pending?'':'disabled'}>${pending?'Coming soon':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}</div></div>`;
      }
      return `<div class="module-orbit-row"><header><b>${n}</b></header>${orbitBadge(g,t)}<label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
-     }).join('')}</div>${planetaryMarkup(links)}</section></div>`;
+     }).join('')}</div></section></div>`;
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
     body.onclick=async e=>{
-     const toggle=e.target.closest('#modulePlanetaryToggle');
-     if(toggle){
-       const list=$('#modulePlanetaryList',body);
-       if(list){list.hidden=!list.hidden;toggle.setAttribute('aria-expanded',String(!list.hidden));toggle.textContent=list.hidden?'view planetary':'hide planetary'}
-       return;
-     }
      const importLinks=e.target.closest('#orbitImportLocalLinks');
      if(importLinks){
        importLinks.disabled=true;say('Importing saved browser links…');
@@ -1268,7 +1260,7 @@ const connect=e.target.closest('[data-orbit-connect]');
        <section class="module-card wide biglwa-feed-compose-card" aria-labelledby="biglwaFeedComposeHeading">
         <div class="biglwa-feed-compose-head">
          <div><h2 id="biglwaFeedComposeHeading">post to the feed</h2><p>Share a link or photo, with an optional caption. Your caption is saved with your post.</p></div>
-         <button class="module-action ghost" type="button" id="feedStreamExplore">Explore Stream ↗</button>
+         <button class="module-action ghost" type="button" id="feedStreamExplore">Explore Veve ↗</button>
         </div>
         <div id="biglwaFeedImportStatusRail" class="biglwa-feed-import-rail" aria-label="Connected account import status" hidden></div>
         <div id="biglwaOrbitDrafts" hidden></div>
@@ -1287,7 +1279,7 @@ const connect=e.target.closest('[data-orbit-connect]');
        <section class="module-card wide biglwa-feed-wall-card"><h2>Collective Feed</h2><div class="module-list" id="feedPageList"></div></section>
       </div>`;
     const streamExplore=$('#feedStreamExplore',body);
-    if(streamExplore)streamExplore.onclick=()=>window.openBIGLWAModule?.('stream');
+    if(streamExplore)streamExplore.onclick=()=>window.BigLWAOpenModule?.('veve');
   }
 
   function renderConnect(){
@@ -2489,6 +2481,15 @@ const connect=e.target.closest('[data-orbit-connect]');
   });
 
   window.BigLWAOpenModule = (key) => openModule(key);
+  // The BIGLWA crest toggles between Studio and Veve without reloading the
+  // signed-in session or interrupting any other modules or their stored data.
+  document.addEventListener('click',event=>{
+    const logo=event.target?.closest?.('#studioApp .studio-brand-row > a.brand.biglwa-block-brand');
+    if(!logo||document.documentElement.classList.contains('biglwa-preview-mode'))return;
+    event.preventDefault();event.stopImmediatePropagation();
+    if(activeModuleKey==='veve')closeModule();
+    else openModule('veve');
+  },true);
   function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
   workspace.addEventListener('change',event=>{
