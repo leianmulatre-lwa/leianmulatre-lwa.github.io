@@ -99,6 +99,9 @@
 
       all('[data-orbit-path="facebook"]').forEach(function (input) {
         var row = input.closest('.module-orbit-row');
+        // OAuth cards have a Connect button already; do not place a second one
+        // next to the public Facebook profile URL editor's Save button.
+        if (row && row.classList.contains('is-oauth')) return;
         var actions = row ? one('.module-actions', row) : null;
         if (!actions) { return; }
         var button = one('[data-facebook-orbit-connect]', actions);
@@ -122,13 +125,15 @@
         // The Login for Business configuration determines permitted access;
         // requesting extra scopes ad hoc would display Meta's unsupported-permission page.
         // Show the media action only if the approved configuration already includes them.
-        var needsMedia = false;
+        var needsMedia = state.connected && !state.permissions.some(function (p) {
+          return p === 'user_photos' || p === 'user_videos';
+        });
         if (needsMedia && !mediaButton) {
           mediaButton = document.createElement('button');
           mediaButton.type = 'button';
           mediaButton.className = 'module-action ghost';
           mediaButton.setAttribute('data-facebook-orbit-media','1');
-          mediaButton.textContent = 'Allow Facebook media';
+          mediaButton.textContent = 'Refresh media access';
           actions.appendChild(mediaButton);
         } else if (!needsMedia && mediaButton) {
           mediaButton.remove();
@@ -233,7 +238,9 @@
       // A status belongs to the page/status rail, never inside the masonry as a fake picture.
       if(!state.noMediaNotified){
         state.noMediaNotified=true;
-        showStatus('Facebook connected. No accessible photos or videos returned. Check Meta permissions.');
+        showStatus(state.permissions.some(function(p){return p==='user_photos'||p==='user_videos';})
+          ? 'Facebook connected, but Meta returned no accessible photos or videos.'
+          : 'Facebook connected, but Meta has not granted photo/video access. Check permissions in your Business Login configuration.');
       }
       return;
     }
@@ -264,8 +271,8 @@
         loadFacebookContent().then(function () {
           var mediaGranted = hasPermission('user_photos') || hasPermission('user_videos');
           showStatus(mediaGranted
-            ? 'Facebook connected. Approved media is available in Collective Feed.'
-            : 'Facebook connected. Media imports need separate Meta permissions; use Allow Facebook media when approved.');
+            ? 'Facebook connected. Loading available media into Collective Feed previews.'
+            : 'Facebook connected. Photo/video imports require additional permissions in your Meta Business Login configuration.');
           render();
         }).catch(function (error) {
           state.error = error.message || 'Facebook profile could not load.';
@@ -344,6 +351,24 @@
      pick up the Facebook accent, instead of only appearing on the click that opened the
      page and then being wiped by the next rebuild. */
   if (window.BIGLWAFeedMount) { window.BIGLWAFeedMount('Facebook', 'facebook-feed-item', renderFeedImports); }
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', render, { once: true }); }
-  else { render(); }
+  function restoreFacebookLogin() {
+    // A login-status check is not a new authorization request.
+    // Restore an existing valid Meta session when Orbit is reloaded.
+    loadSDK().then(function () {
+      window.FB.getLoginStatus(function (response) {
+        if (!response || response.status !== 'connected' || !response.authResponse) {
+          render();
+          return;
+        }
+        state.connected = true;
+        loadFacebookContent().catch(function(error){
+          state.error=String(error?.message||'Facebook media refresh unavailable.');
+          render();
+        });
+      });
+    }).catch(function(){ render(); });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restoreFacebookLogin, { once:true });
+  } else restoreFacebookLogin();
 }());
