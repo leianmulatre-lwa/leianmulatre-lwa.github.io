@@ -53,7 +53,85 @@
       }catch{}
       entries=[{id:identifier(),content:first,createdAt:timestamp(),updatedAt:timestamp()}];
     }
+    let deletedIds=saved?.deletedIds&&typeof saved.deletedIds==='object'?{...saved.deletedIds}:{};
     let currentId=entries.some(entry=>entry.id===saved?.currentId)?saved.currentId:entries[0].id;
+    let cloudReady=false,cloudEnabled=false,cloudPending=null,cloudVersion=0;
+    const cloudMessage=document.createElement('p');
+    cloudMessage.className='writing-collection-cloud-status';
+    cloudMessage.setAttribute('role','status');
+    cloudMessage.textContent=uid==='guest'?'Sign in to sync your writing across devices.':'Private writing is saved on this device.';
+    const syncLater=()=>{
+      if(!cloudReady||!cloudEnabled)return;
+      cloudVersion++;
+      clearTimeout(cloudPending);
+      cloudPending=setTimeout(()=>void syncCloud(),650);
+    };
+    async function remoteClient(){
+      if(uid==='guest')return null;
+      const [{getApps},{getAuth},{getFirestore,doc,getDoc,setDoc}]=await Promise.all([
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+      ]);
+      const app=getApps()[0];
+      if(!app)return null;
+      const auth=getAuth(app);
+      await auth.authStateReady();
+      if(auth.currentUser?.uid!==uid)return null;
+      return {ref:doc(getFirestore(app),'users',uid,'writingCollections',kind),getDoc,setDoc};
+    }
+    async function syncCloud(){
+      if(!cloudEnabled)return;
+      const v=cloudVersion;
+      try{
+        const client=await remoteClient();if(!client)return;
+        // Cap document size well under Firestore's 1MiB limit. Preserve the
+        // complete local collection and explain why cloud sync cannot proceed.
+        const payload={version:1,currentId,entries,deletedIds,updatedAt:timestamp()};
+        if(JSON.stringify(payload).length>650000)throw Error('Collection is too large to sync in one document; your local writing is safe.');
+        await client.setDoc(client.ref,payload,{merge:false});
+        if(v===cloudVersion)cloudMessage.textContent='Synced privately across devices.';
+      }catch(error){
+        cloudMessage.textContent='Saved on this device. Cloud sync unavailable: '+String(error?.message||error);
+      }
+    }
+    async function hydrateCloud(){
+      try{
+        const client=await remoteClient();
+        if(!client){cloudMessage.textContent='Sign in to sync your writing across devices.';return}
+        const snap=await client.getDoc(client.ref);
+        if(!snap.exists()){
+          cloudReady=true;cloudEnabled=true;syncLater();return;
+        }
+        const remote=snap.data()||{};
+        const remoteRemoved=remote.deletedIds&&typeof remote.deletedIds==='object'?remote.deletedIds:{};
+        const allRemoved={...remoteRemoved};
+        for(const [id,at] of Object.entries(deletedIds)){
+          if(!allRemoved[id]||Date.parse(at)>Date.parse(allRemoved[id]))allRemoved[id]=at;
+        }
+        deletedIds=allRemoved;
+        const combined=new Map();
+        for(const entry of [...(Array.isArray(remote.entries)?remote.entries:[]),...entries]){
+          const item=clean(entry);if(!item)continue;
+          const deletedAt=Date.parse(deletedIds[item.id]||'');
+          if(Number.isFinite(deletedAt)&&deletedAt>=Date.parse(item.updatedAt))continue;
+          const prev=combined.get(item.id);
+          if(!prev||Date.parse(item.updatedAt)>=Date.parse(prev.updatedAt))combined.set(item.id,item);
+        }
+        entries=[...combined.values()].slice(0,500);
+        if(!entries.length)entries=[{id:identifier(),content:'',createdAt:timestamp(),updatedAt:timestamp()}];
+        currentId=entries.some(e=>e.id===currentId)?currentId:
+          entries.some(e=>e.id===remote.currentId)?remote.currentId:entries[0].id;
+        area.value=active().content;
+        commit();renderList();notify();
+        cloudReady=true;cloudEnabled=true;
+        cloudMessage.textContent='Private writing loaded from your account.';
+        // Merge local edits and tombstones back into the owner-only document.
+        syncLater();
+      }catch(error){
+        cloudMessage.textContent='Saved on this device. Cloud sync needs your private Firestore permissions: '+String(error?.message||error);
+      }
+    }
     const active=()=>entries.find(entry=>entry.id===currentId)||entries[0];
     const aside=document.createElement('aside');
     aside.className='writing-collection-sidebar';
@@ -76,7 +154,7 @@
     const list=document.createElement('div');
     list.className='writing-collection-list';
     list.setAttribute('role','list');
-    aside.append(head,search,list);
+    aside.append(head,search,list,cloudMessage);
     form.parentNode.insertBefore(aside,form);
     form.classList.add('writing-collection-form');
     const dateline=document.createElement('div');
@@ -85,7 +163,8 @@
     form.insertBefore(dateline,area);
     const count=()=>entries.length+' '+(isJournal?(entries.length===1?'page':'pages'):(entries.length===1?'note':'notes'));
     const commit=()=>{
-      localStorage.setItem(collectionKey,JSON.stringify({version:1,currentId,entries}));
+      localStorage.setItem(collectionKey,JSON.stringify({version:1,currentId,entries,deletedIds}));
+      syncLater();
       // The Studio preview and existing publish flow intentionally follow the selected
       // entry. This legacy mirror also preserves older feature integrations.
       localStorage.setItem(legacyKey,active().content);
@@ -160,12 +239,14 @@
     removeButton.addEventListener('click',()=>{
       const current=active();
       if(!window.confirm('Delete this '+(isJournal?'journal page':'private note')+'? This cannot be undone.'))return;
+      deletedIds[current.id]=timestamp();
       entries=entries.filter(item=>item.id!==current.id);
       if(!entries.length)entries=[{id:identifier(),content:'',createdAt:timestamp(),updatedAt:timestamp()}];
       search.value='';showEntry([...entries].sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt))[0].id);
     });
     area.value=active().content;
     commit();renderList();notify();
+    void hydrateCloud();
     return Object.freeze({saveCurrent,getCurrent:()=>({...active()}),count:()=>entries.length});
   }
   window.BigLWAWritingCollections=Object.freeze({mount});
