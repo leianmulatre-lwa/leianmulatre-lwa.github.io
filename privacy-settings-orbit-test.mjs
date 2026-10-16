@@ -11,7 +11,7 @@ for(const [name,code] of [['facebook-orbit.js',facebook],['settings-account.js',
 }
 assert.ok(facebook.includes("scope: 'public_profile', return_scopes: true")&&!facebook.includes("scope: 'public_profile,email'"));
 assert.ok(!facebook.includes("'id,name,email,picture"),'Graph profile fields must not require email');
-assert.ok(home.includes('facebook-orbit.js?v=20261015-fix-meta-email-2'));
+assert.ok(home.includes('facebook-orbit.js?v=20261016-business-config-1'));
 assert.ok(html.includes('id="privateAccountToggle"')&&html.includes('id="requestAccountDeletion"'));
 assert.ok(settings.includes("async function setPrivateAccount")&&settings.includes("sdk.deleteField()"),'Private projection clears personal public metadata');
 assert.ok(settings.includes("accountDeletionRequest:")&&settings.includes("status:'pending'"),'Deletion request stays reviewable');
