@@ -14,7 +14,7 @@ assert.ok(pages.includes("window.BigLWAOrbitAccountLinks?.get?.().facebook"),'Sa
 assert.ok(pages.includes("host=candidate.hostname.toLowerCase()"),'Saved Facebook URL restricted to known domains');
 assert.ok(tt.includes('videoPermissionPending=Boolean(result.videoPermissionPending)'),'TikTok reports video.list limitations without faking content');
 assert.ok(tt.includes('videoLoadError')&&tt.includes("!connected||videoPermissionPending||!videos.length"),'No misleading empty video tiles');
-assert.ok(tt.includes('data-tiktok-save-video')&&tt.includes('createFeedDraft'),'Video links can be explicitly saved as private draft');
+assert.ok(tt.includes('data-tiktok-save-video')&&tt.includes("saveExternalOrbitDraft"),'Video links can be saved through the unified private Orbit draft writer');
 assert.ok(tt.includes('list.dataset.tiktokMediaSignature'),'Avoid source observer redraw loops');
 assert.ok(worker.includes('video/list/?fields=id,title,video_description,cover_image_url,share_url,embed_link'),'TikTok video embeds requested when scope is granted');
 assert.ok(html.includes('orbit-media-status-20261016.css?v=20261016-facebook-tiktok-1'),'Media styles deployed');
