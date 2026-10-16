@@ -14,40 +14,62 @@ p{margin:4px 0 0}small{opacity:.8}
 #status{color:var(--ink);font:600 12px/1.45 system-ui;min-height:20px}
 .actions{display:flex;gap:9px;flex-wrap:wrap}
 .actions a{border:1px solid #bda8a0;background:#fff9f2;color:var(--ink);padding:9px 12px;border-radius:999px;text-decoration:none;font-weight:700}
-.note{border:1px solid #cbb6ad;background:#fff8ef;padding:10px 12px;border-radius:12px;line-height:1.55}
+.mii-ready{max-width:440px;text-align:center;padding:24px;color:#fff6ed}.mii-ready p{margin:0 0 15px}.mii-ready button{border:0;border-radius:10px;background:#bd4968;color:#fff;padding:11px 18px;font:700 13px system-ui;cursor:pointer}.mii-ready button:disabled{opacity:.6;cursor:wait}.note{border:1px solid #cbb6ad;background:#fff8ef;padding:10px 12px;border-radius:12px;line-height:1.55}
 @media(max-width:600px){body{padding:8px}#screen{min-height:340px;aspect-ratio:4/3}}
 </style></head><body>
 <main>
 <header><div><h1>original mii editor</h1><p>the uploaded 2007 editor · Flash rendering through Ruffle</p></div>
 <div class="actions"><a href="/MiiEditor/classicGUI.swf" target="_blank" rel="noopener noreferrer">Open original SWF ↗</a></div></header>
-<div id="screen" role="region" aria-label="Original Mii Editor Ruffle player"></div>
-<div id="status" role="status" aria-live="polite">Loading the original editor…</div>
+<div id="screen" role="region" aria-label="Original Mii Editor Ruffle player"><div class="mii-ready"><p>This original 2007 editor uses Adobe AIR. Its Flash screen may not start in modern browsers.</p><button type="button" id="launchMii">Try original editor ▶</button></div></div>
+<div id="status" role="status" aria-live="polite">Ready when you are. The editor will not download Ruffle until you press Start.</div>
 <p class="note"><strong>Compatibility note:</strong> This is the original Adobe AIR/Flash program, not the previous Big LWA-drawn imitation. AIR-only functions and its original save/export controls may not work in a web browser. To use a finished Mii as your Big LWA avatar, save a PNG and choose <strong>Import Mii image</strong> in Avatar settings. Your previous saved character stays unchanged.</p>
 </main>
 <script>
 (function(){
  const status=document.getElementById('status'),screen=document.getElementById('screen');
  const setStatus=text=>status.textContent=text;
- window.RufflePlayer=window.RufflePlayer||{};
- const script=document.createElement('script');
- script.src='https://unpkg.com/@ruffle-rs/ruffle@0.7.1/ruffle.js';
- script.async=true;
- script.onload=async()=>{
+ let loading=false,attempt=0;
+ function showFallback(message){
+   screen.innerHTML='<div class="mii-ready"><p></p><button type="button" id="launchMii">Retry original editor ↻</button></div>';
+   screen.querySelector('p').textContent=message;
+   screen.querySelector('#launchMii').addEventListener('click',start);
+ }
+ async function start(){
+   if(loading)return;
+   loading=true;const run=++attempt;
+   const button=screen.querySelector('#launchMii');if(button)button.disabled=true;
+   setStatus('Starting the Flash compatibility runtime…');
    try{
-     if(!window.RufflePlayer?.newest)throw Error('Ruffle did not initialize.');
+     window.RufflePlayer=window.RufflePlayer||{};
+     if(!window.RufflePlayer.newest){
+       await Promise.race([
+         new Promise((resolve,reject)=>{
+           const script=document.createElement('script');
+           script.src='https://unpkg.com/@ruffle-rs/ruffle@0.7.1/ruffle.js';
+           script.async=true;script.onload=resolve;script.onerror=()=>reject(Error('Ruffle download failed.'));
+           document.head.append(script);
+         }),
+         new Promise((_,reject)=>setTimeout(()=>reject(Error('Ruffle is taking too long to download.')),12000))
+       ]);
+     }
+     if(!window.RufflePlayer?.newest)throw Error('Flash compatibility runtime unavailable.');
+     setStatus('Ruffle ready. Attempting the Adobe AIR program…');
      const player=window.RufflePlayer.newest().createPlayer();
      player.style.width='100%';player.style.height='100%';
      screen.replaceChildren(player);
-     // This AIR package's rootContent is classicGUI.swf. Its companion assets.swf
-     // remains available next to it from the uploaded MiiEditor folder.
-     await player.ruffle().load({url:'/MiiEditor/classicGUI.swf'});
-     setStatus('Original Mii Editor loaded in Ruffle. Some AIR controls may be unavailable.');
+     await Promise.race([
+       player.ruffle().load({url:'/MiiEditor/classicGUI.swf'}),
+       new Promise((_,reject)=>setTimeout(()=>reject(Error('The 2007 Adobe AIR program did not initialize within 15 seconds.')),15000))
+     ]);
+     if(run===attempt)setStatus('Flash file loaded. Some Adobe AIR features may still be unsupported.');
    }catch(error){
-     screen.textContent='Could not start the original Flash editor in this browser.';
-     setStatus('Ruffle could not run the AIR editor: '+String(error?.message||'Unsupported Flash feature.'));
-   }
- };
- script.onerror=()=>{screen.textContent='Ruffle could not be downloaded.';setStatus('Ruffle could not load; retry with a network connection.');};
- document.head.append(script);
+     if(run===attempt){
+       const reason=String(error?.message||'Unsupported Flash feature.');
+       showFallback('This desktop Adobe AIR editor cannot reliably run in this browser. You can import a completed Mii image in Avatar settings.');
+       setStatus(reason+' · Your saved avatar has not been changed.');
+     }
+   }finally{if(run===attempt)loading=false;}
+ }
+ document.getElementById('launchMii')?.addEventListener('click',start);
 })();
 </script></body></html>
