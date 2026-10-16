@@ -1080,7 +1080,7 @@ const connect=e.target.closest('[data-orbit-connect]');
          const linkKey=orbitLinkKey(url);
          if(linkKey&&Object.entries(orbitLinks()).some(([other,saved])=>other!==k&&orbitLinkKey(saved)===linkKey))
            throw Error('This quick link is already saved under another Orbit source.');
-         if(linkKey&&orbitConnected().some(row=>row&&orbitLinkKey(row.link)===linkKey))
+         if(linkKey&&orbitConnected().some(row=>row&&row.id!==k&&orbitLinkKey(row.link)===linkKey))
            throw Error('This destination is already connected in Orbit; it cannot be added twice.');
          await manager.save(k,url);
          say((ORBIT_APP_NAMES[k]||'Orbit')+' link saved to your BIGLWA account.');
