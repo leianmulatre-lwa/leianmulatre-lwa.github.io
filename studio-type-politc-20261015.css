@@ -51,6 +51,7 @@
 #studioApp #moduleWorkspace[data-module-key="notes"] .qwiky-note-input,
 #studioApp #moduleWorkspace[data-module-key="notes"] .module-qwiky-label strong,
 #studioApp #sqwibPublishArea .sqwib-published-item p,
+#studioApp .veve-note>p,
 #studioApp .veve-note .veve-note-body,
 #studioApp .veve-note .veve-note-text,
 #studioApp #diary .sqwib-preview-text{
@@ -67,8 +68,9 @@
 #studioApp #moduleWorkspace[data-module-key="notes"] .module-qwiky-label strong{
  font-size:clamp(28px,4vw,47px)!important;line-height:1.15!important;
 }
+#studioApp .veve-note>p,
 #studioApp .veve-note .veve-note-body,#studioApp .veve-note .veve-note-text{
- font-size:19px!important;line-height:1.45!important;
+ font-size:clamp(18px,2vw,23px)!important;line-height:1.45!important;
 }
 
 /* POLITC: all surfaces follow the user's widget background, radius, blur and Aura.
