@@ -79,11 +79,16 @@
  }
  async function connect(provider){
    if(!providerIds.includes(provider))throw Error('Unknown Orbit provider.');
+   // Recheck on each click; credentials may have been added since page load.
+   if(!config[provider]?.configured)await load();
    const health=config[provider];
    if(!health?.configured){
      const missing=health?.missing||[];
-     throw Error(missing.length?'Complete the public app configuration in Cloudflare: '+missing.join(', ')+'.':
-       'Authorization for this provider is not deployed or enabled yet. Use the profile-link field meanwhile.');
+     const portal=provider==='snapchat'?'Snap Kit Developer Portal → Login Kit'
+       :provider==='tumblr'?'Tumblr Applications → Consumer Key':'Developer Portal';
+     throw Error(missing.length
+       ? portal+': add '+missing.join(' and ')+' in Cloudflare Workers settings; then click Connect again.'
+       : 'OAuth is not ready for '+provider+'. Check developer settings and try again.');
    }
    const user=await token();
    notice('Opening '+provider+' authorization…');
