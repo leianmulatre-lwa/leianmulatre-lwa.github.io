@@ -1115,14 +1115,29 @@ const connect=e.target.closest('[data-orbit-connect]');
         '<nav class="diary-section-nav" role="tablist" aria-label="Sqwib writing tools"><button type="button" data-diary-view="notes" role="tab" aria-controls="diaryWritingSection" aria-selected="true"><span aria-hidden="true">▤</span> Sqwib Note</button><button type="button" data-diary-view="sqwip" role="tab" aria-controls="sqwipWritingSection" aria-selected="false"><span aria-hidden="true">♢</span> Sqwip <small>screenplay</small></button></nav>';
     body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="${key==='diary'?'Journal writing':'Sqwib Note writing'}"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button>${key==='diary'?'<button class="module-action secondary" id="moduleWritingFeed" type="button">Send to Collective Feed drafts</button><button class="module-action ghost" id="journalViewButton" type="button">View journal</button>':''}</div><div class="module-status" id="moduleWritingStatus">${key==='diary'?'Private draft · choose to make a snapshot viewable':'🔒 Locked note · only you can read this'}</div></form></div>${key==='diary'?'<section class="journal-owner-share" id="journalShareControls"><div><b>Journal visibility</b><p>Private by default. Publishing shares only the current Journal text. Sqwib Note and Sqwip remain private.</p></div><div class="journal-owner-share-actions"><button type="button" class="module-action" id="journalPublish">Make journal viewable</button><button type="button" class="module-action ghost" id="journalUnpublish">Hide shared journal</button></div><p id="journalShareStatus" role="status">Only you can see this draft until you publish it.</p></section><section id="journalReaderPanel" class="journal-reader-panel" hidden><div class="journal-reader-controls"><b>Journal · reading mode</b><button type="button" class="module-action ghost" id="journalReturnEdit">✎ Edit journal</button></div><article class="journal-reading-sheet" id="journalReaderText"></article></section>':''}${key==='notes'?'<div id="sqwipWritingSection" role="tabpanel" aria-label="Private Sqwip screenplay maker" hidden></div>':''}</section></div>`;
     const form=$('#moduleWritingForm',body),area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;
+    let collection=null;
     const save=(explicit=false)=>{
-      localStorage.setItem(storage,area.value);
-      status.textContent=explicit?'Saved. Studio preview updated.':'Saved locally.';
-      status.classList.add('ok');
-      document.dispatchEvent(new CustomEvent('biglwa:writing-saved',{detail:{key,value:area.value}}));
+      try{
+        collection?.saveCurrent();
+        localStorage.setItem(storage,area.value);
+        status.textContent=explicit?'Saved. Studio preview updated.':'Saved locally.';
+        status.classList.add('ok');
+        document.dispatchEvent(new CustomEvent('biglwa:writing-saved',{detail:{key,value:area.value}}));
+      }catch(error){
+        status.textContent='Could not save on this device: '+String(error?.message||error);
+        status.classList.remove('ok');
+      }
     };
     area.addEventListener('input',()=>{status.textContent='Saving…';status.classList.remove('ok');clearTimeout(t);t=setTimeout(()=>save(false),350)});
     form.addEventListener('submit',event=>{event.preventDefault();clearTimeout(t);save(true)});
+    // The collection migrates the original single draft in place. Switching entries
+    // mirrors the current text to the legacy key for Studio preview and public publishing.
+    if(window.BigLWAWritingCollections?.mount){
+      collection=window.BigLWAWritingCollections.mount({
+        kind:key,form,area,status,
+        onSelection:()=>{clearTimeout(t)},
+      });
+    }
     if(key==='notes'){
       const publisher=$('#diaryWritingSection',body);
       if(publisher){
