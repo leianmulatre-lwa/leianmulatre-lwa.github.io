@@ -1,7 +1,7 @@
 /* Orbit accents: maintain a spherical, textured planet surface on the Studio card
    and matching platform identity in full Orbit. */
 #studioApp .orbit-grid button[data-orbit-app="instagram"] .orbit-glyph{
- --planet:radial-gradient(circle at 29% 21%,#fff2bb 0 4%,transparent 11%),radial-gradient(ellipse at 64% 67%,#df5315 0 14%,transparent 22%),radial-gradient(circle at 24% 70%,#f89e32 0 9%,transparent 17%),linear-gradient(145deg,#ffca68,#f36b21 52%,#9c330e)!important;
+ --planet:radial-gradient(circle at 28% 23%,#fff0ac 0 5%,transparent 13%),radial-gradient(ellipse at 69% 74%,#5c249a 0 12%,transparent 21%),radial-gradient(circle at 24% 69%,#f45e8f 0 10%,transparent 18%),linear-gradient(140deg,#ffc66b 0%,#fa8841 25%,#e3487c 48%,#943bb8 72%,#392169 100%)!important;
 }
 #studioApp .orbit-grid button[data-orbit-app="tiktok"] .orbit-glyph{
  --planet:radial-gradient(circle at 28% 24%,#f6d9ff 0 4%,transparent 11%),radial-gradient(ellipse at 70% 67%,#532189 0 14%,transparent 22%),radial-gradient(circle at 20% 65%,#a966e9 0 8%,transparent 17%),linear-gradient(145deg,#cf96ff,#772dcc 53%,#34105c)!important;
@@ -14,12 +14,21 @@
  color:#332b04!important;text-shadow:none!important;
 }
 #studioApp .orbit-grid button[data-orbit-app="tumblr"] .orbit-glyph{
- --planet:radial-gradient(circle at 27% 23%,rgba(225,239,255,.78) 0 4%,transparent 11%),radial-gradient(circle at 72% 68%,#101b32 0 14%,transparent 22%),radial-gradient(ellipse at 26% 68%,#42668e 0 11%,transparent 20%),linear-gradient(145deg,#6886a7,#1b304b 54%,#0a172b)!important;
+ --planet:radial-gradient(circle at 26% 22%,#9fc0f2 0 3%,transparent 11%),radial-gradient(circle at 70% 64%,#07122c 0 14%,transparent 21%),radial-gradient(ellipse at 20% 71%,#234a87 0 11%,transparent 20%),linear-gradient(135deg,#355b97 0%,#163862 28%,#091c42 59%,#030c24 100%)!important;
+ background:var(--planet)!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="youtube"] .orbit-glyph{
+ --planet:radial-gradient(circle at 27% 22%,#fff 0 8%,transparent 16%),radial-gradient(ellipse at 73% 73%,#ba1732 0 9%,transparent 16%),radial-gradient(circle at 32% 77%,#e45662 0 4%,transparent 9%),linear-gradient(150deg,#fff 0%,#f5f7fc 40%,#e3e9f1 72%,#ce243f 94%,#8d0926 100%)!important;
+ background:var(--planet)!important;
+ color:#a31531!important;-webkit-text-fill-color:#a31531!important;
+ text-shadow:0 1px 1px #fff!important;
+ box-shadow:inset -7px -6px 12px rgba(93,34,55,.21),inset 5px 4px 10px rgba(255,255,255,.85),0 5px 12px rgba(73,30,38,.17)!important;
 }
 #studioApp .orbit-grid button[data-orbit-app="facebook"] .orbit-glyph{
  --planet:radial-gradient(circle at 28% 25%,#eafaff 0 5%,transparent 12%),radial-gradient(circle at 70% 67%,#3682d6 0 13%,transparent 20%),linear-gradient(145deg,#b4e7ff,#58a6ff 51%,#2464ad)!important;
 }
-#studioApp .orbit-grid button[data-orbit-app="instagram"]{box-shadow:3px 3px 0 #f36b21!important}
+#studioApp .orbit-grid button[data-orbit-app="instagram"] .orbit-glyph{background:var(--planet)!important}
+#studioApp .orbit-grid button[data-orbit-app="instagram"]{box-shadow:3px 3px 0 #e65b79!important}
 #studioApp .orbit-grid button[data-orbit-app="tiktok"]{box-shadow:3px 3px 0 #772dcc!important}
 #studioApp .orbit-grid button[data-orbit-app="x"]{box-shadow:3px 3px 0 #0e0e0e!important}
 #studioApp .orbit-grid button[data-orbit-app="snapchat"]{box-shadow:3px 3px 0 #ffda00!important}
@@ -44,7 +53,15 @@
 #studioApp .module-orbit-row[data-orbit-row="tiktok"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#d3a3ff,#772dcc 52%,#321053)!important}
 #studioApp .module-orbit-row[data-orbit-row="x"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#747474,#161616 48%,#000)!important}
 #studioApp .module-orbit-row[data-orbit-row="snapchat"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#ffffbf,#ffeb00 53%,#ba9b00)!important;color:#27220a!important;-webkit-text-fill-color:#27220a!important}
-#studioApp .module-orbit-row[data-orbit-row="tumblr"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#7191b3,#1b304b 49%,#0a1429)!important}
+#studioApp .module-orbit-row[data-orbit-row="tumblr"]>.orbit-platform-badge{background:radial-gradient(circle at 25% 20%,#6788b9,#143762 39%,#04112d 86%)!important}
+#studioApp .module-orbit-row[data-orbit-row="youtube"]>.orbit-platform-badge{
+ background:radial-gradient(circle at 27% 23%,#fff,#f3f5fc 53%,#da2c43 92%)!important;
+ color:#a31531!important;-webkit-text-fill-color:#a31531!important;
+ border-color:rgba(180,34,54,.65)!important;text-shadow:none!important;
+}
+#studioApp .module-orbit-row[data-orbit-row="instagram"]>.orbit-platform-badge{
+ background:linear-gradient(135deg,#ffbe68,#e94f81 45%,#8633b6 82%,#49236e)!important;
+}
 #studioApp .module-orbit-row[data-orbit-row="facebook"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#c5f0ff,#58a6ff 52%,#2867b1)!important}
 #studioApp .orbit-quick-link.is-instagram{--accent:#f36b21}
 #studioApp .orbit-quick-link.is-tiktok{--accent:#772dcc}
