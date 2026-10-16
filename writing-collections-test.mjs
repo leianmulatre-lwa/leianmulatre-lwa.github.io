@@ -67,7 +67,7 @@ assert.equal(storage.getItem('biglwaDraft_notes'),'A second private note','Studi
 let saved=JSON.parse(storage.getItem('biglwaWritingCollectionV1:alice:notes'));
 assert.equal(saved.entries.length,2);
 assert.ok(saved.entries.every(x=>x.createdAt&&x.updatedAt));
-const list=sidebar.children[2],oldButton=list.children.find(x=>x.textContent==='')||list.children.find(x=>x.dataset.entryId===saved.entries[0].id);
+const list=sidebar.children[2],oldButton=list.children.find(x=>x.dataset.entryId===saved.entries[0].id);
 list.fire('click',{target:oldButton});
 assert.equal(n.area.value,'Original draft from old Sqwib','Switching restores previous entry');
 assert.equal(storage.getItem('biglwaDraft_notes'),'Original draft from old Sqwib');
