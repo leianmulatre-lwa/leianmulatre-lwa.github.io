@@ -22,7 +22,7 @@ const checks=[
  ['Settings Cache section',settings.includes('id="cache"')&&settings.includes('id="clearTemporaryCache"')],
  ['Cache preserves layouts, sign-in, projects',!cache.includes('localStorage.clear(')&&!cache.includes('sessionStorage.clear(')&&!cache.includes('indexedDB.deleteDatabase(')],
  ['Settings cache script installed',settings.includes('/settings-cache.js?v=20261014-safe-cache-1')],
- ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261015-arcade-stream-sqwib-10')],
+ ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261015-brand-veve-11')],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
