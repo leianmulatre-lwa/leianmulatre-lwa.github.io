@@ -18,9 +18,9 @@
  background:var(--planet)!important;
 }
 #studioApp .orbit-grid button[data-orbit-app="youtube"] .orbit-glyph{
- --planet:radial-gradient(circle at 24% 19%,#fff 0 7%,transparent 12%),radial-gradient(circle at 67% 31%,#f1314a 0 8%,#da1632 9%,transparent 14%),radial-gradient(circle at 31% 71%,#f04a60 0 7%,transparent 12%),radial-gradient(circle at 79% 77%,#e41b35 0 7%,transparent 12%),linear-gradient(150deg,#fff 0%,#f8f9fd 37%,#edf0f6 77%,#e5eaf1 100%)!important;
+ --planet:radial-gradient(circle at 24% 19%,#fff 0 7%,transparent 12%),radial-gradient(circle at 67% 31%,#ff9ca4 0 8%,#f27788 9%,transparent 15%),radial-gradient(circle at 31% 71%,#f8b2b5 0 8%,transparent 14%),radial-gradient(circle at 79% 77%,#f2899b 0 8%,transparent 14%),linear-gradient(150deg,#fffdfd 0%,#fff5f4 43%,#ffebec 73%,#ffe2e6 100%)!important;
  background:var(--planet)!important;
- color:#a31531!important;-webkit-text-fill-color:#a31531!important;
+ color:#dc6478!important;-webkit-text-fill-color:#dc6478!important;
  text-shadow:0 1px 1px #fff!important;
  box-shadow:inset -7px -6px 12px rgba(93,34,55,.21),inset 5px 4px 10px rgba(255,255,255,.85),0 5px 12px rgba(73,30,38,.17)!important;
 }
@@ -28,8 +28,9 @@
  --planet:radial-gradient(circle at 27% 22%,#dceaff 0 5%,transparent 13%),radial-gradient(circle at 72% 65%,#092e90 0 13%,transparent 20%),linear-gradient(145deg,#72a7f4 0%,#3277df 32%,#1455bf 68%,#092a76 100%)!important;
 }
 #studioApp .orbit-grid button[data-orbit-app="instagram"] .orbit-glyph{background:var(--planet)!important}
-#studioApp .orbit-grid button[data-orbit-app="instagram"]{box-shadow:3px 3px 0 #e65b79!important}
+#studioApp .orbit-grid button[data-orbit-app="instagram"]{box-shadow:3px 3px 0 #f36b21!important}
 #studioApp .orbit-grid button[data-orbit-app="tiktok"]{box-shadow:3px 3px 0 #772dcc!important}
+#studioApp .orbit-grid button[data-orbit-app="pinterest"]{box-shadow:3px 3px 0 #d70024!important}
 #studioApp .orbit-grid button[data-orbit-app="x"]{box-shadow:3px 3px 0 #0e0e0e!important}
 #studioApp .orbit-grid button[data-orbit-app="snapchat"]{box-shadow:3px 3px 0 #ffda00!important}
 #studioApp .orbit-grid button[data-orbit-app="tumblr"]{box-shadow:3px 3px 0 #1b304b!important}
