@@ -174,6 +174,36 @@
 
   function hasPermission(name) { return state.permissions.indexOf(name) !== -1; }
 
+  async function syncFacebookDrafts(){
+    const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft;
+    if(typeof writer!=='function')return;
+    const entries=[
+      ...state.photos.slice(0,12).map(item=>({item,kind:'photo'})),
+      ...state.videos.slice(0,8).map(item=>({item,kind:'video'}))
+    ];
+    let imported=0;
+    // Small batches protect Firestore and do not interfere with the login callback.
+    for(let i=0;i<entries.length;i+=3){
+      const group=entries.slice(i,i+3);
+      const results=await Promise.allSettled(group.map(({item,kind})=>{
+        const id=String(item.id||'');
+        const fallback=id&&/^[0-9_]+$/.test(id)
+          ?kind==='video'?'https://www.facebook.com/watch/?v='+encodeURIComponent(id.split('_').pop())
+            :'https://www.facebook.com/photo/?fbid='+encodeURIComponent(id.split('_').pop())
+          :'';
+        return writer('facebook',{
+          id,sourcePostId:id,
+          sourceUrl:(kind==='video'?item.permalink_url:item.link)||fallback,
+          caption:item.name||item.title||item.description||'Facebook '+kind,
+          thumbnailUrl:kind==='video'?item.picture:photoUrl(item),
+          sourceUsername:state.profile?.name||'',kind,mediaType:kind.toUpperCase()
+        });
+      }));
+      imported+=results.filter(x=>x.status==='fulfilled'&&x.value?.created).length;
+    }
+    if(imported)showStatus(imported+' Facebook item(s) saved to your private Feed drafts. Nothing was posted publicly.');
+  }
+
   function loadFacebookContent() {
     return readGrantedPermissions().then(function () {
       var requests = [
@@ -181,7 +211,7 @@
         hasPermission('user_photos') ? facebookApi('/me/photos', { type: 'uploaded', fields: 'id,name,images,created_time,link', limit: 12 }) : Promise.resolve(null),
         hasPermission('user_videos') ? facebookApi('/me/videos', { fields: 'id,title,description,source,picture,created_time,permalink_url', limit: 8 }) : Promise.resolve(null)
       ];
-      return Promise.allSettled(requests).then(function (results) {
+      return Promise.allSettled(requests).then(async function (results) {
         var profile = results[0].status === 'fulfilled' ? results[0].value : null;
         var photos = results[1].status === 'fulfilled' ? results[1].value : null;
         var videos = results[2].status === 'fulfilled' ? results[2].value : null;
@@ -190,6 +220,11 @@
         state.videos = videos && videos.data ? videos.data : [];
         state.noMediaNotified=false;
         render();
+        // Profile login alone is not content permission. Only media actually
+        // returned from approved Graph API endpoints becomes private drafts.
+        try{await syncFacebookDrafts()}catch(error){
+          console.warn('Facebook private draft sync unavailable:',error);
+        }
       });
     });
   }
