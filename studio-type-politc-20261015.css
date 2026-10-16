@@ -197,3 +197,114 @@
 @media(prefers-reduced-motion:reduce){
  #studioApp #moduleWorkspace[data-module-key="politc"] *{transition:none!important}
 }
+
+
+/* Compact source identifiers without losing the stitched fabric detail. */
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-unified-source{
+  font-size:10.5px!important;
+  line-height:1.25!important;
+  padding:4px 7px!important;
+  letter-spacing:.007em!important;
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip{
+  font-size:11px!important;
+  padding:6px 9px!important;
+}
+/* Sqwib's heading already exists at the top of the page. Keep only privacy metadata. */
+#studioApp #moduleWorkspace[data-module-key="notes"] .sqwib-private-kicker{
+  display:flex;justify-content:flex-end;align-items:center;
+  margin:0 0 12px;padding:0 0 9px;
+  color:#715c36;font:750 9px/1.4 system-ui,sans-serif;
+  letter-spacing:.08em;text-transform:uppercase;
+  border-bottom:1px solid rgba(93,68,28,.19);
+}
+/* The Veve action sits beside Save instead of below the sticky note. */
+#studioApp #moduleWorkspace[data-module-key="notes"] #moduleWritingForm>.module-actions{
+  display:flex;align-items:center;justify-content:flex-start;gap:10px;
+  flex-wrap:wrap;margin-top:12px;
+}
+#studioApp #moduleWorkspace[data-module-key="notes"] #sqwibPublishArea.sqwib-publish-inline{
+  display:flex;align-items:center;flex:1 1 auto;flex-wrap:wrap;gap:8px 12px;
+  min-width:0;margin:0;padding:0;background:transparent;border:0;
+  box-shadow:none;border-radius:0;
+}
+#studioApp #sqwibPublishArea.sqwib-publish-inline [data-sqwib-control="publish"]{
+  min-height:36px;padding:9px 13px;
+  background:rgb(var(--aura-rgb,216,95,109));
+  color:var(--aura-button-ink,#fff);
+  border:0;border-radius:11px;
+  font:700 11px/1.2 system-ui,sans-serif;
+  cursor:pointer;
+}
+#studioApp #sqwibPublishArea.sqwib-publish-inline .sqwib-permission{
+  display:inline-flex;align-items:center;gap:5px;
+  margin:0;font:600 10px/1.3 system-ui,sans-serif;white-space:nowrap;
+}
+#studioApp #sqwibPublishArea.sqwib-publish-inline .sqwib-permission input{margin:0;accent-color:rgb(var(--aura-rgb,216,95,109))}
+#studioApp #sqwibPublishArea.sqwib-publish-inline .sqwib-publish-status{
+  font:600 10px/1.35 system-ui,sans-serif;opacity:.82;overflow-wrap:anywhere;
+}
+#studioApp #sqwibPublishArea.sqwib-publish-inline .sqwib-published-history{
+  position:relative;flex-basis:100%;font:600 11px/1.45 system-ui,sans-serif;
+}
+#studioApp #sqwibPublishArea.sqwib-publish-inline .sqwib-published-history>summary{
+  display:inline-block;cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  color:inherit;opacity:.76;padding:5px 0;
+}
+#studioApp #sqwibPublishArea.sqwib-publish-inline .sqwib-published-history:not([open]){
+  flex-basis:auto;
+}
+#studioApp #sqwibPublishArea.sqwib-publish-inline .sqwib-published-item p{
+  font-family:"LWA Cuteness Notes",cursive!important;
+  font-size:20px;line-height:1.4;
+}
+#studioApp #notes .note-paper,
+#studioApp #notes .note-paper :is(p,div,.sqwib-note-text){
+  font-family:"LWA Cuteness Notes","Comic Sans MS",cursive!important;
+  font-weight:400!important;font-synthesis:none!important;
+}
+#studioApp #notes .note-paper{font-size:clamp(19px,2.1vw,24px)!important}
+/* One compact rectangular CTA system for the Studio widgets. */
+#studioApp .masonry .card .card-cta{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  align-self:flex-start!important;
+  width:auto!important;max-width:100%!important;min-height:41px!important;
+  margin:16px 0 0!important;padding:10px 17px!important;
+  border-radius:12px!important;
+  background:rgb(var(--aura-rgb,216,95,109))!important;
+  color:var(--aura-button-ink,#fff)!important;
+  font:700 12px/1.25 system-ui,sans-serif!important;
+  text-align:center!important;letter-spacing:0!important;
+  box-shadow:0 3px 0 rgba(var(--aura-rgb,216,95,109),.15)!important;
+  cursor:pointer;
+}
+#studioApp .masonry .card .card-cta:focus-visible,
+#studioApp #orbitPlanetaryToggle:focus-visible{
+  outline:3px solid rgb(var(--aura-rgb,216,95,109));outline-offset:3px;
+}
+#studioApp #orbitPlanetaryToggle,
+#studioApp #modulePlanetaryToggle{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:auto!important;max-width:100%!important;
+  min-height:41px!important;
+  margin:16px auto 4px!important;padding:10px 17px!important;
+  border:0!important;border-radius:12px!important;
+  background:rgb(var(--aura-rgb,216,95,109))!important;
+  color:var(--aura-button-ink,#fff)!important;
+  font:700 12px/1.25 system-ui,sans-serif!important;
+  text-transform:none!important;letter-spacing:0!important;
+  box-shadow:0 3px 0 rgba(var(--aura-rgb,216,95,109),.15)!important;
+  cursor:pointer;
+}
+#studioApp #games .games-library[role="button"]{cursor:pointer}
+#studioApp #games .games-library[role="button"]:focus-visible{
+  outline:3px solid rgb(var(--aura-rgb,216,95,109));
+  outline-offset:3px;
+}
+#studioApp #games .games-library[role="button"]:hover .arcade-library-viewport{
+  filter:brightness(1.1);
+}
+@media(max-width:600px){
+ #studioApp #moduleWorkspace[data-module-key="notes"] #moduleWritingForm>.module-actions{align-items:stretch}
+ #studioApp #sqwibPublishArea.sqwib-publish-inline{flex-basis:100%}
+}
