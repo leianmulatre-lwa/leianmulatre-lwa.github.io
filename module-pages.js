@@ -976,7 +976,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       const key=orbitLinkKey(href),id=String(provider||'').toLowerCase();
       if(!key||seenDestinations.has(key)||seenProviders.has(id))return;
       const parsed=new URL(href);
-      const isProviderHome=!parsed.pathname.replace(/\\/g,'').trim()||parsed.pathname==='/';
+      const isProviderHome=parsed.pathname==='/' || !parsed.pathname;
       if(isProviderHome&&['facebook','instagram','tiktok','pinterest','youtube'].includes(id))return;
       seenDestinations.add(key);seenProviders.add(id);
       chips.push({href,label,handle,cls});
