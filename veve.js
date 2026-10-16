@@ -124,7 +124,17 @@
       ...(Array.isArray(post.imageKeys)?post.imageKeys.map(orbitFromKey):[]),
       post.imageUrl,orbitFromKey(post.imageUrlKey),post.thumbnailUrl
     ];
-    return urls.map(safeUrl).find(x=>x&&!videoFile(x))||'';
+    const usable=urls.map(safeUrl).filter(x=>x&&!videoFile(x));
+    // Instagram/Pinterest Orbit imports must use the durable copy, not a
+    // short-lived provider CDN URL that looks valid but fails when displayed.
+    if(post?.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())){
+      const managed=usable.find(x=>{
+        try{const u=new URL(x);return u.origin===orbitBase&&/^\/media\/orbit\/[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(u.pathname)}
+        catch{return false}
+      });
+      return managed||'';
+    }
+    return usable[0]||'';
   }
   function videoEmbed(post){
     const link=safeUrl(post.sourceUrl||post.permalink||'');
