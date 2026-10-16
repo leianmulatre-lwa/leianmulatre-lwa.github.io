@@ -452,6 +452,16 @@ function installStyle() {
   document.head.appendChild(style);
 }
 
+/* Responsive owner-only draft rail and constrained original-provider player. */
+const importedMediaStyle=document.createElement('style');
+importedMediaStyle.id='biglwaExternalOrbitMediaStyle';
+importedMediaStyle.textContent=
+  '#biglwaOrbitDrafts .biglwa-draft-fallback{display:grid;place-items:center;min-height:120px;background:#d9d0c6;color:#3a2927;border-radius:8px;font-size:28px}'+
+  '#biglwaOrbitDrafts .biglwa-draft-card a{display:inline-block;margin-top:5px;color:#71334b;font-size:11px}'+
+  '#feedPageList .biglwa-source-video{position:relative;width:100%;aspect-ratio:9/16;max-height:580px;overflow:hidden;background:#181219;border-radius:8px}'+
+  '#feedPageList .biglwa-source-video iframe{width:100%;height:100%;border:0;display:block}';
+if(!document.getElementById(importedMediaStyle.id))document.head.appendChild(importedMediaStyle);
+
 let refs;
 async function firebase() {
   if (!refs) {
@@ -601,6 +611,7 @@ async function loadPosts() {
     loading = false;
   }
   renderPosts(true);
+  renderDraftPanel();
   renderHero(true);
   return posts;
 }
@@ -869,7 +880,8 @@ async function publishDraft(postId) {
 /* A card that has no picture at all, and no thumbnail to stand in for one, is not worth
    putting on the wall. It is left out rather than drawn as an empty frame. */
 function usablePost(post) {
-  return pictureUrls(post).length > 0 || Boolean(playableVideo(post));
+  return pictureUrls(post).length > 0 || Boolean(playableVideo(post)) ||
+    (post?.sourceHostedMedia===true && /^https:\/\//.test(String(post.sourceUrl||"")));
 }
 
 function guardFeedPictures(list) {
@@ -918,6 +930,30 @@ function retargetFeedRecord(card, url) {
   }
 }
 
+/* Account imports are saved as private drafts. This is the actual user-visible
+   publishing queue; older code loaded draftPosts but never drew this panel. */
+function renderDraftPanel(){
+  const panel=document.getElementById("biglwaOrbitDrafts");
+  if(!panel)return;
+  const drafts=draftPosts.filter(p=>p.state==="draft");
+  panel.hidden=!drafts.length;
+  if(!drafts.length){panel.replaceChildren();return}
+  const safe=url=>{try{let u=new URL(String(url||""));return u.protocol==="https:"?u.href:""}catch{return""}};
+  panel.innerHTML='<div class="biglwa-drafts-head"><div><h3>private imports · ready to post</h3>'+
+    '<p>Saved to your Big LWA account. Choose the ones to publish; nothing goes live automatically.</p></div>'+
+    '<button class="module-action" type="button" data-orbit-publish-selected>Post selected to Collective Feed ↗</button></div>'+
+    '<div class="biglwa-drafts-grid">'+drafts.slice(0,60).map(post=>{
+      const image=safe(thumbnailFor(post)||pictureUrls(post)[0]||post.thumbnailUrl);
+      const source=String(post.source||"biglwa");
+      const caption=String(post.caption||post.linkTitle||"Imported post");
+      const original=safe(post.sourceUrl);
+      return '<label class="biglwa-draft-card"><input type="checkbox" data-orbit-draft-check value="'+esc(post.id)+'" aria-label="Select '+esc(caption.slice(0,75))+'">'+
+        (image?'<img src="'+esc(image)+'" loading="lazy" alt="">':'<span class="biglwa-draft-fallback" aria-hidden="true">▶</span>')+
+        '<div><b>'+esc(caption.slice(0,120))+'</b><small>'+esc(source)+' · private draft</small>'+
+        (original?'<a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View original ↗</a>':'')+
+        '</div></label>';
+    }).join("")+'</div>';
+}
 function renderPosts(force) {
   const list = document.getElementById("feedPageList");
   if (!list) return;
@@ -947,7 +983,13 @@ function renderPosts(force) {
     const fallbackSrc = thumbnailFor(post);
     const playable = playableVideo(post);
     const soleVideo = playable && (!Array.isArray(post.mediaItems)||post.mediaItems.length<=1);
-    const image = soleVideo
+    const sourceVideoId=String(post.sourcePostId||"");
+    const tiktokEmbed=post.sourceHostedMedia===true&&providerSafeTikTok(post)&&/^\\d{6,25}$/.test(sourceVideoId)
+      ? 'https://www.tiktok.com/embed/v2/'+sourceVideoId : '';
+    const externalVideo=tiktokEmbed
+      ? '<div class="biglwa-source-video"><iframe title="TikTok video from '+esc(post.sourceUsername||'connected account')+'" src="'+esc(tiktokEmbed)+'" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
+      : '';
+    const image = externalVideo || (soleVideo
       ? '<video class="biglwa-pin-img" data-feed-video src="'+esc(playable)+'"'+(shown[0]||fallbackSrc?' poster="'+esc(shown[0]||fallbackSrc)+'"':'')+' muted playsinline preload="metadata" controls autoplay loop></video>'
       : !shown.length
       ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
@@ -959,7 +1001,7 @@ function renderPosts(force) {
           : '<img class="biglwa-pin-img" data-feed-media src="' + esc(shown[0]) + '"' +
             (fallbackSrc && fallbackSrc !== shown[0] ? ' data-feed-fallback="' + esc(fallbackSrc) + '"' : "") +
             ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="' + esc(String(post.caption||'Collective feed media').slice(0,160)) + '" loading="lazy">'
-        : slideshow(shown, "Collective feed media");
+        : slideshow(shown, "Collective feed media"));
     const link = !isInstagram && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     // Carousels are controlled directly on their photo: dots below, arrows on hover.
     // Numbered browser tabs belong to the retired feed header and are not rendered.
@@ -977,6 +1019,12 @@ function renderPosts(force) {
   list.insertAdjacentHTML("afterbegin", html);
   startSlideshows(list);
   guardFeedPictures(list);
+}
+
+function providerSafeTikTok(post){
+  try{const url=new URL(String(post.sourceUrl||""));return url.protocol==="https:"&&
+    ["www.tiktok.com","tiktok.com","m.tiktok.com"].includes(url.hostname)}
+  catch{return false}
 }
 
 /* A multi-photo post is drawn as a stack of pictures inside one frame shaped like the
