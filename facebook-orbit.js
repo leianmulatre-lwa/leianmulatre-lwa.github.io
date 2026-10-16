@@ -6,9 +6,9 @@
   var API_VERSION = 'v25.0';
   // Facebook Login for Business selects scopes from a Meta Login configuration,
   // not from a hardcoded 'public_profile' scope.
-  // This public identifier will be set after the app owner supplies the actual
-  // "General / User Access Token" configuration ID from the Meta dashboard.
-  var BUSINESS_LOGIN_CONFIG_ID = '';
+  // Public Meta Login for Business Configuration ID (General / User Access Token).
+  // This is not the private Facebook App Secret.
+  var BUSINESS_LOGIN_CONFIG_ID = '1086972974237376';
   function loginConfiguration() {
     var configured = String(BUSINESS_LOGIN_CONFIG_ID || '').trim();
     return /^\d{8,30}$/.test(configured) ? configured : '';
