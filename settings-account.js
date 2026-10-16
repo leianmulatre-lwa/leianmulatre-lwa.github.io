@@ -98,6 +98,65 @@
     }
   }
 
+  let privacyUid='';
+  async function loadPrivacy(auth) {
+    const toggle=el('privateAccountToggle'),note=el('privateAccountStatus');
+    const del=el('requestAccountDeletion');
+    const user=auth.currentUser;
+    if(!user){
+      privacyUid='';if(toggle){toggle.disabled=true;toggle.checked=false}
+      if(del)del.disabled=true;
+      say(note,'Sign in to change who can view your Studio.');return;
+    }
+    const uid=user.uid;
+    privacyUid=uid;
+    if(del)del.disabled=false;
+    if(toggle)toggle.disabled=true;
+    try{
+      const [{getFirestore},{doc,getDoc}]=await Promise.all([
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js').then(s=>({getFirestore:s.getFirestore})),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+      ]);
+      const db=getFirestore(auth.app);
+      const snap=await getDoc(doc(db,'users',uid));
+      if(privacyUid!==uid)return;
+      const privateMode=snap.exists()&&snap.data()?.accountVisibility==='private';
+      if(toggle){toggle.checked=privateMode;toggle.disabled=false}
+      say(note,privateMode?'Private profile selected. Visitor pages display your limited profile.':'Your Studio profile is public.');
+    }catch(error){
+      if(privacyUid===uid)say(note,'Could not verify privacy settings: '+friendly(error),'bad');
+    }
+  }
+
+  async function setPrivateAccount(auth,privateMode){
+    const user=auth.currentUser;
+    if(!user)throw Error('Sign in again to change visibility.');
+    const sdk=await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+    const db=sdk.getFirestore(auth.app);
+    const ownerRef=sdk.doc(db,'users',user.uid);
+    const snap=await sdk.getDoc(ownerRef);
+    if(!snap.exists())throw Error('Save your Big LWA profile first, then change its visibility.');
+    const owner=snap.data()||{};
+    const username=String(owner.usernameLower||owner.username||'').replace(/^@/,'').toLowerCase();
+    if(!username)throw Error('Choose and save your username first.');
+    const profileRef=sdk.doc(db,'usernames',username);
+    // The owner document is the canonical record. Never restore private profile
+    // details from old public cache data; derive them from the owner-only record.
+    const publicFields=privateMode?
+      {bio:sdk.deleteField(),location:sdk.deleteField(),website:sdk.deleteField(),
+       mood:sdk.deleteField(),moodStyle:sdk.deleteField(),socials:sdk.deleteField(),
+       publicJournal:sdk.deleteField(),journalVisibility:'private',auraText:owner.auraText||''}
+      :{bio:owner.bio||'',location:owner.location||'',website:owner.website||'',
+         mood:owner.mood||'',moodStyle:owner.moodStyle||'',auraText:owner.auraText||'',
+         journalVisibility:'private'};
+    const batch=sdk.writeBatch(db);
+    batch.update(ownerRef,{accountVisibility:privateMode?'private':'public',updatedAt:sdk.serverTimestamp()});
+    batch.set(profileRef,{uid:user.uid,accountVisibility:privateMode?'private':'public',
+      ...publicFields,updatedAt:sdk.serverTimestamp()},{merge:true});
+    await batch.commit();
+    return privateMode;
+  }
+
   function wire(auth) {
     const status = el('accountStatus');
     const guard = async (button, work) => {
@@ -150,6 +209,49 @@
       say(status, `Confirmation sent to ${next}. Your email changes once you click that link.`, 'good');
     }));
 
+    el('privateAccountToggle')?.addEventListener('change',async event=>{
+      const input=event.currentTarget;
+      const prior=!input.checked;
+      input.disabled=true;
+      say(el('privateAccountStatus'),'Updating visibility…');
+      try{
+        await setPrivateAccount(auth,input.checked);
+        say(el('privateAccountStatus'),input.checked
+          ? 'Private Studio enabled. Visitors see your banner, Avatar, Aura, music, and Guest Check. Previously published posts may still appear elsewhere until separately archived.'
+          : 'Public Studio enabled. Your public profile is visible again.','good');
+      }catch(error){
+        input.checked=prior;
+        say(el('privateAccountStatus'),friendly(error),'bad');
+      }finally{input.disabled=false}
+    });
+
+    el('requestAccountDeletion')?.addEventListener('click',()=>guard(null,async()=>{
+      const user=auth.currentUser;
+      if(!user)throw Error('Sign in to request deletion.');
+      if(String(el('accountDeletionConfirm')?.value||'').trim()!=='DELETE'){
+        say(el('accountDeletionStatus'),'Type DELETE exactly before requesting deletion.','bad');
+        return;
+      }
+      if(!window.confirm('Request permanent removal of your Big LWA account and content? The account stays active until a verified deletion is completed.'))return;
+      const sdk=await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+      const db=sdk.getFirestore(auth.app);
+      await sdk.setDoc(sdk.doc(db,'users',user.uid),
+        {accountDeletionRequest:{requestedAt:sdk.serverTimestamp(),status:'pending',email:user.email||''},
+        updatedAt:sdk.serverTimestamp()},{merge:true});
+      const status=el('accountDeletionStatus');
+      if(status){
+        status.replaceChildren();
+        status.append(document.createTextNode('Request recorded. Complete verification by emailing support: '));
+        const link=document.createElement('a');
+        link.href='mailto:leian@biglwa.com?subject='+encodeURIComponent('Big LWA account deletion request')+
+          '&body='+encodeURIComponent('Please complete deletion for my Big LWA account. I requested deletion in account settings and will verify account ownership.\nAccount email: '+(user.email||''));
+        link.textContent='Email deletion support';
+        status.append(link);
+        status.classList.add('good');
+      }
+      if(el('accountDeletionConfirm'))el('accountDeletionConfirm').value='';
+    }));
+
     el('signOut')?.addEventListener('click', () => guard(null, async () => {
       const api = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
       await api.signOut(auth);
@@ -168,7 +270,7 @@
       return;
     }
 
-    const apply = (user) => render(auth, user);
+    const apply = (user) => {render(auth, user);loadPrivacy(auth);};
 
     wire(auth);
     apply(auth.currentUser);
