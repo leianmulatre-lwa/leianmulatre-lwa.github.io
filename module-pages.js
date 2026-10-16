@@ -1077,6 +1077,12 @@ const connect=e.target.closest('[data-orbit-connect]');
        save.disabled=true;say('Saving '+(ORBIT_APP_NAMES[k]||'Orbit')+' link to your account…');
        try{
          if(!manager?.save)throw Error('Account link storage is still loading.');
+         if(k==='facebook'&&url){
+           const candidate=new URL(url);
+           const host=candidate.hostname.toLowerCase();
+           if(candidate.protocol!=='https:'||!['facebook.com','www.facebook.com','m.facebook.com','fb.com','www.fb.com'].includes(host))
+             throw Error('Please enter your real public Facebook profile or Page HTTPS link.');
+         }
          const linkKey=orbitLinkKey(url);
          if(linkKey&&Object.entries(orbitLinks()).some(([other,saved])=>other!==k&&orbitLinkKey(saved)===linkKey))
            throw Error('This quick link is already saved under another Orbit source.');
