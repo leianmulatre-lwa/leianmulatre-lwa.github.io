@@ -153,7 +153,7 @@
   function loadFacebookContent() {
     return readGrantedPermissions().then(function () {
       var requests = [
-        facebookApi('/me', { fields: 'id,name,email,picture.width(200).height(200)' + (hasPermission('user_link') ? ',link' : '') }),
+        facebookApi('/me', { fields: 'id,name,picture.width(200).height(200)' + (hasPermission('user_link') ? ',link' : '') }),
         hasPermission('user_photos') ? facebookApi('/me/photos', { type: 'uploaded', fields: 'id,name,images,created_time,link', limit: 12 }) : Promise.resolve(null),
         hasPermission('user_videos') ? facebookApi('/me/videos', { fields: 'id,title,description,source,picture,created_time,permalink_url', limit: 8 }) : Promise.resolve(null)
       ];
@@ -252,7 +252,7 @@
           showStatus(state.error);
           render();
         });
-      }, { scope: 'public_profile,email', return_scopes: true });
+      }, { scope: 'public_profile', return_scopes: true });
     }).catch(function (error) {
       state.connected = false;
       state.error = error.message || 'Facebook Login could not start.';
