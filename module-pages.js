@@ -901,6 +901,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   const orbitLinks=()=>window.BigLWAOrbitAccountLinks?.get?.() ?? readJSON('biglwaOrbitLinks',{});
   const orbitConnected=()=>{
     const rows=[];
+    for(const id of ['x','snapchat','tumblr']){const item=window.BigLWAOrbitOAuth?.get?.(id);if(item)rows.push(item)}
     try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}).filter(row=>row&&row.id&&row.link))}catch{}
     // The account mirror is asynchronous. If the Pinterest API has actually
     // verified a signed-in user's profile, show that verified connection right
@@ -987,8 +988,15 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   }
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
-  const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit};return Boolean(map[key])};
+  const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit,x:window.BigLWAOrbitOAuth,snapchat:window.BigLWAOrbitOAuth,tumblr:window.BigLWAOrbitOAuth};return Boolean(map[key])};
    function renderOrbitPage(){
+    // Only show a real OAuth button once its public app key, secret and callback
+    // are actually available. Until then an account-linked profile URL works.
+    for(const id of ['x','snapchat','tumblr']){
+      const live=window.BigLWAOrbitOAuth?.configured?.(id)?.configured===true;
+      if(live){ORBIT_CONNECTED.add(id);ORBIT_LIVE.add(id)}
+      else{ORBIT_CONNECTED.delete(id);ORBIT_LIVE.delete(id)}
+    }
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
     const legacyCount=window.BigLWAOrbitAccountLinks?.localPending?.()?.length||0;
@@ -999,7 +1007,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       const providerError=k==='tiktok'?String(window.__biglwaTikTokOrbit?.state?.lastError||''):'';
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>${k==='instagram'?'':orbitBadge(g,t)}`+
        (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+(pending?'<p class="orbit-not-connected">Login is not active for this provider yet. Choose Setup to see which configuration is missing.</p>':'')+
-       (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span><a class="orbit-hotlink" href="${esc(row.link)}" target="_blank" rel="noopener noreferrer">Open ↗</a></div>`
+       (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':''}</div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
        `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${k==='instagram'?orbitBadge(g,t):''}</div></div>`;
      }
@@ -1020,14 +1028,29 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        return;
      }
 const connect=e.target.closest('[data-orbit-connect]');
-      if(connect){const k=connect.dataset.orbitConnect;
-        if(!ORBIT_LIVE.has(k)){
-          const requirement={x:'X_CLIENT_ID',snapchat:'SNAPCHAT_CLIENT_ID',tumblr:'TUMBLR_CONSUMER_KEY'}[k]||'the OAuth client ID';
-          say(ORBIT_APP_NAMES[k]+' login is not live: '+requirement+' and a provider-specific callback handler are still required. Your public link can be saved separately.');return;
-        }
-        const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
+     if(connect){
+       const k=connect.dataset.orbitConnect;
+       if(['x','snapchat','tumblr'].includes(k)){
+         connect.disabled=true;say('Preparing secure '+ORBIT_APP_NAMES[k]+' authorization…');
+         try{await window.BigLWAOrbitOAuth.connect(k)}
+         catch(error){say(error?.message||'Authorization is not ready yet.');connect.disabled=false}
+         return;
+       }
+       if(!ORBIT_LIVE.has(k)){say('This provider is not configured for sign-in yet.');return;}
+       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit}[k];
+       if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');
+       return;
+     }
      const unlink=e.target.closest('[data-orbit-unlink]');
-     if(unlink){const k=unlink.dataset.orbitUnlink;say('Unlinking…');window.__biglwaConnections?.forget?.(k).then(()=>{say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage()});return}
+     if(unlink){
+       const k=unlink.dataset.orbitUnlink;unlink.disabled=true;say('Unlinking…');
+       try{
+         if(['x','snapchat','tumblr'].includes(k))await window.BigLWAOrbitOAuth.disconnect(k);
+         else await window.__biglwaConnections?.forget?.(k);
+         say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage();
+       }catch(error){say(error?.message||'Unable to unlink this connection.');unlink.disabled=false}
+       return;
+     }
      const save=e.target.closest('[data-orbit-save]');
      if(save){
        const k=save.dataset.orbitSave,url=$('[data-orbit-path="'+k+'"]',body).value.trim();
@@ -1063,6 +1086,9 @@ const connect=e.target.closest('[data-orbit-connect]');
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
    document.addEventListener('biglwa:pinterest-status',()=>{
+     if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
+   });
+   document.addEventListener('biglwa:new-orbit-status',()=>{
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
    window.addEventListener('biglwa:orbit-links-synced',()=>{
