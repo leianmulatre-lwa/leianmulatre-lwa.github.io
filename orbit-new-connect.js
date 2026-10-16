@@ -7,10 +7,30 @@
  if(window.BigLWAOrbitOAuth)return;
  const base='https://api.biglwa.com';
  const providerIds=['x','snapchat','tumblr'];
+ const callbackNotice=(()=>{
+   try{
+     const url=new URL(location.href);
+     const id=url.searchParams.get('orbit_provider')||'';
+     const status=url.searchParams.get('orbit_status')||'';
+     if(!providerIds.includes(id)||!['connected','failed'].includes(status))return null;
+     const message=url.searchParams.get('orbit_error')||'';
+     for(const k of ['orbit_provider','orbit_status','orbit_error'])url.searchParams.delete(k);
+     history.replaceState(history.state,'',url.href);
+     return {id,status,error:message};
+   }catch{return null}
+ })();
  const config=Object.fromEntries(providerIds.map(id=>[id,{configured:false,missing:[],checked:false}]));
  const state={};
  let refsPromise=null,refreshing=null,loggedInUid='';
  const notify=()=>document.dispatchEvent(new CustomEvent('biglwa:new-orbit-status'));
+ function callbackMessage(){
+   if(!callbackNotice)return;
+   const id=callbackNotice.id;
+   const name=id==='x'?'X':id==='snapchat'?'Snapchat':'Tumblr';
+   notice(callbackNotice.status==='connected'
+     ?name+' connected to your Big LWA account. Your public profile link can be saved separately.'
+     :name+' connection was not completed. '+(callbackNotice.error||'Please retry from Orbit.'));
+ }
  function firebase(){
    if(!refsPromise)refsPromise=Promise.all([
      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
@@ -105,7 +125,7 @@
    delete state[provider];notify();
  }
  window.BigLWAOrbitOAuth=Object.freeze({load,connect,disconnect,get,configured,state});
- const boot=()=>load().catch(error=>console.warn('New Orbit OAuth bootstrap:',error));
+ const boot=()=>load().then(()=>callbackMessage()).catch(error=>console.warn('New Orbit OAuth bootstrap:',error));
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
  else boot();
  document.addEventListener('biglwa:module-open',()=>{
