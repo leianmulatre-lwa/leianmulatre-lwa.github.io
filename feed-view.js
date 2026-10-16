@@ -17,7 +17,7 @@ import { identity, onIdentityChange, startIdentity } from "./account-identity.js
 const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_BYTES = 8 * 1024 * 1024;
-const FEED_SIZE = 40;
+const FEED_SIZE = 160;
 /* A post may carry several photos. They are shown one at a time in a frame shaped like
    its first photo, so a multi-photo post reads like a slideshow rather than a stack.
    The ceiling keeps one post from turning the wall into a video. */
