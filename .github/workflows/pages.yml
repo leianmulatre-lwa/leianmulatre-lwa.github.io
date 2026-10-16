@@ -43,6 +43,8 @@ jobs:
           node --check pinterest-orbit.js
           node --check feed-polish.js
           node --check module-pages.js
+          node --check writing-collections.js
+          node writing-collections-test.mjs
           node --check feed-view.js
           node --check avatar-studio.js
           node --check avatar/minecraft-mannequin.js
