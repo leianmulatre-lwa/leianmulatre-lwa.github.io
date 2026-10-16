@@ -23,7 +23,7 @@ assert.ok(politc.includes("Read source ↗"),'Seed and user supplied source link
 assert.ok(style.includes('politc-live-zone')&&style.includes('politc-resource-zone'));
 assert.ok(style.includes('politc-vintage-panel')&&style.includes('politc-nomination-drawer')&&style.includes('politc-nominate-button'));
 assert.ok(style.includes('grid-auto-flow:column!important')&&style.includes('politc-poster-photo'),'Poster cards scroll with large portraits');
-assert.ok(read('politc-orbit-tight-20261016.css').includes('"Stars and Stripes","Rye"'),'Use requested font when available with a display fallback');
+assert.ok(read('politc-orbit-tight-20261016.css').includes('/stars-and-stripes-font/StarsAndStripes-A4XM.ttf')&&existsSync(new URL('./stars-and-stripes-font/StarsAndStripes-A4XM.ttf',import.meta.url)),'Serve actual uploaded Stars and Stripes font');
 assert.ok(style.includes('#721c2a'),'Maroon headline and type');
 assert.ok(existsSync(new URL('./assets/politc-wanted-paper.jpg',import.meta.url)),'User-supplied parchment image committed to repo');
 assert.ok(style.includes('url("/assets/politc-wanted-paper.jpg'),'Poster cards show supplied texture');
