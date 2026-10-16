@@ -15,7 +15,7 @@
  */
 import { identity, onIdentityChange, startIdentity } from "./account-identity.js";
 
-const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
+const WORKER = "https://api.biglwa.com";
 
 const SOURCES = [
   {
