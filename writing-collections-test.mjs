@@ -71,7 +71,7 @@ const list=sidebar.children[2],oldButton=list.children.find(x=>x.dataset.entryId
 list.fire('click',{target:oldButton});
 assert.equal(n.area.value,'Original draft from old Sqwib','Switching restores previous entry');
 assert.equal(storage.getItem('biglwaDraft_notes'),'Original draft from old Sqwib');
-const remove=n.form.children.find(x=>x.className==='writing-collection-remove');
+const remove=n.form.querySelector('.module-actions').children.find(x=>x.className==='writing-collection-remove');
 remove.fire('click');
 assert.equal(notes.count(),1,'Remove only selected entry');
 assert.equal(store.has('biglwaDraft_notes'),true,'Never delete original draft key');
