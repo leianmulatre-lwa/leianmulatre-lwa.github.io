@@ -20,15 +20,13 @@ assert.doesNotThrow(()=>new Script(studio),'Studio avatar bridge JS parses');
 assert.doesNotThrow(()=>new Script(quest),'Character game JS parses');
 assert.ok(existsSync(new URL('./MiiEditor/classicGUI.swf',import.meta.url)),'Keep legacy Adobe AIR Mii archive');
 const tests=[
- ['Mii-style HTML5 editor',editor.includes('lwa character port')&&editor.includes('<canvas id="portrait"')],
- ['Portable editable format',editor.includes('biglwa-character-v1')&&editor.includes('exportPreset')&&editor.includes('usePreset')],
- ['Native PNG portrait',editor.includes("canvas.toDataURL('image/png')")],
- ['Embedded account handoff',editor.includes('biglwa:mii-created')&&studio.includes('event.source!==frame.contentWindow')],
- ['Preset saved in account',studio.includes("studioAvatar:{type:kind,url:result.url")&&studio.includes('preset:validateMiiPreset(preset)')],
- ['Full-page account save',editor.includes('standaloneSave')&&editor.includes('user.getIdToken()')],
- ['Existing character restoration',studio.includes('sendSavedMiiToFrame()')&&editor.includes('biglwa:mii-load')],
- ['No Flash emulation',!editor.includes('ruffle.js')&&!studio.includes('@ruffle-rs')],
- ['Original not misrepresented as native',editor.includes("not Nintendo's proprietary Mii file format")],
+ ['Original uploaded Adobe AIR SWF preserved',existsSync(new URL('./MiiEditor/classicGUI.swf',import.meta.url))],
+ ['Original editor mounted through Ruffle',editor.includes('/MiiEditor/classicGUI.swf')&&editor.includes('RufflePlayer.newest')&&editor.includes('ruffle.js')],
+ ['No misleading browser-native Mii format claims',editor.includes('AIR-only')&&editor.includes('may not work')],
+ ['Studio embeds original Mii editor',studio.includes('<iframe id="biglwaMiiEditorFrame"')&&studio.includes('20261015-ruffle-original')],
+ ['PNG image import remains available',studio.includes('Import Mii image')&&studio.includes('data-avatar-kind="mii"')],
+ ['Account avatar upload still authenticated',studio.includes('getIdToken')&&studio.includes('studioAvatar:')],
+ ['Previously saved avatars can still restore',studio.includes('sendSavedMiiToFrame()')&&studio.includes('Saved avatar restored')],
  ['Quest and legacy puzzles',arcade.includes('data-tab="quest"')&&arcade.includes('data-tab="2048"')&&arcade.includes('data-tab="crossword"')],
  ['Arcade account character',quest.includes(".data()?.studioAvatar")&&quest.includes('playing as')],
  ['Quest accessible controls',quest.includes("grid.addEventListener('touchstart'")&&quest.includes("document.addEventListener('keydown'")&&arcade.includes('role="grid"')],
@@ -36,7 +34,7 @@ const tests=[
  ['Artwork',existsSync(new URL('./assets/arcade/character-quest.svg',import.meta.url))]
 ];
 for(const [label,ok] of tests)console.log((ok?'PASS':'FAIL')+' · '+label);
-assert.ok(tests.every(([,ok])=>ok),'Character webport integration checks failed.');
+assert.ok(tests.every(([,ok])=>ok),'Original Mii / Arcade integration checks failed.');
 // Ensure each hand-authored Quest map allows reaching every collectible and exit.
 const match=quest.match(/const levels=(\[[\s\S]*?\]);\s*const rows=/);
 assert.ok(match,'Quest map definitions not found');
