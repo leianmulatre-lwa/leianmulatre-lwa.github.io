@@ -43,6 +43,7 @@ jobs:
           node --check pinterest-orbit.js
           node --check feed-polish.js
           node --check module-pages.js
+          node orbit-veve-layout-test.mjs
           node --check writing-collections.js
           node writing-collections-test.mjs
           node --check feed-view.js
