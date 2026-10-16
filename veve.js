@@ -388,7 +388,11 @@
     }else{
       el=document.createElement('p');el.textContent='This provider does not supply an embeddable preview.';
     }
-    target.append(el);
+    if(el.tagName==='IFRAME'){
+      const shell=document.createElement('div');
+      shell.className='veve-embed-shell '+el.className;
+      shell.appendChild(el);target.append(shell);
+    }else target.append(el);
     const caption=String(post.caption??post.title??post.description??'').trim();
     const panel=d.querySelector('#vevePreviewCaption');
     panel.hidden=!caption;
