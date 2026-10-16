@@ -129,8 +129,8 @@ const SOURCES = {
    something else without it. */
 const FEED_RIM = "#a52a0c";
 const SOURCE_THEMES = {
-  instagram: { rim:"#7d3ec5", glow:"#ad82e7", hot:"#5d2999" },
-  tiktok: { rim:"#111111", glow:"#25f4ee", hot:"#fe2c55" },
+  instagram: { rim:"#f36b21", glow:"#ffad52", hot:"#bd430b" },
+  tiktok: { rim:"#772dcc", glow:"#b77cff", hot:"#4a187f" },
   facebook: { rim:"#1877f2", glow:"#5aa0ff" },
   pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" },
   youtube: { rim:"#d0202f", glow:"#fff6ec", hot:"#ff0033" },
