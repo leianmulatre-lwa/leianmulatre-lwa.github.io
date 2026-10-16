@@ -1363,6 +1363,13 @@ const connect=e.target.closest('[data-orbit-connect]');
     const storageKey='biglwaPolitcNominationsV1';
     const items=readJSON(storageKey,[]);
     const nominations=Array.isArray(items)?items:[];
+    const hiddenCurated=readJSON('biglwaPolitcHiddenCuratedV1',[]);
+    const curatedHidden=new Set(Array.isArray(hiddenCurated)?hiddenCurated:[]);
+    // Curated introductory records are examples for browsing, not verdicts on
+    // anyone's character or invitations to target them.
+    const curated=[{"id":"curated-1","category":"cunting","name":"Zendaya","note":"Actor and producer; screen and fashion figure.","source":"https://www.britannica.com/biography/Zendaya","photo":"","curated":true},{"id":"curated-2","category":"cunting","name":"Beyoncé","note":"Singer, songwriter and cultural innovator.","source":"https://www.britannica.com/biography/Beyonce","photo":"","curated":true},{"id":"curated-3","category":"cunting","name":"Rihanna","note":"Singer, entrepreneur and beauty industry founder.","source":"https://www.britannica.com/biography/Rihanna","photo":"","curated":true},{"id":"curated-4","category":"cunting","name":"Jennifer Lawrence","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Jennifer-Lawrence","photo":"","curated":true},{"id":"curated-5","category":"cunting","name":"Anne Hathaway","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Anne-Hathaway-American-actress","photo":"","curated":true},{"id":"curated-6","category":"cunting","name":"Ida B. Wells","note":"Journalist and anti-lynching civil rights organizer.","source":"https://www.nps.gov/people/ida-b-wells-barnett.htm","photo":"","curated":true},{"id":"curated-7","category":"cunting","name":"Malcolm X","note":"Black liberation leader and human-rights advocate.","source":"https://www.britannica.com/biography/Malcolm-X","photo":"","curated":true},{"id":"curated-8","category":"cunting","name":"Martin Luther King Jr.","note":"Civil rights organizer and Nobel Peace Prize laureate.","source":"https://www.nps.gov/malu/index.htm","photo":"","curated":true},{"id":"curated-9","category":"cunting","name":"Elaine Brown","note":"Former chair of the Black Panther Party.","source":"https://www.britannica.com/biography/Elaine-Brown","photo":"","curated":true},{"id":"curated-10","category":"cunting","name":"Kathleen Cleaver","note":"Black Panther Party leader and legal scholar.","source":"https://en.wikipedia.org/wiki/Kathleen_Cleaver","photo":"","curated":true},{"id":"curated-11","category":"cunting","name":"Ericka Huggins","note":"Black Panther Party organizer and educator.","source":"https://en.wikipedia.org/wiki/Ericka_Huggins","photo":"","curated":true},{"id":"curated-12","category":"cunting","name":"Fred Hampton","note":"Black Panther Party organizer and community leader.","source":"https://en.wikipedia.org/wiki/Fred_Hampton","photo":"","curated":true},{"id":"curated-13","category":"cunting","name":"Bobby Seale","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Bobby-Seale","photo":"","curated":true},{"id":"curated-14","category":"cunting","name":"Huey P. Newton","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Huey-P-Newton","photo":"","curated":true},{"id":"curated-15","category":"hunting","name":"Derek Chauvin","note":"Convicted in connection with George Floyd’s murder; public court record.","source":"https://www.justice.gov/opa/pr/former-minneapolis-police-officer-derek-chauvin-sentenced-more-20-years-prison-depriving","photo":"","curated":true},{"id":"curated-16","category":"hunting","name":"Jeffrey Epstein","note":"Convicted sex offender; documented institutional accountability issues.","source":"https://www.justice.gov/epstein","photo":"","curated":true},{"id":"curated-17","category":"hunting","name":"Elon Musk","note":"Billionaire technology executive; examine ownership and public influence.","source":"https://www.britannica.com/money/Elon-Musk","photo":"","curated":true},{"id":"curated-18","category":"hunting","name":"Jeff Bezos","note":"Amazon founder; examine concentrated wealth and corporate power.","source":"https://www.britannica.com/money/Jeff-Bezos","photo":"","curated":true},{"id":"curated-19","category":"hunting","name":"Peter Thiel","note":"Billionaire investor and political donor; examine public influence.","source":"https://www.britannica.com/money/Peter-Thiel","photo":"","curated":true}];
+    const visibleNominations=[...curated.filter(item=>!curatedHidden.has(item.id)),...nominations];
+
     const photoData = new Map();
     const states='AL Alabama|AK Alaska|AZ Arizona|AR Arkansas|CA California|CO Colorado|CT Connecticut|DE Delaware|DC District of Columbia|FL Florida|GA Georgia|HI Hawaii|ID Idaho|IL Illinois|IN Indiana|IA Iowa|KS Kansas|KY Kentucky|LA Louisiana|ME Maine|MD Maryland|MA Massachusetts|MI Michigan|MN Minnesota|MS Mississippi|MO Missouri|MT Montana|NE Nebraska|NV Nevada|NH New Hampshire|NJ New Jersey|NM New Mexico|NY New York|NC North Carolina|ND North Dakota|OH Ohio|OK Oklahoma|OR Oregon|PA Pennsylvania|RI Rhode Island|SC South Carolina|SD South Dakota|TN Tennessee|TX Texas|UT Utah|VT Vermont|VA Virginia|WA Washington|WV West Virginia|WI Wisconsin|WY Wyoming'.split('|').map(s=>[s.slice(0,2),s.slice(3)]);
     const savedState=localStorage.getItem('biglwaPolitcVotingState')||'';
@@ -1377,12 +1384,26 @@ const connect=e.target.closest('[data-orbit-connect]');
       ['United Nations','UN news, humanitarian reporting and resolutions','https://news.un.org/en/'],
       ['UN Human Rights','Independent reporting, statements and investigations','https://www.ohchr.org/en']
     ];
-    const portrait=(item)=>'<article class="politc-person">'+(item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'">':'<div style="height:150px;display:grid;place-items:center;border:1px dashed #8c7766;font:45px Georgia,serif" aria-hidden="true">?</div>')+
-      '<strong>'+esc(item.name)+'</strong>'+(item.note?'<small>'+esc(item.note)+'</small>':'')+
-      (item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer" style="display:block;margin:8px 0;font-size:12px">View source ↗</a>':'')+
-      '<button type="button" data-politc-delete="'+esc(item.id)+'" aria-label="Remove '+esc(item.name)+'">Remove</button></article>';
-    const panel=(cat)=>'<section class="politc-panel"><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p><div class="politc-portraits">'+nominations.filter(x=>x.category===cat.id).map(portrait).join('')+'</div>'+
-      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominate a person<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="Why this person belongs here"></textarea></label><label>Evidence / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Pin to '+esc(cat.name)+'</button><small>Saved on this device, not published to others.</small></form></section>';
+    const portrait=(item)=>{
+      const monogram=String(item.name||'').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toLocaleUpperCase();
+      const isRecord=item.category==='hunting';
+      return '<article class="politc-person politc-poster'+(isRecord?' is-record':' is-icon')+'">'+
+        '<div class="politc-poster-eyebrow">'+(isRecord?'PUBLIC RECORD · SCRUTINY':'CULTURAL ICON · HONORS')+'</div>'+
+        (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'">':'<div class="politc-poster-monogram" aria-hidden="true">'+esc(monogram)+'</div>')+
+        '<strong>'+esc(item.name)+'</strong>'+(item.note?'<small>'+esc(item.note)+'</small>':'')+
+        '<div class="politc-poster-foot">'+(item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">Read source ↗</a>':'<span>Personal nomination</span>')+
+        '<button type="button" data-politc-delete="'+esc(item.id)+'" aria-label="Remove '+esc(item.name)+'">×</button></div></article>';
+    };
+    const panel=(cat)=>{
+      const isPoster=cat.id==='hunting'||cat.id==='cunting';
+      const people=visibleNominations.filter(x=>x.category===cat.id);
+      return '<section class="politc-panel politc-collection-panel'+(isPoster?' politc-vintage-panel':'')+'" data-politc-season="'+cat.id+'">'+
+        '<div class="politc-season-head"><div><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p></div>'+
+        '<span class="politc-record-count">'+people.length+' entries</span></div>'+
+        '<div class="politc-portraits">'+(people.length?people.map(portrait).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+        '<details class="politc-nomination-drawer"><summary>+ Nominate</summary>'+
+        '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="Provide grounded context"></textarea></label><label>Evidence / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device, not published. Do not include threats, addresses, or harassment.</small></form></details></section>';
+    };
     const val=Math.min(100,Math.max(0,Number(localStorage.getItem('biglwaPolitcPendulum')||50)));
     const electionDate=new Date('2026-11-03T00:00:00-08:00');
     const caNominees=[['Xavier Becerra','Democratic'],['Steve Hilton','Republican']];
@@ -1402,6 +1423,28 @@ const connect=e.target.closest('[data-orbit-connect]');
  '<p class="politc-note">Epstein Observer is a third-party research project, not an official agency source. Inclusion or mention in records is not evidence of criminal wrongdoing. Respect survivors and do not republish sensitive personal information. Open source links for current updates; Big LWA does not independently validate its counts or statuses.</p></section>'+
        '<div style="display:flex;justify-content:flex-end;grid-column:1/-1"><button type="button" class="politc-source" id="politcLiveRefresh" style="cursor:pointer">↻ Refresh live data</button></div>'+
       '<section class="politc-panel"><h3>Vote · Data · Resources</h3><p class="politc-sub">Research, register, read critically, and follow humanitarian developments directly from their sources.</p><div class="politc-resources">'+resources.map(r=>'<a class="politc-source" target="_blank" rel="noopener noreferrer" href="'+esc(r[2])+'">'+esc(r[0])+'<small>'+esc(r[1])+'</small></a>').join('')+'</div><p class="politc-note">External sources open in a new tab. These are resource links, not an invented live news or election-data feed. Political news and estimates should be checked against primary sources.</p></section></div>';
+    // Progressive disclosure and priority order: live verification, quick
+    // resources, election desk, then cultural and accountability collections.
+    const board=body.querySelector('.politc-board');
+    const grid=board?.querySelector('.politc-grid');
+    if(board&&grid){
+      const standalone=[...board.children].filter(node=>node.matches('section.politc-panel'));
+      const trackers=standalone.slice(0,3);
+      const resourcePanel=standalone.find(node=>/Vote · Data · Resources/i.test(node.querySelector('h3')?.textContent||''));
+      const refreshBlock=[...board.children].find(node=>node.querySelector('#politcLiveRefresh'));
+      const liveZone=document.createElement('section');
+      liveZone.className='politc-live-zone';
+      liveZone.setAttribute('aria-label','Live political trackers');
+      const liveTitle=document.createElement('h2');
+      liveTitle.textContent='Live trackers';
+      liveZone.append(liveTitle,...trackers);
+      if(refreshBlock)liveZone.append(refreshBlock);
+      board.insertBefore(liveZone,grid);
+      if(resourcePanel){
+        resourcePanel.classList.add('politc-resource-zone');
+        board.insertBefore(resourcePanel,grid);
+      }
+    }
     const stateSelect=$('#politcState',body),zipField=$('#politcZip',body),nomineeArea=$('#politcNominees',body),stateLabel=$('#politcStateLabel',body),links=$('#politcElectionLinks',body),clock=$('#politcCountdown',body);
     const updateClock=()=>{const ms=electionDate-Date.now();clock.textContent=ms>0?Math.ceil(ms/86400000)+' days left':ms>-86400000?'Election Day':'Election passed';};
     updateClock();const ticker=setInterval(()=>{if(!body.contains(clock)){clearInterval(ticker);return;}updateClock();},60000);
@@ -1466,7 +1509,16 @@ const connect=e.target.closest('[data-orbit-connect]');
     window.__biglwaPolitcLiveTimer=setInterval(()=>{if(!balance.isConnected){clearInterval(window.__biglwaPolitcLiveTimer);return;}refreshPolitc();},900000);
     refreshPolitc();
     body.querySelectorAll('[data-politc-delete]').forEach(button=>button.addEventListener('click',()=>{
-      const next=nominations.filter(x=>String(x.id)!==button.dataset.politcDelete);try{writeJSON(storageKey,next);renderPolitc()}catch(e){alert('Unable to save changes on this device.')}
+      const target=String(button.dataset.politcDelete||'');
+      try{
+        if(target.startsWith('curated-')){
+          curatedHidden.add(target);
+          writeJSON('biglwaPolitcHiddenCuratedV1',[...curatedHidden]);
+        }else{
+          writeJSON(storageKey,nominations.filter(x=>String(x.id)!==target));
+        }
+        renderPolitc();
+      }catch(e){alert('Unable to save changes on this device.')}
     }));
     body.querySelectorAll('[data-politc-form]').forEach(form=>form.addEventListener('submit',async(e)=>{
       e.preventDefault();const fd=new FormData(form),name=String(fd.get('name')||'').trim(),note=String(fd.get('note')||'').trim(),source=String(fd.get('source')||'').trim();
