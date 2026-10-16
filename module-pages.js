@@ -1578,7 +1578,6 @@ const connect=e.target.closest('[data-orbit-connect]');
       {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
       {title:'2048',image:'/assets/arcade/2048.svg',href:'https://biglwa.com/arcade-puzzles.html?game=2048'},
       {title:'crossword',image:'/assets/arcade/crossword.svg',href:'https://biglwa.com/arcade-puzzles.html?game=crossword'},
-      {title:'character quest',image:'/assets/arcade/character-quest.svg',href:'https://biglwa.com/arcade-puzzles.html?game=quest'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-and-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
@@ -1601,17 +1600,46 @@ const connect=e.target.closest('[data-orbit-connect]');
     const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>Play in screen</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Open ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="module-arcade-folder-depth"><span class="module-arcade-wordmark" aria-hidden="true">ARCADE</span><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Games try loading directly from the original provider in this screen. If embedding is blocked, use Game links or Pop-out.</div></section>'+
+        '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><div class="module-arcade-folder-depth"><span class="module-arcade-wordmark" aria-hidden="true">ARCADE</span><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Games try loading directly from the original provider in this screen. If embedding is blocked, use Game links or Pop-out.</div></section>'+
         '<section class="module-card module-game-directory wide"><details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle"><span>all games</span><small>'+gameLibrary.length+' titles · expand or collapse</small><span class="arcade-directory-chevron" aria-hidden="true">⌄</span></summary><p>Choose a game to try playing in the cabinet, or open it directly at the original game provider.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></details></section>'+
         '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
         '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
           '<label><span>Game name</span><input class="module-input" name="title" required maxlength="80" placeholder="Game title"></label>'+
           '<div class="module-game-source-grid"><label><span>Game link (optional)</span><input class="module-input" name="gameLink" type="text" inputmode="url" placeholder="https://…"></label><label><span>Or upload game file</span><input class="module-input module-file-input" name="gameFile" type="file" accept=".html,.htm,.zip,.swf,text/html,application/zip,application/x-shockwave-flash"><small>HTML, ZIP, or SWF file</small></label></div>'+
           '<div class="module-game-source-grid"><label><span>Image link (optional)</span><input class="module-input" name="imageLink" type="text" inputmode="url" placeholder="https://…"></label><label><span>Or upload image file</span><input class="module-input module-file-input" name="imageFile" type="file" accept="image/*"><small>PNG, JPG, GIF, or WebP</small></label></div>'+
-          '<div class="module-game-submit-row"><button class="module-action" type="submit">Save suggestion</button><img class="module-game-image-preview" id="gameSuggestImagePreview" alt="Selected cover preview" hidden><div class="module-status" id="gameSuggestStatus" aria-live="polite"></div></div>'+
+          '<div class="module-game-submit-row"><button class="module-action" type="submit">Save suggestion</button><img class="module-game-image-preview" id="gameSuggestImagePreview" alt="Game cover preview" hidden><div class="module-status" id="gameSuggestStatus" aria-live="polite"></div></div>'+
         '</form></section>'+
       '</div>';
 
+    const showArcadeIdentity=async()=>{
+      const badge=$('#biglwaArcadePlayer',body);
+      if(!badge)return;
+      try{
+        const root='https://www.gstatic.com/firebasejs/12.18.0/';
+        const [appModule,authModule,store]=await Promise.all([
+          import(root+'firebase-app.js'),import(root+'firebase-auth.js'),import(root+'firebase-firestore.js')
+        ]);
+        const app=appModule.getApps()[0];if(!app)return;
+        const auth=authModule.getAuth(app);await auth.authStateReady();
+        const user=auth.currentUser;
+        if(!user||!badge.isConnected)return;
+        const record=(await store.getDoc(store.doc(store.getFirestore(app),'users',user.uid))).data()?.studioAvatar||null;
+        if(auth.currentUser?.uid!==user.uid||!badge.isConnected)return;
+        const trusted='https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-photo/';
+        const raw=String(record?.url||'');
+        const url=raw.startsWith(trusted)?raw:'';
+        const label=record?.type==='mii'?String(record?.preset?.name||'your Mii').slice(0,32):record?.type==='minecraft'?'minecraft character':'your character';
+        badge.querySelector('strong').textContent='playing as '+(record?.type?label:'yourself');
+        badge.querySelector('small').textContent=url?'account character synced · ready to play':'set a character in Studio Avatar';
+        const holder=badge.querySelector('.biglwa-arcade-portrait');
+        if(url){
+          const img=document.createElement('img');img.src=url;img.alt='';
+          img.onerror=()=>img.replaceWith(document.createTextNode('◉'));
+          holder.replaceChildren(img);
+        }
+      }catch(error){console.warn('[BIGLWA Arcade] Avatar preview unavailable:',error)}
+    };
+    showArcadeIdentity();
     const cultureQuestions=dykQuestions;
     const culturePanel=$('#cultureQuizPanel',body);
     const cultureContent=$('#cultureQuizContent',body);
@@ -1858,6 +1886,22 @@ const connect=e.target.closest('[data-orbit-connect]');
       if(event.target.closest('[data-culture-replay]')){cultureIndex=0;cultureScore=0;drawCultureQuestion()}
     };
 
+    // Veve directs its game cards to this SAME in-cabinet player, never a separate iframe.
+    if(window.__biglwaArcadeRequestListener)window.removeEventListener('biglwa:arcade-request-game',window.__biglwaArcadeRequestListener);
+    const handleArcadeRequest=event=>{
+      const kind=String(event?.detail?.kind||'').toLowerCase();
+      if(!body.contains(emulatorScreen))return;
+      if(kind==='culture'){selectedGame=null;openCultureQuiz();return}
+      const selected=gameLibrary.find(game=>game.href&&new URL(game.href).searchParams.get('game')===kind);
+      if(selected)playGame(selected);
+    };
+    window.__biglwaArcadeRequestListener=handleArcadeRequest;
+    window.addEventListener('biglwa:arcade-request-game',handleArcadeRequest);
+    if(window.__biglwaArcadeRequestedGame){
+      const pending=window.__biglwaArcadeRequestedGame;
+      delete window.__biglwaArcadeRequestedGame;
+      handleArcadeRequest({detail:{kind:pending}});
+    }
     const form=$('#gameSuggestForm',body);
     const gameLinkInput=$('[name="gameLink"]',form);
     const imageLinkInput=$('[name="imageLink"]',form);
@@ -1872,12 +1916,12 @@ const connect=e.target.closest('[data-orbit-connect]');
       const file=imageFileInput.files&&imageFileInput.files[0];
       const value=imageLinkInput.value.trim();
       if(file){previewObjectUrl=URL.createObjectURL(file);imagePreview.src=previewObjectUrl;imagePreview.hidden=false}
-      else if(value){imagePreview.src=value;imagePreview.hidden=false}
+      else if(/^https?:\/\//i.test(value)){imagePreview.src=value;imagePreview.hidden=false}
       else{imagePreview.hidden=true;imagePreview.removeAttribute('src')}
     };
     imageFileInput.onchange=updateImagePreview;
     imageLinkInput.oninput=updateImagePreview;
-    imagePreview.onerror=()=>{if(!previewObjectUrl)imagePreview.hidden=true};
+    imagePreview.onerror=()=>{imagePreview.hidden=true;imagePreview.removeAttribute('src');status.textContent='Cover preview unavailable. The image link or upload can still be saved.'};
     const isWebUrl=value=>{try{return ['http:','https:'].includes(new URL(value).protocol)}catch(_){return false}};
     const openSuggestionsDatabase=()=>new Promise((resolve,reject)=>{
       if(!('indexedDB' in window)){reject(new Error('Browser storage is unavailable'));return}
