@@ -1,0 +1,176 @@
+/* BIG LWA Arcade + Veve precision pass (16 Oct 2026).
+   Straight-edged Black Widow/hourglass cabinets apply to BOTH Studio and the full Arcade page.
+   The decorative shell is clipped; internal game screens retain their own rectangular geometry. */
+#studioApp #games .games-library,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
+ position:relative!important;isolation:isolate!important;
+ border:0!important;border-radius:0!important;
+ clip-path:polygon(7% 0,93% 0,99% 6%,99% 23%,94% 34%,86% 49%,94% 64%,99% 77%,99% 94%,92% 100%,8% 100%,1% 94%,1% 77%,6% 64%,14% 49%,6% 34%,1% 23%,1% 6%)!important;
+ background:linear-gradient(90deg,#170a08 0%,#42231b 7%,#9a5c44 15%,#633526 50%,#9a5c44 85%,#42231b 93%,#170a08 100%)!important;
+ box-shadow:inset 0 0 0 14px #180b09,inset 0 0 0 20px #8a543b,inset 0 0 38px 24px #1a080788!important;
+}
+#studioApp #games .games-library{
+ padding:23px clamp(24px,12%,82px) 118px!important;
+ margin:10px 0 14px!important;
+ min-width:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
+ padding:28px clamp(26px,12%,130px) 150px!important;
+ margin-inline:auto!important;max-width:1120px!important;width:100%!important;box-sizing:border-box!important;
+}
+#studioApp #games .arcade-folder-depth,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth{
+ margin-inline:0!important;
+ border:8px solid #190e0b!important;border-radius:20px 20px 9px 9px!important;
+}
+#studioApp #games .arcade-library-viewport,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport{
+ min-width:0!important;width:100%!important;box-sizing:border-box!important;
+ border:10px solid #150d0c!important;
+ outline:2px solid #9b614c!important;outline-offset:2px!important;
+ border-radius:10px!important;
+}
+/* The deck is integral to the cabinet instead of a separate rounded plank. */
+#studioApp #games .arcade-control-deck,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls{
+ height:96px!important;bottom:18px!important;
+ left:clamp(34px,10%,120px)!important;right:clamp(34px,10%,120px)!important;
+ gap:clamp(13px,3.2vw,37px)!important;
+ display:flex!important;align-items:flex-end!important;justify-content:center!important;
+ z-index:4!important;
+}
+#studioApp #games .arcade-control-deck::before,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls::before{
+ content:"";position:absolute;inset:0;z-index:0;
+ border:5px solid #190b08!important;border-radius:8px 8px 16px 16px!important;
+ background:linear-gradient(#8f5740,#603122 70%,#301710)!important;
+ box-shadow:inset 0 6px 7px #eeb18c3e,inset 0 -9px 10px #1c0b098e,0 6px 0 #160b09!important;
+ filter:none!important;
+}
+/* Elliptical black holes sit BELOW the joysticks. The metal shafts
+   disappear into those holes, while the balls remain above the deck. */
+#studioApp #games .arcade-joystick,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick{
+ --stick:#d95c70;
+ position:relative!important;bottom:0!important;z-index:2!important;
+ flex:0 0 52px!important;width:52px!important;height:85px!important;
+ transform:none!important;filter:none!important;overflow:visible!important;
+}
+#studioApp #games .arcade-joystick::after,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick::after{
+ content:"";position:absolute;top:1px!important;left:50%!important;
+ width:34px!important;height:34px!important;z-index:4!important;
+ border-radius:50%!important;transform:translateX(-50%)!important;
+ background:radial-gradient(circle at 30% 24%,#fff9 0 8%,transparent 27%),var(--stick)!important;
+ box-shadow:inset -5px -5px 7px #160b0940,0 0 0 2px #1b100e!important;
+}
+#studioApp #games .arcade-joystick::before,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick::before{
+ content:"";position:absolute;top:31px!important;left:50%!important;
+ width:9px!important;height:45px!important;z-index:2!important;
+ border-radius:4px!important;transform:translateX(-50%)!important;
+ background:linear-gradient(90deg,#090909,#797978 48%,#1c1a19)!important;
+}
+#studioApp #games .arcade-joystick>i,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick>i{
+ position:absolute;bottom:0!important;left:50%!important;
+ width:58px!important;height:22px!important;z-index:3!important;
+ transform:translateX(-50%)!important;
+ border:5px solid #120907!important;border-radius:50%!important;
+ background:radial-gradient(ellipse at 50% 44%,#0b0807 0 42%,#342019 45% 56%,#986347 62% 76%,#25110c 82%)!important;
+ box-shadow:inset 0 4px 7px #000c,0 2px 0 #d7a67b77!important;
+}
+/* Studio game preview: cabinet bevel stays consistent when cards are resized. */
+#studioApp #games .games-arcade-brand{min-height:76px!important}
+#studioApp #games .arcade-library-viewport{height:clamp(165px,23vw,260px)!important}
+#studioApp #games .arcade-control-deck{bottom:17px!important}
+@media(max-width:680px){
+ #studioApp #games .games-library{
+  padding:18px clamp(20px,9%,42px) 108px!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
+  padding:18px clamp(20px,9%,55px) 130px!important;
+ }
+ #studioApp #games .arcade-control-deck,
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls{
+  left:clamp(20px,9%,55px)!important;right:clamp(20px,9%,55px)!important;
+  gap:clamp(5px,2vw,16px)!important;
+ }
+ #studioApp #games .arcade-joystick,
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick{
+  transform:scale(.82)!important;transform-origin:50% 100%!important;
+ }
+}
+/* Culture quiz art should not occupy the entire preview image. */
+#biglwaVeve .veve-game-cover[data-veve-game="culture"]{
+ aspect-ratio:16/10!important;max-height:210px!important;
+ background:linear-gradient(135deg,#aa9382,#c8b1a1)!important;
+}
+#biglwaVeve .veve-game-cover[data-veve-game="culture"] img{
+ position:absolute!important;inset:50% auto auto 50%!important;
+ width:66%!important;height:68%!important;max-width:280px!important;
+ object-fit:contain!important;object-position:center!important;
+ transform:translate(-50%,-50%)!important;
+}
+#biglwaVeve .veve-game-cover[data-veve-game="culture"]:is(:hover,:focus-visible) img{
+ transform:translate(-50%,-50%) scale(1.025)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-tile[data-play-culture-quiz] img{
+ object-fit:contain!important;object-position:center!important;
+ padding:9px!important;box-sizing:border-box!important;background:#ac9885!important;
+}
+/* Fit Veve video/photo previews inside one viewport, including the caption.
+   Only the caption may scroll independently when unusually long. */
+#biglwaVevePreview{
+ box-sizing:border-box!important;
+ width:min(980px,94vw)!important;max-width:94vw!important;
+ height:min(90dvh,930px)!important;max-height:90dvh!important;
+ padding:42px 18px 14px!important;overflow:hidden!important;
+ display:flex;flex-direction:column;align-items:stretch;gap:8px!important;
+}
+#biglwaVevePreview:not([open]){display:none!important}
+#biglwaVevePreview #vevePreviewStage{
+ display:flex!important;flex:1 1 auto!important;
+ min-height:0!important;max-height:calc(90dvh - 174px)!important;
+ width:100%!important;overflow:hidden!important;
+ justify-content:center;align-items:center!important;
+}
+#biglwaVevePreview #vevePreviewStage :is(img,video){
+ display:block!important;object-fit:contain!important;
+ max-width:100%!important;max-height:100%!important;
+ width:auto!important;height:auto!important;
+}
+#biglwaVevePreview #vevePreviewStage video{
+ height:100%!important;width:100%!important;max-height:100%!important;
+ background:#100e0e!important;
+}
+#biglwaVevePreview #vevePreviewStage iframe{
+ display:block!important;flex:0 0 auto!important;
+ height:100%!important;max-height:100%!important;max-width:100%!important;
+ border:0!important;background:#0e0e0e!important;
+}
+#biglwaVevePreview #vevePreviewStage iframe.veve-embed-portrait{
+ aspect-ratio:9/16!important;width:auto!important;
+}
+#biglwaVevePreview #vevePreviewStage iframe.veve-embed-landscape{
+ aspect-ratio:16/9!important;width:min(100%,860px)!important;height:auto!important;max-height:100%!important;
+}
+#biglwaVevePreview #vevePreviewStage iframe.veve-embed-square{
+ aspect-ratio:1/1!important;width:auto!important;
+}
+#biglwaVevePreview #vevePreviewCaption:not([hidden]){
+ flex:0 0 auto;max-height:min(16dvh,125px)!important;overflow:auto!important;
+ margin:0 auto!important;width:min(860px,100%)!important;
+ padding:9px 12px!important;
+}
+#biglwaVevePreview #vevePreviewOriginal:not([hidden]){
+ display:block!important;margin:0 auto!important;flex:0 0 auto!important;
+ padding:2px 8px!important;text-align:center!important;
+}
+#biglwaVevePreview:has(#vevePreviewCaption:not([hidden])) #vevePreviewStage :is(img,video){
+ max-height:100%!important;
+}
+@media(max-width:580px){
+ #biglwaVevePreview{width:97vw!important;max-width:97vw!important;padding:42px 8px 11px!important;height:92dvh!important;max-height:92dvh!important}
+ #biglwaVevePreview #vevePreviewStage{max-height:calc(92dvh - 150px)!important}
+}
