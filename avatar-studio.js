@@ -178,9 +178,10 @@
         '<small class="biglwa-minecraft-note">Supports standard 64×64 or 64×32 skins and HD versions. Drag the character to turn it; use ← and → when focused.</small>';
       renderMinecraftModel(one('#biglwaMinecraftEditorModel',mount),state.minecraftDraftUrl||((state.avatar?.type==='minecraft'&&state.avatar.url)||''),true);
     }else if(name==='mii'){
-      mount.innerHTML='<p>Build your Mii-style character in Big LWA. Save it to your account, return to edit it, or take it into the Arcade. The original 2007 AIR app is archived separately; this is a native web recreation, not Nintendo Mii-format emulation.</p>'+
-        '<iframe id="biglwaMiiEditorFrame" title="Big LWA Mii character maker webport" loading="eager" src="/avatar/mii-editor.html?v=20261014-webport-2" allow="clipboard-write"></iframe>'+
-        '<p class="biglwa-mii-port-links"><a href="/arcade-puzzles.html?game=quest">Play with your character in Arcade ↗</a> · <a href="/avatar/mii-editor.html?v=20261014-webport-2" target="_blank" rel="noopener noreferrer">Open editor full-page ↗</a></p>';
+      mount.innerHTML='<p>The uploaded original Mii Editor opens in the Ruffle Flash player. Its Adobe AIR controls may not work in a browser; import a PNG to use a character as your Big LWA avatar. Your saved avatar is preserved.</p>'+
+        '<iframe id="biglwaMiiEditorFrame" title="Original uploaded Mii Editor running with Ruffle" loading="eager" src="/avatar/mii-editor.html?v=20261015-ruffle-original-1" allow="clipboard-write"></iframe>'+
+        '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Import Mii image into Big LWA <input type="file" data-avatar-import data-avatar-kind="mii" accept="image/png,image/jpeg,image/webp" aria-label="Import a Mii character image"></label>'+
+        '<p class="biglwa-mii-port-links"><a href="/avatar/mii-editor.html?v=20261015-ruffle-original-1" target="_blank" rel="noopener noreferrer">Open original in a full page ↗</a> · <a href="/arcade-puzzles.html?game=quest">Arcade ↗</a></p>';
     }else{
       mount.innerHTML='<p>Import an IMVU avatar snapshot now. Live IMVU models need an authorized Unity WebGL export; a .unitypackage is not directly browser-runnable.</p>'+input+
         '<button type="button" data-avatar-unity-open>Open installed Unity scene</button>';
@@ -197,7 +198,7 @@
     });
   }catch{}
   function cardStatus(name){
-    setStatus(name==='mii'?'Character webport ready. Customize a Mii-style look and save it to your account for Arcade.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
+    setStatus(name==='mii'?'Original Mii Editor preview opened through Ruffle. Use Import Mii image to save an avatar to your account.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
   }
   async function verifySkin(file){
     if(file.type!=='image/png')throw Error('Minecraft skins must be PNG files.');
