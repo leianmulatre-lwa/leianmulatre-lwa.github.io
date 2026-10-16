@@ -721,6 +721,7 @@ function sendBarMarkup(managed = false, sourceUrl = '') {
     '<div class="biglwa-send-tray" role="group" aria-label="Post options">' +
       '<button type="button" data-send-to="boards">Save to Boards</button>' +
       '<button type="button" data-send-to="projects">Add to Projects</button>' +
+      (managed ? '<button type="button" data-send-to="veve">✦ Send to Veve</button>' : '') +
       '<input type="text" data-send-map-field placeholder="Place or map coordinates" aria-label="Place or map coordinates">' +
       '<button type="button" data-send-map>Pin on Map</button>' +
       (managed ?
@@ -780,6 +781,26 @@ async function geocodeAddress(query) {
   };
 }
 async function sendPostTo(post, destination, tray, address) {
+  // A discovery selection is a flag on this SAME published record.
+  // No copy, state change, archiving or deletion from the Collective Feed.
+  if(destination==='veve'){
+    if(!post?.id||post.state!=='approved'){sendStatus(tray,'Publish the post to Collective Feed before sending it to Veve.');return}
+    try{
+      const {db,auth,doc,updateDoc,setDoc}=await firebase();
+      const uid=auth.currentUser?.uid;
+      if(!uid||post.uid!==uid)throw Error('Only the post owner can send it to Veve.');
+      sendStatus(tray,'Sending to Veve…');
+      const patch={veveFeatured:true,veveOptOut:false};
+      await updateDoc(doc(db,'posts',post.id),patch);
+      try{
+        await setDoc(doc(db,'users',uid,'posts',post.id),patch,{merge:true});
+      }catch(error){console.warn('Veve profile mirror could not update:',error)}
+      Object.assign(post,patch);
+      sendStatus(tray,'Sent to Veve. Your post remains on Collective Feed.');
+      document.dispatchEvent(new CustomEvent('biglwa:feed-ready'));
+    }catch(error){sendStatus(tray,error?.message||'Could not send this post to Veve.')}
+    return;
+  }
   const picture = slideUrls(post)[0] || "";
   const caption = (post.caption || "").trim();
   const label = caption ? caption.split("\n")[0].slice(0, 60) : "Picture from Collective Feed";
