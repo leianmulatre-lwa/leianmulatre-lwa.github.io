@@ -14,6 +14,8 @@ INSTAGRAM_APP_ID = "1071153952301247"
 PINTEREST_APP_ID = "1610773"
 SITE_URL = "https://biglwa.com"
 TIKTOK_CLIENT_KEY = "sbawpulijhor3jl94n"
+X_CLIENT_ID = "TzRHMHR4VG1XekZ0UGw1cF1Eb0M6MTpjaQ"
+NEW_ORBIT_CALLBACK_ORIGIN = "https://biglwa-instagram-api.leianmulatre-284.workers.dev"
 
 [[kv_namespaces]]
 binding = "OAUTH_SESSIONS"
