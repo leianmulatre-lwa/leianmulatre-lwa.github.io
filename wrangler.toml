@@ -9,7 +9,7 @@ compatibility_date = "2026-09-11"
 INSTAGRAM_APP_ID = "1071153952301247"
 PINTEREST_APP_ID = "1610773"
 SITE_URL = "https://biglwa.com"
-TIKTOK_CLIENT_KEY = "awtd7mu4k7rn1pay"
+TIKTOK_CLIENT_KEY = "sbawpulijhor3jl94n"
 
 [[kv_namespaces]]
 binding = "OAUTH_SESSIONS"
