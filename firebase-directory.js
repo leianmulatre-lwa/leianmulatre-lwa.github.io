@@ -80,7 +80,7 @@ async function syncAccountProfile(profile={},options={}){
     const {db,auth}=await getFirebase();
     const user=auth.currentUser;
     if(!user)return false;
-    const {doc,getDoc,setDoc,deleteDoc,runTransaction,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const {doc,getDoc,setDoc,deleteDoc,deleteField,runTransaction,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
 
     const userRef=doc(db,"users",user.uid);
     const previousSnap=await getDoc(userRef);
@@ -93,17 +93,19 @@ async function syncAccountProfile(profile={},options={}){
       if(existing.exists() && existing.data()?.uid!==user.uid){
         throw new Error("That username is already taken.");
       }
+      const privateMode=previous.accountVisibility==='private';
       tx.set(newRef,{
+        accountVisibility:privateMode?'private':'public',
         username,
         usernameLower:username,
         name:clean(profile.name)||clean(user.displayName),
         uid:user.uid,
         url:"/"+encodeURIComponent(username),
-        bio:clean(profile.bio),
-        location:clean(profile.location),
-        website:clean(profile.website),
-        mood:clean(profile.mood),
-        moodStyle:clean(profile.moodStyle),
+        bio:privateMode?deleteField():clean(profile.bio),
+        location:privateMode?deleteField():clean(profile.location),
+        website:privateMode?deleteField():clean(profile.website),
+        mood:privateMode?deleteField():clean(profile.mood),
+        moodStyle:privateMode?deleteField():clean(profile.moodStyle),
         auraText:clean(profile.auraText),
         updatedAt:serverTimestamp()
       },{merge:true});
@@ -230,6 +232,9 @@ async function publishJournal(rawText,viewable){
   if(!user)throw new Error('Sign in before changing Journal visibility.');
   const username=localUsername();
   if(!username)throw new Error('Save a username to share your Journal.');
+  const ownerSnap=await (await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js")).getDoc(
+    (await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js")).doc(db,'users',user.uid));
+  if(viewable&&ownerSnap.data()?.accountVisibility==='private')throw new Error('Turn off Private Account before making Journal public.');
   const text=String(rawText||'').trim();
   if(viewable&&!text)throw new Error('Write a Journal entry before sharing it.');
   if(text.length>12000)throw new Error('Public Journal exceeds 12,000 characters.');
@@ -255,6 +260,7 @@ async function loadPublicProfile(rawUsername){
     const look=data.look&&typeof data.look==="object"?data.look:null;
     return {
       uid:clean(data.uid),
+      accountVisibility:data.accountVisibility==='private'?'private':'public',
       username:clean(data.username)||username,
       name:clean(data.name),
       bio:clean(data.bio),
@@ -364,7 +370,7 @@ export async function searchUsers(rawQuery){
     ));
     return snap.docs.map(d=>{
       const x=d.data()||{};
-      return {username:x.username||d.id,name:x.name||"",url:x.url||("/"+encodeURIComponent(x.username||d.id)),bio:x.bio||"",location:x.location||"",website:x.website||"",mood:x.mood||"",moodStyle:x.moodStyle||""};
+      return {username:x.username||d.id,name:x.name||"",url:x.url||("/"+encodeURIComponent(x.username||d.id)),bio:x.accountVisibility==='private'?'':x.bio||"",location:x.accountVisibility==='private'?'':x.location||"",website:x.accountVisibility==='private'?'':x.website||"",mood:x.accountVisibility==='private'?'':x.mood||"",moodStyle:x.accountVisibility==='private'?'':x.moodStyle||""};
     });
   }catch(err){
     console.warn("[BIGLWA] Firebase username search unavailable:",err);
