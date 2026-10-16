@@ -71,6 +71,24 @@
       location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit'));
     } catch (e) { notice(e.message); }
   }
+  async function syncTikTokDrafts(){
+    if(videoPermissionPending||!videos.length)return;
+    const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft;
+    if(typeof writer!=='function')return;
+    let saved=0;
+    for(let i=0;i<videos.length;i+=4){
+      const results=await Promise.allSettled(videos.slice(i,i+4).map(v=>writer('tiktok',{
+        id:v.id,sourcePostId:v.id,sourceUrl:v.share_url,
+        caption:v.title||v.video_description||'TikTok video',
+        cover_image_url:v.cover_image_url,
+        sourceUsername:profile.display_name||profile.username||'',
+        mediaType:'VIDEO'
+      })));
+      saved+=results.filter(x=>x.status==='fulfilled'&&x.value?.created).length;
+    }
+    if(saved)notice(saved+' TikTok video(s) saved to private Feed drafts. Publish only those you choose.');
+  }
+
   async function restore() {
     if(restoreBusy)return;
     restoreBusy=true;
@@ -92,6 +110,7 @@
         videoPermissionPending=Boolean(result.videoPermissionPending);
         videoLoadError='';
         if(videoPermissionPending)console.info('TikTok connected. Display API video.list permission is required to show videos.');
+        else await syncTikTokDrafts();
       }catch(e){
         videos=[];videoLoadError=String(e.message||'TikTok video list unavailable.');
         console.warn('TikTok optional video listing:',e.message);
