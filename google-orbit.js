@@ -206,7 +206,13 @@
       tile.setAttribute('aria-label', provider.name + ' · connection coming soon');
       var globe = document.createElement('span');
       globe.className = 'orbit-glyph';
-      globe.style.setProperty('--planet', 'linear-gradient(135deg,' + provider.color + ',#383137)');
+      // Use each provider's real planet instead of a universal warm-grey fallback.
+      const planetTextures={
+        x:'radial-gradient(circle at 29% 23%,#b1b1b1 0 3%,transparent 10%),linear-gradient(140deg,#484848,#131313 54%,#000)',
+        snapchat:'radial-gradient(circle at 28% 24%,#fffedd 0 7%,transparent 14%),linear-gradient(140deg,#ffffa8,#ffeb00 55%,#c7a900)',
+        tumblr:'radial-gradient(circle at 28% 24%,#779ed4 0 4%,transparent 12%),radial-gradient(circle at 75% 72%,#07112b 0 12%,transparent 20%),linear-gradient(140deg,#385e9a,#153862 42%,#06132f 90%)'
+      };
+      globe.style.setProperty('--planet',planetTextures[provider.id]||'linear-gradient(135deg,'+provider.color+',#161616)');
       globe.textContent = provider.glyph;
       var name = document.createElement('b'); name.textContent = provider.name;
       var status = document.createElement('small'); status.textContent = 'Soon';
