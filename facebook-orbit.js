@@ -109,7 +109,7 @@
           button.setAttribute('data-facebook-orbit-connect', '1');
           actions.insertBefore(button, actions.firstChild);
         }
-        button.textContent = state.connected ? 'Connected' : 'Connect Facebook';
+        button.textContent = state.connected ? 'Connected' : (loginConfiguration() ? 'Connect Facebook' : 'Set up Facebook');
         button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
       });
 
@@ -141,7 +141,7 @@
          (data-orbit-connect) so it hands the click to this client. It is labelled from the
          same state so a page left open shows Connected the moment login finishes. */
       all('[data-orbit-connect="facebook"]').forEach(function (button) {
-        button.textContent = state.connected ? 'Reconnect Facebook' : 'Connect Facebook';
+        button.textContent = state.connected ? 'Reconnect Facebook' : (loginConfiguration() ? 'Connect Facebook' : 'Set up Facebook');
         button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
       });
 
