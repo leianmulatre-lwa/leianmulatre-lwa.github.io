@@ -158,5 +158,5 @@ await check('Politc includes Epstein Observer and links to primary records',asyn
  assert.ok(pages.includes('https://www.justice.gov/epstein'));
  assert.ok(pages.includes('https://vault.fbi.gov/jeffrey-epstein/'));
  assert.ok(pages.includes('Inclusion or mention in records is not evidence of criminal wrongdoing.'));
- assert.ok(index.includes('module-pages.js?v=20261015-writing-pages-7'));
+ assert.ok(index.includes('module-pages.js?v=20261015-orbit-veve-8'));
 });
