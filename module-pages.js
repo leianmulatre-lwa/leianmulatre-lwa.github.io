@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261015-sqwib-publish-inline-6';
+        script.src = '/module-pages.js?v=20261015-writing-pages-7';
         document.head.appendChild(script);
       }, 250);
     }
