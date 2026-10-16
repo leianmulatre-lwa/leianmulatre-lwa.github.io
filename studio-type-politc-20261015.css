@@ -308,3 +308,151 @@
  #studioApp #moduleWorkspace[data-module-key="notes"] #moduleWritingForm>.module-actions{align-items:stretch}
  #studioApp #sqwibPublishArea.sqwib-publish-inline{flex-basis:100%}
 }
+
+
+/* FULL ORBIT VIEW IS THE PLANETARY: fit all authenticated and link-only destinations
+   in a responsive dense grid. The Studio card retains its own compact toggle. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:10px!important;
+  align-items:stretch!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row{
+  box-sizing:border-box;min-width:0;
+  padding:12px 11px 46px!important;
+  border-radius:13px!important;
+  display:flex;flex-direction:column;gap:7px;
+  overflow:hidden;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row header{
+  display:flex;align-items:start;gap:6px;flex-wrap:wrap;
+  margin:0 0 4px!important;min-width:0;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row header>b{
+  font:700 12px/1.3 system-ui,sans-serif;overflow-wrap:anywhere;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-state{
+  margin-left:auto!important;
+  font-size:8px!important;
+  line-height:1.25!important;white-space:nowrap;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-not-connected{
+  font-size:10px!important;line-height:1.35!important;
+  margin:2px 0!important;overflow-wrap:anywhere;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .module-actions{
+  display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;
+  margin-top:auto!important;
+  padding-top:5px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .module-actions .module-action{
+  width:auto!important;max-width:100%!important;
+  min-height:32px!important;padding:7px 10px!important;
+  font:700 10px/1.25 system-ui,sans-serif!important;
+  border-radius:10px!important;
+  white-space:normal!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-connected-card{
+  min-width:0;box-sizing:border-box;
+  display:flex;align-items:center;gap:7px;
+  width:100%;padding:8px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card>img{
+  width:30px!important;height:30px!important;flex:0 0 30px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card>span{
+  flex:1;min-width:0;overflow-wrap:anywhere;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card>span b{
+  font-size:10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card>span small{
+  font-size:9px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-hotlink{
+  font-size:9px!important;padding:5px!important;white-space:nowrap;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .module-input{
+  min-width:0;width:100%!important;box-sizing:border-box;
+  padding:8px 9px!important;font-size:11px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row>.orbit-platform-badge{
+  right:10px!important;bottom:9px!important;
+}
+@media(max-width:1200px){
+  #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:780px){
+  #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:480px){
+  #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
+/* Narrower compose band; keep media picker, caption, and import status operable. */
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-card{
+  padding:13px 16px 14px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-head{
+  margin:0 0 8px!important;align-items:center!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-head h2{
+  font-size:23px!important;line-height:1.12!important;margin:0 0 3px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-head p{
+  font-size:10.5px!important;line-height:1.3!important;margin:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] #feedStreamExplore{
+  min-height:34px!important;padding:7px 12px!important;font-size:10px!important;
+  border-radius:10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-form{
+  gap:7px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-fields{
+  gap:10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-field{
+  gap:4px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-field .module-input{
+  min-height:35px!important;padding:8px 10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] #feedComposerCaption{
+  min-height:38px!important;max-height:130px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-actions{
+  gap:7px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-actions .module-action,
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-photo-picker{
+  min-height:32px!important;padding:7px 12px!important;
+  font-size:10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] #biglwaFeedImportStatusRail{
+  margin:0 0 6px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] #biglwaFeedImportStatusRail :is(.biglwa-instagram-import-status,.instagram-import-status){
+  padding:6px 9px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-status{
+  margin-top:2px!important;
+}
+@media(max-width:650px){
+  #studioApp #moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-fields{
+    grid-template-columns:1fr!important;
+  }
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand{
+  cursor:pointer!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand:focus-visible{
+  outline:2px solid rgb(var(--aura-rgb,216,95,109));
+  outline-offset:3px;border-radius:9px;
+}
