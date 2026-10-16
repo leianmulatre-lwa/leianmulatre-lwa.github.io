@@ -29,5 +29,5 @@ assert.ok(planets.includes('#ffebec 73%')&&planets.includes('#f2899b'));
 assert.ok(google.includes("window.openBIGLWAModule('orbit')")&&!google.includes("hide planetary"));
 assert.ok(orbit.includes("data-orbit-save")&&orbit.includes("data-orbit-open"),'New provider profile URLs remain usable');
 assert.ok(!rules.includes('accountIsPublic(resource.data.uid)'), 'Do not break public Feed queries until filters are migrated');
-assert.ok(home.includes('orbit-new-connect.js?v=20261016-snap-tumblr-ready-2'));
+assert.ok(home.includes('orbit-new-connect.js?v=20261016-return-status-3'));
 console.log('PASS Meta OAuth scope, safe private profile controls, deletion requests, owner-only writing sync, provider setup and planet palette');
