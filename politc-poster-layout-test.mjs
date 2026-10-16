@@ -12,16 +12,16 @@ const politc=code.slice(start,end);
 assert.ok(politc.includes("liveZone.className='politc-live-zone'"),'Trackers collected at top');
 assert.ok(politc.includes("resourcePanel.classList.add('politc-resource-zone')"),'Resources above election and nominations');
 assert.ok(politc.includes('board.insertBefore(liveZone,grid)')&&politc.includes('board.insertBefore(resourcePanel,grid)'),'Politc order should be trackers, resources, election, categories');
-assert.ok(politc.includes('class="politc-nomination-drawer"'),'Forms must be collapsible, not always on display');
-assert.ok(politc.includes('<summary>+ Nominate</summary>'),'Nomination revealed only on demand');
+assert.ok(politc.includes('class="politc-nomination-drawer"')&&politc.includes('" hidden>'),'Nomination forms must be hidden until requested');
+assert.ok(politc.includes('data-politc-nominate')&&politc.includes('aria-expanded="false"')&&politc.includes("drawer.hidden=!opening"),'Nomination button must toggle form accessibly');
 assert.ok(politc.includes('curatedHidden')&&politc.includes("biglwaPolitcHiddenCuratedV1"),'Seed examples can be removed');
-for(const name of ['Zendaya','Beyoncé','Rihanna','Jennifer Lawrence','Anne Hathaway','Ida B. Wells','Malcolm X','Martin Luther King Jr.','Elaine Brown','Kathleen Cleaver','Ericka Huggins','Fred Hampton','Bobby Seale','Huey P. Newton','Derek Chauvin','Jeffrey Epstein']){
+for(const name of ['Zendaya','Beyoncé','Rihanna','Jennifer Lawrence','Anne Hathaway','Ida B. Wells','Malcolm X','Martin Luther King Jr.','Elaine Brown','Kathleen Cleaver','Ericka Huggins','Fred Hampton','Bobby Seale','Huey P. Newton','Derek Chauvin','Jeffrey Epstein','Cornell University · Chi Phi case','Angela Davis','Fannie Lou Hamer','Shirley Chisholm','Audre Lorde','bell hooks','Toni Morrison','Nina Simone','Tarana Burke']){
  assert.ok(politc.includes(name),'Missing curated profile: '+name);
 }
 assert.ok(politc.includes("PUBLIC RECORD · SCRUTINY")&&politc.includes('View source')===false,'Accountability requires source records, not targeting rhetoric');
 assert.ok(politc.includes("Read source ↗"),'Seed and user supplied source links stay visible');
 assert.ok(style.includes('politc-live-zone')&&style.includes('politc-resource-zone'));
-assert.ok(style.includes('politc-vintage-panel')&&style.includes('politc-nomination-drawer'));
+assert.ok(style.includes('politc-vintage-panel')&&style.includes('politc-nomination-drawer')&&style.includes('politc-nominate-button'));
 assert.ok(style.includes('grid-auto-flow:column!important'),'Poster cards scroll rather than stack into huge forms');
 assert.ok(style.includes('font-family:"Stars and Stripes","Times New Roman"'),'Use font when installed, fall back to Times New Roman');
 assert.ok(style.includes('#721c2a'),'Maroon headline and type');
