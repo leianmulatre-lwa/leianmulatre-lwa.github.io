@@ -1,0 +1,57 @@
+/* Orbit accents: maintain a spherical, textured planet surface on the Studio card
+   and matching platform identity in full Orbit. */
+#studioApp .orbit-grid button[data-orbit-app="instagram"] .orbit-glyph{
+ --planet:radial-gradient(circle at 29% 21%,#fff2bb 0 4%,transparent 11%),radial-gradient(ellipse at 64% 67%,#df5315 0 14%,transparent 22%),radial-gradient(circle at 24% 70%,#f89e32 0 9%,transparent 17%),linear-gradient(145deg,#ffca68,#f36b21 52%,#9c330e)!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="tiktok"] .orbit-glyph{
+ --planet:radial-gradient(circle at 28% 24%,#f6d9ff 0 4%,transparent 11%),radial-gradient(ellipse at 70% 67%,#532189 0 14%,transparent 22%),radial-gradient(circle at 20% 65%,#a966e9 0 8%,transparent 17%),linear-gradient(145deg,#cf96ff,#772dcc 53%,#34105c)!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="x"] .orbit-glyph{
+ --planet:radial-gradient(circle at 27% 24%,rgba(255,255,255,.56) 0 3%,transparent 11%),radial-gradient(ellipse at 69% 66%,#060606 0 12%,transparent 19%),radial-gradient(circle at 25% 72%,#454545 0 8%,transparent 14%),linear-gradient(145deg,#656565,#191919 48%,#000)!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="snapchat"] .orbit-glyph{
+ --planet:radial-gradient(circle at 26% 23%,#fffed4 0 6%,transparent 14%),radial-gradient(circle at 70% 64%,#d6a800 0 12%,transparent 20%),radial-gradient(circle at 26% 70%,#ffe565 0 12%,transparent 18%),linear-gradient(145deg,#fffca5,#ffeb00 48%,#cead00)!important;
+ color:#332b04!important;text-shadow:none!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="tumblr"] .orbit-glyph{
+ --planet:radial-gradient(circle at 27% 23%,rgba(225,239,255,.78) 0 4%,transparent 11%),radial-gradient(circle at 72% 68%,#101b32 0 14%,transparent 22%),radial-gradient(ellipse at 26% 68%,#42668e 0 11%,transparent 20%),linear-gradient(145deg,#6886a7,#1b304b 54%,#0a172b)!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="facebook"] .orbit-glyph{
+ --planet:radial-gradient(circle at 28% 25%,#eafaff 0 5%,transparent 12%),radial-gradient(circle at 70% 67%,#3682d6 0 13%,transparent 20%),linear-gradient(145deg,#b4e7ff,#58a6ff 51%,#2464ad)!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="instagram"]{box-shadow:3px 3px 0 #f36b21!important}
+#studioApp .orbit-grid button[data-orbit-app="tiktok"]{box-shadow:3px 3px 0 #772dcc!important}
+#studioApp .orbit-grid button[data-orbit-app="x"]{box-shadow:3px 3px 0 #0e0e0e!important}
+#studioApp .orbit-grid button[data-orbit-app="snapchat"]{box-shadow:3px 3px 0 #ffda00!important}
+#studioApp .orbit-grid button[data-orbit-app="tumblr"]{box-shadow:3px 3px 0 #1b304b!important}
+#studioApp .orbit-grid button[data-orbit-app="facebook"]{box-shadow:3px 3px 0 #58a6ff!important}
+#studioApp #orbitPlanetaryShelf[hidden],#studioApp .module-planetary-list[hidden],
+#studioApp #modulePlanetaryList[hidden]{display:none!important}
+#studioApp #modulePlanetaryToggle{
+ display:block;margin:16px auto;border-radius:999px;padding:9px 20px;
+ font-weight:700;letter-spacing:.03em;
+}
+#studioApp .module-planetary-list{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;margin:14px 0 4px;
+}
+#studioApp .module-orbit-row>.orbit-platform-badge{
+ width:29px!important;min-width:29px!important;height:29px!important;padding:0!important;
+ border-radius:50%!important;border:1px solid rgba(255,255,255,.45)!important;
+ box-shadow:inset -6px -6px 9px rgba(0,0,0,.35),inset 3px 3px 7px rgba(255,255,255,.33),0 3px 6px rgba(0,0,0,.19);
+}
+#studioApp .module-orbit-row[data-orbit-row="instagram"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#ffd79e,#f36b21 48%,#a33712)!important}
+#studioApp .module-orbit-row[data-orbit-row="tiktok"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#d3a3ff,#772dcc 52%,#321053)!important}
+#studioApp .module-orbit-row[data-orbit-row="x"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#747474,#161616 48%,#000)!important}
+#studioApp .module-orbit-row[data-orbit-row="snapchat"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#ffffbf,#ffeb00 53%,#ba9b00)!important;color:#27220a!important;-webkit-text-fill-color:#27220a!important}
+#studioApp .module-orbit-row[data-orbit-row="tumblr"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#7191b3,#1b304b 49%,#0a1429)!important}
+#studioApp .module-orbit-row[data-orbit-row="facebook"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#c5f0ff,#58a6ff 52%,#2867b1)!important}
+#studioApp .orbit-quick-link.is-instagram{--accent:#f36b21}
+#studioApp .orbit-quick-link.is-tiktok{--accent:#772dcc}
+#studioApp .orbit-quick-link.is-x{--accent:#111}
+#studioApp .orbit-quick-link.is-snapchat{--accent:#e8bf00}
+#studioApp .orbit-quick-link.is-tumblr{--accent:#1b304b}
+#studioApp .orbit-quick-link.is-facebook{--accent:#58a6ff}
+@media(max-width:650px){
+ #studioApp .module-planetary-list{grid-template-columns:1fr}
+}
