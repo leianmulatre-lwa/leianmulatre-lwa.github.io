@@ -140,6 +140,8 @@
     const username=String(owner.usernameLower||owner.username||'').replace(/^@/,'').toLowerCase();
     if(!username)throw Error('Choose and save your username first.');
     const profileRef=sdk.doc(db,'usernames',username);
+    const priorPublic=await sdk.getDoc(profileRef);
+    const existingPublic=priorPublic.exists()?priorPublic.data()||{}:{};
     // The owner document is the canonical record. Never restore private profile
     // details from old public cache data; derive them from the owner-only record.
     const publicFields=privateMode?
@@ -148,9 +150,12 @@
        publicJournal:sdk.deleteField(),journalVisibility:'private',auraText:owner.auraText||''}
       :{bio:owner.bio||'',location:owner.location||'',website:owner.website||'',
          mood:owner.mood||'',moodStyle:owner.moodStyle||'',auraText:owner.auraText||'',
-         journalVisibility:'private'};
+         journalVisibility:'private',
+         ...(owner.privatePublicBackup?.socials?{socials:owner.privatePublicBackup.socials}:{})};
     const batch=sdk.writeBatch(db);
-    batch.update(ownerRef,{accountVisibility:privateMode?'private':'public',updatedAt:sdk.serverTimestamp()});
+    batch.update(ownerRef,{accountVisibility:privateMode?'private':'public',
+      ...(privateMode?{privatePublicBackup:{socials:existingPublic.socials||{}}}:{}),
+      updatedAt:sdk.serverTimestamp()});
     batch.set(profileRef,{uid:user.uid,accountVisibility:privateMode?'private':'public',
       ...publicFields,updatedAt:sdk.serverTimestamp()},{merge:true});
     await batch.commit();
