@@ -1,7 +1,7 @@
 /* Account-scoped Orbit profile URLs; credentials never enter Firestore. */
 import { identity, onIdentityChange, startIdentity } from './account-identity.js';
 
-const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','tiktok','pinterest','x','snapchat','tumblr']);
+const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','tiktok','pinterest','x','snapchat','tumblr','imdb']);
 const clean=(links)=>{
   const output={};
   for(const [k,v] of Object.entries(links&&typeof links==='object'?links:{})){
@@ -67,12 +67,22 @@ async function load(nextUid){
     if(g===generation){ready=false;links={};console.warn('Orbit account links:',err)}
   }
 }
+const normalizedDestination=(value)=>{
+  try{
+    const u=new URL(String(value||'').trim());
+    return u.hostname.toLowerCase().replace(/^www\./,'')+
+      decodeURIComponent(u.pathname).replace(/\/+$/,'').toLowerCase();
+  }catch{return ''}
+};
 async function save(id,value){
   if(!OPTIONS.has(id))throw Error('Unknown Orbit link destination.');
   if(!uid||!ready)throw Error('Your account links are loading. Sign in and retry.');
   const next={...links};if(String(value||'').trim()){
     const parsed=clean({[id]:value});
     if(!parsed[id])throw Error('Use a complete https:// profile URL.');
+    const destination=normalizedDestination(parsed[id]);
+    if(Object.entries(links).some(([other,existing])=>other!==id&&normalizedDestination(existing)===destination))
+      throw Error('You already saved that destination under another Orbit planet.');
     next[id]=parsed[id];
   }else delete next[id];
   const f=await firebase();await f.auth.authStateReady();
