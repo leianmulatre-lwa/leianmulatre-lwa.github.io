@@ -984,7 +984,7 @@ function renderPosts(force) {
     const playable = playableVideo(post);
     const soleVideo = playable && (!Array.isArray(post.mediaItems)||post.mediaItems.length<=1);
     const sourceVideoId=String(post.sourcePostId||"");
-    const tiktokEmbed=post.sourceHostedMedia===true&&providerSafeTikTok(post)&&/^\\d{6,25}$/.test(sourceVideoId)
+    const tiktokEmbed=post.sourceHostedMedia===true&&providerSafeTikTok(post)&&/^\d{6,25}$/.test(sourceVideoId)
       ? 'https://www.tiktok.com/embed/v2/'+sourceVideoId : '';
     const externalVideo=tiktokEmbed
       ? '<div class="biglwa-source-video"><iframe title="TikTok video from '+esc(post.sourceUsername||'connected account')+'" src="'+esc(tiktokEmbed)+'" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
