@@ -1,7 +1,7 @@
 /* BIG LWA Arcade + Veve precision pass (16 Oct 2026).
    Straight-edged Black Widow/hourglass cabinets apply to BOTH Studio and the full Arcade page.
    The decorative shell is clipped; internal game screens retain their own rectangular geometry. */
-#studioApp #games .games-library,
+#studioApp #games .games-library.games-library,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
  position:relative!important;isolation:isolate!important;
  border:0!important;border-radius:0!important;
@@ -9,7 +9,7 @@
  background:linear-gradient(90deg,#170a08 0%,#42231b 7%,#9a5c44 15%,#633526 50%,#9a5c44 85%,#42231b 93%,#170a08 100%)!important;
  box-shadow:inset 0 0 0 14px #180b09,inset 0 0 0 20px #8a543b,inset 0 0 38px 24px #1a080788!important;
 }
-#studioApp #games .games-library{
+#studioApp #games .games-library.games-library{
  padding:23px clamp(24px,12%,82px) 118px!important;
  margin:10px 0 14px!important;
  min-width:0!important;
@@ -18,12 +18,12 @@
  padding:28px clamp(26px,12%,130px) 150px!important;
  margin-inline:auto!important;max-width:1120px!important;width:100%!important;box-sizing:border-box!important;
 }
-#studioApp #games .arcade-folder-depth,
+#studioApp #games .arcade-folder-depth.arcade-folder-depth,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth{
  margin-inline:0!important;
  border:8px solid #190e0b!important;border-radius:20px 20px 9px 9px!important;
 }
-#studioApp #games .arcade-library-viewport,
+#studioApp #games .arcade-library-viewport.arcade-library-viewport,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport{
  min-width:0!important;width:100%!important;box-sizing:border-box!important;
  border:10px solid #150d0c!important;
@@ -31,7 +31,7 @@
  border-radius:10px!important;
 }
 /* The deck is integral to the cabinet instead of a separate rounded plank. */
-#studioApp #games .arcade-control-deck,
+#studioApp #games .arcade-control-deck.arcade-control-deck,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls{
  height:96px!important;bottom:18px!important;
  left:clamp(34px,10%,120px)!important;right:clamp(34px,10%,120px)!important;
@@ -39,7 +39,7 @@
  display:flex!important;align-items:flex-end!important;justify-content:center!important;
  z-index:4!important;
 }
-#studioApp #games .arcade-control-deck::before,
+#studioApp #games .arcade-control-deck.arcade-control-deck::before,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls::before{
  content:"";position:absolute;inset:0;z-index:0;
  border:5px solid #190b08!important;border-radius:8px 8px 16px 16px!important;
@@ -49,14 +49,14 @@
 }
 /* Elliptical black holes sit BELOW the joysticks. The metal shafts
    disappear into those holes, while the balls remain above the deck. */
-#studioApp #games .arcade-joystick,
+#studioApp #games .arcade-joystick.arcade-joystick,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick{
  --stick:#d95c70;
  position:relative!important;bottom:0!important;z-index:2!important;
  flex:0 0 52px!important;width:52px!important;height:85px!important;
  transform:none!important;filter:none!important;overflow:visible!important;
 }
-#studioApp #games .arcade-joystick::after,
+#studioApp #games .arcade-joystick.arcade-joystick::after,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick::after{
  content:"";position:absolute;top:1px!important;left:50%!important;
  width:34px!important;height:34px!important;z-index:4!important;
@@ -64,14 +64,14 @@
  background:radial-gradient(circle at 30% 24%,#fff9 0 8%,transparent 27%),var(--stick)!important;
  box-shadow:inset -5px -5px 7px #160b0940,0 0 0 2px #1b100e!important;
 }
-#studioApp #games .arcade-joystick::before,
+#studioApp #games .arcade-joystick.arcade-joystick::before,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick::before{
  content:"";position:absolute;top:31px!important;left:50%!important;
  width:9px!important;height:45px!important;z-index:2!important;
  border-radius:4px!important;transform:translateX(-50%)!important;
  background:linear-gradient(90deg,#090909,#797978 48%,#1c1a19)!important;
 }
-#studioApp #games .arcade-joystick>i,
+#studioApp #games .arcade-joystick.arcade-joystick>i,
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick>i{
  position:absolute;bottom:0!important;left:50%!important;
  width:58px!important;height:22px!important;z-index:3!important;
@@ -81,22 +81,22 @@
  box-shadow:inset 0 4px 7px #000c,0 2px 0 #d7a67b77!important;
 }
 /* Studio game preview: cabinet bevel stays consistent when cards are resized. */
-#studioApp #games .games-arcade-brand{min-height:76px!important}
-#studioApp #games .arcade-library-viewport{height:clamp(165px,23vw,260px)!important}
-#studioApp #games .arcade-control-deck{bottom:17px!important}
+#studioApp #games .games-arcade-brand.games-arcade-brand{min-height:76px!important}
+#studioApp #games .arcade-library-viewport.arcade-library-viewport{height:clamp(165px,23vw,260px)!important}
+#studioApp #games .arcade-control-deck.arcade-control-deck{bottom:17px!important}
 @media(max-width:680px){
- #studioApp #games .games-library{
+ #studioApp #games .games-library.games-library{
   padding:18px clamp(20px,9%,42px) 108px!important;
  }
  #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
   padding:18px clamp(20px,9%,55px) 130px!important;
  }
- #studioApp #games .arcade-control-deck,
+ #studioApp #games .arcade-control-deck.arcade-control-deck,
  #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls{
   left:clamp(20px,9%,55px)!important;right:clamp(20px,9%,55px)!important;
   gap:clamp(5px,2vw,16px)!important;
  }
- #studioApp #games .arcade-joystick,
+ #studioApp #games .arcade-joystick.arcade-joystick,
  #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick{
   transform:scale(.82)!important;transform-origin:50% 100%!important;
  }
