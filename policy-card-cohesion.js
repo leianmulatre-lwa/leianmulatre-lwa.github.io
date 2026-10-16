@@ -184,31 +184,21 @@
   };
 
   const makeSupporterLogo = (supporter) => {
-    // These are genuine PNG logos in a ribbon, not cards. Return the PNG
-    // itself for unlinked entries; old span wrappers picked up rounded
-    // white-tile styles from cached CSS on the login and policy pages.
+    // Framed, consistent logo tiles rather than free-floating PNG ribbon art.
+    const tile = document.createElement(supporter.href ? 'a' : 'span');
+    tile.className = 'supporter-logo supporter-logo-tile';
+    if (supporter.href) {
+      tile.href = supporter.href;
+      tile.target = '_blank';
+      tile.rel = 'noopener noreferrer';
+    }
     const logo = document.createElement('img');
-    logo.className = 'supporter-logo supporter-logo-image';
     logo.src = supporter.src;
     logo.alt = supporter.name;
     logo.loading = 'lazy';
     logo.decoding = 'async';
-    // Inline styles defeat stale versions of the old white-card stylesheet.
-    for (const [name, value] of Object.entries({
-      background:'transparent', 'background-image':'none',
-      border:'0', 'border-radius':'0', 'box-shadow':'none',
-      padding:'0', margin:'0', 'min-width':'0', 'min-height':'0',
-      width:'auto', height:'auto', 'max-width':'152px', 'max-height':'54px',
-      'object-fit':'contain'
-    })) logo.style.setProperty(name, value, 'important');
-    if (!supporter.href) return logo;
-    const link = document.createElement('a');
-    link.className = 'supporter-link';
-    link.href = supporter.href;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.append(logo);
-    return link;
+    tile.append(logo);
+    return tile;
   };
 
   const makeSupporterSection = (className) => {
