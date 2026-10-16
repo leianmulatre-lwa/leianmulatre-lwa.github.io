@@ -1384,15 +1384,38 @@ const connect=e.target.closest('[data-orbit-connect]');
       ['United Nations','UN news, humanitarian reporting and resolutions','https://news.un.org/en/'],
       ['UN Human Rights','Independent reporting, statements and investigations','https://www.ohchr.org/en']
     ];
-    const portrait=(item)=>{
+    // Verified Wikimedia page titles, never free-form searches that can attach
+    // an unrelated person's photo to a case or nomination.
+    const wikiPortraits={
+      'curated-1':'Zendaya','curated-2':'Beyoncé','curated-3':'Rihanna',
+      'curated-4':'Jennifer Lawrence','curated-5':'Anne Hathaway',
+      'curated-6':'Ida B. Wells','curated-7':'Malcolm X','curated-8':'Martin Luther King Jr.',
+      'curated-9':'Elaine Brown','curated-10':'Kathleen Cleaver','curated-11':'Ericka Huggins',
+      'curated-12':'Fred Hampton','curated-13':'Bobby Seale','curated-14':'Huey P. Newton',
+      'curated-15':'Derek Chauvin','curated-16':'Jeffrey Epstein',
+      'curated-17':'Elon Musk','curated-18':'Jeff Bezos','curated-19':'Peter Thiel',
+      'curated-21':'Angela Davis','curated-22':'Fannie Lou Hamer',
+      'curated-23':'Shirley Chisholm','curated-24':'Audre Lorde',
+      'curated-25':'bell hooks','curated-26':'Toni Morrison',
+      'curated-27':'Nina Simone','curated-28':'Tarana Burke'
+    };
+    const portrait=item=>{
       const monogram=String(item.name||'').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toLocaleUpperCase();
-      const isRecord=item.category==='hunting';
-      return '<article class="politc-person politc-poster'+(isRecord?' is-record':' is-icon')+'">'+
-        '<div class="politc-poster-eyebrow">'+(isRecord?'PUBLIC RECORD · SCRUTINY':'CULTURAL ICON · HONORS')+'</div>'+
-        (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'">':'<div class="politc-poster-monogram" aria-hidden="true">'+esc(monogram)+'</div>')+
-        '<strong>'+esc(item.name)+'</strong>'+(item.note?'<small>'+esc(item.note)+'</small>':'')+
-        '<div class="politc-poster-foot">'+(item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">Read source ↗</a>':'<span>Personal nomination</span>')+
-        '<button type="button" data-politc-delete="'+esc(item.id)+'" aria-label="Remove '+esc(item.name)+'">×</button></div></article>';
+      const record=item.category==='hunting';
+      const wiki=wikiPortraits[item.id]||'';
+      return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+'">'+
+        '<div class="politc-poster-eyebrow">'+(record?'PUBLIC RECORD · CASE FILE':'WANTED · FOR ICON STATUS')+'</div>'+
+        '<div class="politc-poster-photo"'+(wiki?' data-politc-wiki="'+esc(wiki)+'"':'')+'>'+
+         (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'" loading="lazy" decoding="async">':
+          '<span class="politc-poster-monogram" aria-hidden="true">'+esc(monogram)+'</span>')+
+        '</div>'+
+        '<strong>'+esc(item.name)+'</strong>'+
+        '<details class="politc-poster-context"><summary>Details & source ↗</summary>'+
+         (item.note?'<p>'+esc(item.note)+'</p>':'')+
+         (item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">Read source ↗</a>':'<span>Personal nomination · not verified</span>')+
+        '</details>'+
+        '<button type="button" class="politc-poster-remove" data-politc-delete="'+esc(item.id)+'" aria-label="Remove '+esc(item.name)+'">×</button>'+
+      '</article>';
     };
     const panel=(cat)=>{
       const isPoster=cat.id==='hunting'||cat.id==='cunting';
@@ -1509,6 +1532,40 @@ const connect=e.target.closest('[data-orbit-connect]');
     if(window.__biglwaPolitcLiveTimer)clearInterval(window.__biglwaPolitcLiveTimer);
     window.__biglwaPolitcLiveTimer=setInterval(()=>{if(!balance.isConnected){clearInterval(window.__biglwaPolitcLiveTimer);return;}refreshPolitc();},900000);
     refreshPolitc();
+    // Wikimedia only supplies images for explicitly named, existing public
+    // figures. Empty / blocked results retain the intentional monogram.
+    const portraits=[...body.querySelectorAll('.politc-poster-photo[data-politc-wiki]')];
+    const cache=window.__biglwaPolitcWikimediaCache||(window.__biglwaPolitcWikimediaCache=new Map());
+    const pending=portraits.filter(el=>!cache.has(el.dataset.politcWiki));
+    const hydrateImage=(host,url)=>{
+      if(!host?.isConnected||!url||host.querySelector('img'))return;
+      try{
+        const parsed=new URL(url);
+        if(parsed.protocol!=='https:'||!/(^|\.)wikimedia\.org$/.test(parsed.hostname))return;
+      }catch{return}
+      const image=new Image();
+      image.alt='Portrait of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
+      image.loading='lazy';image.decoding='async';
+      image.onload=()=>{if(!host.isConnected)return;host.querySelector('.politc-poster-monogram')?.remove();host.append(image);};
+      image.onerror=()=>{};
+      image.src=url;
+    };
+    portraits.forEach(el=>{const val=cache.get(el.dataset.politcWiki);if(val)hydrateImage(el,val)});
+    if(pending.length){
+      const titles=[...new Set(pending.map(el=>el.dataset.politcWiki))];
+      const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
+        action:'query',format:'json',redirects:'1',prop:'pageimages',
+        pithumbsize:'480',titles:titles.join('|'),origin:'*'
+      });
+      fetch(uri,{mode:'cors'}).then(r=>{if(!r.ok)throw Error('Wiki thumbnails unavailable');return r.json()})
+      .then(data=>{
+        const pages=Object.values(data?.query?.pages||{});
+        const found=new Map(pages.map(page=>[String(page.title||''),String(page.thumbnail?.source||'')]));
+        const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
+        for(const name of titles){const resolved=redirects.get(name)||name;cache.set(name,found.get(resolved)||'');}
+        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki));
+      }).catch(()=>{for(const name of titles)cache.set(name,'')});
+    }
     body.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
       const drawer=body.querySelector('#politc-nominate-'+button.dataset.politcNominate);
       if(!drawer)return;
