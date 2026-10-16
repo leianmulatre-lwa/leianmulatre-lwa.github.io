@@ -113,7 +113,7 @@ async function oaProfile(provider,token){
  const avatar=me.bitmoji?.avatar||me.bitmoji?.selfie||me.bitmojiAvatar||'';
  return {id:'snapchat',sourceUserId:String(me.externalId),name:String(me.displayName||'Snapchat account').slice(0,100),
   username:'',avatarUrl:oaPhoto(avatar),
-  link:'https://www.snapchat.com/'};
+  link:''};
 }
 export async function handleAdditionalOrbit(request,env,getFirebaseUser){
  const url=new URL(request.url),parts=url.pathname.split('/').filter(Boolean);
