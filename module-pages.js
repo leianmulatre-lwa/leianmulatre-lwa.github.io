@@ -1006,8 +1006,12 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     // are actually available. Until then an account-linked profile URL works.
     for(const id of ['x','snapchat','tumblr']){
       const live=window.BigLWAOrbitOAuth?.configured?.(id)?.configured===true;
-      if(live){ORBIT_CONNECTED.add(id);ORBIT_LIVE.add(id)}
-      else{ORBIT_CONNECTED.delete(id);ORBIT_LIVE.delete(id)}
+      // Always expose the OAuth connection action. Missing public IDs show a
+      // precise setup message instead of replacing the provider with a URL-only
+      // field and hiding its Connect control altogether.
+      ORBIT_CONNECTED.add(id);
+      if(live)ORBIT_LIVE.add(id);
+      else ORBIT_LIVE.delete(id)
     }
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
@@ -1024,11 +1028,12 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
           :'';
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>`+
        (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+
-       (mediaHint?'<p class="orbit-not-connected" role="status">'+esc(mediaHint)+'</p>':'')+(pending?'<p class="orbit-not-connected">Login is not active for this provider yet. Choose Setup to see which configuration is missing.</p>':'')+
+       (mediaHint?'<p class="orbit-not-connected" role="status">'+esc(mediaHint)+'</p>':'')+(pending?'<p class="orbit-not-connected">OAuth setup is incomplete. Choose Connect to check the provider configuration; your saved public profile link is still available below.</p>':'')+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':''}</div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
-       (k==='facebook'?`<div class="orbit-facebook-profile"><label for="orbitFacebookPublicLink">Public Facebook profile or Page link</label><div class="orbit-facebook-profile-actions"><input class="module-input" id="orbitFacebookPublicLink" data-orbit-path="facebook" type="url" inputmode="url" value="${esc(links.facebook||row?.link||'')}" placeholder="https://www.facebook.com/your.public.profile"><button class="module-action" type="button" data-orbit-save="facebook">Save link</button></div><small>Meta's login may not return a public profile URL. Add your real profile or Page link once; it follows your Big LWA account.</small></div>`:'')+'</div>';
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${row?'Reconnect':'Connect'} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
+       (k==='facebook'?`<div class="orbit-facebook-profile"><label for="orbitFacebookPublicLink">Public Facebook profile or Page link</label><div class="orbit-facebook-profile-actions"><input class="module-input" id="orbitFacebookPublicLink" data-orbit-path="facebook" type="url" inputmode="url" value="${esc(links.facebook||row?.link||'')}" placeholder="https://www.facebook.com/your.public.profile"><button class="module-action" type="button" data-orbit-save="facebook">Save link</button></div><small>Meta's login may not return a public profile URL. Add your real profile or Page link once; it follows your Big LWA account.</small></div>`:'')+
+       (['snapchat','tumblr'].includes(k)?`<div class="orbit-fallback-profile"><label>Public ${esc(n)} profile link</label><div class="orbit-fallback-actions"><input class="module-input" data-orbit-path="${k}" type="url" inputmode="url" value="${esc(links[k]||row?.link||'')}" placeholder="Paste your public profile URL"><button class="module-action" type="button" data-orbit-save="${k}">Save link</button></div><small>Profile link storage is separate from OAuth; saved links alone cannot import content.</small></div>`:'')+'</div>';
      }
      return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b></header><label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button>${orbitBadge(g,t)}</div></div>`;
      }).join('')}</div></section></div>`;
@@ -1050,7 +1055,7 @@ const connect=e.target.closest('[data-orbit-connect]');
      if(connect){
        const k=connect.dataset.orbitConnect;
        if(['x','snapchat','tumblr'].includes(k)){
-         connect.disabled=true;say('Preparing secure '+ORBIT_APP_NAMES[k]+' authorization…');
+         connect.disabled=true;say('Checking '+ORBIT_APP_NAMES[k]+' authorization…');
          try{await window.BigLWAOrbitOAuth.connect(k)}
          catch(error){say(error?.message||'Authorization is not ready yet.');connect.disabled=false}
          return;
