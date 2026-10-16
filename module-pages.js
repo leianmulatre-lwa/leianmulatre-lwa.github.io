@@ -1005,13 +1005,13 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
       const providerError=k==='tiktok'?String(window.__biglwaTikTokOrbit?.state?.lastError||''):'';
-      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>${k==='instagram'?'':orbitBadge(g,t)}`+
+      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>`+
        (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+(pending?'<p class="orbit-not-connected">Login is not active for this provider yet. Choose Setup to see which configuration is missing.</p>':'')+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':''}</div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${k==='instagram'?orbitBadge(g,t):''}</div></div>`;
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div></div>`;
      }
-     return `<div class="module-orbit-row"><header><b>${n}</b></header>${orbitBadge(g,t)}<label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
+     return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b></header><label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button>${orbitBadge(g,t)}</div></div>`;
      }).join('')}</div></section></div>`;
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
@@ -1450,7 +1450,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     const caNominees=[['Xavier Becerra','Democratic'],['Steve Hilton','Republican']];
     const stateOptions=states.map(([code,name])=>'<option value="'+code+'" '+(savedState===code?'selected':'')+'>'+esc(name)+'</option>').join('');
     const nomineeCards=()=>savedState==='CA'?'<div class="politc-portraits">'+caNominees.map(([name,party])=>'<article class="politc-person"><div style="height:100px;display:grid;place-items:center;background:#ddd4c7;font:28px Georgia,serif" aria-hidden="true">'+esc(name.split(' ').map(x=>x[0]).join(''))+'</div><strong>'+esc(name)+'</strong><small>'+esc(party)+' · Governor</small></article>').join('')+'</div><p class="politc-note">California statewide governor nominees. District and local candidates vary by residential address. Verify against the official certified list.</p>': '<p class="politc-note">Candidates vary by state, county and voting district. Use “See my ballot & nominees” to view the applicable roster; no names are guessed from a ZIP code.</p>';
-    const electionPanel='<section class="politc-panel" style="grid-column:1/-1;background:var(--widget-bg,#f7f3eb);color:var(--widget-ink,#28231e);border:1px solid rgba(120,120,120,.22);outline:0;border-radius:var(--widget-radius,16px)"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><span style="font:600 11px system-ui;letter-spacing:.12em;text-transform:uppercase">Election desk · United States</span><h3 style="text-align:left;border:0;padding:5px 0;font:400 30px Georgia,serif;letter-spacing:0;text-transform:none">November 3, 2026 · General Election</h3></div><div id="politcCountdown" style="font:700 clamp(22px,4vw,44px)/1.2 Georgia,serif" aria-live="off"></div></div><p class="politc-note">Countdown to Election Day (Pacific time). Earlier state or local special elections may have different dates.</p><div class="politc-form" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end"><label>Voting state<select id="politcState"><option value="">Choose state</option>'+stateOptions+'</select></label><label>ZIP code (optional)<input id="politcZip" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" placeholder="Your voting ZIP" value="'+esc(savedZip)+'"></label><a class="politc-source" href="https://www.vote411.org/ballot" target="_blank" rel="noopener noreferrer">See my ballot & nominees ↗</a></div><p class="politc-note">Select your voting residence, not your current physical location. ZIP alone cannot identify every voting district. Your selection is stored only on this device.</p><h3 style="font:400 25px Georgia,serif;text-align:left;border:0;padding:8px 0;letter-spacing:0;text-transform:none">Nominees & candidates <span id="politcStateLabel" style="font:13px system-ui"></span></h3><div id="politcNominees">'+nomineeCards()+'</div><div class="politc-resources" id="politcElectionLinks"></div></section>';
+    const electionPanel='<section class="politc-panel politc-election-zone" style="grid-column:1/-1;background:var(--widget-bg,#f7f3eb);color:var(--widget-ink,#28231e);border:1px solid rgba(120,120,120,.22);outline:0;border-radius:var(--widget-radius,16px)"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><span style="font:600 11px system-ui;letter-spacing:.12em;text-transform:uppercase">Election desk · United States</span><h3 style="text-align:left;border:0;padding:5px 0;font:400 30px Georgia,serif;letter-spacing:0;text-transform:none">November 3, 2026 · General Election</h3></div><div id="politcCountdown" style="font:700 clamp(22px,4vw,44px)/1.2 Georgia,serif" aria-live="off"></div></div><p class="politc-note">Countdown to Election Day (Pacific time). Earlier state or local special elections may have different dates.</p><div class="politc-form" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end"><label>Voting state<select id="politcState"><option value="">Choose state</option>'+stateOptions+'</select></label><label>ZIP code (optional)<input id="politcZip" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" placeholder="Your voting ZIP" value="'+esc(savedZip)+'"></label><a class="politc-source" href="https://www.vote411.org/ballot" target="_blank" rel="noopener noreferrer">See my ballot & nominees ↗</a></div><p class="politc-note">Select your voting residence, not your current physical location. ZIP alone cannot identify every voting district. Your selection is stored only on this device.</p><h3 style="font:400 25px Georgia,serif;text-align:left;border:0;padding:8px 0;letter-spacing:0;text-transform:none">Nominees & candidates <span id="politcStateLabel" style="font:13px system-ui"></span></h3><div id="politcNominees">'+nomineeCards()+'</div><div class="politc-resources" id="politcElectionLinks"></div></section>';
     body.innerHTML=heading('politc')+'<div class="politc-board"><div class="politc-grid">'+electionPanel+categories.map(panel).join('')+'</div>'+
       '<section class="politc-panel"><h3>Political Pendulum · Live</h3><p class="politc-sub">Current congressional seat balance, updated from published membership data. This is not a measure of public opinion or ideology.</p><div id="politcLiveBalance" aria-live="polite" class="politc-live-state">Checking House and Senate membership…</div><p class="politc-note"><a href="https://github.com/unitedstates/congress-legislators" target="_blank" rel="noopener noreferrer">Congress Legislators data ↗</a> · Independents shown separately.</p></section>'+
       '<section class="politc-panel"><h3>Project 2025 Tracker · Live</h3><p class="politc-sub">Community-reported policy implementation status, not an endorsement.</p><div id="politcProject2025" aria-live="polite" class="politc-live-state">Checking tracked objectives…</div><p class="politc-note"><a href="https://www.project2025.observer/en" target="_blank" rel="noopener noreferrer">View Project 2025 Tracker and its underlying evidence ↗</a></p></section>'+
@@ -1471,6 +1471,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     if(board&&grid){
       const standalone=[...board.children].filter(node=>node.matches('section.politc-panel'));
       const trackers=standalone.slice(0,3);
+      const election=grid.querySelector('.politc-election-zone');
       const resourcePanel=standalone.find(node=>/Vote · Data · Resources/i.test(node.querySelector('h3')?.textContent||''));
       const refreshBlock=[...board.children].find(node=>node.querySelector('#politcLiveRefresh'));
       const liveZone=document.createElement('section');
@@ -1480,6 +1481,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       liveTitle.textContent='Live trackers';
       liveZone.append(liveTitle,...trackers);
       if(refreshBlock)liveZone.append(refreshBlock);
+      if(election)board.insertBefore(election,grid);
       board.insertBefore(liveZone,grid);
       if(resourcePanel){
         resourcePanel.classList.add('politc-resource-zone');
@@ -1581,7 +1583,21 @@ const connect=e.target.closest('[data-orbit-connect]');
         const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
         for(const name of titles){const resolved=redirects.get(name)||name;cache.set(name,found.get(resolved)||'');}
         for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki));
-      }).catch(()=>{for(const name of titles)cache.set(name,'')});
+      }).catch(async()=>{
+        // Wikipedia's multi-title endpoint can be denied by browsers or a privacy
+        // extension. Try per-person article summaries as a second source; only
+        // accept actual Wikimedia-hosted portraits, never approximate name matches.
+        await Promise.allSettled(titles.map(async name=>{
+          const url='https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(name.replaceAll(' ','_'));
+          try{
+            const response=await fetch(url,{mode:'cors'});
+            if(!response.ok)throw Error('No article thumbnail');
+            const info=await response.json();
+            cache.set(name,String(info.thumbnail?.source||info.originalimage?.source||''));
+          }catch{cache.set(name,'')}
+        }));
+        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki));
+      });
     }
     body.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
       const drawer=body.querySelector('#politc-nominate-'+button.dataset.politcNominate);
