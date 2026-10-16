@@ -7,7 +7,7 @@ const load=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
 const pages=load('module-pages.js');
 const html=load('index.html');
 assert.doesNotThrow(()=>new vm.Script(pages),'module-pages remains parseable');
-assert.ok(html.includes('module-pages.js?v=20261015-orbit-badge-bottom-43'),
+assert.ok(html.includes('module-pages.js?v=20261015-full-orbit-planetary-4'),
  'site loads fresh layout rather than cached Orbit badge CSS');
 
 const badges=['instagram','facebook','tiktok','pinterest','soundcloud','youtube',
