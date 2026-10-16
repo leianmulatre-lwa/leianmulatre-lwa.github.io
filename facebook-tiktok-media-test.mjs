@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
+const fb=read('facebook-orbit.js'),tt=read('tiktok-orbit.js'),pages=read('module-pages.js'),worker=read('cloudflare-worker-instagram.js'),html=read('index.html');
+for(const [n,s] of [['Facebook',fb],['TikTok',tt],['Studio',pages],['Worker',worker]])
+  assert.doesNotThrow(()=>new vm.Script(s),n+' script must parse');
+assert.ok(fb.includes('window.FB.getLoginStatus'),'Existing Facebook session restored without popups');
+assert.ok(fb.includes("row.classList.contains('is-oauth')"),'No second Connect control alongside Facebook profile field');
+assert.ok(fb.includes("'user_photos'")&&fb.includes("'user_videos'"),'Media state honors actual Meta grants');
+assert.ok(pages.includes('orbitFacebookPublicLink')&&pages.includes('data-orbit-save="facebook"'),'Public Facebook link can be entered and saved');
+assert.ok(pages.includes("window.BigLWAOrbitAccountLinks?.get?.().facebook"),'Saved URL shown when Facebook does not provide user_link');
+assert.ok(pages.includes("host=candidate.hostname.toLowerCase()"),'Saved Facebook URL restricted to known domains');
+assert.ok(tt.includes('videoPermissionPending=Boolean(result.videoPermissionPending)'),'TikTok reports video.list limitations without faking content');
+assert.ok(tt.includes('videoLoadError')&&tt.includes("!connected||videoPermissionPending||!videos.length"),'No misleading empty video tiles');
+assert.ok(tt.includes('data-tiktok-save-video')&&tt.includes('createFeedDraft'),'Video links can be explicitly saved as private draft');
+assert.ok(tt.includes('list.dataset.tiktokMediaSignature'),'Avoid source observer redraw loops');
+assert.ok(worker.includes('video/list/?fields=id,title,video_description,cover_image_url,share_url,embed_link'),'TikTok video embeds requested when scope is granted');
+assert.ok(html.includes('orbit-media-status-20261016.css?v=20261016-facebook-tiktok-1'),'Media styles deployed');
+assert.ok(html.includes('tiktok-orbit.js?v=20261016-media-permissions-5'),'TikTok media status script deployed');
+assert.ok(html.includes('facebook-orbit.js?v=20261016-account-link-3'),'Facebook profile link script deployed');
+console.log('PASS Facebook public profile and consent-based TikTok video previews; no unauthorized auto-publishing.');
