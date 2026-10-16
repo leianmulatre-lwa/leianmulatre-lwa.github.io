@@ -224,6 +224,7 @@
         '<div class="facebook-card-overlay"><span>'+escapeText(title)+'</span></div>'+
       '</div><span class="biglwa-unified-source">Facebook</span>'+
       (url?'<a class="facebook-card-source" href="'+escapeText(url)+'" target="_blank" rel="noopener noreferrer" aria-label="View original on Facebook">Original ↗</a>':'')+
+      (url?'<button type="button" class="module-action" data-facebook-save-media="'+escapeText(id)+'" data-facebook-kind="'+escapeText(kind)+'">Save private Feed draft</button>':'')+
       '</article>';
   }
   function renderFeedImports() {
@@ -325,6 +326,37 @@
   document.addEventListener('click', function (event) {
     var target = event.target && event.target.closest ? event.target : null;
     if (!target) { return; }
+    var draftButton=target.closest('[data-facebook-save-media]');
+    if(draftButton){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(draftButton.disabled)return;
+      var itemId=draftButton.getAttribute('data-facebook-save-media');
+      var kind=draftButton.getAttribute('data-facebook-kind');
+      var item=(kind==='video'?state.videos:state.photos).find(function(p){return String(p.id)===itemId});
+      if(!item){showStatus('Facebook media is not loaded. Reconnect and retry.');return}
+      var permalink=kind==='video'?item.permalink_url:item.link;
+      if(!permalink && /^[0-9_]+$/.test(itemId)){
+        permalink=kind==='video'?'https://www.facebook.com/watch/?v='+encodeURIComponent(itemId.split('_').pop())
+          :'https://www.facebook.com/photo/?fbid='+encodeURIComponent(itemId.split('_').pop());
+      }
+      var saver=window.__biglwaOrbitPosts?.saveExternalOrbitDraft;
+      if(typeof saver!=='function'){showStatus('The Feed importer is still loading. Try again.');return}
+      draftButton.disabled=true;
+      draftButton.textContent='Saving…';
+      Promise.resolve(saver('facebook',{
+        id:itemId,sourcePostId:itemId,sourceUrl:permalink,
+        caption:item.name||item.title||item.description||'Facebook '+kind,
+        thumbnailUrl:kind==='video'?item.picture:photoUrl(item),
+        kind:kind,sourceUsername:state.profile?.name||''
+      })).then(function(result){
+        draftButton.textContent=result.created?'Saved as private draft':'Already saved to Feed';
+        showStatus('Saved to your Big LWA Feed drafts. Publish it there whenever you choose.');
+      }).catch(function(error){
+        draftButton.disabled=false;draftButton.textContent='Save private Feed draft';
+        showStatus(error?.message||'Could not save this Facebook item.');
+      });
+      return;
+    }
     if (target.closest('[data-facebook-orbit-media]')) {
       event.preventDefault();
       event.stopImmediatePropagation();
