@@ -88,6 +88,11 @@ async function save(id,value){
     const destination=normalizedDestination(parsed[id]);
     if(Object.entries(links).some(([other,existing])=>other!==id&&normalizedDestination(existing)===destination))
       throw Error('You already saved that destination under another Orbit planet.');
+    // Do not create a manually saved duplicate of a live provider's URL.
+    // Existing Firestore links stay untouched, even when their display is hidden.
+    const connected=Object.values(window.__biglwaConnections?.connections?.()||{});
+    if(connected.some(row=>row?.link&&normalizedDestination(row.link)===destination))
+      throw Error('This destination is already connected in Orbit.');
     next[id]=parsed[id];
   }else delete next[id];
   const f=await firebase();await f.auth.authStateReady();
