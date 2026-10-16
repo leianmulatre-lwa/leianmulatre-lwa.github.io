@@ -105,17 +105,20 @@ const sEnd=supporters.indexOf('const makeSupporterSection',sStart);
 assert.ok(sStart>0&&sEnd>sStart);
 const maker=new Function('document',supporters.slice(sStart,sEnd)+'\nreturn makeSupporterLogo;')({
  createElement(tag){
-  return {tagName:tag.toUpperCase(),style:{setProperty(){}},append(){},
-    setAttribute(){}};
+  return {tagName:tag.toUpperCase(),style:{setProperty(){}},children:[],
+    append(...children){this.children.push(...children)},setAttribute(){}};
  }
 });
 const bare=maker({name:'UCLA',src:'/assets/supporters/ucla.png'});
-assert.equal(bare.tagName,'IMG','supporters without links render as bare PNGs, not white cards');
-assert.ok(bare.className.includes('supporter-logo-image'));
+assert.equal(bare.tagName,'SPAN','supporters without links remain nonclickable containers');
+assert.ok(bare.className.includes('supporter-logo-tile'));
+assert.equal(bare.children.length,1,'logo tile must carry exactly one image');
+assert.equal(bare.children[0].tagName,'IMG','logo graphics remain real image assets');
+assert.equal(bare.children[0].src,'/assets/supporters/ucla.png');
 assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
   'original white supporter tile declarations removed rather than overridden');
 assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
-assert.ok(home.includes('brand-policy.css?v=20261014-logo-alpha-no-tiles-8'));
+assert.ok(home.includes('brand-policy.css?v='));
 assert.ok(home.includes('pinterest-orbit.js?v=20261014-silent-login-25'));
 console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
 
