@@ -1,0 +1,95 @@
+/* Arcade cabinet silhouette and desk controls — 2026-10-16.
+   CSS-only sculpted housing; does not crop the iframe/game viewport itself. */
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
+ position:relative!important;
+ padding:26px clamp(34px,6.8vw,112px) 142px!important;
+ border:12px solid #170e0b!important;
+ border-radius:78px 78px 42px 42px / 64px 64px 48px 48px!important;
+ background:linear-gradient(90deg,#180b09 0%,#503021 9%,#865039 22%,#6e382a 49%,#87513c 80%,#392018 94%,#180b09 100%)!important;
+ /* Broad shoulder and foot with an inset waist: a subtle black-widow hourglass. */
+ clip-path:polygon(6% 0,94% 0,100% 6%,100% 18%,96% 30%,92% 47%,92% 56%,96% 72%,100% 86%,100% 94%,94% 100%,6% 100%,0 94%,0 86%,4% 72%,8% 56%,8% 47%,4% 30%,0 18%,0 6%)!important;
+ box-shadow:inset 0 0 0 5px #301914,inset 0 16px 30px #e3a9801c,inset 0 -25px 38px #0b0605a3,0 22px 28px #22100b42!important;
+ overflow:visible!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-arcade-player{
+ display:flex!important;align-items:center;gap:10px;
+ position:relative;z-index:2;max-width:370px;
+ min-height:60px;margin:0 auto 14px;padding:8px 12px;
+ border:2px solid #352018;border-radius:13px;
+ background:linear-gradient(130deg,#f7d486,#e9ac55);
+ color:#3c211b;box-shadow:0 4px 0 #23120e, inset 0 1px 0 #fff8e8;
+ font:13px/1.25 "Times New Roman",Georgia,serif;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-arcade-player strong{
+ display:block;color:#381d19;font:700 16px/1.1 "Times New Roman",Georgia,serif;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-arcade-player small{
+ display:block;color:#65412e;font:12px/1.25 "Times New Roman",Georgia,serif;margin-top:4px;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-arcade-portrait{
+ display:grid;place-items:center;overflow:hidden;flex:0 0 43px;width:43px;height:43px;
+ border:3px solid #2b1814;border-radius:50%;background:#fff0d0;color:#42271d;font:700 23px Georgia,serif;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-arcade-portrait img{
+ width:100%;height:100%;object-fit:cover;display:block;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth{
+ margin-inline:clamp(2px,1vw,15px)!important;
+ border:9px solid #190d0b!important;
+ border-radius:44px 44px 19px 19px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport{
+ border:15px solid #110c0d!important;border-radius:30px 30px 15px 15px!important;
+ box-shadow:inset 0 18px 34px #000b,inset 0 0 0 2px #fff3d111,0 8px 0 #0a0605,0 15px 21px #17090888!important;
+ min-width:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls{
+ left:clamp(44px,8vw,124px)!important;right:clamp(44px,8vw,124px)!important;
+ bottom:22px!important;height:105px!important;gap:clamp(13px,3vw,35px)!important;
+ align-items:flex-end!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls::before{
+ border:5px solid #24120e!important;border-bottom-width:10px!important;
+ border-radius:24px 24px 31px 31px!important;
+ background:linear-gradient(180deg,#875039 0%,#724030 58%,#4c281f 100%)!important;
+ box-shadow:inset 0 8px 9px #ffe3b52c,inset 0 -8px 14px #1008068c,0 9px 0 #160b09!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick{
+ position:relative!important;width:58px!important;height:95px!important;
+ bottom:4px!important;transform:none!important;z-index:2!important;
+ filter:drop-shadow(2px 4px 2px #0008)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick::before{
+ left:50%!important;top:30px!important;width:10px!important;height:55px!important;
+ border-radius:5px;background:linear-gradient(90deg,#0d0c0c,#96928b 51%,#181616)!important;
+ z-index:1!important;transform:translateX(-50%)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick::after{
+ left:50%!important;top:0!important;width:38px!important;height:38px!important;
+ z-index:2!important;transform:translateX(-50%)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick>i{
+ z-index:3!important;left:50%!important;bottom:0!important;
+ width:57px!important;height:22px!important;
+ border:6px solid #120908!important;border-radius:50%!important;
+ background:radial-gradient(ellipse at 50% 40%,#080606 0 38%,#352019 41% 53%,#9e6c52 62% 78%,#170a08 90%)!important;
+ box-shadow:inset 0 4px 7px #000b,0 2px 0 #9e765c6e,0 4px 5px #120a0999!important;
+ transform:translateX(-50%)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #gameSuggestImagePreview[hidden]{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] #gameSuggestImagePreview:not([src]){display:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] #gameSuggestImagePreview{
+ width:72px;height:52px;object-fit:cover;background:#efe0d0;border:2px solid #7a4b3b;
+}
+@media(max-width:750px){
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
+  padding:15px clamp(16px,5vw,48px) 135px!important;
+  clip-path:polygon(5% 0,95% 0,100% 6%,98% 30%,95% 52%,98% 72%,100% 93%,94% 100%,6% 100%,0 93%,2% 72%,5% 52%,2% 30%,0 6%)!important;
+  border-radius:42px 42px 24px 24px!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls{
+  left:clamp(22px,6vw,55px)!important;right:clamp(22px,6vw,55px)!important;gap:10px!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-joystick{transform:scale(.82)!important;transform-origin:50% 100%!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport{border-width:9px!important;}
+}
