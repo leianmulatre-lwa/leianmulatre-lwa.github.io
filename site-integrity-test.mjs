@@ -55,7 +55,8 @@ assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-headi
 assert.match(projectCanvas, /module-heading lwa-project-heading/);
 assert.match(projectCanvas, /<h1>projects · canvas<\/h1>/);
 assert.match(projectCanvas, /margin:16px 0/);
-assert.match(orbitFeed, /rim:'#7d3ec5'/);
+assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not legacy purple.
+assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(index, /project-canvas\.js\?v=/);
 assert.match(index, /tiktok-orbit\.js\?v=20261014-oauth-return-diagnostics-4/);
@@ -97,15 +98,15 @@ assert.match(minecraftModel, /function defaultSkin/);
 assert.match(minecraftModel, /pointermove/);
 assert.doesNotMatch(avatarStudio, /skinview3d\.bundle\.min\.js/);
 assert.match(avatarStudio, /studioAvatar:/);
-// The original proprietary AIR archive stays intact, while our independent
-// HTML5 character port is now usable in Studio and games without Flash/Ruffle.
+// The uploaded Adobe AIR original is now mounted with Ruffle. We preserve PNG
+// import to BIG LWA since Flash/AIR export cannot be assumed to work in browser.
 assert.match(avatarStudio, /<iframe id="biglwaMiiEditorFrame"/);
 assert.match(avatarStudio, /\/avatar\/mii-editor\.html/);
-assert.match(avatarStudio, /biglwa:mii-created/);
-assert.match(avatarStudio, /biglwa:mii-save-result/);
-assert.match(avatarStudio, /preset:validateMiiPreset\(preset\)/);
-assert.match(read('avatar/mii-original.html'), /MiiEditor\/classicGUI\.swf/);
-assert.doesNotMatch(read('avatar/mii-original.html'), /ruffle|mii-editor\.html|<iframe/i);
+assert.match(avatarStudio, /data-avatar-kind="mii"/);
+assert.match(read('avatar/mii-original.html'), /mii-editor\.html/);
+assert.match(read('avatar/mii-editor.html'), /MiiEditor\/classicGUI\.swf/);
+assert.match(read('avatar/mii-editor.html'), /RufflePlayer/);
+assert.match(read('avatar/mii-editor.html'), /compatibility note/i);
 assert.match(avatarStudio, /profileAvatarEditor/);
 assert.match(avatarStudio, /data-avatar-widget-action="edit"/);
 assert.doesNotMatch(avatarStudio, /data-avatar-edit>/);
@@ -115,13 +116,11 @@ assert.match(avatarStudio, /The pair is ONE card-sized slot/);
 assert.match(avatarStudio, /grid-column:auto!important/);
 assert.match(avatarStudio, /Avatar is an ordinary tab/);
 assert.doesNotMatch(avatarStudio, /z-index:10040/);
-assert.ok(fs.existsSync('avatar/mii-editor.html'),'Missing on-site avatar editor');
+assert.ok(fs.existsSync('avatar/mii-editor.html'),'Missing on-site original Mii editor wrapper');
 const avatarMaker=read('avatar/mii-editor.html');
-assert.match(avatarMaker, /biglwa:mii-created/);
-assert.match(avatarMaker, /Save to Big LWA/);
-assert.match(avatarMaker, /biglwa-character-v1/);
-assert.match(avatarMaker, /standaloneSave/);
-assert.match(avatarMaker, /biglwa:mii-ready/);
+assert.match(avatarMaker, /ruffle\.js/);
+assert.match(avatarMaker, /\/MiiEditor\/classicGUI\.swf/);
+assert.match(avatarStudio, /Import Mii image/);
 assert.match(read('arcade-puzzles.html'), /data-tab="quest"/);
 assert.match(read('avatar/arcade-character.js'), /biglwaQuestCompleted/);
 assert.match(modules, /character quest/);
@@ -131,9 +130,9 @@ assert.match(avatarStudio, /\/avatar\/unity\/index\.html/);
 assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
 assert.match(tiktokOrbit, /lastError/);
 assert.match(modules, /providerError/);
-assert.match(tiktokOrbit, /location\.origin \+ '\/\?route=studio&view=orbit'/);
+assert.match(tiktokOrbit, /location\.origin \+ '\/studio\?view=orbit'/);
 
-assert.match(feedView, /instagram: \{ rim:"#7d3ec5"/);
+assert.match(feedView, /instagram: \{ rim:"#f36b21"/);
 
 assert.match(modules, /function renderPolitc\(/);
 assert.match(modules, /else if\(key==='politc'\)renderPolitc\(\)/);
