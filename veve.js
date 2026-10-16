@@ -75,8 +75,14 @@
       return dateDiff||String(a.id||'').localeCompare(String(b.id||''));
     });
   }
+  let inFlightLoad=null;
   async function load(){
-    if(state.loading)return;state.loading=true;state.loadError='';
+    // Repeated feed-ready / route events must await the same request.
+    // Otherwise the later refresh paints an empty wall and discards the
+    // earlier result due to its generation counter.
+    if(inFlightLoad)return inFlightLoad;
+    inFlightLoad=(async()=>{
+    state.loading=true;state.loadError='';
     try{
       const f=await fb();
       const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(250)));
@@ -102,6 +108,8 @@
       }else{state.sqwibs=[];state.resqwibs=[]}
     }catch(err){state.sqwibs=[];state.resqwibs=[];state.loadError+=(state.loadError?' ':'')+'Sqwib discovery is not available until its security rules are published.';}
     state.loading=false;
+    })();
+    try{return await inFlightLoad}finally{inFlightLoad=null}
   }
   const videoFile=x=>/\.(mp4|webm|m4v|mov)(?:\?|#|$)/i.test(String(x||''));
   function video(post){
