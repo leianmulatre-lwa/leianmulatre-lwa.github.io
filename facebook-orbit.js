@@ -4,6 +4,22 @@
 
   var APP_ID = '1370423431874443';
   var API_VERSION = 'v25.0';
+  // Facebook Login for Business selects scopes from a Meta Login configuration,
+  // not from a hardcoded 'public_profile' scope.
+  // This public identifier will be set after the app owner supplies the actual
+  // "General / User Access Token" configuration ID from the Meta dashboard.
+  var BUSINESS_LOGIN_CONFIG_ID = '';
+  function loginConfiguration() {
+    var configured = String(BUSINESS_LOGIN_CONFIG_ID || '').trim();
+    return /^\d{8,30}$/.test(configured) ? configured : '';
+  }
+  function requireBusinessConfiguration() {
+    if (loginConfiguration()) return true;
+    state.error = 'Facebook Login for Business needs its Configuration ID. In Meta App ' +
+      APP_ID + ', open Facebook Login for Business → Configurations, create a General / User Access Token configuration with supported permissions, and provide the Configuration ID to enable Connect.';
+    showStatus(state.error);
+    return false;
+  }
   var sdkPromise = null;
   var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '', noMediaNotified:false };
 
@@ -103,7 +119,10 @@
         var actions = button.closest('.module-actions');
         if (!actions) return;
         var mediaButton = one('[data-facebook-orbit-media]', actions);
-        var needsMedia = state.connected && (!state.permissions.includes('user_photos') || !state.permissions.includes('user_videos'));
+        // The Login for Business configuration determines permitted access;
+        // requesting extra scopes ad hoc would display Meta's unsupported-permission page.
+        // Show the media action only if the approved configuration already includes them.
+        var needsMedia = false;
         if (needsMedia && !mediaButton) {
           mediaButton = document.createElement('button');
           mediaButton.type = 'button';
@@ -227,6 +246,7 @@
   }
 
   function connect() {
+    if (!requireBusinessConfiguration()) return;
     loadSDK().then(function () {
       // Do not request App-Review-only permissions on the initial sign-in.
       window.FB.login(function (response) {
@@ -252,7 +272,7 @@
           showStatus(state.error);
           render();
         });
-      }, { scope: 'public_profile', return_scopes: true });
+      }, { config_id: loginConfiguration(), return_scopes: true });
     }).catch(function (error) {
       state.connected = false;
       state.error = error.message || 'Facebook Login could not start.';
@@ -262,6 +282,7 @@
   }
 
   function requestMediaAccess() {
+    if (!requireBusinessConfiguration()) return;
     if (!state.connected || !window.FB || !window.FB.login) {
       showStatus('Connect Facebook before requesting photos and videos.');
       return;
@@ -276,7 +297,7 @@
           ? 'Facebook media permissions updated.'
           : 'Facebook is connected, but Meta has not granted photo or video access.');
       }).catch(function () { showStatus('Facebook media could not be loaded. Try again later.'); });
-    }, {scope:'user_photos,user_videos',auth_type:'rerequest',return_scopes:true});
+    }, {config_id:loginConfiguration(),auth_type:'rerequest',return_scopes:true});
   }
 
   function disconnect() {
@@ -318,7 +339,7 @@
     if (target.closest('[data-open="orbit"],[data-open="feed"]')) { window.setTimeout(render, 80); }
   }, true);
 
-  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render };
+  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, configured: function(){return !!loginConfiguration();} };
   /* Registering with the shared mount is what lets these cards survive a feed rebuild and
      pick up the Facebook accent, instead of only appearing on the click that opened the
      page and then being wiped by the next rebuild. */
