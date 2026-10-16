@@ -110,6 +110,7 @@
     }catch(e){notice(e.message);}
   }
   function render() {
+    renderFeedList();
     document.querySelectorAll('[data-orbit-app="tiktok"]').forEach(el => { el.classList.toggle('orbit-connected',connected); el.setAttribute('aria-label',connected?'Refresh TikTok':'Connect TikTok'); });
     document.querySelectorAll('[data-orbit-path="tiktok"]').forEach(input => {
       const actions = input.closest('.module-orbit-row')?.querySelector('.module-actions');
@@ -122,6 +123,9 @@
   function renderFeedList(list){
     list=list||document.getElementById('feedPageList');
     if(!list)return;
+    const signature=[connected,videoPermissionPending,videoLoadError,videos.map(v=>v.id).join(',')].join('|');
+    if(list.dataset.tiktokMediaSignature===signature&&(!connected||videoPermissionPending||!videos.length||list.querySelector('.tiktok-feed-item')))return;
+    list.dataset.tiktokMediaSignature=signature;
     list.querySelectorAll('.tiktok-feed-item').forEach(el=>el.remove());
     const rail=document.getElementById('biglwaFeedImportStatusRail');
     let info=rail&&rail.querySelector('[data-tiktok-video-status]');
@@ -132,13 +136,15 @@
       rail.append(info);
     }
     if(info){
-      info.textContent=!connected?'':videoPermissionPending
+      const message=!connected?'':videoPermissionPending
         ? 'TikTok connected, but the Display API video.list permission is not approved or granted. Videos cannot be imported until TikTok approves it and you reconnect.'
         : videoLoadError?'TikTok videos: '+videoLoadError
         : videos.length?videos.length+' TikTok video preview'+(videos.length===1?'':'s')+' available. Choose which to save as a private draft.'
         : 'TikTok connected. No public videos were returned by the authorized API.';
-      info.hidden=!connected;
-      rail.hidden=!Array.from(rail.children).some(el=>!el.hidden);
+      if(info.textContent!==message)info.textContent=message;
+      if(info.hidden===connected)info.hidden=!connected;
+      const shouldHide=!Array.from(rail.children).some(el=>!el.hidden);
+      if(rail.hidden!==shouldHide)rail.hidden=shouldHide;
     }
     if(!connected||videoPermissionPending||!videos.length)return;
     const cards=videos.map(v=>{
