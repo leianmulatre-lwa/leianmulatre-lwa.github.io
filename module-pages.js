@@ -492,8 +492,8 @@
     .module-workspace[data-module-key="archive"] .archive-visibility-row label{display:grid;gap:5px;font:700 9px/1.2 system-ui}
     .module-workspace[data-module-key="archive"] .archive-friend-add{display:flex;gap:7px}
     .module-workspace[data-module-key="archive"] .archive-friend-add .module-input{flex:1}
-    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram:not(.is-pending-delete){--feed-card-rim:#7d3ec5;box-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999!important}
-    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{--feed-card-rim:#111111}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram:not(.is-pending-delete){--feed-card-rim:#f36b21;box-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b!important}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{--feed-card-rim:#772dcc}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{--feed-card-rim:#1877f2}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest:not(.is-pending-delete){--feed-card-rim:#e60023;box-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026!important}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{--feed-card-rim:#d0202f}
@@ -2088,9 +2088,9 @@ const connect=e.target.closest('[data-orbit-connect]');
            its picture and stays here only. */
         const source=String(item.source||'instagram').toLowerCase();
         const themes={
-          instagram:{rim:'#7d3ec5',shadow:'3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999'},
+          instagram:{rim:'#f36b21',shadow:'3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b'},
           pinterest:{rim:'#e60023',shadow:'3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026'},
-          tiktok:{rim:'#111111',shadow:'3px 3px 0 #111111,-2px 8px 20px -14px #25f4ee,8px 13px 24px -16px #fe2c55'},
+          tiktok:{rim:'#772dcc',shadow:'3px 3px 0 #772dcc,7px 7px 0 -2px #b77cff,0 14px 28px -13px #4a187f'},
           facebook:{rim:'#1877f2',shadow:'3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff'},
           youtube:{rim:'#d0202f',shadow:'0 0 0 2px #d0202f,3px 3px 0 #fff6ec,0 13px 28px -16px #d0202f'},
           soundcloud:{rim:'#ff5500',shadow:'3px 3px 0 #ff5500,0 12px 25px -16px #ffb13b'},
