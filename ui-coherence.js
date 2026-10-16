@@ -428,7 +428,8 @@
     const a=document.createElement('a');
     a.className='brand biglwa-block-brand';
     a.href='/studio';
-    a.setAttribute('aria-label','BIGLWA Studio');
+    a.setAttribute('aria-label','Open Veve');
+    a.title='Open Veve';
     const mark=document.createElement('span');
     mark.className='biglwa-stitched-crest biglwa-topbar-crest';
     mark.setAttribute('aria-hidden','true');
