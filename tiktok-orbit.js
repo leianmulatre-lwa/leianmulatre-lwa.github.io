@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   if (window.__biglwaTikTokOrbit) return;
-  const API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
+  const API = 'https://api.biglwa.com';
   const KEY = 'biglwaTikTokSession';
   const PENDING_KEY = 'biglwaTikTokPendingHandoffV2';
   const START_UID = 'biglwaTikTokStartingUid';
@@ -56,7 +56,7 @@
       lastError='';statusUpdate();
       const health = await api('health');
       if(!health.ok)throw Error('TikTok Worker setup is incomplete: '+(health.missing||[]).join(', '));
-      const expected='https://biglwa-instagram-api.leianmulatre-284.workers.dev/tiktok/callback';
+      const expected='https://api.biglwa.com/tiktok/callback';
       if(health.callback!==expected)throw Error('TikTok callback mismatch: '+(health.callback||'unknown')+'. Check the Login Kit Web redirect URI.');
       // A configured client key is not proof TikTok has approved the app.
       // An authorization-page "check client key" error may mean Login Kit
