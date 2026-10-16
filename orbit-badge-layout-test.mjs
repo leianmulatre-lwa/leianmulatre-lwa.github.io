@@ -25,12 +25,12 @@ assert.ok(pages.includes('@media(max-width:850px)'),'Orbit still stacks on small
 
 const main =pages.slice(pages.indexOf('function renderOrbitPage(){'),pages.indexOf('function renderConnect(){'));
 assert.ok(main.includes('data-orbit-row="\${k}"><header><b>\${n}</b>\${row?'), 'OAuth name followed by status, not badge');
-assert.ok(main.includes('</header>\${orbitBadge(g,t)}'), 'OAuth badge is a direct child after header');
-assert.ok(main.includes('<header><b>\${n}</b></header>\${orbitBadge(g,t)}<label'), 'plain-link badge stays after header');
+assert.ok(main.includes('\${orbitBadge(g,t)}</div></div>`;'), 'OAuth platform badge appears alongside Connect and Unlink actions');
+assert.ok(main.includes('data-orbit-row="\${k}"')&&main.includes('Open profile</button>\${orbitBadge(g,t)}'), 'plain-link platform badge appears alongside profile actions');
 assert.ok(!main.includes('<b>\${n}</b>\${orbitBadge(g,t)}'), 'no remaining badge beside source name');
 const popup = pages.slice(pages.indexOf('function openConnectionsPopup(){'),pages.indexOf('const root=document.createElement',pages.indexOf('function openConnectionsPopup(){')));
 assert.ok(popup.includes("+'</header>'+orbitBadge(g,t)+"),'popup OAuth badge outside header');
 assert.ok(popup.includes("+'</header>'+orbitBadge(g,t)+'<p"),'popup link badge outside header');
 assert.ok(!popup.includes("+'</b>'+orbitBadge(g,t)"),'popup company label free of badge');
-console.log('PASS 11 source colors, bottom-right reserved badge positions in Orbit and Archive manager');
+console.log('PASS source colors, footer action-row badge positions in Orbit and Archive manager');
 console.log('PASS connection state stays top-right and mobile columns still stack');
