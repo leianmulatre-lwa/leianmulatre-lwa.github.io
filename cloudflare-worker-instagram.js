@@ -650,7 +650,7 @@ async function ttRoute(request, env) {
   }
   const videos = path === '/tiktok/videos';
   if(videos&&!String(session.scope||'').split(',').includes('video.list'))return json({videos:[],videoPermissionPending:true},200,request,env);
-  const endpoint = videos ? 'video/list/?fields=id,title,video_description,cover_image_url,share_url' : 'user/info/?fields=open_id,display_name,avatar_url';
+  const endpoint = videos ? 'video/list/?fields=id,title,video_description,cover_image_url,share_url,embed_link' : 'user/info/?fields=open_id,display_name,avatar_url';
   const response = await fetch('https://open.tiktokapis.com/v2/' + endpoint, {
     method: videos ? 'POST' : 'GET',
     headers: { Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
