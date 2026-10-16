@@ -25,7 +25,7 @@
  box-shadow:inset -7px -6px 12px rgba(93,34,55,.21),inset 5px 4px 10px rgba(255,255,255,.85),0 5px 12px rgba(73,30,38,.17)!important;
 }
 #studioApp .orbit-grid button[data-orbit-app="facebook"] .orbit-glyph{
- --planet:radial-gradient(circle at 28% 25%,#eafaff 0 5%,transparent 12%),radial-gradient(circle at 70% 67%,#3682d6 0 13%,transparent 20%),linear-gradient(145deg,#b4e7ff,#58a6ff 51%,#2464ad)!important;
+ --planet:radial-gradient(circle at 27% 22%,#dceaff 0 5%,transparent 13%),radial-gradient(circle at 72% 65%,#092e90 0 13%,transparent 20%),linear-gradient(145deg,#72a7f4 0%,#3277df 32%,#1455bf 68%,#092a76 100%)!important;
 }
 #studioApp .orbit-grid button[data-orbit-app="instagram"] .orbit-glyph{background:var(--planet)!important}
 #studioApp .orbit-grid button[data-orbit-app="instagram"]{box-shadow:3px 3px 0 #e65b79!important}
@@ -33,7 +33,7 @@
 #studioApp .orbit-grid button[data-orbit-app="x"]{box-shadow:3px 3px 0 #0e0e0e!important}
 #studioApp .orbit-grid button[data-orbit-app="snapchat"]{box-shadow:3px 3px 0 #ffda00!important}
 #studioApp .orbit-grid button[data-orbit-app="tumblr"]{box-shadow:3px 3px 0 #1b304b!important}
-#studioApp .orbit-grid button[data-orbit-app="facebook"]{box-shadow:3px 3px 0 #58a6ff!important}
+#studioApp .orbit-grid button[data-orbit-app="facebook"]{box-shadow:3px 3px 0 #1658be!important}
 #studioApp #orbitPlanetaryShelf[hidden],#studioApp .module-planetary-list[hidden],
 #studioApp #modulePlanetaryList[hidden]{display:none!important}
 #studioApp #modulePlanetaryToggle{
@@ -62,13 +62,13 @@
 #studioApp .module-orbit-row[data-orbit-row="instagram"]>.orbit-platform-badge{
  background:linear-gradient(135deg,#ffbe68,#e94f81 45%,#8633b6 82%,#49236e)!important;
 }
-#studioApp .module-orbit-row[data-orbit-row="facebook"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#c5f0ff,#58a6ff 52%,#2867b1)!important}
+#studioApp .module-orbit-row[data-orbit-row="facebook"]>.orbit-platform-badge{background:radial-gradient(circle at 28% 25%,#accafc,#3178df 47%,#0d3898)!important}
 #studioApp .orbit-quick-link.is-instagram{--accent:#f36b21}
 #studioApp .orbit-quick-link.is-tiktok{--accent:#772dcc}
 #studioApp .orbit-quick-link.is-x{--accent:#111}
 #studioApp .orbit-quick-link.is-snapchat{--accent:#e8bf00}
 #studioApp .orbit-quick-link.is-tumblr{--accent:#1b304b}
-#studioApp .orbit-quick-link.is-facebook{--accent:#58a6ff}
+#studioApp .orbit-quick-link.is-facebook{--accent:#1658be}
 @media(max-width:650px){
  #studioApp .module-planetary-list{grid-template-columns:1fr}
 }
