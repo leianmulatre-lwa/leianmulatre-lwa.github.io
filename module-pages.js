@@ -891,7 +891,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     ['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],
     ['imdb','IMDb','IMDb','#e6a800']
   ];
-  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','x','snapchat','tumblr','youtube']);
+  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
   const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
   const ORBIT_APP_NAMES=Object.fromEntries([...ORBIT_APPS,...PLANETARY_APPS].map(([k,,n])=>[k,n]));
   /* Each API's chip wears that API's own colour. They were all one black pill, which read as
@@ -992,16 +992,16 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
     const legacyCount=window.BigLWAOrbitAccountLinks?.localPending?.()?.length||0;
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Instagram, TikTok, and Pinterest connect with real authorization, so they sign in properly and fill in your profile details for you. Every Orbit destination is shown here: connect supported accounts or save a public link. Links are saved to your BIGLWA account, and connected media is imported only when the provider permits it.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
       const providerError=k==='tiktok'?String(window.__biglwaTikTokOrbit?.state?.lastError||''):'';
-      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>${orbitBadge(g,t)}`+
+      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>${k==='instagram'?'':orbitBadge(g,t)}`+
        (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+(pending?'<p class="orbit-not-connected">Login is not active for this provider yet. Choose Setup to see which configuration is missing.</p>':'')+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span><a class="orbit-hotlink" href="${esc(row.link)}" target="_blank" rel="noopener noreferrer">Open ↗</a></div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}</div></div>`;
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${k==='instagram'?orbitBadge(g,t):''}</div></div>`;
      }
      return `<div class="module-orbit-row"><header><b>${n}</b></header>${orbitBadge(g,t)}<label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
      }).join('')}</div></section></div>`;
@@ -1009,15 +1009,6 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
-    const pendingProvider=window.__biglwaPendingOAuthProvider;
-    if(pendingProvider){
-      delete window.__biglwaPendingOAuthProvider;
-      const requirements={x:'X_CLIENT_ID',snapchat:'SNAPCHAT_CLIENT_ID',tumblr:'TUMBLR_CONSUMER_KEY'};
-      if(requirements[pendingProvider]){
-        say('This '+(ORBIT_APP_NAMES[pendingProvider]||pendingProvider)+' login still needs '+requirements[pendingProvider]+' in Cloudflare and a complete OAuth callback handler. No account has been linked.');
-        requestAnimationFrame(()=>body.querySelector('[data-orbit-row="'+pendingProvider+'"]')?.scrollIntoView({behavior:'smooth',block:'center'}));
-      }
-    }
     body.onclick=async e=>{
      const importLinks=e.target.closest('#orbitImportLocalLinks');
      if(importLinks){
