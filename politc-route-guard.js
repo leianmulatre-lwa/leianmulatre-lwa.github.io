@@ -33,7 +33,7 @@
       let finished=false;
       const done=()=>{if(finished)return;finished=true;clearTimeout(timeout);resolve(window.openBIGLWAModule||window.BigLWAOpenModule||null);};
       const script=document.createElement('script');
-      script.src='/module-pages.js?v=20261016-arcade-profile-1';
+      script.src='/module-pages.js?v=20261016-poster-orbit-2';
       script.onload=done;script.onerror=done;
       const timeout=setTimeout(done,7000);
       document.head.appendChild(script);
