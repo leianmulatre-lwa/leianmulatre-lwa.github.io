@@ -2508,6 +2508,18 @@ const connect=e.target.closest('[data-orbit-connect]');
   function writingPreviewValue(key){
     try{return String(localStorage.getItem('biglwaDraft_'+key)||'').trim()}catch{return ''}
   }
+  function writingPreviewDate(key){
+    try{
+      const uid=String(window.__biglwaIdentity?.uid||window.__biglwaAuth?.currentUser?.uid||'guest').trim()||'guest';
+      const collection=JSON.parse(localStorage.getItem('biglwaWritingCollectionV1:'+uid+':'+key)||'null');
+      const entry=collection?.entries?.find(item=>item.id===collection.currentId);
+      const d=new Date(entry?.updatedAt||entry?.createdAt||'');
+      if(Number.isFinite(d.getTime())){
+        return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+      }
+    }catch{}
+    return '';
+  }
   function syncWritingPreviews(){
     // A signed-out visitor must never inherit the device owner's locally
     // stored writing. Journal shares only an explicit public snapshot.
@@ -2554,7 +2566,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       if(notePaper._biglwaPlaceholderHTML===undefined)notePaper._biglwaPlaceholderHTML=notePaper.innerHTML;
       notePaper.classList.toggle('has-saved-writing',!!note);
       if(note){
-        const savedAt=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+        const savedAt=writingPreviewDate('notes')||new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
         notePaper.innerHTML='<p class="studio-writing-preview-text">'+esc(note)+'</p><span class="studio-writing-preview-meta">saved '+esc(savedAt)+'</span>';
         notePaper.setAttribute('aria-label','Private Sqwib Note preview');
       }else{
@@ -2567,7 +2579,7 @@ const connect=e.target.closest('[data-orbit-connect]');
       if(diaryPage._biglwaPlaceholderHTML===undefined)diaryPage._biglwaPlaceholderHTML=diaryPage.innerHTML;
       diaryPage.classList.toggle('has-saved-writing',!!diary);
       if(diary){
-        const savedAt=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+        const savedAt=writingPreviewDate('diary')||new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
         diaryPage.innerHTML='<div class="studio-diary-preview"><small>latest entry · '+esc(savedAt)+'</small><p>'+esc(diary)+'</p></div>';
         diaryPage.setAttribute('aria-label','Open Journal');
       }else{
