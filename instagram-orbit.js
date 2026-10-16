@@ -346,7 +346,7 @@
         sourceUrl: item.permalink || '',
         imageUrls: hosted.length ? hosted.filter(Boolean) : (shown ? [shown] : [])
       }).replace(/"/g, '&quot;');
-      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#7d3ec5;--feed-card-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999" data-instagram-index="' + index + '"' +
+      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#f36b21;--feed-card-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b" data-instagram-index="' + index + '"' +
         ' data-post-id="' + cardId + '" data-source-id="' + escapeText(item.id || '') + '" data-send-record="' + sendRecord + '">' +
         '<div style="width:100%;padding:0">' +
           '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
