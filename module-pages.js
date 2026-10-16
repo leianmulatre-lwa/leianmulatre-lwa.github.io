@@ -878,12 +878,22 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     draw();load();
   }
 
-  /* Instagram, TikTok, and Pinterest are connected with real authorization, so they are
-     not asked for a hand-pasted login path any more. The rest keep a plain profile link
-     because there is nothing to authorize against here. */
-  const ORBIT_APPS=[['instagram','IG','Instagram','#c1355a'],['facebook','FB','Facebook','#1877f2'],['tiktok','TT','TikTok','#111111'],['pinterest','P','Pinterest','#e60023'],['soundcloud','SC','SoundCloud','#e2622a'],['youtube','YT','YouTube','#d0202f'],['drive','GD','Google Drive','#0f9d58'],['calendar','GC','Google Calendar','#4285f4'],['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],['imdb','IMDb','IMDb','#e6a800']];
-  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook']);
-  const ORBIT_APP_NAMES=Object.fromEntries(ORBIT_APPS.map(([k,,n])=>[k,n]));
+  /* Primary Orbit contains API-backed accounts. Link-only destinations live in Planetary. */
+  const ORBIT_APPS=[
+    ['instagram','IG','Instagram','#f36b21'],['facebook','FB','Facebook','#58a6ff'],
+    ['tiktok','TT','TikTok','#772dcc'],['pinterest','P','Pinterest','#e60023'],
+    ['x','𝕏','X','#080808'],['snapchat','SC','Snapchat','#ffeb00'],
+    ['tumblr','T','Tumblr','#1b304b'],['youtube','YT','YouTube','#d0202f']
+  ];
+  const PLANETARY_APPS=[
+    ['soundcloud','SC','SoundCloud','#e2622a'],['spotify','SP','Spotify','#1db954'],
+    ['drive','GD','Google Drive','#0f9d58'],['calendar','GC','Google Calendar','#4285f4'],
+    ['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],
+    ['imdb','IMDb','IMDb','#e6a800']
+  ];
+  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','x','snapchat','tumblr','youtube']);
+  const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
+  const ORBIT_APP_NAMES=Object.fromEntries([...ORBIT_APPS,...PLANETARY_APPS].map(([k,,n])=>[k,n]));
   /* Each API's chip wears that API's own colour. They were all one black pill, which read as
      a row of dead black dots with unreadable lettering rather than as a list of services.
      The lettering is pinned white on top so it survives the widget colour rules above. */
