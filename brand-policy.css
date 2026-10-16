@@ -922,3 +922,38 @@ body.about-site {
   padding:0!important;margin:0!important;max-height:54px!important;
   object-fit:contain!important;filter:none!important;mix-blend-mode:normal!important;
 }
+
+
+/* 2026-10-15: bring back cohesive framed supporter marks, regardless of
+   the asset file format; previous PNG-only overrides remain superseded. */
+#loginPage .supporter-logo.supporter-logo-tile,
+.public-page-footer .supporter-logo.supporter-logo-tile {
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 142px!important;width:142px!important;min-width:142px!important;
+  height:66px!important;min-height:66px!important;
+  padding:10px 14px!important;box-sizing:border-box!important;
+  border:1px solid rgba(255,238,221,.20)!important;
+  border-radius:12px!important;
+  background:rgba(255,246,238,.11)!important;
+  box-shadow:0 4px 14px rgba(0,0,0,.12)!important;
+  line-height:normal!important;overflow:hidden!important;
+}
+#loginPage .supporter-logo.supporter-logo-tile img,
+.public-page-footer .supporter-logo.supporter-logo-tile img {
+  display:block!important;width:auto!important;height:auto!important;
+  max-width:112px!important;max-height:44px!important;
+  object-fit:contain!important;filter:none!important;opacity:1!important;
+}
+#loginPage .supporter-logo.supporter-logo-tile:hover,
+.public-page-footer .supporter-logo.supporter-logo-tile:hover {
+  background:rgba(255,246,238,.18)!important;
+  transform:translateY(-2px);
+}
+@media(max-width:650px){
+  #loginPage .supporter-logo.supporter-logo-tile,
+  .public-page-footer .supporter-logo.supporter-logo-tile {
+    flex-basis:122px!important;width:122px!important;min-width:122px!important;height:60px!important;min-height:60px!important;
+  }
+  #loginPage .supporter-logo.supporter-logo-tile img,
+  .public-page-footer .supporter-logo.supporter-logo-tile img{max-width:94px!important;max-height:40px!important}
+}
