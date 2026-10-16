@@ -9,7 +9,7 @@ const facebook=read('facebook-orbit.js'),settings=read('settings-account.js'),
 for(const [name,code] of [['facebook-orbit.js',facebook],['settings-account.js',settings],['writing-collections.js',collections],['google-orbit.js',google],['module-pages.js',orbit]]){
  assert.doesNotThrow(()=>new vm.Script(code),name+' must parse');
 }
-assert.ok(facebook.includes("scope: 'public_profile', return_scopes: true")&&!facebook.includes("scope: 'public_profile,email'"));
+assert.ok(facebook.includes('config_id: loginConfiguration()')&&!facebook.includes("scope: 'public_profile', return_scopes: true"),'Business Login uses its approved Meta configuration instead of unsupported ad hoc scopes');
 assert.ok(!facebook.includes("'id,name,email,picture"),'Graph profile fields must not require email');
 assert.ok(home.includes('facebook-orbit.js?v=20261016-business-config-1'));
 assert.ok(html.includes('id="privateAccountToggle"')&&html.includes('id="requestAccountDeletion"'));
