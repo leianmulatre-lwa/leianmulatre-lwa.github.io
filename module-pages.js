@@ -1111,7 +1111,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     const storage=`biglwaDraft_${key}`;
     const title=key==='diary'
       ? `<div class="module-diary-cover-label is-compact"><span>Journal · ${esc(profileUsername())}</span></div>`
-      : '<div class="module-qwiky-label"><strong>Sqwib Note</strong><span>🔒 private · pin it before it floats away</span></div>'+
+      : '<div class="sqwib-private-kicker">🔒 private · pin it before it floats away</div>'+
         '<nav class="diary-section-nav" role="tablist" aria-label="Sqwib writing tools"><button type="button" data-diary-view="notes" role="tab" aria-controls="diaryWritingSection" aria-selected="true"><span aria-hidden="true">▤</span> Sqwib Note</button><button type="button" data-diary-view="sqwip" role="tab" aria-controls="sqwipWritingSection" aria-selected="false"><span aria-hidden="true">♢</span> Sqwip <small>screenplay</small></button></nav>';
     body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="${key==='diary'?'Journal writing':'Sqwib Note writing'}"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button>${key==='diary'?'<button class="module-action secondary" id="moduleWritingFeed" type="button">Send to Collective Feed drafts</button><button class="module-action ghost" id="journalViewButton" type="button">View journal</button>':''}</div><div class="module-status" id="moduleWritingStatus">${key==='diary'?'Private draft · choose to make a snapshot viewable':'🔒 Locked note · only you can read this'}</div></form></div>${key==='diary'?'<section class="journal-owner-share" id="journalShareControls"><div><b>Journal visibility</b><p>Private by default. Publishing shares only the current Journal text. Sqwib Note and Sqwip remain private.</p></div><div class="journal-owner-share-actions"><button type="button" class="module-action" id="journalPublish">Make journal viewable</button><button type="button" class="module-action ghost" id="journalUnpublish">Hide shared journal</button></div><p id="journalShareStatus" role="status">Only you can see this draft until you publish it.</p></section><section id="journalReaderPanel" class="journal-reader-panel" hidden><div class="journal-reader-controls"><b>Journal · reading mode</b><button type="button" class="module-action ghost" id="journalReturnEdit">✎ Edit journal</button></div><article class="journal-reading-sheet" id="journalReaderText"></article></section>':''}${key==='notes'?'<div id="sqwipWritingSection" role="tabpanel" aria-label="Private Sqwip screenplay maker" hidden></div>':''}</section></div>`;
     const form=$('#moduleWritingForm',body),area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;
@@ -1128,13 +1128,15 @@ const connect=e.target.closest('[data-orbit-connect]');
       if(publisher){
         const areaSection=document.createElement('section');
         areaSection.id='sqwibPublishArea';
-        areaSection.innerHTML='<h3>publish a sqwib</h3>'+
-          '<p>Your draft above stays private. Only pressing Publish shares a copy on Veve. Each note controls whether other people may resqwib it.</p>'+
-          '<label class="sqwib-permission"><input type="checkbox" id="sqwibAllowResqwib"><span>Allow others to resqwib this published note (off by default)</span></label>'+
-          '<button type="button" data-sqwib-control="publish">Publish public Sqwib</button>'+
-          '<p id="sqwibPublishStatus" role="status">Your draft is not public.</p>'+
-          '<div id="sqwibPublishedList" aria-label="Your published Sqwibs"></div>';
-        publisher.append(areaSection);
+        areaSection.className='sqwib-publish-inline';
+        areaSection.setAttribute('aria-label','Veve publishing options');
+        areaSection.innerHTML=
+          '<button type="button" data-sqwib-control="publish" title="Publish a public copy to Veve; your private working note stays private">Publish to Veve ↗</button>'+
+          '<label class="sqwib-permission" title="Allow others to resqwib a published copy"><input type="checkbox" id="sqwibAllowResqwib"><span>Allow resqwibs</span></label>'+
+          '<span id="sqwibPublishStatus" class="sqwib-publish-status" role="status">private draft</span>'+
+          '<details class="sqwib-published-history"><summary>Published notes</summary><p>Published copies can be unpublished here. Your working draft stays private.</p><div id="sqwibPublishedList" aria-label="Your published Sqwibs"></div></details>';
+        // Keep publishing beside Save, not as a second full-size panel below the note.
+        form.querySelector('.module-actions').append(areaSection);
         const publicApi=()=>window.BigLWASqwibs;
         const announce=m=>{const node=$('#sqwibPublishStatus',areaSection);if(node)node.textContent=m};
         const list=$('#sqwibPublishedList',areaSection);
