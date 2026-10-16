@@ -456,3 +456,27 @@
   outline:2px solid rgb(var(--aura-rgb,216,95,109));
   outline-offset:3px;border-radius:9px;
 }
+
+
+/* The Studio card carries the Cuteness font, but older embedded module CSS
+   pins preview paragraphs to 17px Comic Sans. Override that exact selector. */
+#studioApp #notes .note-paper.has-saved-writing .studio-writing-preview-text{
+  font-family:"LWA Cuteness Notes","Comic Sans MS","Bradley Hand",cursive!important;
+  font-size:clamp(25px,2.45vw,32px)!important;
+  font-weight:400!important;
+  line-height:1.38!important;
+  letter-spacing:.003em!important;
+  -webkit-line-clamp:4!important;
+  color:#332819!important;
+  padding:0 0 27px!important;
+  text-shadow:0 0 0 #332819!important;
+}
+#studioApp #notes .note-paper.has-saved-writing{
+  padding:53px 24px 30px!important;
+}
+@media(max-width:620px){
+  #studioApp #notes .note-paper.has-saved-writing .studio-writing-preview-text{
+    font-size:clamp(23px,5.3vw,29px)!important;
+    line-height:1.35!important;
+  }
+}
