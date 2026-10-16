@@ -377,7 +377,12 @@
     if(direct){
       el=document.createElement('video');el.src=direct;el.controls=true;el.autoplay=true;el.playsInline=true;el.poster=still||'';el.preload='metadata';
     }else if(embed){
-      el=document.createElement('iframe');el.src=embed+'?autoplay=1';el.title='Video preview';el.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';el.allowFullscreen=true;el.referrerPolicy='strict-origin-when-cross-origin';
+      el=document.createElement('iframe');el.src=embed+(embed.includes('?')?'&':'?')+'autoplay=1';el.title='Video preview';
+      const provider=String(new URL(embed).hostname).toLowerCase();
+      const vertical=provider.includes('instagram.com')||provider.includes('tiktok.com');
+      el.className=vertical?'veve-embed-portrait':'veve-embed-landscape';
+      if(provider.includes('instagram.com')&&/\/p\//.test(embed))el.className='veve-embed-square';
+      el.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';el.allowFullscreen=true;el.referrerPolicy='strict-origin-when-cross-origin';
     }else if(still){
       el=document.createElement('img');el.src=still;el.alt='Full-size post preview';
     }else{
