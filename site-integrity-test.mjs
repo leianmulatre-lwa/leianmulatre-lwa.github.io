@@ -121,10 +121,10 @@ const avatarMaker=read('avatar/mii-editor.html');
 assert.match(avatarMaker, /ruffle\.js/);
 assert.match(avatarMaker, /\/MiiEditor\/classicGUI\.swf/);
 assert.match(avatarStudio, /Import Mii image/);
-assert.match(read('arcade-puzzles.html'), /data-tab="quest"/);
+assert.doesNotMatch(read('arcade-puzzles.html'), /data-tab="quest"/);
 assert.match(read('avatar/arcade-character.js'), /biglwaQuestCompleted/);
-assert.match(modules, /character quest/);
-assert.match(veve, /id:'quest'/);
+assert.doesNotMatch(modules.slice(modules.indexOf('function renderGames(){'),modules.indexOf('const dykQuestions=[',modules.indexOf('function renderGames(){'))), /title:'character quest'/);
+assert.doesNotMatch(veve, /id:'quest'/);
 assert.match(avatarStudio, /\/avatar\/unity\/index\.html/);
 
 assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
