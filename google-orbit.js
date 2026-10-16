@@ -178,7 +178,7 @@
     if (!grid) return;
     var card = grid.closest('#orbit');
     if (!card) return;
-    var linkIds = ['spotify', 'soundcloud'];
+    var linkIds = ['spotify', 'soundcloud', 'drive', 'calendar'];
     var shelf = one('#orbitPlanetaryShelf', card);
     if (!shelf) {
       shelf = document.createElement('div');
@@ -194,8 +194,8 @@
     });
     [
       {id:'x', name:'X', glyph:'X', color:'#191919'},
-      {id:'snapchat', name:'Snapchat', glyph:'SC', color:'#e2c500'},
-      {id:'tumblr', name:'Tumblr', glyph:'T', color:'#304b6c'}
+      {id:'snapchat', name:'Snapchat', glyph:'SC', color:'#ffeb00'},
+      {id:'tumblr', name:'Tumblr', glyph:'T', color:'#1b304b'}
     ].forEach(function (provider) {
       if (one('[data-orbit-app="' + provider.id + '"]', grid)) return;
       var tile = document.createElement('button');
