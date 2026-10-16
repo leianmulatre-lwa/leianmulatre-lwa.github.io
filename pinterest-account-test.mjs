@@ -55,7 +55,7 @@ await check('Pinterest OAuth returns to the exact trusted Big LWA origin',async(
  const oauth=new URL(callback.headers.get('location'));
  const state=oauth.searchParams.get('state');
  const stored=JSON.parse(records.get('pn:state:'+state));
- assert.equal(stored.returnTo,'https://www.biglwa.com/studio/boards');
+ assert.equal(stored.returnTo,'https://www.biglwa.com/studio?view=orbit'); // Canonical Orbit return, even when a legacy boards path is requested.
  assert.equal(stored.challenge,challenge);
  const untrusted=await route(req('/pinterest/start?challenge='+challenge+'&return_to='+encodeURIComponent('https://not-biglwa.com/studio/boards')),env);
  assert.equal(untrusted.status,302);
