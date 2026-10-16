@@ -401,17 +401,17 @@
       #studioApp #stream .stream-wave{position:absolute;left:18px;right:18px;bottom:12px;height:18px;opacity:.67}
       /* Keep temporary Stream/Sir Clips labels separate from the soundwave.
          Moving the wave to a reserved lower band preserves legibility. */
-      #studioApp #stream .stream-screen{padding-bottom:44px!important}
-      #studioApp #stream .stream-screen>strong{margin-top:78px!important;position:relative!important;z-index:2!important}
+      #studioApp #stream .stream-screen{padding-bottom:27px!important}
+      #studioApp #stream .stream-screen>strong{margin-top:109px!important;position:relative!important;z-index:2!important}
       #studioApp #stream .stream-screen>span{position:relative!important;z-index:2!important;max-width:100%!important;overflow-wrap:anywhere!important}
       #studioApp #stream .stream-screen>.stream-wave{
-        position:absolute!important;left:18px!important;right:18px!important;top:auto!important;bottom:12px!important;
-        z-index:1!important;height:18px!important;max-height:18px!important;pointer-events:none!important;
+        position:absolute!important;left:20px!important;right:20px!important;top:76px!important;bottom:auto!important;
+        z-index:2!important;height:16px!important;max-height:16px!important;opacity:.54!important;pointer-events:none!important;
       }
       #studioApp #stream .on-air{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(16,12,15,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
       /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
       #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
-      #studioApp #notes .note-paper{position:relative;isolation:isolate;min-height:210px;padding:54px 28px 28px;border:0!important;border-radius:3px 3px 17px 3px!important;background:repeating-linear-gradient(to bottom,transparent 0,transparent 28px,rgba(119,92,38,.15) 29px),linear-gradient(145deg,#fff6a5,#f1d866)!important;color:#3c3021!important;font-family:"Comic Sans MS","Bradley Hand","Segoe Print",cursive!important;font-size:20px!important;line-height:1.45!important;text-align:left!important;transform:rotate(-.55deg);box-shadow:0 12px 22px rgba(69,49,23,.18),inset 0 0 28px rgba(255,255,255,.28)!important;overflow:hidden}
+      #studioApp #notes .note-paper{position:relative;isolation:isolate;min-height:210px;padding:54px 28px 28px;border:0!important;border-radius:3px 3px 17px 3px!important;background:repeating-linear-gradient(to bottom,transparent 0,transparent 28px,rgba(119,92,38,.15) 29px),linear-gradient(145deg,#fff6a5,#f1d866)!important;color:#3c3021!important;font-family:"LWA Cuteness Notes","Comic Sans MS","Bradley Hand",cursive!important;font-weight:400!important;font-size:clamp(20px,2.2vw,25px)!important;line-height:1.45!important;text-align:left!important;transform:rotate(-.55deg);box-shadow:0 12px 22px rgba(69,49,23,.18),inset 0 0 28px rgba(255,255,255,.28)!important;overflow:hidden}
       #studioApp #notes .note-paper::before{content:"SQWIB NOTE";position:absolute;left:20px;top:16px;padding:5px 8px;border:1px solid rgba(75,55,25,.18);background:rgba(255,248,196,.76);color:#67512f;font:900 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.15em;transform:rotate(-1.5deg)}
       #studioApp #notes .note-paper::after{content:"";position:absolute;right:0;bottom:0;width:34px;height:34px;background:linear-gradient(135deg,rgba(172,139,52,.28) 0 49%,#fff5a0 50%);filter:drop-shadow(-2px -2px 2px rgba(84,64,29,.11))}
       #studioApp #notes .note-paper span{position:absolute;right:22px;bottom:15px;margin:0!important;color:#765f35;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
@@ -1452,7 +1452,29 @@
     }
   }
 
-  function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function ensureArcadeMachineLink(){
+    const machine=$('#studioApp #games .games-library');
+    if(!machine||machine.dataset.arcadeWholeMachineLink==='1')return;
+    machine.dataset.arcadeWholeMachineLink='1';
+    machine.setAttribute('role','button');
+    machine.setAttribute('tabindex','0');
+    machine.setAttribute('aria-label','Open the Big LWA Arcade and game directory');
+    machine.title='Open Arcade';
+    const openArcade=()=>{
+      const launcher=$('#studioApp #games .arrow-btn[data-open="games"],#studioApp #games [data-open="games"]:not(.games-library)');
+      if(launcher)launcher.click();
+      else document.querySelector('#studioApp [data-sidebar-route="games"]')?.click();
+    };
+    machine.addEventListener('click',event=>{
+      if(event.target.closest('button,a,input,select,textarea,[contenteditable="true"]'))return;
+      openArcade();
+    });
+    machine.addEventListener('keydown',event=>{
+      if(event.target!==machine||!['Enter',' '].includes(event.key))return;
+      event.preventDefault();openArcade();
+    });
+  }
+  function run(){ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
   if(document.documentElement.dataset.biglwaCustomizationSyncBound!=='1'){
     document.documentElement.dataset.biglwaCustomizationSyncBound='1';
     window.addEventListener('biglwa:customization-remote',event=>{
