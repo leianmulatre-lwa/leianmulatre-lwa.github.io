@@ -1678,7 +1678,7 @@ const PROVIDERS={
     token:'https://api.tumblr.com/v2/oauth2/token',scope:'basic offline_access'},
  snapchat:{id:'SNAPCHAT_CLIENT_ID',secret:'SNAPCHAT_CLIENT_SECRET',authorize:'https://accounts.snapchat.com/login/oauth2/authorize',
     token:'https://accounts.snapchat.com/login/oauth2/access_token',
-    scope:'https://auth.snapchat.com/oauth2/api/user.display_name https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar'}
+    scope:'https://auth.snapchat.com/oauth2/api/user.external_id https://auth.snapchat.com/oauth2/api/user.display_name https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar'}
 };
 const WORKER_ORIGIN='https://api.biglwa.com';
 const FINISH_URL='https://biglwa.com/studio?view=orbit';
@@ -1704,7 +1704,7 @@ async function oaChallenge(text){
  return oaB64url(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))));
 }
 function oaCallback(provider,env){
- const host=String(env.NEW_ORBIT_CALLBACK_ORIGIN||WORKER_ORIGIN).trim();
+ const host=String((provider==='x'?env.NEW_ORBIT_CALLBACK_ORIGIN:null)||WORKER_ORIGIN).trim();
  if(!/^https:\/\/(?:api\.biglwa\.com|biglwa-instagram-api\.leianmulatre-284\.workers\.dev)$/.test(host))
    oaError('Orbit callback origin must be a trusted BIG LWA Worker hostname.',500);
  return host+'/'+provider+'/callback';
