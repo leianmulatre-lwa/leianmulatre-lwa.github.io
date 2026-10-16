@@ -839,6 +839,62 @@ export async function removeOrbitPost(postId) {
    had their own partial copy of this write, which is how a card could end up in the
    Collective Feed but missing from the Archive, or carry no owner at all. They now call
    this, so there is exactly one definition of what a post write means. */
+/* Persist a user-selected Facebook photo/video or TikTok video as an account-owned,
+ * private Orbit draft. Provider media remains at its source unless a durable R2 copy
+ * exists; we save a working original-post link for those source-hosted previews.
+ * Stable ids ensure reconnecting never duplicates a post or resets its visibility. */
+export async function saveExternalOrbitDraft(source, raw) {
+  const provider=clean(source).toLowerCase();
+  if(!['facebook','tiktok'].includes(provider))throw Error('This source is not enabled for Orbit drafts.');
+  const store=await firebase();
+  await store.auth.authStateReady();
+  const user=store.auth.currentUser;
+  if(!user)throw Error('Sign in to Big LWA before importing account content.');
+  const item=raw&&typeof raw==='object'?raw:{};
+  const https=value=>{
+    try{const u=new URL(clean(value));return u.protocol==='https:'?u.href:''}
+    catch{return ''}
+  };
+  const original=https(item.sourceUrl||item.share_url||item.permalink_url||item.link);
+  if(!original)throw Error('This '+provider+' item needs a public source link before it can be saved.');
+  const host=new URL(original).hostname.toLowerCase();
+  if(provider==='tiktok'&&!['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(host))
+    throw Error('Use the original TikTok video URL.');
+  if(provider==='facebook'&&!['facebook.com','www.facebook.com','m.facebook.com','web.facebook.com','fb.watch'].includes(host))
+    throw Error('Use a Facebook-owned original post URL.');
+  const externalId=clean(item.sourcePostId||item.id||item.video_id||original);
+  const postId=await idFor(provider+':'+user.uid,externalId);
+  const refs=postRefs(store,user.uid,postId);
+  const prior=await store.getDoc(refs.root);
+  if(prior.exists()){
+    const present=prior.data()||{};
+    // Never silently publish, unpublish, archive or duplicate an existing post.
+    return {id:postId,created:false,state:present.state||'draft',source:provider};
+  }
+  const name=clean(item.caption||item.title||item.video_description||provider+' media').slice(0,500);
+  const thumbnail=https(item.thumbnailUrl||item.cover_image_url||item.picture||item.imageUrl);
+  const mediaType=clean(item.mediaType||item.kind||(provider==='tiktok'?'video':'image')).toUpperCase();
+  const owner=await resolveOwner(user,{},null);
+  const created=store.serverTimestamp();
+  const data={
+    uid:user.uid,username:owner.username,usernameLower:owner.usernameLower,
+    authorName:owner.authorName,
+    source:provider,sourcePostId:externalId,sourceUrl:original,
+    sourceUsername:clean(item.sourceUsername||item.username),
+    sourceCreatedAtMs:Number(item.sourceCreatedAtMs)||Date.now(),
+    caption:name,linkTitle:name,mediaType,
+    thumbnailUrl:thumbnail||null,
+    imageUrl:thumbnail||null,imageUrls:thumbnail?[thumbnail]:[],
+    mediaItems:thumbnail?[{index:0,isPicture:true,url:thumbnail,thumbnailUrl:thumbnail,mediaType:'IMAGE'}]:[],
+    orbitImported:true,sourceHostedMedia:true,
+    state:'draft',archiveState:'saved',createdAt:created,updatedAt:created
+  };
+  const result=await writePostRecords(store,user.uid,postId,data,{archiveState:'saved'});
+  if(result.denied.includes('root'))throw Error('Orbit draft could not reach the main Feed database. Try again.');
+  window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:provider,postId,state:'draft'}}));
+  return {id:postId,created:true,state:'draft',source:provider};
+}
+
 export async function savePostRecords(ownerUid, postId, data, archiveExtra = {}) {
   const store = await firebase();
   const uid = ownerUid || store.auth.currentUser?.uid;
@@ -869,5 +925,6 @@ window.__biglwaOrbitPosts = {
   addArchiveFriend,
   removeArchiveFriend,
   savePostRecords,
+  saveExternalOrbitDraft,
   sourceTimeMs
 };
