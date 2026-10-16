@@ -97,6 +97,25 @@
         button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
       });
 
+      // Advanced photo/video permissions are optional and must never block basic Facebook login.
+      // Request them through a separate, explicit user click after Meta grants access.
+      all('[data-orbit-connect="facebook"]').forEach(function (button) {
+        var actions = button.closest('.module-actions');
+        if (!actions) return;
+        var mediaButton = one('[data-facebook-orbit-media]', actions);
+        var needsMedia = state.connected && (!state.permissions.includes('user_photos') || !state.permissions.includes('user_videos'));
+        if (needsMedia && !mediaButton) {
+          mediaButton = document.createElement('button');
+          mediaButton.type = 'button';
+          mediaButton.className = 'module-action ghost';
+          mediaButton.setAttribute('data-facebook-orbit-media','1');
+          mediaButton.textContent = 'Allow Facebook media';
+          actions.appendChild(mediaButton);
+        } else if (!needsMedia && mediaButton) {
+          mediaButton.remove();
+        }
+      });
+
       document.body.classList.toggle('facebook-orbit-connected', state.connected);
 
       /* The Orbit page's own Facebook row now uses the shared connect button
@@ -134,7 +153,7 @@
   function loadFacebookContent() {
     return readGrantedPermissions().then(function () {
       var requests = [
-        facebookApi('/me', { fields: 'id,name,email,link,picture.width(200).height(200)' }),
+        facebookApi('/me', { fields: 'id,name,email,picture.width(200).height(200)' + (hasPermission('user_link') ? ',link' : '') }),
         hasPermission('user_photos') ? facebookApi('/me/photos', { type: 'uploaded', fields: 'id,name,images,created_time,link', limit: 12 }) : Promise.resolve(null),
         hasPermission('user_videos') ? facebookApi('/me/videos', { fields: 'id,title,description,source,picture,created_time,permalink_url', limit: 8 }) : Promise.resolve(null)
       ];
@@ -209,10 +228,13 @@
 
   function connect() {
     loadSDK().then(function () {
+      // Do not request App-Review-only permissions on the initial sign-in.
       window.FB.login(function (response) {
         if (!response || !response.authResponse) {
           state.connected = false;
-          state.error = 'Facebook authorization was cancelled or unavailable.';
+          state.error = (response && (response.error_message || response.error))
+            ? String(response.error_message || response.error)
+            : 'Facebook authorization was cancelled or unavailable. Check Meta app roles and publish status.';
           showStatus(state.error);
           render();
           return;
@@ -220,16 +242,41 @@
         state.connected = true;
         state.error = '';
         loadFacebookContent().then(function () {
-          showStatus('Facebook is connected. Approved media is ready in Collective Feed.');
+          var mediaGranted = hasPermission('user_photos') || hasPermission('user_videos');
+          showStatus(mediaGranted
+            ? 'Facebook connected. Approved media is available in Collective Feed.'
+            : 'Facebook connected. Media imports need separate Meta permissions; use Allow Facebook media when approved.');
+          render();
+        }).catch(function (error) {
+          state.error = error.message || 'Facebook profile could not load.';
+          showStatus(state.error);
           render();
         });
-      }, { scope: 'public_profile,email,user_photos,user_videos,user_link', return_scopes: true });
+      }, { scope: 'public_profile,email', return_scopes: true });
     }).catch(function (error) {
       state.connected = false;
       state.error = error.message || 'Facebook Login could not start.';
       showStatus(state.error);
       render();
     });
+  }
+
+  function requestMediaAccess() {
+    if (!state.connected || !window.FB || !window.FB.login) {
+      showStatus('Connect Facebook before requesting photos and videos.');
+      return;
+    }
+    window.FB.login(function (response) {
+      if (!response || !response.authResponse) {
+        showStatus('Facebook media access was not granted. Check user_photos and user_videos approval in Meta.');
+        return;
+      }
+      loadFacebookContent().then(function () {
+        showStatus(hasPermission('user_photos') || hasPermission('user_videos')
+          ? 'Facebook media permissions updated.'
+          : 'Facebook is connected, but Meta has not granted photo or video access.');
+      }).catch(function () { showStatus('Facebook media could not be loaded. Try again later.'); });
+    }, {scope:'user_photos,user_videos',auth_type:'rerequest',return_scopes:true});
   }
 
   function disconnect() {
@@ -250,6 +297,12 @@
   document.addEventListener('click', function (event) {
     var target = event.target && event.target.closest ? event.target : null;
     if (!target) { return; }
+    if (target.closest('[data-facebook-orbit-media]')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      requestMediaAccess();
+      return;
+    }
     var connectTarget = target.closest('[data-orbit-app="facebook"],[data-facebook-orbit-connect]');
     if (connectTarget) {
       event.preventDefault();
