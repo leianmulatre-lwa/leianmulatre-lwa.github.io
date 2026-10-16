@@ -70,8 +70,13 @@ async function load(nextUid){
 const normalizedDestination=(value)=>{
   try{
     const u=new URL(String(value||'').trim());
-    return u.hostname.toLowerCase().replace(/^www\./,'')+
-      decodeURIComponent(u.pathname).replace(/\/+$/,'').toLowerCase();
+    const host=u.hostname.toLowerCase().replace(/^(?:www|m|mobile)\./,'').replace(/^twitter\.com$/,'x.com');
+    const path=decodeURIComponent(u.pathname).replace(/\/+$/,'').toLowerCase();
+    const identity=new URLSearchParams();
+    for(const key of ['id','v','user','username','page_id','channel']){
+      if(u.searchParams.has(key))identity.set(key,u.searchParams.get(key)||'');
+    }
+    return host+path+(identity.size?'?'+identity.toString():'');
   }catch{return ''}
 };
 async function save(id,value){
