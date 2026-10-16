@@ -109,3 +109,9 @@ body.night-mode #studioApp #moduleWorkspace .writing-collection-item[aria-curren
  }
  #studioApp #moduleWorkspace .writing-collection-search{max-width:320px}
 }
+
+/* A selected Sqwip screenplay tab must fully hide the Sqwib navigator/editor. */
+#studioApp #moduleWorkspace[data-module-key="notes"] #diaryWritingSection[hidden],
+#studioApp #moduleWorkspace[data-module-key="diary"] #diaryWritingSection[hidden]{
+  display:none!important;
+}
