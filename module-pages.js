@@ -1012,6 +1012,12 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
     body.onclick=async e=>{
+     const toggle=e.target.closest('#orbitPlanetaryToggle');
+     if(toggle){
+       const list=$('#orbitPlanetaryList',body);
+       if(list){list.hidden=!list.hidden;toggle.setAttribute('aria-expanded',String(!list.hidden));toggle.textContent=list.hidden?'view planetary':'hide planetary'}
+       return;
+     }
      const importLinks=e.target.closest('#orbitImportLocalLinks');
      if(importLinks){
        importLinks.disabled=true;say('Importing saved browser links…');
@@ -1032,6 +1038,11 @@ const connect=e.target.closest('[data-orbit-connect]');
        save.disabled=true;say('Saving '+(ORBIT_APP_NAMES[k]||'Orbit')+' link to your account…');
        try{
          if(!manager?.save)throw Error('Account link storage is still loading.');
+         const linkKey=orbitLinkKey(url);
+         if(linkKey&&Object.entries(orbitLinks()).some(([other,saved])=>other!==k&&orbitLinkKey(saved)===linkKey))
+           throw Error('This quick link is already saved under another Orbit source.');
+         if(linkKey&&orbitConnected().some(row=>row&&row.id!==k&&orbitLinkKey(row.link)===linkKey))
+           throw Error('This quick link is already connected in Orbit.');
          await manager.save(k,url);
          say((ORBIT_APP_NAMES[k]||'Orbit')+' link saved to your BIGLWA account.');
          renderOrbitPage();
