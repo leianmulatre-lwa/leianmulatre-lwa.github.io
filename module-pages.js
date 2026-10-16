@@ -2481,6 +2481,15 @@ const connect=e.target.closest('[data-orbit-connect]');
   });
 
   window.BigLWAOpenModule = (key) => openModule(key);
+  const syncVeveLogoLabel=()=>{
+    const logo=document.querySelector('#studioApp .studio-brand-row > a.brand.biglwa-block-brand');
+    if(!logo)return;
+    const title=activeModuleKey==='veve'?'Return to Studio':'Open Veve';
+    logo.setAttribute('aria-label',title);
+    logo.setAttribute('title',title);
+  };
+  document.addEventListener('biglwa:module-open',syncVeveLogoLabel);
+  document.addEventListener('biglwa:module-close',syncVeveLogoLabel);
   // The BIGLWA crest toggles between Studio and Veve without reloading the
   // signed-in session or interrupting any other modules or their stored data.
   document.addEventListener('click',event=>{
