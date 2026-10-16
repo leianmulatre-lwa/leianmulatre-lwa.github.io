@@ -1,3 +1,4 @@
+import { handleAdditionalOrbit } from './new-orbit-oauth.js';
 const INSTAGRAM_AUTHORIZE_URL = 'https://www.instagram.com/oauth/authorize';
 const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
@@ -460,6 +461,10 @@ function corsHeaders(origin) {
  */
 export default {
   async fetch(request, env) {
+    if (/^\/(?:x|tumblr|snapchat)\//.test(new URL(request.url).pathname)) {
+      const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
+      return handleAdditionalOrbit(request,config,mediaUser);
+    }
     if (new URL(request.url).pathname.startsWith('/sqwip/')) {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
       try { return await sqwipRoute(request, config); }
