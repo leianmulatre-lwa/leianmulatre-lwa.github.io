@@ -23,14 +23,14 @@ const tests=[
  ['Original uploaded Adobe AIR SWF preserved',existsSync(new URL('./MiiEditor/classicGUI.swf',import.meta.url))],
  ['Original editor mounted through Ruffle',editor.includes('/MiiEditor/classicGUI.swf')&&editor.includes('RufflePlayer.newest')&&editor.includes('ruffle.js')],
  ['No misleading browser-native Mii format claims',editor.includes('AIR-only')&&editor.includes('may not work')],
- ['Studio embeds original Mii editor',studio.includes('<iframe id="biglwaMiiEditorFrame"')&&studio.includes('20261015-ruffle-original')],
+ ['Studio embeds original Mii editor',studio.includes('<iframe id="biglwaMiiEditorFrame"')&&studio.includes('20261016-mii-opt-in')],
  ['PNG image import remains available',studio.includes('Import Mii image')&&studio.includes('data-avatar-kind="mii"')],
  ['Account avatar upload still authenticated',studio.includes('getIdToken')&&studio.includes('studioAvatar:')],
  ['Previously saved avatars can still restore',studio.includes('sendSavedMiiToFrame()')&&studio.includes('Saved avatar restored')],
- ['Quest and legacy puzzles',arcade.includes('data-tab="quest"')&&arcade.includes('data-tab="2048"')&&arcade.includes('data-tab="crossword"')],
+ ['Only active puzzle tabs exposed',!arcade.includes('data-tab="quest"')&&arcade.includes('data-tab="2048"')&&arcade.includes('data-tab="crossword"')],
  ['Arcade account character',quest.includes(".data()?.studioAvatar")&&quest.includes('playing as')],
  ['Quest accessible controls',quest.includes("grid.addEventListener('touchstart'")&&quest.includes("document.addEventListener('keydown'")&&arcade.includes('role="grid"')],
- ['Arcade directory and Veve linked',modules.includes('game=quest')&&veve.includes("id:'quest'")],
+ ['Arcade directory and Veve linked',modules.includes('biglwa:arcade-request-game')&&veve.includes('biglwa:arcade-request-game')&&!veve.includes("id:'quest'")],
  ['Artwork',existsSync(new URL('./assets/arcade/character-quest.svg',import.meta.url))]
 ];
 for(const [label,ok] of tests)console.log((ok?'PASS':'FAIL')+' · '+label);
