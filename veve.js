@@ -79,7 +79,7 @@
     if(state.loading)return;state.loading=true;state.loadError='';
     try{
       const f=await fb();
-      const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(100)));
+      const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(250)));
       // Query public posts only. Do not load private board data into discovery.
       state.items=rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true);
       state.sourceCounts=new Map();
@@ -109,10 +109,22 @@
     return [post.videoUrl,post.video_url,post.mediaUrl,...pieces.filter(x=>x&&(x.isPicture===false||/^video/i.test(x.mediaType||x.type||''))).map(x=>x.url),
       ...(Array.isArray(post.imageUrls)?post.imageUrls:[])].map(safeUrl).find(x=>videoFile(x))||'';
   }
+  // Match Collective Feed's managed Orbit key resolution, not just imageUrl.
+  // Only already approved public posts are passed into these renderers.
+  const orbitBase='https://biglwa-instagram-api.leianmulatre-284.workers.dev';
+  const orbitFromKey=key=>{
+    const clean=String(key||'').replace(/^orbit\//,'');
+    return /^[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(clean)?orbitBase+'/media/orbit/'+clean:'';
+  };
   function picture(post){
-    const entries=[post.imageUrl,post.thumbnailUrl,...(Array.isArray(post.imageUrls)?post.imageUrls:[]),
-      ...(Array.isArray(post.mediaItems)?post.mediaItems.flatMap(x=>[x?.thumbnailUrl,x?.isPicture===false?'':x?.url]):[])];
-    return entries.map(safeUrl).find(x=>x&&!videoFile(x))||'';
+    const pieces=Array.isArray(post.mediaItems)?post.mediaItems:[];
+    const urls=[
+      ...pieces.flatMap(x=>x?[x.url,x.thumbnailUrl,orbitFromKey(x.key)]:[]),
+      ...(Array.isArray(post.imageUrls)?post.imageUrls:[]),
+      ...(Array.isArray(post.imageKeys)?post.imageKeys.map(orbitFromKey):[]),
+      post.imageUrl,orbitFromKey(post.imageUrlKey),post.thumbnailUrl
+    ];
+    return urls.map(safeUrl).find(x=>x&&!videoFile(x))||'';
   }
   function videoEmbed(post){
     const link=safeUrl(post.sourceUrl||post.permalink||'');
@@ -201,7 +213,8 @@
   }
   function blocks(key){
     if(key==='photos'){
-      const photos=rank(state.items).filter(p=>picture(p)).slice(0,24);
+      const available=rank(state.items).filter(p=>picture(p)||video(p)||videoEmbed(p));
+      const photos=[...available.filter(p=>p.veveFeatured===true),...available.filter(p=>p.veveFeatured!==true)].slice(0,80);
       return photos.length?photos.map(p=>photoMarkup(p,key)).join(''):quickCard('photos','Your collective is taking shape','Only actually published images appear here. Private Orbit imports and drafts remain in Archive.','feed');
     }
     if(key==='pinterest'){
@@ -226,7 +239,6 @@
     if(key==='games')return [
       {label:'2048',id:'2048',image:'/assets/arcade/2048.svg',description:'Merge matching tiles to reach 2048.'},
       {label:'crossword',id:'crossword',image:'/assets/arcade/crossword.svg',description:'Fill the grid from the clues.'},
-      {label:'character quest',id:'quest',image:'/assets/arcade/character-quest.svg',description:'Play a three-level adventure with your saved Big LWA character.'},
       {label:'culture quiz',id:'culture',image:'/assets/culture-quiz-cubes.png',description:'Explore the culture quiz in Arcade.'}
     ].map(game=>
       '<article class="veve-tile veve-game">'+
@@ -363,13 +375,13 @@
     d.showModal();
   }
   function openGame(kind){
-    if(kind==='culture'){window.openBIGLWAModule?.('games');return;}
-    const d=viewDialog(),stage=d.querySelector('#vevePreviewStage');
-    stage.replaceChildren();const frame=document.createElement('iframe');
-    frame.title=kind==='2048'?'2048 game':kind==='quest'?'Character Quest game':'Crossword puzzle';frame.className='veve-game-player';
-    frame.src='/arcade-puzzles.html?game='+encodeURIComponent(kind);stage.append(frame);
-    d.querySelector('#vevePreviewCaption').hidden=true;
-    d.querySelector('#vevePreviewOriginal').hidden=true;d.showModal();
+    // Use exactly the existing Arcade cabinet emulator, including its controls
+    // and same-origin puzzles, rather than a second unstyled Veve iframe.
+    if(!['2048','crossword','culture'].includes(kind))return;
+    window.__biglwaArcadeRequestedGame=kind;
+    window.openBIGLWAModule?.('games');
+    // When Arcade is already mounted, openModule may reuse it.
+    window.dispatchEvent(new CustomEvent('biglwa:arcade-request-game',{detail:{kind}}));
   }
   let listenersInstalled=false;
   function bind(){
