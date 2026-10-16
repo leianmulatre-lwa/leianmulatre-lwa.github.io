@@ -26,6 +26,12 @@ const connections = readFileSync(new URL('./orbit-connections.js',import.meta.ur
 const pages = readFileSync(new URL('./module-pages.js',import.meta.url),'utf8');
 check("base TikTok login uses basic scope until video.list approval",
  worker.includes("scope: env.TIKTOK_VIDEO_LIST_APPROVED==='true'?'user.info.basic,video.list':'user.info.basic'"));
+check("TikTok token request explicitly sends form encoding",
+ worker.includes("'Content-Type':'application/x-www-form-urlencoded'")&&worker.includes("body.set('redirect_uri', String(params.redirect_uri))"));
+check("token errors preserve TikTok support log ID but no secrets",
+ worker.includes("TikTok log ID: ")&&worker.includes("token.log_id"));
+check("failed code exchanges redirect back to Orbit instead of raw JSON",
+ worker.includes("destination.searchParams.set('tiktok_error', (error.publicMessage")&&worker.includes("return ttRedirect(destination.href, '');"));
 check("secure TikTok callback uses original trusted domain",
  worker.includes("const destination = new URL(ttReturnUrl(saved.returnTo,env))"));
 check("TikTok returns meaningful provider error",
