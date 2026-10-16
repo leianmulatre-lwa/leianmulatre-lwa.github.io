@@ -85,7 +85,7 @@
     state.loading=true;state.loadError='';
     try{
       const f=await fb();
-      const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(250)));
+      const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(160)));
       // Query public posts only. Do not load private board data into discovery.
       state.items=rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true);
       state.sourceCounts=new Map();
