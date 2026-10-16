@@ -1,210 +1,53 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Big LWA · Character Maker</title>
+<title>Big LWA · Original Mii Editor</title>
 <style>
-:root{color-scheme:light;--ink:#332a28;--line:#bdaea5;--paper:#fffaf2;--accent:#ca536b}
-*{box-sizing:border-box}body{margin:0;padding:12px;background:transparent;color:var(--ink);font:13px/1.35 system-ui,Arial,sans-serif}
-main{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-width:760px;margin:auto}
-h1{font:500 19px/1.2 Georgia,serif;margin:0}p{margin:2px 0 8px;font-size:11px;color:#6b5c54}
-canvas{display:block;margin:auto;max-width:100%;height:auto;aspect-ratio:1;background:linear-gradient(150deg,#fffdf9,#e9e2dc);border:1px solid var(--line);border-radius:12px}
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:4px 0}
-label{display:grid;gap:4px;font:600 10px/1.4 system-ui}.full-field{grid-column:1/-1}
-select,input{width:100%;min-width:0;padding:8px 6px;border:1px solid #cbb8ad;border-radius:8px;background:#fffaf3;color:#362d2c;font:12px/1.2 system-ui}
-input[type=color]{height:34px;padding:2px}
-.actions{display:flex;flex-wrap:wrap;gap:8px}
-button,.button-label,.game-link{flex:1 1 auto;display:inline-flex;justify-content:center;align-items:center;border:1px solid #cdb4ac;border-radius:9px;background:#f7eee4;color:#3a2c29;font:700 11px/1.3 system-ui;padding:9px 10px;cursor:pointer;text-decoration:none;text-align:center}button:focus-visible,.button-label:focus-within,.game-link:focus-visible{outline:3px solid #ca536b;outline-offset:2px}
-button.primary{background:#cb566c;border-color:#bd4e63;color:white}
-#status{font-size:11px;min-height:1.3em;color:#63504d}.button-label input{width:1px;height:1px;position:absolute;opacity:0;pointer-events:none}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-@media(min-width:620px){main{grid-template-columns:minmax(0,330px) minmax(260px,1fr);align-items:start}}
+:root{color-scheme:light;--paper:#f8eee3;--ink:#322723;--aura:#bd4968}
+*{box-sizing:border-box}
+body{margin:0;padding:14px;background:var(--paper);color:var(--ink);font:13px/1.45 system-ui,sans-serif}
+main{max-width:890px;margin:auto;display:grid;gap:12px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{margin:0;font:400 clamp(24px,4vw,35px)/1.2 Georgia,serif}
+p{margin:4px 0 0}small{opacity:.8}
+#screen{position:relative;width:100%;min-height:480px;aspect-ratio:16/10;overflow:hidden;border:1px solid #b9a699;border-radius:14px;background:#24201e;display:grid;place-items:center}
+#screen ruffle-player{display:block;width:100%;height:100%;position:absolute;inset:0}
+#status{color:var(--ink);font:600 12px/1.45 system-ui;min-height:20px}
+.actions{display:flex;gap:9px;flex-wrap:wrap}
+.actions a{border:1px solid #bda8a0;background:#fff9f2;color:var(--ink);padding:9px 12px;border-radius:999px;text-decoration:none;font-weight:700}
+.note{border:1px solid #cbb6ad;background:#fff8ef;padding:10px 12px;border-radius:12px;line-height:1.55}
+@media(max-width:600px){body{padding:8px}#screen{min-height:340px;aspect-ratio:4/3}}
 </style></head><body>
-<main><section><h1>lwa character port</h1><p>Build a classic Mii-style character on the web. Edit and save it to your Big LWA profile, then take it into Arcade. This port uses Big LWA character data, not Nintendo's proprietary Mii file format.</p>
-<canvas id="portrait" width="512" height="512" aria-label="Live avatar drawing"></canvas>
-</section><section>
-<div class="controls">
-<label class="full-field">Character name<input id="characterName" type="text" maxlength="32" value="My character" autocomplete="off" aria-label="Character name"></label>
-<label>Face shape<select id="face"><option value="oval">Oval</option><option value="round">Round</option><option value="square">Square</option><option value="heart">Heart</option></select></label>
-<label>Complexion<input id="skin" type="color" value="#c28b65"></label>
-<label>Hairstyle<select id="hair"><option value="crop">Short</option><option value="swoop">Side sweep</option><option value="bob">Bob</option><option value="curly">Curls</option><option value="buns">Buns</option><option value="bald">Bald</option></select></label>
-<label>Hair color<input id="hairColor" type="color" value="#362322"></label>
-<label>Eyes<select id="eyes"><option value="round">Round</option><option value="almond">Almond</option><option value="sleepy">Sleepy</option><option value="smile">Smiling</option></select></label>
-<label>Eye color<input id="eyeColor" type="color" value="#473d32"></label>
-<label>Eyebrows<select id="brows"><option value="soft">Soft</option><option value="straight">Straight</option><option value="arched">Arched</option></select></label>
-<label>Mouth<select id="mouth"><option value="smile">Smile</option><option value="neutral">Neutral</option><option value="grin">Grin</option><option value="open">Open</option></select></label>
-<label>Glasses<select id="glasses"><option value="none">None</option><option value="round">Round</option><option value="square">Square</option></select></label>
-<label>Outfit<input id="shirt" type="color" value="#ad455e"></label>
-</div>
-<div class="actions"><button type="button" id="random">Randomize</button><button type="button" id="download">Download PNG</button><button type="button" id="export">Export character</button><label for="import" class="button-label">Import character<input id="import" type="file" accept=".json,application/json" hidden></label></div>
-<div class="actions"><button type="button" class="primary" id="save">Save to Big LWA</button><a class="game-link" href="/arcade-puzzles.html?game=quest" target="_blank" rel="noopener noreferrer">Play in Arcade ↗</a></div>
-<div id="status" role="status" aria-live="polite">Changes preview instantly. Save when ready.</div></section></main>
+<main>
+<header><div><h1>original mii editor</h1><p>the uploaded 2007 editor · Flash rendering through Ruffle</p></div>
+<div class="actions"><a href="/MiiEditor/classicGUI.swf" target="_blank" rel="noopener noreferrer">Open original SWF ↗</a></div></header>
+<div id="screen" role="region" aria-label="Original Mii Editor Ruffle player"></div>
+<div id="status" role="status" aria-live="polite">Loading the original editor…</div>
+<p class="note"><strong>Compatibility note:</strong> This is the original Adobe AIR/Flash program, not the previous Big LWA-drawn imitation. AIR-only functions and its original save/export controls may not work in a web browser. To use a finished Mii as your Big LWA avatar, save a PNG and choose <strong>Import Mii image</strong> in Avatar settings. Your previous saved character stays unchanged.</p>
+</main>
 <script>
-(()=>{
-const canvas=document.querySelector('#portrait'),ctx=canvas.getContext('2d'),Q=id=>document.getElementById(id);
-const fields=['face','skin','hair','hairColor','eyes','eyeColor','brows','mouth','glasses','shirt'];
-const FORMAT='biglwa-character-v1';
-const validFields={
-  face:['oval','round','square','heart'],hair:['crop','swoop','bob','curly','buns','bald'],
-  eyes:['round','almond','sleepy','smile'],brows:['soft','straight','arched'],
-  mouth:['smile','neutral','grin','open'],glasses:['none','round','square']
-};
-const colorFields=['skin','hairColor','eyeColor','shirt'];
-function preset(){
-  const features=Object.fromEntries(fields.map(k=>[k,Q(k).value]));
-  return {format:FORMAT,version:1,name:Q('characterName').value.trim().slice(0,32)||'My character',features};
-}
-function usePreset(value){
-  if(!value||value.format!==FORMAT||!value.features||typeof value.features!=='object')throw Error('Not a Big LWA character file. Original Wii .mii files are not supported by this port.');
-  for(const field of fields){
-    const requested=value.features[field];
-    if(validFields[field]&&!validFields[field].includes(requested))continue;
-    if(colorFields.includes(field)&&!(typeof requested==='string'&&/^#[0-9a-fA-F]{6}$/.test(requested)))continue;
-    if(typeof requested==='string')Q(field).value=requested;
-  }
-  Q('characterName').value=String(value.name||'My character').slice(0,32);
-  render();
-}
-function exportPreset(){
-  const file=new Blob([JSON.stringify(preset(),null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(file),a=document.createElement('a');
-  a.href=url;a.download='biglwa-character.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
-function fillPath(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);points.slice(1).forEach(p=>ctx.lineTo(...p));ctx.closePath();ctx.fill()}
-function ellipse(x,y,rx,ry,color,stroke='',lw=1){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke()}}
-function line(x1,y1,x2,y2,color,width=4){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.lineWidth=width;ctx.strokeStyle=color;ctx.lineCap='round';ctx.stroke()}
-function curve(points,color,width=4){ctx.beginPath();ctx.moveTo(points[0],points[1]);ctx.bezierCurveTo(...points.slice(2));ctx.lineWidth=width;ctx.lineCap='round';ctx.strokeStyle=color;ctx.stroke()}
-function render(){
- const s=Object.fromEntries(fields.map(k=>[k,Q(k).value]));
- ctx.clearRect(0,0,512,512);
- const bg=ctx.createLinearGradient(0,0,512,512);bg.addColorStop(0,'#f8f3ee');bg.addColorStop(1,'#e5dbd5');ctx.fillStyle=bg;ctx.fillRect(0,0,512,512);
- ellipse(256,533,192,153,s.shirt);ellipse(256,486,95,62,s.skin);
- // ears and head
- ellipse(118,269,21,38,s.skin);ellipse(394,269,21,38,s.skin);
- let fw=s.face==='round'?130:s.face==='square'?121:117,fh=s.face==='round'?154:177;
- ctx.fillStyle=s.skin;ctx.beginPath();
- if(s.face==='square'){ctx.moveTo(145,140);ctx.lineTo(367,140);ctx.lineTo(375,342);ctx.quadraticCurveTo(256,400,137,342);ctx.closePath()}
- else if(s.face==='heart'){ctx.moveTo(256,140);ctx.bezierCurveTo(110,85,109,247,152,321);ctx.quadraticCurveTo(255,440,360,321);ctx.bezierCurveTo(404,247,395,86,256,140)}
- else ctx.ellipse(256,258,fw,fh,0,0,Math.PI*2);
- ctx.fill();
- const hc=s.hairColor;
- if(s.hair==='crop'){ellipse(256,161,121,74,hc);ellipse(183,177,62,50,hc);ellipse(329,177,58,50,hc)}
- if(s.hair==='swoop'){ellipse(256,161,124,82,hc);fillPath([[149,157],[349,101],[374,210],[294,183],[174,216]],hc)}
- if(s.hair==='bob'){ellipse(256,180,143,126,hc);ellipse(256,252,116,162,s.skin);fillPath([[127,290],[150,180],[173,289]],hc);fillPath([[339,289],[361,178],[388,288]],hc)}
- if(s.hair==='curly'){for(let i=0;i<10;i++){const a=Math.PI*1.02+i*Math.PI/9;ellipse(256+117*Math.cos(a),236+110*Math.sin(a),30,31,hc)}}
- if(s.hair==='buns'){ellipse(148,160,53,52,hc);ellipse(364,160,53,52,hc);ellipse(256,156,118,64,hc)}
- const eyeY=268,eyeXs=[208,304];
- eyeXs.forEach((x,i)=>{
-  if(s.eyes==='smile'){curve([x-23,eyeY+5,x-9,eyeY-9,x+11,eyeY-9,x+23,eyeY+5],hc,5);return}
-  ellipse(x,eyeY,s.eyes==='almond'?29:25,s.eyes==='sleepy'?10:17,'#fffdfa','#403335',2);
-  ellipse(x,eyeY,10,s.eyes==='sleepy'?8:12,s.eyeColor);ellipse(x,eyeY,5,8,'#141415');ellipse(x-3,eyeY-5,3,3,'#fff');
-  if(s.eyes==='sleepy')line(x-22,eyeY-6,x+22,eyeY-6,hc,5);
- });
- eyeXs.forEach(x=>{
-  if(s.brows==='arched')curve([x-22,239,x-4,221,x+12,222,x+23,239],hc,7);
-  else if(s.brows==='straight')line(x-21,232,x+20,232,hc,7);
-  else curve([x-21,235,x-5,226,x+8,227,x+21,232],hc,6);
- });
- // small nose and expression
- curve([256,280,252,300,250,317,262,319],'#865f51',3);
- if(s.mouth==='smile')curve([211,352,232,376,282,376,304,352],'#7b3b44',5);
- if(s.mouth==='neutral')line(223,362,289,362,'#7b3b44',5);
- if(s.mouth==='grin'){ellipse(256,359,45,14,'#fff8ed','#7b3b44',4)}
- if(s.mouth==='open')ellipse(256,363,20,26,'#703a42','#87424c',4);
- if(s.glasses!=='none'){
-  ctx.strokeStyle='#423d3d';ctx.lineWidth=5;
-  eyeXs.forEach(x=>{ctx.beginPath();if(s.glasses==='round')ctx.ellipse(x,268,39,36,0,0,Math.PI*2);else ctx.roundRect(x-39,236,78,64,12);ctx.stroke()});
-  line(247,260,265,260,'#423d3d',4);line(169,250,125,242,'#423d3d',4);line(343,250,388,242,'#423d3d',4);
- }
-}
-fields.forEach(k=>Q(k).addEventListener('input',render));
-Q('random').addEventListener('click',()=>{
- const options=k=>[...Q(k).options||[]].map(x=>x.value);
- for(const k of ['face','hair','eyes','brows','mouth','glasses']){const vals=options(k);Q(k).value=vals[Math.floor(Math.random()*vals.length)]}
- const colors=['#2a1d1d','#773d2a','#9b613e','#e3b88c','#bb788a','#3c5676'];
- Q('hairColor').value=colors[Math.floor(Math.random()*colors.length)];Q('shirt').value=colors[Math.floor(Math.random()*colors.length)];render();
-});
-Q('download').addEventListener('click',()=>{const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='biglwa-character.png';a.click();});
-Q('export').addEventListener('click',exportPreset);
-Q('import').addEventListener('change',async event=>{
-  const file=event.target.files?.[0];if(!file)return;
-  try{
-    if(file.size>15000)throw Error('Character file is too large.');
-    usePreset(JSON.parse(await file.text()));
-    Q('status').textContent='Character loaded. Save to keep it on your Big LWA account.';
-  }catch(error){Q('status').textContent=error.message||'Could not import character.'}
-  event.target.value='';
-});
-async function standaloneSave(){
-  const status=Q('status');
-  try{
-    const [a,b,f]=await Promise.all([
-      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
-      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
-    ]);
-    const app=a.getApps()[0]||a.initializeApp({
-      apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
-      authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
-      appId:'1:83232670555:web:e04927b20458390b3b507e'
-    });
-    const auth=b.getAuth(app);await auth.authStateReady();
-    const user=auth.currentUser;
-    if(!user){status.textContent='Sign in to Big LWA before saving your character.';return}
-    const file=await new Promise(resolve=>canvas.toBlob(blob=>resolve(blob),'image/png'));
-    if(!file)throw Error('Could not export character image.');
-    const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-photo',{
-      method:'POST',headers:{Authorization:'Bearer '+await user.getIdToken(),'Content-Type':'image/png'},body:file
-    });
-    const result=await response.json().catch(()=>({}));
-    if(!response.ok||!result.url)throw Error(result.error||'Image upload failed.');
-    await f.setDoc(f.doc(f.getFirestore(app),'users',user.uid),
-      {studioAvatar:{type:'mii',url:result.url,preset:preset(),updatedAt:f.serverTimestamp()}},
-      {mergeFields:['studioAvatar']});
-    status.textContent='Character saved to your Big LWA account and ready for Arcade.';
-    try{
-      const channel=new BroadcastChannel('biglwa-avatar');
-      channel.postMessage({type:'saved',uid:user.uid});channel.close();
-    }catch{}
-    window.dispatchEvent(new CustomEvent('biglwa:character-saved'));
-  }catch(error){status.textContent='Could not save: '+(error.message||'Try again.')}
-}
-Q('save').addEventListener('click',async()=>{
- Q('status').textContent='Saving to your Big LWA account…';
- if(window.parent!==window){
-   window.parent.postMessage({type:'biglwa:mii-created',image:canvas.toDataURL('image/png'),preset:preset()},location.origin);
- }else await standaloneSave();
-});
-window.addEventListener('message',event=>{
- if(event.origin!==location.origin||event.source!==window.parent)return;
- if(event.data?.type==='biglwa:mii-save-result')Q('status').textContent=String(event.data.message||'Save finished.');
- if(event.data?.type==='biglwa:mii-load'&&event.data.preset){
-   try{usePreset(event.data.preset);Q('status').textContent='Your saved Big LWA character is ready to edit.';}
-   catch(error){Q('status').textContent=error.message||'Character could not be restored.';}
- }
-});
-render();
-if(window.parent!==window)window.parent.postMessage({type:'biglwa:mii-ready'},location.origin);
-else{
-  // In standalone mode, pull the account's saved editable character.
-  (async()=>{
-    try{
-      const [a,b,f]=await Promise.all([
-        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
-        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
-        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
-      ]);
-      const app=a.getApps()[0]||a.initializeApp({
-        apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
-        authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
-        appId:'1:83232670555:web:e04927b20458390b3b507e'
-      });
-      const auth=b.getAuth(app);await auth.authStateReady();
-      if(!auth.currentUser)return;
-      const snap=await f.getDoc(f.doc(f.getFirestore(app),'users',auth.currentUser.uid));
-      const saved=snap.data()?.studioAvatar;
-      if(saved?.type==='mii'&&saved.preset)usePreset(saved.preset);
-    }catch(error){console.warn('[Big LWA] Character restore skipped:',error)}
-  })();
-}
+(function(){
+ const status=document.getElementById('status'),screen=document.getElementById('screen');
+ const setStatus=text=>status.textContent=text;
+ window.RufflePlayer=window.RufflePlayer||{};
+ const script=document.createElement('script');
+ script.src='https://unpkg.com/@ruffle-rs/ruffle@0.7.1/ruffle.js';
+ script.async=true;
+ script.onload=async()=>{
+   try{
+     if(!window.RufflePlayer?.newest)throw Error('Ruffle did not initialize.');
+     const player=window.RufflePlayer.newest().createPlayer();
+     player.style.width='100%';player.style.height='100%';
+     screen.replaceChildren(player);
+     // This AIR package's rootContent is classicGUI.swf. Its companion assets.swf
+     // remains available next to it from the uploaded MiiEditor folder.
+     await player.ruffle().load({url:'/MiiEditor/classicGUI.swf'});
+     setStatus('Original Mii Editor loaded in Ruffle. Some AIR controls may be unavailable.');
+   }catch(error){
+     screen.textContent='Could not start the original Flash editor in this browser.';
+     setStatus('Ruffle could not run the AIR editor: '+String(error?.message||'Unsupported Flash feature.'));
+   }
+ };
+ script.onerror=()=>{screen.textContent='Ruffle could not be downloaded.';setStatus('Ruffle could not load; retry with a network connection.');};
+ document.head.append(script);
 })();
-</script>
-</body></html>
+</script></body></html>
