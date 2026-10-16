@@ -53,7 +53,7 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
 <a class="skip" href="#main">Skip to content</a>
 <header>
   <a class="brand" href="/" aria-label="Big LWA home"><span class="biglwa-stitched-crest" aria-hidden="true"></span></a>
-  <nav aria-label="Main navigation"><a href="#account">Account</a><a href="#cache">Cache &amp; layout</a><a href="#support">Support</a><a href="#rights">Rights</a><a href="/studio">Back to Studio</a></nav>
+  <nav aria-label="Main navigation"><a href="#account">Account</a><a href="#privacyControls">Privacy &amp; deletion</a><a href="#cache">Cache &amp; layout</a><a href="#support">Support</a><a href="#rights">Rights</a><a href="/studio">Back to Studio</a></nav>
 </header>
 <main id="main">
   <div class="hero">
@@ -130,6 +130,30 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
     <div class="note">
       <p><strong>Changing your email is verified, not assumed.</strong> Big LWA sends a confirmation to the new address and only swaps it once you click that link, so nobody can take over your account by typing your name into a form.</p>
       <p>Password reset links are single-use and expire. If you signed in with Google, Apple, or another provider, your password lives with that provider and there is nothing here to reset.</p>
+    </div>
+  </section>
+
+  <section id="privacyControls">
+    <div class="section-head"><h2>Privacy & account deletion</h2><span class="number">02 / Control</span></div>
+    <div class="card">
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Who can view your Studio?</h3>
+      <p>Private profile mode shows visitors only your profile's banner, avatar, Aura, music and Guest Check. Your full Studio remains yours. Any content you've already published separately may require additional unpublishing.</p>
+      <label class="row" for="privateAccountToggle" style="align-items:center;gap:12px;cursor:pointer">
+        <input id="privateAccountToggle" type="checkbox" style="width:20px;height:20px;accent-color:var(--red)" disabled>
+        <strong>Private account</strong>
+      </label>
+      <p class="status" id="privateAccountStatus" role="status" aria-live="polite">Sign in to load your profile privacy setting.</p>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Delete your Big LWA account</h3>
+      <p>Request removal of your profile, posts, Orbit links, private writing, and stored media. We will verify your request and complete deletion across connected storage. This request does not immediately erase your login or content.</p>
+      <label class="field" for="accountDeletionConfirm">Type <strong>DELETE</strong> to request permanent account deletion
+        <input id="accountDeletionConfirm" type="text" autocomplete="off" spellcheck="false" placeholder="DELETE">
+      </label>
+      <div class="row"><button type="button" id="requestAccountDeletion" class="secondary" disabled>Request account deletion</button></div>
+      <p class="status" id="accountDeletionStatus" role="status" aria-live="polite">Sign in to submit a verified deletion request.</p>
     </div>
   </section>
 
@@ -220,7 +244,7 @@ footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);fon
 <footer class="public-page-footer"><nav aria-label="Footer navigation"><a href="/about/">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/affidavit">Good Faith</a><a href="/rights">Rights &amp; Likeness</a></nav><p>Big LWA · Founded by Leian Stanley · All rights reserved.</p></footer>
 <script src="/supporter-logos.js?v=20260913-public-supporters-2"></script>
 <script src="/policy-card-cohesion.js?v=20260913-public-supporters-4"></script>
-<script src="/settings-account.js?v=20260926-account-settings-1"></script>
+<script src="/settings-account.js?v=20261015-privacy-delete-2"></script>
 <script src="/settings-cache.js?v=20261014-safe-cache-1"></script>
 <script type="module" src="/settings-photo.js?v=20260927-photo-2"></script>
 </body>
