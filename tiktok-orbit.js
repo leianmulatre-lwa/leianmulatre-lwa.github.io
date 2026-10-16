@@ -217,9 +217,18 @@
       draft.disabled=true;const previous=draft.textContent;
       draft.textContent='Saving…';
       Promise.resolve().then(async()=>{
-        const create=window.__biglwaCollectivePublish?.createFeedDraft;
-        if(typeof create!=='function')throw Error('Feed drafts are loading. Please try again.');
-        await create({url:draft.dataset.tiktokSaveVideo,caption:draft.dataset.tiktokVideoTitle||''});
+        const save=window.__biglwaOrbitPosts?.saveExternalOrbitDraft;
+        if(typeof save!=='function')throw Error('Orbit drafts are loading. Please try again.');
+        const url=draft.dataset.tiktokSaveVideo;
+        const video=videos.find(v=>v.share_url===url);
+        if(!video)throw Error('Refresh your TikTok videos before saving this draft.');
+        await save('tiktok',{
+          id:video.id,sourcePostId:video.id,sourceUrl:url,
+          caption:video.title||video.video_description||'TikTok video',
+          cover_image_url:video.cover_image_url,
+          sourceUsername:profile.display_name||profile.username||'',
+          mediaType:'VIDEO'
+        });
         draft.textContent='Saved as private draft';
       }).catch(e=>{draft.disabled=false;draft.textContent=previous;notice(e.message||'Could not save TikTok draft.')});
       return;
