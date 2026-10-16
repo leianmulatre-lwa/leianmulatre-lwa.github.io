@@ -4,8 +4,24 @@ if(window.__biglwaProjectCanvas)return;
 const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let active=null,boards=[],current='',drag=null,saveTimer=null,projectUploadBusy=false;
+const PROJECT_W=1850,PROJECT_H=1300;
+let zoomLevel=1;
 const uid=()=>window.__biglwaIdentity?.uid||'guest';
 const key=()=> 'biglwaProjectCanvas:v1:'+uid();
+const zoomKey=()=> 'biglwaProjectZoom:v1:'+uid();
+function setZoom(value){
+  const n=Number(value);
+  if(!Number.isFinite(n))return;
+  zoomLevel=Math.max(.4,Math.min(1.5,Math.round(n*10)/10));
+  try{localStorage.setItem(zoomKey(),String(zoomLevel))}catch{}
+  const space=$('#lwaProjectSpace'),plane=$('#lwaProjectPlane'),label=$('#lwaProjectZoomLabel');
+  if(space){space.style.width=(PROJECT_W*zoomLevel)+'px';space.style.height=(PROJECT_H*zoomLevel)+'px'}
+  if(plane)plane.style.transform='scale('+zoomLevel+')';
+  if(label)label.textContent=Math.round(zoomLevel*100)+'%';
+  const out=$('#lwaProjectZoomOut'),inside=$('#lwaProjectZoomIn');
+  if(out)out.disabled=zoomLevel<=.4;
+  if(inside)inside.disabled=zoomLevel>=1.5;
+}
 const id=()=>String(Date.now())+Math.random().toString(36).slice(2,7);
 function load(){
  try{boards=JSON.parse(localStorage.getItem(key())||'[]');if(!Array.isArray(boards))boards=[]}catch{boards=[]}
@@ -30,11 +46,13 @@ function card(item){
 }
 function render(){
  const root=$('#lwaProjects');if(!root)return;
- root.innerHTML='<div class="module-heading lwa-project-heading"><div><h1>projects · canvas</h1><p>Make room for ideas, references, and works in progress.</p></div></div><div class="lwa-project-toolbar"><div class="lwa-project-controls"><button data-new-board>+ New project</button><select aria-label="Choose project" id="lwaProjectChoice">'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===current?' selected':'')+'>'+esc(b.title)+'</option>').join('')+'</select><button data-rename>Rename</button><button data-remove-board>Delete project</button></div></div><div class="lwa-project-tools"><button data-add="note">+ Note</button><button data-open-project-picker>+ Image</button><button data-add="link">+ Link</button><button data-add="tasks">+ Tasks</button><span id="lwaProjectStatus" role="status">Saved in this browser · private draft</span></div><div class="lwa-project-board" id="lwaProjectBoard"><div class="lwa-project-guide">Drag cards to arrange your workspace · edit cards in place</div>'+(board()?.items||[]).map(card).join('')+'</div><dialog id="lwaProjectImagePicker" aria-label="Add an image to Projects"><div class="lwa-project-picker-head"><h3>Add an image</h3><button type="button" data-close-project-picker aria-label="Close image picker">×</button></div><p>Choose an image from your connected Orbit library, or drop an image directly into this project.</p><div class="lwa-project-picker-actions"><button type="button" data-choose-orbit>Choose from Orbit</button><label class="lwa-project-file-label">Upload an image<input type="file" id="lwaProjectFileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label></div><div class="lwa-project-drop" id="lwaProjectDrop" tabindex="0" role="button" aria-label="Drop or select an image">Drop image here, or click to browse your files</div><div id="lwaProjectOrbitGallery" class="lwa-project-orbit-gallery" hidden></div><p class="lwa-project-picker-status" id="lwaProjectPickerStatus" role="status"></p></dialog><p class="lwa-project-foot">Project layouts are saved in this browser. Uploaded image files are copied into your account’s BIGLWA R2 media bucket.</p>';
+ root.innerHTML='<div class="module-heading lwa-project-heading"><div><h1>projects · canvas</h1><p>Make room for ideas, references, and works in progress.</p></div></div><div class="lwa-project-toolbar"><div class="lwa-project-controls"><button data-new-board>+ New project</button><select aria-label="Choose project" id="lwaProjectChoice">'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===current?' selected':'')+'>'+esc(b.title)+'</option>').join('')+'</select><button data-rename>Rename</button><button data-remove-board>Delete project</button></div><div class="lwa-project-zoom" role="group" aria-label="Zoom project canvas"><button type="button" id="lwaProjectZoomOut" data-project-zoom="-1" aria-label="Zoom out">−</button><output id="lwaProjectZoomLabel" aria-live="polite">100%</output><button type="button" id="lwaProjectZoomIn" data-project-zoom="1" aria-label="Zoom in">+</button><button type="button" data-project-zoom="fit">Fit</button><button type="button" data-project-zoom="reset">100%</button></div></div><div class="lwa-project-tools"><button data-add="note">+ Note</button><button data-open-project-picker>+ Image</button><button data-add="link">+ Link</button><button data-add="tasks">+ Tasks</button><span id="lwaProjectStatus" role="status">Saved in this browser · private draft</span></div><div class="lwa-project-board" id="lwaProjectBoard"><div class="lwa-project-space" id="lwaProjectSpace"><div class="lwa-project-plane" id="lwaProjectPlane"><div class="lwa-project-guide">Drag cards to arrange your workspace · edit cards in place</div>'+(board()?.items||[]).map(card).join('')+'</div></div></div><dialog id="lwaProjectImagePicker" aria-label="Add an image to Projects"><div class="lwa-project-picker-head"><h3>Add an image</h3><button type="button" data-close-project-picker aria-label="Close image picker">×</button></div><p>Choose an image from your connected Orbit library, or drop an image directly into this project.</p><div class="lwa-project-picker-actions"><button type="button" data-choose-orbit>Choose from Orbit</button><label class="lwa-project-file-label">Upload an image<input type="file" id="lwaProjectFileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label></div><div class="lwa-project-drop" id="lwaProjectDrop" tabindex="0" role="button" aria-label="Drop or select an image">Drop image here, or click to browse your files</div><div id="lwaProjectOrbitGallery" class="lwa-project-orbit-gallery" hidden></div><p class="lwa-project-picker-status" id="lwaProjectPickerStatus" role="status"></p></dialog><p class="lwa-project-foot">Project layouts are saved in this browser. Uploaded image files are copied into your account’s BIGLWA R2 media bucket.</p>';
+ setZoom(zoomLevel);
 }
 function mount(){
  const body=$('#moduleWorkspaceBody');if(!body||$('#moduleRouteName')?.textContent!=='Projects')return;
  load();
+ try{zoomLevel=Math.max(.4,Math.min(1.5,Number(localStorage.getItem(zoomKey()))||1))}catch{zoomLevel=1}
  body.innerHTML='<section id="lwaProjects"></section>';
  render();
 }
@@ -145,6 +163,13 @@ document.addEventListener('biglwa:module-open',e=>{if(e.detail?.key==='projects'
 document.addEventListener('click',e=>{
  const root=e.target.closest('#lwaProjects');if(!root)return;
  const b=e.target.closest('button');if(!b)return;
+ if(b.hasAttribute('data-project-zoom')){
+   const action=b.dataset.projectZoom;
+   if(action==='fit')setZoom(Math.min(1,($('#lwaProjectBoard')?.clientWidth||800)/PROJECT_W));
+   else if(action==='reset')setZoom(1);
+   else setZoom(zoomLevel+Number(action)*.1);
+   return;
+ }
  if(b.hasAttribute('data-open-project-picker')){e.preventDefault();openImagePicker();return}
  if(b.dataset.add){add(b.dataset.add);return}
  if(b.hasAttribute('data-new-board')){const title=prompt('Project title','New project');if(!title?.trim())return;const next={id:id(),title:title.trim(),items:[]};boards.push(next);current=next.id;save();render()}
@@ -196,12 +221,12 @@ document.addEventListener('drop',async e=>{
 document.addEventListener('pointerdown',e=>{
  const handle=e.target.closest('#lwaProjects [data-drag]');if(!handle||e.target.closest('button'))return;
  const el=handle.closest('[data-card]'),canvas=$('#lwaProjectBoard');if(!canvas)return;
- const rect=canvas.getBoundingClientRect(),r=el.getBoundingClientRect();
+ const rect=$('#lwaProjectPlane').getBoundingClientRect(),r=el.getBoundingClientRect();
  drag={el,id:el.dataset.card,ox:e.clientX-r.left,oy:e.clientY-r.top,rect};handle.setPointerCapture?.(e.pointerId);e.preventDefault();
 });
 document.addEventListener('pointermove',e=>{
  if(!drag)return;
- const x=Math.max(0,Math.round(e.clientX-drag.rect.left-drag.ox)),y=Math.max(0,Math.round(e.clientY-drag.rect.top-drag.oy));
+ const x=Math.max(0,Math.round((e.clientX-drag.rect.left-drag.ox)/zoomLevel)),y=Math.max(0,Math.round((e.clientY-drag.rect.top-drag.oy)/zoomLevel));
  drag.el.style.left=x+'px';drag.el.style.top=y+'px';
 });
 document.addEventListener('pointerup',()=>{
@@ -236,7 +261,13 @@ const css=document.createElement('style');css.textContent=`
 .lwa-project-controls,.lwa-project-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 #lwaProjects button,#lwaProjects select{cursor:pointer;border:1px solid #d9ccc1;border-radius:10px;padding:10px 12px;background:#fff9f1;color:#302b28;font:600 12px system-ui}
 #lwaProjects button:hover{background:#f5dfc9}.lwa-project-tools{padding:12px 0}.lwa-project-tools span{margin-left:auto;font-size:11px;color:#756d66}
-.lwa-project-board{position:relative;overflow:auto;min-height:720px;min-width:100%;border:1px solid #ded2c4;border-radius:18px;background-color:#f4eee4;background-image:radial-gradient(#cbbeb0 1px,transparent 1px);background-size:22px 22px}
+.lwa-project-board{position:relative;overflow:auto;height:min(72vh,760px);min-height:420px;min-width:100%;border:1px solid #ded2c4;border-radius:18px;background-color:#f4eee4;background-image:radial-gradient(#cbbeb0 1px,transparent 1px);background-size:22px 22px}
+.lwa-project-space{position:relative;min-width:0;min-height:0}
+.lwa-project-plane{position:absolute;top:0;left:0;width:1850px;height:1300px;transform-origin:0 0}
+.lwa-project-zoom{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lwa-project-zoom output{min-width:46px;text-align:center;font:700 12px system-ui}
+#lwaProjects .lwa-project-zoom button{padding:8px 11px;min-width:37px}
+#lwaProjects .lwa-project-zoom button:disabled{opacity:.45;cursor:not-allowed}
 .lwa-project-guide{position:absolute;top:12px;left:16px;color:#897c6d;font-size:12px;pointer-events:none}
 .lwa-project-item{position:absolute;width:240px;min-height:120px;box-sizing:border-box;padding:0 12px 12px;background:#fffaf0;border:1px solid #dfd2c2;border-radius:12px;box-shadow:0 10px 24px #392b221f;overflow:hidden}
 .lwa-project-item.note{background:#ffeda1}.lwa-project-item.tasks{background:#e4f1e8}.lwa-project-item.link{background:#e7ebfc}
