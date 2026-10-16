@@ -1,7 +1,13 @@
 /* Politics + Orbit layout repair — 2026-10-16.
    The uploaded Stars & Stripes file is not in the Git repository;
    Rye is an intentionally legible interim display fallback, not that font. */
-@import url('https://fonts.googleapis.com/css2?family=Rye&display=swap');
+@font-face{
+ font-family:"Stars and Stripes";
+ src:url("/stars-and-stripes-font/StarsAndStripes-A4XM.ttf") format("truetype");
+ font-style:normal;font-weight:400;font-display:swap;
+}
+/* The original Stars and Stripes font is now committed to GitHub. */
+
 #studioApp #moduleWorkspace[data-module-key="politc"]{
  --politc-paper:#fff7ed; --politc-red:#922c3c;
  --politc-blue:#24527a; --politc-text:#342b2a;
@@ -11,7 +17,7 @@
  .politc-resource-zone h3,.politc-election-zone h3,
  .politc-panel:not(.politc-vintage-panel) h3
 ){
- font-family:"Stars and Stripes","Rye",Georgia,serif!important;
+ font-family:"Stars and Stripes",Georgia,serif!important;
  font-weight:400!important;
  letter-spacing:.005em!important;
  text-transform:lowercase!important;
