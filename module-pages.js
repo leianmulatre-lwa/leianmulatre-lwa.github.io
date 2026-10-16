@@ -936,7 +936,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        says Connected when that login has completed. */
     try{
       const fb=window.__biglwaFacebookOrbit?.state;
-      if(fb?.connected)rows.push({id:'facebook',name:fb.profile?.name||'Facebook',username:fb.profile?.name,link:fb.profile?.link||'',avatarUrl:fb.profile?.picture?.data?.url||''});
+      if(fb?.connected)rows.push({id:'facebook',name:fb.profile?.name||'Facebook',username:fb.profile?.name,link:fb.profile?.link||window.BigLWAOrbitAccountLinks?.get?.().facebook||'',avatarUrl:fb.profile?.picture?.data?.url||''});
     }catch{}
     return rows;
   };
@@ -1016,12 +1016,19 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
-      const providerError=k==='tiktok'?String(window.__biglwaTikTokOrbit?.state?.lastError||''):'';
+      const providerError=k==='tiktok'?String(window.__biglwaTikTokOrbit?.state?.lastError||''):k==='facebook'?String(window.__biglwaFacebookOrbit?.state?.error||''):'';
+      const mediaHint=k==='tiktok'&&window.__biglwaTikTokOrbit?.state?.videoPermissionPending
+        ? 'TikTok login is connected, but video.list access has not been granted. Enable the TikTok Display API and request video.list approval in the TikTok Developer Portal; reconnect after approval.'
+        :k==='facebook'&&row&&window.__biglwaFacebookOrbit?.state?.permissions&&!window.__biglwaFacebookOrbit.state.permissions.some(p=>p==='user_photos'||p==='user_videos')
+          ? 'Facebook login connected. Meta did not grant photo/video access. Basic login alone cannot import posts; review permissions in the Facebook Login for Business configuration.'
+          :'';
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>`+
-       (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+(pending?'<p class="orbit-not-connected">Login is not active for this provider yet. Choose Setup to see which configuration is missing.</p>':'')+
+       (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+
+       (mediaHint?'<p class="orbit-not-connected" role="status">'+esc(mediaHint)+'</p>':'')+(pending?'<p class="orbit-not-connected">Login is not active for this provider yet. Choose Setup to see which configuration is missing.</p>':'')+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':''}</div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div></div>`;
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
+       (k==='facebook'?`<div class="orbit-facebook-profile"><label for="orbitFacebookPublicLink">Public Facebook profile or Page link</label><div class="orbit-facebook-profile-actions"><input class="module-input" id="orbitFacebookPublicLink" data-orbit-path="facebook" type="url" inputmode="url" value="${esc(links.facebook||row?.link||'')}" placeholder="https://www.facebook.com/your.public.profile"><button class="module-action" type="button" data-orbit-save="facebook">Save link</button></div><small>Meta's login may not return a public profile URL. Add your real profile or Page link once; it follows your Big LWA account.</small></div>`:'')+'</div>';
      }
      return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b></header><label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button>${orbitBadge(g,t)}</div></div>`;
      }).join('')}</div></section></div>`;
