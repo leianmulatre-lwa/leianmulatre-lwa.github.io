@@ -998,10 +998,10 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
       const providerError=k==='tiktok'?String(window.__biglwaTikTokOrbit?.state?.lastError||''):'';
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>${orbitBadge(g,t)}`+
-       (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+(pending?'<p class="orbit-not-connected">Secure account connection coming soon. OAuth is not active yet.</p>':'')+
+       (providerError?'<p class="module-status" role="alert">'+esc(providerError)+'</p>':'')+(pending?'<p class="orbit-not-connected">Login is not active for this provider yet. Choose Setup to see which configuration is missing.</p>':'')+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span><a class="orbit-hotlink" href="${esc(row.link)}" target="_blank" rel="noopener noreferrer">Open ↗</a></div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${ORBIT_HANDS(k)&&!pending?'':'disabled'}>${pending?'Coming soon':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}</div></div>`;
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${pending?'Setup':(row?'Reconnect':'Connect')} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}</div></div>`;
      }
      return `<div class="module-orbit-row"><header><b>${n}</b></header>${orbitBadge(g,t)}<label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="${k}" value="${esc(links[k]||'')}" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button></div></div>`;
      }).join('')}</div></section></div>`;
@@ -1009,6 +1009,15 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
+    const pendingProvider=window.__biglwaPendingOAuthProvider;
+    if(pendingProvider){
+      delete window.__biglwaPendingOAuthProvider;
+      const requirements={x:'X_CLIENT_ID',snapchat:'SNAPCHAT_CLIENT_ID',tumblr:'TUMBLR_CONSUMER_KEY'};
+      if(requirements[pendingProvider]){
+        say('This '+(ORBIT_APP_NAMES[pendingProvider]||pendingProvider)+' login still needs '+requirements[pendingProvider]+' in Cloudflare and a complete OAuth callback handler. No account has been linked.');
+        requestAnimationFrame(()=>body.querySelector('[data-orbit-row="'+pendingProvider+'"]')?.scrollIntoView({behavior:'smooth',block:'center'}));
+      }
+    }
     body.onclick=async e=>{
      const importLinks=e.target.closest('#orbitImportLocalLinks');
      if(importLinks){
@@ -1020,7 +1029,12 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        return;
      }
 const connect=e.target.closest('[data-orbit-connect]');
-      if(connect){const k=connect.dataset.orbitConnect;const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
+      if(connect){const k=connect.dataset.orbitConnect;
+        if(!ORBIT_LIVE.has(k)){
+          const requirement={x:'X_CLIENT_ID',snapchat:'SNAPCHAT_CLIENT_ID',tumblr:'TUMBLR_CONSUMER_KEY'}[k]||'the OAuth client ID';
+          say(ORBIT_APP_NAMES[k]+' login is not live: '+requirement+' and a provider-specific callback handler are still required. Your public link can be saved separately.');return;
+        }
+        const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit}[k];if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');return}
      const unlink=e.target.closest('[data-orbit-unlink]');
      if(unlink){const k=unlink.dataset.orbitUnlink;say('Unlinking…');window.__biglwaConnections?.forget?.(k).then(()=>{say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage()});return}
      const save=e.target.closest('[data-orbit-save]');
