@@ -10,7 +10,7 @@
   const CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
   const CALLBACK_ERROR=(()=>{try{return new URL(location.href).searchParams.get('tiktok_error')||''}catch{return''}})();
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
-  let lastError='';
+  let lastError='',videoPermissionPending=false,videoLoadError='';
   const scopedKey = () => authUid ? KEY + ':' + authUid : '';
   const getSession = () => { try { return scopedKey() ? localStorage.getItem(scopedKey()) || '' : ''; } catch { return ''; } };
   const save = value => { if (!scopedKey()) return; try { if (value) localStorage.setItem(scopedKey(), value); else localStorage.removeItem(scopedKey()); } catch {} };
@@ -76,31 +76,35 @@
     restoreBusy=true;
     try{
       const token=await firebaseIdToken();
-      if(!token||!authUid){connected=false;profile={};videos=[];render();statusUpdate();return;}
+      if(!token||!authUid){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
       if(!getSession()){
         const response=await fetch(API+'/tiktok/session/account',{headers:{Authorization:'Bearer '+token}});
         const result=await response.json().catch(()=>({}));
         if(response.ok&&result.connected&&result.session)save(result.session);
       }
-      if(!getSession()){connected=false;profile={};videos=[];render();statusUpdate();return;}
+      if(!getSession()){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
       profile=await api('profile');
       if(!profile?.open_id)throw new Error('TikTok profile authorization could not be verified.');
       connected=true;render();statusUpdate();
       try{
         const result=await api('videos');
-        videos=result.videos||[];
-        // Basic-profile-only login is functional without video.list approval.
-        if(result.videoPermissionPending)console.info('TikTok connected; video.list access awaits TikTok app approval.');
-      }catch(e){videos=[];console.warn('TikTok optional video listing:',e.message);}
-      render();
+        videos=Array.isArray(result.videos)?result.videos:[];
+        videoPermissionPending=Boolean(result.videoPermissionPending);
+        videoLoadError='';
+        if(videoPermissionPending)console.info('TikTok connected. Display API video.list permission is required to show videos.');
+      }catch(e){
+        videos=[];videoLoadError=String(e.message||'TikTok video list unavailable.');
+        console.warn('TikTok optional video listing:',e.message);
+      }
+      render();statusUpdate();
       window.__biglwaConnections?.refreshSource?.('tiktok',authUid)?.catch?.(()=>{});
-    }catch(e){connected=false;profile={};videos=[];render();statusUpdate();notice(e.message);}
+    }catch(e){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();notice(e.message);}
     finally{restoreBusy=false;}
   }
   async function disconnect() {
     try {
       if(getSession())await api('disconnect', {});
-      save('');connected=false;profile={};videos=[];render();statusUpdate();
+      save('');connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();
       window.__biglwaConnections?.forget?.('tiktok')?.catch?.(()=>{});
       notice('TikTok disconnected from Orbit.');
     }catch(e){notice(e.message);}
@@ -119,13 +123,41 @@
     list=list||document.getElementById('feedPageList');
     if(!list)return;
     list.querySelectorAll('.tiktok-feed-item').forEach(el=>el.remove());
-    if(!connected)return;
-    const cards = videos.map(v => {
-      let href=''; try { const u=new URL(v.share_url); if(u.protocol==='https:' && (u.hostname==='www.tiktok.com'||u.hostname==='tiktok.com')) href=u.href; } catch {}
-      let cover=''; try { const u=new URL(v.cover_image_url); if(u.protocol==='https:') cover=u.href; } catch {}
-      return '<article class="module-list-item tiktok-feed-item"><div><small>TikTok · '+esc(profile.display_name)+'</small><b>'+esc(v.title||v.video_description||'TikTok video')+'</b>'+(cover?'<img loading="lazy" style="max-width:100%;max-height:460px;object-fit:contain" src="'+esc(cover)+'" alt="">':'')+(href?'<a class="module-action" target="_blank" rel="noopener noreferrer" href="'+esc(href)+'">Watch on TikTok</a>':'')+'</div></article>';
-    });
-    list.insertAdjacentHTML('afterbegin',cards.join('')||'<article class="module-list-item tiktok-feed-item">TikTok connected. No videos to display.</article>');
+    const rail=document.getElementById('biglwaFeedImportStatusRail');
+    let info=rail&&rail.querySelector('[data-tiktok-video-status]');
+    if(rail&&!info){
+      info=document.createElement('p');
+      info.setAttribute('data-tiktok-video-status','');
+      info.setAttribute('role','status');
+      rail.append(info);
+    }
+    if(info){
+      info.textContent=!connected?'':videoPermissionPending
+        ? 'TikTok connected, but the Display API video.list permission is not approved or granted. Videos cannot be imported until TikTok approves it and you reconnect.'
+        : videoLoadError?'TikTok videos: '+videoLoadError
+        : videos.length?videos.length+' TikTok video preview'+(videos.length===1?'':'s')+' available. Choose which to save as a private draft.'
+        : 'TikTok connected. No public videos were returned by the authorized API.';
+      info.hidden=!connected;
+      rail.hidden=!Array.from(rail.children).some(el=>!el.hidden);
+    }
+    if(!connected||videoPermissionPending||!videos.length)return;
+    const cards=videos.map(v=>{
+      let href='',cover='';
+      try{
+        const u=new URL(v.share_url||'');
+        if(u.protocol==='https:'&&['www.tiktok.com','tiktok.com','m.tiktok.com'].includes(u.hostname))href=u.href;
+      }catch{}
+      try{const u=new URL(v.cover_image_url||'');if(u.protocol==='https:')cover=u.href}catch{}
+      if(!href)return '';
+      const title=esc(v.title||v.video_description||'TikTok video');
+      const photo=cover?'<img loading="lazy" decoding="async" src="'+esc(cover)+'" alt="TikTok video cover" style="width:100%;height:auto;object-fit:contain">':'';
+      return '<article class="module-list-item tiktok-feed-item" data-tiktok-video="'+esc(v.id||'')+'"><div>'+photo+
+        '<small>TikTok · '+esc(profile.display_name)+'</small><b>'+title+'</b>'+
+        '<a class="module-action" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">Watch on TikTok ↗</a>'+
+        '<button type="button" class="module-action secondary" data-tiktok-save-video="'+esc(href)+'" data-tiktok-video-title="'+title+'">Save private feed draft</button>'+
+        '<small>Video stays on TikTok; posting to Collective Feed is a separate choice.</small></div></article>';
+    }).filter(Boolean);
+    list.insertAdjacentHTML('afterbegin',cards.join(''));
   }
   if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('TikTok','tiktok-feed-item',renderFeedList);
   async function init() {
@@ -172,10 +204,24 @@
   }
   document.addEventListener('click',e=>{
     if (!(e.target instanceof Element)) return;
+    const draft=e.target.closest('[data-tiktok-save-video]');
+    if(draft){
+      e.preventDefault();e.stopImmediatePropagation();
+      if(draft.disabled)return;
+      draft.disabled=true;const previous=draft.textContent;
+      draft.textContent='Saving…';
+      Promise.resolve().then(async()=>{
+        const create=window.__biglwaCollectivePublish?.createFeedDraft;
+        if(typeof create!=='function')throw Error('Feed drafts are loading. Please try again.');
+        await create({url:draft.dataset.tiktokSaveVideo,caption:draft.dataset.tiktokVideoTitle||''});
+        draft.textContent='Saved as private draft';
+      }).catch(e=>{draft.disabled=false;draft.textContent=previous;notice(e.message||'Could not save TikTok draft.')});
+      return;
+    }
     if(e.target.closest('[data-tt-disconnect]')) { e.preventDefault(); e.stopImmediatePropagation(); disconnect(); }
     else if(e.target.closest('[data-orbit-app="tiktok"],[data-tt-connect]')) { e.preventDefault(); e.stopImmediatePropagation(); connected?restore():connect(); }
     else if(e.target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render,100);
   },true);
-  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError}}};
+  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 }());
