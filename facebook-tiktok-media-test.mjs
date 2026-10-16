@@ -3,8 +3,9 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const fb=read('facebook-orbit.js'),tt=read('tiktok-orbit.js'),pages=read('module-pages.js'),worker=read('cloudflare-worker-instagram.js'),html=read('index.html');
-for(const [n,s] of [['Facebook',fb],['TikTok',tt],['Studio',pages],['Worker',worker]])
+for(const [n,s] of [['Facebook',fb],['TikTok',tt],['Studio',pages]])
   assert.doesNotThrow(()=>new vm.Script(s),n+' script must parse');
+assert.doesNotThrow(()=>new vm.Script(worker.replace('export default {','const workerDefault = {')),'Worker module must parse with ESM export normalized');
 assert.ok(fb.includes('window.FB.getLoginStatus'),'Existing Facebook session restored without popups');
 assert.ok(fb.includes("row.classList.contains('is-oauth')"),'No second Connect control alongside Facebook profile field');
 assert.ok(fb.includes("'user_photos'")&&fb.includes("'user_videos'"),'Media state honors actual Meta grants');
