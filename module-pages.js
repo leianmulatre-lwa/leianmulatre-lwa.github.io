@@ -968,18 +968,25 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     }catch{return ''}
   }
   function orbitQuickLinks(){
-    const seen=new Set(),chips=[];
-    const add=(href,label,handle,cls)=>{
-      const key=orbitLinkKey(href);
-      if(!key||seen.has(key))return;
-      seen.add(key);chips.push({href,label,handle,cls});
+    // One visible quick link per platform, and one per normalized destination.
+    // Provider-verified links win over old manually saved links; neither entry is
+    // deleted from Firestore or the provider account when its duplicate is hidden.
+    const seenDestinations=new Set(),seenProviders=new Set(),chips=[];
+    const add=(provider,href,label,handle,cls)=>{
+      const key=orbitLinkKey(href),id=String(provider||'').toLowerCase();
+      if(!key||seenDestinations.has(key)||seenProviders.has(id))return;
+      const parsed=new URL(href);
+      const isProviderHome=!parsed.pathname.replace(/\\/g,'').trim()||parsed.pathname==='/';
+      if(isProviderHome&&['facebook','instagram','tiktok','pinterest','youtube'].includes(id))return;
+      seenDestinations.add(key);seenProviders.add(id);
+      chips.push({href,label,handle,cls});
     };
     orbitConnected().forEach(row=>{
-      if(row&&row.link)add(row.link,row.label||ORBIT_APP_NAMES[row.id]||row.id,
+      if(row&&row.link)add(row.id,row.link,row.label||ORBIT_APP_NAMES[row.id]||row.id,
         row.username?'@'+row.username:(row.name||''),'is-connected is-'+row.id);
     });
     Object.entries(orbitLinks()).forEach(([k,url])=>{
-      if(url)add(url,ORBIT_APP_NAMES[k]||k,'Saved link','is-saved is-'+k);
+      if(url)add(k,url,ORBIT_APP_NAMES[k]||k,'Saved link','is-saved is-'+k);
     });
     if(!chips.length)return '';
     return '<section class="orbit-quick" aria-label="Your links"><h3>Quick links</h3><p>These are the places people can reach you. Anyone viewing your profile sees the same links.</p><div class="orbit-quick-row">'+
@@ -1061,8 +1068,8 @@ const connect=e.target.closest('[data-orbit-connect]');
          const linkKey=orbitLinkKey(url);
          if(linkKey&&Object.entries(orbitLinks()).some(([other,saved])=>other!==k&&orbitLinkKey(saved)===linkKey))
            throw Error('This quick link is already saved under another Orbit source.');
-         if(linkKey&&orbitConnected().some(row=>row&&row.id!==k&&orbitLinkKey(row.link)===linkKey))
-           throw Error('This quick link is already connected in Orbit.');
+         if(linkKey&&orbitConnected().some(row=>row&&orbitLinkKey(row.link)===linkKey))
+           throw Error('This destination is already connected in Orbit; it cannot be added twice.');
          await manager.save(k,url);
          say((ORBIT_APP_NAMES[k]||'Orbit')+' link saved to your BIGLWA account.');
          renderOrbitPage();
