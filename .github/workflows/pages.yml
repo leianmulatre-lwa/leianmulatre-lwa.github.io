@@ -67,6 +67,7 @@ jobs:
           node orbit-badge-layout-test.mjs
           node facebook-quicklinks-test.mjs
           node facebook-tiktok-media-test.mjs
+          node orbit-provider-feed-end-to-end-test.mjs
           node login-path-and-guide-test.mjs
           node tutorial-symbol-key-test.mjs
           node orbit-session-stability-test.mjs
