@@ -24,7 +24,7 @@ const cases=[
   ['Green saved video uses canonical player',chrome.includes('previewPost?.(card.dataset.postId)')],
   ['Private content not treated as public',veve.includes("p.visibility!=='private'")&&veve.includes("p.veveOptOut!==true")],
   ['Full Veve captions shown in modal',veve.includes('vevePreviewCaptionText')&&veve.includes('post.caption??post.title??post.description')&&!veve.includes('panel.textContent=caption.slice(')],
-  ['Game viewers use existing Arcade puzzle route',veve.includes("frame.src='/arcade-puzzles.html?game='")],
+  ['Veve game viewers share Arcade cabinet rather than duplicate iframe',veve.includes('biglwa:arcade-request-game')&&pages.includes('__biglwaArcadeRequestedGame')],
   ['Aura and Avatar solo layout grows to single column',read('./avatar-studio.js').includes('grid-template-columns:minmax(0,1fr)!important')&&read('./avatar-studio.js').includes('pair.dataset.visibleMembers')],
   ['Removed Avatar gets green sidebar A+ restore',read('./avatar-studio.js').includes('biglwaAvatarSidebarRestore')&&read('./avatar-studio.js').includes('data-avatar-restore')&&read('./avatar-studio.js').includes('studioSidebarPrimary')]
 ];
