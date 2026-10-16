@@ -1891,6 +1891,7 @@ const connect=e.target.closest('[data-orbit-connect]');
     const handleArcadeRequest=event=>{
       const kind=String(event?.detail?.kind||'').toLowerCase();
       if(!body.contains(emulatorScreen))return;
+      if(window.__biglwaArcadeRequestedGame===kind)delete window.__biglwaArcadeRequestedGame;
       if(kind==='culture'){selectedGame=null;openCultureQuiz();return}
       const selected=gameLibrary.find(game=>game.href&&new URL(game.href).searchParams.get('game')===kind);
       if(selected)playGame(selected);
