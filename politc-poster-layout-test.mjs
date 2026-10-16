@@ -11,7 +11,7 @@ const end=code.indexOf('function render',start+20);
 const politc=code.slice(start,end);
 assert.ok(politc.includes("liveZone.className='politc-live-zone'"),'Trackers collected at top');
 assert.ok(politc.includes("resourcePanel.classList.add('politc-resource-zone')"),'Resources above election and nominations');
-assert.ok(politc.includes('board.insertBefore(liveZone,grid)')&&politc.includes('board.insertBefore(resourcePanel,grid)'),'Politc order should be trackers, resources, election, categories');
+assert.ok(politc.includes('board.insertBefore(election,grid)')&&politc.includes('board.insertBefore(liveZone,grid)')&&politc.includes('board.insertBefore(resourcePanel,grid)'),'Politc order should be election, trackers, resources, collections');
 assert.ok(politc.includes('class="politc-nomination-drawer"')&&politc.includes('" hidden>'),'Nomination forms must be hidden until requested');
 assert.ok(politc.includes('data-politc-nominate')&&politc.includes('aria-expanded="false"')&&politc.includes("drawer.hidden=!opening"),'Nomination button must toggle form accessibly');
 assert.ok(politc.includes('curatedHidden')&&politc.includes("biglwaPolitcHiddenCuratedV1"),'Seed examples can be removed');
@@ -23,7 +23,7 @@ assert.ok(politc.includes("Read source ↗"),'Seed and user supplied source link
 assert.ok(style.includes('politc-live-zone')&&style.includes('politc-resource-zone'));
 assert.ok(style.includes('politc-vintage-panel')&&style.includes('politc-nomination-drawer')&&style.includes('politc-nominate-button'));
 assert.ok(style.includes('grid-auto-flow:column!important')&&style.includes('politc-poster-photo'),'Poster cards scroll with large portraits');
-assert.ok(style.includes('font-family:"Stars and Stripes","Times New Roman"'),'Use font when installed, fall back to Times New Roman');
+assert.ok(read('politc-orbit-tight-20261016.css').includes('"Stars and Stripes","Rye"'),'Use requested font when available with a display fallback');
 assert.ok(style.includes('#721c2a'),'Maroon headline and type');
 assert.ok(existsSync(new URL('./assets/politc-wanted-paper.jpg',import.meta.url)),'User-supplied parchment image committed to repo');
 assert.ok(style.includes('url("/assets/politc-wanted-paper.jpg'),'Poster cards show supplied texture');
