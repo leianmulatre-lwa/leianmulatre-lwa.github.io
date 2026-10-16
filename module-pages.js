@@ -956,15 +956,34 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   }
   /* The quick links sit above everything: what a visitor can reach, and what the owner can
      connect. Both sides read from the same list so the two never disagree. */
+  // De-duplicate by canonical destination, not source: Pinterest can arrive twice
+  // from the account mirror and a locally confirmed provider.
+  function orbitLinkKey(raw){
+    try {
+      const url=new URL(String(raw||'').trim());
+      if(!['http:','https:'].includes(url.protocol))return '';
+      return url.hostname.toLowerCase().replace(/^www\./,'')+
+        decodeURIComponent(url.pathname).replace(/\/+$/,'').toLowerCase();
+    }catch{return ''}
+  }
   function orbitQuickLinks(){
-   const connected=orbitConnected().filter(row=>row&&row.link);
-   const saved=Object.entries(orbitLinks()).filter(([k,url])=>url&&!ORBIT_CONNECTED.has(k));
-   if(!connected.length&&!saved.length)return '';
-   const chip=(href,label,handle,cls)=>'<a class="orbit-quick-link '+(cls||'')+'" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer"><b>'+esc(label)+'</b>'+(handle?'<small>'+esc(handle)+'</small>':'')+'<i aria-hidden="true">↗</i></a>';
-   return '<section class="orbit-quick" aria-label="Your links"><h3>Quick links</h3><p>These are the places people can reach you. Anyone viewing your profile sees the same links.</p><div class="orbit-quick-row">'+
-    connected.map(row=>chip(row.link,row.label,row.username?'@'+row.username:(row.name||''),'is-connected is-'+row.id)).join('')+
-    saved.map(([k,url])=>chip(url,(ORBIT_APP_NAMES[k]||k),'Saved link','is-saved is-'+k)).join('')+
-    '</div></section>';
+    const seen=new Set(),chips=[];
+    const add=(href,label,handle,cls)=>{
+      const key=orbitLinkKey(href);
+      if(!key||seen.has(key))return;
+      seen.add(key);chips.push({href,label,handle,cls});
+    };
+    orbitConnected().forEach(row=>{
+      if(row&&row.link)add(row.link,row.label||ORBIT_APP_NAMES[row.id]||row.id,
+        row.username?'@'+row.username:(row.name||''),'is-connected is-'+row.id);
+    });
+    Object.entries(orbitLinks()).forEach(([k,url])=>{
+      if(url)add(url,ORBIT_APP_NAMES[k]||k,'Saved link','is-saved is-'+k);
+    });
+    if(!chips.length)return '';
+    return '<section class="orbit-quick" aria-label="Your links"><h3>Quick links</h3><p>These are the places people can reach you. Anyone viewing your profile sees the same links.</p><div class="orbit-quick-row">'+
+      chips.map(({href,label,handle,cls})=>'<a class="orbit-quick-link '+esc(cls||'')+'" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer"><b>'+esc(label)+'</b>'+(handle?'<small>'+esc(handle)+'</small>':'')+'<i aria-hidden="true">↗</i></a>').join('')+
+      '</div></section>';
   }
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
