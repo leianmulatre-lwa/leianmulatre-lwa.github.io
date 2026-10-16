@@ -1,7 +1,7 @@
 /* Account-scoped Orbit profile URLs; credentials never enter Firestore. */
 import { identity, onIdentityChange, startIdentity } from './account-identity.js';
 
-const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','tiktok','pinterest']);
+const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','tiktok','pinterest','x','snapchat','tumblr']);
 const clean=(links)=>{
   const output={};
   for(const [k,v] of Object.entries(links&&typeof links==='object'?links:{})){
