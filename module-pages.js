@@ -880,7 +880,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
 
   /* Primary Orbit contains API-backed accounts. Link-only destinations live in Planetary. */
   const ORBIT_APPS=[
-    ['instagram','IG','Instagram','#f36b21'],['facebook','FB','Facebook','#58a6ff'],
+    ['instagram','IG','Instagram','#f36b21'],['facebook','FB','Facebook','#1658be'],
     ['tiktok','TT','TikTok','#772dcc'],['pinterest','P','Pinterest','#e60023'],
     ['x','𝕏','X','#080808'],['snapchat','SC','Snapchat','#ffeb00'],
     ['tumblr','T','Tumblr','#1b304b'],['youtube','YT','YouTube','#d0202f']
