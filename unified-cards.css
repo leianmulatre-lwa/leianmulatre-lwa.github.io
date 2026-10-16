@@ -4,7 +4,7 @@
 :root{
   --lwa-card-paper:#fff8ef;
   --lwa-card-border:#e4d4c8;
-  --lwa-instagram-rim:#7d3ec5;
+  --lwa-instagram-rim:#f36b21;
   --lwa-pinterest-rim:#e60023;
 }
 #feedPageList > :is(.biglwa-pin-post,.pinterest-feed-item,.biglwa-instagram-card),
@@ -33,8 +33,8 @@
 }
 #feedPageList > .biglwa-instagram-card,
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-instagram{
-  --feed-card-rim:#7d3ec5!important;
-  --feed-card-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7,0 14px 28px -13px #5d2999!important;
+  --feed-card-rim:#f36b21!important;
+  --feed-card-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b!important;
 }
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest{
   --feed-card-rim:#e60023!important;
@@ -45,8 +45,8 @@
   --feed-card-shadow:3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff!important;
 }
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{
-  --feed-card-rim:#111111!important;
-  --feed-card-shadow:3px 3px 0 #111111,-2px 8px 20px -14px #25f4ee,8px 13px 24px -16px #fe2c55!important;
+  --feed-card-rim:#772dcc!important;
+  --feed-card-shadow:3px 3px 0 #772dcc,6px 7px 0 -2px #b77cff,0 14px 26px -14px #4a187f!important;
 }
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{
   --feed-card-rim:#d0202f!important;
