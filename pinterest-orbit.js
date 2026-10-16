@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 if(window.__biglwaPinterest) return;
-const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev/pinterest/';
+const API='https://api.biglwa.com/pinterest/';
 const KEY='biglwaPinterestSession';
 const PENDING_KEY='biglwaPinterestPendingHandoffV2';
 const OAUTH_UID_KEY='biglwaPinterestOauthStartingUid';
