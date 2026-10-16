@@ -13,9 +13,9 @@ function check(name, cond, extra = "") {
 }
 
 console.log("=== EACH SOURCE KEEPS ITS OWN RIM ===");
-check("TikTok is black", feed.includes('tiktok: { rim:"#111111"'));
+check("TikTok is purple", feed.includes('tiktok: { rim:"#772dcc"'));
 check("Facebook is blue", feed.includes('facebook: { rim:"#1877f2"'));
-check("Instagram is purple", feed.includes('instagram: { rim:"#7d3ec5", glow:"#ad82e7"'));
+check("Instagram is orange", feed.includes('instagram: { rim:"#f36b21", glow:"#ffad52"'));
 check("anything without a rim of its own falls back to blood orange", feed.includes('{ rim:FEED_RIM }'));
 check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
 check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
@@ -23,7 +23,7 @@ check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
 console.log("\n=== THE ARCHIVE HOLDS EVERY SOURCE, COLOUR KEPT, GREY ONLY WHEN OFF ===");
 check("a card is read for its own source", pages.includes("const source=String(item.source||'instagram').toLowerCase();"));
-check("the rim comes from the source palette", pages.includes("const visualTheme=themes[source]") && pages.includes("instagram:{rim:'#7d3ec5'"));
+check("the rim comes from the source palette", pages.includes("const visualTheme=themes[source]") && pages.includes("instagram:{rim:'#f36b21'"));
 check("the card is marked with its source and shadow", pages.includes("' archive-src-'+esc(source)+'\" style=\"--feed-card-rim:'+rim+';--feed-card-shadow:'+visualTheme.shadow"));
 check("both stored states are grouped colour-first", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-archived{"));
 check("the colour keeps the source rim, not a blanket grey", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes("box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c)!important;filter:none;opacity:1}") && !pages.includes("filter:grayscale(1)!important;opacity:.86}"));
@@ -71,15 +71,15 @@ check("a chip per source is offered", pages.includes("data-archive-source-filter
 check("chips and the duplicates toggle save then redraw", pages.includes("saveFilters(f);await draw()"));
 
 console.log("\n=== ORBIT API CHIPS ===");
-check("each API carries its own colour", pages.includes("['facebook','FB','Facebook','#1877f2']") && pages.includes("['tiktok','TT','TikTok','#111111']"));
-check("the chip is painted with it", pages.includes("const orbitBadge=(g,tint)=>'<span style=\"background:'+tint+'\">'"));
+check("each API carries its own colour", pages.includes("['facebook','FB','Facebook','#58a6ff']") && pages.includes("['tiktok','TT','TikTok','#772dcc']") && pages.includes("['tumblr','T','Tumblr','#1b304b']"));
+check("the chip is painted with it", pages.includes('class="orbit-platform-badge" aria-hidden="true" style="background:'));
 check("the letter is pinned white so the widget colour cannot swallow it", pages.includes("color:#fff!important;font-size:8px;font-weight:800;-webkit-text-fill-color:#fff"));
 check("the row colour rule can no longer outrank the chip", pages.includes(".module-workspace .module-orbit-row header span{"));
-check("both row shapes use the coloured chip", pages.includes("${orbitBadge(g,t)}${row?") && pages.includes("${orbitBadge(g,t)}</header>"));
+check("both row shapes use the coloured chip", pages.includes('</header>${orbitBadge(g,t)}') && pages.includes("+'</header>'+orbitBadge(g,t)"));
 check("the row map unpacks the colour", pages.includes("ORBIT_APPS.map(([k,g,n,t])=>{"));
 check("the old one-black-pill markup is gone", !pages.includes("<span>${g}</span>"));
 
-check("Archive Instagram shadow uses purple tones", pages.includes("box-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7"));
+check("Archive Instagram shadow uses orange tones", pages.includes("box-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52"));
 check("Archive Pinterest shadow has red depth", pages.includes("box-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269"));
 
 check("Archive places its colored light controls within the image frame rather than a title strip",
