@@ -172,65 +172,31 @@
     grid.appendChild(tile);
   }
 
-  // Separate OAuth providers from public profile links without losing saved links.
-  function ensurePlanetary() {
-    var grid = one('#orbitGrid');
-    if (!grid) return;
-    var card = grid.closest('#orbit');
-    if (!card) return;
-    var linkIds = ['spotify', 'soundcloud', 'drive', 'calendar'];
-    var shelf = one('#orbitPlanetaryShelf', card);
-    if (!shelf) {
-      shelf = document.createElement('div');
-      shelf.id = 'orbitPlanetaryShelf';
-      shelf.hidden = true;
-      shelf.className = 'orbit-planetary-shelf';
-      shelf.style.cssText = 'margin-top:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px';
-      card.querySelector('.orbit-note')?.before(shelf);
+  // Planetary is an alternate entrance to the full Orbit layout, not a
+  // disclosure control that removes planets and changes the widget's geometry.
+  function ensurePlanetary(){
+    var grid=one('#orbitGrid');
+    if(!grid)return;
+    var card=grid.closest('#orbit');if(!card)return;
+    var obsolete=one('#orbitPlanetaryShelf',card);
+    if(obsolete){
+      // Earlier versions moved real planets under an invisible shelf.
+      // Return them to their home before dropping the old layout.
+      all('[data-orbit-app]',obsolete).forEach(function(tile){grid.appendChild(tile)});
+      obsolete.remove();
     }
-    linkIds.forEach(function (id) {
-      var tile = one('[data-orbit-app="' + id + '"]', grid);
-      if (tile) shelf.appendChild(tile);
-    });
-    [
-      {id:'x', name:'X', glyph:'X', color:'#191919'},
-      {id:'snapchat', name:'Snapchat', glyph:'SC', color:'#ffeb00'},
-      {id:'tumblr', name:'Tumblr', glyph:'T', color:'#1b304b'}
-    ].forEach(function (provider) {
-      if (one('[data-orbit-app="' + provider.id + '"]', grid)) return;
-      var tile = document.createElement('button');
-      tile.type = 'button';
-      tile.dataset.orbitApp = provider.id;
-      tile.dataset.orbitOAuthPending = '1';
-      tile.title = provider.name + ' authorization is being prepared';
-      tile.setAttribute('aria-label', provider.name + ' · connection coming soon');
-      var globe = document.createElement('span');
-      globe.className = 'orbit-glyph';
-      // Use each provider's real planet instead of a universal warm-grey fallback.
-      const planetTextures={
-        x:'radial-gradient(circle at 29% 23%,#b1b1b1 0 3%,transparent 10%),linear-gradient(140deg,#484848,#131313 54%,#000)',
-        snapchat:'radial-gradient(circle at 28% 24%,#fffedd 0 7%,transparent 14%),linear-gradient(140deg,#ffffa8,#ffeb00 55%,#c7a900)',
-        tumblr:'radial-gradient(circle at 28% 24%,#779ed4 0 4%,transparent 12%),radial-gradient(circle at 75% 72%,#07112b 0 12%,transparent 20%),linear-gradient(140deg,#385e9a,#153862 42%,#06132f 90%)'
-      };
-      globe.style.setProperty('--planet',planetTextures[provider.id]||'linear-gradient(135deg,'+provider.color+',#161616)');
-      globe.textContent = provider.glyph;
-      var name = document.createElement('b'); name.textContent = provider.name;
-      var status = document.createElement('small'); status.textContent = 'Soon';
-      tile.append(globe, name, status);
-      grid.append(tile);
-    });
-    var pill = one('#orbitPlanetaryToggle', card);
-    if (!pill) {
-      pill = document.createElement('button');
-      pill.type = 'button';
-      pill.id = 'orbitPlanetaryToggle';
-      pill.setAttribute('aria-expanded', 'false');
-      pill.setAttribute('aria-controls', 'orbitPlanetaryShelf');
-      pill.textContent = 'view planetary';
-      pill.style.cssText = 'display:block;margin:12px auto 3px;border:1px solid rgba(80,65,65,.3);border-radius:999px;padding:7px 16px;background:rgba(255,255,255,.48);font:600 11px system-ui;cursor:pointer';
+    all('[data-orbit-oauth-pending]',grid).forEach(function(tile){tile.remove()});
+    var pill=one('#orbitPlanetaryToggle',card);
+    if(!pill){
+      pill=document.createElement('button');
+      pill.type='button';pill.id='orbitPlanetaryToggle';
       grid.after(pill);
     }
-    shelf.style.display = shelf.hidden ? 'none' : 'grid';
+    pill.textContent='View planetary ↗';
+    pill.removeAttribute('aria-expanded');
+    pill.removeAttribute('aria-controls');
+    pill.setAttribute('aria-label','View all Orbit planets and connected accounts');
+    pill.title='Open the full Orbit page';
   }
 
   function render() {
@@ -271,26 +237,11 @@
   document.addEventListener('click', function (event) {
     var target = event.target && event.target.closest ? event.target : null;
     if (!target) { return; }
-    var planetaryToggle = target.closest('#orbitPlanetaryToggle');
-    if (planetaryToggle) {
-      event.preventDefault();
-      var shelf = one('#orbitPlanetaryShelf');
-      if (shelf) {
-        shelf.hidden = !shelf.hidden;
-        shelf.style.display = shelf.hidden ? 'none' : 'grid';
-        planetaryToggle.setAttribute('aria-expanded', String(!shelf.hidden));
-        planetaryToggle.textContent = shelf.hidden ? 'view planetary' : 'hide planetary';
-      }
-      return;
-    }
-    var pendingOAuth = target.closest('[data-orbit-oauth-pending]');
-    if (pendingOAuth) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      const key=pendingOAuth.dataset.orbitApp||'';
-      window.__biglwaPendingOAuthProvider=key;
-      window.BigLWAOpenModule?.('orbit');
-      showStatus(pendingOAuth.querySelector('b').textContent+' login is not active yet. The Orbit page explains what must be configured first.');
+    var planetaryToggle=target.closest('#orbitPlanetaryToggle');
+    if(planetaryToggle){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('orbit');
+      else window.location.assign('/studio?view=orbit');
       return;
     }
     var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
