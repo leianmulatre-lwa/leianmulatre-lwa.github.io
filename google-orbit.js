@@ -172,9 +172,65 @@
     grid.appendChild(tile);
   }
 
+  // Separate OAuth providers from public profile links without losing saved links.
+  function ensurePlanetary() {
+    var grid = one('#orbitGrid');
+    if (!grid) return;
+    var card = grid.closest('#orbit');
+    if (!card) return;
+    var linkIds = ['spotify', 'soundcloud'];
+    var shelf = one('#orbitPlanetaryShelf', card);
+    if (!shelf) {
+      shelf = document.createElement('div');
+      shelf.id = 'orbitPlanetaryShelf';
+      shelf.hidden = true;
+      shelf.className = 'orbit-planetary-shelf';
+      shelf.style.cssText = 'margin-top:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px';
+      card.querySelector('.orbit-note')?.before(shelf);
+    }
+    linkIds.forEach(function (id) {
+      var tile = one('[data-orbit-app="' + id + '"]', grid);
+      if (tile) shelf.appendChild(tile);
+    });
+    [
+      {id:'x', name:'X', glyph:'X', color:'#191919'},
+      {id:'snapchat', name:'Snapchat', glyph:'SC', color:'#e2c500'},
+      {id:'tumblr', name:'Tumblr', glyph:'T', color:'#304b6c'}
+    ].forEach(function (provider) {
+      if (one('[data-orbit-app="' + provider.id + '"]', grid)) return;
+      var tile = document.createElement('button');
+      tile.type = 'button';
+      tile.dataset.orbitApp = provider.id;
+      tile.dataset.orbitOAuthPending = '1';
+      tile.title = provider.name + ' authorization is being prepared';
+      tile.setAttribute('aria-label', provider.name + ' · connection coming soon');
+      var globe = document.createElement('span');
+      globe.className = 'orbit-glyph';
+      globe.style.setProperty('--planet', 'linear-gradient(135deg,' + provider.color + ',#383137)');
+      globe.textContent = provider.glyph;
+      var name = document.createElement('b'); name.textContent = provider.name;
+      var status = document.createElement('small'); status.textContent = 'Soon';
+      tile.append(globe, name, status);
+      grid.append(tile);
+    });
+    var pill = one('#orbitPlanetaryToggle', card);
+    if (!pill) {
+      pill = document.createElement('button');
+      pill.type = 'button';
+      pill.id = 'orbitPlanetaryToggle';
+      pill.setAttribute('aria-expanded', 'false');
+      pill.setAttribute('aria-controls', 'orbitPlanetaryShelf');
+      pill.textContent = 'view planetary';
+      pill.style.cssText = 'display:block;margin:12px auto 3px;border:1px solid rgba(80,65,65,.3);border-radius:999px;padding:7px 16px;background:rgba(255,255,255,.48);font:600 11px system-ui;cursor:pointer';
+      grid.after(pill);
+    }
+    shelf.style.display = shelf.hidden ? 'none' : 'grid';
+  }
+
   function render() {
     try {
       ensureFacebook();
+      ensurePlanetary();
       ['youtube', 'drive', 'calendar'].forEach(function (kind) {
         all('[data-orbit-app="' + kind + '"]').forEach(function (tile) {
           tile.setAttribute('aria-label', (state.connected ? 'View connected ' : 'Connect ') + kind);
@@ -209,6 +265,25 @@
   document.addEventListener('click', function (event) {
     var target = event.target && event.target.closest ? event.target : null;
     if (!target) { return; }
+    var planetaryToggle = target.closest('#orbitPlanetaryToggle');
+    if (planetaryToggle) {
+      event.preventDefault();
+      var shelf = one('#orbitPlanetaryShelf');
+      if (shelf) {
+        shelf.hidden = !shelf.hidden;
+        shelf.style.display = shelf.hidden ? 'none' : 'grid';
+        planetaryToggle.setAttribute('aria-expanded', String(!shelf.hidden));
+        planetaryToggle.textContent = shelf.hidden ? 'view planetary' : 'hide planetary';
+      }
+      return;
+    }
+    var pendingOAuth = target.closest('[data-orbit-oauth-pending]');
+    if (pendingOAuth) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      showStatus(pendingOAuth.querySelector('b').textContent + ' OAuth is being prepared. No account has been connected yet.');
+      return;
+    }
     var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
     if (tile) {
       event.preventDefault();
