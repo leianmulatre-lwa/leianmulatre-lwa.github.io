@@ -60,7 +60,7 @@ check("Pinterest images can fall back to known thumbnails", pages.includes("data
 check("Archive refresh includes Pinterest", pages.includes("window.__biglwaPinterest.syncAllBoards()"));
 console.log("\n=== MANAGE POPUP FOR EVERY ORBIT CONNECTION ===");
 check("the toolbar opens a connections popup", pages.includes('id="archiveConnections"') && pages.includes("()=>openConnectionsPopup()"));
-check("the popup covers every Orbit source", pages.includes("ORBIT_APPS.map(([k,g,n,t])=>{") && pages.includes("root.className='biglwa-popup-backdrop'"));
+check("the popup covers every Orbit source", pages.includes("[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{") && pages.includes("root.className='biglwa-popup-backdrop'"));
 check("OAuth rows connect, reconnect, and unlink in place", pages.includes("data-orbit-connect=") && pages.includes("data-orbit-unlink=") && pages.includes("window.__biglwaConnections?.forget?.(k)"));
 check("plain-link rows hand over to the Orbit page", pages.includes('data-orbit-manage=') && pages.includes("dismiss();openModule('orbit')"));
 
@@ -71,12 +71,12 @@ check("a chip per source is offered", pages.includes("data-archive-source-filter
 check("chips and the duplicates toggle save then redraw", pages.includes("saveFilters(f);await draw()"));
 
 console.log("\n=== ORBIT API CHIPS ===");
-check("each API carries its own colour", pages.includes("['facebook','FB','Facebook','#58a6ff']") && pages.includes("['tiktok','TT','TikTok','#772dcc']") && pages.includes("['tumblr','T','Tumblr','#1b304b']"));
+check("each API carries its own colour", pages.includes("['facebook','FB','Facebook','#1658be']") && pages.includes("['tiktok','TT','TikTok','#772dcc']") && pages.includes("['tumblr','T','Tumblr','#1b304b']"));
 check("the chip is painted with it", pages.includes('class="orbit-platform-badge" aria-hidden="true" style="background:'));
 check("the letter is pinned white so the widget colour cannot swallow it", pages.includes("color:#fff!important;font-size:8px;font-weight:800;-webkit-text-fill-color:#fff"));
 check("the row colour rule can no longer outrank the chip", pages.includes(".module-workspace .module-orbit-row header span{"));
 check("both row shapes use the coloured chip", pages.includes('</header>${orbitBadge(g,t)}') && pages.includes("+'</header>'+orbitBadge(g,t)"));
-check("the row map unpacks the colour", pages.includes("ORBIT_APPS.map(([k,g,n,t])=>{"));
+check("the row map unpacks the colour", pages.includes("[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{"));
 check("the old one-black-pill markup is gone", !pages.includes("<span>${g}</span>"));
 
 check("Archive Instagram shadow uses orange tones", pages.includes("box-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52"));
