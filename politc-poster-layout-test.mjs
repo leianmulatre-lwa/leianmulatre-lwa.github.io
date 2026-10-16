@@ -18,11 +18,11 @@ assert.ok(politc.includes('curatedHidden')&&politc.includes("biglwaPolitcHiddenC
 for(const name of ['Zendaya','Beyoncé','Rihanna','Jennifer Lawrence','Anne Hathaway','Ida B. Wells','Malcolm X','Martin Luther King Jr.','Elaine Brown','Kathleen Cleaver','Ericka Huggins','Fred Hampton','Bobby Seale','Huey P. Newton','Derek Chauvin','Jeffrey Epstein','Cornell University · Chi Phi case','Angela Davis','Fannie Lou Hamer','Shirley Chisholm','Audre Lorde','bell hooks','Toni Morrison','Nina Simone','Tarana Burke']){
  assert.ok(politc.includes(name),'Missing curated profile: '+name);
 }
-assert.ok(politc.includes("PUBLIC RECORD · SCRUTINY")&&politc.includes('View source')===false,'Accountability requires source records, not targeting rhetoric');
+assert.ok(politc.includes("PUBLIC RECORD · CASE FILE")&&politc.includes('Details & source ↗'),'Accountability context stays in a collapsible sourced card');
 assert.ok(politc.includes("Read source ↗"),'Seed and user supplied source links stay visible');
 assert.ok(style.includes('politc-live-zone')&&style.includes('politc-resource-zone'));
 assert.ok(style.includes('politc-vintage-panel')&&style.includes('politc-nomination-drawer')&&style.includes('politc-nominate-button'));
-assert.ok(style.includes('grid-auto-flow:column!important'),'Poster cards scroll rather than stack into huge forms');
+assert.ok(style.includes('grid-auto-flow:column!important')&&style.includes('politc-poster-photo'),'Poster cards scroll with large portraits');
 assert.ok(style.includes('font-family:"Stars and Stripes","Times New Roman"'),'Use font when installed, fall back to Times New Roman');
 assert.ok(style.includes('#721c2a'),'Maroon headline and type');
 assert.ok(existsSync(new URL('./assets/politc-wanted-paper.jpg',import.meta.url)),'User-supplied parchment image committed to repo');
