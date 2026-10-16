@@ -988,7 +988,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
   const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit};return Boolean(map[key])};
-  const planetaryMarkup=(links)=>'<div class="module-planetary"><button type="button" class="module-action ghost module-planetary-toggle" id="orbitPlanetaryToggle" aria-expanded="false" aria-controls="orbitPlanetaryList">view planetary</button><div class="module-planetary-list" id="orbitPlanetaryList" hidden>'+
+  const planetaryMarkup=(links)=>'<div class="module-planetary"><button type="button" class="module-action ghost module-planetary-toggle" id="modulePlanetaryToggle" aria-expanded="false" aria-controls="modulePlanetaryList">view planetary</button><div class="module-planetary-list" id="modulePlanetaryList" hidden>'+
     PLANETARY_APPS.map(([k,g,n,t])=>'<div class="module-orbit-row is-planetary"><header><b>'+esc(n)+'</b></header>'+orbitBadge(g,t)+'<label class="orbit-field-label">Public profile / page</label><input class="module-input" data-orbit-path="'+esc(k)+'" value="'+esc(links[k]||'')+'" placeholder="Paste profile URL"><div class="module-actions"><button class="module-action" type="button" data-orbit-save="'+esc(k)+'">Save</button><button class="module-action ghost" type="button" data-orbit-open="'+esc(k)+'" '+(links[k]?'':'disabled')+'>Open profile</button></div></div>').join('')+'</div></div>';
    function renderOrbitPage(){
     const links=orbitLinks();
@@ -1012,9 +1012,9 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
     body.onclick=async e=>{
-     const toggle=e.target.closest('#orbitPlanetaryToggle');
+     const toggle=e.target.closest('#modulePlanetaryToggle');
      if(toggle){
-       const list=$('#orbitPlanetaryList',body);
+       const list=$('#modulePlanetaryList',body);
        if(list){list.hidden=!list.hidden;toggle.setAttribute('aria-expanded',String(!list.hidden));toggle.textContent=list.hidden?'view planetary':'hide planetary'}
        return;
      }
