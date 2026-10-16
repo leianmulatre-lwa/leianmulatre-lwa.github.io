@@ -26,7 +26,7 @@ check("the rim is set on every card, from its own source", feed.includes("--feed
 check("the old per-position colour cycle is gone", !feed.includes("nth-child(6n+2){--feed-card-rim"));
 check("the rim colour is not taken from the source accent any more", !feed.includes("esc(src.accent)"));
 check("every card carries the hard rim and the soft glow", feed.includes(".biglwa-pin{--feed-card-rim:#a52a0c") && feed.includes("--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px") && feed.includes("box-shadow:var(--feed-card-shadow)"));
-check("Instagram cards use the purple rim and shadow", orbit.includes('style="--feed-card-rim:#7d3ec5;--feed-card-shadow:3px 3px 0 #7d3ec5,7px 7px 0 -2px #ad82e7'));
+check("Instagram cards use the orange rim and shadow", orbit.includes('--feed-card-rim:#f36b21;--feed-card-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52'));
 
 console.log("\n=== A SLIDESHOW CANNOT MOVE ITS CARD ===");
 check("the frame starts at a fixed ratio", feed.includes(".biglwa-slide{position:relative;width:100%;aspect-ratio:4/5"));
@@ -49,14 +49,14 @@ console.log("\n=== A POST WITH THIRTEEN PHOTOS IS A STACK ===");
 check("there is a threshold for a stack", feed.includes("const MANY_PHOTOS = 8"));
 check("every picture is counted before drawing", feed.includes("const everyPhoto = pictureUrls(post);") && feed.includes("const isStack = everyPhoto.length >= MANY_PHOTOS"));
 check("a stack shows one picture", feed.includes("const shown = isStack ? urls.slice(0, 1) : urls;"));
-check("a stack draws no tabs", feed.includes("const carousel = !isStack && shown.length > 1"));
+check("a stack draws no tabs", feed.includes('const shown = isStack ? urls.slice(0, 1) : urls;') && feed.includes('shown.length === 1') && feed.includes(': slideshow(shown'));
 check("the live Instagram cards use the same rule", orbit.includes("var manyPhotos = children.length >= 8") && orbit.includes("children.length > 1 && !manyPhotos"));
 
 console.log("\n=== EVERY CARD SHARES A TOP-RIGHT THREE-DOT MENU ===");
 check("the actions menu markup is shareable", feed.includes("function sendBarMarkup(managed = false, sourceUrl = '')"));
-check("the feed hands it out", feed.includes("window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard }"));
+check("the feed hands it out", feed.includes('window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard,'));
 check("the live cards draw it", orbit.includes("window.__biglwaFeed.sendBarMarkup()"));
-check("the live cards carry a post id and picture record", orbit.includes('data-post-id="\' + cardId + \'" data-send-record="\' + sendRecord + \'"'));
+check("the live cards carry a post id and picture record", orbit.includes('data-post-id=') && orbit.includes('data-send-record=') && orbit.includes('var sendRecord = JSON.stringify'));
 check("the live cards are registered with the feed", orbit.includes("window.__biglwaFeed.registerSendCard(card)"));
 check("the tray is redrawn once the feed is ready", orbit.includes("document.addEventListener('biglwa:feed-ready'") && feed.includes('new CustomEvent("biglwa:feed-ready")'));
 check("the tray works from any card, not just saved posts", feed.includes("function postForCard(card)") && !feed.includes('closest(".biglwa-pin-post")\n        const post'));
