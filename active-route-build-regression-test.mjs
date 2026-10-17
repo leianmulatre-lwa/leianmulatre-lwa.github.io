@@ -15,7 +15,9 @@ for(const [path,version] of Object.entries(expected)){
  assert.ok(entry.includes('/'+path+'?v='+version),'Entry point must load current '+path);
 }
 const assetRefs=[...entry.matchAll(/(?:src|href)="\/([^"?#]+)\?v=([^"]+)"/g)].map(([,path])=>path);
-assert.equal(assetRefs.length,new Set(assetRefs).size,'No duplicate versioned external assets in entry point');
+const codeAssets=assetRefs.filter(path=>/\\.(?:js|css)$/i.test(path));
+assert.equal(codeAssets.length,new Set(codeAssets).size,'No duplicated executable JavaScript or CSS assets');
+// Reusing an image for preload and actual display is intentional.
 assert.match(modules,/function orbitLinkEditor\(k,name,url\)/,'Link editor in current renderer');
 assert.match(modules,/data-orbit-edit-link="\$\{k\}"/,'Link action is in the same row as Connect');
 assert.doesNotMatch(modules,/<div class="orbit-link-utility">/,'Do not reintroduce separate profile link row');
