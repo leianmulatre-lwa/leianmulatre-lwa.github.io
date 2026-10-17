@@ -129,7 +129,8 @@ assert.match(avatarStudio, /\/avatar\/unity\/index\.html/);
 
 assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
 assert.match(tiktokOrbit, /lastError/);
-assert.match(modules, /providerError/);
+assert.match(modules, /orbit-main/); // Provider diagnostics are no longer injected into planet previews.
+assert.match(modules, /orbitPageStatus/); // Detailed OAuth errors belong in the page status area.
 assert.match(tiktokOrbit, /location\.origin \+ '\/studio\?view=orbit'/);
 
 assert.match(feedView, /instagram: \{ rim:"#f36b21"/);
