@@ -55,6 +55,7 @@
    panel.hidden=!state.connected;
    panel.querySelector('button').disabled=!!syncing;
    panel.querySelector('p').textContent=state.syncMessage||'Sync recent personal posts and photos to the Collective Feed.';
+   if(state.connected&&!get()?.link)panel.querySelector('p').textContent+=' Facebook did not share a profile link. Reconnect to grant profile-link access, or use Facebook’s Link button to save your profile URL.';
  }
  async function sync(){
    if(syncing)return syncing;
@@ -99,6 +100,10 @@
        state.connected=!!account.connected;
        state.profile=account.profile||null;
        state.needsReauth=!!account.needsReauth;
+       const links=window.BigLWAOrbitAccountLinks;
+       if(state.profile?.link&&links?.save&&!links.get?.().facebook){
+         try{await links.save('facebook',state.profile.link)}catch(error){console.warn('Facebook profile link could not be saved:',error.message)}
+       }
      }catch{state.connected=false;state.profile=null;state.needsReauth=false}
      publish();
      return state;
@@ -125,7 +130,7 @@
    state.connected=false;state.profile=null;state.needsReauth=false;publish();
  }
  function get(){return state.connected&&state.profile?{
-   ...state.profile,id:'facebook',needsReauth:state.needsReauth,verifiedFromProvider:true
+   ...state.profile,link:state.profile.link||window.BigLWAOrbitAccountLinks?.get?.().facebook||'',id:'facebook',needsReauth:state.needsReauth,verifiedFromProvider:true
  }:null}
  function callbackNotice(){
    const url=new URL(location.href);

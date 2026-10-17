@@ -1902,6 +1902,15 @@ function fbpEnd(status,message=''){
  if(message)url.searchParams.set('facebook_login_error',message.slice(0,130));
  return new Response(null,{status:302,headers:{Location:url.toString(),'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
 }
+async function facebookPersonalProfileLink(accessToken){
+ try{
+   const response=await fetch(FB_PERSONAL_GRAPH+'/me?fields=link',{headers:{Authorization:'Bearer '+accessToken}});
+   const data=await response.json();
+   if(!response.ok||!data.link)return '';
+   const link=new URL(data.link);
+   return link.protocol==='https:'&&['facebook.com','www.facebook.com','m.facebook.com'].includes(link.hostname)&&link.pathname!=='/'?link.href:'';
+ }catch{return ''}
+}
 async function facebookPersonalRoute(request,env){
  const url=new URL(request.url);
  const action=url.pathname.slice('/facebook-personal/'.length);
@@ -1940,7 +1949,7 @@ async function facebookPersonalRoute(request,env){
      if(!meResponse.ok||!me.id)throw Error('Meta did not return the authorized account.');
      const seconds=Math.max(60,Number(token.expires_in)||3600);
      const profile={id:'facebook',sourceUserId:String(me.id),name:String(me.name||'Facebook account').slice(0,100),
-       avatarUrl:String(me.picture?.data?.url||'').slice(0,2048),link:'',verifiedFromProvider:true};
+       avatarUrl:String(me.picture?.data?.url||'').slice(0,2048),link:await facebookPersonalProfileLink(token.access_token),verifiedFromProvider:true};
      await env.OAUTH_SESSIONS.put('facebook-personal:account:'+saved.uid,JSON.stringify({
        profile,accessToken:token.access_token,expiresAt:Date.now()+seconds*1000,createdAt:Date.now()
      }),{expirationTtl:7776000});
@@ -1964,6 +1973,11 @@ async function facebookPersonalRoute(request,env){
  const key='facebook-personal:account:'+user.uid;
  if(action==='session'){
    const session=env.OAUTH_SESSIONS?await env.OAUTH_SESSIONS.get(key,'json'):null;
+   if(session?.profile&&!session.profile.link&&session.expiresAt>Date.now()&&Date.now()-(session.linkCheckedAt||0)>3600000){
+     session.profile.link=await facebookPersonalProfileLink(session.accessToken);
+     session.linkCheckedAt=Date.now();
+     await env.OAUTH_SESSIONS.put(key,JSON.stringify(session),{expirationTtl:7776000});
+   }
    return json({connected:!!session,needsReauth:!!session&&session.expiresAt<=Date.now(),
      profile:session?.profile||null},200,request,env);
  }
@@ -2017,7 +2031,7 @@ async function facebookPersonalRoute(request,env){
  auth.searchParams.set('client_id',config.id);
  auth.searchParams.set('redirect_uri',FB_PERSONAL_CALLBACK);
  auth.searchParams.set('response_type','code');
- auth.searchParams.set('scope','public_profile,user_posts,user_photos');
+ auth.searchParams.set('scope','public_profile,user_posts,user_photos,user_link');
  auth.searchParams.set('auth_type','rerequest');
  auth.searchParams.set('state',state);
  return json({ok:true,authorizeUrl:auth.toString()},200,request,env);
