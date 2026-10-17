@@ -1062,7 +1062,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        }
        if(!ORBIT_LIVE.has(k)){say('This provider is not configured for sign-in yet.');return;}
        const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit}[k];
-       if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');
+       if(!client?.connect){say('That connection is still loading. Try again in a moment.');return;}
+       if(k==='facebook'){
+         connect.disabled=true;
+         try{await client.connect();}catch(error){say(error?.message||'Facebook Login could not start. Check Meta app settings.');}
+         finally{if(connect.isConnected)connect.disabled=false;}
+       }else client.connect();
        return;
      }
      const unlink=e.target.closest('[data-orbit-unlink]');
