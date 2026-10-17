@@ -14,7 +14,7 @@ const full=pages.slice(pages.indexOf('function renderOrbitPage(){'),pages.indexO
 assert.ok(full.includes('[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{'),'Full Orbit must display ALL providers in the same grid');
 assert.ok(!full.includes('view planetary'),'Full Orbit must not show a redundant Planetary toggle');
 assert.ok(!full.includes('planetaryMarkup(links)'),'Full Orbit must not hide saved-link apps');
-assert.ok(full.includes('data-orbit-connect=')&&full.includes('data-orbit-save='),'Both OAuth and links remain operable');
+assert.ok(full.includes('data-orbit-connect=')&&full.includes('data-orbit-edit-link=')&&pages.includes('function orbitLinkEditor(k,name,url)')&&pages.includes('data-orbit-save=')&&pages.includes('await manager.save(k,url)'),'OAuth and modal-edited public links both remain operable');
 assert.ok(orbitStyle.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important'),'Four providers across on desktop');
 assert.ok(orbitStyle.includes('grid-template-columns:repeat(3,minmax(0,1fr))!important')&&orbitStyle.includes('grid-template-columns:repeat(2,minmax(0,1fr))!important')&&orbitStyle.includes('grid-template-columns:minmax(0,1fr)!important'),'Orbit grid remains responsive');
 const feed=pages.slice(pages.indexOf('function renderFeed(){'),pages.indexOf('function renderConnect(){'));
