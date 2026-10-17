@@ -554,6 +554,8 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       sourceCreatedAtMs: item.sourceCreatedAtMs || 0,
       mediaType: item.mediaType,
       orbitImported: true,
+      // Distinguish a Pinterest original from a saved board reference.
+      ...(item.source === 'pinterest' ? {pinterestOrigin: raw?.biglwaPinterestOrigin === 'created' ? 'created' : 'board', pinterestBoardId: clean(raw?.board_id || raw?.boardId)} : {}),
       state,
       archiveState,
       deletionAt: preservedDeleteAt,
