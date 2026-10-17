@@ -174,8 +174,11 @@ const STYLE = `
 #biglwaFeedHero .biglwa-feed-resync{display:block;margin:8px 0 0;padding:7px 10px;border:1px solid #b9a499;border-radius:9px;background:#f6e9e1;color:#513d38;font:700 10px/1.2 system-ui;cursor:pointer}
 #biglwaFeedHero .biglwa-feed-sync-note{display:block;margin:4px 0;font:10px/1.3 system-ui;color:#786e67}
 #biglwaOrbitDrafts{border:1px solid #dfd4ca!important;border-radius:20px!important;background:#eee6de!important;box-shadow:3px 3px 0 #a74b59,0 12px 30px rgba(55,42,34,.06)!important}
-#biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #d77b30}
-#biglwaOrbitDrafts .biglwa-draft-card:nth-child(6n+2){box-shadow:3px 3px 0 #d1ad2f}.biglwa-draft-card:nth-child(6n+3){box-shadow:3px 3px 0 #4e8f61}.biglwa-draft-card:nth-child(6n+4){box-shadow:3px 3px 0 #416fa9}
+#biglwaOrbitDrafts .biglwa-draft-card{border:1px solid #dfd4ca!important;background:#f1e9e1!important;box-shadow:3px 3px 0 #b66b7b!important}
+#biglwaOrbitDrafts .biglwa-draft-card[data-draft-source="pinterest"]{box-shadow:3px 3px 0 #e60023!important}
+#biglwaOrbitDrafts .biglwa-draft-card[data-draft-source="instagram"]{box-shadow:3px 3px 0 #f36b21!important}
+#biglwaOrbitDrafts .biglwa-draft-card[data-draft-source="tiktok"]{box-shadow:3px 3px 0 #772dcc!important}
+#biglwaOrbitDrafts .biglwa-draft-card[data-draft-source="facebook"]{box-shadow:3px 3px 0 #1877f2!important}
 /* A member's post keeps its own shape: the picture fills the column width at its true
    height and no caption sits on the card. The menu
    may drop below a short wide picture, so the card lets it escape and the picture itself
@@ -508,6 +511,19 @@ function when(iso) {
 
 let posts = [];
 let draftPosts = [];
+let draftTrayOpen = false;
+let feedSort = "latest";
+function sortedFeed(list){
+ const rows=[...list];
+ const activity=item=>["likeCount","likes","saveCount","saves","commentCount","views"].reduce((n,key)=>n+Math.max(0,Number(item[key])||0),0);
+ const dailyKey=item=>{let v=2166136261;for(const c of new Date().toISOString().slice(0,10)+":"+String(item.id||""))v=Math.imul(v^c.charCodeAt(0),16777619);return v>>>0};
+ return rows.sort((a,b)=>{
+  if(feedSort==="popular"){const d=activity(b)-activity(a);if(d)return d;}
+  if(feedSort==="daily"){const d=dailyKey(a)-dailyKey(b);if(d)return d;}
+  const diff=postTimeMs(b)-postTimeMs(a);
+  return (feedSort==="oldest"?-diff:diff)||String(a.id||"").localeCompare(String(b.id||""));
+ });
+}
 let loading = false;
 let drawnOn = null;
 let drawnSignature = null;
@@ -933,32 +949,35 @@ function retargetFeedRecord(card, url) {
 /* Account imports are saved as private drafts. This is the actual user-visible
    publishing queue; older code loaded draftPosts but never drew this panel. */
 function renderDraftPanel(){
-  const panel=document.getElementById("biglwaOrbitDrafts");
-  if(!panel)return;
-  const drafts=draftPosts.filter(p=>p.state==="draft");
-  panel.hidden=!drafts.length;
-  if(!drafts.length){panel.replaceChildren();return}
-  const safe=url=>{try{let u=new URL(String(url||""));return u.protocol==="https:"?u.href:""}catch{return""}};
-  panel.innerHTML='<div class="biglwa-drafts-head"><div><h3>private imports · ready to post</h3>'+
-    '<p>Saved to your Big LWA account. Choose the ones to publish; nothing goes live automatically.</p></div>'+
-    '<button class="module-action" type="button" data-orbit-publish-selected>Post selected to Collective Feed ↗</button></div>'+
-    '<div class="biglwa-drafts-grid">'+drafts.slice(0,60).map(post=>{
-      const image=safe(thumbnailFor(post)||pictureUrls(post)[0]||post.thumbnailUrl);
-      const source=String(post.source||"biglwa");
-      const caption=String(post.caption||post.linkTitle||"Imported post");
-      const original=safe(post.sourceUrl);
-      return '<label class="biglwa-draft-card"><input type="checkbox" data-orbit-draft-check value="'+esc(post.id)+'" aria-label="Select '+esc(caption.slice(0,75))+'">'+
-        (image?'<img src="'+esc(image)+'" loading="lazy" alt="">':'<span class="biglwa-draft-fallback" aria-hidden="true">▶</span>')+
-        '<div><b>'+esc(caption.slice(0,120))+'</b><small>'+esc(source)+' · private draft</small>'+
-        (original?'<a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View original ↗</a>':'')+
-        '</div></label>';
-    }).join("")+'</div>';
+ const panel=document.getElementById("biglwaOrbitDrafts"),toggle=document.getElementById("feedOrbitDraftToggle");
+ if(!panel)return;
+ const drafts=sortedFeed(draftPosts.filter(p=>p.state==="draft"));
+ if(toggle){
+  toggle.disabled=!drafts.length;
+  toggle.setAttribute("aria-expanded",String(draftTrayOpen&&!!drafts.length));
+  toggle.textContent=(draftTrayOpen?"Hide":"View")+" pins ready to post"+(drafts.length?" ("+drafts.length+")":"");
+ }
+ panel.hidden=!draftTrayOpen||!drafts.length;
+ if(panel.hidden){panel.replaceChildren();return}
+ const safe=url=>{try{const u=new URL(String(url||""));return u.protocol==="https:"?u.href:""}catch{return""}};
+ panel.innerHTML='<div class="biglwa-drafts-head"><div><h3>private imports · ready to post</h3>'+
+  '<p>Saved to your Big LWA profile for review. Choose what to publish; nothing goes live automatically.</p></div>'+
+  '<button class="module-action" type="button" data-orbit-publish-selected>Post selected to Collective Feed ↗</button></div>'+
+  '<div class="biglwa-drafts-grid">'+drafts.slice(0,60).map(post=>{
+   const image=safe(thumbnailFor(post)||pictureUrls(post)[0]||post.thumbnailUrl);
+   const source=String(post.source||"biglwa").toLowerCase().replace(/[^a-z0-9_-]/g,"");
+   const caption=String(post.caption||post.linkTitle||"Imported post"),original=safe(post.sourceUrl);
+   return '<label class="biglwa-draft-card" data-draft-source="'+esc(source)+'"><input type="checkbox" data-orbit-draft-check value="'+esc(post.id)+'" aria-label="Select '+esc(caption.slice(0,75))+'">'+
+    (image?'<img src="'+esc(image)+'" loading="lazy" alt="">':'<span class="biglwa-draft-fallback" aria-hidden="true">▶</span>')+
+    '<div><b>'+esc(caption.slice(0,120))+'</b><small>'+esc(source)+' · private draft</small>'+
+    (original?'<a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View original ↗</a>':'')+'</div></label>';
+  }).join("")+'</div>';
 }
 function renderPosts(force) {
   const list = document.getElementById("feedPageList");
   if (!list) return;
   const me = identity()?.uid;
-    const signature = posts.map((p) => p.id + ":" + pictureUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
+    const signature = feedSort + "@" + posts.map((p) => p.id + ":" + pictureUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
 ;
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
@@ -967,7 +986,7 @@ function renderPosts(force) {
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
   stopSlideshows();
   if (!posts.length) return;
-  const html = posts.filter(usablePost).map((post) => {
+  const html = sortedFeed(posts.filter(usablePost)).map((post) => {
     const src = accentOf(post.source);
     void src;
     /* Counted before drawing, because a post with thirteen photos is a stack rather than
