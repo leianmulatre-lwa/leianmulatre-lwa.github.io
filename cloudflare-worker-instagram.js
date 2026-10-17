@@ -460,6 +460,11 @@ function corsHeaders(origin) {
  */
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname.startsWith('/facebook-personal/')) {
+      const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
+      try{return await facebookPersonalRoute(request,config)}
+      catch(error){return json({error:'Facebook authorization could not be completed.'},502,request,config)}
+    }
     if (/^\/(?:x|tumblr|snapchat)\//.test(new URL(request.url).pathname)) {
       const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
       return handleAdditionalOrbit(request,config,mediaUser);
@@ -1860,3 +1865,110 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
  }
 }
 
+
+
+/* Separate personal Facebook Login for the user's NEW Meta app.
+ * Does not reuse or mutate the existing FB SDK/Business Login app.
+ * Register https://api.biglwa.com/facebook-personal/callback in Meta's
+ * Valid OAuth Redirect URIs. Keep FACEBOOK_PERSONAL_APP_SECRET server-side.
+ */
+const FB_PERSONAL_APP_ID_DEFAULT='1578748363462175';
+const FB_PERSONAL_CALLBACK='https://api.biglwa.com/facebook-personal/callback';
+const FB_PERSONAL_GRAPH='https://graph.facebook.com/v25.0';
+function fbpConfig(env){
+ const id=String(env.FACEBOOK_PERSONAL_APP_ID||FB_PERSONAL_APP_ID_DEFAULT).trim();
+ const missing=[];
+ if(!/^\d{10,30}$/.test(id))missing.push('FACEBOOK_PERSONAL_APP_ID');
+ if(!env.FACEBOOK_PERSONAL_APP_SECRET)missing.push('FACEBOOK_PERSONAL_APP_SECRET');
+ if(!env.OAUTH_SESSIONS)missing.push('OAUTH_SESSIONS');
+ return {id,missing};
+}
+function fbpEnd(status,message=''){
+ const url=new URL('https://biglwa.com/studio?view=orbit');
+ url.searchParams.set('facebook_login',status);
+ if(message)url.searchParams.set('facebook_login_error',message.slice(0,130));
+ return new Response(null,{status:302,headers:{Location:url.toString(),'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
+}
+async function facebookPersonalRoute(request,env){
+ const url=new URL(request.url);
+ const action=url.pathname.slice('/facebook-personal/'.length);
+ if(request.method==='OPTIONS')return corsPreflight(request,env);
+ const config=fbpConfig(env);
+ if(action==='health'&&request.method==='GET')
+   return json({ok:config.missing.length===0,configured:config.missing.length===0,
+     missing:config.missing,callback:FB_PERSONAL_CALLBACK,appId:config.id},200,request,env);
+ if(action==='callback'&&request.method==='GET'){
+   if(config.missing.length)return fbpEnd('failed','The new Facebook app is not configured yet.');
+   const state=String(url.searchParams.get('state')||'');
+   if(!/^[A-Za-z0-9_-]{32,100}$/.test(state))return fbpEnd('failed','Invalid OAuth state.');
+   const key='facebook-personal:state:'+state;
+   const saved=await env.OAUTH_SESSIONS.get(key,'json');
+   if(saved)await env.OAUTH_SESSIONS.delete(key);
+   if(!saved||!saved.uid||Date.now()-saved.createdAt>600000)
+     return fbpEnd('failed','Connection expired. Retry from Orbit.');
+   if(url.searchParams.get('error'))return fbpEnd('failed','Facebook authorization was cancelled.');
+   const code=url.searchParams.get('code')||'';
+   if(!code)return fbpEnd('failed','Facebook did not provide an authorization code.');
+   try{
+     const tokenUrl=new URL(FB_PERSONAL_GRAPH+'/oauth/access_token');
+     tokenUrl.searchParams.set('client_id',config.id);
+     tokenUrl.searchParams.set('client_secret',String(env.FACEBOOK_PERSONAL_APP_SECRET));
+     tokenUrl.searchParams.set('redirect_uri',FB_PERSONAL_CALLBACK);
+     tokenUrl.searchParams.set('code',code);
+     const response=await fetch(tokenUrl.toString(),{headers:{Accept:'application/json'}});
+     const token=await response.json().catch(()=>({}));
+     if(!response.ok||!token.access_token)throw Error('Meta did not accept the authorization code.');
+     const profileUrl=new URL(FB_PERSONAL_GRAPH+'/me');
+     profileUrl.searchParams.set('fields','id,name,picture.width(200).height(200)');
+     const meResponse=await fetch(profileUrl.toString(),{headers:{
+       Authorization:'Bearer '+String(token.access_token),Accept:'application/json'
+     }});
+     const me=await meResponse.json().catch(()=>({}));
+     if(!meResponse.ok||!me.id)throw Error('Meta did not return the authorized account.');
+     const seconds=Math.max(60,Number(token.expires_in)||3600);
+     const profile={id:'facebook',sourceUserId:String(me.id),name:String(me.name||'Facebook account').slice(0,100),
+       avatarUrl:String(me.picture?.data?.url||'').slice(0,2048),link:'',verifiedFromProvider:true};
+     await env.OAUTH_SESSIONS.put('facebook-personal:account:'+saved.uid,JSON.stringify({
+       profile,accessToken:token.access_token,expiresAt:Date.now()+seconds*1000,createdAt:Date.now()
+     }),{expirationTtl:7776000});
+     return fbpEnd('connected');
+   }catch(e){
+     console.warn('New Facebook OAuth exchange failed:',e.message);
+     return fbpEnd('failed','Facebook could not finish authorizing. Verify the Meta callback and app settings.');
+   }
+ }
+ if(!['start','session','disconnect'].includes(action))
+   return json({error:'Not found'},404,request,env);
+ if((action==='start'||action==='disconnect')&&request.method!=='POST')
+   return json({error:'POST required'},405,request,env);
+ if(action==='session'&&request.method!=='GET')
+   return json({error:'GET required'},405,request,env);
+ // A browser signed into Facebook but not BIG LWA cannot claim another member's account.
+ if(!allowedOrigin(request,env))return json({error:'Origin not allowed'},403,request,env);
+ let user;
+ try{user=await mediaUser(request,env)}
+ catch{return json({error:'Sign in to BIG LWA before connecting Facebook.'},401,request,env)}
+ const key='facebook-personal:account:'+user.uid;
+ if(action==='session'){
+   const session=env.OAUTH_SESSIONS?await env.OAUTH_SESSIONS.get(key,'json'):null;
+   return json({connected:!!session,needsReauth:!!session&&session.expiresAt<=Date.now(),
+     profile:session?.profile||null},200,request,env);
+ }
+ if(action==='disconnect'){
+   if(env.OAUTH_SESSIONS)await env.OAUTH_SESSIONS.delete(key);
+   return json({ok:true,connected:false},200,request,env);
+ }
+ if(config.missing.length)
+   return json({error:'New Facebook app setup is incomplete.',missing:config.missing},503,request,env);
+ const state=randomToken(32);
+ await env.OAUTH_SESSIONS.put('facebook-personal:state:'+state,JSON.stringify({
+   uid:user.uid,createdAt:Date.now()
+ }),{expirationTtl:600});
+ const auth=new URL('https://www.facebook.com/v25.0/dialog/oauth');
+ auth.searchParams.set('client_id',config.id);
+ auth.searchParams.set('redirect_uri',FB_PERSONAL_CALLBACK);
+ auth.searchParams.set('response_type','code');
+ auth.searchParams.set('scope','public_profile');
+ auth.searchParams.set('state',state);
+ return json({ok:true,authorizeUrl:auth.toString()},200,request,env);
+}
