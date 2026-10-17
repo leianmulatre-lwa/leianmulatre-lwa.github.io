@@ -1433,6 +1433,24 @@ async function wire(list, form) {
   installStyle();
   if (!list) return;
   if (form) upgradeComposer(form);
+  const toggle=document.getElementById("feedOrbitDraftToggle");
+  if(toggle&&!toggle.dataset.bigWired){
+   toggle.dataset.bigWired="1";
+   toggle.addEventListener("click",()=>{
+    draftTrayOpen=!draftTrayOpen;
+    renderDraftPanel();
+    if(draftTrayOpen)document.getElementById("biglwaOrbitDrafts")?.scrollIntoView?.({block:"nearest",behavior:"smooth"});
+   });
+  }
+  const sort=document.getElementById("biglwaFeedSort");
+  if(sort&&!sort.dataset.bigWired){
+   sort.dataset.bigWired="1";sort.value=feedSort;
+   sort.addEventListener("change",()=>{
+    if(!["latest","oldest","popular","daily"].includes(sort.value))return;
+    feedSort=sort.value;renderDraftPanel();renderPosts(true);
+   });
+  }
+  renderDraftPanel();
   const draftPanel = document.getElementById("biglwaOrbitDrafts");
   if (draftPanel && !draftPanel.dataset.bigWired) {
     draftPanel.dataset.bigWired = "1";
