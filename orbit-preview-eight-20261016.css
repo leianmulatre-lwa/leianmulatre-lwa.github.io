@@ -1,0 +1,43 @@
+/* Eight-planet Studio thumbnail, preserving the existing 3D planet artwork. */
+#studioApp #orbit #orbitGrid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-auto-rows:132px!important;
+  align-items:stretch!important;
+  gap:10px!important;
+}
+#studioApp #orbit #orbitGrid > button[data-orbit-app]{
+  display:none!important;
+}
+#studioApp #orbit #orbitGrid > button:is(
+  [data-orbit-app="instagram"],[data-orbit-app="youtube"],
+  [data-orbit-app="tumblr"],[data-orbit-app="pinterest"],
+  [data-orbit-app="tiktok"],[data-orbit-app="snapchat"],
+  [data-orbit-app="calendar"],[data-orbit-app="x"]
+){
+  display:flex!important;
+  box-sizing:border-box!important;
+  min-height:0!important;
+  height:100%!important;
+}
+#studioApp #orbit #orbitGrid > [data-orbit-app="instagram"]{order:1!important}
+#studioApp #orbit #orbitGrid > [data-orbit-app="youtube"]{order:2!important}
+#studioApp #orbit #orbitGrid > [data-orbit-app="tumblr"]{order:3!important}
+#studioApp #orbit #orbitGrid > [data-orbit-app="pinterest"]{order:4!important}
+#studioApp #orbit #orbitGrid > [data-orbit-app="tiktok"]{order:5!important}
+#studioApp #orbit #orbitGrid > [data-orbit-app="snapchat"]{order:6!important}
+#studioApp #orbit #orbitGrid > [data-orbit-app="calendar"]{order:7!important}
+#studioApp #orbit #orbitGrid > [data-orbit-app="x"]{order:8!important}
+@media(max-width:650px){
+  #studioApp #orbit #orbitGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+/* Full Orbit: configuration details belong in the page status area, not in
+   individual planets. Keep link fields and connection controls operable. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row{
+  min-height:228px!important;
+  box-sizing:border-box!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .module-status[role="alert"],
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-not-connected[role="status"]{
+  display:none!important;
+}
