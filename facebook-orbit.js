@@ -123,7 +123,7 @@
       // Request them through a separate, explicit user click after Meta grants access.
       all('[data-facebook-legacy-connect]').forEach(function (button) {
         var card = button.closest('.module-orbit-row');
-        var utility = card && one('.orbit-facebook-profile', card);
+        var utility = card && one('.orbit-link-dialog-actions', card);
         var actions = button.closest('.module-actions');
         if (!actions) return;
         var mediaButton = card && one('[data-facebook-orbit-media]', card);
