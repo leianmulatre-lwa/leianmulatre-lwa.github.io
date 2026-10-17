@@ -119,7 +119,7 @@ assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
   'original white supporter tile declarations removed rather than overridden');
 assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
 assert.ok(home.includes('brand-policy.css?v='));
-assert.ok(home.includes('pinterest-orbit.js?v=20261016-original-board-thumbnails-2'),'current Pinterest imports include original Pins and board thumbnails');
+assert.ok(home.includes('pinterest-orbit.js?v=20261017-boards-label-3'),'current Pinterest imports include original Pins and board thumbnails');
 console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
 
 /* Step 3 visually colors the actual three "o" letters without changing the

@@ -44,3 +44,10 @@ context.fetch=async()=>({ok:false,json:async()=>({error:{message:'Permission req
 assert.equal(await context.profileLink('token'),'');
 assert.ok(source.includes('user_photos,user_link'));
 console.log('PASS Facebook profile links accepted only from Facebook; missing permission remains recoverable');
+prior=null;writes=[];
+writerContext.postRefs=()=>({root:'root',profile:'profile'});
+store.getDoc=async ref=>{if(ref==='root')throw Object.assign(Error('Missing document denied'),{code:'permission-denied'});return {exists:()=>false};};
+await writerContext.save('facebook',item,{publishToCollective:true});assert.equal(writes.at(-1).state,'approved');
+store.getDoc=async()=>{throw Object.assign(Error('Offline'),{code:'unavailable'})};
+await assert.rejects(()=>writerContext.save('facebook',item),/Offline/);
+console.log('PASS first-import root read denial falls back to owner mirror; network failures still surface');

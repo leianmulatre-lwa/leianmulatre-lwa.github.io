@@ -868,7 +868,14 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   const externalId=clean(item.sourcePostId||item.id||item.video_id||original);
   const postId=await idFor(provider+':'+user.uid,externalId);
   const refs=postRefs(store,user.uid,postId);
-  const prior=await store.getDoc(refs.root);
+  let prior;
+  try{prior=await store.getDoc(refs.root)}
+  catch(error){
+    // Missing root documents cannot satisfy resource-based read rules. The
+    // owner-scoped mirror can be read even before the first import exists.
+    if(!['permission-denied','firestore/permission-denied'].includes(error.code))throw error;
+    prior=await store.getDoc(refs.profile);
+  }
   if(prior.exists()){
     const present=prior.data()||{};
     // Personal sync explicitly publishes drafts; respect removals and archived cards.

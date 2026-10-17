@@ -559,7 +559,7 @@ async function connect(){await run(async()=>{
   renderFeedList();
   document.querySelectorAll('[data-orbit-path="pinterest"]').forEach(input=>{
  const actions=input.closest('.module-orbit-row')?.querySelector('.module-actions');if(!actions)return;
- let b=actions.querySelector('[data-pn-open]');if(!b){b=document.createElement('button');b.type='button';b.className='module-action';b.dataset.pnOpen='';actions.prepend(b)}b.textContent=connected?'View Pinterest boards':'Connect Pinterest';b.disabled=busy;
+ let b=actions.querySelector('[data-pn-open]');if(!b){b=document.createElement('button');b.type='button';b.className='module-action';b.dataset.pnOpen='';actions.prepend(b)}b.textContent=connected?'Boards ↗':'Connect Pinterest';b.disabled=busy;
  });
  const body=document.getElementById('moduleWorkspaceBody');
  if(!body||document.getElementById('moduleRouteName')?.textContent!=='Boards')return;

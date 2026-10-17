@@ -65,16 +65,16 @@
      if(!uid)throw Error('Sign in to BIG LWA before syncing Facebook.');
      state.syncMessage='Syncing Facebook Personal…';renderSync();
      const data=await api('media','GET',await authToken());
-     const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-owner-2')).saveExternalOrbitDraft;
+     const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
      if(typeof writer!=='function')throw Error('Feed importer is still loading. Press Sync Facebook Personal to retry.');
-     let imported=0,existing=0,failed=0;
+     let imported=0,existing=0,failed=0,firstError='';
      for(const item of data.items||[]){
        if(auth.currentUser?.uid!==uid)throw Error('Account changed. Sign in again before syncing.');
        try{const result=await writer('facebook',{...item,expectedUid:uid},{publishToCollective:true});(result.created||result.published)?imported++:existing++}
-       catch{failed++}
+       catch(error){failed++;if(!firstError)firstError=error.message||'Save failed.'}
      }
      const parts=[imported+' added to the Collective Feed; '+existing+' already saved.'];
-     if(failed)parts.push(failed+' could not be saved. Retry sync.');
+     if(failed)parts.push(failed+' could not be saved. '+firstError+' Retry sync.');
      if(data.missing?.length)parts.push('Grant personal content access to import '+data.missing.map(x=>x==='user_posts'?'posts':'photos').join(' and ')+'. Meta app approval may be required.');
      if(data.warnings?.length)parts.push(...data.warnings);
      if(!data.items?.length&&!data.missing?.length&&!data.warnings?.length)parts.push('Facebook returned no recent content.');
