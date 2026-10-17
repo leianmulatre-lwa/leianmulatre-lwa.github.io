@@ -200,3 +200,32 @@
   height:222px!important;min-height:222px!important;max-height:222px!important;
  }
 }
+
+/* Facebook's optional media-permission tool shares the utility label row,
+   so it never adds a fifth row or stretches a neighboring card. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-rows:16px 31px!important;
+ column-gap:4px!important;
+ row-gap:4px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile > label{
+ grid-column:1!important;grid-row:1!important;
+ display:block!important;
+ min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile > .orbit-media-action{
+ grid-column:2!important;grid-row:1!important;
+ justify-self:end!important;
+ box-sizing:border-box!important;
+ width:auto!important;max-width:95px!important;
+ height:20px!important;min-height:20px!important;
+ margin:0!important;padding:3px 5px!important;
+ font:700 9px/1.1 system-ui!important;white-space:nowrap!important;
+ border-radius:6px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile > .orbit-facebook-profile-actions{
+ grid-column:1/-1!important;grid-row:2!important;
+ min-width:0!important;
+}
