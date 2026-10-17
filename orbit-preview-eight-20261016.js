@@ -14,8 +14,51 @@
     ['calendar','GC','Google Calendar'],
     ['x','X','X']
   ];
-  const allowed=new Set(APPS.map(([id])=>id));
-  let scheduled=false,observer;
+  const MORE=[
+    ['facebook','FB','Facebook'],
+    ['drive','GD','Google Drive'],
+    ['soundcloud','SC','SoundCloud'],
+    ['spotify','SP','Spotify'],
+    ['goodreads','GR','Goodreads'],
+    ['letterboxd','LB','Letterboxd'],
+    ['imdb','IMDb','IMDb']
+  ];
+  const allApps=[...APPS,...MORE];
+  const byId=new Map(allApps.map(entry=>[entry[0],entry]));
+  const allowed=new Set(byId.keys());
+  let scheduled=false,observer,currentOwner='',featured=APPS.map(entry=>entry[0]),pending=new Set();
+  const accountOwner=()=>String(window.BigLWAOrbitAccountLinks?.owner?.()||'');
+  const storageKey=uid=>'biglwaStudioOrbitFeaturedV2:'+uid;
+  function loadOwner(){
+    const uid=accountOwner();
+    if(uid===currentOwner)return;
+    currentOwner=uid;
+    featured=APPS.map(entry=>entry[0]);pending=new Set();
+    if(!uid)return;
+    try{
+      const value=JSON.parse(sessionStorage.getItem(storageKey(uid))||'null');
+      if(Array.isArray(value?.featured)&&value.featured.length===8 &&
+        value.featured.every(id=>allowed.has(id))&&new Set(value.featured).size===8)featured=value.featured;
+      pending=new Set(Array.isArray(value?.pending)?value.pending.filter(id=>allowed.has(id)):[]);
+    }catch{}
+  }
+  function remember(){
+    if(!currentOwner)return;
+    try{sessionStorage.setItem(storageKey(currentOwner),JSON.stringify({featured,pending:[...pending]}))}catch{}
+  }
+  function rotated(){
+    let changed=false;
+    for(const id of [...pending]){
+      if(!connected(id))continue;
+      const idx=featured.indexOf(id);
+      if(idx>=0){
+        const next=MORE.find(([candidate])=>!featured.includes(candidate)&&!connected(candidate));
+        if(next){featured[idx]=next[0];changed=true}
+      }
+      pending.delete(id);changed=true;
+    }
+    if(changed)remember();
+  }
   const grid=()=>document.querySelector('#studioApp #orbit #orbitGrid');
   function openOrbit(){
     if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('orbit');
@@ -27,12 +70,15 @@
       if(id==='instagram')return !!window.__biglwaInstagramOrbit?.state?.connected;
       if(id==='tiktok')return !!window.__biglwaTikTokOrbit?.state?.connected;
       if(id==='pinterest')return !!window.__biglwaPinterest?.state?.connected;
-      if(id==='youtube'||id==='calendar')return !!window.__biglwaGoogleOrbit?.state?.connected;
+      if(id==='youtube'||id==='calendar'||id==='drive')return !!window.__biglwaGoogleOrbit?.state?.connected;
+      if(['spotify','soundcloud','goodreads','letterboxd','imdb'].includes(id))
+        return !!window.BigLWAOrbitAccountLinks?.get?.()?.[id];
       if(id==='facebook')return !!window.BigLWAFacebookPersonal?.state?.connected &&
         !!window.BigLWAFacebookPersonal?.state?.profile;
       return !!window.BigLWAOrbitOAuth?.get?.(id);
     }catch{return false}
   }
+  function byIdApp(id){return byId.get(id)||APPS[0]}
   function createTile(id,glyph,label){
     const el=document.createElement('button');
     el.type='button';el.dataset.orbitApp=id;
@@ -47,15 +93,18 @@
     scheduled=false;
     const root=grid();
     if(!root)return;
+    loadOwner();
+    rotated();
     const existing=Array.from(root.children).filter(el=>el.matches?.('button[data-orbit-app]'));
     const byId=new Map();
     for(const el of existing){
       const id=el.dataset.orbitApp;
-      if(!allowed.has(id)||byId.has(id)){el.remove();continue}
+      if(!featured.includes(id)||byId.has(id)){el.remove();continue}
       byId.set(id,el);
     }
     // Reuse the existing sphere, not a flat replacement or provider logo.
-    for(const [id,glyph,label] of APPS){
+    for(const id of featured){
+      const [,glyph,label]=byIdApp(id);
       let tile=byId.get(id);
       if(!tile)tile=createTile(id,glyph,label);
       let planet=tile.querySelector('.orbit-glyph');
@@ -98,7 +147,13 @@
       case 'instagram': return window.__biglwaInstagramOrbit?.connect?.();
       case 'pinterest':return window.__biglwaPinterest?.connect?.();
       case 'tiktok':return window.__biglwaTikTokOrbit?.connect?.();
-      case 'youtube':case 'calendar':return window.__biglwaGoogleOrbit?.connect?.();
+      case 'youtube':case 'calendar':case 'drive':return window.__biglwaGoogleOrbit?.connect?.();
+      case 'spotify':case 'soundcloud':case 'goodreads':case 'letterboxd':case 'imdb':
+        openOrbit();
+        requestAnimationFrame(()=>document.querySelector(
+          '#moduleWorkspace[data-module-key="orbit"] [data-orbit-row="'+id+'"] input[data-orbit-path]'
+        )?.focus({preventScroll:false}));
+        return;
       case 'facebook':return window.BigLWAFacebookPersonal?.connect?.();
       case 'tumblr':case 'snapchat':case 'x':return window.BigLWAOrbitOAuth?.connect?.(id);
     }
@@ -113,6 +168,8 @@
     // Meta Business or a manually saved profile link.
     event.preventDefault();event.stopImmediatePropagation();
     if(connected(id)){openOrbit();return}
+    loadOwner();
+    if(currentOwner){pending.add(id);remember()}
     const started=startConnection(id);
     if(started===undefined){
       // Some clients begin a redirect and return void; only report missing
@@ -123,6 +180,9 @@
         tiktok:window.__biglwaTikTokOrbit?.connect,
         youtube:window.__biglwaGoogleOrbit?.connect,
         calendar:window.__biglwaGoogleOrbit?.connect,
+        drive:window.__biglwaGoogleOrbit?.connect,
+        spotify:openOrbit,soundcloud:openOrbit,goodreads:openOrbit,
+        letterboxd:openOrbit,imdb:openOrbit,
         facebook:window.BigLWAFacebookPersonal?.connect,
         tumblr:window.BigLWAOrbitOAuth?.connect,
         snapchat:window.BigLWAOrbitOAuth?.connect,
