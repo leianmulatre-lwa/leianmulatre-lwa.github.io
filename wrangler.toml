@@ -30,4 +30,4 @@ bucket_name = "wallpaper-bucket"
 # All existing provider credentials are managed as encrypted Cloudflare secrets.
 # Wrangler validates these names at deploy time; the actual values remain on Cloudflare.
 [secrets]
-required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "X_CLIENT_SECRET"]
+required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]
