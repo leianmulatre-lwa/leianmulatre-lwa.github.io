@@ -7,7 +7,7 @@ import { startIdentity, refreshIdentity, identity } from "./account-identity.js"
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
 import { startConnections } from "./orbit-connections.js?v=20261014-provider-expiry-5";
-import { startFeed } from "./feed-view.js?v=20261016-orbit-draft-tray-3";
+import { startFeed } from "./feed-view.js?v=20261016-review-toggle-source-colors-4";
 
 function boot() {
   startIdentity();
