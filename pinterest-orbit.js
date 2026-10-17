@@ -574,7 +574,7 @@ async function connect(){await run(async()=>{
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
   (connected?'<section class="pinterest-owned-section"><header><h3>Your original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3><p>Created by @'+esc(profile.username||'you')+'. Saved privately to your BIG LWA profile; publish selected drafts from Feed.</p></header><div class="pinterest-owned-grid">'+
-    (createdPins.slice(0,18).map(pin=>{const pic=(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin);
+    (createdPins.slice(0,60).map(pin=>{const pic=(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin);
       return '<a href="https://www.pinterest.com/pin/'+esc(pin.id)+'/" target="_blank" rel="noopener noreferrer" title="'+esc(pin.title||pin.description||'Original Pin')+'">'+
        (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>';
     }).join('')||'<p>No original Pins were returned. Board saves are listed below.</p>')+'</div>'+
@@ -585,7 +585,7 @@ async function connect(){await run(async()=>{
   (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
   (boardId&&pins.length?'<div class="pn-board-publish-tools"><button type="button" class="module-action" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+disabled+'>Post loaded board Pins to Veve</button><small>Only Pins you explicitly publish become public.</small></div>':'')+
   '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
-   const src=(hostedPinUrls.get(String(p.id))||[])[0]||'';const id=esc(String(p.id));
+   const src=(hostedPinUrls.get(String(p.id))||[])[0]||image(p);const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
    const opts='<option value="default_saved">Saved</option>'+
     savedLibrary.boards.filter(b=>b.id!=='default_saved').map(b=>'<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>').join('');
