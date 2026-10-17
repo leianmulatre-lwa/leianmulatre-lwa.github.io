@@ -1332,7 +1332,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        <section class="module-card wide biglwa-feed-compose-card" aria-labelledby="biglwaFeedComposeHeading">
         <div class="biglwa-feed-compose-head">
          <div><h2 id="biglwaFeedComposeHeading">post to the feed</h2><p>Share a link or photo, with an optional caption. Your caption is saved with your post.</p></div>
-         <button class="module-action ghost" type="button" id="feedStreamExplore">Explore Veve ↗</button>
+         <div class="biglwa-feed-heading-tools">
+          <button class="module-action ghost" type="button" id="feedStreamExplore">Explore Veve ↗</button>
+          <button class="module-action ghost" type="button" id="feedOrbitDraftToggle" aria-controls="biglwaOrbitDrafts" aria-expanded="false">View pins ready to post</button>
+          <label for="biglwaFeedSort">Sort <select id="biglwaFeedSort" class="module-input" aria-label="Sort Collective Feed"><option value="latest">Latest</option><option value="popular">Popular</option><option value="daily">Daily shuffle</option><option value="oldest">Oldest</option></select></label>
+         </div>
         </div>
         <div id="biglwaFeedImportStatusRail" class="biglwa-feed-import-rail" aria-label="Connected account import status" hidden></div>
         <div id="biglwaOrbitDrafts" hidden></div>
