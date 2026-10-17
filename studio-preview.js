@@ -155,7 +155,7 @@ function applyIdentity(data){
 const SOCIAL_ACCENT={
   instagram:"#c13584",
   tiktok:"#0f8f95",
-  pinterest:"#cf4632"
+  pinterest:"#e60023"
 };
 
 function renderSocials(data){
