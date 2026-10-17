@@ -1003,6 +1003,90 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
   const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,x:window.BigLWAOrbitOAuth,snapchat:window.BigLWAOrbitOAuth,tumblr:window.BigLWAOrbitOAuth};return Boolean(map[key])};
+   // Planet card dimensions are applied directly by the Orbit renderer.
+   // Earlier standalone CSS patches lost to later module/provider styles and
+   // left X/YouTube stretched while Facebook's link editor grew taller.
+   // Inline !important wins those competing styles without changing OAuth.
+   function enforceOrbitCardGeometry(){
+     if(workspace.dataset.moduleKey!=='orbit'||workspace.hidden)return;
+     const grid=body.querySelector('.module-orbit');
+     if(!grid)return;
+     const set=(element,props)=>{
+       if(!element)return;
+       for(const [name,value] of Object.entries(props))element.style.setProperty(name,value,'important');
+     };
+     const width=grid.parentElement?.clientWidth||window.innerWidth-120;
+     const columns=width>=960?4:width>=700?3:width>=430?2:1;
+     set(grid,{'display':'grid','grid-template-columns':'repeat('+columns+', minmax(0,1fr))',
+       'grid-auto-flow':'row','align-items':'stretch','gap':'10px','min-width':'0','width':'100%'});
+     const cards=[...grid.querySelectorAll(':scope > .module-orbit-row[data-orbit-row]')];
+     for(const card of cards){
+       set(card,{'display':'grid','grid-template-columns':'minmax(0,1fr)',
+         'grid-template-rows':'20px 48px minmax(0,1fr) 32px',
+         'grid-template-areas':'"head" "preview" "utility" "actions"',
+         'gap':'5px','height':'200px','min-height':'200px','max-height':'200px',
+         'padding':'10px','margin':'0','width':'100%','min-width':'0',
+         'box-sizing':'border-box','overflow':'hidden','align-content':'stretch',
+         'position':'relative','border-radius':'13px'});
+       const header=card.querySelector(':scope > header');
+       set(header,{'grid-area':'head','display':'flex','align-items':'center',
+         'justify-content':'space-between','gap':'6px','margin':'0','padding':'0',
+         'height':'20px','min-height':'0','min-width':'0','overflow':'hidden'});
+       const main=card.querySelector(':scope > .orbit-main');
+       set(main,{'grid-area':'preview','height':'48px','min-height':'0',
+         'max-height':'48px','width':'100%','min-width':'0','display':'flex',
+         'align-items':'stretch','overflow':'hidden','margin':'0','padding':'0'});
+       for(const item of main?.children||[]){
+         set(item,{'box-sizing':'border-box','width':'100%','height':'48px',
+           'min-height':'0','max-height':'48px','overflow':'hidden',
+           'margin':'0','padding':'7px 9px','border-radius':'8px'});
+       }
+       const utility=card.querySelector(':scope > .orbit-facebook-profile, :scope > .orbit-fallback-profile, :scope > .orbit-link-utility');
+       set(utility,{'grid-area':'utility','display':'flex','flex-direction':'column',
+         'align-self':'start','justify-content':'start','gap':'5px',
+         'padding':'2px 0 0','margin':'0','width':'100%','min-width':'0',
+         'max-width':'100%','max-height':'62px','overflow':'hidden',
+         'background':'transparent','border':'0','box-shadow':'none'});
+       for(const label of utility?.querySelectorAll('label')||[]){
+         set(label,{'font-size':'10px','line-height':'1.2','margin':'0',
+           'padding':'0','white-space':'nowrap','overflow':'hidden',
+           'text-overflow':'ellipsis','display':'block'});
+       }
+       for(const inputs of utility?.querySelectorAll('.orbit-facebook-profile-actions,.orbit-fallback-actions')||[]){
+         set(inputs,{'display':'flex','align-items':'center','flex-wrap':'nowrap',
+           'gap':'5px','min-width':'0','width':'100%'});
+       }
+       for(const input of utility?.querySelectorAll('input')||[]){
+         set(input,{'box-sizing':'border-box','height':'29px','min-height':'29px',
+           'max-height':'29px','min-width':'0','width':'100%','flex':'1 1 0',
+           'padding':'5px 8px','font-size':'10px','border-radius':'7px'});
+       }
+       const actions=card.querySelector(':scope > .module-actions');
+       set(actions,{'grid-area':'actions','display':'flex','flex-wrap':'nowrap',
+         'align-items':'center','justify-content':'flex-start','gap':'5px',
+         'box-sizing':'border-box','height':'32px','min-height':'32px','max-height':'32px',
+         'width':'100%','min-width':'0','padding':'0 35px 0 0','margin':'0',
+         'position':'static','grid-template-columns':'none'});
+       for(const button of actions?.querySelectorAll(':scope > button')||[]){
+         set(button,{'box-sizing':'border-box','height':'30px','min-height':'30px',
+           'max-height':'30px','width':'auto','min-width':'0','max-width':'100%',
+           'flex':'0 1 auto','padding':'4px 6px','margin':'0','font-size':'10px',
+           'line-height':'1.15','white-space':'nowrap','overflow':'hidden',
+           'text-overflow':'ellipsis','border-radius':'8px'});
+       }
+       const badge=actions?.querySelector('.orbit-platform-badge');
+       set(badge,{'position':'absolute','inset':'auto 10px 10px auto',
+         'right':'10px','bottom':'10px','left':'auto','top':'auto',
+         'flex':'none','width':'30px','min-width':'30px','height':'30px',
+         'max-height':'30px','margin':'0','padding':'0',
+         'display':'grid','place-items':'center','border-radius':'50%',
+         'z-index':'2','transform':'none'});
+     }
+     // A cheap DOM-level invariant to inspect in the browser console.
+     grid.dataset.orbitSized='200';
+     grid.dataset.orbitColumns=String(columns);
+   }
+   window.addEventListener('resize',()=>{if(workspace.dataset.moduleKey==='orbit')enforceOrbitCardGeometry()});
    function renderOrbitPage(){
     // Only show a real OAuth button once its public app key, secret and callback
     // are actually available. Until then an account-linked profile URL works.
@@ -1031,6 +1115,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      }
      return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Add a public profile or page link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save link</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button>${orbitBadge(g,t)}</div><div class="orbit-link-utility"><label for="orbit-link-${k}">Public profile / page</label><input id="orbit-link-${k}" class="module-input" data-orbit-path="${k}" type="url" value="${esc(links[k]||'')}" placeholder="https://…"></div></div>`;
      }).join('')}</div></section></div>`;
+    enforceOrbitCardGeometry();
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
