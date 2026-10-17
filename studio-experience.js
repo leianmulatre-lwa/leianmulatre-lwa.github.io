@@ -867,9 +867,8 @@
     let controls=$('.arcade-control-deck',cabinet);
     if(!controls){
       controls=document.createElement('div');controls.className='arcade-control-deck';controls.setAttribute('aria-hidden','true');
-      controls.innerHTML='<span class="arcade-joystick is-red"><i></i></span><span class="arcade-buttons"><i></i><i></i><i></i><i></i></span>';
+      controls.innerHTML='<span class="arcade-joystick is-yellow"><i></i></span><span class="arcade-joystick is-red"><i></i></span><span class="arcade-joystick is-green"><i></i></span>';
       cabinet.appendChild(controls);
-      const coin=document.createElement('span');coin.className='arcade-coin-door';coin.setAttribute('aria-hidden','true');cabinet.appendChild(coin);
     }
   }
 
