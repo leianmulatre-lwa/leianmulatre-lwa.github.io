@@ -43,6 +43,7 @@ jobs:
           node profile-music-test.mjs
           node --check profile-music.js
           node veve-arcade-regression-test.mjs
+          node arcade-silhouette-regression-test.mjs
           node mii-webport-test.mjs
           node feed-auth-tools-regression-test.mjs
           node feed-mixed-caption-test.mjs
