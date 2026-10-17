@@ -15,7 +15,7 @@ PINTEREST_APP_ID = "1610773"
 SITE_URL = "https://biglwa.com"
 TIKTOK_CLIENT_KEY = "sbawpulijhor3jl94n"
 X_CLIENT_ID = "TzRHMHR4VG1XekZ0UGw1cF1Eb0M6MTpjaQ"
-NEW_ORBIT_CALLBACK_ORIGIN = "https://biglwa-instagram-api.leianmulatre-284.workers.dev"
+NEW_ORBIT_CALLBACK_ORIGIN = "https://api.biglwa.com"
 
 [[kv_namespaces]]
 binding = "OAUTH_SESSIONS"
@@ -30,7 +30,7 @@ bucket_name = "wallpaper-bucket"
 # All existing provider credentials are managed as encrypted Cloudflare secrets.
 # Wrangler validates these names at deploy time; the actual values remain on Cloudflare.
 [secrets]
-required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]
+required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "TUMBLR_CONSUMER_KEY", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]
 
 # Isolated branch previews. OAuth/media writes remain disabled until dedicated
 # test-provider credentials and callback URLs are configured.
