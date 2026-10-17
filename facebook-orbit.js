@@ -91,6 +91,9 @@
   function render() {
     try {
       all('[data-orbit-app="facebook"]').forEach(function (tile) {
+        // The featured Studio Facebook tile is reserved for personal OAuth.
+        // An existing Meta Business session must never mark it connected.
+        if (tile.closest('#orbitGrid')) return;
         tile.setAttribute('aria-label', state.connected ? 'View connected Facebook account' : 'Connect Facebook');
         tile.classList.toggle('orbit-connected', state.connected);
         var small = one('small', tile);
@@ -399,7 +402,7 @@
       requestMediaAccess();
       return;
     }
-    var connectTarget = target.closest('[data-orbit-app="facebook"],[data-facebook-orbit-connect],[data-facebook-legacy-connect]');
+    var connectTarget = target.closest('[data-facebook-orbit-connect],[data-facebook-legacy-connect]');
     if (connectTarget) {
       event.preventDefault();
       event.stopImmediatePropagation();
