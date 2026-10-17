@@ -1025,7 +1025,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>`+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':''}</div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${row?'Reconnect':'Connect'} ${n}</button>${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Original Facebook</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
        (k==='facebook'?`<div class="orbit-facebook-profile"><label for="orbitFacebookPublicLink">Public Facebook profile or Page link</label><div class="orbit-facebook-profile-actions"><input class="module-input" id="orbitFacebookPublicLink" data-orbit-path="facebook" type="url" inputmode="url" value="${esc(links.facebook||row?.link||'')}" placeholder="https://www.facebook.com/your.public.profile"><button class="module-action" type="button" data-orbit-save="facebook">Save link</button></div><small>Meta's login may not return a public profile URL. Add your real profile or Page link once; it follows your Big LWA account.</small></div>`:'')+
        (['snapchat','tumblr'].includes(k)?`<div class="orbit-fallback-profile"><label>Public ${esc(n)} profile link</label><div class="orbit-fallback-actions"><input class="module-input" data-orbit-path="${k}" type="url" inputmode="url" value="${esc(links[k]||row?.link||'')}" placeholder="Paste your public profile URL"><button class="module-action" type="button" data-orbit-save="${k}">Save link</button></div><small>Profile link storage is separate from OAuth; saved links alone cannot import content.</small></div>`:'')+'</div>';
      }
@@ -1933,7 +1933,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       emulatorTitle.textContent='trying in-screen player · '+game.title;
       const head=createPlayerHead(game);
       const frame=document.createElement('iframe');
-      frame.src=uri.href;
+      // Keep BIG LWA's own puzzles in compact in-cabinet mode, rather than
+      // cropping their full standalone page inside a short external frame.
+      const framed=new URL(uri.href);
+      if(framed.origin===location.origin&&framed.pathname==='/arcade-puzzles.html')framed.searchParams.set('embed','1');
+      frame.src=framed.href;
+      frame.tabIndex=0;
       frame.title='In-screen player for '+game.title;
       frame.setAttribute('allow','autoplay; fullscreen; gamepad');
       frame.setAttribute('allowfullscreen','');
@@ -1944,6 +1949,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       help.textContent=restrictsEmbed(uri)?'Provider may refuse the embed. Use Game links or Pop-out if it does.':'If the player does not load, use Game links or Pop-out.';
       deck.append(help,makeAction('Game links','arcadePreview','ghost'),makeAction('Pop-out ↗','arcadePopup','ghost'),makeAction('Fullscreen','arcadeFullscreen','ghost'),createOpenLink(uri,'Open ↗','ghost'));
       emulatorScreen.replaceChildren(head,frame,deck);
+      if(framed.origin===location.origin){
+        frame.addEventListener('load',()=>{
+          // Arrow keys should control the selected game, not scroll the page.
+          try{frame.focus({preventScroll:true})}catch{}
+        },{once:true});
+      }
     };
     // First attempt the original host directly; never proxy, copy, or rewrite
     // third-party frame security headers or claim to host their game.
@@ -1951,7 +1962,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(!game?.href)return;
       showGameLinks(game);
       try{
-        if(new URL(game.href).hostname!=='store.steampowered.com')tryEmbedded();
+        // Hosts that deny iframes must not be forced into an unusable game window.
+        // Keep an explicit Try in this screen option for members who want it.
+        const target=new URL(game.href);
+        if(target.hostname!=='store.steampowered.com'&&!restrictsEmbed(target))tryEmbedded();
       }catch{}
     };
     const popOutGame=()=>{
