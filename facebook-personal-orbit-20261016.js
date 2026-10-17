@@ -5,7 +5,7 @@
  if(window.BigLWAFacebookPersonal)return;
  const origin='https://api.biglwa.com',id='facebook-personal';
  const state={connected:false,profile:null,needsReauth:false,configured:false,missing:[]};
- let authPromise=null,refreshing=null;
+ let authPromise=null,refreshing=null,syncing=null;
  const notice=text=>{
    const el=document.querySelector('#orbitPageStatus');
    if(el)el.textContent=text;
@@ -39,8 +39,51 @@
    if(!response.ok)throw Error(data.error||(response.status===404?'Facebook OAuth route has not been deployed.':'Facebook request failed.'));
    return data;
  }
+ function renderSync(){
+   const status=document.querySelector('#orbitPageStatus');
+   if(!status)return;
+   let panel=document.getElementById('facebookPersonalSync');
+   if(!panel){
+     panel=document.createElement('div');panel.id='facebookPersonalSync';
+     const button=document.createElement('button');button.type='button';button.className='module-action';
+     button.textContent='Sync Facebook Personal';button.onclick=()=>sync().catch(error=>{state.syncMessage=error.message;renderSync()});
+     const access=document.createElement('button');access.type='button';access.className='module-action ghost';
+     access.textContent='Grant personal content access';access.onclick=()=>connect().catch(error=>notice(error.message));
+     const text=document.createElement('p');text.setAttribute('role','status');
+     panel.append(button,access,text);status.after(panel);
+   }
+   panel.hidden=!state.connected;
+   panel.querySelector('button').disabled=!!syncing;
+   panel.querySelector('p').textContent=state.syncMessage||'Sync recent personal posts and photos to the Collective Feed.';
+ }
+ async function sync(){
+   if(syncing)return syncing;
+   syncing=(async()=>{
+     const auth=await fbFirebase();await auth.authStateReady();
+     const uid=auth.currentUser?.uid;
+     if(!uid)throw Error('Sign in to BIG LWA before syncing Facebook.');
+     state.syncMessage='Syncing Facebook Personal…';renderSync();
+     const data=await api('media','GET',await authToken());
+     const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-owner-2')).saveExternalOrbitDraft;
+     if(typeof writer!=='function')throw Error('Feed importer is still loading. Press Sync Facebook Personal to retry.');
+     let imported=0,existing=0,failed=0;
+     for(const item of data.items||[]){
+       if(auth.currentUser?.uid!==uid)throw Error('Account changed. Sign in again before syncing.');
+       try{const result=await writer('facebook',{...item,expectedUid:uid},{publishToCollective:true});(result.created||result.published)?imported++:existing++}
+       catch{failed++}
+     }
+     const parts=[imported+' added to the Collective Feed; '+existing+' already saved.'];
+     if(failed)parts.push(failed+' could not be saved. Retry sync.');
+     if(data.missing?.length)parts.push('Grant personal content access to import '+data.missing.map(x=>x==='user_posts'?'posts':'photos').join(' and ')+'. Meta app approval may be required.');
+     if(data.warnings?.length)parts.push(...data.warnings);
+     if(!data.items?.length&&!data.missing?.length&&!data.warnings?.length)parts.push('Facebook returned no recent content.');
+     state.syncMessage=parts.join(' ');
+   })();
+   try{return await syncing}finally{syncing=null;renderSync()}
+ }
  function publish(){
    document.dispatchEvent(new CustomEvent('biglwa:facebook-personal-status'));
+   renderSync();
  }
  async function load(){
    if(refreshing)return refreshing;
@@ -94,9 +137,10 @@
    history.replaceState(history.state,'',url.toString());
    const message=result==='connected'?'Personal Facebook account connected.':
      'Facebook connection failed: '+(error||'Please try again.');
-   setTimeout(()=>notice(message),1000);
+   if(result==='connected')load().then(()=>sync()).catch(error=>{state.syncMessage=error.message;renderSync()});
+   else setTimeout(()=>notice(message),1000);
  }
- window.BigLWAFacebookPersonal=Object.freeze({load,connect,disconnect,get,state});
+ window.BigLWAFacebookPersonal=Object.freeze({load,connect,disconnect,sync,get,state});
  function boot(){
    callbackNotice();
    load().catch(error=>console.warn('New Facebook connection check:',error));

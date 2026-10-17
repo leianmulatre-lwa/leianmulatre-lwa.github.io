@@ -1829,9 +1829,9 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
    }),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
   }
-  if(!['start','session','disconnect'].includes(action))return oaReply({error:'Not found'},404,request);
+  if(!['start','session','disconnect','media'].includes(action))return oaReply({error:'Not found'},404,request);
   if(action==='start'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
-  if(action==='session'&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
+  if(['session','media'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='disconnect'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
   const user=await getFirebaseUser(request,env);
   if(!user?.uid)oaError('Sign in to BIG LWA before connecting.',401);
@@ -1941,11 +1941,11 @@ async function facebookPersonalRoute(request,env){
      return fbpEnd('failed','Facebook could not finish authorizing. Verify the Meta callback and app settings.');
    }
  }
- if(!['start','session','disconnect'].includes(action))
+ if(!['start','session','disconnect','media'].includes(action))
    return json({error:'Not found'},404,request,env);
  if((action==='start'||action==='disconnect')&&request.method!=='POST')
    return json({error:'POST required'},405,request,env);
- if(action==='session'&&request.method!=='GET')
+ if(['session','media'].includes(action)&&request.method!=='GET')
    return json({error:'GET required'},405,request,env);
  // A browser signed into Facebook but not BIG LWA cannot claim another member's account.
  if(!allowedOrigin(request,env))return json({error:'Origin not allowed'},403,request,env);
@@ -1957,6 +1957,42 @@ async function facebookPersonalRoute(request,env){
    const session=env.OAUTH_SESSIONS?await env.OAUTH_SESSIONS.get(key,'json'):null;
    return json({connected:!!session,needsReauth:!!session&&session.expiresAt<=Date.now(),
      profile:session?.profile||null},200,request,env);
+ }
+ if(action==='media'){
+   const session=env.OAUTH_SESSIONS?await env.OAUTH_SESSIONS.get(key,'json'):null;
+   if(!session||session.expiresAt<=Date.now())return json({error:'Reconnect Facebook Personal to sync your content.'},401,request,env);
+   const graph=async(path,fields)=>{
+     const target=new URL(FB_PERSONAL_GRAPH+'/me/'+path);
+     target.searchParams.set('limit','20');
+     if(fields)target.searchParams.set('fields',fields);
+     if(path==='photos')target.searchParams.set('type','uploaded');
+     const response=await fetch(target,{headers:{Authorization:'Bearer '+session.accessToken}});
+     const body=await response.json();
+     if(!response.ok||body.error)throw Error('Facebook could not read '+path+'. Reconnect and grant content access; the Meta app may require permission approval.');
+     return Array.isArray(body.data)?body.data:[];
+   };
+   try{
+     const permissions=await graph('permissions');
+     const granted=new Set(permissions.filter(p=>p.status==='granted').map(p=>p.permission));
+     const missing=['user_posts','user_photos'].filter(p=>!granted.has(p));
+     const items=[],warnings=[];
+     for(const [permission,path,fields] of [
+       ['user_posts','posts','id,message,permalink_url,full_picture,created_time'],
+       ['user_photos','photos','id,name,link,images,created_time']
+     ]){
+       if(!granted.has(permission))continue;
+       try{
+         const rows=await graph(path,fields);
+         items.push(...rows.map(row=>({id:String(row.id),sourcePostId:String(row.id),
+           sourceUrl:row.permalink_url||row.link||(path==='photos'?'https://www.facebook.com/photo/?fbid=':'https://www.facebook.com/')+encodeURIComponent(row.id),
+           caption:row.message||row.name||'Facebook '+(path==='posts'?'post':'photo'),
+           thumbnailUrl:row.full_picture||row.images?.[0]?.source||'',
+           sourceCreatedAtMs:Date.parse(row.created_time)||0,
+           sourceUsername:session.profile?.name||'',mediaType:path==='photos'?'IMAGE':'POST'})));
+       }catch(error){warnings.push(error.message)}
+     }
+     return json({items,missing,warnings,limit:40},200,request,env);
+   }catch(error){return json({error:error.message},502,request,env)}
  }
  if(action==='disconnect'){
    if(env.OAUTH_SESSIONS)await env.OAUTH_SESSIONS.delete(key);
@@ -1972,7 +2008,8 @@ async function facebookPersonalRoute(request,env){
  auth.searchParams.set('client_id',config.id);
  auth.searchParams.set('redirect_uri',FB_PERSONAL_CALLBACK);
  auth.searchParams.set('response_type','code');
- auth.searchParams.set('scope','public_profile');
+ auth.searchParams.set('scope','public_profile,user_posts,user_photos');
+ auth.searchParams.set('auth_type','rerequest');
  auth.searchParams.set('state',state);
  return json({ok:true,authorizeUrl:auth.toString()},200,request,env);
 }

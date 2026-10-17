@@ -1,10 +1,10 @@
 /* BIG LWA Arcade cabinet silhouette — Studio and full Games page.
- * One authoritative geometry: broad shoulders + foot, controlled hourglass waist.
+ * One authoritative geometry: upright cabinet, recessed screen and projecting control shelf.
  * Only ornamental layers are clipped; NEVER crop the viewport, tiles or controls.
  * Keep the existing amber marquee, brown cabinet and pink joysticks.
  */
 #studioApp #games .games-library.games-library{
- --arcade-outline:polygon(11% 0,89% 0,97% 6%,97% 24%,94% 35%,88% 50%,94% 65%,97% 77%,97% 94%,89% 100%,11% 100%,3% 94%,3% 77%,6% 65%,12% 50%,6% 35%,3% 24%,3% 6%);
+ --arcade-outline:polygon(8% 0,92% 0,96% 4%,96% 63%,100% 68%,100% 78%,93% 80%,93% 100%,7% 100%,7% 80%,0 78%,0 68%,4% 63%,4% 4%);
  position:relative!important;
  isolation:isolate!important;
  display:flex!important;
@@ -15,12 +15,12 @@
  box-sizing:border-box!important;
  width:100%!important;
  max-width:100%!important;
- aspect-ratio:0.86!important;
+ aspect-ratio:0.72!important;
  height:auto!important;
  min-height:0!important;
- max-height:425px!important;
+ max-height:460px!important;
  margin:8px auto 12px!important;
- padding:13px clamp(23px,12%,50px) 94px!important;
+ padding:13px 10% 142px!important;
  border:0!important;
  border-radius:0!important;
  background:transparent!important;
@@ -74,8 +74,8 @@
  min-height:0!important;
  max-height:74px!important;
  margin:0!important;
- padding:4px 8px!important;
- gap:1px!important;
+ padding:2px 8px!important;
+ gap:0!important;
  box-sizing:border-box!important;
  overflow:hidden!important;
  border:6px solid #170c09!important;
@@ -163,7 +163,7 @@
  z-index:3!important;
  left:12%!important;
  right:12%!important;
- bottom:18px!important;
+ bottom:76px!important;
  width:auto!important;
  height:73px!important;
  min-height:73px!important;
@@ -224,7 +224,7 @@
 }
 /* Full Arcade adopts the same outline, but its playable frame remains uncut. */
 #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
- --arcade-outline:polygon(11% 0,89% 0,97% 6%,97% 24%,94% 35%,88% 50%,94% 65%,97% 77%,97% 94%,89% 100%,11% 100%,3% 94%,3% 77%,6% 65%,12% 50%,6% 35%,3% 24%,3% 6%);
+ --arcade-outline:polygon(8% 0,92% 0,96% 4%,96% 63%,100% 68%,100% 78%,93% 80%,93% 100%,7% 100%,7% 80%,0 78%,0 68%,4% 63%,4% 4%);
  clip-path:none!important;
  -webkit-clip-path:none!important;
  background:transparent!important;
@@ -237,7 +237,7 @@
 /* Mobile: maintain the same silhouette, not a separate jagged variant. */
 @media(max-width:650px){
  #studioApp #games .games-library.games-library{
-  padding:10px clamp(17px,11%,34px) 78px!important;
+  padding:10px 10% 123px!important;
   gap:5px!important;
   max-height:390px!important;
  }
@@ -246,7 +246,7 @@
  }
  #studioApp #games .arcade-control-deck.arcade-control-deck{
   height:62px!important;min-height:62px!important;max-height:62px!important;
-  bottom:12px!important;
+  bottom:68px!important;
   left:11%!important;right:11%!important;
  }
  #studioApp #games .arcade-joystick.arcade-joystick{
@@ -258,3 +258,27 @@
  }
  #studioApp #games .arcade-track:nth-child(3){display:none!important}
 }
+
+/* The legacy wrapper holds the marquee, not the screen. Cancel its folder art. */
+#studioApp #games .arcade-folder-depth.arcade-folder-depth{
+ display:block!important;flex:0 0 auto!important;border:0!important;
+ background:none!important;box-shadow:none!important;overflow:visible!important;
+}
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::before,
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::after{display:none!important}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img{
+ position:static!important;inset:auto!important;transform:none!important;
+ filter:none!important;animation:none!important;
+}
+#studioApp #games .games-library.games-library > .arcade-coin-door{
+ position:absolute!important;bottom:13px!important;left:40%!important;
+ width:20%!important;height:42px!important;border:3px solid #160d0b!important;
+ border-radius:4px;background:linear-gradient(90deg,#302825,#131110);
+ box-shadow:inset 0 0 0 2px #66534a;
+}
+#studioApp #games .arcade-coin-door::after{
+ content:"";position:absolute;top:8px;left:42%;width:16%;height:18px;
+ background:#090807;border:2px solid #b08a61;border-radius:2px;
+}
+#studioApp #games .arcade-buttons{display:grid;grid-template-columns:repeat(2,16px);gap:8px;z-index:2;align-self:center}
+#studioApp #games .arcade-buttons i{width:16px;height:16px;border:2px solid #21110e;border-radius:50%;background:#dc647e;box-shadow:0 3px #281511,inset 0 2px #ffa8ba}
