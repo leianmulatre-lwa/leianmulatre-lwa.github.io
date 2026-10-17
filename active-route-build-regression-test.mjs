@@ -6,8 +6,8 @@ const original=read('bootstrap-v2.html');
 const expected={
   'module-pages.js':'20261017-orbit-inline-links-1',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
-  'arcade-silhouette-corrected-20261017.css':'20261017-folder-depth-5',
-  'pinterest-orbit.js':'20261016-original-board-thumbnails-2',
+  'arcade-silhouette-corrected-20261017.css':'20261017-screen-glass-6',
+  'pinterest-orbit.js':'20261017-boards-label-3',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
   'account-boot.js':'20261016-pinterest-created-feed-4'
 };

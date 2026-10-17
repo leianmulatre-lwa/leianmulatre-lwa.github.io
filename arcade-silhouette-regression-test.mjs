@@ -5,7 +5,7 @@ const css=get('arcade-silhouette-corrected-20261017.css');
 const shell=get('index.html');
 const baseline=get('arcade-veve-refine-20261016.css');
 const game=get('module-pages.js');
-assert.ok(shell.includes('/arcade-silhouette-corrected-20261017.css?v=20261017-folder-depth-5'),
+assert.ok(shell.includes('/arcade-silhouette-corrected-20261017.css?v=20261017-screen-glass-6'),
   'Latest Studio Arcade silhouette stylesheet must load');
 assert.ok(shell.indexOf('arcade-silhouette-corrected-20261017.css')>
   shell.indexOf('arcade-playability-20261016.css'), 'New silhouette must override old Arcade layout');
