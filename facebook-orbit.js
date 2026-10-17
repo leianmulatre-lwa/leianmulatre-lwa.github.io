@@ -119,22 +119,23 @@
       // Advanced photo/video permissions are optional and must never block basic Facebook login.
       // Request them through a separate, explicit user click after Meta grants access.
       all('[data-facebook-legacy-connect]').forEach(function (button) {
+        var card = button.closest('.module-orbit-row');
+        var utility = card && one('.orbit-facebook-profile', card);
         var actions = button.closest('.module-actions');
         if (!actions) return;
-        var mediaButton = one('[data-facebook-orbit-media]', actions);
-        // The Login for Business configuration determines permitted access;
-        // requesting extra scopes ad hoc would display Meta's unsupported-permission page.
-        // Show the media action only if the approved configuration already includes them.
+        var mediaButton = card && one('[data-facebook-orbit-media]', card);
+        // Put additional permissions in the compact lower utility area,
+        // never in the planet action row or the account preview.
         var needsMedia = state.connected && !state.permissions.some(function (p) {
           return p === 'user_photos' || p === 'user_videos';
         });
         if (needsMedia && !mediaButton) {
           mediaButton = document.createElement('button');
           mediaButton.type = 'button';
-          mediaButton.className = 'module-action ghost';
+          mediaButton.className = 'module-action ghost orbit-media-action';
           mediaButton.setAttribute('data-facebook-orbit-media','1');
-          mediaButton.textContent = 'Refresh media access';
-          actions.appendChild(mediaButton);
+          mediaButton.textContent = 'Media access';
+          (utility || actions).appendChild(mediaButton);
         } else if (!needsMedia && mediaButton) {
           mediaButton.remove();
         }
