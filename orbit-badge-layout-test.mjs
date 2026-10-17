@@ -53,7 +53,7 @@ assert.ok(pages.includes('data-facebook-legacy-connect') &&
   pages.includes('window.BigLWAFacebookPersonal'),
   'Both Meta Business and new personal Facebook routes remain available');
 assert.match(fullCss,/position:absolute!important/,'Full Orbit badges remain anchored');
-assert.ok(fullCss.includes('height:218px!important')&&
+assert.ok(fullCss.includes('height:200px!important')&&
   fullCss.includes('grid-template-areas:"heading" "preview" "utility" "controls"'),
   'Every full Orbit card has a fixed height and compact slots');
 assert.ok(fullCss.includes('height:50px!important')&&
@@ -62,7 +62,13 @@ assert.ok(fullCss.includes('height:50px!important')&&
 assert.ok(!oldTight.includes('.module-orbit-row[data-orbit-row]')&&
   !oldSeason.includes('.module-orbit-row[data-orbit-row="instagram"]'),
   'Older Orbit flex layouts must not override compact cards');
-assert.match(html,/orbit-cards-unified-20261016\.css\?v=20261016-compact-218-/,
-  'Compact Orbit stylesheet must be refreshed in actual Pages loader');
+assert.match(html,/orbit-cards-unified-20261016\\.css\\?v=20261017-orbit-200-/,
+  'Actual Pages loader contains the updated 200px fallback styling');
+assert.match(pages,/enforceOrbitCardGeometry\\(\\)/,
+  'Orbit renderer enforces compact card dimensions directly');
+assert.match(pages,/grid\\.dataset\\.orbitSized='200'/,
+  'Orbit runtime marks its 200px card dimensions');
+assert.ok(!pages.includes('/module-pages.js?v=20261015-provider-setup-9'),
+  'Studio retry may not load the old module renderer');
 
 console.log('PASS eight default planets, personal Facebook, rotating suggestions, salmon YouTube, original 3D art');
