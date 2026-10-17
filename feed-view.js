@@ -951,7 +951,7 @@ function retargetFeedRecord(card, url) {
 function renderDraftPanel(){
  const panel=document.getElementById("biglwaOrbitDrafts"),toggle=document.getElementById("feedOrbitDraftToggle");
  if(!panel)return;
- const drafts=sortedFeed(draftPosts.filter(p=>p.state==="draft"));
+ const drafts=sortedFeed(draftPosts.filter(p=>p.state==="draft" && (String(p.source||"").toLowerCase()!=="pinterest" || p.pinterestOrigin==="created")));
  if(toggle){
   toggle.disabled=!drafts.length;
   toggle.setAttribute("aria-expanded",String(draftTrayOpen&&!!drafts.length));
