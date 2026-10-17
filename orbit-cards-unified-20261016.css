@@ -1,231 +1,214 @@
-/* BIG LWA Orbit card geometry · all planets share a compact, stable silhouette.
-   Provider permissions and public link tools never resize the preview. */
+/* Single source of truth for full Orbit planetary geometry.
+ * Obsolete flex/empty placeholder styles live in older module bundles and
+ * must never determine card height. Keep OAuth controls and 3D badges intact. */
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
- display:grid!important;
- grid-template-columns:repeat(4,minmax(0,1fr))!important;
- align-items:start!important;
- grid-auto-flow:row!important;
- gap:10px!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  gap:10px!important;
+  align-items:stretch!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit > .module-orbit-row{
- display:grid!important;
- grid-template-columns:minmax(0,1fr)!important;
- grid-template-rows:23px 57px auto minmax(0,1fr)!important;
- align-content:start!important;
- gap:7px!important;
- box-sizing:border-box!important;
- height:233px!important;min-height:233px!important;max-height:233px!important;
- min-width:0!important;
- position:relative!important;
- padding:11px 11px 12px!important;
- border-radius:13px!important;
- overflow:visible!important;
- background:rgba(255,255,255,.54)!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit > .module-orbit-row[data-orbit-row]{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:20px 50px minmax(0,1fr) 34px!important;
+  grid-template-areas:"heading" "preview" "utility" "controls"!important;
+  align-content:stretch!important;
+  align-items:stretch!important;
+  column-gap:0!important;
+  row-gap:6px!important;
+  height:218px!important;
+  min-height:218px!important;
+  max-height:218px!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  padding:10px!important;
+  margin:0!important;
+  position:relative!important;
+  border-radius:12px!important;
+  overflow:hidden!important;
+  background:rgba(255,255,255,.50)!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > header{
- display:flex!important;align-items:center!important;justify-content:space-between!important;
- gap:6px!important;min-width:0!important;margin:0!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > header{
+  grid-area:heading!important;
+  min-width:0!important;max-height:20px!important;
+  display:flex!important;gap:5px!important;
+  align-items:center!important;justify-content:space-between!important;
+  margin:0!important;padding:0!important;
+  line-height:1.2!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > header b{
- min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;
- font-size:11px!important;line-height:1.2!important;white-space:nowrap!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > header b{
+  display:block!important;flex:1 1 auto!important;min-width:0!important;
+  font-size:11px!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;white-space:nowrap!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-state{
- flex:none!important;
- margin:0!important;white-space:nowrap!important;
- font-size:8px!important;line-height:1.3!important;
- padding:3px 5px!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] .orbit-state{
+  flex:0 0 auto!important;margin:0!important;padding:3px 5px!important;
+  font:700 8px/1.2 system-ui,sans-serif!important;
+  letter-spacing:.045em!important;white-space:nowrap!important;
 }
-/* A short preview is the only pale region inside the card. No stretchable
-   blank message panel, even if its neighbors return warnings or have media. */
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-main{
- height:57px!important;max-height:57px!important;min-height:0!important;
- display:flex!important;align-items:stretch!important;
- min-width:0!important;overflow:hidden!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > .orbit-main{
+  grid-area:preview!important;
+  display:flex!important;align-items:stretch!important;
+  width:100%!important;height:50px!important;max-height:50px!important;
+  min-width:0!important;min-height:0!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-main > :is(.orbit-not-connected,.orbit-link-summary,.orbit-connected-card){
+  display:flex!important;align-items:center!important;
+  width:100%!important;min-width:0!important;
+  height:50px!important;min-height:50px!important;max-height:50px!important;
+  padding:6px 8px!important;margin:0!important;
+  box-sizing:border-box!important;
+  border-radius:8px!important;overflow:hidden!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-main > :is(.orbit-not-connected,.orbit-link-summary){
- display:flex!important;align-items:center!important;
- width:100%!important;max-height:57px!important;min-height:0!important;
- box-sizing:border-box!important;
- margin:0!important;padding:8px 10px!important;
- color:#66594d!important;background:#fff8e9!important;
- border:1px solid #dfc8a7!important;border-left:3px solid #c28a45!important;
- border-radius:8px!important;
- font:500 11px/1.35 system-ui,sans-serif!important;
- overflow:hidden!important;
+  font:500 10px/1.35 system-ui,sans-serif!important;
+  color:#605348!important;background:#fff8e9!important;
+  border:1px solid #e3ccac!important;
+  border-left:3px solid #b88452!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-main > .orbit-connected-card{
- box-sizing:border-box!important;min-width:0!important;
- width:100%!important;height:57px!important;min-height:0!important;max-height:57px!important;
- padding:6px 8px!important;gap:7px!important;
- border-radius:9px!important;
- overflow:hidden!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card{
+  background:rgba(255,255,255,.85)!important;
+  gap:7px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card img{
- width:36px!important;height:36px!important;flex:0 0 36px!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card img{
+  width:34px!important;height:34px!important;flex:0 0 34px!important;
+  border-radius:50%!important;object-fit:cover!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card span{
- overflow:hidden!important;min-width:0!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card > span{
+  min-width:0!important;flex:1 1 auto!important;overflow:hidden!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card b{
- overflow:hidden!important;text-overflow:ellipsis!important;
- white-space:nowrap!important;font-size:11px!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card :is(b,small){
+  overflow:hidden!important;white-space:nowrap!important;
+  text-overflow:ellipsis!important;line-height:1.3!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-connected-card small{
- overflow:hidden!important;text-overflow:ellipsis!important;
- white-space:nowrap!important;font-size:9px!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card b{font-size:10px!important}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card small{font-size:9px!important}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-hotlink{
+  flex:0 0 auto!important;font-size:9px!important;padding:5px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-hotlink{
- flex:none!important;padding:6px!important;
- font-size:9px!important;
-}
-/* Actions stay one tight row. The planet is attached to the bottom-right
-   corner rather than consuming a button slot. */
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .module-actions{
- display:flex!important;align-items:center!important;align-content:start!important;
- justify-content:flex-start!important;flex-wrap:wrap!important;
- gap:5px!important;margin:0!important;padding:0 0 0!important;
- width:100%!important;min-height:31px!important;
- position:static!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .module-actions > .module-action{
- flex:0 1 auto!important;box-sizing:border-box!important;
- width:auto!important;max-width:none!important;min-width:0!important;
- min-height:30px!important;height:30px!important;
- padding:6px 8px!important;margin:0!important;
- font-size:10px!important;line-height:1.15!important;
- border-radius:8px!important;white-space:nowrap!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .module-actions > .orbit-platform-badge{
- position:absolute!important;
- inset:auto 10px 10px auto!important;right:10px!important;bottom:10px!important;
- order:50!important;transform:none!important;
- margin:0!important;padding:0!important;
- flex:0 0 34px!important;
- width:34px!important;min-width:34px!important;height:34px!important;
- display:grid!important;place-items:center!important;z-index:3!important;
- border-radius:50%!important;
- border:1px solid rgba(255,255,255,.62)!important;
- box-shadow:inset -8px -7px 11px #0005,inset 5px 4px 7px #fff6,0 5px 8px #0003!important;
-}
-/* The purple-marked lower utility area: profile link editors and
-   optional follow-up actions occupy this area, never the preview itself. */
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row >
+/* Footer utility occupies the *same slot* in each card. OAuth diagnostics
+ * are shown by the Orbit status area on request, never stretched into it. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] >
  :is(.orbit-facebook-profile,.orbit-fallback-profile,.orbit-link-utility){
- display:flex!important;flex-direction:column!important;
- align-self:start!important;justify-content:flex-start!important;
- gap:5px!important;
- box-sizing:border-box!important;
- min-width:0!important;max-width:100%!important;
- margin:0!important;padding:5px 42px 0 0!important;
- background:transparent!important;
- border:0!important;box-shadow:none!important;
- border-radius:0!important;
+  grid-area:utility!important;
+  display:flex!important;flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-self:stretch!important;min-width:0!important;
+  width:100%!important;max-width:100%!important;
+  padding:5px 0 0!important;margin:0!important;
+  gap:5px!important;overflow:hidden!important;
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;background:transparent!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row >
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] >
  :is(.orbit-facebook-profile,.orbit-fallback-profile,.orbit-link-utility) label{
- margin:0!important;line-height:1.2!important;
- color:#65554d!important;
- font:700 10px/1.2 system-ui,sans-serif!important;
+  min-width:0!important;max-width:100%!important;
+  white-space:nowrap!important;text-overflow:ellipsis!important;overflow:hidden!important;
+  margin:0!important;
+  font:700 9px/1.2 system-ui,sans-serif!important;color:#62534e!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row >
- :is(.orbit-facebook-profile,.orbit-fallback-profile,.orbit-link-utility)
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]
  :is(.orbit-facebook-profile-actions,.orbit-fallback-actions){
- display:flex!important;align-items:center!important;flex-wrap:nowrap!important;
- gap:5px!important;width:100%!important;min-width:0!important;
+  display:flex!important;align-items:center!important;flex-wrap:nowrap!important;
+  gap:5px!important;width:100%!important;min-width:0!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row >
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]
  :is(.orbit-facebook-profile,.orbit-fallback-profile,.orbit-link-utility) input{
- display:block!important;flex:1 1 0!important;
- box-sizing:border-box!important;
- min-width:0!important;width:100%!important;max-width:100%!important;
- min-height:31px!important;height:31px!important;
- padding:6px 8px!important;
- border-radius:7px!important;
- font:500 10px/1.2 system-ui,sans-serif!important;
- color:#322b2a!important;background:#fffdf9!important;
+  box-sizing:border-box!important;display:block!important;
+  flex:1 1 0!important;min-width:0!important;width:100%!important;
+  height:29px!important;min-height:29px!important;max-height:29px!important;
+  padding:5px 7px!important;
+  font:500 10px/1.2 system-ui,sans-serif!important;
+  color:#322c2a!important;background:#fffdf9!important;
+  border:1px solid #dbbfb7!important;border-radius:7px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row >
- :is(.orbit-facebook-profile,.orbit-fallback-profile) [data-orbit-save]{
- flex:none!important;min-height:31px!important;height:31px!important;
- padding:5px 8px!important;
- font-size:10px!important;border-radius:7px!important;
- background:#d85f6c!important;color:#fff!important;
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]
+ :is(.orbit-facebook-profile-actions,.orbit-fallback-actions) > button{
+  flex:0 0 auto!important;width:auto!important;
+  height:29px!important;min-height:29px!important;
+  padding:5px 8px!important;margin:0!important;
+  background:#d95d6d!important;color:#fff!important;
+  border-radius:7px!important;font:700 9px/1.2 system-ui!important;
 }
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-setup-hint{
- display:block!important;align-self:start!important;
- margin:0!important;max-width:calc(100% - 42px)!important;
- color:#827366!important;font:500 9px/1.3 system-ui!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row.is-profile-link > .orbit-link-utility{
- padding-right:42px!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row.is-profile-link > .orbit-link-utility input{
- width:100%!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .module-actions{
- display:flex!important;grid-template-columns:none!important;
- gap:5px!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .module-actions >
- :is([data-orbit-connect="facebook"],[data-facebook-legacy-connect],[data-orbit-unlink="facebook"]){
- grid-column:auto!important;grid-row:auto!important;
- width:auto!important;max-width:none!important;
- min-height:30px!important;height:30px!important;
- padding:6px 8px!important;margin:0!important;
- font-size:10px!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .module-actions > .orbit-platform-badge{
- grid-column:auto!important;grid-row:auto!important;margin:0!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-media-action{
- margin-top:0!important;align-self:start!important;
- font-size:10px!important;min-height:30px!important;
-}
-@media(max-width:1190px){
- #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
- }
-}
-@media(max-width:830px){
- #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
- }
-}
-@media(max-width:530px){
- #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{
-  grid-template-columns:minmax(0,1fr)!important;
- }
- #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit > .module-orbit-row{
-  height:222px!important;min-height:222px!important;max-height:222px!important;
- }
-}
-
-/* Facebook's optional media-permission tool shares the utility label row,
-   so it never adds a fifth row or stretches a neighboring card. */
+/* Facebook's optional permission control shares the label line. */
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile{
  display:grid!important;
  grid-template-columns:minmax(0,1fr) auto!important;
- grid-template-rows:16px 31px!important;
- column-gap:4px!important;
- row-gap:4px!important;
+ grid-template-rows:15px 29px!important;
+ column-gap:6px!important;row-gap:5px!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile > label{
  grid-column:1!important;grid-row:1!important;
- display:block!important;
- min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile > .orbit-media-action{
  grid-column:2!important;grid-row:1!important;
- justify-self:end!important;
- box-sizing:border-box!important;
- width:auto!important;max-width:95px!important;
- height:20px!important;min-height:20px!important;
- margin:0!important;padding:3px 5px!important;
- font:700 9px/1.1 system-ui!important;white-space:nowrap!important;
- border-radius:6px!important;
+ align-self:center!important;margin:0!important;padding:3px 5px!important;
+ min-height:18px!important;height:18px!important;
+ font-size:9px!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .orbit-facebook-profile > .orbit-facebook-profile-actions{
  grid-column:1/-1!important;grid-row:2!important;
- min-width:0!important;
+}
+/* Actions always sit along the bottom, with the textured sphere opposite. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > .module-actions{
+  grid-area:controls!important;
+  display:flex!important;flex-wrap:nowrap!important;
+  align-items:center!important;justify-content:flex-start!important;
+  gap:5px!important;
+  width:100%!important;min-width:0!important;height:34px!important;
+  min-height:34px!important;max-height:34px!important;
+  padding:0 37px 0 0!important;margin:0!important;
+  position:static!important;box-sizing:border-box!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > .module-actions > button{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 1 auto!important;
+  width:auto!important;max-width:100%!important;min-width:0!important;
+  height:31px!important;min-height:31px!important;max-height:31px!important;
+  padding:5px 7px!important;margin:0!important;
+  border-radius:8px!important;
+  font:700 9px/1.15 system-ui!important;
+  white-space:normal!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+  cursor:pointer!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .module-actions{
+  display:flex!important;grid-template-columns:none!important;
+  gap:4px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .module-actions >
+ :is([data-orbit-connect="facebook"],[data-facebook-legacy-connect],[data-orbit-unlink="facebook"]){
+  grid-column:auto!important;grid-row:auto!important;
+  width:auto!important;max-width:100%!important;
+  flex:1 1 auto!important;
+  padding:4px 5px!important;font-size:9px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > .module-actions > .orbit-platform-badge{
+  position:absolute!important;inset:auto 10px 10px auto!important;
+  right:10px!important;bottom:10px!important;left:auto!important;top:auto!important;
+  display:grid!important;place-items:center!important;
+  width:30px!important;min-width:30px!important;height:30px!important;
+  flex:none!important;order:50!important;z-index:2!important;
+  padding:0!important;margin:0!important;
+  border-radius:50%!important;transform:none!important;
+  border:1px solid rgba(255,255,255,.55)!important;
+  box-shadow:inset -7px -6px 10px #0005,inset 4px 4px 8px #fff6,0 4px 8px #0003!important;
+  font:800 8px/1 system-ui!important;
+}
+/* Some older providers still append a short status or extra action; never
+   allow them to change the card's size or cover interactive controls. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > :is(.orbit-not-connected,.orbit-setup-hint,.module-status):not(.orbit-main){
+  display:none!important;
+}
+@media(max-width:1160px){
+ #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:780px){
+ #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:510px){
+ #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit{grid-template-columns:minmax(0,1fr)!important}
 }
