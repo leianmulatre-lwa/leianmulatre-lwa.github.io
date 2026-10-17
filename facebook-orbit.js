@@ -118,7 +118,7 @@
 
       // Advanced photo/video permissions are optional and must never block basic Facebook login.
       // Request them through a separate, explicit user click after Meta grants access.
-      all('[data-orbit-connect="facebook"]').forEach(function (button) {
+      all('[data-facebook-legacy-connect]').forEach(function (button) {
         var actions = button.closest('.module-actions');
         if (!actions) return;
         var mediaButton = one('[data-facebook-orbit-media]', actions);
@@ -145,8 +145,8 @@
       /* The Orbit page's own Facebook row now uses the shared connect button
          (data-orbit-connect) so it hands the click to this client. It is labelled from the
          same state so a page left open shows Connected the moment login finishes. */
-      all('[data-orbit-connect="facebook"]').forEach(function (button) {
-        button.textContent = state.connected ? 'Reconnect Facebook' : (loginConfiguration() ? 'Connect Facebook' : 'Set up Facebook');
+      all('[data-facebook-legacy-connect]').forEach(function (button) {
+        button.textContent = state.connected ? 'Reconnect Original Facebook' : (loginConfiguration() ? 'Original Facebook' : 'Set up Original Facebook');
         button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
       });
 
@@ -398,7 +398,7 @@
       requestMediaAccess();
       return;
     }
-    var connectTarget = target.closest('[data-orbit-app="facebook"],[data-facebook-orbit-connect]');
+    var connectTarget = target.closest('[data-orbit-app="facebook"],[data-facebook-orbit-connect],[data-facebook-legacy-connect]');
     if (connectTarget) {
       event.preventDefault();
       event.stopImmediatePropagation();
