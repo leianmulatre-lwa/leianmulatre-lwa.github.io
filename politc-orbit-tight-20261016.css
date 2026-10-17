@@ -156,36 +156,4 @@
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
  }
 }
-/* Every Orbit connection uses the compact aligned action row, not only IG. */
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]{
- display:flex!important;flex-direction:column!important;
- min-width:0!important;padding-bottom:11px!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>.module-actions{
- display:flex!important;flex-wrap:wrap!important;align-items:center!important;
- gap:8px!important;margin-top:auto!important;padding-top:12px!important;
- min-height:42px!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>.module-actions>.orbit-platform-badge{
- position:static!important;inset:auto!important;transform:none!important;
- order:20!important;flex:0 0 30px!important;margin-left:auto!important;
- display:grid!important;place-items:center!important;
- width:30px!important;min-width:30px!important;height:30px!important;
- padding:0!important;border-radius:50%!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>.module-actions>.module-action{
- width:auto!important;max-width:calc(100% - 38px)!important;
- min-height:34px!important;padding:8px 11px!important;
- border-radius:9px!important;margin:0!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>.orbit-not-connected{
- flex:1 1 auto;margin-bottom:0!important;
-}
-#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] .orbit-connected-card{
- margin-bottom:4px!important;
-}
-@media(max-width:550px){
- #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>.module-actions>.module-action{
-  font-size:11px!important; padding:7px 9px!important;
- }
-}
+/* Orbit card sizing is owned by orbit-cards-unified-20261016.css. */
