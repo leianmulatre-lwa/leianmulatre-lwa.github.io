@@ -11,7 +11,8 @@ assert.ok(frontend.includes('firebaseIdToken:token'), 'Firebase account attached
 assert.ok(frontend.includes('session/account') && frontend.includes('session/claim'), 'account recovery supported');
 assert.ok(frontend.includes("const scopedKey=uid=>KEY+':'+uid"), 'sessions isolated by Firebase UID');
 assert.ok(frontend.includes('data-pn-sync'), 'profile-sync control is rendered');
-assert.ok(frontend.includes('importPinsToAccount(nextItems)'), 'Pin pages import to profile');
+assert.ok(frontend.includes("api('pins'+suffix)") && frontend.includes("await importPinsToAccount(originals)"), 'Only original Pins import privately to profile');
+assert.ok(!frontend.includes('await importPinsToAccount(nextItems)'), 'Saved board Pins remain in Boards');
 assert.ok(index.includes('pinterest-orbit.js?v='), 'browser loads new frontend');
 assert.ok(index.includes('orbit-posts.js?v='), 'browser loads fixed importer');
 console.log('11 Pinterest Boards checks passed');
