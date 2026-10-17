@@ -22,7 +22,7 @@ assert.ok(feed.includes('function renderDraftPanel()')&&feed.includes('renderDra
 assert.ok(feed.includes('data-orbit-publish-selected')&&feed.includes('publishDraft(id)'),'Publishing requires explicit selection');
 assert.ok(feed.includes('www.tiktok.com/embed/v2/'),'Published TikTok videos have playable source-backed embeds');
 assert.ok(pages.includes("ORBIT_CONNECTED.add(id)"),'Snapchat and Tumblr connect buttons remain visible without setup');
-assert.ok(pages.includes('orbit-fallback-profile'),'Saved public profile links stay available during OAuth setup');
+assert.ok(pages.includes('function orbitLinkEditor(k,name,url)')&&pages.includes('data-orbit-edit-link=')&&pages.includes('await manager.save(k,url)'),'Saved public profile links stay available as compact Link actions during OAuth setup');
 assert.ok(client.includes("if(!config[provider]?.configured)await load()"),'Connect action refreshes server configuration');
 assert.ok(newOrbitWorker.includes('https://auth.snapchat.com/oauth2/api/user.external_id'),'Snapchat requests stable account identity');
 assert.ok(newOrbitWorker.includes("provider==='x'?env.NEW_ORBIT_CALLBACK_ORIGIN:null"),'Snap/Tumblr use api.biglwa.com and X keeps its existing redirect');
