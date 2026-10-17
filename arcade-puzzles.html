@@ -8,7 +8,51 @@
  background-size:800% 800%;background-position:14.2857% 14.2857%;
  background-repeat:no-repeat;image-rendering:pixelated;
 }
-</style></head>
+/* Inside the cabinet, fit the complete playable board rather than showing
+   the standalone page header/avatar and pushing the bottom rows off-screen. */
+html.biglwa-arcade-embed body{
+  margin:0!important;padding:clamp(7px,1.8vw,13px)!important;
+  min-height:100dvh!important;background:#f8efdd!important;
+}
+html.biglwa-arcade-embed body>header,
+html.biglwa-arcade-embed .arcade-identity,
+html.biglwa-arcade-embed body>.note{
+  display:none!important;
+}
+html.biglwa-arcade-embed .info{
+  max-width:660px;margin:2px auto 10px!important;text-align:center;
+  font-size:clamp(11px,1.6vw,13px)!important;line-height:1.35!important;
+}
+html.biglwa-arcade-embed .scoreline{
+  max-width:430px!important;margin:0 auto 8px!important;
+}
+html.biglwa-arcade-embed .grid2048{
+  width:min(100%,430px,calc(100dvh - 158px))!important;
+  height:auto!important;max-height:calc(100dvh - 158px)!important;
+  gap:clamp(4px,1vw,10px)!important;padding:clamp(5px,1vw,9px)!important;
+  margin-inline:auto!important;aspect-ratio:1!important;
+}
+html.biglwa-arcade-embed .feedback{margin:7px auto!important;text-align:center}
+html.biglwa-arcade-embed .cross-layout{
+  grid-template-columns:minmax(0,450px) minmax(0,1fr)!important;
+  gap:14px!important;
+}
+html.biglwa-arcade-embed .cross-grid{max-width:450px!important}
+html.biglwa-arcade-embed .clue-list{
+  max-height:calc(100dvh - 95px)!important;overscroll-behavior:contain;
+}
+@media(max-width:720px){
+ html.biglwa-arcade-embed .cross-layout{grid-template-columns:minmax(0,1fr)!important}
+ html.biglwa-arcade-embed .cross-grid{max-width:400px!important;margin-inline:auto!important}
+ html.biglwa-arcade-embed .clue-list{max-height:210px!important}
+}
+@media(max-height:540px){
+ html.biglwa-arcade-embed .grid2048{
+  width:min(100%,330px,calc(100dvh - 135px))!important;
+  max-height:calc(100dvh - 135px)!important;
+ }
+}
+</style><script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('biglwa-arcade-embed');</script></head>
 <body><header><h1>big lwa · arcade</h1><div class="tabs" role="tablist"><button role="tab" type="button" data-tab="2048" aria-selected="true">2048</button><button role="tab" type="button" data-tab="crossword" aria-selected="false">crossword</button></div></header>
 <div id="biglwaArcadeIdentity" class="arcade-identity" aria-live="polite"><span class="arcade-identity-portrait" aria-hidden="true">◉</span><div><strong>playing as guest</strong><small><a href="/avatar/mii-editor.html?v=20261016-mii-opt-in-1">Set up your Big LWA avatar ↗</a> to use it in the games.</small></div></div>
 <section id="game2048"><p class="info">Join tiles with the same number. Use your arrow keys, WASD, or swipe. Try to make 2048!</p><div class="scoreline"><b>score <span id="score">0</span></b><button type="button" id="new2048">new game ↻</button></div><div id="grid2048" class="grid2048" role="grid" aria-label="2048 number puzzle"></div><p class="feedback" id="2048status" role="status"></p></section>
