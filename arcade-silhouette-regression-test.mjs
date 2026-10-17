@@ -5,15 +5,15 @@ const css=get('arcade-silhouette-corrected-20261017.css');
 const shell=get('index.html');
 const baseline=get('arcade-veve-refine-20261016.css');
 const game=get('module-pages.js');
-assert.ok(shell.includes('/arcade-silhouette-corrected-20261017.css?v=20261017-compact-shell-1'),
+assert.ok(shell.includes('/arcade-silhouette-corrected-20261017.css?v=20261017-folder-deck-4'),
   'Latest Studio Arcade silhouette stylesheet must load');
 assert.ok(shell.indexOf('arcade-silhouette-corrected-20261017.css')>
   shell.indexOf('arcade-playability-20261016.css'), 'New silhouette must override old Arcade layout');
 assert.ok(css.includes('#studioApp #games .games-library.games-library'),
   'Fix is attached to Studio cabinet, not only the full Games module');
-assert.ok(css.includes('--arcade-outline:polygon(')&&css.includes('88% 50%'),
-  'Broad shoulders and base narrow to an hourglass waist');
-assert.ok(css.includes('aspect-ratio:0.86!important')&&css.includes('max-height:425px!important'),
+assert.ok(css.includes('--arcade-outline:inset(0 round 28px)')&&!css.includes('88% 50%'),
+  'Reference cabinet uses a rounded rectangular housing');
+assert.ok(css.includes('aspect-ratio:0.72!important')&&css.includes('max-height:520px!important'),
   'Studio cabinet has deliberate compact aspect ratio and maximum height');
 assert.ok(css.includes('clip-path:none!important')&&css.includes('.games-library.games-library::before')&&
   css.includes('clip-path:var(--arcade-outline)!important'),
@@ -31,4 +31,8 @@ assert.ok(game.includes('id="arcadeScreen"')&&game.includes("framed.searchParams
   'Existing emulator/playable iframe wiring remains intact');
 assert.ok(baseline.includes('#studioApp #games .games-library.games-library'),
   'This regression is guarding against the original wrong, narrow shell');
-console.log('PASS compact hourglass Arcade Studio cabinet, uncut viewport, integrated joysticks, full-page matching shape');
+assert.ok(css.includes('--stick:#efc548')&&css.includes('--stick:#5ca975'),'Reference has yellow and green controls alongside pink');
+assert.ok(css.includes('position:static!important;inset:auto!important;transform:none!important'),'Legacy absolute logo positioning is reset');
+assert.ok(css.includes('inset:38% -2% 0')&&css.includes('left:6%!important;top:4%'),'Folder has a front pocket and a separate ARCADE back tab');
+assert.ok(css.includes('inset:23px 0 0!important')&&css.includes('bottom:8px!important'),'Joystick sockets sit on the deck and shafts rise above it');
+console.log('PASS folder Arcade Studio cabinet, uncut viewport, integrated joysticks, full-page matching shape');

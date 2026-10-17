@@ -53,6 +53,8 @@ jobs:
           node --check avatar/minecraft-mannequin.js
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
+          node facebook-personal-sync-test.mjs
+          node preview-isolation-test.mjs
           node --check avatar/arcade-character.js
           node mii-webport-test.mjs
       - name: Verify imported cards, auth, video trim and accessible media UI

@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
+const source=readFileSync('cloudflare-worker-instagram.js','utf8');
+const accounts=new Map([['facebook-personal:account:owner',{accessToken:'personal-token',expiresAt:Date.now()+60000,profile:{name:'Owner'}}]]);
+let permissions=['user_posts','user_photos'],calls=[];
+const context=vm.createContext({URL,Response,Date,console,Set,encodeURIComponent,
+ json:(body,status)=>({body,status}),allowedOrigin:()=>true,mediaUser:async()=>({uid:'owner'}),
+ fetch:async(target,options)=>{const u=new URL(target);calls.push(u.pathname);assert.equal(options.headers.Authorization,'Bearer personal-token');return {ok:true,json:async()=>({data:u.pathname.endsWith('permissions')?permissions.map(permission=>({permission,status:'granted'})):[{id:'123',message:'Hello',permalink_url:'https://www.facebook.com/123',link:'https://www.facebook.com/photo/?fbid=123'}]})}},
+ randomToken:()=> 'state'});
+vm.runInContext(source.slice(source.indexOf("const FB_PERSONAL_APP_ID_DEFAULT"))+'\nthis.route=facebookPersonalRoute;',context);
+const env={FACEBOOK_PERSONAL_APP_SECRET:'secret',OAUTH_SESSIONS:{get:async key=>accounts.get(key)}};
+let result=await context.route(new Request('https://api.biglwa.com/facebook-personal/media'),env);
+assert.equal(result.status,200);assert.equal(result.body.items.length,2);assert.equal(result.body.missing.length,0);
+permissions=[];calls=[];result=await context.route(new Request('https://api.biglwa.com/facebook-personal/media'),env);
+assert.equal(result.body.items.length,0);assert.equal(result.body.missing.length,2);assert.equal(calls.length,1);
+accounts.get('facebook-personal:account:owner').expiresAt=0;calls=[];
+result=await context.route(new Request('https://api.biglwa.com/facebook-personal/media'),env);assert.equal(result.status,401);assert.equal(calls.length,0);
+context.mediaUser=async()=>({uid:'other'});
+result=await context.route(new Request('https://api.biglwa.com/facebook-personal/media'),env);assert.equal(result.status,401);
+result=await context.route(new Request('https://api.biglwa.com/facebook-personal/media',{method:'POST'}),env);assert.equal(result.status,405);
+console.log('PASS personal content, missing permissions, expired session, UID isolation and HTTP method');
+const posts=readFileSync('orbit-posts.js','utf8');
+const writerSource=posts.slice(posts.indexOf('export async function saveExternalOrbitDraft'),posts.indexOf('export async function savePostRecords')).replace('export ','');
+let prior=null,writes=[];
+const store={auth:{authStateReady:async()=>{},currentUser:{uid:'owner'}},getDoc:async()=>({exists:()=>!!prior,data:()=>prior}),serverTimestamp:()=>123};
+const writerContext=vm.createContext({URL,Date,clean:v=>String(v??'').trim(),firebase:async()=>store,idFor:async()=> 'stable-id',postRefs:()=>({root:'root'}),resolveOwner:async()=>({username:'owner',usernameLower:'owner',authorName:'Owner'}),writePostRecords:async(...args)=>{writes.push(args[3]);return {denied:[]}},window:{dispatchEvent:()=>{}},CustomEvent:class{}});
+vm.runInContext(writerSource+'\nthis.save=saveExternalOrbitDraft;',writerContext);
+const item={id:'123',sourceUrl:'https://www.facebook.com/123',expectedUid:'owner'};
+await writerContext.save('facebook',item,{publishToCollective:true});assert.equal(writes.at(-1).state,'approved');assert.equal(writes.at(-1).archiveState,'collective');
+await writerContext.save('facebook',item);assert.equal(writes.at(-1).state,'draft');
+prior={state:'draft',archiveState:'saved'};
+assert.equal((await writerContext.save('facebook',item,{publishToCollective:true})).published,true);
+prior={state:'archived',archiveState:'archived'};const count=writes.length;
+await writerContext.save('facebook',item,{publishToCollective:true});assert.equal(writes.length,count);
+await assert.rejects(()=>writerContext.save('facebook',{...item,expectedUid:'other'},{publishToCollective:true}),/Account changed/);
+console.log('PASS personal Collective Feed publishing, existing draft promotion, business draft default, archive preservation and account switch');

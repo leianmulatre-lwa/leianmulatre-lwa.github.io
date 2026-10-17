@@ -26,7 +26,7 @@ const checks=[
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
- ['Direct drag latest cache',home.includes('studio-experience.js?v=20261015-eject-fixed-cloud-3')]
+ ['Direct drag latest cache',home.includes('studio-experience.js?v=20261017-reference-controls-5')]
 ];
 for(const [label,ok] of checks){console.log((ok?'PASS':'FAIL')+' · '+label)}
 assert.ok(checks.every(([,ok])=>ok),'Studio layout/cache accessibility regression');

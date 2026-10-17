@@ -1,26 +1,26 @@
 /* BIG LWA Arcade cabinet silhouette — Studio and full Games page.
- * One authoritative geometry: broad shoulders + foot, controlled hourglass waist.
+ * One authoritative geometry: rounded brown housing, gold marquee and three colored joysticks.
  * Only ornamental layers are clipped; NEVER crop the viewport, tiles or controls.
- * Keep the existing amber marquee, brown cabinet and pink joysticks.
+ * Match the supplied gold marquee, brown cabinet and three colored joysticks.
  */
 #studioApp #games .games-library.games-library{
- --arcade-outline:polygon(11% 0,89% 0,97% 6%,97% 24%,94% 35%,88% 50%,94% 65%,97% 77%,97% 94%,89% 100%,11% 100%,3% 94%,3% 77%,6% 65%,12% 50%,6% 35%,3% 24%,3% 6%);
+ --arcade-outline:inset(0 round 28px);
  position:relative!important;
  isolation:isolate!important;
  display:flex!important;
  flex-direction:column!important;
  align-items:stretch!important;
  justify-content:flex-start!important;
- gap:8px!important;
+ gap:16px!important;
  box-sizing:border-box!important;
  width:100%!important;
  max-width:100%!important;
- aspect-ratio:0.86!important;
+ aspect-ratio:0.72!important;
  height:auto!important;
- min-height:0!important;
- max-height:425px!important;
+ min-height:400px!important;
+ max-height:520px!important;
  margin:8px auto 12px!important;
- padding:13px clamp(23px,12%,50px) 94px!important;
+ padding:23px 8% 105px!important;
  border:0!important;
  border-radius:0!important;
  background:transparent!important;
@@ -50,9 +50,9 @@
  filter:drop-shadow(0 10px 10px rgba(24,10,7,.25))!important;
 }
 #studioApp #games .games-library.games-library::after{
- inset:7px!important;
+ inset:9px!important;
  z-index:-1!important;
- background:linear-gradient(90deg,#3e2018 0%,#89503b 12%,#9b5e43 22%,#70402d 49%,#985a40 79%,#3d211b 100%)!important;
+ background:linear-gradient(90deg,#291610 0%,#653b2c 17%,#754735 50%,#653b2c 83%,#291610 100%)!important;
  box-shadow:inset 0 0 0 6px #24130f,inset 0 15px 25px #eab48c19,inset 0 -20px 25px #0e06054d!important;
  filter:none!important;
 }
@@ -68,39 +68,39 @@
  flex-direction:column!important;
  align-items:center!important;
  justify-content:center!important;
- flex:0 0 74px!important;
+ flex:0 0 132px!important;
  width:100%!important;
- height:74px!important;
+ height:132px!important;
  min-height:0!important;
- max-height:74px!important;
+ max-height:132px!important;
  margin:0!important;
- padding:4px 8px!important;
- gap:1px!important;
+ padding:2px 8px!important;
+ gap:0!important;
  box-sizing:border-box!important;
  overflow:hidden!important;
  border:6px solid #170c09!important;
- border-radius:12px!important;
+ border-radius:2px!important;
  background:linear-gradient(140deg,#f9d682,#e6ad4d)!important;
  box-shadow:inset 0 0 0 2px #d28b3c,inset 0 3px 9px #fff8c76a,0 3px 0 #120908!important;
 }
 #studioApp #games .games-arcade-brand.games-arcade-brand > img:first-child{
  display:block!important;
- flex:0 0 33px!important;
+ flex:0 0 70px!important;
  width:100%!important;
- height:33px!important;
+ height:70px!important;
  min-height:0!important;
- max-height:33px!important;
+ max-height:70px!important;
  object-fit:contain!important;
  margin:0!important;
 }
 #studioApp #games .games-arcade-brand.games-arcade-brand > img:nth-child(2){
  display:block!important;
- flex:0 0 25px!important;
+ flex:0 0 42px!important;
  width:100%!important;
- max-width:165px!important;
- height:25px!important;
+ max-width:260px!important;
+ height:42px!important;
  min-height:0!important;
- max-height:25px!important;
+ max-height:42px!important;
  object-fit:contain!important;
  margin:0!important;
 }
@@ -161,9 +161,9 @@
  justify-content:space-evenly!important;
  gap:clamp(5px,2%,17px)!important;
  z-index:3!important;
- left:12%!important;
- right:12%!important;
- bottom:18px!important;
+ left:8%!important;
+ right:8%!important;
+ bottom:21px!important;
  width:auto!important;
  height:73px!important;
  min-height:73px!important;
@@ -182,7 +182,8 @@
  inset:0!important;
  pointer-events:none!important;
  border:4px solid #1d0d09!important;
- border-radius:10px 10px 15px 15px!important;
+ border-radius:4px 4px 10px 10px!important;
+ clip-path:polygon(8% 0,92% 0,100% 100%,0 100%)!important;
  background:linear-gradient(180deg,#946048,#643425 75%,#321914)!important;
  box-shadow:inset 0 6px 7px #f8c49438,inset 0 -8px 10px #170b099c,0 5px 0 #1c0c08!important;
 }
@@ -224,7 +225,7 @@
 }
 /* Full Arcade adopts the same outline, but its playable frame remains uncut. */
 #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
- --arcade-outline:polygon(11% 0,89% 0,97% 6%,97% 24%,94% 35%,88% 50%,94% 65%,97% 77%,97% 94%,89% 100%,11% 100%,3% 94%,3% 77%,6% 65%,12% 50%,6% 35%,3% 24%,3% 6%);
+ --arcade-outline:inset(0 round 28px);
  clip-path:none!important;
  -webkit-clip-path:none!important;
  background:transparent!important;
@@ -234,19 +235,19 @@
  clip-path:var(--arcade-outline)!important;
  -webkit-clip-path:var(--arcade-outline)!important;
 }
-/* Mobile: maintain the same silhouette, not a separate jagged variant. */
+/* Mobile: retain all three game columns and colored controls. */
 @media(max-width:650px){
  #studioApp #games .games-library.games-library{
-  padding:10px clamp(17px,11%,34px) 78px!important;
+  padding:18px 8% 90px!important;
   gap:5px!important;
-  max-height:390px!important;
+  max-height:480px!important;
  }
  #studioApp #games .games-arcade-brand.games-arcade-brand{
-  flex-basis:62px!important;height:62px!important;max-height:62px!important;
+  flex-basis:112px!important;height:112px!important;max-height:112px!important;
  }
  #studioApp #games .arcade-control-deck.arcade-control-deck{
   height:62px!important;min-height:62px!important;max-height:62px!important;
-  bottom:12px!important;
+  bottom:18px!important;
   left:11%!important;right:11%!important;
  }
  #studioApp #games .arcade-joystick.arcade-joystick{
@@ -254,7 +255,74 @@
   transform-origin:center bottom!important;
  }
  #studioApp #games .arcade-library-viewport.arcade-library-viewport{
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
  }
- #studioApp #games .arcade-track:nth-child(3){display:none!important}
+
+}
+
+
+/* Legacy depth wrapper contains the marquee only. Remove the folder decoration. */
+#studioApp #games .arcade-folder-depth.arcade-folder-depth{
+ display:block!important;flex:0 0 auto!important;border:0!important;
+ background:none!important;box-shadow:none!important;overflow:visible!important;
+}
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::before,
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::after{display:none!important}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img{
+ position:static!important;inset:auto!important;transform:none!important;
+ filter:none!important;animation:none!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand{
+ background:repeating-linear-gradient(0deg,#ffffff12 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,#a36c1914 0 1px,transparent 1px 3px),linear-gradient(140deg,#ffe595,#e7b646)!important;
+}
+#studioApp #games .arcade-joystick.is-yellow{--stick:#efc548!important}
+#studioApp #games .arcade-joystick.is-red{--stick:#d85f75!important}
+#studioApp #games .arcade-joystick.is-green{--stick:#5ca975!important}
+#studioApp #games .arcade-joystick.arcade-joystick::after{
+ background:radial-gradient(circle at 32% 25%,#ffffff8c,transparent 33%),var(--stick)!important;
+}
+@media(max-width:650px){
+ #studioApp #games .games-arcade-brand.games-arcade-brand > img:first-child{height:56px!important;max-height:56px!important;flex-basis:56px!important}
+ #studioApp #games .games-arcade-brand.games-arcade-brand > img:nth-child(2){height:36px!important;max-height:36px!important;flex-basis:36px!important}
+ #studioApp #games .arcade-track:nth-child(3){display:block!important}
+}
+/* Folder marquee: back tab carries ARCADE, front pocket carries BIG LWA. */
+#studioApp #games .games-arcade-brand.games-arcade-brand{
+ position:relative!important;isolation:isolate!important;overflow:visible!important;
+ border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;
+ padding:0!important;display:block!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand::before{
+ content:""!important;position:absolute!important;inset:0!important;z-index:0!important;
+ clip-path:polygon(0 8%,5% 0,62% 0,70% 16%,96% 16%,100% 22%,100% 100%,0 100%);
+ background:linear-gradient(130deg,#ffe28a,#bc842d)!important;
+ border-radius:5px!important;box-shadow:inset 0 0 0 2px #8e5b23!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand::after{
+ content:""!important;display:block!important;position:absolute!important;
+ inset:38% -2% 0!important;z-index:2!important;border:2px solid #b27a2c!important;
+ border-radius:5px 5px 9px 9px!important;transform:perspective(350px) rotateX(-8deg)!important;
+ background:repeating-linear-gradient(0deg,#ffffff18 0 1px,transparent 1px 3px),linear-gradient(145deg,#ffe594,#e5b34b)!important;
+ box-shadow:0 5px 5px #170a0755,inset 0 3px #fff1bd!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img:first-child{
+ position:absolute!important;z-index:3!important;left:15%!important;top:42%!important;
+ width:70%!important;height:56%!important;max-height:none!important;object-fit:contain!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img:nth-child(2){
+ position:absolute!important;z-index:1!important;left:6%!important;top:4%!important;
+ width:52%!important;height:29%!important;max-height:none!important;object-fit:contain!important;
+}
+/* Mount the sockets on the top plane; shafts and balls rise above it. */
+#studioApp #games .arcade-control-deck.arcade-control-deck{align-items:flex-start!important}
+#studioApp #games .arcade-control-deck.arcade-control-deck::before{
+ inset:23px 0 0!important;
+ background:linear-gradient(180deg,#af7859 0%,#85503a 48%,#43271e 50%,#2c1914 100%)!important;
+}
+#studioApp #games .arcade-joystick.arcade-joystick{
+ height:59px!important;bottom:8px!important;transform:none!important;
+}
+#studioApp #games .arcade-joystick.arcade-joystick::before{height:26px!important}
+#studioApp #games .arcade-joystick.arcade-joystick > i{
+ bottom:0!important;width:34px!important;height:10px!important;border-width:3px!important;
 }

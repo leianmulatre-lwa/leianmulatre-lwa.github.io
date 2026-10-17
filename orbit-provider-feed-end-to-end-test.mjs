@@ -13,7 +13,7 @@ for(const [name,s] of [['Facebook',fb],['TikTok',tiktok],['Orbit UI',pages],['Sn
  assert.doesNotThrow(()=>new vm.Script(s),name+' syntax');
 }
 assert.ok(posts.includes('export async function saveExternalOrbitDraft'),'External source importer exists');
-assert.ok(posts.includes("state:'draft',archiveState:'saved'"),'Imports are private by default');
+assert.ok(posts.includes("publishToCollective=false")&&posts.includes("state=publish?'approved':'draft'"),'Imports are private by default');
 assert.ok(posts.includes("if(prior.exists())"),'Reconnect does not duplicate or republish source items');
 assert.ok(posts.includes("writePostRecords(store,user.uid,postId"),'Imports saved to Feed, profile and Archive records');
 assert.ok(fb.includes('await syncFacebookDrafts()'),'Authorized Facebook items automatically enter private imports');
