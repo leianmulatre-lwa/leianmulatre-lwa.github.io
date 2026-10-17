@@ -11,15 +11,15 @@
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit > .module-orbit-row[data-orbit-row]{
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:20px 50px minmax(0,1fr) 34px!important;
+  grid-template-rows:20px 48px minmax(0,1fr) 32px!important;
   grid-template-areas:"heading" "preview" "utility" "controls"!important;
   align-content:stretch!important;
   align-items:stretch!important;
   column-gap:0!important;
   row-gap:6px!important;
-  height:218px!important;
-  min-height:218px!important;
-  max-height:218px!important;
+  height:200px!important;
+  min-height:200px!important;
+  max-height:200px!important;
   width:100%!important;
   min-width:0!important;
   box-sizing:border-box!important;
@@ -51,14 +51,14 @@
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > .orbit-main{
   grid-area:preview!important;
   display:flex!important;align-items:stretch!important;
-  width:100%!important;height:50px!important;max-height:50px!important;
+  width:100%!important;height:48px!important;max-height:48px!important;
   min-width:0!important;min-height:0!important;
   margin:0!important;padding:0!important;overflow:hidden!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row > .orbit-main > :is(.orbit-not-connected,.orbit-link-summary,.orbit-connected-card){
   display:flex!important;align-items:center!important;
   width:100%!important;min-width:0!important;
-  height:50px!important;min-height:50px!important;max-height:50px!important;
+  height:48px!important;min-height:48px!important;max-height:48px!important;
   padding:6px 8px!important;margin:0!important;
   box-sizing:border-box!important;
   border-radius:8px!important;overflow:hidden!important;
@@ -74,7 +74,7 @@
   gap:7px!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card img{
-  width:34px!important;height:34px!important;flex:0 0 34px!important;
+  width:32px!important;height:32px!important;flex:0 0 32px!important;
   border-radius:50%!important;object-fit:cover!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card > span{
@@ -158,8 +158,8 @@
   display:flex!important;flex-wrap:nowrap!important;
   align-items:center!important;justify-content:flex-start!important;
   gap:5px!important;
-  width:100%!important;min-width:0!important;height:34px!important;
-  min-height:34px!important;max-height:34px!important;
+  width:100%!important;min-width:0!important;height:32px!important;
+  min-height:32px!important;max-height:32px!important;
   padding:0 37px 0 0!important;margin:0!important;
   position:static!important;box-sizing:border-box!important;
 }
