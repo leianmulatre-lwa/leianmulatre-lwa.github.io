@@ -31,3 +31,18 @@ bucket_name = "wallpaper-bucket"
 # Wrangler validates these names at deploy time; the actual values remain on Cloudflare.
 [secrets]
 required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]
+
+# Isolated branch previews. OAuth/media writes remain disabled until dedicated
+# test-provider credentials and callback URLs are configured.
+[previews.vars]
+BIGLWA_PREVIEW = "true"
+SITE_URL = "https://biglwa.com"
+
+[[previews.kv_namespaces]]
+binding = "OAUTH_SESSIONS"
+id = "f804d7d809c749a8a9ac2a79e2255c90"
+
+[[previews.r2_buckets]]
+binding = "WALLPAPER_BUCKET"
+bucket_name = "biglwa-preview-media"
+

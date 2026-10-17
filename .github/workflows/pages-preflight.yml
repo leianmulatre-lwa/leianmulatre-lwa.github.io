@@ -45,6 +45,7 @@ jobs:
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
           node facebook-personal-sync-test.mjs
+          node preview-isolation-test.mjs
           node mii-webport-test.mjs
           node feed-auth-tools-regression-test.mjs
           node feed-mixed-caption-test.mjs

@@ -460,6 +460,15 @@ function corsHeaders(origin) {
  */
 export default {
   async fetch(request, env) {
+    // Branch previews must never initiate OAuth against production callbacks or
+    // read/write production Firebase accounts before test providers are configured.
+    if (env.BIGLWA_PREVIEW === 'true') {
+      const health = ['/', '/health'].includes(new URL(request.url).pathname);
+      return Response.json(health
+        ? {ok:true,environment:'preview',socialLoginEnabled:false}
+        : {error:'Social login and account data are disabled in this isolated preview.'},
+        {status:health?200:503,headers:{'Cache-Control':'no-store'}});
+    }
     if (new URL(request.url).pathname.startsWith('/facebook-personal/')) {
       const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
       try{return await facebookPersonalRoute(request,config)}
