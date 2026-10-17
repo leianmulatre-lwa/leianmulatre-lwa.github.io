@@ -201,7 +201,8 @@
 
   function render() {
     try {
-      ensureFacebook();
+      // The Studio preview has a fixed, owner-selected set of eight planets.
+      // Do not automatically append the old Facebook tile from the Google helper.
       ensurePlanetary();
       ['youtube', 'drive', 'calendar'].forEach(function (kind) {
         all('[data-orbit-app="' + kind + '"]').forEach(function (tile) {
