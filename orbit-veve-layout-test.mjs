@@ -5,6 +5,7 @@ const load=n=>readFileSync(new URL('./'+n,import.meta.url),'utf8');
 const pages=load('module-pages.js');
 const ui=load('ui-coherence.js');
 const style=load('studio-type-politc-20261015.css');
+const orbitStyle=load('orbit-cards-unified-20261016.css');
 const index=load('index.html');
 const wrangler=load('wrangler.toml');
 assert.doesNotThrow(()=>new vm.Script(pages),'Module pages must remain parseable');
@@ -14,8 +15,8 @@ assert.ok(full.includes('[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{'),
 assert.ok(!full.includes('view planetary'),'Full Orbit must not show a redundant Planetary toggle');
 assert.ok(!full.includes('planetaryMarkup(links)'),'Full Orbit must not hide saved-link apps');
 assert.ok(full.includes('data-orbit-connect=')&&full.includes('data-orbit-save='),'Both OAuth and links remain operable');
-assert.ok(style.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important'),'Four providers across on desktop');
-assert.ok(style.includes('grid-template-columns:repeat(3,minmax(0,1fr))!important')&&style.includes('grid-template-columns:repeat(2,minmax(0,1fr))!important')&&style.includes('grid-template-columns:minmax(0,1fr)!important'),'Orbit grid remains responsive');
+assert.ok(orbitStyle.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important'),'Four providers across on desktop');
+assert.ok(orbitStyle.includes('grid-template-columns:repeat(3,minmax(0,1fr))!important')&&orbitStyle.includes('grid-template-columns:repeat(2,minmax(0,1fr))!important')&&orbitStyle.includes('grid-template-columns:minmax(0,1fr)!important'),'Orbit grid remains responsive');
 const feed=pages.slice(pages.indexOf('function renderFeed(){'),pages.indexOf('function renderConnect(){'));
 assert.ok(feed.includes('Explore Veve ↗')&&!feed.includes('Explore Stream ↗'));
 assert.ok(feed.includes("window.BigLWAOpenModule?.('veve')"),'Feed action opens Veve module');
@@ -24,7 +25,7 @@ assert.ok(style.includes('biglwa-feed-compose-card')&&style.includes('biglwa-fee
 assert.ok(pages.includes("if(activeModuleKey==='veve')closeModule();")&&pages.includes("else openModule('veve');"),'Studio logo is a reversible Veve switch');
 assert.ok(pages.includes("event.stopImmediatePropagation()"),'Logo toggle prevents browser navigation and re-login');
 assert.ok(ui.includes("a.setAttribute('aria-label','Open Veve')"),'Accessible logo label');
-assert.ok(/module-pages\.js\?v=20261016-orbit-connects-draft-8/.test(index)&&index.includes('studio-type-politc-20261015.css?v=20261015-sqwib-legibility-5'),'New modules are cache-busted');
+assert.ok(/module-pages\.js\?v=20261016-/.test(index)&&index.includes('orbit-cards-unified-20261016.css?v='),'Current Orbit renderer and its compact CSS are deployed with cache-busting');
 assert.ok(wrangler.includes('keep_vars = true'),'Cloudflare dashboard variables survive future Worker deploys');
 assert.ok(wrangler.includes('TIKTOK_CLIENT_SECRET')&&wrangler.includes('[secrets]'),'Worker requires configured secret names without checking values into repository');
 console.log('PASS: Full Orbit Planetary grid, four desktop columns, responsive cards, slim Feed, Veve toggle, and Cloudflare variable safeguards');
