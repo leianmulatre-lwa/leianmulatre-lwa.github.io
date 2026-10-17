@@ -59,7 +59,6 @@
 #studioApp #games .games-library.games-library > :not(.arcade-control-deck){
  position:relative!important;
  z-index:1!important;
- flex-shrink:0!important;
  min-width:0!important;
  max-width:100%!important;
  box-sizing:border-box!important;
