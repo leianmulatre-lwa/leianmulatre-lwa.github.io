@@ -10,6 +10,8 @@ const bootstrap=read('bootstrap-v2.html');
 const widget=read('orbit-preview-eight-20261016.js');
 const widgetCss=read('orbit-preview-eight-20261016.css');
 const fullCss=read('orbit-cards-unified-20261016.css');
+const oldTight=read('politc-orbit-tight-20261016.css');
+const oldSeason=read('orbit-season-20261016.css');
 const planets=read('orbit-planets-20261015.css');
 const legacy=read('facebook-orbit.js');
 assert.doesNotThrow(()=>new vm.Script(pages),'Full Orbit JS parses');
@@ -51,4 +53,16 @@ assert.ok(pages.includes('data-facebook-legacy-connect') &&
   pages.includes('window.BigLWAFacebookPersonal'),
   'Both Meta Business and new personal Facebook routes remain available');
 assert.match(fullCss,/position:absolute!important/,'Full Orbit badges remain anchored');
+assert.ok(fullCss.includes('height:218px!important')&&
+  fullCss.includes('grid-template-areas:"heading" "preview" "utility" "controls"'),
+  'Every full Orbit card has a fixed height and compact slots');
+assert.ok(fullCss.includes('height:50px!important')&&
+  fullCss.includes('overflow:hidden!important'),
+  'No empty OAuth preview can stretch its planet');
+assert.ok(!oldTight.includes('.module-orbit-row[data-orbit-row]')&&
+  !oldSeason.includes('.module-orbit-row[data-orbit-row="instagram"]'),
+  'Older Orbit flex layouts must not override compact cards');
+assert.match(html,/orbit-cards-unified-20261016\.css\?v=20261016-compact-218-/,
+  'Compact Orbit stylesheet must be refreshed in actual Pages loader');
+
 console.log('PASS eight default planets, personal Facebook, rotating suggestions, salmon YouTube, original 3D art');
