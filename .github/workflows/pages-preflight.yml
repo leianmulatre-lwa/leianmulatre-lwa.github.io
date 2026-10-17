@@ -3,6 +3,13 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'about/index.html'
+      - 'seo-head.js'
+      - 'seo-test.mjs'
+      - 'robots.txt'
+      - 'sitemap.xml'
+      - 'favicon.svg'
+      - 'assets/biglwa-social.png'
       - 'feed-mixed-caption-test.mjs'
       - 'feed-view.js'
       - 'orbit-feed.js'
@@ -39,6 +46,7 @@ jobs:
       - name: Run the full Pages source verification before merging
         run: |
           node site-integrity-test.mjs
+          node seo-test.mjs
           node studio-layout-cache-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js

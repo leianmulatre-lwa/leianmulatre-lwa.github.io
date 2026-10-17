@@ -28,7 +28,9 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Verify politc, calendar, and site SEO integrity
-        run: node site-integrity-test.mjs
+        run: |
+          node site-integrity-test.mjs
+          node seo-test.mjs
       - name: Verify persistent Studio layout and safe Settings cache controls
         run: |
           node --check ui-coherence.js
