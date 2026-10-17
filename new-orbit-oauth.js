@@ -4,12 +4,12 @@
  * Callback is https://api.biglwa.com/{provider}/callback.
  */
 const PROVIDERS={
- x:{id:'X_CLIENT_ID',secret:'X_CLIENT_SECRET',authorize:'https://twitter.com/i/oauth2/authorize',
+ x:{id:'X_CLIENT_ID',secret:'X_CLIENT_SECRET',authorize:'https://x.com/i/oauth2/authorize',
     token:'https://api.x.com/2/oauth2/token',scope:'users.read tweet.read offline.access'},
  tumblr:{id:'TUMBLR_CONSUMER_KEY',secret:'TUMBLR_CONSUMER_SECRET',authorize:'https://www.tumblr.com/oauth2/authorize',
     token:'https://api.tumblr.com/v2/oauth2/token',scope:'basic offline_access'},
- snapchat:{id:'SNAPCHAT_CLIENT_ID',secret:'SNAPCHAT_CLIENT_SECRET',authorize:'https://accounts.snapchat.com/login/oauth2/authorize',
-    token:'https://accounts.snapchat.com/login/oauth2/access_token',
+ snapchat:{id:'SNAPCHAT_CLIENT_ID',secret:'SNAPCHAT_CLIENT_SECRET',authorize:'https://accounts.snapchat.com/accounts/oauth2/auth',
+    token:'https://accounts.snapchat.com/accounts/oauth2/token',
     scope:'https://auth.snapchat.com/oauth2/api/user.external_id https://auth.snapchat.com/oauth2/api/user.display_name https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar'}
 };
 const WORKER_ORIGIN='https://api.biglwa.com';
@@ -66,7 +66,8 @@ async function oaExchange(provider,code,verifier,env,callback){
  }else if(provider==='tumblr'){
   form.set('client_secret',env[c.secret]);
  }else{
-  headers.Authorization='Basic '+btoa(env[c.id]+':'+env[c.secret]);
+  form.set('client_secret',env[c.secret]);
+  form.set('code_verifier',verifier);
  }
  const resp=await fetch(c.token,{method:'POST',headers,body:form});
  const result=await resp.json().catch(()=>({}));
@@ -170,7 +171,7 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
   }
   const missing=oaConfigured(env,provider);
   if(missing.length)return oaReply({error:'Provider is not configured yet.',missing},503,request);
-  const state=oaRandom(32),verifier=provider==='x'?oaRandom(48):'';
+  const state=oaRandom(32),verifier=['x','snapchat'].includes(provider)?oaRandom(48):'';
   const callback=oaCallback(provider,env);
   const auth=new URL(c.authorize);
   auth.searchParams.set('response_type','code');
@@ -178,7 +179,7 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
   auth.searchParams.set('redirect_uri',callback);
   auth.searchParams.set('scope',c.scope);
   auth.searchParams.set('state',state);
-  if(provider==='x'){
+  if(['x','snapchat'].includes(provider)){
    auth.searchParams.set('code_challenge_method','S256');
    auth.searchParams.set('code_challenge',await oaChallenge(verifier));
   }
