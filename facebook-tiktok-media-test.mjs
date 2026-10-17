@@ -9,7 +9,7 @@ assert.doesNotThrow(()=>new vm.Script(worker.replace('export default {','const w
 assert.ok(fb.includes('window.FB.getLoginStatus'),'Existing Facebook session restored without popups');
 assert.ok(fb.includes("row.classList.contains('is-oauth')"),'No second Connect control alongside Facebook profile field');
 assert.ok(fb.includes("'user_photos'")&&fb.includes("'user_videos'"),'Media state honors actual Meta grants');
-assert.ok(pages.includes('orbitFacebookPublicLink')&&pages.includes('data-orbit-save="facebook"'),'Public Facebook link can be entered and saved');
+assert.ok(pages.includes('function orbitLinkEditor(k,name,url)')&&pages.includes('data-orbit-edit-link=')&&pages.includes('data-orbit-save=')&&pages.includes('await manager.save(k,url)'),'Public Facebook link editor sits beside Connect and saves to the account');
 assert.ok(pages.includes("window.BigLWAOrbitAccountLinks?.get?.().facebook"),'Saved URL shown when Facebook does not provide user_link');
 assert.ok(pages.includes("host=candidate.hostname.toLowerCase()"),'Saved Facebook URL restricted to known domains');
 assert.ok(tt.includes('videoPermissionPending=Boolean(result.videoPermissionPending)'),'TikTok reports video.list limitations without faking content');
