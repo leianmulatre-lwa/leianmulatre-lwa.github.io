@@ -212,6 +212,9 @@
         });
         all('[data-orbit-path="' + kind + '"]').forEach(function (input) {
           var row = input.closest('.module-orbit-row');
+          // The full Orbit OAuth card already has its provider Connect button.
+          // A saved public YouTube link must not add a duplicate Google button.
+          if(row && row.classList.contains('is-oauth'))return;
           var actions = row ? one('.module-actions', row) : null;
           if (!actions) { return; }
           var button = one('[data-google-orbit-connect="' + kind + '"]', actions);
