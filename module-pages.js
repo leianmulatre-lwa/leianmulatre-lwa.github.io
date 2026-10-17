@@ -1013,80 +1013,62 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      if(!grid)return;
      const set=(element,props)=>{
        if(!element)return;
-       for(const [name,value] of Object.entries(props))element.style.setProperty(name,value,'important');
+       for(const [property,value] of Object.entries(props))element.style.setProperty(property,value,'important');
      };
      const width=grid.parentElement?.clientWidth||window.innerWidth-120;
-     const columns=width>=960?4:width>=700?3:width>=430?2:1;
-     set(grid,{'display':'grid','grid-template-columns':'repeat('+columns+', minmax(0,1fr))',
+     const cols=width>=960?4:width>=700?3:width>=430?2:1;
+     set(grid,{'display':'grid','grid-template-columns':'repeat('+cols+',minmax(0,1fr))',
        'grid-auto-flow':'row','align-items':'stretch','gap':'10px','min-width':'0','width':'100%'});
-     const cards=[...grid.querySelectorAll(':scope > .module-orbit-row[data-orbit-row]')];
-     for(const card of cards){
+     for(const card of grid.querySelectorAll(':scope > .module-orbit-row[data-orbit-row]')){
        set(card,{'display':'grid','grid-template-columns':'minmax(0,1fr)',
-         'grid-template-rows':'20px 48px minmax(0,1fr) 32px',
-         'grid-template-areas':'"head" "preview" "utility" "actions"',
-         'gap':'5px','height':'200px','min-height':'200px','max-height':'200px',
+         'grid-template-rows':'20px 48px 34px',
+         'grid-template-areas':'"head" "preview" "actions"',
+         'row-gap':'8px','height':'140px','min-height':'140px','max-height':'140px',
          'padding':'10px','margin':'0','width':'100%','min-width':'0',
-         'box-sizing':'border-box','overflow':'hidden','align-content':'stretch',
+         'box-sizing':'border-box','overflow':'hidden','align-content':'center',
          'position':'relative','border-radius':'13px'});
-       const header=card.querySelector(':scope > header');
-       set(header,{'grid-area':'head','display':'flex','align-items':'center',
-         'justify-content':'space-between','gap':'6px','margin':'0','padding':'0',
-         'height':'20px','min-height':'0','min-width':'0','overflow':'hidden'});
+       set(card.querySelector(':scope > header'),{'grid-area':'head','display':'flex',
+         'align-items':'center','justify-content':'space-between','height':'20px',
+         'gap':'5px','min-width':'0','margin':'0','overflow':'hidden'});
        const main=card.querySelector(':scope > .orbit-main');
-       set(main,{'grid-area':'preview','height':'48px','min-height':'0',
-         'max-height':'48px','width':'100%','min-width':'0','display':'flex',
-         'align-items':'stretch','overflow':'hidden','margin':'0','padding':'0'});
-       for(const item of main?.children||[]){
-         set(item,{'box-sizing':'border-box','width':'100%','height':'48px',
-           'min-height':'0','max-height':'48px','overflow':'hidden',
-           'margin':'0','padding':'7px 9px','border-radius':'8px'});
-       }
-       const utility=card.querySelector(':scope > .orbit-facebook-profile, :scope > .orbit-fallback-profile, :scope > .orbit-link-utility');
-       set(utility,{'grid-area':'utility','display':'flex','flex-direction':'column',
-         'align-self':'start','justify-content':'start','gap':'5px',
-         'padding':'2px 0 0','margin':'0','width':'100%','min-width':'0',
-         'max-width':'100%','max-height':'62px','overflow':'hidden',
-         'background':'transparent','border':'0','box-shadow':'none'});
-       for(const label of utility?.querySelectorAll('label')||[]){
-         set(label,{'font-size':'10px','line-height':'1.2','margin':'0',
-           'padding':'0','white-space':'nowrap','overflow':'hidden',
-           'text-overflow':'ellipsis','display':'block'});
-       }
-       for(const inputs of utility?.querySelectorAll('.orbit-facebook-profile-actions,.orbit-fallback-actions')||[]){
-         set(inputs,{'display':'flex','align-items':'center','flex-wrap':'nowrap',
-           'gap':'5px','min-width':'0','width':'100%'});
-       }
-       for(const input of utility?.querySelectorAll('input')||[]){
-         set(input,{'box-sizing':'border-box','height':'29px','min-height':'29px',
-           'max-height':'29px','min-width':'0','width':'100%','flex':'1 1 0',
-           'padding':'5px 8px','font-size':'10px','border-radius':'7px'});
-       }
+       set(main,{'grid-area':'preview','height':'48px','max-height':'48px',
+         'min-height':'0','width':'100%','min-width':'0','margin':'0','overflow':'hidden'});
+       for(const child of main?.children||[])set(child,{'width':'100%','height':'48px',
+         'min-height':'0','max-height':'48px','box-sizing':'border-box',
+         'margin':'0','padding':'7px 9px','overflow':'hidden','border-radius':'8px'});
        const actions=card.querySelector(':scope > .module-actions');
-       set(actions,{'grid-area':'actions','display':'flex','flex-wrap':'nowrap',
-         'align-items':'center','justify-content':'flex-start','gap':'5px',
-         'box-sizing':'border-box','height':'32px','min-height':'32px','max-height':'32px',
-         'width':'100%','min-width':'0','padding':'0 35px 0 0','margin':'0',
-         'position':'static','grid-template-columns':'none'});
+       set(actions,{'grid-area':'actions','display':'flex','flex-wrap':'nowrap','align-items':'center',
+         'gap':'4px','width':'100%','height':'34px','max-height':'34px',
+         'min-width':'0','box-sizing':'border-box','padding':'0 33px 0 0',
+         'margin':'0','position':'static','grid-template-columns':'none'});
        for(const button of actions?.querySelectorAll(':scope > button')||[]){
-         set(button,{'box-sizing':'border-box','height':'30px','min-height':'30px',
-           'max-height':'30px','width':'auto','min-width':'0','max-width':'100%',
-           'flex':'0 1 auto','padding':'4px 6px','margin':'0','font-size':'10px',
-           'line-height':'1.15','white-space':'nowrap','overflow':'hidden',
-           'text-overflow':'ellipsis','border-radius':'8px'});
+         set(button,{'height':'30px','min-height':'30px','max-height':'30px',
+           'min-width':'0','max-width':'100%','width':'auto','padding':'4px 6px',
+           'margin':'0','flex':'0 1 auto','font-size':'9px','line-height':'1.15',
+           'white-space':'nowrap','overflow':'hidden','text-overflow':'ellipsis',
+           'border-radius':'7px','box-sizing':'border-box'});
        }
-       const badge=actions?.querySelector('.orbit-platform-badge');
-       set(badge,{'position':'absolute','inset':'auto 10px 10px auto',
-         'right':'10px','bottom':'10px','left':'auto','top':'auto',
-         'flex':'none','width':'30px','min-width':'30px','height':'30px',
-         'max-height':'30px','margin':'0','padding':'0',
-         'display':'grid','place-items':'center','border-radius':'50%',
-         'z-index':'2','transform':'none'});
+       set(actions?.querySelector('.orbit-platform-badge'),{'position':'absolute',
+         'inset':'auto 10px 10px auto','right':'10px','bottom':'10px',
+         'left':'auto','top':'auto','width':'30px','min-width':'30px',
+         'height':'30px','margin':'0','padding':'0','display':'grid',
+         'place-items':'center','border-radius':'50%','z-index':'2','transform':'none'});
      }
-     // A cheap DOM-level invariant to inspect in the browser console.
-     grid.dataset.orbitSized='200';
-     grid.dataset.orbitColumns=String(columns);
+     grid.dataset.orbitSized='140';
+     grid.dataset.orbitColumns=String(cols);
    }
    window.addEventListener('resize',()=>{if(workspace.dataset.moduleKey==='orbit')enforceOrbitCardGeometry()});
+   // Public links are edited in a compact modal, never a separate card row.
+   // Keeping inputs in the dialog also preserves account-linked save validation.
+   function orbitLinkEditor(k,name,url){
+     const id='orbit-link-input-'+k;
+     return '<dialog class="orbit-link-dialog" data-orbit-link-dialog="'+esc(k)+'" aria-label="Edit '+esc(name)+' public link">'+
+       '<div class="orbit-link-dialog-head"><b>'+esc(name)+' link</b><button type="button" class="orbit-link-dialog-close" data-orbit-close-link="'+esc(k)+'" aria-label="Close link editor">×</button></div>'+
+       '<label for="'+id+'">Public profile or Page URL</label>'+
+       '<input id="'+id+'" class="module-input" data-orbit-path="'+esc(k)+'" type="url" inputmode="url" value="'+esc(url||'')+'" placeholder="https://…">'+
+       '<div class="orbit-link-dialog-actions"><button type="button" class="module-action" data-orbit-save="'+esc(k)+'">Save link</button>'+
+       '<button type="button" class="module-action ghost" data-orbit-close-link="'+esc(k)+'">Cancel</button></div></dialog>';
+   }
    function renderOrbitPage(){
     // Only show a real OAuth button once its public app key, secret and callback
     // are actually available. Until then an account-linked profile URL works.
@@ -1109,11 +1091,10 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header><div class="orbit-main">`+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':''}</div>`
         :'<div class="orbit-not-connected">Connect to show your account preview.</div>')+'</div>'+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
-       (k==='facebook'?`<div class="orbit-facebook-profile"><label for="orbitFacebookPublicLink">Public Facebook profile or Page link</label><div class="orbit-facebook-profile-actions"><input class="module-input" id="orbitFacebookPublicLink" data-orbit-path="facebook" type="url" inputmode="url" value="${esc(links.facebook||row?.link||'')}" placeholder="https://facebook.com/your.profile"><button class="module-action" type="button" data-orbit-save="facebook">Save</button></div></div>`:'')+
-       (['snapchat','tumblr','x','youtube'].includes(k)?`<div class="orbit-fallback-profile"><label>Public ${esc(n)} profile link</label><div class="orbit-fallback-actions"><input class="module-input" data-orbit-path="${k}" type="url" inputmode="url" value="${esc(links[k]||row?.link||'')}" placeholder="Paste public profile URL"><button class="module-action" type="button" data-orbit-save="${k}">Save</button></div></div>`:'')+'</div>';
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${links[k]||row?.link?'Edit link':'Link'}</button>${orbitBadge(g,t)}</div>`+
+       orbitLinkEditor(k,n,links[k]||row?.link||'')+'</div>';
      }
-     return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Add a public profile or page link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-save="${k}">Save link</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open profile</button>${orbitBadge(g,t)}</div><div class="orbit-link-utility"><label for="orbit-link-${k}">Public profile / page</label><input id="orbit-link-${k}" class="module-input" data-orbit-path="${k}" type="url" value="${esc(links[k]||'')}" placeholder="https://…"></div></div>`;
+     return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Connect by adding your profile link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-edit-link="${k}">${links[k]?'Edit link':'Connect link'}</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open</button>${orbitBadge(g,t)}</div>`+orbitLinkEditor(k,n,links[k]||'')+'</div>';
      }).join('')}</div></section></div>`;
     enforceOrbitCardGeometry();
     /* Looked up after the markup exists, so the status line is the node that is actually
@@ -1121,6 +1102,18 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
     body.onclick=async e=>{
+     const editLink=e.target.closest('[data-orbit-edit-link]');
+     if(editLink){
+       const dialog=body.querySelector('[data-orbit-link-dialog="'+editLink.dataset.orbitEditLink+'"]');
+       if(dialog?.showModal)dialog.showModal();
+       else say('The profile link editor is unavailable in this browser.');
+       return;
+     }
+     const closeLink=e.target.closest('[data-orbit-close-link]');
+     if(closeLink){
+       body.querySelector('[data-orbit-link-dialog="'+closeLink.dataset.orbitCloseLink+'"]')?.close?.();
+       return;
+     }
      const importLinks=e.target.closest('#orbitImportLocalLinks');
      if(importLinks){
        importLinks.disabled=true;say('Importing saved browser links…');
