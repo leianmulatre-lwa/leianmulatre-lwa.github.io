@@ -21,5 +21,5 @@ assert.ok(orbit.includes('const isProviderHome=parsed.pathname'),'Provider root 
 assert.ok(accounts.includes('You already saved that destination under another Orbit planet'),'Saving duplicates across planets is blocked');
 assert.ok(accounts.includes('This destination is already connected in Orbit.'),'Saving OAuth duplicates is blocked');
 assert.ok(accounts.includes("for(const key of ['id','v','user','username','page_id','channel'])"),'Distinct Facebook profile.php IDs do not collapse');
-assert.ok(index.includes('facebook-orbit.js?v=20261016-personal-preview-only-2'),'Original Facebook script remains linked');
+assert.ok(index.includes('facebook-orbit.js?v=20261017-media-modal-1'),'Original Facebook script remains linked');
 console.log('PASS Facebook Login for Business configuration guard, unchanged App ID, Orbit destination dedup and saved-link preservation.');
