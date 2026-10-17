@@ -1,0 +1,69 @@
+/* BIG LWA Pinterest color consistency, Oct 2026.
+   Source identity is RED throughout. Preserve sphere embossing, hover motion,
+   all media, and the red/yellow/green window-control dots. */
+:root {
+  --lwa-pinterest-red:#e60023;
+  --lwa-pinterest-light:#ff5165;
+  --lwa-pinterest-dark:#970019;
+}
+/* The featured Studio planet must not fall back to the old amber/orange
+   Pinterest gradient from the original Studio shell. */
+#studioApp #orbit #orbitGrid > button[data-orbit-app="pinterest"],
+#studioApp .orbit-grid button[data-orbit-app="pinterest"] {
+  --orbit-source-color:var(--lwa-pinterest-red);
+  border-color:#eab0b9!important;
+  box-shadow:3px 3px 0 var(--lwa-pinterest-red)!important;
+}
+#studioApp #orbit #orbitGrid > button[data-orbit-app="pinterest"] > .orbit-glyph,
+#studioApp .orbit-grid button[data-orbit-app="pinterest"] .orbit-glyph {
+  --planet:
+    radial-gradient(circle at 27% 22%,rgba(255,255,255,.78) 0 4%,transparent 16%),
+    radial-gradient(circle at 70% 72%,#8c0018 0 13%,transparent 24%),
+    radial-gradient(circle at 24% 66%,#ed0030 0 10%,transparent 20%),
+    linear-gradient(145deg,#ff4b60 0%,#e60023 42%,#b0001d 76%,#710013 100%)!important;
+  background:var(--planet)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  box-shadow:inset -9px -7px 12px rgba(52,0,10,.44),
+    inset 6px 5px 9px rgba(255,255,255,.27),
+    0 5px 10px rgba(110,0,20,.3)!important;
+}
+#studioApp #orbit #orbitGrid > button[data-orbit-app="pinterest"]:is(:hover,:focus-visible) {
+  box-shadow:3px 4px 0 #cb0020!important;
+}
+/* Full Orbit card, spherical marker, and saved Pinterest quick-link. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="pinterest"] {
+  --orbit-source-color:var(--lwa-pinterest-red);
+  box-shadow:3px 3px 0 var(--lwa-pinterest-red)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="pinterest"] .orbit-platform-badge {
+  background:radial-gradient(circle at 27% 21%,#ff8290 0%,#f62242 23%,#e60023 54%,#960018 85%)!important;
+  border-color:#d62844!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  box-shadow:inset -6px -7px 10px rgba(65,0,13,.5),
+    inset 4px 4px 8px rgba(255,255,255,.3),
+    0 3px 6px rgba(83,0,17,.24)!important;
+}
+#studioApp .orbit-quick-link.is-pinterest,
+#studioApp .orbit-quick-link[data-orbit-source="pinterest"],
+#studioApp .orbit-quick-link[data-source="pinterest"] {
+  --accent:var(--lwa-pinterest-red)!important;
+}
+/* Pinterest media uses the same red shadows across boards/feed/archive/Veve.
+   Never recolor actual uploaded Pins or common window light controls. */
+#studioApp #feedPageList > :is(.pinterest-feed-item,.biglwa-pinterest-card,.biglwa-pin-post[data-source="pinterest"]),
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest,
+#pinterestBoards :is(.pinterest-pin,.pn-saved-pin,.pinterest-board) {
+  --feed-card-rim:#e60023!important;
+  --feed-card-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5165,
+    0 14px 26px -14px #970019!important;
+  box-shadow:var(--feed-card-shadow)!important;
+}
+#studioApp .veve-photo[data-veve-origin="pinterest"] {
+  --veve-rim:#e60023!important;
+}
+#studioApp #boards .studio-pinterest-board-preview button {
+  box-shadow:2px 2px 0 #e60023!important;
+}
