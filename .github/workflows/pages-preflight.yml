@@ -47,6 +47,7 @@ jobs:
           node feed-auth-tools-regression-test.mjs
           node feed-mixed-caption-test.mjs
           node orbit-badge-layout-test.mjs
+          node pinterest-owned-feed-regression-test.mjs
           node login-path-and-guide-test.mjs
           node tutorial-symbol-key-test.mjs
           node orbit-session-stability-test.mjs
