@@ -1123,6 +1123,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
    document.addEventListener('biglwa:new-orbit-status',()=>{
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
+   document.addEventListener('biglwa:facebook-personal-status',()=>{
+     if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
+   });
+
    window.addEventListener('biglwa:orbit-links-synced',()=>{
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
