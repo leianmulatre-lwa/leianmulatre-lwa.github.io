@@ -9,7 +9,7 @@ const accounts=read('orbit-account-links.js');
 const index=read('index.html');
 assert.doesNotThrow(()=>new vm.Script(facebook),'Facebook integration JS parses');
 assert.doesNotThrow(()=>new vm.Script(orbit),'Studio modules parse');
-assert.ok(facebook.includes("var APP_ID = '1370423431874443'"),'Only the active Meta app is used');
+assert.ok(facebook.includes("var APP_ID = '1370423431874443'"),'Original Business Login retains its configured Meta app ID');
 assert.ok(facebook.includes("var BUSINESS_LOGIN_CONFIG_ID = '1086972974237376'"),'Uses the configured public Meta Login for Business ID');
 assert.ok(facebook.includes('if (!requireBusinessConfiguration()) return;'),'Login refuses malformed config-less popup');
 assert.ok(facebook.includes("config_id: loginConfiguration()"),'Business Login uses a configuration ID');
@@ -21,5 +21,5 @@ assert.ok(orbit.includes('const isProviderHome=parsed.pathname'),'Provider root 
 assert.ok(accounts.includes('You already saved that destination under another Orbit planet'),'Saving duplicates across planets is blocked');
 assert.ok(accounts.includes('This destination is already connected in Orbit.'),'Saving OAuth duplicates is blocked');
 assert.ok(accounts.includes("for(const key of ['id','v','user','username','page_id','channel'])"),'Distinct Facebook profile.php IDs do not collapse');
-assert.ok(index.includes('facebook-orbit.js?v=20261016-private-import-sync-4'),'New Facebook script version is linked');
+assert.ok(index.includes('facebook-orbit.js?v=20261016-personal-legacy-1'),'Original Facebook script remains linked');
 console.log('PASS Facebook Login for Business configuration guard, unchanged App ID, Orbit destination dedup and saved-link preservation.');
