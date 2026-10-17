@@ -938,6 +938,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       const fb=window.__biglwaFacebookOrbit?.state;
       if(fb?.connected)rows.push({id:'facebook',name:fb.profile?.name||'Facebook',username:fb.profile?.name,link:fb.profile?.link||window.BigLWAOrbitAccountLinks?.get?.().facebook||'',avatarUrl:fb.profile?.picture?.data?.url||''});
     }catch{}
+    // New personal Facebook OAuth is independent of the legacy Business Login.
+    try{const personal=window.BigLWAFacebookPersonal?.get?.();if(personal)rows.push(personal)}catch{}
     return rows;
   };
   function orbitCount(key,value){
@@ -1000,7 +1002,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   }
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
-  const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit,x:window.BigLWAOrbitOAuth,snapchat:window.BigLWAOrbitOAuth,tumblr:window.BigLWAOrbitOAuth};return Boolean(map[key])};
+  const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,x:window.BigLWAOrbitOAuth,snapchat:window.BigLWAOrbitOAuth,tumblr:window.BigLWAOrbitOAuth};return Boolean(map[key])};
    function renderOrbitPage(){
     // Only show a real OAuth button once its public app key, secret and callback
     // are actually available. Until then an account-linked profile URL works.
@@ -1023,7 +1025,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header>`+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':''}</div>`
         :'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+
-       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${row?'Reconnect':'Connect'} ${n}</button>${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
+       `<div class="module-actions"><button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${row?'Reconnect':'Connect'} ${n}</button>${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Original Facebook</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${orbitBadge(g,t)}</div>`+
        (k==='facebook'?`<div class="orbit-facebook-profile"><label for="orbitFacebookPublicLink">Public Facebook profile or Page link</label><div class="orbit-facebook-profile-actions"><input class="module-input" id="orbitFacebookPublicLink" data-orbit-path="facebook" type="url" inputmode="url" value="${esc(links.facebook||row?.link||'')}" placeholder="https://www.facebook.com/your.public.profile"><button class="module-action" type="button" data-orbit-save="facebook">Save link</button></div><small>Meta's login may not return a public profile URL. Add your real profile or Page link once; it follows your Big LWA account.</small></div>`:'')+
        (['snapchat','tumblr'].includes(k)?`<div class="orbit-fallback-profile"><label>Public ${esc(n)} profile link</label><div class="orbit-fallback-actions"><input class="module-input" data-orbit-path="${k}" type="url" inputmode="url" value="${esc(links[k]||row?.link||'')}" placeholder="Paste your public profile URL"><button class="module-action" type="button" data-orbit-save="${k}">Save link</button></div><small>Profile link storage is separate from OAuth; saved links alone cannot import content.</small></div>`:'')+'</div>';
      }
@@ -1043,7 +1045,13 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        }catch(error){say(error?.message||'Could not import browser links.');importLinks.disabled=false}
        return;
      }
-const connect=e.target.closest('[data-orbit-connect]');
+const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
+     if(legacyFb){
+       if(window.__biglwaFacebookOrbit?.connect)window.__biglwaFacebookOrbit.connect();
+       else say('Original Facebook Login is still loading. Try again.');
+       return;
+     }
+     const connect=e.target.closest('[data-orbit-connect]');
      if(connect){
        const k=connect.dataset.orbitConnect;
        if(['x','snapchat','tumblr'].includes(k)){
@@ -1053,7 +1061,7 @@ const connect=e.target.closest('[data-orbit-connect]');
          return;
        }
        if(!ORBIT_LIVE.has(k)){say('This provider is not configured for sign-in yet.');return;}
-       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit}[k];
+       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit}[k];
        if(client?.connect)client.connect();else say('That connection is still loading. Try again in a moment.');
        return;
      }
@@ -1062,6 +1070,8 @@ const connect=e.target.closest('[data-orbit-connect]');
        const k=unlink.dataset.orbitUnlink;unlink.disabled=true;say('Unlinking…');
        try{
          if(['x','snapchat','tumblr'].includes(k))await window.BigLWAOrbitOAuth.disconnect(k);
+         else if(k==='facebook'&&window.BigLWAFacebookPersonal?.state?.connected)await window.BigLWAFacebookPersonal.disconnect();
+         else if(k==='facebook'&&window.__biglwaFacebookOrbit?.state?.connected)await window.__biglwaFacebookOrbit.disconnect();
          else await window.__biglwaConnections?.forget?.(k);
          say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage();
        }catch(error){say(error?.message||'Unable to unlink this connection.');unlink.disabled=false}
