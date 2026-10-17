@@ -146,7 +146,7 @@
          (data-orbit-connect) so it hands the click to this client. It is labelled from the
          same state so a page left open shows Connected the moment login finishes. */
       all('[data-facebook-legacy-connect]').forEach(function (button) {
-        button.textContent = state.connected ? 'Reconnect Original Facebook' : (loginConfiguration() ? 'Original Facebook' : 'Set up Original Facebook');
+        button.textContent = loginConfiguration() ? 'Meta Business' : 'Set up Meta Business';
         button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
       });
 
