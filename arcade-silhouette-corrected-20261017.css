@@ -306,12 +306,12 @@
  box-shadow:0 5px 5px #170a0755,inset 0 3px #fff1bd!important;
 }
 #studioApp #games .games-arcade-brand.games-arcade-brand > img:first-child{
- position:absolute!important;z-index:3!important;left:15%!important;top:42%!important;
- width:70%!important;height:56%!important;max-height:none!important;object-fit:contain!important;
+ position:absolute!important;z-index:3!important;left:21%!important;top:47%!important;
+ width:58%!important;height:46%!important;max-height:none!important;object-fit:contain!important;
 }
 #studioApp #games .games-arcade-brand.games-arcade-brand > img:nth-child(2){
- position:absolute!important;z-index:1!important;left:6%!important;top:4%!important;
- width:52%!important;height:29%!important;max-height:none!important;object-fit:contain!important;
+ position:absolute!important;z-index:1!important;left:10%!important;top:7%!important;
+ width:44%!important;height:23%!important;max-height:none!important;object-fit:contain!important;
 }
 /* Mount the sockets on the top plane; shafts and balls rise above it. */
 #studioApp #games .arcade-control-deck.arcade-control-deck{align-items:flex-start!important}
@@ -325,4 +325,30 @@
 #studioApp #games .arcade-joystick.arcade-joystick::before{height:26px!important}
 #studioApp #games .arcade-joystick.arcade-joystick > i{
  bottom:0!important;width:34px!important;height:10px!important;border-width:3px!important;
+}
+
+/* Projecting shelf and vertical apron add depth without changing the folder. */
+#studioApp #games .games-library.games-library{padding-bottom:128px!important}
+#studioApp #games .arcade-library-viewport.arcade-library-viewport{
+ box-shadow:0 3px 0 #a06a4c,0 8px 0 #24120e,inset 7px 0 12px #0009,inset -7px 0 12px #0009!important;
+}
+#studioApp #games .arcade-control-deck.arcade-control-deck{
+ left:6%!important;right:6%!important;bottom:20px!important;
+ height:94px!important;min-height:94px!important;max-height:94px!important;
+}
+#studioApp #games .arcade-control-deck.arcade-control-deck::before{
+ inset:23px 0 29px!important;
+ clip-path:polygon(7% 0,93% 0,100% 100%,0 100%)!important;
+ border:0!important;border-radius:0!important;
+ background:linear-gradient(180deg,#bd8968,#8f573e)!important;
+ box-shadow:inset 0 3px #e4af8559,inset 0 -3px #d79b7055!important;
+}
+#studioApp #games .arcade-control-deck.arcade-control-deck::after{
+ content:""!important;position:absolute!important;z-index:0!important;
+ left:0!important;right:0!important;bottom:0!important;height:29px!important;
+ border-radius:0 0 5px 5px!important;
+ background:linear-gradient(90deg,#3c2119 0%,#71432f 7%,#603722 92%,#301a14 100%)!important;
+ border-top:3px solid #2a160f!important;box-sizing:border-box!important;
+ box-shadow:inset 0 -5px #21110d,0 7px 6px #0f070880!important;
+ pointer-events:none!important;
 }
