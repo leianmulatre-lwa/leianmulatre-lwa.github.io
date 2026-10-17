@@ -32,11 +32,22 @@
     loading=new Promise(resolve=>{
       let finished=false;
       const done=()=>{if(finished)return;finished=true;clearTimeout(timeout);resolve(window.openBIGLWAModule||window.BigLWAOpenModule||null);};
-      const script=document.createElement('script');
-      script.src='/module-pages.js?v=20261017-orbit-inline-links-1';
-      script.onload=done;script.onerror=done;
+      // Index normally injects the same module bundle. Reuse it rather than
+      // executing module-pages twice while Studio is still mounting.
+      const current='/module-pages.js?v=20261017-orbit-inline-links-1';
+      const present=[...document.scripts].find(script=>script.getAttribute('src')?.includes('/module-pages.js?'));
       const timeout=setTimeout(done,7000);
-      document.head.appendChild(script);
+      if(present){
+        present.addEventListener('load',done,{once:true});
+        present.addEventListener('error',done,{once:true});
+        // If already loaded, allow one turn for the router to mount.
+        setTimeout(()=>{if(typeof (window.openBIGLWAModule||window.BigLWAOpenModule)==='function')done()},100);
+      }else{
+        const script=document.createElement('script');
+        script.src=current;
+        script.onload=done;script.onerror=done;
+        document.head.appendChild(script);
+      }
     }).finally(()=>{loading=null});
     return loading;
   }
