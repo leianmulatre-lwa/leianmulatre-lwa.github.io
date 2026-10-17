@@ -1080,7 +1080,7 @@ async function pnRoute(request, env) {
 
   const match = path.match(/^\/pinterest\/boards\/(\d+)\/pins$/);
   const covers = path === '/pinterest/board-covers';
-  if (request.method !== 'GET' || (!match && !covers && !['/pinterest/profile', '/pinterest/boards'].includes(path))) pnFail('Not found.', 404);
+  if (request.method !== 'GET' || (!match && !covers && !['/pinterest/profile', '/pinterest/boards', '/pinterest/pins'].includes(path))) pnFail('Not found.', 404);
   if (session.expiresAt < Date.now() + 60000) {
     if (!session.refresh_token) pnFail('Pinterest session expired. Please reconnect.', 401);
     const fresh = await pnToken(env, { grant_type: 'refresh_token', refresh_token: session.refresh_token });
@@ -1088,10 +1088,14 @@ async function pnRoute(request, env) {
     session = await pnSave(env, id, fresh, session);
   }
   if (covers) return json(await pnBoardCovers(request, env, session, id), 200, request, env);
-  const endpoint = match ? '/boards/' + match[1] + '/pins' : path === '/pinterest/boards' ? '/boards' : '/user_account';
+  const endpoint = match ? '/boards/' + match[1] + '/pins' : path === '/pinterest/boards' ? '/boards' : path === '/pinterest/pins' ? '/pins' : '/user_account';
   const target = new URL('https://api.pinterest.com/v5' + endpoint);
   if (endpoint !== '/user_account') {
     target.searchParams.set('page_size', '25');
+    // Owner-created Pins are different from saved/repinned board content.
+    // Never infer authorship from the board: only Pinterest's token-owned /pins
+    // listing, excluding repins, is eligible for a BIG LWA profile draft.
+    if (endpoint === '/pins') { target.searchParams.set('pin_filter','exclude_repins');target.searchParams.set('include_protected_pins','false'); }
     const bookmark = url.searchParams.get('bookmark');
     if (bookmark) { if (bookmark.length > 4096) pnFail('Invalid page.', 400); target.searchParams.set('bookmark', bookmark); }
   }
