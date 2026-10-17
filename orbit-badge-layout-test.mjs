@@ -56,7 +56,7 @@ assert.match(fullCss,/position:absolute!important/,'Full Orbit badges remain anc
 assert.ok(fullCss.includes('height:140px!important')&&
   fullCss.includes('grid-template-areas:"head" "preview" "actions"'),
   'Each Orbit card uses a compact fixed height and no separate link row');
-assert.ok(fullCss.includes('height:50px!important')&&
+assert.ok(fullCss.includes('height:48px!important')&&
   fullCss.includes('overflow:hidden!important'),
   'No empty OAuth preview can stretch its planet');
 assert.ok(!oldTight.includes('.module-orbit-row[data-orbit-row]')&&
@@ -66,7 +66,7 @@ assert.match(html,/orbit-cards-unified-20261016\.css\?v=20261017-orbit-inline-li
   'Actual Pages loader contains the updated 140px fallback styling');
 assert.match(pages,/enforceOrbitCardGeometry\(\)/,
   'Orbit renderer enforces compact card dimensions directly');
-assert.match(pages,/grid\.dataset\.orbitSized='200'/,
+assert.match(pages,/grid\.dataset\.orbitSized='140'/,
   'Orbit runtime marks its 140px card dimensions');
 assert.ok(!pages.includes('/module-pages.js?v=20261015-provider-setup-9'),
   'Studio retry may not load the old module renderer');
