@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /settings
+# Settings must remain crawlable so search engines can read its noindex tag.
 Disallow: /studio
 Disallow: /archive
 Sitemap: https://biglwa.com/sitemap.xml
