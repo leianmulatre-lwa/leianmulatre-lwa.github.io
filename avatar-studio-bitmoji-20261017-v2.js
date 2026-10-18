@@ -172,7 +172,8 @@
         '<div id="biglwaBitmojiPreview" class="biglwa-bitmoji-preview"></div>'+ 
         '<button type="button" data-bitmoji-orbit>Connect Snapchat in Orbit</button> '+
         '<button type="button" data-bitmoji-refresh>Refresh Snapchat connection</button> '+
-        '<button type="button" data-bitmoji-save>Use my Bitmoji</button>';
+        '<button type="button" data-bitmoji-save>Save Snapchat Bitmoji</button>'+ 
+        '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Or import a Bitmoji image <input type="file" data-avatar-import data-avatar-kind="bitmoji" accept="image/png,image/jpeg,image/webp" aria-label="Import Bitmoji image"></label>';
       renderBitmojiChoice();
       Promise.resolve().then(()=>window.BigLWAOrbitOAuth?.load?.()).then(
         ()=>{if(mount.isConnected&&mount.dataset.kind==='bitmoji')renderBitmojiChoice()}
@@ -214,33 +215,67 @@
     const profile=window.BigLWAOrbitOAuth?.get?.('snapchat');
     const saveButton=one('[data-bitmoji-save]');
     const url=profile?.avatarUrl||'';
-    if(saveButton)saveButton.disabled=!url||!!profile.needsReauth;
-    if(!url){root.textContent=profile?'Snapchat connected, but no Bitmoji image was provided. Check Login Kit Bitmoji permissions.':'No Snapchat account connected yet. Connect Snapchat from Orbit.';return;}
+    // Keep the button actionable: a missing optional Bitmoji scope must explain
+    // itself instead of making Save appear broken or silently unclickable.
+    if(saveButton)saveButton.disabled=false;
+    if(!url){
+      root.textContent=profile?.needsReauth?'Snapchat session expired; reconnect from Orbit and allow Bitmoji access.'
+        :profile?'Snapchat connected, but did not supply a Bitmoji image. Bitmoji permission is optional. Reconnect and allow it, or import a PNG below.'
+        :'Connect Snapchat from Orbit to use its Bitmoji, or import a Bitmoji image below.';
+      setStatus(root.textContent);return;
+    }
     const img=new Image();img.src=url;img.alt='Your Snapchat Bitmoji';img.referrerPolicy='no-referrer';
-    img.onerror=()=>{root.textContent='Snapchat Bitmoji image could not load.';if(saveButton)saveButton.disabled=true};
+    img.onerror=()=>{root.textContent='Snapchat Bitmoji preview is unavailable. Reconnect in Orbit or import an image below.';setStatus(root.textContent)};
     root.append(img);
     setStatus('Snapchat Bitmoji available. Select Use my Bitmoji to save it to your profile.');
   }
   document.addEventListener('biglwa:new-orbit-status',()=>{if(one('#biglwaAvatarSource')?.dataset.kind==='bitmoji')renderBitmojiChoice()});
   async function selectBitmoji(){
+    setStatus('Checking your Snapchat Bitmoji…');
+    await window.BigLWAOrbitOAuth?.load?.();
     const profile=window.BigLWAOrbitOAuth?.get?.('snapchat');
-    if(!profile?.verifiedFromProvider||!profile.avatarUrl||profile.needsReauth){setStatus('Connect Snapchat in Orbit and authorize Bitmoji access first.');return}
+    if(!profile?.verifiedFromProvider||profile.needsReauth){
+      setStatus('Snapchat is not authorized for this account. Reconnect it from Orbit.');return;
+    }
+    if(!profile.avatarUrl){
+      setStatus('Snapchat did not share a Bitmoji image. Reconnect and approve Bitmoji access, or import a Bitmoji image below.');return;
+    }
     if(state.busy)return;
-    state.busy=true;
+    const button=one('#profileAvatarEditor [data-bitmoji-save]');
+    if(button)button.disabled=true;
     try{
-      const f=await firebase();await f.auth.authStateReady();
-      const uid=f.auth.currentUser?.uid;
-      if(!uid)throw Error('Sign in to save your Bitmoji.');
       const uri=new URL(profile.avatarUrl);
-      if(uri.protocol!=='https:'||uri.username||uri.password)throw Error('Snapchat provided an invalid avatar image.');
-      const savedUrl=uri.href;
-      await f.setDoc(f.doc(f.db,'users',uid),{studioAvatar:{type:'bitmoji',url:savedUrl,updatedAt:f.serverTimestamp()}},{mergeFields:['studioAvatar']});
-      if(f.auth.currentUser?.uid!==uid)throw Error('Account changed while saving.');
-      state.avatar={type:'bitmoji',url:savedUrl};showAvatar();
-      try{const channel=new BroadcastChannel('biglwa-avatar');channel.postMessage({type:'saved',uid});channel.close()}catch{}
+      if(uri.protocol!=='https:'||uri.username||uri.password)throw Error('Snapchat returned an invalid Bitmoji URL.');
+      const f=await firebase();await f.auth.authStateReady();
+      const user=f.auth.currentUser;
+      if(!user)throw Error('Sign in to BIGLWA before saving Bitmoji.');
+      const uid=user.uid;
+      setStatus('Saving your Bitmoji to your account…');
+      // Keep an owned copy in BigLWA storage when the provider allows CORS.
+      // Some Snapchat image CDNs prevent cross-origin reads; then preserve the
+      // authorized HTTPS image URL as a fallback without exposing an access token.
+      let stored=false;
+      try{
+        const response=await fetch(uri.href,{mode:'cors',credentials:'omit',cache:'no-store'});
+        if(response.ok){
+          const blob=await response.blob();
+          if(blob.size&&blob.size<=8*1024*1024&&['image/png','image/jpeg','image/webp'].includes(blob.type)){
+            stored=await save(new File([blob],'snapchat-bitmoji'+(blob.type==='image/png'?'.png':blob.type==='image/webp'?'.webp':'.jpg'),{type:blob.type}),'bitmoji');
+          }
+        }
+      }catch(error){console.info('Snapchat image cannot be copied across origins:',error?.message)}
+      if(stored)return;
+      await f.setDoc(f.doc(f.db,'users',uid),{
+        studioAvatar:{type:'bitmoji',url:uri.href,updatedAt:f.serverTimestamp()}
+      },{mergeFields:['studioAvatar']});
+      if(f.auth.currentUser?.uid!==uid)throw Error('Account changed during save.');
+      state.avatar={type:'bitmoji',url:uri.href};state.loadedUid=uid;
+      showAvatar();
+      try{const ch=new BroadcastChannel('biglwa-avatar');ch.postMessage({type:'saved',uid});ch.close()}catch{}
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:'bitmoji'}}));
-      setStatus('Snapchat Bitmoji saved to your BIG LWA profile.');
-    }catch(error){setStatus(error.message||'Bitmoji could not be saved.')}finally{state.busy=false}
+      setStatus('Snapchat Bitmoji saved. Original Snapchat image may require reconnecting if its URL expires.');
+    }catch(error){setStatus('Bitmoji save failed: '+(error?.message||'Please retry.'))}
+    finally{if(button)button.disabled=false}
   }
   function cardStatus(name){
     setStatus(name==='mii'?'Original editor is ready to start on demand; Adobe AIR features may not work in a browser. Import a Mii PNG to save your avatar.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
@@ -306,7 +341,7 @@
   });
   async function save(file,kind,preset=null){
     if(state.busy)return;
-    if(!['minecraft','mii','imvu'].includes(kind))throw Error('Choose an avatar source first.');
+    if(!['minecraft','mii','imvu','bitmoji'].includes(kind))throw Error('Choose an avatar source first.');
     if(!['image/png','image/jpeg','image/webp'].includes(file?.type))throw Error('Choose PNG, JPG, or WebP.');
     if(file.size>8*1024*1024)throw Error('Image must be 8 MB or less.');
     if(kind==='minecraft')await verifySkin(file);
