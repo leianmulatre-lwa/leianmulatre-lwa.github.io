@@ -968,6 +968,18 @@ body.preview .leaflet-control-attribution{font-size:8px}
     L.control.layers(baseLayers,null,{position:'topright',collapsed:document.body.classList.contains('preview')}).addTo(map);map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}$('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
     map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));$('drop').disabled=false;draw();if(pins.some(valid))$('fit').click();$('mapStatus').textContent='Search for a place or tap the map. Switch map modes in the upper-right.';
     watchPublic();
+    firestore().then(who=>{
+      if(!who.account)return;
+      const ref=who.doc(who.db,'mapPins','facebook-hometown-'+who.account.uid);
+      let hometownMarker=null;
+      who.onSnapshot(ref,snapshot=>{
+        if(hometownMarker){map.removeLayer(hometownMarker);hometownMarker=null;}
+        if(!snapshot.exists())return;
+        const home=snapshot.data();
+        if(!valid(home))return;
+        hometownMarker=L.marker([home.lat,home.lng]).addTo(map).bindPopup('<b>Hometown</b><br>'+escape(home.city||home.detail||''));
+      },()=>{});
+    }).catch(()=>{});
     /* The strip is sorted by how near each pin is, so panning or zooming re-ranks what is
        shown underneath the map without another request. */
     map.on('moveend zoomend',()=>{if(!$('publicStrip').hidden)drawPublic(publicRows)});

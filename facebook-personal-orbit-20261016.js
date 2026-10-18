@@ -57,6 +57,19 @@
    panel.querySelector('p').textContent=state.syncMessage||'Sync recent personal posts and photos to the Collective Feed.';
    if(state.connected&&!get()?.link)panel.querySelector('p').textContent+=' Facebook did not share a profile link. Reconnect to grant profile-link access, or use Facebook’s Link button to save your profile URL.';
  }
+ async function syncHometown(uid){
+   const data=await api('hometown','GET',await authToken());
+   if(!data.hometown)return data.message;
+   const auth=await fbFirebase();
+   const fs=await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+   if(auth.currentUser?.uid!==uid)throw Error('Account changed before saving hometown.');
+   const home=data.hometown;
+   await fs.setDoc(fs.doc(fs.getFirestore(auth.app),'mapPins','facebook-hometown-'+uid),{
+     uid,title:'Hometown',detail:home.name,city:home.name,category:'Place',
+     lat:home.lat,lng:home.lng,isPublic:false,source:'facebook-hometown',updatedAt:fs.serverTimestamp()
+   });
+   return 'Hometown added to your private map: '+home.name+'.';
+ }
  async function sync(){
    if(syncing)return syncing;
    syncing=(async()=>{
@@ -74,6 +87,7 @@
        catch(error){failed++;if(!firstError)firstError=error.message||'Save failed.'}
      }
      const parts=[imported+' added to the Collective Feed; '+existing+' already saved.'];
+     try{parts.push(await syncHometown(uid))}catch(error){parts.push(error.message)}
      if(failed)parts.push(failed+' could not be saved. '+firstError+' Retry sync.');
      if(data.missing?.length)parts.push('Grant personal content access to import '+data.missing.map(x=>x==='user_posts'?'posts':'photos').join(' and ')+'. Meta app approval may be required.');
      if(data.warnings?.length)parts.push(...data.warnings);

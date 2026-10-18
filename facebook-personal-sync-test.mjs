@@ -51,3 +51,13 @@ await writerContext.save('facebook',item,{publishToCollective:true});assert.equa
 store.getDoc=async()=>{throw Object.assign(Error('Offline'),{code:'unavailable'})};
 await assert.rejects(()=>writerContext.save('facebook',item),/Offline/);
 console.log('PASS first-import root read denial falls back to owner mirror; network failures still surface');
+accounts.get('facebook-personal:account:owner').expiresAt=Date.now()+60000;
+context.mediaUser=async()=>({uid:'owner'});
+context.fetch=async target=>({ok:true,json:async()=>new URL(target).pathname.endsWith('/me')?{hometown:{id:'city',name:'Example City'}}:{location:{latitude:34,longitude:-118}}});
+result=await context.route(new Request('https://api.biglwa.com/facebook-personal/hometown'),env);
+assert.equal(result.body.hometown.name,'Example City');assert.equal(result.body.hometown.lat,34);
+context.fetch=async()=>({ok:true,json:async()=>({})});
+result=await context.route(new Request('https://api.biglwa.com/facebook-personal/hometown'),env);assert.equal(result.body.hometown,null);
+context.mediaUser=async()=>({uid:'other'});
+result=await context.route(new Request('https://api.biglwa.com/facebook-personal/hometown'),env);assert.equal(result.status,401);
+console.log('PASS hometown coordinates, absent hometown and account isolation');
