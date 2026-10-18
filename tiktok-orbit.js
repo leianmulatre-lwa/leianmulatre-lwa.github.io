@@ -73,20 +73,22 @@
   }
   async function syncTikTokDrafts(){
     if(videoPermissionPending||!videos.length)return;
-    const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft;
-    if(typeof writer!=='function')return;
-    let saved=0;
+    const expectedUid=authUid;
+    const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+    if(typeof writer!=='function')throw Error('Feed importer unavailable. Retry TikTok sync.');
+    let saved=0,failed=0,firstError='';
     for(let i=0;i<videos.length;i+=4){
       const results=await Promise.allSettled(videos.slice(i,i+4).map(v=>writer('tiktok',{
-        id:v.id,sourcePostId:v.id,sourceUrl:v.share_url,
+        id:v.id,sourcePostId:v.id,sourceUrl:v.share_url,expectedUid,
         caption:v.title||v.video_description||'TikTok video',
         cover_image_url:v.cover_image_url,
         sourceUsername:profile.display_name||profile.username||'',
         mediaType:'VIDEO'
-      })));
-      saved+=results.filter(x=>x.status==='fulfilled'&&x.value?.created).length;
+      },{publishToCollective:true})));
+      saved+=results.filter(x=>x.status==='fulfilled'&&(x.value?.created||x.value?.published)).length;
+      for(const result of results)if(result.status==='rejected'){failed++;firstError ||= result.reason?.message||'Save failed';}
     }
-    if(saved)notice(saved+' TikTok video(s) saved to private Feed drafts. Publish only those you choose.');
+    notice(saved+' TikTok video(s) added to Collective Feed.'+(failed?' '+failed+' failed: '+firstError+'. Reconnect or retry sync.':''));
   }
 
   async function restore() {

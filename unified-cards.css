@@ -473,3 +473,14 @@
   outline:2px solid var(--feed-card-rim,#ad6587);outline-offset:3px;
  }
 }
+
+/* Saved imports and live provider cards share their planet colors. */
+#feedPageList>:is(.biglwa-facebook-card,.facebook-feed-item){
+ --feed-card-rim:#1877f2!important;
+ --feed-card-shadow:3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff!important;
+}
+#feedPageList>:is(.biglwa-tiktok-card,.tiktok-feed-item){
+ --feed-card-rim:#772dcc!important;
+ --feed-card-shadow:3px 3px 0 #772dcc,6px 7px 0 -2px #b77cff,0 14px 26px -14px #4a187f!important;
+}
+#feedPageList>.biglwa-facebook-card .biglwa-pin-link{display:none!important}
