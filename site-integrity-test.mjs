@@ -74,7 +74,18 @@ assert.match(projectCanvas, /storedOrbitImageUrls/);
 assert.match(orbitPosts, /const paths=\['posts','archive'\]/);
 assert.match(feedPolish, /top:8px;right:8px;left:auto/);
 assert.match(instagramOrbit, /data-biglwa-hosted="pending"/);
-assert.match(index, /avatar-studio\.js\?v=/);
+// Asset URLs may use a versioned filename instead of a query parameter:
+const avatarAsset=index.match(/\/(avatar-studio(?:-[a-z0-9-]+)?\.js)(?:\?v=[a-z0-9-]+)?/i);
+assert.ok(avatarAsset,'Avatar Studio must be loaded in the site shell');
+assert.ok(fs.existsSync(avatarAsset[1]),'Referenced Avatar Studio release file is missing');
+for (const [label,pattern] of [
+  ['Orbit OAuth', /\/(orbit-new-connect(?:-[a-z0-9-]+)?\.js)(?:\?v=[a-z0-9-]+)?/i],
+  ['Arcade cabinet', /\/(arcade-(?:silhouette-corrected|folder-unified)(?:-[a-z0-9-]+)?\.css)(?:\?v=[a-z0-9-]+)?/i]
+]){
+  const asset=index.match(pattern);
+  assert.ok(asset,label+' asset must be linked in the shell');
+  assert.ok(fs.existsSync(asset[1]),label+' release file must exist');
+}
 assert.match(index, /veve\.css\?v=/);
 assert.match(index, /veve\.js\?v=/);
 assert.match(index, /sqwib-public\.js\?v=/);
