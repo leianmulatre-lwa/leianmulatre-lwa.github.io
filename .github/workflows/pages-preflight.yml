@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'account-storage*.js'
+      - 'account-storage*.mjs'
+      - 'profile-module-sharing.js'
+      - 'firestore.rules'
       - 'feed-mixed-caption-test.mjs'
       - 'feed-view.js'
       - 'orbit-feed.js'
@@ -38,6 +42,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run the full Pages source verification before merging
         run: |
+          node account-storage-regression-test.mjs
           node site-integrity-test.mjs
           node studio-layout-cache-test.mjs
           node profile-music-test.mjs

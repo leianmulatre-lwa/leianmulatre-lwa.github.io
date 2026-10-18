@@ -469,7 +469,7 @@ function stopEvent(event){
 
 function gateEvent(kind){
   return event=>{
-    if(!preview.active || preview.signedIn || preview.promptOpen) return;
+    if(!preview.active || preview.promptOpen) return;
     const reason=gateReason(event.target,kind);
     if(!reason) return;
     stopEvent(event);
@@ -479,7 +479,7 @@ function gateEvent(kind){
 
 /* Typing into member-only fields, and shortcuts on widget controls, both need an account. */
 function gateKeydown(event){
-  if(!preview.active || preview.signedIn) return;
+  if(!preview.active) return;
   if(event.key==="Escape"){
     if(preview.promptOpen){ stopEvent(event); closePrompt(); }
     return;
@@ -542,6 +542,9 @@ function unbindGate(){
 function standDown(){
   if(!preview.active) return;
   preview.active=false;
+  window.__biglwaPublicStorageView=false;
+  window.__biglwaViewedProfile=null;
+  window.dispatchEvent(new CustomEvent('biglwa:public-profile-ended'));
   clearInterval(preview.timer);
   preview.timer=0;
   unbindGate();
@@ -591,7 +594,7 @@ async function checkSignedIn(){
 function decorateArchiveAccess(){
   const app=studioApp();
   if(!app)return;
-  const allowed=preview.signedIn && preview.profile?.archiveVisibility==='friends';
+  const allowed=preview.profile?.accountVisibility!=='private';
   const nodes=app.querySelectorAll('[data-module-launch="archive"],[data-open-module="archive"],[data-widget-route="archive"],#archive');
   nodes.forEach(node=>{
     if(!node.dataset.archiveOriginalDisplay) node.dataset.archiveOriginalDisplay=node.style.display||'';
@@ -645,6 +648,7 @@ function enforce(){
 
 function activate(profile){
   preview.profile=profile;
+  window.__biglwaViewedProfile=profile;
   preview.username=profile.username||preview.username;
   preview.path="/"+preview.username;
   preview.title="@"+preview.username+"'s Studio - BIGLWA";
@@ -654,9 +658,10 @@ function activate(profile){
   showStudioScreen();
   applyIdentity(profile);
   // Announce the public profile owner, never the viewer's own Firebase UID.
-  window.dispatchEvent(new CustomEvent('biglwa:public-profile-ready',{detail:{uid:profile.uid,username:profile.username}}));
+  window.dispatchEvent(new CustomEvent('biglwa:public-profile-ready',{detail:{uid:profile.uid,username:profile.username,profile}}));
   renderSocials(profile);
   applyLook(profile.look);
+  window.BigLWAStudioLayout?.applyPublic?.(profile.look?.layout);
   buildBanner();
   bindGate();
   window.addEventListener("pagehide",restoreAppearance,{once:true});
