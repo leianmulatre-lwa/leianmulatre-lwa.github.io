@@ -2050,7 +2050,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(framed.origin===location.origin){
         if(['/arcade-puzzles.html','/arcade/local.html'].includes(framed.pathname))
           framed.searchParams.set('embed','1');
-        framed.searchParams.set('release','20261018-arcade-input-2');
+        framed.searchParams.set('release','20261018-arcade-input-3');
       }
       frame.src=framed.href;
       frame.tabIndex=0;
