@@ -31,7 +31,7 @@
   {label:'Collective Feed',key:'feed',detail:'Published posts',fallbackAsset:'/assets/feed-symbol-generated.png'},
   {label:'Archive',key:'archive',detail:'Your saved media',fallback:'▥'},
   {label:'Boards',key:'boards',detail:'Pins and collections',fallback:'⊞'},
-  {label:'Sqwib Note',key:'notes',detail:'Quick notes',fallbackAsset:'/assets/quick-notes-symbol-generated.png'},
+  {label:'Sqwibz',key:'notes',detail:'Quick notes',fallbackAsset:'/assets/quick-notes-symbol-generated.png'},
   {label:'Calendar',key:'calendar',detail:'Dates and events',fallback:'▦'},
   {label:'Veve',key:'veve',detail:'Discover what’s happening',fallback:'✺'},
   {label:'Library',key:'library',detail:'Books and collections',fallback:'▥'}
