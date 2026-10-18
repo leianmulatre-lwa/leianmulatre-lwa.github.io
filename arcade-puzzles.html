@@ -27,8 +27,8 @@ html.biglwa-arcade-embed .scoreline{
   max-width:430px!important;margin:0 auto 8px!important;
 }
 html.biglwa-arcade-embed .grid2048{
-  width:min(100%,430px,calc(100dvh - 158px))!important;
-  height:auto!important;max-height:calc(100dvh - 158px)!important;
+  width:min(100%,430px,calc(100dvh - 184px))!important;
+  height:auto!important;max-height:calc(100dvh - 184px)!important;
   gap:clamp(4px,1vw,10px)!important;padding:clamp(5px,1vw,9px)!important;
   margin-inline:auto!important;aspect-ratio:1!important;
 }
@@ -52,10 +52,25 @@ html.biglwa-arcade-embed .clue-list{
   max-height:calc(100dvh - 135px)!important;
  }
 }
+/* 2048 always has reliable buttons alongside iframe-aware keyboard controls. */
+.arcade-direction-pad{display:flex;align-items:center;justify-content:center;gap:7px;margin:7px auto}
+.arcade-direction-pad button{width:40px;height:36px;padding:4px;font-size:18px;touch-action:manipulation}
+.grid2048:focus-visible{outline:3px solid #9c5162;outline-offset:3px}
+html.biglwa-arcade-embed #game2048{max-height:100%;min-height:0;display:flex;flex-direction:column}
+html.biglwa-arcade-embed .arcade-direction-pad{margin:3px auto;gap:4px}
+html.biglwa-arcade-embed .arcade-direction-pad button{height:29px;width:36px;font-size:16px}
+html.biglwa-arcade-embed:has(#game2048:not([hidden])){overflow:hidden;overscroll-behavior:contain}
+html.biglwa-arcade-embed:has(#game2048:not([hidden])) body{height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:contain}
 </style><script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('biglwa-arcade-embed');</script></head>
 <body><header><h1>big lwa · arcade</h1><div class="tabs" role="tablist"><button role="tab" type="button" data-tab="2048" aria-selected="true">2048</button><button role="tab" type="button" data-tab="crossword" aria-selected="false">crossword</button></div></header>
 <div id="biglwaArcadeIdentity" class="arcade-identity" aria-live="polite"><span class="arcade-identity-portrait" aria-hidden="true">◉</span><div><strong>playing as guest</strong><small><a href="/avatar/mii-editor.html?v=20261016-mii-opt-in-1">Set up your Big LWA avatar ↗</a> to use it in the games.</small></div></div>
-<section id="game2048"><p class="info">Join tiles with the same number. Use your arrow keys, WASD, or swipe. Try to make 2048!</p><div class="scoreline"><b>score <span id="score">0</span></b><button type="button" id="new2048">new game ↻</button></div><div id="grid2048" class="grid2048" role="grid" aria-label="2048 number puzzle"></div><p class="feedback" id="2048status" role="status"></p></section>
+<section id="game2048"><p class="info">Join tiles with the same number. Use your arrow keys, WASD, or swipe. Try to make 2048!</p><div class="scoreline"><b>score <span id="score">0</span></b><button type="button" id="new2048">new game ↻</button></div><div id="grid2048" class="grid2048" role="grid" tabindex="0" aria-label="2048 number puzzle: use arrows or WASD"></div>
+<div class="arcade-direction-pad" role="group" aria-label="Move 2048 tiles">
+<button type="button" data-2048-direction="up" aria-label="Move up">↑</button>
+<button type="button" data-2048-direction="left" aria-label="Move left">←</button>
+<button type="button" data-2048-direction="down" aria-label="Move down">↓</button>
+<button type="button" data-2048-direction="right" aria-label="Move right">→</button></div>
+<p class="feedback" id="2048status" role="status"></p></section>
 <section id="gameCrossword" hidden><p class="info">An original mini crossword. Fill the letter squares from the clues, then check your answers.</p><div class="cross-layout"><div><div id="crossGrid" class="cross-grid" role="group" aria-label="7 by 7 crossword grid"></div><div class="action-row"><button type="button" id="checkCross">check</button><button type="button" id="resetCross">reset</button></div><p class="feedback" id="crossStatus" role="status"></p></div><aside class="clue-list"><h3>across</h3><div id="acrossClues"></div><h3>down</h3><div id="downClues"></div></aside></div></section>
 <section id="gameQuest" hidden aria-label="Character Quest">
 <h2>character quest</h2>
@@ -76,7 +91,20 @@ const reset2048=()=>{board=Array(16).fill(0);score=0;randomTile();randomTile();r
 const collapse=line=>{let n=line.filter(Boolean),out=[];for(let i=0;i<n.length;i++){if(n[i]===n[i+1]){out.push(n[i]*2);score+=n[i]*2;i++}else out.push(n[i])}return out.concat(Array(4-out.length).fill(0))};
 const move=direction=>{if(Q('#game2048').hidden)return;const before=board.join(',');for(let z=0;z<4;z++){let ix=Array.from({length:4},(_,k)=>direction==='left'?z*4+k:direction==='right'?z*4+3-k:direction==='up'?k*4+z:(3-k)*4+z);const values=collapse(ix.map(x=>board[x]));ix.forEach((x,k)=>board[x]=values[k])}if(board.join(',')!==before)randomTile();render2048();Q('#2048status').textContent=board.includes(2048)?'2048! You made it. Keep going!':board.every(Boolean)&&!['left','right','up','down'].some(d=>{for(let r=0;r<4;r++)for(let c=0;c<4;c++)if((d==='left'&&c<3&&board[r*4+c]===board[r*4+c+1])||(d==='up'&&r<3&&board[r*4+c]===board[(r+1)*4+c]))return true;return false})?'No moves left. Try a new game.':''};
 Q('#new2048').onclick=reset2048;reset2048();
-document.addEventListener('keydown',ev=>{if(ev.target.matches('input,textarea'))return;const k={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down'}[ev.key];if(k){ev.preventDefault();move(k)}});
+const moveKeys={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down',
+  A:'left',D:'right',W:'up',S:'down'};
+document.addEventListener('keydown',ev=>{
+  if(ev.target.closest('input,textarea,[contenteditable="true"]')||Q('#game2048').hidden)return;
+  const direction=moveKeys[ev.key];
+  if(direction){ev.preventDefault();move(direction)}
+},true);
+document.querySelectorAll('[data-2048-direction]').forEach(button=>button.addEventListener('click',()=>{
+  move(button.dataset['2048Direction']);Q('#grid2048').focus({preventScroll:true});
+}));
+window.addEventListener('message',ev=>{
+  if(ev.origin!==location.origin||!window.frameElement)return;
+  if(ev.data?.type==='biglwa-arcade-key'&&moveKeys[ev.data.key])move(moveKeys[ev.data.key]);
+});
 let x0=0,y0=0;Q('#grid2048').addEventListener('touchstart',ev=>{x0=ev.touches[0].clientX;y0=ev.touches[0].clientY},{passive:true});
 Q('#grid2048').addEventListener('touchend',ev=>{let x=ev.changedTouches[0].clientX-x0,y=ev.changedTouches[0].clientY-y0;if(Math.max(Math.abs(x),Math.abs(y))<18)return;move(Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up'))},{passive:true});
 const words=[
