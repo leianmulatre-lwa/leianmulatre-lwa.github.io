@@ -75,7 +75,7 @@ check("each API carries its own colour", pages.includes("['facebook','FB','Faceb
 check("the chip is painted with it", pages.includes('class="orbit-platform-badge" aria-hidden="true" style="background:'));
 check("the letter is pinned white so the widget colour cannot swallow it", pages.includes("color:#fff!important;font-size:8px;font-weight:800;-webkit-text-fill-color:#fff"));
 check("the row colour rule can no longer outrank the chip", pages.includes(".module-workspace .module-orbit-row header span{"));
-check("both row shapes use the coloured chip", pages.includes('</header>${orbitBadge(g,t)}') && pages.includes("+'</header>'+orbitBadge(g,t)"));
+check("both row shapes use the coloured chip", pages.includes('${orbitBadge(g,t)}</div>') && pages.includes("+'</header>'+orbitBadge(g,t)"));
 check("the row map unpacks the colour", pages.includes("[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{"));
 check("the old one-black-pill markup is gone", !pages.includes("<span>${g}</span>"));
 
