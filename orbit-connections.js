@@ -303,7 +303,10 @@ async function write(uid, id, record) {
 const PUBLIC_HOSTS = {
   instagram: ["instagram.com", "www.instagram.com"],
   tiktok: ["tiktok.com", "www.tiktok.com"],
-  pinterest: ["pinterest.com", "www.pinterest.com"]
+  pinterest: ["pinterest.com", "www.pinterest.com"],
+  x: ["x.com", "www.x.com", "twitter.com", "www.twitter.com"],
+  snapchat: ["snapchat.com", "www.snapchat.com"],
+  tumblr: ["tumblr.com", "www.tumblr.com"]
 };
 
 function publicLink(id, record) {
@@ -313,7 +316,9 @@ function publicLink(id, record) {
   try { url = new URL(raw); } catch { return null; }
   if (url.protocol !== "https:") return null;
   const host = url.hostname.toLowerCase();
-  if (!(PUBLIC_HOSTS[id] || []).includes(host)) return null;
+  const allowed=(PUBLIC_HOSTS[id]||[]).includes(host)
+    || (id==='tumblr' && host.endsWith('.tumblr.com'));
+  if(!allowed || (['snapchat','x','tumblr'].includes(id) && (!url.pathname || url.pathname==='/')))return null;
   return {
     id,
     label: clean(record.label) || id,
@@ -334,6 +339,16 @@ async function mirrorPublic(uid, records) {
     if (!username) return;
 
     const socials = {};
+    // The Orbit profile tab saves manually selected links separately from OAuth.
+    // Publish only provider-host links, not tokens, counts or account IDs.
+    for (const [id, url] of Object.entries(account.data().orbitLinks || {})) {
+      const link=publicLink(id,{link:url,label:id});
+      if(link)socials[id]=link;
+    }
+    for (const [id, record] of Object.entries(account.data().orbitConnectedProfiles || {})) {
+      const link=publicLink(id,record);
+      if(link)socials[id]=link;
+    }
     for (const [id, record] of Object.entries(records || {})) {
       const link = publicLink(id, record);
       if (link) socials[id] = link;
@@ -474,7 +489,11 @@ export async function startConnections() {
   onIdentityChange(begin);
   /* The Orbit page is a classic script and cannot import this module, so the connected
      accounts are published on the window for it to read and to subscribe to. */
-  window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget };
+  window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget,
+    publishPublicLinks:()=>mirrorPublic(identity()?.uid,current) };
+  window.addEventListener('biglwa:orbit-links-synced',()=>{
+    if(identity()?.uid)mirrorPublic(identity().uid,current).catch(()=>{});
+  });
   return begin(identity());
 }
 
