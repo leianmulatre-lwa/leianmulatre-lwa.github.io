@@ -2078,7 +2078,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     document.addEventListener('keydown',ev=>{
       if(!emulatorScreen.isConnected||!emulatorScreen.classList.contains('is-embed')
          ||workspace.dataset.moduleKey!=='games'
-         ||ev.target.closest('input,textarea,[contenteditable="true"]'))return;
+         ||ev.target?.closest?.('input,textarea,[contenteditable="true"]'))return;
       const key=ev.key,playing=emulatorScreen.querySelector('iframe');
       if(!playing||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d','W','A','S','D'].includes(key))return;
       let origin;
