@@ -381,3 +381,42 @@
 #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth{border-top:12px solid #a37453!important;border-left:10px solid #3a2118!important;border-right:10px solid #28140f!important;border-bottom:16px solid #29150f!important;border-radius:12px 12px 6px 6px!important;box-shadow:0 10px 0 #170b08,0 18px 15px #0006,inset 0 3px #d6a179!important;padding:10px 12px 15px!important}
 #studioApp #games .arcade-folder-depth.arcade-folder-depth::before,
 #studioApp #games .arcade-folder-depth.arcade-folder-depth::after{width:auto!important;height:auto!important;opacity:1!important;animation:none!important;transform:none!important;border:0!important;border-radius:0!important}
+
+/* 2026-10-17: Compact, unified gold folder marquee.
+   Keep the back tab, front pocket, and side depth as a single gold object. */
+#studioApp #games .games-arcade-brand.games-arcade-brand{
+  flex:0 0 96px!important;height:96px!important;max-height:96px!important;
+}
+#studioApp #games .arcade-folder-depth.arcade-folder-depth{
+  padding:5px 0 8px!important;
+}
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::before{
+  inset:-5px -3% 1px!important;
+  background:linear-gradient(180deg,#fff0b0 0%,#e5b34d 12%,#bb812d 85%,#8d5822 100%)!important;
+  clip-path:polygon(4% 0,96% 0,100% 9%,100% 94%,96% 100%,4% 100%,0 94%,0 9%)!important;
+}
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::after{
+  inset:5px -3% -7px!important;
+  background:linear-gradient(90deg,#9f6623 0%,#d99d3f 8%,#f0c566 48%,#d99d3f 92%,#92571f 100%)!important;
+  clip-path:polygon(0 0,5% 5%,5% 84%,95% 84%,95% 5%,100% 0,100% 88%,94% 100%,6% 100%,0 88%)!important;
+  filter:drop-shadow(0 5px 3px #27120755)!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand::before{
+  background:linear-gradient(115deg,#fff8d688,transparent 44%),linear-gradient(130deg,#ffe99b,#bf8530)!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand::after{
+  inset:39% -2% 0!important;
+  background:linear-gradient(115deg,#fff8d66b,transparent 48%),linear-gradient(145deg,#ffe8a1,#d9a03b)!important;
+  border-color:#a56c27!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img:first-child{
+  top:47%!important;height:45%!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img:nth-child(2){
+  top:5%!important;height:26%!important;
+}
+@media(max-width:650px){
+  #studioApp #games .games-arcade-brand.games-arcade-brand{
+    flex-basis:86px!important;height:86px!important;max-height:86px!important;
+  }
+}
