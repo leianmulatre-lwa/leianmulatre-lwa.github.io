@@ -774,7 +774,7 @@
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'Feed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwib Note',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'Feed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwibz',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
   const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'Publish a picture and a caption to the collective feed.',connect:'Invite friends to join BIGLWA.',camera:'A real browser photobooth: start the camera, pose, capture, retake, and save a frame without uploading it.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'The people, politics, and power board — community nominations, the pendulum, voting resources, and world news.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1249,10 +1249,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // Visitors can read an explicitly shared Journal snapshot, but NEVER
     // the owner's unshared local drafts, Sqwib notes or Sqwip screenplays.
     if(document.documentElement.classList.contains('biglwa-preview-mode')){
-      body.innerHTML=heading(key)+'<div class="module-grid"><section class="module-card wide" id="publicWritingReader"><h2>'+ (key==='diary'?'Journal':'Sqwib Note') +'</h2><p>Checking access…</p></section></div>';
+      body.innerHTML=heading(key)+'<div class="module-grid"><section class="module-card wide" id="publicWritingReader"><h2>'+ (key==='diary'?'Journal':'Sqwibz') +'</h2><p>Checking access…</p></section></div>';
       const host=$('#publicWritingReader',body);
       if(key!=='diary'){
-        host.innerHTML='<h2>🔒 Sqwib Note</h2><p>This note is private to its owner.</p>';
+        host.innerHTML='<h2>🔒 Sqwibz</h2><p>This note is private to its owner.</p>';
         return;
       }
       const username=(()=>{try{return decodeURIComponent(location.pathname.split('/').filter(Boolean)[0]||'')}catch{return ''}})();
@@ -1272,8 +1272,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const title=key==='diary'
       ? `<div class="module-diary-cover-label is-compact"><span>Journal · ${esc(profileUsername())}</span></div>`
       : '<div class="sqwib-private-kicker">🔒 private · pin it before it floats away</div>'+
-        '<nav class="diary-section-nav" role="tablist" aria-label="Sqwib writing tools"><button type="button" data-diary-view="notes" role="tab" aria-controls="diaryWritingSection" aria-selected="true"><span aria-hidden="true">▤</span> Sqwib Note</button><button type="button" data-diary-view="sqwip" role="tab" aria-controls="sqwipWritingSection" aria-selected="false"><span aria-hidden="true">♢</span> Sqwip <small>screenplay</small></button></nav>';
-    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="${key==='diary'?'Journal writing':'Sqwib Note writing'}"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button>${key==='diary'?'<button class="module-action secondary" id="moduleWritingFeed" type="button">Send to Collective Feed drafts</button><button class="module-action ghost" id="journalViewButton" type="button">View journal</button>':''}</div><div class="module-status" id="moduleWritingStatus">${key==='diary'?'Private draft · choose to make a snapshot viewable':'🔒 Locked note · only you can read this'}</div></form></div>${key==='diary'?'<section class="journal-owner-share" id="journalShareControls"><div><b>Journal visibility</b><p>Private by default. Publishing shares only the current Journal text. Sqwib Note and Sqwip remain private.</p></div><div class="journal-owner-share-actions"><button type="button" class="module-action" id="journalPublish">Make journal viewable</button><button type="button" class="module-action ghost" id="journalUnpublish">Hide shared journal</button></div><p id="journalShareStatus" role="status">Only you can see this draft until you publish it.</p></section><section id="journalReaderPanel" class="journal-reader-panel" hidden><div class="journal-reader-controls"><b>Journal · reading mode</b><button type="button" class="module-action ghost" id="journalReturnEdit">✎ Edit journal</button></div><article class="journal-reading-sheet" id="journalReaderText"></article></section>':''}${key==='notes'?'<div id="sqwipWritingSection" role="tabpanel" aria-label="Private Sqwip screenplay maker" hidden></div>':''}</section></div>`;
+        '<nav class="diary-section-nav" role="tablist" aria-label="Sqwib writing tools"><button type="button" data-diary-view="notes" role="tab" aria-controls="diaryWritingSection" aria-selected="true"><span aria-hidden="true">▤</span> Sqwibz</button><button type="button" data-diary-view="sqwip" role="tab" aria-controls="sqwipWritingSection" aria-selected="false"><span aria-hidden="true">♢</span> Sqwip <small>screenplay</small></button></nav>';
+    body.innerHTML=heading(key)+`<div class="module-grid"><section class="module-card wide">${title}<div id="diaryWritingSection" role="tabpanel" aria-label="${key==='diary'?'Journal writing':'Sqwibz writing'}"><form id="moduleWritingForm" class="module-form"><textarea class="module-textarea ${key==='diary'?'diary-lined':'qwiky-note-input'}" id="moduleWritingArea" name="writing" placeholder="Write here…">${esc(localStorage.getItem(storage)||'')}</textarea><div class="module-actions"><button class="module-action" id="moduleWritingSave" type="submit">Save</button>${key==='diary'?'<button class="module-action secondary" id="moduleWritingFeed" type="button">Send to Collective Feed drafts</button><button class="module-action ghost" id="journalViewButton" type="button">View journal</button>':''}</div><div class="module-status" id="moduleWritingStatus">${key==='diary'?'Private draft · choose to make a snapshot viewable':'🔒 Locked note · only you can read this'}</div></form></div>${key==='diary'?'<section class="journal-owner-share" id="journalShareControls"><div><b>Journal visibility</b><p>Private by default. Publishing shares only the current Journal text. Sqwibz and Sqwip remain private.</p></div><div class="journal-owner-share-actions"><button type="button" class="module-action" id="journalPublish">Make journal viewable</button><button type="button" class="module-action ghost" id="journalUnpublish">Hide shared journal</button></div><p id="journalShareStatus" role="status">Only you can see this draft until you publish it.</p></section><section id="journalReaderPanel" class="journal-reader-panel" hidden><div class="journal-reader-controls"><b>Journal · reading mode</b><button type="button" class="module-action ghost" id="journalReturnEdit">✎ Edit journal</button></div><article class="journal-reading-sheet" id="journalReaderText"></article></section>':''}${key==='notes'?'<div id="sqwipWritingSection" role="tabpanel" aria-label="Private Sqwip screenplay maker" hidden></div>':''}</section></div>`;
     const form=$('#moduleWritingForm',body),area=$('#moduleWritingArea',body),status=$('#moduleWritingStatus',body);let t;
     let collection=null;
     const save=(explicit=false)=>{
@@ -1364,7 +1364,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       }
     }
     if(key==='notes'){
-      // Sqwib Note owns Sqwip. Existing screenplay documents retain their original
+      // Sqwibz owns Sqwip. Existing screenplay documents retain their original
       // account-scoped and cloud storage keys; Journal no longer mounts the editor.
       const tabs=Array.from(body.querySelectorAll('[data-diary-view]'));
       const notebook=$('#diaryWritingSection',body),screenplay=$('#sqwipWritingSection',body);
@@ -1415,7 +1415,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           :'Private · only you can see this draft.';
       }).catch(()=>{});
     }
-    if($('#moduleWritingFeed',body))$('#moduleWritingFeed',body).onclick=async()=>{const value=area.value.trim(),status=$('#moduleWritingStatus',body);if(!value){status.textContent='Write something first.';status.classList.remove('ok');return}const button=$('#moduleWritingFeed',body);button.disabled=true;status.textContent='Uploading draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:key,title:key==='diary'?'Journal entry':'Sqwib Note',caption:value});status.textContent='Saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload this draft.';status.classList.remove('ok')}finally{button.disabled=false}};
+    if($('#moduleWritingFeed',body))$('#moduleWritingFeed',body).onclick=async()=>{const value=area.value.trim(),status=$('#moduleWritingStatus',body);if(!value){status.textContent='Write something first.';status.classList.remove('ok');return}const button=$('#moduleWritingFeed',body);button.disabled=true;status.textContent='Uploading draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:key,title:key==='diary'?'Journal entry':'Sqwibz',caption:value});status.textContent='Saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload this draft.';status.classList.remove('ok')}finally{button.disabled=false}};
   }
 
   function renderFeed(){
@@ -2950,8 +2950,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(document.documentElement.classList.contains('biglwa-preview-mode')){
       const note=$('#studioApp #notes .note-paper');
       if(note){
-        note.innerHTML='<span class="studio-private-writing">🔒 Sqwib Note · private</span>';
-        note.setAttribute('aria-label','Sqwib Note is private');
+        note.innerHTML='<span class="studio-private-writing">🔒 Sqwibz · private</span>';
+        note.setAttribute('aria-label','Sqwibz is private');
       }
       const page=$('#studioApp #diary .diary-page');
       if(page){
@@ -2982,7 +2982,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       return (Array.from(name.replace(/^@/,'').trim())[0]||'✦').toLocaleUpperCase();
     };
     const noteLabel=$('#studioApp #notes .card-head h2');
-    if(noteLabel&&noteLabel.textContent.trim()!=='Sqwib Note')noteLabel.textContent='Sqwib Note';
+    if(noteLabel&&noteLabel.textContent.trim()!=='Sqwibz')noteLabel.textContent='Sqwibz';
     const journalLabel=$('#studioApp #diary .card-head h2');
     if(journalLabel&&journalLabel.textContent.trim()!=='Journal')journalLabel.textContent='Journal';
     const noteCard=$('#notes'),notePaper=noteCard&&$('.note-paper',noteCard),note=writingPreviewValue('notes');
@@ -2992,10 +2992,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(note){
         const savedAt=writingPreviewDate('notes')||new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
         notePaper.innerHTML='<p class="studio-writing-preview-text">'+esc(note)+'</p><span class="studio-writing-preview-meta">saved '+esc(savedAt)+'</span>';
-        notePaper.setAttribute('aria-label','Private Sqwib Note preview');
+        notePaper.setAttribute('aria-label','Private Sqwibz preview');
       }else{
         notePaper.innerHTML=notePaper._biglwaPlaceholderHTML||'';
-        notePaper.setAttribute('aria-label','Open private Sqwib Note');
+        notePaper.setAttribute('aria-label','Open private Sqwibz');
       }
     }
     const diaryCard=$('#diary'),diaryPage=diaryCard&&$('.diary-page',diaryCard),diary=writingPreviewValue('diary');
@@ -3082,7 +3082,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     document.querySelectorAll('#studioApp [data-open="notes"],#studioApp a[href="#notes"]').forEach(control=>{
       const leaf=[...control.querySelectorAll('b,span,small')].filter(node=>!node.children.length);
       if(!leaf.length&&!control.children.length)leaf.push(control);
-      leaf.forEach(node=>{if(/^(qwiky|quick|sqwib)\s*note$/i.test(node.textContent.trim()))node.textContent='Sqwib Note'});
+      leaf.forEach(node=>{if(/^(qwiky|quick|sqwib)\s*note$/i.test(node.textContent.trim()))node.textContent='Sqwibz'});
     });
     const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
     if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Black-and-white photobooth preview');cameraPreview.innerHTML='<img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy">'}
