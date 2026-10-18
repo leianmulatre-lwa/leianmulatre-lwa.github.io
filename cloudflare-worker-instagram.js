@@ -1839,9 +1839,9 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
    }),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
   }
-  if(!['start','session','disconnect','media'].includes(action))return oaReply({error:'Not found'},404,request);
+  if(!['start','session','disconnect','media','hometown'].includes(action))return oaReply({error:'Not found'},404,request);
   if(action==='start'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
-  if(['session','media'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
+  if(['session','media','hometown'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='disconnect'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
   const user=await getFirebaseUser(request,env);
   if(!user?.uid)oaError('Sign in to BIG LWA before connecting.',401);
@@ -1960,11 +1960,11 @@ async function facebookPersonalRoute(request,env){
      return fbpEnd('failed','Facebook could not finish authorizing. Verify the Meta callback and app settings.');
    }
  }
- if(!['start','session','disconnect','media'].includes(action))
+ if(!['start','session','disconnect','media','hometown'].includes(action))
    return json({error:'Not found'},404,request,env);
  if((action==='start'||action==='disconnect')&&request.method!=='POST')
    return json({error:'POST required'},405,request,env);
- if(['session','media'].includes(action)&&request.method!=='GET')
+ if(['session','media','hometown'].includes(action)&&request.method!=='GET')
    return json({error:'GET required'},405,request,env);
  // A browser signed into Facebook but not BIG LWA cannot claim another member's account.
  if(!allowedOrigin(request,env))return json({error:'Origin not allowed'},403,request,env);
@@ -1981,6 +1981,23 @@ async function facebookPersonalRoute(request,env){
    }
    return json({connected:!!session,needsReauth:!!session&&session.expiresAt<=Date.now(),
      profile:session?.profile||null},200,request,env);
+ }
+ if(action==='hometown'){
+   const session=env.OAUTH_SESSIONS?await env.OAUTH_SESSIONS.get(key,'json'):null;
+   if(!session||session.expiresAt<=Date.now())return json({error:'Reconnect Facebook Personal to import your hometown.'},401,request,env);
+   try{
+     const headers={Authorization:'Bearer '+session.accessToken};
+     const response=await fetch(FB_PERSONAL_GRAPH+'/me?fields=hometown', {headers});
+     const data=await response.json();
+     if(!response.ok||data.error)return json({error:'Grant hometown access by reconnecting Facebook Personal. Meta approval may be required.'},403,request,env);
+     if(!data.hometown?.id)return json({hometown:null,message:'Facebook has no hometown to import.'},200,request,env);
+     const placeResponse=await fetch(FB_PERSONAL_GRAPH+'/'+encodeURIComponent(data.hometown.id)+'?fields=name,location',{headers});
+     const place=await placeResponse.json();
+     const lat=place.location?.latitude,lng=place.location?.longitude;
+     if(!placeResponse.ok||typeof lat!=='number'||typeof lng!=='number'||Math.abs(lat)>90||Math.abs(lng)>180)
+       return json({hometown:null,message:'Facebook shared '+String(data.hometown.name||'your hometown')+' without map coordinates. Add it using map search.'},200,request,env);
+     return json({hometown:{name:String(data.hometown.name||place.name||'').slice(0,200),lat,lng}},200,request,env);
+   }catch{return json({error:'Facebook hometown could not be loaded. Retry sync.'},502,request,env)}
  }
  if(action==='media'){
    const session=env.OAUTH_SESSIONS?await env.OAUTH_SESSIONS.get(key,'json'):null;
@@ -2032,7 +2049,7 @@ async function facebookPersonalRoute(request,env){
  auth.searchParams.set('client_id',config.id);
  auth.searchParams.set('redirect_uri',FB_PERSONAL_CALLBACK);
  auth.searchParams.set('response_type','code');
- auth.searchParams.set('scope','public_profile,user_posts,user_photos,user_link');
+ auth.searchParams.set('scope','public_profile,user_posts,user_photos,user_link,user_hometown');
  auth.searchParams.set('auth_type','rerequest');
  auth.searchParams.set('state',state);
  return json({ok:true,authorizeUrl:auth.toString()},200,request,env);
