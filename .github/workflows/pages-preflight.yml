@@ -49,6 +49,8 @@ jobs:
           node --check profile-music.js
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
+          node games-arcade-test.mjs
+          node arcade-preservation-test.mjs
           node facebook-personal-sync-test.mjs
           node preview-isolation-test.mjs
           node orbit-oauth-repair-test.mjs

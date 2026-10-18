@@ -1,0 +1,5 @@
+BIG LWA arcade preservation player
+Ruffle 0.7.1: https://ruffle.rs/ | https://github.com/ruffle-rs/ruffle
+The deployed runtime is fetched from the pinned official @ruffle-rs/ruffle npm package and checked with SHA-256. Ruffle license and package notices are preserved under /vendor/ruffle/.
+Local Snake and Number Grid implementations and the Flash color-test fixture were created for BIG LWA. They are alternatives, not copies of the external games listed in the archive directory.
+The Flash test cycles background colors to verify SWF playback. No third-party game ROMs, SWFs or BIOS files are bundled.
