@@ -104,7 +104,7 @@
          if(response?.connected&&response.profile){
            const profile=response.profile;
            state[id]={...profile,id,needsReauth:!!response.needsReauth,
-             verifiedFromProvider:true};
+             verifiedFromProvider:true,lastVerifiedAt:Date.now()};
          }else delete state[id];
        }
      }catch(error){console.warn('Orbit new provider restore:',error)}
