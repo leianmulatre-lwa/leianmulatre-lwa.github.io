@@ -8,7 +8,7 @@ const expected={
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
   'pinterest-orbit.js':'20261017-boards-label-3',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
-  'account-boot.js':'20261017-account-data-6'
+  'account-boot.js':'20261017-public-socials-7'
 };
 for(const [path,version] of Object.entries(expected)){
  assert.ok(entry.includes('/'+path+'?v='+version),'Entry point must load current '+path);
