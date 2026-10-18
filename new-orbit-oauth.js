@@ -170,7 +170,7 @@ async function oaTextImports(provider,saved){
  }
  return {provider,count:items.length,items:items.slice(0,30)};
 }
-async function handleAdditionalOrbit(request,env,getFirebaseUser){
+export async function handleAdditionalOrbit(request,env,getFirebaseUser){
  const url=new URL(request.url),parts=url.pathname.split('/').filter(Boolean);
  const provider=parts[0],action=parts[1];
  if(!PROVIDERS[provider]||parts.length!==2)return oaReply({error:'Not found'},404,request);
