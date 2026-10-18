@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261017-orbit-public-socials-4';
+        script.src = '/module-pages.js?v=20261018-arcade-loop-orbit-proof-5';
         document.head.appendChild(script);
       }, 250);
     }
