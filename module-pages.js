@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261018-arcade-loop-orbit-proof-6';
+        script.src = '/module-pages.js?v=20261018-sqwibz-directplay-8';
         document.head.appendChild(script);
       }, 250);
     }
