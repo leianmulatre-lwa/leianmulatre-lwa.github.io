@@ -58,6 +58,8 @@ jobs:
           node arcade-silhouette-regression-test.mjs
           node games-arcade-test.mjs
           node arcade-input-loop-regression-test.mjs
+          node sqwibz-orbit-routing-test.mjs
+          node --check external-link-policy-20261018.js
           node --check arcade/local.js
           node --check orbit-new-connect-20261018-v6.js
           node arcade-preservation-test.mjs
