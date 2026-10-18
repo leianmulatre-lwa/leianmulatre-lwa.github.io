@@ -217,7 +217,7 @@ function readSocials(raw){
     try{parsed=new URL(url)}catch{return []}
     if(parsed.protocol!=="https:")return [];
     const host=parsed.hostname.toLowerCase();
-    if(!SOCIAL_HOSTS[id].includes(host)&&!(id==='tumblr'&&host.endsWith('.tumblr.com')))return [];
+    if(!SOCIAL_HOSTS[id].includes(host)&&!((id==='tumblr'&&host.endsWith('.tumblr.com'))||(id==='snapchat'&&host.endsWith('.snapchat.com'))))return [];
     if(['x','snapchat','tumblr'].includes(id)&&(!parsed.pathname||parsed.pathname==='/'))return [];
     return [{
       id,
