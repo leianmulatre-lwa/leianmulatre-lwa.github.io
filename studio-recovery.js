@@ -28,7 +28,7 @@
     }
     if(!root.querySelector('#politc')){
       const card=document.createElement('article');
-      card.id='politc';card.className='card studio-politc-card';
+      card.id='politc';card.className='card studio-politc-card customizable-widget';card.dataset.widgetId='politc';card.dataset.widgetLabel='Politic';
       card.dataset.widgetRoute='politc';
       card.dataset.search='politc politics election nominees voter resources political pendulum wcw mcm hunting season cunting season';
       card.innerHTML='<div class="card-head"><div><span class="card-icon politc-studio-symbol" aria-hidden="true"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34"></span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Election countdown, candidates by location, political pendulum, wanted posters and global news sources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
@@ -37,7 +37,21 @@
     }
     const politc=root.querySelector('#politc');
     if(politc){
+      // The Politic card is a first-class widget, including the red-dot
+      // 'move to toolbar' action used by the other Studio cards.
+      politc.classList.add('customizable-widget');
+      politc.dataset.widgetId='politc';
+      politc.dataset.widgetLabel='Politic';
       politc.dataset.widgetRoute='politc';
+      if(!politc.querySelector(':scope > .widget-window-controls')){
+        const dots=document.createElement('div');
+        dots.className='widget-window-controls';
+        dots.setAttribute('aria-label','Politic window controls');
+        dots.innerHTML='<button class="window-light green" type="button" data-open="politc" aria-label="Open Politic"></button>'+
+          '<button class="window-light yellow" type="button" data-minimize-widget="politc" aria-label="Minimize Politic"></button>'+
+          '<button class="window-light red" type="button" data-dock-widget="politc" aria-label="Move Politic to left toolbar"></button>';
+        politc.prepend(dots);
+      }
       const badge=politc.querySelector('.card-icon');
       if(badge&&!badge.querySelector('img[src*="politc-nyame-baatanpa"]')){
         badge.classList.add('politc-studio-symbol');
