@@ -2190,7 +2190,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(framed.origin===location.origin){
         frame.addEventListener('load',()=>{
           // Arrow keys should control the selected game, not scroll the page.
-          try{frame.focus({preventScroll:true})}catch{}
+          try{
+            // The focusable board receives keys in the game's own document,
+            // including the first arrow after opening the Arcade cabinet.
+            const inside=frame.contentWindow?.document;
+            const board=inside?.getElementById('grid2048')||inside?.querySelector('canvas[tabindex]');
+            if(board)board.focus({preventScroll:true});
+            else frame.focus({preventScroll:true});
+          }catch{try{frame.focus({preventScroll:true})}catch{}}
         },{once:true});
       }
     };
