@@ -57,6 +57,9 @@ jobs:
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
           node games-arcade-test.mjs
+          node arcade-input-loop-regression-test.mjs
+          node --check arcade/local.js
+          node --check orbit-new-connect-20261018-v6.js
           node arcade-preservation-test.mjs
           node facebook-personal-sync-test.mjs
           node preview-isolation-test.mjs
