@@ -21,7 +21,7 @@
  })();
  const config=Object.fromEntries(providerIds.map(id=>[id,{configured:false,missing:[],checked:false}]));
  const state={};
- let refsPromise=null,refreshing=null,loggedInUid='';
+ let refsPromise=null,refreshing=null,loggedInUid='',authObserver=null;
  const notify=()=>document.dispatchEvent(new CustomEvent('biglwa:new-orbit-status'));
  function callbackMessage(){
    if(!callbackNotice)return;
@@ -41,7 +41,14 @@
        authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
        appId:'1:83232670555:web:e04927b20458390b3b507e'
      });
-     return auth.getAuth(instance);
+     const currentAuth=auth.getAuth(instance);
+    // The OAuth script can load before Firebase restores the browser session.
+    // Refresh the provider state after the signed-in account resolves.
+    if(!authObserver)authObserver=auth.onAuthStateChanged(currentAuth,user=>{
+      if((user?.uid||'')!==loggedInUid)Promise.resolve().then(()=>load()).catch(
+        error=>console.warn('Orbit OAuth auth restore:',error));
+    });
+    return currentAuth;
    }).catch(e=>{refsPromise=null;throw e});
    return refsPromise;
  }
@@ -79,13 +86,19 @@
        const user=auth.currentUser;const uid=user?.uid||'';
        if(!uid){loggedInUid='';for(const id of providerIds)delete state[id];notify();return}
        const idToken=await user.getIdToken();
+       // Configuration health must not suppress a previously saved account session.
+       if(loggedInUid!==uid)for(const id of providerIds)delete state[id];
        const results=await Promise.all(providerIds.map(async id=>{
-         if(!config[id]?.configured)return [id,null];
-         try{return [id,await query(id,'session','GET',idToken)]}catch{return [id,null]}
+         try{return [id,await query(id,'session','GET',idToken)]}
+         catch(error){return [id,{sessionError:error?.message||'Session unavailable'}]}
        }));
        if((await firebase()).currentUser?.uid!==uid)return;
        loggedInUid=uid;
        for(const [id,response] of results){
+         if(response?.sessionError){
+           console.warn('Orbit '+id+' connection check:',response.sessionError);
+           continue;
+         }
          if(response?.connected&&response.profile){
            const profile=response.profile;
            state[id]={...profile,id,needsReauth:!!response.needsReauth,
@@ -125,10 +138,21 @@
    delete state[provider];notify();
  }
  window.BigLWAOrbitOAuth=Object.freeze({load,connect,disconnect,get,configured,state});
- const boot=()=>load().then(()=>callbackMessage()).catch(error=>console.warn('New Orbit OAuth bootstrap:',error));
+ let callbackShown=false;
+ const boot=()=>load().then(()=>{
+   if(!callbackShown){callbackShown=true;callbackMessage()}
+ }).catch(error=>console.warn('New Orbit OAuth bootstrap:',error));
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
  else boot();
  document.addEventListener('biglwa:module-open',()=>{
    if(document.querySelector('#moduleWorkspace[data-module-key="orbit"]'))boot();
  });
+ // OAuth return, restored logins, and returning tabs share one session truth.
+ const resume=()=>{if(document.visibilityState==='hidden')return;load().catch(
+   error=>console.warn('Orbit OAuth resume:',error))};
+ window.addEventListener('pageshow',resume);
+ window.addEventListener('focus',resume);
+ document.addEventListener('visibilitychange',resume);
+ window.addEventListener('biglwa:session-verified',resume);
+ window.addEventListener('biglwa:identity-updated',resume);
 })();
