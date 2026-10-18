@@ -4,7 +4,7 @@ import vm from 'node:vm';
 const read=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
 const src=read('studio-onboarding.js'),home=read('index.html');
 assert.doesNotThrow(()=>new vm.Script(src));
-assert.ok(home.includes('studio-onboarding.js?v=20261015-three-colored-o-5'),
+assert.ok(home.includes('studio-onboarding.js?v=20261018-sqwibz-6'),
   'new visual tutorial version loads instead of cached text-only guide');
 assert.ok(src.includes('"visual":"symbols"'),'Symbol key is a visual tutorial page');
 assert.ok(!src.includes('Hanger = Projects, chess piece = Arcade'),
