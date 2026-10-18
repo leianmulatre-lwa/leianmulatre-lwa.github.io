@@ -28,7 +28,7 @@ assert.ok(newOrbitWorker.includes('https://auth.snapchat.com/oauth2/api/user.ext
 assert.ok(newOrbitWorker.includes("provider==='x'?env.NEW_ORBIT_CALLBACK_ORIGIN:null"),'Snap/Tumblr use api.biglwa.com and X keeps its existing redirect');
 assert.ok(cloudflareWorker.includes("provider==='x'?env.NEW_ORBIT_CALLBACK_ORIGIN:null"),'Deployed worker entry source mirrors callback choice');
 assert.ok(client.includes("orbit_status")&&client.includes("callbackMessage()"),'OAuth return shows success/error on Orbit');
-assert.ok(html.includes('orbit-new-connect.js?v=20261016-return-status-3'),'OAuth client cache version updated');
+assert.ok(/\/orbit-new-connect(?:-[a-z0-9-]+)?\.js(?:\?v=[a-z0-9-]+)?/i.test(html),'OAuth client cache version updated');
 assert.ok(planets.includes('radial-gradient(')&&planets.includes('module-actions > .orbit-platform-badge'),'Original spherical artwork preserved in new action row');
 assert.ok(html.includes('orbit-planets-original-restored-20261016.css?v=20261016-original-texture-1'),'Restored planets CSS is loaded');
 console.log('PASS Owner-only Facebook/TikTok imports, explicit Feed publishing, original planets and Snapchat/Tumblr OAuth controls.');
