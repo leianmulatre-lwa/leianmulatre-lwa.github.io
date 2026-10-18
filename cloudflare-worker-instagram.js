@@ -1792,7 +1792,7 @@ async function oaProfile(provider,token){
    const name=String(u.name).slice(0,80);
    const first=Array.isArray(u.blogs)?u.blogs.find(x=>x?.primary)||u.blogs[0]:null;
    const link=oaPhoto(first?.url)||('https://www.tumblr.com/'+encodeURIComponent(name));
-   return {id:'tumblr',sourceUserId:name,username:name,name,avatarUrl:oaPhoto(first?.avatar_url),
+   return {id:'tumblr',sourceUserId:name,sourceBlogName:String(first?.name||name).slice(0,80),username:name,name,avatarUrl:oaPhoto(first?.avatar_url),
     link};
  }
  const me=data.data?.me||data.data?.user||data.me||{};
@@ -1801,6 +1801,59 @@ async function oaProfile(provider,token){
  return {id:'snapchat',sourceUserId:String(me.externalId),name:String(me.displayName||'Snapchat account').slice(0,100),
   username:'',avatarUrl:oaPhoto(avatar),
   link:''};
+}
+// Read-only import preview: API tokens stay in the Worker KV store.
+// No imported text is published until the member selects it inside Sqwibz.
+async function oaTextImports(provider,saved){
+ if(!saved?.accessToken)oaError('Connect this account in Orbit before importing.',401);
+ if(!saved.expiresAt||saved.expiresAt<=Date.now())
+   oaError('This Orbit authorization expired. Reconnect the account.',401);
+ if(!['x','tumblr'].includes(provider))
+   oaError('This provider does not offer Sqwibz text imports.',422);
+ const headers={Authorization:'Bearer '+saved.accessToken,Accept:'application/json'};
+ let uri;
+ if(provider==='x'){
+   const id=String(saved.profile?.sourceUserId||'');
+   if(!/^\d{1,28}$/.test(id))oaError('X account identifier is missing. Reconnect X.',422);
+   uri=new URL('https://api.x.com/2/users/'+id+'/tweets');
+   uri.searchParams.set('max_results','30');
+   uri.searchParams.set('exclude','retweets');
+   uri.searchParams.set('tweet.fields','created_at');
+ }else{
+   const raw=String(saved.profile?.sourceBlogName||saved.profile?.username||'').trim();
+   if(!/^[a-zA-Z0-9-]{1,80}$/.test(raw))oaError('Tumblr blog name missing. Reconnect Tumblr.',422);
+   uri=new URL('https://api.tumblr.com/v2/blog/'+encodeURIComponent(raw)+'.tumblr.com/posts');
+   uri.searchParams.set('limit','20');uri.searchParams.set('npf','true');
+ }
+ const response=await fetch(uri.toString(),{headers});
+ if(!response.ok){
+   if(response.status===401||response.status===403)oaError(
+     provider+' denied reading posts. Check your app authorization or API access.',response.status);
+   if(response.status===402||response.status===429)oaError(
+     provider+' API access or usage limit prevented imports.',response.status);
+   oaError(provider+' posts are unavailable ('+response.status+').',502);
+ }
+ const data=await response.json().catch(()=>({}));
+ const clean=v=>String(v||'').replace(/<[^>]*>/g,' ').replace(/&(?:amp|lt|gt|quot|#39);/g,' ').replace(/\s+/g,' ').trim().slice(0,1200);
+ let items=[];
+ if(provider==='x'){
+   items=(Array.isArray(data.data)?data.data:[]).filter(x=>x?.id&&x?.text).map(x=>({
+     id:String(x.id),provider,text:clean(x.text),createdAt:x.created_at||'',
+     url:'https://x.com/'+encodeURIComponent(saved.profile?.username||'i')+'/status/'+encodeURIComponent(String(x.id))
+   }));
+ }else{
+   items=(Array.isArray(data.response?.posts)?data.response.posts:[]).filter(x=>x?.id&&['text','quote','blocks'].includes(x.type)).map(x=>{
+     const blocks=Array.isArray(x.content)?x.content.filter(b=>b?.type==='text').map(b=>b.text):[];
+     const isText=blocks.length>0||x.type==='text'||x.type==='quote';
+     if(!isText)return null;
+     const text=clean(blocks.join('\n')||[x.title,x.text,x.body,x.quote,x.source].filter(Boolean).join(' '));
+     if(!text)return null;
+     let url='';
+     try{const parsed=new URL(String(x.post_url||''));if(parsed.protocol==='https:')url=parsed.href}catch{}
+     return {id:String(x.id_string||x.id),provider,text,createdAt:x.date||'',url};
+   }).filter(Boolean);
+ }
+ return {provider,count:items.length,items:items.slice(0,30)};
 }
 async function handleAdditionalOrbit(request,env,getFirebaseUser){
  const url=new URL(request.url),parts=url.pathname.split('/').filter(Boolean);
@@ -1839,9 +1892,9 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
    }),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
   }
-  if(!['start','session','disconnect','media','hometown'].includes(action))return oaReply({error:'Not found'},404,request);
+  if(!['start','session','disconnect','media','hometown','imports'].includes(action))return oaReply({error:'Not found'},404,request);
   if(action==='start'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
-  if(['session','media','hometown'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
+  if(['session','media','hometown','imports'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='disconnect'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
   const user=await getFirebaseUser(request,env);
   if(!user?.uid)oaError('Sign in to BIG LWA before connecting.',401);
@@ -1850,6 +1903,11 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
    const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
    const fresh=Boolean(saved?.expiresAt&&saved.expiresAt>Date.now());
    return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null},200,request);
+  }
+  if(action==='imports'){
+    const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
+    if(!saved)return oaReply({error:'Connect '+provider+' from Orbit before importing posts.'},401,request);
+    return oaReply(await oaTextImports(provider,saved),200,request);
   }
   if(action==='disconnect'){
    await env.OAUTH_SESSIONS.delete(accountKey);
