@@ -1364,6 +1364,106 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       }
     }
     if(key==='notes'){
+      // Imported provider writing is kept on the signed-in account, NEVER sent
+      // straight to Veve. A member chooses which post becomes a private note.
+      const section=document.createElement('section');
+      section.id='sqwibzOrbitImports';
+      section.className='module-card sqwibz-orbit-imports';
+      section.innerHTML='<h3>Imported writing from Orbit</h3>'+
+        '<p>Review your own Tumblr text and quotes or X posts. Imported writing stays private until you choose to publish a Sqwibz copy.</p>'+
+        '<div class="module-actions"><button class="module-action ghost" type="button" data-sqwibz-import="tumblr">Check Tumblr writing</button>'+
+        '<button class="module-action ghost" type="button" data-sqwibz-import="x">Check X posts</button></div>'+
+        '<p id="sqwibzImportStatus" role="status">Sign in and authorize the source in Orbit first.</p>'+
+        '<div id="sqwibzImportedItems" aria-label="Private imported posts"></div>';
+      form.closest('.module-card')?.append(section);
+      const list=$('#sqwibzImportedItems',section),notice=$('#sqwibzImportStatus',section);
+      let imported=[];
+      const authClient=async()=>{
+        const [apps,auth,fire]=await Promise.all([
+          import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+          import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+          import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+        ]);
+        const app=apps.getApps()[0];if(!app)throw Error('Sign in to BIGLWA.');
+        const account=auth.getAuth(app);await account.authStateReady();
+        const uid=account.currentUser?.uid;if(!uid)throw Error('Sign in to import your posts.');
+        return {account,uid,fire,db:fire.getFirestore(app)};
+      };
+      const draw=()=>{
+        if(!list?.isConnected)return;
+        list.replaceChildren();
+        if(!imported.length){
+          const text=document.createElement('p');text.textContent='No imported text or quotes yet.';list.append(text);return;
+        }
+        for(const row of imported){
+          const article=document.createElement('article');article.className='sqwibz-import-item';
+          const text=document.createElement('p');text.textContent=String(row.text||'').slice(0,1200);
+          const meta=document.createElement('small');meta.textContent=(row.provider==='x'?'X post':'Tumblr text/quote')+' · private import';
+          const button=document.createElement('button');button.type='button';button.className='module-action ghost';
+          button.textContent='Make private Sqwibz note';button.addEventListener('click',()=>{
+            // Use the existing collection's '+ New note' control so cloud
+            // persistence and the Studio preview keep working.
+            const newNote=section.closest('.module-card')?.querySelector('.writing-collection-new');
+            if(newNote)newNote.click();else area.value='';
+            area.value=String(row.text||'').slice(0,1200);
+            area.dispatchEvent(new Event('input',{bubbles:true}));
+            notice.textContent='Created a private Sqwibz draft. Review before publishing.';
+          });
+          article.append(meta,text,button);
+          if(row.url){
+            try{const url=new URL(row.url);if(url.protocol==='https:'){
+              const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';
+              link.textContent='Original post ↗';article.append(link);
+            }}catch{}
+          }
+          list.append(article);
+        }
+      };
+      const loadSaved=async()=>{
+        try{
+          const {uid,fire,db}=await authClient();
+          const snapshot=await fire.getDoc(fire.doc(db,'users',uid));
+          imported=Array.isArray(snapshot.data()?.sqwibzOrbitImports)?
+            snapshot.data().sqwibzOrbitImports.slice(0,80):[];
+          draw();
+        }catch(error){notice.textContent=error?.message||'Sign in to see your imports.'}
+      };
+      section.addEventListener('click',async event=>{
+        const control=event.target.closest('[data-sqwibz-import]');if(!control)return;
+        const provider=control.dataset.sqwibzImport;
+        if(!['tumblr','x'].includes(provider))return;
+        control.disabled=true;notice.textContent='Checking '+provider+' authorized posts…';
+        try{
+          const {account,uid,fire,db}=await authClient();
+          const jwt=await account.currentUser.getIdToken();
+          const response=await fetch('https://api.biglwa.com/'+provider+'/imports',{
+            headers:{Authorization:'Bearer '+jwt},cache:'no-store'
+          });
+          const data=await response.json().catch(()=>({}));
+          if(!response.ok)throw Error(response.status===404
+            ?'The provider import endpoint is not deployed yet.'
+            :(data.error||'Provider denied reading posts.'));
+          if(account.currentUser?.uid!==uid)throw Error('The account changed during import.');
+          const additions=(Array.isArray(data.items)?data.items:[]).filter(p=>p.id&&p.text)
+            .map(p=>({id:String(p.id).slice(0,100),provider,
+              text:String(p.text).slice(0,1200),url:String(p.url||'').slice(0,350),
+              createdAt:String(p.createdAt||'').slice(0,80)}));
+          const merged=new Map(imported.map(x=>[x.provider+':'+x.id,x]));
+          for(const post of additions)merged.set(post.provider+':'+post.id,post);
+          imported=[...merged.values()].slice(-80).reverse();
+          await fire.setDoc(fire.doc(db,'users',uid),
+            {sqwibzOrbitImports:imported,sqwibzImportsUpdatedAt:fire.serverTimestamp()},
+            {mergeFields:['sqwibzOrbitImports','sqwibzImportsUpdatedAt']});
+          draw();
+          notice.textContent=additions.length
+            ?additions.length+' '+provider+' posts reviewed and saved privately. Choose which to open.'
+            :'No text or quote posts returned for this account. Nothing was fabricated.';
+        }catch(error){notice.textContent=error?.message||'Import unavailable.'}
+        finally{control.disabled=false}
+      });
+      loadSaved();
+    }
+    if(key==='notes'){
       // Sqwibz owns Sqwip. Existing screenplay documents retain their original
       // account-scoped and cloud storage keys; Journal no longer mounts the editor.
       const tabs=Array.from(body.querySelectorAll('[data-diary-view]'));
