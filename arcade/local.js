@@ -31,7 +31,7 @@ if(kind==='sudoku'){
  button('Start / restart',()=>{reset();active=true;timer=setInterval(step,145);canvas.focus()});button('Pause',()=>{if(active){clearInterval(timer);active=false;status.textContent='Paused · score '+score}else{active=true;timer=setInterval(step,145)}});
  for(const [label,d] of [['↑',[0,-1]],['←',[-1,0]],['↓',[0,1]],['→',[1,0]]])button(label,()=>steer(d));
  const controlsByKey={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]};
- document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,[contenteditable="true"]'))return;const d=controlsByKey[e.key];if(d){e.preventDefault();steer(d)}});
+ document.addEventListener('keydown',e=>{if(e.target?.matches?.('input,textarea,[contenteditable="true"]'))return;const d=controlsByKey[e.key];if(d){e.preventDefault();steer(d)}});
  window.addEventListener('message',e=>{if(e.origin!==location.origin||!window.frameElement)return;
    if(e.data?.type==='biglwa-arcade-key'){const d=controlsByKey[e.data.key];if(d)steer(d)}
  });
