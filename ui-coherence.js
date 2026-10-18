@@ -425,7 +425,7 @@
       /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
       #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
       #studioApp #notes .note-paper{position:relative;isolation:isolate;min-height:210px;padding:54px 28px 28px;border:0!important;border-radius:3px 3px 17px 3px!important;background:repeating-linear-gradient(to bottom,transparent 0,transparent 28px,rgba(119,92,38,.15) 29px),linear-gradient(145deg,#fff6a5,#f1d866)!important;color:#3c3021!important;font-family:"LWA Cuteness Notes","Comic Sans MS","Bradley Hand",cursive!important;font-weight:400!important;font-size:clamp(20px,2.2vw,25px)!important;line-height:1.45!important;text-align:left!important;transform:rotate(-.55deg);box-shadow:0 12px 22px rgba(69,49,23,.18),inset 0 0 28px rgba(255,255,255,.28)!important;overflow:hidden}
-      #studioApp #notes .note-paper::before{content:"SQWIB NOTE";position:absolute;left:20px;top:16px;padding:5px 8px;border:1px solid rgba(75,55,25,.18);background:rgba(255,248,196,.76);color:#67512f;font:900 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.15em;transform:rotate(-1.5deg)}
+      #studioApp #notes .note-paper::before{content:"SQWIBZ";position:absolute;left:20px;top:16px;padding:5px 8px;border:1px solid rgba(75,55,25,.18);background:rgba(255,248,196,.76);color:#67512f;font:900 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.15em;transform:rotate(-1.5deg)}
       #studioApp #notes .note-paper::after{content:"";position:absolute;right:0;bottom:0;width:34px;height:34px;background:linear-gradient(135deg,rgba(172,139,52,.28) 0 49%,#fff5a0 50%);filter:drop-shadow(-2px -2px 2px rgba(84,64,29,.11))}
       #studioApp #notes .note-paper span{position:absolute;right:22px;bottom:15px;margin:0!important;color:#765f35;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
       body.night-mode #studioApp #notes .note-paper{filter:saturate(.84) brightness(.82)}
@@ -520,7 +520,7 @@
   }
   function navigationLabel(control,key){
     if(key==='diary')return 'Journal';
-    if(key==='notes')return 'Sqwib Note';
+    if(key==='notes')return 'Sqwibz';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
   function navigationSymbolMarkup(control,label){
@@ -1174,7 +1174,7 @@
     let profileSection=$('#profileDetailsEditor',panel);
     if(!profileSection){
       profileSection=document.createElement('div');profileSection.className='customize-section profile-details-section';profileSection.id='profileDetailsEditor';
-      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwib Note</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
+      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwibz</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
       if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
     $('#profileMoodPreview',profileSection)?.remove();
