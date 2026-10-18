@@ -6,7 +6,6 @@ const original=read('bootstrap-v2.html');
 const expected={
   'module-pages.js':'20261017-arcade-preservation-3',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
-  'arcade-silhouette-corrected-20261017.css':'20261017-upper-depth-9',
   'pinterest-orbit.js':'20261017-boards-label-3',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
   'account-boot.js':'20261017-account-data-6'
@@ -14,6 +13,10 @@ const expected={
 for(const [path,version] of Object.entries(expected)){
  assert.ok(entry.includes('/'+path+'?v='+version),'Entry point must load current '+path);
 }
+const publishedArcade=entry.match(/\/(arcade-(?:silhouette-corrected|folder-unified)[a-z0-9-]*\.css)(?:\?v=[a-z0-9-]+)?/i)?.[1];
+assert.ok(publishedArcade,'A current Arcade CSS asset must load');
+assert.ok(readFileSync(new URL('./'+publishedArcade,import.meta.url),'utf8').includes('.games-arcade-brand'),
+  'Published Arcade CSS must contain the folder marquee');
 const assetRefs=[...entry.matchAll(/(?:src|href)="\/([^"?#]+)\?v=([^"]+)"/g)].map(([,path])=>path);
 const codeAssets=assetRefs.filter(path=>/\\.(?:js|css)$/i.test(path));
 assert.equal(codeAssets.length,new Set(codeAssets).size,'No duplicated executable JavaScript or CSS assets');
