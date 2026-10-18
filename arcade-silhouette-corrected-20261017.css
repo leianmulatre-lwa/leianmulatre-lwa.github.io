@@ -365,3 +365,9 @@
  background:linear-gradient(115deg,#fffce744 0%,#fffce718 30%,transparent 31%,transparent 70%,#fff6cb18 100%),repeating-linear-gradient(0deg,#70480e24 0 1px,transparent 1px 3px),linear-gradient(145deg,#ffeba5,#e8b84f)!important;
  box-shadow:0 5px 5px #170a0755,0 0 10px #ffd97930,inset 0 2px #fff6cf,inset 0 0 18px #fff4b354!important;
 }
+/* Recessed side cheeks: taper inward beside the screen, then meet the shelf. */
+#studioApp #games .games-library.games-library::after{
+ background:
+ url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='shade'%3E%3Cstop stop-color='%230d0605' stop-opacity='.94'/%3E%3Cstop offset='1' stop-color='%2322110d' stop-opacity='.66'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 23 L9 37 L9 81 L3 93 L0 96Z' fill='url(%23shade)'/%3E%3Cpath d='M100 23 L91 37 L91 81 L97 93 L100 96Z' fill='url(%23shade)'/%3E%3Cpath d='M9 37 L9 81 L3 93 M91 37 L91 81 L97 93' fill='none' stroke='%23b17a54' stroke-opacity='.19' stroke-width='.35'/%3E%3C/svg%3E") center/100% 100% no-repeat,
+ linear-gradient(90deg,#291610 0%,#653b2c 17%,#754735 50%,#653b2c 83%,#291610 100%)!important;
+}
