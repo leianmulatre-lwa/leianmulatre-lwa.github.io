@@ -144,6 +144,7 @@
             '<button type="button" data-avatar-source="minecraft">Minecraft skin</button>'+
             '<button type="button" data-avatar-source="mii">Mii character maker</button>'+
             '<button type="button" data-avatar-source="imvu">IMVU / Unity</button>'+
+            '<button type="button" data-avatar-source="bitmoji">Snapchat Bitmoji</button>'+
           '</div><div class="biglwa-avatar-source" id="biglwaAvatarSource"></div>'+
           '<p id="biglwaAvatarStatus" role="status" aria-live="polite">Choose a character source to get started.</p>'+
         '</div></div>';
@@ -166,7 +167,13 @@
   function source(name){
     const mount=one('#biglwaAvatarSource');if(!mount)return;
     const input='<label class="biglwa-avatar-upload">Import image<input type="file" data-avatar-import accept="image/png,image/jpeg,image/webp" hidden></label>';
-    if(name==='minecraft'){
+    if(name==='bitmoji'){
+      mount.innerHTML='<p>Use the Bitmoji from your connected Snapchat account. Connect Snapchat in Orbit first, then return here.</p>'+ 
+        '<div id="biglwaBitmojiPreview" class="biglwa-bitmoji-preview"></div>'+ 
+        '<button type="button" data-bitmoji-refresh>Refresh Snapchat connection</button> '+
+        '<button type="button" data-bitmoji-save>Use my Bitmoji</button>';
+      renderBitmojiChoice();
+    }else if(name==='minecraft'){
       mount.innerHTML='<p>Your Minecraft character appears below. Import a skin PNG to wrap its texture around the head, body, arms, and legs, then rotate the character to inspect it.</p>'+
         '<div id="biglwaMinecraftEditorModel" class="biglwa-minecraft-editor-model" aria-label="3D Minecraft character preview"></div>'+
         '<div class="biglwa-minecraft-controls">'+
@@ -187,7 +194,7 @@
         '<button type="button" data-avatar-unity-open>Open installed Unity scene</button>';
     }
     mount.dataset.kind=name;
-    cardStatus(name);
+    if(name!=='bitmoji')cardStatus(name);
   }
   try{
     const avatarChannel=new BroadcastChannel('biglwa-avatar');
@@ -197,6 +204,40 @@
       state.loadedUid='';restore();
     });
   }catch{}
+  function renderBitmojiChoice(){
+    const root=one('#biglwaBitmojiPreview');if(!root)return;
+    root.replaceChildren();
+    const profile=window.BigLWAOrbitOAuth?.get?.('snapchat');
+    const saveButton=one('[data-bitmoji-save]');
+    const url=profile?.avatarUrl||'';
+    if(saveButton)saveButton.disabled=!url||!!profile.needsReauth;
+    if(!url){root.textContent=profile?'Snapchat connected, but no Bitmoji image was provided. Check Login Kit Bitmoji permissions.':'No Snapchat account connected yet. Connect Snapchat from Orbit.';return;}
+    const img=new Image();img.src=url;img.alt='Your Snapchat Bitmoji';img.referrerPolicy='no-referrer';
+    img.onerror=()=>{root.textContent='Snapchat Bitmoji image could not load.';if(saveButton)saveButton.disabled=true};
+    root.append(img);
+    setStatus('Snapchat Bitmoji available. Select Use my Bitmoji to save it to your profile.');
+  }
+  document.addEventListener('biglwa:new-orbit-status',()=>{if(one('#biglwaAvatarSource')?.dataset.kind==='bitmoji')renderBitmojiChoice()});
+  async function selectBitmoji(){
+    const profile=window.BigLWAOrbitOAuth?.get?.('snapchat');
+    if(!profile?.verifiedFromProvider||!profile.avatarUrl||profile.needsReauth){setStatus('Connect Snapchat in Orbit and authorize Bitmoji access first.');return}
+    if(state.busy)return;
+    state.busy=true;
+    try{
+      const f=await firebase();await f.auth.authStateReady();
+      const uid=f.auth.currentUser?.uid;
+      if(!uid)throw Error('Sign in to save your Bitmoji.');
+      const uri=new URL(profile.avatarUrl);
+      if(uri.protocol!=='https:'||uri.username||uri.password)throw Error('Snapchat provided an invalid avatar image.');
+      const savedUrl=uri.href;
+      await f.setDoc(f.doc(f.db,'users',uid),{studioAvatar:{type:'bitmoji',url:savedUrl,updatedAt:f.serverTimestamp()}},{mergeFields:['studioAvatar']});
+      if(f.auth.currentUser?.uid!==uid)throw Error('Account changed while saving.');
+      state.avatar={type:'bitmoji',url:savedUrl};showAvatar();
+      try{const channel=new BroadcastChannel('biglwa-avatar');channel.postMessage({type:'saved',uid});channel.close()}catch{}
+      window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:'bitmoji'}}));
+      setStatus('Snapchat Bitmoji saved to your BIG LWA profile.');
+    }catch(error){setStatus(error.message||'Bitmoji could not be saved.')}finally{state.busy=false}
+  }
   function cardStatus(name){
     setStatus(name==='mii'?'Original editor is ready to start on demand; Adobe AIR features may not work in a browser. Import a Mii PNG to save your avatar.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
   }
@@ -302,7 +343,7 @@
       const snap=await f.getDoc(f.doc(f.db,'users',user.uid));
       if(state.loadedUid!==user.uid)return;
       const avatar=snap.data()?.studioAvatar;
-      if(avatar?.url&&['minecraft','mii','imvu'].includes(avatar.type)&&(avatar.url.startsWith(API+'/media/profile-photo/')||avatar.url.startsWith(API+'/media/feed-image/'))){
+      if(avatar?.url&&['minecraft','mii','imvu','bitmoji'].includes(avatar.type)&&(avatar.url.startsWith(API+'/media/profile-photo/')||avatar.url.startsWith(API+'/media/feed-image/')||(avatar.type==='bitmoji'&&/^https:\/\/[^/]+\//.test(avatar.url)))){
         state.avatar={type:avatar.type,url:avatar.url,
           ...(avatar.type==='mii'&&avatar.preset?{preset:validateMiiPreset(avatar.preset)}:{})};
         showAvatar();sendSavedMiiToFrame();setStatus('Saved avatar restored from your account.');
@@ -469,6 +510,8 @@
     }
     const panel=e.target.closest('#profileAvatarEditor');
     if(!panel)return;
+    if(e.target.closest('[data-bitmoji-refresh]')){e.preventDefault();await window.BigLWAOrbitOAuth?.load?.();renderBitmojiChoice();return}
+    if(e.target.closest('[data-bitmoji-save]')){e.preventDefault();await selectBitmoji();return}
     const sourceButton=e.target.closest('[data-avatar-source]');
     if(sourceButton){e.preventDefault();source(sourceButton.dataset.avatarSource);return}
     if(e.target.closest('[data-avatar-unity-open]')){
