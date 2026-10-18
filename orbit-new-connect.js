@@ -27,8 +27,8 @@
    if(!callbackNotice)return;
    const id=callbackNotice.id;
    const name=id==='x'?'X':id==='snapchat'?'Snapchat':'Tumblr';
-   notice(callbackNotice.status==='connected'
-     ?name+' connected to your Big LWA account. Your public profile link can be saved separately.'
+   return notice(callbackNotice.status==='connected'
+     ?name+' authorization returned. Your saved Orbit connection is being checked.'
      :name+' connection was not completed. '+(callbackNotice.error||'Please retry from Orbit.'));
  }
  function firebase(){
@@ -69,7 +69,8 @@
  function configured(id){return config[id]||{configured:false,missing:[],checked:false}}
  function notice(message){
    const p=document.querySelector('#orbitPageStatus');
-   if(p){p.textContent=String(message);p.classList.toggle('ok',false)}
+   if(p){p.textContent=String(message);p.classList.toggle('ok',false);return true}
+   return false;
  }
  async function load(){
    if(refreshing)return refreshing;
@@ -140,7 +141,7 @@
  window.BigLWAOrbitOAuth=Object.freeze({load,connect,disconnect,get,configured,state});
  let callbackShown=false;
  const boot=()=>load().then(()=>{
-   if(!callbackShown){callbackShown=true;callbackMessage()}
+   if(!callbackShown){callbackShown=callbackMessage()!==false}
  }).catch(error=>console.warn('New Orbit OAuth bootstrap:',error));
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
  else boot();
