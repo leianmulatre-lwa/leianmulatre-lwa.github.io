@@ -22,6 +22,7 @@
  const config=Object.fromEntries(providerIds.map(id=>[id,{configured:false,missing:[],checked:false}]));
  const state={};
  let refsPromise=null,refreshing=null,loggedInUid='',authObserver=null;
+ let mirrorPromise=null;
  const notify=()=>document.dispatchEvent(new CustomEvent('biglwa:new-orbit-status'));
  function callbackMessage(){
    if(!callbackNotice)return;
@@ -107,9 +108,47 @@
          }else delete state[id];
        }
      }catch(error){console.warn('Orbit new provider restore:',error)}
+     if(loggedInUid)await mirrorProfiles(loggedInUid);
      notify();
    })();
    try{await refreshing}finally{refreshing=null}
+ }
+ async function mirrorProfiles(uid){
+   if(mirrorPromise)return mirrorPromise;
+   mirrorPromise=(async()=>{
+     const auth=await firebase();await auth.authStateReady();
+     if(auth.currentUser?.uid!==uid)return;
+     const {getFirestore,doc,getDoc,setDoc,serverTimestamp}=await import(
+       'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+     const db=getFirestore(auth.app),ref=doc(db,'users',uid);
+     const snapshot=await getDoc(ref);
+     if(auth.currentUser?.uid!==uid)return;
+     const profiles={};
+     for(const id of providerIds){
+       const row=state[id];if(!row?.verifiedFromProvider)continue;
+       let link='';
+       try{
+         const u=new URL(String(row.link||''));
+         const host=u.hostname.toLowerCase();
+         if(u.protocol==='https:'&&u.pathname!=='/'&&
+           (id==='x'&&['x.com','www.x.com','twitter.com','www.twitter.com'].includes(host)||
+            id==='tumblr'&&(host==='tumblr.com'||host==='www.tumblr.com'||host.endsWith('.tumblr.com'))||
+            id==='snapchat'&&['snapchat.com','www.snapchat.com'].includes(host)))link=u.href;
+       }catch{}
+       if(link)profiles[id]={link,name:String(row.name||id).slice(0,100),
+         label:id==='x'?'X':id==='tumblr'?'Tumblr':'Snapchat',
+         username:String(row.username||'').slice(0,80)};
+     }
+     const previous=snapshot.data()?.orbitConnectedProfiles||{};
+     if(JSON.stringify(previous)!==JSON.stringify(profiles)){
+       await setDoc(ref,{orbitConnectedProfiles:profiles,orbitProfilesUpdatedAt:serverTimestamp()},
+         {mergeFields:['orbitConnectedProfiles','orbitProfilesUpdatedAt']});
+     }
+     // The public usernames mirror is separate from the account-only record.
+     await window.__biglwaConnections?.publishPublicLinks?.();
+   })();
+   try{await mirrorPromise}catch(error){console.warn('Orbit public profile mirror:',error)}
+   finally{mirrorPromise=null}
  }
  async function connect(provider){
    if(!providerIds.includes(provider))throw Error('Unknown Orbit provider.');
@@ -136,7 +175,9 @@
    if(!providerIds.includes(provider))throw Error('Unknown provider.');
    const user=await token();
    await query(provider,'disconnect','POST',user.idToken);
-   delete state[provider];notify();
+   delete state[provider];
+   await mirrorProfiles(user.uid);
+   notify();
  }
  window.BigLWAOrbitOAuth=Object.freeze({load,connect,disconnect,get,configured,state});
  let callbackShown=false;
