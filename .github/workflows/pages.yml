@@ -54,6 +54,8 @@ jobs:
           node --check avatar/minecraft-mannequin.js
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
+          node games-arcade-test.mjs
+          node arcade-preservation-test.mjs
           node facebook-personal-sync-test.mjs
           node preview-isolation-test.mjs
           node orbit-oauth-repair-test.mjs
@@ -99,6 +101,8 @@ jobs:
             --exclude='.DS_Store'
       - name: Stage verified open-source ArtCraft browser editions
         run: python3 .github/scripts/stage-craft-apps.py "$RUNNER_TEMP/biglwa-public"
+      - name: Stage pinned self-hosted Flash emulator
+        run: python3 .github/scripts/stage-ruffle.py "$RUNNER_TEMP/biglwa-public"
       - name: Validate ArtCraft staging manifest
         run: |
           python3 -c "import json,pathlib,os; d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'biglwa-public/craftapps/manifest.json').read_text()); assert d['schema']==1 and len(d['apps'])==4"

@@ -4,9 +4,9 @@ const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const entry=read('index.html'), modules=read('module-pages.js'), css=read('orbit-cards-unified-20261016.css');
 const original=read('bootstrap-v2.html');
 const expected={
-  'module-pages.js':'20261017-account-content-2',
+  'module-pages.js':'20261017-arcade-preservation-3',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
-  'arcade-silhouette-corrected-20261017.css':'20261017-side-depth-7',
+  'arcade-silhouette-corrected-20261017.css':'20261017-upper-depth-9',
   'pinterest-orbit.js':'20261017-boards-label-3',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
   'account-boot.js':'20261017-account-data-6'
