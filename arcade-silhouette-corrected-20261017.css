@@ -420,3 +420,55 @@
     flex-basis:86px!important;height:86px!important;max-height:86px!important;
   }
 }
+
+/* 2026-10-17 unified folder marquee v11: final override */
+/* A low, cohesive gold file-folder instead of stacked rectangular plaques. */
+#studioApp #games .arcade-folder-depth.arcade-folder-depth{
+  position:relative!important; padding:3px 0 7px!important;
+  background:transparent!important; overflow:visible!important;
+}
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::before{
+  inset:-2px -1.5% 0!important;
+  clip-path:polygon(3% 0,97% 0,100% 7%,100% 91%,97% 100%,3% 100%,0 91%,0 7%)!important;
+  background:linear-gradient(180deg,#ffebaa 0%,#e8bb5b 14%,#c28a35 88%,#966023 100%)!important;
+  filter:none!important;
+}
+#studioApp #games .arcade-folder-depth.arcade-folder-depth::after{
+  inset:6px -1.5% -5px!important;
+  clip-path:polygon(0 0,4% 4%,4% 91%,96% 91%,96% 4%,100% 0,100% 92%,97% 100%,3% 100%,0 92%)!important;
+  background:linear-gradient(90deg,#a56b29,#e2ae53 9%,#f0c96f 50%,#d7a34b 91%,#91591f)!important;
+  filter:drop-shadow(0 4px 3px rgba(34,13,4,.32))!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand{
+  flex:0 0 88px!important;height:88px!important;max-height:88px!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand::before{
+  inset:0!important;z-index:0!important;
+  clip-path:polygon(0 13%,6% 0,59% 0,66% 13%,97% 13%,100% 19%,100% 100%,0 100%)!important;
+  border-radius:5px!important;transform:none!important;
+  background:linear-gradient(135deg,#fff1b9 0%,#e5b656 50%,#b57b2a 100%)!important;
+  box-shadow:inset 1px 2px 0 rgba(255,250,223,.8),inset -2px -2px 0 #98601e!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand::after{
+  inset:37% 1.5% 2%!important;z-index:2!important;
+  border:1px solid #a86e2a!important;border-radius:5px 5px 8px 8px!important;
+  transform:none!important;
+  background:linear-gradient(155deg,#fff0b1 0%,#efcd79 54%,#d8a444 100%)!important;
+  box-shadow:inset 0 2px 0 #fff9da,0 3px 4px rgba(55,25,7,.25)!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img:nth-child(2){
+  position:absolute!important;left:12%!important;top:6%!important;
+  width:39%!important;height:21%!important;max-height:none!important;
+  z-index:1!important;object-fit:contain!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand > img:first-child{
+  position:absolute!important;left:20%!important;top:45%!important;
+  width:60%!important;height:40%!important;max-height:none!important;
+  z-index:3!important;object-fit:contain!important;
+}
+@media(max-width:650px){
+  #studioApp #games .games-arcade-brand.games-arcade-brand{
+    flex-basis:82px!important;height:82px!important;max-height:82px!important;
+  }
+}
