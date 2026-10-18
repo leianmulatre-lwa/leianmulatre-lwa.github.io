@@ -170,9 +170,13 @@
     if(name==='bitmoji'){
       mount.innerHTML='<p>Use the Bitmoji from your connected Snapchat account. Connect Snapchat in Orbit first, then return here.</p>'+ 
         '<div id="biglwaBitmojiPreview" class="biglwa-bitmoji-preview"></div>'+ 
+        '<button type="button" data-bitmoji-orbit>Connect Snapchat in Orbit</button> '+
         '<button type="button" data-bitmoji-refresh>Refresh Snapchat connection</button> '+
         '<button type="button" data-bitmoji-save>Use my Bitmoji</button>';
       renderBitmojiChoice();
+      Promise.resolve().then(()=>window.BigLWAOrbitOAuth?.load?.()).then(
+        ()=>{if(mount.isConnected&&mount.dataset.kind==='bitmoji')renderBitmojiChoice()}
+      ).catch(error=>setStatus('Snapchat connection check: '+error.message));
     }else if(name==='minecraft'){
       mount.innerHTML='<p>Your Minecraft character appears below. Import a skin PNG to wrap its texture around the head, body, arms, and legs, then rotate the character to inspect it.</p>'+
         '<div id="biglwaMinecraftEditorModel" class="biglwa-minecraft-editor-model" aria-label="3D Minecraft character preview"></div>'+
@@ -510,6 +514,12 @@
     }
     const panel=e.target.closest('#profileAvatarEditor');
     if(!panel)return;
+    if(e.target.closest('[data-bitmoji-orbit]')){
+      e.preventDefault();
+      if(window.openBIGLWAModule)window.openBIGLWAModule('orbit');
+      else location.assign('/studio?view=orbit');
+      return;
+    }
     if(e.target.closest('[data-bitmoji-refresh]')){e.preventDefault();await window.BigLWAOrbitOAuth?.load?.();renderBitmojiChoice();return}
     if(e.target.closest('[data-bitmoji-save]')){e.preventDefault();await selectBitmoji();return}
     const sourceButton=e.target.closest('[data-avatar-source]');
@@ -834,7 +844,7 @@
 #studioApp #profileAvatarEditor .biglwa-avatar-profile-preview>small{font:650 11px system-ui}
 #studioApp #profileAvatarEditor .biglwa-avatar-editor-tools{display:grid;gap:12px;min-width:0}
 #studioApp #profileAvatarEditor .biglwa-avatar-actions{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0;
 }
 #studioApp #profileAvatarEditor .biglwa-avatar-actions button,
 #studioApp #profileAvatarEditor :is(.biglwa-avatar-upload,.biglwa-avatar-source button,.biglwa-avatar-source a){
