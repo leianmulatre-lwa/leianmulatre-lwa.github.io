@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const read=p=>fs.readFileSync(new URL('./'+p,import.meta.url),'utf8');
+const local=read('arcade/local.js'),localShell=read('arcade/local.html'),
+  puzzle=read('arcade-puzzles.html'),games=read('module-pages.js'),shell=read('index.html');
+assert.doesNotThrow(()=>new vm.Script(local),'Snake logic parses');
+const scripts=[...puzzle.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(x=>x[1]);
+scripts.forEach((script,i)=>assert.doesNotThrow(()=>new vm.Script(script),'Puzzle script '+i+' parses'));
+assert.match(local,/ctx\.fillStyle='#e83f4b'/,'Snake renders a red apple');
+assert.match(local,/food=\[11,10\]/,'Snake starts with a visible apple');
+assert.match(local,/e\.preventDefault\(\);steer\(d\)/,'Snake arrow keys suppress scrolling');
+assert.match(local,/type==='biglwa-arcade-key'/,'Snake accepts parent cabinet input');
+assert.match(localShell,/html\.biglwa-arcade-embed canvas/,'Snake fits viewport');
+assert.match(puzzle,/data-2048-direction="up"/,'2048 has an up arrow button');
+assert.match(puzzle,/data-2048-direction="left"/,'2048 has a left arrow button');
+assert.match(puzzle,/data-2048-direction="down"/,'2048 has a down arrow button');
+assert.match(puzzle,/data-2048-direction="right"/,'2048 has a right arrow button');
+assert.match(puzzle,/type==='biglwa-arcade-key'/,'2048 accepts parent cabinet keyboard');
+assert.match(games,/playing\.contentWindow\?\.postMessage/,'Parent forwards local game arrow inputs');
+assert.match(games,/while\(cycle\.length<9\)/,'Carousels fill more than one viewport');
+assert.match(games,/translateY\(calc\(-50% - 4\.5px\)\)/,'Carousel loop includes inter-card gap');
+assert.match(games,/title:'mini crossword'/,'Crossword game has correct name');
+assert.match(shell,/20261018-arcade-loop-oauth-proof-v15/,'Latest build marker is in page');
+console.log('PASS Snake apples + focus controls, 2048 keyboard + touch controls, seamless Arcade cycle and title.');
