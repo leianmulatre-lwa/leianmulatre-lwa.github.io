@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const get=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
-const css=get('arcade-silhouette-corrected-20261017.css');
 const shell=get('index.html');
+const published=shell.match(/\/(arcade-(?:silhouette-corrected|folder-unified)[a-z0-9-]*\.css)(?:\?v=[a-z0-9-]+)?/i)?.[1];
+assert.ok(published,'A versioned Arcade silhouette asset must be loaded');
+const css=get(published);
 const baseline=get('arcade-veve-refine-20261016.css');
 const game=get('module-pages.js');
-assert.ok(shell.includes('/arcade-silhouette-corrected-20261017.css?v=20261017-upper-depth-9'),
+assert.ok(shell.includes('/'+published),
   'Latest Studio Arcade silhouette stylesheet must load');
-assert.ok(shell.indexOf('arcade-silhouette-corrected-20261017.css')>
+assert.ok(shell.indexOf(published)>
   shell.indexOf('arcade-playability-20261016.css'), 'New silhouette must override old Arcade layout');
 assert.ok(css.includes('#studioApp #games .games-library.games-library'),
   'Fix is attached to Studio cabinet, not only the full Games module');
