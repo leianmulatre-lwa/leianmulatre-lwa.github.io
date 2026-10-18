@@ -548,6 +548,15 @@ async function loadPosts() {
   try {
     const { db, auth, collection, query, where, limit, getDocs } = await firebase();
     const user = auth.currentUser;
+    if(window.__biglwaPublicStorageView){
+      const owner=window.__biglwaViewedProfile;
+      posts=[];draftPosts=[];
+      if(owner?.uid&&owner.accountVisibility!=='private'){
+        const snap=await getDocs(query(collection(db,'users',owner.uid,'posts'),where('state','==','approved'),limit(FEED_SIZE)));
+        posts=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>postTimeMs(b)-postTimeMs(a));
+      }
+      renderPosts(true);renderDraftPanel();renderHero(true);return posts;
+    }
     let rootPosts = [];
     let profilePosts = [];
 
@@ -1622,3 +1631,5 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 else startFeed();
 
 export default startFeed;
+
+window.addEventListener('biglwa:public-profile-ready',()=>{setTimeout(()=>loadPosts(),100)});

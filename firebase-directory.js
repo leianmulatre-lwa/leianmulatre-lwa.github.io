@@ -141,39 +141,38 @@ export async function saveProfile(profile){
 }
 
 async function saveCustomizations(custom={}){
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return false;
   try{
-    const {db,auth}=await getFirebase();
-    const user=auth.currentUser;
-    if(!user)return false;
-    const {doc,getDoc,setDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
-    const ref=doc(db,"users",user.uid);
-    const snap=await getDoc(ref);
-    const existing=snap.exists()&&snap.data()?.customization&&typeof snap.data().customization==="object"?snap.data().customization:{};
-    const {appearance,wallpaper,layout,session}=custom||{};
-    const customization={
-      appearance:appearance&&typeof appearance==="object"?{...(existing.appearance||{}),...appearance}:(existing.appearance||{}),
-      wallpaper:wallpaper&&typeof wallpaper==="object"?{...(existing.wallpaper||{}),...wallpaper}:(existing.wallpaper||{}),
-      layout:layout&&typeof layout==="object"?{...(existing.layout||{}),...layout}:(existing.layout||{}),
-      session:session&&typeof session==="object"?{...(existing.session||{}),...session}:(existing.session||{})
-    };
-    await setDoc(ref,{customization,updatedAt:serverTimestamp()},{merge:true});
-    await savePublicLook({appearance,wallpaper});
-    return true;
-  }catch(err){
-    console.warn("[BIGLWA] Customization sync unavailable:",err);
-    return false;
-  }
+    const {db,auth}=await getFirebase();await auth.authStateReady();const user=auth.currentUser;if(!user)return false;
+    const {doc,runTransaction,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const ref=doc(db,'users',user.uid);
+    const customization=await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref),existing=snap.data()?.customization||{},next={...existing};
+      for(const key of ['appearance','wallpaper','layout','session'])if(custom[key]&&typeof custom[key]==='object')next[key]={...(existing[key]||{}),...custom[key]};
+      tx.set(ref,{customization:next,updatedAt:serverTimestamp()},{merge:true});return next;
+    });
+    await savePublicLook(customization);return true;
+  }catch(err){console.warn('[BIGLWA] Customization sync unavailable:',err);return false;}
 }
 
 /* Public projection of a member's look. Written into the already-public
  * usernames doc so signed-out visitors can render a studio preview without
  * ever reading the owner-only users doc. Settings only, never media. */
+function sanitizeLayout(raw){
+ const value=raw&&typeof raw==='object'?raw:{},order={};
+ const cleanIds=items=>Array.isArray(items)?[...new Set(items.filter(x=>typeof x==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(x)))].slice(0,80):[];
+ for(const key of ['heroWidgetRail','biglwaStudioMasonry'])if(value.order?.[key])order[key]=cleanIds(value.order[key]);
+ return {order,docked:cleanIds(value.docked)};
+}
 async function savePublicLook(custom={}){
   try{
     const {db,auth}=await getFirebase();
     const user=auth.currentUser;
-    const username=localUsername();
-    if(!user||!username)return false;
+    if(!user)return false;
+    const sdk=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const account=(await sdk.getDoc(sdk.doc(db,'users',user.uid))).data()||{};
+    const username=normalize(account.usernameLower||account.username);
+    if(!username)return false;
     const {doc,setDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
     const appearance=(custom&&typeof custom.appearance==="object"&&custom.appearance)||{};
     const wallpaper=(custom&&typeof custom.wallpaper==="object"&&custom.wallpaper)||{};
@@ -183,6 +182,7 @@ async function savePublicLook(custom={}){
       widgetOpacity:safeNumber(appearance.opacity,100),
       widgetBlur:safeNumber(appearance.blur,0),
       auraColor:safeText(appearance.aura,32),
+      layout:account.accountVisibility==='private'?{}:sanitizeLayout(custom.layout),
       wallpaper:{
         fit:safeText(wallpaper.fit,16),
         blur:safeNumber(wallpaper.blur,0),
@@ -275,6 +275,7 @@ async function loadPublicProfile(rawUsername){
       journalVisibility:data.journalVisibility==='public'?'public':'private',
       publicJournal:data.journalVisibility==='public'?String(data.publicJournal||'').slice(0,12000):'',
       look:look?{
+        layout:data.accountVisibility==='private'?{}:sanitizeLayout(look.layout),
         appearance:{
           widgetColor:clean(look.widgetColor),
           widgetRadius:safeNumber(look.widgetRadius,0),
@@ -317,7 +318,7 @@ async function loadProfile(){
     return {
       profile:{
         name:clean(data.name),
-        username:clean(data.username),
+        username:clean(data.usernameLower||data.username),
         bio:clean(data.bio),
         location:clean(data.location),
         website:clean(data.website),
@@ -330,7 +331,7 @@ async function loadProfile(){
     };
   }catch(err){
     console.warn("[BIGLWA] Profile download unavailable:",err);
-    return null;
+    throw err;
   }
 }
 
@@ -338,17 +339,20 @@ async function downloadAccountToDevice(){
   window.__biglwaAccountHydrated=false;
   try{
     const {auth}=await getFirebase();
-    if(!auth.currentUser){window.__biglwaAccountHydrated=false;return false;}
+    if(!auth.currentUser){window.__biglwaAccountHydrated=false;window.__biglwaRemoteCustomization=null;return false;}
+    const owner=auth.currentUser.uid;
     const remote=await loadProfile();
+    if(auth.currentUser?.uid!==owner)return false;
     if(remote&&typeof remote==="object"){
       window.__biglwaRemoteCustomization=remote;
       window.dispatchEvent(new CustomEvent("biglwa:customization-remote",{detail:remote}));
     }
     window.__biglwaAccountHydrated=true;
+    if(remote&&!window.__biglwaPublicStorageView)await savePublicLook(remote.customization);
     return !!remote;
   }catch(err){
     console.warn("[BIGLWA] Account download skipped:",err);
-    window.__biglwaAccountHydrated=true;
+    window.__biglwaAccountHydrated=false;
     return false;
   }
 }
@@ -408,12 +412,18 @@ async function loadArchiveForUsername(rawUsername){
   if(!validUsername(username))return [];
   try{
     const {db}=await getFirebase();
-    const {doc,getDoc,collection,getDocs}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const {doc,getDoc,collection,getDocs,query,where}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
     const directorySnap=await getDoc(doc(db,"usernames",username));
     if(!directorySnap.exists())return [];
     const uid=clean(directorySnap.data()?.uid);
     if(!uid)return [];
-    const snap=await getDocs(collection(db,"users",uid,"archive"));
+    const ref=collection(db,"users",uid,"archive");
+    const {auth}=await getFirebase();await auth.authStateReady();
+    let snap;
+    if(auth.currentUser?.uid===uid)snap=await getDocs(ref);
+    else{
+      try{snap=await getDocs(ref)}catch{snap=await getDocs(query(ref,where('state','==','approved')))}
+    }
     return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.sourceCreatedAt||"").localeCompare(String(a.sourceCreatedAt||"")));
   }catch(err){
     console.warn("[BIGLWA] Archive unavailable:",err);
@@ -428,8 +438,7 @@ window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCusto
     const {auth}=await getFirebase();
     const {onAuthStateChanged}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js");
     onAuthStateChanged(auth,()=>setTimeout(async()=>{
-      await autoSyncSignedInAccount();
-      await downloadAccountToDevice();
+      try{await downloadAccountToDevice()}catch(error){console.warn('Account restore failed:',error)}
     },0));
   }catch(err){
     console.warn("[BIGLWA] Firebase auth bridge unavailable:",err);

@@ -27,7 +27,16 @@
   const readJson=(key,fallback=null)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
   const scopedLayoutKey=()=>LAYOUT_LOCAL_PREFIX+layoutUid();
   const scopedLayout=()=>readJson(scopedLayoutKey(),null);
-  let cloudLayoutTimer=0;
+  let cloudLayoutTimer=0,pendingLayout=null;
+  async function flushLayout(){
+    if(!pendingLayout||window.__biglwaAccountHydrated!==true||window.__biglwaPublicStorageView)return;
+    const item=pendingLayout,snapshot=item.snapshot;if(item.uid!==layoutUid()){pendingLayout=null;return}
+    const saved=await window.BigLWAUserDirectory?.saveCustomizations?.({layout:snapshot});
+    if(saved&&pendingLayout===item)pendingLayout=null;
+    else if(!saved)console.warn('Studio layout remains cached; cloud sync will retry.');
+  }
+  window.addEventListener('online',flushLayout);
+  window.addEventListener('biglwa:customization-remote',()=>setTimeout(flushLayout,50));
   function defaultPriority(key){
     const i=IMPORTANT_FIRST.indexOf(String(key||'').toLowerCase());
     return i<0?IMPORTANT_FIRST.length:i;
@@ -72,6 +81,7 @@
     }
   }
   function restoreLocalStudioOrder(app){
+    if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
     if(!app)return;
     const uid=layoutUid();
     const saved=scopedLayout();
@@ -96,6 +106,7 @@
     }
   }
   function syncLayoutToAccount(){
+    if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
     // Call only after manual reorder, minimize/restore or shortcut modification.
     const app=$('#studioApp');
     if(!app)return;
@@ -110,17 +121,19 @@
       localStorage.setItem('biglwaWidgetOrder',JSON.stringify(snapshot.order));
       localStorage.setItem(scopedLayoutKey(),JSON.stringify(snapshot));
     }catch{}
+    pendingLayout={uid:layoutUid(),snapshot};
     clearTimeout(cloudLayoutTimer);
     cloudLayoutTimer=setTimeout(async()=>{
       if(window.__biglwaAccountHydrated!==true||!window.BigLWAUserDirectory?.saveCustomizations)return;
       const latest=scopedLayout();
       if(!latest||latest.updatedAtMs!==snapshot.updatedAtMs)return;
-      await window.BigLWAUserDirectory.saveCustomizations({layout:snapshot});
+      await flushLayout();
     },650);
   }
   window.BigLWAStudioLayout={
     snapshot:()=>scopedLayout(),
     save:()=>syncLayoutToAccount(),
+    applyPublic:layout=>{applyRemoteLayout(layout||{});applyStudioOrder($('#studioApp'),layout?.order||{});},
     apply:()=>{const app=$('#studioApp');if(app)applyStudioOrder(app,scopedLayout()?.order)}
   };
 
@@ -1074,6 +1087,7 @@
   }
 
   function applyRemoteCustomization(remote){
+    if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
     if(!remote||typeof remote!=='object')return;
     window.__biglwaRemoteCustomization=remote;
     const profile=remote.profile;
@@ -1100,6 +1114,7 @@
       const localTime=Number(local?.updatedAtMs)||0;
       const remoteTime=Number(remoteLayout?.updatedAtMs)||0;
       const chosen=localTime>remoteTime?local:remoteLayout;
+      if(localTime>remoteTime){pendingLayout={uid:layoutUid(),snapshot:local};setTimeout(flushLayout,600);}
       if(chosen&&typeof chosen==='object'){
         try{
           localStorage.setItem(scopedLayoutKey(),JSON.stringify(chosen));
