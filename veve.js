@@ -5,7 +5,7 @@
   if(window.BigLWAVeve)return;
   const CDN='https://www.gstatic.com/firebasejs/12.18.0/';
   const groups=['politc','photos','sqwibs','pinterest','rooms','games','books','closet','mcm','ads'];
-  const names={photos:'collective photos',sqwibs:'sqwibs',pinterest:'pinterest vibe',rooms:'the lounge',politc:'politc',mcm:'mcm',games:'arcade',books:'books',closet:'closet',ads:'sponsored'};
+  const names={photos:'collective photos',sqwibs:'sqwibz',pinterest:'pinterest vibe',rooms:'the lounge',politc:'politc',mcm:'mcm',games:'arcade',books:'books',closet:'closet',ads:'sponsored'};
   const route={rooms:'rooms',politc:'politc',mcm:'politc',games:'games',books:'library',closet:'closet',pinterest:'boards',photos:'feed',sqwibs:'notes'};
   const e=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const safeUrl=v=>{try{const p=new URL(String(v||''));return p.protocol==='https:'?p.href:''}catch{return ''}};
