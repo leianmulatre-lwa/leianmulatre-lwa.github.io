@@ -581,7 +581,7 @@
     .module-game-submit .module-status{margin:0}
     .night-mode .module-game-tile{border-color:#514a45;background:#302c2a}
     .night-mode .module-game-form label>span{color:#b6aaa2}
-    @keyframes biglwaModuleArcadeScroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+    @keyframes biglwaModuleArcadeScroll{from{transform:translateY(0)}to{transform:translateY(calc(-50% - 4.5px))}}
     @media (prefers-reduced-motion:reduce){.module-game-track,.module-arcade-folder-depth::after{animation:none!important}}
     @media(max-width:850px){.module-game-viewport{height:290px}.module-game-form{grid-template-columns:1fr}}
     @media(max-width:560px){.module-game-stage{padding:15px 14px 108px!important;border-width:8px!important}.module-game-viewport{grid-template-columns:repeat(2,minmax(0,1fr));height:310px}.module-game-track:nth-child(3){display:none}.module-game-stage-head{grid-template-columns:1fr;justify-items:center;gap:3px;margin-inline:4px!important;padding-inline:18px}.module-game-stage-head>span{font-size:8px}.module-arcade-marquee img:first-child{height:67px!important}.module-arcade-controls{left:17px!important;right:17px!important;gap:16px!important}.module-arcade-joystick{transform:scale(.86);transform-origin:50% 100%}}
@@ -1800,7 +1800,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'number grid',image:'/assets/arcade/number-grid.svg',href:location.origin+'/arcade/local.html?game=sudoku'},
       {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
       {title:'2048',image:'/assets/arcade/2048.svg',href:location.origin+'/arcade-puzzles.html?game=2048'},
-      {title:'crossword',image:'/assets/arcade/crossword.svg',href:location.origin+'/arcade-puzzles.html?game=crossword'},
+      {title:'mini crossword',image:'/assets/arcade/crossword.svg',href:location.origin+'/arcade-puzzles.html?game=crossword'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-and-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
@@ -1819,7 +1819,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const tile=(game,index)=>game.internal==='cultureQuiz'
       ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
       :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="Play '+esc(game.title)+' in the arcade"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>choose ▶</small></button>';
-    const track=items=>items.concat(items).map(game=>tile(game,gameLibrary.indexOf(game))).join('');
+    const track=items=>{
+      // The visible frame can exceed five cards in height. Repeat the source
+      // playlist until a full cycle is taller than the viewport; THEN clone
+      // that cycle once for a gap-free, seamless escalator.
+      const cycle=[];while(cycle.length<9)cycle.push(...items);
+      const complete=cycle.slice(0,Math.max(9,cycle.length));
+      return complete.concat(complete).map(game=>tile(game,gameLibrary.indexOf(game))).join('');
+    };
     const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>Play in screen</button><a class="module-action ghost" href="'+href+'">Original site →</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
@@ -2024,7 +2031,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       // Keep BIG LWA's own puzzles in compact in-cabinet mode, rather than
       // cropping their full standalone page inside a short external frame.
       const framed=new URL(uri.href);
-      if(framed.origin===location.origin&&framed.pathname==='/arcade-puzzles.html')framed.searchParams.set('embed','1');
+      if(framed.origin===location.origin){
+        if(['/arcade-puzzles.html','/arcade/local.html'].includes(framed.pathname))
+          framed.searchParams.set('embed','1');
+        framed.searchParams.set('release','20261018-arcade-input-2');
+      }
       frame.src=framed.href;
       frame.tabIndex=0;
       frame.title='In-screen player for '+game.title;
@@ -2045,6 +2056,21 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         },{once:true});
       }
     };
+    // If the Arcade cabinet has focus while its frame is not focused, arrow
+    // keys must still reach 2048/Snake instead of scrolling the page.
+    // No key forwarding to third-party frames or while typing elsewhere.
+    document.addEventListener('keydown',ev=>{
+      if(!emulatorScreen.isConnected||!emulatorScreen.classList.contains('is-embed')
+         ||workspace.dataset.moduleKey!=='games'
+         ||ev.target.closest('input,textarea,[contenteditable="true"]'))return;
+      const key=ev.key,playing=emulatorScreen.querySelector('iframe');
+      if(!playing||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d','W','A','S','D'].includes(key))return;
+      let origin;
+      try{origin=new URL(playing.src).origin}catch{return}
+      if(origin!==location.origin)return;
+      ev.preventDefault();
+      playing.contentWindow?.postMessage({type:'biglwa-arcade-key',key},location.origin);
+    },true);
     // First attempt the original host directly; never proxy, copy, or rewrite
     // third-party frame security headers or claim to host their game.
     const playGame=game=>{
