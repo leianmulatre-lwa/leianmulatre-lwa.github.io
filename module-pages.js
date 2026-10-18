@@ -1403,8 +1403,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           button.textContent='Make private Sqwibz note';button.addEventListener('click',()=>{
             // Use the existing collection's '+ New note' control so cloud
             // persistence and the Studio preview keep working.
-            const newNote=section.closest('.module-card')?.querySelector('.writing-collection-new');
-            if(newNote)newNote.click();else area.value='';
+            const newNote=section.parentElement?.querySelector('.writing-collection-new');
+            if(newNote)newNote.click();else {notice.textContent='Private notes collection is still loading. Retry in a moment.';return}
             area.value=String(row.text||'').slice(0,1200);
             area.dispatchEvent(new Event('input',{bubbles:true}));
             notice.textContent='Created a private Sqwibz draft. Review before publishing.';
