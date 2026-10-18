@@ -37,7 +37,10 @@ const safeText=(v,max=64)=>clean(v).slice(0,max);
 const SOCIAL_HOSTS={
   instagram:["instagram.com","www.instagram.com"],
   tiktok:["tiktok.com","www.tiktok.com"],
-  pinterest:["pinterest.com","www.pinterest.com"]
+  pinterest:["pinterest.com","www.pinterest.com"],
+  x:["x.com","www.x.com","twitter.com","www.twitter.com"],
+  snapchat:["snapchat.com","www.snapchat.com"],
+  tumblr:["tumblr.com","www.tumblr.com"]
 };
 
 function localUsername(){
@@ -213,7 +216,9 @@ function readSocials(raw){
     let parsed;
     try{parsed=new URL(url)}catch{return []}
     if(parsed.protocol!=="https:")return [];
-    if(!SOCIAL_HOSTS[id].includes(parsed.hostname.toLowerCase()))return [];
+    const host=parsed.hostname.toLowerCase();
+    if(!SOCIAL_HOSTS[id].includes(host)&&!(id==='tumblr'&&host.endsWith('.tumblr.com')))return [];
+    if(['x','snapchat','tumblr'].includes(id)&&(!parsed.pathname||parsed.pathname==='/'))return [];
     return [{
       id,
       label:safeText(entry.label,32)||id,
