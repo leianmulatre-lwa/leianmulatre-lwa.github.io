@@ -51,6 +51,8 @@ jobs:
           node writing-collections-test.mjs
           node --check feed-view.js
           node --check avatar-studio.js
+          node --check avatar-studio-bitmoji-20261017-v3.js
+          node --check orbit-new-connect-20261017-v5.js
           node --check avatar/minecraft-mannequin.js
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
