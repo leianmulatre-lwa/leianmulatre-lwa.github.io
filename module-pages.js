@@ -559,6 +559,8 @@
     .module-game-stage-head p{margin:0!important}
     .module-game-stage-head span{font:700 9px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:#8b8179}
     .module-game-viewport{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;height:330px;overflow:hidden;position:relative;padding:3px 0;border-radius:16px;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 93%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 93%,transparent 100%)}
+    .arcade-frame-keypad{display:flex;justify-content:center;align-items:center;gap:5px;margin:5px 0}
+    .arcade-frame-keypad button{min-width:34px!important;height:30px;padding:2px 7px!important;font-size:19px}
     .module-game-track{display:flex;flex-direction:column;gap:9px;min-width:0;animation:biglwaModuleArcadeScroll 32s linear infinite}
     .module-game-track:nth-child(2){animation-duration:38s;animation-delay:-12s}
     .module-game-track:nth-child(3){animation-duration:35s;animation-delay:-21s}
@@ -1957,7 +1959,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const link=document.createElement('a');
       link.className='module-action'+(extraClass?' '+extraClass:'');
       link.href=uri.href;
-      link.target='_self';
+      link.target=uri.origin===location.origin?'_self':'_blank';
       link.rel='noopener noreferrer';
       link.textContent=text;
       return link;
@@ -2061,6 +2063,26 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       frame.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
       const deck=document.createElement('div');
       deck.className='arcade-player-deck';
+      // The cabinet itself owns a directional pad: pointer buttons always
+      // reach same-origin game frames even when iframe focus is unreliable.
+      if(framed.origin===location.origin &&
+         ['/arcade/local.html','/arcade-puzzles.html'].includes(framed.pathname) &&
+         !framed.searchParams.has('external')){
+        const pad=document.createElement('div');
+        pad.className='arcade-frame-keypad';
+        pad.setAttribute('role','group');pad.setAttribute('aria-label','Game movement controls');
+        for(const [key,mark] of [['ArrowUp','↑'],['ArrowLeft','←'],['ArrowDown','↓'],['ArrowRight','→']]){
+          const control=document.createElement('button');control.type='button';
+          control.className='module-action ghost';
+          control.textContent=mark;control.setAttribute('aria-label','Move '+key.slice(5).toLowerCase());
+          control.addEventListener('click',()=>{
+            frame.contentWindow?.postMessage({type:'biglwa-arcade-key',key},location.origin);
+            try{frame.focus({preventScroll:true})}catch{}
+          });
+          pad.append(control);
+        }
+        deck.append(pad);
+      }
       const help=document.createElement('span');
       help.textContent=uri.origin===location.origin?'Playing here on BIG LWA.':'External hosts can refuse embedding. If this screen stays blank, choose Local games.';
       deck.append(help,makeAction('Game links','arcadePreview','ghost'),makeAction('Local games','arcadeLocal','ghost'),makeAction('Fullscreen','arcadeFullscreen','ghost'));
@@ -2091,13 +2113,16 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // third-party frame security headers or claim to host their game.
     const playGame=game=>{
       if(!game?.href)return;
-      showGameLinks(game);
+      selectedGame=game;
       try{
-        // Hosts that deny iframes must not be forced into an unusable game window.
-        // Keep an explicit Try in this screen option for members who want it.
         const target=new URL(game.href);
-        if(target.hostname!=='store.steampowered.com'&&!restrictsEmbed(target))tryEmbedded();
+        // A tile launches gameplay immediately whenever its provider allows
+        // embedding. Restricted games display a launcher with an external-tab link.
+        if(target.hostname!=='store.steampowered.com'&&!restrictsEmbed(target)){
+          emulatorScreen.classList.add('is-playing');tryEmbedded();return;
+        }
       }catch{}
+      showGameLinks(game);
     };
     emulatorScreen.addEventListener('click',async event=>{
       const target=event.target.closest('button');
