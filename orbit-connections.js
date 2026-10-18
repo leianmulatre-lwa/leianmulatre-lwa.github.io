@@ -317,7 +317,7 @@ function publicLink(id, record) {
   if (url.protocol !== "https:") return null;
   const host = url.hostname.toLowerCase();
   const allowed=(PUBLIC_HOSTS[id]||[]).includes(host)
-    || (id==='tumblr' && host.endsWith('.tumblr.com'));
+    || ((id==='tumblr' && host.endsWith('.tumblr.com')) || (id==='snapchat' && host.endsWith('.snapchat.com')));
   if(!allowed || (['snapchat','x','tumblr'].includes(id) && (!url.pathname || url.pathname==='/')))return null;
   return {
     id,
