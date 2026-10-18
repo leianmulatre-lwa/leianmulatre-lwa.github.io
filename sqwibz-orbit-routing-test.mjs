@@ -11,7 +11,7 @@ assert.ok(pages.includes("const playGame=game=>")&&pages.includes("if(target.hos
 assert.ok(pages.includes('arcade-frame-keypad')&&pages.includes('frame.contentWindow?.postMessage'),'2048 direction pad forwards into emulator');
 assert.ok(links.includes("anchor.setAttribute('target','_blank')")&&links.includes("url.origin===location.origin"),'Outbound links use new tabs but local navigation remains in site');
 assert.ok(pages.includes("notes:'Sqwibz'")&&ui.includes("return 'Sqwibz'"),'Sqwibz navigation names use new name');
-assert.ok(recovery.includes("data-dock-widget=\\"politc\\"")&&recovery.includes("dataset.widgetId='politc'"),'Politic widget docks to toolbar');
+assert.ok(recovery.includes('data-dock-widget="politc"')&&recovery.includes("dataset.widgetId='politc'"),'Politic widget docks to toolbar');
 assert.ok(worker.includes("async function oaTextImports")&&worker.includes("action==='imports'"),'X/Tumblr authenticated imports backend exists');
 assert.ok(pages.includes('sqwibzOrbitImports')&&pages.includes("sqwibzOrbitImports:imported"),'Imported posts saved privately to owner account');
 assert.ok(pages.includes("Make private Sqwibz note")&&pages.includes(".writing-collection-new"),'An imported post creates a separate draft');
