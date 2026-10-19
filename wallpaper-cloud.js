@@ -77,7 +77,7 @@ function localUsername() {
     const value = clean(saved?.username).replace(/^@/, '').toLowerCase();
     if (value && /^[a-z0-9._-]{5,24}$/.test(value)) return value;
   } catch {}
-  return clean(document.getElementById('loginUsername')?.value).replace(/^@/, '').toLowerCase();
+  return clean(window.__biglwaIdentity?.username).replace(/^@/, '').toLowerCase();
 }
 
 async function isAdmin(force = false) {
