@@ -7,7 +7,8 @@ const shell=read('index.html'),boundary=read('studio-account-boundary-20261019.j
   chrome=read('ui-coherence.js'),identity=read('account-identity.js'),
   dir=read('firebase-directory.js'),publicPreview=read('studio-preview.js'),
   styles=read('studio-appearance.js'),modules=read('module-pages.js'),
-  wallpaper=read('wallpaper-cloud.js'),rules=read('firestore.rules');
+  wallpaper=read('wallpaper-cloud.js'),rules=read('firestore.rules'),
+  music=read('studio-experience.js'),orbit=read('orbit-account-links.js'),storage=read('account-storage.js');
 assert.doesNotThrow(()=>new Script(boundary),'Privacy gate must parse');
 assert.match(shell,/class="biglwa-startup-protected"/,'Generated app must be hidden before CSS/scripts paint');
 assert.match(shell,/studio-account-boundary-20261019\.js/,'Privacy boundary loaded before other Studio scripts');
@@ -28,4 +29,64 @@ assert.match(styles,/const ownedKey=base=>activeUid\(\)/,'Widget preferences use
 assert.match(styles,/Math\.max\(\.72,/,'Widget opacity cannot make backgrounds disappear');
 assert.match(rules,/match \/users\/\{userId\} \{[\s\S]*?allow read, create, delete: if isOwner\(userId\)/,'Owner Firestore rule in source');
 assert.match(rules,/match \/posts\/\{postId\} \{[\s\S]*?allow read: if resource\.data\.state == 'approved'/,'Collective posts stay draft-private');
-console.log('PASS privacy-gated first paint, UID account cache, cross-owner restore denial, neutral new-user defaults, widget readability and source Firestore policy');
+
+assert.match(shell,/id="biglwa-first-paint"/,'Initial response paints the same red curtain, not an ivory flash');
+assert.match(music,/return 'music:'\+uid/,'Locally stored tracks are keyed to verified owner');
+assert.doesNotMatch(music,/dbGet\('music'\)/,'No shared-browser music slot');
+assert.match(music,/biglwaGuestChecksLocalV2:/,'Guest Check does not reuse other people's local notes');
+assert.doesNotMatch(orbit,/localStorage\.setItem\('biglwaOrbitLinks'/,'Orbit cannot publish a shared-browser cache');
+assert.match(storage,/legacyOwner===uid\?policy\.keys:\[\]/,'Legacy collections require matching historical owner');
+assert.match(boundary,/if\(html\.classList\.contains\('biglwa-preview-mode'\)\)/,'Public profile stays masked until viewed owner's data loads');
+
+// Exercise the startup boundary with two separate Firebase identities, both given
+// the same stale founder DOM. The actual renderer must discard those seeded details.
+function simulateMember(uid, identityUid=uid){
+  const classNames=new Set(['biglwa-startup-protected']);
+  const html={classList:{
+    contains:v=>classNames.has(v),add:v=>classNames.add(v),remove:v=>classNames.delete(v)
+  }};
+  function stub(content){
+    return {textContent:content,style:{removeProperty(){}},classList:{remove(){}},replaceChildren(){this.textContent=''}};
+  }
+  const seeded=new Map([
+    ['.profile-display-name',stub('Leian Stanley')],
+    ['.profile-name-line h1',stub('@founder')],
+    ['.profile-card .bio',stub('Founder's private biography')],
+    ['.profile-card .meta-row span',stub('Founders location')],
+    ['.profile-card .meta-row a',stub('founder.com')],
+    ['.profile-rail-location',stub('Founder City')],
+    ['.aura-card p',stub('Founder Aura')],
+    ['.weekly-mood-value',stub('Founder Mood')],
+    ['.profile-card .stats',stub('1.2k Followers')],
+    ['.profile-avatar',stub('LS')],
+    ['.mini-avatar',stub('LS')]
+  ]);
+  const app={dataset:{},style:{setProperty(){}},classList:{contains(){return true}}};
+  const doc={
+    readyState:'complete',documentElement:html,addEventListener(){},
+    getElementById:id=>id==='studioApp'?app:null,
+    querySelectorAll:selector=>{const value=seeded.get(selector.replace(/^#studioApp /,''));return value?[value]:[]}
+  };
+  const win={BigLWAAccountStorage:{uid,isReady:true},
+    __biglwaIdentity:{uid:identityUid,name:'New Member '+uid,username:'member'+uid},
+    __biglwaAccountHydrated:true,
+    addEventListener(){}};
+  new Script(boundary).runInNewContext({
+    window:win,document:doc,location:{pathname:'/studio',search:''},
+    URLSearchParams,Date,clearInterval(){},setInterval(){return 1}
+  });
+  return {classNames,seeded,app};
+}
+for(const uid of ['usera','userb']){
+ const state=simulateMember(uid);
+ assert.equal(state.seeded.get('.profile-display-name').textContent,'New Member '+uid);
+ assert.equal(state.seeded.get('.profile-card .bio').textContent,'Tell your story. This space belongs to you.');
+ assert.equal(state.seeded.get('.profile-name-line h1').textContent,'@member'+uid);
+ assert.equal(state.seeded.get('.aura-card p').textContent,'Add your own Aura.');
+ assert.equal(state.seeded.get('.profile-card .stats').textContent,'');
+ assert.ok(!state.classNames.has('biglwa-startup-protected'),'Verified owner may see own Studio');
+}
+const mismatch=simulateMember('userb','usera');
+assert.ok(mismatch.classNames.has('biglwa-startup-protected'),'Mismatched UID must not expose another account');
+
+console.log('PASS two-account owner-isolation startup simulation, dark-first paint, UID-scoped media and Orbit, verified legacy import, widget backgrounds and Firestore source assertions');
