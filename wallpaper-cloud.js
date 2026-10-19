@@ -71,7 +71,9 @@ function onAuthStateChange(handler) {
 
 function localUsername() {
   try {
-    const saved = JSON.parse(localStorage.getItem('biglwaProfileDetails') || 'null');
+    const uid=window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid;
+    if(!uid) return '';
+    const saved = JSON.parse(localStorage.getItem('biglwaOwnProfileV1:'+uid) || 'null');
     const value = clean(saved?.username).replace(/^@/, '').toLowerCase();
     if (value && /^[a-z0-9._-]{5,24}$/.test(value)) return value;
   } catch {}
