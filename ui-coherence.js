@@ -89,6 +89,7 @@
     if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
     if(!app)return;
     const uid=layoutUid();
+    if(uid==='guest')return;
     const saved=scopedLayout();
     const legacyOwner='biglwaLegacyLayoutOwnerV4';
     let owner='';try{owner=localStorage.getItem(legacyOwner)||''}catch{}
@@ -1109,8 +1110,8 @@
       }
     }
     const custom=remote.customization&&typeof remote.customization==='object'?remote.customization:{};
-    if(custom.appearance&&typeof custom.appearance==='object'){try{localStorage.setItem('biglwaWidgetStyle',JSON.stringify(custom.appearance))}catch{}}
-    if(custom.wallpaper&&typeof custom.wallpaper==='object'){try{localStorage.setItem('biglwaWallpaperSettings',JSON.stringify(custom.wallpaper))}catch{}}
+    if(custom.appearance&&typeof custom.appearance==='object'){try{localStorage.setItem('biglwaWidgetStyle:'+ownUid(),JSON.stringify(custom.appearance))}catch{}}
+    if(custom.wallpaper&&typeof custom.wallpaper==='object'){try{localStorage.setItem('biglwaWallpaperSettings:'+ownUid(),JSON.stringify(custom.wallpaper))}catch{}}
     if(custom.layout&&typeof custom.layout==='object'){
       const remoteLayout=custom.layout,local=scopedLayout();
       // Never allow a delayed Firebase read to jump widgets back after the
