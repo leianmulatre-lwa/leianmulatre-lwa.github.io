@@ -51,7 +51,7 @@ function simulateMember(uid, identityUid=uid){
   const seeded=new Map([
     ['.profile-display-name',stub('Leian Stanley')],
     ['.profile-name-line h1',stub('@founder')],
-    ['.profile-card .bio',stub('Founder's private biography')],
+    ['.profile-card .bio',stub('Previous member private biography')],
     ['.profile-card .meta-row span',stub('Founders location')],
     ['.profile-card .meta-row a',stub('founder.com')],
     ['.profile-rail-location',stub('Founder City')],
