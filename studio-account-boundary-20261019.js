@@ -44,7 +44,8 @@
    const app=doc.getElementById('studioApp');
    if(!app || !window.BigLWAAccountStorage?.isReady)return;
    if(isPublicProfile()){
-     if(html.classList.contains('biglwa-preview-mode')||Date.now()-began>6000)reveal();
+     if(html.classList.contains('biglwa-preview-mode')){reveal();return;}
+     if(Date.now()-began>10000){const studio=doc.getElementById('studioApp');if(studio){studio.hidden=true;studio.style.setProperty('display','none','important');}const login=doc.getElementById('loginPage');if(login){login.hidden=false;login.classList.add('is-active');const message=login.querySelector('#loginMessage');if(message)message.textContent='This profile could not be loaded safely. Refresh to try again.';}reveal();}
      return;
    }
    const uid=owner();
