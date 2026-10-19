@@ -1241,7 +1241,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
    }
 
   function profileUsername(){
-    try{const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');if(saved?.username)return '@'+String(saved.username).replace(/^@/,'')}catch{}
+    try{const saved=JSON.parse(localStorage.getItem((window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid)?'biglwaOwnProfileV1:'+(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid):'biglwaOwnProfileV1:unowned')||'null');if(saved?.username)return '@'+String(saved.username).replace(/^@/,'')}catch{}
     return $('.profile-name-line h1')?.textContent?.trim()||'@username';
   }
 
@@ -3082,7 +3082,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const journalInitial=()=>{
       let name='';
       try{
-        const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');
+        const saved=JSON.parse(localStorage.getItem((window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid)?'biglwaOwnProfileV1:'+(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid):'biglwaOwnProfileV1:unowned')||'null');
         name=String(saved?.name||saved?.displayName||'').trim();
       }catch{}
       if(!name)name=String($('#studioApp .profile-display-name')?.textContent||$('#studioApp .profile-name-line h1')?.textContent||'').trim();
