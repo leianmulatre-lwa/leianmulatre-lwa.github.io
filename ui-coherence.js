@@ -1162,7 +1162,7 @@
     }
     let display=$('.profile-display-name',card);
     if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Your Studio';copy.prepend(display)}
-    let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
+    let saved=readOwnProfile();
     if(saved){
       const present={};
       ['name','username','bio','location','website','auraText'].forEach(key=>{if(saved[key])present[key]=saved[key]});
@@ -1309,7 +1309,7 @@
     const avatar=$('.profile-avatar',card);if(!avatar||avatar.querySelector('img'))return;
     const existing=avatar.textContent.trim();
     if(existing){avatar.dataset.profileInitial=existing.charAt(0).toUpperCase();avatar.dataset.profilePictureLocked='1';return}
-    let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
+    let saved=readOwnProfile();
     const candidates=[saved?.username,window.__biglwaIdentity?.username,window.__biglwaIdentity?.name,$('#loginUsername')?.value];
     const username=candidates.map(value=>String(value||'').trim().replace(/^@/,'')).find(value=>value&&value!=='LS')||'B';
     const initial=username.charAt(0).toUpperCase();
