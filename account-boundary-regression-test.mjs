@@ -8,7 +8,8 @@ const shell=read('index.html'),boundary=read('studio-account-boundary-20261019.j
   dir=read('firebase-directory.js'),publicPreview=read('studio-preview.js'),
   styles=read('studio-appearance.js'),modules=read('module-pages.js'),
   wallpaper=read('wallpaper-cloud.js'),rules=read('firestore.rules'),
-  music=read('studio-experience.js'),orbit=read('orbit-account-links.js'),storage=read('account-storage.js');
+  music=read('studio-experience.js'),orbit=read('orbit-account-links.js'),storage=read('account-storage.js'),
+  feed=read('feed-view.js');
 assert.doesNotThrow(()=>new Script(boundary),'Privacy gate must parse');
 assert.match(shell,/class="biglwa-startup-protected"/,'Generated app must be hidden before CSS/scripts paint');
 assert.match(shell,/studio-account-boundary-20261019\.js/,'Privacy boundary loaded before other Studio scripts');
@@ -36,6 +37,11 @@ assert.doesNotMatch(music,/dbGet\('music'\)/,'No shared-browser music slot');
 assert.match(music,/biglwaGuestChecksLocalV2:/,"Guest Check does not reuse another member\'s local notes");
 assert.doesNotMatch(orbit,/localStorage\.setItem\('biglwaOrbitLinks'/,'Orbit cannot publish a shared-browser cache');
 assert.match(storage,/legacyOwner===uid\?policy\.keys:\[\]/,'Legacy collections require matching historical owner');
+
+assert.match(feed,/studioOwnPosts=user\?profilePosts\.filter\(p=>p\.uid===user\.uid&&p\.state==='approved'\)/,'Studio thumbnails require matching owner UID and published state');
+assert.match(feed,/const previewPosts=isPublicProfile\?posts:/,'Public profiles and private Studios use different thumbnail sources');
+assert.match(feed,/posts = rootPosts/,'Community Collective Feed and Veve still use approved public posts');
+
 assert.match(boundary,/if\(html\.classList\.contains\('biglwa-preview-mode'\)\)/,"Public profile stays masked until viewed owner's data loads");
 
 // Exercise the startup boundary with two separate Firebase identities, both given
