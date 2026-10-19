@@ -21,5 +21,5 @@ assert.match(games,/playing\.contentWindow\?\.postMessage/,'Parent forwards loca
 assert.match(games,/while\(cycle\.length<9\)/,'Carousels fill more than one viewport');
 assert.match(games,/translateY\(calc\(-50% - 4\.5px\)\)/,'Carousel loop includes inter-card gap');
 assert.match(games,/title:'mini crossword'/,'Crossword game has correct name');
-assert.match(shell,/20261018-sqwibz-directplay-v17/,'Latest build marker is in page');
+assert.match(shell,/20261019-private-firstpaint-v18/,'Latest build marker is in page');
 console.log('PASS Snake apples + focus controls, 2048 keyboard + touch controls, seamless Arcade cycle and title.');
