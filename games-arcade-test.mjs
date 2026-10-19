@@ -1,5 +1,5 @@
 // Arcade regression checks: an embedded website can refuse frames.
-// Ensure our screen renders an internal launcher rather than a blocked iframe by default.
+// Every game opens inside the cabinet first; an original site can still forbid framing.
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
@@ -18,12 +18,12 @@ const cases=[
  ['game tiles attempt in-screen game', arcade.includes('data-play-external') && arcade.includes('playGame(gameLibrary[Number(target.dataset.playExternal)])')],
  ['third-party game opens link launcher', arcade.includes('const showGameLinks=game=>')],
  ['thumbnail and provider are displayed', arcade.includes('arcade-game-cover') && arcade.includes('providerName(uri)')],
- ['blocked hosts are recognized', arcade.includes('restrictsEmbed=uri=>') && arcade.includes('coolmathgames') && arcade.includes('nytimes') && arcade.includes('chess')],
- ['restricted hosts offer local play', arcade.includes("makeAction('Local games','arcadeLocal'") && arcade.includes("if(!steam&&!blocked) actions.append")],
- ['same-site puzzles run directly and restricted providers use launchers', arcade.includes('const playGame=game=>') && arcade.includes("!restrictsEmbed(target)){") && arcade.includes('tryEmbedded();return;')],
+ ['formerly blocked hosts now receive an iframe attempt', arcade.includes('restrictsEmbed=uri=>') && arcade.includes('coolmathgames') && arcade.includes('nytimes') && !arcade.includes("|| restrictsEmbed(uri))return showGameLinks")],
+ ['restricted hosts retain a fallback menu', arcade.includes("makeAction('Local games','arcadeLocal'") && arcade.includes("if(!steam&&!blocked) actions.append") && arcade.includes("showGameLinks=game=>")],
+ ['all HTTPS games attempt the cabinet before showing links', arcade.includes('const playGame=game=>') && arcade.includes("target.protocol==='https:'") && arcade.includes('tryEmbedded();') && !arcade.includes("if(target.hostname!=='store.steampowered.com'")],
  ['iframe uses original game URL with a compact mode for own puzzles', arcade.includes('frame.src=framed.href') && arcade.includes("framed.searchParams.set('embed','1')") && !arcade.includes('frame.src=proxy')],
  ['provider restrictions are not bypassed', !arcade.includes("uri.protocol!=='https:' || restrictsEmbed(uri)") && arcade.includes('providerName(uri)')],
- ['iframe player retains its game links fallback', arcade.includes("makeAction('Game links','arcadePreview','ghost')") && arcade.includes("if(target.matches('[data-arcade-preview]')){if(selectedGame)showGameLinks(selectedGame)")],
+ ['in-cabinet web view offers browser controls', arcade.includes("makeAction('Reload view','arcadeReload'") && arcade.includes("createOpenLink(uri,'Open original ↗'") && arcade.includes("if(target.matches('[data-arcade-reload]'))")],
  ['full directory uses keyboard-accessible details and summary', arcade.includes('<details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle">') && arcade.includes('</div></details></section>')],
  ['full directory begins collapsed by default', !arcade.includes('<details id="arcadeDirectoryDetails" open') && !arcade.includes('<details open id="arcadeDirectoryDetails"')],
  ['directory game buttons play inside the cabinet', arcade.includes('data-directory-play>Play in screen') && arcade.includes('()=>playGame(gameLibrary[Number(button.closest(')],
