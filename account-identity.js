@@ -15,7 +15,6 @@ const FIREBASE_CONFIG = {
 
 const FIRESTORE = "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 const AUTH = "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-const LEGACY_KEY = "biglwaProfileDetails";
 const CACHE_PREFIX = "biglwaProfileDetails:";
 
 let dbPromise;
@@ -89,18 +88,14 @@ export function onIdentityChange(fn) {
 }
 
 /* The username a member chose at sign-up, which is also what their public entry is keyed
- * by. Falls back through the uid cache, then the legacy device slot, so an account that
- * predates the uid cache still resolves instead of appearing nameless. */
+ * by. Only the signed-in member’s UID cache is eligible; legacy device slots are unsafe. */
 export function identityUsername() {
   if (current?.username) return current.username;
   const uid = current?.uid;
   if (!uid) return "";
   const record = cached(uid);
   if (validUsername(record.username)) return normalize(record.username);
-  try {
-    const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || "null");
-    if (validUsername(legacy?.username)) return normalize(legacy.username);
-  } catch {}
+  // Never adopt a username from another account's device-wide legacy key.
   return "";
 }
 
