@@ -13,18 +13,11 @@ const clean=(links)=>{
   }
   return output;
 };
-// Keep legacy links available for an explicit one-time migration; never silently
-// attribute an unscoped browser link to whichever person logs in next.
+// Device-wide quick links may belong to a different member. Never import or show them.
 let localLegacy={};
-try {
-  localLegacy=clean(JSON.parse(localStorage.getItem('biglwaOrbitLinksLegacyBackupV1')||
-    localStorage.getItem('biglwaOrbitLinks')||'{}'));
-  if(Object.keys(localLegacy).length)
-    localStorage.setItem('biglwaOrbitLinksLegacyBackupV1',JSON.stringify(localLegacy));
-}catch{}
 let refs,uid='',links={},ready=false,generation=0;
 const broadcast=()=>{
-  try{localStorage.setItem('biglwaOrbitLinks',JSON.stringify(links));}catch{}
+  // Account links are held in owner-only Firestore; do not write a shared browser slot.
   window.dispatchEvent(new CustomEvent('biglwa:orbit-links-synced',{detail:{uid,links:{...links}}}));
   const note=document.querySelector('#studioApp #orbit .orbit-note');
   if(note)note.textContent='Profile links are saved to your BIGLWA account. Imported media is stored separately in your archive.';
@@ -107,6 +100,7 @@ async function save(id,value){
 }
 async function importLocalLinks(){
   if(!ready||!uid)throw Error('Sign in before importing local profile links.');
+  if(!Object.keys(localLegacy).length)throw Error('Unscoped legacy links cannot be attributed to a verified account. Re-add your own links individually.');
   const candidate={...localLegacy};
   let imported=0;
   for(const [id,url] of Object.entries(candidate)){
