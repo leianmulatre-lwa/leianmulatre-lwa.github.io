@@ -80,6 +80,8 @@ jobs:
           node feed-mixed-caption-test.mjs
           node orbit-badge-layout-test.mjs
           node active-route-build-regression-test.mjs
+          node --check studio-account-boundary-20261019.js
+          node account-boundary-regression-test.mjs
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs
           node facebook-quicklinks-test.mjs
