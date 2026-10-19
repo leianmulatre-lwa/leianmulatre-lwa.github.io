@@ -427,6 +427,20 @@
         z-index:2!important;height:16px!important;max-height:16px!important;opacity:.54!important;pointer-events:none!important;
       }
       #studioApp #stream .on-air{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(16,12,15,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+      /* Match Room's under-preview activity footer. This is NOT a live viewer count. */
+      #studioApp #stream .stream-watching-status{
+        display:flex!important;align-items:center;gap:7px;position:relative!important;
+        margin:10px 2px 1px!important;padding:5px 0 0!important;width:auto!important;
+        border:0!important;background:none!important;box-shadow:none!important;
+        color:var(--widget-muted,#766e68)!important;
+        font:650 10px/1.4 Inter,ui-sans-serif,system-ui,sans-serif!important;
+        letter-spacing:.01em!important;text-transform:none!important;text-shadow:none!important;
+      }
+      #studioApp #stream .stream-watching-status::before{
+        content:"";display:block;flex:0 0 7px;width:7px;height:7px;
+        border-radius:50%;background:#9d9692;box-shadow:0 0 0 1px rgba(75,62,58,.15);
+      }
+
       /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
       #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
       #studioApp #notes .note-paper{position:relative;isolation:isolate;min-height:210px;padding:54px 28px 28px;border:0!important;border-radius:3px 3px 17px 3px!important;background:repeating-linear-gradient(to bottom,transparent 0,transparent 28px,rgba(119,92,38,.15) 29px),linear-gradient(145deg,#fff6a5,#f1d866)!important;color:#3c3021!important;font-family:"LWA Cuteness Notes","Comic Sans MS","Bradley Hand",cursive!important;font-weight:400!important;font-size:clamp(20px,2.2vw,25px)!important;line-height:1.45!important;text-align:left!important;transform:rotate(-.55deg);box-shadow:0 12px 22px rgba(69,49,23,.18),inset 0 0 28px rgba(255,255,255,.28)!important;overflow:hidden}
@@ -1381,7 +1395,18 @@
     const streamThumbnail=lastStreamThumbnail();
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
       const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
-      const screen=$('.stream-screen',card)||card;
+      const screen=$('.stream-screen',card);
+      if(!screen)return;
+      // Keep this caption outside the preview even while Stream has an active player.
+      // A zero from the former template was hardcoded, not a true watching count.
+      const oldCounts=$(':scope > span, :scope > .stream-watching-count',screen)
+        .filter(el=>/\\b(?:watching|viewers?|watchers?)\\b/i.test(el.textContent||''));
+      let status=$('.stream-watching-status',card)||oldCounts.shift()||document.createElement('div');
+      oldCounts.forEach(el=>el.remove());
+      status.className='stream-watching-status';
+      status.textContent='Watching · live count unavailable';
+      status.setAttribute('aria-label','Stream watching status: live viewer count is not tracked');
+      if(status.previousElementSibling!==screen)screen.insertAdjacentElement('afterend',status);
       if(screen.classList.contains('stream-preview-active'))return;
       let photo=$('.stream-station-photo',screen);
       if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
@@ -1394,10 +1419,7 @@
        photo.src='/assets/station-radio-room.webp?v=20260916-station-1';
       };
       const title=$('strong',screen);if(title)title.textContent=streamTitle;
-      const counts=$$('span,.stream-watching-count',screen).filter(el=>/watching|viewers?|watchers?|streaming/i.test(el.textContent));
-      const count=counts.shift();counts.forEach(extra=>extra.remove());
-      if(count)count.textContent='0 watching';
-      else{const status=document.createElement('span');status.className='stream-watching-count';status.textContent='0 watching';screen.appendChild(status)}
+      // Audience labels live in the footer above; do not overlay the player.
     });
   }
 
