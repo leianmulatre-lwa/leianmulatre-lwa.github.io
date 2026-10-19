@@ -529,6 +529,9 @@ let drawnOn = null;
 let drawnSignature = null;
 
 let instagramHydrating = false;
+// The public wall is shared; the Studio thumbnail must be account-owned only.
+let studioOwnerUid='';
+let studioOwnPosts=[];
 
 /* Ordering and the owner fields are read consistently with orbit-posts.js. Sorting on the
    raw source string mis-ordered Instagram's epoch-seconds timestamps and put the newest
@@ -612,6 +615,12 @@ async function loadPosts() {
       }
     }
 
+    // Never use public /posts as the owner Studio thumbnail. Private Studio
+    // previews can only draw from the signed-in UID's account posts.
+    if(user && auth.currentUser?.uid!==user.uid){studioOwnerUid='';studioOwnPosts=[];posts=[];draftPosts=[];return [];}
+    studioOwnerUid=user?.uid||'';
+    studioOwnPosts=user?profilePosts.filter(p=>p.uid===user.uid&&p.state==='approved')
+      .sort((a,b)=>postTimeMs(b)-postTimeMs(a)).slice(0,FEED_SIZE):[];
     posts = rootPosts
       .filter((p) => p.state === "approved")
       .sort((a, b) => postTimeMs(b) - postTimeMs(a))
@@ -666,20 +675,24 @@ function renderHero(force) {
   /* A feed with nothing in it at all stays clean: the strip is a preview of pictures, so
      showing four empty slots over an empty board would only add noise. Once a single post
      exists the strip appears and holds its width, gaps included. */
-  anchor.hidden = !posts.length;
+  const isPublicProfile=Boolean(window.__biglwaPublicStorageView);
+  const verifiedUid=String(window.BigLWAAccountStorage?.uid||identity()?.uid||'');
+  const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
+  // A new Studio shows its own neutral photo placeholders, never another member's wall.
+  anchor.hidden = isPublicProfile&&!previewPosts.length;
   if (anchor.hidden) {
     heroOn = null;
     heroSignature = null;
     return;
   }
-  const signature = posts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "")).join("|");
+  const signature = verifiedUid+'|'+(isPublicProfile?'public':'owner')+'|'+previewPosts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "")).join("|");
   if (!force && anchor === heroOn && signature === heroSignature) return;
   heroOn = anchor;
   heroSignature = signature;
 
   /* Studio shows ONE compact row of the four latest approved Feed posts. */
   // Preview the latest images that have a verified R2 URL, not expired Instagram links.
-  const storedPosts=posts.filter(p=>pictureUrls(p).length);
+  const storedPosts=previewPosts.filter(p=>pictureUrls(p).length);
   const slots=storedPosts.slice(0,HERO_SLOTS);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
@@ -699,10 +712,10 @@ function renderHero(force) {
 
   const withImage=storedPosts;
   const rest=Math.max(0,withImage.length-slots.length);
-  const requiresSync=posts.some(post=>post.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
-  anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>Latest pictures</h3><span>' +
+  const requiresSync=previewPosts.some(post=>post.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
+  anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>'+(isPublicProfile?'Published pictures':'Your published pictures')+'</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
-    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):'<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync">No locally stored images yet</div>') + "</div>" +
+    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):Array.from({length:HERO_SLOTS},()=>'<div class="biglwa-feed-hero-empty" aria-label="Add your own published photo">Add your photo</div>').join('')) + "</div>" +
     (requiresSync?'<button type="button" class="biglwa-feed-resync" data-feed-resync>↻ Restore imported photos</button><small class="biglwa-feed-sync-note" role="status">Reconnect Orbit if the original service no longer allows image downloads.</small>':'');
   anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
     img.addEventListener('error',()=>{
@@ -1609,8 +1622,11 @@ export async function startFeed() {
   startIdentity();
   onIdentityChange((who) => {
     watch();
-    if (who) loadPosts();
-    else {
+    if (who) {
+      if(studioOwnerUid!==who.uid){studioOwnerUid='';studioOwnPosts=[];renderHero(true);}
+      loadPosts();
+    } else {
+      studioOwnerUid='';studioOwnPosts=[];
       posts = [];
       draftPosts = [];
       renderPosts(true);
