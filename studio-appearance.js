@@ -4,6 +4,11 @@
   const DB_NAME='biglwa-studio-media-v1';
   const STORE_NAME='wallpaper';
   const APPEARANCE_KEY='biglwaWidgetStyle';
+  // Preferences belong to a verified Firebase UID, never to the last browser user.
+  const activeUid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
+  const ownedKey=base=>activeUid()?base+':'+activeUid():'';
+  const saveOwned=(base,value)=>{const k=ownedKey(base);if(k)try{localStorage.setItem(k,JSON.stringify(value))}catch{}};
+  const readOwned=base=>{const k=ownedKey(base);if(!k)return null;try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
   const WALLPAPER_SETTINGS_KEY='biglwaWallpaperSettings';
   const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card),#studioApp .module-workspace .module-card,#studioApp .module-workspace .calendar-board,#studioApp .module-workspace .module-launcher';
   let activeObjectUrl='';
@@ -111,7 +116,7 @@
   function applyAppearance(save=true){
     const app=$('#studioApp');if(!app)return;
     const values=readAppearance();
-    const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.35,Number(values.opacity)/100));
+    const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.72,Number(values.opacity)/100||.9));
     const luminance=(.2126*r+.7152*g+.0722*b)/255;
     app.dataset.widgetInkTone=luminance<.48?'light':'dark';
     const [ar,ag,ab]=parseHex(values.aura,'#d85f6d');
@@ -130,11 +135,11 @@
     Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
     const live=$('#widgetLiveConnection');
     if(live){const count=$$(WIDGET_SELECTOR).filter(widget=>!widget.classList.contains('widget-is-minimized')).length;const detail=$('span',live);if(detail)detail.textContent=`Connected to ${count} visible Studio widgets · changes apply instantly`}
-    if(save)try{localStorage.setItem(APPEARANCE_KEY,JSON.stringify(values))}catch{}
+    if(save)saveOwned(APPEARANCE_KEY,values)
   }
 
   function restoreAppearance(){
-    let values=null;try{values=JSON.parse(localStorage.getItem(APPEARANCE_KEY)||'null')}catch{}
+    let values=readOwned(APPEARANCE_KEY)
     if(values){
       const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura'};
       Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&values[key]!=null)input.value=values[key]});
@@ -234,7 +239,7 @@
     page.style.setProperty('--page-blur',`${settings.blur}px`);page.style.setProperty('--page-overlay',Number(settings.overlay)/100);
     [video,previewVideo].forEach(media=>{media.style.objectFit=settings.fit;media.style.objectPosition=settings.position});
     const labels={blurValue:`${settings.blur}%`,overlayValue:`${settings.overlay}%`};Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
-    if(save)try{localStorage.setItem(WALLPAPER_SETTINGS_KEY,JSON.stringify(settings))}catch{}
+    if(save)saveOwned(WALLPAPER_SETTINGS_KEY,settings)
   }
 
   function removeWallpaperAuraControl(){
@@ -247,7 +252,7 @@
   }
 
   function restoreWallpaperSettings(){
-    let settings=null;try{settings=JSON.parse(localStorage.getItem(WALLPAPER_SETTINGS_KEY)||'null')}catch{}
+    let settings=readOwned(WALLPAPER_SETTINGS_KEY)
     if(settings){const mapping={fitSelect:'fit',positionSelect:'position',blurRange:'blur',overlayRange:'overlay'};Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&settings[key]!=null)input.value=settings[key]})}
     applyWallpaperSettings(false);
   }
