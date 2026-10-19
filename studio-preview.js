@@ -11,6 +11,7 @@ const PREVIEW_RESERVED = new Set([
 ]);
 const PREVIEW_PATH = /^\/([a-z0-9._-]{5,24})\/?$/;
 const APPEARANCE_KEYS = ["biglwaWidgetStyle","biglwaWallpaperSettings","biglwaDockedWidgetsV3","biglwaWidgetOrder"];
+const ownerAppearanceKey=key=>{const uid=window.BigLWAAccountStorage?.uid||identity()?.uid;return uid && ["biglwaWidgetStyle","biglwaWallpaperSettings"].includes(key)?key+":"+uid:key};
 
 const preview = {
   username:"",
@@ -216,7 +217,7 @@ function localProfile(){
 
 function snapshotAppearance(){
   const snap={};
-  APPEARANCE_KEYS.forEach(key=>{ try{snap[key]=localStorage.getItem(key)}catch{} });
+  APPEARANCE_KEYS.forEach(key=>{ try{snap[key]=localStorage.getItem(ownerAppearanceKey(key))}catch{} });
   preview.snapshot=snap;
 }
 
@@ -225,8 +226,8 @@ function restoreAppearance(){
   if(!snap) return;
   APPEARANCE_KEYS.forEach(key=>{
     try{
-      if(snap[key]==null) localStorage.removeItem(key);
-      else localStorage.setItem(key,snap[key]);
+      if(snap[key]==null) localStorage.removeItem(ownerAppearanceKey(key));
+      else localStorage.setItem(ownerAppearanceKey(key),snap[key]);
     }catch{}
   });
   preview.snapshot=null;
