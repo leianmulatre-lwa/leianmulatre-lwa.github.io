@@ -27,6 +27,11 @@
   const readJson=(key,fallback=null)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
   const scopedLayoutKey=()=>LAYOUT_LOCAL_PREFIX+layoutUid();
   const scopedLayout=()=>readJson(scopedLayoutKey(),null);
+  // A shared browser can host multiple accounts. No unscoped profile is ever trusted.
+  const ownUid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
+  const ownProfileKey=()=>ownUid()?'biglwaOwnProfileV1:'+ownUid():'';
+  const readOwnProfile=()=>ownProfileKey()?readJson(ownProfileKey(),{}):{};
+  const writeOwnProfile=data=>{const key=ownProfileKey();if(!key)return false;try{localStorage.setItem(key,JSON.stringify(data));return true}catch{return false}};
   let cloudLayoutTimer=0,pendingLayout=null;
   async function flushLayout(){
     if(!pendingLayout||window.__biglwaAccountHydrated!==true||window.__biglwaPublicStorageView)return;
@@ -90,9 +95,8 @@
     let legacy={};
     // The old unscoped key may belong to a different login on a shared device.
     // Migrate it only to the original account (or the first known account).
-    if(!owner||owner===uid){
+    if(owner&&owner===uid){
       legacy=readJson('biglwaWidgetOrder',{});
-      if(!owner&&uid!=='guest')try{localStorage.setItem(legacyOwner,uid)}catch{}
     }
     const order=saved?.order&&typeof saved.order==='object'?saved.order:legacy;
     const signature=studioParents(app).map(parent=>parent.id+':'+[...parent.children]
@@ -1088,12 +1092,12 @@
 
   function applyRemoteCustomization(remote){
     if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
-    if(!remote||typeof remote!=='object')return;
+    if(!remote||typeof remote!=='object'||!ownUid()||remote.uid!==ownUid())return;
     window.__biglwaRemoteCustomization=remote;
     const profile=remote.profile;
     if(profile&&typeof profile==='object'){
-      let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
-      try{localStorage.setItem('biglwaProfileDetails',JSON.stringify(Object.assign({},saved,profile)))}catch{}
+      let saved=readOwnProfile();
+      writeOwnProfile(Object.assign({},saved,profile));
       applyProfilePayload(profile);
       if(profile.username){
         try{
@@ -1151,12 +1155,12 @@
     if(!moodCard.dataset.moodStyle)renderWeeklyMood(moodCard,$('.weekly-mood-value',moodCard)?.textContent||'add this week’s #mood','qwiky-note');
     const stats=$('.stats',card);
     if(stats&&!$('[data-profile-stat="projects"]',stats)){
-      const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>24</b> Projects';
-      const rooms=document.createElement('span');rooms.dataset.profileStat='rooms';rooms.innerHTML='<b>3</b> Rooms';
+      const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>0</b> Projects';
+      const rooms=document.createElement('span');rooms.dataset.profileStat='rooms';rooms.innerHTML='<b>0</b> Rooms';
       stats.append(projects,rooms);
     }
     let display=$('.profile-display-name',card);
-    if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Leian Stanley';copy.prepend(display)}
+    if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Your Studio';copy.prepend(display)}
     let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
     if(saved){
       const present={};
@@ -1233,7 +1237,7 @@
     if(saveButton&&saveButton.dataset.biglwaProfileBound!=='3'){
       saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',()=>{
         const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim(),mood:$('#profileMoodInput',panel).value.trim(),moodStyle:$('#profileMoodStyle',panel).value,auraText:$('#profileAuraTextInput',panel).value.trim()};
-        try{localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));if(details.username){const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];next.push({username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)});localStorage.setItem('biglwaUserDirectory',JSON.stringify(next))}}catch{} try{window.BigLWAUserDirectory?.saveProfile?.(details)}catch{}
+        try{if(!writeOwnProfile(details))return;if(details.username){const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];next.push({username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)});localStorage.setItem('biglwaUserDirectory',JSON.stringify(next))}}catch{} try{window.BigLWAUserDirectory?.saveProfile?.(details)}catch{}
         try{window.BIGLWAStudioAppearance?.save?.()}catch{}
         const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
         const savedDocked=readJson('biglwaDockedWidgetsV3'),savedOrder=readJson('biglwaWidgetOrder');
@@ -1305,7 +1309,7 @@
     const existing=avatar.textContent.trim();
     if(existing){avatar.dataset.profileInitial=existing.charAt(0).toUpperCase();avatar.dataset.profilePictureLocked='1';return}
     let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
-    const candidates=[saved?.username,window.__biglwaProfileUsername,$('.profile-name-line h1',card)?.textContent,$('.mini-avatar')?.textContent,$('#loginUsername')?.value];
+    const candidates=[saved?.username,window.__biglwaIdentity?.username,window.__biglwaIdentity?.name,$('#loginUsername')?.value];
     const username=candidates.map(value=>String(value||'').trim().replace(/^@/,'')).find(value=>value&&value!=='LS')||'B';
     const initial=username.charAt(0).toUpperCase();
     avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.dataset.profilePictureLocked='1';avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
