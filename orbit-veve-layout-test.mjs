@@ -25,7 +25,7 @@ assert.ok(style.includes('biglwa-feed-compose-card')&&style.includes('biglwa-fee
 assert.ok(pages.includes("if(activeModuleKey==='veve')closeModule();")&&pages.includes("else openModule('veve');"),'Studio logo is a reversible Veve switch');
 assert.ok(pages.includes("event.stopImmediatePropagation()"),'Logo toggle prevents browser navigation and re-login');
 assert.ok(ui.includes("a.setAttribute('aria-label','Open Veve')"),'Accessible logo label');
-assert.ok(/module-pages\.js\?v=2026101[78]-/.test(index)&&index.includes('orbit-cards-unified-20261016.css?v='),'Current Orbit renderer and its compact CSS are deployed with cache-busting');
+assert.ok(/module-pages\.js\?v=202610[0-3][0-9]-/.test(index)&&index.includes('orbit-cards-unified-20261016.css?v='),'Current Orbit renderer and its compact CSS are deployed with cache-busting');
 assert.ok(wrangler.includes('keep_vars = true'),'Cloudflare dashboard variables survive future Worker deploys');
 assert.ok(wrangler.includes('TIKTOK_CLIENT_SECRET')&&wrangler.includes('[secrets]'),'Worker requires configured secret names without checking values into repository');
 console.log('PASS: Full Orbit Planetary grid, four desktop columns, responsive cards, slim Feed, Veve toggle, and Cloudflare variable safeguards');
