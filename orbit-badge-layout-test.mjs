@@ -16,7 +16,7 @@ const planets=read('orbit-planets-20261015.css');
 const legacy=read('facebook-orbit.js');
 assert.doesNotThrow(()=>new vm.Script(pages),'Full Orbit JS parses');
 assert.doesNotThrow(()=>new vm.Script(widget),'Studio Orbit JS parses');
-assert.match(html,/bootstrap-v2\.html\?v=20261016-eight-planets-source-/,
+assert.match(html,/bootstrap-v2\.html\?v=20261019-canonical-legacy-route-/,
   'Studio loads refreshed source rather than older static tiles');
 assert.match(html,/orbit-preview-eight-20261016\.js\?v=/,
   'eight-planet preview behavior is loaded');
