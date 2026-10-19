@@ -45,7 +45,8 @@ const SOCIAL_HOSTS={
 
 function localUsername(){
   let saved=null;
-  try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
+  // Unscoped old profile data must never become the current member's username.
+  try{const uid=window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid; if(uid)saved=JSON.parse(localStorage.getItem("biglwaOwnProfileV1:"+uid)||"null")}catch{}
   const username=clean(document.getElementById("loginUsername")?.value)||clean(saved?.username);
   return validUsername(username)?normalize(username):"";
 }
@@ -321,6 +322,7 @@ async function loadProfile(){
     if(!snap.exists())return null;
     const data=snap.data()||{};
     return {
+      uid:user.uid,
       profile:{
         name:clean(data.name),
         username:clean(data.usernameLower||data.username),
@@ -348,12 +350,12 @@ async function downloadAccountToDevice(){
     const owner=auth.currentUser.uid;
     const remote=await loadProfile();
     if(auth.currentUser?.uid!==owner)return false;
-    if(remote&&typeof remote==="object"){
+    if(remote&&typeof remote==="object"&&remote.uid===owner){
       window.__biglwaRemoteCustomization=remote;
       window.dispatchEvent(new CustomEvent("biglwa:customization-remote",{detail:remote}));
     }
     window.__biglwaAccountHydrated=true;
-    if(remote&&!window.__biglwaPublicStorageView)await savePublicLook(remote.customization);
+    if(remote?.uid===owner&&!window.__biglwaPublicStorageView&&auth.currentUser?.uid===owner)await savePublicLook(remote.customization);
     return !!remote;
   }catch(err){
     console.warn("[BIGLWA] Account download skipped:",err);
@@ -394,7 +396,8 @@ async function autoSyncSignedInAccount(){
     if(!user)return;
     const loginUsername=document.getElementById("loginUsername");
     let saved=null;
-    try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
+    // Do not auto-publish another user's legacy device profile.
+    try{const uid=window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid;if(uid===user.uid)saved=JSON.parse(localStorage.getItem("biglwaOwnProfileV1:"+uid)||"null")}catch{}
     const username=clean(loginUsername?.value)||clean(saved?.username);
     if(!validUsername(username))return;
     await syncAccountProfile({
