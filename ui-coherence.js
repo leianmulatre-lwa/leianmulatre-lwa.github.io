@@ -1400,7 +1400,7 @@
       // Keep this caption outside the preview even while Stream has an active player.
       // A zero from the former template was hardcoded, not a true watching count.
       const oldCounts=$(':scope > span, :scope > .stream-watching-count',screen)
-        .filter(el=>/\\b(?:watching|viewers?|watchers?)\\b/i.test(el.textContent||''));
+        .filter(el=>/\b(?:watching|viewers?|watchers?)\b/i.test(el.textContent||''));
       let status=$('.stream-watching-status',card)||oldCounts.shift()||document.createElement('div');
       oldCounts.forEach(el=>el.remove());
       status.className='stream-watching-status';
