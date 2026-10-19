@@ -205,12 +205,12 @@ function renderSocials(data){
 }
 
 function localProfile(){
-  try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
+  try{const uid=window.BigLWAAccountStorage?.uid||identity()?.uid; if(uid)saved=JSON.parse(localStorage.getItem("biglwaOwnProfileV1:"+uid)||"null")}catch{}
   saved=saved&&typeof saved==="object"?saved:{};
   /* The signed-in account wins over the device-wide slot, otherwise signing in as one
      member and then another leaves the first member's name on the studio. */
   const live=identity();
-  if(live) return { ...saved, username:live.username||saved.username, name:live.name||saved.name, avatarUrl:live.avatarUrl||saved.avatarUrl };
+  if(live) return { ...saved, username:live.username||"", name:live.name||"", avatarUrl:live.avatarUrl||"" };
   return saved;
 }
 
