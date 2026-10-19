@@ -3255,8 +3255,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(!feedCard)return;
       const hero=$('#biglwaFeedHero',feedCard);
       if(!hero)return;
-      // Use the SAME approved Firestore posts as Collective Feed, not a private
-      // Archive import or Instagram-only data. feed-view.js owns rendering.
+      // The Studio preview is owner-only; the full Collective Feed and Veve
+      // separately query published community posts. feed-view.js enforces ownership.
       const feed=window.__biglwaFeed;
       if(feed?.refresh){
         Promise.resolve(feed.refresh()).catch(error=>
