@@ -33,7 +33,7 @@ assert.match(rules,/match \/posts\/\{postId\} \{[\s\S]*?allow read: if resource\
 assert.match(shell,/id="biglwa-first-paint"/,'Initial response paints the same red curtain, not an ivory flash');
 assert.match(music,/return 'music:'\+uid/,'Locally stored tracks are keyed to verified owner');
 assert.doesNotMatch(music,/dbGet\('music'\)/,'No shared-browser music slot');
-assert.match(music,/biglwaGuestChecksLocalV2:/,'Guest Check does not reuse other people's local notes');
+assert.match(music,/biglwaGuestChecksLocalV2:/,"Guest Check does not reuse another member\'s local notes");
 assert.doesNotMatch(orbit,/localStorage\.setItem\('biglwaOrbitLinks'/,'Orbit cannot publish a shared-browser cache');
 assert.match(storage,/legacyOwner===uid\?policy\.keys:\[\]/,'Legacy collections require matching historical owner');
 assert.match(boundary,/if\(html\.classList\.contains\('biglwa-preview-mode'\)\)/,'Public profile stays masked until viewed owner's data loads');
