@@ -89,9 +89,12 @@ async function initialize(){
 }
 async function importLegacy(){
  if(!uid||preview()||!remoteReady)throw Error('Sign in and wait for account restore first.');
- const candidates=[...policy.keys,...policy.prefixes.map(p=>p+uid)];let count=0,skipped=0;
+ // Device-wide legacy keys have no owner identity. Only import them if an older build
+ // explicitly recorded the SAME Firebase owner; otherwise preserve but refuse them.
+ const legacyOwner=String(disk('biglwaLegacyDataOwnerUid')||'').trim();
+ const candidates=[...policy.prefixes.map(p=>p+uid),...(legacyOwner===uid?policy.keys:[])];let count=0,skipped=0;
  for(const source of candidates){const key=policy.canonical(source,uid),value=disk(source);if(value===null||disk(slot(key))!==null||versions[key])continue;if(!policy.validValue(value)){skipped++;continue;}write(source,value);count++;}
- await flush();status(count+' browser collections queued for account sync. '+(skipped?skipped+' oversized or embedded-media collections skipped. ':'')+'Reload Studio after sync to show them.');return count;
+ await flush();status(count+' owner-verified legacy collections queued. '+(legacyOwner!==uid?'Unscoped old device data was not imported because account ownership could not be verified. ':'')+(skipped?skipped+' oversized or embedded-media collections skipped. ':'')+'Reload Studio after sync to show them.');return count;
 }
 async function resolve(useLocal){
  for(const [key,edit] of Object.entries(pending))if(edit.conflict){
@@ -101,14 +104,14 @@ async function resolve(useLocal){
  }
  saveQueue();await flush();status('Conflict choice saved. Reload to show the selected version.');
 }
-function exportLocal(){const values={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(policy.canonical(key,uid)||key.startsWith('biglwaAccountDataV1:'+uid+':')||key===pendingKey())values[key]=disk(key);}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(values,null,2)],{type:'application/json'}));a.href=url;a.download='biglwa-private-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function exportLocal(){const values={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key.startsWith('biglwaAccountDataV1:'+uid+':')||key===pendingKey()||(disk('biglwaLegacyDataOwnerUid')===uid&&policy.canonical(key,uid)))values[key]=disk(key);}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(values,null,2)],{type:'application/json'}));a.href=url;a.download='biglwa-private-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function paint(){
  const el=document.getElementById('accountCloudStatus');if(el)el.textContent=notice;
 }
 function mount(){
  const host=document.getElementById('cache');if(!host||document.getElementById('accountCloudStatus'))return;
  const panel=document.createElement('div');panel.className='card';const title=document.createElement('h3');title.textContent='Account sync & browser migration';
- const info=document.createElement('p');info.textContent='Projects, library, map pins, saved collections and supported preferences are private account backups. Older unscoped browser data is imported only when you choose. Import only on a device that contains your own work; existing cloud collections are preserved.';
+ const info=document.createElement('p');info.textContent='Projects, library, map pins, saved collections and supported preferences are private account backups. Legacy data is imported only when its recorded owner matches your signed-in Firebase account; unowned browser collections remain untouched and cannot be claimed by another member. Existing cloud collections are preserved.';
  const label=document.createElement('p');label.id='accountCloudStatus';label.setAttribute('role','status');panel.append(title,info,label);
  for(const [text,fn] of [['Import my existing browser data',importLegacy],['Retry sync',()=>remoteReady?flush():location.reload()],['Download private backup',exportLocal],['Keep my local conflicting edits',()=>resolve(true)],['Use cloud conflicting edits',()=>resolve(false)],['Reload saved data',()=>location.reload()]]){const b=document.createElement('button');b.type='button';b.textContent=text;b.onclick=()=>Promise.resolve().then(fn).catch(e=>status(e.message));panel.append(b);}
  host.prepend(panel);paint();
