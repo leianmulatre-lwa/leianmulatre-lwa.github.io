@@ -20,7 +20,10 @@ async function device(owner,legacy={}){
  vm.runInContext(source.replace(/import\('https:\/\/www.gstatic.com\/firebasejs\/12.18.0\/firebase-(app|auth|firestore).js'\)/g,(_,name)=>`Promise.resolve(modules.${name})`),context);
  await window.BigLWAAccountStorage.ready;return context;
 }
-const a=await device('a',{biglwaLibraryCatalogV1:'["legacy"]',biglwaTikTokSession:'secret'});
+const unowned=await device('b',{biglwaLibraryCatalogV1:'["belongs to another owner"]'});
+assert.equal(await unowned.window.BigLWAAccountStorage.importLegacy(),0,'unowned device-wide data must never migrate');
+assert.equal(unowned.localStorage.getItem('biglwaLibraryCatalogV1'),null,'unowned browser data must not enter this profile');
+const a=await device('a',{biglwaLegacyDataOwnerUid:'a',biglwaLibraryCatalogV1:'["legacy"]',biglwaTikTokSession:'secret'});
 assert.equal(a.localStorage.getItem('biglwaLibraryCatalogV1'),null,'legacy is not silently claimed');
 await a.window.BigLWAAccountStorage.importLegacy();assert.equal(a.localStorage.getItem('biglwaLibraryCatalogV1'),'["legacy"]');
 assert.equal([...cloud.keys()].some(k=>k.includes('TikTok')),false,'credentials excluded');
@@ -37,7 +40,7 @@ const restored=await device('a');assert.equal(restored.localStorage.getItem('big
 fail=true;restored.localStorage.setItem('biglwaMapPins','[{"title":"Offline"}]');await restored.window.BigLWAAccountStorage.flush();assert.match(restored.window.BigLWAAccountStorage.status,/cloud sync needs retry/);fail=false;await restored.window.BigLWAAccountStorage.flush();assert.equal(cloud.get('users/a/studioState/biglwaMapPins').value,'[{"title":"Offline"}]');
 restored.window.__biglwaPublicStorageView=true;assert.equal(restored.localStorage.getItem('biglwaMapPins'),null);assert.throws(()=>restored.localStorage.setItem('biglwaMapPins','[]'),/read-only/);
 assert.equal(a.window.BigLWAStoragePolicy.validValue('data:image/png;base64,abc'),false);
-console.log('PASS account isolation, opt-in migration, credential exclusion, cross-device restore, conflict preservation, tombstones, retry and visitor write protection');
+console.log('PASS account isolation, owner-verified opt-in migration, refusal of unowned data, credential exclusion, cross-device restore, conflict preservation, tombstones, retry and visitor write protection');
 const dir=readFileSync('firebase-directory.js','utf8');assert.ok(!dir.includes('await autoSyncSignedInAccount();'));assert.ok(dir.includes("where('state','==','approved')"));
 const map=readFileSync('map-app.html','utf8');assert.ok(map.includes("(async () => {\n  'use strict';\n  await window.BigLWAAccountStorage.ready;"));assert.ok(!map.includes('await window.BigLWAAccountStorage.ready;this._cancel'));
 console.log('PASS startup avoids stale profile upload, public archive filtered fallback and map hydration order');
