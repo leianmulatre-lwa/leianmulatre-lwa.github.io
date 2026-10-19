@@ -36,7 +36,7 @@ assert.doesNotMatch(music,/dbGet\('music'\)/,'No shared-browser music slot');
 assert.match(music,/biglwaGuestChecksLocalV2:/,"Guest Check does not reuse another member\'s local notes");
 assert.doesNotMatch(orbit,/localStorage\.setItem\('biglwaOrbitLinks'/,'Orbit cannot publish a shared-browser cache');
 assert.match(storage,/legacyOwner===uid\?policy\.keys:\[\]/,'Legacy collections require matching historical owner');
-assert.match(boundary,/if\(html\.classList\.contains\('biglwa-preview-mode'\)\)/,'Public profile stays masked until viewed owner's data loads');
+assert.match(boundary,/if\(html\.classList\.contains\('biglwa-preview-mode'\)\)/,"Public profile stays masked until viewed owner's data loads");
 
 // Exercise the startup boundary with two separate Firebase identities, both given
 // the same stale founder DOM. The actual renderer must discard those seeded details.
