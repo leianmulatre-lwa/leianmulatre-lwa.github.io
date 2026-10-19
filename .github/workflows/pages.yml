@@ -103,6 +103,7 @@ jobs:
             --exclude='*-test.mjs' \
             --exclude='seo-audits/' \
             --exclude='*.md' \
+            --exclude='*.unitypackage' \
             --exclude='.env*' \
             --exclude='*.log' \
             --exclude='.DS_Store'
