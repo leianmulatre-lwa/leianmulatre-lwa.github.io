@@ -183,11 +183,11 @@ const scripts='<script src="/external-link-policy-20261018.js">'+'</scr'+'ipt>' 
   };
   for(const file of ['account-storage-policy.js','account-storage.js']){const response=await fetch('/'+file+'?v=20261017-account-sync-1');if(!response.ok)throw Error('Account sync loader unavailable');(0,eval)(await response.text());}
   await window.BigLWAAccountStorage.ready;
-  const boot=await fetch('/bootstrap-v2.html?v=20261016-eight-planets-source-1').then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
+  const boot=await fetch('/bootstrap-v2.html?v=20261019-canonical-legacy-route-1',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('bootstrap '+r.status);return r.text()});
   const m=boot.match(/<script>([\s\S]*?)<\/script>/i);
   if(!m) throw new Error('bootstrap script missing');
   let js=m[1];
-  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20261014-fresh-site-loader-15');
+  js=js.replace('https://raw.githubusercontent.com/leianmulatre-lwa/leianmulatre-lwa.github.io/749d44f530a6421b9cb6fbe58bb35739230114b2/index.html','/base-v1.html?v=20261019-canonical-legacy-route-1');
   js=js.replace("js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);'+marker);","js=js.replace(marker,'html=window.__biglwaOrbitPatch(html);html=window.__biglwaStablePatch(html);'+marker);");
   (0,eval)(js);
 }catch(e){document.body.innerHTML='<main style="font-family:system-ui;padding:2rem"><h1>BIGLWA</h1><p>Loading failed. Refresh to try again.</p></main>';console.error(e)}})();
