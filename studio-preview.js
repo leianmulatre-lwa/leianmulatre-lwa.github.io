@@ -206,6 +206,7 @@ function renderSocials(data){
 }
 
 function localProfile(){
+  let saved=null;
   try{const uid=window.BigLWAAccountStorage?.uid||identity()?.uid; if(uid)saved=JSON.parse(localStorage.getItem("biglwaOwnProfileV1:"+uid)||"null")}catch{}
   saved=saved&&typeof saved==="object"?saved:{};
   /* The signed-in account wins over the device-wide slot, otherwise signing in as one
