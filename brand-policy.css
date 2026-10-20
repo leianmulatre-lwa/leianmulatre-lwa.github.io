@@ -1029,3 +1029,24 @@ body.about-site {
    max-width:130px!important;max-height:58px!important;
  }
 }
+
+/* Login supporter marquee · true-white logo gallery.
+   Keep its PNGs, spacing and uninterrupted horizontal motion; retire only the
+   translucent ivory gradient and fading edge mask on the LOGIN page.
+   Public-information footers deliberately keep their own existing treatment. */
+#loginPage .login-supporters .supporter-viewport{
+  background:#ffffff!important;
+  background-color:#ffffff!important;
+  background-image:none!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  border:0!important;
+  border-radius:15px!important;
+  box-shadow:none!important;
+}
+#loginPage .login-supporters .supporter-logo.supporter-logo-tile,
+#loginPage .login-supporters .supporter-logo.supporter-logo-tile:hover{
+  background:transparent!important;
+  background-image:none!important;
+}
+
