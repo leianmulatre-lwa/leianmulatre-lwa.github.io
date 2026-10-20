@@ -1017,7 +1017,11 @@ function renderPosts(force) {
     const urls = everyPhoto.slice(0, MAX_SLIDES);
     const isStack = everyPhoto.length >= MANY_PHOTOS;
     const managed = Boolean(me && post.uid === me);
-    const isInstagram = String(post.source || "").toLowerCase() === "instagram";
+    // Some old imported Pinterest cards were stored with an Instagram label.
+    // The canonical pin URL establishes their visible origin without rewriting owner data.
+    const pinOrigin=/^https?:\/\/(?:www\.)?pinterest\.[^/]+\/pin\//i.test(String(post.sourceUrl||''));
+    const displaySource=pinOrigin?'pinterest':String(post.source||'biglwa').toLowerCase();
+    const isInstagram = displaySource === "instagram";
     const shown = isStack ? urls.slice(0, 1) : urls;
     /* The saved picture is preferred, and the link thumbnail is the way back if it is gone.
        A post with neither cannot be offered as a card, so it is left off the wall. */
@@ -1052,9 +1056,9 @@ function renderPosts(force) {
     // Use the same card header for every source; slideshow arrow controls
     // still work without the Instagram-only traffic-light header.
     const browserStrip = '';
-    const provider=String(post.source || 'biglwa').toLowerCase();
+    const provider=displaySource;
     const sourceLabel=provider==='instagram'?'Instagram':provider==='pinterest'?'Pinterest':provider.charAt(0).toUpperCase()+provider.slice(1);
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (String(post.source || "").toLowerCase() === "tiktok" ? ' biglwa-tiktok-card' : '') + (String(post.source || "").toLowerCase() === "facebook" ? ' biglwa-facebook-card' : '') + (String(post.source || "").toLowerCase() === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(post.source) + ';--feed-card-shadow:' + shadowOf(post.source) + '" data-post-id="' + esc(post.id) + '" data-feed-owned="' + (managed?'1':'0') + '">' +
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (displaySource === "tiktok" ? ' biglwa-tiktok-card' : '') + (displaySource === "facebook" ? ' biglwa-facebook-card' : '') + (displaySource === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(displaySource) + ';--feed-card-shadow:' + shadowOf(displaySource) + '" data-post-id="' + esc(post.id) + '" data-feed-owned="' + (managed?'1':'0') + '">' +
       '<div class="biglwa-unified-media">' + browserStrip + image + "</div>" + link +
       '<span class="biglwa-unified-source" aria-label="Source: '+esc(sourceLabel)+'">'+esc(sourceLabel)+'</span>' +
       sendBar(post, managed) +
