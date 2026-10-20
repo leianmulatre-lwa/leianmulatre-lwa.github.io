@@ -181,6 +181,29 @@ let handoffPromise=null;
  let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false,diagnostic='Awaiting Pinterest account synchronization';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const scopedKey=uid=>KEY+':'+uid;
+ const recentBoardKey=()=>authUid?'biglwaPinterestRecentBoardsV1:'+authUid:'';
+ let recentBoardIds=[];
+ const restoreBoardOrder=()=>{
+  const key=recentBoardKey();
+  if(!key){recentBoardIds=[];return}
+  try{
+   const value=JSON.parse(localStorage.getItem(key)||'[]');
+   recentBoardIds=Array.isArray(value)?[...new Set(value.map(String).filter(id=>/^\\d+$/.test(id)))].slice(0,30):[];
+  }catch{recentBoardIds=[]}
+ };
+ const orderedBoards=()=>boards.slice().sort((a,b)=>{
+  const ai=recentBoardIds.indexOf(String(a.id)),bi=recentBoardIds.indexOf(String(b.id));
+  return (ai<0?Number.MAX_SAFE_INTEGER:ai)-(bi<0?Number.MAX_SAFE_INTEGER:bi);
+ });
+ const rememberBoardSelection=id=>{
+  id=String(id||'');
+  if(!authUid||!/^\\d+$/.test(id)||!boards.some(b=>String(b.id)===id))return false;
+  recentBoardIds=[id,...recentBoardIds.filter(old=>old!==id)].slice(0,30);
+  try{localStorage.setItem(recentBoardKey(),JSON.stringify(recentBoardIds))}catch{}
+  render();
+  return true;
+ };
+
  const storageGet=key=>{for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(key);if(value)return value}catch{}}return ''};
  const storageDrop=key=>{for(const store of [localStorage,sessionStorage]){try{store.removeItem(key)}catch{}}};
  const session=()=>{const uid=authUid||window.__biglwaIdentity?.uid||'';return uid?storageGet(scopedKey(uid)):''};
@@ -193,6 +216,7 @@ let handoffPromise=null;
  };
  const resetView=()=>{
   connected=false;profile={};boards=[];pins=[];createdPins=[];boardId='';boardsNext='';pinsNext='';createdNext='';covers={};
+  recentBoardIds=[];
   hostedPinUrls.clear();
   savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
@@ -367,7 +391,7 @@ async function connect(){await run(async()=>{
   /* Six covers is what the preview shows, so asking for more would spend the rate limit on
      tiles nobody sees. The Worker caches per session, so this is cheap after the first call. */
  async function loadCovers(){
-  const ids=boards.filter(b=>/^\d+$/.test(String(b.id||''))).slice(0,6);
+  const ids=orderedBoards().filter(b=>/^\d+$/.test(String(b.id||''))).filter(b=>!covers[b.id]).slice(0,6);
   if(!ids.length)return;
   try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render();document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'))}catch{}finally{}
  }
@@ -454,7 +478,7 @@ async function connect(){await run(async()=>{
     // Persist the connected account's public details, not its bearer token.
     try{await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid) || window.__biglwaConnections?.refresh?.(authUid))}catch(error){console.warn('Pinterest connection mirror:',error)}
     await loadBoards();
-    if(!boardId&&boards.length)boardId=String(boards[0].id||'');
+    if(!boardId&&boards.length)boardId=String(orderedBoards()[0]?.id||'');
     if(boardId)await loadPins(boardId);
     await loadCreatedPins();
     render();
@@ -468,17 +492,17 @@ async function connect(){await run(async()=>{
    // Keep board saves in Boards; profile drafts come only from /pins.
    boards=[];boardId='';pins=[];pinsNext='';covers={};
    await loadBoards();
-   if(boards.length){boardId=String(boards[0].id||'');if(boardId)await loadPins(boardId)}
+   if(boards.length){boardId=String(orderedBoards()[0]?.id||'');if(boardId)await loadPins(boardId)}
    await loadCreatedPins(false);
    message='Boards refreshed. '+createdPins.length+' original Pins saved privately to your BIG LWA profile.';
    await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid)||window.__biglwaConnections?.refresh?.(authUid));
   }catch(error){importError=error?.message||'Pinterest sync failed. Try again.';message='';}
   finally{syncingAll=false;render()}
  }
- async function choose(id,more=false){if(!/^\d+$/.test(id))return;await run(async()=>{
-  if(!more){boardId=id;pins=[];pinsNext=''}
-  await loadPins(id,more);
- })}
+ async function choose(id,more=false){if(!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===String(id)))return;
+  if(!more){rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';void loadCovers();}
+  await run(async()=>{await loadPins(id,more);});
+ }
  async function disconnect(){await run(async()=>{
   const token=await firebaseIdToken();
   const body=token?{firebaseIdToken:token}:{};
@@ -525,7 +549,7 @@ async function connect(){await run(async()=>{
    return '<div class="pinterest-board-grid">'+Array.from({length:6},()=>tile).join('')+'</div>';
   }
   if(!boards.length)return'<p role="status">No Pinterest boards were returned. Use Refresh boards to retry.</p>';
-  const tiles=boards.slice(0,6).map(b=>{
+  const tiles=orderedBoards().slice(0,6).map(b=>{
    const coverEntry=covers[b.id];
    const urls=Array.isArray(coverEntry?.images)?coverEntry.images.filter(Boolean).slice(0,3):[];
    const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry)||image(b);
@@ -580,7 +604,7 @@ async function connect(){await run(async()=>{
     }).join('')||'<p>No original Pins were returned. Board saves are listed below.</p>')+'</div>'+
     (createdNext?'<button class="module-action" type="button" data-pn-more-created'+disabled+'>Load more original Pins</button>':'')+'</section>':'')+
   boardGrid(disabled)+
-  (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
+  (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+orderedBoards().map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
   (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
   (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
   (boardId&&pins.length?'<div class="pn-board-publish-tools"><button type="button" class="module-action" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+disabled+'>Post loaded board Pins to Veve</button><small>Only Pins you explicitly publish become public.</small></div>':'')+
@@ -671,12 +695,14 @@ async function watchAuth(){
   const auth=getAuth(app);
   await auth.authStateReady();
   authUid=auth.currentUser?.uid||'';
+  restoreBoardOrder();
   // Watch only Firebase transitions; a Pinterest 401 cannot change authUid.
   auth.onAuthStateChanged(user=>{
    const uid=user?.uid||'';
    if(uid===authUid)return;
    authUid=uid;
    resetView();
+   restoreBoardOrder();
    if(uid){loadSaved().catch(()=>{});restore().catch(error=>console.warn('Pinterest account restore:',error));}
   });
   return authUid;
@@ -737,7 +763,7 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,
     seen.add(url);out.push({id:String(id||''),url});
    };
    pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||''));
-   boards.forEach(board=>{
+   orderedBoards().forEach(board=>{
     const cover=covers[board.id];
     const urls=Array.isArray(cover?.images)?cover.images:[cover?.url||cover];
     urls.filter(Boolean).forEach(url=>include(board.id,url));
@@ -745,6 +771,6 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,
    savedLibrary.boards.forEach(board=>board.pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||'')));
    return out;
   },
-  get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,originalPins:createdPins.length,hasMoreOriginals:Boolean(createdNext),selectedBoard:boardId,hasSession:Boolean(session()),busy,importError,diagnostic})};
+  get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,originalPins:createdPins.length,hasMoreOriginals:Boolean(createdNext),selectedBoard:boardId,recentBoardIds:[...recentBoardIds],hasSession:Boolean(session()),busy,importError,diagnostic})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
