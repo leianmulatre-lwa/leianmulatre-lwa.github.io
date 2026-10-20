@@ -168,6 +168,19 @@
       section.addEventListener('change',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor'))applyAppearance(true)});
       $('#resetWidgets',section)?.addEventListener('click',()=>queueMicrotask(()=>applyAppearance(true)));
     }
+    // Aura hue belongs beside Aura text and music, not wallpaper/widget styling.
+    const media=$('#profileMediaEditor');
+    const auraInput=$('#auraColor');
+    const auraLabel=auraInput?.closest('label');
+    if(media&&auraLabel){
+      auraLabel.classList.add('biglwa-media-aura-color');
+      if(auraLabel.parentElement!==media)media.appendChild(auraLabel);
+      if(media.dataset.auraAppearanceBound!=='1'){
+        media.dataset.auraAppearanceBound='1';
+        media.addEventListener('input',event=>{if(event.target.id==='auraColor')applyAppearance(true)});
+        media.addEventListener('change',event=>{if(event.target.id==='auraColor')applyAppearance(true)});
+      }
+    }
     restoreAppearance();
   }
 
