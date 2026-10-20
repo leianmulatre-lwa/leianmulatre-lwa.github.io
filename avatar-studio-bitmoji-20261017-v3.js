@@ -123,6 +123,40 @@
     image.onerror=()=>{view.textContent='Stored avatar image could not be loaded.'};
     view.append(image);
   }
+  function openAvatarLarge(){
+    const a=state.avatar;
+    if(!a?.url||!state.loadedUid){openEditor();setStatus('Save your avatar first to open the interactive enlarged view.');return}
+    let dialog=one('#biglwaAvatarLarge');
+    if(!dialog){
+      dialog=document.createElement('dialog');dialog.id='biglwaAvatarLarge';dialog.className='biglwa-avatar-lightbox';
+      dialog.setAttribute('aria-label','Interactive Xbox Avatar preview');
+      dialog.innerHTML='<div class="biglwa-avatar-lightbox-head"><strong>Xbox Avatar</strong><button type="button" data-avatar-lightbox-close aria-label="Close enlarged avatar">×</button></div>'+
+        '<div id="biglwaAvatarLargeMedia" class="biglwa-avatar-lightbox-media"></div>'+
+        '<div class="biglwa-avatar-lightbox-footer"><span data-avatar-lightbox-info>Interact with the avatar.</span>'+
+        '<div class="biglwa-avatar-lightbox-controls"><button type="button" data-avatar-large-turn="-35" aria-label="Turn Minecraft avatar left">↶</button>'+
+        '<button type="button" data-avatar-large-turn="35" aria-label="Turn Minecraft avatar right">↷</button>'+
+        '<a data-avatar-large-external target="_blank" rel="noopener noreferrer">View on 360sona ↗</a></div></div>';
+      dialog.addEventListener('close',()=>{const media=one('#biglwaAvatarLargeMedia',dialog);disposeViewer(media);media?.replaceChildren();});
+      document.body.append(dialog);
+    }
+    const media=one('#biglwaAvatarLargeMedia',dialog),info=one('[data-avatar-lightbox-info]',dialog),external=one('[data-avatar-large-external]',dialog);
+    dialog.querySelectorAll('[data-avatar-large-turn]').forEach(button=>button.hidden=a.type!=='minecraft');
+    if(a.type==='sona360'&&sonaUrl(a.url)){
+      renderSonaFrame(media,a.url);
+      if(info)info.textContent='Interact directly with the 360sona display case.';
+      if(external){external.hidden=false;external.href=sonaUrl(a.url);}
+    }else if(a.type==='minecraft'){
+      state.minecraftSlim=a.slim===true;
+      renderMinecraftModel(media,a.url,true);
+      if(info)info.textContent=(a.slim?'Alex':'Steve')+' · drag to rotate or use the arrows.';
+      if(external)external.hidden=true;
+    }else{
+      showImageFallback(media,a.url);
+      if(info)info.textContent='Saved Snapchat Bitmoji image.';
+      if(external)external.hidden=true;
+    }
+    if(!dialog.open)dialog.showModal();
+  }
   function render(){
     const card=one('#studioAvatarCard');if(!card)return;
     card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Xbox Avatar</h2>'+
@@ -602,11 +636,33 @@
     if(e.target.closest('#profileAvatarEditor [data-minecraft-save]')){
       e.preventDefault();await saveMinecraftDraft();return;
     }
+    if(e.target.closest('[data-avatar-lightbox-close]')){e.preventDefault();one('#biglwaAvatarLarge')?.close();return}
+    const largeRotate=e.target.closest('[data-avatar-large-turn]');
+    if(largeRotate){e.preventDefault();one('#biglwaAvatarLargeMedia')?._biglwaMinecraftModel?.rotate(Number(largeRotate.dataset.avatarLargeTurn)||35);return}
+    const menuToggle=e.target.closest('#studioAvatarCard [data-avatar-actions-toggle]');
+    if(menuToggle){
+      e.preventDefault();const menu=one('#studioAvatarCard .biglwa-avatar-action-menu');
+      if(menu){menu.hidden=!menu.hidden;menuToggle.setAttribute('aria-expanded',String(!menu.hidden))}
+      return;
+    }
+    const actionButton=e.target.closest('#studioAvatarCard [data-avatar-action]');
+    if(actionButton){
+      e.preventDefault();
+      const action=actionButton.dataset.avatarAction;
+      if(action==='enlarge'){openAvatarLarge();return}
+      if(state.avatar?.type==='minecraft')one('#biglwaAvatarMedia')?._biglwaMinecraftModel?.rotate(action==='left'?-35:35);
+      else if(state.avatar?.type==='sona360'){
+        one('#biglwaAvatarMedia iframe')?.focus();
+        setStatus('Drag or tap the animated 360sona display case directly to interact.');
+      }
+      return;
+    }
     const origin=e.target.closest('#studioAvatarCard');
     const control=origin&&e.target.closest('[data-avatar-widget-action]');
     if(control){
       e.preventDefault();e.stopPropagation();
-      if(control.dataset.avatarWidgetAction==='edit')openEditor();
+      if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge();
+      else if(control.dataset.avatarWidgetAction==='edit')openEditor();
       else if(control.dataset.avatarWidgetAction==='archive')setVisibility('archived');
       else if(window.confirm('Remove Xbox Avatar from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
       return;
