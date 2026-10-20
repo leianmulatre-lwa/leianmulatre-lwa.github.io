@@ -160,3 +160,82 @@
 #pinterestBoards [data-pn-publish-board]:focus-visible{
  outline:3px solid #ba4a71!important;outline-offset:3px!important;
 }
+
+/* 2026-10-20 · Unified BIGLWA Board workstation.
+   All private collection actions remain available behind New board ▾. */
+#pinterestBoards{position:relative!important}
+#pinterestBoards .pn-primary-head{
+ display:flex;align-items:center;justify-content:space-between;gap:10px 15px;
+ flex-wrap:wrap;padding:0 0 10px;border-bottom:1px solid rgba(138,108,103,.18);
+ margin:0 0 8px;
+}
+#pinterestBoards .pn-primary-identity{display:grid;gap:6px;min-width:0}
+#pinterestBoards .pn-primary-identity h2{font:600 clamp(20px,2vw,28px)/1.05 "CS Bergamot Stitched",Georgia,serif!important;margin:0!important;padding:0!important;text-transform:lowercase}
+#pinterestBoards .pn-connected-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0;font:600 11px/1.3 system-ui;color:var(--widget-muted,#6f6561)}
+#pinterestBoards .pn-orbit-planet{position:relative;display:grid;place-items:center;isolation:isolate;flex:0 0 20px;width:20px;height:20px;
+ border-radius:50%;font-size:17px;line-height:1;color:#d41137;text-shadow:inset 0 1px 2px #fff;filter:drop-shadow(1px 1px 1px #85112966)}
+#pinterestBoards .pn-orbit-planet::after{content:"";position:absolute;z-index:-1;inset:5px -4px;border:1.4px solid #e35068;border-radius:50%;transform:rotate(-28deg);pointer-events:none}
+#pinterestBoards .pn-qwiklinkz{display:inline-flex;align-items:center;gap:3px;font:750 10px/1.3 system-ui;
+ color:#9d2645;text-decoration:none;border-bottom:1px dotted currentColor}
+#pinterestBoards .pn-qwiklinkz:hover{text-decoration:underline}
+#pinterestBoards .pn-head-controls{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+#pinterestBoards .pn-head-controls>.module-action,
+#pinterestBoards .pn-new-board-combo>.module-action{
+ min-height:32px!important;margin:0!important;padding:6px 10px!important;border-radius:8px!important;
+ font:750 10px/1.25 system-ui!important;white-space:nowrap}
+#pinterestBoards .pn-head-controls .pn-secondary,#pinterestBoards .pn-current-board-bar .pn-secondary{
+ background:var(--widget-bg,#fffaf5)!important;color:#9d2844!important;border:1px solid #cdaeb1!important}
+#pinterestBoards .pn-new-board-combo{display:inline-flex;align-items:stretch;gap:0;flex-shrink:0}
+#pinterestBoards .pn-new-board-combo>.pn-new-board{border-radius:8px 0 0 8px!important;border-right:0!important}
+#pinterestBoards .pn-manage-board-menu{display:grid;place-items:center;min-width:32px;padding:0 6px;border:1px solid #ae3b54;
+ border-radius:0 8px 8px 0;background:#f9d9de;color:#872c43;font:800 17px/1 system-ui;cursor:pointer}
+#pinterestBoards .pn-manage-board-menu[aria-expanded="true"]{background:#efd0d9}
+#pinterestBoards .pn-notice{font:600 10px/1.35 system-ui!important;margin:4px 0 7px!important;color:#654843}
+#pinterestBoards .pinterest-diagnostics{font-size:10px!important;margin:4px 0 7px!important}
+#pinterestBoards .pinterest-board-grid{margin:10px 0 14px!important;gap:12px!important}
+#pinterestBoards .pn-current-board-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ flex-wrap:nowrap;border:1px solid #dbc3b7;border-radius:12px;padding:8px 10px;background:rgba(255,251,247,.68);
+ margin:5px 0 6px}
+#pinterestBoards .pn-board-picker{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto;
+ font:750 11px/1.3 system-ui;color:var(--widget-ink,#4b3933);white-space:nowrap}
+#pinterestBoards .pn-board-picker span{flex:0 0 auto}
+#pinterestBoards #pinterestBoardPicker{flex:1 1 auto;min-width:120px;max-width:none;width:auto;min-height:34px!important;height:34px!important;
+ padding:5px 26px 5px 10px!important;margin:0!important;background:var(--widget-bg,#fffaf6)!important;
+ border:1px solid #c3aeab;border-radius:8px;color:var(--widget-ink,#4b3933);font:600 11px system-ui}
+#pinterestBoards .pn-board-view-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex:0 0 auto}
+#pinterestBoards .pn-board-view-actions button{margin:0!important;min-height:34px!important;padding:7px 10px!important;
+ white-space:nowrap;font:700 10px/1.2 system-ui!important;border-radius:8px!important}
+#pinterestBoards .pn-board-veve:disabled{opacity:.5!important;cursor:not-allowed!important}
+#pinterestBoards .pn-board-scope-note{margin:5px 2px 8px!important;font:600 10px/1.35 system-ui;color:var(--widget-muted,#76645b)}
+#pinterestBoards .pn-board-scope-note strong{font-weight:800;color:var(--widget-ink,#533b35)}
+#pinterestBoards .pinterest-pin-grid{margin-top:10px!important}
+#pinterestBoards .pn-saved-popover{position:absolute!important;z-index:60;top:75px;right:12px;
+ width:min(730px,calc(100% - 24px));max-height:min(65vh,690px);overflow:auto;
+ padding:12px;border:1px solid #d4b5bc;border-radius:13px;
+ background:var(--widget-bg,#fffaf5);box-shadow:0 16px 45px rgba(40,22,27,.25)}
+#pinterestBoards .pn-saved-popover-top{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ border-bottom:1px solid #dac4c4;margin-bottom:8px;padding-bottom:7px}
+#pinterestBoards .pn-saved-popover-top b{font:800 12px/1.3 Georgia,serif}
+#pinterestBoards .pn-saved-popover-top button{cursor:pointer;border:1px solid #dcc7c9;border-radius:6px;padding:3px 9px;background:transparent;color:inherit}
+#pinterestBoards .pn-popover-actions{display:flex;justify-content:flex-end;gap:6px}
+#pinterestBoards .pn-saved-popover .pn-saved-section{margin:0!important;padding:0!important;border:0!important;background:transparent!important}
+#pinterestBoards .pn-saved-popover .pn-saved-heading h3{font:800 16px Georgia,serif!important;margin:5px 0 3px!important}
+#pinterestBoards .pn-saved-popover .pn-saved-heading p{margin:0!important;font-size:10px!important}
+#pinterestBoards .pn-saved-popover .pn-saved-board{margin-top:10px;padding-top:10px}
+#pinterestBoards .pn-saved-popover .pn-saved-board h4{font-size:14px!important}
+#pinterestBoards .pn-saved-popover .pn-saved-pin-grid{grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px}
+@media(max-width:880px){
+ #pinterestBoards .pn-primary-head{align-items:flex-start}
+ #pinterestBoards .pn-current-board-bar{flex-wrap:wrap}
+ #pinterestBoards .pn-board-picker{flex-basis:100%;justify-content:space-between}
+ #pinterestBoards .pn-board-view-actions{flex:1 1 100%;justify-content:flex-end}
+}
+@media(max-width:560px){
+ #pinterestBoards .pn-head-controls{width:100%;justify-content:flex-start}
+ #pinterestBoards .pn-board-picker{flex-wrap:wrap;white-space:normal}
+ #pinterestBoards .pn-board-picker span{flex-basis:100%}
+ #pinterestBoards #pinterestBoardPicker{width:100%}
+ #pinterestBoards .pn-board-view-actions{flex-wrap:wrap;justify-content:flex-start}
+ #pinterestBoards .pn-saved-popover{top:110px}
+}
+
