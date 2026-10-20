@@ -113,31 +113,61 @@ let handoffPromise=null;
   const postId='orbit_'+Array.from(digest).map(n=>n.toString(16).padStart(2,'0')).join('').slice(0,40);
   await publisher(postId);
  }
- async function publishBoardToVeve(id,saved){
+ async function publishBoardToVeve(id,saved,selectedIds=null){
   const board=saved?savedLibrary.boards.find(b=>String(b.id)===String(id)):boards.find(b=>String(b.id)===String(id));
-  if(!board){notice('Select a board before publishing.');return;}
-  if(saved&&boardLocks[id]===true){notice('Unlock this board before publishing.');return;}
-  const loaded=saved?board.pins||[]:String(boardId)===String(id)?pins:[];
-  const list=loaded.filter(p=>/^\d+$/.test(String(p.id||''))&&(image(p)||p.image)).slice(0,20);
-  if(!list.length){notice('No Pin images loaded. Open or sync the board first.');return;}
-  const note=loaded.length>list.length?' Only the first 20 loaded Pins will publish this time.':'';
-  if(!window.confirm('Publish '+list.length+' Pins from "'+String(board.title||board.name||'Board').slice(0,100)+
-    '" to the public Collective Feed and Veve? Veve will not display your account name.'+note))return;
+  if(!board){notice('Choose a board to publish.');return}
+  if(saved&&boardLocks[id]===true){notice('Unlock this board before publishing.');return}
+  const requested=selectedIds instanceof Set&&selectedIds.size?[...selectedIds]:null;
+  // Confirm *before* queueing; the action may start after other imports finish.
+  const label=String(board.title||board.name||'Board').slice(0,100);
+  if(!window.confirm('Publish '+(requested?requested.length+' selected Pins':'all available Pins')+' from "'+label+
+    '"? This makes them public in your Collective Feed AND Veve. It will not publish Pins from other boards.'))return;
+  const uid=authUid;
   await run(async()=>{
-   const importer=await waitForImporter(),publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
-   if(typeof importer!=='function'||typeof publisher!=='function')throw Error('Account publishing is unavailable. Refresh and retry.');
-   let posted=0,failed=0;
-   for(const pin of list){
-    if(saved&&boardLocks[id]===true)break;
-    try{await publishOnePin(pin,importer,publisher);posted++}catch(err){failed++;console.warn('[BIG LWA] Pinterest publish:',pin.id,err)}
-    const status=document.querySelector('#pinterestBoards [role="status"]');
-    if(status)status.textContent='Publishing '+(posted+failed)+'/'+list.length+' Pins…';
-   }
-   if(posted){
-    window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published:posted}}));
-    window.BigLWAVeve?.refresh?.();
-   }
-   notice(posted+' Pins posted to Collective Feed and Veve.'+(failed?' '+failed+' failed; retry those Pins individually.':''));
+    if(uid!==authUid||!uid)throw Error('Account changed; publishing cancelled.');
+    const importer=await waitForImporter(),publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
+    if(typeof importer!=='function'||typeof publisher!=='function')throw Error('Account publishing is unavailable. Refresh and retry.');
+    let loaded=saved?(board.pins||[]):String(boardId)===String(id)?pins.slice():[];
+    // Pinterest paginates board results. Continue until exhausted, never cap at 20.
+    if(!saved&&!requested){
+      let next=String(boardId)===String(id)?pinsNext:'';
+      if(!loaded.length){
+        const first=await api('boards/'+encodeURIComponent(id)+'/pins');
+        loaded=Array.isArray(first.items)?first.items:[];
+        next=first.bookmark||first.next_bookmark||'';
+      }
+      let page=0;
+      while(next&&page<100){
+        if(uid!==authUid)throw Error('Account changed; publishing cancelled.');
+        progress('Loading board Pins · '+loaded.length+' collected…');
+        const data=await api('boards/'+encodeURIComponent(id)+'/pins?bookmark='+encodeURIComponent(next));
+        const batch=Array.isArray(data.items)?data.items:[];
+        loaded.push(...batch);
+        const nextBookmark=data.bookmark||data.next_bookmark||'';
+        if(nextBookmark===next)throw Error('Pinterest returned a repeated cursor. Publish only the Pins already loaded by selecting them.');
+        next=nextBookmark;page++;
+      }
+      if(next)throw Error('Pinterest has more than 100 pages of Pins. Choose a smaller selection or contact support.');
+    }
+    const unique=[...new Map(loaded.filter(p=>/^\d+$/.test(String(p?.id||''))).
+       filter(p=>!requested||requested.includes(String(p.id))).map(p=>[String(p.id),p])).values()];
+    const list=unique.filter(p=>image(p)||p.image);
+    if(!list.length)throw Error('No usable Pin images found. Sync the selected board before publishing.');
+    let posted=0,failed=0;
+    for(const pin of list){
+      if(uid!==authUid)throw Error('Account changed; publishing stopped.');
+      if(saved&&boardLocks[id]===true)throw Error('Board locked while publishing.');
+      try{await publishOnePin(pin,importer,publisher);posted++;publishedPinIds.add(String(pin.id))}
+      catch(err){failed++;console.warn('[BIGLWA] Pinterest publish:',pin.id,err)}
+      if((posted+failed)%4===0||posted+failed===list.length)
+        progress('Publishing to Collective + Veve · '+(posted+failed)+' / '+list.length+' · '+posted+' live');
+    }
+    if(posted){
+      window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published:posted}}));
+      window.BigLWAVeve?.refresh?.();
+    }
+    if(requested)for(const id of requested)selectedBoardPins.delete(id);
+    notice(posted+' Pins are live in Collective Feed and Veve.'+(failed?' '+failed+' could not publish; retry them individually.':''));
   });
  }
  async function publishPin(pinId,fromBoard=''){
@@ -515,8 +545,10 @@ async function connect(){await run(async()=>{
   finally{syncingAll=false;render()}
  }
  async function choose(id,more=false){if(!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===String(id)))return;
-  if(!more){rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();void loadCovers();}
-  await run(async()=>{await loadPins(id,more);});
+  await run(async()=>{
+    if(!more){rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();void loadCovers()}
+    await loadPins(id,more);
+  });
  }
  async function disconnect(){await run(async()=>{
   const token=await firebaseIdToken();
