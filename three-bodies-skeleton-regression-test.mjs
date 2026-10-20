@@ -26,7 +26,7 @@ assert.equal(models.models.individual.color,'#d9c6ee');
 assert.equal(models.models.social.color,'#f7cddd');
 assert.equal(models.models.political.color,'#f8d4b0');
 assert.match(body,/focusModel/,'body model filter is interactive');
-assert.match(body,/saved widget order stays yours/,'no card-order migration');
+assert.match(body,/Does not move cards or touch account layout data/,'Body-model choices never migrate or reorder widgets');
 assert.match(onboarding,/id='biglwaSkeletonHub'/,'reusable in-card Skeleton hub');
 assert.match(onboarding,/biglwaSkeletonKeysToggle/,'top toolbar launcher');
 assert.match(onboarding,/is-skeleton-open/,'dismissed card can reopen');
@@ -43,4 +43,4 @@ assert.ok(pages.includes("const pages=Array.isArray(collection?.entries)?"),'sav
 assert.ok(pages.includes("event.key?.startsWith('biglwaWritingCollectionV1:')"),'cross-tab writing refresh');
 assert.ok(pages.includes("document.addEventListener('biglwa:writing-saved',syncWritingPreviews)"),'same-tab writing refresh');
 assert.ok(writing.includes('biglwa:writing-saved'),'writing editor emits update event');
-console.log('PASS Skeleton Keys opens inside Studio, real Politic left-toolbar configuration, three-body pastels/filter, account-owned Journal thumbnail, ON AIR/ONLINE without fabricated counts.');
+console.log('PASS Skeleton Keys opens inside Studio, real Politic left-toolbar configuration, compact three-body filters and pastel widget rings, account-owned Journal thumbnail, ON AIR/ONLINE without fabricated counts.');
