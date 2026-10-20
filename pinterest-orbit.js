@@ -219,7 +219,7 @@ let handoffPromise=null;
   connected=false;profile={};boards=[];pins=[];createdPins=[];boardId='';boardsNext='';pinsNext='';createdNext='';covers={};
   recentBoardIds=[];
   hostedPinUrls.clear();
-  savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};
+  savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};savedDrawerOpen=false;
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
   restorePromise=null;boardsPromise=null;pinsPromise=null;createdPromise=null;lastImport={imported:0,skipped:0,partial:0};importError='';
   render();
@@ -742,7 +742,7 @@ async function init(){
   if(!document.getElementById('pinterestBoardsStyle')){
    const link=document.createElement('link');
    link.id='pinterestBoardsStyle';link.rel='stylesheet';
-   link.href='/pinterest-boards.css?v=20261014-board-publish-4';
+   link.href='/pinterest-boards.css?v=20261020-compact-board-workbench-5';
    document.head.append(link);
   }
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
