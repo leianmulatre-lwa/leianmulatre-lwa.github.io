@@ -188,7 +188,7 @@ let handoffPromise=null;
   if(!key){recentBoardIds=[];return}
   try{
    const value=JSON.parse(localStorage.getItem(key)||'[]');
-   recentBoardIds=Array.isArray(value)?[...new Set(value.map(String).filter(id=>/^\\d+$/.test(id)))].slice(0,30):[];
+   recentBoardIds=Array.isArray(value)?[...new Set(value.map(String).filter(id=>/^\d+$/.test(id)))].slice(0,30):[];
   }catch{recentBoardIds=[]}
  };
  const orderedBoards=()=>boards.slice().sort((a,b)=>{
@@ -197,7 +197,7 @@ let handoffPromise=null;
  });
  const rememberBoardSelection=id=>{
   id=String(id||'');
-  if(!authUid||!/^\\d+$/.test(id)||!boards.some(b=>String(b.id)===id))return false;
+  if(!authUid||!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===id))return false;
   recentBoardIds=[id,...recentBoardIds.filter(old=>old!==id)].slice(0,30);
   try{localStorage.setItem(recentBoardKey(),JSON.stringify(recentBoardIds))}catch{}
   render();
@@ -591,18 +591,19 @@ async function connect(){await run(async()=>{
  if(!panel){panel=document.createElement('section');panel.id='pinterestBoards';panel.className='module-card';panel.style.marginTop='20px';const heading=body.querySelector('.module-heading');if(heading)heading.after(panel);else body.prepend(panel)}
  panel.setAttribute('aria-busy',String(busy));
  const disabled=busy?' disabled':'';
+ const originalPinsMarkup=
+  (connected?'<section class="pinterest-owned-section"><header><h3>Your original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3><p>Created by @'+esc(profile.username||'you')+'. Saved privately to your BIG LWA profile; publish selected drafts from Feed.</p></header><div class="pinterest-owned-grid">'+
+    (createdPins.slice(0,60).map(pin=>{const pic=(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin);
+      return '<a href="https://www.pinterest.com/pin/'+esc(pin.id)+'/" target="_blank" rel="noopener noreferrer" title="'+esc(pin.title||pin.description||'Original Pin')+'">'+
+       (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>';
+    }).join('')||'<p>No original Pins were returned. Board saves are listed below.</p>')+'</div>'+
+    (createdNext?'<button class="module-action" type="button" data-pn-more-created'+disabled+'>Load more original Pins</button>':'')+'</section>':'');
  panel.innerHTML='<h2>Pinterest boards</h2><p>'+(connected?'Connected as '+esc(profile.username||profile.business_name||'your Pinterest account'):'Connect Pinterest to browse your public boards and Pins here.')+'</p><div class="module-actions">'+
  (connected?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>Refresh boards</button><button type="button" class="module-action" data-pn-sync'+(busy||syncingAll?' disabled':'')+'>Sync boards + my created Pins</button><button type="button" class="module-action" data-pn-disconnect'+disabled+'>Disconnect</button>':'<button type="button" class="module-action" data-pn-connect'+disabled+'>Connect Pinterest</button>')+
   '</div><p role="status">'+esc(message)+'</p><p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>'+(importError?'<p role="alert">'+esc(importError)+'</p>':'')+
   /* The grid sits outside the connected branch on purpose: the shape of what is coming is
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
-  (connected?'<section class="pinterest-owned-section"><header><h3>Your original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3><p>Created by @'+esc(profile.username||'you')+'. Saved privately to your BIG LWA profile; publish selected drafts from Feed.</p></header><div class="pinterest-owned-grid">'+
-    (createdPins.slice(0,60).map(pin=>{const pic=(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin);
-      return '<a href="https://www.pinterest.com/pin/'+esc(pin.id)+'/" target="_blank" rel="noopener noreferrer" title="'+esc(pin.title||pin.description||'Original Pin')+'">'+
-       (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>';
-    }).join('')||'<p>No original Pins were returned. Board saves are listed below.</p>')+'</div>'+
-    (createdNext?'<button class="module-action" type="button" data-pn-more-created'+disabled+'>Load more original Pins</button>':'')+'</section>':'')+
   boardGrid(disabled)+
   (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+orderedBoards().map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
   (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
@@ -623,7 +624,7 @@ async function connect(){await run(async()=>{
     '<a href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View on Pinterest">↗</a></div></div></article>';
   }).join('')+'</div>'+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
- (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'')+savedBoardsMarkup();
+ (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'')+savedBoardsMarkup()+originalPinsMarkup;
 }
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
