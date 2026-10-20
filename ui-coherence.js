@@ -733,6 +733,16 @@
   }
   function refreshNavigationCatalogFromWidgets(app){
     if(!app)return;
+    // Politic is a first-class navigation destination even when inserted after
+    // the original Studio sidebar catalog was assembled.
+    const civic=$('#politc',app);
+    if(civic&&!navigationCatalog.has('politc')){
+      navigationCatalog.set('politc',{
+        key:'politc',label:'Politic',href:'#politc',policyRoute:'',
+        symbolHTML:widgetIconMarkup(civic)||'<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">',
+        order:-1
+      });
+    }
     applyPreferredStudioSymbols(app);
     navigationCatalog.forEach((entry,key)=>{
       const widget=$('[data-widget-route="'+CSS.escape(key)+'"]',app)||$('#'+CSS.escape(key),app)||(key==='rooms'?$('#room',app):key==='room'?$('#rooms',app):null);
