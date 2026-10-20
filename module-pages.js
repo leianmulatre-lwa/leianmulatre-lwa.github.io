@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261019-journal-latest-10';
+        script.src = '/module-pages.js?v=20261020-module-jump-politc-11';
         document.head.appendChild(script);
       }, 250);
     }
