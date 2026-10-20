@@ -13,7 +13,7 @@
           ?u.origin+u.pathname:'';
     }catch{return ''}
   };
-  const state={loadedUid:'',skinViewer:null,skinLibrary:null,avatar:null,busy:false,layout:null};
+  const state={loadedUid:'',skinViewer:null,skinLibrary:null,avatar:null,busy:false,layout:null,minecraftSlim:false};
   const one=(selector,root=document)=>root.querySelector(selector);
   const current=()=>window.__biglwaIdentity?.uid||'';
   let firebasePromise=null;
@@ -52,7 +52,7 @@
   }
   async function renderMinecraftModel(root,skin,large=false){
     if(!root)return false;
-    const key=(skin||'default')+':'+(large?'large':'small');
+    const key=(skin||'default')+':'+(large?'large':'small')+':'+(state.minecraftSlim?'alex':'steve');
     if(root.dataset.minecraftSkin===key&&root._biglwaMinecraftModel)return true;
     disposeViewer(root);
     root.dataset.minecraftSkin=key;
@@ -66,7 +66,7 @@
       if(!root.isConnected||root.dataset.minecraftSkin!==key)return false;
       const texture=skin||viewer.defaultSkin();
       if(!texture)throw Error('Could not create Minecraft preview texture.');
-      const model=viewer.mount(root,texture,{large,
+      const model=viewer.mount(root,texture,{large,slim:state.minecraftSlim,
         onError:error=>{if(root.dataset.minecraftSkin===key)setStatus(error?.message||'Minecraft texture could not load.');}
       });
       root._biglwaMinecraftModel=model;
@@ -95,7 +95,7 @@
     iframe.width='320';iframe.height='546';iframe.loading='lazy';
     iframe.referrerPolicy='no-referrer';iframe.setAttribute('allow','fullscreen');
     iframe.setAttribute('data-sona-widget','1');iframe.style.border='0';
-    if(compact){iframe.tabIndex=-1;iframe.setAttribute('aria-hidden','true');wrap.setAttribute('aria-hidden','true');}
+    // Preserve actual interaction (drag/rotate/pet gestures) in the compact display case.
     wrap.append(iframe);root.append(wrap);return true;
   }
   function mediaNode(){return one('#biglwaAvatarMedia')}
@@ -104,6 +104,7 @@
     const view=mediaNode();if(!view)return;
     const a=state.avatar;
     if(a?.type==='minecraft'&&a.url){
+      state.minecraftSlim=a.slim===true;
       renderMinecraftModel(view,a.url,false);
       return;
     }
@@ -141,7 +142,7 @@
     const key=kind+':'+url;
     if(preview.dataset.avatarSrc===key)return;
     preview.dataset.avatarSrc=key;
-    if(kind==='minecraft'&&url){renderMinecraftModel(preview,url,false);return}
+    if(kind==='minecraft'&&url){state.minecraftSlim=state.avatar?.slim===true;renderMinecraftModel(preview,url,false);return}
     if(kind==='sona360'&&sonaUrl(url)){renderSonaFrame(preview,url,true);return}
     disposeViewer(preview);preview.replaceChildren();
     if(url){const img=new Image();img.src=url;img.alt='Your saved character';preview.append(img)}
@@ -190,6 +191,8 @@
   }
   function source(name){
     const mount=one('#biglwaAvatarSource');if(!mount)return;
+    const section=one('#profileAvatarEditor');if(section){section.classList.add('has-active-avatar-source');section.dataset.activeAvatarSource=name;}
+    const preview=one('#biglwaAvatarProfilePreview');if(preview){disposeViewer(preview);preview.replaceChildren();preview.dataset.avatarSrc='';}
     if(name==='sona360'){
       const owned=state.avatar?.type==='sona360'?sonaUrl(state.avatar.url):'';
       mount.innerHTML='<p>Paste your own public 360sona display-case link. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
@@ -216,6 +219,9 @@
       ).catch(error=>setStatus('Snapchat connection check: '+error.message));
     }else if(name==='minecraft'){
       mount.innerHTML='<p>Your Minecraft character appears below. Import a skin PNG to wrap its texture around the head, body, arms, and legs, then rotate the character to inspect it.</p>'+
+        '<div class="biglwa-minecraft-variants" role="group" aria-label="Minecraft character model">'+
+          '<button type="button" data-minecraft-model="steve" aria-pressed="'+String(!state.minecraftSlim)+'">Steve · classic</button>'+
+          '<button type="button" data-minecraft-model="alex" aria-pressed="'+String(state.minecraftSlim)+'">Alex · slim</button></div>'+
         '<div id="biglwaMinecraftEditorModel" class="biglwa-minecraft-editor-model" aria-label="3D Minecraft character preview"></div>'+
         '<div class="biglwa-minecraft-controls">'+
           '<button type="button" data-minecraft-turn="-35" aria-label="Rotate Minecraft character left">↶ Rotate</button>'+
@@ -223,10 +229,11 @@
         '</div>'+
         '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Minecraft skin PNG<input type="file" data-avatar-import data-avatar-kind="minecraft" accept="image/png" aria-label="Choose a Minecraft skin PNG"></label>'+
         '<button type="button" data-minecraft-save'+(state.minecraftDraftFile?'':' disabled')+'>Save skin to my account</button>'+
-        '<small class="biglwa-minecraft-note">Supports standard 64×64 or 64×32 skins and HD versions. Drag the character to turn it; use ← and → when focused.</small>';
+        '<small class="biglwa-minecraft-note">Steve has classic 4-pixel arms; Alex has slim 3-pixel arms. Supports 64×64/64×32/HD PNG skins. Drag to turn or use arrow keys.</small>';
       renderMinecraftModel(one('#biglwaMinecraftEditorModel',mount),state.minecraftDraftUrl||((state.avatar?.type==='minecraft'&&state.avatar.url)||''),true);
     }
     mount.dataset.kind=name;
+    one('#profileAvatarEditor')?.querySelectorAll('[data-avatar-source]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.avatarSource===name)));
     if(name!=='bitmoji')cardStatus(name);
   }
   try{
@@ -339,10 +346,10 @@
       if(!response.ok||!result.url)throw Error(result.error||'Avatar image could not be uploaded.');
       await f.setDoc(f.doc(f.db,'users',uid),{
         studioAvatar:{type:kind,url:result.url,
-          updatedAt:f.serverTimestamp()}
+          ...(kind==='minecraft'?{slim:state.minecraftSlim}:{}),updatedAt:f.serverTimestamp()}
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched before avatar was saved.');
-      state.avatar={type:kind,url:result.url};
+      state.avatar={type:kind,url:result.url,...(kind==='minecraft'?{slim:state.minecraftSlim}:{})};
       showAvatar();setStatus(kind==='minecraft'?'Minecraft skin saved to your 3D avatar.':'Avatar saved to your BIG LWA account.');
       try{
         const channel=new BroadcastChannel('biglwa-avatar');
@@ -392,7 +399,8 @@
       const backedMedia=url&&(url.startsWith(API+'/media/profile-photo/')||url.startsWith(API+'/media/feed-image/')||
         (avatar?.type==='bitmoji'&&/^https:\/\/[^/]+\//.test(url)));
       if((avatar?.type==='sona360'&&url)||(['minecraft','mii','imvu','bitmoji'].includes(avatar?.type)&&backedMedia)){
-        state.avatar={type:avatar.type,url};
+        state.avatar={type:avatar.type,url,...(avatar.type==='minecraft'?{slim:avatar.slim===true}:{})};
+        if(avatar.type==='minecraft')state.minecraftSlim=avatar.slim===true;
         showAvatar();setStatus('Saved Xbox Avatar restored from your account.');
       }
     }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
