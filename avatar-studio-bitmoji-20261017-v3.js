@@ -208,11 +208,11 @@
       if(owned)renderSonaFrame(one('#biglwaSonaLivePreview',mount),owned);
     }else if(name==='bitmoji'){
       mount.innerHTML='<p>Use the Bitmoji from your connected Snapchat account. Connect Snapchat in Orbit first, then return here.</p>'+ 
-        '<div id="biglwaBitmojiPreview" class="biglwa-bitmoji-preview"></div>'+ 
+        '<div id="biglwaBitmojiPreview" class="biglwa-bitmoji-preview"></div>'+ '<div class="biglwa-bitmoji-actions">'+ 
         '<button type="button" data-bitmoji-orbit>Connect Snapchat in Orbit</button> '+
         '<button type="button" data-bitmoji-refresh>Refresh Snapchat connection</button> '+
         '<button type="button" data-bitmoji-save>Save Snapchat Bitmoji</button>'+ 
-        '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Or import a Bitmoji image <input type="file" data-avatar-import data-avatar-kind="bitmoji" accept="image/png,image/jpeg,image/webp" aria-label="Import Bitmoji image"></label>';
+        '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Import PNG <input type="file" data-avatar-import data-avatar-kind="bitmoji" accept="image/png,image/jpeg,image/webp" aria-label="Import Bitmoji image"></label></div>';
       renderBitmojiChoice();
       Promise.resolve().then(()=>window.BigLWAOrbitOAuth?.load?.()).then(
         ()=>{if(mount.isConnected&&mount.dataset.kind==='bitmoji')renderBitmojiChoice()}
@@ -358,6 +358,22 @@
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:kind}}));
       return true;
     }catch(error){setStatus(error?.message||'Avatar could not be saved.');return false;}
+    finally{state.busy=false;}
+  }
+  async function saveMinecraftModelChoice(){
+    if(state.busy||state.avatar?.type!=='minecraft'||!state.avatar.url)return;
+    state.busy=true;
+    try{
+      const f=await firebase();await f.auth.authStateReady();const uid=f.auth.currentUser?.uid;
+      if(!uid||uid!==state.loadedUid)throw Error('Account changed; model not saved.');
+      await f.setDoc(f.doc(f.db,'users',uid),{
+        studioAvatar:{type:'minecraft',url:state.avatar.url,slim:state.minecraftSlim,updatedAt:f.serverTimestamp()}
+      },{mergeFields:['studioAvatar']});
+      if(f.auth.currentUser?.uid!==uid)return;
+      state.avatar={...state.avatar,slim:state.minecraftSlim};showAvatar();
+      setStatus('Minecraft '+(state.minecraftSlim?'Alex':'Steve')+' model saved.');
+      window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:'minecraft'}}));
+    }catch(error){setStatus('Model preview updated; account save failed: '+(error.message||'Retry.'))}
     finally{state.busy=false;}
   }
   async function saveSona(){
@@ -564,7 +580,25 @@
       renderSonaFrame(one('#biglwaSonaLivePreview'),url);
       setStatus('Previewing your display case. Save to show it on your profile.');return;
     }
+    const creator=e.target.closest('#profileAvatarEditor [data-sona-creator]');
+    if(creator){
+      e.preventDefault();const panel=one('#biglwaSonaCreator');if(!panel)return;
+      panel.hidden=!panel.hidden;creator.setAttribute('aria-expanded',String(!panel.hidden));
+      creator.textContent=panel.hidden?'Create here ▾':'Close creator ▴';
+      const iframe=panel.querySelector('[data-sona-editor]');
+      if(iframe){if(!panel.hidden&&!iframe.getAttribute('src'))iframe.src='https://360sona.com/';if(panel.hidden)iframe.removeAttribute('src');}
+      return;
+    }
     if(e.target.closest('#profileAvatarEditor [data-sona-save]')){e.preventDefault();await saveSona();return}
+    const variant=e.target.closest('#profileAvatarEditor [data-minecraft-model]');
+    if(variant){
+      e.preventDefault();state.minecraftSlim=variant.dataset.minecraftModel==='alex';
+      one('#profileAvatarEditor')?.querySelectorAll('[data-minecraft-model]').forEach(button=>button.setAttribute('aria-pressed',String((button.dataset.minecraftModel==='alex')===state.minecraftSlim)));
+      await renderMinecraftModel(one('#biglwaMinecraftEditorModel'),state.minecraftDraftUrl||(state.avatar?.type==='minecraft'?state.avatar.url:''),true);
+      if(state.avatar?.type==='minecraft'&&!state.minecraftDraftFile)await saveMinecraftModelChoice();
+      else setStatus('Selected '+(state.minecraftSlim?'Alex slim arms':'Steve classic arms')+'. Save skin to keep this model.');
+      return;
+    }
     if(e.target.closest('#profileAvatarEditor [data-minecraft-save]')){
       e.preventDefault();await saveMinecraftDraft();return;
     }
