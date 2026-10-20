@@ -53,7 +53,7 @@ assert.ok(session.includes("login.classList.remove('is-active')") && session.inc
   'verified Firebase user gets a Studio screen without a second login');
 assert.ok(!session.includes('finishAuth(null)'), 'network error never signs out user');
 
-assert.ok(onboarding.includes('ⓘ Site guide · symbols & tools'),'sidebar guide survives removing pink card');
+assert.ok(onboarding.includes('biglwaSkeletonKeysToggle')&&onboarding.includes('openSkeleton'),'Toolbar Skeleton Keys reopens the dismissed Studio card');
 assert.ok(onboarding.includes("data.tourStart") || onboarding.includes("start.dataset.tourStart=''"),'pink card has explicit tour action');
 assert.ok(onboarding.includes('red/yellow/green') || onboarding.includes('Red removes or deletes'),'tutorial explains colored controls');
 assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT posted publicly'),
