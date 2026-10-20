@@ -8,7 +8,7 @@ const OAUTH_UID_KEY='biglwaPinterestOauthStartingUid';
 let handoffPromise=null;
  const hostedPinUrls=new Map(); // Hosted copies from the signed-in user's R2 Orbit import.
  let savedLibrary={version:1,boards:[]}, savedUid='',savedBusy=false,savedError='',boardLocks={};
- const pinById=id=>pins.find(p=>String(p.id)===String(id))||savedLibrary.boards.flatMap(b=>b.pins||[]).find(p=>String(p.id)===String(id));
+ const pinById=id=>pins.find(p=>String(p.id)===String(id))||createdPins.find(p=>String(p.id)===String(id))||savedLibrary.boards.flatMap(b=>b.pins||[]).find(p=>String(p.id)===String(id));
  async function savedRequest(method='GET',library){
   const token=await firebaseIdToken();
   if(!token||!authUid)throw new Error('Sign in to save Pinterest Pins on Big LWA.');
@@ -100,6 +100,62 @@ let handoffPromise=null;
    if(collection.pins.some(p=>p.id===String(pinId)))throw new Error('This Pin is already saved to that collection.');
    collection.pins.unshift({id:String(pinId),title:String(source.title||source.description||'Pinterest Pin').slice(0,300),
     image:image(source),url:'https://www.pinterest.com/pin/'+pinId+'/'});
+  });
+ }
+
+ async function refreshPinStates(){
+  const uid=authUid,api=window.__biglwaOrbitPosts;
+  if(!uid||typeof api?.loadArchive!=='function')return;
+  try{
+   // The archive is authoritative; never infer live status from a browser cache.
+   const rows=await api.loadArchive(uid,48);
+   if(authUid!==uid)return;
+   for(const row of rows||[]){
+    if(String(row.source||'').toLowerCase()==='pinterest'&&row.sourcePostId)
+      profilePinStates.set(String(row.sourcePostId),row.archiveState==='collective'||row.state==='approved'?'live':row.state==='archived'?'archived':'private');
+   }
+   render();
+  }catch(error){console.warn('Pinterest profile status unavailable:',error)}
+ }
+ async function importSelectedPins(items){
+   const uid=authUid;
+   if(!uid)throw Error('Sign in before saving Pins to your profile.');
+   const usable=items.filter(item=>/^\d+$/.test(String(item?.id||''))&&(image(item)||item.image));
+   if(!usable.length)throw Error('No selected Pin images are ready. Load or sync first.');
+   const importer=await waitForImporter();
+   if(typeof importer!=='function')throw Error('Account import is still loading.');
+   let stored=0;
+   for(let i=0;i<usable.length;i+=10){
+     if(authUid!==uid)throw Error('Account changed during import; action stopped.');
+     progress('Saving private Pins to your profile · '+Math.min(i+10,usable.length)+' / '+usable.length);
+     const batch=usable.slice(i,i+10).map(pin=>({...pin,id:String(pin.id),image_url:image(pin)||pin.image,
+       url:'https://www.pinterest.com/pin/'+pin.id+'/'}));
+     const result=await importer('pinterest',batch,profile,window.__biglwaIdentity||{});
+     if(result?.partial)throw Error('Some Pins could not be stored in your account. Retry those Pins.');
+     stored+=Number(result?.imported)||0;
+     for(const pin of batch)if(!profilePinStates.has(String(pin.id)))profilePinStates.set(String(pin.id),'private');
+   }
+   window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',imported:stored}}));
+   notice(stored+' Pins saved privately to your BIGLWA profile. Publish separately to make them live.');
+ }
+ async function publishOriginalSelection(){
+  const picked=createdPins.filter(p=>selectedOriginalPins.has(String(p.id)));
+  if(!picked.length){notice('Select original Pins first.');return}
+  if(!window.confirm('Publish '+picked.length+' original Pins publicly to Collective Feed and Veve?'))return;
+  const uid=authUid;
+  await run(async()=>{
+    const importer=await waitForImporter(),publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
+    if(!publisher||!importer)throw Error('Publishing is not available.');
+    let published=0,failed=0;
+    for(const pin of picked){
+      if(uid!==authUid)throw Error('Account changed. Publication stopped.');
+      try{await publishOnePin(pin,importer,publisher);published++;profilePinStates.set(String(pin.id),'live');publishedPinIds.add(String(pin.id))}
+      catch(err){failed++;console.warn('Original Pin publish failed',pin.id,err)}
+      progress('Publishing original Pins · '+(published+failed)+' / '+picked.length);
+    }
+    selectedOriginalPins.clear();
+    if(published)window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published}}));
+    notice(published+' original Pins live in Collective + Veve.'+(failed?' '+failed+' failed.':''));
   });
  }
  async function publishOnePin(pin,importer,publisher){
@@ -209,7 +265,7 @@ let handoffPromise=null;
 
  let savedDrawerOpen=false;
  let workQueue=[],queuedTasks=0,selectedBoardPins=new Set(),selectedOriginalPins=new Set(),publishedPinIds=new Set();
- let operationProgress='';
+ let operationProgress='',profilePinStates=new Map();
  const progress=label=>{operationProgress=label;render()};
 
  let connected=false,profile={},boards=[],pins=[],createdPins=[],boardId='',boardsNext='',pinsNext='',createdNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null,createdPromise=null;
@@ -252,7 +308,7 @@ let handoffPromise=null;
  const resetView=()=>{
   connected=false;profile={};boards=[];pins=[];createdPins=[];boardId='';boardsNext='';pinsNext='';createdNext='';covers={};
   recentBoardIds=[];
-  selectedBoardPins.clear();selectedOriginalPins.clear();publishedPinIds.clear();workQueue=[];queuedTasks=0;operationProgress='';
+  selectedBoardPins.clear();selectedOriginalPins.clear();publishedPinIds.clear();profilePinStates.clear();workQueue=[];queuedTasks=0;operationProgress='';
   hostedPinUrls.clear();
   savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};savedDrawerOpen=false;
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
@@ -526,6 +582,7 @@ async function connect(){await run(async()=>{
     if(!boardId&&boards.length)boardId=String(orderedBoards()[0]?.id||'');
     if(boardId)await loadPins(boardId);
     await loadCreatedPins();
+    await refreshPinStates();
     render();
   },{silent:true});
   try{return await restorePromise}finally{restorePromise=null}
@@ -539,6 +596,7 @@ async function connect(){await run(async()=>{
    await loadBoards();
    if(boards.length){boardId=String(orderedBoards()[0]?.id||'');if(boardId)await loadPins(boardId)}
    await loadCreatedPins(false);
+   await refreshPinStates();
    message='Boards refreshed. '+createdPins.length+' original Pins saved privately to your BIG LWA profile.';
    await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid)||window.__biglwaConnections?.refresh?.(authUid));
   }catch(error){importError=error?.message||'Pinterest sync failed. Try again.';message='';}
