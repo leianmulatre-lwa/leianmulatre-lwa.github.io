@@ -83,6 +83,7 @@ let handoffPromise=null;
   if(!clean){notice('Add a board name.');return;}
   if(savedLibrary.boards.length>=40){notice('Maximum 40 saved boards.');return;}
   const id='board_'+Array.from(crypto.getRandomValues(new Uint8Array(12))).map(n=>n.toString(16).padStart(2,'0')).join('');
+  savedDrawerOpen=true;
   await editSaved(data=>{data.boards.push({id,title:clean,pins:[]})});
  }
  async function addSavedPin(pinId,board){
@@ -171,12 +172,12 @@ let handoffPromise=null;
     '<div class="pn-saved-pin-grid">'+(cols||'<p>Save Pins from above to this board.</p>')+'</div></section>';
   }).join('');
   return '<section class="pn-saved-section" aria-label="Your saved Big LWA boards">'+
-   '<div class="pn-saved-heading"><div><h3>Saved on Big LWA</h3><p>Collections sync privately. Locking a board prevents publishing from it until you unlock it; Pins you separately publish can appear anonymously in Veve.</p></div>'+
-   '<button type="button" class="module-action" data-pn-new-board>+ New board</button></div>'+
+   '<div class="pn-saved-heading"><div><h3>Your BIGLWA boards</h3><p>Private collections · manage, lock, and edit saved Pins.</p></div></div>'+
    (savedError?'<p role="alert">'+esc(savedError)+'</p>':'')+
    (boardRows||'<p>Save a Pin to start a collection, or create a new board.</p>')+'</section>';
  }
 
+ let savedDrawerOpen=false;
  let connected=false,profile={},boards=[],pins=[],createdPins=[],boardId='',boardsNext='',pinsNext='',createdNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null,createdPromise=null;
  let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false,diagnostic='Awaiting Pinterest account synchronization';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -631,6 +632,8 @@ document.addEventListener('click',e=>{
  if(!(e.target instanceof Element))return;
  const lock=e.target.closest('[data-pn-lock-board]');
  if(lock){e.preventDefault();e.stopImmediatePropagation();toggleSavedBoardLock(lock.dataset.pnLockBoard);return;}
+ const manageBoards=e.target.closest('[data-pn-manage-boards]');
+ if(manageBoards){e.preventDefault();e.stopImmediatePropagation();savedDrawerOpen=!savedDrawerOpen;render();return;}
  const newBoard=e.target.closest('[data-pn-new-board]');
  if(newBoard){e.preventDefault();e.stopImmediatePropagation();newSavedBoard();return;}
  const savePin=e.target.closest('[data-pn-save-pin]');
