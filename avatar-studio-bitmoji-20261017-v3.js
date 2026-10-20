@@ -320,56 +320,9 @@
           throw Error('Use a Minecraft skin PNG (64×64, 64×32, or a proportional HD skin).');
     }finally{URL.revokeObjectURL(url)}
   }
-  const MII_FIELDS={
-    face:['oval','round','square','heart'],hair:['crop','swoop','bob','curly','buns','bald'],
-    eyes:['round','almond','sleepy','smile'],brows:['soft','straight','arched'],
-    mouth:['smile','neutral','grin','open'],glasses:['none','round','square']
-  };
-  function validateMiiPreset(raw){
-    if(!raw||raw.format!=='biglwa-character-v1'||!raw.features||typeof raw.features!=='object')return null;
-    const features={};
-    for(const [key,allowed] of Object.entries(MII_FIELDS)){
-      const value=raw.features[key];
-      features[key]=allowed.includes(value)?value:allowed[0];
-    }
-    for(const key of ['skin','hairColor','eyeColor','shirt']){
-      const value=raw.features[key];
-      features[key]=typeof value==='string'&&/^#[0-9a-fA-F]{6}$/.test(value)?value:'#896755';
-    }
-    return {format:'biglwa-character-v1',version:1,name:String(raw.name||'My character').slice(0,32),features};
-  }
-  function sendSavedMiiToFrame(){
-    const frame=one('#biglwaMiiEditorFrame');
-    if(frame?.contentWindow){
-      frame.contentWindow.postMessage({type:'biglwa:mii-load',
-        preset:state.avatar?.type==='mii'?state.avatar.preset:null},location.origin);
-    }
-  }
-  window.addEventListener('message',async event=>{
-    if(event.origin!==location.origin)return;
-    const frame=one('#biglwaMiiEditorFrame');
-    if(!frame||event.source!==frame.contentWindow)return;
-    if(event.data?.type==='biglwa:mii-ready'){sendSavedMiiToFrame();return;}
-    if(event.data?.type!=='biglwa:mii-created')return;
-    const payload=event.data.image;
-    const preset=validateMiiPreset(event.data.preset);
-    if(!preset||typeof payload!=='string'||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(payload)||payload.length>1400000){
-      frame.contentWindow.postMessage({type:'biglwa:mii-save-result',message:'Invalid character data. Please try again.'},location.origin);
-      return;
-    }
-    try{
-      const blob=await (await fetch(payload)).blob();
-      const saved=await save(new File([blob],'biglwa-character.png',{type:'image/png'}),'mii',preset);
-      frame.contentWindow?.postMessage({type:'biglwa:mii-save-result',message:saved?
-        'Saved to your Big LWA profile. Your character is ready for Arcade.':
-        'Account save failed. Sign in and retry.'},location.origin);
-    }catch(error){frame.contentWindow?.postMessage({
-      type:'biglwa:mii-save-result',message:error?.message||'Character save failed.'
-    },location.origin)}
-  });
   async function save(file,kind,preset=null){
     if(state.busy)return;
-    if(!['minecraft','mii','imvu','bitmoji'].includes(kind))throw Error('Choose an avatar source first.');
+    if(!['minecraft','bitmoji'].includes(kind))throw Error('Choose an avatar source first.');
     if(!['image/png','image/jpeg','image/webp'].includes(file?.type))throw Error('Choose PNG, JPG, or WebP.');
     if(file.size>8*1024*1024)throw Error('Image must be 8 MB or less.');
     if(kind==='minecraft')await verifySkin(file);
@@ -386,11 +339,10 @@
       if(!response.ok||!result.url)throw Error(result.error||'Avatar image could not be uploaded.');
       await f.setDoc(f.doc(f.db,'users',uid),{
         studioAvatar:{type:kind,url:result.url,
-          ...(kind==='mii'&&preset?{preset:validateMiiPreset(preset)}:{}),
           updatedAt:f.serverTimestamp()}
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched before avatar was saved.');
-      state.avatar={type:kind,url:result.url,...(kind==='mii'&&preset?{preset:validateMiiPreset(preset)}:{})};
+      state.avatar={type:kind,url:result.url};
       showAvatar();setStatus(kind==='minecraft'?'Minecraft skin saved to your 3D avatar.':'Avatar saved to your BIG LWA account.');
       try{
         const channel=new BroadcastChannel('biglwa-avatar');
@@ -401,19 +353,46 @@
     }catch(error){setStatus(error?.message||'Avatar could not be saved.');return false;}
     finally{state.busy=false;}
   }
+  async function saveSona(){
+    const input=one('#biglwaSonaWidgetURL');
+    const url=sonaUrl(input?.value);
+    if(!url){setStatus('Paste a valid HTTPS 360sona public link (https://360sona.com/w/…).');return false;}
+    if(state.busy)return false;
+    state.busy=true;setStatus('Saving your Xbox Avatar to your account…');
+    try{
+      const f=await firebase();await f.auth.authStateReady();
+      const user=f.auth.currentUser;
+      if(!user?.uid)throw Error('Sign in before saving your Xbox Avatar.');
+      const uid=user.uid;
+      await f.setDoc(f.doc(f.db,'users',uid),{
+        studioAvatar:{type:'sona360',url,updatedAt:f.serverTimestamp()}
+      },{mergeFields:['studioAvatar']});
+      if(f.auth.currentUser?.uid!==uid)throw Error('Account switched. Reload your avatar.');
+      state.avatar={type:'sona360',url};state.loadedUid=uid;
+      showAvatar();
+      try{const channel=new BroadcastChannel('biglwa-avatar');channel.postMessage({type:'saved',uid});channel.close()}catch{}
+      window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:'sona360'}}));
+      setStatus('Xbox Avatar saved to your own BIGLWA profile.');return true;
+    }catch(error){setStatus('Xbox Avatar could not be saved: '+(error?.message||'Please retry.'));return false;}
+    finally{state.busy=false}
+  }
   async function restore(){
     try{
       const f=await firebase();await f.auth.authStateReady();
       const user=f.auth.currentUser;if(!user){state.loadedUid='';state.avatar=null;showAvatar();return;}
       if(state.loadedUid===user.uid)return;
       state.loadedUid=user.uid;
+      // Never show the last signed-in person's avatar while this account loads.
+      state.avatar=null;showAvatar();
       const snap=await f.getDoc(f.doc(f.db,'users',user.uid));
       if(state.loadedUid!==user.uid)return;
       const avatar=snap.data()?.studioAvatar;
-      if(avatar?.url&&['minecraft','mii','imvu','bitmoji'].includes(avatar.type)&&(avatar.url.startsWith(API+'/media/profile-photo/')||avatar.url.startsWith(API+'/media/feed-image/')||(avatar.type==='bitmoji'&&/^https:\/\/[^/]+\//.test(avatar.url)))){
-        state.avatar={type:avatar.type,url:avatar.url,
-          ...(avatar.type==='mii'&&avatar.preset?{preset:validateMiiPreset(avatar.preset)}:{})};
-        showAvatar();sendSavedMiiToFrame();setStatus('Saved avatar restored from your account.');
+      const url=avatar?.type==='sona360'?sonaUrl(avatar?.url):String(avatar?.url||'');
+      const backedMedia=url&&(url.startsWith(API+'/media/profile-photo/')||url.startsWith(API+'/media/feed-image/')||
+        (avatar?.type==='bitmoji'&&/^https:\/\/[^/]+\//.test(url)));
+      if((avatar?.type==='sona360'&&url)||(['minecraft','mii','imvu','bitmoji'].includes(avatar?.type)&&backedMedia)){
+        state.avatar={type:avatar.type,url};
+        showAvatar();setStatus('Saved Xbox Avatar restored from your account.');
       }
     }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
   }
@@ -503,7 +482,7 @@
     if(!restore){
       restore=document.createElement('button');
       restore.type='button';restore.dataset.avatarRestore='1';restore.className='biglwa-avatar-restore';
-      restore.textContent='Restore Avatar +';
+      restore.textContent='Restore Xbox Avatar +';
       aura.append(restore);
     }
     restore.hidden=!avatarHidden||Boolean(auraHidden);
@@ -526,8 +505,8 @@
     if(!rail||!aura)return false;
     if(!one('#studioAvatarCard')){
       const card=document.createElement('section');card.id='studioAvatarCard';
-      card.className='biglwa-avatar-card';card.setAttribute('aria-label','Avatar Studio widget');
-      card.dataset.search='avatar mii minecraft imvu character';
+      card.className='biglwa-avatar-card';card.setAttribute('aria-label','Xbox Avatar widget');
+      card.dataset.search='xbox avatar 360sona minecraft bitmoji character';
       rail.append(card);render();restore();
     }else if(!one('#biglwaAvatarMedia',one('#studioAvatarCard'))){
       // Recover a widget whose children were replaced by Studio layout restore.
@@ -563,6 +542,14 @@
       e.preventDefault();one('#biglwaMinecraftEditorModel')?._biglwaMinecraftModel?.rotate(Number(rotate.dataset.minecraftTurn)||35);
       return;
     }
+    if(e.target.closest('#profileAvatarEditor [data-sona-example]')){
+      e.preventDefault();
+      const inp=one('#biglwaSonaWidgetURL');if(inp)inp.value=SONA_EXAMPLE;
+      renderSonaFrame(one('#biglwaSonaLivePreview'),SONA_EXAMPLE);
+      setStatus('Showing the supplied 360sona example. Save only if this is your display case.');
+      return;
+    }
+    if(e.target.closest('#profileAvatarEditor [data-sona-save]')){e.preventDefault();await saveSona();return}
     if(e.target.closest('#profileAvatarEditor [data-minecraft-save]')){
       e.preventDefault();await saveMinecraftDraft();return;
     }
@@ -572,7 +559,7 @@
       e.preventDefault();e.stopPropagation();
       if(control.dataset.avatarWidgetAction==='edit')openEditor();
       else if(control.dataset.avatarWidgetAction==='archive')setVisibility('archived');
-      else if(window.confirm('Remove the Avatar widget from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
+      else if(window.confirm('Remove Xbox Avatar from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
       return;
     }
     const panel=e.target.closest('#profileAvatarEditor');
@@ -587,41 +574,16 @@
     if(e.target.closest('[data-bitmoji-save]')){e.preventDefault();await selectBitmoji();return}
     const sourceButton=e.target.closest('[data-avatar-source]');
     if(sourceButton){e.preventDefault();source(sourceButton.dataset.avatarSource);return}
-    if(e.target.closest('[data-avatar-unity-open]')){
-      const sourceArea=one('#biglwaAvatarSource',panel);if(!sourceArea)return;
-      try{
-        const resp=await fetch('/avatar/unity/index.html',{cache:'no-store'});
-        const manifest=resp.ok?await resp.text():'';
-        if(resp.ok&&/(createUnityInstance|UnityLoader)/.test(manifest)){
-          const frame=document.createElement('iframe');frame.title='Licensed Unity WebGL avatar scene';
-          frame.sandbox='allow-scripts allow-same-origin';frame.src='/avatar/unity/index.html';
-          frame.style.cssText='width:100%;min-height:340px;border:0;border-radius:10px';
-          frame.dataset.biglwaUnityFrame='1';sourceArea.replaceChildren(frame);
-          setStatus('Unity WebGL build found. Use your authorized IMVU integration.');
-        }else setStatus('A licensed Unity WebGL export is not installed yet. IMVUnity .unitypackage files cannot run directly in a browser.');
-      }catch{setStatus('Unity WebGL is not installed yet.')}
-    }
+
   });
   document.addEventListener('keydown',event=>{
     if(event.key==='Escape')one('#studioAvatarCard')?.classList.remove('avatar-is-expanded');
-  });
-  // A licensed WebGL build gets the stored image URL, never a member's access token.
-  window.addEventListener('message',async event=>{
-    if(event.origin!==location.origin)return;
-    if(event.data?.type!=='biglwa:unity-ready')return;
-    const frame=one('#profileAvatarEditor [data-biglwa-unity-frame]');
-    if(!frame||event.source!==frame.contentWindow)return;
-    frame.contentWindow.postMessage({
-      type:'biglwa:avatar-context',
-      avatar:state.avatar?{type:state.avatar.type,url:state.avatar.url}:null
-    },location.origin);
-    setStatus('Unity scene connected. Live IMVU avatars still require an approved integration.');
   });
   document.addEventListener('change',async e=>{
     const input=e.target.closest('#profileAvatarEditor [data-avatar-import]');
     if(!input?.files?.length)return;
     const file=input.files[0];
-    const kind=input.dataset.avatarKind||one('#biglwaAvatarSource')?.dataset.kind||'mii';
+    const kind=input.dataset.avatarKind||one('#biglwaAvatarSource')?.dataset.kind||'bitmoji';
     if(kind==='minecraft'){
       try{
         await verifySkin(file);
