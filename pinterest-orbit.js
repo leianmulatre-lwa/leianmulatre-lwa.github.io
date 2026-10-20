@@ -178,6 +178,10 @@ let handoffPromise=null;
  }
 
  let savedDrawerOpen=false;
+ let workQueue=[],queuedTasks=0,selectedBoardPins=new Set(),selectedOriginalPins=new Set(),publishedPinIds=new Set();
+ let operationProgress='';
+ const progress=label=>{operationProgress=label;render()};
+
  let connected=false,profile={},boards=[],pins=[],createdPins=[],boardId='',boardsNext='',pinsNext='',createdNext='',busy=false,message='',covers={},restorePromise=null,boardsPromise=null,pinsPromise=null,createdPromise=null;
  let authUid='',lastImport={imported:0,skipped:0,partial:0},importError='',syncingAll=false,diagnostic='Awaiting Pinterest account synchronization';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -218,6 +222,7 @@ let handoffPromise=null;
  const resetView=()=>{
   connected=false;profile={};boards=[];pins=[];createdPins=[];boardId='';boardsNext='';pinsNext='';createdNext='';covers={};
   recentBoardIds=[];
+  selectedBoardPins.clear();selectedOriginalPins.clear();publishedPinIds.clear();workQueue=[];queuedTasks=0;operationProgress='';
   hostedPinUrls.clear();
   savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};savedDrawerOpen=false;
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
@@ -313,9 +318,18 @@ async function api(path,body){
  return response.data;
 }
 async function run(fn,{silent=false}={}){
- if(busy)return;busy=true;if(!silent)message='Loading Pinterest…';render();
+ if(busy){
+   if(workQueue.length>=20){notice('20 operations already queued. Wait until one completes.');return}
+   workQueue.push({fn,silent,uid:authUid});queuedTasks=workQueue.length;
+   message='Pinterest is working · '+queuedTasks+' action'+(queuedTasks===1?'':'s')+' queued';render();return;
+ }
+ busy=true;if(!silent)message='Loading Pinterest…';render();
  try{await fn();if(!silent)message=''}catch(e){diagnostic=e?.message||'Pinterest unavailable. Reconnect in Orbit.';if(!silent)notice(diagnostic);else console.warn('Pinterest background restore:',diagnostic)}
- finally{busy=false;render()}
+ finally{
+   busy=false;operationProgress='';
+   const next=workQueue.shift();queuedTasks=workQueue.length;render();
+   if(next){if(next.uid===authUid)queueMicrotask(()=>run(next.fn,{silent:next.silent}));else notice('Account changed. Queued action was cancelled.')}
+ }
 }
 async function connect(){await run(async()=>{
   if(!await firebaseIdToken())throw new Error('Pinterest cannot verify the current account yet. Retry without signing out of Big LWA.');
@@ -501,7 +515,7 @@ async function connect(){await run(async()=>{
   finally{syncingAll=false;render()}
  }
  async function choose(id,more=false){if(!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===String(id)))return;
-  if(!more){rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';void loadCovers();}
+  if(!more){rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();void loadCovers();}
   await run(async()=>{await loadPins(id,more);});
  }
  async function disconnect(){await run(async()=>{
@@ -591,7 +605,7 @@ async function connect(){await run(async()=>{
  let panel=document.getElementById('pinterestBoards');
  if(!panel){panel=document.createElement('section');panel.id='pinterestBoards';panel.className='module-card';panel.style.marginTop='20px';const heading=body.querySelector('.module-heading');if(heading)heading.after(panel);else body.prepend(panel)}
  panel.setAttribute('aria-busy',String(busy));
- const disabled=busy?' disabled':'';
+ const disabled=''; // Keep connected controls usable while run() queues work.
  const originalPinsMarkup=
   (connected?'<section class="pinterest-owned-section"><header><h3>Your original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3><p>Created by @'+esc(profile.username||'you')+'. Saved privately to your BIG LWA profile; publish selected drafts from Feed.</p></header><div class="pinterest-owned-grid">'+
     (createdPins.slice(0,60).map(pin=>{const pic=(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin);
