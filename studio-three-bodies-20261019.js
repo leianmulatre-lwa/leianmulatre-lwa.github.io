@@ -46,6 +46,28 @@
    '#studioApp .masonry>.card[data-body-model-focus="true"]{opacity:1!important;filter:none!important}',
    '@media(max-width:600px){#studioApp .biglwa-body-guide{max-width:calc(100% - 12px)!important;gap:5px!important;margin-left:4px!important}#studioApp .biglwa-body-guide-label small{display:none}#studioApp .hero{padding-bottom:6px!important}}',
    '@media(prefers-reduced-motion:reduce){#studioApp [data-body-model]{transition:none!important}}'
+   // Consistent spacing and hover-only category rings (the final overrides).
+   '#studioApp .hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}',
+   '#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}',
+   '#studioApp .hero{padding-bottom:0!important;margin-bottom:-5px!important}',
+   '#studioApp .mobile-dock.hero-action-bar{margin-bottom:0!important}',
+   '#studioApp .biglwa-body-guide{margin:-3px 0 3px 4px!important;padding:4px 6px!important;gap:6px!important}',
+   '#studioApp .masonry{margin-top:0!important;padding-top:0!important}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded){box-shadow:0 4px 12px rgba(44,31,34,.08)!important}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within){box-shadow:0 0 0 3px var(--three-body-color,#dfd4e7),0 6px 16px rgba(44,31,34,.1)!important}',
+   '#studioApp .biglwa-body-keys button:not(:hover):not(:focus-visible){box-shadow:none!important}',
+   '#studioApp .biglwa-body-keys button:is(:hover,:focus-visible){box-shadow:0 0 0 2px var(--body-key-color,#e4cbe9)!important;transform:none!important}',
+   '#studioApp .music-card #profileMusicOpen{top:5px!important;left:auto!important;right:75px!important;max-width:94px!important;min-height:21px!important;padding:2px 6px!important;font:800 9px/1.1 system-ui!important;white-space:nowrap!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair){grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.profile-card{grid-column:1/-1!important;grid-row:1!important;width:100%!important;max-width:100%!important;min-width:0!important;position:relative!important;margin:0!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{grid-column:1/-1!important;grid-row:2!important;width:100%!important;margin-top:12px!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar{grid-column:1/-1!important;grid-row:3!important;margin-top:8px!important}',
+   '#studioApp .profile-editor-tabs{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important;padding:8px 0!important}',
+   '#studioApp .profile-editor-tabs button{opacity:1!important;visibility:visible!important;min-height:32px!important;border:1px solid #826770!important;border-radius:8px!important;background:#f8edf0!important;color:#503744!important;font:800 11px/1.25 system-ui!important;padding:6px 12px!important;box-shadow:0 2px 5px rgba(40,24,32,.12)!important}',
+   '#studioApp .profile-editor-tabs button[aria-selected="true"]{background:#d95b70!important;color:#fff!important;border-color:#b33c55!important;box-shadow:0 0 0 2px rgba(217,91,112,.18)!important}',
+   '#studioApp .profile-editor-actions .profile-editor-save{background:#d95b70!important;color:#fff!important}',
+   '#studioApp #profileMediaEditor .biglwa-media-aura-color{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0!important;max-width:330px;padding:9px 12px;border:1px solid rgba(101,75,78,.24);border-radius:10px;background:rgba(255,255,255,.2);font:750 12px system-ui}',
+   '#studioApp #profileMediaEditor .biglwa-media-aura-color input{width:44px;min-width:44px;height:34px;border:0;background:transparent;cursor:pointer}'
   ].join('\n');
   document.head.append(node);
  }
