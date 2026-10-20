@@ -52,6 +52,7 @@ jobs:
           node --check feed-view.js
           node --check avatar-studio.js
           node --check avatar-studio-bitmoji-20261017-v3.js
+          node xbox-sona360-regression-test.mjs
           node --check orbit-new-connect-20261017-v5.js
           node --check avatar/minecraft-mannequin.js
           node veve-arcade-regression-test.mjs
