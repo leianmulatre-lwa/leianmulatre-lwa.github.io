@@ -17,14 +17,14 @@ assert.doesNotMatch(source,/data-avatar-source="(?:mii|imvu)"/,'Broken Mii and I
 assert.doesNotMatch(source,/<iframe id="biglwaMiiEditorFrame"/,'Mii embedded editor no longer mounted');
 assert.doesNotMatch(source,/data-avatar-unity-open/,'No unusable Unity launcher');
 assert.ok(source.includes('iframe.width=')&&source.includes("iframe.width='320'")&&source.includes("iframe.height='546'"),'Frame uses supplied dimensions');
-assert.ok(source.includes("frame.referrerPolicy='no-referrer'"),'Third-party iframe avoids passing page context');
+assert.ok(source.includes("iframe.referrerPolicy='no-referrer'"),'Third-party iframe avoids passing page context');
 assert.ok(source.includes("renderSonaFrame(view,a.url,true)"),'Saved 360sona avatar renders in Studio widget');
 assert.ok(source.includes("renderSonaFrame(one('#biglwaSonaLivePreview'),url)"),'Editor shows iframe preview');
 assert.ok(source.includes("data-sona-preview")&&source.includes("data-sona-save"),'Preview and Save are real controls');
-assert.ok(source.includes("type:'sona360',url,updatedAt:f.serverTimestamp()"),'User's selected link is saved under Firebase account');
+assert.ok(source.includes("type:'sona360',url,updatedAt:f.serverTimestamp()"),"User's selected link is saved under Firebase account");
 assert.ok(source.includes("f.doc(f.db,'users',uid)"),'Firebase write explicitly uses verified UID');
 assert.ok(source.includes("const uid=user.uid"),'Member is verified at save time');
-assert.ok(source.includes("state.avatar=null;showAvatar()"),'Switching accounts clears the previous profile's avatar before rendering');
+assert.ok(source.includes("state.avatar=null;showAvatar()"),"Switching accounts clears the previous profile's avatar before rendering");
 assert.ok(source.includes("saved Xbox Avatar restored".replace(/^s/,'S')),'Saved avatar supports reload');
 assert.ok(source.includes("if(e.target.closest('#profileAvatarEditor [data-sona-example]'))"),'Supplied example is a deliberate action, not global default');
 assert.ok(!source.includes("state.avatar={type:'sona360',url:SONA_EXAMPLE}"),'Sample is not auto-assigned to new members');
