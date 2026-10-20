@@ -1430,9 +1430,9 @@
     if(!card)return;
     const footer=$('.room-footer',card);
     if(!footer)return;
-    const candidates=$('span,small,.room-online-count,.online-count',footer);
+    const candidates=$$('span,small,.room-online-count,.online-count',footer);
     let status=$('.room-presence-status',footer);
-    const old=candidates.filter(node=>/\\b[0-9][0-9,.]*\\s*online\\b|\\bonline\\s*[0-9][0-9,.]*/i.test(node.textContent||''));
+    const old=candidates.filter(node=>/\b[0-9][0-9,.]*\s*online\b|\bonline\s*[0-9][0-9,.]*/i.test(node.textContent||''));
     if(!status)status=old.shift()||document.createElement('span');
     old.forEach(node=>node.remove());
     status.classList.add('room-presence-status');
