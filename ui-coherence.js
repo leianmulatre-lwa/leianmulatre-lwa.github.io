@@ -426,7 +426,9 @@
         position:absolute!important;left:20px!important;right:20px!important;top:76px!important;bottom:auto!important;
         z-index:2!important;height:16px!important;max-height:16px!important;opacity:.54!important;pointer-events:none!important;
       }
-      #studioApp #stream .on-air{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(16,12,15,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+      /* Single ON AIR footer: suppress the retired overlay inside the screen. */
+      #studioApp #stream .stream-screen>.on-air{display:none!important}
+
       /* Match Room's under-preview activity footer. This is NOT a live viewer count. */
       #studioApp #stream .stream-watching-status{
         display:flex!important;align-items:center;gap:7px;position:relative!important;
@@ -442,6 +444,20 @@
       }
       #studioApp #stream .stream-watching-status{font-weight:900!important;letter-spacing:.14em!important;color:#9d3548!important}
       #studioApp #stream .stream-watching-status::before{background:#d74850;box-shadow:0 0 0 3px rgba(215,72,80,.14)}
+      /* Room has a green availability light beside ONLINE (not a participant count). */
+      #studioApp :is(#rooms,#room) .room-footer .room-presence-status{
+        display:inline-flex!important;align-items:center!important;gap:7px!important;
+        font:800 10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif!important;
+        letter-spacing:.08em!important;text-transform:uppercase!important;
+        color:#2f7650!important;
+      }
+      #studioApp :is(#rooms,#room) .room-footer .room-presence-status::before{
+        content:"";display:inline-block;flex:0 0 8px;width:8px;height:8px;
+        border-radius:50%;background:#3da568;box-shadow:0 0 0 3px rgba(61,165,104,.16);
+      }
+      body.night-mode #studioApp :is(#rooms,#room) .room-footer .room-presence-status{
+        color:#9ed6ac!important;
+      }
 
       /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
       #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
@@ -1409,6 +1425,8 @@
       const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
       const screen=$('.stream-screen',card);
       if(!screen)return;
+      // Top ON AIR badge was a second status; footer alone is authoritative.
+      $(':scope > .on-air',screen).forEach(badge=>badge.remove());
       // Keep this caption outside the preview even while Stream has an active player.
       // A zero from the former template was hardcoded, not a true watching count.
       const oldCounts=$$(':scope > span, :scope > .stream-watching-count',screen)
