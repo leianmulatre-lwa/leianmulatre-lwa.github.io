@@ -38,8 +38,8 @@ function mount(){
  if(root)return;
  const css=document.createElement('style');css.id='biglwaScrollAssistantCSS';
  css.textContent=[
- 'html{scroll-padding-top:86px}',
- 'html:not(:has(#studioApp)){scroll-behavior:smooth}',
+ 'html{scroll-padding-top:86px;scroll-behavior:smooth}',
+ '#moduleWorkspace .module-heading,main h1,main h2,main h3{scroll-margin-top:86px}',
  '.biglwa-scroll-assistant{position:fixed;right:clamp(9px,2vw,22px);bottom:clamp(12px,3vh,27px);z-index:9100;display:flex;align-items:center;gap:5px;padding:6px;border:1px solid rgba(89,63,70,.26);border-radius:13px;background:rgba(255,251,246,.96);color:#503944;box-shadow:0 7px 20px rgba(35,17,23,.18);font:700 10px/1.2 system-ui}',
  '.biglwa-scroll-assistant[hidden]{display:none!important}',
  '.biglwa-scroll-assistant span{padding:3px 6px;white-space:nowrap}',
