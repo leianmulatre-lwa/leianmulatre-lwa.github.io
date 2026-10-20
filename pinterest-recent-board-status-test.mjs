@@ -8,7 +8,7 @@ const layout=read('ui-coherence.js');
 const index=read('index.html');
 assert.doesNotThrow(()=>new Script(pinterest),'Pinterest client parses');
 assert.doesNotThrow(()=>new Script(layout),'Studio widget layout parses');
-assert.ok(index.includes('/pinterest-orbit.js?v=20261020-compact-board-workbench-5'),'Fresh Boards script shipped');
+assert.ok(index.includes('/pinterest-orbit.js?v=20261020-pins-queue-archive-6'),'Fresh Boards script shipped');
 assert.ok(index.includes('/ui-coherence.js?v=20261019-room-green-single-onair-15'),'Updated Stream and Room UI shipped');
 assert.ok(pinterest.includes('const tiles=orderedBoards().slice(0,6).map'),'Exactly six most recently selected boards are shown');
 assert.ok(pinterest.includes('authUid&&savedDrawerOpen?')&&pinterest.includes('savedBoardsMarkup()'), 'Private saved boards only appear in the optional management drawer');
