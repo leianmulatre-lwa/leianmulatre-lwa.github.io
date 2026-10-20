@@ -195,7 +195,7 @@
       mount.innerHTML='<p>Paste your own public 360sona display-case link. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
         '<label class="biglwa-sona-label" for="biglwaSonaWidgetURL">360sona widget link</label>'+
         '<input id="biglwaSonaWidgetURL" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://360sona.com/w/your-widget-id" aria-label="360sona display case URL">'+
-        '<div class="biglwa-sona-actions"><button type="button" data-sona-save>Save Xbox Avatar</button>'+
+        '<div class="biglwa-sona-actions"><button type="button" data-sona-preview>Preview</button><button type="button" data-sona-save>Save Xbox Avatar</button>'+
         '<button type="button" data-sona-example>Use supplied example</button></div>'+
         '<div id="biglwaSonaLivePreview" class="biglwa-sona-editor-preview" aria-label="360sona live display-case preview"><span>Your widget will appear here when you provide its link.</span></div>'+
         '<a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Create or edit on 360sona ↗</a>'+
@@ -370,6 +370,7 @@
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched. Reload your avatar.');
       state.avatar={type:'sona360',url};state.loadedUid=uid;
       showAvatar();
+      renderSonaFrame(one('#biglwaSonaLivePreview'),url);
       try{const channel=new BroadcastChannel('biglwa-avatar');channel.postMessage({type:'saved',uid});channel.close()}catch{}
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:'sona360'}}));
       setStatus('Xbox Avatar saved to your own BIGLWA profile.');return true;
@@ -548,6 +549,12 @@
       renderSonaFrame(one('#biglwaSonaLivePreview'),SONA_EXAMPLE);
       setStatus('Showing the supplied 360sona example. Save only if this is your display case.');
       return;
+    }
+    if(e.target.closest('#profileAvatarEditor [data-sona-preview]')){
+      e.preventDefault();const url=sonaUrl(one('#biglwaSonaWidgetURL')?.value);
+      if(!url){setStatus('Paste your public 360sona widget URL first.');return;}
+      renderSonaFrame(one('#biglwaSonaLivePreview'),url);
+      setStatus('Previewing your display case. Save to show it on your profile.');return;
     }
     if(e.target.closest('#profileAvatarEditor [data-sona-save]')){e.preventDefault();await saveSona();return}
     if(e.target.closest('#profileAvatarEditor [data-minecraft-save]')){
@@ -734,10 +741,6 @@
   text-decoration:none!important;cursor:pointer!important;
 }
 #studioApp #studioAvatarCard .biglwa-avatar-upload{display:flex!important;align-items:center!important;justify-content:center!important}
-#studioApp #studioAvatarCard #biglwaMiiEditorFrame{
-  display:block!important;width:100%!important;min-height:520px!important;height:520px!important;
-  border:1px solid rgba(100,80,70,.22)!important;border-radius:10px!important;background:rgba(255,255,255,.2)!important;
-}
 #studioApp #studioAvatarCard #biglwaAvatarStatus{display:block!important;min-width:0!important;font:10px/1.4 system-ui!important;opacity:.8}
 #studioApp .biglwa-avatar-restore{
   position:absolute!important;right:9px!important;bottom:8px!important;z-index:12!important;
@@ -915,23 +918,35 @@
   text-align:center;font:600 11px/1.45 system-ui;
 }
 
-#studioApp #profileAvatarEditor #biglwaMiiEditorFrame{
-  width:100%!important;min-height:655px!important;height:min(700px,75vh)!important;
-  display:block!important;border:1px solid rgba(86,65,58,.25)!important;
-  background:#faf1e9!important;border-radius:12px!important;
-}
-#studioApp #profileAvatarEditor .biglwa-mii-port-links{font:700 12px/1.5 system-ui!important}
-@media(max-width:680px){#studioApp #profileAvatarEditor #biglwaMiiEditorFrame{
-  height:910px!important;min-height:910px!important
-}}
-#studioApp #profileAvatarEditor .biglwa-mii-legacy-status{
-  max-width:690px;padding:15px 16px;margin:4px 0 11px;
-  border:1px solid rgba(100,80,70,.22);border-radius:12px;
-  background:rgba(255,255,255,.27);color:inherit;
-}
-#studioApp #profileAvatarEditor .biglwa-mii-legacy-status strong{display:block;margin-bottom:6px;font:700 16px Georgia,serif}
-#studioApp #profileAvatarEditor .biglwa-mii-legacy-status p{margin:0 0 9px!important;max-width:75ch}
-#studioApp #profileAvatarEditor .biglwa-mii-legacy-status a{font:700 12px/1.4 system-ui;text-underline-offset:3px;color:inherit}
+/* Third-party 360sona retains control of stage, plate, palette and animations.
+   BIGLWA embeds the public 320x546 display case without inventing an iframe API. */
+#studioApp #profileAvatarEditor .biglwa-sona-label{display:block;font:700 12px/1.3 system-ui;margin:8px 0 3px}
+#studioApp #profileAvatarEditor #biglwaSonaWidgetURL{box-sizing:border-box;width:100%;min-height:40px;
+ border:1px solid rgba(85,70,70,.32);border-radius:8px;padding:9px 12px;
+ background:var(--widget-bg,#fffaf5);color:inherit;font:600 12px/1.3 system-ui}
+#studioApp #profileAvatarEditor .biglwa-sona-actions{display:flex;gap:8px;flex-wrap:wrap}
+#studioApp #profileAvatarEditor .biglwa-sona-actions button{flex:1 1 105px}
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview{display:flex;align-items:center;justify-content:center;min-width:0;
+ min-height:546px;border-radius:10px;background:linear-gradient(165deg,#20242a,#0b0d10);color:#e8eddc;
+ border:1px solid #76b90055;padding:7px}
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview>span{font:600 12px/1.5 system-ui;text-align:center}
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview .biglwa-sona-frame{width:320px;max-width:100%;height:546px}
+#studioApp #profileAvatarEditor .biglwa-sona-note{font:600 11px/1.45 system-ui;color:var(--widget-muted,#706867)}
+#studioApp #profileAvatarEditor .biglwa-sona-external{display:inline-flex;text-decoration:underline;text-underline-offset:3px}
+#studioApp .biglwa-sona-frame{position:relative;box-sizing:border-box;width:320px;max-width:100%;height:546px;
+ overflow:hidden;margin:0 auto;border-radius:8px;background:linear-gradient(165deg,#20242a,#0b0d10);
+ box-shadow:0 6px 18px #0004;border:1px solid #76b90055}
+#studioApp .biglwa-sona-frame>iframe{display:block;width:320px!important;height:546px!important;
+ max-width:none!important;min-height:546px!important;border:0!important;background:transparent}
+#studioApp .biglwa-sona-frame.is-compact{position:relative;width:100%;height:100%;max-width:none;
+ border-radius:8px;box-shadow:none;pointer-events:none}
+#studioApp .biglwa-sona-frame.is-compact>iframe{position:absolute;top:50%;left:50%;
+ width:320px!important;height:546px!important;transform:translate(-50%,-50%) scale(.255)!important;
+ transform-origin:center center;pointer-events:none}
+#studioApp #studioAvatarCard .biglwa-avatar-media:has(.biglwa-sona-frame){background:linear-gradient(165deg,#20242a,#0b0d10)!important}
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview:has(.biglwa-sona-frame){display:block}
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview .biglwa-sona-frame.is-compact>iframe{transform:translate(-50%,-50%) scale(.34)!important}
+@media(max-width:620px){#studioApp #profileAvatarEditor .biglwa-sona-editor-preview{padding:4px;overflow:auto}}
 #studioApp #profileAvatarEditor #biglwaAvatarStatus{display:block;font:12px/1.45 system-ui;min-height:18px;margin:0}
 /* Avatar is an ordinary tab of the existing profile banner, NOT a fixed modal. */
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])){
