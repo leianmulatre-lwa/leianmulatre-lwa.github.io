@@ -6,7 +6,7 @@ const original=read('bootstrap-v2.html');
 const expected={
   'module-pages.js':'20261019-journal-latest-10',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
-  'pinterest-orbit.js':'20261017-boards-label-3',
+  'pinterest-orbit.js':'20261019-board-recent-first-4',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
   'account-boot.js':'20261017-public-socials-8'
 };
