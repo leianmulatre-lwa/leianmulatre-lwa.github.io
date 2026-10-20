@@ -1094,6 +1094,48 @@
   }
 }
 `;
+  style.textContent+=`
+/* 2026-10-20 Xbox Avatar · Interactive display, accessible enlarge and editor reset */
+#studioApp .biglwa-sona-frame.is-compact,
+#studioApp .biglwa-sona-frame.is-compact>iframe{pointer-events:auto!important}
+#studioApp #studioAvatarCard .biglwa-avatar-media{position:relative!important;touch-action:pan-y}
+#studioApp #studioAvatarCard .biglwa-sona-frame.is-compact>iframe{touch-action:auto}
+#studioApp #studioAvatarCard .biglwa-avatar-thumbnail-actions{position:absolute;right:7px;bottom:7px;z-index:18;display:flex;align-items:flex-end;gap:5px}
+#studioApp #studioAvatarCard [data-avatar-actions-toggle]{border:1px solid #a29894;border-radius:7px;background:#f7efebea;color:#54404b;width:25px;height:25px;cursor:pointer;font:800 17px/1 system-ui}
+#studioApp #studioAvatarCard .biglwa-avatar-action-menu[hidden]{display:none!important}
+#studioApp #studioAvatarCard .biglwa-avatar-action-menu{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid #c0afab;border-radius:9px;background:#faf7f1f5;box-shadow:0 5px 13px #31212333}
+#studioApp #studioAvatarCard .biglwa-avatar-action-menu button{border:1px solid #c4b3b5;border-radius:6px;background:#fff;color:#4b3741;padding:5px 7px;cursor:pointer;font:700 10px/1.1 system-ui;white-space:nowrap}
+#studioApp #profileAvatarEditor.has-active-avatar-source .biglwa-avatar-editor-layout{grid-template-columns:minmax(0,1fr)!important}
+#studioApp #profileAvatarEditor.has-active-avatar-source #biglwaAvatarProfilePreview{display:none!important}
+#studioApp #profileAvatarEditor .biglwa-avatar-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+#studioApp #profileAvatarEditor .biglwa-avatar-actions button[aria-pressed="true"]{border-color:#7c657b!important;box-shadow:inset 0 0 0 2px #7c657b55!important}
+#studioApp #profileAvatarEditor .biglwa-minecraft-variants{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:2px 0}
+#studioApp #profileAvatarEditor .biglwa-minecraft-variants button{flex:1 1 110px;padding:7px 10px;border:1px solid #a4a39e;border-radius:8px;background:#f7eee5;cursor:pointer;font:700 11px system-ui}
+#studioApp #profileAvatarEditor .biglwa-minecraft-variants button[aria-pressed="true"]{background:#f1d9eb;border-color:#976a96;box-shadow:inset 0 0 0 1px #976a96}
+#studioApp #profileAvatarEditor .biglwa-bitmoji-actions{display:flex;align-items:stretch;flex-wrap:nowrap;gap:6px;width:100%;min-width:0;overflow-x:auto;padding:4px 1px 7px}
+#studioApp #profileAvatarEditor .biglwa-bitmoji-actions > :is(button,label){display:inline-flex!important;flex:1 1 0!important;min-width:118px!important;width:auto!important;max-width:none!important;white-space:normal;line-height:1.2;text-align:center;padding:7px 6px!important;font-size:10px!important;min-height:38px!important}
+#studioApp #profileAvatarEditor .biglwa-bitmoji-actions label input[type="file"]{width:1px;height:1px;position:absolute;clip-path:inset(50%);overflow:hidden}
+#studioApp #profileAvatarEditor .biglwa-sona-creator-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#studioApp #profileAvatarEditor .biglwa-sona-creator-actions>*{flex:1 1 150px;min-height:38px;box-sizing:border-box}
+#studioApp #profileAvatarEditor #biglwaSonaCreator[hidden]{display:none!important}
+#studioApp #profileAvatarEditor #biglwaSonaCreator{display:grid;gap:8px;max-width:100%;padding:8px;border:1px solid #76b90055;border-radius:10px;background:#20242a;color:#f0f0f0}
+#studioApp #profileAvatarEditor #biglwaSonaCreator p{margin:2px!important;max-width:75ch;font:500 11px/1.4 system-ui}
+#studioApp #profileAvatarEditor #biglwaSonaCreator iframe{display:block;width:100%;height:min(73vh,740px);min-height:420px;border:0;border-radius:8px;background:#111}
+.biglwa-avatar-lightbox{box-sizing:border-box;position:fixed;margin:auto;padding:0;max-width:min(92vw,760px);width:min(92vw,760px);max-height:94vh;overflow:auto;background:#faf6f1;color:#3d3434;border:1px solid #76b90088;border-radius:16px;box-shadow:0 20px 70px #0006}
+.biglwa-avatar-lightbox::backdrop{background:#171318b8;backdrop-filter:blur(4px)}
+.biglwa-avatar-lightbox-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 17px;border-bottom:1px solid #ddd1ca;font:700 18px Georgia,serif}
+.biglwa-avatar-lightbox-head button{cursor:pointer;min-height:32px;min-width:32px;border-radius:8px;border:1px solid #c8b9b9;background:white;font:700 24px/1 system-ui}
+.biglwa-avatar-lightbox-media{display:grid;place-items:center;min-height:350px;max-height:65vh;overflow:auto;padding:10px;background:linear-gradient(165deg,#20242a,#0b0d10)}
+.biglwa-avatar-lightbox-media .biglwa-sona-frame{width:320px;height:546px;max-width:100%;overflow:hidden;border-radius:8px}
+.biglwa-avatar-lightbox-media .biglwa-sona-frame>iframe{display:block;width:320px;height:546px;max-width:none;border:0}
+.biglwa-avatar-lightbox-media .biglwa-mc-stage{height:55vh;min-height:330px;width:100%;touch-action:pan-y}
+.biglwa-avatar-lightbox-media>img{object-fit:contain;max-width:100%;max-height:55vh}
+.biglwa-avatar-lightbox-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;padding:10px 14px;font:600 11px/1.3 system-ui}
+.biglwa-avatar-lightbox-controls{display:flex;align-items:center;gap:7px}
+.biglwa-avatar-lightbox-controls button,.biglwa-avatar-lightbox-controls a{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-height:33px;border:1px solid #c3bab5;border-radius:8px;padding:7px 10px;background:#fff;color:#4d3440;font:700 11px system-ui;text-decoration:none}
+.biglwa-avatar-lightbox-controls [hidden]{display:none!important}
+@media(max-width:650px){#studioApp #profileAvatarEditor .biglwa-bitmoji-actions>:is(button,label){min-width:106px!important} .biglwa-avatar-lightbox-media{max-height:66vh}}
+`;
   document.head.append(style);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
