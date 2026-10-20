@@ -119,6 +119,24 @@ assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
   'original white supporter tile declarations removed rather than overridden');
 assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
 assert.ok(home.includes('brand-policy.css?v='));
+
+assert.ok(home.includes('/brand-policy.css?v=20261020-login-supporters-true-white-4'),
+  'login explicitly loads the fresh true-white supporter carousel styles');
+const pureWhiteLogin=brand.slice(brand.indexOf('/* Login supporter marquee · true-white logo gallery.'));
+assert.ok(pureWhiteLogin.startsWith('/* Login supporter marquee · true-white logo gallery.'),
+  'login-specific white ribbon rules are installed after legacy gradient');
+assert.ok(pureWhiteLogin.includes('#loginPage .login-supporters .supporter-viewport{') &&
+  pureWhiteLogin.includes('background:#ffffff!important;') &&
+  pureWhiteLogin.includes('background-image:none!important;'),
+  'login supporter ribbon is truly solid white rather than ivory gradient');
+assert.ok(pureWhiteLogin.includes('-webkit-mask-image:none!important;') &&
+  pureWhiteLogin.includes('mask-image:none!important;'),
+  'no dark translucent edge fade is applied to the white ribbon');
+assert.ok(!pureWhiteLogin.includes('.public-page-footer .supporter-viewport'),
+  'public footer carousel styling remains unchanged');
+assert.ok(brand.includes('animation: biglwa-supporter-marquee'),
+  'logo carousel still moves after changing the background');
+
 assert.ok(home.includes('pinterest-orbit.js?v=20261019-board-recent-first-4'),'current Pinterest imports include original Pins and board thumbnails');
 console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
 
