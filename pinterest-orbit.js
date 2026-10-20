@@ -632,10 +632,9 @@ async function connect(){await run(async()=>{
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
   boardGrid(disabled)+
-  (connected?'<label for="pinterestBoardPicker">Choose a board</label><select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+orderedBoards().map(b=>'<option value="'+esc(b.id)+'"'+(b.id===boardId?' selected':'')+'>'+esc(b.name)+'</option>').join('')+'</select>'+
-  (boardsNext?'<button type="button" class="module-action" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
-  (!boards.length&&!busy?'<p>No public boards were returned for this account.</p>':'')+
-  (boardId&&pins.length?'<div class="pn-board-publish-tools"><button type="button" class="module-action" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+disabled+'>Post loaded board Pins to Veve</button><small>Only Pins you explicitly publish become public.</small></div>':'')+
+  '<div class="pn-current-board-bar">'+boardPicker+boardActions+'</div>'+
+  (!boards.length&&connected&&!busy?'<p>No public boards were returned for this account.</p>':'')+
+  (boardId?'<p class="pn-board-scope-note">Showing '+pins.length+' loaded Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · Only Pins you publish become public.</p>':'')+
   '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
    const src=(hostedPinUrls.get(String(p.id))||[])[0]||image(p);const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
@@ -651,7 +650,7 @@ async function connect(){await run(async()=>{
     '<a href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View on Pinterest">↗</a></div></div></article>';
   }).join('')+'</div>'+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
- (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'')+savedBoardsMarkup()+originalPinsMarkup;
+ (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'')+originalPinsMarkup;
 }
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
