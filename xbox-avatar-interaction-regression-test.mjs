@@ -6,7 +6,7 @@ const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const src=read('avatar-studio-bitmoji-20261017-v3.js'),home=read('index.html');
 const minecraft=read('avatar/minecraft-mannequin.js');
 assert.doesNotThrow(()=>new Script(src));
-assert.match(home,/avatar-studio-bitmoji-20261017-v3\.js\?v=20261020-xbox-interactive-alex-2/,'Cache bust active avatar release');
+assert.match(home,/avatar-studio-bitmoji-20261017-v3\.js\?v=20261020-xbox-interactive-alex-3/,'Cache bust active avatar release');
 assert.ok(src.includes("data-avatar-widget-action=\"enlarge\""),'Green dot enlarges, not deletes');
 assert.ok(src.includes("if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge()"),'Green action routes to dialog');
 assert.ok(src.includes("dialog.showModal()"),'Large avatar opens as interactive dialog');
@@ -25,6 +25,7 @@ assert.ok(src.includes("slim:state.minecraftSlim,updatedAt:f.serverTimestamp()")
 assert.ok(src.includes("studioAvatar:{type:kind,url:result.url"),'Imported Minecraft skin still saved to account');
 assert.ok(src.includes("profileAvatarEditor.has-active-avatar-source"),'Source selection hides previous saved Xbox frame in left column');
 assert.ok(src.includes("preview.replaceChildren()"),'Old preview removed when switching sources');
+assert.ok(src.includes("preview.closest('#profileAvatarEditor')?.classList.contains('has-active-avatar-source')"),'Old Xbox iframe must not respawn from editor observer');
 assert.ok(src.includes("data-bitmoji-save")&&src.includes('biglwa-bitmoji-actions'),'Snapchat controls are grouped');
 assert.ok(src.includes("flex-wrap:nowrap")&&src.includes('overflow-x:auto'),'Snapchat buttons fit one line with overflow fallback');
 assert.ok(src.includes("data-sona-creator")&&src.includes("iframe.src='https://360sona.com/'"),'Optional actual browser editor iframe');
