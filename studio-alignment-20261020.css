@@ -1,0 +1,27 @@
+/* BIGLWA Studio alignment: 2026-10-20. Scoped overrides; no saved layout migration. */
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair,
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card,
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{margin:0!important;min-width:0!important}
+#studioApp .hero .mobile-dock.hero-action-bar{margin:4px 0 0!important}
+#studioApp .hero{padding-bottom:0!important;margin-bottom:0!important}
+#studioApp .biglwa-body-guide{margin:3px 0 3px 5px!important;padding:4px 7px!important;min-height:0!important;max-width:calc(100% - 12px)!important}
+#studioApp .masonry{margin-top:0!important;padding-top:2px!important}
+#studioApp .biglwa-body-keys button:not(:hover):not(:focus-visible){box-shadow:none!important}
+#studioApp .masonry>.card[data-body-model]:not(:hover):not(:focus-within),
+#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(:hover):not(:focus-within){box-shadow:var(--widget-shadow,0 8px 18px rgba(44,28,36,.09))!important;border-color:var(--widget-border,rgba(95,71,84,.25))!important}
+#studioApp .masonry>.card[data-body-model]:is(:hover,:focus-within),
+#studioApp .hero-widget-rail .customizable-widget[data-body-model]:is(:hover,:focus-within){box-shadow:0 0 0 3px var(--three-body-color,#dfd4e7)!important}
+#studioApp .profile-card.profile-is-editing :is(.profile-editor-tabs,.profile-editor-tabs button,#profileEditorTabs,#profileEditorTabs button){color:var(--widget-ink,#33262c)!important}
+#studioApp .profile-card.profile-is-editing #profileEditorTabs button{border:1px solid rgba(84,55,69,.42)!important;background:rgba(255,255,255,.72)!important;opacity:1!important;font-weight:750!important}
+#studioApp .profile-card.profile-is-editing #profileEditorTabs button[aria-selected="true"]{background:#f8dce8!important;color:#3e2437!important;box-shadow:inset 0 0 0 1px #a75880!important}
+#studioApp .profile-card.profile-is-editing :is(input:not([type="checkbox"]):not([type="range"]),textarea,select){color:var(--widget-ink,#33262c)}
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair),
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.profile-card{align-self:start!important;max-width:100%!important;min-width:0!important}
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.profile-card.profile-is-editing{width:100%!important;box-sizing:border-box!important;grid-column:1!important;margin:0!important}
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{align-self:start!important;gap:14px!important}
+#studioApp .music-card :is([data-profile-music-open],.profile-song-button,.song-selector,.music-song-selector){max-width:100%!important;min-width:0!important}
+#studioApp .music-card :is(button,[role="button"]){box-sizing:border-box!important}
+#studioApp .music-card :is(.music-head,.music-card-header,.music-header,.now-playing-header){display:flex!important;align-items:center!important;gap:5px!important;flex-wrap:wrap!important}
+#studioApp .music-card :is(.profile-music-button,.profile-song-button,[data-profile-music-open]){position:relative!important;flex:0 0 auto!important;white-space:nowrap!important;margin:0 4px!important;padding:3px 6px!important;font-size:9px!important}
+@media(max-width:900px){#studioApp .hero-widget-rail>#biglwaAuraAvatarPair{gap:10px!important}}
