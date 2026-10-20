@@ -1826,8 +1826,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       image.alt='Portrait of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
       // Detached lazy images may never start loading; preload eagerly, then attach.
       image.loading='eager';image.decoding='async';
-      image.onload=()=>{if(!host.isConnected)return;host.querySelector('.politc-poster-monogram')?.remove();host.append(image);};
+      if(host.dataset.politcImageLoading===url)return;
+      host.dataset.politcImageLoading=url;
+      image.onload=()=>{
+        delete host.dataset.politcImageLoading;
+        if(!host.isConnected||host.querySelector('img'))return;
+        host.querySelector('.politc-poster-monogram')?.remove();host.append(image);
+      };
       image.onerror=()=>{
+        delete host.dataset.politcImageLoading;
         // A historical Commons FilePath may have been renamed. Retry only
         // the explicitly verified title's Wikipedia thumbnail (not a fuzzy search).
         const fallback=cache.get(host.dataset.politcWiki);
@@ -1861,7 +1868,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const found=new Map(pages.map(page=>[String(page.title||''),String(page.thumbnail?.source||'')]));
         const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
         for(const name of titles){const resolved=redirects.get(name)||name;cache.set(name,found.get(resolved)||'');}
-        for(const el of portraits)hydrateImage(el,el.dataset.politcVerified||cache.get(el.dataset.politcWiki));
+        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
       }).catch(async()=>{
         // Wikipedia's multi-title endpoint can be denied by browsers or a privacy
         // extension. Try per-person article summaries as a second source; only
@@ -1875,7 +1882,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
             cache.set(name,String(info.thumbnail?.source||info.originalimage?.source||''));
           }catch{cache.set(name,'')}
         }));
-        for(const el of portraits)hydrateImage(el,el.dataset.politcVerified||cache.get(el.dataset.politcWiki));
+        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
       });
     }
     body.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
