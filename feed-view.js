@@ -1043,7 +1043,10 @@ function renderPosts(force) {
             (fallbackSrc && fallbackSrc !== shown[0] ? ' data-feed-fallback="' + esc(fallbackSrc) + '"' : "") +
             ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="' + esc(String(post.caption||'Collective feed media').slice(0,160)) + '" loading="lazy">'
         : slideshow(shown, "Collective feed media"));
-    const link = !isInstagram && !["facebook","pinterest"].includes(String(post.source||"").toLowerCase()) && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
+    // Pinterest-imported media is a normal visual card. Even historical records
+    // mislabeled as Instagram must not show a bulky "Shared link" footer.
+    const pinSource=/^https?:\/\/(?:www\.)?pinterest\.[^/]+\/pin\//i.test(String(post.sourceUrl||''))||String(post.source||'').toLowerCase()==='pinterest';
+    const link = !pinSource && !isInstagram && !["facebook","pinterest"].includes(String(post.source||"").toLowerCase()) && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     // Carousels are controlled directly on their photo: dots below, arrows on hover.
     // Numbered browser tabs belong to the retired feed header and are not rendered.
     // Use the same card header for every source; slideshow arrow controls
