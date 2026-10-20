@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261020-module-jump-politc-11';
+        script.src = '/module-pages.js?v=20261020-politc-portraits-secure-12';
         document.head.appendChild(script);
       }, 250);
     }
