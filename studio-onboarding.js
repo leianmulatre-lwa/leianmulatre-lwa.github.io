@@ -8,7 +8,7 @@
  const DISMISSED='biglwaStudioTutorialDismissed:v1:';
  const steps=[
   {"title":"Your creative Studio","area":"Studio","body":"Your Studio holds your profile, projects, music and widgets. The left sidebar is your shortcut desk; the header opens full pages."},
-  {"title":"Symbol key","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
+  {"title":"Skeleton Keys","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
   {"title":"The three colored dots","area":"Widget and post controls","visual":"colored-dots-title","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
   {"title":"Your workspace","area":"Studio","body":"Drag widget handles to arrange the Studio, use controls to customize it, and view your own public profile as others see it. Layout preferences are attached to your Big LWA account."},
   {"title":"Connect your world","area":"Orbit","key":"orbit","body":"Orbit links external accounts such as Pinterest and Instagram. Imported media goes first to your account-linked private collection for review. If a provider session expires, reconnect only that provider."},
@@ -135,6 +135,30 @@
   const css=document.createElement('style');css.id='biglwaTourStyles';
   css.textContent=`
    #studioApp .manifesto-card.is-tutorial-dismissed{display:none!important}
+   #studioApp #biglwaSkeletonKeysToggle{display:inline-flex;align-items:center;gap:6px;min-width:max-content;margin:0 5px;padding:7px 10px;border:1px solid rgba(112,79,91,.3);border-radius:8px;background:#f7e5ef;color:#65415d;font:800 10px/1.2 system-ui;letter-spacing:.03em;cursor:pointer}
+   #studioApp #biglwaSkeletonKeysToggle:hover,#studioApp #biglwaSkeletonKeysToggle:focus-visible{background:#efd6e5;outline:2px solid #9a6690;outline-offset:2px}
+   #studioApp .manifesto-card.is-skeleton-open{display:block!important;min-height:230px;max-height:none!important;overflow:visible!important}
+   #studioApp .manifesto-card.is-skeleton-open>:not(.biglwa-tour-actions):not(.biglwa-skeleton-hub){display:none!important}
+   #studioApp .manifesto-card .biglwa-skeleton-hub[hidden]{display:none!important}
+   #studioApp .manifesto-card .biglwa-skeleton-hub{display:grid;gap:11px;margin:0;padding:16px 12px 8px;color:#4a3344}
+   #studioApp .biglwa-skeleton-hub h2{font:400 27px/1.1 "CS Bergamot Stitched",Georgia,serif;margin:0}
+   #studioApp .biglwa-skeleton-hub .skeleton-subtitle{font:650 11px/1.35 Georgia,serif;color:#7a5369;letter-spacing:.02em;margin:0}
+   #studioApp .biglwa-skeleton-hub h3{font:800 12px/1.3 system-ui;letter-spacing:.07em;text-transform:uppercase;margin:5px 0 0}
+   #studioApp .biglwa-skeleton-squares{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+   #studioApp .biglwa-skeleton-squares button{display:flex;align-items:center;gap:7px;min-width:0;min-height:57px;text-align:left;cursor:pointer;padding:8px;border:1px solid #c8a5b4;border-radius:9px;background:#fff3f5;color:#533549;font:750 11px/1.3 system-ui;box-shadow:2px 3px 0 rgba(67,36,54,.13)}
+   #studioApp .biglwa-skeleton-squares button:hover,#studioApp .biglwa-skeleton-squares button:focus-visible{transform:translateY(-1px);outline:2px solid #9a6485;outline-offset:1px}
+   #studioApp .biglwa-skeleton-squares img{width:27px;height:27px;object-fit:contain;flex-shrink:0}
+   #studioApp .biglwa-skeleton-squares .skeleton-tile-glyph{display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px;font:800 22px Georgia,serif}
+   #studioApp .biglwa-skeleton-hub .tour-symbol-key{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;list-style:none;padding:7px;margin:0;max-height:235px;overflow:auto;background:rgba(255,255,255,.65);border:1px solid #d9b9c6;border-radius:9px}
+   #studioApp .biglwa-skeleton-hub .tour-symbol-item{display:flex;gap:6px;align-items:center;min-width:0;list-style:none}
+   #studioApp .biglwa-skeleton-hub .tour-symbol-mark{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;overflow:hidden}
+   #studioApp .biglwa-skeleton-hub .tour-symbol-mark img,#studioApp .biglwa-skeleton-hub .tour-symbol-mark svg{max-width:28px;max-height:28px;object-fit:contain}
+   #studioApp .biglwa-skeleton-hub .tour-symbol-description{display:grid;min-width:0;font:650 10px/1.2 system-ui}
+   #studioApp .biglwa-skeleton-hub .tour-symbol-description small{font:450 9px/1.25 system-ui;color:#806776}
+   #studioApp .biglwa-skeleton-hub .skeleton-key-note{font:500 10px/1.35 Georgia,serif;color:#80667c;margin:0}
+   body.sidebar-collapsed #studioApp #biglwaSkeletonKeysToggle{font-size:10px}
+   @media(max-width:680px){#studioApp #biglwaSkeletonKeysToggle{padding:6px 7px;font-size:9px}#studioApp .biglwa-skeleton-hub .tour-symbol-key{grid-template-columns:1fr}}
+
    #studioApp .manifesto-card{position:relative!important}
    #studioApp .manifesto-card .biglwa-tour-actions{
     position:absolute;right:15px;top:15px;z-index:8;
@@ -235,6 +259,8 @@
  async function dismiss(){
   currentUid=uid();
   try{localStorage.setItem(key(),'1')}catch{}
+  card?.classList.remove('is-skeleton-open');
+  $('#biglwaSkeletonHub',card)?.setAttribute('hidden','');
   card?.classList.add('is-tutorial-dismissed');
   dialog?.close();
   // Session customization is private and stored under the account. Do not
@@ -285,22 +311,75 @@
   style();index=0;ensureDialog();renderStep();
   if(!dialog.open)dialog.showModal();
  }
- function ensureSidebarGuide(){
-  const sidebar=$('#studioApp .sidebar');if(!sidebar)return;
-  if($('.biglwa-guide-launcher',sidebar))return;
-  const button=document.createElement('button');
-  button.type='button';button.className='biglwa-guide-launcher';
-  button.textContent='ⓘ Site guide · symbols & tools';
-  button.setAttribute('aria-label','Open guide to Big LWA symbols, controls, Orbit and publishing');
-  button.addEventListener('click',openTour);
-  (sidebar.querySelector('.sidebar-top')||sidebar).append(button);
+ function ensureSkeletonToolbar(){
+  // The top toolbar replaces the old left-sidebar guide launcher. It never navigates.
+  $('#studioApp .sidebar .biglwa-guide-launcher')?.remove();
+  const top=$('#studioApp .top-actions')||$('#studioApp .topbar');
+  if(!top)return false;
+  let button=$('#biglwaSkeletonKeysToggle');
+  if(!button){
+   button=document.createElement('button');button.id='biglwaSkeletonKeysToggle';
+   button.type='button';button.textContent='⚿ Skeleton Keys';
+   button.setAttribute('aria-label','Reopen the Skeleton Keys widget in Studio');
+   button.addEventListener('click',openSkeleton);
+  }
+  if(button.parentElement!==top)top.prepend(button);
+  return true;
+ }
+ function skeletonHub(){
+  if(!card)return null;
+  let hub=$('#biglwaSkeletonHub',card);
+  if(hub)return hub;
+  hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
+  hub.setAttribute('aria-label','Skeleton Keys for the individual');
+  hub.innerHTML='<h2>Studio</h2><p class="skeleton-subtitle">ankh; keys for the individual.</p>'+
+   '<h3>Skeleton Keys</h3>'+
+   '<div class="biglwa-skeleton-squares" role="group" aria-label="Skeleton Keys quick squares">'+
+   '<button type="button" data-skeleton-action="tutorial"><span class="skeleton-tile-glyph" aria-hidden="true">✦</span>Site tutorial</button>'+
+   '<button type="button" data-skeleton-action="symbols"><img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">Symbol key image</button>'+
+   '<button type="button" data-skeleton-action="settings"><span class="skeleton-tile-glyph" aria-hidden="true">⚙</span>Settings</button>'+
+   '<button type="button" data-skeleton-action="politc"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">Politic</button></div>'+
+   '<ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools" hidden></ul>'+
+   '<p class="skeleton-key-note">Three bodies · individual / social / political. Keys stay here in Studio.</p>';
+  hub.addEventListener('click',event=>{
+   const action=event.target.closest('[data-skeleton-action]')?.dataset.skeletonAction;
+   if(!action)return;
+   if(action==='tutorial'){openTour();return;}
+   if(action==='symbols'){
+    const legend=$('#biglwaSkeletonSymbols',hub);
+    legend.hidden=!legend.hidden;
+    if(!legend.hidden)renderSymbolKey(legend);
+    return;
+   }
+   if(action==='settings'){location.assign('/settings');return;}
+   if(action==='politc'){
+    const open=window.BigLWAOpenModule||window.openBIGLWAModule;
+    if(typeof open==='function')open('politc');
+    return;
+   }
+  });
+  card.appendChild(hub);
+  return hub;
+ }
+ function openSkeleton(){
+  if(!card?.isConnected)attach();
+  if(!card)return;
+  const hub=skeletonHub();
+  if(!hub)return;
+  card.classList.remove('is-tutorial-dismissed');
+  card.classList.add('is-skeleton-open');
+  hub.hidden=false;
+  const grid=card.closest('.masonry');
+  if(grid&&getComputedStyle(card).display==='none')card.style.setProperty('display','block','important');
+  card.scrollIntoView?.({behavior:'smooth',block:'nearest'});
  }
  function attach(){
-  style();ensureSidebarGuide();
+  style();ensureSkeletonToolbar();
   const next=$('#studioApp .manifesto-card');
   if(!next)return false;
   card=next;style();currentUid=uid();
-  card.classList.toggle('is-tutorial-dismissed',readDismissed());
+  if(!card.classList.contains('is-skeleton-open'))card.classList.toggle('is-tutorial-dismissed',readDismissed());
+  skeletonHub();
   if(!$('.biglwa-tour-actions',card)){
    const actions=document.createElement('div');actions.className='biglwa-tour-actions';
    const start=document.createElement('button');start.type='button';start.dataset.tourStart='';
@@ -328,11 +407,11 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});
  // Reapply the guide when delayed Studio layout restoration replaces its
  // card. Keep the sidebar launcher available after dismissing the card.
- window.BigLWASiteGuide={open:openTour};
+ window.BigLWASiteGuide={open:openTour,openKeys:openSkeleton};
  let pending=false;
  const observer=new MutationObserver(()=>{
   if(card?.isConnected && $('.biglwa-tour-actions',card) &&
-     $('#studioApp .sidebar .biglwa-guide-launcher'))return;
+     $('#biglwaSkeletonKeysToggle'))return;
   if(pending)return;
   pending=true;
   requestAnimationFrame(()=>{pending=false;attach()});
