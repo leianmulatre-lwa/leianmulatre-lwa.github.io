@@ -599,9 +599,35 @@ async function connect(){await run(async()=>{
        (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>';
     }).join('')||'<p>No original Pins were returned. Board saves are listed below.</p>')+'</div>'+
     (createdNext?'<button class="module-action" type="button" data-pn-more-created'+disabled+'>Load more original Pins</button>':'')+'</section>':'');
- panel.innerHTML='<h2>Pinterest boards</h2><p>'+(connected?'Connected as '+esc(profile.username||profile.business_name||'your Pinterest account'):'Connect Pinterest to browse your public boards and Pins here.')+'</p><div class="module-actions">'+
- (connected?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>Refresh boards</button><button type="button" class="module-action" data-pn-sync'+(busy||syncingAll?' disabled':'')+'>Sync boards + my created Pins</button><button type="button" class="module-action" data-pn-disconnect'+disabled+'>Disconnect</button>':'<button type="button" class="module-action" data-pn-connect'+disabled+'>Connect Pinterest</button>')+
-  '</div><p role="status">'+esc(message)+'</p><p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>'+(importError?'<p role="alert">'+esc(importError)+'</p>':'')+
+ const connectedName=String(profile.username||profile.business_name||'').trim().replace(/^@/,'');
+ const safeName=/^[\w.]{1,80}$/.test(connectedName)?connectedName:'';
+ const qwikHref=safeName?'https://www.pinterest.com/'+encodeURIComponent(safeName)+'/':'https://www.pinterest.com/';
+ const headerControls=connected
+   ?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>↻ Refresh</button>'+
+    '<button type="button" class="module-action pn-secondary" data-pn-sync'+(busy||syncingAll?' disabled':'')+'>Sync Pins</button>'
+   :'<button type="button" class="module-action pn-orbit-connect" data-pn-connect'+disabled+'>🪐 Connect Pinterest</button>';
+ const boardPicker=connected?'<label class="pn-board-picker" for="pinterestBoardPicker"><span>Now showing pins from</span>'+
+   '<select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+
+   orderedBoards().map(b=>'<option value="'+esc(b.id)+'"'+(String(b.id)===String(boardId)?' selected':'')+'>'+esc(b.name)+'</option>').join('')+
+   '</select></label>':'<span class="pn-board-picker pn-picker-empty">Connect Pinterest to browse your boards</span>';
+ const boardActions=connected?'<div class="pn-board-view-actions">'+
+   (boardsNext?'<button type="button" class="module-action pn-secondary" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
+   '<button type="button" class="module-action pn-board-veve" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+(!boardId||!pins.length||busy?' disabled':'')+'>Post loaded Pins to Veve</button></div>':'';
+ panel.innerHTML='<div class="pn-primary-head"><div class="pn-primary-identity"><h2>board</h2>'+
+   '<div class="pn-connected-row"><span class="pn-orbit-planet" aria-hidden="true">●</span><span>'+
+   (connected?'Pinterest connected'+(safeName?' · @'+esc(safeName):''):'Pinterest not connected')+'</span>'+
+   (connected?'<a class="pn-qwiklinkz" href="'+esc(qwikHref)+'" target="_blank" rel="noopener noreferrer" title="Open Pinterest profile in a new tab">↗ Qwiklinkz</a>':'')+
+   '</div></div><div class="pn-head-controls">'+headerControls+
+   (authUid?'<div class="pn-new-board-combo"><button type="button" class="module-action pn-new-board" data-pn-new-board title="Create a private BIGLWA collection">+ New board</button>'+
+   '<button type="button" class="pn-manage-board-menu" data-pn-manage-boards aria-controls="pnSavedLibraryDrawer" aria-expanded="'+String(savedDrawerOpen)+'" title="Manage saved boards">▾</button></div>':'')+
+   '</div></div>'+
+   (authUid&&savedDrawerOpen?'<div class="pn-saved-popover" id="pnSavedLibraryDrawer" role="region" aria-label="Manage BIGLWA saved boards">'+
+      '<div class="pn-saved-popover-top"><b>Board management</b><button type="button" data-pn-manage-boards aria-label="Close board management">×</button></div>'+
+      '<div class="pn-popover-actions">'+(connected?'<button type="button" class="module-action pn-secondary" data-pn-disconnect>Disconnect Pinterest</button>':'')+'</div>'+
+      savedBoardsMarkup()+'</div>':'')+
+   (message?'<p class="pn-notice" role="status">'+esc(message)+'</p>':'')+
+   (/error|expired|reconnect|zero boards|unavailable|failed|unauthorized/i.test(diagnostic)?'<p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>':'')+
+   (importError?'<p role="alert">'+esc(importError)+'</p>':'')+
   /* The grid sits outside the connected branch on purpose: the shape of what is coming is
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
