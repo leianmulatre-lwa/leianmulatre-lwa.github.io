@@ -21,7 +21,7 @@ function update(){
  frame=0;
  if(!root)return;
  const items=targets();
- if(items.length<2){root.hidden=true;return}
+ if(items.length<2){if(!root.hidden)root.hidden=true;return}
  const threshold=window.scrollY+95;
  const positions=items.map(el=>window.scrollY+el.getBoundingClientRect().top);
  let current=0;for(let i=0;i<positions.length;i++)if(positions[i]<=threshold)current=i;
@@ -29,8 +29,9 @@ function update(){
  prev.disabled=threshold<=positions[0];next.disabled=current>=items.length-1;
  prev.onclick=()=>jump(items[previousIndex]);next.onclick=()=>jump(items[nextIndex]);
  next.title='Next: '+String(items[nextIndex]?.textContent||'section').trim().slice(0,70);
- label.textContent='Sections '+(current+1)+' / '+items.length;
- root.hidden=false;
+ const text='Sections '+(current+1)+' / '+items.length;
+ if(label.textContent!==text)label.textContent=text;
+ if(root.hidden)root.hidden=false;
 }
 function schedule(){if(frame)return;frame=requestAnimationFrame(update)}
 function mount(){
