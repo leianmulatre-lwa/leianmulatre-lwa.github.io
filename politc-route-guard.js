@@ -34,7 +34,7 @@
       const done=()=>{if(finished)return;finished=true;clearTimeout(timeout);resolve(window.openBIGLWAModule||window.BigLWAOpenModule||null);};
       // Index normally injects the same module bundle. Reuse it rather than
       // executing module-pages twice while Studio is still mounting.
-      const current='/module-pages.js?v=20261020-politc-portraits-secure-12';
+      const current='/module-pages.js?v=20261020-wikimedia-portraits-13';
       const present=[...document.scripts].find(script=>script.getAttribute('src')?.includes('/module-pages.js?'));
       const timeout=setTimeout(done,7000);
       if(present){
