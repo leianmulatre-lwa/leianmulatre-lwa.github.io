@@ -129,10 +129,10 @@
       '<div class="widget-window-controls avatar-window-controls" role="group" aria-label="Avatar widget controls">'+
       '<button type="button" class="window-light red" data-avatar-widget-action="remove" aria-label="Remove Avatar widget" title="Remove widget"></button>'+
       '<button type="button" class="window-light yellow" data-avatar-widget-action="archive" aria-label="Archive Avatar widget" title="Archive widget"></button>'+
-      '<button type="button" class="window-light green" data-avatar-widget-action="edit" aria-label="Customize Avatar" title="Customize Avatar"></button></div></div>'+
+      '<button type="button" class="window-light green" data-avatar-widget-action="enlarge" aria-label="Enlarge interactive Xbox Avatar" title="Enlarge interactive avatar"></button></div></div>'+
       '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Reorder Aura and Avatar widgets" title="Drag to move the Aura and Avatar widgets">'+
       '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
-      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Saved avatar preview"></div>';
+      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Interactive avatar preview"></div>'+ '<div class="biglwa-avatar-thumbnail-actions"><button type="button" data-avatar-actions-toggle aria-expanded="false" aria-label="Show avatar actions" title="Avatar actions">⋯</button>'+ '<div class="biglwa-avatar-action-menu" hidden><button type="button" data-avatar-action="left" aria-label="Rotate left">↶</button><button type="button" data-avatar-action="right" aria-label="Rotate right">↷</button><button type="button" data-avatar-action="enlarge">Enlarge ↗</button></div></div>';
     showAvatar();
   }
   function syncEditorPreview(){
@@ -195,13 +195,13 @@
     const preview=one('#biglwaAvatarProfilePreview');if(preview){disposeViewer(preview);preview.replaceChildren();preview.dataset.avatarSrc='';}
     if(name==='sona360'){
       const owned=state.avatar?.type==='sona360'?sonaUrl(state.avatar.url):'';
-      mount.innerHTML='<p>Paste your own public 360sona display-case link. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
+      mount.innerHTML='<p>Paste your public 360sona display-case link. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
         '<label class="biglwa-sona-label" for="biglwaSonaWidgetURL">360sona widget link</label>'+
         '<input id="biglwaSonaWidgetURL" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://360sona.com/w/your-widget-id" aria-label="360sona display case URL">'+
         '<div class="biglwa-sona-actions"><button type="button" data-sona-preview>Preview</button><button type="button" data-sona-save>Save Xbox Avatar</button>'+
         '<button type="button" data-sona-example>Use supplied example</button></div>'+
         '<div id="biglwaSonaLivePreview" class="biglwa-sona-editor-preview" aria-label="360sona live display-case preview"><span>Your widget will appear here when you provide its link.</span></div>'+
-        '<a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Create or edit on 360sona ↗</a>'+
+        '<div class="biglwa-sona-creator-actions"><button type="button" data-sona-creator aria-expanded="false" aria-controls="biglwaSonaCreator">Create here ▾</button><a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Open creator in new tab ↗</a></div>'+ '<div id="biglwaSonaCreator" hidden><p>This is 360sona in a browser frame. If its website blocks embedding, use the new-tab link above, then paste the finished widget URL here.</p><iframe title="360sona avatar creator" loading="lazy" referrerpolicy="no-referrer" data-sona-editor></iframe></div>'+
         '<small class="biglwa-sona-note">Display case: 320 × 546, full avatar, original 360sona theme. BIGLWA does not control the third-party editor.</small>';
       const inp=one('#biglwaSonaWidgetURL',mount);
       if(inp)inp.value=owned;
