@@ -1625,10 +1625,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {id:'hunting',name:'Hunting Season',subtitle:'Public records, institutional power & accountability · no harassment'},
       {id:'cunting',name:'Cunting Season',subtitle:'Baddies · icons, creators & cultural standouts'}
     ];
-    const storageKey='biglwaPolitcNominationsV1';
+    // Nomination photos/context are private drafts. Never reuse the previous
+    // device-wide collection for whoever next signs into the same browser.
+    const ownerUid=String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
+    const storageKey=ownerUid?'biglwaPolitcNominationsV2:'+ownerUid:'biglwaPolitcNominationsV2:unowned-readonly';
+    const hiddenKey=ownerUid?'biglwaPolitcHiddenCuratedV2:'+ownerUid:'biglwaPolitcHiddenCuratedV2:unowned-readonly';
     const items=readJSON(storageKey,[]);
     const nominations=Array.isArray(items)?items:[];
-    const hiddenCurated=readJSON('biglwaPolitcHiddenCuratedV1',[]);
+    const hiddenCurated=readJSON(hiddenKey,[]);
     const curatedHidden=new Set(Array.isArray(hiddenCurated)?hiddenCurated:[]);
     // Curated introductory records are examples for browsing, not verdicts on
     // anyone's character or invitations to target them.
@@ -1887,8 +1891,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       try{
         if(target.startsWith('curated-')){
           curatedHidden.add(target);
-          writeJSON('biglwaPolitcHiddenCuratedV1',[...curatedHidden]);
+          if(!ownerUid)throw Error('Sign in before editing private nominations.');
+          writeJSON(hiddenKey,[...curatedHidden]);
         }else{
+          if(!ownerUid)throw Error('Sign in before editing private nominations.');
           writeJSON(storageKey,nominations.filter(x=>String(x.id)!==target));
         }
         renderPolitc();
@@ -1902,7 +1908,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         if(file.size>2*1024*1024){alert('Please use an image smaller than 2 MB.');return;}
         photo=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>resolve('');reader.readAsDataURL(file);});
       }
-      try{writeJSON(storageKey,[...nominations,{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);renderPolitc()}
+      try{if(!ownerUid)throw Error('Sign in before saving nominations.');
+        writeJSON(storageKey,[...nominations,{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);renderPolitc()}
       catch(err){alert('This browser could not save the nomination. Try a smaller photo.');}
     }));
   }
