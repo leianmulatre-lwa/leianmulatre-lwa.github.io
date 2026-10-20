@@ -440,6 +440,8 @@
         content:"";display:block;flex:0 0 7px;width:7px;height:7px;
         border-radius:50%;background:#9d9692;box-shadow:0 0 0 1px rgba(75,62,58,.15);
       }
+      #studioApp #stream .stream-watching-status{font-weight:900!important;letter-spacing:.14em!important;color:#9d3548!important}
+      #studioApp #stream .stream-watching-status::before{background:#d74850;box-shadow:0 0 0 3px rgba(215,72,80,.14)}
 
       /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
       #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
@@ -1404,8 +1406,8 @@
       let status=$('.stream-watching-status',card)||oldCounts.shift()||document.createElement('div');
       oldCounts.forEach(el=>el.remove());
       status.className='stream-watching-status';
-      status.textContent='Watching · live count unavailable';
-      status.setAttribute('aria-label','Stream watching status: live viewer count is not tracked');
+      status.textContent='ON AIR';
+      status.setAttribute('aria-label','On air: curated Stream playback; live viewers are not tracked');
       if(status.previousElementSibling!==screen)screen.insertAdjacentElement('afterend',status);
       if(screen.classList.contains('stream-preview-active'))return;
       let photo=$('.stream-station-photo',screen);
@@ -1423,6 +1425,22 @@
     });
   }
 
+  function syncRoomAvailability(){
+    const card=$('#studioApp #rooms')||$('#studioApp #room');
+    if(!card)return;
+    const footer=$('.room-footer',card);
+    if(!footer)return;
+    const candidates=$('span,small,.room-online-count,.online-count',footer);
+    let status=$('.room-presence-status',footer);
+    const old=candidates.filter(node=>/\\b[0-9][0-9,.]*\\s*online\\b|\\bonline\\s*[0-9][0-9,.]*/i.test(node.textContent||''));
+    if(!status)status=old.shift()||document.createElement('span');
+    old.forEach(node=>node.remove());
+    status.classList.add('room-presence-status');
+    status.textContent='ONLINE';
+    status.setAttribute('aria-label','Room available; real-time participant count is not available');
+    if(status.parentElement!==footer)footer.appendChild(status);
+  }
+
   function syncQwikyNoteWidget(){
     const card=$('#studioApp #notes');if(!card)return;
     const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Qwiky Note';
@@ -1438,6 +1456,7 @@
       feedList.replaceChildren();feedList.dataset.biglwaReset='1';
     });
     syncStreamWidget();
+    syncRoomAvailability();
     syncQwikyNoteWidget();
     if(document.documentElement.dataset.biglwaStreamSyncBound!=='1'){
       document.documentElement.dataset.biglwaStreamSyncBound='1';
