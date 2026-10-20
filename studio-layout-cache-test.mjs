@@ -22,7 +22,7 @@ const checks=[
  ['Settings Cache section',settings.includes('id="cache"')&&settings.includes('id="clearTemporaryCache"')],
  ['Cache preserves layouts, sign-in, projects',!cache.includes('localStorage.clear(')&&!cache.includes('sessionStorage.clear(')&&!cache.includes('indexedDB.deleteDatabase(')],
  ['Settings cache script installed',settings.includes('/settings-cache.js?v=20261014-safe-cache-1')],
- ['Stream watching footer follows the preview',layout.includes("screen.insertAdjacentElement('afterend',status)")],
+ ['Stream ON AIR stays below preview',layout.includes("screen.insertAdjacentElement('afterend',status)")],
  ['Stream watching status is honest about untracked counts',layout.includes("status.textContent='ON AIR'")&&!layout.includes("count.textContent='0 watching'")],
  ['Stream footer remains visible with active playback',layout.indexOf("screen.insertAdjacentElement('afterend',status)")<layout.indexOf("if(screen.classList.contains('stream-preview-active'))return;")],
  ['Stream status queries a real array of old badges',layout.includes("const oldCounts=$$(' ".trim())],
