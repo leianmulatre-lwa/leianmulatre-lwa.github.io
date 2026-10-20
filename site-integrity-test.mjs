@@ -115,7 +115,7 @@ assert.doesNotMatch(avatarStudio, /data-avatar-source="(?:mii|imvu)"/);
 assert.match(avatarStudio, /renderSonaFrame/);
 assert.match(avatarStudio, /data-sona-save/);
 assert.match(avatarStudio, /profileAvatarEditor/);
-assert.match(avatarStudio, /data-avatar-widget-action="edit"/);
+assert.match(avatarStudio, /data-avatar-widget-action="enlarge"/);
 assert.doesNotMatch(avatarStudio, /data-avatar-edit>/);
 assert.match(avatarStudio, /--biglwa-top-slot-count/);
 assert.match(avatarStudio, /grid-auto-rows:206px/);
