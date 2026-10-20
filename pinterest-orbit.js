@@ -650,7 +650,7 @@ async function connect(){await run(async()=>{
     '<a href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View on Pinterest">↗</a></div></div></article>';
   }).join('')+'</div>'+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
- (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':''):'')+originalPinsMarkup;
+ (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':'')+originalPinsMarkup;
 }
 document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
 document.addEventListener('click',e=>{
