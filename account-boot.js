@@ -7,7 +7,7 @@ import { startIdentity, refreshIdentity, identity } from "./account-identity.js"
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
 import { startConnections } from "./orbit-connections.js?v=20261017-public-snap-tumblr-x-2";
-import { startFeed } from "./feed-view.js?v=20261017-owner-feed-6";
+import { startFeed } from "./feed-view.js?v=20261020-pinterest-clean-cards-7";
 
 function boot() {
   startIdentity();
