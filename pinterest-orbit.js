@@ -213,7 +213,7 @@ let handoffPromise=null;
     for(const pin of list){
       if(uid!==authUid)throw Error('Account changed; publishing stopped.');
       if(saved&&boardLocks[id]===true)throw Error('Board locked while publishing.');
-      try{await publishOnePin(pin,importer,publisher);posted++;publishedPinIds.add(String(pin.id))}
+      try{await publishOnePin(pin,importer,publisher);posted++;publishedPinIds.add(String(pin.id));profilePinStates.set(String(pin.id),'live')}
       catch(err){failed++;console.warn('[BIGLWA] Pinterest publish:',pin.id,err)}
       if((posted+failed)%4===0||posted+failed===list.length)
         progress('Publishing to Collective + Veve · '+(posted+failed)+' / '+list.length+' · '+posted+' live');
@@ -588,19 +588,23 @@ async function connect(){await run(async()=>{
   try{return await restorePromise}finally{restorePromise=null}
  }
  async function syncAllBoards(){
-  if(!connected||syncingAll)return;
-  syncingAll=true;importError='';message='Refreshing Boards and original Pins…';render();
-  try{
-   // Keep board saves in Boards; profile drafts come only from /pins.
-   boards=[];boardId='';pins=[];pinsNext='';covers={};
-   await loadBoards();
-   if(boards.length){boardId=String(orderedBoards()[0]?.id||'');if(boardId)await loadPins(boardId)}
-   await loadCreatedPins(false);
-   await refreshPinStates();
-   message='Boards refreshed. '+createdPins.length+' original Pins saved privately to your BIG LWA profile.';
-   await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid)||window.__biglwaConnections?.refresh?.(authUid));
-  }catch(error){importError=error?.message||'Pinterest sync failed. Try again.';message='';}
-  finally{syncingAll=false;render()}
+  if(!connected)return;
+  return run(async()=>{
+    if(syncingAll)return;
+    const uid=authUid;
+    syncingAll=true;importError='';progress('Refreshing Boards and original Pins…');
+    try{
+      boards=[];boardId='';pins=[];pinsNext='';covers={};
+      await loadBoards();
+      if(uid!==authUid)throw Error('Account changed during Pinterest sync.');
+      if(boards.length){boardId=String(orderedBoards()[0]?.id||'');if(boardId)await loadPins(boardId)}
+      await loadCreatedPins(false);
+      await refreshPinStates();
+      message='Boards refreshed. '+createdPins.length+' original Pins saved privately to your BIGLWA profile.';
+      await (window.__biglwaConnections?.refreshSource?.('pinterest',authUid)||window.__biglwaConnections?.refresh?.(authUid));
+    }catch(error){importError=error?.message||'Pinterest sync failed. Retry.';message=importError;}
+    finally{syncingAll=false;render()}
+  });
  }
  async function choose(id,more=false){if(!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===String(id)))return;
   await run(async()=>{
@@ -704,20 +708,20 @@ async function connect(){await run(async()=>{
     '<button type="button" data-pn-publish-original>Publish selected to Veve + Collective</button>'+
     '<span>'+selectedOriginalPins.size+' selected</span></div></header><div class="pinterest-owned-grid">'+
     (createdPins.map(pin=>{const id=String(pin.id||'');const pic=(hostedPinUrls.get(id)||[])[0]||image(pin);
-      const status=profilePinStates.get(id)||'private';
+      const status=profilePinStates.get(id)||'unknown';
       return '<article class="pn-owned-pin-choice" data-pn-owned-pin="'+esc(id)+'">'+
        '<label class="pn-pin-check"><input type="checkbox" data-pn-original-select="'+esc(id)+'"'+(selectedOriginalPins.has(id)?' checked':'')+'><span>Select</span></label>'+
        '<a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" title="Open original Pin on Pinterest">'+
        (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>'+
-       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Live on Collective + Veve':status==='archived'?'Archived':'Private on your profile')+'</small></article>';
+       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Live on Collective + Veve':status==='archived'?'Archived':'On your profile · check Feed status')+'</small></article>';
     }).join('')||'<p>No original Pins were returned.</p>')+'</div>'+
     (createdNext?'<button class="module-action" type="button" data-pn-more-created>Load more original Pins</button>':'')+'</section>':'');
  const connectedName=String(profile.username||profile.business_name||'').trim().replace(/^@/,'');
  const safeName=/^[\w.]{1,80}$/.test(connectedName)?connectedName:'';
  const qwikHref=safeName?'https://www.pinterest.com/'+encodeURIComponent(safeName)+'/':'https://www.pinterest.com/';
  const headerControls=connected
-   ?'<button type="button" class="module-action" data-pn-refresh'+disabled+'>↻ Refresh</button>'+
-    '<button type="button" class="module-action pn-secondary" data-pn-sync'+(busy||syncingAll?' disabled':'')+'>Sync Pins</button>'
+   ?'<button type="button" class="module-action" data-pn-refresh>↻ Refresh</button>'+
+    '<button type="button" class="module-action pn-secondary" data-pn-sync>Sync Pins</button>'
    :'<button type="button" class="module-action pn-orbit-connect" data-pn-connect'+disabled+'>🪐 Connect Pinterest</button>';
  const boardPicker=connected?'<label class="pn-board-picker" for="pinterestBoardPicker"><span>Now showing pins from</span>'+
    '<select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+
@@ -740,7 +744,7 @@ async function connect(){await run(async()=>{
       '<div class="pn-saved-popover-top"><b>Board management</b><button type="button" data-pn-manage-boards aria-label="Close board management">×</button></div>'+
       '<div class="pn-popover-actions">'+(connected?'<button type="button" class="module-action pn-secondary" data-pn-disconnect>Disconnect Pinterest</button>':'')+'</div>'+
       savedBoardsMarkup()+'</div>':'')+
-   '<div class="pn-import-progress" role="status" aria-live="polite">'+esc(operationProgress||(busy?'Loading Pinterest…':queuedTasks?'Waiting for queued operation…':'Ready'))+(queuedTasks?' · '+queuedTasks+' queued':'')+'</div>'+ 
+   '<div class="pn-import-progress" role="status" aria-live="polite" data-state="'+(busy?'loading':'ready')+'"><span class="pn-operation-indicator" aria-hidden="true"></span>'+esc(operationProgress||(busy?'Loading Pinterest…':queuedTasks?'Waiting for queued operation…':'Up to date'))+(queuedTasks?' · '+queuedTasks+' queued':'')+'</div>'+ 
    (message?'<p class="pn-notice" role="status">'+esc(message)+'</p>':'')+
    (/error|expired|reconnect|zero boards|unavailable|failed|unauthorized/i.test(diagnostic)?'<p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>':'')+
    (importError?'<p role="alert">'+esc(importError)+'</p>':'')+
