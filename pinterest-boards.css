@@ -239,3 +239,45 @@
  #pinterestBoards .pn-saved-popover{top:110px}
 }
 
+/* Owner-only Pin selection & queued Pinterest operations; selection remains enabled while loading. */
+#pinterestBoards .pn-import-progress{display:flex;align-items:center;gap:7px;padding:6px 10px;margin:7px 0;
+ border:1px solid rgba(163,77,92,.22);border-radius:9px;background:rgba(255,255,255,.42);
+ color:#674752;font:700 10px/1.4 system-ui}
+#pinterestBoards .pn-import-progress[data-state="ready"]{opacity:.75}
+#pinterestBoards .pn-operation-indicator{flex:0 0 7px;width:7px;height:7px;border-radius:50%;
+ background:#74ab85;box-shadow:0 0 0 2px #74ab8526}
+#pinterestBoards .pn-import-progress[data-state="loading"] .pn-operation-indicator{background:#e6a94c;animation:pn-pulse 1.1s ease-in-out infinite}
+@keyframes pn-pulse{50%{opacity:.38}}
+#pinterestBoards .pn-current-board-bar{overflow:visible}
+#pinterestBoards .pn-board-view-actions{flex-wrap:wrap}
+#pinterestBoards .pn-board-picker{flex:1 1 210px}
+#pinterestBoards .pn-current-board-bar button:not(:disabled),#pinterestBoards .pn-original-controls button{cursor:pointer}
+#pinterestBoards .pinterest-pin{position:relative}
+#pinterestBoards .pn-pin-check{position:absolute;z-index:6;left:7px;top:7px;display:flex;align-items:center;gap:4px;
+ background:rgba(255,250,245,.94);border:1px solid #af8490;border-radius:8px;padding:5px 7px!important;
+ font:800 10px/1.1 system-ui!important;color:#503440!important;cursor:pointer}
+#pinterestBoards .pn-pin-check input{accent-color:#d94f64;width:15px;height:15px;margin:0!important;cursor:pointer}
+#pinterestBoards .pinterest-pin:has(.pn-pin-check input:checked){outline:3px solid #e60023;outline-offset:1px}
+#pinterestBoards .pinterest-owned-section header{display:grid;gap:7px;align-items:start}
+#pinterestBoards .pinterest-owned-section header h3{margin:0}
+#pinterestBoards .pinterest-owned-section header p{font:600 11px/1.45 system-ui;margin:0!important}
+#pinterestBoards .pn-original-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:6px 0 9px}
+#pinterestBoards .pn-original-controls button{width:auto!important;min-height:31px!important;max-width:100%;
+ border:1px solid #cdaab1;border-radius:8px;padding:6px 9px;background:#f5eaeb;color:#53313c;font:750 10px system-ui}
+#pinterestBoards .pn-original-controls button[data-pn-publish-original]{background:#d95a6c;color:#fff}
+#pinterestBoards .pn-original-controls>span{font:700 10px system-ui;opacity:.75}
+#pinterestBoards .pinterest-owned-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:11px!important}
+#pinterestBoards .pinterest-owned-grid .pn-owned-pin-choice{display:flex;position:relative;flex-direction:column;min-width:0;
+ background:rgba(255,253,251,.55);border:1px solid #e1cbd0;border-radius:12px;overflow:hidden}
+#pinterestBoards .pinterest-owned-grid .pn-owned-pin-choice:has(input:checked){outline:3px solid #e60023;outline-offset:1px}
+#pinterestBoards .pinterest-owned-grid .pn-owned-pin-choice>a{display:block;height:162px;min-height:162px;overflow:hidden}
+#pinterestBoards .pinterest-owned-grid .pn-owned-pin-choice>a img{display:block;width:100%;height:100%;object-fit:cover}
+#pinterestBoards .pn-publish-status{display:block;padding:6px 7px;color:#66585a;font:650 9px/1.25 system-ui}
+#pinterestBoards .pn-publish-status.is-live{color:#297644}
+#pinterestBoards .pinterest-owned-section{margin-top:20px}
+@media(max-width:860px){
+ #pinterestBoards .pn-current-board-bar{flex-wrap:wrap}
+ #pinterestBoards .pn-board-view-actions{justify-content:flex-start;flex:1 1 100%}
+}
+@media(prefers-reduced-motion:reduce){#pinterestBoards .pn-operation-indicator{animation:none!important}}
+
