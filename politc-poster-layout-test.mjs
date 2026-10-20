@@ -14,7 +14,7 @@ assert.ok(politc.includes("resourcePanel.classList.add('politc-resource-zone')")
 assert.ok(politc.includes('board.insertBefore(election,grid)')&&politc.includes('board.insertBefore(liveZone,grid)')&&politc.includes('board.insertBefore(resourcePanel,grid)'),'Politc order should be election, trackers, resources, collections');
 assert.ok(politc.includes('class="politc-nomination-drawer"')&&politc.includes('" hidden>'),'Nomination forms must be hidden until requested');
 assert.ok(politc.includes('data-politc-nominate')&&politc.includes('aria-expanded="false"')&&politc.includes("drawer.hidden=!opening"),'Nomination button must toggle form accessibly');
-assert.ok(politc.includes('curatedHidden')&&politc.includes("biglwaPolitcHiddenCuratedV1"),'Seed examples can be removed');
+assert.ok(politc.includes('curatedHidden')&&politc.includes("biglwaPolitcHiddenCuratedV2:")&&politc.includes('writeJSON(hiddenKey,'),'Curated cards can be removed only for their account owner');
 for(const name of ['Zendaya','Beyoncé','Rihanna','Jennifer Lawrence','Anne Hathaway','Ida B. Wells','Malcolm X','Martin Luther King Jr.','Elaine Brown','Kathleen Cleaver','Ericka Huggins','Fred Hampton','Bobby Seale','Huey P. Newton','Derek Chauvin','Jeffrey Epstein','Cornell University · Chi Phi case','Angela Davis','Fannie Lou Hamer','Shirley Chisholm','Audre Lorde','bell hooks','Toni Morrison','Nina Simone','Tarana Burke']){
  assert.ok(politc.includes(name),'Missing curated profile: '+name);
 }
