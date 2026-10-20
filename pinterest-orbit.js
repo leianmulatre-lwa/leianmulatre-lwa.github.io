@@ -754,7 +754,7 @@ async function connect(){await run(async()=>{
   boardGrid(disabled)+
   '<div class="pn-current-board-bar">'+boardPicker+boardActions+'</div>'+
   (!boards.length&&connected&&!busy?'<p>No public boards were returned for this account.</p>':'')+
-  (boardId?'<p class="pn-board-scope-note">Now showing Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · '+pins.length+' loaded · '+selectedBoardPins.size+' selected · Veve publishes to Collective too.</p>':'')+
+  (boardId?'<p class="pn-board-scope-note">Now showing Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · '+pins.length+' loaded · '+selectedBoardPins.size+' selected · Veve publishes to Collective too. Only Pins you publish become public.</p>':'')+
   '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
    const src=(hostedPinUrls.get(String(p.id))||[])[0]||image(p);const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
