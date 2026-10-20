@@ -137,7 +137,7 @@ assert.ok(!pureWhiteLogin.includes('.public-page-footer .supporter-viewport'),
 assert.ok(brand.includes('animation: biglwa-supporter-marquee'),
   'logo carousel still moves after changing the background');
 
-assert.ok(home.includes('pinterest-orbit.js?v=20261019-board-recent-first-4'),'current Pinterest imports include original Pins and board thumbnails');
+assert.ok(home.includes('pinterest-orbit.js?v=20261020-compact-board-workbench-5'),'current Pinterest imports include original Pins and board thumbnails');
 console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
 
 /* Step 3 visually colors the actual three "o" letters without changing the
