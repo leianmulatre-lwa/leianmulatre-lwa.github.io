@@ -697,12 +697,21 @@ async function connect(){await run(async()=>{
  panel.setAttribute('aria-busy',String(busy));
  const disabled=''; // Keep connected controls usable while run() queues work.
  const originalPinsMarkup=
-  (connected?'<section class="pinterest-owned-section"><header><h3>Your original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3><p>Created by @'+esc(profile.username||'you')+'. Saved privately to your BIG LWA profile; publish selected drafts from Feed.</p></header><div class="pinterest-owned-grid">'+
-    (createdPins.slice(0,60).map(pin=>{const pic=(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin);
-      return '<a href="https://www.pinterest.com/pin/'+esc(pin.id)+'/" target="_blank" rel="noopener noreferrer" title="'+esc(pin.title||pin.description||'Original Pin')+'">'+
-       (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>';
-    }).join('')||'<p>No original Pins were returned. Board saves are listed below.</p>')+'</div>'+
-    (createdNext?'<button class="module-action" type="button" data-pn-more-created'+disabled+'>Load more original Pins</button>':'')+'</section>':'');
+  (connected?'<section class="pinterest-owned-section"><header><h3>Original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3>'+
+    '<p>Your original creations sync privately to your own BIGLWA profile. Select the ones you want public in Veve + Collective.</p>'+
+    '<div class="pn-original-controls"><button type="button" data-pn-select-original-all>Select all loaded</button>'+
+    '<button type="button" data-pn-import-original>Save selected to my profile</button>'+
+    '<button type="button" data-pn-publish-original>Publish selected to Veve + Collective</button>'+
+    '<span>'+selectedOriginalPins.size+' selected</span></div></header><div class="pinterest-owned-grid">'+
+    (createdPins.map(pin=>{const id=String(pin.id||'');const pic=(hostedPinUrls.get(id)||[])[0]||image(pin);
+      const status=profilePinStates.get(id)||'private';
+      return '<article class="pn-owned-pin-choice" data-pn-owned-pin="'+esc(id)+'">'+
+       '<label class="pn-pin-check"><input type="checkbox" data-pn-original-select="'+esc(id)+'"'+(selectedOriginalPins.has(id)?' checked':'')+'><span>Select</span></label>'+
+       '<a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" title="Open original Pin on Pinterest">'+
+       (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>'+
+       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Live on Collective + Veve':status==='archived'?'Archived':'Private on your profile')+'</small></article>';
+    }).join('')||'<p>No original Pins were returned.</p>')+'</div>'+
+    (createdNext?'<button class="module-action" type="button" data-pn-more-created>Load more original Pins</button>':'')+'</section>':'');
  const connectedName=String(profile.username||profile.business_name||'').trim().replace(/^@/,'');
  const safeName=/^[\w.]{1,80}$/.test(connectedName)?connectedName:'';
  const qwikHref=safeName?'https://www.pinterest.com/'+encodeURIComponent(safeName)+'/':'https://www.pinterest.com/';
@@ -715,8 +724,10 @@ async function connect(){await run(async()=>{
    orderedBoards().map(b=>'<option value="'+esc(b.id)+'"'+(String(b.id)===String(boardId)?' selected':'')+'>'+esc(b.name)+'</option>').join('')+
    '</select></label>':'<span class="pn-board-picker pn-picker-empty">Connect Pinterest to browse your boards</span>';
  const boardActions=connected?'<div class="pn-board-view-actions">'+
-   (boardsNext?'<button type="button" class="module-action pn-secondary" data-pn-more-boards'+disabled+'>Load more boards</button>':'')+
-   '<button type="button" class="module-action pn-board-veve" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+(!boardId||!pins.length||busy?' disabled':'')+'>Post loaded Pins to Veve</button></div>':'';
+   (boardsNext?'<button type="button" class="module-action pn-secondary" data-pn-more-boards>Load more boards</button>':'')+
+   '<button type="button" class="module-action pn-secondary" data-pn-select-board-all>Select all loaded</button>'+
+   '<button type="button" class="module-action pn-secondary" data-pn-import-board>Save selected to profile</button>'+
+   '<button type="button" class="module-action pn-board-veve" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+(!boardId||!pins.length?' disabled':'')+'>'+(selectedBoardPins.size?'Publish '+selectedBoardPins.size+' selected':'Publish entire board')+' to Veve + Collective</button></div>':'';
  panel.innerHTML='<div class="pn-primary-head"><div class="pn-primary-identity"><h2>board</h2>'+
    '<div class="pn-connected-row"><span class="pn-orbit-planet" aria-hidden="true">●</span><span>'+
    (connected?'Pinterest connected'+(safeName?' · @'+esc(safeName):''):'Pinterest not connected')+'</span>'+
@@ -729,6 +740,7 @@ async function connect(){await run(async()=>{
       '<div class="pn-saved-popover-top"><b>Board management</b><button type="button" data-pn-manage-boards aria-label="Close board management">×</button></div>'+
       '<div class="pn-popover-actions">'+(connected?'<button type="button" class="module-action pn-secondary" data-pn-disconnect>Disconnect Pinterest</button>':'')+'</div>'+
       savedBoardsMarkup()+'</div>':'')+
+   '<div class="pn-import-progress" role="status" aria-live="polite">'+esc(operationProgress||(busy?'Loading Pinterest…':queuedTasks?'Waiting for queued operation…':'Ready'))+(queuedTasks?' · '+queuedTasks+' queued':'')+'</div>'+ 
    (message?'<p class="pn-notice" role="status">'+esc(message)+'</p>':'')+
    (/error|expired|reconnect|zero boards|unavailable|failed|unauthorized/i.test(diagnostic)?'<p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>':'')+
    (importError?'<p role="alert">'+esc(importError)+'</p>':'')+
@@ -738,13 +750,14 @@ async function connect(){await run(async()=>{
   boardGrid(disabled)+
   '<div class="pn-current-board-bar">'+boardPicker+boardActions+'</div>'+
   (!boards.length&&connected&&!busy?'<p>No public boards were returned for this account.</p>':'')+
-  (boardId?'<p class="pn-board-scope-note">Showing '+pins.length+' loaded Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · Only Pins you publish become public.</p>':'')+
+  (boardId?'<p class="pn-board-scope-note">Now showing Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · '+pins.length+' loaded · '+selectedBoardPins.size+' selected · Veve publishes to Collective too.</p>':'')+
   '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
    const src=(hostedPinUrls.get(String(p.id))||[])[0]||image(p);const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
    const opts='<option value="default_saved">Saved</option>'+
     savedLibrary.boards.filter(b=>b.id!=='default_saved').map(b=>'<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>').join('');
    return '<article class="pinterest-pin" data-pn-pin-card="'+id+'">'+
+    '<label class="pn-pin-check"><input type="checkbox" data-pn-board-select="'+id+'"'+(selectedBoardPins.has(String(p.id))?' checked':'')+'><span>Select</span></label>'+
     '<a class="pn-pin-photo" href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View '+caption+' on Pinterest">'+
     (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+caption+'">':'<span class="pn-pin-placeholder">Image unavailable</span>')+'</a>'+
     '<div class="pn-pin-meta">'+(caption?'<p>'+caption+'</p>':'')+
@@ -756,7 +769,18 @@ async function connect(){await run(async()=>{
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
  (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':'')+originalPinsMarkup;
 }
-document.addEventListener('change',e=>{if(e.target.id==='pinterestBoardPicker'){if(!e.target.value){boardId='';pins=[];pinsNext='';render()}else choose(e.target.value)}});
+document.addEventListener('change',e=>{
+ const target=e.target;
+ if(target?.matches?.('[data-pn-board-select],[data-pn-original-select]')){
+  const original=target.hasAttribute('data-pn-original-select'),id=target.getAttribute(original?'data-pn-original-select':'data-pn-board-select');
+  const set=original?selectedOriginalPins:selectedBoardPins;
+  if(target.checked)set.add(id);else set.delete(id);
+  render();return;
+ }
+ if(target?.id==='pinterestBoardPicker'){
+  if(!target.value){boardId='';pins=[];pinsNext='';selectedBoardPins.clear();render()}else choose(target.value)
+ }
+});
 document.addEventListener('click',e=>{
  if(!(e.target instanceof Element))return;
  const lock=e.target.closest('[data-pn-lock-board]');
@@ -770,9 +794,26 @@ document.addEventListener('click',e=>{
   const id=savePin.dataset.pnSavePin;
   const target=document.querySelector('[data-pn-target-board="'+id+'"]')?.value||'default_saved';
   addSavedPin(id,target);return;}
+ const allSelected=e.target.closest('[data-pn-select-board-all],[data-pn-select-original-all]');
+ if(allSelected){e.preventDefault();e.stopImmediatePropagation();
+  const original=allSelected.hasAttribute('data-pn-select-original-all');
+  const list=original?createdPins:pins,set=original?selectedOriginalPins:selectedBoardPins;
+  const ids=list.map(item=>String(item.id)).filter(id=>/^\d+$/.test(id));
+  const all=ids.length&&ids.every(id=>set.has(id));
+  for(const id of ids){if(all)set.delete(id);else set.add(id)}
+  render();return;
+ }
+ if(e.target.closest('[data-pn-import-original],[data-pn-import-board]')){
+   e.preventDefault();e.stopImmediatePropagation();
+   const original=!!e.target.closest('[data-pn-import-original]');
+   const picked=(original?createdPins:pins).filter(pin=>(original?selectedOriginalPins:selectedBoardPins).has(String(pin.id)));
+   if(!picked.length){notice('Choose Pins first.');return}
+   run(async()=>{await importSelectedPins(picked);(original?selectedOriginalPins:selectedBoardPins).clear()});return;
+ }
+ if(e.target.closest('[data-pn-publish-original]')){e.preventDefault();e.stopImmediatePropagation();publishOriginalSelection();return}
  const boardPublish=e.target.closest('[data-pn-publish-board]');
  if(boardPublish){e.preventDefault();e.stopImmediatePropagation();
-   publishBoardToVeve(boardPublish.dataset.pnPublishBoard,boardPublish.dataset.pnBoardKind==='saved');return;}
+   publishBoardToVeve(boardPublish.dataset.pnPublishBoard,boardPublish.dataset.pnBoardKind==='saved',boardPublish.dataset.pnBoardKind==='saved'?null:new Set(selectedBoardPins));return;}
  const publish=e.target.closest('[data-pn-publish]');
  if(publish){e.preventDefault();e.stopImmediatePropagation();publishPin(publish.dataset.pnPublish,publish.dataset.pnSavedFrom||'');return;}
  const rename=e.target.closest('[data-pn-rename-board]');
