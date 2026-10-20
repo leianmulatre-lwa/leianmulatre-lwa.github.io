@@ -11,9 +11,9 @@ assert.ok(pages.includes("if(workspace.hidden||activeModuleKey!==openedKey)retur
 assert.ok(pages.includes("target.getBoundingClientRect().top+window.scrollY-88"),'Widget scroll lands just beneath header');
 assert.ok(pages.includes("reduced?'instant':'smooth'"),'Module scroll respects reduced motion');
 assert.ok(!pages.includes("window.scrollTo({top:0,behavior:'instant'})"),'Remove top-of-Studio reset');
-assert.ok(body.includes('margin:3px 0 6px;padding:5px 8px'),'Three-body key fits snugly between toolbar and grid');
-assert.ok(body.includes('box-shadow:4px 5px 0 color-mix('),'Every three-body card has category-color shadow');
-assert.ok(body.includes('box-shadow:6px 8px 0 var(--three-body-color'),'Widget hover shadow uses model color');
+assert.ok(body.includes('width:max-content!important')&&body.includes('padding-bottom:5px!important'),'Three-body key is narrow and removes excess hero gap');
+assert.ok(body.includes('box-shadow:0 0 0 3px var(--three-body-color'),'Widgets are surrounded by model-colored rings');
+assert.ok(body.includes('box-shadow:0 0 0 5px var(--three-body-color'),'Widget hover ring stays aligned to all sides');
 for(const key of ['individual','social','political'])
  assert.ok(body.includes('data-body-model="'+key+'"'),'Category '+key+' is styled');
 assert.ok(scroll.includes("window.addEventListener('scroll',schedule,{passive:true})"),'Scroll assistant observes but never intercepts wheel/touch');
@@ -30,4 +30,4 @@ assert.ok(pages.includes("input name=\"photo\" type=\"file\" accept=\"image/*\""
 assert.ok(pages.includes('politc-poster-monogram'),'Initials remain safe if a photo is missing');
 assert.ok(pages.includes("biglwaPolitcNominationsV2:'+ownerUid"),'Private nominations are scoped to Firebase UID');
 assert.ok(!pages.includes("const storageKey='biglwaPolitcNominationsV1'"),'Unscoped nomination collection is not reused');
-console.log('PASS widget scroll anchors, accessible legal section navigation, compact three-body shadows, owner-scoped user photos and automatic curated Wikimedia portrait fallback');
+console.log('PASS widget scroll anchors, accessible legal section navigation, compact three-body control and symmetric category rings, owner-scoped user photos and automatic curated Wikimedia portrait fallback');
