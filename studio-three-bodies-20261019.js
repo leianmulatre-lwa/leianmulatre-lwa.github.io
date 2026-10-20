@@ -22,25 +22,29 @@
   if($('#biglwaThreeBodiesCSS'))return;
   const node=document.createElement('style');node.id='biglwaThreeBodiesCSS';
   node.textContent=[
-   '#studioApp .biglwa-body-guide{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin:3px 0 6px;padding:5px 8px;border:1px solid rgba(128,105,129,.15);border-radius:12px;background:var(--widget-bg,#fffaf5);color:var(--widget-ink,#382f36)}',
-   '#studioApp .biglwa-body-guide-label{display:grid;gap:3px}',
-   '#studioApp .biglwa-body-guide-label strong{font:800 11px/1.15 Georgia,serif;letter-spacing:.02em}',
-   '#studioApp .biglwa-body-guide-label small{font:550 9px/1.2 system-ui;opacity:.76}',
-   '#studioApp .biglwa-body-keys{display:flex;align-items:center;flex-wrap:wrap;gap:4px}',
-   '#studioApp .biglwa-body-keys button{display:inline-flex;gap:6px;align-items:center;justify-content:center;border:1px solid #a78b9b;border-radius:7px;min-height:28px;padding:4px 7px;background:var(--body-key-color,#f4e7f2);color:#34282e;font:700 10px/1.1 system-ui;cursor:pointer;box-shadow:none}',
-   '#studioApp .biglwa-body-keys button[aria-pressed="true"]{border-color:#755767;box-shadow:inset 0 0 0 1px #775668}',
-   '#studioApp .biglwa-body-keys button:focus-visible{outline:2px solid #805a83;outline-offset:2px}',
-   '#studioApp .masonry>.card[data-body-model],#studioApp .hero-widget-rail .customizable-widget[data-body-model]{border-bottom:3px solid var(--three-body-color,#dfd4e7)!important}',
-   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded),#studioApp .hero-widget-rail .customizable-widget[data-body-model]{box-shadow:4px 5px 0 color-mix(in srgb,var(--three-body-color,#dfd4e7) 90%,#ffffff 10%),0 12px 24px rgba(43,27,37,.09)!important;transition:box-shadow .2s ease,transform .2s ease}',
-   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded):hover,#studioApp .hero-widget-rail .customizable-widget[data-body-model]:hover{box-shadow:6px 8px 0 var(--three-body-color,#dfd4e7),0 16px 30px rgba(43,27,37,.13)!important}',
-   '#studioApp .masonry{margin-top:5px!important}',
+   // The hero used to leave 40px beneath the shortcut cards; reclaim that dead space.
+   '#studioApp .hero{padding-bottom:5px!important;row-gap:12px!important;margin-bottom:0!important}',
+   '#studioApp .hero .mobile-dock.hero-action-bar{margin-top:0!important;margin-bottom:0!important}',
+   // A compact, intrinsic-size selector, not another full-width Studio section.
+   '#studioApp .biglwa-body-guide{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;align-self:flex-start!important;justify-self:start!important;width:max-content!important;max-width:calc(100% - 16px)!important;min-height:0!important;gap:9px!important;flex-wrap:wrap;margin:0 0 8px 8px!important;padding:5px 7px!important;border:1px solid rgba(128,105,129,.18);border-radius:9px!important;background:var(--widget-bg,#fffaf5);color:var(--widget-ink,#382f36)}',
+   '#studioApp .biglwa-body-guide-label{display:flex!important;align-items:center!important;gap:6px!important;white-space:nowrap}',
+   '#studioApp .biglwa-body-guide-label strong{font:800 10px/1.15 Georgia,serif;letter-spacing:.02em}',
+   '#studioApp .biglwa-body-guide-label small{font:550 9px/1.15 system-ui;opacity:.76}',
+   '#studioApp .biglwa-body-keys{display:inline-flex!important;align-items:center!important;flex-wrap:wrap;gap:4px!important;width:auto!important;margin:0!important}',
+   '#studioApp .biglwa-body-keys button{box-sizing:border-box!important;position:relative!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;height:25px!important;min-height:25px!important;min-width:0!important;gap:4px!important;padding:3px 8px!important;border:1px solid #a78b9b!important;border-radius:6px!important;background:var(--body-key-color,#f4e7f2)!important;color:#34282e!important;font:700 10px/1.1 system-ui!important;cursor:pointer!important;transform:none!important;outline:0;box-shadow:none!important;vertical-align:middle!important}',
+   '#studioApp .biglwa-body-keys button:is(:hover,:focus-visible,[aria-pressed="true"]){box-shadow:inset 0 0 0 2px rgba(75,48,66,.38)!important;transform:none!important;outline-offset:0!important}',
+   '#studioApp .biglwa-body-keys button:focus-visible{outline:2px solid #805a83!important;outline-offset:2px!important}',
+   // Rings follow the card outline evenly on all four sides; no offset drop shadow.
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded){box-shadow:0 0 0 3px var(--three-body-color,#dfd4e7)!important;transition:box-shadow .18s ease,outline-color .18s ease!important}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within){box-shadow:0 0 0 5px var(--three-body-color,#dfd4e7)!important}',
+   '#studioApp .masonry{margin-top:0!important;padding-top:0!important}',
    '#studioApp [data-body-model="individual"]{--three-body-color:#d9c6ee!important}',
    '#studioApp [data-body-model="social"]{--three-body-color:#f7cddd!important}',
    '#studioApp [data-body-model="political"]{--three-body-color:#f8d4b0!important}',
    '#studioApp .masonry>.card .biglwa-body-tag{position:relative;display:inline-flex;align-items:center;margin:4px 7px 2px 0;padding:3px 7px;border-radius:6px;background:var(--three-body-color,#eee);color:#433a40;font:650 9px/1.25 system-ui;letter-spacing:.02em}',
    '#studioApp[data-body-focus]:not([data-body-focus="all"]) .masonry>.card[data-body-model]:not([data-body-model-focus="true"]){opacity:.4;filter:saturate(.64)}',
    '#studioApp .masonry>.card[data-body-model-focus="true"]{opacity:1!important;filter:none!important}',
-   '@media(max-width:600px){#studioApp .biglwa-body-guide{padding:8px}#studioApp .biglwa-body-keys{width:100%}}',
+   '@media(max-width:600px){#studioApp .biglwa-body-guide{max-width:calc(100% - 12px)!important;gap:5px!important;margin-left:4px!important}#studioApp .biglwa-body-guide-label small{display:none}#studioApp .hero{padding-bottom:6px!important}}',
    '@media(prefers-reduced-motion:reduce){#studioApp [data-body-model]{transition:none!important}}'
   ].join('\n');
   document.head.append(node);
@@ -67,8 +71,8 @@
   guide=document.createElement('section');guide.className='biglwa-body-guide';guide.id='biglwaBodyGuide';
   guide.setAttribute('aria-label','Three-body widget organization');
   const head=document.createElement('div');head.className='biglwa-body-guide-label';
-  const title=document.createElement('strong');title.textContent='Three bodies · Studio';
-  const subtitle=document.createElement('small');subtitle.textContent='Individual / Social / Political · your saved widget order stays yours';
+  const title=document.createElement('strong');title.textContent='Three bodies';
+  const subtitle=document.createElement('small');subtitle.textContent='Sort widgets by body';
   head.append(title,subtitle);
   const nav=document.createElement('nav');nav.className='biglwa-body-keys';nav.id='biglwaBodyFilters';
   nav.setAttribute('aria-label','Focus by body model');
