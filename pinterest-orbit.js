@@ -405,7 +405,7 @@ async function api(path,body){
 }
 async function run(fn,{silent=false}={}){
  if(busy){
-   if(workQueue.length>=20){notice('20 operations already queued. Wait until one completes.');return}
+   if(workQueue.length>=20){notice('20 actions are already queued (not a 20-Pin import limit). Wait until one completes.');return}
    workQueue.push({fn,silent,uid:authUid});queuedTasks=workQueue.length;
    message='Pinterest is working · '+queuedTasks+' action'+(queuedTasks===1?'':'s')+' queued';render();return;
  }
@@ -713,7 +713,7 @@ async function connect(){await run(async()=>{
        '<label class="pn-pin-check"><input type="checkbox" data-pn-original-select="'+esc(id)+'"'+(selectedOriginalPins.has(id)?' checked':'')+'><span>Select</span></label>'+
        '<a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" title="Open original Pin on Pinterest">'+
        (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>'+
-       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Live on Collective + Veve':status==='archived'?'Archived':'On your profile · check Feed status')+'</small></article>';
+       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Live on Collective + Veve':status==='archived'?'Archived · not live':status==='private'?'● Saved to your profile · not live yet':'Syncing to your private profile…')+'</small></article>';
     }).join('')||'<p>No original Pins were returned.</p>')+'</div>'+
     (createdNext?'<button class="module-action" type="button" data-pn-more-created>Load more original Pins</button>':'')+'</section>':'');
  const connectedName=String(profile.username||profile.business_name||'').trim().replace(/^@/,'');
@@ -744,7 +744,7 @@ async function connect(){await run(async()=>{
       '<div class="pn-saved-popover-top"><b>Board management</b><button type="button" data-pn-manage-boards aria-label="Close board management">×</button></div>'+
       '<div class="pn-popover-actions">'+(connected?'<button type="button" class="module-action pn-secondary" data-pn-disconnect>Disconnect Pinterest</button>':'')+'</div>'+
       savedBoardsMarkup()+'</div>':'')+
-   '<div class="pn-import-progress" role="status" aria-live="polite" data-state="'+(busy?'loading':'ready')+'"><span class="pn-operation-indicator" aria-hidden="true"></span>'+esc(operationProgress||(busy?'Loading Pinterest…':queuedTasks?'Waiting for queued operation…':'Up to date'))+(queuedTasks?' · '+queuedTasks+' queued':'')+'</div>'+ 
+   '<div class="pn-import-progress" role="status" aria-live="polite" data-state="'+(busy?'loading':'ready')+'"><span class="pn-operation-indicator" aria-hidden="true"></span>'+esc(operationProgress||(busy?'Import or sync in progress · you can queue another action':queuedTasks?'Waiting for queued action':'Ready to browse and select Pins'))+(queuedTasks?' · '+queuedTasks+' queued':'')+'</div>'+ 
    (message?'<p class="pn-notice" role="status">'+esc(message)+'</p>':'')+
    (/error|expired|reconnect|zero boards|unavailable|failed|unauthorized/i.test(diagnostic)?'<p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>':'')+
    (importError?'<p role="alert">'+esc(importError)+'</p>':'')+
