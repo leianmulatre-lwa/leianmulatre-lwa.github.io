@@ -45,7 +45,7 @@
    '#studioApp[data-body-focus]:not([data-body-focus="all"]) .masonry>.card[data-body-model]:not([data-body-model-focus="true"]){opacity:.4;filter:saturate(.64)}',
    '#studioApp .masonry>.card[data-body-model-focus="true"]{opacity:1!important;filter:none!important}',
    '@media(max-width:600px){#studioApp .biglwa-body-guide{max-width:calc(100% - 12px)!important;gap:5px!important;margin-left:4px!important}#studioApp .biglwa-body-guide-label small{display:none}#studioApp .hero{padding-bottom:6px!important}}',
-   '@media(prefers-reduced-motion:reduce){#studioApp [data-body-model]{transition:none!important}}'
+   '@media(prefers-reduced-motion:reduce){#studioApp [data-body-model]{transition:none!important}}',
    // Consistent spacing and hover-only category rings (the final overrides).
    '#studioApp .hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}',
    '#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}',
