@@ -125,7 +125,7 @@
   }
   function openAvatarLarge(){
     const a=state.avatar;
-    if(!a?.url||!state.loadedUid){openEditor();setStatus('Save your avatar first to open the interactive enlarged view.');return}
+    if(!a?.url||!state.loadedUid||state.loadedUid!==current()){openEditor();setStatus('Save your avatar first to open the interactive enlarged view.');return}
     let dialog=one('#biglwaAvatarLarge');
     if(!dialog){
       dialog=document.createElement('dialog');dialog.id='biglwaAvatarLarge';dialog.className='biglwa-avatar-lightbox';
@@ -443,7 +443,7 @@
       // Never show the last signed-in person's avatar while this account loads.
       state.avatar=null;showAvatar();
       const snap=await f.getDoc(f.doc(f.db,'users',user.uid));
-      if(state.loadedUid!==user.uid)return;
+      if(state.loadedUid!==user.uid||f.auth.currentUser?.uid!==user.uid)return;
       const avatar=snap.data()?.studioAvatar;
       const url=avatar?.type==='sona360'?sonaUrl(avatar?.url):String(avatar?.url||'');
       const backedMedia=url&&(url.startsWith(API+'/media/profile-photo/')||url.startsWith(API+'/media/feed-image/')||
@@ -729,7 +729,7 @@
     window.addEventListener('pageshow',mount);
     window.addEventListener('biglwa:session-verified',()=>requestAnimationFrame(()=>{mount();restore()}));
     document.addEventListener('biglwa:module-close',()=>requestAnimationFrame(mount));
-    window.addEventListener('biglwa:identity-updated',()=>{clearMinecraftDraft();appearanceUid=null;state.loadedUid='';restore();mount()});
+    window.addEventListener('biglwa:identity-updated',()=>{one('#biglwaAvatarLarge')?.close();clearMinecraftDraft();appearanceUid=null;state.loadedUid='';state.avatar=null;showAvatar();restore();mount()});
     mount();mountEditor();watchAura();
   }
   const style=document.createElement('style');style.id='biglwaAvatarLayoutV4';style.textContent=`
