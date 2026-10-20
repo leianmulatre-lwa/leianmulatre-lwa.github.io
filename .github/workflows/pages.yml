@@ -92,6 +92,8 @@ jobs:
           node tutorial-symbol-key-test.mjs
           node --check studio-three-bodies-20261019.js
           node three-bodies-skeleton-regression-test.mjs
+          node --check section-scroll-assistant-20261020.js
+          node politc-scroll-body-regression-test.mjs
           node orbit-session-stability-test.mjs
       - name: Check Veve onboarding, Pinterest and supporter presentation
         run: |
