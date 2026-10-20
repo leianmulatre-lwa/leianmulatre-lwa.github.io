@@ -24,6 +24,7 @@
  // Fallbacks match existing Big LWA assets/glyphs, never generic UI clip art.
  const symbolKey=[
   {label:'Projects',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
+  {label:'Politic',key:'politc',detail:'Civic life and global context',fallbackAsset:'/assets/politc-nyame-baatanpa.svg?v=20261014-1'},
   {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},
   {label:'Journal',key:'diary',detail:'Entries and writing',fallback:'▱'},
   {label:'Map',key:'map',detail:'Pinned places',fallback:'⌖'},
@@ -369,8 +370,7 @@
   card.classList.remove('is-tutorial-dismissed');
   card.classList.add('is-skeleton-open');
   hub.hidden=false;
-  const grid=card.closest('.masonry');
-  if(grid&&getComputedStyle(card).display==='none')card.style.setProperty('display','block','important');
+  // The visible class overrides the saved dismissal only for this open session.
   card.scrollIntoView?.({behavior:'smooth',block:'nearest'});
  }
  function attach(){
