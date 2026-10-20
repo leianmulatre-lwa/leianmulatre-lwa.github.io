@@ -1841,7 +1841,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(!host.querySelector('.politc-poster-monogram')){
         const initials=document.createElement('span');
         initials.className='politc-poster-monogram';initials.setAttribute('aria-hidden','true');
-        initials.textContent=name.split(/\\s+/).slice(0,2).map(word=>word[0]||'').join('').toUpperCase();
+        initials.textContent=name.split(/\s+/).slice(0,2).map(word=>word[0]||'').join('').toUpperCase();
         host.append(initials);
       }
     },{once:true}));
