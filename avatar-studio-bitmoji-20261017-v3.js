@@ -1,9 +1,18 @@
-/* Big LWA Avatar Studio: account-backed snapshot/skin and a licensed Unity-WebGL extension slot.
-   Do not bundle the proprietary IMVUnity Unity package here. */
+/* BIGLWA Xbox Avatar: user-owned 360sona widget, Minecraft skins and Bitmoji. */
 (()=>{
   if(window.__biglwaAvatarStudioV1)return;
   window.__biglwaAvatarStudioV1=true;
   const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev';
+  const SONA_EXAMPLE='https://360sona.com/w/k_JKIiB9soQQcIj77klMY';
+  // A creator's shared widget is not a default for every member.
+  const sonaUrl=value=>{
+    try{
+      const u=new URL(String(value||'').trim());
+      return u.protocol==='https:'&&['360sona.com','www.360sona.com'].includes(u.hostname)&&
+        !u.username&&!u.password&&!u.search&&!u.hash&&/^\/w\/[A-Za-z0-9_-]{8,96}\/?$/.test(u.pathname)
+          ?u.origin+u.pathname:'';
+    }catch{return ''}
+  };
   const state={loadedUid:'',skinViewer:null,skinLibrary:null,avatar:null,busy:false,layout:null};
   const one=(selector,root=document)=>root.querySelector(selector);
   const current=()=>window.__biglwaIdentity?.uid||'';
@@ -75,6 +84,20 @@
       return false;
     }
   }
+  function renderSonaFrame(root,value,compact=false){
+    if(!root)return false;
+    const url=sonaUrl(value);
+    if(!url){root.textContent='Add a valid 360sona display case URL.';return false;}
+    disposeViewer(root);root.replaceChildren();
+    const wrap=document.createElement('div');wrap.className='biglwa-sona-frame'+(compact?' is-compact':'');
+    const iframe=document.createElement('iframe');
+    iframe.src=url;iframe.title='Xbox Avatar · 360sona display case';
+    iframe.width='320';iframe.height='546';iframe.loading='lazy';
+    iframe.referrerPolicy='no-referrer';iframe.setAttribute('allow','fullscreen');
+    iframe.setAttribute('data-sona-widget','1');iframe.style.border='0';
+    if(compact){iframe.tabIndex=-1;iframe.setAttribute('aria-hidden','true');wrap.setAttribute('aria-hidden','true');}
+    wrap.append(iframe);root.append(wrap);return true;
+  }
   function mediaNode(){return one('#biglwaAvatarMedia')}
   function showAvatar(){
     syncEditorPreview();
@@ -84,6 +107,7 @@
       renderMinecraftModel(view,a.url,false);
       return;
     }
+    if(a?.type==='sona360'&&sonaUrl(a.url)){renderSonaFrame(view,a.url,true);return;}
     disposeViewer(view);view.dataset.minecraftSkin='';
     view.replaceChildren();
     if(!a?.url){
@@ -100,7 +124,7 @@
   }
   function render(){
     const card=one('#studioAvatarCard');if(!card)return;
-    card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
+    card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Xbox Avatar</h2>'+
       '<div class="widget-window-controls avatar-window-controls" role="group" aria-label="Avatar widget controls">'+
       '<button type="button" class="window-light red" data-avatar-widget-action="remove" aria-label="Remove Avatar widget" title="Remove widget"></button>'+
       '<button type="button" class="window-light yellow" data-avatar-widget-action="archive" aria-label="Archive Avatar widget" title="Archive widget"></button>'+
@@ -118,6 +142,7 @@
     if(preview.dataset.avatarSrc===key)return;
     preview.dataset.avatarSrc=key;
     if(kind==='minecraft'&&url){renderMinecraftModel(preview,url,false);return}
+    if(kind==='sona360'&&sonaUrl(url)){renderSonaFrame(preview,url,true);return}
     disposeViewer(preview);preview.replaceChildren();
     if(url){const img=new Image();img.src=url;img.alt='Your saved character';preview.append(img)}
     else preview.innerHTML='<span aria-hidden="true">◉</span><small>No saved character yet</small>';
@@ -129,21 +154,20 @@
       const tab=document.createElement('button');
       tab.type='button';tab.setAttribute('role','tab');tab.dataset.profileEditorTab='avatar';
       tab.setAttribute('aria-controls','profileAvatarEditor');tab.setAttribute('aria-selected','false');
-      tab.textContent='Avatar';tabs.append(tab);
+      tab.textContent='Xbox Avatar';tabs.append(tab);
     }
     let section=one('#profileAvatarEditor',panel);
     if(!section){
       section=document.createElement('section');section.id='profileAvatarEditor';
       section.className='customize-section biglwa-avatar-profile-section';
       section.dataset.profileEditorPane='avatar';section.setAttribute('role','tabpanel');section.hidden=true;
-      section.innerHTML='<h3>Character studio</h3>'+
-        '<p>Build or import a character here. Studio displays the saved result without squeezing these controls into its preview.</p>'+
+      section.innerHTML='<h3>Xbox Avatar</h3>'+
+        '<p>Connect your own 360sona display case, Minecraft skin, or Snapchat Bitmoji. Each account has its own saved avatar.</p>'+
         '<div class="biglwa-avatar-editor-layout"><div class="biglwa-avatar-profile-preview" id="biglwaAvatarProfilePreview" aria-label="Your current avatar"></div>'+
         '<div class="biglwa-avatar-editor-tools">'+
           '<div class="biglwa-avatar-actions" role="group" aria-label="Character creation choices">'+
+            '<button type="button" data-avatar-source="sona360">360sona · Xbox</button>'+
             '<button type="button" data-avatar-source="minecraft">Minecraft skin</button>'+
-            '<button type="button" data-avatar-source="mii">Mii character maker</button>'+
-            '<button type="button" data-avatar-source="imvu">IMVU / Unity</button>'+
             '<button type="button" data-avatar-source="bitmoji">Snapchat Bitmoji</button>'+
           '</div><div class="biglwa-avatar-source" id="biglwaAvatarSource"></div>'+
           '<p id="biglwaAvatarStatus" role="status" aria-live="polite">Choose a character source to get started.</p>'+
@@ -166,8 +190,20 @@
   }
   function source(name){
     const mount=one('#biglwaAvatarSource');if(!mount)return;
-    const input='<label class="biglwa-avatar-upload">Import image<input type="file" data-avatar-import accept="image/png,image/jpeg,image/webp" hidden></label>';
-    if(name==='bitmoji'){
+    if(name==='sona360'){
+      const owned=state.avatar?.type==='sona360'?sonaUrl(state.avatar.url):'';
+      mount.innerHTML='<p>Paste your own public 360sona display-case link. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
+        '<label class="biglwa-sona-label" for="biglwaSonaWidgetURL">360sona widget link</label>'+
+        '<input id="biglwaSonaWidgetURL" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://360sona.com/w/your-widget-id" aria-label="360sona display case URL">'+
+        '<div class="biglwa-sona-actions"><button type="button" data-sona-save>Save Xbox Avatar</button>'+
+        '<button type="button" data-sona-example>Use supplied example</button></div>'+
+        '<div id="biglwaSonaLivePreview" class="biglwa-sona-editor-preview" aria-label="360sona live display-case preview"><span>Your widget will appear here when you provide its link.</span></div>'+
+        '<a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Create or edit on 360sona ↗</a>'+
+        '<small class="biglwa-sona-note">Display case: 320 × 546, full avatar, original 360sona theme. BIGLWA does not control the third-party editor.</small>';
+      const inp=one('#biglwaSonaWidgetURL',mount);
+      if(inp)inp.value=owned;
+      if(owned)renderSonaFrame(one('#biglwaSonaLivePreview',mount),owned);
+    }else if(name==='bitmoji'){
       mount.innerHTML='<p>Use the Bitmoji from your connected Snapchat account. Connect Snapchat in Orbit first, then return here.</p>'+ 
         '<div id="biglwaBitmojiPreview" class="biglwa-bitmoji-preview"></div>'+ 
         '<button type="button" data-bitmoji-orbit>Connect Snapchat in Orbit</button> '+
@@ -189,14 +225,6 @@
         '<button type="button" data-minecraft-save'+(state.minecraftDraftFile?'':' disabled')+'>Save skin to my account</button>'+
         '<small class="biglwa-minecraft-note">Supports standard 64×64 or 64×32 skins and HD versions. Drag the character to turn it; use ← and → when focused.</small>';
       renderMinecraftModel(one('#biglwaMinecraftEditorModel',mount),state.minecraftDraftUrl||((state.avatar?.type==='minecraft'&&state.avatar.url)||''),true);
-    }else if(name==='mii'){
-      mount.innerHTML='<p>The uploaded original Mii Editor opens in the Ruffle Flash player. Its Adobe AIR controls may not work in a browser; import a PNG to use a character as your Big LWA avatar. Your saved avatar is preserved.</p>'+
-        '<iframe id="biglwaMiiEditorFrame" title="Original uploaded Mii Editor running with Ruffle" loading="lazy" src="/avatar/mii-editor.html?v=20261016-mii-opt-in-1" allow="clipboard-write"></iframe>'+
-        '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Import Mii image into Big LWA <input type="file" data-avatar-import data-avatar-kind="mii" accept="image/png,image/jpeg,image/webp" aria-label="Import a Mii character image"></label>'+
-        '<p class="biglwa-mii-port-links"><a href="/avatar/mii-editor.html?v=20261016-mii-opt-in-1" target="_blank" rel="noopener noreferrer">Open original in a full page ↗</a> · <a href="/studio?view=games">Arcade ↗</a></p>';
-    }else{
-      mount.innerHTML='<p>Import an IMVU avatar snapshot now. Live IMVU models need an authorized Unity WebGL export; a .unitypackage is not directly browser-runnable.</p>'+input+
-        '<button type="button" data-avatar-unity-open>Open installed Unity scene</button>';
     }
     mount.dataset.kind=name;
     if(name!=='bitmoji')cardStatus(name);
@@ -278,7 +306,7 @@
     finally{if(button)button.disabled=false}
   }
   function cardStatus(name){
-    setStatus(name==='mii'?'Original editor is ready to start on demand; Adobe AIR features may not work in a browser. Import a Mii PNG to save your avatar.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'IMVU snapshot import is available; Unity scene needs a WebGL build.');
+    setStatus(name==='sona360'?'Enter your 360sona display-case link and save it to your BIGLWA account.':name==='minecraft'?'The 3D character is ready. Select a PNG skin to texture your character.':'Choose a Snapchat Bitmoji.');
   }
   async function verifySkin(file){
     if(file.type!=='image/png')throw Error('Minecraft skins must be PNG files.');
