@@ -171,6 +171,12 @@
   }
   function syncEditorPreview(){
     const preview=one('#biglwaAvatarProfilePreview');if(!preview)return;
+    // An active source owns the entire editor; never respawn the old Xbox
+    // iframe in the left-hand preview after switching to Minecraft or Snapchat.
+    if(preview.closest('#profileAvatarEditor')?.classList.contains('has-active-avatar-source')){
+      disposeViewer(preview);preview.replaceChildren();preview.dataset.avatarSrc='';
+      return;
+    }
     const url=state.avatar?.url||'';
     const kind=state.avatar?.type||'';
     const key=kind+':'+url;
