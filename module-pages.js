@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261020-wikimedia-portraits-13';
+        script.src = '/module-pages.js?v=20261020-permanent-journal-cover-14';
         document.head.appendChild(script);
       }, 250);
     }
