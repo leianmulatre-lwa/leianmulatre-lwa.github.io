@@ -24,8 +24,8 @@ const checks=[
  ['Tutorial can be reopened from Settings',settings.includes('/studio?tutorial=1')],
  ['Journal initial shifted down',modules.includes('top:37%!important')],
  ['Supporter carousel uses bare PNG logos',brand.includes('.supporter-logo img')&&brand.includes('background:transparent!important')],
- ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&index.includes('pinterest-orbit.js?v=20261020-compact-board-workbench-5')],
- ['Board publish CSS loads',pinterest.includes('pinterest-boards.css?v=20261020-compact-board-workbench-5')&&boardsCss.includes('pn-board-publish-tools')]
+ ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&index.includes('pinterest-orbit.js?v=20261020-pins-queue-archive-6')],
+ ['Board publish CSS loads',pinterest.includes('pinterest-boards.css?v=20261020-pins-queue-archive-6')&&boardsCss.includes('pn-board-publish-tools')]
 ];
 for(const [name,ok] of checks)console.log((ok?'PASS':'FAIL')+' · '+name);
 assert.ok(checks.every(x=>x[1]),'Veve, onboarding, Pinterest and supporter regression checks failed.');
