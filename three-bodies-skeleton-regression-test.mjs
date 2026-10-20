@@ -10,7 +10,7 @@ for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journ
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261020-body-shadows-2'),'new three-body categorizer is deployed');
 assert.ok(home.includes('studio-onboarding.js?v=20261019-skeleton-keys-7'),'updated Skeleton Keys is deployed');
-assert.ok(home.includes('module-pages.js?v=20261020-module-jump-politc-11'),'owned Journal preview is deployed');
+assert.ok(home.includes('module-pages.js?v=20261020-politc-portraits-secure-12'),'owned Journal preview is deployed');
 assert.ok(home.includes('ui-coherence.js?v=20261019-room-green-single-onair-15'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};
