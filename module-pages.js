@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261019-arcade-webview-first-9';
+        script.src = '/module-pages.js?v=20261019-journal-latest-10';
         document.head.appendChild(script);
       }, 250);
     }
