@@ -1426,7 +1426,7 @@
       const screen=$('.stream-screen',card);
       if(!screen)return;
       // Top ON AIR badge was a second status; footer alone is authoritative.
-      $(':scope > .on-air',screen).forEach(badge=>badge.remove());
+      Array.from(screen.querySelectorAll(':scope > .on-air')).forEach(badge=>badge.remove());
       // Keep this caption outside the preview even while Stream has an active player.
       // A zero from the former template was hardcoded, not a true watching count.
       const oldCounts=$$(':scope > span, :scope > .stream-watching-count',screen)
