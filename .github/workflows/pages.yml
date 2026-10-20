@@ -87,6 +87,7 @@ jobs:
           node pinterest-owned-feed-regression-test.mjs
           node pinterest-recent-board-status-test.mjs
           node boards-compact-journal-regression-test.mjs
+          node studio-pinterest-batch-coherence-test.mjs
           node facebook-quicklinks-test.mjs
           node facebook-tiktok-media-test.mjs
           node orbit-provider-feed-end-to-end-test.mjs
