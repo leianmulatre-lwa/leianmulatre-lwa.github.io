@@ -7,9 +7,9 @@ const pinterest=read('pinterest-orbit.js'),css=read('pinterest-boards.css'),
  module=read('module-pages.js'),index=read('index.html');
 assert.doesNotThrow(()=>new Script(pinterest),'Pinterest Boards must be valid JavaScript');
 assert.doesNotThrow(()=>new Script(module),'Journal module must be valid JavaScript');
-assert.ok(index.includes('pinterest-orbit.js?v=20261020-compact-board-workbench-5'),
+assert.ok(index.includes('pinterest-orbit.js?v=20261020-pins-queue-archive-6'),
  'Page must load new Boards UI instead of cached version');
-assert.ok(pinterest.includes("pinterest-boards.css?v=20261020-compact-board-workbench-5"),
+assert.ok(pinterest.includes("pinterest-boards.css?v=20261020-pins-queue-archive-6"),
  'New compact CSS must be loaded');
 assert.ok(pinterest.includes('<h2>board</h2>'),'One-word board heading');
 assert.ok(!pinterest.includes("panel.innerHTML='<h2>Pinterest boards</h2>"),'No duplicate Pinterest boards heading');
