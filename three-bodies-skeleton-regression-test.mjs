@@ -8,7 +8,7 @@ const home=read('index.html'),body=read('studio-three-bodies-20261019.js'),
  layout=read('ui-coherence.js'),writing=read('writing-collections.js');
 for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journal',pages],['toolbar',layout]])
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
-assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261020-body-shadows-2'),'new three-body categorizer is deployed');
+assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261020-compact-threebody-rings-3'),'new three-body categorizer is deployed');
 assert.ok(home.includes('studio-onboarding.js?v=20261019-skeleton-keys-7'),'updated Skeleton Keys is deployed');
 assert.ok(home.includes('module-pages.js?v=20261020-permanent-journal-cover-14'),'owned Journal preview is deployed');
 assert.ok(home.includes('ui-coherence.js?v=20261019-room-green-single-onair-15'),'ON AIR and ONLINE badges are deployed');
