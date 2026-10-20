@@ -507,6 +507,8 @@
     #studioApp #notes .note-paper .studio-writing-preview-text{position:relative;z-index:2;display:-webkit-box!important;max-width:100%;margin:0!important;padding:0 0 22px!important;overflow:hidden!important;-webkit-box-orient:vertical;-webkit-line-clamp:4;color:#3c3021!important;font:600 17px/1.45 "Comic Sans MS","Bradley Hand","Segoe Print",cursive!important;white-space:pre-wrap;overflow-wrap:anywhere}
     #studioApp #notes .note-paper .studio-writing-preview-meta{position:absolute;right:22px;bottom:15px;z-index:3;margin:0!important;color:#765f35;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
     #studioApp #diary .diary-page.has-saved-writing{position:relative;display:block!important;min-height:0;aspect-ratio:3/2;padding:0!important;border-radius:10px;overflow:hidden;background:#fffdf4!important;box-shadow:0 5px 14px #49342120}
+    #studioApp #diary .diary-page.has-saved-writing .studio-journal-initial{display:none!important}
+    #studioApp #diary .diary-page.has-saved-writing{transition:background-color .2s ease}
     #studioApp #diary .diary-page.has-saved-writing::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 12%,rgba(198,70,83,.48) 12% 12.5%,transparent 12.5%),repeating-linear-gradient(to bottom,transparent 0,transparent 27px,rgba(96,132,157,.28) 28px);pointer-events:none}
     #studioApp #diary .studio-diary-preview{position:absolute;inset:14px 16px 12px 15%;z-index:2;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;text-align:left;color:#312a27}
     #studioApp #diary .diary-page{position:relative;isolation:isolate}
@@ -3067,20 +3069,24 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     setTimeout(()=>recordStudioUpdate(activeModuleKey,`${labels[activeModuleKey]||'Studio'} settings updated`,'Saved from its widget page'),0);
   });
 
+  function latestOwnedWriting(key){
+    // Account-owned Journal/Sqwibz pages are authoritative, not the old
+    // cross-account biglwaDraft_* browser mirror.
+    const uid=String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
+    if(!uid)return null;
+    try{
+      const collection=JSON.parse(localStorage.getItem('biglwaWritingCollectionV1:'+uid+':'+key)||'null');
+      const pages=Array.isArray(collection?.entries)?collection.entries.filter(item=>item&&String(item.content||'').trim()):[];
+      return pages.sort((a,b)=>Date.parse(b.updatedAt||b.createdAt||0)-Date.parse(a.updatedAt||a.createdAt||0))[0]||null;
+    }catch{return null}
+  }
   function writingPreviewValue(key){
-    try{return String(localStorage.getItem('biglwaDraft_'+key)||'').trim()}catch{return ''}
+    return String(latestOwnedWriting(key)?.content||'').trim();
   }
   function writingPreviewDate(key){
-    try{
-      const uid=String(window.__biglwaIdentity?.uid||window.__biglwaAuth?.currentUser?.uid||'guest').trim()||'guest';
-      const collection=JSON.parse(localStorage.getItem('biglwaWritingCollectionV1:'+uid+':'+key)||'null');
-      const entry=collection?.entries?.find(item=>item.id===collection.currentId);
-      const d=new Date(entry?.updatedAt||entry?.createdAt||'');
-      if(Number.isFinite(d.getTime())){
-        return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-      }
-    }catch{}
-    return '';
+    const entry=latestOwnedWriting(key);
+    const d=new Date(entry?.updatedAt||entry?.createdAt||'');
+    return Number.isFinite(d.getTime())?d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
   }
   function syncWritingPreviews(){
     // A signed-out visitor must never inherit the device owner's locally
@@ -3419,7 +3425,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     }
   }
   setTimeout(()=>{enhanceStudioCards();syncTrophyCard();syncWritingPreviews()},80);
-  window.addEventListener('storage',event=>{if(event.key==='biglwaMapPins')syncMapCardPreview();if(event.key==='biglwaDraft_notes'||event.key==='biglwaDraft_diary')syncWritingPreviews()});
+  window.addEventListener('storage',event=>{if(event.key==='biglwaMapPins')syncMapCardPreview();if(event.key?.startsWith('biglwaWritingCollectionV1:')||event.key==='biglwaDraft_notes'||event.key==='biglwaDraft_diary')syncWritingPreviews()});
   window.addEventListener('focus',()=>{syncMapCardPreview();syncWritingPreviews()});
   document.addEventListener('biglwa:writing-saved',syncWritingPreviews);
   document.addEventListener('biglwa:module-close',()=>{syncMapCardPreview();syncWritingPreviews()});
