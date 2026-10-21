@@ -1471,7 +1471,7 @@
     const streamTitle=latestStreamTitle();
     const streamThumbnail=lastStreamThumbnail();
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
-      const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
+      const header=$('.card-head h2,.card-head h3',card);if(header&&header.textContent!=='Stream')header.textContent='Stream';
       const screen=$('.stream-screen',card);
       if(!screen)return;
       // Top ON AIR badge was a second status; footer alone is authoritative.
@@ -1497,7 +1497,7 @@
        photo.onerror=null;
        photo.src='/assets/station-radio-room.webp?v=20260916-station-1';
       };
-      const title=$('strong',screen);if(title)title.textContent=streamTitle;
+      const title=$('strong',screen);if(title&&title.textContent!==streamTitle)title.textContent=streamTitle;
       // Audience labels live in the footer above; do not overlay the player.
     });
   }
