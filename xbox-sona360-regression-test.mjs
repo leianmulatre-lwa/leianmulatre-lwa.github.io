@@ -8,7 +8,7 @@ const shell=read('index.html');
 const provided=JSON.parse(read('avatar/sona360-supplied-reference.json'));
 assert.doesNotThrow(()=>new Script(source),'Xbox Avatar client should parse');
 assert.ok(shell.includes('/avatar-studio-bitmoji-20261017-v3.js?v=20261020-xbox-interactive-alex-3'),'Live shell must load updated editor');
-assert.ok(source.includes('<h2 class="card-kicker">Xbox Avatar</h2>'));
+assert.ok(source.includes('<h2 class="card-kicker">Avatar</h2>'));
 assert.ok(source.includes("tab.textContent='Avatar'"));
 assert.ok(source.includes('data-avatar-source="sona360"'),'New 360sona option visible');
 assert.ok(source.includes('data-avatar-source="minecraft"'),'Keep working Minecraft import');
@@ -16,7 +16,7 @@ assert.ok(source.includes('data-avatar-source="bitmoji"'),'Keep working Snapchat
 assert.doesNotMatch(source,/data-avatar-source="(?:mii|imvu)"/,'Broken Mii and IMVU choices retired');
 assert.doesNotMatch(source,/<iframe id="biglwaMiiEditorFrame"/,'Mii embedded editor no longer mounted');
 assert.doesNotMatch(source,/data-avatar-unity-open/,'No unusable Unity launcher');
-assert.ok(source.includes('iframe.width=')&&source.includes("iframe.width='320'")&&source.includes("iframe.height='546'"),'Frame uses supplied dimensions');
+assert.ok(source.includes('iframe.width=')&&source.includes("iframe.width='265'")&&source.includes("iframe.height='170'"),'Landscape frame uses the selected 360sona bare embed dimensions');
 assert.ok(source.includes("iframe.referrerPolicy='no-referrer'"),'Third-party iframe avoids passing page context');
 assert.ok(source.includes("renderSonaFrame(view,a.url,true)"),'Saved 360sona avatar renders in Studio widget');
 assert.ok(source.includes("renderSonaFrame(one('#biglwaSonaLivePreview'),url)"),'Editor shows iframe preview');
@@ -25,7 +25,7 @@ assert.ok(source.includes("type:'sona360',url,updatedAt:f.serverTimestamp()"),"U
 assert.ok(source.includes("f.doc(f.db,'users',uid)"),'Firebase write explicitly uses verified UID');
 assert.ok(source.includes("const uid=user.uid"),'Member is verified at save time');
 assert.ok(source.includes("state.avatar=null;showAvatar()"),"Switching accounts clears the previous profile's avatar before rendering");
-assert.ok(source.includes("saved Xbox Avatar restored".replace(/^s/,'S')),'Saved avatar supports reload');
+assert.ok(source.includes("Saved Avatar restored"),'Saved avatar supports reload');
 assert.ok(source.includes("if(e.target.closest('#profileAvatarEditor [data-sona-example]'))"),'Supplied example is a deliberate action, not global default');
 assert.ok(!source.includes("state.avatar={type:'sona360',url:SONA_EXAMPLE}"),'Sample is not auto-assigned to new members');
 assert.ok(source.includes('src=url')||source.includes('iframe.src=url'),'Iframe takes the verified per-member link');
