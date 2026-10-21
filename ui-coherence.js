@@ -558,7 +558,7 @@
   function navigationLabel(control,key){
     if(key==='diary')return 'Journal';
     if(key==='notes')return 'Sqwibz';
-    if(key==='feed')return 'MyFeed';
+    if(key==='feed')return 'myfeed';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
   function navigationSymbolMarkup(control,label){
