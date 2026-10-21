@@ -136,15 +136,15 @@
   const css=document.createElement('style');css.id='biglwaTourStyles';
   css.textContent=`
    #studioApp .manifesto-card.is-tutorial-dismissed{display:none!important}
-   #studioApp #biglwaSkeletonKeysToggle{display:inline-grid!important;place-items:center;flex:0 0 38px!important;width:38px!important;min-width:38px!important;max-width:38px!important;height:34px;box-sizing:border-box;margin:0 2px!important;padding:5px!important;border:1px solid rgba(112,79,91,.3);border-radius:8px;background:#f7e5ef;color:#65415d;cursor:pointer}
-   #studioApp #biglwaSkeletonKeysToggle svg{width:19px;height:19px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+   #studioApp #biglwaSkeletonKeysToggle{display:inline-grid!important;place-items:center!important;flex:0 0 34px!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:32px!important;min-height:32px!important;box-sizing:border-box;margin:0!important;padding:4px!important;border:1px solid #6c2741!important;border-radius:8px!important;background:#68233e!important;color:#fff6ec!important;cursor:pointer!important;box-shadow:0 2px 4px rgba(67,25,42,.18)!important}
+   #studioApp #biglwaSkeletonKeysToggle img{display:block;width:18px;height:26px;object-fit:contain;filter:invert(1)}
    #studioApp .top-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;min-width:0!important;gap:8px!important}
-   #studioApp .top-actions #biglwaSkeletonKeysToggle{order:-1}
+   #studioApp .biglwa-body-guide #biglwaSkeletonKeysToggle{order:3;align-self:center!important}
    #studioApp .top-actions .mini-avatar{flex-shrink:0!important}
    #studioApp .biglwa-skeleton-title{display:flex;align-items:center;gap:10px;min-width:0}
-   #studioApp .biglwa-skeleton-title svg{width:28px;height:28px;flex:0 0 28px;stroke:#51384c;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+   #studioApp .biglwa-skeleton-title img{width:23px;height:36px;flex:0 0 23px;display:block;object-fit:contain}
    #studioApp .biglwa-skeleton-hub .skeleton-rainbow-heading{font:800 11px/1.3 system-ui;letter-spacing:.065em;text-transform:lowercase;margin:5px 0 0}
-   #studioApp #biglwaSkeletonKeysToggle:hover,#studioApp #biglwaSkeletonKeysToggle:focus-visible{background:#efd6e5;outline:2px solid #9a6690;outline-offset:2px}
+   #studioApp #biglwaSkeletonKeysToggle:hover,#studioApp #biglwaSkeletonKeysToggle:focus-visible{background:#4e142e!important;outline:2px solid #a65c7f!important;outline-offset:2px}
    #studioApp .manifesto-card.is-skeleton-open{display:block!important;min-height:230px;max-height:none!important;overflow:visible!important}
    #studioApp .manifesto-card.is-skeleton-open>:not(.biglwa-tour-actions):not(.biglwa-skeleton-hub){display:none!important}
    #studioApp .manifesto-card .biglwa-skeleton-hub[hidden]{display:none!important}
@@ -164,8 +164,8 @@
    #studioApp .biglwa-skeleton-hub .tour-symbol-description{display:grid;min-width:0;font:650 10px/1.2 system-ui}
    #studioApp .biglwa-skeleton-hub .tour-symbol-description small{font:450 9px/1.25 system-ui;color:#806776}
    #studioApp .biglwa-skeleton-hub .skeleton-key-note{font:500 10px/1.35 Georgia,serif;color:#80667c;margin:0}
-   body.sidebar-collapsed #studioApp #biglwaSkeletonKeysToggle{width:38px!important}
-   @media(max-width:680px){#studioApp #biglwaSkeletonKeysToggle{width:34px!important;min-width:34px!important;max-width:34px!important;padding:4px!important}#studioApp .top-actions{gap:5px!important}#studioApp .biglwa-skeleton-hub .tour-symbol-key{grid-template-columns:1fr}}
+   body.sidebar-collapsed #studioApp #biglwaSkeletonKeysToggle{width:34px!important}
+   @media(max-width:680px){#studioApp #biglwaSkeletonKeysToggle{width:32px!important;min-width:32px!important;max-width:32px!important;padding:4px!important}#studioApp .biglwa-skeleton-hub .tour-symbol-key{grid-template-columns:1fr}}
 
    #studioApp .manifesto-card{position:relative!important}
    #studioApp .manifesto-card .biglwa-tour-actions{
@@ -320,19 +320,20 @@
   if(!dialog.open)dialog.showModal();
  }
  function ensureSkeletonToolbar(){
-  // The top toolbar replaces the old left-sidebar guide launcher. It never navigates.
+  // The ankh sits beside the three-body filters, never in the top profile bar.
   $('#studioApp .sidebar .biglwa-guide-launcher')?.remove();
-  const top=$('#studioApp .top-actions')||$('#studioApp .topbar');
-  if(!top)return false;
+  const guide=$('#studioApp #biglwaBodyGuide');
+  if(!guide)return false;
   let button=$('#biglwaSkeletonKeysToggle');
   if(!button){
    button=document.createElement('button');button.id='biglwaSkeletonKeysToggle';
-   button.type='button';button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.3" cy="8.3" r="5.2"/><path d="m12 12 9 9m-4.8-1 2.1-2.1m-5.6-1.6 2.1-2.1"/></svg>';
+   button.type='button';
+   button.innerHTML='<img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true">';
    button.title='Skeleton Keys';
-   button.setAttribute('aria-label','Open Skeleton Keys in Studio');
+   button.setAttribute('aria-label','Open Skeleton Keys');
    button.addEventListener('click',openSkeleton);
   }
-  if(button.parentElement!==top)top.prepend(button);
+  if(button.parentElement!==guide)guide.append(button);
   return true;
  }
  function skeletonHub(){
@@ -341,7 +342,7 @@
   if(hub)return hub;
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
   hub.setAttribute('aria-label','Skeleton Keys for the individual');
-  hub.innerHTML='<div class="biglwa-skeleton-title"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.3" cy="8.3" r="5.2"/><path d="m12 12 9 9m-4.8-1 2.1-2.1m-5.6-1.6 2.1-2.1"/></svg><h2>Skeleton Keys</h2></div><p class="skeleton-subtitle">ankh; keys for the individual.</p>'+
+  hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Keys</h2></div><p class="skeleton-subtitle">ankh; keys for the individual.</p>'+
    '<h3 class="skeleton-rainbow-heading">site rainbow:</h3>'+
    '<div class="biglwa-skeleton-squares" role="group" aria-label="Skeleton Keys quick squares">'+
    '<button type="button" data-skeleton-action="tutorial"><span class="skeleton-tile-glyph" aria-hidden="true">✦</span>Site tutorial</button>'+
@@ -419,7 +420,7 @@
  let pending=false;
  const observer=new MutationObserver(()=>{
   if(card?.isConnected && $('.biglwa-tour-actions',card) &&
-     $('#biglwaSkeletonKeysToggle'))return;
+     $('#biglwaSkeletonKeysToggle')?.parentElement?.id==='biglwaBodyGuide')return;
   if(pending)return;
   pending=true;
   requestAnimationFrame(()=>{pending=false;attach()});
