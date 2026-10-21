@@ -141,7 +141,7 @@ let handoffPromise=null;
  async function publishOriginalSelection(){
   const picked=createdPins.filter(p=>selectedOriginalPins.has(String(p.id)));
   if(!picked.length){notice('Select original Pins first.');return}
-  if(!window.confirm('Post '+picked.length+' selected Pins publicly to the Collective Feed? These posts may also appear in Veve?'))return;
+  if(!window.confirm('Post '+picked.length+' selected Pins publicly to the Collective Feed? Veve may feature those posts too.'))return;
   const uid=authUid;
   await run(async()=>{
     const importer=await waitForImporter(),publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
