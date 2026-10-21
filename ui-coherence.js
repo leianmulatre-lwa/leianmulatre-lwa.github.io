@@ -120,7 +120,7 @@
     const snapshot={
       order:realDomOrder(app),
       docked:readJson(DOCKED_WIDGET_KEY,[]),
-      navigation:readJson(NAV_SHORTCUT_KEY,[]),
+      navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
       updatedAtMs:now
     };
     try{
@@ -287,6 +287,9 @@
       #studioApp .sidebar-widget-pins{--sidebar-section-rgb:220,169,61}
       #studioApp .sidebar-widget-pins[hidden]{display:none!important}
       #studioApp #studioSidebarGreenPins,#studioApp #studioSidebarYellowPins{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important}
+      #studioApp .widget-toolbar-drag{position:absolute;left:0;bottom:0;width:22px;height:22px;padding:0;border:0;border-radius:5px;background:#fff4df;color:#573d32;opacity:0;cursor:grab;touch-action:none;z-index:2}
+      #studioApp .sidebar-widget-pinned-row:is(:hover,:focus-within) .widget-toolbar-drag{opacity:1}
+      @media(hover:none){#studioApp .widget-toolbar-drag{opacity:1}}
       #studioApp .widget-toolbar-swap{position:absolute;right:0;bottom:0;width:22px;height:22px;border:0;border-radius:5px;background:#fff4df;color:#573d32;opacity:0;cursor:pointer;z-index:2}
       #studioApp :is(.sidebar-widget-pinned-row,.sidebar-widget-restore-row):is(:hover,:focus-within) .widget-toolbar-swap{opacity:1}
       #studioApp .sidebar-widget-pinned-row{position:relative}
@@ -825,7 +828,7 @@
       }else{
         const layout=scopedLayout()||{},order={...(layout.order||{})};
         for(const [group,key] of [['green','toolbarGreen'],['yellow','toolbarYellow']]){
-          const ids=Array.isArray(order[key])?order[key]:PINNED_WIDGET_GROUPS[group].map(entry=>entry[0]);
+          const ids=toolbarIds(group);
           order[key]=ids.map(value=>value===id?next:value===next?id:value);
         }
         localStorage.setItem(scopedLayoutKey(),JSON.stringify({...layout,order}));
@@ -880,12 +883,57 @@
     });
     applyPreferredStudioSymbols(app);
   }
-  // Green and yellow are fixed widget controls, not a duplicate route menu.
+  // Green and yellow retain account-selected widget controls and ordering.
   // Red contains widgets that the owner docked with the red window light.
   const PINNED_WIDGET_GROUPS={
     green:[['aura','Aura','◌'],['music','Jam','♫'],['guest-check','Guest Check','✓']],
     yellow:[['politc','Politic','⚖'],['tools','Tools','⚒']]
   };
+  function toolbarIds(zone){
+    const layout=scopedLayout(),saved=layout?.order?.[zone==='green'?'toolbarGreen':'toolbarYellow'];
+    if(Array.isArray(saved))return [...new Set(saved)];
+    // Recover yesterday's account-owned choices; never borrow another user's
+    // unscoped browser navigation. The banner shortcut row stays independent.
+    if(zone==='yellow'&&Array.isArray(layout?.navigation)&&layout.navigation.length){
+      const known=new Set(SIDEBAR_ROUTE_FALLBACKS.map(entry=>entry[0]));
+      const previous=[...new Set(layout.navigation)].filter(id=>known.has(id));
+      if(previous.length)return previous.slice(0,SHORTCUT_LIMIT);
+    }
+    return PINNED_WIDGET_GROUPS[zone].map(entry=>entry[0]);
+  }
+  function swapToolbarPositions(app,first,second){
+    if(!first||!second||first===second)return;
+    const layout=scopedLayout()||{},order={...(layout.order||{})};
+    for(const [zone,key] of [['green','toolbarGreen'],['yellow','toolbarYellow']]){
+      order[key]=toolbarIds(zone).map(id=>id===first?second:id===second?first:id);
+    }
+    localStorage.setItem(scopedLayoutKey(),JSON.stringify({...layout,order}));
+    syncLayoutToAccount();renderPinnedWidgetDock(app);
+  }
+  function bindToolbarWidgetDrag(app){
+    if(!app||app.dataset.toolbarWidgetDragBound==='1')return;
+    app.dataset.toolbarWidgetDragBound='1';let drag=null;
+    app.addEventListener('pointerdown',event=>{
+      const handle=event.target.closest('[data-toolbar-widget-drag]');if(!handle)return;
+      event.preventDefault();drag={handle,id:handle.dataset.toolbarWidgetDrag,pointerId:event.pointerId};
+      try{handle.setPointerCapture(event.pointerId)}catch{}
+    });
+    app.addEventListener('pointerup',event=>{
+      if(!drag)return;const current=drag;drag=null;
+      const row=document.elementFromPoint(event.clientX,event.clientY)?.closest('[data-pinned-widget]');
+      try{current.handle.releasePointerCapture(current.pointerId)}catch{}
+      if(row)swapToolbarPositions(app,current.id,row.dataset.pinnedWidget);
+    });
+    app.addEventListener('pointercancel',()=>{drag=null});
+    app.addEventListener('keydown',event=>{
+      const handle=event.target.closest('[data-toolbar-widget-drag]');
+      if(!handle||!event.altKey||!['ArrowUp','ArrowDown'].includes(event.key))return;
+      event.preventDefault();const rows=$$('[data-pinned-widget]',app),index=rows.indexOf(handle.closest('[data-pinned-widget]'));
+      const next=rows[index+(event.key==='ArrowUp'?-1:1)];if(!next)return;
+      swapToolbarPositions(app,handle.dataset.toolbarWidgetDrag,next.dataset.pinnedWidget);
+      $('[data-toolbar-widget-drag="'+CSS.escape(handle.dataset.toolbarWidgetDrag)+'"]',app)?.focus();
+    });
+  }
   function renderPinnedWidgetDock(app){
     if(!app)return;
     const green=$('#studioSidebarGreenPins',app),yellow=$('#studioSidebarYellowPins',app);
@@ -900,11 +948,11 @@
       button.setAttribute('aria-label','Open '+name+' widget');button.title='Open '+name+' widget';
       const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
       const label=document.createElement('span');label.className='sidebar-widget-name';label.textContent=name;
-      button.append(mark,label);row.appendChild(button);addWidgetSwapControl(row,id,zone);return row;
+      button.append(mark,label);row.appendChild(button);addWidgetSwapControl(row,id,zone);
+      const drag=document.createElement('button');drag.type='button';drag.className='widget-toolbar-drag';drag.dataset.toolbarWidgetDrag=id;drag.textContent='⠿';drag.setAttribute('aria-label','Move '+name+' toolbar widget');drag.title='Drag to swap · Alt+ArrowUp/ArrowDown';row.appendChild(drag);return row;
     };
     for(const [zone,dock] of [['green',green],['yellow',yellow]]){
-      const saved=scopedLayout()?.order?.[zone==='green'?'toolbarGreen':'toolbarYellow'];
-      const group=Array.isArray(saved)&&saved.length? saved.map(id=>{const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);const fallback=Object.values(PINNED_WIDGET_GROUPS).flat().find(entry=>entry[0]===id);return [id,widget?.dataset.widgetLabel||fallback?.[1]||id, fallback?.[2]||'•'];}):PINNED_WIDGET_GROUPS[zone];
+      const group=toolbarIds(zone).map(id=>{const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);const fallback=Object.values(PINNED_WIDGET_GROUPS).flat().find(entry=>entry[0]===id)||SIDEBAR_ROUTE_FALLBACKS.find(entry=>entry[0]===id);return [id,fallback?.[1]||widget?.dataset.widgetLabel||id,fallback?.[2]||'•'];});
       const existing=[...dock.children].map(row=>row.dataset.pinnedWidget);
       if(group.length!==existing.length||group.some((entry,i)=>entry[0]!==existing[i])){
         dock.replaceChildren(...group.map(entry=>makeRow(entry,zone)));
@@ -919,6 +967,7 @@
       }
       dock.hidden=false;
     }
+    bindToolbarWidgetDrag(app);
     const primary=$('#studioSidebarPrimary',app),pins=$('#studioSidebarPinned',app);
     if(primary)primary.hidden=false;
     if(pins)pins.hidden=false;
@@ -1851,7 +1900,7 @@
     const yellow=$$('#studioSidebarYellowPins .sidebar-widget-pinned-row',app).length;
     const expected=readWidgetShortcuts().filter(id=>$('[data-widget-id="'+CSS.escape(id)+'"]',app)).length;
     const restored=$$('.sidebar-widget-restore-row[data-shortcut-row]',app).length;
-    if(green===3&&yellow===2&&restored>=expected)return;
+    if(green===toolbarIds('green').length&&yellow===toolbarIds('yellow').length&&restored>=expected)return;
     try{ensureSidebar();ensureControls();ensureWidgetActions();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
   }
   document.addEventListener('biglwa:module-close',rescueSidebar);

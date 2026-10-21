@@ -11,6 +11,7 @@ class Element{
  appendChild(node){this.append(node);return node}
  replaceChildren(...nodes){this.children=[];this.append(...nodes)}
  setAttribute(name,value){this.attributes[name]=value}
+ addEventListener(){}
  getAttribute(name){return this.attributes[name]}
  set innerHTML(html){this._innerHTML=String(html)}
  get innerHTML(){return this._innerHTML}
@@ -35,6 +36,7 @@ const context=createContext({
  CSS:{escape:value=>String(value)},
  $,
  scopedLayout:()=>null,
+ SIDEBAR_ROUTE_FALLBACKS:[],
  addWidgetSwapControl:()=>{},
  widgetIconMarkup:widget=>widget?.icon||'',
  console

@@ -13,3 +13,8 @@ Reviewed the October 14 SEO audit, index loader, 404 shell, base loader, and act
 
 ## Verification
 Added a full UI-runtime test using decompressed production HTML with jsdom, covering startup, VEVE, red-dot docking/restoring, pinned swapping, dock swapping, delayed recovery, and a fresh-page restore. Existing deployment checks also run. The browser was signed out: authenticated production interactions still require verification after deployment. No user media or account records were deleted.
+
+## Historical comparison after user supplied the time window
+The source baseline available on October 20 morning Pacific is 692b9f4 (October 19, 5:55 p.m. Pacific). Commit ad9eff5 at October 20 10:26:47 p.m. Pacific introduced the erroneous single-element selector followed by forEach and inserted it ahead of sidebar initialization. c911f48 at 10:27:41 p.m. published that change. This matches the user's overnight regression report.
+
+Subsequent attempts replaced the original saved-navigation toolbar with fixed pins. The follow-up restores account-owned historical navigation choices into the yellow widget toolbar when no newer toolbar selection exists, and restores pointer drag swapping plus Alt+ArrowUp/ArrowDown keyboard swapping. It does not rebuild a duplicate navigation list or overwrite the separate banner shortcut row. Account layout saves retain historical navigation data. Tests cover historical snapshots, keyboard swapping, pointer swapping, and continued three-dot docking.

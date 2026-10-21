@@ -42,6 +42,20 @@ fresh.localStorage.setItem('biglwaStudioLayoutV4:test-owner',w.localStorage.getI
 fresh.eval(source);fresh.document.dispatchEvent(new fresh.Event('DOMContentLoaded'));
 assert(fresh.document.querySelector('[data-pinned-widget="projects"]'),'Fresh page restores pinned selection');
 assert(fresh.document.querySelector('[data-restore-widget="notes"]'),'Fresh page rebuilds docked widget');
+// Historical account snapshot has navigation, but no newly introduced toolbar fields.
+const historical={navigation:['projects','notes','diary','feed'],docked:['notes'],order:{}};
+fresh.localStorage.setItem('biglwaStudioLayoutV4:test-owner',JSON.stringify(historical));
+fresh.dispatchEvent(new fresh.Event('pageshow'));
+const pinIds=()=>[...fresh.document.querySelectorAll('#studioSidebarYellowPins [data-pinned-widget]')].map(row=>row.dataset.pinnedWidget);
+assert.deepEqual(pinIds(),historical.navigation,'Yesterday toolbar choices must replace fixed fallback pins');
+fresh.document.querySelector('[data-toolbar-widget-drag="projects"]').dispatchEvent(new fresh.KeyboardEvent('keydown',{key:'ArrowDown',altKey:true,bubbles:true}));
+assert.deepEqual(pinIds(),['notes','projects','diary','feed'],'Keyboard swapping changes actual toolbar slots');
+assert.deepEqual(JSON.parse(fresh.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).order.toolbarYellow,['notes','projects','diary','feed']);
+const handle=fresh.document.querySelector('[data-toolbar-widget-drag="projects"]');
+fresh.document.elementFromPoint=()=>fresh.document.querySelector('[data-pinned-widget="feed"]');
+handle.dispatchEvent(new fresh.MouseEvent('pointerdown',{bubbles:true}));
+handle.dispatchEvent(new fresh.MouseEvent('pointerup',{bubbles:true,clientX:1,clientY:1}));
+assert.deepEqual(pinIds(),['notes','feed','diary','projects'],'Pointer drag swaps toolbar positions');
 await new Promise(resolve=>setImmediate(resolve));reloaded.window.close();
 console.log('PASS full production shell + complete ui-coherence runtime: VEVE, red dock, restore, pinned swap, dock swap, persisted layout; no startup exceptions');
 await new Promise(resolve=>setImmediate(resolve));
