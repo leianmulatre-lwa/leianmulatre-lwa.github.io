@@ -81,3 +81,31 @@
     margin:12px 12px 0!important;
   }
 }
+
+/* Visible navigation icons on BIG LWA's dark sidebar, including initial
+   pre-hydration links. The colored section borders remain untouched. */
+#studioApp .sidebar .sidebar-navigation-open,
+#studioApp .sidebar .sidebar-shortcut-open,
+#studioApp .sidebar .sidebar-route-control,
+#studioApp .sidebar-top>nav a,
+#studioApp .sidebar-top>nav button{
+  color:#f7eee8!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+#studioApp .sidebar .sidebar-route-icon,
+#studioApp .sidebar .sidebar-route-icon svg{
+  color:#f7eee8!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+#studioApp .sidebar .sidebar-route-icon img{
+  filter:brightness(0) invert(1)!important;
+}
+#studioApp .sidebar #studioSidebarShortcuts{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:0 0 auto!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
