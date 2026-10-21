@@ -700,11 +700,14 @@ async function connect(){await run(async()=>{
  if(!panel){panel=document.createElement('section');panel.id='pinterestBoards';panel.className='module-card';panel.style.marginTop='20px';const heading=body.querySelector('.module-heading');if(heading)heading.after(panel);else body.prepend(panel)}
  panel.setAttribute('aria-busy',String(busy));
  const disabled=''; // Keep connected controls usable while run() queues work.
+ const selectedCreated=createdPins.filter(pin=>selectedOriginalPins.has(String(pin.id)));
+ const pendingPrivatePins=selectedCreated.filter(pin=>!['private','archived','live'].includes(profilePinStates.get(String(pin.id))));
+ const privateSaveUnavailable=pendingPrivatePins.length===0;
  const originalPinsMarkup=
   (connected?'<section class="pinterest-owned-section"><header><h3>Original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3>'+
     '<p>These Pins are already on Pinterest. Keep a private BIG LWA copy or publish selected Pins to the Collective Feed; public posts can also appear in Veve.</p>'+
     '<div class="pn-original-controls"><button type="button" data-pn-select-original-all>Select all shown</button>'+
-    '<button type="button" data-pn-import-original title="Import selected Pins privately to BIG LWA without publishing them">Keep selected private</button>'+
+    '<button type="button" data-pn-import-original title="'+(privateSaveUnavailable?(selectedCreated.length?'Every selected Pin is already stored in BIG LWA':'Select Pins to import privately'):'Import '+pendingPrivatePins.length+' unsaved Pin(s) privately without publishing')+'"'+(privateSaveUnavailable?' disabled aria-disabled="true"':'')+'>Keep selected private</button>'+
     '<button type="button" data-pn-publish-original title="Publish selected Pins to the public Collective Feed; Veve can surface public posts">Post selected to Collective Feed</button>'+
     '<span>'+selectedOriginalPins.size+' selected</span></div></header><div class="pinterest-owned-grid">'+
     (createdPins.map(pin=>{const id=String(pin.id||'');const pic=(hostedPinUrls.get(id)||[])[0]||image(pin);
@@ -812,7 +815,9 @@ document.addEventListener('click',e=>{
    const original=!!e.target.closest('[data-pn-import-original]');
    const picked=(original?createdPins:pins).filter(pin=>(original?selectedOriginalPins:selectedBoardPins).has(String(pin.id)));
    if(!picked.length){notice('Choose Pins first.');return}
-   run(async()=>{await importSelectedPins(picked);(original?selectedOriginalPins:selectedBoardPins).clear()});return;
+   const unsaved=original?picked.filter(pin=>!['private','archived','live'].includes(profilePinStates.get(String(pin.id)))):picked;
+   if(!unsaved.length){notice('Those Pins are already saved privately in BIG LWA.');return}
+   run(async()=>{await importSelectedPins(unsaved);(original?selectedOriginalPins:selectedBoardPins).clear()});return;
  }
  if(e.target.closest('[data-pn-publish-original]')){e.preventDefault();e.stopImmediatePropagation();publishOriginalSelection();return}
  const boardPublish=e.target.closest('[data-pn-publish-board]');
