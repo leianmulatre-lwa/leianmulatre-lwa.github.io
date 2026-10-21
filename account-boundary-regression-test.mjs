@@ -95,4 +95,6 @@ for(const uid of ['usera','userb']){
 const mismatch=simulateMember('userb','usera');
 assert.ok(mismatch.classNames.has('biglwa-startup-protected'),'Mismatched UID must not expose another account');
 
+assert.ok(read('account-chrome.js').includes('const realName=clean(who.name)'),'PFP initial derives from real name');
+assert.ok(!read('ui-coherence.js').includes('const candidates=[saved?.username'),'Studio cannot overwrite real-name initial with a username');
 console.log('PASS two-account owner-isolation startup simulation, dark-first paint, UID-scoped media and Orbit, verified legacy import, widget backgrounds and Firestore source assertions');
