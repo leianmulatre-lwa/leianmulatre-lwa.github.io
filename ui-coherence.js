@@ -274,7 +274,13 @@
       #studioApp .biglwa-drag-ghost{position:fixed!important;z-index:50000!important;pointer-events:none!important;opacity:.85!important;box-shadow:0 24px 60px rgba(20,14,10,.28)!important;border-radius:18px!important}
       #studioApp .biglwa-drop-slot{outline:3px solid rgba(var(--aura-rgb,216,95,109),.85)!important;outline-offset:4px!important;border-radius:18px!important;transform:scale(.985)!important;transition:transform .12s ease!important}
       #studioApp .sidebar{overflow:hidden!important}
-      #studioApp .sidebar-top{overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
+      #studioApp .sidebar-top{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;align-items:stretch!important;min-height:0!important;max-height:calc(100dvh - 175px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
+      #studioApp .sidebar-top>#studioSidebarShortcuts{display:flex!important;flex-direction:column!important;flex:0 0 auto!important;min-height:38px!important}
+      #studioApp .sidebar-top>#studioSidebarRest{display:flex!important;flex-direction:column!important;flex:0 0 auto!important}
+      #studioApp .sidebar-top>nav:not([hidden]){display:flex!important;flex-direction:column!important;gap:7px}
+      #studioApp .sidebar-top>nav a,#studioApp .sidebar-top>nav button{min-height:34px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+      #studioApp .sidebar .sidebar-navigation-open .sidebar-route-icon,#studioApp .sidebar .sidebar-shortcut-open .sidebar-route-icon{visibility:visible!important;opacity:1!important;font-size:18px!important}
+      #studioApp .sidebar .sidebar-navigation-open img,#studioApp .sidebar .sidebar-shortcut-open img{object-fit:contain!important}
       #studioApp .sidebar-section{--sidebar-section-rgb:216,95,109;position:relative;display:flex;flex-direction:column;gap:5px;margin:0 0 8px;padding:8px 5px 8px 8px;border-left:2px solid rgba(var(--sidebar-section-rgb),.66);background:linear-gradient(90deg,rgba(var(--sidebar-section-rgb),.09),rgba(var(--sidebar-section-rgb),.015) 78%,transparent);border-radius:3px 9px 9px 3px}
       #studioApp .sidebar-primary-widgets{--sidebar-section-rgb:80,148,101}
       #studioApp .sidebar-primary-widgets[hidden]{display:none!important}
@@ -538,7 +544,10 @@
     let rest=$('#studioSidebarRest',top);
     if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';top.appendChild(rest)}
     rest.setAttribute('aria-label','Available shortcut destinations');
-    $$(':scope > nav',top).forEach(nav=>nav.remove());
+    // Keep legacy links in place until populated replacements exist. Removing
+    // these early caused the sidebar to become completely blank if hydration
+    // or remote layout loading was delayed. The replacement renderer retires
+    // them only AFTER shortcut rows are visibly populated.
     $$(':scope > nav:not(#studioSidebarAvailableDock),:scope > .sidebar-navigation-row,:scope > [data-sidebar-widget]',rest).forEach(item=>item.remove());
     let availableDock=$('#studioSidebarAvailableDock',rest);
     if(!availableDock){availableDock=document.createElement('nav');availableDock.id='studioSidebarAvailableDock';availableDock.setAttribute('aria-label','Available shortcut destinations, still active in the Studio');rest.prepend(availableDock)}
@@ -666,6 +675,10 @@
     shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
     availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
+    if(shortcutDock.childElementCount){
+      top.querySelectorAll(':scope > nav').forEach(nav=>nav.remove());
+      app.dataset.biglwaSidebarReady='1';
+    }
     // Make the generated toolbar visible even if old prepaint CSS hid the
     // original sidebar navigation while Studio loaded.
     shortcutDock.hidden=false;shortcuts.length&&shortcutDock.removeAttribute('aria-hidden');
@@ -1637,7 +1650,15 @@
       event.preventDefault();openArcade();
     });
   }
-  function run(){ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();ensureSidebar();ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function run(){
+    ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();
+    // Sidebar has its own recovery boundary, so an unrelated editor or
+    // account-layout exception cannot leave its primary navigation empty.
+    try{ensureSidebar();syncSidebarShortcutSystem()}catch(error){console.warn('[BIGLWA] Sidebar hydration retry',error)}
+    ensureControls();restoreLocalStudioOrder($('#studioApp'));
+    try{syncSidebarShortcutSystem();syncPrimaryWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Sidebar refresh retry',error)}
+    ensureWidgetActions();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues();
+  }
   if(document.documentElement.dataset.biglwaCustomizationSyncBound!=='1'){
     document.documentElement.dataset.biglwaCustomizationSyncBound='1';
     window.addEventListener('biglwa:customization-remote',event=>{
@@ -1656,6 +1677,20 @@
   setTimeout(run,1600);
   setTimeout(run,2600);
   setTimeout(run,4200);
+  // Never mutate remote/customized shortcut settings during recovery.
+  // This is a read-only DOM rehydration path on route/auth changes.
+  function rescueSidebar(){
+    const app=$('#studioApp');if(!app)return;
+    const sidebar=$('.sidebar',app),top=$('.sidebar-top',sidebar||app);
+    if(!sidebar||!top)return;
+    const count=$('#studioSidebarShortcutDock .sidebar-navigation-row,#studioSidebarAvailableDock .sidebar-navigation-row',app).length;
+    if(count)return;
+    try{ensureSidebar();syncSidebarShortcutSystem()}catch(error){console.warn('[BIGLWA] Sidebar rescue',error)}
+  }
+  document.addEventListener('biglwa:module-close',rescueSidebar);
+  window.addEventListener('pageshow',rescueSidebar);
+  setTimeout(rescueSidebar,5600);
+  setTimeout(rescueSidebar,8500);
   const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
   const policyLogoTimer=setInterval(()=>{if(ensurePolicyBrands())clearInterval(policyLogoTimer)},400);
   const resetTimer=setInterval(()=>{ensureResetValues();clearInterval(resetTimer)},500);
