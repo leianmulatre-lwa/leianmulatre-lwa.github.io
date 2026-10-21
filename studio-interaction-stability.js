@@ -3,15 +3,15 @@
  'use strict';
  if(window.BigLWAStableInteractions)return;
  const q=s=>document.querySelector(s);
- let anchor=null,oldTitle='',hideTimer;
+ let anchor=null,oldTitle='',hideTimer,pointerInHelp=false;
  const tip=document.createElement('div');tip.id='studioPersistentTooltip';tip.role='tooltip';tip.hidden=true;document.body.append(tip);
- function hide(){clearTimeout(hideTimer);if(anchor){if(oldTitle&&!anchor.title)anchor.title=oldTitle;anchor.removeAttribute('aria-describedby')}anchor=null;oldTitle='';tip.hidden=true}
+ function hide(){clearTimeout(hideTimer);if(anchor){if(oldTitle&&!anchor.title)anchor.title=oldTitle;anchor.removeAttribute('aria-describedby')}anchor=null;oldTitle='';pointerInHelp=false;tip.hidden=true}
  function show(el){clearTimeout(hideTimer);if(anchor===el)return;hide();anchor=el;oldTitle=el.title||el.dataset.studioHelp||'';if(!oldTitle)return;el.dataset.studioHelp=oldTitle;el.removeAttribute('title');el.setAttribute('aria-describedby',tip.id);tip.textContent=oldTitle;tip.hidden=false;const box=el.getBoundingClientRect();tip.style.left=Math.max(8,Math.min(box.right+8,innerWidth-240))+'px';tip.style.top=Math.max(8,Math.min(box.top,innerHeight-tip.offsetHeight-8))+'px'}
  function target(node){return node instanceof Element?node.closest('#studioApp [title],#studioApp [data-studio-help]'):null}
- document.addEventListener('pointerover',event=>{const el=target(event.target);if(el)show(el);if(tip.contains(event.target))clearTimeout(hideTimer)});
- document.addEventListener('pointerout',event=>{if(!anchor||(!anchor.contains(event.target)&&!tip.contains(event.target)))return;if(anchor.contains(event.relatedTarget)||tip.contains(event.relatedTarget))return;hideTimer=setTimeout(hide,220)});
+ document.addEventListener('pointerover',event=>{const el=target(event.target);if(el){show(el);pointerInHelp=true}if(tip.contains(event.target)){pointerInHelp=true;clearTimeout(hideTimer)}});
+ document.addEventListener('pointerout',event=>{if(!anchor||(!anchor.contains(event.target)&&!tip.contains(event.target)))return;if(anchor.contains(event.relatedTarget)||tip.contains(event.relatedTarget))return;pointerInHelp=false;hideTimer=setTimeout(hide,220)});
  document.addEventListener('focusin',event=>{const el=target(event.target);if(el)show(el)});
- document.addEventListener('focusout',event=>{if(anchor?.contains(event.target)&&!anchor.contains(event.relatedTarget)&&!tip.contains(event.relatedTarget))hide()});
+ document.addEventListener('focusout',event=>{if(anchor?.contains(event.target)&&!anchor.contains(event.relatedTarget)&&!tip.contains(event.relatedTarget)&&!pointerInHelp)hide()});
  window.addEventListener('scroll',hide,true);
  document.addEventListener('keydown',event=>{if(event.key==='Escape')hide()});
  let dialog=null,input=null,original='';

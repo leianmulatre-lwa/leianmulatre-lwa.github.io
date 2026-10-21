@@ -10,6 +10,8 @@ pointer('pointerout',q('#glyph'),q('#caption'));pointer('pointerover',q('#captio
 await new Promise(r=>setTimeout(r,280));assert(!q('#studioPersistentTooltip').hidden,'Tooltip survives movement between symbol and label');
 pointer('pointerout',q('#hint'),q('#studioPersistentTooltip'));pointer('pointerover',q('#studioPersistentTooltip'));
 await new Promise(r=>setTimeout(r,280));assert(!q('#studioPersistentTooltip').hidden,'Tooltip remains readable when pointer enters it');
+q('#hint').dispatchEvent(new w.FocusEvent('focusout',{bubbles:true,relatedTarget:null}));
+assert(!q('#studioPersistentTooltip').hidden,'Clicking the help bubble must not dismiss it through focusout');
 w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert(q('#studioPersistentTooltip').hidden);
 q('#widgetColor').click();const dialog=q('#studioColorDialog');assert(dialog.open);
 q('#studioColorHex').value='#062b40';q('#studioColorHex').dispatchEvent(new w.Event('input',{bubbles:true}));assert.equal(q('#widgetColor').value,'#062b40');
