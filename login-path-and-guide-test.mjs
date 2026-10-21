@@ -61,7 +61,7 @@ assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT p
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
-assert.ok(home.includes('studio-onboarding.js?v=20261020-site-rainbow-skeleton-header-1'));
+assert.ok(home.includes('studio-onboarding.js?v=20261020-ankh-body-rail-2'));
 assert.ok(home.includes('session-restore.js?v=20261014-persistence-stability-6'));
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');
@@ -120,7 +120,7 @@ assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
 assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
 assert.ok(home.includes('brand-policy.css?v='));
 
-assert.ok(home.includes('/brand-policy.css?v=20261020-default-curtain-stitched-avatar-1'),
+assert.ok(home.includes('/brand-policy.css?v=20261020-rich-maroon-curtain-2'),
   'login explicitly loads the fresh true-white supporter carousel styles');
 const pureWhiteLogin=brand.slice(brand.indexOf('/* Login supporter marquee · true-white logo gallery.'));
 assert.ok(pureWhiteLogin.startsWith('/* Login supporter marquee · true-white logo gallery.'),
