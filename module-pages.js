@@ -94,7 +94,7 @@
 
 
     .main.module-view>.hero,.main.module-view>.masonry,.main.module-view>.site-policy-footer{display:none!important}
-    .module-workspace{position:relative;z-index:4;min-height:calc(100vh - 66px);padding:34px clamp(18px,4vw,54px) 110px;background:linear-gradient(180deg,rgba(246,240,233,.94),rgba(239,231,223,.97));color:#272321}
+    .module-workspace{position:relative;z-index:4;min-height:0;padding:30px clamp(18px,4vw,54px) 30px;background:linear-gradient(180deg,rgba(246,240,233,.94),rgba(239,231,223,.97));color:#272321}
     .module-shell{max-width:1720px;margin:0 auto}
 /* A widget page used to stop at 1160px inside a much wider window, which left the Collective
    Feed reading as a narrow strip down the middle with dead space either side. The feed is the
@@ -657,14 +657,14 @@
     .politc-live-progress>span{display:block;height:100%;background:#6e5f7c;transition:width .3s ease}
     .politc-live-state{padding:10px 0;min-height:60px}
     /* Widget pages share the Studio customization and carry the blur through the page edge. */
-    .module-workspace{position:relative;isolation:isolate;border-radius:0;min-height:calc(100vh - 66px);padding-bottom:54px;-webkit-backdrop-filter:blur(var(--widget-blur,18px));backdrop-filter:blur(var(--widget-blur,18px));background:linear-gradient(180deg,color-mix(in srgb,var(--widget-bg,rgba(246,240,233,.94)) 96%,transparent) 0%,color-mix(in srgb,var(--widget-bg,rgba(239,231,223,.96)) 92%,transparent) 100%);color:var(--widget-ink,#272321)}
+    .module-workspace{position:relative;isolation:isolate;border-radius:0;min-height:0;padding-bottom:clamp(22px,2.4vw,36px);-webkit-backdrop-filter:blur(var(--widget-blur,18px));backdrop-filter:blur(var(--widget-blur,18px));background:linear-gradient(180deg,color-mix(in srgb,var(--widget-bg,rgba(246,240,233,.94)) 96%,transparent) 0%,color-mix(in srgb,var(--widget-bg,rgba(239,231,223,.96)) 92%,transparent) 100%);color:var(--widget-ink,#272321)}
     .module-workspace:before{content:none}
     .module-workspace>*{position:relative;z-index:1}
-    .module-workspace:after{content:"";display:block;width:min(100%,1160px);height:1px;margin:24px auto 0;background:linear-gradient(90deg,transparent,rgba(117,92,79,.16) 7%,rgba(117,92,79,.16) 93%,transparent)}
+    .module-workspace:after{content:"";display:block;width:min(100%,1160px);height:1px;margin:14px auto 0;background:linear-gradient(90deg,transparent,rgba(117,92,79,.16) 7%,rgba(117,92,79,.16) 93%,transparent)}
     body.night-mode .module-workspace{background:linear-gradient(180deg,color-mix(in srgb,var(--widget-bg,rgba(31,29,28,.97)) 96%,#191716) 0%,color-mix(in srgb,var(--widget-bg,rgba(25,23,22,.96)) 92%,#191716) 100%)}
     .module-page-aura{display:none}
     .main.module-view{padding-bottom:0!important}
-    .main.module-view>.module-page-aura{display:block;position:relative;z-index:4;height:min(380px,46vh);min-height:230px;margin:0;pointer-events:none;background:linear-gradient(to top,rgba(var(--aura-rgb,216,95,109),.48) 0%,rgba(var(--aura-rgb,216,95,109),.18) 43%,transparent 100%)}
+    .main.module-view>.module-page-aura{display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important}
     body.night-mode .module-workspace:after{background:linear-gradient(90deg,transparent,rgba(224,210,199,.17) 12%,rgba(224,210,199,.17) 88%,transparent)}
     body.night-mode #studioApp .calendar-mini{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.045)}
     body.night-mode #studioApp .calendar-mini-grid span{background:rgba(255,255,255,.075);color:var(--widget-ink,#f4eee8)}
