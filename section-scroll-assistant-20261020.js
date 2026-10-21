@@ -8,9 +8,14 @@ let root=null,prev=null,next=null,label=null,frame=0;
 function targets(){
  const workspace=document.querySelector('#studioApp.is-active #moduleWorkspace:not([hidden])');
  let nodes=workspace
-  ?qs('.module-heading h1,.module-heading h2,#moduleWorkspaceBody > section > h2,#moduleWorkspaceBody > .module-grid > section > h2,#moduleWorkspaceBody > .politc-board h3,#moduleWorkspaceBody > .module-shell h2',workspace)
-  :!document.querySelector('#studioApp')?qs('main h1,main h2,main h3'):[];
- return nodes.filter(node=>node.isConnected&&!node.closest('[hidden],[aria-hidden="true"]')&&node.getBoundingClientRect().height>0);
+  ?qs('#moduleWorkspaceBody > .module-heading h1,#moduleWorkspaceBody > .module-heading h2,#moduleWorkspaceBody > section[id] > h2,#moduleWorkspaceBody > .module-grid > section[id] > h2',workspace)
+  :document.querySelector('#studioApp')?[]:qs('main > section[id] > .section-head > h2,main > section[id] > h2,main > section[id] > h1');
+ const seen=new Set();
+ return nodes.filter(node=>{
+  const section=node.closest('section[id]')||node.closest('.module-heading');
+  if(!section||seen.has(section)||!node.isConnected||node.closest('[hidden],[aria-hidden="true"]')||node.getBoundingClientRect().height<=0)return false;
+  seen.add(section);return true;
+ });
 }
 function jump(el){
  if(!el)return;
