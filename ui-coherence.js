@@ -283,6 +283,17 @@
       #studioApp .sidebar .sidebar-navigation-open img,#studioApp .sidebar .sidebar-shortcut-open img{object-fit:contain!important}
       #studioApp .sidebar-section{--sidebar-section-rgb:216,95,109;position:relative;display:flex;flex-direction:column;gap:5px;margin:0 0 8px;padding:8px 5px 8px 8px;border-left:2px solid rgba(var(--sidebar-section-rgb),.66);background:linear-gradient(90deg,rgba(var(--sidebar-section-rgb),.09),rgba(var(--sidebar-section-rgb),.015) 78%,transparent);border-radius:3px 9px 9px 3px}
       #studioApp .sidebar-primary-widgets{--sidebar-section-rgb:80,148,101}
+      #studioApp .sidebar-widget-pins{--sidebar-section-rgb:220,169,61}
+      #studioApp .sidebar-widget-pins[hidden]{display:none!important}
+      #studioApp #studioSidebarGreenPins,#studioApp #studioSidebarYellowPins{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important}
+      #studioApp .sidebar-widget-pinned-row{display:flex!important;justify-content:center!important;min-height:62px!important;padding:3px!important;box-sizing:border-box!important}
+      #studioApp .sidebar-widget-pinned-row .sidebar-shortcut-open{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-height:56px!important;height:56px!important;width:100%!important;min-width:0!important;margin:0!important;padding:5px 3px!important;box-sizing:border-box!important}
+      #studioApp .sidebar-widget-pinned-row .sidebar-route-icon{display:grid!important;place-items:center!important;width:24px!important;height:24px!important;flex:0 0 24px!important;font:700 19px/1 Georgia,serif!important}
+      #studioApp .sidebar-widget-pinned-row .sidebar-route-icon :is(img,svg){display:block!important;width:24px!important;height:24px!important;object-fit:contain!important}
+      #studioApp .sidebar-widget-pinned-row .sidebar-widget-name{display:block!important;text-align:center!important;font:650 10px/1.2 Inter,system-ui,sans-serif!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;max-width:100%!important}
+      body.sidebar-collapsed #studioApp .sidebar-widget-pinned-row{min-height:42px!important}
+      body.sidebar-collapsed #studioApp .sidebar-widget-pinned-row .sidebar-shortcut-open{min-height:38px!important;height:38px!important}
+      body.sidebar-collapsed #studioApp .sidebar-widget-pinned-row .sidebar-widget-name{display:none!important}
       #studioApp .sidebar-primary-widgets[hidden]{display:none!important}
       #studioApp .sidebar-shortcuts{--sidebar-section-rgb:220,169,61}
       #studioApp .sidebar-rest-tools{--sidebar-section-rgb:216,95,109}
@@ -560,7 +571,14 @@
     }
     if(primary.parentElement!==top)top.appendChild(primary);
     if(rest.parentElement!==top)top.appendChild(rest);
-    if(rest.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',rest);
+    let pins=$('#studioSidebarPinned',top);
+    if(!pins){pins=document.createElement('section');pins.id='studioSidebarPinned';pins.className='sidebar-section sidebar-widget-pins';pins.setAttribute('aria-label','Pinned Studio widgets')}
+    if(pins.parentElement!==top)top.appendChild(pins);
+    if(pins.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',pins);
+    if(rest.previousElementSibling!==pins)pins.insertAdjacentElement('afterend',rest);
+    let greenPins=$('#studioSidebarGreenPins',primary);
+    if(!greenPins){greenPins=document.createElement('div');greenPins.id='studioSidebarGreenPins';primary.prepend(greenPins)}
+    if(!$('#studioSidebarYellowPins',pins)){const holder=document.createElement('div');holder.id='studioSidebarYellowPins';pins.appendChild(holder)}
     let mount=$('#minimizedWidgets',primary);
     if(!mount){
       mount=document.createElement('div');mount.id='minimizedWidgets';
@@ -573,13 +591,15 @@
       dock.className='minimized-widget-dock';mount.appendChild(dock);
     }
     ensureRedWidgetDock(app);
+    renderPinnedWidgetDock(app);
     // Remove only the duplicate navigation UI. Keep existing restore rows,
     // widget placement, local layout and server snapshots unchanged.
     top.querySelectorAll(':scope > nav').forEach(nav=>nav.remove());
     $('#studioSidebarShortcuts',top)?.remove();
     $('#studioSidebarAvailableDock',rest)?.remove();
     $('#saveSidebarShortcuts',top)?.remove();
-    primary.hidden=!$('[data-shortcut-row]',primary);
+    primary.hidden=false;
+    pins.hidden=false;
     rest.hidden=!$('[data-shortcut-row]',rest);
     app.dataset.biglwaWidgetDockMode='1';
   }
@@ -815,6 +835,48 @@
     });
     applyPreferredStudioSymbols(app);
   }
+  // Green and yellow are fixed widget controls, not a duplicate route menu.
+  // Red contains widgets that the owner docked with the red window light.
+  const PINNED_WIDGET_GROUPS={
+    green:[['aura','Aura','◌'],['music','Jam','♫'],['guest-check','Guest Check','✓']],
+    yellow:[['politc','Politic','⚖'],['tools','Tools','⚒']]
+  };
+  function renderPinnedWidgetDock(app){
+    if(!app)return;
+    const green=$('#studioSidebarGreenPins',app),yellow=$('#studioSidebarYellowPins',app);
+    if(!green||!yellow)return;
+    const makeRow=([id,name,fallback],zone)=>{
+      const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app)||$('#'+CSS.escape(id),app)||
+        (id==='aura'?$('.aura-card',app):id==='music'?$('.music-card',app):id==='guest-check'?$('.guest-check-card',app):null);
+      const icon=widgetIconMarkup(widget)||fallback;
+      const row=document.createElement('div');row.className='sidebar-widget-pinned-row';row.dataset.pinnedWidget=id;row.dataset.pinnedZone=zone;
+      const button=document.createElement('button');button.type='button';button.className='sidebar-shortcut-open';button.dataset.sidebarWidget=widget?.dataset.widgetId||id;
+      button.dataset.widgetRoute=widget?.dataset.widgetRoute||id;
+      button.setAttribute('aria-label','Open '+name+' widget');button.title='Open '+name+' widget';
+      const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
+      const label=document.createElement('span');label.className='sidebar-widget-name';label.textContent=name;
+      button.append(mark,label);row.appendChild(button);return row;
+    };
+    for(const [zone,dock] of [['green',green],['yellow',yellow]]){
+      const group=PINNED_WIDGET_GROUPS[zone];
+      const existing=[...dock.children].map(row=>row.dataset.pinnedWidget);
+      if(group.length!==existing.length||group.some((entry,i)=>entry[0]!==existing[i])){
+        dock.replaceChildren(...group.map(entry=>makeRow(entry,zone)));
+      }else{
+        group.forEach(([id,name,fallback],i)=>{
+          const row=dock.children[i],button=$('button',row),mark=$('.sidebar-route-icon',row);
+          const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app)||$('#'+CSS.escape(id),app)||(id==='aura'?$('.aura-card',app):id==='music'?$('.music-card',app):id==='guest-check'?$('.guest-check-card',app):null);
+          const updated=widgetIconMarkup(widget)||fallback;
+          if(mark&&mark.innerHTML!==updated)mark.innerHTML=updated;
+          if(button)button.dataset.sidebarWidget=widget?.dataset.widgetId||id;
+        });
+      }
+      dock.hidden=false;
+    }
+    const primary=$('#studioSidebarPrimary',app),pins=$('#studioSidebarPinned',app);
+    if(primary)primary.hidden=false;
+    if(pins)pins.hidden=false;
+  }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
@@ -823,8 +885,9 @@
       if(target&&row.parentElement!==target)target.appendChild(row);
     });
     refreshMinimizedWidgetIcons(app);
-    primary.hidden=!$('[data-shortcut-row]',greenDock);
-    if(rest)rest.hidden=!$('[data-sidebar-route-row]',rest)&&!$('[data-shortcut-row]',redDock);
+    renderPinnedWidgetDock(app);
+    primary.hidden=false;
+    if(rest)rest.hidden=!$('[data-shortcut-row]',redDock);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
