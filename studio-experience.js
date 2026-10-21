@@ -966,17 +966,21 @@
 
   function ensureCardHeadingRows(){
     const app=$('#studioApp');if(!app)return;
-    [['#closet','#closet .card-icon','#closet h2'],['#diary','#diary .card-icon','#diary h2'],['#projects','#projects .card-icon','#projects h2'],['#games','#games .card-icon','#games h2']].forEach(([cardSel,iconSel,titleSel])=>{
-      const card=$(cardSel,app),icon=$(iconSel,app),title=$(titleSel,app);if(!card||!icon||!title||icon.contains(title)||title.contains(icon))return;
-      let row=$('.biglwa-card-heading-row',card);
+    $$('.card-icon',app).forEach(icon=>{
+      const parent=icon.parentElement;
+      if(!parent||icon.closest('.sidebar,.hero-action-bar,.module-page'))return;
+      const title=[...parent.children].find(node=>node.matches('h2,h3'));
+      if(!title||icon.contains(title)||title.contains(icon))return;
+      let row=parent.classList.contains('biglwa-card-heading-row')?parent:null;
       if(!row){
-        if(icon.parentElement!==title.parentElement)return;
-        row=document.createElement('div');row.className='biglwa-card-heading-row';icon.parentElement.insertBefore(row,icon);
+        row=document.createElement('div');row.className='biglwa-card-heading-row';parent.insertBefore(row,icon);
+        row.append(icon,title);
       }
-      if(icon.parentElement!==row)row.appendChild(icon);
-      if(title.parentElement!==row)row.appendChild(title);
     });
   }
+
+  document.addEventListener('biglwa:widget-symbols-ready',ensureCardHeadingRows);
+  document.addEventListener('biglwa:module-close',ensureCardHeadingRows);
 
   function ensureThemeAndMailboxIcons(){
     const light=$('#lightModeBtn'),dark=$('#darkModeBtn');

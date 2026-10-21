@@ -80,6 +80,20 @@ assert.deepEqual(ids(fresh),expected,'Fresh page restores account navigation wit
 assert(fresh.document.querySelector('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));
 assert.equal(fresh.document.querySelector('#mobileCreate').textContent,'✺veve');
 await new Promise(resolve=>setImmediate(resolve));reloaded.window.close();
+// Use the real shared-heading implementation on every widget, including old inline headers.
+const headingCode=experience.slice(experience.indexOf('  function ensureCardHeadingRows(){'),experience.indexOf('  function ensureThemeAndMailboxIcons(){'));
+w.eval(`(()=>{const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];${headingCode}ensureCardHeadingRows()})()`);
+for(const id of ['projects','archive','feed','notes','diary','connect','boards','closet']){
+ const icon=q('#'+id+' .card-icon'),title=q('#'+id+' h2');
+ assert.equal(icon.parentElement,title.parentElement,id+' shares symbol/text centerline');
+ assert(icon.parentElement.classList.contains('biglwa-card-heading-row'));
+ assert.equal(w.getComputedStyle(icon).width,'28px',id+' uses reference square');
+ assert.equal(w.getComputedStyle(icon.parentElement).gap,'6px',id+' uses tighter text gap');
+ const img=icon.querySelector('img');if(img)assert.equal(w.getComputedStyle(img).objectFit,'contain',id+' preserves image aspect ratio');
+}
+const headingCount=w.document.querySelectorAll('.biglwa-card-heading-row').length;
+w.document.dispatchEvent(new w.Event('biglwa:widget-symbols-ready'));
+assert.equal(w.document.querySelectorAll('.biglwa-card-heading-row').length,headingCount,'Late symbols do not duplicate headers');
 // Integrate the actual Skeleton Keys and body-filter modules with the production shell.
 w.eval(fs.readFileSync(root+'studio-three-bodies-20261019.js','utf8'));
 w.BigLWAThreeBodies.refresh();

@@ -124,16 +124,37 @@ body.night-mode #studioApp .sidebar .sidebar-route-icon img{
   object-fit:contain;
 }
 
-/* Equal invisible symbol cells keep widget titles on a common text baseline. */
-#studioApp .card-head>div:has(>.card-icon),
-#studioApp .card-head .card-title{display:flex;align-items:center;gap:10px;min-width:0}
-#studioApp .card-head .card-icon{
-  display:grid!important;place-items:center!important;box-sizing:border-box!important;
-  flex:0 0 32px!important;width:32px!important;height:32px!important;
-  margin:0!important;padding:0!important;line-height:1!important;
+/* Projects is the reference: one square symbol cell and a shared title centerline.
+   Extra specificity retires older per-widget offsets, dimensions and margins. */
+#studioApp .card .biglwa-card-heading-row{
+  display:flex!important;align-items:center!important;gap:6px!important;
+  min-height:32px!important;margin:0 0 8px!important;
 }
-#studioApp .card-head .card-icon img,
-#studioApp .card-head .card-icon svg,
-#studioApp .card-head .card-icon .studio-symbol-mark{
-  width:28px!important;height:28px!important;object-fit:contain!important;
+#studioApp .card .biglwa-card-heading-row>h2,
+#studioApp .card .biglwa-card-heading-row>h3{
+  margin:0!important;line-height:1!important;align-self:center!important;min-width:0;
 }
+#studioApp .card:is(.card,#projects,#archive,#feed,#diary,#notes,#learn,#closet,#games) .biglwa-card-heading-row>.card-icon{
+  display:grid!important;place-items:center!important;position:relative!important;
+  flex:0 0 28px!important;width:28px!important;height:28px!important;
+  margin:0!important;padding:0!important;top:0!important;transform:none!important;
+  line-height:1!important;font-size:26px!important;align-self:center!important;
+  border:0!important;background:none!important;
+}
+#studioApp .card .biglwa-card-heading-row .card-icon .studio-symbol-mark{
+  display:grid!important;place-items:center!important;width:28px!important;height:28px!important;
+  margin:0!important;overflow:visible!important;
+}
+#studioApp .card .biglwa-card-heading-row .card-icon :is(img,svg){
+  display:block!important;width:28px!important;height:28px!important;
+  max-width:none!important;max-height:none!important;
+  object-fit:contain!important;object-position:center!important;
+}
+/* Normalize transparent canvas padding to a 24px visible mark, retaining aspect ratio.
+   Values come from the source assets' alpha bounds; artwork itself is unchanged. */
+#studioApp .card .biglwa-card-heading-row .card-icon img[src*="feed-symbol-generated"]{transform:translate(-.82px,-.23px) scale(1.082)!important}
+#studioApp .card .biglwa-card-heading-row .card-icon img[src*="diary-symbol-generated"]{transform:scale(1.377)!important}
+#studioApp .card .biglwa-card-heading-row .card-icon img[src*="quick-notes-symbol-generated"]{transform:translate(0,-.48px) scale(1.457)!important}
+#studioApp .card .biglwa-card-heading-row .card-icon img[src*="did-you-know-symbol-generated"]{transform:translate(.04px,4.22px) scale(1.265)!important}
+#studioApp .card .biglwa-card-heading-row .card-icon img[src*="closet-symbol"]{transform:translate(2.04px,2.72px) scale(1.148)!important}
+#studioApp .card .biglwa-card-heading-row .card-icon img[src*="projects-symbol"]{transform:translate(.05px,-1.14px) scale(1.304)!important}
