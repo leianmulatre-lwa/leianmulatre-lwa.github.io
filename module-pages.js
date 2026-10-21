@@ -253,6 +253,12 @@
     .video-booth-preview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;max-width:520px}
     .video-booth-tile{display:grid;place-items:center;aspect-ratio:3/4;border-radius:16px;border:1px solid #d8cec5;background:linear-gradient(160deg,#efe7e0,#ded3ca);color:#8a7f77;font:700 11px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
     body.night-mode .video-booth-tile{background:linear-gradient(160deg,#2b2724,#1d1a19);border-color:#4a423c;color:#a2968c}
+    .video-booth-tile{padding:12px;min-width:0;box-sizing:border-box;gap:6px;text-align:center}
+    .video-booth-profile-photo{display:grid;place-items:center;width:clamp(64px,14vw,104px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(var(--aura-rgb,216,95,109),.35);background:radial-gradient(circle at 45% 40%,rgba(var(--aura-rgb,216,95,109),.35),transparent 75%);font:700 28px Georgia,serif}
+    .video-booth-tile b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;font:700 17px/1.2 Georgia,serif;letter-spacing:normal;text-transform:none;color:inherit}
+    .video-booth-tile small,.video-booth-card-note{display:block;font:700 10px/1.35 system-ui;text-transform:none;letter-spacing:normal;color:inherit;opacity:.8}
+    .video-booth-card-note{font-size:9px;opacity:.66}
+    @media(max-width:520px){.video-booth-preview{grid-template-columns:1fr 1fr;gap:6px}.video-booth-tile{padding:8px}}
     .video-booth-soon .module-action[disabled]{opacity:.5;cursor:not-allowed}
     .video-booth-status{font-size:9px;color:#81766f;margin:0 0 10px}
     .video-booth-checks{margin:0;padding:0;list-style:none;display:grid;gap:6px}
@@ -789,8 +795,8 @@
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'MyFeed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwibz',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
-  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite friends to join BIGLWA.',camera:'You already have a photobooth, but ours has Omegle ;) Meet a face and a name before you decide to connect. Video matching is coming soon.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'The people, politics, and power board — community nominations, the pendulum, voting resources, and world news.'};
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwibz',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
+  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite friends to join BIGLWA.',camera:'You already have a photobooth, but ours has Omegle ;) Meet a face and a name before you decide to connect. Video matching is coming soon.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'Body politic: news, elections, candidates by location, the political pendulum, Epstein records, Genocide Watch, UN reporting and news blind spots.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
@@ -1598,18 +1604,29 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         <h2 id="videoBoothTitle">Video Booth</h2>
         <span class="coming-soon-badge">Coming soon</span>
       </div>
-      <p>Get matched with one person from the community for a private video booth. Filter who you would rather meet, and skip or end a booth whenever you want.</p>
-      <div class="video-booth-preview" aria-hidden="true"><span class="video-booth-tile you">You</span><span class="video-booth-tile them">Them</span></div>
-      <div class="module-actions">
-        <button class="module-action" type="button" disabled aria-disabled="true">Start a booth</button>
-        <button class="module-action secondary" type="button" disabled aria-disabled="true">Next booth</button>
+      <p>Meet the person before the call. You'll see their profile picture, display name and BIG LWA rank — never their @handle. Connect only when you both agree.</p>
+      <div class="video-booth-preview" aria-label="Pre-connection profile card layout — no live matches yet">
+        <div class="video-booth-tile you">
+          <span class="video-booth-profile-photo" aria-hidden="true">◉</span>
+          <b>Your profile</b><small>Your rank appears here</small>
+        </div>
+        <div class="video-booth-tile them" id="videoBoothCandidateCard" aria-label="Candidate's public preview before a video connection">
+          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto" aria-hidden="true">?</span>
+          <b id="videoBoothCandidateName">Display name</b>
+          <small class="video-booth-profile-rank" id="videoBoothCandidateRank">BIG LWA rank</small>
+          <span class="video-booth-card-note">No @handle shown</span>
+        </div>
       </div>
-      <p class="video-booth-status">This booth is not open yet. It stays closed until the safety tools below are ready.</p>
+      <div class="module-actions">
+        <button class="module-action" id="videoBoothRequestConnect" type="button" disabled aria-disabled="true" title="Available only after matching, moderation and consent are ready">Request connection</button>
+        <button class="module-action secondary" id="videoBoothSkipCandidate" type="button" disabled aria-disabled="true">Pass</button>
+      </div>
+      <p class="video-booth-status" role="status">Preview only: matching is not live. No camera, microphone or stranger connection starts here.</p>
       <ul class="video-booth-checks">
-        <li data-ready="0">Report and block controls, with a fast way out of every booth</li>
-        <li data-ready="0">A queue and camera check before anyone is matched</li>
-        <li data-ready="0">Moderation review of reported booths</li>
-        <li data-ready="0">Age and consent rules agreed before the first match</li>
+        <li data-ready="0">18+ age verification and opt-in visibility before joining a queue</li>
+        <li data-ready="0">Authenticated display name, picture and rank; no @handle shown to strangers</li>
+        <li data-ready="0">Both participants must accept before camera or microphone is shared</li>
+        <li data-ready="0">Block, report, skip, fast disconnect and moderated abuse reports</li>
       </ul>
     </section>`;
   }
@@ -1657,6 +1674,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       ['Vote.gov','Federal registration and voter information','https://vote.gov/'],
       ['US Election Assistance Commission','How elections work and official state election offices','https://www.eac.gov/voters'],
       ['USA.gov election results','Find election results and voting information','https://www.usa.gov/voting-and-elections'],
+      ['Ground News · Blindspot','Compare stories receiving lopsided left/right coverage; an independent comparison tool, not a primary source','https://ground.news/blindspot/'],
+      ['AllSides · Media Bias Ratings','Compare outlet bias ratings and perspectives alongside original reporting','https://www.allsides.com/media-bias/ratings'],
+      ['Epstein files · U.S. DOJ','Official public records and case documents; mention alone is not evidence of wrongdoing','https://www.justice.gov/epstein'],
       ['Al Jazeera','International reporting and live coverage','https://www.aljazeera.com/'],
       ['Genocide Watch','Country alerts and genocide-prevention research','https://www.genocidewatch.com/'],
       ['United Nations','UN news, humanitarian reporting and resolutions','https://news.un.org/en/'],
