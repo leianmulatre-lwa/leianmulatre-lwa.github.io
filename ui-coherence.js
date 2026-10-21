@@ -692,10 +692,12 @@
     }
   }
   function syncSidebarShortcutSystem(){
-    // Left rail is a widget dock. Route shortcuts remain in the original
-    // banner-to-widget action bar, with their own unchanged controls.
+    // Restore the account's three-dot dock whenever its cloud layout arrives.
+    // The banner-to-widget shortcuts are a separate UI and are not rewritten.
     const app=$('#studioApp');if(!app)return;
     ensureSidebar();
+    ensureControls();
+    ensureWidgetActions();
     syncPrimaryWidgetDock(app);
   }
 
@@ -1764,7 +1766,9 @@
     });
   }
   function run(){
-    ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();syncVeveLauncher();
+    // Restore the essential dock before optional widgets / editors can fail.
+    try{ensureStyles();ensureSidebar();renderPinnedWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
+    ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();syncVeveLauncher();
     // Sidebar has its own recovery boundary, so an unrelated editor or
     // account-layout exception cannot leave its primary navigation empty.
     try{ensureSidebar()}catch(error){console.warn('[BIGLWA] Widget dock setup retry',error)}
@@ -1796,9 +1800,12 @@
     const app=$('#studioApp');if(!app)return;
     const sidebar=$('.sidebar',app),top=$('.sidebar-top',sidebar||app);
     if(!sidebar||!top)return;
-    const count=$('#studioSidebarShortcutDock .sidebar-navigation-row,#studioSidebarAvailableDock .sidebar-navigation-row',app).length;
-    if(count)return;
-    try{ensureSidebar();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
+    const green=$('#studioSidebarGreenPins .sidebar-widget-pinned-row',app).length;
+    const yellow=$('#studioSidebarYellowPins .sidebar-widget-pinned-row',app).length;
+    const expected=readWidgetShortcuts().filter(id=>$('[data-widget-id="'+CSS.escape(id)+'"]',app)).length;
+    const restored=$('.sidebar-widget-restore-row[data-shortcut-row]',app).length;
+    if(green===3&&yellow===2&&restored>=expected)return;
+    try{ensureSidebar();ensureControls();ensureWidgetActions();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
   }
   document.addEventListener('biglwa:module-close',rescueSidebar);
   window.addEventListener('pageshow',rescueSidebar);
