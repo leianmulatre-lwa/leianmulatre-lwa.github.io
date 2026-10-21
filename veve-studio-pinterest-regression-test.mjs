@@ -13,9 +13,9 @@ const checks=[
  ['Veve tiles omit visible photo captions',!veve.includes("'<p class=\"veve-caption\">'")&&veveCss.includes('.veve-photo .veve-caption{display:none')],
  ['Veve previews retain captions',veve.includes("d.querySelector('#vevePreviewCaptionText').textContent=caption")],
  ['Pinterest attribution appears without account names',veve.includes('Original Pinterest Pin ↗')&&veve.includes('veve-source-credit')],
- ['Owner can publish loaded board Pins',pinterest.includes('data-pn-publish-board')&&pinterest.includes('publishBoardToVeve')],
- ['Saved board lock blocks publication',pinterest.includes("if(saved&&boardLocks[id]===true)")&&pinterest.includes("boardLocks[board.id]===true||!(board.pins||[]).length")],
- ['Public board upload requires confirmation',pinterest.includes('window.confirm(')&&pinterest.includes('Collective Feed and Veve')],
+ ['Boards present private-first actions, no direct public-post buttons',pinterest.includes('Keep selected private')&&!pinterest.includes('>Post to Collective</button>')&&!pinterest.includes('>Post board to Veve</button>')],
+ ['Saved boards can be locked',pinterest.includes('data-pn-lock-board')&&pinterest.includes('boardLocks[board.id]===true')],
+ ['Boards have no public-post action in the rendered UI',pinterest.includes('Private first · Share later from myfeed')&&!pinterest.includes('>Post to Feed</button>')],
  ['Bulk posts reuse verified publisher',pinterest.includes("await importer('pinterest',[media]")&&pinterest.includes('await publisher(postId)')],
  ['Pinterest 401 does not reset Big LWA login',!pinterest.includes("if(res.status===401){save('');resetView()}")&&pinterest.includes('needsReconnect:true')],
  ['Pinterest 401 attempts recovery before reconnect',pinterest.includes('recoverOrBindPinterestSession().catch')],
@@ -24,8 +24,8 @@ const checks=[
  ['Tutorial can be reopened from Settings',settings.includes('/studio?tutorial=1')],
  ['Journal initial shifted down',modules.includes('top:37%!important')],
  ['Supporter carousel uses bare PNG logos',brand.includes('.supporter-logo img')&&brand.includes('background:transparent!important')],
- ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&index.includes('pinterest-orbit.js?v=20261020-pins-queue-archive-6')],
- ['Board publish CSS loads',pinterest.includes('pinterest-boards.css?v=20261020-pins-queue-archive-6')&&boardsCss.includes('pn-board-publish-tools')]
+ ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&index.includes('pinterest-orbit.js?v=20261021-private-auto-7')],
+ ['Board publish CSS loads',pinterest.includes('pinterest-boards.css?v=20261021-private-auto-7')&&boardsCss.includes('pn-board-publish-tools')]
 ];
 for(const [name,ok] of checks)console.log((ok?'PASS':'FAIL')+' · '+name);
 assert.ok(checks.every(x=>x[1]),'Veve, onboarding, Pinterest and supporter regression checks failed.');
