@@ -1139,3 +1139,13 @@
   document.head.append(style);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
+
+/* Avatar and Aura share the user's persisted Aura hue.
+   The provider's transparent bare mode lets this gradient show through. */
+#studioApp #studioAvatarCard .biglwa-avatar-media,
+#studioApp #studioAvatarCard .biglwa-avatar-media:has(.biglwa-sona-frame),
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview,
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview:has(.biglwa-sona-frame){
+ background:radial-gradient(ellipse at 48% 50%,rgba(var(--aura-rgb,216,95,109),.55) 0%,rgba(var(--aura-rgb,216,95,109),.22) 43%,rgba(var(--aura-rgb,216,95,109),.05) 75%,transparent 100%)!important;
+}
+#studioApp .biglwa-sona-frame{background:transparent!important}
