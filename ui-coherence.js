@@ -1478,6 +1478,20 @@
     const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwibz');note.title='Open Sqwibz'}
   }
 
+  function syncBoothWidget(){
+    const card=$('#studioApp #camera');
+    if(card){
+      const header=$('.card-head h2,.card-head h3',card);
+      if(header)header.textContent='booth';
+      card.dataset.widgetLabel='Booth';
+      if(!String(card.dataset.search||'').includes('video booth'))card.dataset.search=(card.dataset.search||'')+' booth photo booth video booth';
+    }
+    // Rename only the visible caption, never routing/storage keys or icon markup.
+    $('#studioApp [data-sidebar-route="camera"] .sidebar-route-label,#studioApp [data-open="camera"] .shortcut-label').forEach(label=>{
+      if(/^(photo\s*booth|photobooth)$/i.test(label.textContent?.trim()||''))label.textContent='booth';
+    });
+  }
+
   function ensureRealWorldDefaults(){
     const app=$('#studioApp');if(!app)return;
     syncRealProfileMetrics();
@@ -1487,6 +1501,7 @@
     syncStreamWidget();
     syncRoomAvailability();
     syncQwikyNoteWidget();
+    syncBoothWidget();
     if(document.documentElement.dataset.biglwaStreamSyncBound!=='1'){
       document.documentElement.dataset.biglwaStreamSyncBound='1';
       document.addEventListener('biglwa:stream-updated',syncStreamWidget);
@@ -1565,7 +1580,7 @@
       event.preventDefault();openArcade();
     });
   }
-  function run(){ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function run(){ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();ensureSidebar();ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
   if(document.documentElement.dataset.biglwaCustomizationSyncBound!=='1'){
     document.documentElement.dataset.biglwaCustomizationSyncBound='1';
     window.addEventListener('biglwa:customization-remote',event=>{
