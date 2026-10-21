@@ -1483,7 +1483,7 @@
       let status=$('.stream-watching-status',card)||oldCounts.shift()||document.createElement('div');
       oldCounts.forEach(el=>el.remove());
       status.className='stream-watching-status';
-      status.textContent='ON AIR';
+      if(status.textContent!=='ON AIR')status.textContent='ON AIR';
       status.setAttribute('aria-label','On air: curated Stream playback; live viewers are not tracked');
       if(status.previousElementSibling!==screen)screen.insertAdjacentElement('afterend',status);
       if(screen.classList.contains('stream-preview-active'))return;
@@ -1513,7 +1513,7 @@
     if(!status)status=old.shift()||document.createElement('span');
     old.forEach(node=>node.remove());
     status.classList.add('room-presence-status');
-    status.textContent='ONLINE';
+    if(status.textContent!=='ONLINE')status.textContent='ONLINE';
     status.setAttribute('aria-label','Room available; real-time participant count is not available');
     if(status.parentElement!==footer)footer.appendChild(status);
   }
@@ -1540,6 +1540,32 @@
     });
   }
 
+  function watchRoomStreamFooter(){
+    const app=$('#studioApp');if(!app||app.dataset.roomStreamFooterWatcher==='1')return;
+    app.dataset.roomStreamFooterWatcher='1';
+    let scheduled=false;
+    const repair=()=>{
+      if(scheduled)return;
+      scheduled=true;
+      setTimeout(()=>{scheduled=false;
+        try{syncRoomAvailability();syncStreamWidget()}catch(error){console.warn('Room/Stream status layout retry',error)}
+      },80);
+    };
+    // These widgets load their card content asynchronously; restore footer
+    // placement after re-renders without inventing people/viewer numbers.
+    for(const node of [$('#rooms',app)||$('#room',app),$('#stream',app)]){
+      if(node)new MutationObserver(mutations=>{
+        if(mutations.some(m=>m.type==='childList'&&[...m.addedNodes,...m.removedNodes].some(n=>{
+          if(n.nodeType!==1)return false;
+          return !n.matches?.('.room-presence-status,.stream-watching-status,.stream-station-photo')&&!n.closest?.('.room-presence-status,.stream-watching-status');
+        })))repair();
+      }).observe(node,{childList:true,subtree:true});
+    }
+    document.addEventListener('biglwa:stream-updated',repair);
+    document.addEventListener('biglwa:module-close',repair);
+    repair();
+  }
+
   function ensureRealWorldDefaults(){
     const app=$('#studioApp');if(!app)return;
     syncRealProfileMetrics();
@@ -1548,6 +1574,7 @@
     });
     syncStreamWidget();
     syncRoomAvailability();
+    watchRoomStreamFooter();
     syncQwikyNoteWidget();
     syncBoothWidget();
     if(document.documentElement.dataset.biglwaStreamSyncBound!=='1'){
