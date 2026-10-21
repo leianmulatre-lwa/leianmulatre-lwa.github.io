@@ -13,13 +13,15 @@ assert.ok(studio.includes('.biglwa-body-guide{margin:1px 0 3px var(--body-guide-
 assert.ok(studio.includes(':not(:hover):not(:focus-within){box-shadow:0 4px 12px'),'Widget pastel ring hidden without hover');
 assert.ok(studio.includes('box-shadow:0 0 0 3px var(--three-body-color'),'Pastel ring appears on hover');
 assert.ok(index.includes('studio-three-bodies-20261019.js?v=20261020-maroon-body-offset-5'),'Studio script cache refreshed');
-assert.ok(index.includes('pinterest-orbit.js?v=20261020-pins-queue-archive-6'),'Pinterest code cache refreshed');
+assert.ok(index.includes('pinterest-orbit.js?v=20261021-private-auto-7'),'Pinterest code cache refreshed');
 assert.ok(index.includes('account-boot.js?v=20261020-clean-pinterest-links-9'),'Feed boot cache refreshed');
 assert.ok(boot.includes('feed-view.js?v=20261020-pinterest-clean-cards-7'),'Feed code cache refreshed');
 assert.ok(pins.includes('workQueue.push({fn,silent,uid:authUid})'),'Queued Pinterest actions stay isolated to account');
 assert.ok(pins.includes('role="status" aria-live="polite"'),'Pinterest progress is announced without blocking controls');
 assert.ok(pins.includes('if(!saved&&!requested)')&&pins.includes('while(next&&page<100)'),'Full board pagination continues over fetched batches');
-assert.ok(pins.includes('selectedBoardPins')&&pins.includes('selectedOriginalPins'),'Users can selectively publish either kind of Pins');
+assert.ok(pins.includes('selectedBoardPins')&&pins.includes('selectedOriginalPins'),'Users can select both original and board Pins for private saving');
+assert.ok(pins.includes('hydrateBrowse(')&&pins.includes("await finish('boards')")&&pins.includes("await finish('created')"),'Board and original-Pin pages automatically populate');
+assert.ok(!pins.includes('>Post to Collective</button>')&&!pins.includes('>Load more boards</button>'),'Boards have no direct public-post or manual Load More button');
 assert.ok(pins.includes('privateSaveUnavailable')&&pins.includes('disabled aria-disabled="true"'),'Already imported selected originals cannot be redundantly imported');
 assert.ok(pins.includes('importPinsToAccount(originals)'),'Original creations auto-import to account privately');
 assert.ok(pins.includes('20 actions are already queued (not a 20-Pin import limit)'),'Queue cap distinguished from Pin count');
