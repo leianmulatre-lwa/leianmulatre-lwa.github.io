@@ -282,6 +282,9 @@
       #studioApp .sidebar-rest-tools{--sidebar-section-rgb:216,95,109}
       #studioApp .sidebar-rest-tools[hidden]{display:none!important}
       #studioApp .sidebar-section nav{display:flex!important;flex-direction:column;gap:4px}
+      #studioApp #studioSidebarShortcuts,#studioApp #studioSidebarShortcutDock{visibility:visible!important;opacity:1!important}
+      #studioApp #studioSidebarShortcutDock{display:flex!important;flex-direction:column!important;min-height:36px!important}
+      #studioApp #studioSidebarShortcutDock .sidebar-navigation-row,#studioApp #studioSidebarAvailableDock .sidebar-navigation-row{visibility:visible!important;opacity:1!important}
       #studioApp .sidebar-rest-tools .nav-item{position:relative;padding:9px 8px;border-radius:8px;font-size:10px}
       #studioApp .sidebar-route-control,#studioApp .sidebar-shortcut-open,#studioApp .sidebar-navigation-open{position:relative;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:0;width:36px;height:36px;min-height:36px;margin:0 auto;padding:0;border:0;border-radius:9px;background:transparent;color:inherit;text-align:center;text-decoration:none;font:650 10px/1.15 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
       #studioApp .sidebar-route-control:hover,#studioApp .sidebar-shortcut-open:hover,#studioApp .sidebar-navigation-open:hover{background:rgba(255,255,255,.52)}
@@ -598,14 +601,59 @@
     }else{const label=link.querySelector(':scope > span:last-child');if(label)label.textContent=entry.label}
     return link;
   }
+  // The original sidebar navigation is removed after boot. On slow auth or
+  // delayed Studio hydration the hero links can also be temporarily absent.
+  // Build a reliable route catalog from real widgets and known public Studio
+  // routes *before* drawing shortcut rows. Never mutate account layout here.
+  const SIDEBAR_ROUTE_FALLBACKS=[
+    ['politc','Politic','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
+    ['tools','Tools','⚒'],
+    ['calendar','Calendar','▦'],
+    ['map','Map','⌖'],
+    ['projects','Projects','<img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">'],
+    ['diary','Journal','▱'],
+    ['notes','Sqwibz','<img src="/assets/quick-notes-symbol-generated.png" alt="">'],
+    ['feed','myfeed','<img src="/assets/feed-symbol-generated.png" alt="">'],
+    ['archive','Archive','▥'],
+    ['boards','Boards','⊞'],
+    ['library','Library','▤'],
+    ['games','Arcade','♟'],
+    ['orbit','Orbit','◎'],
+    ['connect','Connect','✣'],
+    ['veve','veve','✺'],
+    ['camera','booth','◉'],
+    ['stream','Stream','◌'],
+    ['rooms','The Lounge','♧'],
+    ['closet','Closet','♧']
+  ];
+  function seedSidebarNavigationCatalog(app){
+    for(let i=0;i<SIDEBAR_ROUTE_FALLBACKS.length;i++){
+      const [key,label,fallback]=SIDEBAR_ROUTE_FALLBACKS[i];
+      const existing=navigationCatalog.get(key);
+      const widget=$('#'+key,app)||(key==='rooms'?$('#room',app):null);
+      const icon=widgetIconMarkup(widget);
+      if(!existing){
+        navigationCatalog.set(key,{key,label,href:'#'+key,policyRoute:'',
+          symbolHTML:icon||fallback,order:SHORTCUT_LIMIT+i});
+      }else if(!existing.symbolHTML||existing.symbolHTML.trim()==='•'){
+        existing.symbolHTML=icon||fallback;
+      }
+    }
+  }
   function syncSidebarShortcutSystem(){
     const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
-    const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
+    const currentHeroLinks=$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
+    seedSidebarNavigationCatalog(app);
     refreshNavigationCatalogFromWidgets(app);
-    if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
-    if(!initialNavigationShortcuts?.length)return;
+    const defaults=['politc','tools','calendar','map','projects','diary','notes','feed'];
+    if(!initialNavigationShortcuts?.length){
+      initialNavigationShortcuts=(heroKeys.length?heroKeys:defaults).filter(key=>navigationCatalog.has(key)).slice(0,SHORTCUT_LIMIT);
+    }
+    // Empty cloud/local navigation is not permission to silently erase all
+    // symbols. Rebuild visible rows in the current session, with no cloud save.
     let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
+    if(!shortcuts.length)shortcuts=initialNavigationShortcuts.slice();
     let hasSavedShortcuts=false;try{hasSavedShortcuts=localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
     if(!hasSavedShortcuts){
       // Default a useful accessibility-first dock once. Existing saved orders
@@ -618,6 +666,11 @@
     shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
     availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
+    // Make the generated toolbar visible even if old prepaint CSS hid the
+    // original sidebar navigation while Studio loaded.
+    shortcutDock.hidden=false;shortcuts.length&&shortcutDock.removeAttribute('aria-hidden');
+    availableDock.hidden=false;
+    $('#studioSidebarShortcuts',app)?.removeAttribute('hidden');
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
     let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
     create.classList.add('studio-veve-launcher');
