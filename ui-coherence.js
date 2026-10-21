@@ -1396,15 +1396,32 @@
   }
 
   function ensureProfileInitial(){
-    const card=$('#studioApp .profile-card');if(!card)return;
-    const avatar=$('.profile-avatar',card);if(!avatar||avatar.querySelector('img'))return;
-    const existing=avatar.textContent.trim();
-    if(existing){avatar.dataset.profileInitial=existing.charAt(0).toUpperCase();avatar.dataset.profilePictureLocked='1';return}
-    let saved=readOwnProfile();
-    const candidates=[saved?.username,window.__biglwaIdentity?.username,window.__biglwaIdentity?.name,$('#loginUsername')?.value];
-    const username=candidates.map(value=>String(value||'').trim().replace(/^@/,'')).find(value=>value&&value!=='LS')||'B';
-    const initial=username.charAt(0).toUpperCase();
-    avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.dataset.profilePictureLocked='1';avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
+    const app=$('#studioApp'),avatar=$('.profile-card .profile-avatar',app),mini=$('.profile-mini .mini-avatar',app);
+    if(!avatar)return;
+    const who=window.__biglwaIdentity||{};
+    const stored=readOwnProfile()||{};
+    const username=String(who.username||stored.username||'').trim().replace(/^@/,'').toLowerCase();
+    // Use the entered name only; an @handle can never be a substitute.
+    const candidate=[who.name,stored.name].map(v=>String(v||'').trim()).find(v=>v&&v.toLowerCase()!==username)||'';
+    const initial=(candidate.charAt(0).toLocaleUpperCase()||'B');
+    const photo=String(who.avatarUrl||stored.profilePhoto?.url||stored.avatarUrl||'').trim();
+    for(const el of [avatar,mini].filter(Boolean)){
+      if(photo){
+        const bg='url("'+photo.replace(/"/g,'')+'")';
+        if(el.style.backgroundImage!==bg)el.style.backgroundImage=bg;
+        el.style.backgroundSize='cover';el.style.backgroundPosition='center';
+        el.classList.add('has-photo');
+        if(el.textContent.trim())el.textContent='';
+      }else{
+        if(el.textContent!==initial)el.textContent=initial;
+        if(el.style.backgroundImage)el.style.backgroundImage='';
+        el.classList.remove('has-photo');
+        el.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
+      }
+      el.dataset.profileInitial=initial;
+      el.dataset.profilePictureLocked='1';
+      el.setAttribute('aria-label',candidate?candidate+' profile picture':'Profile picture');
+    }
   }
 
   function syncRealProfileMetrics(){
@@ -1526,6 +1543,33 @@
     const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwibz');note.title='Open Sqwibz'}
   }
 
+  function syncVeveLauncher(){
+    const app=$('#studioApp'),bar=$('.hero-action-bar',app);
+    if(!app||!bar)return;
+    // Restore discovery from the original center shortcut, which the retired
+    // sidebar-navigation renderer once re-labelled and then abandoned.
+    let button=$('#mobileCreate',bar);
+    if(!button){
+      button=document.createElement('button');button.id='mobileCreate';button.type='button';
+      const links=[...bar.children];
+      const middle=Math.floor(links.length/2);
+      if(links[middle])bar.insertBefore(button,links[middle]);
+      else bar.append(button);
+    }
+    button.classList.add('studio-veve-launcher');
+    button.type='button';
+    if(button.dataset.biglwaVeveTitle!=='1'||!button.querySelector('.studio-veve-mark')){
+      button.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
+      button.dataset.biglwaVeveTitle='1';
+    }
+    button.title='Open veve';button.setAttribute('aria-label','Open veve discovery');
+    button.dataset.shortcutRoute='veve';
+    button.dataset.open='veve';
+    // A legacy "Create" tile in the same position duplicates discovery.
+    const old=[...bar.children].filter(node=>node!==button&&/^(create)$/i.test(node.textContent?.trim()||'')&&
+      /^(#(?:desk|create)|create)$/i.test(node.getAttribute('href')||node.dataset?.open||''));
+    old.forEach(node=>node.remove());
+  }
   function syncBoothWidget(){
     const card=$('#studioApp #camera');
     if(card){
@@ -1577,6 +1621,7 @@
     watchRoomStreamFooter();
     syncQwikyNoteWidget();
     syncBoothWidget();
+    syncVeveLauncher();
     if(document.documentElement.dataset.biglwaStreamSyncBound!=='1'){
       document.documentElement.dataset.biglwaStreamSyncBound='1';
       document.addEventListener('biglwa:stream-updated',syncStreamWidget);
@@ -1656,7 +1701,7 @@
     });
   }
   function run(){
-    ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();
+    ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();syncVeveLauncher();
     // Sidebar has its own recovery boundary, so an unrelated editor or
     // account-layout exception cannot leave its primary navigation empty.
     try{ensureSidebar()}catch(error){console.warn('[BIGLWA] Widget dock setup retry',error)}
