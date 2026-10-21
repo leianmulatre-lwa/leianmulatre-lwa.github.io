@@ -31,7 +31,7 @@
       card.id='politc';card.className='card studio-politc-card customizable-widget';card.dataset.widgetId='politc';card.dataset.widgetLabel='Politic';
       card.dataset.widgetRoute='politc';
       card.dataset.search='politc politics election nominees voter resources political pendulum wcw mcm hunting season cunting season';
-      card.innerHTML='<div class="card-head"><div><span class="card-icon politc-studio-symbol" aria-hidden="true"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34"></span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Election countdown, candidates by location, political pendulum, wanted posters and global news sources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
+      card.innerHTML='<div class="card-head"><div><span class="card-icon politc-studio-symbol" aria-hidden="true"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34"></span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Body politic: news, elections, candidates by location, political pendulum, Epstein records, Genocide Watch, the UN + Ground News blind spots.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
       const room=root.querySelector('#rooms');
       if(room?.parentElement===masonry)room.insertAdjacentElement('afterend',card);else masonry.appendChild(card);
     }
