@@ -26,7 +26,7 @@ const checks=[
  ['Stream watching status is honest about untracked counts',layout.includes("status.textContent='ON AIR'")&&!layout.includes("count.textContent='0 watching'")],
  ['Stream footer remains visible with active playback',layout.indexOf("screen.insertAdjacentElement('afterend',status)")<layout.indexOf("if(screen.classList.contains('stream-preview-active'))return;")],
  ['Stream status queries a real array of old badges',layout.includes("const oldCounts=$$(' ".trim())],
- ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261020-booth-rename-17')],
+ ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261021-sidebar-symbol-restore-18')],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
