@@ -248,11 +248,11 @@ let handoffPromise=null;
     '<span>'+esc(pin.title)+'</span>'+
     '<div class="pn-saved-pin-actions"><button type="button" data-pn-edit-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Edit</button>'+
     '<button type="button" data-pn-remove-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Remove</button>'+
-    '<button type="button" data-pn-publish="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'"'+(boardLocks[board.id]===true?' disabled title="Unlock this board to publish"':'')+'>Post to Feed</button></div></article>').join('');
+    '</div></article>').join('');
    return '<section class="pn-saved-board" data-pn-collection="'+esc(board.id)+'" data-locked="'+(boardLocks[board.id]===true?'true':'false')+'">'+
     '<header><h4>'+esc(board.title)+' <small>('+board.pins.length+')</small> '+(boardLocks[board.id]===true?'<span class="pn-board-lock-label">🔒 locked</span>':'')+'</h4>'+
     '<button type="button" data-pn-lock-board="'+esc(board.id)+'" aria-pressed="'+(boardLocks[board.id]===true?'true':'false')+'">'+(boardLocks[board.id]===true?'Unlock board':'Lock board')+'</button>'+
-    '<button type="button" data-pn-publish-board="'+esc(board.id)+'" data-pn-board-kind="saved"'+(boardLocks[board.id]===true||!(board.pins||[]).length?' disabled':'')+'>Post board to Veve</button>'+
+
     '<button type="button" data-pn-rename-board="'+esc(board.id)+'">Rename</button>'+
     '<button type="button" data-pn-remove-board="'+esc(board.id)+'">Delete board</button></header>'+
     '<div class="pn-saved-pin-grid">'+(cols||'<p>Save Pins from above to this board.</p>')+'</div></section>';
@@ -658,7 +658,7 @@ async function connect(){await run(async()=>{
    return '<div class="pinterest-board-grid">'+Array.from({length:6},()=>tile).join('')+'</div>';
   }
   if(!boards.length)return'<p role="status">No Pinterest boards were returned. Use Refresh boards to retry.</p>';
-  const tiles=orderedBoards().slice(0,6).map(b=>{
+  const tiles=orderedBoards().map(b=>{
    const coverEntry=covers[b.id];
    const urls=Array.isArray(coverEntry?.images)?coverEntry.images.filter(Boolean).slice(0,3):[];
    const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry)||image(b);
@@ -705,10 +705,10 @@ async function connect(){await run(async()=>{
  const privateSaveUnavailable=pendingPrivatePins.length===0;
  const originalPinsMarkup=
   (connected?'<section class="pinterest-owned-section"><header><h3>Original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3>'+
-    '<p>These Pins are already on Pinterest. Keep a private BIG LWA copy or publish selected Pins to the Collective Feed; public posts can also appear in Veve.</p>'+
+    '<p>Original Pins stay private in your BIG LWA profile unless you later choose to publish them from myfeed.</p>'+
     '<div class="pn-original-controls"><button type="button" data-pn-select-original-all>Select all shown</button>'+
     '<button type="button" data-pn-import-original title="'+(privateSaveUnavailable?(selectedCreated.length?'Every selected Pin is already stored in BIG LWA':'Select Pins to import privately'):'Import '+pendingPrivatePins.length+' unsaved Pin(s) privately without publishing')+'"'+(privateSaveUnavailable?' disabled aria-disabled="true"':'')+'>Keep selected private</button>'+
-    '<button type="button" data-pn-publish-original title="Publish selected Pins to the public Collective Feed; Veve can surface public posts">Post selected to Collective Feed</button>'+
+    ''+
     '<span>'+selectedOriginalPins.size+' selected</span></div></header><div class="pinterest-owned-grid">'+
     (createdPins.map(pin=>{const id=String(pin.id||'');const pic=(hostedPinUrls.get(id)||[])[0]||image(pin);
       const status=profilePinStates.get(id)||'unknown';
@@ -716,25 +716,25 @@ async function connect(){await run(async()=>{
        '<label class="pn-pin-check"><input type="checkbox" data-pn-original-select="'+esc(id)+'"'+(selectedOriginalPins.has(id)?' checked':'')+'><span>Select</span></label>'+
        '<a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" title="Open original Pin on Pinterest">'+
        (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>'+
-       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Public · Collective Feed':status==='archived'?'Archived · not live':status==='private'?'● Private in BIG LWA':'● On Pinterest · not yet saved to BIG LWA')+'</small></article>';
+       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Shared to myfeed':status==='archived'?'Archived · not live':status==='private'?'● Private in BIG LWA':'● On Pinterest · not yet saved to BIG LWA')+'</small></article>';
     }).join('')||'<p>No original Pins were returned.</p>')+'</div>'+
-    (createdNext?'<button class="module-action" type="button" data-pn-more-created>Load more original Pins</button>':'')+'</section>':'');
+    (createdNext?'<p class="pn-more-loading">More original Pins are loading automatically.</p>':'')+'</section>':'');
  const connectedName=String(profile.username||profile.business_name||'').trim().replace(/^@/,'');
  const safeName=/^[\w.]{1,80}$/.test(connectedName)?connectedName:'';
  const qwikHref=safeName?'https://www.pinterest.com/'+encodeURIComponent(safeName)+'/':'https://www.pinterest.com/';
  const headerControls=connected
    ?'<button type="button" class="module-action" data-pn-refresh>↻ Refresh</button>'+
-    '<button type="button" class="module-action pn-secondary" data-pn-sync>Sync Pins</button>'
+    '<span class="pn-synced-hint" title="Pins refresh when you visit Boards">Automatically synced</span>'
    :'<button type="button" class="module-action pn-orbit-connect" data-pn-connect'+disabled+'>🪐 Connect Pinterest</button>';
  const boardPicker=connected?'<label class="pn-board-picker" for="pinterestBoardPicker"><span>Now showing pins from</span>'+
    '<select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+
    orderedBoards().map(b=>'<option value="'+esc(b.id)+'"'+(String(b.id)===String(boardId)?' selected':'')+'>'+esc(b.name)+'</option>').join('')+
    '</select></label>':'<span class="pn-board-picker pn-picker-empty">Connect Pinterest to browse your boards</span>';
  const boardActions=connected?'<div class="pn-board-view-actions">'+
-   (boardsNext?'<button type="button" class="module-action pn-secondary" data-pn-more-boards>Load more boards</button>':'')+
+   (boardsNext?'<span class="pn-more-loading">Loading more boards automatically…</span>':'')+
    '<button type="button" class="module-action pn-secondary" data-pn-select-board-all>Select all shown</button>'+
-   '<button type="button" class="module-action pn-secondary" data-pn-import-board>Save selected to profile</button>'+
-   '<button type="button" class="module-action pn-board-veve" data-pn-publish-board="'+esc(boardId)+'" data-pn-board-kind="pinterest"'+(!boardId||!pins.length?' disabled':'')+'>'+(selectedBoardPins.size?'Publish '+selectedBoardPins.size+' selected':'Publish entire board')+' to Veve + Collective</button></div>':'';
+   '<button type="button" class="module-action pn-secondary" data-pn-import-board>Keep selected private</button>'+
+   '<span class="pn-privacy-note">Private first · Share later from myfeed</span></div>':'';
  panel.innerHTML='<div class="pn-primary-head"><div class="pn-primary-identity"><h2>board</h2>'+
    '<div class="pn-connected-row"><span class="pn-orbit-planet" aria-hidden="true">●</span><span>'+
    (connected?'Pinterest connected'+(safeName?' · @'+esc(safeName):''):'Pinterest not connected')+'</span>'+
@@ -747,7 +747,7 @@ async function connect(){await run(async()=>{
       '<div class="pn-saved-popover-top"><b>Board management</b><button type="button" data-pn-manage-boards aria-label="Close board management">×</button></div>'+
       '<div class="pn-popover-actions">'+(connected?'<button type="button" class="module-action pn-secondary" data-pn-disconnect>Disconnect Pinterest</button>':'')+'</div>'+
       savedBoardsMarkup()+'</div>':'')+
-   '<div class="pn-import-progress" role="status" aria-live="polite" data-state="'+(busy?'loading':'ready')+'"><span class="pn-operation-indicator" aria-hidden="true"></span>'+esc(operationProgress||(busy?'Import or sync in progress · you can queue another action':queuedTasks?'Waiting for queued action':'Ready to browse and select Pins'))+(queuedTasks?' · '+queuedTasks+' queued':'')+'</div>'+ 
+   (busy||operationProgress||queuedTasks?'<div class="pn-import-progress" role="status" aria-live="polite" data-state="loading"><span class="pn-operation-indicator" aria-hidden="true"></span>'+esc(operationProgress||(queuedTasks?'Queued actions':'Syncing privately in the background'))+'</div>':'')+ 
    (message?'<p class="pn-notice" role="status">'+esc(message)+'</p>':'')+
    (/error|expired|reconnect|zero boards|unavailable|failed|unauthorized/i.test(diagnostic)?'<p class="pinterest-diagnostics" role="status">'+esc(diagnostic)+'</p>':'')+
    (importError?'<p role="alert">'+esc(importError)+'</p>':'')+
@@ -757,7 +757,7 @@ async function connect(){await run(async()=>{
   boardGrid(disabled)+
   '<div class="pn-current-board-bar">'+boardPicker+boardActions+'</div>'+
   (!boards.length&&connected&&!busy?'<p>No public boards were returned for this account.</p>':'')+
-  (boardId?'<p class="pn-board-scope-note">Now showing Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · '+pins.length+' loaded · '+selectedBoardPins.size+' selected · Veve publishes to Collective too. Only Pins you publish become public.</p>':'')+
+  (boardId?'<p class="pn-board-scope-note">Now showing Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · '+pins.length+' loaded · '+selectedBoardPins.size+' selected · Privately saved Pins remain private until you share from myfeed.</p>':'')+
   '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
    const src=(hostedPinUrls.get(String(p.id))||[])[0]||image(p);const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
@@ -768,13 +768,13 @@ async function connect(){await run(async()=>{
     '<a class="pn-pin-photo" href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View '+caption+' on Pinterest">'+
     (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+caption+'">':'<span class="pn-pin-placeholder">Image unavailable</span>')+'</a>'+
     '<div class="pn-pin-meta">'+(caption?'<p>'+caption+'</p>':'')+
-    '<div class="pn-pin-actions"><button type="button" data-pn-publish="'+id+'">Post to Collective</button>'+
+    '<div class="pn-pin-actions">'+
     '<label class="pn-save-select"><span>Board</span><select data-pn-target-board="'+id+'" aria-label="Save Pin into Big LWA board">'+opts+'</select></label>'+
     '<button type="button" data-pn-save-pin="'+id+'">Save</button>'+
     '<a href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View on Pinterest">↗</a></div></div></article>';
   }).join('')+'</div>'+
  (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
- (pinsNext?'<button type="button" class="module-action" data-pn-more-pins'+disabled+'>Load more Pins</button>':'')+originalPinsMarkup;
+ (pinsNext?'<p class="pn-more-loading">Loading more Pins automatically…</p>':'')+originalPinsMarkup;
 }
 document.addEventListener('change',e=>{
  const target=e.target;
