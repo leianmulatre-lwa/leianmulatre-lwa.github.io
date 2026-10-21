@@ -9,7 +9,7 @@ const home=read('index.html'),body=read('studio-three-bodies-20261019.js'),
 for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journal',pages],['toolbar',layout]])
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261020-hover-rings-layout-4'),'new three-body categorizer is deployed');
-assert.ok(home.includes('studio-onboarding.js?v=20261019-skeleton-keys-7'),'updated Skeleton Keys is deployed');
+assert.ok(home.includes('studio-onboarding.js?v=20261020-site-rainbow-skeleton-header-1'),'updated Skeleton Keys is deployed');
 assert.ok(home.includes('module-pages.js?v=20261020-permanent-journal-cover-14'),'owned Journal preview is deployed');
 assert.ok(home.includes('ui-coherence.js?v=20261019-room-green-single-onair-15'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
@@ -28,6 +28,8 @@ assert.equal(models.models.political.color,'#f8d4b0');
 assert.match(body,/focusModel/,'body model filter is interactive');
 assert.match(body,/Does not move cards or touch account layout data/,'Body-model choices never migrate or reorder widgets');
 assert.match(onboarding,/id='biglwaSkeletonHub'/,'reusable in-card Skeleton hub');
+assert.ok(onboarding.includes('<h2>Skeleton Keys</h2>')&&onboarding.includes('site rainbow:'),'Skeleton Keys has the correct title and rainbow section');
+assert.ok(!onboarding.includes('<h2>Studio</h2>'),'Expanded Skeleton Keys never mislabels itself Studio');
 assert.match(onboarding,/biglwaSkeletonKeysToggle/,'top toolbar launcher');
 assert.match(onboarding,/is-skeleton-open/,'dismissed card can reopen');
 for(const label of ['tutorial','symbols','settings','politc'])
