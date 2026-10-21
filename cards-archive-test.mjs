@@ -17,7 +17,7 @@ check("TikTok is purple", feed.includes('tiktok: { rim:"#772dcc"'));
 check("Facebook is blue", feed.includes('facebook: { rim:"#1877f2"'));
 check("Instagram is orange", feed.includes('instagram: { rim:"#f36b21", glow:"#ffad52"'));
 check("anything without a rim of its own falls back to blood orange", feed.includes('{ rim:FEED_RIM }'));
-check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
+check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(displaySource)"));
 check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
 check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
@@ -39,7 +39,7 @@ check("a card is fingerprinted", pages.includes("function archiveFingerprint(ite
 check("cards are bucketed by that fingerprint", pages.includes("const groups=new Map();"));
 check("cards are sorted into source blocks", pages.includes("const sa=String(items[a].source||'').toLowerCase(), sb=String(items[b].source||'').toLowerCase();"));
 check("newest first inside a source", pages.includes("return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);"));
-check("a repeat is counted, not hidden", pages.includes("additional copies of one picture"));
+check("a repeat is counted, not hidden", pages.includes("additional copies"));
 check("each group is drawn under a source heading", pages.includes('class="archive-source-group"'));
 check("the groups are styled as blocks", pages.includes(".archive-source-group{margin:0 0 26px}") && pages.includes(".archive-group-head{"));
 check("a repeat group is called out", pages.includes(".archive-group-head .archive-group-repeats{"));

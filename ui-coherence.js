@@ -596,6 +596,7 @@
     let mark=link.querySelector(':scope > .hero-shortcut-icon');
     let label=link.querySelector(':scope > .hero-shortcut-label');
     if(!mark||!label){mark=document.createElement('span');mark.className='hero-shortcut-icon';mark.setAttribute('aria-hidden','true');label=document.createElement('span');label.className='hero-shortcut-label';link.replaceChildren(mark,label)}
+    for(const child of [...link.children])if(child!==mark&&child!==label)child.remove();
     const artwork=entry.symbolHTML||'•';if(mark.innerHTML!==artwork)mark.innerHTML=artwork;
     if(label.textContent!==entry.label)label.textContent=entry.label;
     return link;

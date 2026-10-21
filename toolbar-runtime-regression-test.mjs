@@ -71,6 +71,7 @@ await new Promise(resolve=>setTimeout(resolve,9000));
 assert.equal(q('[data-sidebar-route-row="diary"]'),stableRow,'Startup refresh must preserve hover target');
 assert.equal(q('.hero-action-bar a[data-shortcut-route="diary"]'),stableHero,'Banner target remains connected');
 assert(q('.hero-shortcut-icon'),'Banner artwork has a constrained slot');
+for(const key of ['diary','feed'])assert.equal(q('.hero-action-bar [data-shortcut-route="'+key+'"]').querySelectorAll('img').length,1,'Exactly one symbol after late loader: '+key);
 assert.equal(errors.length,0,errors.join('\n'));
 assert.deepEqual(ids(w),expected,'Scheduled recovery preserves shortcuts');
 assert(q('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));

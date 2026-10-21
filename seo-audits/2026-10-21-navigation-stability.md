@@ -16,3 +16,12 @@ Verification:
 - The header rule stays at 21px slot / 18px maximum artwork / 20.25px type / 4.5px gap.
 - qa/skeleton-navigation.html is a data-free visual specimen generated from the production DOM test. It is not an authenticated Studio session. Its two display buttons only switch specimen collapsed/dark views.
 - Signed-in native hover/color-picker behavior is not claimed as browser verified.
+
+Live Chrome specimen measurements:
+- Nine banner controls: each 52px high.
+- All eight rail symbol slots: 16 × 16px.
+- Collapsed rail: clientWidth 47px, scrollWidth 47px (no horizontal overflow).
+- Dark Sqwidz background: rgb(6,43,64), matching #062b40.
+- Sqwidz computed font: Subwaygraph, 20.25px. Politic: Stars and Stripes, 20.25px.
+- Visual review caught an interaction with the late directory-symbol loader that inserted a second Journal/myfeed symbol outside the new slot. The loader now writes into the slot; DOM regression requires exactly one image after late loading and scheduled refresh.
+- Two older Feed/Archive source assertions were stale on baseline main: source color now correctly follows displaySource, and repeat copy says “additional copies.” Assertions updated to the existing behavior; 36 Feed and 58 Archive checks pass.

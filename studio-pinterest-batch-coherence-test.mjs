@@ -4,7 +4,7 @@ import {Script} from 'node:vm';
 const read=file=>readFileSync(new URL('./'+file,import.meta.url),'utf8');
 const studio=read('studio-three-bodies-20261019.js'),css=read('studio-alignment-20261020.css'),pins=read('pinterest-orbit.js'),feed=read('feed-view.js'),archive=read('module-pages.js'),index=read('index.html'),boot=read('account-boot.js');
 for(const [name,js]of [['body model',studio],['Pinterest',pins],['modules',archive]])assert.doesNotThrow(()=>new Script(js),name+' script parses');
-assert.ok(index.includes('/studio-alignment-20261020.css?v=layout-navigation-8'),'New Studio layout stylesheet is loaded');
+assert.ok(index.includes('/studio-alignment-20261020.css?v=layout-navigation-9'),'New Studio layout stylesheet is loaded');
 assert.ok(css.includes('#biglwaAuraAvatarPair{gap:14px'),'Aura and avatar have consistent 14px gutter');
 assert.ok(css.includes('#profileEditorTabs button[aria-selected="true"]'),'Profile editor tabs gain visible selected state');
 assert.ok(css.includes('#studioApp.profile-editor-wallpaper .hero'),'Wallpaper edit uses stable layout');

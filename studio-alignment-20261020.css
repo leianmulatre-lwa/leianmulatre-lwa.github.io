@@ -192,3 +192,5 @@ body.night-mode #studioApp #notes .note-paper,
 body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] :is(.module-card,.qwiky-note-input,.sqwib-published-item){background:#062b40!important;color:#e1f2fa!important;--widget-ink:#e1f2fa;--widget-muted:#b2cddd}
 body.night-mode #studioApp #notes .note-paper :is(p,div,span),
 body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] textarea{color:#e1f2fa!important}
+#studioApp .hero .hero-action-bar .hero-shortcut-icon .biglwa-archive-horizontal-symbol{display:grid!important;place-items:center!important;width:18px!important;height:18px!important;margin:0!important}
+#studioApp .sidebar .sidebar-route-icon .biglwa-archive-horizontal-symbol{display:grid!important;place-items:center!important;width:16px!important;height:16px!important;margin:0!important}

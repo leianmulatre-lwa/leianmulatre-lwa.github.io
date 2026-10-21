@@ -22,7 +22,7 @@ check("it steps down rather than staying five", /max-width:1560px\)\{#feedPageLi
 
 console.log("\n=== BLOOD ORANGE ON EVERY CARD ===");
 check("blood orange is the fallback rim for the wall", feed.includes("const FEED_RIM = \"#a52a0c\""));
-check("the rim is set on every card, from its own source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
+check("the rim is set on every card, from its own source", feed.includes("--feed-card-rim:' + rimOf(displaySource)"));
 check("the old per-position colour cycle is gone", !feed.includes("nth-child(6n+2){--feed-card-rim"));
 check("the rim colour is not taken from the source accent any more", !feed.includes("esc(src.accent)"));
 check("every card carries the hard rim and the soft glow", feed.includes(".biglwa-pin{--feed-card-rim:#a52a0c") && feed.includes("--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px") && feed.includes("box-shadow:var(--feed-card-shadow)"));

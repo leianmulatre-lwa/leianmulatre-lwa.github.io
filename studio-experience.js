@@ -815,7 +815,8 @@
       if(current&&currentImage?.getAttribute('src')===nextSrc)return;
       if(current){current.outerHTML=markup;return}
       [...link.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
-      link.insertAdjacentHTML('afterbegin',markup);
+      const slot=$(':scope > .hero-shortcut-icon',link);
+      if(slot)slot.innerHTML=markup;else link.insertAdjacentHTML('afterbegin',markup);
     };
     const replaceCardSymbol=(selector,iconClass,markup)=>{
       const icon=$(selector,app);if(!icon)return;
