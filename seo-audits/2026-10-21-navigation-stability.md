@@ -27,3 +27,11 @@ Live Chrome specimen measurements:
 - Two older Feed/Archive source assertions were stale on baseline main: source color now correctly follows displaySource, and repeat copy says “additional copies.” Assertions updated to the existing behavior; 36 Feed and 58 Archive checks pass.
 - Follow-up visual inspection found that the inner sidebar-top scroller could still show a horizontal scrollbar even when the outer sidebar did not overflow. The collapsed rule now sizes and constrains both scroll containers and their sections, retaining the 16px symbol slot. Sqwidz's symbol is light on its dark ocean background.
 - Navigation now reuses the same alpha-bound optical normalization as widget headers. This removes transparent asset padding before fitting artwork: rail 16px square / 14px visible ink; banner 18px square / 16px visible ink. Header geometry remains unchanged.
+
+Final browser verification (current stylesheet layout-navigation-10 and optical-navigation-3):
+- Both outer rail and inner sidebar-top/section/nav compute overflow-x:hidden. All symbols remain fully visible; no horizontal scrollbar appears in the captured collapsed view. Transparent raster margins may extend scrollWidth without creating a visible scrollbar or clipping visible artwork.
+- Rail slots are 16px, with image ink bounded to 14px; banner slots are 18px with ink bounded to 16px. Narrow glyphs preserve their original ratio.
+- No duplicate banner images. All 18 widget heading font sizes remain 20.25px.
+- Final dark Sqwidz background is rgb(6,43,64); its symbol uses brightness(0) invert(1) for contrast.
+- Pages deployment run 39669808996 succeeded. Screenshot: skeleton-navigation-final-20261021.jpg.
+- These browser measurements are from the data-free visual specimen. Native tooltips and color-picker interactions in an authenticated account remain unverified; the production DOM behavior and draft-protection regression checks pass.
