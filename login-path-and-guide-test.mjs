@@ -61,7 +61,7 @@ assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT p
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
-assert.ok(home.includes('studio-onboarding.js?v=20261020-skeleton-quick-route-3'));
+assert.ok(home.includes('studio-onboarding.js?v=20261021-skeleton-layout-4'));
 assert.ok(home.includes('session-restore.js?v=20261014-persistence-stability-6'));
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');

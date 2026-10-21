@@ -80,5 +80,27 @@ assert.deepEqual(ids(fresh),expected,'Fresh page restores account navigation wit
 assert(fresh.document.querySelector('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));
 assert.equal(fresh.document.querySelector('#mobileCreate').textContent,'✺veve');
 await new Promise(resolve=>setImmediate(resolve));reloaded.window.close();
+// Integrate the actual Skeleton Keys and body-filter modules with the production shell.
+w.eval(fs.readFileSync(root+'studio-three-bodies-20261019.js','utf8'));
+w.BigLWAThreeBodies.refresh();
+w.eval(fs.readFileSync(root+'studio-onboarding.js','utf8'));
+const launcher=q('#biglwaSkeletonKeysToggle');
+assert.equal(launcher.textContent,'Skeleton Keys');
+assert.equal(q('#biglwaBodyGuide').firstElementChild,launcher);
+assert(!launcher.querySelector('img'),'Top launcher is text, not an ankh');
+launcher.click();
+const card=q('.manifesto-card'),hub=q('#biglwaSkeletonHub');
+assert(card.classList.contains('is-skeleton-open')&&!hub.hidden);
+assert.equal(w.getComputedStyle(q('.biglwa-tour-actions',card)).position,'static','Actions cannot overlap title');
+assert.equal(w.getComputedStyle(q('#biglwaSkeletonSymbols')).display,'none','Closed legend takes no space');
+for(const button of hub.querySelectorAll('[data-skeleton-action]')){
+ assert(button.querySelector('.skeleton-icon-box'));
+ assert(button.querySelector('.skeleton-tile-label').textContent.trim());
+}
+click('[data-skeleton-action="symbols"]');
+assert(!q('#biglwaSkeletonSymbols').hidden);
+assert(q('#biglwaSkeletonSymbols .tour-symbol-item'));
+click('[data-skeleton-action="symbols"]');
+assert(q('#biglwaSkeletonSymbols').hidden);
 console.log('PASS original toolbar: VEVE, green/red docking and restore, yellow/red drag, Save shortcuts, banner connection, account reload and delayed recovery');
 await new Promise(resolve=>setImmediate(resolve));dom.window.close();

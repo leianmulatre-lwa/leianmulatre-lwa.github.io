@@ -8,8 +8,8 @@ const home=read('index.html'),body=read('studio-three-bodies-20261019.js'),
  layout=read('ui-coherence.js'),writing=read('writing-collections.js');
 for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journal',pages],['toolbar',layout]])
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
-assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261020-maroon-body-offset-5'),'new three-body categorizer is deployed');
-assert.ok(home.includes('studio-onboarding.js?v=20261020-skeleton-quick-route-3'),'updated Skeleton Keys is deployed');
+assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-first-6'),'new three-body categorizer is deployed');
+assert.ok(home.includes('studio-onboarding.js?v=20261021-skeleton-layout-4'),'updated Skeleton Keys is deployed');
 assert.ok(home.includes('module-pages.js?v=20261021-page-end-spacing-16'),'owned Journal preview is deployed');
 assert.ok(home.includes('ui-coherence.js?v=20261021-toolbar-symbols-26'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},

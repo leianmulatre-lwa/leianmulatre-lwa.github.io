@@ -98,7 +98,7 @@
   guide=document.createElement('section');guide.className='biglwa-body-guide';guide.id='biglwaBodyGuide';
   guide.setAttribute('aria-label','Three-body widget organization');
   const head=document.createElement('div');head.className='biglwa-body-guide-label';
-  const title=document.createElement('strong');title.textContent='Three bodies';
+  const title=document.createElement('strong');title.textContent='Skeleton Keys';
   const subtitle=document.createElement('small');subtitle.textContent='Sort widgets by body';
   head.append(title,subtitle);
   const nav=document.createElement('nav');nav.className='biglwa-body-keys';nav.id='biglwaBodyFilters';

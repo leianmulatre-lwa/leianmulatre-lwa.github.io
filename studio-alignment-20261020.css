@@ -123,3 +123,17 @@ body.night-mode #studioApp .sidebar .sidebar-route-icon img{
   height:21px!important;
   object-fit:contain;
 }
+
+/* Equal invisible symbol cells keep widget titles on a common text baseline. */
+#studioApp .card-head>div:has(>.card-icon),
+#studioApp .card-head .card-title{display:flex;align-items:center;gap:10px;min-width:0}
+#studioApp .card-head .card-icon{
+  display:grid!important;place-items:center!important;box-sizing:border-box!important;
+  flex:0 0 32px!important;width:32px!important;height:32px!important;
+  margin:0!important;padding:0!important;line-height:1!important;
+}
+#studioApp .card-head .card-icon img,
+#studioApp .card-head .card-icon svg,
+#studioApp .card-head .card-icon .studio-symbol-mark{
+  width:28px!important;height:28px!important;object-fit:contain!important;
+}
