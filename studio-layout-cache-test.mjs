@@ -31,7 +31,7 @@ const checks=[
  ['Widget three-dot action controls the dock',layout.includes('data-dock-widget')&&layout.includes('data-restore-widget')],
  ['Dock icons and names share fixed geometry',layout.includes('.sidebar-widget-name')&&layout.includes('flex:0 0 24px')&&layout.includes('font:650 10px')],
  ['Original sidebar is not hidden before script hydration',!home.includes('#studioApp .sidebar-top>nav{display:none!important}')],
- ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261021-widget-dock-only-20')],
+ ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261021-account-veve-21')],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
