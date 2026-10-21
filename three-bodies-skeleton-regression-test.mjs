@@ -10,8 +10,8 @@ for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journ
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261020-maroon-body-offset-5'),'new three-body categorizer is deployed');
 assert.ok(home.includes('studio-onboarding.js?v=20261020-skeleton-quick-route-3'),'updated Skeleton Keys is deployed');
-assert.ok(home.includes('module-pages.js?v=20261020-booth-dual-tabs-15'),'owned Journal preview is deployed');
-assert.ok(home.includes('ui-coherence.js?v=20261021-sidebar-symbol-restore-18'),'ON AIR and ONLINE badges are deployed');
+assert.ok(home.includes('module-pages.js?v=20261021-page-end-spacing-16'),'owned Journal preview is deployed');
+assert.ok(home.includes('ui-coherence.js?v=20261021-toolbar-corrective-19'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};
 vm.runInNewContext(body,context);
@@ -38,6 +38,7 @@ for(const label of ['tutorial','symbols','settings','politc','feed','orbit','con
 assert.ok(onboarding.includes('ankh; keys for the individual.'),'Studio key subtitle');
 assert.ok(onboarding.includes("key:'politc',detail:'Civic life"),'Politic has a real symbol image in key');
 assert.ok(onboarding.includes("key:'orbit',detail:")&&onboarding.includes("key:'connect',detail:"),'Orbit and Connect have separate symbol entries');
+assert.ok(pages.includes('.main.module-view>.module-page-aura{display:none!important')&&!pages.includes('height:min(380px,46vh)'),'Module page ends without a 380px trailing decoration');
 assert.ok(pages.includes("camera:'Booth'")&&pages.includes('id="boothPhotoTab"')&&pages.includes('id="boothVideoTab"'),'Booth has separate Photo and Video tabs');
 assert.ok(pages.includes('photoPanel.hidden=video;videoPanel.hidden=!video'),'Booth tab selection controls panel visibility');
 assert.ok(layout.includes("navigationCatalog.set('politc'"),'Politic becomes a first-class left toolbar destination');
