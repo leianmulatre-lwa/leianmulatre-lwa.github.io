@@ -45,6 +45,21 @@
     leftLeg:[V(20,52,4,12),V(28,52,4,12),V(24,52,4,12),V(16,52,4,12),V(20,48,4,4),V(24,48,4,4)],
     hat:[V(40,8,8,8),V(56,8,8,8),V(48,8,8,8),V(32,8,8,8),V(40,0,8,8),V(48,0,8,8)]
   };
+  // 1.8+ vanilla slim arms use a 3px front/back surface and 4px side.
+  // The original 4px UV lookup incorrectly stretched Alex's sleeves.
+  const slimArm={
+    right:[V(44,20,3,12),V(51,20,3,12),V(47,20,4,12),V(40,20,4,12),V(44,16,3,4),V(47,16,3,4)],
+    left:[V(36,52,3,12),V(43,52,3,12),V(39,52,4,12),V(32,52,4,12),V(36,48,3,4),V(39,48,3,4)],
+    rightSleeve:[V(44,36,3,12),V(51,36,3,12),V(47,36,4,12),V(40,36,4,12),V(44,32,3,4),V(47,32,3,4)],
+    leftSleeve:[V(52,52,3,12),V(59,52,3,12),V(55,52,4,12),V(48,52,4,12),V(52,48,3,4),V(55,48,3,4)]
+  };
+  const modernOverlays={
+    jacket:[V(20,36,8,12),V(32,36,8,12),V(28,36,4,12),V(16,36,4,12),V(20,32,8,4),V(28,32,8,4)],
+    rightSleeve:[V(44,36,4,12),V(52,36,4,12),V(48,36,4,12),V(40,36,4,12),V(44,32,4,4),V(48,32,4,4)],
+    leftSleeve:[V(52,52,4,12),V(60,52,4,12),V(56,52,4,12),V(48,52,4,12),V(52,48,4,4),V(56,48,4,4)],
+    rightPants:[V(4,36,4,12),V(12,36,4,12),V(8,36,4,12),V(0,36,4,12),V(4,32,4,4),V(8,32,4,4)],
+    leftPants:[V(4,52,4,12),V(12,52,4,12),V(8,52,4,12),V(0,52,4,12),V(4,48,4,4),V(8,48,4,4)]
+  };
   function makeFace(name,width,height,depth,uv,unit,url,atlasWidth,atlasHeight){
     const face=document.createElement('span');
     face.className='biglwa-mc-face biglwa-mc-'+name;
@@ -107,15 +122,24 @@
         const all=[
           ['head',[-4,0,8,8,8],maps.head],
           ['torso',[-4,8,4,8,12],maps.torso],
-          ['rightArm',[-8,8,4,slim?3:4,12],maps.rightArm],
-          ['leftArm',[4,8,4,slim?3:4,12],legacy?maps.rightArm:maps.leftArm],
+          ['rightArm',[-8,8,4,slim?3:4,12],slim?slimArm.right:maps.rightArm],
+          ['leftArm',[4,8,4,slim?3:4,12],legacy?maps.rightArm:(slim?slimArm.left:maps.leftArm)],
           ['rightLeg',[-4,20,4,4,12],maps.rightLeg],
           ['leftLeg',[0,20,4,4,12],legacy?maps.rightLeg:maps.leftLeg]
         ];
         for(const [name,box,map] of all){
           turntable.append(bodyPart(name,box,map,unit,url,atlasW,atlasH));
         }
-        if(!legacy){turntable.append(bodyPart('hat',[-4.35,-.35,8.7,8.7,8.7],maps.hat,unit,url,atlasW,atlasH));}
+        if(!legacy){
+          // Modern skin format: hat, jacket, sleeves and pant overlays.
+          // These are the same official second-layer UV positions as the game.
+          turntable.append(bodyPart('hat',[-4.35,-.35,8.7,8.7,8.7],maps.hat,unit,url,atlasW,atlasH));
+          turntable.append(bodyPart('jacket',[-4.15,7.85,4.3,8.3,12.3],modernOverlays.jacket,unit,url,atlasW,atlasH));
+          turntable.append(bodyPart('rightSleeve',[-8.1,7.85,4.2,(slim?3:4)+.2,12.3],slim?slimArm.rightSleeve:modernOverlays.rightSleeve,unit,url,atlasW,atlasH));
+          turntable.append(bodyPart('leftSleeve',[3.9,7.85,4.2,(slim?3:4)+.2,12.3],slim?slimArm.leftSleeve:modernOverlays.leftSleeve,unit,url,atlasW,atlasH));
+          turntable.append(bodyPart('rightPants',[-4.1,19.9,4.2,4.2,12.2],modernOverlays.rightPants,unit,url,atlasW,atlasH));
+          turntable.append(bodyPart('leftPants',[-.1,19.9,4.2,4.2,12.2],modernOverlays.leftPants,unit,url,atlasW,atlasH));
+        }
         // Place the top of the 32-pixel figure above the center of the scene.
         turntable.style.transformOrigin='0 '+(16*unit)+'px 0';
         turntable.style.transform='rotateX('+tilt+'deg) rotateY('+rotation+'deg)';
