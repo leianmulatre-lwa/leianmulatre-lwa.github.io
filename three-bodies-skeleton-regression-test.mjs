@@ -9,9 +9,9 @@ const home=read('index.html'),body=read('studio-three-bodies-20261019.js'),
 for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journal',pages],['toolbar',layout]])
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261020-maroon-body-offset-5'),'new three-body categorizer is deployed');
-assert.ok(home.includes('studio-onboarding.js?v=20261020-ankh-body-rail-2'),'updated Skeleton Keys is deployed');
-assert.ok(home.includes('module-pages.js?v=20261020-permanent-journal-cover-14'),'owned Journal preview is deployed');
-assert.ok(home.includes('ui-coherence.js?v=20261020-ui-stable-editor-16'),'ON AIR and ONLINE badges are deployed');
+assert.ok(home.includes('studio-onboarding.js?v=20261020-skeleton-quick-route-3'),'updated Skeleton Keys is deployed');
+assert.ok(home.includes('module-pages.js?v=20261020-booth-dual-tabs-15'),'owned Journal preview is deployed');
+assert.ok(home.includes('ui-coherence.js?v=20261020-booth-rename-17'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};
 vm.runInNewContext(body,context);
@@ -33,10 +33,13 @@ assert.ok(!onboarding.includes('<h2>Studio</h2>'),'Expanded Skeleton Keys never 
 assert.match(onboarding,/biglwaSkeletonKeysToggle/,'three-body ankh launcher');
 assert.ok(onboarding.includes('/assets/skeleton-keys-ankh.svg')&&onboarding.includes("const guide=$('#studioApp #biglwaBodyGuide')"),'Supplied ankh appears beside three-body filters');
 assert.match(onboarding,/is-skeleton-open/,'dismissed card can reopen');
-for(const label of ['tutorial','symbols','settings','politc'])
+for(const label of ['tutorial','symbols','settings','politc','feed','orbit','connect','veve'])
  assert.ok(onboarding.includes('data-skeleton-action="'+label+'"'),label+' square works');
 assert.ok(onboarding.includes('ankh; keys for the individual.'),'Studio key subtitle');
 assert.ok(onboarding.includes("key:'politc',detail:'Civic life"),'Politic has a real symbol image in key');
+assert.ok(onboarding.includes("key:'orbit',detail:")&&onboarding.includes("key:'connect',detail:"),'Orbit and Connect have separate symbol entries');
+assert.ok(pages.includes("camera:'Booth'")&&pages.includes('id="boothPhotoTab"')&&pages.includes('id="boothVideoTab"'),'Booth has separate Photo and Video tabs');
+assert.ok(pages.includes('photoPanel.hidden=video;videoPanel.hidden=!video'),'Booth tab selection controls panel visibility');
 assert.ok(layout.includes("navigationCatalog.set('politc'"),'Politic becomes a first-class left toolbar destination');
 assert.ok(layout.includes("status.textContent='ON AIR'"),'Stream uses ON AIR without synthetic watchers');
 assert.ok(layout.includes("status.textContent='ONLINE'"),'Room uses ONLINE without synthetic participants');
