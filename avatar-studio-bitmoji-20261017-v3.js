@@ -1135,10 +1135,6 @@
 .biglwa-avatar-lightbox-controls button,.biglwa-avatar-lightbox-controls a{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-height:33px;border:1px solid #c3bab5;border-radius:8px;padding:7px 10px;background:#fff;color:#4d3440;font:700 11px system-ui;text-decoration:none}
 .biglwa-avatar-lightbox-controls [hidden]{display:none!important}
 @media(max-width:650px){#studioApp #profileAvatarEditor .biglwa-bitmoji-actions>:is(button,label){min-width:106px!important} .biglwa-avatar-lightbox-media{max-height:66vh}}
-`;
-  document.head.append(style);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-})();
 
 /* Avatar and Aura share the user's persisted Aura hue.
    The provider's transparent bare mode lets this gradient show through. */
@@ -1149,3 +1145,8 @@
  background:radial-gradient(ellipse at 48% 50%,rgba(var(--aura-rgb,216,95,109),.55) 0%,rgba(var(--aura-rgb,216,95,109),.22) 43%,rgba(var(--aura-rgb,216,95,109),.05) 75%,transparent 100%)!important;
 }
 #studioApp .biglwa-sona-frame{background:transparent!important}
+
+`;
+  document.head.append(style);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
