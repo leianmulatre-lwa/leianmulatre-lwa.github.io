@@ -296,6 +296,20 @@
       #studioApp .sidebar-route-control:hover,#studioApp .sidebar-shortcut-open:hover,#studioApp .sidebar-navigation-open:hover{background:rgba(255,255,255,.52)}
       #studioApp .sidebar-route-icon{display:grid;flex:0 0 21px;width:21px;height:21px;place-items:center;font:700 15px/1 Georgia,serif}
       #studioApp .sidebar-route-icon>svg,#studioApp .sidebar-route-icon>img,#studioApp .sidebar-route-icon>.studio-symbol-mark{display:block;width:21px!important;height:21px!important;object-fit:contain}
+      /* Widget Dock geometry contract: 60px cell, 24px mark, 10px label,
+         8px vertical rhythm, identical in green and red areas. */
+      #studioApp .sidebar-widget-restore-row{display:grid!important;grid-template-columns:0 minmax(0,1fr) 0!important;gap:0!important;width:100%!important;max-width:100%!important;min-height:62px!important;margin:0 auto!important;padding:3px!important;box-sizing:border-box!important;align-items:center!important;justify-items:center!important}
+      #studioApp .sidebar-widget-restore-row .sidebar-shortcut-open{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-width:0!important;width:100%!important;height:56px!important;min-height:56px!important;box-sizing:border-box!important;padding:5px 3px!important}
+      #studioApp .sidebar-widget-restore-row .sidebar-route-icon{display:grid!important;place-items:center!important;flex:0 0 24px!important;width:24px!important;height:24px!important;margin:0!important;font:700 19px/1 Georgia,serif!important;overflow:hidden!important}
+      #studioApp .sidebar-widget-restore-row .sidebar-route-icon :is(img,svg,.studio-symbol-mark){display:block!important;object-fit:contain!important;max-width:24px!important;max-height:24px!important;width:24px!important;height:24px!important}
+      #studioApp .sidebar-widget-restore-row .sidebar-widget-name{display:block!important;width:100%!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;text-align:center!important;font:650 10px/1.2 Inter,system-ui,sans-serif!important;letter-spacing:.01em!important;color:inherit!important}
+      #studioApp .sidebar-widget-restore-row .sidebar-minimized-state{position:absolute!important;right:2px!important;top:3px!important;opacity:.65!important;font-size:9px!important;pointer-events:none!important}
+      body.sidebar-collapsed #studioApp .sidebar-widget-restore-row{min-height:42px!important}
+      body.sidebar-collapsed #studioApp .sidebar-widget-restore-row .sidebar-shortcut-open{height:38px!important;min-height:38px!important;padding:5px!important}
+      body.sidebar-collapsed #studioApp .sidebar-widget-restore-row .sidebar-widget-name{display:none!important}
+      #studioApp .biglwa-card-heading-row{display:flex!important;align-items:center!important;gap:10px!important;min-height:30px!important}
+      #studioApp .biglwa-card-heading-row>.card-icon{display:grid!important;place-items:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;margin:0!important;transform:none!important}
+      #studioApp .biglwa-card-heading-row>h2{min-width:0!important;margin:0!important;line-height:1.15!important}
       #studioApp .sidebar-shortcut-row,#studioApp .sidebar-navigation-row{position:relative;display:grid;grid-template-columns:17px 36px 17px;gap:3px;align-items:center;justify-content:center;min-height:38px;border-radius:9px}
       #studioApp .sidebar-shortcut-open{min-width:0}
       #studioApp .sidebar-shortcut-open b,#studioApp .sidebar-navigation-open b{display:none!important}
@@ -506,61 +520,69 @@
   }
 
   function ensureSidebar(){
-    const sidebar=$('#studioApp .sidebar');if(!sidebar)return;
+    const app=$('#studioApp'),sidebar=$('.sidebar',app),top=$('.sidebar-top',sidebar||app);
+    if(!app||!sidebar||!top)return;
     document.body.classList.remove('biglwa-sidebar-hidden');
     $('#biglwaSidebarShowTab')?.remove();
-    const top=$('.sidebar-top',sidebar);
-    let toggle=$('#sidebarCollapse',sidebar);
+    let toggle=$('#sidebarCollapse',top);
     if(!toggle){
-      toggle=document.createElement('button');
-      toggle.id='sidebarCollapse';
-      toggle.className='sidebar-collapse';
-      toggle.type='button';
-      top?.prepend(toggle);
+      toggle=document.createElement('button');toggle.id='sidebarCollapse';
+      toggle.className='sidebar-collapse';toggle.type='button';top.prepend(toggle);
     }
-    const setCollapsed=(collapsed)=>{
+    const setCollapsed=collapsed=>{
       document.body.classList.toggle('sidebar-collapsed',collapsed);
       toggle.setAttribute('aria-expanded',collapsed?'false':'true');
-      toggle.setAttribute('aria-label',collapsed?'Expand side navigation':'Collapse side navigation');
-      toggle.setAttribute('title',collapsed?'Expand side navigation':'Collapse side navigation');
+      toggle.setAttribute('aria-label',collapsed?'Expand widget dock':'Collapse widget dock');
+      toggle.title=collapsed?'Expand widget dock':'Collapse widget dock';
       toggle.innerHTML=collapsed?'<span aria-hidden="true">›</span><b>More</b>':'<span aria-hidden="true">‹</span><b>Hide</b>';
       try{localStorage.setItem('biglwaSidebarCollapsed',collapsed?'1':'0')}catch{}
     };
-    const fresh=toggle.cloneNode(true);
-    toggle.replaceWith(fresh);
-    toggle=fresh;
-    toggle.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
+    if(toggle.dataset.widgetDockToggleBound!=='1'){
+      toggle.dataset.widgetDockToggleBound='1';
+      toggle.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
+    }
     try{setCollapsed(localStorage.getItem('biglwaSidebarCollapsed')==='1')}catch{setCollapsed(false)}
 
-    const legacyNavigation=$$(':scope > nav a,:scope > nav button',top);
-    legacyNavigation.forEach((control,index)=>rememberNavigation(control,SHORTCUT_LIMIT+index));
+    // There is exactly ONE route shortcut bar: between the banner and widgets.
+    // This left rail contains ONLY widgets sent here via the red window light.
+    // Aura/music/guest-check use the green section; other docked widgets red.
     let primary=$('#studioSidebarPrimary',top);
-    if(!primary){primary=document.createElement('section');primary.id='studioSidebarPrimary';primary.className='sidebar-section sidebar-primary-widgets';primary.setAttribute('aria-label','Widgets minimized from the Studio')}
-    let shortcuts=$('#studioSidebarShortcuts',top);
-    if(!shortcuts){shortcuts=document.createElement('section');shortcuts.id='studioSidebarShortcuts';shortcuts.className='sidebar-section sidebar-shortcuts';shortcuts.setAttribute('aria-label','Shortcut bar, maximum eight');shortcuts.innerHTML='<nav id="studioSidebarShortcutDock" aria-label="Shortcut bar destinations"></nav><p class="sidebar-shortcut-status" role="status" aria-live="polite"></p><button class="sidebar-shortcut-save" id="saveSidebarShortcuts" type="button">Save shortcuts</button>'}
-    if(!$('#saveSidebarShortcuts',shortcuts)){const save=document.createElement('button');save.id='saveSidebarShortcuts';save.className='sidebar-shortcut-save';save.type='button';save.textContent='Save shortcuts';shortcuts.appendChild(save)}
-    if(primary.previousElementSibling!==toggle)toggle.insertAdjacentElement('afterend',primary);
-    if(shortcuts.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',shortcuts);
+    if(!primary){
+      primary=document.createElement('section');primary.id='studioSidebarPrimary';
+      primary.className='sidebar-section sidebar-primary-widgets';
+      primary.setAttribute('aria-label','Pinned widgets');
+    }
     let rest=$('#studioSidebarRest',top);
-    if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';top.appendChild(rest)}
-    rest.setAttribute('aria-label','Available shortcut destinations');
-    // Keep legacy links in place until populated replacements exist. Removing
-    // these early caused the sidebar to become completely blank if hydration
-    // or remote layout loading was delayed. The replacement renderer retires
-    // them only AFTER shortcut rows are visibly populated.
-    $$(':scope > nav:not(#studioSidebarAvailableDock),:scope > .sidebar-navigation-row,:scope > [data-sidebar-widget]',rest).forEach(item=>item.remove());
-    let availableDock=$('#studioSidebarAvailableDock',rest);
-    if(!availableDock){availableDock=document.createElement('nav');availableDock.id='studioSidebarAvailableDock';availableDock.setAttribute('aria-label','Available shortcut destinations, still active in the Studio');rest.prepend(availableDock)}
-    let dockedWidgetDock=$('#studioSidebarDockedWidgetDock',rest);
-    if(!dockedWidgetDock){dockedWidgetDock=document.createElement('div');dockedWidgetDock.id='studioSidebarDockedWidgetDock';dockedWidgetDock.setAttribute('aria-label','Widgets closed from the Studio');rest.appendChild(dockedWidgetDock)}
-    let widgetDockSection=$('#minimizedWidgets',top);
-    if(!widgetDockSection){widgetDockSection=document.createElement('div');widgetDockSection.id='minimizedWidgets';widgetDockSection.className='minimized-widgets';widgetDockSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div><div class="minimized-widget-dock" id="minimizedWidgetDock"></div>'}
-    widgetDockSection.hidden=false;widgetDockSection.classList.remove('sidebar-section','sidebar-shortcuts');widgetDockSection.setAttribute('aria-label','Widgets closed from the Studio');
-    if(widgetDockSection.parentElement!==primary)primary.appendChild(widgetDockSection);
-    primary.hidden=!$('[data-shortcut-row]',widgetDockSection);
-    rest.hidden=!$('[data-sidebar-route-row]',availableDock)&&!$('[data-shortcut-row]',dockedWidgetDock);
+    if(!rest){
+      rest=document.createElement('section');rest.id='studioSidebarRest';
+      rest.className='sidebar-section sidebar-rest-tools';
+      rest.setAttribute('aria-label','Docked widgets');
+    }
+    if(primary.parentElement!==top)top.appendChild(primary);
+    if(rest.parentElement!==top)top.appendChild(rest);
+    if(rest.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',rest);
+    let mount=$('#minimizedWidgets',primary);
+    if(!mount){
+      mount=document.createElement('div');mount.id='minimizedWidgets';
+      mount.className='minimized-widgets';
+      mount.setAttribute('aria-label','Pinned widgets minimized from Studio');
+      primary.appendChild(mount);
+    }
+    if(!$('#minimizedWidgetDock',mount)){
+      const dock=document.createElement('div');dock.id='minimizedWidgetDock';
+      dock.className='minimized-widget-dock';mount.appendChild(dock);
+    }
+    ensureRedWidgetDock(app);
+    // Remove only the duplicate navigation UI. Keep existing restore rows,
+    // widget placement, local layout and server snapshots unchanged.
+    top.querySelectorAll(':scope > nav').forEach(nav=>nav.remove());
+    $('#studioSidebarShortcuts',top)?.remove();
+    $('#studioSidebarAvailableDock',rest)?.remove();
+    $('#saveSidebarShortcuts',top)?.remove();
+    primary.hidden=!$('[data-shortcut-row]',primary);
+    rest.hidden=!$('[data-shortcut-row]',rest);
+    app.dataset.biglwaWidgetDockMode='1';
   }
-
   const navigationCatalog=new Map();
   let initialNavigationShortcuts=null;
   let draggedNavigationKey='';
@@ -650,56 +672,11 @@
     }
   }
   function syncSidebarShortcutSystem(){
-    const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!shortcutDock||!rest||!availableDock)return;
-    const currentHeroLinks=$('a',bar).filter(link=>link.id!=='mobileCreate');
-    const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
-    seedSidebarNavigationCatalog(app);
-    refreshNavigationCatalogFromWidgets(app);
-    const defaults=['politc','tools','calendar','map','projects','diary','notes','feed'];
-    if(!initialNavigationShortcuts?.length){
-      initialNavigationShortcuts=(heroKeys.length?heroKeys:defaults).filter(key=>navigationCatalog.has(key)).slice(0,SHORTCUT_LIMIT);
-    }
-    // Empty cloud/local navigation is not permission to silently erase all
-    // symbols. Rebuild visible rows in the current session, with no cloud save.
-    let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
-    if(!shortcuts.length)shortcuts=initialNavigationShortcuts.slice();
-    let hasSavedShortcuts=false;try{hasSavedShortcuts=localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
-    if(!hasSavedShortcuts){
-      // Default a useful accessibility-first dock once. Existing saved orders
-      // are always honored, including people who choose another arrangement.
-      const choices=['politc','tools','calendar','map','projects','diary','notes','feed','archive'];
-      shortcuts=[...choices.filter(k=>navigationCatalog.has(k)),
-        ...initialNavigationShortcuts.filter(k=>navigationCatalog.has(k))].filter((k,i,a)=>a.indexOf(k)===i).slice(0,SHORTCUT_LIMIT);
-    }
-    shortcuts=writeNavigationShortcuts(shortcuts,false);
-    shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
-    const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
-    availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
-    if(shortcutDock.childElementCount){
-      top.querySelectorAll(':scope > nav').forEach(nav=>nav.remove());
-      app.dataset.biglwaSidebarReady='1';
-    }
-    // Make the generated toolbar visible even if old prepaint CSS hid the
-    // original sidebar navigation while Studio loaded.
-    shortcutDock.hidden=false;shortcuts.length&&shortcutDock.removeAttribute('aria-hidden');
-    availableDock.hidden=false;
-    $('#studioSidebarShortcuts',app)?.removeAttribute('hidden');
-    if(bar){
-      const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
-      let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
-      create.classList.add('studio-veve-launcher');
-      create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
-      create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
-      const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
-      const split=Math.ceil(links.length/2);
-      bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));
-      bar.style.setProperty('--studio-action-count',String(links.length+1));
-    }
-    setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
-    const saveShortcutButton=$('#saveSidebarShortcuts',app);
-    if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
+    // Left rail is a widget dock. Route shortcuts remain in the original
+    // banner-to-widget action bar, with their own unchanged controls.
+    const app=$('#studioApp');if(!app)return;
+    ensureSidebar();
     syncPrimaryWidgetDock(app);
-    bindSidebarShortcutDrag(app);
   }
 
   function moveNavigationShortcut(app,key,connected,targetKey=''){
@@ -789,8 +766,9 @@
     const spacer=document.createElement('span');spacer.setAttribute('aria-hidden','true');
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
+    const title=document.createElement('span');title.className='sidebar-widget-name';title.textContent=label;
     const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
-    restore.append(mark);row.append(spacer,restore,state);return row;
+    restore.append(mark,title);row.append(spacer,restore,state);return row;
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
@@ -1654,9 +1632,9 @@
     ensureStyles();ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();
     // Sidebar has its own recovery boundary, so an unrelated editor or
     // account-layout exception cannot leave its primary navigation empty.
-    try{ensureSidebar();syncSidebarShortcutSystem()}catch(error){console.warn('[BIGLWA] Sidebar hydration retry',error)}
+    try{ensureSidebar()}catch(error){console.warn('[BIGLWA] Widget dock setup retry',error)}
     ensureControls();restoreLocalStudioOrder($('#studioApp'));
-    try{syncSidebarShortcutSystem();syncPrimaryWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Sidebar refresh retry',error)}
+    try{syncPrimaryWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Widget dock refresh retry',error)}
     ensureWidgetActions();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues();
   }
   if(document.documentElement.dataset.biglwaCustomizationSyncBound!=='1'){
@@ -1668,7 +1646,7 @@
   }
   if(document.documentElement.dataset.biglwaSymbolSyncBound!=='1'){
     document.documentElement.dataset.biglwaSymbolSyncBound='1';
-    document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshNavigationCatalogFromWidgets(app);syncSidebarShortcutSystem();refreshMinimizedWidgetIcons(app)});
+    document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshMinimizedWidgetIcons(app);syncPrimaryWidgetDock(app)});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
@@ -1685,7 +1663,7 @@
     if(!sidebar||!top)return;
     const count=$('#studioSidebarShortcutDock .sidebar-navigation-row,#studioSidebarAvailableDock .sidebar-navigation-row',app).length;
     if(count)return;
-    try{ensureSidebar();syncSidebarShortcutSystem()}catch(error){console.warn('[BIGLWA] Sidebar rescue',error)}
+    try{ensureSidebar();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
   }
   document.addEventListener('biglwa:module-close',rescueSidebar);
   window.addEventListener('pageshow',rescueSidebar);
