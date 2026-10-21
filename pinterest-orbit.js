@@ -524,6 +524,7 @@ async function connect(){await run(async()=>{
   pinsPromise=(async()=>{
    const data=await api('boards/'+encodeURIComponent(id)+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
    const nextItems=Array.isArray(data?.items)?data.items:Array.isArray(data?.pins)?data.pins:Array.isArray(data?.data?.items)?data.data.items:[];
+   if(String(boardId)!==String(id))return pins; // A prior board's response must not overwrite the new selection.
    pins=more?[...pins,...nextItems]:nextItems;pinsNext=data?.bookmark||data?.next_bookmark||'';
    diagnostic=nextItems.length?'Pinterest returned '+nextItems.length+' Pins from the selected board.':'Pinterest returned zero Pins for board '+id+'. Check access and whether the board contains Pins.';
    document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
@@ -553,6 +554,53 @@ async function connect(){await run(async()=>{
    return createdPins;
   })();
   try{return await createdPromise}finally{createdPromise=null}
+ }
+ // Load complete board and original-Pin catalogs without requiring repeated
+ // "Load more" clicks. Requests are sequential to protect Pinterest rate limits.
+ // No automatic action here publishes a Pin or changes account privacy.
+ let browseHydration=null;
+ const browsePause=()=>new Promise(resolve=>setTimeout(resolve,280));
+ async function hydrateBrowse({scope='all',uid=authUid,selected=boardId}={}){
+  if(!connected||!uid||uid!==authUid)return;
+  if(browseHydration)return browseHydration;
+  browseHydration=(async()=>{
+   const limits={boards:60,created:60,pins:60};
+   const finish=async(type)=>{
+    const seen=new Set();let pages=0;
+    while(uid===authUid&&connected&&pages<limits[type]){
+     if(type==='pins'&&boardId!==selected)return;
+     const cursor=String(type==='boards'?boardsNext:type==='created'?createdNext:pinsNext);
+     if(!cursor||seen.has(cursor))break;
+     seen.add(cursor);
+     try{
+      if(type==='boards')await loadBoards(true);
+      else if(type==='created')await loadCreatedPins(true);
+      else await loadPins(selected,true);
+     }catch(error){
+      console.warn('Pinterest background '+type+' pagination paused:',error);
+      break;
+     }
+     pages++;
+     await browsePause();
+    }
+   };
+   if(scope==='all'||scope==='boards')await finish('boards');
+   if(scope==='all'||scope==='created')await finish('created');
+   if(scope==='all'||scope==='pins')await finish('pins');
+   // Covers are fetched six at a time, with no need to press anything.
+   if(scope==='all'||scope==='boards'){
+    const visited=new Set();
+    for(let batch=0;batch<60&&uid===authUid&&connected;batch++){
+     const ids=orderedBoards().filter(b=>/^\d+$/.test(String(b.id||''))).filter(b=>!covers[b.id]).slice(0,6).map(b=>String(b.id));
+     if(!ids.length||ids.every(id=>visited.has(id)))break;
+     ids.forEach(id=>visited.add(id));
+     await loadCovers();
+     await browsePause();
+    }
+   }
+   if(uid===authUid)render();
+  })();
+  try{return await browseHydration}finally{browseHydration=null}
  }
  async function restore(){
   await recoverOrBindPinterestSession();
@@ -584,6 +632,8 @@ async function connect(){await run(async()=>{
     await loadCreatedPins();
     await refreshPinStates();
     render();
+    // Background pages keep populating the view while the first page is usable.
+    void hydrateBrowse({scope:'all',uid:authUid,selected:boardId});
   },{silent:true});
   try{return await restorePromise}finally{restorePromise=null}
  }
@@ -610,6 +660,7 @@ async function connect(){await run(async()=>{
   await run(async()=>{
     if(!more){rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();void loadCovers()}
     await loadPins(id,more);
+    if(!more)void hydrateBrowse({scope:'pins',uid:authUid,selected:id});
   });
  }
  async function disconnect(){await run(async()=>{
@@ -819,12 +870,12 @@ document.addEventListener('click',e=>{
    if(!unsaved.length){notice('Those Pins are already saved privately in BIG LWA.');return}
    run(async()=>{await importSelectedPins(unsaved);(original?selectedOriginalPins:selectedBoardPins).clear()});return;
  }
- if(e.target.closest('[data-pn-publish-original]')){e.preventDefault();e.stopImmediatePropagation();publishOriginalSelection();return}
+ if(e.target.closest('[data-pn-publish-original]')){e.preventDefault();e.stopImmediatePropagation();notice('Save original Pins privately here; public sharing happens from myfeed.');return}
  const boardPublish=e.target.closest('[data-pn-publish-board]');
  if(boardPublish){e.preventDefault();e.stopImmediatePropagation();
-   publishBoardToVeve(boardPublish.dataset.pnPublishBoard,boardPublish.dataset.pnBoardKind==='saved',boardPublish.dataset.pnBoardKind==='saved'?null:new Set(selectedBoardPins));return;}
+   notice('Boards are private-first. Save Pins privately here, then choose what to share from myfeed.');return;}
  const publish=e.target.closest('[data-pn-publish]');
- if(publish){e.preventDefault();e.stopImmediatePropagation();publishPin(publish.dataset.pnPublish,publish.dataset.pnSavedFrom||'');return;}
+ if(publish){e.preventDefault();e.stopImmediatePropagation();notice('Save privately here; public sharing happens from myfeed.');return;}
  const rename=e.target.closest('[data-pn-rename-board]');
  if(rename){e.preventDefault();e.stopImmediatePropagation();
   const id=rename.dataset.pnRenameBoard;
@@ -854,10 +905,10 @@ document.addEventListener('click',e=>{
  if(!b)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-pn-disconnect'))disconnect();
  else if(b.hasAttribute('data-pn-sync'))syncAllBoards();
- else if(b.hasAttribute('data-pn-refresh'))run(async()=>{boardId='';pins=[];pinsNext='';boards=[];boardsNext='';await loadBoards()});
- else if(b.hasAttribute('data-pn-more-boards'))run(()=>loadBoards(true));
- else if(b.hasAttribute('data-pn-more-pins'))choose(boardId,true);
- else if(b.hasAttribute('data-pn-more-created'))run(()=>loadCreatedPins(true));
+ else if(b.hasAttribute('data-pn-refresh'))run(async()=>{boardId='';pins=[];pinsNext='';boards=[];boardsNext='';await loadBoards();if(boards.length){boardId=String(orderedBoards()[0].id);await loadPins(boardId,false)}void hydrateBrowse({scope:'all',uid:authUid,selected:boardId});},{silent:true});
+ else if(b.hasAttribute('data-pn-more-boards'))void hydrateBrowse({scope:'boards',uid:authUid});
+ else if(b.hasAttribute('data-pn-more-pins'))void hydrateBrowse({scope:'pins',uid:authUid,selected:boardId});
+ else if(b.hasAttribute('data-pn-more-created'))void hydrateBrowse({scope:'created',uid:authUid});
  else if(connected){window.openBIGLWAModule?.('boards');render()}
  else connect();
 },true);
