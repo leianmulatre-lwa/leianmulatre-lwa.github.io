@@ -12,7 +12,7 @@ const CHROME_KEYS = ["biglwa-preview-identity"];
 let previewOverride = null;
 
 const clean = (v) => String(v || "").trim();
-const initial = (name) => clean(name).replace(/^@/, "").charAt(0).toUpperCase() || "B";
+const initial = (name) => clean(name).replace(/^@/, "").charAt(0).toLocaleUpperCase() || "B";
 
 function avatarTargets() {
   return [...document.querySelectorAll("#studioApp .mini-avatar, #studioApp .profile-avatar")];
@@ -22,7 +22,8 @@ export function renderAvatar(el, url, name) {
   if (!el) return;
   const letter = initial(name);
   const photo = clean(url);
-  el.textContent = photo ? "" : letter;
+  if(el.textContent !== (photo ? "" : letter))el.textContent = photo ? "" : letter;
+  if(!photo)el.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
   if (photo) {
     el.style.backgroundImage = `url("${photo.replace(/"/g, "")}")`;
     el.style.backgroundSize = "cover";
@@ -38,12 +39,17 @@ export function renderAvatar(el, url, name) {
 
 export function renderIdentityChrome(profile) {
   const who = profile || identity() || {};
-  const name = clean(who.name) || clean(who.username) || "there";
-  avatarTargets().forEach((el) => renderAvatar(el, who.avatarUrl, name));
+  const realName=clean(who.name);
+  const username=clean(who.username).replace(/^@/,"");
+  const name=realName && realName.toLowerCase()!==username.toLowerCase() ? realName : "";
+  const avatarName=name || "BIG LWA";
+  // Banner and top-right greeting must paint the exact same photo URL and
+  // name initial; the @handle is a separate identifier, never the letter.
+  avatarTargets().forEach((el) => renderAvatar(el, who.avatarUrl, avatarName));
   const welcome = document.querySelector(".profile-mini .welcome strong") || document.querySelector(".welcome strong");
-  if (welcome) welcome.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  if (welcome) welcome.textContent = name ? name.charAt(0).toUpperCase() + name.slice(1) : "there";
   const avatar = document.querySelector(".profile-mini .mini-avatar");
-  if (avatar) renderAvatar(avatar, who.avatarUrl, name);
+  if (avatar) renderAvatar(avatar, who.avatarUrl, avatarName);
   const handle = document.querySelector(".profile-rail-username, .profile-name-line h1");
   if (handle && who.username) handle.textContent = "@" + clean(who.username).replace(/^@/, "");
 }
