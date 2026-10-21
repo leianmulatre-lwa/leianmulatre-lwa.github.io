@@ -872,7 +872,7 @@
 
 /* The pair is ONE card-sized slot in the row. If one A is hidden,
    the remaining A fills that slot, not the entire rail. */
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
   grid-column:auto!important;grid-row:1!important;
   grid-template-columns:minmax(0,1fr)!important;
 }
@@ -893,48 +893,48 @@
 }
 
 /* Keep Avatar a preview; all source selectors live in Customize Profile. */
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair){
+#studioApp .hero:has(#biglwaAuraAvatarPair){
   display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;
   grid-auto-flow:row!important;align-content:start!important;overflow:visible!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.profile-card{
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.profile-card{
   grid-column:1!important;grid-row:1!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
   grid-column:1!important;grid-row:2!important;width:100%!important;max-width:none!important;
   display:grid!important;grid-template-columns:repeat(var(--biglwa-top-slot-count,3),minmax(0,1fr))!important;
   gap:14px!important;grid-auto-flow:row!important;grid-auto-rows:206px!important;
   align-items:stretch!important;overflow:visible!important;box-sizing:border-box!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{
   grid-column:auto!important;grid-row:1!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;min-height:0!important;
   width:100%!important;min-width:0!important;max-width:100%!important;gap:8px!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>:is(.music-card,.guest-check-card,.customizable-widget){
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>:is(.music-card,.guest-check-card,.customizable-widget){
   grid-column:auto!important;grid-row:1!important;width:100%!important;min-width:0!important;max-width:100%!important;
   align-self:stretch!important;margin:0!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar{
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar{
   grid-column:1!important;grid-row:3!important;position:relative!important;margin-top:4px!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card,
-#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card,
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{
   height:206px!important;min-height:206px!important;max-height:206px!important;
   overflow:hidden!important;box-sizing:border-box!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>:is(.music-card,.guest-check-card,.customizable-widget){
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>:is(.music-card,.guest-check-card,.customizable-widget){
   height:206px!important;min-height:206px!important;max-height:206px!important;
   overflow:hidden!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card{
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card{
   grid-template-columns:70px minmax(0,1fr)!important;column-gap:8px!important;
   padding:14px 12px!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card .aura-orb{
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card .aura-orb{
   width:66px!important;min-width:0!important;height:66px!important;max-height:66px!important;
 }
-#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{
+#studioApp .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{
   padding:10px 11px!important;gap:6px!important;
   border-radius:var(--widget-radius,18px)!important;background:var(--avatar-panel-bg,#cec3b9)!important;
   background-image:var(--avatar-panel-image,none)!important;color:var(--avatar-panel-ink,#302725)!important;
@@ -1069,10 +1069,10 @@
   position:static!important;
 }
 @media(max-width:900px){
-  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
     grid-template-columns:repeat(var(--biglwa-top-slot-count,2),minmax(0,1fr))!important
   }
-  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{grid-column:auto!important}
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{grid-column:auto!important}
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])){
     grid-template-columns:minmax(0,1fr)!important
   }
@@ -1080,10 +1080,10 @@
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.profile-card.profile-is-editing:has(#profileAvatarEditor:not([hidden])) #wallpaperPanel{grid-column:1!important;grid-row:1!important}
 }
 @media(max-width:620px){
-  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
     grid-template-columns:minmax(0,1fr)!important
   }
-  #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-column:1!important
   }
   #studioApp #profileAvatarEditor .biglwa-avatar-editor-layout{grid-template-columns:minmax(0,1fr)}
