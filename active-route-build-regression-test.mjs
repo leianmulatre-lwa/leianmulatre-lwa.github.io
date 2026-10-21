@@ -6,7 +6,7 @@ const original=read('bootstrap-v2.html');
 const expected={
   'module-pages.js':'20261021-page-end-spacing-16',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
-  'pinterest-orbit.js':'20261020-pins-queue-archive-6',
+  'pinterest-orbit.js':'20261021-private-auto-7',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
   'account-boot.js':'20261020-clean-pinterest-links-9'
 };
