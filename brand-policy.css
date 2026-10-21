@@ -1054,8 +1054,8 @@ body.about-site {
 /* New-account Studio defaults: a softened red theatre curtain, never an upload.
    Explicit approved wallpapers retain priority; removing one returns to this look. */
 #pageWallpaper:not(.custom-image):not(.biglwa-video-wallpaper){
-  background-color:#e8cac8!important;
-  background-image:linear-gradient(180deg,rgba(255,247,243,.77),rgba(255,241,237,.81)),url("/assets/login-curtain-film-grain-v2.webp")!important;
+  background-color:#5d1b32!important;
+  background-image:linear-gradient(180deg,rgba(72,9,32,.17),rgba(238,198,186,.23)),url("/assets/login-curtain-film-grain-v2.webp")!important;
   background-position:center center!important;
   background-size:cover!important;
   background-repeat:no-repeat!important;
@@ -1068,4 +1068,12 @@ body.about-site {
   font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;
   font-weight:400!important;
   font-variant-ligatures:normal!important;
+}
+
+/* Show the default red curtain in the Wallpaper tab as well. Uploaded media
+   sets an inline background image; the selector intentionally excludes it. */
+#studioApp #wallpaperPreview:not([style*="background-image"]){
+  background-color:#5d1b32!important;
+  background-image:linear-gradient(180deg,rgba(72,9,32,.14),rgba(238,198,186,.20)),url("/assets/login-curtain-film-grain-v2.webp")!important;
+  background-size:cover!important;background-position:center!important;
 }
