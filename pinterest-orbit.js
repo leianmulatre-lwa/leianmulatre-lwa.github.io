@@ -491,8 +491,8 @@ async function connect(){await run(async()=>{
  }
   /* Six covers is what the preview shows, so asking for more would spend the rate limit on
      tiles nobody sees. The Worker caches per session, so this is cheap after the first call. */
- async function loadCovers(){
-  const ids=orderedBoards().filter(b=>/^\d+$/.test(String(b.id||''))).filter(b=>!covers[b.id]).slice(0,6);
+ async function loadCovers(requestedIds=null){
+  const ids=(Array.isArray(requestedIds)?requestedIds.map(id=>boards.find(b=>String(b.id)===String(id))).filter(Boolean):orderedBoards().filter(b=>/^\d+$/.test(String(b.id||''))).filter(b=>!covers[b.id]).slice(0,6));
   if(!ids.length)return;
   try{const data=await api('board-covers?ids='+ids.map(b=>b.id).join(','));covers={...covers,...(data.covers||{})};render();document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'))}catch{}finally{}
  }
@@ -562,7 +562,15 @@ async function connect(){await run(async()=>{
  const browsePause=()=>new Promise(resolve=>setTimeout(resolve,280));
  async function hydrateBrowse({scope='all',uid=authUid,selected=boardId}={}){
   if(!connected||!uid||uid!==authUid)return;
-  if(browseHydration)return browseHydration;
+  if(browseHydration){
+   if(scope==='pins'){
+    const inFlight=browseHydration;
+    return inFlight.finally(()=>{
+     if(uid===authUid&&selected===boardId)return hydrateBrowse({scope:'pins',uid,selected});
+    });
+   }
+   return browseHydration;
+  }
   browseHydration=(async()=>{
    const limits={boards:60,created:60,pins:60};
    const finish=async(type)=>{
@@ -594,7 +602,7 @@ async function connect(){await run(async()=>{
      const ids=orderedBoards().filter(b=>/^\d+$/.test(String(b.id||''))).filter(b=>!covers[b.id]).slice(0,6).map(b=>String(b.id));
      if(!ids.length||ids.every(id=>visited.has(id)))break;
      ids.forEach(id=>visited.add(id));
-     await loadCovers();
+     await loadCovers(ids);
      await browsePause();
     }
    }
