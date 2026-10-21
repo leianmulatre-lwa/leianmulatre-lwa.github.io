@@ -746,7 +746,10 @@
     const id=widget.dataset.widgetId||widget.id||'',label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');
     const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget);
     if(source){
-      const markup=(source.matches('img,svg')?source.outerHTML:source.innerHTML).trim();
+      // Header optical geometry belongs to its header, never to copied sidebar icons.
+      const clean=source.cloneNode(true);
+      [clean,...clean.querySelectorAll('[data-heading-layout]')].forEach(node=>{if(node.hasAttribute('data-heading-layout')){node.removeAttribute('style');node.removeAttribute('data-heading-layout')}});
+      const markup=(clean.matches('img,svg')?clean.outerHTML:clean.innerHTML).trim();
       if(markup)return markup;
       const text=source.textContent.trim();if(text)return text;
     }

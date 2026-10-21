@@ -17,7 +17,7 @@
    try{const ratio=Math.min(1,512/Math.max(img.naturalWidth,img.naturalHeight));canvas.width=Math.ceil(img.naturalWidth*ratio);canvas.height=Math.ceil(img.naturalHeight*ratio);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;let l=canvas.width,t=canvas.height,r=-1,b=-1;for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(data[(y*canvas.width+x)*4+3]>16){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y)}resolve(r<0?null:{width:img.naturalWidth,height:img.naturalHeight,l:l/ratio,t:t/ratio,w:(r-l+1)/ratio,h:(b-t+1)/ratio});}catch{resolve(null)}
   };img.onerror=()=>resolve(null);img.src=src});cache.set(src,promise);return promise;
  }
- function important(el,values){for(const [key,value]of Object.entries(values))if(el.style.getPropertyValue(key)!==value)el.style.setProperty(key,value,'important')}
+ function important(el,values){el.dataset.headingLayout='1';for(const [key,value]of Object.entries(values))if(el.style.getPropertyValue(key)!==value)el.style.setProperty(key,value,'important')}
  async function normalize(icon){
   important(icon,{'width':SIZE+'px','height':SIZE+'px','flex-basis':SIZE+'px','margin':'0px','transform':'none','font-size':'0px'});
   const img=icon.querySelector('img');
@@ -31,10 +31,11 @@
   if(icon.querySelector('.heading-normalized-glyph'))return;
   const source=icon.querySelector('svg');
   if(source){const box=source.getBBox();if(box.width&&box.height){source.setAttribute('viewBox',`${box.x} ${box.y} ${box.width} ${box.height}`);source.setAttribute('preserveAspectRatio','xMidYMid meet');source.classList.add('heading-normalized-glyph');}return;}
+  const rotate=!!icon.querySelector('.biglwa-archive-horizontal-symbol');
   const glyph=icon.textContent.trim();if(!glyph)return;
   ctx.font='26px Georgia';const m=ctx.measureText(glyph),w=m.actualBoundingBoxLeft+m.actualBoundingBoxRight,h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;if(!w||!h)return;
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('heading-normalized-glyph');svg.setAttribute('viewBox',`${-m.actualBoundingBoxLeft} ${-m.actualBoundingBoxAscent} ${w} ${h}`);svg.setAttribute('preserveAspectRatio','xMidYMid meet');svg.setAttribute('aria-hidden','true');
-  const text=document.createElementNS(svg.namespaceURI,'text');text.setAttribute('x','0');text.setAttribute('y','0');text.setAttribute('font-family','Georgia');text.setAttribute('font-size','26');text.setAttribute('fill','currentColor');text.textContent=glyph;svg.append(text);icon.replaceChildren(svg);
+  const text=document.createElementNS(svg.namespaceURI,'text');text.setAttribute('x','0');text.setAttribute('y','0');text.setAttribute('font-family','Georgia');text.setAttribute('font-size','26');text.setAttribute('fill','currentColor');text.textContent=glyph;svg.append(text);if(rotate)svg.style.setProperty('transform','rotate(90deg)','important');icon.replaceChildren(svg);
  }
  function refresh(){
   pending=false;

@@ -11,7 +11,7 @@ for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journ
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-first-6'),'new three-body categorizer is deployed');
 assert.ok(home.includes('studio-onboarding.js?v=20261021-skeleton-layout-4'),'updated Skeleton Keys is deployed');
 assert.ok(home.includes('module-pages.js?v=20261021-page-end-spacing-16'),'owned Journal preview is deployed');
-assert.ok(home.includes('ui-coherence.js?v=20261021-toolbar-symbols-26'),'ON AIR and ONLINE badges are deployed');
+assert.ok(home.includes('ui-coherence.js?v=20261021-header-copy-27'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};
 vm.runInNewContext(body,context);
