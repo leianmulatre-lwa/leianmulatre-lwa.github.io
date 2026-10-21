@@ -53,15 +53,15 @@ assert.ok(session.includes("login.classList.remove('is-active')") && session.inc
   'verified Firebase user gets a Studio screen without a second login');
 assert.ok(!session.includes('finishAuth(null)'), 'network error never signs out user');
 
-assert.ok(onboarding.includes('biglwaSkeletonKeysToggle')&&onboarding.includes('openSkeleton'),'Toolbar Skeleton Keys reopens the dismissed Studio card');
-assert.ok(onboarding.includes("data.tourStart") || onboarding.includes("start.dataset.tourStart=''"),'pink card has explicit tour action');
+assert.ok(onboarding.includes('skeletonKeyLauncher')&&onboarding.includes('openSkeleton'),'Toolbar Skeleton Keys reopens the dismissed Studio card');
+assert.ok(!onboarding.includes("start.dataset.tourStart=''"),'Removed site-tour button stays removed');
 assert.ok(onboarding.includes('red/yellow/green') || onboarding.includes('Red removes or deletes'),'tutorial explains colored controls');
 assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT posted publicly'),
   'tutorial explains private imports vs public publishing');
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
-assert.ok(home.includes('studio-onboarding.js?v=20261021-skeleton-control-5'));
+assert.ok(home.includes('studio-onboarding.js?v=20261021-skeleton-compact-1'));
 assert.ok(home.includes('session-restore.js?v=20261014-persistence-stability-6'));
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');

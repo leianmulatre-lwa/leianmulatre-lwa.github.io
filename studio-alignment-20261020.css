@@ -199,3 +199,41 @@ body.sidebar-collapsed #studioApp .sidebar :is(.sidebar-section,nav){width:100%!
 body.sidebar-collapsed #studioApp .sidebar .sidebar-section{padding-left:0!important;padding-right:0!important}
 body.sidebar-collapsed #studioApp .sidebar :is(.sidebar-navigation-open,.sidebar-shortcut-open){min-width:0!important;flex:0 1 28px!important;width:28px!important}
 body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!important}
+/* Skeleton Key is a compact account panel; body explanation lives here only. */
+#studioApp .manifesto-card.is-skeleton-open{min-height:0!important;max-height:min(580px,80vh)!important;overflow:auto!important;padding:14px!important}
+#studioApp .manifesto-card .biglwa-skeleton-hub{gap:10px!important;padding:0!important}
+#studioApp .manifesto-card .biglwa-tour-actions{justify-content:flex-end!important;margin:0!important;padding:0!important}
+#studioApp .manifesto-card [data-tour-start],#studioApp .biglwa-body-tag,#studioApp #biglwaBodyGuide{display:none!important}
+#studioApp .skeleton-body-models{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:12px 4px}
+#studioApp .skeleton-body-models figure{margin:0;text-align:center;font:11px/1.5 system-ui}
+#studioApp .skeleton-model-widget{height:48px;background:#fff8f0;border-radius:8px;border:1px solid #c9b8bc;box-shadow:0 0 0 3px var(--model-shadow),0 5px 10px #0002;padding:10px;margin-bottom:7px}
+#studioApp .skeleton-model-widget i{display:block;background:#9b8b91;height:5px;width:50%;border-radius:2px}
+#studioApp .skeleton-model-widget span{display:block;height:10px;border-top:2px solid #d2c4c7;border-bottom:2px solid #d2c4c7;margin-top:8px}
+#studioApp .biglwa-skeleton-hub summary{cursor:pointer;font:650 12px/1.5 system-ui;padding:6px 0}
+#studioApp .skeleton-legal nav{display:flex;gap:10px;flex-wrap:wrap;font:12px system-ui}
+#studioApp #skeletonRankMount .real-rank{position:static!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;width:100%!important;padding:8px 0!important;margin:0!important;font:12px system-ui}
+#studioApp #skeletonRankMount .rank-track{flex:1;min-width:50px}
+#studioApp #skeletonRankMount .real-rank-explanation{display:none!important}
+#studioApp .skeleton-analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0}
+#studioApp .skeleton-analytics-grid div{padding:8px;border:1px solid #bfa7b3;border-radius:7px;font:11px system-ui}
+#studioApp .skeleton-analytics-grid strong{display:block;font-size:19px}
+#studioApp #skeletonAnalytics p{font:11px/1.4 system-ui;margin:4px 0}
+#studioApp #skeletonAnalytics select{font:11px system-ui;max-width:130px}
+#studioApp .connect-user-search{margin:10px 0;font:12px system-ui}
+#studioApp .connect-user-search input{box-sizing:border-box;width:100%;padding:9px 10px;border:1px solid #a99aa0;border-radius:8px;background:var(--widget-bg,#fffaf3);color:var(--widget-ink,#222)}
+#studioApp .connect-user-results{display:grid;gap:6px;margin-top:7px}
+#studioApp .connect-user-results>div{display:flex;align-items:center;gap:8px;justify-content:space-between;font:12px system-ui}
+#studioApp .connect-user-results button{font:11px system-ui;padding:5px 8px}
+#studioPersistentTooltip{position:fixed;z-index:2147483646;box-sizing:border-box;max-width:230px;padding:9px 12px;border-radius:7px;background:#302733;color:#fff;font:12px/1.4 system-ui;box-shadow:0 4px 16px #0004;pointer-events:auto}
+#studioPersistentTooltip[hidden]{display:none}
+#studioColorDialog{box-sizing:border-box;width:min(340px,calc(100vw - 28px));border:1px solid #bfa7b3;border-radius:14px;padding:20px;background:#fff8f0;color:#302733;box-shadow:0 15px 60px #0005}
+#studioColorDialog::backdrop{background:#20142166}
+#studioColorDialog h2{font:700 18px system-ui;margin:0 0 12px}
+#studioColorDialog label{display:grid;grid-template-columns:1fr auto;gap:5px;font:12px system-ui;margin:12px 0}
+#studioColorDialog input{grid-column:1/-1;width:100%;box-sizing:border-box}
+#studioColorHex{padding:8px;border:1px solid #bfa7b3;border-radius:6px}
+#studioColorSwatch{height:44px;border:1px solid #bfa7b3;border-radius:8px}
+.studio-color-actions{display:flex;justify-content:flex-end;gap:10px}
+.studio-color-actions button{padding:8px 15px;border:1px solid #bfa7b3;border-radius:7px}
+#studioColorDone{background:#703b53;color:white}
+#studioApp .biglwa-skeleton-title .skeleton-settings{margin-left:auto;font:11px system-ui;color:inherit}

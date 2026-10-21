@@ -340,20 +340,8 @@
    launcher.innerHTML='<img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true">';
    launcher.addEventListener('click',openSkeleton);top.prepend(launcher);
   }
-  const guide=$('#studioApp #biglwaBodyGuide');
-  if(!guide)return false;
-  let button=$('#biglwaSkeletonKeysToggle');
-  if(!button){
-   button=document.createElement('button');button.id='biglwaSkeletonKeysToggle';
-   button.type='button';
-   button.textContent='Skeleton Key';
-   button.title='Skeleton Key';
-   button.setAttribute('aria-label','Open Skeleton Key');
-   button.addEventListener('click',openSkeleton);
-  }
-  $('.biglwa-body-guide-label',guide)?.remove();
-  if(guide.firstElementChild!==button)guide.prepend(button);
-  return true;
+  $('#biglwaBodyGuide')?.remove();
+  return !!top;
  }
  function skeletonHub(){
   if(!card)return null;
@@ -361,48 +349,23 @@
   if(hub)return hub;
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
   hub.setAttribute('aria-label','Skeleton Key for the individual');
-  hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Key</h2></div><p class="skeleton-subtitle">ankh; keys for the individual.</p>'+
-   '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Body indicators <small>Show body labels, colored markers, and filters</small></label>'+
-   '<h3 class="skeleton-rainbow-heading">site rainbow:</h3>'+
-   '<div class="biglwa-skeleton-squares" role="group" aria-label="Skeleton Key quick squares">'+
-   '<button type="button" data-skeleton-action="tutorial"><span class="skeleton-tile-glyph" aria-hidden="true">✦</span>Site tutorial</button>'+
-   '<button type="button" data-skeleton-action="symbols"><img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">Symbol key image</button>'+
-   '<button type="button" data-skeleton-action="settings"><span class="skeleton-tile-glyph" aria-hidden="true">⚙</span>Settings</button>'+
-   '<button type="button" data-skeleton-action="politc"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">Politic</button>'+
-   '<button type="button" data-skeleton-action="feed"><img src="/assets/feed-symbol-generated.png" alt="">myfeed</button>'+
-   '<button type="button" data-skeleton-action="orbit"><span class="skeleton-tile-glyph" aria-hidden="true">◎</span>Orbit</button>'+
-   '<button type="button" data-skeleton-action="connect"><span class="skeleton-tile-glyph" aria-hidden="true">✣</span>Connect</button>'+
-   '<button type="button" data-skeleton-action="veve"><span class="skeleton-tile-glyph" aria-hidden="true">✺</span>veve</button></div>'+
-   '<ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools" hidden></ul>'+
-   '<p class="skeleton-key-note">Three bodies · individual / social / political. Keys stay here in Studio.</p>';
+  hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div>'+
+   '<div id="skeletonRankMount"></div><details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
+   '<details class="skeleton-body-legend"><summary>Body shadow key</summary><div class="skeleton-body-models">'+
+   '<figure style="--model-shadow:#d9c6ee"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Individual</figcaption></figure>'+
+   '<figure style="--model-shadow:#f7cddd"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Social</figcaption></figure>'+
+   '<figure style="--model-shadow:#f8d4b0"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Political</figcaption></figure></div>'+
+   '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Show body shadows on hover</label></details>'+
+   '<details class="skeleton-symbol-details"><summary>Symbol key</summary><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools"></ul></details>'+
+   '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>';
+  hub.querySelectorAll(':scope > details').forEach(section=>section.addEventListener('toggle',()=>{if(section.open)hub.querySelectorAll(':scope > details').forEach(other=>{if(other!==section)other.open=false})}));
+  $('.skeleton-analytics-details',hub).addEventListener('toggle',event=>{if(event.target.open)window.BigLWAAccountInsights?.refresh?.()});
+  $('.skeleton-symbol-details',hub).addEventListener('toggle',event=>{if(event.target.open)renderSymbolKey($('#biglwaSkeletonSymbols',hub))});
   const indicators=$('#skeletonBodyIndicators',hub);indicators.checked=window.BigLWAThreeBodies?.enabled?.()!==false;
   indicators.addEventListener('change',()=>window.BigLWAThreeBodies?.setEnabled(indicators.checked));
-  // Every tile uses the same invisible square and a separate wrapping label.
-  hub.querySelectorAll('[data-skeleton-action]').forEach(button=>{
-   const artwork=button.firstElementChild,label=document.createElement('span');
-   label.className='skeleton-tile-label';label.textContent=button.textContent.replace(artwork?.textContent||'', '').trim();
-   const icon=document.createElement('span');icon.className='skeleton-icon-box';icon.setAttribute('aria-hidden','true');
-   if(artwork)icon.append(artwork);
-   button.replaceChildren(icon,label);
-  });
-  hub.addEventListener('click',event=>{
-   const action=event.target.closest('[data-skeleton-action]')?.dataset.skeletonAction;
-   if(!action)return;
-   if(action==='tutorial'){openTour();return;}
-   if(action==='symbols'){
-    const legend=$('#biglwaSkeletonSymbols',hub);
-    legend.hidden=!legend.hidden;
-    if(!legend.hidden)renderSymbolKey(legend);
-    return;
-   }
-   if(action==='settings'){location.assign('/settings');return;}
-   if(['politc','feed','orbit','connect','veve'].includes(action)){
-    const open=window.BigLWAOpenModule||window.openBIGLWAModule;
-    if(typeof open==='function')open(action);
-    return;
-   }
-  });
   card.appendChild(hub);
+  const rank=$('#studioApp .profile-card .real-rank');if(rank){const value=$('strong',rank);if(value)value.textContent='Chopped';const track=$('.rank-track i',rank);if(track)track.style.width='0%';const next=$('.rank-next',rank);if(next)next.textContent='next: 007';$('#skeletonRankMount',hub).append(rank)}
+  window.BigLWAAccountInsights?.refresh?.();
   return hub;
  }
  function openSkeleton(){
@@ -422,15 +385,14 @@
   if(!next)return false;
   card=next;style();currentUid=uid();
   if(!card.classList.contains('is-skeleton-open'))card.classList.toggle('is-tutorial-dismissed',readDismissed());
-  skeletonHub();
+  const hub=skeletonHub();
+  if(!readDismissed()){card.classList.add('is-skeleton-open');hub.hidden=false}
   if(!$('.biglwa-tour-actions',card)){
    const actions=document.createElement('div');actions.className='biglwa-tour-actions';
-   const start=document.createElement('button');start.type='button';start.dataset.tourStart='';
-   start.textContent='? Take the site tour';start.setAttribute('aria-label','Start the Big LWA website tutorial');
+
    const remove=document.createElement('button');remove.type='button';remove.dataset.tourDismiss='';
-   remove.textContent='×';remove.title='Remove tutorial card';remove.setAttribute('aria-label','Remove tutorial card from Studio');
-   actions.append(start,remove);card.append(actions);
-   start.addEventListener('click',openTour);
+   remove.textContent='×';remove.title='Close Skeleton Key';remove.setAttribute('aria-label','Close Skeleton Key');
+   actions.append(remove);card.append(actions);
    remove.addEventListener('click',dismiss);
   }
   if(new URLSearchParams(location.search).get('tutorial')==='1'){
@@ -454,7 +416,7 @@
  let pending=false;
  const observer=new MutationObserver(()=>{
   if(card?.isConnected && $('.biglwa-tour-actions',card) &&
-     $('#biglwaSkeletonKeysToggle')?.parentElement?.id==='biglwaBodyGuide' && $('#skeletonKeyLauncher'))return;
+     $('#skeletonKeyLauncher') && $('#biglwaSkeletonHub'))return;
   if(pending)return;
   pending=true;
   requestAnimationFrame(()=>{pending=false;attach()});

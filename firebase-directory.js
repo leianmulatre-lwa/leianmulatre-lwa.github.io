@@ -376,7 +376,7 @@ export async function searchUsers(rawQuery){
       collection(db,"usernames"),
       orderBy("usernameLower"),
       startAt(q),
-      endAt(q+"\\uf8ff"),
+      endAt(q+"\uf8ff"),
       limit(8)
     ));
     return snap.docs.map(d=>{
@@ -439,7 +439,39 @@ async function loadArchiveForUsername(rawUsername){
   }
 }
 
-window.BigLWAUserDirectory={saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
+// Private analytics and people added. These fields are never copied to usernames.
+async function ownAccountContext(){
+ const {db,auth}=await getFirebase();await auth.authStateReady();
+ const owner=auth.currentUser?.uid;if(!owner)throw Error('Sign in to manage your connections.');
+ const fire=await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+ return {db,auth,owner,fire,ref:fire.doc(db,'users',owner)};
+}
+async function getAccountOverview(){
+ const c=await ownAccountContext(),snapshot=await c.fire.getDoc(c.ref);
+ if(c.auth.currentUser?.uid!==c.owner)throw Error('Account changed. Try again.');
+ const data=snapshot.data()||{};
+ return {uid:c.owner,peopleConnections:data.peopleConnections||{},analyticsMonths:data.analyticsMonths||{},connections:data.connections||{},orbitConnectedProfiles:data.orbitConnectedProfiles||{},realRank:data.realRank||null};
+}
+async function addPerson(username){
+ const c=await ownAccountContext(),name=normalize(username);
+ if(!/^[a-z0-9._-]{1,30}$/.test(name))throw Error('Invalid username.');
+ const target=await c.fire.getDoc(c.fire.doc(c.db,'usernames',name)),person=target.data();
+ if(!target.exists()||!person?.uid)throw Error('This account could not be found.');
+ if(person.uid===c.owner)throw Error('This is your own account.');
+ if(c.auth.currentUser?.uid!==c.owner)throw Error('Account changed. Try again.');
+ await c.fire.setDoc(c.ref,{peopleConnections:{[person.uid]:{uid:person.uid,username:person.username||name,name:String(person.name||'').slice(0,100),addedAt:new Date().toISOString()}}},{merge:true});
+ return getAccountOverview();
+}
+async function recordAnalyticsMonth(month,snapshot){
+ if(!/^\d{4}-\d{2}$/.test(month))throw Error('Invalid analytics month.');
+ const c=await ownAccountContext();
+ const sources=(snapshot.sources||[]).slice(0,12).map(s=>({id:String(s.id).slice(0,24),followers:Number.isFinite(s.followers)&&s.followers>=0?s.followers:null,lastCheckedAt:String(s.lastCheckedAt||'').slice(0,40),reach:s.reach?.month===month&&s.reach?.metric==='reach'&&Number.isFinite(s.reach.value)&&s.reach.value>=0?{month,metric:'reach',value:s.reach.value}:null}));
+ const data={sources,connections:Math.max(0,Number(snapshot.connections)||0),observedAt:new Date().toISOString()};
+ await c.fire.setDoc(c.ref,{analyticsMonths:{[month]:data}},{merge:true});
+ return data;
+}
+
+window.BigLWAUserDirectory={getAccountOverview,addPerson,recordAnalyticsMonth,saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
 
 (async()=>{
   try{

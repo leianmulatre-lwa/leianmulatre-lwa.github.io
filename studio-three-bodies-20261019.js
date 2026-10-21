@@ -95,55 +95,17 @@
    if(button.getAttribute('aria-pressed')!==String(selected))button.setAttribute('aria-pressed',String(selected));
   });
  }
- function ensureGuide(masonry){
-  let guide=$('#biglwaBodyGuide');
-  if(guide&&guide.nextElementSibling===masonry)return guide;
-  if(guide)guide.remove();
-  guide=document.createElement('section');guide.className='biglwa-body-guide';guide.id='biglwaBodyGuide';
-  guide.setAttribute('aria-label','Three-body widget organization');
-  const head=document.createElement('div');head.className='biglwa-body-guide-label';
-  const title=document.createElement('strong');title.textContent='Skeleton Key';
-  const subtitle=document.createElement('small');subtitle.textContent='Sort widgets by body';
-  head.append(title,subtitle);
-  const nav=document.createElement('nav');nav.className='biglwa-body-keys';nav.id='biglwaBodyFilters';
-  nav.setAttribute('aria-label','Focus by body model');
-  for(const [key,entry]of [['all',{label:'All',color:'#e7e2e7'}],...Object.entries(models)]){
-   const button=document.createElement('button');button.type='button';button.dataset.bodyFilter=key;
-   button.style.setProperty('--body-key-color',entry.color);
-   button.textContent=entry.label;button.title=entry.about||'Show all widgets';
-   button.setAttribute('aria-pressed',String(focus===key));nav.append(button);
-  }
-  nav.addEventListener('click',event=>{
-   const button=event.target.closest('button[data-body-filter]');if(!button)return;
-   focus=button.dataset.bodyFilter;applyFocus($('#studioApp'));
-  });
-  guide.append(head,nav);masonry.parentNode.insertBefore(guide,masonry);return guide;
- }
  function refresh(){
   style();
   const app=$('#studioApp'),masonry=app?.querySelector('.masonry');if(!masonry)return;
-  const guide=ensureGuide(masonry);
+  $('#biglwaBodyGuide')?.remove();
   app.dataset.bodyIndicators=enabled()?'on':'off';
-  if(enabled())guide.style.removeProperty('display');else guide.style.setProperty('display','none','important');
   const toggle=$('#skeletonBodyIndicators');if(toggle)toggle.checked=enabled();
-  if(guide?.parentElement){
-   // Align the body controls to the actual first widget edge, not page chrome.
-   // The measured inset also follows sidebar and responsive layout changes.
-   const inset=Math.round(masonry.getBoundingClientRect().left-guide.parentElement.getBoundingClientRect().left);
-   if(inset>0&&inset<120)guide.style.setProperty('--body-guide-offset',inset+'px');
-  }
   for(const card of [...masonry.children]){
    if(!card.classList.contains('card'))continue;
    const model=modelOf(card);
    if(card.dataset.bodyModel!==model)card.dataset.bodyModel=model;
-   let badge=card.querySelector(':scope > .biglwa-body-tag');
-   if(!badge){
-    badge=document.createElement('span');badge.className='biglwa-body-tag';
-    badge.setAttribute('aria-hidden','true');
-    const header=card.querySelector(':scope > .card-head');
-    if(header)header.insertAdjacentElement('afterend',badge);else card.prepend(badge);
-   }
-   const label=models[model].label+' body';if(badge.textContent!==label)badge.textContent=label;
+   card.querySelectorAll('.biglwa-body-tag').forEach(badge=>badge.remove());
   }
   $$('#studioApp .hero-widget-rail .customizable-widget').forEach(card=>{
    const model=modelOf(card);if(card.dataset.bodyModel!==model)card.dataset.bodyModel=model;

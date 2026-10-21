@@ -568,11 +568,11 @@
     clone.querySelectorAll(':scope > b').forEach(node=>node.remove());
     [...clone.children].forEach(node=>{if(node.tagName==='SPAN'&&node.textContent.trim()===label)node.remove()});
     const wrapper=clone.querySelector(':scope > .sidebar-route-icon,:scope > .hero-shortcut-icon');
-    if(wrapper&&clone.children.length===1&&!clone.textContent.trim().replace(wrapper.textContent.trim(),''))return wrapper.innerHTML||wrapper.textContent||'•';
+    if(wrapper)return wrapper.innerHTML||wrapper.textContent||'•';
     return clone.innerHTML.trim()||clone.textContent.trim()||'•';
   }
   function rememberNavigation(control,order){
-    const key=navigationKey(control);if(!key||key==='create')return '';
+    const key=navigationKey(control);if(!key||key==='create'||key==='rights')return '';
     const label=navigationLabel(control,key),existing=navigationCatalog.get(key),fromGenerated=!!control.closest?.('#studioSidebarShortcuts,#studioSidebarRest');
     const symbolHTML=navigationSymbolMarkup(control,label);
     navigationCatalog.set(key,{key,label,href:control.getAttribute?.('href')||existing?.href||'#'+key,policyRoute:control.dataset?.policyRoute||existing?.policyRoute||'',symbolHTML:(!fromGenerated&&symbolHTML)||existing?.symbolHTML||symbolHTML||'•',order:existing?.order??order});
@@ -607,7 +607,7 @@
   // routes *before* drawing shortcut rows. Never mutate account layout here.
   const SIDEBAR_ROUTE_FALLBACKS=[
     ['politc','Politic','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
-    ['tools','Tools','⚒'],
+    ['tools','Tools','<img src="/assets/tools-hand-eye.svg" alt="">'],
     ['calendar','Calendar','▦'],
     ['map','Map','⌖'],
     ['projects','Projects','<img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">'],
@@ -658,6 +658,8 @@
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
     seedSidebarNavigationCatalog(app);
+    navigationCatalog.delete('rights');
+    $$('.sidebar a[href="/rights"],.sidebar [data-policy-route="rights"]',app).forEach(node=>node.remove());
     refreshNavigationCatalogFromWidgets(app);
     if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
     if(!initialNavigationShortcuts?.length)return;
@@ -763,7 +765,7 @@
     const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget);
     if(source){
       // Header optical geometry belongs to its header, never to copied sidebar icons.
-      const clean=source.cloneNode(true);
+      const clean=(source.matches('img,svg')?source:source.querySelector('img,svg')||source).cloneNode(true);
       [clean,...clean.querySelectorAll('[data-heading-layout]')].forEach(node=>{if(node.hasAttribute('data-heading-layout')){node.removeAttribute('style');node.removeAttribute('data-heading-layout')}});
       const markup=(clean.matches('img,svg')?clean.outerHTML:clean.innerHTML).trim();
       if(markup)return markup;
@@ -811,6 +813,8 @@
     if(!app)return;
     // Politic is a first-class navigation destination even when inserted after
     // the original Studio sidebar catalog was assembled.
+    const toolsIcon=$('#tools .card-icon',app);
+    if(toolsIcon&&!toolsIcon.querySelector('img[src="/assets/tools-hand-eye.svg"]'))toolsIcon.innerHTML='<img src="/assets/tools-hand-eye.svg" alt="">';
     const civic=$('#politc',app);
     if(civic&&!navigationCatalog.has('politc')){
       navigationCatalog.set('politc',{
@@ -1449,7 +1453,7 @@
     const app=$('#studioApp');if(!app)return false;
     const stats=$('.profile-card .stats',app);if(!stats)return false;
     const source=window.__biglwaProfileMetrics&&typeof window.__biglwaProfileMetrics==='object'?window.__biglwaProfileMetrics:{};
-    const number=(key)=>Number.isFinite(Number(source[key]))?String(Math.max(0,Number(source[key]))):'0';
+    const number=(key)=>source[key]!=null&&Number.isFinite(Number(source[key]))?String(Math.max(0,Number(source[key]))):'—';
     const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach']];
     const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\\s+/g,' ').trim()]);
     const expected=metrics.map(([key,label])=>[key,number(key)+' '+label]);
@@ -1653,7 +1657,7 @@
     if(document.documentElement.dataset.biglwaMetricsObserver==='1')return;
     const target=$('#studioApp')||document.body;if(!target)return;
     document.documentElement.dataset.biglwaMetricsObserver='1';
-    new MutationObserver(()=>{syncRealProfileMetrics()}).observe(target,{subtree:true,childList:true,characterData:true});
+    window.addEventListener('biglwa:profile-metrics',syncRealProfileMetrics);
     syncRealProfileMetrics();
   }
 

@@ -4,7 +4,7 @@ import {Script} from 'node:vm';
 const read=file=>readFileSync(new URL('./'+file,import.meta.url),'utf8');
 const studio=read('studio-three-bodies-20261019.js'),css=read('studio-alignment-20261020.css'),pins=read('pinterest-orbit.js'),feed=read('feed-view.js'),archive=read('module-pages.js'),index=read('index.html'),boot=read('account-boot.js');
 for(const [name,js]of [['body model',studio],['Pinterest',pins],['modules',archive]])assert.doesNotThrow(()=>new Script(js),name+' script parses');
-assert.ok(index.includes('/studio-alignment-20261020.css?v=layout-navigation-10'),'New Studio layout stylesheet is loaded');
+assert.ok(index.includes('/studio-alignment-20261020.css?v=layout-skeleton-compact-11'),'New Studio layout stylesheet is loaded');
 assert.ok(css.includes('#biglwaAuraAvatarPair{gap:14px'),'Aura and avatar have consistent 14px gutter');
 assert.ok(css.includes('#profileEditorTabs button[aria-selected="true"]'),'Profile editor tabs gain visible selected state');
 assert.ok(css.includes('#studioApp.profile-editor-wallpaper .hero'),'Wallpaper edit uses stable layout');
@@ -12,7 +12,7 @@ assert.ok(studio.includes('right:76px!important;z-index:5'),'Songs button is mov
 assert.ok(studio.includes('.biglwa-body-guide{margin:1px 0 3px var(--body-guide-offset'),'Three-body selector gap reduced');
 assert.ok(studio.includes(':not(:hover):not(:focus-within){box-shadow:0 4px 12px'),'Widget pastel ring hidden without hover');
 assert.ok(studio.includes('box-shadow:0 0 0 3px var(--three-body-color'),'Pastel ring appears on hover');
-assert.ok(index.includes('studio-three-bodies-20261019.js?v=20261021-body-switch-7'),'Studio script cache refreshed');
+assert.ok(index.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-compact-1'),'Studio script cache refreshed');
 assert.ok(index.includes('pinterest-orbit.js?v=20261021-private-auto-7'),'Pinterest code cache refreshed');
 assert.ok(index.includes('account-boot.js?v=20261021-user-name-photo-10'),'Feed boot cache refreshed');
 assert.ok(boot.includes('feed-view.js?v=20261020-pinterest-clean-cards-7'),'Feed code cache refreshed');
