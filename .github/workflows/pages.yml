@@ -29,6 +29,10 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Verify politc, calendar, and site SEO integrity
         run: node site-integrity-test.mjs
+      - name: Install DOM test dependency outside public site
+        run: npm install --prefix "$RUNNER_TEMP/biglwa-tests" jsdom@26.1.0 --no-audit --no-fund
+      - name: Verify complete toolbar startup, docking, swapping and recovery
+        run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
       - name: Verify persistent Studio layout and safe Settings cache controls
         run: |
           node --check ui-coherence.js

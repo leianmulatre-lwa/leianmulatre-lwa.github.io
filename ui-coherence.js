@@ -62,6 +62,7 @@
   }
   function realDomOrder(app){
     const order={};
+    for(const key of ['toolbarGreen','toolbarYellow']){const ids=scopedLayout()?.order?.[key];if(Array.isArray(ids))order[key]=ids;}
     for(const parent of studioParents(app)){
       const children=[...parent.children].filter(el=>el.dataset.widgetId);
       if(children.length)order[parent.id]=children.map(el=>el.dataset.widgetId);
@@ -286,6 +287,13 @@
       #studioApp .sidebar-widget-pins{--sidebar-section-rgb:220,169,61}
       #studioApp .sidebar-widget-pins[hidden]{display:none!important}
       #studioApp #studioSidebarGreenPins,#studioApp #studioSidebarYellowPins{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important}
+      #studioApp .widget-toolbar-swap{position:absolute;right:0;bottom:0;width:22px;height:22px;border:0;border-radius:5px;background:#fff4df;color:#573d32;opacity:0;cursor:pointer;z-index:2}
+      #studioApp :is(.sidebar-widget-pinned-row,.sidebar-widget-restore-row):is(:hover,:focus-within) .widget-toolbar-swap{opacity:1}
+      #studioApp .sidebar-widget-pinned-row{position:relative}
+      #widgetToolbarSwap{max-width:320px;border:1px solid #bcae9d;border-radius:14px;padding:22px;background:#fff8eb;color:#32231f}
+      #widgetToolbarSwap select{display:block;width:100%;padding:10px;margin:16px 0}
+      #widgetToolbarSwap button{padding:8px 18px;margin-right:8px;cursor:pointer}
+      @media(hover:none){#studioApp .widget-toolbar-swap{opacity:1}}
       #studioApp .sidebar-widget-pinned-row{display:flex!important;justify-content:center!important;min-height:62px!important;padding:3px!important;box-sizing:border-box!important}
       #studioApp .sidebar-widget-pinned-row .sidebar-shortcut-open{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-height:56px!important;height:56px!important;width:100%!important;min-width:0!important;margin:0!important;padding:5px 3px!important;box-sizing:border-box!important}
       #studioApp .sidebar-widget-pinned-row .sidebar-route-icon{display:grid!important;place-items:center!important;width:24px!important;height:24px!important;flex:0 0 24px!important;font:700 19px/1 Georgia,serif!important}
@@ -753,7 +761,7 @@
   else renameJournalNavigation();
   document.addEventListener('biglwa:module-close',renameJournalNavigation);
 
-  const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools','politc','politic']);
+  const fullWidgetRoutes=new Set(['veve','create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools','politc','politic']);
   function greenControlAction(route,id){
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
@@ -790,7 +798,42 @@
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
     const title=document.createElement('span');title.className='sidebar-widget-name';title.textContent=label;
     const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
-    restore.append(mark,title);row.append(spacer,restore,state);return row;
+    restore.append(mark,title);row.append(spacer,restore,state);addWidgetSwapControl(row,id,'docked');return row;
+  }
+  function addWidgetSwapControl(row,id,zone){
+    const swap=document.createElement('button');swap.type='button';swap.className='widget-toolbar-swap';
+    swap.dataset.swapToolbarWidget=id;swap.dataset.swapToolbarZone=zone;swap.textContent='⇄';
+    swap.setAttribute('aria-label','Swap '+id+' toolbar widget');swap.title='Swap toolbar widget';row.appendChild(swap);
+  }
+  function openToolbarSwap(app,id,zone){
+    $('#widgetToolbarSwap')?.remove();
+    const dialog=document.createElement('dialog');dialog.id='widgetToolbarSwap';
+    dialog.setAttribute('aria-label','Swap toolbar widget');
+    const title=document.createElement('h2');title.textContent='Swap toolbar widget';
+    const select=document.createElement('select');select.setAttribute('aria-label','Replacement widget');
+    const widgets=$$('[data-widget-id]',app).filter(widget=>!widget.classList.contains('profile-card'));
+    for(const widget of widgets){const option=document.createElement('option');option.value=widget.dataset.widgetId;option.textContent=widget.dataset.widgetLabel||option.value;select.appendChild(option);}
+    select.value=id;
+    const save=document.createElement('button');save.type='button';save.textContent='Swap';
+    const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';
+    cancel.addEventListener('click',()=>dialog.close());
+    save.addEventListener('click',()=>{
+      const next=select.value;if(!next||next===id){dialog.close();return;}
+      if(zone==='docked'){
+        const ids=readWidgetShortcuts().map(value=>value===id?next:value);
+        writeWidgetShortcuts(ids);applyRemoteLayout(scopedLayout());ensureWidgetActions();
+      }else{
+        const layout=scopedLayout()||{},order={...(layout.order||{})};
+        for(const [group,key] of [['green','toolbarGreen'],['yellow','toolbarYellow']]){
+          const ids=Array.isArray(order[key])?order[key]:PINNED_WIDGET_GROUPS[group].map(entry=>entry[0]);
+          order[key]=ids.map(value=>value===id?next:value===next?id:value);
+        }
+        localStorage.setItem(scopedLayoutKey(),JSON.stringify({...layout,order}));
+        syncLayoutToAccount();renderPinnedWidgetDock(app);
+      }
+      dialog.close();
+    });
+    dialog.append(title,select,save,cancel);app.appendChild(dialog);dialog.showModal();
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
@@ -857,10 +900,11 @@
       button.setAttribute('aria-label','Open '+name+' widget');button.title='Open '+name+' widget';
       const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
       const label=document.createElement('span');label.className='sidebar-widget-name';label.textContent=name;
-      button.append(mark,label);row.appendChild(button);return row;
+      button.append(mark,label);row.appendChild(button);addWidgetSwapControl(row,id,zone);return row;
     };
     for(const [zone,dock] of [['green',green],['yellow',yellow]]){
-      const group=PINNED_WIDGET_GROUPS[zone];
+      const saved=scopedLayout()?.order?.[zone==='green'?'toolbarGreen':'toolbarYellow'];
+      const group=Array.isArray(saved)&&saved.length? saved.map(id=>{const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);const fallback=Object.values(PINNED_WIDGET_GROUPS).flat().find(entry=>entry[0]===id);return [id,widget?.dataset.widgetLabel||fallback?.[1]||id, fallback?.[2]||'•'];}):PINNED_WIDGET_GROUPS[zone];
       const existing=[...dock.children].map(row=>row.dataset.pinnedWidget);
       if(group.length!==existing.length||group.some((entry,i)=>entry[0]!==existing[i])){
         dock.replaceChildren(...group.map(entry=>makeRow(entry,zone)));
@@ -979,8 +1023,10 @@
       if(target.id==='lightModeBtn'||target.dataset.theme==='light'){event.preventDefault();event.stopImmediatePropagation();setTheme('light');return}
       if(target.id==='darkModeBtn'||target.dataset.theme==='dark'){event.preventDefault();event.stopImmediatePropagation();setTheme('dark');return}
       const app=getApp();if(!app||!app.contains(target))return;
+      const swap=target.closest('[data-swap-toolbar-widget]');
+      if(swap){event.preventDefault();event.stopImmediatePropagation();openToolbarSwap(app,swap.dataset.swapToolbarWidget,swap.dataset.swapToolbarZone);return;}
       const sidebarWidget=target.closest('[data-sidebar-widget]');
-      if(sidebarWidget){event.preventDefault();event.stopImmediatePropagation();const id=sidebarWidget.dataset.sidebarWidget,widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(widget?.classList.contains('widget-is-minimized')){restoreWidget(app,id,$('[data-shortcut-row="'+CSS.escape(id)+'"]',app));return}openWidgetDestination(app,id,id);return}
+      if(sidebarWidget){event.preventDefault();event.stopImmediatePropagation();const id=sidebarWidget.dataset.sidebarWidget,widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(widget?.classList.contains('widget-is-minimized')){restoreWidget(app,id,$('[data-shortcut-row="'+CSS.escape(id)+'"]',app));return}openWidgetDestination(app,id,sidebarWidget.dataset.widgetRoute);return}
       const sidebarRoute=target.closest('[data-sidebar-route]');
       if(sidebarRoute&&!sidebarRoute.dataset.policyRoute){event.preventDefault();event.stopImmediatePropagation();openWidgetDestination(app,sidebarRoute.dataset.sidebarRoute,sidebarRoute.dataset.sidebarRoute);return}
       const removeShortcut=target.closest('[data-remove-shortcut]');
@@ -1644,7 +1690,7 @@
       if(!String(card.dataset.search||'').includes('video booth'))card.dataset.search=(card.dataset.search||'')+' booth photo booth video booth';
     }
     // Rename only the visible caption, never routing/storage keys or icon markup.
-    $('#studioApp [data-sidebar-route="camera"] .sidebar-route-label,#studioApp [data-open="camera"] .shortcut-label').forEach(label=>{
+    $$('#studioApp [data-sidebar-route="camera"] .sidebar-route-label,#studioApp [data-open="camera"] .shortcut-label').forEach(label=>{
       if(/^(photo\s*booth|photobooth)$/i.test(label.textContent?.trim()||''))label.textContent='booth';
     });
   }
@@ -1768,7 +1814,8 @@
   function run(){
     // Restore the essential dock before optional widgets / editors can fail.
     try{ensureStyles();ensureSidebar();renderPinnedWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
-    ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();syncBoothWidget();syncVeveLauncher();
+    ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncVeveLauncher();
+    for(const update of [syncQwikyNoteWidget,syncBoothWidget]){try{update()}catch(error){console.warn('[BIGLWA] Widget caption update',error)}}
     // Sidebar has its own recovery boundary, so an unrelated editor or
     // account-layout exception cannot leave its primary navigation empty.
     try{ensureSidebar()}catch(error){console.warn('[BIGLWA] Widget dock setup retry',error)}
@@ -1800,10 +1847,10 @@
     const app=$('#studioApp');if(!app)return;
     const sidebar=$('.sidebar',app),top=$('.sidebar-top',sidebar||app);
     if(!sidebar||!top)return;
-    const green=$('#studioSidebarGreenPins .sidebar-widget-pinned-row',app).length;
-    const yellow=$('#studioSidebarYellowPins .sidebar-widget-pinned-row',app).length;
+    const green=$$('#studioSidebarGreenPins .sidebar-widget-pinned-row',app).length;
+    const yellow=$$('#studioSidebarYellowPins .sidebar-widget-pinned-row',app).length;
     const expected=readWidgetShortcuts().filter(id=>$('[data-widget-id="'+CSS.escape(id)+'"]',app)).length;
-    const restored=$('.sidebar-widget-restore-row[data-shortcut-row]',app).length;
+    const restored=$$('.sidebar-widget-restore-row[data-shortcut-row]',app).length;
     if(green===3&&yellow===2&&restored>=expected)return;
     try{ensureSidebar();ensureControls();ensureWidgetActions();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
   }

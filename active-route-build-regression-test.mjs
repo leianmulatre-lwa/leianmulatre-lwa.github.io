@@ -18,7 +18,7 @@ assert.ok(publishedArcade,'A current Arcade CSS asset must load');
 assert.ok(readFileSync(new URL('./'+publishedArcade,import.meta.url),'utf8').includes('.games-arcade-brand'),
   'Published Arcade CSS must contain the folder marquee');
 const assetRefs=[...entry.matchAll(/(?:src|href)="\/([^"?#]+)\?v=([^"]+)"/g)].map(([,path])=>path);
-const codeAssets=assetRefs.filter(path=>/\\.(?:js|css)$/i.test(path));
+const codeAssets=assetRefs.filter(path=>/\.(?:js|css)$/i.test(path));
 assert.equal(codeAssets.length,new Set(codeAssets).size,'No duplicated executable JavaScript or CSS assets');
 // Reusing an image for preload and actual display is intentional.
 assert.match(modules,/function orbitLinkEditor\(k,name,url\)/,'Link editor in current renderer');

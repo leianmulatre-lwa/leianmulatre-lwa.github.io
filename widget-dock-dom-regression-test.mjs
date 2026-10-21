@@ -34,6 +34,8 @@ const context=createContext({
  document:{createElement:tag=>new Element(tag)},
  CSS:{escape:value=>String(value)},
  $,
+ scopedLayout:()=>null,
+ addWidgetSwapControl:()=>{},
  widgetIconMarkup:widget=>widget?.icon||'',
  console
 });
