@@ -91,8 +91,8 @@
     disposeViewer(root);root.replaceChildren();
     const wrap=document.createElement('div');wrap.className='biglwa-sona-frame'+(compact?' is-compact':'');
     const iframe=document.createElement('iframe');
-    iframe.src=url;iframe.title='Xbox Avatar · 360sona display case';
-    iframe.width='320';iframe.height='546';iframe.loading='lazy';
+    iframe.src=url;iframe.title='Avatar · 360sona display case';
+    iframe.width='265';iframe.height='170';iframe.loading='lazy';
     iframe.referrerPolicy='no-referrer';iframe.setAttribute('allow','fullscreen');
     iframe.setAttribute('data-sona-widget','1');iframe.style.border='0';
     // Preserve actual interaction (drag/rotate/pet gestures) in the compact display case.
@@ -195,14 +195,14 @@
       const tab=document.createElement('button');
       tab.type='button';tab.setAttribute('role','tab');tab.dataset.profileEditorTab='avatar';
       tab.setAttribute('aria-controls','profileAvatarEditor');tab.setAttribute('aria-selected','false');
-      tab.textContent='Xbox Avatar';tabs.append(tab);
+      tab.textContent='Avatar';tabs.append(tab);
     }
     let section=one('#profileAvatarEditor',panel);
     if(!section){
       section=document.createElement('section');section.id='profileAvatarEditor';
       section.className='customize-section biglwa-avatar-profile-section';
       section.dataset.profileEditorPane='avatar';section.setAttribute('role','tabpanel');section.hidden=true;
-      section.innerHTML='<h3>Xbox Avatar</h3>'+
+      section.innerHTML='<h3>Avatar</h3>'+
         '<p>Connect your own 360sona display case, Minecraft skin, or Snapchat Bitmoji. Each account has its own saved avatar.</p>'+
         '<div class="biglwa-avatar-editor-layout"><div class="biglwa-avatar-profile-preview" id="biglwaAvatarProfilePreview" aria-label="Your current avatar"></div>'+
         '<div class="biglwa-avatar-editor-tools">'+
@@ -1030,26 +1030,20 @@
  background:var(--widget-bg,#fffaf5);color:inherit;font:600 12px/1.3 system-ui}
 #studioApp #profileAvatarEditor .biglwa-sona-actions{display:flex;gap:8px;flex-wrap:wrap}
 #studioApp #profileAvatarEditor .biglwa-sona-actions button{flex:1 1 105px}
-#studioApp #profileAvatarEditor .biglwa-sona-editor-preview{display:flex;align-items:center;justify-content:center;min-width:0;
- min-height:546px;border-radius:10px;background:linear-gradient(165deg,#20242a,#0b0d10);color:#e8eddc;
- border:1px solid #76b90055;padding:7px}
+/* 360sona bare embed is a landscape 265 x 170 display case, not a portrait iframe.
+   Keep the provider's internal zoom/framing independent of BIG LWA dimensions. */
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview{display:flex;align-items:center;justify-content:center;min-width:0;min-height:190px;border-radius:10px;background:linear-gradient(165deg,#20242a,#0b0d10);color:#e8eddc;border:1px solid #76b90055;padding:7px}
 #studioApp #profileAvatarEditor .biglwa-sona-editor-preview>span{font:600 12px/1.5 system-ui;text-align:center}
-#studioApp #profileAvatarEditor .biglwa-sona-editor-preview .biglwa-sona-frame{width:320px;max-width:100%;height:546px}
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview .biglwa-sona-frame{width:min(100%,530px);height:auto;aspect-ratio:265/170}
 #studioApp #profileAvatarEditor .biglwa-sona-note{font:600 11px/1.45 system-ui;color:var(--widget-muted,#706867)}
 #studioApp #profileAvatarEditor .biglwa-sona-external{display:inline-flex;text-decoration:underline;text-underline-offset:3px}
-#studioApp .biglwa-sona-frame{position:relative;box-sizing:border-box;width:320px;max-width:100%;height:546px;
- overflow:hidden;margin:0 auto;border-radius:8px;background:linear-gradient(165deg,#20242a,#0b0d10);
- box-shadow:0 6px 18px #0004;border:1px solid #76b90055}
-#studioApp .biglwa-sona-frame>iframe{display:block;width:320px!important;height:546px!important;
- max-width:none!important;min-height:546px!important;border:0!important;background:transparent}
-#studioApp .biglwa-sona-frame.is-compact{position:relative;width:100%;height:100%;max-width:none;
- border-radius:8px;box-shadow:none;pointer-events:none}
-#studioApp .biglwa-sona-frame.is-compact>iframe{position:absolute;top:50%;left:50%;
- width:320px!important;height:546px!important;transform:translate(-50%,-50%) scale(.255)!important;
- transform-origin:center center;pointer-events:none}
-#studioApp #studioAvatarCard .biglwa-avatar-media:has(.biglwa-sona-frame){background:linear-gradient(165deg,#20242a,#0b0d10)!important}
+#studioApp .biglwa-sona-frame{position:relative;box-sizing:border-box;width:min(100%,530px);aspect-ratio:265/170;height:auto;overflow:hidden;margin:0 auto;border-radius:8px;background:transparent;border:0;box-shadow:none}
+#studioApp .biglwa-sona-frame>iframe{display:block;width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;border:0!important;background:transparent}
+#studioApp .biglwa-sona-frame.is-compact{width:100%;height:100%;max-width:none;aspect-ratio:auto;border:0;border-radius:8px;box-shadow:none;pointer-events:auto}
+#studioApp .biglwa-sona-frame.is-compact>iframe{position:absolute;inset:0;width:100%!important;height:100%!important;min-height:0!important;transform:none!important;pointer-events:auto}
+#studioApp #studioAvatarCard .biglwa-avatar-media:has(.biglwa-sona-frame){background:transparent!important}
 #studioApp #profileAvatarEditor .biglwa-avatar-profile-preview:has(.biglwa-sona-frame){display:block}
-#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview .biglwa-sona-frame.is-compact>iframe{transform:translate(-50%,-50%) scale(.34)!important}
+#studioApp #profileAvatarEditor .biglwa-avatar-profile-preview .biglwa-sona-frame.is-compact>iframe{transform:none!important}
 @media(max-width:620px){#studioApp #profileAvatarEditor .biglwa-sona-editor-preview{padding:4px;overflow:auto}}
 #studioApp #profileAvatarEditor #biglwaAvatarStatus{display:block;font:12px/1.45 system-ui;min-height:18px;margin:0}
 /* Avatar is an ordinary tab of the existing profile banner, NOT a fixed modal. */
