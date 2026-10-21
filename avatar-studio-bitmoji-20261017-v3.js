@@ -4,6 +4,13 @@
   window.__biglwaAvatarStudioV1=true;
   const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   const SONA_EXAMPLE='https://360sona.com/w/k_JKIiB9soQQcIj77klMY';
+  // Vanilla Minecraft player skin textures extracted from the 1.21.11 client;
+  // hosted by an asset mirror. These are Minecraft's textures, not our
+  // previous generated mannequin colors. Classic=4px, Slim=3px arms.
+  const MINECRAFT_DEFAULT_SKINS=Object.freeze({
+    steve:'https://assets.mcasset.cloud/1.21.11/assets/minecraft/textures/entity/player/wide/steve.png',
+    alex:'https://assets.mcasset.cloud/1.21.11/assets/minecraft/textures/entity/player/slim/alex.png'
+  });
   // A creator's shared widget is not a default for every member.
   const sonaUrl=value=>{
     try{
@@ -52,7 +59,9 @@
   }
   async function renderMinecraftModel(root,skin,large=false){
     if(!root)return false;
-    const key=(skin||'default')+':'+(large?'large':'small')+':'+(state.minecraftSlim?'alex':'steve');
+    const skinType=state.minecraftSlim?'alex':'steve';
+    const atlasUrl=skin||MINECRAFT_DEFAULT_SKINS[skinType];
+    const key=atlasUrl+':'+(large?'large':'small')+':'+skinType;
     if(root.dataset.minecraftSkin===key&&root._biglwaMinecraftModel)return true;
     disposeViewer(root);
     root.dataset.minecraftSkin=key;
@@ -64,8 +73,8 @@
     try{
       const viewer=await loadMannequin();
       if(!root.isConnected||root.dataset.minecraftSkin!==key)return false;
-      const texture=skin||viewer.defaultSkin();
-      if(!texture)throw Error('Could not create Minecraft preview texture.');
+      const texture=atlasUrl;
+      if(!texture)throw Error('Official Minecraft skin texture is unavailable.');
       const model=viewer.mount(root,texture,{large,slim:state.minecraftSlim,
         onError:error=>{if(root.dataset.minecraftSkin===key)setStatus(error?.message||'Minecraft texture could not load.');}
       });
@@ -269,7 +278,7 @@
         '</div>'+
         '<label class="biglwa-avatar-upload biglwa-minecraft-file-label">Minecraft skin PNG<input type="file" data-avatar-import data-avatar-kind="minecraft" accept="image/png" aria-label="Choose a Minecraft skin PNG"></label>'+
         '<button type="button" data-minecraft-save'+(state.minecraftDraftFile?'':' disabled')+'>Save skin to my account</button>'+
-        '<small class="biglwa-minecraft-note">Steve has classic 4-pixel arms; Alex has slim 3-pixel arms. Supports 64×64/64×32/HD PNG skins. Drag to turn or use arrow keys.</small>';
+        '<small class="biglwa-minecraft-note">Official vanilla Steve/Alex textures (1.21.11), classic 4-pixel or slim 3-pixel arms. Import 64×64/64×32/HD PNG for a custom skin. Drag to rotate.</small>';
       renderMinecraftModel(one('#biglwaMinecraftEditorModel',mount),state.minecraftDraftUrl||((state.avatar?.type==='minecraft'&&state.avatar.url)||''),true);
     }
     mount.dataset.kind=name;
