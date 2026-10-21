@@ -4,7 +4,7 @@ import vm from 'node:vm';
 const read=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
 const src=read('studio-onboarding.js'),home=read('index.html');
 assert.doesNotThrow(()=>new vm.Script(src));
-assert.ok(home.includes('studio-onboarding.js?v=20261020-ankh-body-rail-2'),
+assert.ok(home.includes('studio-onboarding.js?v=20261020-skeleton-quick-route-3'),
   'new visual tutorial version loads instead of cached text-only guide');
 assert.ok(src.includes('"visual":"symbols"')&&src.includes('Symbol key image'),'Skeleton Keys shows visual symbols both in the tutorial and inline hub');
 assert.ok(!src.includes('Hanger = Projects, chess piece = Arcade'),
@@ -37,9 +37,9 @@ const lookup=new Map([[projectSel,liveProjects],[archiveSel,liveArchive]]);
 const doc={createElement:tag=>new El(tag)};
 const snippet=src.slice(start,end);
 const helpers=new Function('document','$',snippet+'\nreturn {symbolKey,renderSymbolKey};')(doc,q=>lookup.get(q)||null);
-assert.ok(helpers.symbolKey.length>=10,'render meaningful visual coverage of site symbols');
+assert.ok(helpers.symbolKey.length>=14,'render meaningful visual coverage of site symbols');
 const keys=helpers.symbolKey.map(s=>s.key);
-for(const key of ['projects','games','diary','map','connect','feed','archive','boards','notes','calendar','veve','library'])
+for(const key of ['projects','games','diary','map','orbit','connect','feed','archive','boards','notes','calendar','veve','library'])
   assert.ok(keys.includes(key),key+' has a symbol tile');
 const root=new El('ul');
 helpers.renderSymbolKey(root);
