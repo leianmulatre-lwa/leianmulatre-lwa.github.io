@@ -244,6 +244,16 @@
     .orbit-hotlink:hover{background:rgba(165,51,50,.08)}
     .orbit-not-connected{margin:0;font-size:10px;color:#8b8179}
     .module-launchers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.module-launcher{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:14px;padding:15px 12px;text-align:left;cursor:pointer}.module-launcher b{display:block;font-family:Georgia,serif;font-size:14px;margin-bottom:4px}.module-launcher small{font-size:9px;color:#81776f;line-height:1.35}
+    /* Booth uses a single panel at a time, like the Sqwibz editor switcher. */
+    .booth-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 13px;padding:6px;border-radius:12px;background:rgba(var(--aura-rgb,216,95,109),.1);border:1px solid rgba(var(--aura-rgb,216,95,109),.21)}
+    .booth-tab{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px;padding:7px 17px;border-radius:8px;border:1px solid rgba(104,38,59,.35);background:#fff4ec;color:#5b263c;font:700 12px/1.2 system-ui;cursor:pointer}
+    .booth-tab[aria-selected="true"]{background:#68233e;color:#fff9f6;border-color:#68233e}
+    .booth-tab:focus-visible{outline:3px solid #a04d71;outline-offset:2px}
+    .booth-tab-soon{font:700 9px/1.1 system-ui;opacity:.83}
+    .booth-content{grid-template-columns:minmax(0,1fr)!important}
+    .booth-panel[hidden]{display:none!important}
+    .booth-panel{min-width:0}
+    @media(max-width:540px){.booth-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.booth-tab{min-width:0;padding:8px 6px;font-size:11px}}
     .photobooth-stage{position:relative;min-height:420px;border:1px solid #cfc3ba;border-radius:18px;overflow:hidden;background:#171514;display:grid;place-items:center}
     .video-booth-soon{position:relative;overflow:hidden}
     .video-booth-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
@@ -795,8 +805,8 @@
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'Photobooth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwibz',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
-  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite friends to join BIGLWA.',camera:'You already have a photobooth, but ours has Omegle ;) Meet a face and a name before you decide to connect. Video matching is coming soon.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'Body politic: news, elections, candidates by location, the political pendulum, Epstein records, Genocide Watch, UN reporting and news blind spots.'};
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'Booth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwibz',projects:'Projects',project:'Projects',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
+  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite friends to join BIGLWA.',camera:'You already have a photobooth, but ours has Omegle ;) Switch between Photo Booth and the upcoming Video Booth.',diary:'A private writing page that autosaves in this browser.',stream:'Tune into LWA Radio, LWA TV, Live and Ballroom / CCTV—independent videos, campus stations, mixtapes and Twitch.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Draft preloved or creative listings and keep a Depop connection path beside them.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'Track projects and collaborative work in progress.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Drop a file and it works out what to offer: convert video and audio, compress PDFs and images, or hand anything else to a converter online.',politc:'Body politic: news, elections, candidates by location, the political pendulum, Epstein records, Genocide Watch, UN reporting and news blind spots.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
@@ -1588,7 +1598,37 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="module-grid"><section class="module-card wide"><h2>Photobooth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
+    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose a Booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">Photo Booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">Video Booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>Photo Booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
+    const photoTab=$('#boothPhotoTab',body),videoTab=$('#boothVideoTab',body);
+    const photoPanel=$('#boothPhotoPanel',body),videoPanel=$('#boothVideoPanel',body);
+    const selectBooth=mode=>{
+      const video=mode==='video';
+      photoTab.setAttribute('aria-selected',String(!video));
+      videoTab.setAttribute('aria-selected',String(video));
+      photoTab.tabIndex=video?-1:0;videoTab.tabIndex=video?0:-1;
+      photoPanel.hidden=video;videoPanel.hidden=!video;
+      if(video&&activeCameraStream){
+        stopCamera();
+        const cameraStage=$('#photoStage',body);
+        if(cameraStage?.querySelector('#boothVideo')){
+          cameraStage.classList.add('has-intro');
+          cameraStage.innerHTML='<img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Photo Booth preview" width="800" height="533">';
+          $('#photoCapture',body).disabled=true;$('#photoFlip',body).disabled=true;
+          $('#photoStatus',body).textContent='Camera stopped when switching to Video Booth. Start camera again to take photos.';
+        }
+      }
+    };
+    photoTab.addEventListener('click',()=>selectBooth('photo'));
+    videoTab.addEventListener('click',()=>selectBooth('video'));
+    for(const [tab,mode,other] of [[photoTab,'photo',videoTab],[videoTab,'video',photoTab]]){
+      tab.addEventListener('keydown',event=>{
+        if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+        event.preventDefault();
+        const target=event.key==='Home'?photoTab:event.key==='End'?videoTab:other;
+        selectBooth(target===videoTab?'video':'photo');target.focus();
+      });
+    }
+    selectBooth('photo');
     const stage=$('#photoStage',body),cap=$('#photoCapture',body),flip=$('#photoFlip',body),status=$('#photoStatus',body),strip=$('#photoStrip',body);let facing='user',latestPhotoBlob=null;
     const start=async()=>{try{stopCamera();activeCameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});stage.classList.remove('has-intro');stage.innerHTML='<video id="boothVideo" autoplay playsinline muted></video>';$('#boothVideo',body).srcObject=activeCameraStream;cap.disabled=false;flip.disabled=false;status.textContent='Photobooth ready.';status.classList.add('ok')}catch(err){status.textContent='Camera could not start. Check browser camera permission or use an existing photo.'}};
     $('#photoStart',body).onclick=start; $('#photoFlip',body).onclick=async()=>{facing=facing==='user'?'environment':'user';await start()};
@@ -1599,7 +1639,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   /* Video Booth: a random one-to-1 video chat booth, held back until the safety work
      below it is finished. Nothing here starts a camera or a call. */
   function renderVideoBooth(){
-    return `<section class="module-card wide video-booth-soon" aria-labelledby="videoBoothTitle">
+    return `<section class="module-card wide video-booth-soon booth-panel" id="boothVideoPanel" role="tabpanel" aria-labelledby="boothVideoTab" hidden>
       <div class="video-booth-head">
         <h2 id="videoBoothTitle">Video Booth</h2>
         <span class="coming-soon-badge">Coming soon</span>
