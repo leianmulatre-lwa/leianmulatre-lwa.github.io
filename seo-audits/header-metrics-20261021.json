@@ -1,0 +1,200 @@
+[
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "projects",
+    "ink": "18.00×16.70",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "notes",
+    "ink": "11.16×18.00",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "diary",
+    "ink": "9.30×18.00",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "stream",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "feed",
+    "ink": "18.00×9.09",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "archive",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "boards",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "library",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "games",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "desk",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "connect",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "camera",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "learn",
+    "ink": "18.00×14.00",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "closet",
+    "ink": "13.19×18.00",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "rooms",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "map",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "politc",
+    "ink": "18.00×13.17",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  },
+  {
+    "font": "20.25px",
+    "gap": "4.5px",
+    "id": "tools",
+    "ink": "vector",
+    "offset": "-1px",
+    "slot": [
+      21,
+      21
+    ]
+  }
+]

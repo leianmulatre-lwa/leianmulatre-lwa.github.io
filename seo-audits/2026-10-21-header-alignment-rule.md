@@ -59,3 +59,13 @@ Map, Politic and Tools have also been added from their late-widget source markup
 This rule covers Studio widget symbol/title pairs (`.card-icon` beside an h2/h3), including dynamically inserted pairs. It does not shrink body text, navigation controls, profile names, or headings inside full module pages. The specimen verifies the production header rendering in isolation; it is not a claim that the signed-in user's entire customized Studio has been visually inspected.
 
 The existing full-shell toolbar/Skeleton Keys runtime test, route/build integrity tests and deployment gates remain in use. Browser observation supplies the visual evidence those DOM tests lacked.
+
+## Final rendered inspection
+
+After the final deployment, Chrome was reloaded and all **18 headers** were inspected together: the original 15 plus Map, Politic and Tools. All 18 retained the same slot, font size, gap and −1px font correction. Archive's horizontal mark was visibly preserved. Politic's measured visible artwork is 18.00×13.17px.
+
+The screenshot below is an actual browser capture, not a generated mockup. The accompanying JSON records the measured DOM values for every header. This verifies the specimen at the captured desktop viewport; it does not claim an authenticated account screenshot or an exhaustive device matrix.
+
+![Rendered header comparison](header-specimen-20261021-final.jpg)
+
+Measurements: [header-metrics-20261021.json](header-metrics-20261021.json).
