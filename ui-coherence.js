@@ -62,7 +62,6 @@
   }
   function realDomOrder(app){
     const order={};
-    for(const key of ['toolbarGreen','toolbarYellow']){const ids=scopedLayout()?.order?.[key];if(Array.isArray(ids))order[key]=ids;}
     for(const parent of studioParents(app)){
       const children=[...parent.children].filter(el=>el.dataset.widgetId);
       if(children.length)order[parent.id]=children.map(el=>el.dataset.widgetId);
@@ -275,63 +274,19 @@
       #studioApp .biglwa-drag-ghost{position:fixed!important;z-index:50000!important;pointer-events:none!important;opacity:.85!important;box-shadow:0 24px 60px rgba(20,14,10,.28)!important;border-radius:18px!important}
       #studioApp .biglwa-drop-slot{outline:3px solid rgba(var(--aura-rgb,216,95,109),.85)!important;outline-offset:4px!important;border-radius:18px!important;transform:scale(.985)!important;transition:transform .12s ease!important}
       #studioApp .sidebar{overflow:hidden!important}
-      #studioApp .sidebar-top{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;align-items:stretch!important;min-height:0!important;max-height:calc(100dvh - 175px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
-      #studioApp .sidebar-top>#studioSidebarShortcuts{display:flex!important;flex-direction:column!important;flex:0 0 auto!important;min-height:38px!important}
-      #studioApp .sidebar-top>#studioSidebarRest{display:flex!important;flex-direction:column!important;flex:0 0 auto!important}
-      #studioApp .sidebar-top>nav:not([hidden]){display:flex!important;flex-direction:column!important;gap:7px}
-      #studioApp .sidebar-top>nav a,#studioApp .sidebar-top>nav button{min-height:34px!important;display:flex!important;align-items:center!important;justify-content:center!important}
-      #studioApp .sidebar .sidebar-navigation-open .sidebar-route-icon,#studioApp .sidebar .sidebar-shortcut-open .sidebar-route-icon{visibility:visible!important;opacity:1!important;font-size:18px!important}
-      #studioApp .sidebar .sidebar-navigation-open img,#studioApp .sidebar .sidebar-shortcut-open img{object-fit:contain!important}
+      #studioApp .sidebar-top{overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
       #studioApp .sidebar-section{--sidebar-section-rgb:216,95,109;position:relative;display:flex;flex-direction:column;gap:5px;margin:0 0 8px;padding:8px 5px 8px 8px;border-left:2px solid rgba(var(--sidebar-section-rgb),.66);background:linear-gradient(90deg,rgba(var(--sidebar-section-rgb),.09),rgba(var(--sidebar-section-rgb),.015) 78%,transparent);border-radius:3px 9px 9px 3px}
       #studioApp .sidebar-primary-widgets{--sidebar-section-rgb:80,148,101}
-      #studioApp .sidebar-widget-pins{--sidebar-section-rgb:220,169,61}
-      #studioApp .sidebar-widget-pins[hidden]{display:none!important}
-      #studioApp #studioSidebarGreenPins,#studioApp #studioSidebarYellowPins{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important}
-      #studioApp .widget-toolbar-drag{position:absolute;left:0;bottom:0;width:22px;height:22px;padding:0;border:0;border-radius:5px;background:#fff4df;color:#573d32;opacity:0;cursor:grab;touch-action:none;z-index:2}
-      #studioApp .sidebar-widget-pinned-row:is(:hover,:focus-within) .widget-toolbar-drag{opacity:1}
-      @media(hover:none){#studioApp .widget-toolbar-drag{opacity:1}}
-      #studioApp .widget-toolbar-swap{position:absolute;right:0;bottom:0;width:22px;height:22px;border:0;border-radius:5px;background:#fff4df;color:#573d32;opacity:0;cursor:pointer;z-index:2}
-      #studioApp :is(.sidebar-widget-pinned-row,.sidebar-widget-restore-row):is(:hover,:focus-within) .widget-toolbar-swap{opacity:1}
-      #studioApp .sidebar-widget-pinned-row{position:relative}
-      #widgetToolbarSwap{max-width:320px;border:1px solid #bcae9d;border-radius:14px;padding:22px;background:#fff8eb;color:#32231f}
-      #widgetToolbarSwap select{display:block;width:100%;padding:10px;margin:16px 0}
-      #widgetToolbarSwap button{padding:8px 18px;margin-right:8px;cursor:pointer}
-      @media(hover:none){#studioApp .widget-toolbar-swap{opacity:1}}
-      #studioApp .sidebar-widget-pinned-row{display:flex!important;justify-content:center!important;min-height:62px!important;padding:3px!important;box-sizing:border-box!important}
-      #studioApp .sidebar-widget-pinned-row .sidebar-shortcut-open{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-height:56px!important;height:56px!important;width:100%!important;min-width:0!important;margin:0!important;padding:5px 3px!important;box-sizing:border-box!important}
-      #studioApp .sidebar-widget-pinned-row .sidebar-route-icon{display:grid!important;place-items:center!important;width:24px!important;height:24px!important;flex:0 0 24px!important;font:700 19px/1 Georgia,serif!important}
-      #studioApp .sidebar-widget-pinned-row .sidebar-route-icon :is(img,svg){display:block!important;width:24px!important;height:24px!important;object-fit:contain!important}
-      #studioApp .sidebar-widget-pinned-row .sidebar-widget-name{display:block!important;text-align:center!important;font:650 10px/1.2 Inter,system-ui,sans-serif!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;max-width:100%!important}
-      body.sidebar-collapsed #studioApp .sidebar-widget-pinned-row{min-height:42px!important}
-      body.sidebar-collapsed #studioApp .sidebar-widget-pinned-row .sidebar-shortcut-open{min-height:38px!important;height:38px!important}
-      body.sidebar-collapsed #studioApp .sidebar-widget-pinned-row .sidebar-widget-name{display:none!important}
       #studioApp .sidebar-primary-widgets[hidden]{display:none!important}
       #studioApp .sidebar-shortcuts{--sidebar-section-rgb:220,169,61}
       #studioApp .sidebar-rest-tools{--sidebar-section-rgb:216,95,109}
       #studioApp .sidebar-rest-tools[hidden]{display:none!important}
       #studioApp .sidebar-section nav{display:flex!important;flex-direction:column;gap:4px}
-      #studioApp #studioSidebarShortcuts,#studioApp #studioSidebarShortcutDock{visibility:visible!important;opacity:1!important}
-      #studioApp #studioSidebarShortcutDock{display:flex!important;flex-direction:column!important;min-height:36px!important}
-      #studioApp #studioSidebarShortcutDock .sidebar-navigation-row,#studioApp #studioSidebarAvailableDock .sidebar-navigation-row{visibility:visible!important;opacity:1!important}
       #studioApp .sidebar-rest-tools .nav-item{position:relative;padding:9px 8px;border-radius:8px;font-size:10px}
       #studioApp .sidebar-route-control,#studioApp .sidebar-shortcut-open,#studioApp .sidebar-navigation-open{position:relative;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:0;width:36px;height:36px;min-height:36px;margin:0 auto;padding:0;border:0;border-radius:9px;background:transparent;color:inherit;text-align:center;text-decoration:none;font:650 10px/1.15 Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
       #studioApp .sidebar-route-control:hover,#studioApp .sidebar-shortcut-open:hover,#studioApp .sidebar-navigation-open:hover{background:rgba(255,255,255,.52)}
       #studioApp .sidebar-route-icon{display:grid;flex:0 0 21px;width:21px;height:21px;place-items:center;font:700 15px/1 Georgia,serif}
       #studioApp .sidebar-route-icon>svg,#studioApp .sidebar-route-icon>img,#studioApp .sidebar-route-icon>.studio-symbol-mark{display:block;width:21px!important;height:21px!important;object-fit:contain}
-      /* Widget Dock geometry contract: 60px cell, 24px mark, 10px label,
-         8px vertical rhythm, identical in green and red areas. */
-      #studioApp .sidebar-widget-restore-row{display:grid!important;grid-template-columns:0 minmax(0,1fr) 0!important;gap:0!important;width:100%!important;max-width:100%!important;min-height:62px!important;margin:0 auto!important;padding:3px!important;box-sizing:border-box!important;align-items:center!important;justify-items:center!important}
-      #studioApp .sidebar-widget-restore-row .sidebar-shortcut-open{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-width:0!important;width:100%!important;height:56px!important;min-height:56px!important;box-sizing:border-box!important;padding:5px 3px!important}
-      #studioApp .sidebar-widget-restore-row .sidebar-route-icon{display:grid!important;place-items:center!important;flex:0 0 24px!important;width:24px!important;height:24px!important;margin:0!important;font:700 19px/1 Georgia,serif!important;overflow:hidden!important}
-      #studioApp .sidebar-widget-restore-row .sidebar-route-icon :is(img,svg,.studio-symbol-mark){display:block!important;object-fit:contain!important;max-width:24px!important;max-height:24px!important;width:24px!important;height:24px!important}
-      #studioApp .sidebar-widget-restore-row .sidebar-widget-name{display:block!important;width:100%!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;text-align:center!important;font:650 10px/1.2 Inter,system-ui,sans-serif!important;letter-spacing:.01em!important;color:inherit!important}
-      #studioApp .sidebar-widget-restore-row .sidebar-minimized-state{position:absolute!important;right:2px!important;top:3px!important;opacity:.65!important;font-size:9px!important;pointer-events:none!important}
-      body.sidebar-collapsed #studioApp .sidebar-widget-restore-row{min-height:42px!important}
-      body.sidebar-collapsed #studioApp .sidebar-widget-restore-row .sidebar-shortcut-open{height:38px!important;min-height:38px!important;padding:5px!important}
-      body.sidebar-collapsed #studioApp .sidebar-widget-restore-row .sidebar-widget-name{display:none!important}
-      #studioApp .biglwa-card-heading-row{display:flex!important;align-items:center!important;gap:10px!important;min-height:30px!important}
-      #studioApp .biglwa-card-heading-row>.card-icon{display:grid!important;place-items:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;margin:0!important;transform:none!important}
-      #studioApp .biglwa-card-heading-row>h2{min-width:0!important;margin:0!important;line-height:1.15!important}
       #studioApp .sidebar-shortcut-row,#studioApp .sidebar-navigation-row{position:relative;display:grid;grid-template-columns:17px 36px 17px;gap:3px;align-items:center;justify-content:center;min-height:38px;border-radius:9px}
       #studioApp .sidebar-shortcut-open{min-width:0}
       #studioApp .sidebar-shortcut-open b,#studioApp .sidebar-navigation-open b{display:none!important}
@@ -542,78 +497,58 @@
   }
 
   function ensureSidebar(){
-    const app=$('#studioApp'),sidebar=$('.sidebar',app),top=$('.sidebar-top',sidebar||app);
-    if(!app||!sidebar||!top)return;
+    const sidebar=$('#studioApp .sidebar');if(!sidebar)return;
     document.body.classList.remove('biglwa-sidebar-hidden');
     $('#biglwaSidebarShowTab')?.remove();
-    let toggle=$('#sidebarCollapse',top);
+    const top=$('.sidebar-top',sidebar);
+    let toggle=$('#sidebarCollapse',sidebar);
     if(!toggle){
-      toggle=document.createElement('button');toggle.id='sidebarCollapse';
-      toggle.className='sidebar-collapse';toggle.type='button';top.prepend(toggle);
+      toggle=document.createElement('button');
+      toggle.id='sidebarCollapse';
+      toggle.className='sidebar-collapse';
+      toggle.type='button';
+      top?.prepend(toggle);
     }
-    const setCollapsed=collapsed=>{
+    const setCollapsed=(collapsed)=>{
       document.body.classList.toggle('sidebar-collapsed',collapsed);
       toggle.setAttribute('aria-expanded',collapsed?'false':'true');
-      toggle.setAttribute('aria-label',collapsed?'Expand widget dock':'Collapse widget dock');
-      toggle.title=collapsed?'Expand widget dock':'Collapse widget dock';
+      toggle.setAttribute('aria-label',collapsed?'Expand side navigation':'Collapse side navigation');
+      toggle.setAttribute('title',collapsed?'Expand side navigation':'Collapse side navigation');
       toggle.innerHTML=collapsed?'<span aria-hidden="true">›</span><b>More</b>':'<span aria-hidden="true">‹</span><b>Hide</b>';
       try{localStorage.setItem('biglwaSidebarCollapsed',collapsed?'1':'0')}catch{}
     };
-    if(toggle.dataset.widgetDockToggleBound!=='1'){
-      toggle.dataset.widgetDockToggleBound='1';
-      toggle.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
-    }
+    const fresh=toggle.cloneNode(true);
+    toggle.replaceWith(fresh);
+    toggle=fresh;
+    toggle.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
     try{setCollapsed(localStorage.getItem('biglwaSidebarCollapsed')==='1')}catch{setCollapsed(false)}
 
-    // There is exactly ONE route shortcut bar: between the banner and widgets.
-    // This left rail contains ONLY widgets sent here via the red window light.
-    // Aura/music/guest-check use the green section; other docked widgets red.
+    const legacyNavigation=$$(':scope > nav a,:scope > nav button',top);
+    legacyNavigation.forEach((control,index)=>rememberNavigation(control,SHORTCUT_LIMIT+index));
     let primary=$('#studioSidebarPrimary',top);
-    if(!primary){
-      primary=document.createElement('section');primary.id='studioSidebarPrimary';
-      primary.className='sidebar-section sidebar-primary-widgets';
-      primary.setAttribute('aria-label','Pinned widgets');
-    }
+    if(!primary){primary=document.createElement('section');primary.id='studioSidebarPrimary';primary.className='sidebar-section sidebar-primary-widgets';primary.setAttribute('aria-label','Widgets minimized from the Studio')}
+    let shortcuts=$('#studioSidebarShortcuts',top);
+    if(!shortcuts){shortcuts=document.createElement('section');shortcuts.id='studioSidebarShortcuts';shortcuts.className='sidebar-section sidebar-shortcuts';shortcuts.setAttribute('aria-label','Shortcut bar, maximum eight');shortcuts.innerHTML='<nav id="studioSidebarShortcutDock" aria-label="Shortcut bar destinations"></nav><p class="sidebar-shortcut-status" role="status" aria-live="polite"></p><button class="sidebar-shortcut-save" id="saveSidebarShortcuts" type="button">Save shortcuts</button>'}
+    if(!$('#saveSidebarShortcuts',shortcuts)){const save=document.createElement('button');save.id='saveSidebarShortcuts';save.className='sidebar-shortcut-save';save.type='button';save.textContent='Save shortcuts';shortcuts.appendChild(save)}
+    if(primary.previousElementSibling!==toggle)toggle.insertAdjacentElement('afterend',primary);
+    if(shortcuts.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',shortcuts);
     let rest=$('#studioSidebarRest',top);
-    if(!rest){
-      rest=document.createElement('section');rest.id='studioSidebarRest';
-      rest.className='sidebar-section sidebar-rest-tools';
-      rest.setAttribute('aria-label','Docked widgets');
-    }
-    if(primary.parentElement!==top)top.appendChild(primary);
-    if(rest.parentElement!==top)top.appendChild(rest);
-    let pins=$('#studioSidebarPinned',top);
-    if(!pins){pins=document.createElement('section');pins.id='studioSidebarPinned';pins.className='sidebar-section sidebar-widget-pins';pins.setAttribute('aria-label','Pinned Studio widgets')}
-    if(pins.parentElement!==top)top.appendChild(pins);
-    if(pins.previousElementSibling!==primary)primary.insertAdjacentElement('afterend',pins);
-    if(rest.previousElementSibling!==pins)pins.insertAdjacentElement('afterend',rest);
-    let greenPins=$('#studioSidebarGreenPins',primary);
-    if(!greenPins){greenPins=document.createElement('div');greenPins.id='studioSidebarGreenPins';primary.prepend(greenPins)}
-    if(!$('#studioSidebarYellowPins',pins)){const holder=document.createElement('div');holder.id='studioSidebarYellowPins';pins.appendChild(holder)}
-    let mount=$('#minimizedWidgets',primary);
-    if(!mount){
-      mount=document.createElement('div');mount.id='minimizedWidgets';
-      mount.className='minimized-widgets';
-      mount.setAttribute('aria-label','Pinned widgets minimized from Studio');
-      primary.appendChild(mount);
-    }
-    if(!$('#minimizedWidgetDock',mount)){
-      const dock=document.createElement('div');dock.id='minimizedWidgetDock';
-      dock.className='minimized-widget-dock';mount.appendChild(dock);
-    }
-    ensureRedWidgetDock(app);
-    renderPinnedWidgetDock(app);
-    // Remove only the duplicate navigation UI. Keep existing restore rows,
-    // widget placement, local layout and server snapshots unchanged.
-    top.querySelectorAll(':scope > nav').forEach(nav=>nav.remove());
-    $('#studioSidebarShortcuts',top)?.remove();
-    $('#studioSidebarAvailableDock',rest)?.remove();
-    $('#saveSidebarShortcuts',top)?.remove();
-    primary.hidden=false;
-    pins.hidden=false;
-    rest.hidden=!$('[data-shortcut-row]',rest);
-    app.dataset.biglwaWidgetDockMode='1';
+    if(!rest){rest=document.createElement('section');rest.id='studioSidebarRest';rest.className='sidebar-section sidebar-rest-tools';top.appendChild(rest)}
+    rest.setAttribute('aria-label','Available shortcut destinations');
+    $$(':scope > nav',top).forEach(nav=>nav.remove());
+    $$(':scope > nav:not(#studioSidebarAvailableDock),:scope > .sidebar-navigation-row,:scope > [data-sidebar-widget]',rest).forEach(item=>item.remove());
+    let availableDock=$('#studioSidebarAvailableDock',rest);
+    if(!availableDock){availableDock=document.createElement('nav');availableDock.id='studioSidebarAvailableDock';availableDock.setAttribute('aria-label','Available shortcut destinations, still active in the Studio');rest.prepend(availableDock)}
+    let dockedWidgetDock=$('#studioSidebarDockedWidgetDock',rest);
+    if(!dockedWidgetDock){dockedWidgetDock=document.createElement('div');dockedWidgetDock.id='studioSidebarDockedWidgetDock';dockedWidgetDock.setAttribute('aria-label','Widgets closed from the Studio');rest.appendChild(dockedWidgetDock)}
+    let widgetDockSection=$('#minimizedWidgets',top);
+    if(!widgetDockSection){widgetDockSection=document.createElement('div');widgetDockSection.id='minimizedWidgets';widgetDockSection.className='minimized-widgets';widgetDockSection.innerHTML='<div class="minimized-label" aria-hidden="true"></div><div class="minimized-widget-dock" id="minimizedWidgetDock"></div>'}
+    widgetDockSection.hidden=false;widgetDockSection.classList.remove('sidebar-section','sidebar-shortcuts');widgetDockSection.setAttribute('aria-label','Widgets closed from the Studio');
+    if(widgetDockSection.parentElement!==primary)primary.appendChild(widgetDockSection);
+    primary.hidden=!$('[data-shortcut-row]',widgetDockSection);
+    rest.hidden=!$('[data-sidebar-route-row]',availableDock)&&!$('[data-shortcut-row]',dockedWidgetDock);
   }
+
   const navigationCatalog=new Map();
   let initialNavigationShortcuts=null;
   let draggedNavigationKey='';
@@ -703,13 +638,38 @@
     }
   }
   function syncSidebarShortcutSystem(){
-    // Restore the account's three-dot dock whenever its cloud layout arrives.
-    // The banner-to-widget shortcuts are a separate UI and are not rewritten.
-    const app=$('#studioApp');if(!app)return;
-    ensureSidebar();
-    ensureControls();
-    ensureWidgetActions();
+    const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
+    const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
+    const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
+    seedSidebarNavigationCatalog(app);
+    refreshNavigationCatalogFromWidgets(app);
+    if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
+    if(!initialNavigationShortcuts?.length)return;
+    let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
+    let hasSavedShortcuts=Array.isArray(scopedLayout()?.navigation);try{hasSavedShortcuts=hasSavedShortcuts||localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
+    if(!hasSavedShortcuts){
+      // Default a useful accessibility-first dock once. Existing saved orders
+      // are always honored, including people who choose another arrangement.
+      const choices=['politc','tools','calendar','map','projects','diary','notes','feed','archive'];
+      shortcuts=[...choices.filter(k=>navigationCatalog.has(k)),
+        ...initialNavigationShortcuts.filter(k=>navigationCatalog.has(k))].filter((k,i,a)=>a.indexOf(k)===i).slice(0,SHORTCUT_LIMIT);
+    }
+    shortcuts=writeNavigationShortcuts(shortcuts,false);
+    shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
+    const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
+    availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
+    const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
+    let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
+    create.classList.add('studio-veve-launcher');
+    create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
+    create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
+    const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
+    const split=Math.ceil(links.length/2);bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));bar.style.setProperty('--studio-action-count',String(links.length+1));
+    setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
+    const saveShortcutButton=$('#saveSidebarShortcuts',app);
+    if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
     syncPrimaryWidgetDock(app);
+    bindSidebarShortcutDrag(app);
   }
 
   function moveNavigationShortcut(app,key,connected,targetKey=''){
@@ -799,44 +759,8 @@
     const spacer=document.createElement('span');spacer.setAttribute('aria-hidden','true');
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
-    const title=document.createElement('span');title.className='sidebar-widget-name';title.textContent=label;
     const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
-    restore.append(mark,title);row.append(spacer,restore,state);addWidgetSwapControl(row,id,'docked');return row;
-  }
-  function addWidgetSwapControl(row,id,zone){
-    const swap=document.createElement('button');swap.type='button';swap.className='widget-toolbar-swap';
-    swap.dataset.swapToolbarWidget=id;swap.dataset.swapToolbarZone=zone;swap.textContent='⇄';
-    swap.setAttribute('aria-label','Swap '+id+' toolbar widget');swap.title='Swap toolbar widget';row.appendChild(swap);
-  }
-  function openToolbarSwap(app,id,zone){
-    $('#widgetToolbarSwap')?.remove();
-    const dialog=document.createElement('dialog');dialog.id='widgetToolbarSwap';
-    dialog.setAttribute('aria-label','Swap toolbar widget');
-    const title=document.createElement('h2');title.textContent='Swap toolbar widget';
-    const select=document.createElement('select');select.setAttribute('aria-label','Replacement widget');
-    const widgets=$$('[data-widget-id]',app).filter(widget=>!widget.classList.contains('profile-card'));
-    for(const widget of widgets){const option=document.createElement('option');option.value=widget.dataset.widgetId;option.textContent=widget.dataset.widgetLabel||option.value;select.appendChild(option);}
-    select.value=id;
-    const save=document.createElement('button');save.type='button';save.textContent='Swap';
-    const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';
-    cancel.addEventListener('click',()=>dialog.close());
-    save.addEventListener('click',()=>{
-      const next=select.value;if(!next||next===id){dialog.close();return;}
-      if(zone==='docked'){
-        const ids=readWidgetShortcuts().map(value=>value===id?next:value);
-        writeWidgetShortcuts(ids);applyRemoteLayout(scopedLayout());ensureWidgetActions();
-      }else{
-        const layout=scopedLayout()||{},order={...(layout.order||{})};
-        for(const [group,key] of [['green','toolbarGreen'],['yellow','toolbarYellow']]){
-          const ids=toolbarIds(group);
-          order[key]=ids.map(value=>value===id?next:value===next?id:value);
-        }
-        localStorage.setItem(scopedLayoutKey(),JSON.stringify({...layout,order}));
-        syncLayoutToAccount();renderPinnedWidgetDock(app);
-      }
-      dialog.close();
-    });
-    dialog.append(title,select,save,cancel);app.appendChild(dialog);dialog.showModal();
+    restore.append(mark);row.append(spacer,restore,state);return row;
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
@@ -883,95 +807,6 @@
     });
     applyPreferredStudioSymbols(app);
   }
-  // Green and yellow retain account-selected widget controls and ordering.
-  // Red contains widgets that the owner docked with the red window light.
-  const PINNED_WIDGET_GROUPS={
-    green:[['aura','Aura','◌'],['music','Jam','♫'],['guest-check','Guest Check','✓']],
-    yellow:[['politc','Politic','⚖'],['tools','Tools','⚒']]
-  };
-  function toolbarIds(zone){
-    const layout=scopedLayout(),saved=layout?.order?.[zone==='green'?'toolbarGreen':'toolbarYellow'];
-    if(Array.isArray(saved))return [...new Set(saved)];
-    // Recover yesterday's account-owned choices; never borrow another user's
-    // unscoped browser navigation. The banner shortcut row stays independent.
-    if(zone==='yellow'&&Array.isArray(layout?.navigation)&&layout.navigation.length){
-      const known=new Set(SIDEBAR_ROUTE_FALLBACKS.map(entry=>entry[0]));
-      const previous=[...new Set(layout.navigation)].filter(id=>known.has(id));
-      if(previous.length)return previous.slice(0,SHORTCUT_LIMIT);
-    }
-    return PINNED_WIDGET_GROUPS[zone].map(entry=>entry[0]);
-  }
-  function swapToolbarPositions(app,first,second){
-    if(!first||!second||first===second)return;
-    const layout=scopedLayout()||{},order={...(layout.order||{})};
-    for(const [zone,key] of [['green','toolbarGreen'],['yellow','toolbarYellow']]){
-      order[key]=toolbarIds(zone).map(id=>id===first?second:id===second?first:id);
-    }
-    localStorage.setItem(scopedLayoutKey(),JSON.stringify({...layout,order}));
-    syncLayoutToAccount();renderPinnedWidgetDock(app);
-  }
-  function bindToolbarWidgetDrag(app){
-    if(!app||app.dataset.toolbarWidgetDragBound==='1')return;
-    app.dataset.toolbarWidgetDragBound='1';let drag=null;
-    app.addEventListener('pointerdown',event=>{
-      const handle=event.target.closest('[data-toolbar-widget-drag]');if(!handle)return;
-      event.preventDefault();drag={handle,id:handle.dataset.toolbarWidgetDrag,pointerId:event.pointerId};
-      try{handle.setPointerCapture(event.pointerId)}catch{}
-    });
-    app.addEventListener('pointerup',event=>{
-      if(!drag)return;const current=drag;drag=null;
-      const row=document.elementFromPoint(event.clientX,event.clientY)?.closest('[data-pinned-widget]');
-      try{current.handle.releasePointerCapture(current.pointerId)}catch{}
-      if(row)swapToolbarPositions(app,current.id,row.dataset.pinnedWidget);
-    });
-    app.addEventListener('pointercancel',()=>{drag=null});
-    app.addEventListener('keydown',event=>{
-      const handle=event.target.closest('[data-toolbar-widget-drag]');
-      if(!handle||!event.altKey||!['ArrowUp','ArrowDown'].includes(event.key))return;
-      event.preventDefault();const rows=$$('[data-pinned-widget]',app),index=rows.indexOf(handle.closest('[data-pinned-widget]'));
-      const next=rows[index+(event.key==='ArrowUp'?-1:1)];if(!next)return;
-      swapToolbarPositions(app,handle.dataset.toolbarWidgetDrag,next.dataset.pinnedWidget);
-      $('[data-toolbar-widget-drag="'+CSS.escape(handle.dataset.toolbarWidgetDrag)+'"]',app)?.focus();
-    });
-  }
-  function renderPinnedWidgetDock(app){
-    if(!app)return;
-    const green=$('#studioSidebarGreenPins',app),yellow=$('#studioSidebarYellowPins',app);
-    if(!green||!yellow)return;
-    const makeRow=([id,name,fallback],zone)=>{
-      const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app)||$('#'+CSS.escape(id),app)||
-        (id==='aura'?$('.aura-card',app):id==='music'?$('.music-card',app):id==='guest-check'?$('.guest-check-card',app):null);
-      const icon=widgetIconMarkup(widget)||fallback;
-      const row=document.createElement('div');row.className='sidebar-widget-pinned-row';row.dataset.pinnedWidget=id;row.dataset.pinnedZone=zone;
-      const button=document.createElement('button');button.type='button';button.className='sidebar-shortcut-open';button.dataset.sidebarWidget=widget?.dataset.widgetId||id;
-      button.dataset.widgetRoute=widget?.dataset.widgetRoute||id;
-      button.setAttribute('aria-label','Open '+name+' widget');button.title='Open '+name+' widget';
-      const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
-      const label=document.createElement('span');label.className='sidebar-widget-name';label.textContent=name;
-      button.append(mark,label);row.appendChild(button);addWidgetSwapControl(row,id,zone);
-      const drag=document.createElement('button');drag.type='button';drag.className='widget-toolbar-drag';drag.dataset.toolbarWidgetDrag=id;drag.textContent='⠿';drag.setAttribute('aria-label','Move '+name+' toolbar widget');drag.title='Drag to swap · Alt+ArrowUp/ArrowDown';row.appendChild(drag);return row;
-    };
-    for(const [zone,dock] of [['green',green],['yellow',yellow]]){
-      const group=toolbarIds(zone).map(id=>{const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);const fallback=Object.values(PINNED_WIDGET_GROUPS).flat().find(entry=>entry[0]===id)||SIDEBAR_ROUTE_FALLBACKS.find(entry=>entry[0]===id);return [id,fallback?.[1]||widget?.dataset.widgetLabel||id,fallback?.[2]||'•'];});
-      const existing=[...dock.children].map(row=>row.dataset.pinnedWidget);
-      if(group.length!==existing.length||group.some((entry,i)=>entry[0]!==existing[i])){
-        dock.replaceChildren(...group.map(entry=>makeRow(entry,zone)));
-      }else{
-        group.forEach(([id,name,fallback],i)=>{
-          const row=dock.children[i],button=$('button',row),mark=$('.sidebar-route-icon',row);
-          const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app)||$('#'+CSS.escape(id),app)||(id==='aura'?$('.aura-card',app):id==='music'?$('.music-card',app):id==='guest-check'?$('.guest-check-card',app):null);
-          const updated=widgetIconMarkup(widget)||fallback;
-          if(mark&&mark.innerHTML!==updated)mark.innerHTML=updated;
-          if(button)button.dataset.sidebarWidget=widget?.dataset.widgetId||id;
-        });
-      }
-      dock.hidden=false;
-    }
-    bindToolbarWidgetDrag(app);
-    const primary=$('#studioSidebarPrimary',app),pins=$('#studioSidebarPinned',app);
-    if(primary)primary.hidden=false;
-    if(pins)pins.hidden=false;
-  }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
@@ -980,9 +815,8 @@
       if(target&&row.parentElement!==target)target.appendChild(row);
     });
     refreshMinimizedWidgetIcons(app);
-    renderPinnedWidgetDock(app);
-    primary.hidden=false;
-    if(rest)rest.hidden=!$('[data-shortcut-row]',redDock);
+    primary.hidden=!$('[data-shortcut-row]',greenDock);
+    if(rest)rest.hidden=!$('[data-sidebar-route-row]',rest)&&!$('[data-shortcut-row]',redDock);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
@@ -1072,8 +906,6 @@
       if(target.id==='lightModeBtn'||target.dataset.theme==='light'){event.preventDefault();event.stopImmediatePropagation();setTheme('light');return}
       if(target.id==='darkModeBtn'||target.dataset.theme==='dark'){event.preventDefault();event.stopImmediatePropagation();setTheme('dark');return}
       const app=getApp();if(!app||!app.contains(target))return;
-      const swap=target.closest('[data-swap-toolbar-widget]');
-      if(swap){event.preventDefault();event.stopImmediatePropagation();openToolbarSwap(app,swap.dataset.swapToolbarWidget,swap.dataset.swapToolbarZone);return;}
       const sidebarWidget=target.closest('[data-sidebar-widget]');
       if(sidebarWidget){event.preventDefault();event.stopImmediatePropagation();const id=sidebarWidget.dataset.sidebarWidget,widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(widget?.classList.contains('widget-is-minimized')){restoreWidget(app,id,$('[data-shortcut-row="'+CSS.escape(id)+'"]',app));return}openWidgetDestination(app,id,sidebarWidget.dataset.widgetRoute);return}
       const sidebarRoute=target.closest('[data-sidebar-route]');
@@ -1862,13 +1694,13 @@
   }
   function run(){
     // Restore the essential dock before optional widgets / editors can fail.
-    try{ensureStyles();ensureSidebar();renderPinnedWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
+    try{ensureStyles();ensureSidebar()}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
     ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncVeveLauncher();
     for(const update of [syncQwikyNoteWidget,syncBoothWidget]){try{update()}catch(error){console.warn('[BIGLWA] Widget caption update',error)}}
     // Sidebar has its own recovery boundary, so an unrelated editor or
     // account-layout exception cannot leave its primary navigation empty.
     try{ensureSidebar()}catch(error){console.warn('[BIGLWA] Widget dock setup retry',error)}
-    ensureControls();restoreLocalStudioOrder($('#studioApp'));
+    ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();
     try{syncPrimaryWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Widget dock refresh retry',error)}
     ensureWidgetActions();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues();
   }
@@ -1896,12 +1728,12 @@
     const app=$('#studioApp');if(!app)return;
     const sidebar=$('.sidebar',app),top=$('.sidebar-top',sidebar||app);
     if(!sidebar||!top)return;
-    const green=$$('#studioSidebarGreenPins .sidebar-widget-pinned-row',app).length;
-    const yellow=$$('#studioSidebarYellowPins .sidebar-widget-pinned-row',app).length;
+    const dock=$('#studioSidebarShortcutDock',app);
+    const saved=readNavigationShortcuts(initialNavigationShortcuts||[]);
     const expected=readWidgetShortcuts().filter(id=>$('[data-widget-id="'+CSS.escape(id)+'"]',app)).length;
     const restored=$$('.sidebar-widget-restore-row[data-shortcut-row]',app).length;
-    if(green===toolbarIds('green').length&&yellow===toolbarIds('yellow').length&&restored>=expected)return;
-    try{ensureSidebar();ensureControls();ensureWidgetActions();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
+    if(dock&&$$('[data-sidebar-route-row]',dock).length===saved.length&&restored>=expected)return;
+    try{ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
   }
   document.addEventListener('biglwa:module-close',rescueSidebar);
   window.addEventListener('pageshow',rescueSidebar);

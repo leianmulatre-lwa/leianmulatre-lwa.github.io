@@ -31,7 +31,7 @@ jobs:
         run: node site-integrity-test.mjs
       - name: Install DOM test dependency outside public site
         run: npm install --prefix "$RUNNER_TEMP/biglwa-tests" jsdom@26.1.0 --no-audit --no-fund
-      - name: Verify complete toolbar startup, docking, swapping and recovery
+      - name: Verify original toolbar startup, docking, shortcut dragging and recovery
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
       - name: Verify persistent Studio layout and safe Settings cache controls
         run: |
@@ -39,7 +39,6 @@ jobs:
           node --check settings-cache.js
           node --check veve.js
           node studio-layout-cache-test.mjs
-          node widget-dock-dom-regression-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js
       - name: Verify Veve, Arcade puzzles, media and board lock integration

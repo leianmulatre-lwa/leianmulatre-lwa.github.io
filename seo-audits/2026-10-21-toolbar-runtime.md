@@ -18,3 +18,15 @@ Added a full UI-runtime test using decompressed production HTML with jsdom, cove
 The source baseline available on October 20 morning Pacific is 692b9f4 (October 19, 5:55 p.m. Pacific). Commit ad9eff5 at October 20 10:26:47 p.m. Pacific introduced the erroneous single-element selector followed by forEach and inserted it ahead of sidebar initialization. c911f48 at 10:27:41 p.m. published that change. This matches the user's overnight regression report.
 
 Subsequent attempts replaced the original saved-navigation toolbar with fixed pins. The follow-up restores account-owned historical navigation choices into the yellow widget toolbar when no newer toolbar selection exists, and restores pointer drag swapping plus Alt+ArrowUp/ArrowDown keyboard swapping. It does not rebuild a duplicate navigation list or overwrite the separate banner shortcut row. Account layout saves retain historical navigation data. Tests cover historical snapshots, keyboard swapping, pointer swapping, and continued three-dot docking.
+
+## Original behavior restoration — supersedes fixed-pin follow-ups
+
+The fixed-pin and swap-dialog approaches above did not match the established toolbar. They are removed.
+
+Baseline: `692b9f454c18718ce4aaaf476798c99dd43f2d95`, the latest commit available before October 20 morning (committed October 19 at 17:55 PDT). Original implementation history includes `ce6c99b` and `fb3826f` (September 16 shortcut lanes and green/red separation), `fdadbd6` and `83d5767` (October 2 account persistence). Retrieved September 16 user instructions confirm yellow shortcut population, green closed Jam/Aura/Guest Check widgets, and red closed-widget connections.
+
+Restored the baseline sidebar structure, styles, shortcut renderer, drag handlers and dock renderer. Yellow shortcuts again connect to the banner, with eight slots, add/remove controls, drag between yellow and available destinations, and Save shortcuts. Green appears only when its widgets are docked. Red restores closed other widgets through their original three-dot controls. Scoped account navigation is preserved on fresh reload; fallback route discovery supports late modules. Removed invented pinned selections and swap dialogs. Preserved later unrelated features and the Booth selector crash correction.
+
+Runtime verification executes the full decoded production shell and complete ui-coherence script, checks red and green docking/restoration, actual pointer drag between lanes, saving, connected banner, scoped reload without global state, VEVE branding, and delayed recovery. This is DOM runtime verification, not a claim of authenticated live-browser testing. Authenticated live verification remains blocked by the browser login session not persisting.
+
+Repository AGENTS.md records the owner's requested history-first regression workflow.
