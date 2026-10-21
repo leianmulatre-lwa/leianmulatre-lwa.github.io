@@ -28,7 +28,8 @@
   {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},
   {label:'Journal',key:'diary',detail:'Entries and writing',fallback:'▱'},
   {label:'Map',key:'map',detail:'Pinned places',fallback:'⌖'},
-  {label:'Orbit / Connect',key:'connect',detail:'Linked accounts and people',fallback:'⌘'},
+  {label:'Orbit',key:'orbit',detail:'Your connected account planets',fallback:'◎'},
+  {label:'Connect',key:'connect',detail:'Find and connect with people',fallback:'✣'},
   {label:'myfeed',key:'feed',detail:'Your public posts',fallbackAsset:'/assets/feed-symbol-generated.png'},
   {label:'Archive',key:'archive',detail:'Your saved media',fallback:'▥'},
   {label:'Boards',key:'boards',detail:'Pins and collections',fallback:'⊞'},
@@ -348,7 +349,11 @@
    '<button type="button" data-skeleton-action="tutorial"><span class="skeleton-tile-glyph" aria-hidden="true">✦</span>Site tutorial</button>'+
    '<button type="button" data-skeleton-action="symbols"><img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">Symbol key image</button>'+
    '<button type="button" data-skeleton-action="settings"><span class="skeleton-tile-glyph" aria-hidden="true">⚙</span>Settings</button>'+
-   '<button type="button" data-skeleton-action="politc"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">Politic</button></div>'+
+   '<button type="button" data-skeleton-action="politc"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">Politic</button>'+
+   '<button type="button" data-skeleton-action="feed"><img src="/assets/feed-symbol-generated.png" alt="">myfeed</button>'+
+   '<button type="button" data-skeleton-action="orbit"><span class="skeleton-tile-glyph" aria-hidden="true">◎</span>Orbit</button>'+
+   '<button type="button" data-skeleton-action="connect"><span class="skeleton-tile-glyph" aria-hidden="true">✣</span>Connect</button>'+
+   '<button type="button" data-skeleton-action="veve"><span class="skeleton-tile-glyph" aria-hidden="true">✺</span>veve</button></div>'+
    '<ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools" hidden></ul>'+
    '<p class="skeleton-key-note">Three bodies · individual / social / political. Keys stay here in Studio.</p>';
   hub.addEventListener('click',event=>{
@@ -362,9 +367,9 @@
     return;
    }
    if(action==='settings'){location.assign('/settings');return;}
-   if(action==='politc'){
+   if(['politc','feed','orbit','connect','veve'].includes(action)){
     const open=window.BigLWAOpenModule||window.openBIGLWAModule;
-    if(typeof open==='function')open('politc');
+    if(typeof open==='function')open(action);
     return;
    }
   });
