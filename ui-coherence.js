@@ -1291,7 +1291,7 @@
     let profileSection=$('#profileDetailsEditor',panel);
     if(!profileSection){
       profileSection=document.createElement('div');profileSection.className='customize-section profile-details-section';profileSection.id='profileDetailsEditor';
-      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwidz</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
+      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwib</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
       if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
     $('#profileMoodPreview',profileSection)?.remove();
@@ -1561,7 +1561,7 @@
     const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Sqwidz';
     const sub=$('.sub',card);if(sub)sub.textContent='Your IG Create Mode, tweets, Tumblr notes + story builder in one place.';
     card.dataset.widgetLabel='Sqwidz';card.dataset.search=(card.dataset.search||'')+' sqwibz instagram create mode tweets tumblr story builder';
-    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwidz');note.title='Open Sqwidz'}
+    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwib');note.title='Open Sqwib'}
   }
 
   function syncVeveLauncher(){

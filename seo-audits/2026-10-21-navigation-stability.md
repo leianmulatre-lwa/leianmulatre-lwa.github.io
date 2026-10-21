@@ -25,3 +25,4 @@ Live Chrome specimen measurements:
 - Sqwidz computed font: Subwaygraph, 20.25px. Politic: Stars and Stripes, 20.25px.
 - Visual review caught an interaction with the late directory-symbol loader that inserted a second Journal/myfeed symbol outside the new slot. The loader now writes into the slot; DOM regression requires exactly one image after late loading and scheduled refresh.
 - Two older Feed/Archive source assertions were stale on baseline main: source color now correctly follows displaySource, and repeat copy says “additional copies.” Assertions updated to the existing behavior; 36 Feed and 58 Archive checks pass.
+- Follow-up visual inspection found that the inner sidebar-top scroller could still show a horizontal scrollbar even when the outer sidebar did not overflow. The collapsed rule now sizes and constrains both scroll containers and their sections, retaining the 16px symbol slot. Sqwidz's symbol is light on its dark ocean background.
