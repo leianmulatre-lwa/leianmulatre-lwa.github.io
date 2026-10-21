@@ -558,6 +558,7 @@
   function navigationLabel(control,key){
     if(key==='diary')return 'Journal';
     if(key==='notes')return 'Sqwibz';
+    if(key==='feed')return 'MyFeed';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
   function navigationSymbolMarkup(control,label){
@@ -1471,10 +1472,10 @@
 
   function syncQwikyNoteWidget(){
     const card=$('#studioApp #notes');if(!card)return;
-    const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Qwiky Note';
-    const sub=$('.sub',card);if(sub)sub.textContent='Pin a thought before it floats away.';
-    card.dataset.widgetLabel='Qwiky Note';card.dataset.search=(card.dataset.search||'')+' qwiky sticky note';
-    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Qwiky Note');note.title='Open Qwiky Note'}
+    const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Sqwibz';
+    const sub=$('.sub',card);if(sub)sub.textContent='Your IG Create Mode, tweets, Tumblr notes + story builder in one place.';
+    card.dataset.widgetLabel='Sqwibz';card.dataset.search=(card.dataset.search||'')+' sqwibz instagram create mode tweets tumblr story builder';
+    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwibz');note.title='Open Sqwibz'}
   }
 
   function ensureRealWorldDefaults(){
