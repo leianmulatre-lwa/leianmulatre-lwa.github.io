@@ -19,7 +19,7 @@ const models=context.window.BigLWAThreeBodies;
 assert.ok(models,'three-body navigation initializes');
 assert.deepEqual(Object.keys(models.models),['individual','social','political']);
 assert.equal(models.assignments.diary,'individual');
-assert.equal(models.assignments.stream,'social');
+assert.equal(models.assignments.stream,'political');
 assert.equal(models.assignments.politc,'political');
 assert.equal(models.assignments.orbit,'social');
 assert.equal(models.models.individual.color,'#d9c6ee');
