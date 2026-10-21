@@ -641,7 +641,7 @@
     }
   }
   function syncSidebarShortcutSystem(){
-    const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
+    const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!shortcutDock||!rest||!availableDock)return;
     const currentHeroLinks=$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
     seedSidebarNavigationCatalog(app);
@@ -671,13 +671,17 @@
     shortcutDock.hidden=false;shortcuts.length&&shortcutDock.removeAttribute('aria-hidden');
     availableDock.hidden=false;
     $('#studioSidebarShortcuts',app)?.removeAttribute('hidden');
-    const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
-    let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
-    create.classList.add('studio-veve-launcher');
-    create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
-    create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
-    const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
-    const split=Math.ceil(links.length/2);bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));bar.style.setProperty('--studio-action-count',String(links.length+1));
+    if(bar){
+      const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
+      let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
+      create.classList.add('studio-veve-launcher');
+      create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
+      create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
+      const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
+      const split=Math.ceil(links.length/2);
+      bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));
+      bar.style.setProperty('--studio-action-count',String(links.length+1));
+    }
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
     if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
