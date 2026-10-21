@@ -20,9 +20,10 @@ assert.ok(pins.includes('workQueue.push({fn,silent,uid:authUid})'),'Queued Pinte
 assert.ok(pins.includes('role="status" aria-live="polite"'),'Pinterest progress is announced without blocking controls');
 assert.ok(pins.includes('if(!saved&&!requested)')&&pins.includes('while(next&&page<100)'),'Full board pagination continues over fetched batches');
 assert.ok(pins.includes('selectedBoardPins')&&pins.includes('selectedOriginalPins'),'Users can selectively publish either kind of Pins');
+assert.ok(pins.includes('privateSaveUnavailable')&&pins.includes('disabled aria-disabled="true"'),'Already imported selected originals cannot be redundantly imported');
 assert.ok(pins.includes('importPinsToAccount(originals)'),'Original creations auto-import to account privately');
 assert.ok(pins.includes('20 actions are already queued (not a 20-Pin import limit)'),'Queue cap distinguished from Pin count');
-assert.ok(pins.includes('Saved to your profile · not live yet'),'Original status is honest about profile drafts');
+assert.ok(pins.includes('● Private in BIG LWA'),'Original status makes private-import state clear');
 assert.ok(feed.includes('const pinOrigin=/^https?:'),'Old Pinterest links fix card attribution');
 assert.ok(feed.includes('const displaySource=pinOrigin?'),'Correct label/color based on true source');
 assert.ok(feed.includes('const link = !pinSource'),'No bottom Shared link block on Pinterest-origin cards');
