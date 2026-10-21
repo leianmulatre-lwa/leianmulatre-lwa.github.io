@@ -13,10 +13,9 @@ assert.ok(src.includes("dialog.showModal()"),'Large avatar opens as interactive 
 assert.ok(src.includes("dialog.addEventListener('close'"),'Dialog cleans up when closed');
 assert.ok(src.includes("renderSonaFrame(media,a.url)"),'Expanded Xbox embeds interactive 360sona widget');
 assert.ok(src.includes("renderMinecraftModel(media,a.url,true)"),'Expanded Minecraft preview uses 3D model');
-assert.ok(src.includes("data-avatar-actions-toggle")&&src.includes("aria-expanded=\"false\""),'Thumbnail actions are opt in');
-assert.ok(src.includes("menu.hidden=!menu.hidden"),'Controls remain hidden until clicked');
+assert.doesNotMatch(src,/data-avatar-actions-toggle|biglwa-avatar-thumbnail-actions/,'Bottom-right ellipsis menu is removed from avatar thumbnail');
 assert.ok(src.includes("pointer-events:auto!important"),'Compact 360sona iframe accepts drag, touch and click');
-assert.ok(src.includes("data-avatar-action=\"left\"")&&src.includes("data-avatar-action=\"right\""),'Thumbnail has rotation actions');
+assert.ok(src.includes("renderMinecraftModel(media,a.url,true)"),'Interactive enlarged Minecraft avatar remains available');
 assert.ok(src.includes("data-minecraft-model=\"steve\"")&&src.includes("data-minecraft-model=\"alex\""),'Steve and Alex selectable');
 assert.ok(src.includes("viewer.mount(root,texture,{large,slim:state.minecraftSlim"),'Slim arm geometry passed to model');
 assert.ok(minecraft.includes("slim?3:4"),'Minecraft renderer distinguishes Alex and Steve arms');
