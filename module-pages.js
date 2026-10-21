@@ -2736,7 +2736,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
             '</div>'
           : '';
         const pendingMeta=pending
-          ? '<div class="archive-pending-note">⚠ '+esc(deletionCountdownText(item.deletionAt))+'</div>'
+          ? '<div class="archive-pending-note">⚠ '+esc(deletionCountdownText(item.deletionAt))+
+            (owner?' <button type="button" class="archive-restore-post" data-archive-restore="'+esc(item.id)+'" aria-label="Restore this deleted post">Restore post</button>':'')+
+            '</div>'
           : '';
         // The card is ONE clipped photograph, with tiny controls and metadata
         // inside its bounds. There is no separate blank title bar or white footer.
@@ -2891,12 +2893,27 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           }
         }));
         $('.archive-page-list',body)?.addEventListener('click',async(event)=>{
+          const restoreButton=event.target.closest('[data-archive-restore]');
           const deleteButton=event.target.closest('[data-archive-delete]');
           const archiveLight=event.target.closest('[data-archive-light="archive"]');
           const enlargeButton=event.target.closest('[data-archive-enlarge]');
           const card=event.target.closest('[data-archive-id]');
           if(!card)return;
           const id=card.dataset.archiveId;
+          if(restoreButton){
+            restoreButton.disabled=true;
+            try{
+              await postsApi?.setOrbitState?.(id,'archived');
+              const row=archiveMedia.find(item=>String(item.id)===String(id));
+              if(row){row.archiveState='archived';row.state='archived';row.deletionAt=null}
+              await draw();
+            }catch(error){
+              restoreButton.disabled=false;
+              const st=$('#archiveInstagramStatus',body);
+              if(st)st.textContent=error?.message||'This post could not be restored.';
+            }
+            return;
+          }
           if(enlargeButton){archiveOpenImage(card.dataset.archiveUrl||'');return}
           if(archiveLight){const checkbox=card.querySelector('[data-archive-live-input]');if(checkbox&&!checkbox.disabled)checkbox.click();return}
           if(deleteButton){
@@ -2904,6 +2921,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
             deleteButton.disabled=true;
             try{
               await postsApi?.removeOrbitPost?.(id);
+              const row=archiveMedia.find(item=>String(item.id)===String(id));
+              if(row){row.archiveState='pending_delete';row.deletionAt=new Date(Date.now()+30*86400000)}
               await draw();
             }catch(error){
               deleteButton.disabled=false;
