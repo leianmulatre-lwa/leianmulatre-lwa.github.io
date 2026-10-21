@@ -1,4 +1,4 @@
-/* Three-body UI, Skeleton Keys, Politic routes, private Journal and truthful activity badges. */
+/* Three-body UI, Skeleton Key, Politic routes, private Journal and truthful activity badges. */
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
@@ -6,12 +6,12 @@ const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const home=read('index.html'),body=read('studio-three-bodies-20261019.js'),
  onboarding=read('studio-onboarding.js'),pages=read('module-pages.js'),
  layout=read('ui-coherence.js'),writing=read('writing-collections.js');
-for(const [name,src]of [['three-body',body],['Skeleton Keys',onboarding],['Journal',pages],['toolbar',layout]])
+for(const [name,src]of [['three-body',body],['Skeleton Key',onboarding],['Journal',pages],['toolbar',layout]])
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
-assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-first-6'),'new three-body categorizer is deployed');
-assert.ok(home.includes('studio-onboarding.js?v=20261021-skeleton-layout-4'),'updated Skeleton Keys is deployed');
-assert.ok(home.includes('module-pages.js?v=20261021-page-end-spacing-16'),'owned Journal preview is deployed');
-assert.ok(home.includes('ui-coherence.js?v=20261021-header-copy-27'),'ON AIR and ONLINE badges are deployed');
+assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261021-body-switch-7'),'new three-body categorizer is deployed');
+assert.ok(home.includes('studio-onboarding.js?v=20261021-skeleton-control-5'),'updated Skeleton Key is deployed');
+assert.ok(home.includes('module-pages.js?v=20261021-interaction-fix-1'),'owned Journal preview is deployed');
+assert.ok(home.includes('ui-coherence.js?v=20261021-stable-navigation-28'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};
 vm.runInNewContext(body,context);
@@ -28,8 +28,8 @@ assert.equal(models.models.political.color,'#f8d4b0');
 assert.match(body,/focusModel/,'body model filter is interactive');
 assert.match(body,/Does not move cards or touch account layout data/,'Body-model choices never migrate or reorder widgets');
 assert.match(onboarding,/id='biglwaSkeletonHub'/,'reusable in-card Skeleton hub');
-assert.ok(onboarding.includes('<h2>Skeleton Keys</h2>')&&onboarding.includes('site rainbow:'),'Skeleton Keys has the correct title and rainbow section');
-assert.ok(!onboarding.includes('<h2>Studio</h2>'),'Expanded Skeleton Keys never mislabels itself Studio');
+assert.ok(onboarding.includes('<h2>Skeleton Key</h2>')&&onboarding.includes('site rainbow:'),'Skeleton Key has the correct title and rainbow section');
+assert.ok(!onboarding.includes('<h2>Studio</h2>'),'Expanded Skeleton Key never mislabels itself Studio');
 assert.match(onboarding,/biglwaSkeletonKeysToggle/,'three-body ankh launcher');
 assert.ok(onboarding.includes('/assets/skeleton-keys-ankh.svg')&&onboarding.includes("const guide=$('#studioApp #biglwaBodyGuide')"),'Supplied ankh appears beside three-body filters');
 assert.match(onboarding,/is-skeleton-open/,'dismissed card can reopen');
@@ -50,4 +50,4 @@ assert.ok(pages.includes("const pages=Array.isArray(collection?.entries)?"),'sav
 assert.ok(pages.includes("event.key?.startsWith('biglwaWritingCollectionV1:')"),'cross-tab writing refresh');
 assert.ok(pages.includes("document.addEventListener('biglwa:writing-saved',syncWritingPreviews)"),'same-tab writing refresh');
 assert.ok(writing.includes('biglwa:writing-saved'),'writing editor emits update event');
-console.log('PASS Skeleton Keys opens inside Studio, real Politic left-toolbar configuration, compact three-body filters and pastel widget rings, account-owned Journal thumbnail, ON AIR/ONLINE without fabricated counts.');
+console.log('PASS Skeleton Key opens inside Studio, real Politic left-toolbar configuration, compact three-body filters and pastel widget rings, account-owned Journal thumbnail, ON AIR/ONLINE without fabricated counts.');

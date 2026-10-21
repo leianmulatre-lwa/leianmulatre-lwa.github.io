@@ -158,6 +158,7 @@
 
   function ensureStyles(){
     let style=$('#biglwa-ui-coherence-style');
+    if(style)return;
     if(!style){style=document.createElement('style');style.id='biglwa-ui-coherence-style';document.head.appendChild(style)}
     style.textContent=`
       #studioApp .widget-drag-handle{position:absolute!important;top:13px!important;left:50%!important;z-index:20!important;display:grid!important;place-items:center!important;width:23px!important;height:18px!important;margin:0!important;padding:0!important;border:0!important;border-radius:6px!important;background:rgba(55,47,43,.10)!important;color:var(--widget-muted,#746e68)!important;cursor:grab!important;touch-action:none!important;line-height:1!important;transform:translateX(-50%)!important}
@@ -557,7 +558,7 @@
   }
   function navigationLabel(control,key){
     if(key==='diary')return 'Journal';
-    if(key==='notes')return 'Sqwibz';
+    if(key==='notes')return 'Sqwidz';
     if(key==='feed')return 'myfeed';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
@@ -566,7 +567,7 @@
     const clone=control.cloneNode(true);
     clone.querySelectorAll(':scope > b').forEach(node=>node.remove());
     [...clone.children].forEach(node=>{if(node.tagName==='SPAN'&&node.textContent.trim()===label)node.remove()});
-    const wrapper=clone.querySelector(':scope > .sidebar-route-icon');
+    const wrapper=clone.querySelector(':scope > .sidebar-route-icon,:scope > .hero-shortcut-icon');
     if(wrapper&&clone.children.length===1&&!clone.textContent.trim().replace(wrapper.textContent.trim(),''))return wrapper.innerHTML||wrapper.textContent||'•';
     return clone.innerHTML.trim()||clone.textContent.trim()||'•';
   }
@@ -592,10 +593,11 @@
     const link=existing||document.createElement('a');link.href=entry.href&&entry.href.startsWith('/')?entry.href:'#'+entry.key;link.dataset.shortcutRoute=entry.key;
     if(entry.policyRoute)link.dataset.policyRoute=entry.policyRoute;else delete link.dataset.policyRoute;
     link.setAttribute('aria-label',entry.label);
-    if(!existing||entry.key==='projects'||entry.key==='archive'){
-      link.innerHTML=(entry.symbolHTML||'•')+'<span></span>';
-      link.querySelector(':scope > span:last-child').textContent=entry.label;
-    }else{const label=link.querySelector(':scope > span:last-child');if(label)label.textContent=entry.label}
+    let mark=link.querySelector(':scope > .hero-shortcut-icon');
+    let label=link.querySelector(':scope > .hero-shortcut-label');
+    if(!mark||!label){mark=document.createElement('span');mark.className='hero-shortcut-icon';mark.setAttribute('aria-hidden','true');label=document.createElement('span');label.className='hero-shortcut-label';link.replaceChildren(mark,label)}
+    const artwork=entry.symbolHTML||'•';if(mark.innerHTML!==artwork)mark.innerHTML=artwork;
+    if(label.textContent!==entry.label)label.textContent=entry.label;
     return link;
   }
   // The original sidebar navigation is removed after boot. On slow auth or
@@ -609,7 +611,7 @@
     ['map','Map','⌖'],
     ['projects','Projects','<img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">'],
     ['diary','Journal','▱'],
-    ['notes','Sqwibz','<img src="/assets/quick-notes-symbol-generated.png" alt="">'],
+    ['notes','Sqwidz','<img src="/assets/quick-notes-symbol-generated.png" alt="">'],
     ['feed','myfeed','<img src="/assets/feed-symbol-generated.png" alt="">'],
     ['archive','Archive','▥'],
     ['boards','Boards','⊞'],
@@ -637,6 +639,19 @@
       }
     }
   }
+  // Keep hover/focus targets connected through account and layout refreshes.
+  function reconcileChildren(parent,nodes){
+    const wanted=new Set(nodes);for(const child of [...parent.children])if(!wanted.has(child))child.remove();
+    nodes.forEach((node,index)=>{if(parent.children[index]!==node)parent.insertBefore(node,parent.children[index]||null)});
+  }
+  function reconcileNavigationRows(dock,keys,zone){
+    const existing=new Map([...dock.children].map(row=>[row.dataset.sidebarRouteRow,row]));
+    const nodes=keys.map(key=>{
+      const entry=navigationCatalog.get(key),row=existing.get(key)||createSidebarNavigationRow(entry,zone);
+      const mark=row.querySelector('.sidebar-route-icon');if(mark.innerHTML!==entry.symbolHTML)mark.innerHTML=entry.symbolHTML;
+      return row;
+    });reconcileChildren(dock,nodes);
+  }
   function syncSidebarShortcutSystem(){
     const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
@@ -655,16 +670,16 @@
         ...initialNavigationShortcuts.filter(k=>navigationCatalog.has(k))].filter((k,i,a)=>a.indexOf(k)===i).slice(0,SHORTCUT_LIMIT);
     }
     shortcuts=writeNavigationShortcuts(shortcuts,false);
-    shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
+    reconcileNavigationRows(shortcutDock,shortcuts,'shortcut');
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
-    availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
+    reconcileNavigationRows(availableDock,available.map(entry=>entry.key),'available');
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
     let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
     create.classList.add('studio-veve-launcher');
-    create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
+    if(!create.querySelector('.studio-veve-mark'))create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
     create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
     const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
-    const split=Math.ceil(links.length/2);bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));bar.style.setProperty('--studio-action-count',String(links.length+1));
+    const split=Math.ceil(links.length/2);reconcileChildren(bar,[...links.slice(0,split),create,...links.slice(split)]);bar.style.setProperty('--studio-action-count',String(links.length+1));
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
     if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
@@ -786,7 +801,7 @@
     const archiveMarkup='<span class="biglwa-archive-horizontal-symbol" aria-hidden="true">'+libraryMarkup+'</span>';
     const archiveWidget=$('#archive',app);
     const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
-    if(archiveIcon)archiveIcon.innerHTML=archiveMarkup;
+    if(archiveIcon&&!archiveIcon.querySelector('.biglwa-archive-horizontal-symbol,.heading-normalized-glyph'))archiveIcon.innerHTML=archiveMarkup;
 
     const projectEntry=navigationCatalog.get('projects');if(projectEntry)projectEntry.symbolHTML=projectMarkup;
     const archiveEntry=navigationCatalog.get('archive');if(archiveEntry)archiveEntry.symbolHTML=archiveMarkup;
@@ -861,7 +876,7 @@
       let controls=$(':scope > .widget-window-controls',el);if(!controls){controls=document.createElement('div');el.prepend(controls)}
       controls.className='widget-window-controls';controls.dataset.canonicalControls='1';controls.setAttribute('aria-label',`${label} window controls`);
       const green=greenControlAction(route,id);
-      controls.innerHTML=`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${id}" aria-label="Minimize ${label}" title="Minimize ${label}"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to left toolbar" title="Move to left toolbar"></button>`;
+      controls.innerHTML=`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${id}" aria-label="Minimize ${label}" title="Minimize ${label}"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to Skeleton Key" title="Move to Skeleton Key"></button>`;
       $$('.arrow-btn',el).forEach(b=>b.style.display='none');
       let handle=$('[data-studio-drag-handle]',el);
       if(!handle){
@@ -1203,7 +1218,9 @@
         }catch{}
       }
     }
-    const custom=remote.customization&&typeof remote.customization==='object'?remote.customization:{};
+    const custom=remote.customization&&typeof remote.customization==='object'?{...remote.customization}:{};
+    // A delayed account echo must not reset an open native color picker or draft.
+    if($('#studioApp .profile-card.profile-is-editing')){delete custom.appearance;delete custom.wallpaper}
     if(custom.appearance&&typeof custom.appearance==='object'){try{localStorage.setItem('biglwaWidgetStyle:'+ownUid(),JSON.stringify(custom.appearance))}catch{}}
     if(custom.wallpaper&&typeof custom.wallpaper==='object'){try{localStorage.setItem('biglwaWallpaperSettings:'+ownUid(),JSON.stringify(custom.wallpaper))}catch{}}
     if(custom.layout&&typeof custom.layout==='object'){
@@ -1273,7 +1290,7 @@
     let profileSection=$('#profileDetailsEditor',panel);
     if(!profileSection){
       profileSection=document.createElement('div');profileSection.className='customize-section profile-details-section';profileSection.id='profileDetailsEditor';
-      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwibz</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
+      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwidz</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
       if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
     $('#profileMoodPreview',profileSection)?.remove();
@@ -1540,10 +1557,10 @@
 
   function syncQwikyNoteWidget(){
     const card=$('#studioApp #notes');if(!card)return;
-    const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Sqwibz';
+    const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Sqwidz';
     const sub=$('.sub',card);if(sub)sub.textContent='Your IG Create Mode, tweets, Tumblr notes + story builder in one place.';
-    card.dataset.widgetLabel='Sqwibz';card.dataset.search=(card.dataset.search||'')+' sqwibz instagram create mode tweets tumblr story builder';
-    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwibz');note.title='Open Sqwibz'}
+    card.dataset.widgetLabel='Sqwidz';card.dataset.search=(card.dataset.search||'')+' sqwibz instagram create mode tweets tumblr story builder';
+    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwidz');note.title='Open Sqwidz'}
   }
 
   function syncVeveLauncher(){

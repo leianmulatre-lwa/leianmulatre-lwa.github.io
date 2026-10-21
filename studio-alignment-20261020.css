@@ -158,3 +158,37 @@ body.night-mode #studioApp .sidebar .sidebar-route-icon img{
 #studioApp .card .biglwa-card-heading-row .card-icon img[src*="did-you-know-symbol-generated"]{transform:translate(.04px,4.22px) scale(1.265)!important}
 #studioApp .card .biglwa-card-heading-row .card-icon img[src*="closet-symbol"]{transform:translate(2.04px,2.72px) scale(1.148)!important}
 #studioApp .card .biglwa-card-heading-row .card-icon img[src*="projects-symbol"]{transform:translate(.05px,-1.14px) scale(1.304)!important}
+
+/* Fixed navigation slots: artwork cannot determine banner or rail height. */
+#studioApp .hero .mobile-dock.hero-action-bar{align-items:center!important;grid-auto-rows:52px!important;padding:6px!important;min-height:0!important;height:auto!important}
+#studioApp .hero .hero-action-bar>:is(a,button){box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;min-width:0!important;width:100%!important;height:52px!important;min-height:0!important;padding:5px!important;font-size:10px!important;line-height:1.15!important}
+#studioApp .hero .hero-action-bar .hero-shortcut-icon,
+#studioApp .hero .hero-action-bar .studio-veve-mark{display:grid!important;place-items:center!important;position:relative!important;width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;margin:0!important;font-size:17px!important;line-height:1!important}
+#studioApp .hero .hero-action-bar .hero-shortcut-icon :is(span,.card-icon,.studio-symbol-mark){display:contents!important}
+#studioApp .hero .hero-action-bar .hero-shortcut-icon :is(img,svg){position:static!important;inset:auto!important;display:block!important;width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;object-fit:contain!important;margin:0!important}
+#studioApp .sidebar .sidebar-route-icon{width:16px!important;height:16px!important;min-width:16px!important;flex-basis:16px!important;font-size:15px!important;position:relative!important}
+#studioApp .sidebar .sidebar-route-icon :is(.card-icon,.studio-symbol-mark){display:contents!important}
+#studioApp .sidebar .sidebar-route-icon :is(img,svg){position:static!important;inset:auto!important;width:16px!important;height:16px!important;max-width:16px!important;max-height:16px!important;object-fit:contain!important;margin:0!important}
+body.sidebar-collapsed #studioApp .sidebar{overflow-x:hidden!important}
+body.sidebar-collapsed #studioApp .sidebar :is(.sidebar-top,.sidebar-section,nav){min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+body.sidebar-collapsed #studioApp .sidebar :is(.sidebar-navigation-row,.sidebar-shortcut-row){display:flex!important;justify-content:center!important;width:100%!important;min-width:0!important;gap:0!important}
+body.sidebar-collapsed #studioApp .sidebar :is(.sidebar-shortcut-action,.sidebar-shortcut-drag,.sidebar-minimized-state,.sidebar-shortcut-save,.sidebar-shortcut-status){display:none!important}
+#studioApp #skeletonKeyLauncher{display:grid!important;place-items:center!important;width:32px!important;height:32px!important;min-height:32px!important;padding:7px!important;margin:0 auto 6px!important;border:0;border-radius:8px;background:transparent;cursor:pointer}
+#studioApp #skeletonKeyLauncher img{display:block!important;width:16px!important;height:16px!important;object-fit:contain}
+body.night-mode #studioApp #skeletonKeyLauncher img{filter:brightness(0) invert(1)}
+#studioApp .skeleton-body-setting{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font:600 12px/1.3 system-ui;margin:8px 0}
+#studioApp .skeleton-body-setting small{flex-basis:100%;font-size:10px}
+/* Badges occupy a fixed corner slot, never an extra content line. */
+#studioApp .masonry>.card .biglwa-body-tag{position:absolute!important;top:3px!important;left:10px!important;margin:0!important;padding:1px 4px!important;line-height:11px!important;font-size:8px!important;pointer-events:none!important}
+#studioApp[data-body-indicators="off"] :is(.biglwa-body-tag,.biglwa-body-guide){display:none!important}
+#studioApp[data-body-indicators="off"] .masonry>.card[data-body-model],
+#studioApp[data-body-indicators="off"] .hero-widget-rail .customizable-widget[data-body-model]{box-shadow:var(--widget-shadow,0 8px 18px rgba(44,28,36,.09))!important;opacity:1!important;filter:none!important}
+@font-face{font-family:'Subwaygraph';src:url('/SubwayGraph-R7V.ttf') format('truetype');font-display:swap;font-weight:400}
+@font-face{font-family:'Stars and Stripes';src:url('/stars-and-stripes-font/StarsAndStripes-A4XM.ttf') format('truetype');font-display:swap;font-weight:400}
+#studioApp #notes .biglwa-card-heading-row>:is(h2,h3){font-family:'Subwaygraph',serif!important;font-weight:400!important}
+#studioApp #politc .biglwa-card-heading-row>:is(h2,h3){font-family:'Stars and Stripes',serif!important;font-weight:400!important}
+body.night-mode #studioApp #notes,
+body.night-mode #studioApp #notes .note-paper,
+body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] :is(.module-card,.qwiky-note-input,.sqwib-published-item){background:#062b40!important;color:#e1f2fa!important;--widget-ink:#e1f2fa;--widget-muted:#b2cddd}
+body.night-mode #studioApp #notes .note-paper :is(p,div,span),
+body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] textarea{color:#e1f2fa!important}

@@ -135,7 +135,7 @@
     const active=()=>entries.find(entry=>entry.id===currentId)||entries[0];
     const aside=document.createElement('aside');
     aside.className='writing-collection-sidebar';
-    aside.setAttribute('aria-label',isJournal?'Journal pages':'Your private Sqwibz');
+    aside.setAttribute('aria-label',isJournal?'Journal pages':'Your private Sqwib');
     const head=document.createElement('div');
     head.className='writing-collection-head';
     const title=document.createElement('strong');
@@ -144,7 +144,7 @@
     newButton.type='button';
     newButton.className='writing-collection-new';
     newButton.textContent=isJournal?'+ Add page':'+ New note';
-    newButton.setAttribute('aria-label',isJournal?'Add a new journal page':'Create a new Sqwibz note');
+    newButton.setAttribute('aria-label',isJournal?'Add a new journal page':'Create a new Sqwib note');
     head.append(title,newButton);
     const search=document.createElement('input');
     search.className='writing-collection-search';
@@ -171,7 +171,7 @@
     };
     function renderList(){
       title.textContent=(isJournal?'pages':'all notes')+' · '+count();
-      dateline.textContent=(isJournal?'Journal page':'Private Sqwibz')+' · '+formatDate(active().createdAt)+' · '+formatTime(active().updatedAt)+' edited';
+      dateline.textContent=(isJournal?'Journal page':'Private Sqwib')+' · '+formatDate(active().createdAt)+' · '+formatTime(active().updatedAt)+' edited';
       const query=search.value.trim().toLocaleLowerCase();
       list.replaceChildren();
       const ordered=[...entries].sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt)||Date.parse(b.createdAt)-Date.parse(a.createdAt));

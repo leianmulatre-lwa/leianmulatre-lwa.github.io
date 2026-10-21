@@ -26,16 +26,16 @@ const checks=[
  ['Stream watching status is honest about untracked counts',layout.includes("status.textContent='ON AIR'")&&!layout.includes("count.textContent='0 watching'")],
  ['Stream footer remains visible with active playback',layout.indexOf("screen.insertAdjacentElement('afterend',status)")<layout.indexOf("if(screen.classList.contains('stream-preview-active'))return;")],
  ['Stream status queries a real array of old badges',layout.includes("const oldCounts=$$(' ".trim())],
- ['Original shortcut lane and save restored',layout.includes('shortcutDock.replaceChildren(...shortcuts.map')&&layout.includes('saveSidebarShortcuts')],
+ ['Original shortcut lane and save restored',layout.includes('reconcileNavigationRows(shortcutDock,shortcuts')&&layout.includes('saveSidebarShortcuts')],
  ['Dock recovers after hydration',layout.includes('function rescueSidebar()')&&layout.includes('syncPrimaryWidgetDock(app)')],
  ['Widget three-dot action controls the dock',layout.includes('data-dock-widget')&&layout.includes('data-restore-widget')],
  ['Original green dock appears only for closed widgets',layout.includes("primary.hidden=!$('[data-shortcut-row]',greenDock)")],
  ['Original sidebar is not hidden before script hydration',!home.includes('#studioApp .sidebar-top>nav{display:none!important}')],
- ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261021-header-copy-27')],
+ ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261021-stable-navigation-28')],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
- ['Direct drag latest cache',home.includes('studio-experience.js?v=20261021-heading-alignment-6')]
+ ['Direct drag latest cache',home.includes('studio-experience.js?v=20261021-heading-stability-7')]
 ];
 for(const [label,ok] of checks){console.log((ok?'PASS':'FAIL')+' · '+label)}
 assert.ok(checks.every(([,ok])=>ok),'Studio layout/cache accessibility regression');

@@ -840,7 +840,7 @@
     const projects=$('#projects .card-icon',app);
     if(projects&&!projects.classList.contains('studio-projects-mark')){projects.classList.add('studio-projects-mark');projects.innerHTML=STUDIO_ICONS.projects}
     const archive=$('#archive .card-icon',app);
-    if(archive){archive.classList.add('archive-horizontal-mark');archive.textContent='▤'}
+    if(archive){archive.classList.add('archive-horizontal-mark');if(!archive.querySelector('.heading-normalized-glyph,.biglwa-archive-horizontal-symbol')&&archive.textContent!=='▤')archive.textContent='▤'}
     const games=$('#games .card-icon',app);
     if(games&&!games.classList.contains('games-chess-only-mark')){games.classList.add('games-chess-only-mark');games.innerHTML='<span class="games-chess-mark" aria-hidden="true">♟</span>'}
     const quiz=$('#games .quiz',app);

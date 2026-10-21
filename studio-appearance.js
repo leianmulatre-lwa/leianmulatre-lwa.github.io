@@ -181,7 +181,7 @@
         media.addEventListener('change',event=>{if(event.target.id==='auraColor')applyAppearance(true)});
       }
     }
-    restoreAppearance();
+    if(section.dataset.appearanceRestored!==activeUid()&&!$('#studioApp .profile-card.profile-is-editing')){restoreAppearance();section.dataset.appearanceRestored=activeUid()}
   }
 
   /* The wallpaper object store is gone: media lives on the account, not the device.
@@ -415,6 +415,7 @@
   window.BIGLWAStudioAppearance={
     save(){applyAppearance(true);applyWallpaperSettings(true);return true},
     apply(values={}){
+      if($('#studioApp .profile-card.profile-is-editing'))return;
       try{
         if(values&&typeof values.appearance==='object'){
           const ap=values.appearance;

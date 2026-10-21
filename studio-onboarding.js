@@ -8,7 +8,7 @@
  const DISMISSED='biglwaStudioTutorialDismissed:v1:';
  const steps=[
   {"title":"Your creative Studio","area":"Studio","body":"Your Studio holds your profile, projects, music and widgets. The left sidebar is your shortcut desk; the header opens full pages."},
-  {"title":"Skeleton Keys","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
+  {"title":"Skeleton Key","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
   {"title":"The three colored dots","area":"Widget and post controls","visual":"colored-dots-title","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
   {"title":"Your workspace","area":"Studio","body":"Drag widget handles to arrange the Studio, use controls to customize it, and view your own public profile as others see it. Layout preferences are attached to your Big LWA account."},
   {"title":"Connect your world","area":"Orbit","key":"orbit","body":"Orbit links external accounts such as Pinterest and Instagram. Imported media goes first to your account-linked private collection for review. If a provider session expires, reconnect only that provider."},
@@ -33,7 +33,7 @@
   {label:'myfeed',key:'feed',detail:'Your public posts',fallbackAsset:'/assets/feed-symbol-generated.png'},
   {label:'Archive',key:'archive',detail:'Your saved media',fallback:'▥'},
   {label:'Boards',key:'boards',detail:'Pins and collections',fallback:'⊞'},
-  {label:'Sqwibz',key:'notes',detail:'Quick notes',fallbackAsset:'/assets/quick-notes-symbol-generated.png'},
+  {label:'Sqwidz',key:'notes',detail:'Quick notes',fallbackAsset:'/assets/quick-notes-symbol-generated.png'},
   {label:'Calendar',key:'calendar',detail:'Dates and events',fallback:'▦'},
   {label:'Veve',key:'veve',detail:'Discover what’s happening',fallback:'✺'},
   {label:'Library',key:'library',detail:'Books and collections',fallback:'▥'}
@@ -332,16 +332,23 @@
  }
  function ensureSkeletonToolbar(){
   // The text launcher leads the filters and replaces the old body heading.
-  $('#studioApp .sidebar .biglwa-guide-launcher')?.remove();
+  const sidebar=$('#studioApp .sidebar'),top=sidebar?.querySelector('.sidebar-top');
+  if(sidebar)sidebar.setAttribute('aria-label','Skeleton Key');
+  if(top&&!$('#skeletonKeyLauncher',top)){
+   const launcher=document.createElement('button');launcher.id='skeletonKeyLauncher';launcher.type='button';launcher.className='biglwa-guide-launcher';
+   launcher.title='Skeleton Key';launcher.setAttribute('aria-label','Open Skeleton Key');
+   launcher.innerHTML='<img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true">';
+   launcher.addEventListener('click',openSkeleton);top.prepend(launcher);
+  }
   const guide=$('#studioApp #biglwaBodyGuide');
   if(!guide)return false;
   let button=$('#biglwaSkeletonKeysToggle');
   if(!button){
    button=document.createElement('button');button.id='biglwaSkeletonKeysToggle';
    button.type='button';
-   button.textContent='Skeleton Keys';
-   button.title='Skeleton Keys';
-   button.setAttribute('aria-label','Open Skeleton Keys');
+   button.textContent='Skeleton Key';
+   button.title='Skeleton Key';
+   button.setAttribute('aria-label','Open Skeleton Key');
    button.addEventListener('click',openSkeleton);
   }
   $('.biglwa-body-guide-label',guide)?.remove();
@@ -353,10 +360,11 @@
   let hub=$('#biglwaSkeletonHub',card);
   if(hub)return hub;
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
-  hub.setAttribute('aria-label','Skeleton Keys for the individual');
-  hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Keys</h2></div><p class="skeleton-subtitle">ankh; keys for the individual.</p>'+
+  hub.setAttribute('aria-label','Skeleton Key for the individual');
+  hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Key</h2></div><p class="skeleton-subtitle">ankh; keys for the individual.</p>'+
+   '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Body indicators <small>Show body labels, colored markers, and filters</small></label>'+
    '<h3 class="skeleton-rainbow-heading">site rainbow:</h3>'+
-   '<div class="biglwa-skeleton-squares" role="group" aria-label="Skeleton Keys quick squares">'+
+   '<div class="biglwa-skeleton-squares" role="group" aria-label="Skeleton Key quick squares">'+
    '<button type="button" data-skeleton-action="tutorial"><span class="skeleton-tile-glyph" aria-hidden="true">✦</span>Site tutorial</button>'+
    '<button type="button" data-skeleton-action="symbols"><img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">Symbol key image</button>'+
    '<button type="button" data-skeleton-action="settings"><span class="skeleton-tile-glyph" aria-hidden="true">⚙</span>Settings</button>'+
@@ -367,6 +375,8 @@
    '<button type="button" data-skeleton-action="veve"><span class="skeleton-tile-glyph" aria-hidden="true">✺</span>veve</button></div>'+
    '<ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools" hidden></ul>'+
    '<p class="skeleton-key-note">Three bodies · individual / social / political. Keys stay here in Studio.</p>';
+  const indicators=$('#skeletonBodyIndicators',hub);indicators.checked=window.BigLWAThreeBodies?.enabled?.()!==false;
+  indicators.addEventListener('change',()=>window.BigLWAThreeBodies?.setEnabled(indicators.checked));
   // Every tile uses the same invisible square and a separate wrapping label.
   hub.querySelectorAll('[data-skeleton-action]').forEach(button=>{
    const artwork=button.firstElementChild,label=document.createElement('span');
@@ -444,7 +454,7 @@
  let pending=false;
  const observer=new MutationObserver(()=>{
   if(card?.isConnected && $('.biglwa-tour-actions',card) &&
-     $('#biglwaSkeletonKeysToggle')?.parentElement?.id==='biglwaBodyGuide')return;
+     $('#biglwaSkeletonKeysToggle')?.parentElement?.id==='biglwaBodyGuide' && $('#skeletonKeyLauncher'))return;
   if(pending)return;
   pending=true;
   requestAnimationFrame(()=>{pending=false;attach()});

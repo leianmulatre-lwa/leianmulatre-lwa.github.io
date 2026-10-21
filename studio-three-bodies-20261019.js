@@ -18,6 +18,10 @@
  const $=(s,r=document)=>r.querySelector(s);
  const $$=(s,r=document)=>[...r.querySelectorAll(s)];
  let focus='all',pending=false;
+ const preferenceKey=()=> 'biglwaBodyIndicators:'+(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'local');
+ function enabled(){try{return localStorage.getItem(preferenceKey())!=='off'}catch{return true}}
+ function setEnabled(value){try{localStorage.setItem(preferenceKey(),value?'on':'off')}catch{}if(!value)focus='all';refresh()}
+
  function style(){
   if($('#biglwaThreeBodiesCSS'))return;
   const node=document.createElement('style');node.id='biglwaThreeBodiesCSS';
@@ -98,7 +102,7 @@
   guide=document.createElement('section');guide.className='biglwa-body-guide';guide.id='biglwaBodyGuide';
   guide.setAttribute('aria-label','Three-body widget organization');
   const head=document.createElement('div');head.className='biglwa-body-guide-label';
-  const title=document.createElement('strong');title.textContent='Skeleton Keys';
+  const title=document.createElement('strong');title.textContent='Skeleton Key';
   const subtitle=document.createElement('small');subtitle.textContent='Sort widgets by body';
   head.append(title,subtitle);
   const nav=document.createElement('nav');nav.className='biglwa-body-keys';nav.id='biglwaBodyFilters';
@@ -119,6 +123,9 @@
   style();
   const app=$('#studioApp'),masonry=app?.querySelector('.masonry');if(!masonry)return;
   const guide=ensureGuide(masonry);
+  app.dataset.bodyIndicators=enabled()?'on':'off';
+  if(enabled())guide.style.removeProperty('display');else guide.style.setProperty('display','none','important');
+  const toggle=$('#skeletonBodyIndicators');if(toggle)toggle.checked=enabled();
   if(guide?.parentElement){
    // Align the body controls to the actual first widget edge, not page chrome.
    // The measured inset also follows sidebar and responsive layout changes.
@@ -144,7 +151,7 @@
   applyFocus(app);
  }
  function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;refresh()});}
- window.BigLWAThreeBodies=Object.freeze({models,assignments,refresh,focusModel:model=>{
+ window.BigLWAThreeBodies=Object.freeze({models,assignments,refresh,enabled,setEnabled,focusModel:model=>{
   if(model==='all'||models[model])focus=model;refresh();
  }});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();

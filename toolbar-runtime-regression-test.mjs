@@ -66,7 +66,11 @@ assert.deepEqual(ids(w),expected,'Dragging back restores shortcut at chosen posi
 click('#saveSidebarShortcuts');
 assert.deepEqual(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).navigation,expected);
 assert.equal(q('.hero-action-bar').querySelectorAll('a').length,8,'Banner stays connected to shortcut lane');
+const stableRow=q('[data-sidebar-route-row="diary"]'),stableHero=q('.hero-action-bar a[data-shortcut-route="diary"]');
 await new Promise(resolve=>setTimeout(resolve,9000));
+assert.equal(q('[data-sidebar-route-row="diary"]'),stableRow,'Startup refresh must preserve hover target');
+assert.equal(q('.hero-action-bar a[data-shortcut-route="diary"]'),stableHero,'Banner target remains connected');
+assert(q('.hero-shortcut-icon'),'Banner artwork has a constrained slot');
 assert.equal(errors.length,0,errors.join('\n'));
 assert.deepEqual(ids(w),expected,'Scheduled recovery preserves shortcuts');
 assert(q('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));
@@ -94,12 +98,12 @@ for(const id of ['projects','archive','feed','notes','diary','connect','boards',
 const headingCount=w.document.querySelectorAll('.biglwa-card-heading-row').length;
 w.document.dispatchEvent(new w.Event('biglwa:widget-symbols-ready'));
 assert.equal(w.document.querySelectorAll('.biglwa-card-heading-row').length,headingCount,'Late symbols do not duplicate headers');
-// Integrate the actual Skeleton Keys and body-filter modules with the production shell.
+// Integrate the actual Skeleton Key and body-filter modules with the production shell.
 w.eval(fs.readFileSync(root+'studio-three-bodies-20261019.js','utf8'));
 w.BigLWAThreeBodies.refresh();
 w.eval(fs.readFileSync(root+'studio-onboarding.js','utf8'));
 const launcher=q('#biglwaSkeletonKeysToggle');
-assert.equal(launcher.textContent,'Skeleton Keys');
+assert.equal(launcher.textContent,'Skeleton Key');
 assert.equal(q('#biglwaBodyGuide').firstElementChild,launcher);
 assert(!launcher.querySelector('img'),'Top launcher is text, not an ankh');
 launcher.click();
@@ -116,5 +120,34 @@ assert(!q('#biglwaSkeletonSymbols').hidden);
 assert(q('#biglwaSkeletonSymbols .tour-symbol-item'));
 click('[data-skeleton-action="symbols"]');
 assert(q('#biglwaSkeletonSymbols').hidden);
+assert(q('#skeletonKeyLauncher img'),'Skeleton Key stays accessible in the rail');
+assert.equal(q('#studioApp').dataset.bodyIndicators,'on','Body indicators default on');
+click('#skeletonBodyIndicators');
+assert.equal(q('#studioApp').dataset.bodyIndicators,'off');
+assert.equal(w.getComputedStyle(q('#biglwaBodyGuide')).display,'none');
+w.BigLWAThreeBodies.focusModel('social');
+w.BigLWAThreeBodies.setEnabled(false);
+assert.equal(q('#studioApp').dataset.bodyFocus,'all','Turning off clears dimming');
+w.BigLWAThreeBodies.refresh();
+assert.equal(q('#studioApp').dataset.bodyIndicators,'off','Saved off preference survives refresh');
+click('#skeletonBodyIndicators');
+assert.equal(q('#studioApp').dataset.bodyIndicators,'on');
+w.eval(fs.readFileSync(root+'studio-appearance.js','utf8'));
+const color=q('#widgetColor'),profile=q('.profile-card');
+profile.classList.add('profile-is-editing');color.value='#123456';
+color.dispatchEvent(new w.Event('input',{bubbles:true}));
+w.BIGLWAStudioAppearance.apply({appearance:{color:'#abcdef'}});
+assert.equal(color.value,'#123456','Delayed account values cannot overwrite color draft');
+assert.equal(q('#widgetColor'),color,'Native color input stays connected');
+assert(q('#studioApp').style.getPropertyValue('--widget-bg').includes('18,52,86'),'Live preview retains chosen color');
+if(process.env.UPDATE_NAV_SPECIMEN==='1'){
+ const original=fs.readFileSync(root+'qa/widget-headers.html','utf8');
+ const sidebar='<aside class="sidebar" aria-label="Skeleton Key"><div class="sidebar-top">'+q('#skeletonKeyLauncher').outerHTML+q('#studioSidebarShortcuts').outerHTML+'</div></aside>';
+ const banner='<section class="hero"><nav class="mobile-dock hero-action-bar">'+q('.hero-action-bar').innerHTML+'</nav></section>';
+ const controls='<div class="qa-controls"><b>Production navigation and header specimens</b><button id="qaCollapse">Collapse Skeleton Key</button><button id="qaNight">Toggle dark mode</button></div>';
+ const extra='<style>.qa-controls{display:flex;gap:12px;padding:12px;font:12px system-ui}.qa-navigation{display:flex;gap:16px;margin:12px 24px}.qa-navigation .sidebar{position:relative!important;inset:auto!important;width:110px!important;flex:0 0 110px!important;max-height:420px!important;overflow-y:auto!important}.qa-navigation .hero{flex:1!important;display:block!important;margin:0!important}.qa-navigation .hero-action-bar{display:grid!important;grid-template-columns:repeat(9,minmax(0,1fr))!important}.sidebar-collapsed .qa-navigation .sidebar{width:48px!important;flex-basis:48px!important}.qa-navigation .sidebar-top{padding:4px!important}.qa-navigation .sidebar-route-icon{color:#34312e}.night-mode{background:#101d28!important;color:#edf4f6}.night-mode .header-specimens>.card{background:#182f40!important;color:#edf4f6!important}</style>';
+ const behavior='<script>document.getElementById("qaCollapse").onclick=()=>document.body.classList.toggle("sidebar-collapsed");document.getElementById("qaNight").onclick=()=>document.body.classList.toggle("night-mode");</script>';
+ fs.writeFileSync(root+'qa/skeleton-navigation.html',original.replace('</head>',extra+'</head>').replace('<main id="studioApp">','<main id="studioApp">'+controls+'<div class="qa-navigation">'+sidebar+banner+'</div>').replace('</body>',behavior+'</body>'));
+}
 console.log('PASS original toolbar: VEVE, green/red docking and restore, yellow/red drag, Save shortcuts, banner connection, account reload and delayed recovery');
 await new Promise(resolve=>setImmediate(resolve));dom.window.close();
