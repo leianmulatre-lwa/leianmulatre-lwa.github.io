@@ -10,6 +10,21 @@
   const legacyPanel=location.pathname.match(/^\/studio\/(map|politc)\/?$/i);
   if(legacyPanel)try{history.replaceState(history.state,'','/studio?panel='+legacyPanel[1].toLowerCase())}catch{}
   window.__biglwaStablePatch=function(html){
+    // Canonical user-facing language on the decompressed legacy Studio. Route
+    // keys stay unchanged so old /studio/feed links and saved layouts still work.
+    const studioCopy=[
+      ['A collective feed, not an attention trap.','All parts of your social body in one place, controlled by you.'],
+      ['A collective feed, not an attention trap','All parts of your social body in one place, controlled by you'],
+      ['Pin a thought before it floats away.','Your IG Create Mode, tweets, Tumblr notes + story builder in one place.'],
+      ['Capture now. Add context later','You already have a photobooth, but ours has Omegle ;)'],
+      ['Election countdown, candidates by location, political pendulum, wanted posters and global news sources.','Body politic: news, elections, candidates by location, political pendulum, Epstein records, Genocide Watch, the UN + Ground News blind spots.']
+    ];
+    for(const [before,after] of studioCopy)html=html.replaceAll(before,after);
+    html=html.replaceAll('<span>Feed</span>','<span>myfeed</span>');
+    html=html.replaceAll('<h2>Feed</h2>','<h2>myfeed</h2>');
+    html=html.replaceAll('Open Feed →','Open myfeed →');
+    html=html.replace("feed:['Feed',","feed:['myfeed',");
+
     // Retire intermediate legacy frames from the visible startup path.
     html=html.replace(/<html([^>]*)>/i,(_,attrs)=>'<html'+attrs+' class="biglwa-startup-protected">');
     const startupSafety='<style id="biglwa-private-first-paint">html.biglwa-startup-protected body{background:#130006!important}html.biglwa-startup-protected body>*{visibility:hidden!important;opacity:0!important;pointer-events:none!important}html.biglwa-startup-protected #studioApp,html.biglwa-startup-protected #loginPage{visibility:hidden!important;opacity:0!important}html.biglwa-startup-protected body::before{content:"";position:fixed;inset:0;display:block;background:#27060e url("/assets/login-curtain-film-grain-v2.webp") center center/cover no-repeat;z-index:2147483000;visibility:visible!important;opacity:1!important;pointer-events:none}html.biglwa-startup-protected body::after{content:"BIGLWA  ·  OPENING YOUR STUDIO";position:fixed;left:0;right:0;top:47%;display:block;text-align:center;color:#fff3ec;font:500 clamp(17px,4vw,35px)/1.25 Georgia,serif;letter-spacing:.08em;z-index:2147483001;visibility:visible!important;opacity:1!important;pointer-events:none}#studioApp .masonry .card:not(.manifesto-card),#studioApp .module-workspace .module-card,#studioApp .module-orbit-row{background-color:var(--widget-bg,rgba(250,247,241,.94))!important}</style>';
