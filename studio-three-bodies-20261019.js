@@ -11,7 +11,7 @@
   diary:'individual',notes:'individual',projects:'individual',camera:'individual',music:'individual',
   aura:'individual',avatar:'individual',closet:'individual',library:'individual',tools:'individual',
   calendar:'individual',archive:'individual',trophies:'individual',
-  orbit:'social',connect:'social',feed:'social',veve:'social',stream:'social',rooms:'social',
+  orbit:'social',connect:'social',feed:'social',veve:'social',stream:'political',rooms:'social',
   room:'social',boards:'social','guest-check':'social',games:'social',
   politc:'political',politic:'political',map:'political',learn:'political',didyouknow:'political'
  };
