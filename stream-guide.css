@@ -397,3 +397,11 @@ body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .s
 @media(max-width:520px){
  .biglwa-stream .stream-stations{grid-template-columns:1fr}
 }
+
+/* 2026-10-20: Keep the Betty Boop program strip readable in the wide TV screen.
+   Scroll horizontally rather than collapsing episode titles into clipped narrow cells. */
+.biglwa-stream .stream-screen.is-archive-player{min-width:0;overflow:hidden}
+.biglwa-stream .stream-episode-list{display:flex;flex-wrap:nowrap;gap:7px;min-width:0;max-width:100%;max-height:none;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:9px 12px 12px;box-sizing:border-box}
+.biglwa-stream .stream-episode-choice{flex:0 0 auto;min-width:145px;max-width:210px;white-space:normal;overflow-wrap:break-word;line-height:1.4;min-height:42px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-episode-list{max-height:70px;overflow-x:auto;overflow-y:hidden}
+.biglwa-persistent-stream-player.is-studio-preview .stream-episode-choice{min-width:115px;min-height:35px;max-width:160px}
