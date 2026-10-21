@@ -1,11 +1,11 @@
 /* BIGLWA Studio alignment: 2026-10-20. Scoped overrides; no saved layout migration. */
 #studioApp .hero-widget-rail>#biglwaAuraAvatarPair,
-#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}
 #studioApp .hero-widget-rail>#biglwaAuraAvatarPair>.aura-card,
 #studioApp .hero-widget-rail>#biglwaAuraAvatarPair>#studioAvatarCard{margin:0!important;min-width:0!important}
 #studioApp .hero .mobile-dock.hero-action-bar{margin:4px 0 0!important}
 #studioApp .hero{padding-bottom:0!important;margin-bottom:0!important}
-#studioApp .biglwa-body-guide{margin:3px 0 3px 5px!important;padding:4px 7px!important;min-height:0!important;max-width:calc(100% - 12px)!important}
+#studioApp .biglwa-body-guide{margin:3px 0 3px var(--body-guide-offset,16px)!important;padding:4px 9px!important;min-height:0!important;max-width:calc(100% - 24px)!important}
 #studioApp .masonry{margin-top:0!important;padding-top:2px!important}
 #studioApp .biglwa-body-keys button:not(:hover):not(:focus-visible){box-shadow:none!important}
 #studioApp .masonry>.card[data-body-model]:not(:hover):not(:focus-within),
@@ -25,3 +25,37 @@
 #studioApp .music-card :is(.music-head,.music-card-header,.music-header,.now-playing-header){display:flex!important;align-items:center!important;gap:5px!important;flex-wrap:wrap!important}
 #studioApp .music-card :is(.profile-music-button,.profile-song-button,[data-profile-music-open]){position:relative!important;flex:0 0 auto!important;white-space:nowrap!important;margin:0 4px!important;padding:3px 6px!important;font-size:9px!important}
 @media(max-width:900px){#studioApp .hero-widget-rail>#biglwaAuraAvatarPair{gap:10px!important}}
+
+/* Banner/Wallpaper editor changes the form height, never the user's top
+   widget arrangement. Keep the same three slots, card size and gutter that
+   appear outside editing; don't persist any layout changes. */
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair){
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;grid-auto-flow:row!important;
+  gap:16px!important;align-content:start!important;overflow:visible!important;
+}
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.profile-card.profile-is-editing{
+  position:relative!important;inset:auto!important;
+  grid-column:1!important;grid-row:1!important;width:100%!important;
+  max-width:100%!important;margin:0!important;box-sizing:border-box!important;
+}
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+  display:grid!important;grid-column:1!important;grid-row:2!important;
+  width:100%!important;max-width:none!important;
+  grid-template-columns:repeat(var(--biglwa-top-slot-count,3),minmax(0,1fr))!important;
+  gap:14px!important;grid-auto-flow:row!important;grid-auto-rows:206px!important;
+  align-items:stretch!important;overflow:visible!important;
+}
+#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar{
+  grid-column:1!important;grid-row:3!important;
+}
+@media(max-width:900px){
+  #studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+    grid-template-columns:repeat(var(--biglwa-top-slot-count,2),minmax(0,1fr))!important;
+  }
+}
+@media(max-width:620px){
+  #studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
