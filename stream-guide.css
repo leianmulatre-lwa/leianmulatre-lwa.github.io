@@ -405,3 +405,10 @@ body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .s
 .biglwa-stream .stream-episode-choice{flex:0 0 auto;min-width:145px;max-width:210px;white-space:normal;overflow-wrap:break-word;line-height:1.4;min-height:42px}
 .biglwa-persistent-stream-player.is-studio-preview .stream-episode-list{max-height:70px;overflow-x:auto;overflow-y:hidden}
 .biglwa-persistent-stream-player.is-studio-preview .stream-episode-choice{min-width:115px;min-height:35px;max-width:160px}
+
+/* Studio is a compact TV preview, not the full episode browser. Keep the video
+   visually centered and remove the episode strip only inside Studio. */
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-screen.is-archive-player{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-screen.is-archive-player video{display:block;width:100%;height:100%;min-height:0;max-height:100%;flex:1 1 auto;object-fit:contain;aspect-ratio:auto;background:#09070b}
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-episode-list,
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-archive-episode-now{display:none!important}
