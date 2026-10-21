@@ -807,6 +807,14 @@
     });
     applyPreferredStudioSymbols(app);
   }
+  function refreshSidebarNavigationIcons(app){
+    if(!app)return;
+    refreshNavigationCatalogFromWidgets(app);
+    $$('[data-sidebar-route-row]',app).forEach(row=>{
+      const entry=navigationCatalog.get(row.dataset.sidebarRouteRow),mark=$('.sidebar-route-icon',row);
+      if(entry?.symbolHTML&&mark&&mark.innerHTML!==entry.symbolHTML)mark.innerHTML=entry.symbolHTML;
+    });
+  }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
@@ -1713,7 +1721,7 @@
   }
   if(document.documentElement.dataset.biglwaSymbolSyncBound!=='1'){
     document.documentElement.dataset.biglwaSymbolSyncBound='1';
-    document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshMinimizedWidgetIcons(app);syncPrimaryWidgetDock(app)});
+    document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshSidebarNavigationIcons(app);refreshMinimizedWidgetIcons(app);syncPrimaryWidgetDock(app)});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});

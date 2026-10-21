@@ -82,25 +82,24 @@
   }
 }
 
-/* Visible navigation icons on BIG LWA's dark sidebar, including initial
-   pre-hydration links. The colored section borders remain untouched. */
+/* Match icon ink to the actual sidebar theme, including pre-hydration links. */
 #studioApp .sidebar .sidebar-navigation-open,
 #studioApp .sidebar .sidebar-shortcut-open,
 #studioApp .sidebar .sidebar-route-control,
 #studioApp .sidebar-top>nav a,
 #studioApp .sidebar-top>nav button{
-  color:#f7eee8!important;
+  color:#34312e!important;
   opacity:1!important;
   visibility:visible!important;
 }
 #studioApp .sidebar .sidebar-route-icon,
 #studioApp .sidebar .sidebar-route-icon svg{
-  color:#f7eee8!important;
+  color:#34312e!important;
   opacity:1!important;
   visibility:visible!important;
 }
 #studioApp .sidebar .sidebar-route-icon img{
-  filter:brightness(0) invert(1)!important;
+  filter:brightness(0)!important;
 }
 #studioApp .sidebar #studioSidebarShortcuts{
   display:flex!important;
@@ -108,4 +107,19 @@
   flex:0 0 auto!important;
   visibility:visible!important;
   opacity:1!important;
+}
+
+body.night-mode #studioApp .sidebar .sidebar-route-icon,
+body.night-mode #studioApp .sidebar .sidebar-route-icon svg{
+  color:#f7eee8!important;
+}
+body.night-mode #studioApp .sidebar .sidebar-route-icon img{
+  filter:brightness(0) invert(1)!important;
+}
+/* Nested generated artwork must fit the same symbol cell as inline SVGs. */
+#studioApp .sidebar .sidebar-route-icon img,
+#studioApp .sidebar .sidebar-route-icon svg{
+  width:21px!important;
+  height:21px!important;
+  object-fit:contain;
 }

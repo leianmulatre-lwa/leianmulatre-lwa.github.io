@@ -23,6 +23,24 @@ assert(q('[data-restore-widget="projects"]'));
 click('[data-restore-widget="projects"]');
 assert(!q('#projects').classList.contains('widget-is-minimized'));
 
+// Run the production symbol loader after toolbar creation, as in index.html.
+const experience=fs.readFileSync(root+'studio-experience.js','utf8');
+const icons=experience.slice(experience.indexOf('  const STUDIO_ICONS='),experience.indexOf('  let musicUrl='));
+const loader=experience.slice(experience.indexOf('  function ensureDirectoryIcons(){'),experience.indexOf('  function currentProfileUsername(){'));
+const beforeRow=q('[data-sidebar-route-row="diary"]');
+w.eval(`(()=>{const $=(s,r=document)=>r.querySelector(s);${icons}${loader}ensureDirectoryIcons()})()`);
+assert.equal(q('[data-sidebar-route-row="diary"]'),beforeRow,'Symbol refresh preserves draggable rows');
+for(const route of ['diary','notes','feed','closet']){
+ const image=q('[data-sidebar-route-row="'+route+'"] .sidebar-route-icon img');
+ assert(image,'Late symbol reaches toolbar: '+route);
+ assert(fs.existsSync(root+image.getAttribute('src').split('?')[0].replace(/^\//,'')),'Symbol asset exists');
+}
+const alignment=w.document.createElement('style');alignment.textContent=fs.readFileSync(root+'studio-alignment-20261020.css','utf8');w.document.head.append(alignment);
+const symbol=q('[data-sidebar-route-row="diary"] .sidebar-route-icon');
+assert.equal(w.getComputedStyle(symbol).color,'rgb(52, 49, 46)','Light sidebar has dark symbols');
+w.document.body.classList.add('night-mode');
+assert.equal(w.getComputedStyle(symbol).color,'rgb(247, 238, 232)','Dark sidebar has light symbols');
+w.document.body.classList.remove('night-mode');
 const ids=win=>[...win.document.querySelectorAll('#studioSidebarShortcutDock [data-sidebar-route-row]')].map(row=>row.dataset.sidebarRouteRow);
 const initial=ids(w);
 assert.equal(initial.length,8,'Original yellow shortcut lane starts with eight destinations');

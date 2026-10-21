@@ -30,3 +30,9 @@ Restored the baseline sidebar structure, styles, shortcut renderer, drag handler
 Runtime verification executes the full decoded production shell and complete ui-coherence script, checks red and green docking/restoration, actual pointer drag between lanes, saving, connected banner, scoped reload without global state, VEVE branding, and delayed recovery. This is DOM runtime verification, not a claim of authenticated live-browser testing. Authenticated live verification remains blocked by the browser login session not persisting.
 
 Repository AGENTS.md records the owner's requested history-first regression workflow.
+
+## Toolbar symbols follow-up
+
+The restored lanes exposed a later stylesheet conflict: commit `6ae2e40` forced pale icon ink and white image filters even on the light sidebar. Restored theme-aware dark/light symbol ink. The `biglwa:widget-symbols-ready` listener previously updated docked widgets only; it now refreshes yellow and available shortcut artwork in place, preserving rows, drag handlers, and saved ordering. Nested images/SVGs use the existing 21px symbol cell.
+
+The runtime regression now invokes the actual production directory-symbol loader after toolbar creation, checks that Journal/Sqwibz/myfeed/Closet images reach their existing rows and resolve to repository assets, and verifies computed icon colors in both themes. Asset versions are advanced for the script and alignment stylesheet.
