@@ -166,7 +166,7 @@
       '<button type="button" class="window-light green" data-avatar-widget-action="enlarge" aria-label="Enlarge interactive Avatar" title="Enlarge interactive avatar"></button></div></div>'+
       '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Reorder Aura and Avatar widgets" title="Drag to move the Aura and Avatar widgets">'+
       '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
-      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Interactive avatar preview"></div>'+ '<div class="biglwa-avatar-thumbnail-actions"><button type="button" data-avatar-actions-toggle aria-expanded="false" aria-label="Show avatar actions" title="Avatar actions">⋯</button>'+ '<div class="biglwa-avatar-action-menu" hidden><button type="button" data-avatar-action="left" aria-label="Rotate left">↶</button><button type="button" data-avatar-action="right" aria-label="Rotate right">↷</button><button type="button" data-avatar-action="enlarge">Enlarge ↗</button></div></div>';
+      '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Interactive avatar preview"></div>'+ '';
     showAvatar();
   }
   function syncEditorPreview(){
@@ -645,24 +645,6 @@
     if(e.target.closest('[data-avatar-lightbox-close]')){e.preventDefault();one('#biglwaAvatarLarge')?.close();return}
     const largeRotate=e.target.closest('[data-avatar-large-turn]');
     if(largeRotate){e.preventDefault();one('#biglwaAvatarLargeMedia')?._biglwaMinecraftModel?.rotate(Number(largeRotate.dataset.avatarLargeTurn)||35);return}
-    const menuToggle=e.target.closest('#studioAvatarCard [data-avatar-actions-toggle]');
-    if(menuToggle){
-      e.preventDefault();const menu=one('#studioAvatarCard .biglwa-avatar-action-menu');
-      if(menu){menu.hidden=!menu.hidden;menuToggle.setAttribute('aria-expanded',String(!menu.hidden))}
-      return;
-    }
-    const actionButton=e.target.closest('#studioAvatarCard [data-avatar-action]');
-    if(actionButton){
-      e.preventDefault();
-      const action=actionButton.dataset.avatarAction;
-      if(action==='enlarge'){openAvatarLarge();return}
-      if(state.avatar?.type==='minecraft')one('#biglwaAvatarMedia')?._biglwaMinecraftModel?.rotate(action==='left'?-35:35);
-      else if(state.avatar?.type==='sona360'){
-        one('#biglwaAvatarMedia iframe')?.focus();
-        setStatus('Drag or tap the animated 360sona display case directly to interact.');
-      }
-      return;
-    }
     const origin=e.target.closest('#studioAvatarCard');
     const control=origin&&e.target.closest('[data-avatar-widget-action]');
     if(control){
@@ -1100,11 +1082,11 @@
 #studioApp .biglwa-sona-frame.is-compact>iframe{pointer-events:auto!important}
 #studioApp #studioAvatarCard .biglwa-avatar-media{position:relative!important;touch-action:pan-y}
 #studioApp #studioAvatarCard .biglwa-sona-frame.is-compact>iframe{touch-action:auto}
-#studioApp #studioAvatarCard .biglwa-avatar-thumbnail-actions{position:absolute;right:7px;bottom:7px;z-index:18;display:flex;align-items:flex-end;gap:5px}
-#studioApp #studioAvatarCard [data-avatar-actions-toggle]{border:1px solid #a29894;border-radius:7px;background:#f7efebea;color:#54404b;width:25px;height:25px;cursor:pointer;font:800 17px/1 system-ui}
-#studioApp #studioAvatarCard .biglwa-avatar-action-menu[hidden]{display:none!important}
-#studioApp #studioAvatarCard .biglwa-avatar-action-menu{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid #c0afab;border-radius:9px;background:#faf7f1f5;box-shadow:0 5px 13px #31212333}
-#studioApp #studioAvatarCard .biglwa-avatar-action-menu button{border:1px solid #c4b3b5;border-radius:6px;background:#fff;color:#4b3741;padding:5px 7px;cursor:pointer;font:700 10px/1.1 system-ui;white-space:nowrap}
+
+
+
+
+
 #studioApp #profileAvatarEditor.has-active-avatar-source .biglwa-avatar-editor-layout{grid-template-columns:minmax(0,1fr)!important}
 #studioApp #profileAvatarEditor.has-active-avatar-source #biglwaAvatarProfilePreview{display:none!important}
 #studioApp #profileAvatarEditor .biglwa-avatar-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}
