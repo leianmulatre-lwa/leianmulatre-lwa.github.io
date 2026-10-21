@@ -51,7 +51,7 @@ assert.equal(firstMark.className,'sidebar-route-icon','clones real project symbo
 assert.equal(firstMark.children[0].className,'live-projects-icon','clones real project SVG');
 const archive=root.children.find(c=>c.children.at(-1)?.children?.[0]?.textContent==='Archive');
 assert.equal(archive.children[0].children[0].textContent,'▥','uses live archive icon');
-const feed=root.children.find(c=>c.children.at(-1)?.children?.[0]?.textContent==='Collective Feed');
+const feed=root.children.find(c=>c.children.at(-1)?.children?.[0]?.textContent==='myfeed');
 assert.equal(feed.children[0].children[0].tagName,'IMG','uses Big LWA feed asset when that shortcut is hidden');
 assert.equal(feed.children[0].children[0].src,'/assets/feed-symbol-generated.png');
 for(const row of root.children)assert.equal(row.children[0].attributes['aria-hidden'],'true');
