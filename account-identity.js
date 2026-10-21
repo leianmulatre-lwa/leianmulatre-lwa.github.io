@@ -127,7 +127,9 @@ export async function refreshIdentity() {
   current = {
     uid: user.uid,
     username: validUsername(username) ? username : "",
-    name: clean(account.name || record.name) || (validUsername(username) ? username : ""),
+    // A handle is never a person's display name: keep this empty until a
+    // real name is supplied instead of deriving the first initial from @user.
+    name: clean(account.name || record.name || (clean(user.displayName).toLowerCase()!==username?user.displayName:"")),
     avatarUrl: clean(account.profilePhoto?.url || record.avatarUrl),
     email: clean(user.email),
     emailVerified: user.emailVerified === true
@@ -163,7 +165,7 @@ export async function claimUsername(username) {
   }
   await setDoc(doc(db, "users", user.uid), {
     usernameLower: name,
-    name: clean(current?.name) || clean(user.displayName) || name,
+    name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):""),
     updatedAt: serverTimestamp()
   }, { merge: true });
   await setDoc(doc(db, "usernames", name), {
@@ -171,12 +173,12 @@ export async function claimUsername(username) {
     username: name,
     usernameLower: name,
     url: "/" + name,
-    name: clean(current?.name) || clean(user.displayName) || name,
+    name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):""),
     look: (existing.exists() && existing.data()?.look) || {},
     updatedAt: serverTimestamp()
   }, { merge: true });
   writeCache({ ...cached(user.uid), username: name });
-  current = { ...(current || {}), uid: user.uid, username: name, name: clean(current?.name) || name };
+  current = { ...(current || {}), uid: user.uid, username: name, name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):"") };
   emit();
   return name;
 }
