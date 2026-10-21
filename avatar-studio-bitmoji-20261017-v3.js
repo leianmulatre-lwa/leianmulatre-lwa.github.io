@@ -1,4 +1,4 @@
-/* BIGLWA Xbox Avatar: user-owned 360sona widget, Minecraft skins and Bitmoji. */
+/* BIGLWA Avatar: user-owned 360sona widget, Minecraft skins and Bitmoji. */
 (()=>{
   if(window.__biglwaAvatarStudioV1)return;
   window.__biglwaAvatarStudioV1=true;
@@ -129,8 +129,8 @@
     let dialog=one('#biglwaAvatarLarge');
     if(!dialog){
       dialog=document.createElement('dialog');dialog.id='biglwaAvatarLarge';dialog.className='biglwa-avatar-lightbox';
-      dialog.setAttribute('aria-label','Interactive Xbox Avatar preview');
-      dialog.innerHTML='<div class="biglwa-avatar-lightbox-head"><strong>Xbox Avatar</strong><button type="button" data-avatar-lightbox-close aria-label="Close enlarged avatar">×</button></div>'+
+      dialog.setAttribute('aria-label','Interactive Avatar preview');
+      dialog.innerHTML='<div class="biglwa-avatar-lightbox-head"><strong>Avatar</strong><button type="button" data-avatar-lightbox-close aria-label="Close enlarged avatar">×</button></div>'+
         '<div id="biglwaAvatarLargeMedia" class="biglwa-avatar-lightbox-media"></div>'+
         '<div class="biglwa-avatar-lightbox-footer"><span data-avatar-lightbox-info>Interact with the avatar.</span>'+
         '<div class="biglwa-avatar-lightbox-controls"><button type="button" data-avatar-large-turn="-35" aria-label="Turn Minecraft avatar left">↶</button>'+
@@ -159,11 +159,11 @@
   }
   function render(){
     const card=one('#studioAvatarCard');if(!card)return;
-    card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Xbox Avatar</h2>'+
+    card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
       '<div class="widget-window-controls avatar-window-controls" role="group" aria-label="Avatar widget controls">'+
       '<button type="button" class="window-light red" data-avatar-widget-action="remove" aria-label="Remove Avatar widget" title="Remove widget"></button>'+
       '<button type="button" class="window-light yellow" data-avatar-widget-action="archive" aria-label="Archive Avatar widget" title="Archive widget"></button>'+
-      '<button type="button" class="window-light green" data-avatar-widget-action="enlarge" aria-label="Enlarge interactive Xbox Avatar" title="Enlarge interactive avatar"></button></div></div>'+
+      '<button type="button" class="window-light green" data-avatar-widget-action="enlarge" aria-label="Enlarge interactive Avatar" title="Enlarge interactive avatar"></button></div></div>'+
       '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Reorder Aura and Avatar widgets" title="Drag to move the Aura and Avatar widgets">'+
       '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
       '<div class="biglwa-avatar-media" id="biglwaAvatarMedia" aria-label="Interactive avatar preview"></div>'+ '<div class="biglwa-avatar-thumbnail-actions"><button type="button" data-avatar-actions-toggle aria-expanded="false" aria-label="Show avatar actions" title="Avatar actions">⋯</button>'+ '<div class="biglwa-avatar-action-menu" hidden><button type="button" data-avatar-action="left" aria-label="Rotate left">↶</button><button type="button" data-avatar-action="right" aria-label="Rotate right">↷</button><button type="button" data-avatar-action="enlarge">Enlarge ↗</button></div></div>';
@@ -238,7 +238,7 @@
       mount.innerHTML='<p>Paste your public 360sona display-case link. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
         '<label class="biglwa-sona-label" for="biglwaSonaWidgetURL">360sona widget link</label>'+
         '<input id="biglwaSonaWidgetURL" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://360sona.com/w/your-widget-id" aria-label="360sona display case URL">'+
-        '<div class="biglwa-sona-actions"><button type="button" data-sona-preview>Preview</button><button type="button" data-sona-save>Save Xbox Avatar</button>'+
+        '<div class="biglwa-sona-actions"><button type="button" data-sona-preview>Preview</button><button type="button" data-sona-save>Save Avatar</button>'+
         '<button type="button" data-sona-example>Use supplied example</button></div>'+
         '<div id="biglwaSonaLivePreview" class="biglwa-sona-editor-preview" aria-label="360sona live display-case preview"><span>Your widget will appear here when you provide its link.</span></div>'+
         '<div class="biglwa-sona-creator-actions"><button type="button" data-sona-creator aria-expanded="false" aria-controls="biglwaSonaCreator">Create here ▾</button><a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Open creator in new tab ↗</a></div>'+ '<div id="biglwaSonaCreator" hidden><p>This is 360sona in a browser frame. If its website blocks embedding, use the new-tab link above, then paste the finished widget URL here.</p><iframe title="360sona avatar creator" loading="lazy" referrerpolicy="no-referrer" data-sona-editor></iframe></div>'+
@@ -421,11 +421,11 @@
     const url=sonaUrl(input?.value);
     if(!url){setStatus('Paste a valid HTTPS 360sona public link (https://360sona.com/w/…).');return false;}
     if(state.busy)return false;
-    state.busy=true;setStatus('Saving your Xbox Avatar to your account…');
+    state.busy=true;setStatus('Saving your Avatar to your account…');
     try{
       const f=await firebase();await f.auth.authStateReady();
       const user=f.auth.currentUser;
-      if(!user?.uid)throw Error('Sign in before saving your Xbox Avatar.');
+      if(!user?.uid)throw Error('Sign in before saving your Avatar.');
       const uid=user.uid;
       await f.setDoc(f.doc(f.db,'users',uid),{
         studioAvatar:{type:'sona360',url,updatedAt:f.serverTimestamp()}
@@ -436,8 +436,8 @@
       renderSonaFrame(one('#biglwaSonaLivePreview'),url);
       try{const channel=new BroadcastChannel('biglwa-avatar');channel.postMessage({type:'saved',uid});channel.close()}catch{}
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:'sona360'}}));
-      setStatus('Xbox Avatar saved to your own BIGLWA profile.');return true;
-    }catch(error){setStatus('Xbox Avatar could not be saved: '+(error?.message||'Please retry.'));return false;}
+      setStatus('Avatar saved to your own BIGLWA profile.');return true;
+    }catch(error){setStatus('Avatar could not be saved: '+(error?.message||'Please retry.'));return false;}
     finally{state.busy=false}
   }
   async function restore(){
@@ -457,7 +457,7 @@
       if((avatar?.type==='sona360'&&url)||(['minecraft','mii','imvu','bitmoji'].includes(avatar?.type)&&backedMedia)){
         state.avatar={type:avatar.type,url,...(avatar.type==='minecraft'?{slim:avatar.slim===true}:{})};
         if(avatar.type==='minecraft')state.minecraftSlim=avatar.slim===true;
-        showAvatar();setStatus('Saved Xbox Avatar restored from your account.');
+        showAvatar();setStatus('Saved Avatar restored from your account.');
       }
     }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
   }
@@ -547,7 +547,7 @@
     if(!restore){
       restore=document.createElement('button');
       restore.type='button';restore.dataset.avatarRestore='1';restore.className='biglwa-avatar-restore';
-      restore.textContent='Restore Xbox Avatar +';
+      restore.textContent='Restore Avatar +';
       aura.append(restore);
     }
     restore.hidden=!avatarHidden||Boolean(auraHidden);
@@ -570,7 +570,7 @@
     if(!rail||!aura)return false;
     if(!one('#studioAvatarCard')){
       const card=document.createElement('section');card.id='studioAvatarCard';
-      card.className='biglwa-avatar-card';card.setAttribute('aria-label','Xbox Avatar widget');
+      card.className='biglwa-avatar-card';card.setAttribute('aria-label','Avatar widget');
       card.dataset.search='xbox avatar 360sona minecraft bitmoji character';
       rail.append(card);render();restore();
     }else if(!one('#biglwaAvatarMedia',one('#studioAvatarCard'))){
@@ -670,7 +670,7 @@
       if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge();
       else if(control.dataset.avatarWidgetAction==='edit')openEditor();
       else if(control.dataset.avatarWidgetAction==='archive')setVisibility('archived');
-      else if(window.confirm('Remove Xbox Avatar from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
+      else if(window.confirm('Remove Avatar from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
       return;
     }
     const panel=e.target.closest('#profileAvatarEditor');
@@ -1095,7 +1095,7 @@
 }
 `;
   style.textContent+=`
-/* 2026-10-20 Xbox Avatar · Interactive display, accessible enlarge and editor reset */
+/* 2026-10-20 Avatar · Interactive display, accessible enlarge and editor reset */
 #studioApp .biglwa-sona-frame.is-compact,
 #studioApp .biglwa-sona-frame.is-compact>iframe{pointer-events:auto!important}
 #studioApp #studioAvatarCard .biglwa-avatar-media{position:relative!important;touch-action:pan-y}
@@ -1126,8 +1126,8 @@
 .biglwa-avatar-lightbox-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 17px;border-bottom:1px solid #ddd1ca;font:700 18px Georgia,serif}
 .biglwa-avatar-lightbox-head button{cursor:pointer;min-height:32px;min-width:32px;border-radius:8px;border:1px solid #c8b9b9;background:white;font:700 24px/1 system-ui}
 .biglwa-avatar-lightbox-media{display:grid;place-items:center;min-height:350px;max-height:65vh;overflow:auto;padding:10px;background:linear-gradient(165deg,#20242a,#0b0d10)}
-.biglwa-avatar-lightbox-media .biglwa-sona-frame{width:320px;height:546px;max-width:100%;overflow:hidden;border-radius:8px}
-.biglwa-avatar-lightbox-media .biglwa-sona-frame>iframe{display:block;width:320px;height:546px;max-width:none;border:0}
+.biglwa-avatar-lightbox-media .biglwa-sona-frame{width:min(100%,640px);height:auto;aspect-ratio:265/170;max-width:100%;overflow:hidden;border-radius:8px}
+.biglwa-avatar-lightbox-media .biglwa-sona-frame>iframe{display:block;width:100%;height:100%;max-width:none;border:0}
 .biglwa-avatar-lightbox-media .biglwa-mc-stage{height:55vh;min-height:330px;width:100%;touch-action:pan-y}
 .biglwa-avatar-lightbox-media>img{object-fit:contain;max-width:100%;max-height:55vh}
 .biglwa-avatar-lightbox-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;padding:10px 14px;font:600 11px/1.3 system-ui}
