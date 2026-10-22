@@ -261,6 +261,9 @@
       const api = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
       await api.signOut(auth);
       say(status, 'Signed out.', 'good');
+      // Present the dedicated off-air screen after Firebase completes logout,
+      // rather than sending a signed-out user back through Studio curtains.
+      window.location.assign('/logout/');
     }));
   }
 
