@@ -25,6 +25,7 @@
  #lwaStudioTransition .lwa-loading-center{display:grid;place-items:center;gap:28px}
  .lwa-loading-image{position:relative}
  .lwa-curtain{position:absolute;z-index:120;inset:0;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:28px;background:repeating-linear-gradient(90deg,#7f172d 0%,#a32b42 17%,#6e1025 37%,#9e263b 53%,#641020 76%,#9b3044 100%);color:#fff8ef;border-radius:inherit;pointer-events:none}
+ .lwa-curtain[data-lwa-curtain="module"]{bottom:auto;min-height:220px;height:min(520px,calc(100dvh - 210px));border-radius:18px;overflow:hidden;justify-content:flex-start;padding-top:clamp(65px,12vh,115px);box-sizing:border-box}
  .lwa-curtain[hidden]{display:none!important}
  .lwa-curtain .lwa-dot{color:#f26877}
  .lwa-curtain-label{font:600 11px/1.4 system-ui;letter-spacing:.07em;text-transform:uppercase;text-shadow:0 1px 2px #3c0610}
