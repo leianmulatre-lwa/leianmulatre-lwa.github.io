@@ -1,0 +1,76 @@
+/* BIG LWA loading states: CSS-only dots inspired by nzbin/three-dots.
+   Respect reduced motion. These indicators show actual browser work. */
+(function(){
+ if(window.__biglwaDotsBooted)return;window.__biglwaDotsBooted=true;
+ const css=`
+ .lwa-dot{display:inline-block;width:7px;height:7px;background:currentColor;border-radius:50%;position:relative;vertical-align:middle;flex:none}
+ .lwa-dot::before,.lwa-dot::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:currentColor}
+ .lwa-dot::before{left:-11px}.lwa-dot::after{left:11px}
+ .lwa-dot-pulse{animation:lwaPulse 1s ease-in-out infinite}
+ .lwa-dot-pulse::before{animation:lwaPulse 1s ease-in-out -.2s infinite}
+ .lwa-dot-pulse::after{animation:lwaPulse 1s ease-in-out .2s infinite}
+ @keyframes lwaPulse{0%,100%{opacity:.35;transform:scale(.55)}50%{opacity:1;transform:scale(1)}}
+ .lwa-dot-floating{animation:lwaFloat 1.1s ease-in-out infinite}
+ .lwa-dot-floating::before{animation:lwaFloat 1.1s ease-in-out -.2s infinite}
+ .lwa-dot-floating::after{animation:lwaFloat 1.1s ease-in-out .2s infinite}
+ @keyframes lwaFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+ .lwa-dot-falling{animation:lwaFall 1.05s ease-in-out infinite}
+ .lwa-dot-falling::before{animation:lwaFall 1.05s ease-in-out -.22s infinite}
+ .lwa-dot-falling::after{animation:lwaFall 1.05s ease-in-out .22s infinite}
+ @keyframes lwaFall{0%{transform:translateY(-7px);opacity:0}55%{transform:translateY(2px);opacity:1}100%{transform:translateY(7px);opacity:0}}
+ #lwaProfileLoading{display:inline-flex;align-items:center;gap:15px;font:600 10px system-ui;color:inherit;white-space:nowrap;margin-left:12px}
+ #lwaProfileLoading[hidden]{display:none!important}
+ #lwaStudioTransition{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;pointer-events:none;background:rgba(250,246,242,.93);font:600 13px system-ui;color:#473248}
+ #lwaStudioTransition[hidden]{display:none!important}
+ #lwaStudioTransition .lwa-loading-center{display:grid;place-items:center;gap:28px}
+ .lwa-loading-image{position:relative}
+ .lwa-loading-image::after{content:"";position:absolute;left:50%;top:50%;color:#543a65;display:block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:-11px 0 currentColor,11px 0 currentColor;animation:lwaPulse 1s ease-in-out infinite}
+ .lwa-loading-image[data-lwa-loaded="1"]::after{display:none}
+ @media(prefers-reduced-motion:reduce){.lwa-dot,.lwa-dot::before,.lwa-dot::after,.lwa-loading-image::after{animation:none!important}}
+ `;
+ const style=document.createElement('style');style.id='lwaLoadingDotsStyles';style.textContent=css;document.head.append(style);
+ const make=(type)=>{const el=document.createElement('i');el.className='lwa-dot lwa-dot-'+type;el.setAttribute('aria-hidden','true');return el};
+ let profile=null,transition=null,transitionTimer=null;
+ function ensure(){
+  if(!document.getElementById('studioApp'))return;
+  if(!profile){
+   const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
+   if(mark){profile=document.createElement('span');profile.id='lwaProfileLoading';profile.setAttribute('role','status');profile.setAttribute('aria-label','Loading your profile');profile.append(make('falling'));const label=document.createElement('span');label.textContent='Loading profile';profile.append(label);mark.append(profile);profile.hidden=true}
+  }
+  if(!transition){transition=document.createElement('div');transition.id='lwaStudioTransition';transition.hidden=true;const center=document.createElement('div');center.className='lwa-loading-center';center.append(make('floating'));const label=document.createElement('span');label.textContent='Taking you to Studio';center.append(label);transition.append(center);document.body.append(transition)}
+ }
+ function setProfile(loading){ensure();if(profile)profile.hidden=!loading}
+ function hideTransition(){if(transition)transition.hidden=true;if(transitionTimer)clearTimeout(transitionTimer)}
+ function studioVisible(){return !!document.querySelector('#studioApp.is-active')}
+ // Image pulse is only drawn while an image actually has network work outstanding.
+ function imagePending(img){return img instanceof HTMLImageElement && !img.complete && !img.dataset.lwaLoadingBound}
+ function bindImage(img){
+  if(!imagePending(img))return;
+  img.dataset.lwaLoadingBound='1';
+  const parent=img.parentElement;
+  if(!parent || !parent.matches('.biglwa-feed-hero-preview,.biglwa-slide,.instagram-archive-piece,.feed-card-media,.veve-card-media'))return;
+  parent.classList.add('lwa-loading-image');parent.style.position='relative';
+  const done=()=>{parent.classList.remove('lwa-loading-image');img.dataset.lwaLoaded='1'};
+  img.addEventListener('load',done,{once:true});img.addEventListener('error',done,{once:true});if(img.complete)done();
+ }
+ const scan=()=>document.querySelectorAll('#studioApp img').forEach(bindImage);
+ let wasStudio=studioVisible();
+ const observe=new MutationObserver(()=>{
+  ensure();scan();
+  const now=studioVisible();
+  if(now&&!wasStudio){hideTransition();setProfile(true);window.dispatchEvent(new Event('biglwa:studio-opened'))}
+  if(!now&&wasStudio)hideTransition();
+  wasStudio=now;
+ });
+ function start(){ensure();scan();observe.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','src']});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+ window.BigLWALoadingDots={
+  profile:setProfile,
+  studio(){ensure();if(transition){transition.hidden=false;clearTimeout(transitionTimer);transitionTimer=setTimeout(hideTransition,9000)}},
+  ready(){setProfile(false);hideTransition()}
+ };
+ document.addEventListener('click',event=>{
+  const el=event.target.closest('[data-enter-studio],#signInBtn,#createAccountBtn');
+  if(el&&!studioVisible())window.BigLWALoadingDots.studio();
+ },true);
+})();
