@@ -237,3 +237,32 @@ body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!
 .studio-color-actions button{padding:8px 15px;border:1px solid #bfa7b3;border-radius:7px}
 #studioColorDone{background:#703b53;color:white}
 #studioApp .biglwa-skeleton-title .skeleton-settings{margin-left:auto;font:11px system-ui;color:inherit}
+
+/* 2026-10-21 follow-up: slim the Studio shortcut rail and balance its gutters.
+   Keep identical lower breathing room before the Studio masonry. */
+#studioApp .hero .mobile-dock.hero-action-bar{
+  margin-top:2px!important;
+  margin-bottom:0!important;
+  padding:4px 6px!important;
+  grid-auto-rows:44px!important;
+}
+#studioApp .hero .hero-action-bar>:is(a,button){
+  height:44px!important;
+  padding:3px 5px!important;
+  gap:2px!important;
+}
+#studioApp .hero:not(:has(.profile-card.profile-is-editing)){padding-top:0!important}
+#studioApp .hero+.masonry,
+#studioApp .hero~.masonry{
+  margin-top:12px!important;
+  padding-top:0!important;
+}
+/* The same lower gutter applies to the first row of module workspace content. */
+#studioApp .main.module-view>.module-workspace{
+  padding-top:12px!important;
+}
+@media(max-width:620px){
+  #studioApp .hero .mobile-dock.hero-action-bar{padding:4px!important}
+  #studioApp .hero+.masonry,#studioApp .hero~.masonry{margin-top:10px!important}
+  #studioApp .main.module-view>.module-workspace{padding-top:10px!important}
+}
