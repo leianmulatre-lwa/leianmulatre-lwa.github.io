@@ -12,12 +12,13 @@ import { startFeed } from "./feed-view.js?v=20261020-pinterest-clean-cards-7";
 function boot() {
   startIdentity();
   startChrome();
+  window.BigLWALoadingDots?.profile(true);
   refreshIdentity().then((who) => {
     if (who) {
       renderIdentityChrome(who);
-      loadProfilePhoto();
+      return Promise.resolve(loadProfilePhoto()).catch(()=>{});
     }
-  });
+  }).catch(error=>{console.warn('Profile refresh failed',error)}).finally(()=>window.BigLWALoadingDots?.ready());
   /* Independent of the photo: a member with a connected source and no profile picture
      still needs their connections recorded and the feed available. */
   startConnections();
