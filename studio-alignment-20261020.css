@@ -275,3 +275,17 @@ body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!
 #studioApp .main.module-view .module-top{margin-bottom:12px!important}
 #studioApp .main.module-view .module-shell>:first-child{margin-top:0!important}
 @media(max-width:620px){#studioApp .main.module-view>.module-workspace{padding-top:10px!important}#studioApp .main.module-view .module-top{margin-bottom:10px!important}}
+
+/* 2026-10-21 visual regression: preserve a real gutter at BOTH seams.
+   Module shortcut bar is outside .module-workspace, so padding alone cannot space it. */
+#studioApp .topbar{margin-bottom:10px!important}
+#studioApp .hero{margin-top:8px!important}
+#studioApp .main.module-view>.module-workspace{margin-top:14px!important;padding-top:16px!important}
+#studioApp .main.module-view .module-top{margin-bottom:18px!important}
+#studioApp .main.module-view .module-heading{margin-bottom:18px!important}
+#studioApp .main:not(.module-view)>.hero{margin-top:8px!important}
+@media(max-width:620px){
+#studioApp .topbar{margin-bottom:8px!important}
+#studioApp .hero{margin-top:8px!important}
+#studioApp .main.module-view>.module-workspace{margin-top:12px!important;padding-top:14px!important}
+}
