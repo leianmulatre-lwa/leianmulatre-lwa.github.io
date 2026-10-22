@@ -1,0 +1,41 @@
+name: Orbit source and identity regression
+on:
+  push:
+    paths:
+      - 'cloudflare-worker-instagram.js'
+      - 'new-orbit-oauth.js'
+      - 'orbit-new-connect-20261018-v6.js'
+      - 'orbit-connections.js'
+      - 'orbit-posts.js'
+      - 'tiktok-orbit.js'
+      - 'module-pages.js'
+      - 'orbit-body-import-regression-test.mjs'
+      - '.github/workflows/orbit-body-import-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  body-imports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check every touched source parses
+        run: |
+          node --check cloudflare-worker-instagram.js
+          node --input-type=module --check < new-orbit-oauth.js
+          node --check tiktok-orbit.js
+          node --check module-pages.js
+          node --check orbit-connections.js
+          node --input-type=module --check < orbit-posts.js
+          node --check orbit-new-connect-20261018-v6.js
+      - name: Exercise private provider identity and source imports
+        run: node orbit-body-import-regression-test.mjs
+      - name: Validate existing Orbit OAuth and TikTok flows
+        run: |
+          node orbit-oauth-repair-test.mjs
+          node tiktok-connect-test.mjs
+          node facebook-tiktok-media-test.mjs
