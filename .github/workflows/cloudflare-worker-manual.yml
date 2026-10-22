@@ -1,0 +1,103 @@
+# GitHub can deploy the existing BIG LWA Cloudflare Worker without the ChatGPT
+# Cloudflare connector. NO automatic production pushes: use Run workflow.
+name: "BIG LWA Worker — check or deploy"
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Validate without deployment, or publish to the existing Cloudflare Worker"
+        type: choice
+        required: true
+        default: validate
+        options:
+          - validate
+          - deploy
+
+permissions:
+  contents: read
+
+concurrency:
+  group: biglwa-worker-manual
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate Worker + existing Orbit flows
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out selected commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check Worker and Orbit source syntax
+        run: |
+          node --check cloudflare-worker-instagram.js
+          node --input-type=module --check < new-orbit-oauth.js
+          node --check tiktok-orbit.js
+          node --check orbit-connections.js
+          node --check orbit-posts.js
+      - name: Run existing OAuth and session regression checks
+        run: |
+          node tiktok-connect-test.mjs
+          node orbit-oauth-repair-test.mjs
+          node orbit-session-stability-test.mjs
+          node orbit-provider-feed-end-to-end-test.mjs
+      - name: Check Worker name and storage bindings before bundling
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib, tomllib
+          p = tomllib.loads(pathlib.Path("wrangler.toml").read_text())
+          assert p.get("name") == "biglwa-instagram-api", "Wrong Worker target"
+          assert p.get("main") == "cloudflare-worker-instagram.js", "Wrong Worker source"
+          assert p.get("keep_vars") is True, "Dashboard vars must be kept"
+          assert any(x.get("binding") == "OAUTH_SESSIONS" for x in p.get("kv_namespaces", [])), "Missing existing OAuth KV binding"
+          assert any(x.get("binding") == "WALLPAPER_BUCKET" for x in p.get("r2_buckets", [])), "Missing existing media bucket"
+          print("Worker target, entry, keep_vars, OAuth KV and media bucket match BIG LWA.")
+          PY
+      - name: Wrangler compilation only — never deploy in this job
+        run: npx --yes wrangler@4 deploy --dry-run --outdir "$RUNNER_TEMP/biglwa-worker-bundle"
+
+  deploy:
+    name: Publish existing Cloudflare Worker
+    needs: validate
+    if: ${{ inputs.operation == 'deploy' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: cloudflare-production
+    steps:
+      - name: Check out exact validated commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Require Cloudflare credentials stored as GitHub secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in GitHub Actions secrets; never commit them."
+            exit 1
+          fi
+      - name: Deploy current Worker (preserve dashboard values and secrets)
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          command: deploy --keep-vars
+      - name: Smoke-check public Worker origins
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in "https://biglwa-instagram-api.leianmulatre-284.workers.dev/health" "https://api.biglwa.com/health"; do
+            echo "Checking $url"
+            curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 20 "$url" |
+              python3 -c 'import json,sys; data=json.load(sys.stdin); assert data.get("ok") is True, "Worker health check failed"; print("Worker responded: ok=true")'
+          done
