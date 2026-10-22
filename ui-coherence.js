@@ -1729,10 +1729,11 @@
     const app=$('#studioApp'),header=$('.topbar',app);
     if(!app||!header)return;
     const sync=()=>{
-      // The dock must align to the header's actual on-screen bottom,
-      // not its height: the two diverge when the Studio document scrolls.
-      const rect=header.getBoundingClientRect();
-      const offset=Math.max(0,Math.min(window.innerHeight-80,Math.round(rect.bottom)));
+      // The fixed topbar and fixed dock must share an invariant height.
+      // getBoundingClientRect().bottom moves during elastic overscroll on
+      // Safari/Chrome; offsetHeight does not. Only resize can change this.
+      const offset=Math.max(48,Math.min(window.innerHeight-80,
+        Math.round(header.offsetHeight||header.getBoundingClientRect().height||64)));
       const value=offset+'px';
       if(app.style.getPropertyValue('--biglwa-dock-top')!==value)
         app.style.setProperty('--biglwa-dock-top',value);
@@ -1741,7 +1742,7 @@
     if(app.dataset.dockAnchorBound==='1')return;
     app.dataset.dockAnchorBound='1';
     window.addEventListener('resize',sync,{passive:true});
-    window.addEventListener('scroll',sync,{passive:true,capture:true});
+    // No scroll listener: the dock no longer chases scroll/bounce position.
     if(typeof ResizeObserver!=='undefined'){
       const observer=new ResizeObserver(sync);observer.observe(header);
       app._biglwaDockHeaderObserver=observer;
