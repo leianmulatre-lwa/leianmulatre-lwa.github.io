@@ -357,6 +357,8 @@ const STYLE = `
   aspect-ratio:4/3;border-radius:14px;background:#efe7dd;text-decoration:none;
   border:1px solid rgba(80,70,64,.14);box-shadow:0 8px 18px -12px var(--accent,#c1355a)}
 .biglwa-feed-hero-row img{width:100%;height:100%;object-fit:cover;display:block}
+.biglwa-feed-hero-preview{cursor:zoom-in;width:100%;padding:0;appearance:none;font:inherit}
+.biglwa-feed-hero-preview:focus-visible{outline:3px solid #6e477b;outline-offset:2px}
 .biglwa-feed-hero-count{position:absolute;left:8px;top:8px;z-index:2;padding:3px 8px;border-radius:999px;
   background:rgba(24,16,14,.55);color:#fff;font:700 9px/1.5 system-ui;letter-spacing:.04em}
 .biglwa-feed-hero-empty{display:grid;place-items:center;aspect-ratio:4/3;border-radius:14px;
@@ -1657,7 +1659,3 @@ else startFeed();
 export default startFeed;
 
 window.addEventListener('biglwa:public-profile-ready',()=>{setTimeout(()=>loadPosts(),100)});
-
-/* Keep image preview interactive without revealing storage URLs on hover. */
-.biglwa-feed-hero-preview{cursor:zoom-in;width:100%;padding:0;appearance:none;font:inherit}
-.biglwa-feed-hero-preview:focus-visible{outline:3px solid #6e477b;outline-offset:2px}
