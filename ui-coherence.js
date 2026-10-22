@@ -1729,17 +1729,19 @@
     const app=$('#studioApp'),header=$('.topbar',app);
     if(!app||!header)return;
     const sync=()=>{
-      const height=Math.round(header.getBoundingClientRect().height||header.offsetHeight||64);
-      if(height>=42&&height<=140){
-        const value=height+'px';
-        if(app.style.getPropertyValue('--biglwa-dock-top')!==value)
-          app.style.setProperty('--biglwa-dock-top',value);
-      }
+      // The dock must align to the header's actual on-screen bottom,
+      // not its height: the two diverge when the Studio document scrolls.
+      const rect=header.getBoundingClientRect();
+      const offset=Math.max(0,Math.min(window.innerHeight-80,Math.round(rect.bottom)));
+      const value=offset+'px';
+      if(app.style.getPropertyValue('--biglwa-dock-top')!==value)
+        app.style.setProperty('--biglwa-dock-top',value);
     };
     sync();
     if(app.dataset.dockAnchorBound==='1')return;
     app.dataset.dockAnchorBound='1';
     window.addEventListener('resize',sync,{passive:true});
+    window.addEventListener('scroll',sync,{passive:true,capture:true});
     if(typeof ResizeObserver!=='undefined'){
       const observer=new ResizeObserver(sync);observer.observe(header);
       app._biglwaDockHeaderObserver=observer;
