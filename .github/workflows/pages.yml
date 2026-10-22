@@ -43,6 +43,7 @@ jobs:
           node --check settings-cache.js
           node --check veve.js
           node studio-layout-cache-test.mjs
+          node dock-scroll-stability-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js
       - name: Verify Veve, Arcade puzzles, media and board lock integration
