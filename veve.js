@@ -13,7 +13,7 @@
   const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
   const order=arr=>[...new Set(arr.filter(x=>groups.includes(x)))].concat(groups.filter(x=>!arr.includes(x)));
   const defaults={sections:groups,enabled:groups.filter(x=>x!=='ads'),sort:'latest'};
-  const state={items:[],sqwibs:[],resqwibs:[],loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map()};
+  const state={items:[],sqwibs:[],resqwibs:[],loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
   let firebasePromise=null;
   async function fb(){
     if(!firebasePromise)firebasePromise=Promise.all([
@@ -75,6 +75,10 @@
       return dateDiff||String(a.id||'').localeCompare(String(b.id||''));
     });
   }
+  function loadProgress(stage){
+    state.loadStage=stage;
+    document.dispatchEvent(new CustomEvent('biglwa:veve-load-state',{detail:{stage,ready:state.initialReady,loading:state.loading}}));
+  }
   let inFlightLoad=null;
   async function load(){
     // Repeated feed-ready / route events must await the same request.
@@ -83,6 +87,7 @@
     if(inFlightLoad)return inFlightLoad;
     inFlightLoad=(async()=>{
     state.loading=true;state.loadError='';
+    loadProgress('Loading public posts…');
     try{
       const f=await fb();
       const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(160)));
@@ -99,6 +104,7 @@
         }
       }
     }catch(err){state.items=[];state.loadError='Collective photos could not load: '+(err?.message||'Try refreshing');}
+    loadProgress('Loading public Sqwidz…');
     try{
       if(window.BigLWASqwibs){
         const pub=await window.BigLWASqwibs.publicSqwibs(70);
@@ -108,6 +114,7 @@
       }else{state.sqwibs=[];state.resqwibs=[]}
     }catch(err){state.sqwibs=[];state.resqwibs=[];state.loadError+=(state.loadError?' ':'')+'Sqwib discovery is not available until its security rules are published.';}
     state.loading=false;
+    loadProgress('Arranging your Veve…');
     })();
     try{return await inFlightLoad}finally{inFlightLoad=null}
   }
@@ -421,14 +428,29 @@
     const generation=++state.renderGen;
     say('Refreshing public discovery…');
     await load();
-    if(state.renderGen===generation)draw();
+    if(state.renderGen===generation){
+      draw();
+      state.initialReady=true;
+      loadProgress(state.loadError?'Feed available · some sources could not load.':'Public collections ready.');
+    }
   }
   async function mount(root){
-    if(!root)return;state.mounted=root;bind();
+    if(!root)return;
+    state.mounted=root;state.initialReady=false;state.loading=true;bind();
+    loadProgress('Connecting to public collections…');
     root.innerHTML='<p class="veve-loading" role="status">Opening Veve · loading public collections…</p>';
     state.active='all';
-    await restorePrefs();
-    draw();await refresh();
+    try{
+      await restorePrefs();
+      draw();await refresh();
+    }catch(error){
+      // Never strand an owner behind the curtain if an unexpected rendering
+      // error occurs. Surface the failure inside Veve and allow browsing.
+      state.loading=false;state.initialReady=true;
+      state.loadError=String(error?.message||'Veve could not finish opening.');
+      loadProgress('Veve needs attention. You can still browse.');
+      try{draw()}catch{root.innerHTML='<p role="alert">Veve could not load. Refresh to try again.</p>'}
+    }
     if(root.dataset.veveBound)return;
     root.dataset.veveBound='1';
     root.addEventListener('change',async ev=>{
@@ -483,5 +505,9 @@
       }
     });
   }
-  window.BigLWAVeve=Object.freeze({mount,refresh});
+  window.BigLWAVeve=Object.freeze({mount,refresh,
+    status(){return {ready:state.initialReady,loading:state.loading,stage:state.loadStage,
+      error:state.loadError,postCount:state.items.length,notesCount:state.sqwibs.length,
+      mounted:!!state.mounted?.isConnected}}}
+  });
 })();
