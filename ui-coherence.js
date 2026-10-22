@@ -1435,12 +1435,13 @@
         const bg='url("'+photo.replace(/"/g,'')+'")';
         if(el.style.backgroundImage!==bg)el.style.backgroundImage=bg;
         el.style.backgroundSize='cover';el.style.backgroundPosition='center';
-        el.classList.add('has-photo');
+        el.classList.add('has-photo');el.classList.remove('lwa-default-tv-avatar');
         if(el.textContent.trim())el.textContent='';
       }else{
         if(el.textContent!==initial)el.textContent=initial;
-        if(el.style.backgroundImage)el.style.backgroundImage='';
-        el.classList.remove('has-photo');
+        el.style.backgroundImage='linear-gradient(rgba(10,7,13,.12),rgba(10,7,13,.4)),url("/assets/tv-no-signal.svg")';
+        el.style.backgroundSize='cover';el.style.backgroundPosition='center';
+        el.classList.remove('has-photo');el.classList.add('lwa-default-tv-avatar');
         el.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
       }
       el.dataset.profileInitial=initial;
