@@ -102,18 +102,36 @@
   studio(){ensure();if(transition){transition.hidden=false;transitionShownAt=Date.now();clearTimeout(transitionTimer);transitionTimer=setTimeout(()=>{transition.hidden=true},9000)}},
   ready(){setProfile(false);hideTransition()}
  };
+ // Capture legacy Step Inside clicks even when the visual CTA sits outside the form.
+ // Never manufacture a signed-in state: Firebase remains the sole auth authority.
  document.addEventListener('click',event=>{
-  const el=event.target.closest('button,[role="button"],[data-enter-studio]');
+  const el=event.target.closest('button,[role="button"],[data-enter-studio],a');
   if(!el||studioVisible()||!el.closest('#loginPage'))return;
   const label=(el.textContent||el.getAttribute('aria-label')||'').trim().toLowerCase();
-  if(!/step inside|sign in|log in|enter studio|create account|continue/.test(label))return;
-  const form=el.closest('form');
-  if(form&&typeof form.checkValidity==='function'&&!form.checkValidity())return;
+  if(!/^(step inside|sign in|log in|enter studio|continue)(\\s*[→›»])?$/.test(label))return;
+  const page=el.closest('#loginPage');
+  const ownForm=el.closest('form');
+  const visible=form=>!!form&&(form.getClientRects().length>0||getComputedStyle(form).display!=='none');
+  const email=page.querySelector('#loginEmail');
+  const form=ownForm||(email?.form&&visible(email.form)?email.form:null);
+  // A CTA with no submit behavior must enter the existing auth form, not just show a loader.
+  if(label.startsWith('step inside')&&(!form||!visible(form))){
+   const tab=page.querySelector('#signInTab');
+   if(tab){tab.click();return}
+   email?.focus();return;
+  }
+  if(form&&!form.checkValidity())return;
   window.BigLWALoadingDots.studio();
-  /* Some vintage login CTAs were type=button with no form submission path.
-     Delegate only in that case; native submit buttons retain their original auth handler. */
   if(form&&el.tagName==='BUTTON'&&el.type==='button'&&!el.dataset.lwaSubmitBound){
-    el.dataset.lwaSubmitBound='1';form.requestSubmit();queueMicrotask(()=>delete el.dataset.lwaSubmitBound);
+   el.dataset.lwaSubmitBound='1';
+   form.requestSubmit();
+   queueMicrotask(()=>delete el.dataset.lwaSubmitBound);
+  }else if(form&&!ownForm&&!el.hasAttribute('href')){
+   form.requestSubmit();
   }
  },true);
+ window.addEventListener('biglwa:session-verified',event=>{
+  if(event.detail?.signedIn)window.BigLWALoadingDots?.ready();
+  else hideTransition();
+ });
 })();
