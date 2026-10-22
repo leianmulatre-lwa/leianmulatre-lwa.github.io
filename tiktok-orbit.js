@@ -114,7 +114,7 @@
         cover_image_url:v.cover_image_url,
         sourceUsername:profile.display_name||profile.username||'',
         mediaType:'VIDEO'
-      },{publishToCollective:true})));
+      },{publishToCollective:false})));
       saved+=results.filter(x=>x.status==='fulfilled'&&(x.value?.created||x.value?.published)).length;
       for(const result of results)if(result.status==='rejected'){failed++;firstError ||= result.reason?.message||'Save failed';}
     }
