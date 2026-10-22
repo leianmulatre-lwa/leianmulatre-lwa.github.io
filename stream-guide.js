@@ -311,7 +311,7 @@
    '</div></nav>',
    '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
-   '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>▣ Dock player · keep watching while you browse</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
+   '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>▣ Dock player · keep watching while you browse</button><button type="button" class="stream-dock-open" data-stream-no-signal>◉ No signal?</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
    '<div class="stream-date-actions"><label>Discovery mood <select id="streamDiscoveryMood" class="stream-mood-select" aria-label="Choose a discovery mood"><option value="all">Everything</option><option value="gaming">Games &amp; horror</option><option value="culture">Culture &amp; commentary</option><option value="calm">Unwind</option><option value="cartoons">Cartoons</option><option value="surprise">Surprise me</option></select></label><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
@@ -557,6 +557,21 @@
   if(pick.kind==='station')selectStation(pick.index);
   else if(pick.kind==='feature')selectFeature(pick.id);
   else if(pick.kind==='twitch')selectTwitch(pick.id);
+ }
+ function showNoSignal(){
+  // The embedded provider may deliberately refuse playback; the browser does
+  // not always fire iframe error. Let members explicitly report a blank screen.
+  // Do not imply the creator is live or publish any failed media data.
+  if(!state.selected)return false;
+  const portal=ensureMediaPortal();
+  const title=escapeHTML(state.selected.title||'Stream');
+  const url=String(state.selected.url||'');
+  const link=/^https:\/\//i.test(url)?'<a href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">View on original site ↗</a>':'';
+  portal.innerHTML='<div class="stream-screen stream-signal-failed">'+
+    '<img src="/assets/tv-no-signal.svg" alt="Television no-signal test pattern" width="336" height="208">'+
+    '<strong>NO SIGNAL · '+title+'</strong><small>Stream unavailable here. You can retry or open the source.</small>'+
+    '<button type="button" class="stream-monitor-open" data-stream-retry>↻ Retry player</button>'+link+'</div>';
+  return true;
  }
  function showSource(source,options={}){
   const monitor=root?.querySelector('#streamMonitor');if(!monitor||!source)return;
@@ -832,6 +847,8 @@
   if(!button||!(root?.contains(button)||mediaPortal?.contains(button)))return;
   if(button.matches('[data-stream-return]')){undockStream(true);return;}
   if(button.matches('[data-stream-dock]')){dockStream();return;}
+  if(button.matches('[data-stream-no-signal]')){showNoSignal();return;}
+  if(button.matches('[data-stream-retry]')){if(state.selected)showSource(state.selected,{silent:true});return;}
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
   if(button.matches('[data-discovery-play]')){playDiscovery(Number(button.dataset.discoveryPlay));return;}
@@ -850,5 +867,5 @@
   if(button.matches('[data-stream-twitch]')){state.followGuide=false;selectTwitch(button.dataset.streamTwitch);return}
   if(button.matches('[data-stream-program]')){state.followGuide=false;selectProgram(button.dataset.streamProgram);return}
  }
- window.BigLWAStreamGuide={mount,parkInStudio,dock:dockStream,undock:undockStream,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
+ window.BigLWAStreamGuide={mount,parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
