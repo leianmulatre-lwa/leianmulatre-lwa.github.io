@@ -1404,7 +1404,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         '<p>Review your own Tumblr text and quotes or X posts. Imported writing stays private until you choose to publish a Sqwib copy.</p>'+
         '<div class="module-actions"><button class="module-action ghost" type="button" data-sqwibz-import="tumblr">Check Tumblr writing</button>'+
         '<button class="module-action ghost" type="button" data-sqwibz-import="x">Check X posts</button></div>'+
-        '<p id="sqwibzImportStatus" role="status">Sign in and authorize the source in Orbit first.</p>'+
+        '<p>Or import an individual public X post by its URL without X OAuth. The original author remains credited, and nothing is published automatically.</p>'+
+        '<label for="sqwibzPublicXUrl">Public X post URL</label>'+
+        '<input id="sqwibzPublicXUrl" class="module-input" type="url" inputmode="url" placeholder="https://x.com/creator/status/..." data-sqwibz-public-x-url>'+
+        '<button class="module-action ghost" type="button" data-sqwibz-public-x>Save X post privately</button>'+
+        '<p id="sqwibzImportStatus" role="status">Connect in Orbit for full account imports, or paste an individual public X post above.</p>'+
         '<div id="sqwibzImportedItems" aria-label="Private imported posts"></div>';
       form.closest('.module-card')?.append(section);
       const list=$('#sqwibzImportedItems',section),notice=$('#sqwibzImportStatus',section);
@@ -1490,6 +1494,37 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
             ?additions.length+' '+provider+' posts reviewed and saved privately. Choose which to open.'
             :'No text or quote posts returned for this account. Nothing was fabricated.';
         }catch(error){notice.textContent=error?.message||'Import unavailable.'}
+        finally{control.disabled=false}
+      });
+      section.addEventListener('click',async event=>{
+        const control=event.target.closest('[data-sqwibz-public-x]');if(!control)return;
+        control.disabled=true;notice.textContent='Looking up this public X post…';
+        try{
+          const {account,uid,fire,db}=await authClient();
+          const input=section.querySelector('[data-sqwibz-public-x-url]');
+          const jwt=await account.currentUser.getIdToken();
+          const response=await fetch('https://api.biglwa.com/x/public-post?url='+
+            encodeURIComponent(String(input?.value||'').trim()),{
+            headers:{Authorization:'Bearer '+jwt},cache:'no-store'
+          });
+          const data=await response.json().catch(()=>({}));
+          if(!response.ok)throw Error(data.error||'X could not return public post metadata.');
+          if(account.currentUser?.uid!==uid)throw Error('Account changed; post not imported.');
+          const posts=Array.isArray(data.items)?data.items:[];
+          const merged=new Map(imported.map(x=>[x.provider+':'+x.id,x]));
+          for(const p of posts.filter(x=>x.id&&x.text)){
+            const post={id:String(p.id).slice(0,100),provider:'x',
+              text:String(p.text).slice(0,1200),url:String(p.url||'').slice(0,350),
+              authorName:String(p.authorName||'').slice(0,100),createdAt:''};
+            merged.set('x:'+post.id,post);
+          }
+          imported=[...merged.values()].slice(-80).reverse();
+          await fire.setDoc(fire.doc(db,'users',uid),
+            {sqwibzOrbitImports:imported,sqwibzImportsUpdatedAt:fire.serverTimestamp()},
+            {mergeFields:['sqwibzOrbitImports','sqwibzImportsUpdatedAt']});
+          draw();
+          notice.textContent='Public X post saved to your private Sqwidz imports. Open it as a Sqwib note when ready.';
+        }catch(error){notice.textContent=error?.message||'Public post import unavailable.'}
         finally{control.disabled=false}
       });
       loadSaved();
