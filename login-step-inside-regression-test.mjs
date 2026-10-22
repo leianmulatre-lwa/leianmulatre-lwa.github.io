@@ -12,7 +12,7 @@ const end=index.indexOf('// Retire intermediate legacy frames',start);
 assert(start>=0 && end>start,'Actual startup signup patch exists');
 const fragment=index.slice(start,end);
 const generated=new Function('html',fragment+'\nreturn html;')(legacy);
-const dom=new JSDOM(generated.replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi,''),{
+const dom=new JSDOM(generated.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,''),{
  url:'https://biglwa.com/',runScripts:'outside-only'
 });
 const d=dom.window.document,form=d.querySelector('#loginCard');
