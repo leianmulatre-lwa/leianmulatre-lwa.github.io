@@ -187,11 +187,10 @@ body.night-mode #studioApp #skeletonKeyLauncher img{filter:brightness(0) invert(
 @font-face{font-family:'Stars and Stripes';src:url('/stars-and-stripes-font/StarsAndStripes-A4XM.ttf') format('truetype');font-display:swap;font-weight:400}
 #studioApp #notes .biglwa-card-heading-row>:is(h2,h3){font-family:'Subwaygraph',serif!important;font-weight:400!important}
 #studioApp #politc .biglwa-card-heading-row>:is(h2,h3){font-family:'Stars and Stripes',serif!important;font-weight:400!important}
-body.night-mode #studioApp #notes,
+/* Blue belongs to Sqwibz paper, not the widget shell or full module cards. */
 body.night-mode #studioApp #notes .note-paper,
-body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] :is(.module-card,.qwiky-note-input,.sqwib-published-item){background:#062b40!important;color:#e1f2fa!important;--widget-ink:#e1f2fa;--widget-muted:#b2cddd}
-body.night-mode #studioApp #notes .note-paper :is(p,div,span),
-body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] textarea{color:#e1f2fa!important}
+body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] :is(.qwiky-note-input,.sqwib-published-item){background:#062b40!important;color:#e1f2fa!important}
+body.night-mode #studioApp #notes .note-paper :is(p,div,span){color:#e1f2fa!important}
 #studioApp .hero .hero-action-bar .hero-shortcut-icon .biglwa-archive-horizontal-symbol{display:grid!important;place-items:center!important;width:18px!important;height:18px!important;margin:0!important}
 #studioApp .sidebar .sidebar-route-icon .biglwa-archive-horizontal-symbol{display:grid!important;place-items:center!important;width:16px!important;height:16px!important;margin:0!important}
 body.sidebar-collapsed #studioApp .sidebar .sidebar-top{width:100%!important;padding:0!important;align-items:stretch!important;overflow-x:hidden!important;scrollbar-width:thin}
