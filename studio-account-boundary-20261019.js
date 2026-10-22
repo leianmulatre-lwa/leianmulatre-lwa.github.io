@@ -26,7 +26,10 @@
    text('.weekly-mood-value','add this week’s #mood');
    doc.querySelectorAll('#studioApp .profile-card .stats').forEach(node=>node.replaceChildren());
    doc.querySelectorAll('#studioApp .profile-avatar,#studioApp .mini-avatar').forEach(node=>{
-     node.style.removeProperty('background-image');node.classList.remove('has-photo');
+     node.style.backgroundImage='linear-gradient(rgba(10,7,13,.12),rgba(10,7,13,.4)),url("/assets/tv-no-signal.svg")';
+     node.style.backgroundSize='cover';node.style.backgroundPosition='center';
+     node.classList.remove('has-photo');node.classList.add('lwa-default-tv-avatar');
+     node.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
      node.textContent=(own?.name||own?.username||'B').trim().charAt(0).toUpperCase();
    });
    // A fresh account's initial cards are placeholders; only owner data may populate them.
