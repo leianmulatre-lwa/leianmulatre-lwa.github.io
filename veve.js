@@ -508,6 +508,6 @@
   window.BigLWAVeve=Object.freeze({mount,refresh,
     status(){return {ready:state.initialReady,loading:state.loading,stage:state.loadStage,
       error:state.loadError,postCount:state.items.length,notesCount:state.sqwibs.length,
-      mounted:!!state.mounted?.isConnected}}}
+      mounted:!!state.mounted?.isConnected}}
   });
 })();
