@@ -353,7 +353,7 @@ const STYLE = `
 .biglwa-feed-hero-head span{font:600 10px/1.3 system-ui;color:#9b8a7c}
 .biglwa-feed-hero-grid{display:grid;gap:12px}
 .biglwa-feed-hero-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.biglwa-feed-hero-row a,.biglwa-feed-hero-row>div{position:relative;display:block;overflow:hidden;
+.biglwa-feed-hero-row a,.biglwa-feed-hero-row>div,.biglwa-feed-hero-row button{position:relative;display:block;overflow:hidden;
   aspect-ratio:4/3;border-radius:14px;background:#efe7dd;text-decoration:none;
   border:1px solid rgba(80,70,64,.14);box-shadow:0 8px 18px -12px var(--accent,#c1355a)}
 .biglwa-feed-hero-row img{width:100%;height:100%;object-fit:cover;display:block}
@@ -703,11 +703,9 @@ function renderHero(force) {
       return '<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync" style="--accent:' + src.accent + '">' +
         '<span role="img" aria-label="Image waiting for storage">▧</span><small>Image needs sync</small></div>';
     }
-    const many = urls.length > 1;
-    return '<a style="--accent:' + src.accent + '" href="' + esc(first) + '" target="_blank" rel="noopener noreferrer">' +
-      (many ? '<span class="biglwa-feed-hero-count">' + urls.length + " photos</span>" : "") +
+    return '<button type="button" class="biglwa-feed-hero-preview" style="--accent:' + src.accent + '" aria-label="Preview ' + esc(caption || "feed picture") + '">' +
       '<img src="' + esc(first) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy">' +
-      "</a>";
+      "</button>";
   });
 
   const withImage=storedPosts;
@@ -717,9 +715,12 @@ function renderHero(force) {
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
     "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):Array.from({length:HERO_SLOTS},()=>'<div class="biglwa-feed-hero-empty" aria-label="Add your own published photo">Add your photo</div>').join('')) + "</div>" +
     (requiresSync?'<button type="button" class="biglwa-feed-resync" data-feed-resync>↻ Restore imported photos</button><small class="biglwa-feed-sync-note" role="status">Reconnect Orbit if the original service no longer allows image downloads.</small>':'');
+  anchor.querySelectorAll('.biglwa-feed-hero-preview').forEach((button,index)=>{
+    button.addEventListener('click',()=>{if(slots[index])openLightbox(slots[index],0);});
+  });
   anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
     img.addEventListener('error',()=>{
-      const slot=img.closest('a');
+      const slot=img.closest('a,button');
       if(!slot)return;
       const note=document.createElement('span');
       note.className='biglwa-feed-hero-empty biglwa-feed-needs-sync';
@@ -1656,3 +1657,7 @@ else startFeed();
 export default startFeed;
 
 window.addEventListener('biglwa:public-profile-ready',()=>{setTimeout(()=>loadPosts(),100)});
+
+/* Keep image preview interactive without revealing storage URLs on hover. */
+.biglwa-feed-hero-preview{cursor:zoom-in;width:100%;padding:0;appearance:none;font:inherit}
+.biglwa-feed-hero-preview:focus-visible{outline:3px solid #6e477b;outline-offset:2px}
