@@ -29,9 +29,15 @@ export function renderAvatar(el, url, name) {
     el.style.backgroundSize = "cover";
     el.style.backgroundPosition = "center";
     el.classList.add("has-photo");
+    el.classList.remove("lwa-default-tv-avatar");
   } else {
-    el.style.backgroundImage = "";
+    // One exact fallback image for the profile rail and top-right chip.
+    // The owner's capital initial remains visible above the TV bars.
+    el.style.backgroundImage = 'linear-gradient(rgba(10,7,13,.12),rgba(10,7,13,.4)),url("/assets/tv-no-signal.svg")';
+    el.style.backgroundSize = "cover";
+    el.style.backgroundPosition = "center";
     el.classList.remove("has-photo");
+    el.classList.add("lwa-default-tv-avatar");
   }
   el.setAttribute("title", clean(name));
   el.setAttribute("aria-label", clean(name) + " profile picture");
