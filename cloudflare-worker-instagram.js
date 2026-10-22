@@ -571,7 +571,36 @@ async function ttRoute(request, env) {
   const url = new URL(request.url), path = url.pathname;
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
   const missing = ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET', 'OAUTH_SESSIONS'].filter(k => !env[k]);
-  if (path === '/tiktok/health') return json({ ok: !missing.length, missing, callback: ttCallback(request), version: 'tiktok-2', basicProfileOnly:env.TIKTOK_VIDEO_LIST_APPROVED!=='true' }, missing.length ? 503 : 200, request, env);
+  if (path === '/tiktok/health') return json({ ok: !missing.length, missing, callback: ttCallback(request), version: 'tiktok-3', basicProfileOnly:env.TIKTOK_VIDEO_LIST_APPROVED!=='true', publicEmbedAvailable:true }, missing.length ? 503 : 200, request, env);
+  // Public posts have an official TikTok oEmbed route that does not require
+  // video.list or another TikTok OAuth flow. Require BIG LWA membership, accept
+  // only exact TikTok public post URLs, and never return embed HTML/scripts.
+  if (path === '/tiktok/oembed' && request.method === 'GET') {
+    if (!allowedOrigin(request,env)) ttFail('Origin not allowed.',403);
+    const authorization=request.headers.get('Authorization')||'';
+    const uid=await firebaseUidFromToken(authorization.startsWith('Bearer ')?authorization.slice(7).trim():'',env);
+    if (!uid) ttFail('Sign in to BIG LWA to save TikTok links.',401);
+    let post;
+    try{post=new URL(url.searchParams.get('url')||'')}catch{ttFail('Paste a full TikTok video URL.',422)}
+    const match=post.pathname.match(/^\/@[A-Za-z0-9._-]{1,80}\/video\/(\d{10,30})\/?$/);
+    if(post.protocol!=='https:'||!['www.tiktok.com','tiktok.com','m.tiktok.com'].includes(post.hostname)||post.port||!match)
+      ttFail('Paste a public tiktok.com/@creator/video/123... link.',422);
+    const sourceUrl='https://www.tiktok.com'+post.pathname.replace(/\/$/,'');
+    const target='https://www.tiktok.com/oembed?url='+encodeURIComponent(sourceUrl);
+    let response;
+    try{response=await fetch(target,{headers:{Accept:'application/json'},redirect:'error'})}
+    catch{ttFail('TikTok embed metadata is unavailable; try again later.',502)}
+    if(!response.ok)ttFail('TikTok cannot embed this post. It may be private, removed or unavailable.',response.status===404?404:502);
+    const data=await response.json().catch(()=>({}));
+    if(data.provider_name!=='TikTok'||typeof data.title!=='string')ttFail('TikTok did not return valid public post metadata.',502);
+    const thumbnail=String(data.thumbnail_url||'');
+    let cover='';
+    try{const t=new URL(thumbnail);if(t.protocol==='https:')cover=t.href}catch{}
+    return json({id:match[1],share_url:sourceUrl,title:data.title.slice(0,500),
+      cover_image_url:cover,author_name:String(data.author_name||'').slice(0,100),
+      embed_url:'https://www.tiktok.com/player/v1/'+match[1],
+      publiclyEmbedded:true},200,request,env);
+  }
   if (missing.length) ttFail('Add these Cloudflare Worker settings: ' + missing.join(', '), 503);
   if (path === '/tiktok/start' && request.method === 'GET') {
     const challenge = url.searchParams.get('challenge') || '';
@@ -663,16 +692,44 @@ async function ttRoute(request, env) {
     }
   }
   const videos = path === '/tiktok/videos';
-  if(videos&&!String(session.scope||'').split(',').includes('video.list'))return json({videos:[],videoPermissionPending:true},200,request,env);
-  const endpoint = videos ? 'video/list/?fields=id,title,video_description,cover_image_url,share_url,embed_link' : 'user/info/?fields=open_id,display_name,avatar_url';
-  const response = await fetch('https://open.tiktokapis.com/v2/' + endpoint, {
-    method: videos ? 'POST' : 'GET',
-    headers: { Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
-    ...(videos ? { body: JSON.stringify({ max_count: 20 }) } : {})
+  if(videos&&!String(session.scope||'').split(/[\s,]+/).includes('video.list'))
+    return json({videos:[],videoPermissionPending:true,publicEmbedAvailable:true},200,request,env);
+  const headers={Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'};
+  if(videos){
+    // TikTok's Display API returns only 20 posts per call. Read up to 100
+    // without losing the source cursor or duplicating posts on reconnect.
+    const collected=[],seen=new Set();
+    let cursor,hasMore=false,partialError='';
+    for(let page=0;page<5;page++){
+      const payload={max_count:20};
+      if(cursor!==undefined)payload.cursor=cursor;
+      const response=await fetch('https://open.tiktokapis.com/v2/video/list/?fields=id,title,video_description,cover_image_url,share_url,embed_link,create_time', {
+        method:'POST',headers,body:JSON.stringify(payload)
+      });
+      const body=await response.json().catch(()=>({}));
+      if(!response.ok||(body.error&&body.error.code!=='ok')){
+        const code=String(body.error?.code||response.status).slice(0,60);
+        if(!collected.length)ttFail('TikTok video.list returned '+code+'. Check Display API approval and authorization.',502);
+        partialError='TikTok stopped after '+collected.length+' videos ('+code+').';break;
+      }
+      for(const row of Array.isArray(body.data?.videos)?body.data.videos:[]){
+        if(row?.id&&!seen.has(String(row.id))){seen.add(String(row.id));collected.push(row)}
+      }
+      hasMore=body.data?.has_more===true;
+      const next=body.data?.cursor;
+      if(!hasMore||next==null||String(next)===String(cursor))break;
+      cursor=next;
+    }
+    return json({videos:collected,hasMore,cursor:hasMore?cursor:null,
+      partialError,videoPermissionPending:false},200,request,env);
+  }
+  const response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url', {
+    method:'GET',headers
   });
-  const body = await response.json();
-  if (!response.ok || (body.error && body.error.code !== 'ok')) ttFail('TikTok could not return ' + (videos ? 'videos. Check video.list access for this app.' : 'your profile. Check user.info.basic access for this app.'), 502);
-  return json(videos ? { videos: body.data?.videos || [] } : (body.data?.user || {}), 200, request, env);
+  const body=await response.json().catch(()=>({}));
+  if(!response.ok||(body.error&&body.error.code!=='ok'))
+    ttFail('TikTok could not return your profile. Check user.info.basic access for this app.',502);
+  return json(body.data?.user||{},200,request,env);
 }
 
 
