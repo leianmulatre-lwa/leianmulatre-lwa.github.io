@@ -1961,12 +1961,40 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
    }),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
   }
-  if(!['start','session','disconnect','media','hometown','imports'].includes(action))return oaReply({error:'Not found'},404,request);
+  if(!['start','session','disconnect','media','hometown','imports','public-post'].includes(action))return oaReply({error:'Not found'},404,request);
   if(action==='start'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
-  if(['session','media','hometown','imports'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
+  if(['session','media','hometown','imports','public-post'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='disconnect'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
   const user=await getFirebaseUser(request,env);
   if(!user?.uid)oaError('Sign in to BIG LWA before connecting.',401);
+  // A public post can be saved as an attributed Sqwidz import even when X
+  // OAuth is temporarily unavailable. This is opt-in, not timeline scraping.
+  if(action==='public-post'&&provider==='x'&&request.method==='GET'){
+   const raw=url.searchParams.get('url')||'';
+   let post;
+   try{post=new URL(raw)}catch{oaError('Paste a complete public X post URL.',422)}
+   const match=post.pathname.match(/^\/([A-Za-z0-9_]{1,15})\/status\/(\d{8,25})\/?$/);
+   if(post.protocol!=='https:'||!['x.com','www.x.com','twitter.com','www.twitter.com'].includes(post.hostname)||post.port||!match)
+     oaError('Use a public x.com/username/status/123... post URL.',422);
+   const canonical='https://x.com/'+match[1]+'/status/'+match[2];
+   const endpoint='https://publish.twitter.com/oembed?omit_script=true&url='+encodeURIComponent(canonical);
+   let response;
+   try{response=await fetch(endpoint,{headers:{Accept:'application/json'},redirect:'error'})}
+   catch{oaError('X public post metadata is temporarily unavailable.',502)}
+   if(!response.ok)oaError('X cannot embed this post. It may be private, unavailable or removed.',response.status===404?404:502);
+   const data=await response.json().catch(()=>({}));
+   const paragraph=String(data.html||'').match(/<p(?:\s[^>]*)?>([\s\S]*?)<\/p>/i)?.[1]||'';
+   const text=paragraph.replace(/<br\s*\/?\s*>/gi,' ').replace(/<[^>]*>/g,' ')
+     .replace(/&(?:amp|lt|gt|quot|apos|#39);/g,' ').replace(/&#(\d+);/g,(_,n)=>{
+       const code=Number(n);return code>=32&&code<=0x10ffff?String.fromCodePoint(code):' ';
+     }).replace(/\s+/g,' ').trim().slice(0,1200);
+   if(!text)oaError('X did not provide readable text for this public post.',422);
+   return oaReply({provider:'x',count:1,publicLink:true,items:[{
+     id:match[2],provider:'x',text,url:canonical,createdAt:'',
+     authorName:String(data.author_name||match[1]).slice(0,100)
+   }]},200,request);
+  }
+
   const accountKey='new-orbit:'+provider+':account:'+user.uid;
   if(action==='session'){
    const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
