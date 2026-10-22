@@ -1725,9 +1725,29 @@
       event.preventDefault();openArcade();
     });
   }
+  function synchronizeWidgetDockAnchor(){
+    const app=$('#studioApp'),header=$('.topbar',app);
+    if(!app||!header)return;
+    const sync=()=>{
+      const height=Math.round(header.getBoundingClientRect().height||header.offsetHeight||64);
+      if(height>=42&&height<=140){
+        const value=height+'px';
+        if(app.style.getPropertyValue('--biglwa-dock-top')!==value)
+          app.style.setProperty('--biglwa-dock-top',value);
+      }
+    };
+    sync();
+    if(app.dataset.dockAnchorBound==='1')return;
+    app.dataset.dockAnchorBound='1';
+    window.addEventListener('resize',sync,{passive:true});
+    if(typeof ResizeObserver!=='undefined'){
+      const observer=new ResizeObserver(sync);observer.observe(header);
+      app._biglwaDockHeaderObserver=observer;
+    }
+  }
   function run(){
     // Restore the essential dock before optional widgets / editors can fail.
-    try{ensureStyles();ensureSidebar()}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
+    try{ensureStyles();synchronizeWidgetDockAnchor();ensureSidebar()}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
     ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncVeveLauncher();
     for(const update of [syncQwikyNoteWidget,syncBoothWidget]){try{update()}catch(error){console.warn('[BIGLWA] Widget caption update',error)}}
     // Sidebar has its own recovery boundary, so an unrelated editor or
