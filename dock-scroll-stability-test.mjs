@@ -14,27 +14,27 @@ const app={dataset:{},style:{
   getPropertyValue:key=>props.get(key)||'',
   setProperty:(key,val)=>props.set(key,val)
 }};
-const header={height:64,offsetHeight:64,getBoundingClientRect(){return{height:this.height}}};
+const header={height:64,offsetHeight:64,getBoundingClientRect(){return{height:this.height,bottom:this.height}}};
 let observer;
 const context=createContext({
   $:selector=>selector==='#studioApp'?app:selector==='.topbar'?header:null,
-  window:{addEventListener:(event,callback)=>listeners.push([event,callback])},
+  window:{innerHeight:800,addEventListener:(event,callback)=>listeners.push([event,callback])},
   ResizeObserver:class{constructor(callback){this.callback=callback;observer=this}observe(target){assert.equal(target,header)}},
   console
 });
 new Script(ui.slice(start,end)+'\nthis.synchronizeWidgetDockAnchor=synchronizeWidgetDockAnchor;').runInContext(context);
 context.synchronizeWidgetDockAnchor();
 assert.equal(props.get('--biglwa-dock-top'),'64px','Dock starts precisely at live topbar height');
-assert.equal(listeners.length,1,'Resize listener installed exactly once');
+assert.deepEqual(listeners.map(([name])=>name),['resize','scroll'],'Header resize and page scroll share the same dock sync');
 header.height=78;observer.callback();
 assert.equal(props.get('--biglwa-dock-top'),'78px','Dock follows header resizing');
 context.synchronizeWidgetDockAnchor();
-assert.equal(listeners.length,1,'Repeated Studio startup cannot multiply scroll/resize handlers');
+assert.equal(listeners.length,2,'Repeated Studio startup cannot multiply scroll/resize handlers');
 assert.match(css,/#studioApp \.topbar\s*\{[^}]*position:sticky!important;[^}]*top:0!important;/s,'Whole header is sticky at screen top');
 assert.match(css,/#studioApp \.sidebar\s*\{[^}]*position:fixed!important;[^}]*top:var\(--biglwa-dock-top,64px\)!important;/s,'The dock shares the measured header offset');
 assert.match(css,/#studioApp \.sidebar \.sidebar-top\s*\{[^}]*overflow-y:auto!important;[^}]*overflow-x:hidden!important;/s,'Only inner dock content scrolls');
 assert.match(css,/#studioApp \.sidebar \.sidebar-bottom\s*\{[^}]*flex:0 0 auto!important;/s,'Theme controls stay attached to the same dock');
 assert.match(css,/#studioApp #moduleWorkspace\[data-module-key="notes"\] \.module-heading h1\s*\{[^}]*font-family:"Subwaygraph"/s,'Sqwidz module heading matches its widget font');
 assert.match(css,/@font-face\{font-family:'Subwaygraph'/,'Subwaygraph font registered');
-assert.ok(home.includes('/ui-coherence.js?v=20261022-dock-anchor-2')&&home.includes('/studio-alignment-20261020.css?v=layout-dock-anchor-16'),'Both updated files are on the current site build');
+assert.ok(home.includes('/ui-coherence.js?v=20261022-dock-scroll-bottom-3')&&home.includes('/studio-alignment-20261020.css?v=layout-stitched-dock-17'),'Both updated files are on the current site build');
 console.log('PASS: dock header offset remains stable after resize and repeated initialization; Sqwidz title uses Subwaygraph; both assets are loaded');
