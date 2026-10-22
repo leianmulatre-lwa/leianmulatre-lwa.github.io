@@ -110,7 +110,7 @@
   const d=new Date(day+'T12:00:00');
   return Number.isFinite(d.valueOf())?d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):day;
  };
- const state={category:'podcast',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true};
+ const state={category:'podcast',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true,discoveryMood:'all'};
  let discoveryCursor=Object.create(null);
  let root=null;
  let mediaPortal=null,mediaTarget=null,studioTarget=null;
@@ -240,7 +240,7 @@
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
-   '<div class="stream-date-actions"><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
+   '<div class="stream-date-actions"><label>Discovery mood <select id="streamDiscoveryMood" class="stream-mood-select" aria-label="Choose a discovery mood"><option value="all">Everything</option><option value="gaming">Games &amp; horror</option><option value="culture">Culture &amp; commentary</option><option value="calm">Unwind</option><option value="cartoons">Cartoons</option><option value="surprise">Surprise me</option></select></label><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
    '<div class="stream-grid-scroll" tabindex="0" aria-label="Scroll through 24 daily discovery slots for the selected channel" id="streamGridScroll"><div class="stream-grid" id="streamGrid"></div></div>',
    '<div class="stream-guide-foot"><span><i class="stream-guide-key"></i> selected channel</span><span><i class="stream-guide-key scheduled"></i> future approved program</span><span><i class="stream-guide-key source"></i> daily curator picks</span><span><i class="stream-guide-key open"></i> Twitch channel · status unverified</span><button type="button" id="streamJumpNow">jump to this hour ↗</button></div></section>',
    '<section class="stream-body" id="stream-category-content" role="tabpanel" aria-labelledby="stream-tab-podcast">',
@@ -265,6 +265,14 @@
   date.max=localDay(new Date(now.getFullYear()+1,now.getMonth(),now.getDate()));
   date.addEventListener('change',()=>{state.day=date.value||localDay();state.shuffleOffset=0;renderGrid();renderFeaturedSlots();tuneCurrent()});
   root.addEventListener('click',onClick);
+  root.querySelector('#streamDiscoveryMood').addEventListener('change',event=>{
+    const next=String(event.target.value||'all');
+    if(!['all','gaming','culture','calm','cartoons','surprise'].includes(next))return;
+    // Only an explicit setting within the current session; do not track a
+    // viewer's activity or silently rewrite their profile/Orbit data.
+    state.discoveryMood=next;state.shuffleOffset=0;discoveryCursor=Object.create(null);
+    renderGrid();renderFeaturedSlots();
+  });
   root.querySelector('#streamShuffleAgain').onclick=()=>{state.shuffleOffset++;renderGrid();renderFeaturedSlots();tuneCurrent()};
   root.querySelector('#streamJumpNow').onclick=()=>{
    state.day=localDay();date.value=state.day;renderGrid();tuneCurrent();jumpNow();
@@ -329,6 +337,23 @@
   return Boolean(item&&(item.provider==='archive-video'&&Array.isArray(item.episodes)&&item.episodes.length||
    item.videoId&&/^[A-Za-z0-9_-]{11}$/.test(item.videoId)));
  }
+ function discoveryPreference(items,category){
+  // Playable, manually curated sources only. Never claim this is a harvested
+  // YouTube watch history or a real-time verified stream status.
+  if(category==='podcast'||state.discoveryMood==='all')return items;
+  if(state.discoveryMood==='surprise')return items.filter((_,index)=>index%3===0);
+  const matches={
+   gaming:/markiplier|cory|dream|games|gaming|jacksepticeye|cupquake|pokimane|kaicenat|fuslie/i,
+   culture:/teaspill|olandria|olan|quenlin|ballroom|hasan|qtcinderella|larray|alissa|ste(y|i)euh/i,
+   calm:/lofi|asmr|rain|frequenc|meditat|ambient|cosmic|forest|synthwave/i,
+   cartoons:/cartoon|steven|regular|boop|fleischer/i
+  };
+  const pattern=matches[state.discoveryMood];
+  if(!pattern)return items;
+  const filtered=items.filter(item=>pattern.test([item.id,item.title,item.subtitle].join(' ')));
+  // No empty lineups or broken player promises when one category is sparse.
+  return filtered.length?filtered:items;
+ }
  function dailyPlaylist(category,day=state.day,offset=state.shuffleOffset){
   if(category==='podcast'){
    // Only direct HTTPS audio streams are treated as LWA Radio channels.
@@ -344,12 +369,12 @@
      kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
      status:item.provider==='archive-video'?'CARTOONS · WATCH':'▶ WATCH VIDEO'
     }));
-   return shuffled(videos,day,category,offset);
+   return discoveryPreference(shuffled(videos,day,category,offset),category);
   }
   if(category==='live'){
    const youtube=youtubeLive.filter(playableFeature).map(item=>({kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,status:'YOUTUBE · WATCH HERE'}));
    const twitch=twitchChannels.map(channel=>({kind:'twitch',id:channel.id,title:channel.title,subtitle:channel.subtitle,status:'TWITCH · LIVE UNVERIFIED'}));
-   return shuffled([...youtube,...twitch],day,category,offset);
+   return discoveryPreference(shuffled([...youtube,...twitch],day,category,offset),category);
   }
   return [];
  }
