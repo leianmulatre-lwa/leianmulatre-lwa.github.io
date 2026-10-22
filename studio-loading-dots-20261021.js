@@ -24,7 +24,7 @@
  #lwaStudioTransition[hidden]{display:none!important}
  #lwaStudioTransition .lwa-loading-center{display:grid;place-items:center;gap:28px}
  .lwa-loading-image{position:relative}
- .lwa-curtain{position:absolute;z-index:120;inset:0;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:28px;background:repeating-linear-gradient(90deg,#7f172d 0%,#a32b42 17%,#6e1025 37%,#9e263b 53%,#641020 76%,#9b3044 100%);color:#fff8ef;border-radius:inherit;pointer-events:none}
+ .lwa-curtain{position:absolute;z-index:120;inset:0;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:28px;background:#27060e url("/assets/login-curtain-film-grain-v2.webp") center center/cover no-repeat;color:#fff8ef;border-radius:inherit;pointer-events:none}
  .lwa-curtain[data-lwa-curtain="module"]{bottom:auto;min-height:220px;height:min(520px,calc(100dvh - 210px));border-radius:18px;overflow:hidden;justify-content:flex-start;padding-top:clamp(65px,12vh,115px);box-sizing:border-box}
  .lwa-curtain[hidden]{display:none!important}
  .lwa-curtain .lwa-dot{color:#f26877}
@@ -103,7 +103,17 @@
   ready(){setProfile(false);hideTransition()}
  };
  document.addEventListener('click',event=>{
-  const el=event.target.closest('[data-enter-studio],#signInBtn,#createAccountBtn');
-  if(el&&!studioVisible())window.BigLWALoadingDots.studio();
+  const el=event.target.closest('button,[role="button"],[data-enter-studio]');
+  if(!el||studioVisible()||!el.closest('#loginPage'))return;
+  const label=(el.textContent||el.getAttribute('aria-label')||'').trim().toLowerCase();
+  if(!/step inside|sign in|log in|enter studio|create account|continue/.test(label))return;
+  const form=el.closest('form');
+  if(form&&typeof form.checkValidity==='function'&&!form.checkValidity())return;
+  window.BigLWALoadingDots.studio();
+  /* Some vintage login CTAs were type=button with no form submission path.
+     Delegate only in that case; native submit buttons retain their original auth handler. */
+  if(form&&el.tagName==='BUTTON'&&el.type==='button'&&!el.dataset.lwaSubmitBound){
+    el.dataset.lwaSubmitBound='1';form.requestSubmit();queueMicrotask(()=>delete el.dataset.lwaSubmitBound);
+  }
  },true);
 })();
