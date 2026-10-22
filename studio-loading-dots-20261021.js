@@ -38,7 +38,7 @@
  `;
  const style=document.createElement('style');style.id='lwaLoadingDotsStyles';style.textContent=css;document.head.append(style);
  const make=(type)=>{const el=document.createElement('i');el.className='lwa-dot lwa-dot-'+type;el.setAttribute('aria-hidden','true');return el};
- let profile=null,transition=null,transitionTimer=null;
+ let profile=null,transition=null,transitionTimer=null,transitionShownAt=0;
  function ensure(){
   if(!document.getElementById('studioApp'))return;
   if(!profile){
@@ -48,7 +48,7 @@
   if(!transition){transition=document.createElement('div');transition.id='lwaStudioTransition';transition.hidden=true;const center=document.createElement('div');center.className='lwa-loading-center';center.append(make('floating'));const label=document.createElement('span');label.textContent='Taking you to Studio';center.append(label);transition.append(center);document.body.append(transition)}
  }
  function setProfile(loading){ensure();if(profile)profile.hidden=!loading}
- function hideTransition(){if(transition)transition.hidden=true;if(transitionTimer)clearTimeout(transitionTimer)}
+ function hideTransition(){if(transitionTimer)clearTimeout(transitionTimer);if(!transition)return;const remaining=Math.max(0,720-(Date.now()-transitionShownAt));transitionTimer=setTimeout(()=>{transition.hidden=true},remaining)}
  function studioVisible(){return !!document.querySelector('#studioApp.is-active')}
  // Image pulse is only drawn while an image actually has network work outstanding.
  function imagePending(img){return img instanceof HTMLImageElement && !img.complete && !img.dataset.lwaLoadingBound}
@@ -99,7 +99,7 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  window.BigLWALoadingDots={
   profile:setProfile,
-  studio(){ensure();if(transition){transition.hidden=false;clearTimeout(transitionTimer);transitionTimer=setTimeout(hideTransition,9000)}},
+  studio(){ensure();if(transition){transition.hidden=false;transitionShownAt=Date.now();clearTimeout(transitionTimer);transitionTimer=setTimeout(()=>{transition.hidden=true},9000)}},
   ready(){setProfile(false);hideTransition()}
  };
  document.addEventListener('click',event=>{
