@@ -114,6 +114,7 @@
  let discoveryCursor=Object.create(null);
  let root=null;
  let mediaPortal=null,mediaTarget=null,studioTarget=null;
+ let dockShell=null,dockTarget=null,docked=false;
  let guideTimer=null,lastGuideHour='';
  const LAST_PLAYED_KEY='biglwaStreamLastPlayedV1:';
  const accountUid=()=>String(window.__biglwaIdentity?.uid||'').trim();
@@ -164,7 +165,9 @@
   return mediaPortal;
  }
  function targetMedia(target){
-  mediaTarget=target||null;
+  // Keep the *same live iframe/video element* when switching widgets.
+  // The explicit docking choice takes priority until the user returns.
+  mediaTarget=(docked&&dockTarget?.isConnected?dockTarget:target)||null;
   if(!mediaTarget?.isConnected)return;
   const portal=ensureMediaPortal();
   if(portal.parentElement!==mediaTarget)mediaTarget.appendChild(portal);
@@ -184,8 +187,76 @@
   if(mediaPortal&&mediaTarget?.isConnected&&mediaPortal.parentElement!==mediaTarget)
    mediaTarget.appendChild(mediaPortal);
  }
+ // The floating mini-TV holds the actual player DOM node. We never clone
+ // an iframe, restart its src or collect a user's viewing history.
+ function dockHost(){
+  if(dockShell?.isConnected)return dockShell;
+  dockShell=document.createElement('section');dockShell.id='biglwaStreamDock';
+  dockShell.setAttribute('aria-label','Movable LWA TV mini player');
+  dockShell.innerHTML='<header class="stream-dock-title" data-stream-dock-drag>'+
+   '<span aria-hidden="true">⋮⋮</span><strong>BIG LWA · ON AIR</strong>'+
+   '<button type="button" data-stream-return title="Return to full Stream">↗ Stream</button>'+
+   '<button type="button" data-stream-undock title="Return to Studio preview" aria-label="Put player back in Studio">×</button></header>'+
+   '<div class="stream-dock-stage"></div>';
+  dockTarget=dockShell.querySelector('.stream-dock-stage');
+  const bar=dockShell.querySelector('[data-stream-dock-drag]');
+  let drag=null;
+  bar.addEventListener('pointerdown',event=>{
+   if(event.button!==0||event.target.closest('button,a'))return;
+   const rect=dockShell.getBoundingClientRect();
+   drag={id:event.pointerId,x:event.clientX-rect.left,y:event.clientY-rect.top};
+   dockShell.style.right='auto';dockShell.style.bottom='auto';
+   dockShell.style.left=rect.left+'px';dockShell.style.top=rect.top+'px';
+   bar.setPointerCapture?.(event.pointerId);
+   event.preventDefault();
+  });
+  bar.addEventListener('pointermove',event=>{
+   if(!drag||event.pointerId!==drag.id)return;
+   const left=Math.max(8,Math.min(window.innerWidth-dockShell.offsetWidth-8,event.clientX-drag.x));
+   const top=Math.max(8,Math.min(window.innerHeight-dockShell.offsetHeight-8,event.clientY-drag.y));
+   dockShell.style.left=left+'px';dockShell.style.top=top+'px';
+  });
+  const end=()=>{drag=null};
+  bar.addEventListener('pointerup',end);bar.addEventListener('pointercancel',end);
+  dockShell.querySelector('[data-stream-return]').addEventListener('click',()=>undockStream(true));
+  dockShell.querySelector('[data-stream-undock]').addEventListener('click',()=>undockStream(false));
+  document.body.append(dockShell);
+  window.addEventListener('resize',()=>{
+   if(!docked||!dockShell||dockShell.hidden)return;
+   if(dockShell.style.left) dockShell.style.left=Math.min(Math.max(8,parseFloat(dockShell.style.left)||8),
+      Math.max(8,window.innerWidth-dockShell.offsetWidth-8))+'px';
+   if(dockShell.style.top) dockShell.style.top=Math.min(Math.max(8,parseFloat(dockShell.style.top)||8),
+      Math.max(8,window.innerHeight-dockShell.offsetHeight-8))+'px';
+  });
+  return dockShell;
+ }
+ function dockStream(){
+  if(!mediaPortal?.firstElementChild){return false}
+  const host=dockHost();host.hidden=false;docked=true;state.followGuide=false;
+  // Prevent the browser from immediately restarting playback.
+  targetMedia(dockTarget);scheduleMediaPosition();
+  host.querySelector('strong').textContent='BIG LWA · '+String(state.selected?.title||'ON AIR').slice(0,42);
+  return true;
+ }
+ function undockStream(openFull=false){
+  if(!docked)return false;
+  docked=false;
+  if(dockShell)dockShell.hidden=true;
+  if(openFull){
+   window.openBIGLWAModule?.('stream');
+   const screen=document.querySelector('#streamMonitor');
+   if(screen)targetMedia(screen);
+  }else{
+   const preview=document.querySelector('#studioApp #stream .stream-screen');
+   if(preview){studioTarget=preview;preview.classList.add('stream-preview-active');targetMedia(preview)}
+   else {const screen=document.querySelector('#streamMonitor');if(screen)targetMedia(screen)}
+  }
+  scheduleMediaPosition();
+  return true;
+ }
  function parkInStudio(){
   if(!mediaPortal?.isConnected||!mediaPortal.firstElementChild)return false;
+  if(docked&&dockTarget?.isConnected){targetMedia(dockTarget);return true}
   const screen=document.querySelector('#studioApp #stream .stream-screen');
   if(!screen)return false;
   studioTarget=screen;
@@ -229,6 +300,8 @@
  };
  function mount(host){
   if(!host)return;
+  // Opening Stream returns the existing player to its full-sized home.
+  if(docked){docked=false;if(dockShell)dockShell.hidden=true}
   root=host;root.classList.add('biglwa-stream');
   state.day=localDay();
   root.innerHTML=[
@@ -238,6 +311,7 @@
    '</div></nav>',
    '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
+   '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>▣ Dock player · keep watching while you browse</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
    '<div class="stream-date-actions"><label>Discovery mood <select id="streamDiscoveryMood" class="stream-mood-select" aria-label="Choose a discovery mood"><option value="all">Everything</option><option value="gaming">Games &amp; horror</option><option value="culture">Culture &amp; commentary</option><option value="calm">Unwind</option><option value="cartoons">Cartoons</option><option value="surprise">Surprise me</option></select></label><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
@@ -756,7 +830,8 @@
   if(event.currentTarget===root&&mediaPortal?.contains(event.target))return;
   const button=event.target.closest('button');
   if(!button||!(root?.contains(button)||mediaPortal?.contains(button)))return;
-  if(button.matches('[data-stream-return]')){window.openBIGLWAModule?.('stream');return;}
+  if(button.matches('[data-stream-return]')){undockStream(true);return;}
+  if(button.matches('[data-stream-dock]')){dockStream();return;}
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
   if(button.matches('[data-discovery-play]')){playDiscovery(Number(button.dataset.discoveryPlay));return;}
@@ -775,5 +850,5 @@
   if(button.matches('[data-stream-twitch]')){state.followGuide=false;selectTwitch(button.dataset.streamTwitch);return}
   if(button.matches('[data-stream-program]')){state.followGuide=false;selectProgram(button.dataset.streamProgram);return}
  }
- window.BigLWAStreamGuide={mount,parkInStudio,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
+ window.BigLWAStreamGuide={mount,parkInStudio,dock:dockStream,undock:undockStream,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
