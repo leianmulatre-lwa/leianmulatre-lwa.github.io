@@ -269,3 +269,9 @@ body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!
   #studioApp .hero+.masonry,#studioApp .hero~.masonry{margin-top:10px!important}
   #studioApp .main.module-view>.module-workspace{padding-top:10px!important}
 }
+
+/* Equal optical gutter between widget-page toolbar/header and its content. */
+#studioApp .main.module-view>.module-workspace{padding-top:12px!important}
+#studioApp .main.module-view .module-top{margin-bottom:12px!important}
+#studioApp .main.module-view .module-shell>:first-child{margin-top:0!important}
+@media(max-width:620px){#studioApp .main.module-view>.module-workspace{padding-top:10px!important}#studioApp .main.module-view .module-top{margin-bottom:10px!important}}
