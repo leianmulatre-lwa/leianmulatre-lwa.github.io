@@ -318,7 +318,11 @@ function publicLink(id, record) {
   const host = url.hostname.toLowerCase();
   const allowed=(PUBLIC_HOSTS[id]||[]).includes(host)
     || ((id==='tumblr' && host.endsWith('.tumblr.com')) || (id==='snapchat' && host.endsWith('.snapchat.com')));
-  if(!allowed || (['snapchat','x','tumblr'].includes(id) && (!url.pathname || url.pathname==='/')))return null;
+  // A Tumblr subdomain's root is itself a valid public blog; other
+  // provider roots are not account profiles.
+  const tumblrBlogRoot=id==='tumblr'&&host.endsWith('.tumblr.com')&&host!=='www.tumblr.com';
+  if(!allowed || (['snapchat','x','tumblr'].includes(id) &&
+    (!url.pathname || url.pathname==='/') && !tumblrBlogRoot))return null;
   return {
     id,
     label: clean(record.label) || id,
