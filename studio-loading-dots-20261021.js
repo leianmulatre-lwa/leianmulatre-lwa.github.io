@@ -68,7 +68,7 @@
   const app=document.getElementById('studioApp');if(!app)return;
   const space=app.querySelector('.main.module-view>.module-workspace');const shell=space?.querySelector('.module-shell');
   const key=space?.dataset.moduleKey||'';
-  if(key&&key!==moduleKey){moduleKey=key;moduleStarted=Date.now();moduleCurtain?.remove();moduleCurtain=null}
+  if(key&&key!==moduleKey){moduleKey=key;moduleStarted=Date.now();moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
   if(!key){moduleKey='';moduleCurtain?.remove();moduleCurtain=null}
   if(shell&&key){
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
@@ -79,7 +79,7 @@
   }
   const avatar=app.querySelector('#studioAvatarCard');
   if(avatar){
-   if(!avatarCurtain||!avatar.contains(avatarCurtain)){avatarCurtain=curtain(avatar,'Loading avatar','avatar');avatarStarted=Date.now()}
+   if(!avatarCurtain||!avatar.contains(avatarCurtain)){avatarCurtain=curtain(avatar,'Loading avatar','avatar');avatarStarted=Date.now();setTimeout(schedule,380)}
    const presentation=avatar.querySelector('#biglwaAvatarMedia > :not(.lwa-curtain),canvas,iframe,img');
    const pending=unresolvedImages(avatar)||!!avatar.querySelector('[aria-busy="true"]');
    avatarCurtain.hidden=!!presentation && !pending && Date.now()-avatarStarted>320;
