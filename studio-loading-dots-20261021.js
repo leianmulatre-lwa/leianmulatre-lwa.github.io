@@ -80,7 +80,7 @@
   const avatar=app.querySelector('#studioAvatarCard');
   if(avatar){
    if(!avatarCurtain||!avatar.contains(avatarCurtain)){avatarCurtain=curtain(avatar,'Loading avatar','avatar');avatarStarted=Date.now()}
-   const presentation=avatar.querySelector('canvas,iframe,img,.biglwa-avatar-stage,.avatar-preview,.avatar-viewer');
+   const presentation=avatar.querySelector('#biglwaAvatarMedia > :not(.lwa-curtain),canvas,iframe,img');
    const pending=unresolvedImages(avatar)||!!avatar.querySelector('[aria-busy="true"]');
    avatarCurtain.hidden=!!presentation && !pending && Date.now()-avatarStarted>320;
   }
