@@ -14,7 +14,7 @@ assert.ok(studio.includes(':not(:hover):not(:focus-within){box-shadow:0 4px 12px
 assert.ok(studio.includes('box-shadow:0 0 0 3px var(--three-body-color'),'Pastel ring appears on hover');
 assert.ok(index.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-compact-1'),'Studio script cache refreshed');
 assert.ok(index.includes('pinterest-orbit.js?v=20261021-private-auto-7'),'Pinterest code cache refreshed');
-assert.ok(index.includes('account-boot.js?v=20261021-user-name-photo-10'),'Feed boot cache refreshed');
+assert.ok(index.includes('account-boot.js?v=20261022-tv-avatar-11'),'Feed boot cache refreshed');
 assert.ok(boot.includes('feed-view.js?v=20261020-pinterest-clean-cards-7'),'Feed code cache refreshed');
 assert.ok(pins.includes('workQueue.push({fn,silent,uid:authUid})'),'Queued Pinterest actions stay isolated to account');
 assert.ok(pins.includes('role="status" aria-live="polite"'),'Pinterest progress is announced without blocking controls');
