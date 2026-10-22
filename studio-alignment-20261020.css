@@ -191,6 +191,10 @@ body.night-mode #studioApp #skeletonKeyLauncher img{filter:brightness(0) invert(
 body.night-mode #studioApp #notes .note-paper,
 body.night-mode #studioApp #moduleWorkspace[data-module-key="notes"] :is(.qwiky-note-input,.sqwib-published-item){background:#062b40!important;color:#e1f2fa!important}
 body.night-mode #studioApp #notes .note-paper :is(p,div,span){color:#e1f2fa!important}
+/* The profile/banner editor uses this very same #mood preview card. */
+body.night-mode #studioApp #weeklyMoodCard[data-mood-style="qwiky-note"]{background:#062b40!important;color:#e1f2fa!important}
+body.night-mode #studioApp #weeklyMoodCard[data-mood-style="qwiky-note"] :is(span,strong){color:#e1f2fa!important}
+
 #studioApp .hero .hero-action-bar .hero-shortcut-icon .biglwa-archive-horizontal-symbol{display:grid!important;place-items:center!important;width:18px!important;height:18px!important;margin:0!important}
 #studioApp .sidebar .sidebar-route-icon .biglwa-archive-horizontal-symbol{display:grid!important;place-items:center!important;width:16px!important;height:16px!important;margin:0!important}
 body.sidebar-collapsed #studioApp .sidebar .sidebar-top{width:100%!important;padding:0!important;align-items:stretch!important;overflow-x:hidden!important;scrollbar-width:thin}
