@@ -31,6 +31,8 @@ jobs:
         run: node site-integrity-test.mjs
       - name: Install DOM test dependency outside public site
         run: npm install --prefix "$RUNNER_TEMP/biglwa-tests" jsdom@26.1.0 --no-audit --no-fund
+      - name: Inspect original Step Inside login control
+        run: node login-cta-investigation.mjs
       - name: Verify original toolbar startup, docking, shortcut dragging and recovery
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
       - name: Verify persistent help, color drafts, account analytics and Connect
