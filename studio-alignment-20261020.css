@@ -341,7 +341,7 @@ body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!
 }
 /* The full Sqwidz page uses the same display face as its Studio widget. */
 #studioApp #moduleWorkspace[data-module-key="notes"] .module-heading h1{
-  font-family:"CS Bergamot Stitched",Georgia,serif!important;
+  font-family:"Subwaygraph",Georgia,serif!important;
   font-weight:400!important;
   font-size:clamp(36px,5.2vw,66px)!important;
   line-height:1.12!important;
