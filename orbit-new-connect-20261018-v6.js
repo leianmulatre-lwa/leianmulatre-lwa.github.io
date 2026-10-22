@@ -150,7 +150,8 @@
        }catch{}
        if(link)profiles[id]={link,name:String(row.name||id).slice(0,100),
          label:id==='x'?'X':id==='tumblr'?'Tumblr':'Snapchat',
-         username:String(row.username||'').slice(0,80)};
+         username:String(row.username||'').slice(0,80),
+         ...(id==='tumblr'?{blogCount:Math.max(0,Number(row.blogCount)||0)}:{})};
      }
      const previous=snapshot.data()?.orbitConnectedProfiles||{};
      if(JSON.stringify(previous)!==JSON.stringify(profiles)){
