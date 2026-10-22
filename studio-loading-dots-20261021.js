@@ -108,7 +108,7 @@
   const el=event.target.closest('button,[role="button"],[data-enter-studio],a');
   if(!el||studioVisible()||!el.closest('#loginPage'))return;
   const label=(el.textContent||el.getAttribute('aria-label')||'').trim().toLowerCase();
-  if(!/^(step inside|sign in|log in|enter studio|continue)(\\s*[→›»])?$/.test(label))return;
+  if(!/^(step inside|sign in|log in|enter studio|continue)(\s*[→›»])?$/.test(label))return;
   const page=el.closest('#loginPage');
   const ownForm=el.closest('form');
   const visible=form=>!!form&&(form.getClientRects().length>0||getComputedStyle(form).display!=='none');
