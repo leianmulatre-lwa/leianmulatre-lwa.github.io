@@ -29,7 +29,13 @@
     // Do not let retired login patches replace the person's name with a handle.
     html=html.replace(
       '<label class="login-field login-name-field"><span>Username</span>',
-      '<label class="login-field login-name-field"><span>Name</span><input id="loginRealName" type="text" autocomplete="name" maxlength="80" placeholder="What should we call you?" required></label><label class="login-field login-name-field"><span>Username</span>'
+      '<label class="login-field login-name-field"><span>Name</span><input id="loginRealName" type="text" autocomplete="name" maxlength="80" placeholder="What should we call you?"></label><label class="login-field login-name-field"><span>Username</span>'
+    );
+    // Signup-only required validation: a hidden required Name field would block
+    // the Step Inside submit event before Firebase's listener could run.
+    html=html.replace(
+      "loginUsername.required = creating;",
+      "loginUsername.required = creating; if(loginRealName) loginRealName.required = creating;"
     );
     html=html.replace(
       "const loginUsername = document.getElementById('loginUsername');",
