@@ -20,7 +20,8 @@
  @keyframes lwaFall{0%{transform:translateY(-7px);opacity:0}55%{transform:translateY(2px);opacity:1}100%{transform:translateY(7px);opacity:0}}
  #lwaProfileLoading{display:inline-flex;align-items:center;gap:15px;font:600 10px system-ui;color:inherit;white-space:nowrap;margin-left:12px}
  #lwaProfileLoading[hidden]{display:none!important}
- #lwaStudioTransition{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;pointer-events:none;background:rgba(250,246,242,.93);font:600 13px system-ui;color:#473248}
+ /* Old login owns the only Studio-opening screen. No duplicate overlay. */
+ #lwaStudioTransition{display:none!important}
  #lwaStudioTransition[hidden]{display:none!important}
  #lwaStudioTransition .lwa-loading-center{display:grid;place-items:center;gap:28px}
  .lwa-loading-image{position:relative}
@@ -38,7 +39,23 @@
  .lwa-curtain-bypass{border:1px solid rgba(255,244,234,.65);color:#fff6e9;background:rgba(31,9,21,.85);padding:12px 20px;border-radius:10px;font:700 clamp(14px,1.65vw,18px)/1.3 system-ui;letter-spacing:.02em;cursor:pointer;pointer-events:auto;transition:background .15s}
  .lwa-curtain-bypass:is(:hover,:focus-visible){background:#5b1429}
  .lwa-curtain-bypass:focus-visible{outline:3px solid #e7bc43;outline-offset:3px}
- .lwa-curtain[data-lwa-curtain="module"]{bottom:auto;min-height:220px;height:min(520px,calc(100dvh - 210px));border-radius:18px;overflow:hidden;justify-content:flex-start;padding-top:clamp(65px,12vh,115px);gap:24px;box-sizing:border-box}
+ .lwa-curtain[data-lwa-curtain="module"]{bottom:auto;min-height:320px;height:min(780px,calc(100dvh - 135px));border-radius:18px;overflow:hidden;justify-content:flex-start;padding-top:clamp(84px,14vh,145px);gap:24px;box-sizing:border-box}
+ /* Fully mask the existing feed while first load is outstanding, including
+    tiles deeper in the masonry below the former short curtain. */
+ #studioApp .module-shell.lwa-curtain-veve-pending{
+   height:max(520px,calc(100dvh - var(--biglwa-dock-top,64px) - 92px))!important;
+   min-height:520px!important;max-height:none!important;overflow:hidden!important;
+   isolation:isolate;background:#27060e!important;border-radius:18px!important}
+ #studioApp .module-shell.lwa-curtain-veve-pending > :not(.lwa-curtain){visibility:hidden!important}
+ #studioApp .module-shell.lwa-curtain-veve-pending > .lwa-curtain{
+   position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+   min-height:100%!important;z-index:1500!important;transform:none!important;
+   background-size:cover!important;background-position:center!important}
+ #studioApp .lwa-curtain-label{
+   font-family:"CS Bergamot Stitched",Georgia,serif!important;
+   font-size:clamp(29px,4.4vw,56px)!important;font-weight:400!important;
+   line-height:1.12!important;letter-spacing:.025em!important}
+ #studioApp .lwa-curtain-bypass{margin-top:6px!important}
  .lwa-curtain[hidden]{display:none!important}
  .lwa-curtain .lwa-dot{color:#f26877}
  .lwa-curtain-label{font:700 clamp(20px,2.9vw,31px)/1.25 system-ui;letter-spacing:.045em;text-transform:uppercase;text-shadow:0 2px 5px #3c0610;text-align:center}
@@ -58,10 +75,23 @@
    const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
    if(mark){profile=document.createElement('span');profile.id='lwaProfileLoading';profile.setAttribute('role','status');profile.setAttribute('aria-label','Loading your profile');profile.append(make('falling'));const label=document.createElement('span');label.textContent='Loading profile';profile.append(label);mark.append(profile);profile.hidden=true}
   }
-  if(!transition){transition=document.createElement('div');transition.id='lwaStudioTransition';transition.hidden=true;const center=document.createElement('div');center.className='lwa-loading-center';center.append(make('floating'));const label=document.createElement('span');label.textContent='Taking you to Studio';center.append(label);transition.append(center);document.body.append(transition)}
+  // The original login-to-Studio loading screen remains canonical.
+  // This file adds animated RGB dots to it without creating a second one.
+  decorateLegacyStudioLoading();
  }
  function setProfile(loading){ensure();if(profile)profile.hidden=!loading}
- function hideTransition(){if(transitionTimer)clearTimeout(transitionTimer);if(!transition)return;const remaining=Math.max(0,720-(Date.now()-transitionShownAt));transitionTimer=setTimeout(()=>{transition.hidden=true},remaining)}
+ function hideTransition(){if(transitionTimer)clearTimeout(transitionTimer);if(transition)transition.hidden=true}
+ function decorateLegacyStudioLoading(){
+   // Decorate the genuine preexisting loading screen; never paint another
+   // full-screen loader that races it on fast sign-ins.
+   const matches=[...document.querySelectorAll('#loginPage [role="status"],#loginPage .loading,#loginPage [class*="loader"],#studioApp [class*="studio-loading"],body > [class*="loading"]')];
+   const target=matches.find(el=>/loading (your )?studio/i.test(el.textContent||''));
+   if(!target||target.querySelector('.lwa-legacy-loader-dots'))return;
+   const dots=make('floating');dots.classList.add('lwa-legacy-loader-dots');
+   dots.style.cssText='display:block;margin:18px auto 0;transform:scale(1.65)';
+   target.append(dots);
+   target.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
+ }
  function studioVisible(){return !!document.querySelector('#studioApp.is-active')}
  // Image pulse is only drawn while an image actually has network work outstanding.
  function imagePending(img){return img instanceof HTMLImageElement && !img.complete && !img.dataset.lwaLoadingBound}
@@ -106,6 +136,7 @@
   if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending');moduleCurtain?.remove();moduleCurtain=null}
   if(shell&&key){
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
+   if(key==='veve')moduleCurtain.querySelector('.lwa-curtain-label').textContent='Loading Veve';
    const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
    moduleCurtain.style.top=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+12)+'px';
    const busy=space.querySelector('[aria-busy="true"]:not(.lwa-curtain)');
@@ -147,7 +178,7 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  window.BigLWALoadingDots={
   profile:setProfile,
-  studio(){ensure();if(transition){transition.hidden=false;transitionShownAt=Date.now();clearTimeout(transitionTimer);transitionTimer=setTimeout(()=>{transition.hidden=true},9000)}},
+  studio(){ensure();decorateLegacyStudioLoading()},
   ready(){setProfile(false);hideTransition()}
  };
  // Capture legacy Step Inside clicks even when the visual CTA sits outside the form.
