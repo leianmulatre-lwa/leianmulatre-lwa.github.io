@@ -892,6 +892,10 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   const name=clean(item.caption||item.title||item.video_description||provider+' media').slice(0,500);
   const thumbnail=https(item.thumbnailUrl||item.cover_image_url||item.picture||item.imageUrl);
   const mediaType=clean(item.mediaType||item.kind||(provider==='tiktok'?'video':'image')).toUpperCase();
+  // Persist TikTok's supported public player address, not a transient media
+  // CDN URL or unreviewed embed HTML supplied by another site.
+  const videoId=provider==='tiktok'?String(externalId).match(/^\d{10,30}$/)?.[0]:'';
+  const embedUrl=videoId?'https://www.tiktok.com/player/v1/'+videoId:null;
   const owner=await resolveOwner(user,{},null);
   const created=store.serverTimestamp();
   const publish=publishToCollective&&provider==='facebook';
@@ -901,6 +905,7 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
     authorName:owner.authorName,
     source:provider,sourcePostId:externalId,sourceUrl:original,
     sourceUsername:clean(item.sourceUsername||item.username),
+    ...(embedUrl?{embedUrl}:{}),
     sourceCreatedAtMs:Number(item.sourceCreatedAtMs)||Date.now(),
     caption:name,linkTitle:name,mediaType,
     thumbnailUrl:thumbnail||null,
