@@ -5,7 +5,7 @@
  const css=`
  .lwa-dot{display:inline-block;width:7px;height:7px;background:currentColor;border-radius:50%;position:relative;vertical-align:middle;flex:none}
  .lwa-dot::before,.lwa-dot::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:currentColor}
- .lwa-dot::before{left:-11px}.lwa-dot::after{left:11px}
+ .lwa-dot{color:#e65d6d}.lwa-dot::before{left:-11px;background:#e7bc43}.lwa-dot::after{left:11px;background:#4ba76a}
  .lwa-dot-pulse{animation:lwaPulse 1s ease-in-out infinite}
  .lwa-dot-pulse::before{animation:lwaPulse 1s ease-in-out -.2s infinite}
  .lwa-dot-pulse::after{animation:lwaPulse 1s ease-in-out .2s infinite}
@@ -24,6 +24,13 @@
  #lwaStudioTransition[hidden]{display:none!important}
  #lwaStudioTransition .lwa-loading-center{display:grid;place-items:center;gap:28px}
  .lwa-loading-image{position:relative}
+ .lwa-curtain{position:absolute;z-index:120;inset:0;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:28px;background:repeating-linear-gradient(90deg,#7f172d 0%,#a32b42 17%,#6e1025 37%,#9e263b 53%,#641020 76%,#9b3044 100%);color:#fff8ef;border-radius:inherit;pointer-events:none}
+ .lwa-curtain[hidden]{display:none!important}
+ .lwa-curtain .lwa-dot{color:#f26877}
+ .lwa-curtain-label{font:600 11px/1.4 system-ui;letter-spacing:.07em;text-transform:uppercase;text-shadow:0 1px 2px #3c0610}
+ #studioApp .module-shell{position:relative}
+ #studioAvatarCard{position:relative;isolation:isolate}
+ #studioApp .topbar{position:relative;z-index:5}
  .lwa-loading-image::after{content:"";position:absolute;left:50%;top:50%;color:#543a65;display:block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:-11px 0 currentColor,11px 0 currentColor;animation:lwaPulse 1s ease-in-out infinite}
  .lwa-loading-image[data-lwa-loaded="1"]::after{display:none}
  @media(prefers-reduced-motion:reduce){.lwa-dot,.lwa-dot::before,.lwa-dot::after,.lwa-loading-image::after{animation:none!important}}
@@ -54,15 +61,40 @@
   img.addEventListener('load',done,{once:true});img.addEventListener('error',done,{once:true});if(img.complete)done();
  }
  const scan=()=>document.querySelectorAll('#studioApp img').forEach(bindImage);
+ let moduleKey='',moduleStarted=0,avatarStarted=0,avatarChanged=0,moduleCurtain=null,avatarCurtain=null;
+ function curtain(container,label,kind){const el=document.createElement('div');el.className='lwa-curtain';el.dataset.lwaCurtain=kind;el.setAttribute('role','status');el.setAttribute('aria-label',label);el.append(make(kind==='avatar'?'pulse':'floating'));const t=document.createElement('span');t.className='lwa-curtain-label';t.textContent=label;el.append(t);container.append(el);return el}
+ function unresolvedImages(el){return [...el.querySelectorAll('img')].some(img=>!img.complete)}
+ function loadingState(){
+  const app=document.getElementById('studioApp');if(!app)return;
+  const space=app.querySelector('.main.module-view>.module-workspace');const shell=space?.querySelector('.module-shell');
+  const key=space?.dataset.moduleKey||'';
+  if(key&&key!==moduleKey){moduleKey=key;moduleStarted=Date.now();moduleCurtain?.remove();moduleCurtain=null}
+  if(!key){moduleKey='';moduleCurtain?.remove();moduleCurtain=null}
+  if(shell&&key){
+   if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
+   const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
+   moduleCurtain.style.top=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+12)+'px';
+   const busy=space.querySelector('[aria-busy="true"]:not(.lwa-curtain)');
+   moduleCurtain.hidden=Date.now()-moduleStarted>=320 && !unresolvedImages(shell) && !busy;
+  }
+  const avatar=app.querySelector('#studioAvatarCard');
+  if(avatar){
+   if(!avatarCurtain||!avatar.contains(avatarCurtain)){avatarCurtain=curtain(avatar,'Loading avatar','avatar');avatarStarted=Date.now()}
+   const presentation=avatar.querySelector('canvas,iframe,img,.biglwa-avatar-stage,.avatar-preview,.avatar-viewer');
+   const pending=unresolvedImages(avatar)||!!avatar.querySelector('[aria-busy="true"]');
+   avatarCurtain.hidden=!!presentation && !pending && Date.now()-avatarStarted>320;
+  }
+ }
+ const schedule=(()=>{let pending=false;return()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;loadingState()})}})();
  let wasStudio=studioVisible();
  const observe=new MutationObserver(()=>{
-  ensure();scan();
+  ensure();scan();schedule();
   const now=studioVisible();
   if(now&&!wasStudio){hideTransition();setProfile(true);window.dispatchEvent(new Event('biglwa:studio-opened'))}
   if(!now&&wasStudio)hideTransition();
   wasStudio=now;
  });
- function start(){ensure();scan();observe.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','src']});}
+ function start(){ensure();scan();loadingState();observe.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','src','aria-busy','data-module-key']});document.addEventListener('load',schedule,true);document.addEventListener('error',schedule,true);}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  window.BigLWALoadingDots={
   profile:setProfile,
