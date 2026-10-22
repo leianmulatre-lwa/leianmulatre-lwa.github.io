@@ -49,6 +49,36 @@
     if (!response.ok) throw new Error(body.error || 'TikTok Worker needs to be deployed or configured.');
     return body;
   }
+  // TikTok's official oEmbed supplies public post metadata independently of
+  // OAuth video.list. This is a user-initiated private import, never a scraper
+  // or a claim that the post belongs to the connected account.
+  async function publicVideo(url) {
+    const token=await firebaseIdToken();
+    if(!token||!authUid)throw Error('Sign in to BIG LWA to save a TikTok video.');
+    const response=await fetch(API+'/tiktok/oembed?url='+encodeURIComponent(url),{
+      headers:{Authorization:'Bearer '+token},cache:'no-store'
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw Error(data.error||'TikTok could not provide public video metadata.');
+    return data;
+  }
+  function renderTikTokLinkImporter() {
+    const workspace=document.querySelector('#moduleWorkspace[data-module-key="orbit"]');
+    const row=workspace?.querySelector('[data-orbit-row="tiktok"]');
+    if(!row||row.querySelector('[data-tiktok-public-import]'))return;
+    const panel=document.createElement('section');
+    panel.setAttribute('data-tiktok-public-import','');
+    panel.setAttribute('aria-label','Save public TikTok post');
+    panel.style.cssText='padding:10px 0;display:grid;gap:7px;min-width:0';
+    panel.innerHTML='<strong>Import a TikTok post</strong>'+
+      '<small>Paste a public video URL to save a private MyFeed draft, even without video.list access. Original creator stays credited; playback remains on TikTok.</small>'+
+      '<label for="tiktokPublicVideoLink">Public TikTok video URL</label>'+
+      '<input id="tiktokPublicVideoLink" class="module-input" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
+      '<button class="module-action" type="button" data-tiktok-public-save>Save private video draft</button>'+
+      '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
+      '<div data-tiktok-public-preview hidden></div>';
+    row.append(panel);
+  }
   async function connect() {
     try {
       if (!crypto.subtle) throw new Error('TikTok needs a secure page (https) to connect from this browser.');
@@ -88,7 +118,8 @@
       saved+=results.filter(x=>x.status==='fulfilled'&&(x.value?.created||x.value?.published)).length;
       for(const result of results)if(result.status==='rejected'){failed++;firstError ||= result.reason?.message||'Save failed';}
     }
-    notice(saved+' TikTok video(s) added to Collective Feed.'+(failed?' '+failed+' failed: '+firstError+'. Reconnect or retry sync.':''));
+    if(saved||failed)notice(saved+' TikTok video(s) saved as private MyFeed drafts.'+
+      (failed?' '+failed+' could not be saved: '+firstError+'. Retry sync.':''));
   }
 
   async function restore() {
@@ -132,6 +163,7 @@
   }
   function render() {
     renderFeedList();
+    renderTikTokLinkImporter();
     document.querySelectorAll('[data-orbit-app="tiktok"]').forEach(el => { el.classList.toggle('orbit-connected',connected); el.setAttribute('aria-label',connected?'Refresh TikTok':'Connect TikTok'); });
     document.querySelectorAll('[data-orbit-path="tiktok"]').forEach(input => {
       const actions = input.closest('.module-orbit-row')?.querySelector('.module-actions');
@@ -231,6 +263,41 @@
   }
   document.addEventListener('click',e=>{
     if (!(e.target instanceof Element)) return;
+    const publicSave=e.target.closest('[data-tiktok-public-save]');
+    if(publicSave){
+      e.preventDefault();e.stopImmediatePropagation();
+      if(publicSave.disabled)return;
+      const panel=publicSave.closest('[data-tiktok-public-import]');
+      const input=panel?.querySelector('[data-tiktok-public-url]');
+      const status=panel?.querySelector('[data-tiktok-public-message]');
+      const preview=panel?.querySelector('[data-tiktok-public-preview]');
+      const original=publicSave.textContent;
+      publicSave.disabled=true;publicSave.textContent='Importing…';
+      Promise.resolve().then(async()=>{
+        const video=await publicVideo(String(input?.value||'').trim());
+        const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft ||
+          (await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+        if(typeof writer!=='function')throw Error('Your private Orbit archive is not ready.');
+        const saved=await writer('tiktok',{
+          id:video.id,sourcePostId:video.id,sourceUrl:video.share_url,expectedUid:authUid,
+          caption:video.title||'TikTok video',cover_image_url:video.cover_image_url,
+          sourceUsername:video.author_name||'',embedUrl:video.embed_url,mediaType:'VIDEO'
+        });
+        if(status)status.textContent=saved.created?'Saved privately in MyFeed. Review before publishing.':
+          'This post is already saved in your BIG LWA account.';
+        if(preview&&/^\d{10,30}$/.test(String(video.id||''))){
+          const frame=document.createElement('iframe');
+          frame.title='TikTok post preview';frame.loading='lazy';
+          frame.referrerPolicy='strict-origin-when-cross-origin';
+          frame.allow='fullscreen; encrypted-media; picture-in-picture';
+          frame.style.cssText='display:block;width:min(100%,350px);height:600px;border:0;border-radius:12px';
+          frame.src='https://www.tiktok.com/player/v1/'+video.id;
+          preview.replaceChildren(frame);preview.hidden=false;
+        }
+      }).catch(error=>{if(status)status.textContent=error.message||'Import failed.'})
+        .finally(()=>{publicSave.disabled=false;publicSave.textContent=original});
+      return;
+    }
     const draft=e.target.closest('[data-tiktok-save-video]');
     if(draft){
       e.preventDefault();e.stopImmediatePropagation();
@@ -258,6 +325,11 @@
     else if(e.target.closest('[data-orbit-app="tiktok"],[data-tt-connect]')) { e.preventDefault(); e.stopImmediatePropagation(); connected?restore():connect(); }
     else if(e.target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render,100);
   },true);
-  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length}}};
+  // Orbit is mounted after this script on some routes. Recreate the optional
+  // importer after page mounts without leaving duplicate controls.
+  document.addEventListener('biglwa:module-open',()=>setTimeout(renderTikTokLinkImporter,70));
+  document.addEventListener('biglwa:new-orbit-status',()=>setTimeout(renderTikTokLinkImporter,70));
+  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,
+    get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 }());
