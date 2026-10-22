@@ -103,11 +103,23 @@ async function oaProfile(provider,token){
  if(provider==='tumblr'){
    const u=data.response?.user||{};
    if(!u.name)oaError('Tumblr did not return an authorized account.',502);
-   const name=String(u.name).slice(0,80);
-   const first=Array.isArray(u.blogs)?u.blogs.find(x=>x?.primary)||u.blogs[0]:null;
-   const link=oaPhoto(first?.url)||('https://www.tumblr.com/'+encodeURIComponent(name));
-   return {id:'tumblr',sourceUserId:name,sourceBlogName:String(first?.name||name).slice(0,80),username:name,name,avatarUrl:oaPhoto(first?.avatar_url),
-    link};
+   // Tumblr account names and blog names can differ. Orbit should display
+   // the *primary blog* and link its canonical public profile, not the
+   // account identifier or a custom domain that the profile mirror rejects.
+   const accountName=String(u.name).slice(0,80);
+   const sourceBlogs=Array.isArray(u.blogs)?u.blogs:[];
+   const blogs=sourceBlogs.filter(b=>/^[A-Za-z0-9-]{1,80}$/.test(String(b?.name||'')))
+     .slice(0,30).map(b=>({
+       name:String(b.name),title:String(b.title||b.name).slice(0,100),
+       primary:!!b.primary,link:'https://www.tumblr.com/'+encodeURIComponent(b.name)
+     }));
+   const primary=blogs.find(b=>b.primary)||blogs[0];
+   const blogName=primary?.name||accountName;
+   const original=sourceBlogs.find(b=>b?.name===blogName)||{};
+   return {id:'tumblr',sourceUserId:accountName,sourceBlogName:blogName,
+     username:blogName,name:String(primary?.title||blogName).slice(0,100),
+     avatarUrl:oaPhoto(original.avatar_url),link:'https://www.tumblr.com/'+encodeURIComponent(blogName),
+     blogCount:blogs.length,blogs};
  }
  const me=data.data?.me||data.data?.user||data.me||{};
  if(!me.externalId)oaError('Snapchat did not provide the requested Login Kit account identity.',502);
