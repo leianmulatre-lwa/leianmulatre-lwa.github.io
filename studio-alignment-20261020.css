@@ -289,3 +289,63 @@ body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!
 #studioApp .hero{margin-top:8px!important}
 #studioApp .main.module-view>.module-workspace{margin-top:12px!important;padding-top:14px!important}
 }
+
+/* 2026-10-22: one scroll anchor for topbar + widget dock.
+   The page scrolls underneath; the dock itself stays beneath the whole
+   (measured) site header, instead of jumping into the clipped topbar.
+   This does NOT alter dock membership or three-dot widget controls. */
+#studioApp .topbar{
+  position:sticky!important;
+  top:0!important;
+  z-index:65!important;
+}
+#studioApp .sidebar{
+  position:fixed!important;
+  top:var(--biglwa-dock-top,64px)!important;
+  bottom:0!important;
+  height:calc(100dvh - var(--biglwa-dock-top,64px))!important;
+  max-height:calc(100dvh - var(--biglwa-dock-top,64px))!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:space-between!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+#studioApp .sidebar .sidebar-top{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  max-height:100%!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  scrollbar-width:thin;
+}
+#studioApp .sidebar .sidebar-bottom{
+  display:flex!important;
+  flex:0 0 auto!important;
+  flex-direction:column!important;
+  position:relative!important;
+  inset:auto!important;
+  max-width:100%!important;
+}
+/* Keep the Skeleton Key and collapse control together while dock items scroll. */
+#studioApp .sidebar-top>#skeletonKeyLauncher{
+  position:sticky!important;top:0!important;z-index:3!important;
+  flex-shrink:0!important;
+}
+#studioApp .sidebar-top>#sidebarCollapse{
+  position:sticky!important;top:42px!important;z-index:3!important;
+  flex-shrink:0!important;
+}
+/* The full Sqwidz page uses the same display face as its Studio widget. */
+#studioApp #moduleWorkspace[data-module-key="notes"] .module-heading h1{
+  font-family:"Subwaygraph",Georgia,serif!important;
+  font-weight:400!important;
+  font-size:clamp(36px,5.2vw,66px)!important;
+  line-height:1.12!important;
+  letter-spacing:0!important;
+  text-transform:lowercase!important;
+  overflow-wrap:anywhere!important;
+}
