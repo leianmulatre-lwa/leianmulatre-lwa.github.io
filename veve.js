@@ -198,7 +198,8 @@
     return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-post="'+e(post.id)+'">'+
       '<div class="veve-photo-frame">'+videoMarkup+
       '<span class="veve-provider">'+e(label)+'</span>'+
-      '<button type="button" class="veve-media-open" data-veve-view="'+e(post.id)+'" aria-label="'+(clip?'Watch video in Veve':'Enlarge media in Veve')+'" title="Preview here">'+(clip?'▶':'↗')+'</button>'+
+      (src==='pinterest'&&/^(?:[0-9]{6,25})$/.test(String(post.sourcePostId||''))&&link?
+       '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save Pinterest Pin to a BIG LWA board" title="Save to board">+ board</button>':'')+
       '<span class="veve-lights"><button type="button" data-veve-view="'+e(post.id)+'" aria-label="Enlarge or play media" title="View in Veve"></button></span>'+
       '</div>'+
       ((usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
@@ -376,6 +377,58 @@
     }
     return d;
   }
+  function saveDialog(){
+    let dialog=document.querySelector('#biglwaVeveSaveBoard');
+    if(dialog)return dialog;
+    dialog=document.createElement('dialog');dialog.id='biglwaVeveSaveBoard';
+    dialog.className='veve-save-board-dialog';
+    dialog.innerHTML='<form method="dialog" class="veve-save-board-form">'+
+      '<header><h3>save to a board</h3><button type="submit" value="cancel" aria-label="Close">×</button></header>'+
+      '<p>Save this public Pinterest Pin privately in your BIG LWA collection, not on Pinterest.</p>'+
+      '<label>Choose board<select id="veveBoardTarget"></select></label>'+
+      '<label>Or make a new board<input id="veveBoardNewName" maxlength="100" placeholder="New board name (optional)"></label>'+
+      '<div class="veve-save-board-actions"><button type="submit" value="cancel">Cancel</button>'+
+        '<button type="button" data-veve-commit-board>Save pin</button></div>'+
+      '<p role="status" class="veve-save-board-status" aria-live="polite"></p></form>';
+    document.body.append(dialog);
+    return dialog;
+  }
+  async function openBoardSaver(post){
+    const api=window.__biglwaPinterest;
+    if(!api?.saveVevePin||!api?.loadSaved)throw Error('Boards are still starting. Open Boards once, then try again.');
+    const original=safeUrl(post.sourceUrl||post.permalink);
+    const id=String(post.sourcePostId||'');
+    if(!/^[0-9]{6,25}$/.test(id)||!/^https:\/\/(www\.)?pinterest\.com\/pin\/[0-9]{6,25}\/?(?:\?.*)?$/.test(original))
+      throw Error('This discovery item has no usable original Pinterest Pin URL.');
+    const dlg=saveDialog(),select=dlg.querySelector('#veveBoardTarget');
+    const submit=dlg.querySelector('[data-veve-commit-board]'),feedback=dlg.querySelector('.veve-save-board-status');
+    feedback.textContent='Loading your saved boards…';submit.disabled=true;
+    dlg.showModal();
+    try{
+      await api.loadSaved();
+      if(!dlg.open)return;
+      const boards=api.veveSavedBoards();
+      select.replaceChildren();
+      const options=[{id:'default_saved',title:'Saved'},...boards.filter(b=>b.id!=='default_saved')];
+      for(const board of options){const opt=document.createElement('option');opt.value=board.id;opt.textContent=board.title;select.append(opt)}
+      feedback.textContent='Your saved boards stay private by default.';
+      submit.disabled=false;
+      submit.onclick=async()=>{
+        if(submit.disabled)return;
+        submit.disabled=true;feedback.textContent='Saving to BIG LWA…';
+        try{
+          const name=dlg.querySelector('#veveBoardNewName').value.trim();
+          const target=name?(await api.createVeveBoard(name)).id:select.value;
+          const result=await api.saveVevePin({
+            pinId:id,url:original,image:picture(post),title:String(post.title||post.caption||'Pinterest Pin')
+          },target);
+          feedback.textContent=result.already?'Already in '+result.board+'.':'Saved to '+result.board+'!';
+          say(feedback.textContent);
+          setTimeout(()=>{if(dlg.open)dlg.close()},900);
+        }catch(error){feedback.textContent=error.message||'Could not save Pin.';submit.disabled=false}
+      };
+    }catch(error){feedback.textContent=error.message||'Could not load your boards.';submit.disabled=false}
+  }
   function openMedia(post){
     const d=viewDialog(),target=d.querySelector('#vevePreviewStage'),link=safeUrl(post.sourceUrl||post.permalink);
     const direct=video(post),embed=videoEmbed(post),still=picture(post);
@@ -472,6 +525,11 @@
         if(p)openMedia(p);return;
       }
       const b=ev.target.closest('button');if(!b)return;
+      if(b.hasAttribute('data-veve-save-board')){
+        const p=state.items.find(item=>String(item.id)===String(b.dataset.veveSaveBoard));
+        if(p){try{await openBoardSaver(p)}catch(error){say(error.message||'Could not open Boards.')}}
+        return;
+      }
       if(b.hasAttribute('data-veve-view')){
         const p=state.items.find(p=>String(p.id)===String(b.dataset.veveView));
         if(p)openMedia(p);return;
