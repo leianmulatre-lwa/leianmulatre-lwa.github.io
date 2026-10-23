@@ -127,7 +127,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 let empty_hint = if cfg!(target_arch = "wasm32") {
                     "Files you open in fileR appear here. Drop a PDF anywhere to open it."
                 } else {
-                    tl!("Files you open in PdfCraft appear here. Drop a PDF anywhere to open it.")
+                    if cfg!(target_arch = "wasm32") { "PDFs you open in fileR appear here. Drop a PDF anywhere to open it." } else { tl!("Files you open in PdfCraft appear here. Drop a PDF anywhere to open it.") }
                 };
                 ui.label(egui::RichText::new(empty_hint).color(t.text_muted));
             }
@@ -188,7 +188,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             ui.add_space(20.0);
             widgets::section_title(ui, tl!("Privacy"));
             ui.label(
-                egui::RichText::new(tl!("PdfCraft works offline. No telemetry, no account, and no cloud processing unless you add a provider."))
+                egui::RichText::new(if cfg!(target_arch = "wasm32") { "fileR edits PDFs locally. BIG LWA cloud storage is optional, through the separate Workshop upload." } else { tl!("PdfCraft works offline. No telemetry, no account, and no cloud processing unless you add a provider.") })
                     .color(t.text_muted),
             );
         });
