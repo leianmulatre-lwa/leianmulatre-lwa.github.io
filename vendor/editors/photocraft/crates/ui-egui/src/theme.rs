@@ -210,14 +210,15 @@ impl Tokens {
                 text_dim: Color32::from_rgb(178, 178, 178),
                 text_faint: Color32::from_rgb(128, 128, 128),
                 icon: Color32::from_rgb(200, 200, 200),
-                accent: Color32::from_rgb(55, 142, 240),
-                accent_soft: Color32::from_rgb(78, 78, 78),
-                accent_border: Color32::from_rgb(55, 142, 240),
-                accent_text: Color32::WHITE,
+                // lightR gold textile-block colors are native egui tokens, not an HTML overlay.
+                accent: Color32::from_rgb(233, 173, 57),
+                accent_soft: Color32::from_rgb(88, 68, 44),
+                accent_border: Color32::from_rgb(233, 173, 57),
+                accent_text: Color32::from_rgb(37, 24, 19),
                 separator: Color32::from_rgb(30, 30, 30),
                 shadow: Color32::from_black_alpha(150),
-                primary_bg: Color32::from_rgb(55, 142, 240),
-                primary_text: Color32::WHITE,
+                primary_bg: Color32::from_rgb(233, 173, 57),
+                primary_text: Color32::from_rgb(37, 24, 19),
                 danger: Color32::from_rgb(236, 91, 98),
                 warning: Color32::from_rgb(232, 176, 70),
                 radius_sm: 3.0,
@@ -1244,5 +1245,19 @@ pub mod live {
             assert_eq!(t.radius, 9.0);
             assert_eq!(unknown, vec!["nope".to_string()]);
         }
+    }
+}
+
+
+// BIG LWA edition: keep lightR color identity inside egui after a real WASM build.
+#[cfg(test)]
+mod biglwa_lightr_theme_tests {
+    use super::*;
+    #[test]
+    fn editor_accent_is_gold_for_default_and_pro_dark() {
+        let gold = Color32::from_rgb(233, 173, 57);
+        assert_eq!(Tokens::for_kind(ThemeKind::Pro).accent, gold);
+        assert_eq!(Tokens::for_kind(ThemeKind::ProMedium).accent, gold);
+        assert_eq!(Tokens::for_kind(ThemeKind::Pro).primary_bg, gold);
     }
 }
