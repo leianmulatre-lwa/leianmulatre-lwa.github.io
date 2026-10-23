@@ -118,7 +118,7 @@ const SOURCES = {
   instagram:{ label: "Instagram", accent: "#f36b21" },
   tiktok:   { label: "TikTok",    accent: "#772dcc" },
   pinterest:{ label: "Pinterest", accent: "#e60023" },
-  facebook: { label: "Facebook",  accent: "#1877f2" },
+  facebook: { label: "Facebook",  accent: "#1658be" },
   youtube:  { label: "YouTube",   accent: "#fff1ec" },
   soundcloud:{ label: "SoundCloud", accent: "#e2622a" },
   google:   { label: "Google",    accent: "#4285f4" },
@@ -134,7 +134,7 @@ const FEED_RIM = "#a52a0c";
 const SOURCE_THEMES = {
   instagram: { rim:"#f36b21", glow:"#ffad52", hot:"#bd430b" },
   tiktok: { rim:"#772dcc", glow:"#b77cff", hot:"#4a187f" },
-  facebook: { rim:"#1877f2", glow:"#5aa0ff" },
+  facebook: { rim:"#1658be", glow:"#5aa0ff" },
   pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" },
   youtube: { rim:"#fff1ec", glow:"#e66e7e", hot:"#d44b67" },
   snapchat:{ rim:"#ffda00", glow:"#ffe780", hot:"#b39700" },

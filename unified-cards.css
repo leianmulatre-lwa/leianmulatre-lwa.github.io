@@ -49,8 +49,8 @@
   --feed-card-shadow:3px 3px 0 #772dcc,6px 7px 0 -2px #b77cff,0 14px 26px -14px #4a187f!important;
 }
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{
-  --feed-card-rim:#d0202f!important;
-  --feed-card-shadow:0 0 0 2px #d0202f,3px 3px 0 #fff6ec,0 13px 28px -16px #d0202f!important;
+  --feed-card-rim:#fff1ec!important;
+  --feed-card-shadow:0 0 0 2px #e66e7e,3px 3px 0 #fff1ec,0 13px 28px -16px #d44b67!important;
 }
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-grid{
   grid-auto-flow:row!important;

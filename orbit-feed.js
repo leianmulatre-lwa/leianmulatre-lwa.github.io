@@ -29,8 +29,8 @@
     'instagram-feed-item': { accent: '#f36b21', rim:'#f36b21', glow:'#ffad52', hot:'#bd430b', label: 'Instagram' },
     'tiktok-feed-item': { accent: '#772dcc', rim:'#772dcc', glow:'#b77cff', hot:'#4a187f', label: 'TikTok' },
     'pinterest-feed-item': { accent: '#e60023', rim:'#e60023', glow:'#ff5269', hot:'#ae0026', label: 'Pinterest' },
-    'facebook-feed-item': { accent: '#1877f2', rim:'#1877f2', glow:'#5aa0ff', label: 'Facebook' },
-    'youtube-feed-item': { accent: '#d0202f', rim:'#d0202f', glow:'#fff6ec', hot:'#ff0033', label: 'YouTube' },
+    'facebook-feed-item': { accent: '#1658be', rim:'#1658be', glow:'#5aa0ff', label: 'Facebook' },
+    'youtube-feed-item': { accent: '#fff1ec', rim:'#fff1ec', glow:'#e66e7e', hot:'#d44b67', label: 'YouTube' },
     'soundcloud-feed-item': { accent: '#e2622a', rim:'#ff5500', glow:'#ffb13b', hot:'#c93f00', label: 'SoundCloud' }
   };
   var FALLBACK = { accent: '#8a7a6c', rim:'#a52a0c', glow:'#d95f6d', label: 'Source' };
