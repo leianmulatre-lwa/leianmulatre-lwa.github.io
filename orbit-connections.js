@@ -230,12 +230,22 @@ async function syncSource(source, uid) {
   if (!profile || typeof profile !== "object") return { outcome: "stale" };
 
   const details = source.read(profile);
+  // A successful basic-profile call is not proof that a provider returned its
+  // optional follower metrics. Reuse only this *same account's* last verified
+  // value; missing fields must never become zero or erase an older count.
+  const count = value => value!==null&&value!==undefined&&value!==''&&
+    Number.isSafeInteger(Number(value))&&Number(value)>=0?Number(value):null;
+  const old=current[source.id];
+  const sameAccount=!!old&&!!details.username&&
+    clean(old.username).toLowerCase()===clean(details.username).toLowerCase();
+  const followers=count(details.followers);
+  const preserved=sameAccount?count(old.stats?.followers):null;
   const stats = {
-    followers: details.followers ?? null,
-    mediaCount: details.mediaCount ?? null,
-    likes: details.likes ?? null,
-    boards: null,
-    pins: null
+    followers: followers ?? preserved,
+    mediaCount: count(details.mediaCount)??(sameAccount?count(old.stats?.mediaCount):null),
+    likes: count(details.likes)??(sameAccount?count(old.stats?.likes):null),
+    boards: sameAccount?count(old.stats?.boards):null,
+    pins: sameAccount?count(old.stats?.pins):null
   };
 
   /* Pinterest does not put board or pin counts on the account, only on the boards list,
@@ -260,8 +270,12 @@ async function syncSource(source, uid) {
     avatarUrl: clean(details.avatarUrl),
     link: clean(details.link),
     stats,
-    connectedAt: current[source.id]?.connectedAt || new Date().toISOString(),
-    lastCheckedAt: new Date().toISOString()
+    connectedAt: sameAccount?old.connectedAt||new Date().toISOString():new Date().toISOString(),
+    // lastCheckedAt tracks the account profile request, while countCheckedAt
+    // tracks the most recent actual follower response (not a basic-only call).
+    lastCheckedAt: new Date().toISOString(),
+    countCheckedAt: followers!==null?new Date().toISOString():
+      (sameAccount?String(old.countCheckedAt||old.lastCheckedAt||''):'')
   };
   const persisted = await write(uid, source.id, record);
   if (!persisted) window.dispatchEvent(new CustomEvent("biglwa:orbit-connection-save-error", { detail: { source: source.id } }));
