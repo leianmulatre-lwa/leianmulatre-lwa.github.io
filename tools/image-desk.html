@@ -189,10 +189,13 @@ function composite(type='image/png',quality=0.92){
 }
 $('#exportPng').addEventListener('click',async()=>{try{download(await composite(),'biglwa-image.png');status('PNG exported to your device.')}catch(e){status(e.message)}});
 $('#exportJpg').addEventListener('click',async()=>{try{download(await composite('image/jpeg'),'biglwa-image.jpg');status('JPEG exported to your device.')}catch(e){status(e.message)}});
+let pendingCloudSnapshot=null;
 $('#saveCloudSnapshot').addEventListener('click',async()=>{
  if(window.parent===window){status('Open sqwibblR from BIG LWA Studio to save to your account.');return}
  try{const blob=await composite('image/png');
-  window.parent.postMessage({type:'BIGLWA_WORKSHOP_SAVE_IMAGE',blob},location.origin);
+  const requestId=crypto.randomUUID();
+  pendingCloudSnapshot=requestId;
+  window.parent.postMessage({type:'BIGLWA_WORKSHOP_SAVE_IMAGE',app:'image-desk',name:'sqwibblR artwork',requestId,blob},location.origin);
   status('Requesting a private BIG LWA account snapshot…');
  }catch(err){status('Could not prepare snapshot: '+err.message)}
 });
@@ -229,7 +232,11 @@ newDocument();
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==window.parent)return;
  if(event.data?.type==='BIGLWA_WORKSHOP_SAVE_RESULT'){
-  status(event.data.ok?'Snapshot request finished. Check the Workshop private shelf for sync status.':'Snapshot not saved. Check the Workshop private shelf.');
+  if(!pendingCloudSnapshot||event.data.requestId!==pendingCloudSnapshot)return;
+  pendingCloudSnapshot=null;
+  status(!event.data.ok?'Snapshot not saved. Check the Workshop private shelf.':
+   event.data.synced?'Snapshot saved to your BIG LWA account.':
+   'Snapshot saved on this device for your account; cloud sync still needs confirmation.');
   return
  }
  if(event.data?.type!=='BIGLWA_IMAGE_DESK_IMPORT')return;
