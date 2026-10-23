@@ -127,6 +127,10 @@ jobs:
           node --check pinterest-orbit.js
           node --check studio-onboarding.js
           node veve-studio-pinterest-regression-test.mjs
+      - name: Validate production native-release archive and fail-closed installer
+        run: |
+          python3 -m py_compile .github/scripts/stage-craft-apps.py .github/scripts/prepare-native-release.py
+          python3 .github/scripts/test-native-release-staging.py
       - name: Stage public files without development-only paths
         run: |
           mkdir -p "$RUNNER_TEMP/biglwa-public"
