@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BIG LWA fileR">
+<rect x="2" y="2" width="60" height="60" rx="12" fill="#bb5b54" stroke="#833b3c" stroke-width="3"/>
+<rect x="7" y="7" width="50" height="50" rx="8" fill="#ffe4c9" stroke="#f4aa93" stroke-width="2"/>
+<path d="M37 16c-9-3-15 3-15 14v22M16 33h30" fill="none" stroke="#833b3c" stroke-width="5" stroke-linecap="round"/>
+<circle cx="17" cy="11" r="3" fill="#df605b"/><circle cx="26" cy="11" r="3" fill="#f4c749"/><circle cx="35" cy="11" r="3" fill="#57ac70"/>
+</svg>
