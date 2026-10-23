@@ -788,7 +788,7 @@
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
-    $$$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const id=row.dataset.shortcutRow||'',widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null,mark=$('.sidebar-route-icon',row);if(!widget||!mark)return;
       const icon=widgetIconMarkup(widget);if(icon&&mark.innerHTML!==icon)mark.innerHTML=icon;
     });
