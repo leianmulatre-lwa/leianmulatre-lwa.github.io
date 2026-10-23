@@ -80,6 +80,17 @@ async function data(request){const response=await worker(request,env);return {st
 let done=0;
 async function check(name,fn){await fn();done++;console.log('PASS '+name)}
 let id,etag;
+await check('real-browser CORS preflight allows binary PUT upload',async()=>{
+ const options=new Request('https://api.biglwa.com/media/workshop-projects/test/part/1',{
+   method:'OPTIONS',headers:{Origin:'https://biglwa.com',
+     'Access-Control-Request-Method':'PUT',
+     'Access-Control-Request-Headers':'authorization, content-type'}
+ });
+ const response=await worker(options,env);
+ assert.equal(response.status,204);
+ assert.ok((response.headers.get('Access-Control-Allow-Methods')||'').split(/,\s*/).includes('PUT'));
+ assert.ok((response.headers.get('Access-Control-Allow-Headers')||'').toLowerCase().includes('authorization'));
+});
 await check('no anonymous listing or initiation',async()=>{
   assert.equal((await data(req('/media/workshop-projects',{token:''}))).status,401);
   assert.equal((await data(req('/media/workshop-projects',{method:'POST',token:'',body:'{}'}))).status,401);
