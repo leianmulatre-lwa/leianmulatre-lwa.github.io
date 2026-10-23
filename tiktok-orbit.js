@@ -105,13 +105,13 @@
     const panel=document.createElement('section');
     panel.setAttribute('data-tiktok-public-import','');
     panel.setAttribute('aria-label','Import TikTok into myfeed');
-    panel.style.cssText='display:grid;gap:8px;margin:12px 0;padding:13px;border:1px solid #baa5c2;border-radius:12px;background:#f9efff;color:#362440';
-    panel.innerHTML='<strong>Import TikTok to myfeed</strong>'+
-     '<small>Paste a public TikTok video link. It saves as a private draft; you decide when to publish. The video remains on TikTok with the creator credited.</small>'+
+    panel.style.cssText='display:grid;gap:6px;margin:8px 0;padding:9px 11px;border:1px solid #baa5c2;border-radius:10px;background:#f9efff;color:#362440';
+    panel.innerHTML='<strong>TikTok · import a public link</strong>'+
      '<label for="tiktokFeedVideoLink">TikTok video URL</label>'+
      '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><input id="tiktokFeedVideoLink" class="module-input" style="flex:1 1 215px;min-width:0" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
      '<button class="module-action" type="button" data-tiktok-public-save>Save to myfeed drafts</button></div>'+
      '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
+     '<details class="biglwa-tiktok-batch"><summary>Import multiple public links</summary><textarea class="module-input" data-tiktok-batch-links rows="2" maxlength="6000" placeholder="One public TikTok video URL per line (up to 20)"></textarea><button class="module-action secondary" type="button" data-tiktok-batch-save>Save private drafts</button><small data-tiktok-batch-status role="status"></small></details>'+
      '<div data-tiktok-public-preview hidden></div>';
     (host.querySelector('#biglwaFeedImportStatusRail')||host.querySelector('.biglwa-feed-compose-head'))?.after(panel);
   }
@@ -218,25 +218,8 @@
     if(list.dataset.tiktokMediaSignature===signature&&(!connected||videoPermissionPending||!videos.length||list.querySelector('.tiktok-feed-item')))return;
     list.dataset.tiktokMediaSignature=signature;
     list.querySelectorAll('.tiktok-feed-item').forEach(el=>el.remove());
-    const rail=document.getElementById('biglwaFeedImportStatusRail');
-    let info=rail&&rail.querySelector('[data-tiktok-video-status]');
-    if(rail&&!info){
-      info=document.createElement('p');
-      info.setAttribute('data-tiktok-video-status','');
-      info.setAttribute('role','status');
-      rail.append(info);
-    }
-    if(info){
-      const message=!connected?'':videoPermissionPending
-        ? 'TikTok connected, but the Display API video.list permission is not approved or granted. Videos cannot be imported until TikTok approves it and you reconnect.'
-        : videoLoadError?'TikTok videos: '+videoLoadError
-        : videos.length?videos.length+' TikTok video preview'+(videos.length===1?'':'s')+' available. Choose which to save as a private draft.'
-        : 'TikTok connected. No public videos were returned by the authorized API.';
-      if(info.textContent!==message)info.textContent=message;
-      if(info.hidden===connected)info.hidden=!connected;
-      const shouldHide=!Array.from(rail.children).some(el=>!el.hidden);
-      if(rail.hidden!==shouldHide)rail.hidden=shouldHide;
-    }
+    // Permission diagnostics belong to Orbit, not a banner above every feed.
+    // The public-URL importer works independently of video.list approval.
     if(!connected||videoPermissionPending||!videos.length)return;
     const cards=videos.map(v=>{
       let href='',cover='';
@@ -315,6 +298,37 @@
       frame.style.cssText='display:block;width:100%;height:480px;max-height:75vh;border:0;border-radius:12px';
       frame.src='https://www.tiktok.com/player/v1/'+id;
       host.append(frame);play.textContent='Close video';return;
+    }
+    const batch=e.target.closest('[data-tiktok-batch-save]');
+    if(batch){
+      e.preventDefault();e.stopImmediatePropagation();
+      if(batch.disabled)return;
+      const wrap=batch.closest('.biglwa-tiktok-batch');
+      const input=wrap?.querySelector('[data-tiktok-batch-links]');
+      const status=wrap?.querySelector('[data-tiktok-batch-status]');
+      const links=[...new Set(String(input?.value||'').split(/[\s,]+/).map(s=>s.trim()).filter(Boolean))];
+      if(!links.length||links.length>20){if(status)status.textContent='Choose 1–20 public video links.';return;}
+      batch.disabled=true;
+      (async()=>{
+        const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft ||
+          (await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+        if(typeof writer!=='function')throw Error('Private drafts are unavailable.');
+        let count=0,skipped=0;
+        for(const link of links){
+          try{
+            const video=await publicVideo(link);
+            if(!video?.id)throw Error('Invalid public video');
+            const result=await writer('tiktok',{id:video.id,sourcePostId:video.id,
+              sourceUrl:video.share_url,expectedUid:authUid,
+              caption:video.title||'TikTok video',cover_image_url:video.cover_image_url,
+              sourceUsername:video.author_name||'',embedUrl:video.embed_url,mediaType:'VIDEO'});
+            if(result?.created)count++;else skipped++;
+          }catch{skipped++}
+        }
+        if(status)status.textContent=count+' private video drafts saved'+(skipped?'; '+skipped+' skipped or already saved':'')+'. Review before publishing.';
+        document.dispatchEvent(new CustomEvent('biglwa:tiktok-draft-ready',{detail:{source:'tiktok'}}));
+      })().catch(err=>{if(status)status.textContent=err.message||'Import unavailable.'}).finally(()=>{batch.disabled=false;});
+      return;
     }
     const publicSave=e.target.closest('[data-tiktok-public-save]');
     if(publicSave){
