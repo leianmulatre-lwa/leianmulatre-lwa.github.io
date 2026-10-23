@@ -112,3 +112,23 @@
 @media(prefers-reduced-motion:reduce){
  #craftSuite .craft-arcade-block{transition:none!important}
 }
+
+/* Cuphead-inspired fabric workshop shelf; styles match each original stitched toy cube. */
+#craftSuite .craft-account-vault{border:2px solid #5b4339;border-radius:18px;margin:18px 0;padding:18px;
+ background:radial-gradient(circle at 12% 16%,rgba(255,255,255,.85),transparent 40%),linear-gradient(150deg,#fff3d9,#ebd5b3);
+ box-shadow:5px 6px 0 #6b5643;color:#3b2d2a;display:grid;gap:13px;min-width:0}
+#craftSuite .craft-account-vault h3{font-family:"Bergamot Stitch",Georgia,serif;font-size:22px;line-height:1.15;margin:5px 0 7px}
+#craftSuite .craft-vault-eyebrow{letter-spacing:.16em;text-transform:uppercase;font-weight:750;font-size:10px}
+#craftSuite .craft-account-vault p{margin:0;font-size:12px}
+#craftSuite .craft-vault-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#craftSuite .craft-vault-file{display:inline-flex;align-items:center;border:2px solid #42302e;border-radius:10px;background:#fcf7eb;
+ padding:9px 12px;font-weight:750;cursor:pointer;font-size:11px}
+#craftSuite .craft-vault-file:has(input:disabled){opacity:.55;cursor:not-allowed}
+#craftSuite .craft-vault-file input{position:absolute;width:1px;height:1px;opacity:0}
+#craftSuite .craft-vault-status{font:550 11px/1.5 system-ui;max-width:530px}
+#craftSuite .craft-vault-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:11px}
+#craftSuite .craft-vault-card{display:grid;gap:6px;background:#fff9ee;border:1px solid #bfa18a;border-radius:12px;padding:9px;min-width:0}
+#craftSuite .craft-vault-card img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:#eee5d5;border-radius:6px}
+#craftSuite .craft-vault-card span{font:700 11px/1.2 system-ui;overflow-wrap:anywhere}
+#craftSuite .craft-vault-card button{background:#fff3e1;border:1px solid #886d56;border-radius:7px;padding:6px 7px;cursor:pointer;color:#382a23;font:650 10px/1.2 system-ui}
+#craftSuite .craft-vault-card button:hover{background:#f4d3ad}

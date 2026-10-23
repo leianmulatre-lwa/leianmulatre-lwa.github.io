@@ -37,10 +37,25 @@ button:focus-visible,.filebutton:focus-within,input:focus-visible{outline:3px so
 footer{font-size:10px;padding:10px;color:#8c7570}
 @media(max-width:850px){.shell{grid-template-columns:minmax(160px,190px) minmax(0,1fr)}.side.layers{grid-column:1/-1}}
 @media(max-width:570px){.shell{grid-template-columns:1fr}.side.layers{grid-column:auto}.stagewrap{min-height:240px}}
+
+@font-face{font-family:"BIG LWA Stitched";src:url("/assets/fonts/cs-bergamot-stitched.otf") format("opentype");font-display:swap}
+:root{--ink:#153b2a;--rose:#078e56;--paper:#fef4dd;--line:#61a585}
+body{background:#e9e0c5;color:#163a2b}
+header{background:#10492f;color:#fff5d8;border-bottom:4px solid #078e56}
+header h1,.side h2,.side h3{font-family:"BIG LWA Stitched",Georgia,serif}
+header p{color:#e1f1df}
+.side{box-shadow:3px 4px 0 rgba(11,76,47,.18)}
+button,.filebutton{border:1.5px solid #478b64;background:#fff9eb;color:#123c28}
+button.active{background:#128350;border-color:#075f3c}
+button:focus-visible,.filebutton:focus-within,input:focus-visible{outline-color:#29a06d}
+.layerrow.selected{background:#e2f4dc;border-color:#278d5b}
+.status{background:#145236;color:#fdf5dd}
+#saveCloudSnapshot{background:#078e56;color:#fffef0;border-color:#064f34}
+
 </style>
 </head>
 <body>
-<header><div><h1><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>BIG LWA · sqwibblR</h1><p>Your own creative space · no login, no cloud upload, no third-party tracking</p></div><span>✦ handmade studio</span></header>
+<header><div><h1><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>BIG LWA · sqwibblR</h1><p>Your own drawing desk · private account snapshots by choice</p></div><span>✦ handmade studio</span></header>
 <div class="shell">
 <aside class="side">
 <h2>make something</h2>
@@ -61,7 +76,7 @@ footer{font-size:10px;padding:10px;color:#8c7570}
 <label class="filebutton" for="openImage">↥ Add photo<input id="openImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif"></label>
 <label class="filebutton" for="openProject">▤ Open project<input id="openProject" type="file" accept=".lwa.json,application/json"></label>
 <button id="newDoc">New</button><button id="undo" disabled>↶ Undo</button><button id="redo" disabled>↷ Redo</button>
-<button id="saveProject">Save project</button><button id="exportPng">Export PNG</button><button id="exportJpg">JPEG</button>
+<button id="saveProject">Download editable project</button><button id="saveCloudSnapshot" type="button">Save preview to BIG LWA</button><button id="exportPng">Export PNG</button><button id="exportJpg">JPEG</button>
 </div>
 <div class="stagewrap" id="dropArea" aria-label="Image editing canvas. Drop photos here to add as a new layer."><div class="stage"><canvas id="canvas" width="1280" height="720" aria-label="Artwork editing surface"></canvas></div></div>
 <div class="status" id="status" role="status" aria-live="polite">Ready · 1280 × 720 · Drop an image, draw, add text, or export.</div>
@@ -71,7 +86,7 @@ footer{font-size:10px;padding:10px;color:#8c7570}
 <button id="upLayer">↑ Forward</button><button id="downLayer">↓ Backward</button></div>
 <div class="field"><label for="layerOpacity">Selected layer opacity</label><input id="layerOpacity" type="range" min="0" max="100" value="100"></div>
 <div id="layerList" class="layerlist" aria-label="Artwork layers"></div>
-<p class="note">Your artwork stays in this browser until you choose to export or download a project file. Nothing is added to your BIG LWA feed automatically.</p>
+<p class="note">Download editable layers to keep your full project. Choosing Save preview stores only a flattened, reduced image in your private BIG LWA account.</p>
 </aside>
 </div>
 <footer>BIG LWA sqwibblR · an original local canvas workspace. Advanced image, vector, motion and PDF engines are separately credited in Tools to their open-source authors.</footer>
@@ -174,6 +189,13 @@ function composite(type='image/png',quality=0.92){
 }
 $('#exportPng').addEventListener('click',async()=>{try{download(await composite(),'biglwa-image.png');status('PNG exported to your device.')}catch(e){status(e.message)}});
 $('#exportJpg').addEventListener('click',async()=>{try{download(await composite('image/jpeg'),'biglwa-image.jpg');status('JPEG exported to your device.')}catch(e){status(e.message)}});
+$('#saveCloudSnapshot').addEventListener('click',async()=>{
+ if(window.parent===window){status('Open sqwibblR from BIG LWA Studio to save to your account.');return}
+ try{const blob=await composite('image/png');
+  window.parent.postMessage({type:'BIGLWA_WORKSHOP_SAVE_IMAGE',blob},location.origin);
+  status('Requesting a private BIG LWA account snapshot…');
+ }catch(err){status('Could not prepare snapshot: '+err.message)}
+});
 $('#saveProject').addEventListener('click',()=>{
  try{const project={schema:1,app:'BIG LWA sqwibblR',width:canvas.width,height:canvas.height,active,layers:layers.map(l=>({name:l.name,visible:l.visible,opacity:l.opacity,x:l.x,y:l.y,pixels:l.canvas.toDataURL('image/png')}))};
  download(new Blob([JSON.stringify(project)],{type:'application/json'}),'biglwa-artwork.lwa.json');status('Editable project downloaded.')}
@@ -206,6 +228,10 @@ newDocument();
 // Cross-origin messages and non-File payloads are ignored. No server upload.
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==window.parent)return;
+ if(event.data?.type==='BIGLWA_WORKSHOP_SAVE_RESULT'){
+  status(event.data.ok?'Snapshot request finished. Check the Workshop private shelf for sync status.':'Snapshot not saved. Check the Workshop private shelf.');
+  return
+ }
  if(event.data?.type!=='BIGLWA_IMAGE_DESK_IMPORT')return;
  const incoming=event.data.file;
  if(incoming instanceof File)addPhoto(incoming);

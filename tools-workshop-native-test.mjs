@@ -13,6 +13,11 @@ assert.match(html,/BIG LWA · sqwibblR/i);
 assert.match(html,/id="openImage"/);
 assert.match(html,/id="openProject"/);
 assert.match(html,/id="saveProject"/);
+assert.match(html,/id="saveCloudSnapshot"/,'Native editor offers explicit account preview save');
+assert.match(suite,/BIGLWA_WORKSHOP_SAVE_IMAGE/,'Workshop validates first-party iframe snapshot saves');
+assert.match(suite,/BigLWAAccountStorage/,'Workshop writes snapshots only in authenticated account context');
+assert.match(suite,/data:image\/webp;base64/,'Private account previews are reconstructed client-side');
+
 assert.match(html,/id="exportPng"/);
 assert.match(html,/id="exportJpg"/);
 assert.match(suite,/image-desk\.html/);

@@ -1,6 +1,6 @@
 /* Explicit private data allowlist. Never sync OAuth tokens, provider sessions or caches. */
 (()=>{'use strict';
-const keys=['biglwaLibraryCatalogV1','biglwaMapPins','biglwaMapMode','biglwaDepopPath','biglwaArchiveFilters','biglwaGamesPreview','biglwaCalendarView','biglwaCalendarSelected','biglwaCustomRooms','biglwaActiveRoom','biglwaPolitcNominationsV1','biglwaPolitcVotingState','biglwaPolitcVotingZip','biglwaDYKIndex','biglwaDYKScore'];
+const keys=['biglwaLibraryCatalogV1','biglwaMapPins','biglwaMapMode','biglwaDepopPath','biglwaArchiveFilters','biglwaGamesPreview','biglwaCalendarView','biglwaCalendarSelected','biglwaCustomRooms','biglwaActiveRoom','biglwaPolitcNominationsV1','biglwaPolitcVotingState','biglwaPolitcVotingZip','biglwaDYKIndex','biglwaDYKScore','biglwaWorkshopSnapshotsV1'];
 const modules=['projects','closet','trophies','calendar','stream','connect','library'];
 keys.push(...modules.map(k=>'biglwaModule_'+k));
 const prefixes=['biglwaProjectCanvas:v1:','biglwaProjectZoom:v1:','biglwaStreamLastPlayedV1:','biglwaAvatarWidgetVisibility:v2:'];

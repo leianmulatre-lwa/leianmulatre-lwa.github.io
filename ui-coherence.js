@@ -665,6 +665,8 @@
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
     seedSidebarNavigationCatalog(app);
     navigationCatalog.delete('rights');
+    // Veve has a permanent top-rail and centered banner shortcut; never list it again below.
+    navigationCatalog.delete('veve');
     $$('.sidebar a[href="/rights"],.sidebar [data-policy-route="rights"]',app).forEach(node=>node.remove());
     refreshNavigationCatalogFromWidgets(app);
     if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);

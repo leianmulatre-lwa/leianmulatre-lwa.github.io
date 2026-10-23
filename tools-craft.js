@@ -96,11 +96,16 @@ export async function mountCraftSuite(root){
   '<header class="craft-head">'+
    '<div class="craft-head-copy"><span class="craft-label">BIG LWA · maker\'s workspace</span>'+
    '<h2>the workshop</h2>'+
-   '<p>A creative operating room that belongs to this community: make your own work, keep drafts to yourself, export what you choose. Start with our own Image Desk or step into an advanced open-source engine.</p></div>'+
+   '<p>A creative operating room that belongs to this community: make your own work, keep drafts to yourself, export what you choose. Start with sqwibblR or step into one of our attributed open-source engines.</p></div>'+
    '<div class="craft-head-ornament" aria-hidden="true"><i></i><i></i><i></i><strong>✦</strong></div></header>'+
   '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
-  '<p class="craft-status" id="craftInstallStatus" role="status">Image Desk ready · checking advanced browser engines…</p>'+
+  '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
   '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
+  '<section class="craft-account-vault" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
+   '<div><span class="craft-vault-eyebrow">03 / PRIVATE SHELF</span><h3>Your BIG LWA snapshots</h3>'+
+   '<p>Save a small preview to your signed-in account. This is a flattened image you can reopen in sqwibblR, not an editable WASM project.</p></div>'+
+   '<div class="craft-vault-actions"><label class="craft-vault-file">Save an exported image<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
+   '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
   '<div class="craft-panel" id="craftPanel" hidden>'+
     '<div class="craft-panel-head"><strong id="craftPanelTitle">BIG LWA editor</strong><div class="craft-panel-actions">'+
        '<button type="button" data-craft-webgl hidden>WebGL fallback</button>'+
@@ -111,13 +116,92 @@ export async function mountCraftSuite(root){
     '<p class="craft-panel-foot" role="status" id="craftEditorStatus">Your workspace is ready.</p>'+
   '</div>'+
   '<footer class="craft-smallprint">'+
-    '<p><strong>Who made what?</strong> Image Desk and this Workshop are BIG LWA interfaces. Advanced Pixel Lab, Vector Studio, Motion Room, and Paper Desk run licensed Storytold Rust/WebAssembly editors (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). The original engine creators retain their copyright; BIG LWA controls its own surrounding experience and original code. These are not Adobe applications.</p>'+
-    '<p><strong>Privacy:</strong> File → Open, drawing, and exports happen inside your browser; the Workshop does not silently import anything to your BIG LWA feed or account. Download the project or finished asset to keep it. Some advanced builds need WebGPU/WebGL.</p>'+
+    '<p><strong>Who made what?</strong> sqwibblR and this Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
+    '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects still require the editor’s download/export commands. Some advanced builds require WebGPU/WebGL.</p>'+
     '<details><summary>More source projects for future BIG LWA editions</summary><div class="craft-more">'+
       FUTURE.map(([name,note])=>'<a href="https://github.com/storytold/'+name.toLowerCase()+'" target="_blank" rel="noopener noreferrer">'+name+' · '+note+' ↗</a>').join('')+
     '</div></details>'+
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
+ const vaultKey='biglwaWorkshopSnapshotsV1',vaultStatus=root.querySelector('#craftVaultStatus'),vaultFile=root.querySelector('#craftVaultFile');
+ const vaultGallery=root.querySelector('#craftVaultGallery');
+ let vaultBusy=false;
+ const vaultAccount=()=>window.BigLWAAccountStorage?.uid||'';
+ function vaultRows(){
+  try{const value=JSON.parse(localStorage.getItem(vaultKey)||'{}');return Array.isArray(value.entries)?value.entries.filter(x=>x&&typeof x.data==='string'&&/^[a-zA-Z0-9+/=]+$/.test(x.data)).slice(0,3):[]}
+  catch{return []}
+ }
+ function showVault(){
+  vaultGallery.replaceChildren();
+  const uid=vaultAccount(),rows=uid?vaultRows():[];
+  vaultFile.disabled=!uid||vaultBusy;
+  vaultStatus.textContent=uid?(rows.length?rows.length+' private snapshot'+(rows.length===1?'':'s')+' saved to your account collection.':'No cloud snapshots yet. Export or create an image to save one.'):'Sign in to BIG LWA to save and reopen snapshots.';
+  for(const item of rows){
+   const card=document.createElement('article');card.className='craft-vault-card';
+   const preview=document.createElement('img');preview.src='data:image/webp;base64,'+item.data;preview.alt='Private saved artwork';preview.loading='lazy';
+   const caption=document.createElement('span');caption.textContent=item.name||'Workshop snapshot';
+   const openButton=document.createElement('button');openButton.type='button';openButton.textContent='Open in sqwibblR';
+   openButton.addEventListener('click',async()=>{
+    const response=await fetch(preview.src),blob=await response.blob();
+    if(editFile(new File([blob],(item.name||'artwork')+'.webp',{type:'image/webp'})))vaultStatus.textContent='Opened snapshot as one image layer in sqwibblR.';
+   });
+   const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.setAttribute('aria-label','Remove private snapshot '+(item.name||''));
+   remove.addEventListener('click',()=>{
+    if(!window.confirm('Remove this saved snapshot from your BIG LWA account?'))return;
+    const updated=vaultRows().filter(row=>row.id!==item.id);
+    try{localStorage.setItem(vaultKey,JSON.stringify({schema:1,entries:updated}));showVault()}
+    catch(err){vaultStatus.textContent='Unable to remove snapshot: '+err.message}
+   });
+   card.append(preview,caption,openButton,remove);vaultGallery.append(card);
+  }
+ }
+ async function saveVaultImage(blob,name='Artwork'){
+  if(vaultBusy)return false;
+  const storage=window.BigLWAAccountStorage;
+  if(!storage){vaultStatus.textContent='Account storage has not loaded. Open your signed-in Studio first.';return false}
+  await storage.ready;
+  if(!storage.uid){vaultStatus.textContent='Sign in to BIG LWA before saving a cloud snapshot.';return false}
+  if(!blob||!/^image\/(?:png|jpeg|webp)$/.test(blob.type)||blob.size>12*1024*1024){
+   vaultStatus.textContent='Choose a JPG, PNG or WebP image smaller than 12 MB.';return false
+  }
+  vaultBusy=true;vaultFile.disabled=true;vaultStatus.textContent='Preparing a private account preview…';
+  try{
+   const bitmap=await createImageBitmap(blob);
+   const scale=Math.min(1,640/bitmap.width,540/bitmap.height);
+   const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+   const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
+   const image=canvas.toDataURL('image/webp',.66);
+   if(!image.startsWith('data:image/webp;base64,'))throw Error('WebP snapshot export is unavailable in this browser.');
+   const encoded=image.slice('data:image/webp;base64,'.length);
+   if(encoded.length>260000)throw Error('This image is too detailed for a private account snapshot. Download your full project locally.');
+   const previous=vaultRows();
+   const entry={id:crypto.randomUUID(),name:String(name).slice(0,80),app:current||LOCAL.id,createdAt:new Date().toISOString(),data:encoded};
+   let entries=[entry,...previous].slice(0,3);
+   while(entries.length&&new TextEncoder().encode(JSON.stringify({schema:1,entries})).length>450000)entries.pop();
+   if(!entries.length)throw Error('Snapshot exceeds the account backup size limit.');
+   localStorage.setItem(vaultKey,JSON.stringify({schema:1,entries}));
+   await storage.flush();
+   const outcome=String(storage.status||'');
+   showVault();
+   vaultStatus.textContent=/^Saved to your account/.test(outcome)?'Private image snapshot synced to BIG LWA. Editable layers must still be downloaded separately.':'Snapshot saved locally for this signed-in account; cloud sync status: '+outcome;
+   return true;
+  }catch(err){vaultStatus.textContent='Snapshot not saved: '+err.message;return false}
+  finally{vaultBusy=false;vaultFile.disabled=!vaultAccount()}
+ }
+ vaultFile.addEventListener('change',async event=>{
+  const file=event.target.files?.[0];event.target.value='';if(file)await saveVaultImage(file,file.name.replace(/\.[^.]+$/,''));
+ });
+ window.addEventListener('biglwa:account-storage-status',()=>{if(root.isConnected&&!vaultBusy)showVault()});
+ Promise.resolve(window.BigLWAAccountStorage?.ready).then(()=>{if(root.isConnected)showVault()});
+ // Only accept an explicit save request from the currently active, same-origin editor iframe.
+ window.addEventListener('message',async event=>{
+  if(event.origin!==location.origin||!root.isConnected)return;
+  const frame=viewer.querySelector('iframe');
+  if(!frame||event.source!==frame.contentWindow||event.data?.type!=='BIGLWA_WORKSHOP_SAVE_IMAGE')return;
+  const ok=await saveVaultImage(event.data.blob,'sqwibblR artwork');
+  frame.contentWindow?.postMessage({type:'BIGLWA_WORKSHOP_SAVE_RESULT',ok},location.origin);
+ });
+
  const title=root.querySelector('#craftPanelTitle'),direct=root.querySelector('#craftDirectLink'),info=root.querySelector('#craftEditorStatus');
  const status=root.querySelector('#craftInstallStatus');
  let current=null;
@@ -148,7 +232,7 @@ export async function mountCraftSuite(root){
   viewer.replaceChildren(frame);panel.hidden=false;
   title.textContent='BIG LWA · '+item.name;
   info.textContent=id===LOCAL.id?
-    'Original BIG LWA editor · import an image, add layers or text, draw and export. Nothing is uploaded automatically.':
+    'Original sqwibblR editor · work with layers and export a project. Choose Save to BIG LWA for a small private preview.':
     'Open-source '+item.credit+' editing engine, hosted inside BIG LWA. Import/export inside the editor; it does not publish to the Collective Feed.';
   direct.href=getUrl(id,webgl);
   root.querySelector('[data-craft-webgl]').hidden=id===LOCAL.id;
@@ -175,7 +259,7 @@ export async function mountCraftSuite(root){
    const row=manifest.apps.find(x=>x.id===item.id);
    if(row?.available===true&&row.version===item.version)ready.add(item.id);
   }
-  status.textContent='Image Desk ready · '+(ready.size-1)+' advanced open-source engines available in this deployment.';
+  status.textContent='sqwibblR ready · '+(ready.size-1)+' advanced open-source engines available in this deployment.';
  }catch(error){status.textContent='Image Desk ready · advanced engines are unavailable in this deployment.'}
  if(!root.isConnected)return;
  for(const app of ENGINES){
