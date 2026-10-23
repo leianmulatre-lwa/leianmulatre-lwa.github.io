@@ -48,7 +48,7 @@ assert.equal(panel.hidden,false);
 assert.equal(panel.querySelectorAll('.biglwa-followers-row').length,4);
 assert.equal(panel.querySelector('.biglwa-followers-icon img').getAttribute('src'),'/assets/orbit-icons/instagram.svg');
 assert.ok([...panel.querySelectorAll('.biglwa-followers-row')].some(el=>el.textContent.includes('Pinterest')&&el.textContent.includes('—')));
-d.querySelector('.biglwa-followers-head button').click();assert.equal(panel.hidden,true);
+d.querySelector('.biglwa-followers-head button[aria-label="Close follower breakdown"]').click();assert.equal(panel.hidden,true);
 account.connections.instagram.stats.followers=null;
 await w.BigLWAAccountInsights.refresh();
 assert.equal(stat().followers,300,'Omitted follower field retains owner-scoped last verified value');
