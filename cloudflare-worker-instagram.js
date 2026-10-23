@@ -1553,8 +1553,30 @@ async function workshopProjectRoute(request,env){
     if(!Number.isSafeInteger(size)||size<1||size>WORKSHOP_PROJECT_MAX)
       mediaFail('A project must be between 1 byte and 500 MB.',413);
     const listed=await bucket.list({prefix,limit:1000});
-    if((listed.objects||[]).filter(o=>o.key.endsWith('.meta.json')).length>=WORKSHOP_PROJECT_LIMIT)
+    const objects=listed.objects||[];
+    if(objects.filter(o=>o.key.endsWith('.meta.json')).length>=WORKSHOP_PROJECT_LIMIT)
       mediaFail('This account has reached its project shelf capacity.',413);
+    // Multipart uploads do not count as finished projects, but must still be
+    // bounded or a client can create unlimited abandoned R2 sessions.
+    let pending=0;
+    for(const entry of objects.filter(o=>o.key.endsWith('.upload.json'))){
+      const stateObject=await bucket.get(entry.key);
+      const state=await stateObject?.json().catch(()=>null);
+      if(!state||!workshopId(state.id)||!state.uploadId){
+        continue; // Do not automatically delete incomplete or unfamiliar state.
+      }
+      const expired=Date.now()-Number(state.createdAt)>24*60*60*1000;
+      if(expired){
+        try{
+          await bucket.resumeMultipartUpload(prefix+state.id+'.bin',state.uploadId).abort();
+          await bucket.delete(entry.key);
+        }catch{
+          // Do not silently discard orphaned or unverified sessions.
+          pending++;
+        }
+      }else pending++;
+    }
+    if(pending>=3)mediaFail('Finish or cancel an existing project upload before starting another.',429);
     const newId=randomToken(16),newKey=prefix+newId+'.bin',createdAt=Date.now();
     const upload=await bucket.createMultipartUpload(newKey,{
       httpMetadata:{contentType:'application/octet-stream',cacheControl:'private, no-store'},

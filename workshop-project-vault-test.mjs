@@ -164,4 +164,17 @@ await check('upload size and filename sanitation enforced',async()=>{
   assert.equal(start.status,201);
   assert.equal((await data(req('/media/workshop-projects/'+start.data.id+'/upload',{method:'DELETE'}))).status,200);
 });
+await check('unfinished uploads capped at three per owner; cancelling frees a slot',async()=>{
+ const create=async()=>data(req('/media/workshop-projects',{method:'POST',
+   body:JSON.stringify({name:'Still editing.pcraft',app:'lightR',size:10})}));
+ const first=await create(),second=await create(),third=await create();
+ assert.equal(first.status,201);assert.equal(second.status,201);assert.equal(third.status,201);
+ assert.equal((await create()).status,429);
+ const cancelled=await data(req('/media/workshop-projects/'+first.data.id+'/upload',{method:'DELETE'}));
+ assert.equal(cancelled.status,200);
+ const another=await create();assert.equal(another.status,201);
+ for(const row of [second,third,another]){
+   assert.equal((await data(req('/media/workshop-projects/'+row.data.id+'/upload',{method:'DELETE'}))).status,200);
+ }
+});
 console.log('PASS '+done+' Workshop native project vault regression scenarios');
