@@ -97,7 +97,7 @@ async function oaProfile(provider,token){
    if(!u.id||!u.username)oaError('X did not return an authorized profile.',502);
    return {id:'x',sourceUserId:String(u.id),name:String(u.name||u.username).slice(0,100),
     username:String(u.username).slice(0,80),avatarUrl:oaPhoto(u.profile_image_url),
-    followers:Number(u.public_metrics?.followers_count)||0,
+    followers:u.public_metrics?.followers_count!=null&&Number.isSafeInteger(Number(u.public_metrics.followers_count))&&Number(u.public_metrics.followers_count)>=0?Number(u.public_metrics.followers_count):null,
     link:'https://x.com/'+encodeURIComponent(u.username)};
  }
  if(provider==='tumblr'){
