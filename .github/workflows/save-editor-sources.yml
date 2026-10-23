@@ -1,0 +1,94 @@
+name: Save licensed editor sources to GitHub
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/save-editor-sources.yml"
+      - ".github/editor-sources.lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  save-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout BIG LWA main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Prepare source-only branch
+        run: |
+          cp .github/editor-sources.lock.json "$RUNNER_TEMP/editor-sources.lock.json"
+          if git ls-remote --exit-code --heads origin refs/heads/editor-sources >/dev/null; then
+            git fetch origin editor-sources
+            git switch -C editor-sources --track origin/editor-sources
+          else
+            git switch -c editor-sources
+          fi
+      - name: Clone verified release source and preserve upstream license/attribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/biglwa-editor-upstream" vendor/editors
+          python3 -c 'import json,os; d=json.load(open(os.environ["RUNNER_TEMP"]+"/editor-sources.lock.json")); assert d["format"]==1 and len(d["upstream"])==4; [print(x["id"]+" "+x["tag"]+" "+x["commit"]) for x in d["upstream"]]' > "$RUNNER_TEMP/editor-pins.txt"
+          while read -r name tag expected; do
+            case "$name" in photocraft|vectorcraft|effectcraft|pdfcraft) ;; *) echo "invalid editor" >&2; exit 1;; esac
+            git clone --quiet --depth=1 --filter=blob:none --single-branch --branch "$tag" "https://github.com/storytold/$name.git" "$RUNNER_TEMP/biglwa-editor-upstream/$name"
+            actual="$(git -C "$RUNNER_TEMP/biglwa-editor-upstream/$name" rev-parse HEAD)"
+            test "$actual" = "$expected" || { echo "Failed source SHA verification: $name"; exit 1; }
+            test -f "$RUNNER_TEMP/biglwa-editor-upstream/$name/LICENSE-MIT"
+            test -f "$RUNNER_TEMP/biglwa-editor-upstream/$name/LICENSE-APACHE"
+            test -f "$RUNNER_TEMP/biglwa-editor-upstream/$name/NOTICE"
+            test -f "$RUNNER_TEMP/biglwa-editor-upstream/$name/Cargo.toml"
+            mkdir -p "vendor/editors/$name"
+            rsync -a --delete \
+              --exclude='/.git/' --exclude='/.github/' \
+              --exclude='/docs/' --exclude='/book/' \
+              --exclude='/contributors/' --exclude='/scorecard/' \
+              --exclude='/perf/' --exclude='/assets/app-icon/' \
+              --exclude='node_modules/' --exclude='target/' \
+              --exclude='*.AppImage' --exclude='*.dmg' --exclude='*.deb' \
+              --exclude='*.rpm' --exclude='*.msi' --exclude='*.exe' \
+              --exclude='*.zip' --exclude='*.tar.gz' \
+              "$RUNNER_TEMP/biglwa-editor-upstream/$name/" "vendor/editors/$name/"
+            printf 'Upstream repository: https://github.com/storytold/%s\nUpstream release: %s\nVerified source commit: %s\nCode license: MIT OR Apache-2.0\nDo not claim authorship of upstream code.\nTrademarks and original app icons deliberately excluded.\n' "$name" "$tag" "$actual" > "vendor/editors/$name/BIGLWA-SNAPSHOT.txt"
+            test -f "vendor/editors/$name/NOTICE"
+            echo "STORED source and licenses for $name (SHA $actual)"
+          done < "$RUNNER_TEMP/editor-pins.txt"
+          cat > vendor/editors/README.md <<'EOT'
+          # BIG LWA hosted-editor source copies
+
+          These folders are pinned source-code snapshots of the four open-source
+          Rust editors used by BIG LWA. They are held in the editor-sources
+          branch to keep the GitHub Pages live site small and unchanged.
+
+          Copyright stays with the original ArtCraft Team and contributors.
+          The upstream code is dual MIT or Apache-2.0. Bundled assets have
+          separate attribution and license terms; see each editor's NOTICE,
+          ATTRIBUTION.md, ASSETS.md, licenses/ and related files.
+
+          The trademarked docs/brand/ assets and original app icon artwork
+          have been omitted. These copies have NOT been separately compiled
+          into BIG LWA-branded binaries; the production site still uses the
+          existing verified upstream WebAssembly releases.
+          EOT
+          test -f vendor/editors/photocraft/Cargo.toml
+          test -f vendor/editors/vectorcraft/NOTICE
+          test -f vendor/editors/effectcraft/LICENSE-MIT
+          test -f vendor/editors/pdfcraft/LICENSE-APACHE
+      - name: Commit source copies to the BIG LWA editor-sources branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- vendor/editors
+          if git diff --cached --quiet; then
+            echo "Upstream snapshots already current."
+          else
+            git commit -m "vendor: save four pinned editor source trees with licenses"
+            git push origin HEAD:refs/heads/editor-sources
+          fi
