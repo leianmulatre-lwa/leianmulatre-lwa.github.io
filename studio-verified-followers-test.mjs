@@ -61,5 +61,8 @@ account={uid:'test-owner-b',connections:{},orbitConnectedProfiles:{},peopleConne
 await w.BigLWAAccountInsights.refresh();w.__testProfilePaint();
 assert.equal(stat().followers,null,"New owner never inherits previous owner\'s followers");
 assert.equal(d.querySelector('[data-profile-stat="followers"] b').textContent,'—');
+// Let the analytics module's one-time 1200ms startup refresh finish before
+// tearing down JSDOM, so a pending save cannot access a destroyed document.
+await new Promise(r=>setTimeout(r,1350));
 w.close();
 console.log('PASS provider follower totals, missing counts, real zero, per-app badges and per-UID privacy.');
