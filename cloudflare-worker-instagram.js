@@ -615,6 +615,7 @@ async function ttRoute(request, env) {
     const approved=['user.info.basic'];
     if(env.TIKTOK_VIDEO_LIST_APPROVED==='true')approved.push('video.list');
     if(env.TIKTOK_USER_STATS_APPROVED==='true')approved.push('user.info.stats');
+    if(env.TIKTOK_USER_PROFILE_APPROVED==='true')approved.push('user.info.profile');
     dest.search = new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, response_type: 'code',
       scope:approved.join(','), redirect_uri: ttCallback(request), state }).toString();
     return ttRedirect(dest.href, browser);
@@ -732,14 +733,16 @@ async function ttRoute(request, env) {
   }
   const scoped=String(session.scope||'').split(/[\s,]+/).includes('user.info.stats');
   const basic='open_id,display_name,avatar_url';
-  const fields=scoped?basic+',follower_count,following_count,likes_count,video_count':basic;
+  const profileScoped=String(session.scope||'').split(/[\\s,]+/).includes('user.info.profile');
+  const identityFields=profileScoped?basic+',username,profile_deep_link':basic;
+  const fields=scoped?identityFields+',follower_count,following_count,likes_count,video_count':identityFields;
   let response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields='+fields,{
     method:'GET',headers
   });
   let body=await response.json().catch(()=>({}));
   // If an approved field was rejected, the existing basic login must still
   // work. Do not translate that permission gap into a follower count of zero.
-  if(scoped&&(!response.ok||(body.error&&body.error.code!=='ok'))){
+  if((scoped||profileScoped)&&(!response.ok||(body.error&&body.error.code!=='ok'))){
     response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields='+basic,{method:'GET',headers});
     body=await response.json().catch(()=>({}));
   }
