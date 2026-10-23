@@ -1,0 +1,6 @@
+Upstream repository: https://github.com/storytold/vectorcraft
+Upstream release: v0.9.0
+Verified source commit: 10f1c56a861869936af0027cef14b1cf5d8cf515
+Code license: MIT OR Apache-2.0
+Do not claim authorship of upstream code.
+Trademarks and original app icons deliberately excluded.

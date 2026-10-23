@@ -1,0 +1,6 @@
+Upstream repository: https://github.com/storytold/effectcraft
+Upstream release: v0.8.0
+Verified source commit: f953cd2855bf36beffa6a4d608e9bf4b226e9442
+Code license: MIT OR Apache-2.0
+Do not claim authorship of upstream code.
+Trademarks and original app icons deliberately excluded.

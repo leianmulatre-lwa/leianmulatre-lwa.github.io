@@ -1,0 +1,6 @@
+Upstream repository: https://github.com/storytold/photocraft
+Upstream release: v0.7.0
+Verified source commit: 79261615956ab21334e49ca1d384390272e647da
+Code license: MIT OR Apache-2.0
+Do not claim authorship of upstream code.
+Trademarks and original app icons deliberately excluded.

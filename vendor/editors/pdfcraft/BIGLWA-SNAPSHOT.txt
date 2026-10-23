@@ -1,0 +1,6 @@
+Upstream repository: https://github.com/storytold/pdfcraft
+Upstream release: v0.6.0
+Verified source commit: 53a5880386789fc3531e54f6e6ffdef9a8e41f1a
+Code license: MIT OR Apache-2.0
+Do not claim authorship of upstream code.
+Trademarks and original app icons deliberately excluded.
