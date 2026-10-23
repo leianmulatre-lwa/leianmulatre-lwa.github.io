@@ -133,7 +133,7 @@
      '<button class="module-action" type="button" data-tiktok-public-save>Save to myfeed drafts</button></div>'+
      '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
      '<details class="biglwa-tiktok-batch"><summary>Import multiple public links</summary><textarea class="module-input" data-tiktok-batch-links rows="2" maxlength="6000" placeholder="One public TikTok video URL per line (up to 20)"></textarea><button class="module-action secondary" type="button" data-tiktok-batch-save>Save private drafts</button><small data-tiktok-batch-status role="status"></small></details>'+
-     '<div data-tiktok-public-preview hidden></div>';
+     '<div data-tiktok-public-preview hidden></div></div></details>';
     (host.querySelector('#biglwaFeedImportStatusRail')||host.querySelector('.biglwa-feed-compose-head'))?.after(panel);
   }
 
