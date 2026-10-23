@@ -31,13 +31,21 @@ assert.match(suite,/credit:'VectorCraft'/);
 assert.match(suite,/credit:'EffectCraft'/);
 assert.match(suite,/credit:'PdfCraft'/);
 assert.match(css,/\.craft-tile-home/);
-assert.match(suite,/function blockArtwork\(item\)/,'Real Studio Workshop cubes are rendered as inline SVG');
-assert.match(suite,/craft-block-front/,'Every cube includes a rounded upholstered front face');
-assert.match(suite,/stroke-dasharray/,'Cube top, side and front contain sewing stitches');
-assert.match(suite,/patternUnits="userSpaceOnUse"/,'Cube faces have a fabric weave texture');
-assert.match(suite,/CUBE_PALETTE/,'Workshop cubes use brand colors, not plain wood sides');
-assert.match(css,/\.craft-block-svg/,'Workshop styles size the stitched vector cubes');
-assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses the stitched cube');
+assert.match(suite,/function blockArtwork\(item\)/,'Five Workshop icons have a shared renderer');
+assert.match(suite,/CRAFT_ICON_NAME/,'The proper PNG is chosen for each editor');
+assert.match(suite,/sqwibblR/,'The original green BIG LWA editor is also included');
+assert.match(suite,/craft-block-png/,'Studio renders trimmed transparent PNG artwork');
+assert.match(css,/\.craft-arcade-block \.craft-block-png/,'Workshop sizes icons without stretching');
+assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses an approved stitched cube');
+const pngHeader=Buffer.from('89504e470d0a1a0a','hex');
+for(const name of ['sqwibblR','lightR','paintR','keyframeR','fileR']){
+ const png=readFileSync(new URL('./assets/bigapps/icons/'+name+'.png',import.meta.url));
+ assert.ok(png.subarray(0,8).equals(pngHeader),name+' favicon is a real PNG');
+ assert.equal(png.readUInt32BE(16),160,name+' icon has consistent width');
+ assert.equal(png.readUInt32BE(20),160,name+' icon has consistent height');
+ assert.ok(png.includes(Buffer.from('tRNS'))||png[25]===6,name+' PNG contains transparency');
+}
+assert.match(read('.github/scripts/stage-craft-apps.py'),/type="image\/png"/,'Native browser editors advertise the new PNG favicons');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
 assert.ok(studio.includes('tools-craft.js?v=20261023-stitch-png-1'));
 assert.match(suite,/\/bigapps\/manifest\.json/,'Uses renamed manifest');
