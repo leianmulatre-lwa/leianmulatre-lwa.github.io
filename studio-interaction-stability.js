@@ -24,7 +24,8 @@
   scope.querySelectorAll?.('[title]').forEach(el=>nodes.push(el));
   for(const el of nodes){
    if(!el.closest?.('#studioApp'))continue;
-   if(el.title)el.dataset.studioHelp=el.title;
+   const native=el.getAttribute('title');
+   if(native)el.dataset.studioHelp=native;
    el.removeAttribute('title');
   }
  }
@@ -33,6 +34,7 @@
   stripTitles(el);
   const text=(el?.dataset?.studioHelp||'').trim();
   if(!text){hide();return}
+  clearTimeout(hideTimer);
   if(anchor===el&&!tip.hidden)return;
   hide();anchor=el;
   el.setAttribute('aria-describedby',tip.id);
