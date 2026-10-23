@@ -117,6 +117,8 @@
              }
            }
            state[id]={...publicProfile,id,needsReauth:!!response.needsReauth,
+             accounts:Array.isArray(response.accounts)?response.accounts.slice(0,5):[],
+             activeSourceUserId:response.activeSourceUserId||publicProfile.sourceUserId,
              verifiedFromProvider:true,lastVerifiedAt:Date.now()};
          }else delete state[id];
        }
@@ -202,6 +204,14 @@
    if(uri.protocol!=='https:'||!valid.includes(uri.hostname))throw Error('Provider returned an invalid authorization destination.');
    window.location.assign(uri.href);
  }
+ async function selectAccount(provider,sourceUserId){
+   if(!providerIds.includes(provider)||typeof sourceUserId!=='string'||sourceUserId.length>120)
+     throw Error('Choose a valid account.');
+   const auth=await token();
+   await query(provider,'select','POST',auth.idToken,{sourceUserId});
+   await load();
+   return get(provider);
+ }
  async function disconnect(provider){
    if(!providerIds.includes(provider))throw Error('Unknown provider.');
    const user=await token();
@@ -210,7 +220,7 @@
    await mirrorProfiles(user.uid);
    notify();
  }
- window.BigLWAOrbitOAuth=Object.freeze({load,connect,disconnect,get,configured,state});
+ window.BigLWAOrbitOAuth=Object.freeze({load,connect,disconnect,selectAccount,get,configured,state});
  let callbackShown=false;
  const boot=()=>load().then(()=>{
    if(!callbackShown){callbackShown=callbackMessage()!==false}
