@@ -364,8 +364,9 @@
         const handle=profileFromLink(input?.value||'');
         if(handle){
           if(!connected)throw Error('Profile link detected. Connect TikTok in Orbit first.');
-          if(!profile.username||String(profile.username).replace(/^@/,'').toLowerCase()!==handle.toLowerCase())
-            throw Error('This TikTok profile does not match the OAuth-connected account.');
+          if(!profile.username)throw Error('TikTok has not shared your @username yet. Connect with approved user.info.profile permission to match this link.');
+          if(String(profile.username).replace(/^@/,'').toLowerCase()!==handle.toLowerCase())
+            throw Error('Could not verify: username does not match your connected TikTok username.');
           await restore();
           if(videoPermissionPending)throw Error('TikTok video.list access has not been approved yet.');
           if(videoLoadError)throw Error(videoLoadError);
