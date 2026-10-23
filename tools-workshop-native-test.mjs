@@ -15,6 +15,8 @@ assert.match(html,/id="openProject"/);
 assert.match(html,/id="saveProject"/);
 assert.match(html,/id="saveCloudSnapshot"/,'Native editor offers explicit account preview save');
 assert.match(suite,/BIGLWA_WORKSHOP_SAVE_IMAGE/,'Workshop validates first-party iframe snapshot saves');
+assert.match(suite,/requestId:event\.data\.requestId/,'Workshop acknowledges only the matching editor save request');
+assert.match(suite,/event\.data\.app&&event\.data\.app!==editor/,'Only the active editor can receive its requested save');
 assert.match(suite,/BigLWAAccountStorage/,'Workshop writes snapshots only in authenticated account context');
 assert.match(suite,/data:image\/webp;base64/,'Private account previews are reconstructed client-side');
 
@@ -34,7 +36,7 @@ assert.match(suite,/CUBE_PALETTE/,'Workshop cubes use brand colors, not plain wo
 assert.match(css,/\.craft-block-svg/,'Workshop styles size the stitched vector cubes');
 assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses the stitched cube');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
-assert.ok(studio.includes('tools-craft.js?v=20261023-private-vault-8'));
+assert.ok(studio.includes('tools-craft.js?v=20261023-private-vault-9'));
 assert.match(suite,/craftAccountVault/,'Cloud snapshots have a visible first-party shelf');
 assert.match(read('account-storage-policy.js'),/biglwaWorkshopSnapshotsV1/,'Private snapshots use the allowlisted account-synced key');
 assert.match(studio,/data-lwa-edit-image/,'Tools offers direct native image editing after sniffing a file');
