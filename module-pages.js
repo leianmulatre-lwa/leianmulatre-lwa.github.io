@@ -264,7 +264,7 @@
     body.night-mode .coming-soon-badge{color:#f0b7c1}
     /* Video Booth uses the same compact camera footprint, split into two
        equal participant windows rather than one giant full-width preview. */
-    .video-booth-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px auto;width:min(100%,700px);max-width:700px;max-height:460px;aspect-ratio:3/2}
+    .video-booth-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px auto;width:min(100%,700px);max-width:700px;max-height:460px;aspect-ratio:3/2;}
     .video-booth-tile{display:grid;place-items:center;min-height:0;aspect-ratio:auto;border-radius:16px;border:1px solid #d8cec5;background:linear-gradient(160deg,#efe7e0,#ded3ca);color:#8a7f77;font:700 11px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
     body.night-mode .video-booth-tile{background:linear-gradient(160deg,#2b2724,#1d1a19);border-color:#4a423c;color:#a2968c}
     .video-booth-tile{padding:12px;min-width:0;box-sizing:border-box;gap:6px;text-align:center}
