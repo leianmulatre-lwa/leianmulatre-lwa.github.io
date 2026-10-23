@@ -1749,6 +1749,41 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         showExtra();
       }catch(e){extraStatus.textContent=e.message||'Could not save profile.'}
     };
+    // OAuth identities are kept separate from manually added public links.
+    const authorized=document.createElement('section');
+    authorized.className='module-card wide';
+    authorized.style.marginTop='10px';
+    const heading=document.createElement('h2');heading.textContent='Authorized accounts';
+    const intro=document.createElement('p');intro.textContent='Connect additional X, Snapchat or Tumblr accounts in Orbit; choose which one is active here. Tokens stay with BIG LWA server, not on this page.';
+    const list=document.createElement('div');list.className='module-list';
+    authorized.append(heading,intro,list);body.append(authorized);
+    async function showAuthorized(){
+      list.replaceChildren();
+      const oauth=window.BigLWAOrbitOAuth;
+      if(!oauth){list.textContent='Orbit account connections are not ready.';return}
+      try{await oauth.load()}catch{}
+      for(const provider of ['x','snapchat','tumblr']){
+        const active=oauth.get(provider);
+        const accounts=Array.isArray(active?.accounts)?active.accounts:[];
+        for(const account of accounts){
+          const row=document.createElement('div');row.className='module-list-item';
+          const label=document.createElement('span');
+          label.textContent=(provider==='x'?'X':provider==='snapchat'?'Snapchat':'Tumblr')+' · '+(account.username||account.name||'Account');
+          const button=document.createElement('button');button.type='button';
+          const selected=account.sourceUserId===active?.activeSourceUserId;
+          button.textContent=selected?'Active':'Use account';
+          button.disabled=selected;
+          button.onclick=async()=>{
+            button.disabled=true;
+            try{await oauth.selectAccount(provider,account.sourceUserId);await showAuthorized()}
+            catch(e){button.disabled=false;list.setAttribute('aria-label','Could not switch account: '+(e.message||'Unknown error'))}
+          };
+          row.append(label,button);list.append(row);
+        }
+      }
+      if(!list.childElementCount)list.textContent='No multi-account OAuth profiles yet. Connect another account through Orbit.';
+    }
+    void showAuthorized();
     showExtra();
     document.addEventListener('biglwa:orbit-links-synced',()=>{
       if(profilesPanel.isConnected)showExtra();
