@@ -13,7 +13,7 @@ const shell=read('index.html'),boundary=read('studio-account-boundary-20261019.j
 assert.doesNotThrow(()=>new Script(boundary),'Privacy gate must parse');
 assert.match(shell,/class="biglwa-startup-protected"/,'Generated app must be hidden before CSS/scripts paint');
 assert.match(shell,/studio-account-boundary-20261019\.js/,'Privacy boundary loaded before other Studio scripts');
-assert.match(shell,/html\.biglwa-startup-protected body>\*/,'Legacy paint hidden during auth restoration');
+assert.match(shell,/html\\.biglwa-startup-protected body > :not\\(#biglwaStartupScreen\\)/,'Legacy paint hidden while keeping exactly one startup overlay visible');
 assert.match(boundary,/if\(window\.__biglwaIdentity\?\.uid!==uid\)return/,'Do not reveal another account');
 assert.match(boundary,/function clearSeed\(\)/,'Always discard starter owner-specific markup');
 assert.match(boundary,/Tell your story\. This space belongs to you/,'New account gets neutral placeholder');
