@@ -24,6 +24,24 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             }
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
+                // Native BIG LWA fileR branding lives inside the PDF canvas, not on an HTML overlay.
+                if cfg!(target_arch = "wasm32") {
+                    let (mark, _) = ui.allocate_exact_size(vec2(22.0, 22.0), Sense::hover());
+                    let painter = ui.painter();
+                    let ink = Color32::from_rgb(72, 31, 38);
+                    painter.rect_filled(mark, CornerRadius::same(4), Color32::from_rgb(187, 91, 84));
+                    painter.rect_stroke(mark, CornerRadius::same(4), Stroke::new(1.0, ink), egui::StrokeKind::Inside);
+                    let fabric = mark.shrink(2.2);
+                    painter.rect_filled(fabric, CornerRadius::same(2), Color32::from_rgb(250, 227, 201));
+                    painter.text(fabric.center(), Align2::CENTER_CENTER, "F", theme::semibold(14.0), ink);
+                    for (i, color) in [
+                        Color32::from_rgb(223, 96, 91),
+                        Color32::from_rgb(244, 199, 73),
+                        Color32::from_rgb(87, 172, 112),
+                    ].into_iter().enumerate() {
+                        painter.circle_filled(egui::pos2(fabric.min.x + 3.0 + i as f32 * 4.0, fabric.bottom() - 2.0), 0.95, color);
+                    }
+                }
                 if icons::button(ui, "house", 28.0, app.active.is_none() && !app.combine_showing(), tl!("Home")).clicked() {
                     app.active = None;
                     app.combine_tab.focused = false;
