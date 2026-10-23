@@ -113,8 +113,8 @@ def brand_web_shell(slug: str, dest: Path) -> None:
     name = names[slug]
     html = re.sub(r"(?is)<title>.*?</title>",
                   f"<title>BIG LWA · {name}</title>", html, count=1)
-    css = ('<link rel="stylesheet" href="/assets/craft/editor-brand.css?v=20261023-r-suite-1">')
-    js = ('<script defer src="/assets/craft/editor-brand.js?v=20261023-r-suite-1"></script>')
+    css = ('<link rel="stylesheet" href="/assets/craft/editor-brand.css?v=20261023-r-suite-2">')
+    js = ('<script defer src="/assets/craft/editor-brand.js?v=20261023-r-suite-2"></script>')
     if re.search(r"(?i)</head>", html):
         html = re.sub(r"(?i)</head>", lambda _: css + "</head>", html, count=1)
     else:
