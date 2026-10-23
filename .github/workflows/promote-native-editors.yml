@@ -1,0 +1,75 @@
+name: Promote verified BIG LWA native editors
+on:
+  workflow_run:
+    workflows:
+      - Build BIG LWA native lightR (pilot)
+      - Build BIG LWA native paintR, keyframeR and fileR
+    types: [completed]
+    branches: [biglwa-native-editors]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: biglwa-native-production-promotion
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NATIVE_SOURCE_SHA: 279c52ddbe4d11f3309b331755c7daa08402f12a
+    steps:
+      - name: Check out protected production release tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require matching source, four successful browser builds and native licenses
+        run: python3 .github/scripts/prepare-native-release.py "$RUNNER_TEMP/biglwa-native-release"
+      - name: Register immutable release archive for future Pages rebuilds
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="biglwa-native-20261023"
+          archive="$RUNNER_TEMP/biglwa-native-release/biglwa-native-editors.tar.gz"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            mkdir -p "$RUNNER_TEMP/existing-native"
+            gh release download "$tag" --pattern biglwa-native-editors.tar.gz --dir "$RUNNER_TEMP/existing-native"
+            cmp "$archive" "$RUNNER_TEMP/existing-native/biglwa-native-editors.tar.gz" ||
+              { echo "::error::Release exists with different native build bytes. Refusing mutation."; exit 1; }
+          else
+            gh release create "$tag" "$archive" \
+              --title "BIG LWA lightR · paintR · keyframeR · fileR" \
+              --notes "Chromium-verified original BIG LWA Rust/WebAssembly editions built from $NATIVE_SOURCE_SHA. Includes source provenance and upstream licenses. Each app remains editable locally."
+          fi
+      - name: Activate verified release in production config
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+          cp "$RUNNER_TEMP/biglwa-native-release/native-release-lock.json" .github/native-release-lock.json
+          git add .github/native-release-lock.json
+          if ! git diff --cached --quiet; then
+            git config user.name "BIG LWA Release Bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "release(bigapps): activate verified native Rust editors"
+            git push origin main
+          fi
+      - name: Dispatch standard production Pages tests and deployment
+        run: gh workflow run pages.yml --ref main
+      - name: Record native release provenance
+        run: |
+          cat "$RUNNER_TEMP/biglwa-native-release/native-release-lock.json" >> "$GITHUB_STEP_SUMMARY"
+          printf '\nOnly GitHub Pages publishes the release; live Firebase and Cloudflare are unchanged.\n' >> "$GITHUB_STEP_SUMMARY"
