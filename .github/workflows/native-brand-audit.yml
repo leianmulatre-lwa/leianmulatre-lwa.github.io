@@ -1,0 +1,39 @@
+name: BIG LWA native editor branding audit
+on:
+  push:
+    branches: [biglwa-native-editors]
+    paths:
+      - 'vendor/editors/**'
+      - '.github/scripts/audit-native-editor-brand.py'
+      - '.github/workflows/native-brand-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: biglwa-native-brand-audit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  brand-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit native Rust interfaces without renaming internal file formats
+        run: |
+          python3 .github/scripts/audit-native-editor-brand.py "$RUNNER_TEMP/native-brand-audit.json"
+          python3 - <<'PY'
+          import json,os,pathlib
+          d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'native-brand-audit.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+            f.write('## Native editor legacy brand audit\n\n')
+            f.write('| BIG LWA app | UI string candidates |\n|---|---:|\n')
+            for app,part in d['apps'].items():
+              f.write(f"| {app} | {part['visible_candidates']} |\n")
+            f.write('\nLegal credits and original document format IDs are intentionally preserved.\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: biglwa-native-brand-audit-${{ github.sha }}
+          path: ${{ runner.temp }}/native-brand-audit.json
+          if-no-files-found: error
+          retention-days: 14
