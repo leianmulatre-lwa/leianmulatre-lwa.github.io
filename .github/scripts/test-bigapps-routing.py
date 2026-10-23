@@ -42,6 +42,7 @@ with TemporaryDirectory() as directory:
         app = new / slug
         assert (app / "editor.wasm").is_file()
         assert (app / "upstream-licenses/SOURCE.txt").is_file()
+        assert (old / slug / "upstream-licenses/SOURCE.txt").read_bytes() == (app / "upstream-licenses/SOURCE.txt").read_bytes()
         assert "BIG LWA" in (app / "index.html").read_text()
         redirect = (old / slug / "index.html").read_text()
         assert f"/bigapps/{slug}/" in redirect

@@ -187,6 +187,14 @@ def stage(target: Path) -> None:
             print(f"[ArtCraft] unavailable: {slug} v{version}: {exc}", file=sys.stderr)
         rows.append(row)
         write_legacy_redirect(legacy_root, slug)
+        # Older browser tabs may still request the old source/notice links.
+        # Mirror only these small legal text files, never duplicate WASM assets.
+        if row["available"]:
+            shutil.copytree(
+                destination / "upstream-licenses",
+                legacy_root / slug / "upstream-licenses",
+                dirs_exist_ok=True,
+            )
     manifest_text = json.dumps({"schema": 1, "apps": rows}, indent=2) + "\n"
     (legacy_root / "manifest.json").write_text(manifest_text, encoding="utf-8")
     (root / "manifest.json").write_text(
