@@ -1679,6 +1679,50 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       location.href='mailto:'+encodeURIComponent(address)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(text);
       status.textContent='Your email app opened a draft. Send only if you want to invite this friend.';
     };
+    // Multiple public profiles live on the member's account, but are never
+    // mislabeled as multiple authenticated OAuth sessions.
+    const profilesPanel=document.createElement('section');
+    profilesPanel.className='module-card wide';
+    profilesPanel.style.marginTop='10px';
+    profilesPanel.innerHTML='<h2>Additional social profiles</h2>'+
+      '<p>Add more than one public profile per app. These are account-saved links, not verified OAuth connections.</p>'+
+      '<div class="module-actions" style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
+      '<input id="extraProfileUrl" class="module-input" style="flex:1 1 240px" type="url" placeholder="https://www.tiktok.com/@username">'+
+      '<button class="module-action" type="button" id="saveExtraProfile">Add profile</button></div>'+
+      '<div id="extraProfileList" class="module-list"></div><p id="extraProfileStatus" class="module-status" role="status"></p>';
+    body.append(profilesPanel);
+    const api=()=>window.BigLWAOrbitAccountLinks;
+    const extraStatus=profilesPanel.querySelector('#extraProfileStatus');
+    function showExtra(){
+      const destination=profilesPanel.querySelector('#extraProfileList');
+      destination.replaceChildren();
+      for(const item of api()?.getExtra?.()||[]){
+        const row=document.createElement('div');row.className='module-list-item';
+        const info=document.createElement('div');
+        const title=document.createElement('b');title.textContent=item.provider;
+        const link=document.createElement('a');link.textContent=item.url;
+        link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
+        info.append(title,link);
+        const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';
+        remove.onclick=async()=>{try{await api().removeExtra(item.id);showExtra()}catch(e){extraStatus.textContent=e.message}};
+        row.append(info,remove);destination.append(row);
+      }
+      if(!destination.childElementCount)destination.textContent='No additional profiles saved yet.';
+    }
+    profilesPanel.querySelector('#saveExtraProfile').onclick=async()=>{
+      try{
+        const provider=profilesPanel.querySelector('#extraProfileProvider').value;
+        const input=profilesPanel.querySelector('#extraProfileUrl');
+        await api()?.addExtra(provider,input.value);
+        input.value='';extraStatus.textContent='Additional profile saved privately to your BIG LWA account.';
+        showExtra();
+      }catch(e){extraStatus.textContent=e.message||'Could not save profile.'}
+    };
+    showExtra();
+    document.addEventListener('biglwa:orbit-links-synced',()=>{
+      if(profilesPanel.isConnected)showExtra();
+    },{once:true});
     $('#copyBiglwaInvite',body).onclick=copy;
     $('#shareBiglwaInvite',body).onclick=async()=>{if(!navigator.share){await copy();return}try{await navigator.share({title:'Join BIGLWA',text:'Join me on BIGLWA — a space for creativity, culture, and connection.',url:invite});status.textContent='Invitation shared.'}catch(e){if(e.name!=='AbortError')await copy()}};
   }
