@@ -26,19 +26,60 @@ const LOCAL={id:'image-desk',name:'Image Desk',letter:'𝖎',url:'/tools/image-d
  credit:'Original BIG LWA editor · works locally'};
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeId=id=>id===LOCAL.id||ENGINES.some(item=>item.id===id);
+/* Original BIG LWA cube art: cushioned piping, textile panels and thread stitching.
+   SVG stays inline so every icon is crisp at phone and desktop sizes. */
+const CUBE_PALETTE={
+ 'image-desk':['#078e56','#32b173','#075234'],
+ photocraft:['#b87817','#e9ad39','#70420e'],
+ vectorcraft:['#1568c3','#4594ec','#173e88'],
+ effectcraft:['#8848a2','#b679c5','#53336e'],
+ pdfcraft:['#bb5b54','#e88a74','#833b3c']
+};
+function blockArtwork(item){
+ const [base,light,shadow]=CUBE_PALETTE[item.id]||CUBE_PALETTE['image-desk'];
+ const id='craft-cube-'+item.id.replace(/[^a-z0-9-]/gi,'');
+ const gradient=name=>'url(#'+id+'-'+name+')';
+ return [
+ '<svg class="craft-block-svg" viewBox="0 0 114 115" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">',
+ '<defs>',
+ '<linearGradient id="'+id+'-rim" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="'+light+'"/><stop offset=".57" stop-color="'+base+'"/><stop offset="1" stop-color="'+shadow+'"/></linearGradient>',
+ '<linearGradient id="'+id+'-top" x1="0" y1="0" x2=".85" y2="1"><stop stop-color="'+light+'"/><stop offset="1" stop-color="'+base+'"/></linearGradient>',
+ '<linearGradient id="'+id+'-side" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+base+'"/><stop offset="1" stop-color="'+shadow+'"/></linearGradient>',
+ '<linearGradient id="'+id+'-linen" x1="0" y1="0" x2=".86" y2="1"><stop stop-color="#ffeed0"/><stop offset=".6" stop-color="#f6d5a3"/><stop offset="1" stop-color="#d9b781"/></linearGradient>',
+ '<pattern id="'+id+'-weave" patternUnits="userSpaceOnUse" width="5" height="5"><path d="M0 1H5M0 4H5" stroke="#94623d" stroke-width=".45" opacity=".23"/><path d="M1 0v5M4 0v5" stroke="#fff6e4" stroke-width=".65" opacity=".2"/></pattern>',
+ '</defs>',
+ '<path d="M10 35L32 14Q35 11 41 11L98 14Q107 16 108 23V88L88 107Q83 111 77 111H13Q5 111 5 102V42Q5 37 10 35Z" fill="#181318" opacity=".14" transform="translate(1 1)"/>',
+ '<path d="M10 33L31 15Q35 12 40 12L100 15Q106 15 107 22L87 38H12Z" fill="'+gradient('top')+'" stroke="#241d18" stroke-width="1.6" stroke-linejoin="round"/>',
+ '<path d="M19 29L35 18L98 21L84 33Z" fill="'+gradient('linen')+'" stroke="#543f2b" stroke-width="1.1" stroke-linejoin="round"/>',
+ '<path d="M19 29L35 18L98 21L84 33Z" fill="'+gradient('weave')+'" opacity=".7"/>',
+ '<path d="M20 30L36 19L96 22L83 32Z" fill="none" stroke="#fff2c7" stroke-dasharray="3.7 2.5" stroke-linecap="round" stroke-width="1.55"/>',
+ '<path d="M86 35L107 22V88Q106 93 100 97L85 109Z" fill="'+gradient('side')+'" stroke="#281a1b" stroke-width="1.8" stroke-linejoin="round"/>',
+ '<path d="M92 40L102 33V86L91 96Z" fill="'+gradient('linen')+'" stroke="#513d2f" stroke-width="1"/>',
+ '<path d="M92 40L102 33V86L91 96Z" fill="'+gradient('weave')+'" opacity=".6"/>',
+ '<path d="M89 37L104 28V87L89 103Z" fill="none" stroke="#ffebbe" stroke-width="1.8" stroke-dasharray="4 3" stroke-linecap="round"/>',
+ '<rect class="craft-block-front" x="6" y="32" width="81" height="78" rx="9" fill="'+gradient('rim')+'" stroke="#231a18" stroke-width="2.5"/>',
+ '<rect x="9.5" y="35.5" width="73" height="71" rx="7.5" fill="none" stroke="#ffe8b4" stroke-dasharray="4.1 2.7" stroke-width="2.1" stroke-linecap="round"/>',
+ '<rect x="17" y="42" width="59" height="56" rx="4.5" fill="'+gradient('linen')+'" stroke="#4b3025" stroke-width="1.8"/>',
+ '<rect x="17" y="42" width="59" height="56" rx="4.5" fill="'+gradient('weave')+'" opacity=".7"/>',
+ '<rect x="20" y="45" width="53" height="50" rx="3.2" fill="none" stroke="#fff7e8" stroke-width="1.15" stroke-dasharray="3.8 2.5"/>',
+ '<text class="craft-block-glyph" x="46.5" y="75" text-anchor="middle" dominant-baseline="middle" font-size="42" font-weight="700" font-family="Old English Text MT,DejaVu Serif,Georgia,serif" fill="#181311" stroke="#120e0d" stroke-width=".3">'+escapeHtml(item.letter)+'</text>',
+ '</svg>'
+ ].join('');
+}
+
 let stylesReady=false;
 function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261022-vintage-woodblocks-5';document.head.append(css);
+ css.href='/tools-craft.css?v=20261023-stitched-soft-cubes-6';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
  return '<article class="craft-tile'+(local?' craft-tile-home':'')+'" data-craft-card="'+item.id+'">'+
    '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
    '<div class="craft-tile-icon craft-arcade-block craft-block-'+escapeHtml(item.id)+'" aria-hidden="true">'+
-     '<span class="craft-block-front"><span class="craft-block-glyph">'+escapeHtml(item.letter)+'</span></span></div>'+
+     blockArtwork(item)+'</div>'+
    '<h3>'+escapeHtml(item.name)+'</h3>'+
    '<p>'+escapeHtml(item.description)+'</p>'+
    '<div class="craft-engine-credits">'+escapeHtml(item.credit)+'</div>'+
