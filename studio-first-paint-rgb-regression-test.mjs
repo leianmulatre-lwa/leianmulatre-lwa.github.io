@@ -1,24 +1,36 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
-// Loading screen in the screenshot is not a DOM element. It is created from
-// pseudo-elements before Studio JavaScript executes and again in the protected
-// decompressed Studio shell. Verify both paths independently.
+const player=readFileSync(new URL('./login-archive-player.js',import.meta.url),'utf8');
+const dots=readFileSync(new URL('./studio-loading-dots-20261021.js',import.meta.url),'utf8');
 const first=html.match(/<style id="biglwa-first-paint">([\s\S]*?)<\/style>/)?.[1]||'';
-const protectedCss=html.match(/const startupSafety='([\s\S]*?)';\s*html=html\.replace\('<\/head>'/)?.[1]||'';
-assert.ok(first&&protectedCss,'Both startup stages have independent styles');
-assert.ok(html.indexOf('<style id="biglwa-first-paint">')<html.indexOf('<body>'),'Dots render before Studio JS can start');
-assert.match(first,/html::after\{content:"";position:fixed;/,'First-paint screen paints real dots from CSS');
-assert.match(protectedCss,/html\.biglwa-startup-protected::after\{content:"";position:fixed;/,
-  'Protected Studio screen paints dots before authentication finishes');
-for(const [label,css] of [['first',first],['protected',protectedCss]]){
-  assert.match(css,/biglwaOpeningRGB 1\.2s ease-in-out infinite/,label+' animation is active');
-  assert.match(css,/#f36b79/,'Red dot');
-  assert.match(css,/#f2cd39/,'Yellow dot');
-  assert.match(css,/#58aa70/,'Green dot');
-  assert.match(css,/@keyframes biglwaOpeningRGB/,label+' animates dots independently of JavaScript');
-  assert.match(css,/font:400 clamp\(22px,4vw,40px\).*?"CS Bergamot Stitched"/,label+' uses stitched lettering');
+const protectedPart=html.slice(html.indexOf("const startupSafety="),html.indexOf("html=html.replace('</head>',startupSafety"));
+const previewHtml=html.slice(html.indexOf('const loginLaptop='),html.indexOf('const loginLaptopCss='));
+const previewCss=html.slice(html.indexOf('const loginLaptopCss='),html.indexOf('const loginBackdropCss='));
+assert.ok(first && protectedPart && previewHtml && previewCss,'All startup and laptop pieces are present');
+assert.ok(first.includes('#biglwaStartupScreen')&&first.includes('.dot-floating'),'Loader present on first paint');
+assert.ok(protectedPart.includes('html.biglwa-startup-protected #biglwaStartupScreen'),'Protected stage reuses the same loader');
+assert.ok(protectedPart.includes('const startupMarkup=')&&protectedPart.includes('html.replace(/<body'),'Protected stage inserts only one startup screen element');
+assert.ok(!first.includes('body::before')&&!first.includes('body::after')&&!first.includes('html::after'),'Previous stacked CSS pseudo-screens removed');
+assert.ok(!protectedPart.includes('html.biglwa-startup-protected body::before')&&!protectedPart.includes('html.biglwa-startup-protected body::after'),'Protected duplicate pseudo curtain removed');
+assert.ok(first.includes('biglwa · loading your studio')&&protectedPart.includes('biglwa · loading your studio'));
+assert.ok(!first.includes('OPENING YOUR STUDIO'),'No uppercase startup heading');
+assert.ok(first.includes('font-family:"CS Bergamot Stitched"')||first.includes('"CS Bergamot Stitched"'));
+for(const key of ['@keyframes dot-floating{','@keyframes dot-floating-before{','@keyframes dot-floating-after{']){
+ assert.ok(first.includes(key),'Source floating animation '+key);
+ assert.ok(protectedPart.includes(key),'Source floating animation persists after HTML rewrite '+key);
 }
-assert.equal((first.match(/body::after\{content:"BIGLWA  ·  OPENING YOUR STUDIO"/g)||[]).length,1);
-assert.equal((protectedCss.match(/body::after\{content:"BIGLWA  ·  OPENING YOUR STUDIO"/g)||[]).length,1);
-console.log('PASS: Opening Your Studio first paint + protected startup both display RGB animated dots and stitched text.');
+for(const color of ['#f36b79','#f2cd39','#58aa70']){
+ assert.ok(first.includes(color)&&protectedPart.includes(color),'RGB identity preserved '+color);
+}
+assert.ok(first.includes('3s infinite cubic-bezier(.15,.6,.9,.1)'),'Floating motion matches Three Dots timing');
+assert.ok(first.includes('prefers-reduced-motion'),'Reduced motion preference respected');
+assert.ok(previewHtml.includes('login-laptop is-preparing')&&previewHtml.includes('login-screen-loading'),'Laptop shows matching loader before playing');
+assert.ok(!/<video id=\\"loginArchiveVideo\\" autoplay/.test(previewHtml),'Laptop does not autoplay behind loading preview');
+assert.ok(previewCss.includes('login-screen-loading')&&previewCss.includes('login-laptop.is-preparing .login-laptop-copy'),'Programming and headline do not overlap loader');
+assert.ok(player.includes('const INTRO_MS = 2600;')&&player.includes('1800')&&player.includes('beginIfVisible'),'Preview waits for visible login before programming');
+assert.ok(player.includes("video.addEventListener('playing', revealWhenReady)"),'Programming reveal waits for playable content');
+assert.ok(!dots.includes('decorateLegacyStudioLoading();'),'Widget module cannot inject a second startup animation');
+assert.ok(html.includes('login-archive-player.js?v=20261022-floating-laptop-2'),'Fresh login player asset loaded');
+assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261022-one-startup-12'),'Fresh nonduplicating widget-loader asset loaded');
+console.log('PASS one lowercase dot-floating startup, no competing pseudo-curtains, laptop preload and delayed playback');
