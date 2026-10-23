@@ -79,3 +79,30 @@
  #craftSuite .craft-viewer{min-height:460px;height:75vh}
 }
 @media(max-width:460px){#craftSuite .craft-directory{grid-template-columns:1fr}}
+
+
+/* BIG LWA Workshop icons echo the raised toy/game blocks inside the Arcade cabinet:
+   chunky silhouette, stepped ink edge, inset engraving and RGB player lights. */
+#craftSuite .craft-tile-icon.craft-arcade-block{
+ --block-top:#c95774;--block-side:#6e2e40;--block-edge:#401f30;
+ position:relative;isolation:isolate;overflow:visible;display:grid;place-items:center;
+ width:63px!important;height:63px!important;min-width:63px;
+ border-radius:12px 12px 9px 9px!important;
+ border:3px solid var(--block-edge)!important;
+ background:linear-gradient(145deg,#fff6df 0 10%,var(--block-top) 13% 74%,var(--block-side) 96%)!important;
+ box-shadow:inset 3px 3px 0 #ffffff65,inset -5px -5px 0 #1d0a1847,
+   4px 5px 0 var(--block-side),6px 7px 0 var(--block-edge)!important;
+ transform:rotate(-3deg);margin:4px 0 7px 3px;
+ font:800 32px/1 "CS Bergamot Stitched",Georgia,serif!important;color:#fff9e7!important;
+ text-shadow:2px 2px 0 #2c1327a0!important}
+#craftSuite .craft-block-glyph{position:relative;z-index:2}
+#craftSuite .craft-arcade-block i{position:absolute;bottom:5px;width:6px;height:6px;border-radius:2px;background:#f66b78;border:1px solid #180c18}
+#craftSuite .craft-arcade-block i:first-of-type{left:8px;background:#f1c54c}
+#craftSuite .craft-arcade-block i:last-of-type{left:17px;background:#5ab97b}
+#craftSuite .craft-block-image-desk{--block-top:#d86183;--block-side:#843a57}
+#craftSuite .craft-block-photocraft{--block-top:#d15871;--block-side:#803549}
+#craftSuite .craft-block-vectorcraft{--block-top:#4c85b4;--block-side:#234d7a}
+#craftSuite .craft-block-effectcraft{--block-top:#9764bd;--block-side:#5c347e}
+#craftSuite .craft-block-pdfcraft{--block-top:#cf9551;--block-side:#915a2d}
+#craftSuite .craft-tile:hover .craft-arcade-block{transform:rotate(0deg) translateY(-2px)}
+@media(prefers-reduced-motion:reduce){#craftSuite .craft-arcade-block{transition:none!important}}
