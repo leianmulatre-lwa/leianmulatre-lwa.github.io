@@ -13,35 +13,57 @@ fn rect_id() -> Id {
 /// A small textile/block monogram matching the lightR Workshop tile.
 /// Painted natively so there is no dependency on removed upstream icon assets.
 pub fn paint_mark(ui: &Ui, r: Rect) {
+    // Native lightR corner artwork matches the three-dimensional fabric block
+    // on the BIG LWA Studio card, not the upstream PhotoCraft logo.
     let p = ui.painter();
+    let ink = Color32::from_rgb(43, 29, 25);
     let gold = Color32::from_rgb(184, 120, 23);
-    let ink = Color32::from_rgb(49, 33, 27);
-    let linen = Color32::from_rgb(252, 231, 198);
+    let light = Color32::from_rgb(233, 173, 57);
+    let dark = Color32::from_rgb(112, 66, 14);
+    let linen = Color32::from_rgb(247, 216, 166);
+    let x = r.left();
+    let y = r.top();
+    let w = r.width();
+    let h = r.height();
+    let pt = |a: f32, b: f32| pos2(x + w * a, y + h * b);
+    let stitch = Color32::from_rgb(255, 233, 191);
 
-    p.rect_filled(r, CornerRadius::same(4), gold);
-    p.rect_stroke(r, CornerRadius::same(4), Stroke::new(1.1, ink), StrokeKind::Inside);
-    let face = r.shrink(2.2);
-    p.rect_filled(face, CornerRadius::same(2), linen);
-    p.rect_stroke(face, CornerRadius::same(2), Stroke::new(0.75, ink), StrokeKind::Inside);
+    // The top, recessed side, and piped front are independent facets.
+    p.add(egui::Shape::convex_polygon(
+        vec![pt(.08,.24), pt(.3,.03), pt(.95,.09), pt(.75,.31)],
+        light,
+        Stroke::new(.75, ink),
+    ));
+    p.add(egui::Shape::convex_polygon(
+        vec![pt(.75,.31), pt(.95,.09), pt(.96,.81), pt(.75,.98)],
+        dark,
+        Stroke::new(.75, ink),
+    ));
+    let front = Rect::from_min_max(pt(.055,.26), pt(.77,.98));
+    p.rect_filled(front, CornerRadius::same(3), gold);
+    p.rect_stroke(front, CornerRadius::same(3), Stroke::new(.95, ink), StrokeKind::Inside);
+    let binding = front.shrink(1.35);
+    p.rect_stroke(binding, CornerRadius::same(2), Stroke::new(.7, stitch), StrokeKind::Inside);
+    let cloth = Rect::from_min_max(pt(.16,.37), pt(.68,.87));
+    p.rect_filled(cloth, CornerRadius::same(1), linen);
+    p.rect_stroke(cloth, CornerRadius::same(1), Stroke::new(.6, ink), StrokeKind::Inside);
+    let cloth_stitch = cloth.shrink(1.0);
+    p.rect_stroke(cloth_stitch, CornerRadius::same(1), Stroke::new(.4, stitch), StrokeKind::Inside);
     p.text(
-        face.center(),
+        cloth.center(),
         Align2::CENTER_CENTER,
         "L",
-        FontId::proportional((r.width() * 0.65).clamp(9.0, 17.0)),
+        FontId::proportional((w * .43).clamp(7.0, 15.0)),
         ink,
     );
-    // Red / yellow / green BIG LWA window-lights, visible inside the native mark.
-    let diameter = (r.width() / 9.0).clamp(1.3, 2.6);
-    for (i, color) in [
+    let diameter = (w / 11.0).clamp(.65, 1.9);
+    for (index, color) in [
         Color32::from_rgb(223, 96, 91),
         Color32::from_rgb(244, 199, 73),
         Color32::from_rgb(87, 172, 112),
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        let x = face.min.x + 2.5 + i as f32 * (diameter + 1.1);
-        p.circle_filled(pos2(x, face.max.y - 2.3), diameter * 0.46, color);
+    ].into_iter().enumerate() {
+        let px = x + w * (.23 + index as f32 * .17);
+        p.circle_filled(pos2(px, y + h * .935), diameter * .45, color);
     }
     ui.ctx().data_mut(|d| d.insert_temp(rect_id(), r));
 }
