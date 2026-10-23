@@ -803,6 +803,7 @@
     @keyframes biglwaModuleArcadeStatic{0%{transform:translate(0,0)}25%{transform:translate(4%,-3%)}50%{transform:translate(-3%,4%)}75%{transform:translate(2%,3%)}100%{transform:translate(-2%,-2%)}}
   `;
 
+  style.textContent += `
     /* Compact preservation pass: keep user settings but hide operational chrome. */
     .module-heading-actions.module-update-preferences{align-self:end;max-width:190px;position:relative;font:650 10px/1.2 system-ui;color:#665450}
     .module-update-preferences summary{cursor:pointer;text-align:right;list-style:none;opacity:.72}
@@ -823,6 +824,7 @@
         max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35
       }
     }
+  `;
   document.head.appendChild(style);
 
   const workspace = document.createElement('section');
