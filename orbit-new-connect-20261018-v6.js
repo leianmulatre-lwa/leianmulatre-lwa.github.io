@@ -217,7 +217,8 @@
  async function disconnect(provider){
    if(!providerIds.includes(provider))throw Error('Unknown provider.');
    const user=await token();
-   await query(provider,'disconnect','POST',user.idToken);
+   const result=await query(provider,'disconnect','POST',user.idToken);
+   if(result.connected){await load();return}
    delete state[provider];
    await mirrorProfiles(user.uid);
    notify();
