@@ -24,21 +24,26 @@
     const handle=String(record.sourceUserId||record.username||'').trim().toLowerCase();
     const legacyHandle=String(record.username||'').trim().toLowerCase();
     const fresh=number(count),prev=last[id];
+    const external=id==='tiktok'&&window.BigLWAExternalTiktok?.snapshot?.();
+    const externalCount=external&&external.uid===accountUid?number(external.followers):null;
     const sameAccount=!!prev&&!!handle&&!!prev.handle&&(prev.handle===handle||prev.handle===legacyHandle);
     // A basic-profile fetch must not count as a verified follower measurement.
     const checked=String(checkedAt||record.countCheckedAt||'');
-    const fallback=sameAccount?number(prev.followers):null;
-    // Verified responses may *really* be zero. Unknown/omitted responses may
-    // never erase a previously verified figure from the same connected account.
-    const value=fresh??fallback;
-    const observedAt=fresh!==null?(sameAccount&&prev.followers===fresh&&prev.observedAt?prev.observedAt:(checked||new Date().toISOString())):sameAccount?prev.observedAt||'':'';
-    if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric};
+    const fallback=sameAccount&&prev?.provenance!=='external'?number(prev.followers):null;
+    // A previously measured *provider* count takes precedence. Otherwise use
+    // the owner-selected public-source snapshot and label its provenance.
+    const externalVerified=fresh===null&&fallback===null&&externalCount!==null;
+    const value=fresh??fallback??externalCount;
+    const observedAt=externalVerified?String(external.checkedAt||''):
+      fresh!==null?(sameAccount&&prev.followers===fresh&&prev.observedAt?prev.observedAt:(checked||new Date().toISOString())):sameAccount?prev.observedAt||'':'';
+    if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric,provenance:'provider'};
     // Only genuine engagement counts from provider-authorized responses are used.
     const likes=number(record.stats?.likes??record.likes);
     const receivedLikes=(id==='tiktok'&&record.verifiedFromProvider!==false&&likes!==null)?likes:null;
     rows.push({id,followers:value,likes:receivedLikes,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
       handle:record.username||'',link:record.link||'',metric,
-      isLastKnown:fresh===null&&fallback!==null,verified:fresh!==null&&!!checked});
+      isLastKnown:fresh===null&&fallback!==null,verified:fresh!==null&&!!checked,
+       externalVerified,source:externalVerified?'TokPortal public profile':null});
   };
   // Provider-checked live records take priority over old Firestore snapshots;
   // absent counts remain missing rather than becoming manufactured zeros.
@@ -98,8 +103,8 @@
   const known=!!overview&&owner===uid();
   const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,likes:stats.likes,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=format(value);if(node.textContent!==text)node.textContent=text}
-  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have verified audience counts. Other sources are unavailable, not zero. Some people may follow you on more than one platform.';
-  const list=q('.analytics-sources',host);const signature=JSON.stringify(rows.map(r=>[r.id,r.followers,r.lastCheckedAt]));if(list.dataset.snapshot!==signature){list.dataset.snapshot=signature;list.replaceChildren(...rows.map(row=>{const p=document.createElement('p');p.textContent=row.id+': '+format(row.followers)+' '+(row.metric||'followers')+' · '+(row.lastCheckedAt?'verified '+new Date(row.lastCheckedAt).toLocaleDateString():'count unavailable')+(row.isLastKnown?' (last verified)':'');return p}))}
+  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Other sources are unavailable, not zero. Some people may follow you on more than one platform.';
+  const list=q('.analytics-sources',host);const signature=JSON.stringify(rows.map(r=>[r.id,r.followers,r.lastCheckedAt]));if(list.dataset.snapshot!==signature){list.dataset.snapshot=signature;list.replaceChildren(...rows.map(row=>{const p=document.createElement('p');p.textContent=row.id+': '+format(row.followers)+' '+(row.metric||'followers')+' · '+(row.externalVerified?'externally sourced · TokPortal':row.lastCheckedAt?'provider reported '+new Date(row.lastCheckedAt).toLocaleDateString():'count unavailable')+(row.isLastKnown?' (last verified)':'');return p}))}
   q('.analytics-status',host).textContent=!uid()?'Sign in to see your private analytics.':!known?'Account data has not loaded yet.':!current&&!saved?'No observation saved for this month.':saved?.observedAt?'Observation: '+new Date(saved.observedAt).toLocaleString():'Latest available provider data; missing data is not zero.';
   const rank=q('#skeletonRankMount .real-rank');if(rank){const label=typeof overview?.realRank==='string'?overview.realRank:'Chopped';const strong=q('strong',rank);if(strong&&strong.textContent!==label)strong.textContent=label;rank.setAttribute('aria-label','Real Rank: '+label);}
   if(known){
@@ -139,7 +144,7 @@
   }
  }
  window.BigLWAAccountInsights={refresh,summarize};
- for(const event of ['biglwa:identity-updated','biglwa:user-directory-ready','biglwa:session-verified'])window.addEventListener(event,refresh);
+ for(const event of ['biglwa:identity-updated','biglwa:user-directory-ready','biglwa:session-verified','biglwa:external-stats-updated'])window.addEventListener(event,refresh);
  document.addEventListener('biglwa:module-open',refresh);document.addEventListener('biglwa:new-orbit-status',refresh);document.addEventListener('biglwa:google-state',refresh);document.addEventListener('biglwa:facebook-personal-status',refresh);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
  setTimeout(refresh,1200);
