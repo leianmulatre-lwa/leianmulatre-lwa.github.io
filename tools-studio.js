@@ -300,7 +300,7 @@ export function mountToolsStudio(root,helper){
   import('./tools-craft.js?v=20261022-biglwa-workshop-2')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
     .catch(error=>{
-      console.warn('BIGLWA ArtCraft integration:',error);
+      console.warn('BIG LWA Workshop integration:',error);
       const el=root.querySelector('#craftSuite');
       if(el)el.innerHTML='<h2>artcraft · creative lab</h2><p>The editor library could not load. <a href="https://getartcraft.com/apps" target="_blank" rel="noopener noreferrer">GetArtCraft apps ↗</a></p>';
     });
