@@ -302,7 +302,7 @@ export function mountToolsStudio(root,helper){
     .catch(error=>{
       console.warn('BIG LWA Workshop integration:',error);
       const el=root.querySelector('#craftSuite');
-      if(el)el.innerHTML='<h2>artcraft · creative lab</h2><p>The editor library could not load. <a href="https://getartcraft.com/apps" target="_blank" rel="noopener noreferrer">GetArtCraft apps ↗</a></p>';
+      if(el)el.innerHTML='<h2>the workshop</h2><p>The creative editor could not load. <a href="https://getartcraft.com/apps" target="_blank" rel="noopener noreferrer">GetArtCraft apps ↗</a></p>';
     });
 
   const statusEl=root.querySelector('#toolStatus');
