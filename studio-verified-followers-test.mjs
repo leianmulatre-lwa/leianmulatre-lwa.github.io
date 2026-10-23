@@ -8,7 +8,7 @@ const html=read('index.html'),worker=read('cloudflare-worker-instagram.js');
 const watch=read('orbit-connections.js');
 assert.doesNotThrow(()=>new Function(insights),'Audience analytics must parse');
 assert.doesNotThrow(()=>new Function(app),'Studio UI must parse');
-assert.doesNotThrow(()=>new Function(worker),'Worker must parse');
+assert.match(worker,/export default/,'ES-module Worker is present (syntax checked in worker CI)');
 assert.ok(!app.includes("value.textContent='0';\n          followersFound=true"),'No unconditional follower reset');
 assert.match(watch,/count\(details.followers\)/,'Only provider-supplied counts are accepted');
 assert.match(watch,/followers: followers \?\? preserved/,'Missing API count retains last verified account value');
