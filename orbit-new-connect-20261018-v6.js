@@ -190,7 +190,11 @@
        ? portal+': add '+missing.join(' and ')+' in Cloudflare Workers settings; then click Connect again.'
        : 'OAuth is not ready for '+provider+'. Check developer settings and try again.');
    }
+   if(provider==='x'&&health.callback!=='https://api.biglwa.com/x/callback'){
+     throw Error('X callback mismatch. In the X Developer Portal register https://api.biglwa.com/x/callback exactly.');
+   }
    const user=await token();
+   // The page already has a compact status area; no giant notification overlay.
    notice('Opening '+provider+' authorization…');
    const result=await query(provider,'start','POST',user.idToken);
    const uri=new URL(String(result.authorizeUrl||''));
