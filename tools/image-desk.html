@@ -145,7 +145,7 @@ $('#rotate').addEventListener('click',()=>{snapshot();const l=layers[active],old
 $('#undo').addEventListener('click',undoStep);$('#redo').addEventListener('click',redoStep);
 $('#newDoc').addEventListener('click',()=>{if(window.confirm('Clear this artwork and make a new canvas? Download a project first if you want to keep it.'))newDocument()});
 async function addPhoto(file){
- if(!file||!/^image\\/(png|jpeg|webp|gif|avif)$/.test(file.type)){status('Choose a PNG, JPEG, WebP, GIF, or AVIF image.');return}
+ if(!file||!/^image\/(png|jpeg|webp|gif|avif)$/.test(file.type)){status('Choose a PNG, JPEG, WebP, GIF, or AVIF image.');return}
  if(file.size>MAX_FILE){status('Image exceeds the 80 MB in-browser safety limit.');return}
  const serial=++importSerial;let bitmap;
  try{
