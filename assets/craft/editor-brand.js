@@ -42,6 +42,7 @@
    }
   });
   mini.addEventListener('click',()=>{mini.hidden=true;dock.hidden=false});
+  let pendingSnapshot=null;
   dock.querySelector('#biglwaAdvancedSnapshot').addEventListener('change',ev=>{
    const file=ev.target.files?.[0];ev.target.value='';
    if(!file)return;
@@ -49,8 +50,23 @@
     status.textContent='Choose a PNG, JPG or WebP under 12 MB.';return;
    }
    if(window.parent===window){status.textContent='Open this app from BIG LWA Studio to save to your account.';return}
-   window.parent.postMessage({type:'BIGLWA_WORKSHOP_SAVE_IMAGE',blob:file},location.origin);
-   status.textContent='Preview sent to the Workshop shelf. Check its account-sync status.';
+   const requestId=crypto.randomUUID();
+   pendingSnapshot=requestId;
+   window.parent.postMessage({
+    type:'BIGLWA_WORKSHOP_SAVE_IMAGE',requestId,app:id,name:file.name,blob:file
+   },location.origin);
+   status.textContent='Saving a private preview to your BIG LWA shelf…';
+  });
+  window.addEventListener('message',ev=>{
+   if(ev.origin!==location.origin||ev.source!==window.parent)return;
+   if(ev.data?.type!=='BIGLWA_WORKSHOP_SAVE_RESULT'||!pendingSnapshot||
+     ev.data.requestId!==pendingSnapshot)return;
+   pendingSnapshot=null;
+   status.textContent=!ev.data.ok
+    ?'Preview was not saved. Check your Workshop shelf for details.'
+    :ev.data.synced
+      ?'Preview saved to your BIG LWA account.'
+      :'Preview stored for this signed-in account on this device. Cloud sync still needs confirmation.';
   });
   document.body.append(dock,mini);
   // Native credits stay visible. Avoid intrusive DOM mutation in the WebAssembly app.
