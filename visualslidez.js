@@ -12,7 +12,15 @@ function say(msg){const el=root?.querySelector('[data-status]');if(el)el.textCon
 function draw(){
  if(!root?.isConnected)return;
  const current=slides[selected],edge=colors[selected%colors.length];
- root.innerHTML='<header class="vs-toolbar"><h2>visualslidez</h2><div class="vs-buttons"><button data-new>+ New slide</button><button data-remove>Delete slide</button><button data-backup>Backup</button><label>Import<input type="file" data-import accept=".json,.pptx" hidden></label><button data-pptx>Export PowerPoint</button></div></header>'+
+ let driveHref='https://drive.google.com/';
+ try{
+   const saved=window.BigLWAOrbitAccountLinks?.get?.()?.drive;
+   const u=new URL(saved);
+   if(u.protocol==='https:'&&!u.port&&!u.username&&!u.password&&
+      (u.hostname==='drive.google.com'||u.hostname.endsWith('.drive.google.com')))driveHref=u.href;
+ }catch{}
+ 
+ root.innerHTML='<header class="vs-toolbar"><h2>visualslidez</h2><div class="vs-buttons"><button data-new>+ New slide</button><button data-remove>Delete slide</button><button data-backup>Backup</button><label>Import<input type="file" data-import accept=".json,.pptx" hidden></label><button data-pptx>Export PowerPoint</button><a data-drive-link target=\"_blank\" rel=\"noopener noreferrer\" href=\"'+esc(driveHref)+'\">Open Drive ↗</a></div></header>'+
  '<div class="vs-layout"><nav class="vs-pages" aria-label="Slides">'+slides.map((v,i)=>'<button class="'+(i===selected?'active':'')+'" data-select="'+i+'" style="--rainbow:'+colors[i%colors.length]+'">Slide '+(i+1)+'<strong>'+esc(v.title||'Untitled')+'</strong></button>').join('')+'</nav>'+
  '<div class="vs-editor"><div class="vs-slide" style="--rainbow:'+edge+'"><div class="vs-stitch"><input data-title aria-label="Slide title" maxlength="300" value="'+esc(current.title)+'"><textarea data-body aria-label="Slide contents" maxlength="6000">'+esc(current.body)+'</textarea><small>'+(selected+1)+' / '+slides.length+'</small></div></div><label class="vs-notes">Speaker notes<textarea data-notes maxlength="3000" rows="2">'+esc(current.notes||'')+'</textarea></label><div class="vs-bottom"><button data-prev>← Previous</button><span>'+(selected+1)+' / '+slides.length+'</span><button data-next>Next →</button></div><p data-status role="status">Private drafts in this browser. Export a backup to move devices.</p></div></div>';
 }
@@ -71,7 +79,7 @@ const styles=document.createElement('style');styles.textContent=[
  '#lwaVisualSlides{font:500 13px system-ui;color:#38292c}',
  '#lwaVisualSlides .vs-toolbar,#lwaVisualSlides .vs-buttons,#lwaVisualSlides .vs-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}',
  '#lwaVisualSlides .vs-toolbar{padding:12px 0}#lwaVisualSlides .vs-toolbar h2{font:400 28px "CS Bergamot Stitched",Georgia,serif;margin:0}',
- '#lwaVisualSlides button,#lwaVisualSlides .vs-buttons label{display:inline-flex;cursor:pointer;border:1px solid #c9ad9f;border-radius:8px;background:#fff8f0;padding:8px 11px;font:700 11px system-ui}',
+ '#lwaVisualSlides button,#lwaVisualSlides .vs-buttons label,#lwaVisualSlides .vs-buttons a{display:inline-flex;cursor:pointer;border:1px solid #c9ad9f;border-radius:8px;background:#fff8f0;padding:8px 11px;font:700 11px system-ui;text-decoration:none;color:#362832}',
  '#lwaVisualSlides .vs-layout{display:grid;grid-template-columns:145px minmax(0,1fr);gap:14px}',
  '#lwaVisualSlides .vs-pages{display:flex;flex-direction:column;gap:8px;overflow:auto;max-height:600px}',
  '#lwaVisualSlides .vs-pages button{display:grid;text-align:left;gap:6px;min-height:73px;border-left:6px solid var(--rainbow)}',
