@@ -730,7 +730,7 @@ async function ttRoute(request, env) {
     return json({videos:collected,hasMore,cursor:hasMore?cursor:null,
       partialError,videoPermissionPending:false},200,request,env);
   }
-  const scoped=String(session.scope||'').split(/[\\s,]+/).includes('user.info.stats');
+  const scoped=String(session.scope||'').split(/[\s,]+/).includes('user.info.stats');
   const basic='open_id,display_name,avatar_url';
   const fields=scoped?basic+',follower_count,following_count,likes_count,video_count':basic;
   let response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields='+fields,{
