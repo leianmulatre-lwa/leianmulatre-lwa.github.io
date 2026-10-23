@@ -297,7 +297,7 @@ export function mountToolsStudio(root,helper){
 
   // Independently load creative editors; file conversions and video trim still
   // work even when the external ArtCraft release build is unavailable.
-  import('./tools-craft.js?v=20261014-artcraft-1')
+  import('./tools-craft.js?v=20261022-biglwa-workshop-2')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
     .catch(error=>{
       console.warn('BIGLWA ArtCraft integration:',error);
