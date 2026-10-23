@@ -521,6 +521,7 @@ let posts = [];
 let draftPosts = [];
 let draftTrayOpen = false;
 let feedSort = "latest";
+let feedAppFilter = "all";
 function sortedFeed(list){
  const rows=[...list];
  const activity=item=>["likeCount","likes","saveCount","saves","commentCount","views"].reduce((n,key)=>n+Math.max(0,Number(item[key])||0),0);
@@ -1008,7 +1009,7 @@ function renderPosts(force) {
   const list = document.getElementById("feedPageList");
   if (!list) return;
   const me = identity()?.uid;
-    const signature = feedSort + "@" + posts.map((p) => p.id + ":" + pictureUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
+    const signature = feedSort + ":" + feedAppFilter + "@" + posts.map((p) => p.id + ":" + pictureUrls(p).join(",") + ":" + (p.caption || "") + ":" + (p.createdAt || "")).join("|") + "@" + (me || "")
 ;
   if (!force && list === drawnOn && signature === drawnSignature) return;
   drawnOn = list;
@@ -1017,7 +1018,13 @@ function renderPosts(force) {
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
   stopSlideshows();
   if (!posts.length) return;
-  const html = sortedFeed(posts.filter(usablePost)).map((post) => {
+  const scoped=posts.filter(usablePost).filter(post=>{
+    if(feedAppFilter==='all')return true;
+    const source=String(post.source||'').toLowerCase();
+    if(feedAppFilter==='pinterest')return source==='pinterest'||/https?:\/\/(?:www\.)?pinterest\./i.test(String(post.sourceUrl||''));
+    return source===feedAppFilter;
+  });
+  const html = sortedFeed(scoped).map((post) => {
     const src = accentOf(post.source);
     void src;
     /* Counted before drawing, because a post with thirteen photos is a stack rather than
@@ -1487,6 +1494,29 @@ async function wire(list, form) {
     if(!["latest","oldest","popular","daily"].includes(sort.value))return;
     feedSort=sort.value;renderDraftPanel();renderPosts(true);
    });
+  }
+  const appFilter=document.getElementById('biglwaFeedAppFilter');
+  if(appFilter&&!appFilter.dataset.bigWired){
+    appFilter.dataset.bigWired='1';appFilter.value=feedAppFilter;
+    appFilter.addEventListener('change',()=>{
+      const allowed=new Set(['all','instagram','pinterest','facebook','tiktok','youtube','snapchat','tumblr','x','biglwa']);
+      if(!allowed.has(appFilter.value))return;
+      feedAppFilter=appFilter.value;renderPosts(true);
+    });
+  }
+  // A pasted TikTok URL is recognized without uploading its video bytes to a
+  // third-party extractor. The member must explicitly save their private draft.
+  const pasted=document.getElementById('feedComposerUrl');
+  if(pasted&&!pasted.dataset.bigTikTokDetect){
+    pasted.dataset.bigTikTokDetect='1';
+    pasted.addEventListener('change',()=>{
+      let link;
+      try{link=new URL(pasted.value.trim())}catch{return}
+      if(!['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(link.hostname))return;
+      if(!/^\/@[a-zA-Z0-9._-]{1,80}\/video\/\d{9,25}\/?$/.test(link.pathname))return;
+      const input=document.querySelector('#tiktokFeedVideoLink');
+      if(input){input.value=link.href;input.focus();const importer=input.closest('[data-tiktok-public-import]');if(importer){importer.hidden=false;importer.scrollIntoView({block:'nearest'});}}
+    });
   }
   renderDraftPanel();
   const draftPanel = document.getElementById("biglwaOrbitDrafts");
