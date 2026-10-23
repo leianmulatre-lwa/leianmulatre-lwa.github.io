@@ -202,6 +202,14 @@ document.addEventListener('keydown',event=>{
  if(event.key.toLowerCase()==='y'){event.preventDefault();redoStep()}
 });
 newDocument();
+// BIG LWA Tools can hand a file directly to this same-origin editor.
+// Cross-origin messages and non-File payloads are ignored. No server upload.
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==window.parent)return;
+ if(event.data?.type!=='BIGLWA_IMAGE_DESK_IMPORT')return;
+ const incoming=event.data.file;
+ if(incoming instanceof File)addPhoto(incoming);
+});
 })();
 </script>
 </body></html>
