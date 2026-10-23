@@ -252,6 +252,7 @@ export function mountToolsStudio(root,helper){
   let busy=false;
   let activeTrimmer=null;
   let trimmerImport=null;
+  let craftApi=null;
   async function loadTrimmer(){
     if(!trimmerImport)trimmerImport=import('./tools-video-trim.js?v=20261014-local-trim-1').catch(error=>{trimmerImport=null;throw error});
     return trimmerImport;
@@ -299,6 +300,7 @@ export function mountToolsStudio(root,helper){
   // work even when the external ArtCraft release build is unavailable.
   import('./tools-craft.js?v=20261022-biglwa-workshop-2')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
+    .then(api=>{craftApi=api})
     .catch(error=>{
       console.warn('BIG LWA Workshop integration:',error);
       const el=root.querySelector('#craftSuite');
@@ -439,7 +441,7 @@ export function mountToolsStudio(root,helper){
         '<div class="tool-actions" data-kind="'+kind+'">'+operationButtons(local)+'</div>';
     }else if(kind==='image'){
       localHtml='<p class="tool-note">Image conversions are drawn and re-encoded in this tab, so nothing is uploaded.</p>'+
-        '<div class="tool-actions" data-kind="image">'+operationButtons(local)+'</div>';
+        '<div class="tool-actions" data-kind="image"><button class="module-action" type="button" data-lwa-edit-image>✎ Edit in BIG LWA Image Desk</button>'+operationButtons(local)+'</div>';
     }else if(local.length){
       localHtml='<div class="tool-actions" data-kind="'+kind+'">'+operationButtons(local)+'</div>';
     }
@@ -466,6 +468,15 @@ export function mountToolsStudio(root,helper){
         if(area)area.textContent='Trim tools could not load: '+(error.message||'reload and retry.');
       }
     }
+    const editImage=groupsEl.querySelector('[data-lwa-edit-image]');
+    if(editImage)editImage.addEventListener('click',()=>{
+      if(!craftApi?.editFile?.(file)){
+        statusEl.textContent='The Workshop is still opening. Use Image Desk below, or select this photo again.';
+        return;
+      }
+      statusEl.textContent='Opened '+file.name+' in your BIG LWA Image Desk. The file stays in this browser.';
+      root.querySelector('#craftSuite')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
     groupsEl.querySelectorAll('button[data-op]').forEach(button=>{
       button.addEventListener('click',()=>{
         const key=button.dataset.op;
