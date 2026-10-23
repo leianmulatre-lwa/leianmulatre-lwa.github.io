@@ -37,6 +37,26 @@ jobs:
           python-version: '3.12'
       - name: Require matching source, four successful browser builds and native licenses
         run: python3 .github/scripts/prepare-native-release.py "$RUNNER_TEMP/biglwa-native-release"
+      - name: Stage branded app release at the exact production URL prefixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          preview="$RUNNER_TEMP/native-release-preview"
+          mkdir -p "$preview/assets"
+          cp -R assets/craft "$preview/assets/craft"
+          cp -R assets/bigapps "$preview/assets/bigapps"
+          cp -R assets/fonts "$preview/assets/fonts"
+          BIGLWA_NATIVE_ARCHIVE="$RUNNER_TEMP/biglwa-native-release/biglwa-native-editors.tar.gz" \
+            python3 .github/scripts/stage-craft-apps.py "$preview"
+          node --check .github/scripts/native-release-prefixed-smoke.cjs
+      - name: Launch each final branded URL in real Chromium before release
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/biglwa-playwright" playwright@1.55.1 --no-audit --no-fund
+          "$RUNNER_TEMP/biglwa-playwright/node_modules/.bin/playwright" install --with-deps chromium
+          NODE_PATH="$RUNNER_TEMP/biglwa-playwright/node_modules" \
+            node .github/scripts/native-release-prefixed-smoke.cjs "$RUNNER_TEMP/native-release-preview"
       - name: Register immutable release archive for future Pages rebuilds
         shell: bash
         run: |
