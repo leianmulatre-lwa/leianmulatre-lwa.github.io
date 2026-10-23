@@ -23,13 +23,13 @@
     if(!record||!id)return;
     const handle=String(record.username||record.sourceUserId||'').trim().toLowerCase();
     const fresh=number(count),prev=last[id];
-    const sameAccount=!!prev&&(!prev.handle||!handle||prev.handle===handle);
+    const sameAccount=!!prev&&!!handle&&!!prev.handle&&prev.handle===handle;
     const checked=String(checkedAt||record.countCheckedAt||record.lastCheckedAt||'');
     const fallback=sameAccount?number(prev.followers):null;
     // Verified responses may *really* be zero. Unknown/omitted responses may
     // never erase a previously verified figure from the same connected account.
     const value=fresh??fallback;
-    const observedAt=fresh!==null?(checked||new Date().toISOString()):sameAccount?prev.observedAt||'':'';
+    const observedAt=fresh!==null?(sameAccount&&prev.followers===fresh&&prev.observedAt?prev.observedAt:(checked||new Date().toISOString())):sameAccount?prev.observedAt||'':'';
     if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric};
     rows.push({id,followers:value,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
       handle:record.username||'',link:record.link||'',metric,
