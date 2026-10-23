@@ -13,7 +13,7 @@ assert.ok(!app.includes("value.textContent='0';\n          followersFound=true")
 assert.match(watch,/count\(details.followers\)/,'Only provider-supplied counts are accepted');
 assert.match(watch,/followers: followers \?\? preserved/,'Missing API count retains last verified account value');
 assert.match(worker,/TIKTOK_USER_STATS_APPROVED/,'TikTok stats permission opt-in is supported');
-assert.match(html,/studio-followers\.css\?v=20261023-audience-panel-2/);
+assert.match(html,/studio-followers\.css\?v=20261023-profile-likes-1/);
 for(const id of ['instagram','tiktok','pinterest','x','youtube','tumblr','facebook','snapchat'])
  assert.match(read('assets/orbit-icons/'+id+'.svg'),/<svg\b/,'Local '+id+' icon is present');
 const dom=new JSDOM('<!doctype html><html><body><main id="studioApp">'+
