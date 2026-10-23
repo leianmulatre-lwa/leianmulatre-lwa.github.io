@@ -297,11 +297,14 @@
       #studioApp .sidebar-shortcut-drag svg{display:block;width:10px;height:14px}
       #studioApp .sidebar-shortcut-drag:hover,#studioApp .sidebar-shortcut-action:hover{background:rgba(255,255,255,.58);color:inherit}
       #studioApp .sidebar-navigation-row.is-available::after,#studioApp .sidebar-widget-restore-row.is-minimized::after{content:"";position:absolute;right:20px;top:4px;width:6px;height:6px;border-radius:50%;pointer-events:none}
-      #studioApp .sidebar-navigation-row.is-available::after{border:1px solid #d85f6d;background:rgba(216,95,109,.14);box-shadow:0 0 0 2px rgba(216,95,109,.08)}
+      #studioApp .sidebar-navigation-row.is-shortcut::after{content:"";position:absolute;top:2px;right:2px;width:8px;height:8px;border:1.5px solid rgb(var(--aura-rgb,216,95,109));border-radius:50%;box-sizing:border-box;background:transparent;pointer-events:none}
+      #studioApp .sidebar-navigation-row.is-shortcut.is-closed::after{background:rgb(var(--aura-rgb,216,95,109))}
+      body.sidebar-collapsed #studioApp .sidebar-navigation-row.is-shortcut::after{top:0;right:0}
+      #studioApp .sidebar-navigation-row.is-available::after{border:1px solid rgba(var(--aura-rgb,216,95,109),.75);background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:none}
       #studioApp .sidebar-widget-restore-row.is-minimized::after{background:#d85f6d;box-shadow:0 0 0 2px rgba(216,95,109,.14)}
       #studioApp .sidebar-primary-widgets .sidebar-widget-restore-row.is-minimized::after{background:#5b9e6f;box-shadow:0 0 0 2px rgba(91,158,111,.14)}
-      #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.22)}
-      #studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{content:"";position:absolute;right:7px;top:50%;width:9px;height:9px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 42% 40%,rgba(255,255,255,.94) 0 11%,rgb(var(--aura-rgb,216,95,109)) 36%,rgba(var(--aura-rgb,216,95,109),.18) 72%,transparent 74%);box-shadow:0 0 9px rgba(var(--aura-rgb,216,95,109),.72);animation:biglwa-sidebar-aura 3.8s ease-in-out infinite}
+      #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.22);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.62)}
+      #studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{content:none!important;display:none!important}
       #studioApp .sidebar-shortcuts .minimized-label{display:none!important}
       #studioApp .minimized-label{display:none!important}
       #studioApp #minimizedWidgets{display:block!important;margin:0;padding:0;border:0;background:none}
@@ -336,7 +339,7 @@
       body.sidebar-collapsed #studioApp .sidebar-shortcut-save::before{content:"✓";font-size:14px}
       body.sidebar-collapsed #studioApp .sidebar-shortcut-row,body.sidebar-collapsed #studioApp .sidebar-navigation-row{grid-template-columns:0 36px 0;gap:0}
       body.sidebar-collapsed #studioApp .sidebar-shortcut-drag,body.sidebar-collapsed #studioApp .sidebar-shortcut-action{width:0;overflow:hidden;opacity:0;pointer-events:none}
-      body.sidebar-collapsed #studioApp .sidebar-route-control.is-current::after,body.sidebar-collapsed #studioApp .sidebar-shortcut-open.is-current::after,body.sidebar-collapsed #studioApp .sidebar-navigation-open.is-current::after{right:2px;top:5px;width:7px;height:7px}
+      body.sidebar-collapsed #studioApp .sidebar-route-control.is-current::after,body.sidebar-collapsed #studioApp .sidebar-shortcut-open.is-current::after,body.sidebar-collapsed #studioApp .sidebar-navigation-open.is-current::after{content:none!important;display:none!important}
       @media(prefers-reduced-motion:reduce){#studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{animation:none}}
       @media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:105px!important;height:59px!important;min-width:105px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{width:98px!important;height:56px!important;flex-basis:98px!important}}
       @media(max-width:720px){#studioApp .topbar{grid-template-columns:94px minmax(0,1fr) auto!important;gap:8px!important;padding-left:12px!important;padding-right:12px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:78px!important;height:44px!important;min-width:78px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{width:73px!important;height:42px!important;flex-basis:73px!important}}
@@ -614,7 +617,7 @@
     ['diary','Journal','▱'],
     ['notes','Sqwidz','<img src="/assets/quick-notes-symbol-generated.png" alt="">'],
     ['feed','myfeed','<img src="/assets/feed-symbol-generated.png" alt="">'],
-    ['archive','Archive','<span class="biglwa-archive-box-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M5 7.5h22v7H5zM7.5 14.5v11h17v-11M12 19.5h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'],
+    ['archive','Archive','<span class="biglwa-archive-horizontal-symbol" aria-hidden="true"><svg viewBox="0 0 26 34" fill="none"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="25" rx="1.5"/><path d="M8 7h3M8 26h3"/><rect x="11" y="6" width="5" height="24" rx="1.5"/><path d="M16 9h3M16 27h3"/><rect x="19" y="3" width="4" height="26" rx="1.4"/></g></svg></span>'],
     ['boards','Boards','⊞'],
     ['library','Library','▤'],
     ['games','Arcade','♟'],
@@ -801,10 +804,10 @@
     const libraryEntry=navigationCatalog.get('library');
     let libraryMarkup=widgetIconMarkup(libraryWidget)||libraryEntry?.symbolHTML||'';
     if(!libraryMarkup||/^[◇◆◈▰•]+$/.test(String(libraryMarkup).replace(/<[^>]+>/g,'').trim()))libraryMarkup='<svg class="biglwa-library-fallback" viewBox="0 0 26 34" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="25" rx="1.5"/><path d="M8 7h3M8 26h3"/><rect x="11" y="6" width="5" height="24" rx="1.5"/><path d="M16 9h3M16 27h3"/><rect x="19" y="3" width="4" height="26" rx="1.4"/></g></svg>';
-    const archiveMarkup='<span class="biglwa-archive-box-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5h22v7H5zM7.5 14.5v11h17v-11M12 19.5h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10.5h16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>';
+    const archiveMarkup='<span class="biglwa-archive-horizontal-symbol" aria-hidden="true">'+libraryMarkup+'</span>';
     const archiveWidget=$('#archive',app);
     const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
-    if(archiveIcon&&!archiveIcon.querySelector('.biglwa-archive-box-symbol'))archiveIcon.innerHTML=archiveMarkup;
+    if(archiveIcon&&!archiveIcon.querySelector('.biglwa-archive-horizontal-symbol'))archiveIcon.innerHTML=archiveMarkup;
 
     const projectEntry=navigationCatalog.get('projects');if(projectEntry)projectEntry.symbolHTML=projectMarkup;
     const archiveEntry=navigationCatalog.get('archive');if(archiveEntry)archiveEntry.symbolHTML=archiveMarkup;
@@ -852,7 +855,13 @@
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
     app.dataset.currentStudioRoute=normalized;
-    $$('.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open,.hero-action-bar a,.hero-action-bar button',app).forEach(control=>{
+    $('.sidebar-navigation-row.is-shortcut',app).forEach(row=>{
+      const active=!!normalized&&(row.dataset.sidebarRouteRow===normalized||
+        (normalized==='rooms'&&row.dataset.sidebarRouteRow==='room'));
+      row.classList.toggle('is-closed',!active);
+      row.dataset.shortcutState=active?'open':'closed';
+    });
+    $('.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open,.hero-action-bar a,.hero-action-bar button',app).forEach(control=>{
       const controlKey=(control.dataset.sidebarWidget||control.dataset.sidebarRoute||control.dataset.shortcutRoute||control.dataset.widgetRoute||control.dataset.open||(control.getAttribute('href')||'').replace(/^#/, '')||(control.id==='mobileCreate'?'create':'')).toLowerCase();
       const current=!!normalized&&(controlKey===normalized||(normalized==='rooms'&&controlKey==='room')||(normalized==='create'&&controlKey==='desk'));
       control.classList.toggle('is-current',current);

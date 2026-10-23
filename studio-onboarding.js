@@ -329,6 +329,32 @@
    body.night-mode #studioApp #biglwaSkeletonHub :is(.tour-symbol-mark,svg,.skeleton-tile-glyph){color:#fff2ec!important}
    body.night-mode #studioApp #biglwaSkeletonHub .tour-symbol-mark img{filter:brightness(0) invert(1)!important}
    body.night-mode #studioApp #biglwaSkeletonHub .skeleton-hint-setting{color:#fff2ec!important}
+
+   /* Key and Veve: subtle mint, not the old red/pink primary control styling. */
+   #studioApp .skeleton-quick-actions :is(#skeletonKeyLauncher,#skeletonVeveLauncher){
+    background:rgba(70,156,101,.12)!important;
+    border:1px solid rgba(46,113,70,.25)!important;
+    color:#2a6b46!important;
+   }
+   #studioApp .skeleton-quick-actions #skeletonKeyLauncher img{
+    filter:brightness(0) saturate(100%) invert(32%) sepia(16%) saturate(1542%) hue-rotate(90deg) brightness(90%)!important;
+   }
+   #studioApp .skeleton-quick-actions :is(#skeletonKeyLauncher,#skeletonVeveLauncher):is(:hover,:focus-visible){
+    background:rgba(70,156,101,.24)!important;
+    border-color:#3b8c5a!important;
+    outline:2px solid #569c70!important;outline-offset:1px;
+   }
+   body.night-mode #studioApp .skeleton-quick-actions :is(#skeletonKeyLauncher,#skeletonVeveLauncher){
+    background:rgba(97,184,129,.17)!important;
+    border-color:rgba(162,225,186,.40)!important;
+    color:#c4f2d2!important;
+   }
+   body.night-mode #studioApp .skeleton-quick-actions #skeletonKeyLauncher img{
+    filter:brightness(0) saturate(100%) invert(83%) sepia(29%) saturate(297%) hue-rotate(84deg) brightness(103%)!important;
+   }
+   body.night-mode #studioApp .skeleton-quick-actions :is(#skeletonKeyLauncher,#skeletonVeveLauncher):is(:hover,:focus-visible){
+    background:rgba(97,184,129,.30)!important;outline-color:#a4d8b6!important;
+   }
   `;
   document.head.append(css);
  }

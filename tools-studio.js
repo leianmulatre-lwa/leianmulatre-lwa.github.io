@@ -13,7 +13,7 @@ const ONLINE_TOOLS = [
   {name:'TinyPNG',best:'PNG and JPEG made much smaller, losslessly where possible',url:'https://tinypng.com/'},
   {name:'VectorMagic',best:'SVG, EPS and AI artwork to PNG or PDF',url:'https://vectormagic.com/'},
   {name:'iLovePDF',best:'PDF page work: merge, split, rotate, repair',url:'https://www.ilovepdf.com/'},
-  {name:'Cobalt',best:'Media from a link you have the right to save',url:'https://cobalt.tools/'}
+  {name:'HandBrake',best:'Free local video conversion on desktop',url:'https://handbrake.fr/'}
 ];
 
 const ONLINE_BY_KIND = {
@@ -264,6 +264,7 @@ export function mountToolsStudio(root,helper){
     document.head.appendChild(style);
   }
   root.innerHTML=`
+    <section class="module-card wide" id="craftSuite" aria-label="BIG LWA creative workshop"><p role="status">Opening the BIG LWA workshop…</p></section>
     <section class="tool-intake">
       <div class="tool-drop" id="toolDrop" tabindex="0" role="button" aria-label="Drop a file here or choose one">
         <strong>Drop a file here</strong>
@@ -277,7 +278,6 @@ export function mountToolsStudio(root,helper){
     </section>
     <section class="tool-result" id="toolResult"></section>
     <section class="tool-groups" id="toolGroups"></section>
-    <section class="module-card wide" id="craftSuite" aria-label="BIG LWA creative workshop"><p role="status">Opening the BIG LWA workshop…</p></section>
     <section class="module-card wide tool-directory">
       <h2>Online converters</h2>
       <p>These run on someone else's server, so your file leaves this device. Use them for the conversions a browser cannot do.</p>
@@ -287,12 +287,13 @@ export function mountToolsStudio(root,helper){
     </section>
     <section class="module-card wide tool-links">
       <h2>Media from a link</h2>
-      <p>For a YouTube or SoundCloud link, Cobalt is the tool that does this well. Paste the link and it opens there.</p>
+      <p>Preview supported YouTube, TikTok and SoundCloud posts here. The original creator hosts the media, and your file stays on its source site.</p>
       <form class="module-form two" id="toolLinkForm">
-        <input class="module-input" name="url" type="url" placeholder="https://youtube.com/watch?v=… or soundcloud.com/…">
-        <button class="module-action" type="submit">Open in Cobalt</button>
+        <input class="module-input" name="url" type="url" placeholder="Paste a YouTube, TikTok or SoundCloud link…">
+        <button class="module-action" type="submit">Preview media</button>
       </form>
-      <div class="module-status" id="toolLinkStatus">Nothing opened yet.</div>
+      <div class="module-status" id="toolLinkStatus">No media selected.</div>
+      <div class="tool-link-preview" id="toolLinkPreview" aria-live="polite"></div>
       <p class="tool-note">BIGLWA does not scrape or re-encode other people's posts, so it cannot strip a watermark off a TikTok or Reels someone else posted. For your own uploads, save them from the app, which gives you the clean copy without any added watermark, then convert that file here.</p>
     </section>`;
 
@@ -328,12 +329,42 @@ export function mountToolsStudio(root,helper){
   });
   root.querySelector('#toolLinkForm').addEventListener('submit',event=>{
     event.preventDefault();
-    const link=new FormData(event.target).get('url');
-    const note=root.querySelector('#toolLinkStatus');
+    const link=String(new FormData(event.target).get('url')||'').trim();
+    const note=root.querySelector('#toolLinkStatus'),preview=root.querySelector('#toolLinkPreview');
+    preview.replaceChildren();
     if(!link){note.textContent='Paste a link first.';return}
-    if(!/^https?:\/\//i.test(link)){note.textContent='That needs to be a full link starting with https://';return}
-    note.textContent='Opening Cobalt — the download happens there, not on BIGLWA.';
-    window.open('https://cobalt.tools/','_blank','noopener');
+    let url;
+    try{url=new URL(link)}catch{note.textContent='That needs to be a full link starting with https://';return}
+    if(url.protocol!=='https:'||url.username||url.password||url.port){
+      note.textContent='Use a secure https:// media link.';return
+    }
+    const host=url.hostname.toLowerCase();
+    let embed='',label='';
+    if(['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host)){
+      const id=host==='youtu.be'?url.pathname.slice(1):url.pathname.startsWith('/shorts/')?url.pathname.split('/')[2]:url.searchParams.get('v');
+      if(/^[A-Za-z0-9_-]{11}$/.test(id||'')){embed='https://www.youtube-nocookie.com/embed/'+id;label='YouTube'}
+    }else if(['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(host)){
+      const id=url.pathname.match(/^\/@[A-Za-z0-9._-]{1,80}\/video\/(\d{10,30})\/?$/)?.[1];
+      if(id){embed='https://www.tiktok.com/player/v1/'+id;label='TikTok'}
+    }else if(['soundcloud.com','www.soundcloud.com'].includes(host)){
+      if(/^\/[^/]+\/[^/]+/.test(url.pathname)){embed='https://w.soundcloud.com/player/?url='+encodeURIComponent(url.href);label='SoundCloud'}
+    }
+    if(!embed){
+      note.textContent='Preview is available for supported YouTube, TikTok and SoundCloud post links.';
+      return;
+    }
+    const frame=document.createElement('iframe');
+    frame.title=label+' media preview';frame.loading='lazy';
+    frame.referrerPolicy='strict-origin-when-cross-origin';
+    frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
+    frame.style.cssText='display:block;width:100%;height:'+ (label==='SoundCloud'?'180px':'420px')+';max-height:76vh;border:0;border-radius:12px';
+    frame.src=embed;
+    const original=document.createElement('a');
+    original.href=url.href;original.target='_blank';original.rel='noopener noreferrer';
+    original.textContent='Open original on '+label+' ↗';
+    original.className='module-action ghost';
+    preview.append(frame,original);
+    note.textContent='Previewing '+label+' · playback is provided by the original source.';
   });
 
   function setProgress(fraction,text){

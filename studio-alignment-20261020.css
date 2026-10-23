@@ -385,3 +385,33 @@ body.night-mode #studioApp .biglwa-archive-box-symbol{color:#f7eee8!important}
 #studioApp .sidebar-top>#sidebarCollapse{top:45px!important}
 body.sidebar-collapsed #studioApp .sidebar-top>#sidebarCollapse{top:91px!important}
 
+
+
+/* Archive is the Library artwork rotated sideways — the same symbol family. */
+#studioApp .biglwa-archive-horizontal-symbol{display:inline-grid!important;place-items:center!important;
+ width:28px!important;height:28px!important;color:inherit!important;transform:rotate(90deg)!important;transform-origin:center!important}
+#studioApp .biglwa-archive-horizontal-symbol :is(img,svg){display:block!important;width:26px!important;height:26px!important;max-width:26px!important;max-height:26px!important;object-fit:contain!important}
+#studioApp #archive .card-icon.archive-horizontal-mark{transform:none!important}
+/* An open widget is shown by the Aura-colored tile, never a dot over its mark. */
+#studioApp .sidebar :is(.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open).is-current{
+ background:rgba(var(--aura-rgb,216,95,109),.22)!important;
+ box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.64)!important
+}
+body.night-mode #studioApp .sidebar :is(.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open).is-current{
+ background:rgba(var(--aura-rgb,216,95,109),.34)!important;
+ box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.78)!important
+}
+#studioApp .sidebar :is(.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open).is-current::after{
+ content:none!important;display:none!important
+}
+/* Shortcut circles: outline = destination open, filled = closed. */
+#studioApp .sidebar-navigation-row.is-shortcut::after{
+ content:""!important;display:block!important;position:absolute!important;top:2px!important;right:2px!important;
+ width:8px!important;height:8px!important;border:1.5px solid rgb(var(--aura-rgb,216,95,109))!important;
+ border-radius:50%!important;box-sizing:border-box!important;background:transparent!important;
+ box-shadow:none!important;pointer-events:none!important
+}
+#studioApp .sidebar-navigation-row.is-shortcut.is-closed::after{
+ background:rgb(var(--aura-rgb,216,95,109))!important
+}
+body.sidebar-collapsed #studioApp .sidebar-navigation-row.is-shortcut::after{right:0!important;top:0!important}
