@@ -7,9 +7,9 @@ This branch is a **source-only workbench**, branched from the pinned `editor-sou
 | BIG LWA app | Upstream engine | Current source change |
 | --- | --- | --- |
 | **lightR** | PhotoCraft 0.7.0 | New gold stitched-block-inspired native egui mark replaces the upstream icon; web canvas and browser-window names use lightR |
-| **paintR** | VectorCraft 0.9.0 | Native browser title and window naming use paintR; original icon remains a separate branding task |
+| **paintR** | VectorCraft 0.9.0 | Native browser title and window naming use paintR; original blue P-mark rendered in Rust as a 128px texture, replacing the upstream icon |
 | **keyframeR** | EffectCraft 0.8.0 | The canvas-native header/credits mark is newly painted in purple, with BIG LWA RGB dots; About tooltip names keyframeR in browser |
-| **fileR** | PdfCraft 0.6.0 | Native PDF editor home screen welcome text and empty-state help use fileR on web |
+| **fileR** | PdfCraft 0.6.0 | Original salmon F-block monogram and RGB window lights rendered in the native PDF tab strip; fileR welcome and empty-state help on web |
 
 The existing menus, editing operations and native document formats remain unchanged. Source-code changes in this branch do **not** modify `main` or the deployed verified upstream releases.
 
