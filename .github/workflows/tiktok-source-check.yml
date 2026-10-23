@@ -13,4 +13,4 @@ jobs:
           python3 -c "import json; x=json.load(open('/tmp/health.json')); assert x.get('ok') is True; print(x)"
       - run: |
           curl --fail --show-error --silent --max-time 30 https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev/tiktok/tiktok -o /tmp/source.json
-          python3 -c "import json; x=json.load(open('/tmp/source.json')); assert x.get('handle')=='tiktok'; print('available', x.get('available'))"
+          python3 -c "import json; x=json.load(open('/tmp/source.json')); assert x.get('handle')=='tiktok'; print('available', x.get('available'), 'reason', x.get('message'), 'source', x.get('source'))"
