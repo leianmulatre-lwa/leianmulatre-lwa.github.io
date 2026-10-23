@@ -56,7 +56,7 @@ assert.equal(shell.classList.contains('lwa-curtain-veve-pending'),false,'Bypass 
 doc.dispatchEvent(new w.CustomEvent('biglwa:veve-load-state',{detail:{stage:'Loading public posts…',ready:false}}));
 await sleep(45);
 assert.equal(reentered.hidden,true,'Bypass remains respected until a different page is opened');
-assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261022-continuous-veve-13'));
+assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261023-document-teardown-1'));
 assert.ok(html.includes('veve.js?v=20261022-board-save-3'));
 w.close();
 console.log('PASS: Veve curtain covers feed tiles, tracks requests, dismisses for lazy images, and allows view anyway.');
