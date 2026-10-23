@@ -1971,13 +1971,18 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
    if(!code)return oaRedirect(provider,'failed','No authorization code received.');
    const result=await oaExchange(provider,code,saved.verifier||'',env,oaCallback(provider,env));
    const profile=await oaProfile(provider,result.access_token);
-   await env.OAUTH_SESSIONS.put('new-orbit:'+provider+':account:'+saved.uid,JSON.stringify({
-     profile,accessToken:result.access_token,refreshToken:result.refresh_token||'',
-     expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||3600)*1000,createdAt:Date.now()
-   }),{expirationTtl:7776000});
+   const newAccount={profile,accessToken:result.access_token,refreshToken:result.refresh_token||'',
+     expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||3600)*1000,createdAt:Date.now()};
+   const shelfKey='new-orbit:'+provider+':accounts:'+saved.uid;
+   const prior=await env.OAUTH_SESSIONS.get(shelfKey,'json');
+   const earlier=(Array.isArray(prior?.accounts)?prior.accounts:[])
+     .filter(x=>x?.profile?.sourceUserId&&x.profile.sourceUserId!==profile.sourceUserId).slice(-4);
+   const accounts=[...earlier,newAccount];
+   await env.OAUTH_SESSIONS.put(shelfKey,JSON.stringify({accounts}),{expirationTtl:7776000});
+   await env.OAUTH_SESSIONS.put('new-orbit:'+provider+':account:'+saved.uid,JSON.stringify(newAccount),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
   }
-  if(!['start','session','disconnect','media','hometown','imports','public-post'].includes(action))return oaReply({error:'Not found'},404,request);
+  if(!['start','session','select','disconnect','media','hometown','imports','public-post'].includes(action))return oaReply({error:'Not found'},404,request);
   if(action==='start'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
   if(['session','media','hometown','imports','public-post'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='disconnect'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
@@ -2014,8 +2019,24 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
   const accountKey='new-orbit:'+provider+':account:'+user.uid;
   if(action==='session'){
    const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
+   const shelf=await env.OAUTH_SESSIONS.get('new-orbit:'+provider+':accounts:'+user.uid,'json');
+   const accounts=(Array.isArray(shelf?.accounts)?shelf.accounts:(saved?[saved]:[]))
+     .filter(x=>x?.profile?.sourceUserId).slice(0,5);
    const fresh=Boolean(saved?.expiresAt&&saved.expiresAt>Date.now());
-   return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null},200,request);
+   return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null,
+     accounts:accounts.map(x=>({...x.profile,needsReauth:!x.expiresAt||x.expiresAt<=Date.now()})),
+     activeSourceUserId:saved?.profile?.sourceUserId||null},200,request);
+  }
+  if(action==='select'&&request.method==='POST'){
+    const payload=await request.json().catch(()=>({}));
+    const sourceUserId=String(payload?.sourceUserId||'');
+    if(!sourceUserId||sourceUserId.length>120)oaError('Choose a saved account.',422);
+    const shelf=await env.OAUTH_SESSIONS.get('new-orbit:'+provider+':accounts:'+user.uid,'json');
+    const selected=(Array.isArray(shelf?.accounts)?shelf.accounts:[])
+      .find(x=>x?.profile?.sourceUserId===sourceUserId);
+    if(!selected)oaError('This account was not authorized by this member.',404);
+    await env.OAUTH_SESSIONS.put(accountKey,JSON.stringify(selected),{expirationTtl:7776000});
+    return oaReply({ok:true,profile:selected.profile,needsReauth:selected.expiresAt<=Date.now()},200,request);
   }
   if(action==='imports'){
     const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
@@ -2023,8 +2044,19 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
     return oaReply(await oaTextImports(provider,saved),200,request);
   }
   if(action==='disconnect'){
-   await env.OAUTH_SESSIONS.delete(accountKey);
-   return oaReply({ok:true,connected:false},200,request);
+    const selected=await env.OAUTH_SESSIONS.get(accountKey,'json');
+    const key='new-orbit:'+provider+':accounts:'+user.uid;
+    const shelf=await env.OAUTH_SESSIONS.get(key,'json');
+    const accounts=(Array.isArray(shelf?.accounts)?shelf.accounts:[])
+      .filter(x=>x?.profile?.sourceUserId!==selected?.profile?.sourceUserId);
+    if(accounts.length){
+      await env.OAUTH_SESSIONS.put(key,JSON.stringify({accounts}),{expirationTtl:7776000});
+      await env.OAUTH_SESSIONS.put(accountKey,JSON.stringify(accounts[accounts.length-1]),{expirationTtl:7776000});
+      return oaReply({ok:true,connected:true,profile:accounts[accounts.length-1].profile},200,request);
+    }
+    await env.OAUTH_SESSIONS.delete(accountKey);
+    await env.OAUTH_SESSIONS.delete(key);
+    return oaReply({ok:true,connected:false},200,request);
   }
   const missing=oaConfigured(env,provider);
   if(missing.length)return oaReply({error:'Provider is not configured yet.',missing},503,request);
