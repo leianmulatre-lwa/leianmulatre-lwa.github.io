@@ -1,0 +1,16 @@
+name: Public TikTok Source Smoke
+on:
+  push:
+    paths:
+      - ".github/workflows/tiktok-source-check.yml"
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl --fail --show-error --silent --retry 3 https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev/health -o /tmp/health.json
+          python3 -c "import json; x=json.load(open('/tmp/health.json')); assert x.get('ok') is True; print(x)"
+      - run: |
+          curl --fail --show-error --silent --max-time 30 https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev/tiktok/tiktok -o /tmp/source.json
+          python3 -c "import json; x=json.load(open('/tmp/source.json')); assert x.get('handle')=='tiktok'; print('available', x.get('available'))"
