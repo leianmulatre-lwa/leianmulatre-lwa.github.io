@@ -186,7 +186,8 @@ console.log('PASS source integrity: politc route, two-week calendar, public SEO 
 // former duplicate giant cards and preserves the existing editor.
 const slides=read('visualslidez.js'),sharing=read('profile-module-sharing.js');
 assert.match(projectCanvas, /root.innerHTML=pageHeading\+'<section id="lwaVisualSlides"/);
-assert.match(projectCanvas, /root.innerHTML=pageHeading\+'<div class="lwa-project-toolbar"/);
+assert.match(projectCanvas, /root.innerHTML=pageHeading\+'<div class="visualz-top-row"/);
+assert.match(projectCanvas, /<div class="lwa-project-toolbar"/);
 assert.match(projectCanvas, /visual·eyez/);
 assert.match(projectCanvas, /visual·slidez/);
 assert.match(slides, /data-visualz-mode="visualslidez"/);
