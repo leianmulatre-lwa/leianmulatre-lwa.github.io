@@ -77,7 +77,7 @@ async function downloadNativeProject(item){
   if(data.size!==item.size)throw Error('The downloaded project was incomplete. No file was saved.');
   downloadBlob(data,item.name);
 }
-export function mountNativeProjectVault(host,{open,active}={}){
+export function mountNativeProjectVault(host,{open,active,openOriginal}={}){
   if(!host||host.dataset.mounted==='1')return;
   host.dataset.mounted='1';
   host.innerHTML=
@@ -128,6 +128,26 @@ export function mountNativeProjectVault(host,{open,active}={}){
         catch(err){say(err.message)}finally{state.busy=false;download.disabled=false}
       });
       actions.append(download);
+      // Native fileR has an authenticated same-origin Rust import bridge. Do not
+      // fake this action in other applications until they ship native bridges.
+      if(item.app==='fileR'&&item.size<=75*1024*1024&&typeof openOriginal==='function'){
+        const reopen=document.createElement('button');reopen.type='button';
+        reopen.textContent='Open saved PDF in fileR';
+        reopen.addEventListener('click',async()=>{
+          if(state.busy)return;
+          state.busy=true;reopen.disabled=true;
+          say('Retrieving your original PDF from private account storage…');
+          try{
+            const response=await call('/'+encodeURIComponent(item.id));
+            const body=await response.arrayBuffer();
+            if(body.byteLength!==item.size)throw Error('Stored file size differs from its private project record.');
+            await openOriginal(item,body);
+            say('PDF delivered to fileR. Check its editor tab for the loaded document.');
+          }catch(err){say(err.message)}
+          finally{state.busy=false;reopen.disabled=false}
+        });
+        actions.append(reopen);
+      }
       if(item.app!=='other'){
         const edit=document.createElement('button');edit.type='button';edit.textContent='Open editor';
         edit.addEventListener('click',()=>{
