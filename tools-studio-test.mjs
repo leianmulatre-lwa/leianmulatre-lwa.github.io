@@ -78,7 +78,7 @@ check("the old separate tool cards are gone", !pages.includes("id=\"pdfForm\"") 
 check("the drop area is styled as a drop area", pages.includes(".tool-drop{") && pages.includes("border:2px dashed"));
 check("the drop area reacts to a file over it", pages.includes(".tool-drop.is-over{"));
 check("progress has a bar", pages.includes(".tool-progress span{") && tools.includes("id=\"toolProgressBar\"") && tools.includes("barEl.style.width=Math.round(fraction*100)+'%'"));
-check("the card copy matches what the page now does", pages.includes("Drop any file and it is sorted out automatically"));
+check("the card copy matches a usable file intake", pages.includes("Drop any file and it is sorted out automatically"));
 check("the module description matches too", pages.includes("Drop a file and it works out what to offer"));
 
 console.log(`\n${pass} passed, ${fail} failed`);

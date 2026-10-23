@@ -1,5 +1,5 @@
-// Tool Pages: drop a file on top, the kind of file is worked out for you, and the
-// conversions that suit it are offered straight away. Anything that cannot be done
+// Tool Pages: Workshop first, then local file intake; the kind of file is worked out
+// and the conversions that suit it are offered. Anything that cannot be done
 // inside a browser is offered as a link out instead of pretending otherwise.
 
 const MAX_LOCAL_FILE_BYTES=500*1024*1024;
@@ -12,8 +12,8 @@ const ONLINE_TOOLS = [
   {name:'HandBrake',best:'Proper video compression and encoding',url:'https://www.handbrake.fr/'},
   {name:'TinyPNG',best:'PNG and JPEG made much smaller, losslessly where possible',url:'https://tinypng.com/'},
   {name:'VectorMagic',best:'SVG, EPS and AI artwork to PNG or PDF',url:'https://vectormagic.com/'},
-  {name:'iLovePDF',best:'PDF page work: merge, split, rotate, repair',url:'https://www.ilovepdf.com/'},
-  {name:'HandBrake',best:'Free local video conversion on desktop',url:'https://handbrake.fr/'}
+  {name:'iLovePDF',best:'PDF page work: merge, split, rotate, repair',url:'https://www.ilovepdf.com/'}
+
 ];
 
 const ONLINE_BY_KIND = {
