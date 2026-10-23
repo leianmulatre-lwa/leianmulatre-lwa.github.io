@@ -38,7 +38,9 @@
  .lwa-curtain{position:absolute;z-index:120;inset:0;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:28px;background:#27060e url("/assets/login-curtain-film-grain-v2.webp") center center/cover no-repeat;color:#fff8ef;border-radius:inherit;pointer-events:none}
  /* Keep the landing-sized curtain, but prevent Veve tiles appearing below it
     during the first feed request. This changes visibility, not layout height. */
- #studioApp .module-shell.lwa-curtain-veve-pending #biglwaVeve{visibility:hidden!important}
+ /* Keep the feed mounted and laid out beneath one opaque curtain, rather
+    than hiding tiles and revealing a broken gap if the curtain is shorter. */
+ #studioApp .module-shell.lwa-curtain-veve-pending #biglwaVeve{visibility:visible!important}
  .lwa-curtain[data-lwa-curtain="module"]{pointer-events:auto}
  .lwa-curtain[data-lwa-curtain="module"] .lwa-dot{width:17px;height:17px;margin:8px 27px}
  .lwa-curtain[data-lwa-curtain="module"] .lwa-dot::before,
@@ -53,10 +55,16 @@
  /* Fully mask the existing feed while first load is outstanding, including
     tiles deeper in the masonry below the former short curtain. */
  #studioApp .module-shell.lwa-curtain-veve-pending{
-   height:max(520px,calc(100dvh - var(--biglwa-dock-top,64px) - 92px))!important;
-   min-height:520px!important;max-height:none!important;overflow:hidden!important;
+   min-height:max(520px,calc(100dvh - var(--biglwa-dock-top,64px) - 92px))!important;
+   height:auto!important;max-height:none!important;overflow:visible!important;
    isolation:isolate;background:#27060e!important;border-radius:18px!important}
- #studioApp .module-shell.lwa-curtain-veve-pending > :not(.lwa-curtain){visibility:hidden!important}
+ /* A contiguous matching extension below the image-backed curtain covers the
+    rest of the masonry while data loads, without stretching or cropping cards. */
+ #studioApp .module-shell.lwa-curtain-veve-pending::after{
+   content:"";position:absolute;inset:0;z-index:1499!important;pointer-events:none;
+   background:#27060e url("/assets/login-curtain-film-grain-v2.webp") center top/cover no-repeat;
+   border-radius:18px;min-height:100%}
+ #studioApp .module-shell.lwa-curtain-veve-pending > :not(.lwa-curtain){visibility:visible!important}
  #studioApp .module-shell.lwa-curtain-veve-pending > .lwa-curtain{
    position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
    min-height:100%!important;z-index:1500!important;transform:none!important;
@@ -68,7 +76,7 @@
  #studioApp .lwa-curtain-bypass{margin-top:6px!important}
  .lwa-curtain[hidden]{display:none!important}
  .lwa-curtain .lwa-dot{color:#f26877}
- .lwa-curtain-label{font:700 clamp(20px,2.9vw,31px)/1.25 system-ui;letter-spacing:.045em;text-transform:uppercase;text-shadow:0 2px 5px #3c0610;text-align:center}
+ .lwa-curtain-label{font:400 clamp(20px,2.9vw,31px)/1.25 "CS Bergamot Stitched",Georgia,serif;letter-spacing:.025em;text-transform:lowercase!important;text-shadow:0 2px 5px #3c0610;text-align:center}
  #studioApp .module-shell{position:relative}
  #studioAvatarCard{position:relative;isolation:isolate}
  #studioApp .topbar{position:relative;z-index:5}
@@ -83,7 +91,7 @@
   if(!document.getElementById('studioApp'))return;
   if(!profile){
    const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
-   if(mark){profile=document.createElement('span');profile.id='lwaProfileLoading';profile.setAttribute('role','status');profile.setAttribute('aria-label','Loading your profile');profile.append(make('falling'));const label=document.createElement('span');label.textContent='Loading profile';profile.append(label);mark.append(profile);profile.hidden=true}
+   if(mark){profile=document.createElement('span');profile.id='lwaProfileLoading';profile.setAttribute('role','status');profile.setAttribute('aria-label','Loading your profile');profile.append(make('falling'));const label=document.createElement('span');label.textContent='loading profile';profile.append(label);mark.append(profile);profile.hidden=true}
   }
   // Studio's startup and login-laptop intro have one authoritative
   // dot-floating animation in index.html. Don't decorate a second loading
@@ -107,6 +115,7 @@
  let moduleKey='',moduleStarted=0,avatarStarted=0,avatarChanged=0,moduleCurtain=null,avatarCurtain=null,viewAnywayFor='';
  function curtain(container,label,kind){
   const el=document.createElement('div');el.className='lwa-curtain';el.dataset.lwaCurtain=kind;
+  label=String(label||'loading').toLowerCase();
   el.setAttribute('role','status');el.setAttribute('aria-label',label);
   el.append(make(kind==='avatar'?'pulse':'floating'));
   const t=document.createElement('span');t.className='lwa-curtain-label';t.textContent=label;el.append(t);
@@ -135,7 +144,7 @@
   if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending');moduleCurtain?.remove();moduleCurtain=null}
   if(shell&&key){
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
-   if(key==='veve')moduleCurtain.querySelector('.lwa-curtain-label').textContent='Loading Veve';
+   moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
    const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
    moduleCurtain.style.top=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+12)+'px';
    const busy=space.querySelector('[aria-busy="true"]:not(.lwa-curtain)');
@@ -177,7 +186,7 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  window.BigLWALoadingDots={
   profile:setProfile,
-  studio(){ensure();decorateLegacyStudioLoading()},
+  studio(){ensure();/* the single startup screen lives in index.html */},
   ready(){setProfile(false);hideTransition()}
  };
  // Capture legacy Step Inside clicks even when the visual CTA sits outside the form.
