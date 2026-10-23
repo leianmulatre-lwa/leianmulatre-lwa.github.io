@@ -183,6 +183,7 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
     let mut rx = rect.max.x - 10.0;
     // The pill fits its label (icon, gap, text) with even padding: it was a fixed 104 px with the
     // text at its left, which left a wide gap on the right (#581).
+    if !cfg!(target_arch = "wasm32") {
     let label = p.layout_no_wrap(tr("Discord").to_string(), Tokens::semibold(12.0), Color32::WHITE);
     let discord = Rect::from_min_max(pos2(rx - (10.0 + 14.0 + 6.0 + label.size().x + 12.0), cy - 13.0), pos2(rx, cy + 13.0));
     let dresp = ui.interact(discord, egui::Id::new("hdr-discord"), Sense::click());
@@ -204,6 +205,7 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
         }
         app.auto.add(&format!("header.{}", &id[4..]), r, tip);
         rx = r.min.x - 4.0;
+    }
     }
     // Appearance: Sync with System, Light, Dark (a monitor, sun or moon), one click to the next.
     let (icon, mode) = match app.session.prefs.appearance.appearance_mode.as_str() {
