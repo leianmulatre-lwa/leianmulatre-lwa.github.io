@@ -64,3 +64,35 @@ html[data-biglwa-embedded="false"] .biglwa-editor-reopen{bottom:14px;right:14px;
 html[data-biglwa-editor] .biglwa-editor-glyph{border:0!important;box-shadow:none!important;background:transparent!important;padding:0!important}
 html[data-biglwa-editor] .biglwa-editor-glyph img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 3px 2px rgba(29,13,17,.3))}
 html[data-biglwa-editor] .biglwa-editor-name strong{font-family:"BIG LWA Stitched","CS Bergamot Stitched",Georgia,serif!important;font-weight:400!important;letter-spacing:.01em}
+
+/* Inside each actual browser editor, not merely the Studio wrapper.
+   Nonblocking edge + small signed edition card: no native WASM tools obscured. */
+html[data-biglwa-embedded="true"] body::after{
+ content:"";position:fixed;inset:0;z-index:2147481998;
+ pointer-events:none!important;border:4px solid var(--editor-rim);
+ box-shadow:inset 0 0 0 1px var(--editor-bright);
+ opacity:.76;box-sizing:border-box;
+}
+html[data-biglwa-embedded="true"] .biglwa-native-edition-mark{
+ position:fixed;left:47px;bottom:11px;z-index:2147481999;
+ display:flex;align-items:center;gap:5px;min-width:0;max-width:calc(100vw - 90px);
+ padding:5px 11px 5px 5px;border:1px solid var(--editor-bright);
+ border-radius:8px;background:rgba(39,26,38,.78);color:#fff5e8;
+ box-shadow:1px 2px 0 var(--editor-dark);
+ pointer-events:none!important;user-select:none;opacity:.86;
+}
+html[data-biglwa-embedded="true"] .biglwa-native-edition-mark img{
+ display:block;flex:none;width:29px;height:29px;object-fit:contain;
+ filter:drop-shadow(1px 2px 1px #15071055)
+}
+html[data-biglwa-embedded="true"] .biglwa-native-edition-mark span{display:grid;gap:2px}
+html[data-biglwa-embedded="true"] .biglwa-native-edition-mark strong{
+ font:400 17px/1 "BIG LWA Stitched",Georgia,serif;letter-spacing:.01em
+}
+html[data-biglwa-embedded="true"] .biglwa-native-edition-mark small{
+ font:500 9px/1.2 system-ui;color:#fae0c1
+}
+@media(max-width:720px){
+ html[data-biglwa-embedded="true"] .biglwa-native-edition-mark{left:10px;bottom:7px;opacity:.72}
+ html[data-biglwa-embedded="true"] .biglwa-native-edition-mark small{display:none}
+}
