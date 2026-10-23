@@ -61,7 +61,7 @@ assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not lega
 assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(index, /project-canvas\.js\?v=/);
-assert.match(index, /tiktok-orbit\.js\?v=20261023-private-logs-4/);
+assert.match(index, /tiktok-orbit\.js\?v=20261023-private-logs-5/);
 assert.match(feedPolish, /biglwa-feed-lights/);
 assert.match(feedPolish, /data-feed-light/);
 assert.match(feedPolish, /data-post-/);
