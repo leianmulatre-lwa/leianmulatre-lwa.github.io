@@ -1,8 +1,7 @@
 asset:        favicon.svg
-title:        EffectCraft web app icon (favicon)
-author:       EffectCraft contributors (drawing by the project owner in ArtCraft)
-source:       original work
-license:      MIT OR Apache-2.0
-license-file: assets/app-icon/LICENSE.txt
-added:        2026-10-02 by EffectCraft contributors (Claude agent, app icon)
-notes:        Copy of assets/app-icon/effectcraft-small.svg (the lighter vector trace of the app icon). Replaces the earlier code-drawn split-square mark.
+title:        keyframeR original BIG LWA purple stitched block and RGB window lights
+author:       BIG LWA
+source:       original BIG LWA artwork created for the BIG LWA-branded edition
+license:      BIG LWA brand asset, rights reserved
+license-file: This repository's BIGLWA-NATIVE-PORT.md
+notes:        Replaces the upstream ArtCraft web favicon; not a claim of authorship of the EffectCraft editing engine.
