@@ -1493,10 +1493,163 @@ async function musicRoute(request,env){
   mediaFail('Unsupported action.',405);
 }
 
+/* BIG LWA Workshop native project vault (R2, owner-only).
+ * Stores the ORIGINAL binary export, not a flattened image or Firestore blob.
+ * Every request resolves Firebase identity independently; client-supplied UIDs,
+ * paths and filenames never determine R2 ownership. Binary downloads are
+ * attachment-only and cannot be accessed by public media routes.
+ *
+ * 8 MiB multipart pieces keep browser requests below edge upload limits.
+ * The server validates expected piece lengths and finished object size.
+ * Staged uploads are not listed as projects. A cancellation endpoint aborts
+ * an incomplete R2 multipart upload; abandoned sessions can be cleaned
+ * separately after their expiry (they cannot be accessed by other users).
+ */
+const WORKSHOP_PROJECT_CHUNK=8*1024*1024;
+const WORKSHOP_PROJECT_MAX=500*1024*1024;
+const WORKSHOP_PROJECT_LIMIT=100;
+const WORKSHOP_PROJECT_APPS=new Set(['sqwibblR','lightR','paintR','keyframeR','fileR','other']);
+function workshopId(raw){return /^[A-Za-z0-9_-]{22}$/.test(raw||'')?raw:'';}
+function workshopProjectName(value){
+  return String(value||'Untitled project').replace(/[\x00-\x1f\x7f<>:"/\\|?*]/g,'_').trim().slice(0,160)||'Untitled project';
+}
+function workshopProjectPrefix(uid){return 'workshop-projects/'+uid+'/';}
+function workshopProjectSummary(data){
+  return {id:data.id,name:data.name,app:data.app,size:data.size,
+    createdAt:data.createdAt,contentType:'application/octet-stream'};
+}
+async function workshopProjectRoute(request,env){
+  const url=new URL(request.url),root='/media/workshop-projects';
+  const pieces=url.pathname.slice(root.length).split('/').filter(Boolean);
+  const method=request.method;
+  if(['POST','PUT','DELETE'].includes(method)&&!allowedOrigin(request,env))
+    mediaFail('Origin not allowed.',403);
+  // GET, including project LIST, must authenticate. No anonymous metadata.
+  const user=await mediaUser(request,env),bucket=mediaBucket(env);
+  const prefix=workshopProjectPrefix(user.uid);
+  const id=pieces.length?workshopId(pieces[0]):'';
+  if(pieces.length&&!id)mediaFail('Project not found.',404);
+  const projectKey=id?prefix+id+'.bin':'';
+  const uploadKey=id?prefix+id+'.upload.json':'';
+  const metaKey=id?prefix+id+'.meta.json':'';
+  if(!pieces.length&&method==='GET'){
+    const listing=await bucket.list({prefix,limit:1000});
+    const keys=(listing.objects||[]).map(o=>o.key).filter(k=>k.endsWith('.meta.json')).slice(0,WORKSHOP_PROJECT_LIMIT);
+    const rows=await Promise.all(keys.map(async key=>{
+      const object=await bucket.get(key);
+      if(!object)return null;
+      const data=await object.json().catch(()=>null);
+      return data&&workshopId(data.id)?workshopProjectSummary(data):null;
+    }));
+    return json({ok:true,projects:rows.filter(Boolean).sort((a,b)=>b.createdAt-a.createdAt),
+      truncated:!!listing.truncated},200,request,env);
+  }
+  if(!pieces.length&&method==='POST'){
+    const data=await request.json().catch(()=>null);
+    if(!data||typeof data!=='object')mediaFail('Provide project name, editor, and file size.',400);
+    const name=workshopProjectName(data.name),app=String(data.app||'other');
+    const size=Number(data.size);
+    if(!WORKSHOP_PROJECT_APPS.has(app))mediaFail('Choose a recognized BIG LWA editor.',400);
+    if(!Number.isSafeInteger(size)||size<1||size>WORKSHOP_PROJECT_MAX)
+      mediaFail('A project must be between 1 byte and 500 MB.',413);
+    const listed=await bucket.list({prefix,limit:1000});
+    if((listed.objects||[]).filter(o=>o.key.endsWith('.meta.json')).length>=WORKSHOP_PROJECT_LIMIT)
+      mediaFail('This account has reached its project shelf capacity.',413);
+    const newId=randomToken(16),newKey=prefix+newId+'.bin',createdAt=Date.now();
+    const upload=await bucket.createMultipartUpload(newKey,{
+      httpMetadata:{contentType:'application/octet-stream',cacheControl:'private, no-store'},
+      customMetadata:{uid:user.uid,app,createdAt:String(createdAt)}
+    });
+    const state={id:newId,uploadId:upload.uploadId,name,app,size,createdAt,
+      partCount:Math.ceil(size/WORKSHOP_PROJECT_CHUNK)};
+    await bucket.put(prefix+newId+'.upload.json',JSON.stringify(state),{
+      httpMetadata:{contentType:'application/json',cacheControl:'private, no-store'}
+    });
+    return json({ok:true,id:newId,partCount:state.partCount,chunkSize:WORKSHOP_PROJECT_CHUNK,
+      maxBytes:WORKSHOP_PROJECT_MAX},201,request,env);
+  }
+  if(id&&pieces.length===3&&pieces[1]==='part'&&method==='PUT'){
+    const stateObj=await bucket.get(uploadKey);
+    if(!stateObj)mediaFail('Upload session not found or already finalized.',404);
+    const state=await stateObj.json();
+    if(Date.now()-state.createdAt>24*60*60*1000)mediaFail('Upload session expired; create a new upload.',410);
+    const part=Number(pieces[2]);
+    if(!Number.isSafeInteger(part)||part<1||part>state.partCount)mediaFail('Invalid project part number.',400);
+    const expected=part<state.partCount?WORKSHOP_PROJECT_CHUNK:
+      state.size-WORKSHOP_PROJECT_CHUNK*(state.partCount-1);
+    const length=Number(request.headers.get('Content-Length')||0);
+    if(length&&length!==expected)mediaFail('Chunk length does not match the expected file section.',400);
+    if(!request.body)mediaFail('Upload part is empty.',400);
+    // Consume at most 8 MiB per request, never the full 500 MB native project.
+    const bytes=await request.arrayBuffer();
+    if(bytes.byteLength!==expected)mediaFail('Chunk length does not match the expected file section.',400);
+    const upload=bucket.resumeMultipartUpload(projectKey,state.uploadId);
+    const uploaded=await upload.uploadPart(part,bytes);
+    return json({ok:true,id,partNumber:uploaded.partNumber,etag:uploaded.etag},200,request,env);
+  }
+  if(id&&pieces.length===2&&pieces[1]==='complete'&&method==='POST'){
+    const stateObj=await bucket.get(uploadKey);
+    if(!stateObj)mediaFail('Upload session not found.',404);
+    const state=await stateObj.json(),data=await request.json().catch(()=>({}));
+    const parts=Array.isArray(data.parts)?data.parts:[];
+    if(parts.length!==state.partCount)mediaFail('Upload is missing project sections.',400);
+    const uploadedParts=parts.map((part,i)=>{
+      if(part?.partNumber!==i+1||typeof part.etag!=='string'||!/^[a-zA-Z0-9_"-]{1,128}$/.test(part.etag))
+        mediaFail('Invalid project section receipt.',400);
+      return {partNumber:i+1,etag:part.etag};
+    });
+    const upload=bucket.resumeMultipartUpload(projectKey,state.uploadId);
+    const object=await upload.complete(uploadedParts);
+    if(object.size!==state.size){
+      await bucket.delete(projectKey);
+      mediaFail('Project size verification failed. The incomplete copy was discarded.',422);
+    }
+    const record={id,name:state.name,app:state.app,size:object.size,createdAt:state.createdAt};
+    await bucket.put(metaKey,JSON.stringify(record),{
+      httpMetadata:{contentType:'application/json',cacheControl:'private, no-store'}
+    });
+    await bucket.delete(uploadKey);
+    return json({ok:true,project:workshopProjectSummary(record)},201,request,env);
+  }
+  if(id&&pieces.length===2&&pieces[1]==='upload'&&method==='DELETE'){
+    const stateObj=await bucket.get(uploadKey);
+    if(!stateObj)mediaFail('Upload session not found.',404);
+    const state=await stateObj.json();
+    await bucket.resumeMultipartUpload(projectKey,state.uploadId).abort();
+    await bucket.delete(uploadKey);
+    return json({ok:true},200,request,env);
+  }
+  if(id&&pieces.length===1&&method==='GET'){
+    const meta=await bucket.get(metaKey);
+    if(!meta)mediaFail('Project not found.',404);
+    const data=await meta.json();
+    const object=await bucket.get(projectKey);
+    if(!object)mediaFail('Project file is missing.',404);
+    const headers=new Headers({
+      'Content-Type':'application/octet-stream',
+      'Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(workshopProjectName(data.name)),
+      'Cache-Control':'private, no-store',
+      'X-Content-Type-Options':'nosniff',
+      'Content-Security-Policy':"default-src 'none'",
+      'Content-Length':String(object.size)
+    });
+    const origin=allowedOrigin(request,env);
+    if(origin)Object.entries(corsHeaders(origin)).forEach(([key,value])=>headers.set(key,value));
+    return new Response(object.body,{status:200,headers});
+  }
+  if(id&&pieces.length===1&&method==='DELETE'){
+    if(!await bucket.get(metaKey))mediaFail('Project not found.',404);
+    await bucket.delete([metaKey,projectKey]);
+    return json({ok:true},200,request,env);
+  }
+  mediaFail('Unsupported Workshop project action.',405);
+}
+
 async function mediaRoute(request, env) {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
   if (url.pathname === '/media/link-preview' && request.method === 'POST') return mediaLinkPreview(request, env);
+  if(url.pathname.startsWith('/media/workshop-projects'))return workshopProjectRoute(request,env);
   if(url.pathname.startsWith('/media/profile-music'))return musicRoute(request,env);
   const segment = mediaSegment(url.pathname);
   /* Lets the site confirm the binding is wired without signing anyone in. */
