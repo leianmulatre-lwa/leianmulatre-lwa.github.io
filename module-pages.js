@@ -1753,10 +1753,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const authorized=document.createElement('section');
     authorized.className='module-card wide';
     authorized.style.marginTop='10px';
-    const heading=document.createElement('h2');heading.textContent='Authorized accounts';
+    const authorizedHeading=document.createElement('h2');authorizedHeading.textContent='Authorized accounts';
     const intro=document.createElement('p');intro.textContent='Connect additional X, Snapchat or Tumblr accounts in Orbit; choose which one is active here. Tokens stay with BIG LWA server, not on this page.';
     const list=document.createElement('div');list.className='module-list';
-    authorized.append(heading,intro,list);body.append(authorized);
+    authorized.append(authorizedHeading,intro,list);body.append(authorized);
     async function showAuthorized(){
       list.replaceChildren();
       const oauth=window.BigLWAOrbitOAuth;
