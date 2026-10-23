@@ -53,15 +53,15 @@ assert.match(modules, /--feed-heading-offset:calc/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] :is\(\.module-top,\.module-heading\)/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-heading h1\{\s*transform:none/);
 assert.match(projectCanvas, /module-heading lwa-project-heading/);
-assert.match(projectCanvas, /<h1>visualz · visualeyez<\/h1>/);
+assert.match(projectCanvas, /<h1>visualz<\/h1>/);
 assert.match(projectCanvas, /visualslidez\.js\?v=/);
 assert.match(modules, /visualz:'visualz'/);
-assert.match(projectCanvas, /margin:10px 0/);
+assert.match(projectCanvas, /\.lwa-project-toolbar\{display:flex/);
 assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not legacy purple.
 assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(index, /project-canvas\.js\?v=/);
-assert.match(index, /tiktok-orbit\.js\?v=20261023-linked-creator-3/);
+assert.match(index, /tiktok-orbit\.js\?v=20261023-private-logs-4/);
 assert.match(feedPolish, /biglwa-feed-lights/);
 assert.match(feedPolish, /data-feed-light/);
 assert.match(feedPolish, /data-post-/);
@@ -180,3 +180,22 @@ for (const [name, source] of [['index inline loader',mainScript],['module pages'
   console.log('PASS syntax:',name);
 }
 console.log('PASS source integrity: politc route, two-week calendar, public SEO and required runtime files');
+
+
+// Visualz has one shared heading on both tabs; navigation replaces the
+// former duplicate giant cards and preserves the existing editor.
+const slides=read('visualslidez.js'),sharing=read('profile-module-sharing.js');
+assert.match(projectCanvas, /root.innerHTML=pageHeading\+'<section id="lwaVisualSlides"/);
+assert.match(projectCanvas, /root.innerHTML=pageHeading\+'<div class="lwa-project-toolbar"/);
+assert.match(projectCanvas, /visual·eyez/);
+assert.match(projectCanvas, /visual·slidez/);
+assert.match(slides, /data-visualz-mode="visualslidez"/);
+assert.match(sharing, /#lwaVisualSlides \.vs-buttons/);
+assert.match(sharing, /lead\.after\(bar\)/);
+assert.match(sharing, /biglwa:visualz-toolbar-ready/);
+// TikTok imports belong only in MyFeed; connection outcomes stay owner-only.
+assert.doesNotMatch(tiktokOrbit, /row\.append\(panel\)/);
+assert.match(tiktokOrbit, /\[data-tiktok-public-import\]'\)\.forEach\(node=>node\.remove\(\)\)/);
+assert.match(tiktokOrbit, /notified:false/);
+assert.match(tiktokOrbit, /biglwa:studio-update/);
+assert.match(tiktokOrbit, /<\/div><\/details>/);
