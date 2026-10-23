@@ -20,7 +20,7 @@
   if(document.querySelector('.biglwa-editor-chrome'))return;
   const dock=document.createElement('aside');dock.className='biglwa-editor-chrome';
   dock.setAttribute('aria-label','BIG LWA editor controls');
-  dock.innerHTML='<div class="biglwa-editor-glyph" aria-hidden="true"><img src="/assets/bigapps/blocks/'+matched+'.svg" alt="" /></div>'+
+  dock.innerHTML='<div class="biglwa-editor-glyph" aria-hidden="true"><img src="/assets/bigapps/icons/'+item.name+'.png?v=20261023-stitch-png-1" alt="" /></div>'+
    '<div class="biglwa-editor-name"><strong>'+item.name+'</strong><small>BIG LWA · licensed editing engine</small></div>'+
    '<div class="biglwa-editor-lights" role="group" aria-label="Window controls">'+
    '<button data-craft-chrome="exit" type="button" aria-label="Return to BIG LWA Tools" title="Back to Tools"></button>'+

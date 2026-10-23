@@ -166,3 +166,11 @@
 #craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"]){border-color:var(--app-rim);box-shadow:3px 4px 0 color-mix(in srgb,var(--app-rim),transparent 54%)}
 #craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"])>button:not(:disabled){background:var(--app-rim);border-color:var(--app-rim)}
 #craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"]).is-selected{outline-color:var(--app-block)}
+
+/* Five transparent, matched blackletter app-icon crops. */
+#craftSuite .craft-arcade-block .craft-block-png{
+ display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;
+ max-width:100%!important;max-height:100%!important;image-rendering:auto;
+ filter:none!important;user-select:none;-webkit-user-drag:none;
+}
+#craftSuite .craft-tile-icon.craft-arcade-block{overflow:visible!important}
