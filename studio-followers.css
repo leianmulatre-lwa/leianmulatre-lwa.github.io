@@ -31,3 +31,6 @@
 .biglwa-followers-count{font:750 18px/1.2 system-ui;color:#3b2632;font-variant-numeric:tabular-nums}
 .biglwa-followers-foot{font:500 10px/1.55 system-ui;color:#705b60;margin:12px 0 0}
 @media(prefers-reduced-motion:reduce){#studioApp .profile-card .stats .biglwa-followers-trigger{transition:none}}
+
+#biglwaFollowersPopover .biglwa-followers-refresh{border:1px solid currentColor;border-radius:7px;background:transparent;color:inherit;padding:5px 9px;font:650 10px system-ui;cursor:pointer}
+#biglwaFollowersPopover .biglwa-followers-refresh:disabled{opacity:.5;cursor:wait}

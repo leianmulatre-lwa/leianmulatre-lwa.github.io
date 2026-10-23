@@ -1545,9 +1545,18 @@
       panel.setAttribute('aria-label','Followers by connected platform');
       const head=document.createElement('div');head.className='biglwa-followers-head';
       const title=document.createElement('h3'),close=document.createElement('button');
+      const refresh=document.createElement('button');
+      refresh.type='button';refresh.textContent='↻ Refresh';refresh.className='biglwa-followers-refresh';
+      refresh.setAttribute('aria-label','Refresh provider-reported follower counts');
+      refresh.addEventListener('click',async()=>{
+        if(refresh.disabled)return;refresh.disabled=true;refresh.textContent='Checking…';
+        try{await window.__biglwaConnections?.refresh?.();await window.BigLWAAccountInsights?.refresh?.();}
+        catch(error){console.warn('Provider follower refresh unavailable',error)}
+        finally{refresh.disabled=false;refresh.textContent='↻ Refresh';drawFollowersPanel(stats,panel)}
+      });
       close.type='button';close.textContent='×';close.setAttribute('aria-label','Close follower breakdown');
       close.addEventListener('click',()=>{panel.hidden=true;stats.querySelector('[data-profile-stat="followers"]')?.setAttribute('aria-expanded','false')});
-      head.append(title,close);
+      head.append(title,refresh,close);
       const list=document.createElement('div');list.className='biglwa-followers-list';
       const foot=document.createElement('p');foot.className='biglwa-followers-foot';
       panel.append(head,list,foot);document.body.append(panel);

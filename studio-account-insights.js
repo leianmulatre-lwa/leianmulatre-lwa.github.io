@@ -21,10 +21,12 @@
   const accountUid=uid(),last=previousCounts(accountUid),updates={...last},rows=[];
   const ingest=(id,record,count,checkedAt,metric='followers')=>{
     if(!record||!id)return;
-    const handle=String(record.username||record.sourceUserId||'').trim().toLowerCase();
+    const handle=String(record.sourceUserId||record.username||'').trim().toLowerCase();
+    const legacyHandle=String(record.username||'').trim().toLowerCase();
     const fresh=number(count),prev=last[id];
-    const sameAccount=!!prev&&!!handle&&!!prev.handle&&prev.handle===handle;
-    const checked=String(checkedAt||record.countCheckedAt||record.lastCheckedAt||'');
+    const sameAccount=!!prev&&!!handle&&!!prev.handle&&(prev.handle===handle||prev.handle===legacyHandle);
+    // A basic-profile fetch must not count as a verified follower measurement.
+    const checked=String(checkedAt||record.countCheckedAt||'');
     const fallback=sameAccount?number(prev.followers):null;
     // Verified responses may *really* be zero. Unknown/omitted responses may
     // never erase a previously verified figure from the same connected account.
@@ -33,14 +35,18 @@
     if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric};
     rows.push({id,followers:value,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
       handle:record.username||'',link:record.link||'',metric,
-      isLastKnown:fresh===null&&fallback!==null,verified:!!checked});
+      isLastKnown:fresh===null&&fallback!==null,verified:fresh!==null&&!!checked});
   };
-  for(const [id,row]of Object.entries(overview.connections||{})){
-    if(row&&typeof row==='object')ingest(id,row,row.stats?.followers,row.countCheckedAt||row.lastCheckedAt);
-  }
-  for(const [id,row]of Object.entries(overview.orbitConnectedProfiles||{})){
-    if(row&&typeof row==='object'&&!rows.some(x=>x.id===id))
-      ingest(id,row,row.followers,row.countCheckedAt||row.lastCheckedAt);
+  // Provider-checked live records take priority over old Firestore snapshots;
+  // absent counts remain missing rather than becoming manufactured zeros.
+  const merged={
+    ...(overview.orbitConnectedProfiles||{}),
+    ...(overview.connections||{}),
+    ...(connectionAPI?.connections?.()||{})
+  };
+  for(const [id,row]of Object.entries(merged)){
+    if(row&&typeof row==='object')
+      ingest(id,row,row.stats?.followers??row.followers,row.countCheckedAt||'');
   }
   // YouTube provides *subscribers*, not "followers". Include these as an
   // explicitly named source only when authenticated channel statistics exist.

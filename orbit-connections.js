@@ -40,7 +40,8 @@ const SOURCES = [
     profile: "/tiktok/profile",
     client: "__biglwaTikTokOrbit",
     read: (p) => ({
-      username: p.display_name,
+      username: p.username || p.display_name,
+      sourceUserId: p.open_id,
       name: p.display_name,
       avatarUrl: p.avatar_url,
       followers: p.follower_count,
@@ -236,8 +237,11 @@ async function syncSource(source, uid) {
   const count = value => value!==null&&value!==undefined&&value!==''&&
     Number.isSafeInteger(Number(value))&&Number(value)>=0?Number(value):null;
   const old=current[source.id];
-  const sameAccount=!!old&&!!details.username&&
-    clean(old.username).toLowerCase()===clean(details.username).toLowerCase();
+  // TikTok's stable open_id survives changes to the visible display name.
+  const sameAccount=!!old&&(
+    (details.sourceUserId&&old.sourceUserId&&clean(details.sourceUserId)===clean(old.sourceUserId))||
+    (!!details.username&&clean(old.username).toLowerCase()===clean(details.username).toLowerCase())
+  );
   const followers=count(details.followers);
   const preserved=sameAccount?count(old.stats?.followers):null;
   const stats = {
@@ -266,6 +270,7 @@ async function syncSource(source, uid) {
     id: source.id,
     label: source.label,
     username: clean(details.username),
+    sourceUserId: clean(details.sourceUserId||old?.sourceUserId),
     name: clean(details.name),
     avatarUrl: clean(details.avatarUrl),
     link: clean(details.link),

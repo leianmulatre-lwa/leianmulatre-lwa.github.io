@@ -66,3 +66,6 @@ assert.equal(d.querySelector('[data-profile-stat="followers"] b').textContent,'â
 await new Promise(r=>setTimeout(r,1350));
 w.close();
 console.log('PASS provider follower totals, missing counts, real zero, per-app badges and per-UID privacy.');
+
+assert.match(insights,/connectionAPI\?\.connections\?\.\(\)/,'Latest connected provider responses power follower counts');
+assert.match(app,/biglwa-followers-refresh/,'Follower panel can request live API refresh');
