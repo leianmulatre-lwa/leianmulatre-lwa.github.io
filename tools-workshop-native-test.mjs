@@ -36,7 +36,9 @@ assert.match(suite,/CUBE_PALETTE/,'Workshop cubes use brand colors, not plain wo
 assert.match(css,/\.craft-block-svg/,'Workshop styles size the stitched vector cubes');
 assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses the stitched cube');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
-assert.ok(studio.includes('tools-craft.js?v=20261023-workshop-native-10'));
+assert.ok(studio.includes('tools-craft.js?v=20261023-bigapps-11'));
+assert.match(suite,/\/bigapps\/manifest\.json/,'Uses renamed manifest');
+assert.doesNotMatch(suite,/\/craftapps\//,'No legacy paths in editor launcher');
 assert.match(suite,/craftAccountVault/,'Cloud snapshots have a visible first-party shelf');
 assert.match(suite,/id="craftPanelSaveFile"/,'Preview save lives in the Workshop header, not over native tools');
 assert.match(css,/\.craft-panel-save/,'Workshop header controls are styled');

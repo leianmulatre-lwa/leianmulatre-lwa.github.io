@@ -1,7 +1,7 @@
 """Install version-pinned, open-source ArtCraft web editors during Pages deployment.
 
 Releases are fetched from upstream GitHub, checked against upstream SHA256SUMS,
-unpacked with traversal/size guards, and staged under /craftapps/<name>/.
+unpacked with traversal/size guards, and staged under /bigapps/<name>/.
 Failures never block the normal BIG LWA site: manifest.available is only true
 for a complete, checksum-verified build with source license notices.
 """
@@ -140,10 +140,36 @@ def preserve_notices(slug: str, version: str, dest: Path) -> None:
     )
 
 
+def write_legacy_redirect(legacy_root: Path, slug: str) -> None:
+    """Redirect historical GitHub Pages links without duplicating WebAssembly binaries."""
+    target = f"/bigapps/{slug}/"
+    folder = legacy_root / slug
+    folder.mkdir(parents=True, exist_ok=True)
+    html = (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="robots" content="noindex">'
+        f'<title>Moved to BIG LWA · {slug}</title>'
+        f'<meta http-equiv="refresh" content="0;url={target}">'
+        '</head><body>'
+        f'<script>location.replace({json.dumps(target)}+location.search+location.hash)</script>'
+        f'<a href="{target}">Continue to BIG LWA</a>'
+        '</body></html>'
+    )
+    (folder / "index.html").write_text(html, encoding="utf-8")
+
+
 def stage(target: Path) -> None:
     target.mkdir(parents=True, exist_ok=True)
-    root = target / "craftapps"
+    root = target / "bigapps"
     root.mkdir(exist_ok=True)
+    legacy_root = target / "craftapps"
+    legacy_root.mkdir(exist_ok=True)
+    (legacy_root / "index.html").write_text(
+        '<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex">'
+        '<meta http-equiv="refresh" content="0;url=/studio?view=tools">'
+        '<a href="/studio?view=tools">Open BIG LWA Workshop</a>',
+        encoding="utf-8",
+    )
     rows = []
     for slug, version in APPS:
         destination = root / slug
@@ -160,8 +186,11 @@ def stage(target: Path) -> None:
             shutil.rmtree(destination, ignore_errors=True)
             print(f"[ArtCraft] unavailable: {slug} v{version}: {exc}", file=sys.stderr)
         rows.append(row)
+        write_legacy_redirect(legacy_root, slug)
+    manifest_text = json.dumps({"schema": 1, "apps": rows}, indent=2) + "\n"
+    (legacy_root / "manifest.json").write_text(manifest_text, encoding="utf-8")
     (root / "manifest.json").write_text(
-        json.dumps({"schema": 1, "apps": rows}, indent=2) + "\n",
+        manifest_text,
         encoding="utf-8",
     )
     print("[ArtCraft] manifest:", {row["id"]: row["available"] for row in rows})

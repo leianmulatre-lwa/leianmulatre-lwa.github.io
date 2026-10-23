@@ -85,7 +85,7 @@ function card(item,local=false){
    '<div class="craft-engine-credits">'+escapeHtml(item.credit)+'</div>'+
    '<button type="button" data-craft-open="'+item.id+'"'+(local?'':' disabled')+'>'+
       (local?'Start creating →':'Checking engine…')+'</button>'+
-   (local?'':('<a href="/craftapps/'+encodeURIComponent(item.id)+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
+   (local?'':('<a href="/bigapps/'+encodeURIComponent(item.id)+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
   '</article>';
 }
 export async function mountCraftSuite(root){
@@ -222,7 +222,7 @@ export async function mountCraftSuite(root){
  const title=root.querySelector('#craftPanelTitle'),direct=root.querySelector('#craftDirectLink'),info=root.querySelector('#craftEditorStatus');
  const status=root.querySelector('#craftInstallStatus');
  let current=null;
- const getUrl=(id,webgl=false)=>id===LOCAL.id?LOCAL.url:'/craftapps/'+id+'/'+(webgl?'?webgl':'');
+ const getUrl=(id,webgl=false)=>id===LOCAL.id?LOCAL.url:'/bigapps/'+id+'/'+(webgl?'?webgl':'');
  const findItem=id=>id===LOCAL.id?LOCAL:ENGINES.find(item=>item.id===id);
  function close(){
   current=null;viewer.replaceChildren();panel.hidden=true;
@@ -268,7 +268,7 @@ export async function mountCraftSuite(root){
   }
  });
  try{
-  const response=await fetch('/craftapps/manifest.json',{cache:'no-store'});
+  const response=await fetch('/bigapps/manifest.json',{cache:'no-store'});
   if(!response.ok)throw Error('No advanced editor manifest');
   const manifest=await response.json();
   if(manifest.schema!==1||!Array.isArray(manifest.apps))throw Error('Invalid editor manifest');

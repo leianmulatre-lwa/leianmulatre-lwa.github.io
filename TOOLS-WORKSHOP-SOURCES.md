@@ -15,7 +15,7 @@
 | keyframeR | EffectCraft | https://github.com/storytold/effectcraft | 0.8.0 | MIT OR Apache-2.0 |
 | fileR | PdfCraft | https://github.com/storytold/pdfcraft | 0.6.0 | MIT OR Apache-2.0 |
 
-The **licensed editors are not BIG LWA-owned engines**. BIG LWA's build script `.github/scripts/stage-craft-apps.py` stages original, version-pinned WebAssembly releases from GitHub only when available and SHA-256 verified. Source terms from each original repository are copied to each staged engine under `/craftapps/<engine>/upstream-licenses/`. Availability is defined by `/craftapps/manifest.json`; a missing build must not be shown as working.
+The **licensed editors are not BIG LWA-owned engines**. BIG LWA's build script `.github/scripts/stage-craft-apps.py` stages original, version-pinned WebAssembly releases from GitHub only when available and SHA-256 verified. Source terms from each original repository are copied to each staged engine under `/bigapps/<engine>/upstream-licenses/`. Availability is defined by `/bigapps/manifest.json`; a missing build must not be shown as working.
 
 The following are being researched for future independent BIG LWA integrations and are **not claimed to be deployed**: FilmCraft, LightCraft, DesignCraft, FigCraft and SoundCraft.
 

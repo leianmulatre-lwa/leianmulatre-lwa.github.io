@@ -7,6 +7,7 @@ on:
       - 'tools-studio.js'
       - 'module-pages.js'
       - '.github/scripts/stage-craft-apps.py'
+      - '.github/scripts/test-bigapps-routing.py'
       - '.github/workflows/craft-apps-checks.yml'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
@@ -26,6 +27,7 @@ jobs:
           node --input-type=module --check < tools-craft.js
           node --check module-pages.js
           python3 -m py_compile .github/scripts/stage-craft-apps.py
+          python3 .github/scripts/test-bigapps-routing.py
           node tools-studio-test.mjs
           node --check tools-studio.js
           test -f tools/image-desk.html
@@ -48,4 +50,6 @@ jobs:
               assert any(app.rglob('*.wasm')),f"No WASM editor for {row['id']}"
               assert (app/'upstream-licenses/LICENSE-MIT').exists()
               assert (app/'upstream-licenses/LICENSE-APACHE').exists()
+              legacy=pathlib.Path(os.environ['RUNNER_TEMP'])/'craft-test/craftapps'/row['id']/'index.html'
+              assert legacy.exists() and ('/bigapps/'+row['id']+'/') in legacy.read_text()
           PY
