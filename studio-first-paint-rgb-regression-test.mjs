@@ -13,7 +13,7 @@ assert.ok(protectedPart.includes('html.biglwa-startup-protected #biglwaStartupSc
 assert.ok(protectedPart.includes('const startupMarkup=')&&protectedPart.includes('html.replace(/<body'),'Protected stage inserts only one startup screen element');
 assert.ok(!first.includes('body::before')&&!first.includes('body::after')&&!first.includes('html::after'),'Previous stacked CSS pseudo-screens removed');
 assert.ok(!protectedPart.includes('html.biglwa-startup-protected body::before')&&!protectedPart.includes('html.biglwa-startup-protected body::after'),'Protected duplicate pseudo curtain removed');
-assert.ok(first.includes('biglwa · loading your studio')&&protectedPart.includes('biglwa · loading your studio'));
+assert.ok(html.includes('<div id="biglwaStartupScreen" role="status" aria-live="polite">')&&protectedPart.includes('biglwa · loading your studio'),'Both startup DOM screens use lowercase heading');
 assert.ok(!first.includes('OPENING YOUR STUDIO'),'No uppercase startup heading');
 assert.ok(first.includes('font-family:"CS Bergamot Stitched"')||first.includes('"CS Bergamot Stitched"'));
 for(const key of ['@keyframes dot-floating{','@keyframes dot-floating-before{','@keyframes dot-floating-after{']){
