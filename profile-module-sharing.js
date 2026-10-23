@@ -104,6 +104,18 @@ function controls(){
 }
 window.addEventListener('biglwa:public-profile-ready',e=>{visitor=e.detail;window.__biglwaPublicStorageView=true;controls()});
 document.addEventListener('biglwa:module-open',()=>setTimeout(controls,0));
+const visualzStyle=document.createElement('style');
+visualzStyle.id='biglwa-visualz-share-layout';
+visualzStyle.textContent=[
+  '#lwaProjects .visualz-share-controls{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap;flex:0 1 auto;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;min-width:0}',
+  '#lwaProjects .visualz-share-controls .module-action{margin:0!important;white-space:nowrap;font:700 10px/1.2 system-ui;padding:8px 9px;min-height:32px;border-radius:8px}',
+  '#lwaProjects .visualz-share-controls p{order:9;flex-basis:100%;font:500 10px/1.4 system-ui;color:#6d4554;margin:2px 0 0}',
+  '#lwaProjects .visualz-share-controls p[hidden]{display:none!important}',
+  '#lwaProjects .vs-buttons{justify-content:flex-start!important;gap:6px!important}',
+  '#lwaProjects .vs-toolbar{gap:12px!important}',
+  '@media(max-width:760px){#lwaProjects .visualz-share-controls{flex-basis:100%}}'
+].join('');
+document.head.append(visualzStyle);
 document.addEventListener('biglwa:visualz-render',()=>setTimeout(controls,0));
 document.addEventListener('biglwa:visualz-toolbar-ready',()=>setTimeout(controls,0));
 // A signed-in visitor still has no editing rights over another member's Studio.
