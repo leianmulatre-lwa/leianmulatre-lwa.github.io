@@ -34,3 +34,7 @@
 
 #biglwaFollowersPopover .biglwa-followers-refresh{border:1px solid currentColor;border-radius:7px;background:transparent;color:inherit;padding:5px 9px;font:650 10px system-ui;cursor:pointer}
 #biglwaFollowersPopover .biglwa-followers-refresh:disabled{opacity:.5;cursor:wait}
+
+/* Compact provider-returned-count indicator; never applied to externally matched usernames. */
+.biglwa-provider-check{display:inline-grid;place-items:center;vertical-align:middle;width:15px;height:15px;margin-left:3px;border-radius:50%;background:#267953;color:white;font:800 10px/1 system-ui}
+#studioApp .profile-card .stats[data-biglwa-metric-source] span[data-profile-stat="likes"]{white-space:nowrap}
