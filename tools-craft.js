@@ -1,152 +1,148 @@
-/* BIG LWA / Tools — embed original open-source ArtCraft WebAssembly releases.
- * These are independent Adobe-like editors, not Adobe products. No proxying,
- * simulated tool screens, silent file upload, or access to Firebase identity.
+/* BIG LWA Tools Workshop
+ * Our own product shell and first-party editor; licensed Storytold Rust/WASM
+ * engines are optional advanced workspaces, not Adobe products or BIG LWA
+ * original engine implementations. Upstream LICENSE and NOTICE remain intact.
  */
-const APPS = [
-  {id:'photocraft',name:'PhotoCraft',letter:'Ps',version:'0.7.0',
-    task:'Layers, photo compositing and image editing · Photoshop-style',
-    about:'https://getartcraft.com/apps/photocraft'},
-  {id:'vectorcraft',name:'VectorCraft',letter:'Ai',version:'0.9.0',
-    task:'Pen tools, vector illustration and SVG · Illustrator-style',
-    about:'https://getartcraft.com/apps/vectorcraft'},
-  {id:'effectcraft',name:'EffectCraft',letter:'Ae',version:'0.8.0',
-    task:'Timeline, keyframes and motion graphics · After Effects-style',
-    about:'https://getartcraft.com/apps/effectcraft'},
-  {id:'pdfcraft',name:'PdfCraft',letter:'Ac',version:'0.6.0',
-    task:'Read, organize, annotate and export PDFs · Acrobat-style',
-    about:'https://getartcraft.com/apps/pdfcraft'}
+const ENGINES=[
+ {id:'photocraft',name:'Pixel Lab',credit:'PhotoCraft',letter:'◈',version:'0.7.0',
+  description:'Advanced layers, compositing, image workflows',type:'Image',
+  source:'https://github.com/storytold/photocraft'},
+ {id:'vectorcraft',name:'Vector Studio',credit:'VectorCraft',letter:'✤',version:'0.9.0',
+  description:'Paths, SVG drawing and vector artwork',type:'Vector',
+  source:'https://github.com/storytold/vectorcraft'},
+ {id:'effectcraft',name:'Motion Room',credit:'EffectCraft',letter:'◐',version:'0.8.0',
+  description:'Keyframes, animation and motion composition',type:'Motion',
+  source:'https://github.com/storytold/effectcraft'},
+ {id:'pdfcraft',name:'Paper Desk',credit:'PdfCraft',letter:'▤',version:'0.6.0',
+  description:'PDF viewing, annotation and editing',type:'Document',
+  source:'https://github.com/storytold/pdfcraft'}
 ];
-const MORE = [
-  ['FilmCraft','Video editor (desktop build)','https://getartcraft.com/apps/filmcraft'],
-  ['LightCraft','Photography and raw development','https://getartcraft.com/apps/lightcraft'],
-  ['DesignCraft','Publishing and layout','https://getartcraft.com/apps/designcraft'],
-  ['FigCraft','Interface and prototype design','https://getartcraft.com/apps/figcraft'],
-  ['SoundCraft','Audio mixing','https://getartcraft.com/apps/soundcraft']
+const FUTURE=[
+ ['FilmCraft','Video editing'],['LightCraft','Photography and RAW'],['DesignCraft','Page layout'],
+ ['FigCraft','Interface design'],['SoundCraft','Audio production']
 ];
-const BASE='/craftapps/';
-const htmlEscape=value=>String(value??'').replace(/[&<>"']/g,
-  c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const urlFor=id=>BASE+id+'/';
-const safeId=id=>APPS.some(app=>app.id===id);
-let styleInstalled=false;
+const LOCAL={id:'image-desk',name:'Image Desk',letter:'✎',url:'/tools/image-desk.html',
+ description:'Draw, paint, add text and layers, edit photos, save editable BIG LWA projects.',
+ credit:'Original BIG LWA editor · works locally'};
+const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeId=id=>id===LOCAL.id||ENGINES.some(item=>item.id===id);
+let stylesReady=false;
 function installStyle(){
-  if(styleInstalled||document.getElementById('biglwaCraftCss'))return;
-  styleInstalled=true;
-  const link=document.createElement('link');
-  link.id='biglwaCraftCss';link.rel='stylesheet';
-  link.href='/tools-craft.css?v=20261014-craft-suite-1';
-  document.head.append(link);
+ if(stylesReady||document.getElementById('biglwaCraftCss'))return;
+ stylesReady=true;
+ const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
+ css.href='/tools-craft.css?v=20261022-biglwa-workshop-2';document.head.append(css);
+}
+function card(item,local=false){
+ const title=local?'Made by BIG LWA':'Advanced · '+item.type;
+ return '<article class="craft-tile'+(local?' craft-tile-home':'')+'" data-craft-card="'+item.id+'">'+
+   '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
+   '<div class="craft-tile-icon" aria-hidden="true">'+escapeHtml(item.letter)+'</div>'+
+   '<h3>'+escapeHtml(item.name)+'</h3>'+
+   '<p>'+escapeHtml(item.description)+'</p>'+
+   '<div class="craft-engine-credits">'+escapeHtml(item.credit)+'</div>'+
+   '<button type="button" data-craft-open="'+item.id+'"'+(local?'':' disabled')+'>'+
+      (local?'Start creating →':'Checking engine…')+'</button>'+
+   (local?'':('<a href="'+item.source+'" target="_blank" rel="noopener noreferrer">Open-source code & licenses ↗</a>'))+
+  '</article>';
 }
 export async function mountCraftSuite(root){
-  if(!root)return;
-  installStyle();
-  root.classList.add('craft-suite');
-  root.innerHTML='<div class="craft-head"><div>'+
-    '<span class="craft-label">BIG LWA · open-source creative tools</span>'+
-    '<h2>artcraft · creative lab</h2>'+
-    '<p>Real browser editions of independent creative apps, inspired by familiar Adobe workflows. Choose a tool to edit inside Big LWA. These are not Adobe software or an Adobe subscription.</p>'+
-    '</div><a href="https://getartcraft.com/apps" target="_blank" rel="noopener noreferrer">About ArtCraft ↗</a></div>'+
-    '<p class="craft-status" id="craftInstallStatus" role="status">Checking available browser editors…</p>'+
-    '<div class="craft-directory" role="list" aria-label="Creative applications">'+APPS.map(app=>
-       '<article class="craft-tile" role="listitem" data-craft-card="'+app.id+'">'+
-       '<span class="craft-monogram" aria-hidden="true">'+htmlEscape(app.letter)+'</span>'+
-       '<h3>'+htmlEscape(app.name)+'</h3><p>'+htmlEscape(app.task)+'</p>'+
-       '<small id="craft-availability-'+app.id+'">Checking browser build…</small>'+
-       '<button type="button" data-craft-open="'+app.id+'" disabled>Checking…</button>'+
-       '<a href="'+app.about+'" target="_blank" rel="noopener noreferrer">About & downloads ↗</a></article>'
-     ).join('')+'</div>'+
-     '<div class="craft-panel" id="craftPanel" hidden>'+
-       '<div class="craft-panel-head"><strong id="craftPanelTitle">Creative editor</strong>'+
-         '<div class="craft-panel-actions"><button type="button" data-craft-webgl>Use WebGL</button>'+
-         '<button type="button" data-craft-fullscreen>Fullscreen</button>'+
-         '<a id="craftDirectLink" target="_blank" rel="noopener noreferrer">Open full tab ↗</a>'+
-         '<button type="button" data-craft-close>Close</button></div></div>'+
-       '<div class="craft-viewer" id="craftViewer"></div>'+
-       '<p class="craft-panel-foot" role="status" id="craftEditorStatus">Select a browser editor to begin.</p>'+
-     '</div>'+
-     '<div class="craft-smallprint"><p><b>How files work:</b> Choose File → Open, or drag your file into the editor; use its own Save / Export to download the result. ArtCraft projects are not automatically stored in your Big LWA profile, Feed, or Archive.</p>'+
-       '<p>Runs in your browser from the original developers’ open-source WebAssembly builds when installed. Some editing features are experimental and may need WebGPU or WebGL2. Never confuse these with official Adobe applications.</p>'+
-       '<div class="craft-more" aria-label="Other ArtCraft desktop and web releases">'+MORE.map(([name,note,url])=>
-         '<a href="'+url+'" target="_blank" rel="noopener noreferrer" title="'+htmlEscape(note)+'">'+htmlEscape(name)+' ↗</a>').join('')+
-       '<a href="https://app.getartcraft.com/" target="_blank" rel="noopener noreferrer" title="Separate ArtCraft AI generation studio">ArtCraft AI Studio ↗</a></div>'+
-     '</div>';
-  const status=root.querySelector('#craftInstallStatus');
-  const viewer=root.querySelector('#craftViewer');
-  const panel=root.querySelector('#craftPanel');
-  const label=root.querySelector('#craftPanelTitle');
-  const editorStatus=root.querySelector('#craftEditorStatus');
-  const direct=root.querySelector('#craftDirectLink');
-  const ready=new Set();
-  let current=null;
-  let fallback=false;
-  const setStatus=(message)=>{status.textContent=message;};
-  function close(){
-    current=null;viewer.replaceChildren();panel.hidden=true;
-    root.querySelectorAll('[data-craft-card]').forEach(card=>card.classList.remove('is-selected'));
+ if(!root)return;
+ installStyle();
+ root.classList.add('craft-suite','craft-workshop');
+ root.innerHTML=
+  '<header class="craft-head">'+
+   '<div class="craft-head-copy"><span class="craft-label">BIG LWA · maker\'s workspace</span>'+
+   '<h2>the workshop</h2>'+
+   '<p>A creative operating room that belongs to this community: make your own work, keep drafts to yourself, export what you choose. Start with our own Image Desk or step into an advanced open-source engine.</p></div>'+
+   '<div class="craft-head-ornament" aria-hidden="true"><i></i><i></i><i></i><strong>✦</strong></div></header>'+
+  '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
+  '<p class="craft-status" id="craftInstallStatus" role="status">Image Desk ready · checking advanced browser engines…</p>'+
+  '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
+  '<div class="craft-panel" id="craftPanel" hidden>'+
+    '<div class="craft-panel-head"><strong id="craftPanelTitle">BIG LWA editor</strong><div class="craft-panel-actions">'+
+       '<button type="button" data-craft-webgl hidden>WebGL fallback</button>'+
+       '<button type="button" data-craft-fullscreen>Fullscreen</button>'+
+       '<a id="craftDirectLink" href="/tools/image-desk.html" target="_blank" rel="noopener noreferrer">Open in its own tab ↗</a>'+
+       '<button type="button" data-craft-close>✕ Close</button></div></div>'+
+    '<div class="craft-viewer" id="craftViewer"></div>'+
+    '<p class="craft-panel-foot" role="status" id="craftEditorStatus">Your workspace is ready.</p>'+
+  '</div>'+
+  '<footer class="craft-smallprint">'+
+    '<p><strong>Who made what?</strong> Image Desk and this Workshop are BIG LWA interfaces. Advanced Pixel Lab, Vector Studio, Motion Room, and Paper Desk run licensed Storytold Rust/WebAssembly editors (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). The original engine creators retain their copyright; BIG LWA controls its own surrounding experience and original code. These are not Adobe applications.</p>'+
+    '<p><strong>Privacy:</strong> File → Open, drawing, and exports happen inside your browser; the Workshop does not silently import anything to your BIG LWA feed or account. Download the project or finished asset to keep it. Some advanced builds need WebGPU/WebGL.</p>'+
+    '<details><summary>More source projects for future BIG LWA editions</summary><div class="craft-more">'+
+      FUTURE.map(([name,note])=>'<a href="https://github.com/storytold/'+name.toLowerCase()+'" target="_blank" rel="noopener noreferrer">'+name+' · '+note+' ↗</a>').join('')+
+    '</div></details>'+
+  '</footer>';
+ const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
+ const title=root.querySelector('#craftPanelTitle'),direct=root.querySelector('#craftDirectLink'),info=root.querySelector('#craftEditorStatus');
+ const status=root.querySelector('#craftInstallStatus');
+ let current=null;
+ const getUrl=(id,webgl=false)=>id===LOCAL.id?LOCAL.url:'/craftapps/'+id+'/'+(webgl?'?webgl':'');
+ const findItem=id=>id===LOCAL.id?LOCAL:ENGINES.find(item=>item.id===id);
+ function close(){
+  current=null;viewer.replaceChildren();panel.hidden=true;
+  root.querySelectorAll('[data-craft-card]').forEach(el=>el.classList.remove('is-selected'));
+ }
+ function open(id,webgl=false){
+  const item=findItem(id);
+  if(!item||!ready.has(id))return false;
+  // Reuse the element for the same destination; don't restart editing on
+  // unrelated clicks to the selected card.
+  if(current===id&&viewer.querySelector('iframe')?.getAttribute('src')===getUrl(id,webgl)){
+    panel.hidden=false;panel.scrollIntoView({block:'nearest',behavior:'smooth'});return true;
   }
-  function load(id,webgl=false){
-    const app=APPS.find(item=>item.id===id);
-    if(!app||!ready.has(id))return;
-    current=id;fallback=webgl;
-    const url=urlFor(id)+(webgl?'?webgl':'');
-    const frame=document.createElement('iframe');
-    frame.title=app.name+' editor inside Big LWA';
-    frame.src=url;
-    frame.loading='eager';
-    frame.referrerPolicy='no-referrer';
-    // The upstream WebAssembly shell requires same-origin for file opening,
-    // storage and export; PDFs/images are edited by the visitor's browser.
-    // Hosting on a dedicated sandboxed subdomain is preferable long-term.
-    frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-downloads allow-forms allow-popups');
-    frame.setAttribute('allow','fullscreen; clipboard-read; clipboard-write');
-    frame.setAttribute('allowfullscreen','');
-    frame.addEventListener('error',()=>{editorStatus.textContent='The editor could not start. Use Open full tab or the original ArtCraft download.'});
-    viewer.replaceChildren(frame);
-    panel.hidden=false;label.textContent=app.name+' · browser editor';
-    editorStatus.textContent='Loading '+app.name+'… Open, edit, then save/export from within the editor. If a renderer fails, try “Use WebGL” or “Open full tab”.';
-    direct.href=urlFor(id)+(webgl?'?webgl':'');
-    root.querySelectorAll('[data-craft-card]').forEach(card=>card.classList.toggle('is-selected',card.dataset.craftCard===id));
-    panel.scrollIntoView({block:'nearest',behavior:'smooth'});
+  current=id;
+  const frame=document.createElement('iframe');frame.src=getUrl(id,webgl);
+  frame.title=item.name+' · BIG LWA Tools';
+  frame.loading='eager';frame.referrerPolicy='no-referrer';
+  // Native same-origin iframe needs scripts, storage, downloads and fonts.
+  // Upstream WebAssembly applications are hosted on this site's own origin.
+  frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-downloads allow-forms allow-popups');
+  frame.setAttribute('allow','fullscreen; clipboard-read; clipboard-write');
+  frame.setAttribute('allowfullscreen','');
+  frame.addEventListener('error',()=>{info.textContent='The editor failed to start. Try its own tab or another browser.'});
+  viewer.replaceChildren(frame);panel.hidden=false;
+  title.textContent='BIG LWA · '+item.name;
+  info.textContent=id===LOCAL.id?
+    'Original BIG LWA editor · import an image, add layers or text, draw and export. Nothing is uploaded automatically.':
+    'Open-source '+item.credit+' editing engine, hosted inside BIG LWA. Import/export inside the editor; it does not publish to the Collective Feed.';
+  direct.href=getUrl(id,webgl);
+  root.querySelector('[data-craft-webgl]').hidden=id===LOCAL.id;
+  root.querySelectorAll('[data-craft-card]').forEach(el=>el.classList.toggle('is-selected',el.dataset.craftCard===id));
+  panel.scrollIntoView({block:'nearest',behavior:'smooth'});
+  return true;
+ }
+ root.addEventListener('click',event=>{
+  const button=event.target.closest('button');if(!button||!root.contains(button))return;
+  const id=button.dataset.craftOpen;
+  if(id&&safeId(id)){open(id);return}
+  if(button.hasAttribute('data-craft-close'))close();
+  else if(button.hasAttribute('data-craft-webgl')&&current&&current!==LOCAL.id)open(current,true);
+  else if(button.hasAttribute('data-craft-fullscreen')){
+   viewer.requestFullscreen?.().catch(()=>{info.textContent='Fullscreen unavailable here. Open the editor in its own tab.'});
   }
-  root.addEventListener('click',event=>{
-    const button=event.target.closest('button');if(!button||!root.contains(button))return;
-    const id=button.dataset.craftOpen;
-    if(id&&safeId(id)){load(id);return}
-    if(button.hasAttribute('data-craft-close')){close();return}
-    if(button.hasAttribute('data-craft-webgl')){if(current)load(current,true);return}
-    if(button.hasAttribute('data-craft-fullscreen')){
-      const el=viewer;
-      if(el.requestFullscreen)el.requestFullscreen().catch(()=>{editorStatus.textContent='Fullscreen unavailable in this browser. Use Open full tab instead.'});
-    }
-  });
-  let manifest=null;
-  try{
-    const response=await fetch(BASE+'manifest.json',{cache:'no-store'});
-    if(!response.ok)throw Error('No build manifest yet');
-    const payload=await response.json();
-    if(payload?.schema!==1||!Array.isArray(payload.apps))throw Error('Invalid build manifest');
-    manifest=payload;
-  }catch(error){
-    setStatus('Creative editors are listed, but local browser builds have not yet been deployed. Official ArtCraft pages are linked below.');
+ });
+ try{
+  const response=await fetch('/craftapps/manifest.json',{cache:'no-store'});
+  if(!response.ok)throw Error('No advanced editor manifest');
+  const manifest=await response.json();
+  if(manifest.schema!==1||!Array.isArray(manifest.apps))throw Error('Invalid editor manifest');
+  for(const item of ENGINES){
+   const row=manifest.apps.find(x=>x.id===item.id);
+   if(row?.available===true&&row.version===item.version)ready.add(item.id);
   }
-  if(!root.isConnected)return;
-  for(const app of APPS){
-    const row=manifest?.apps?.find(item=>item.id===app.id);
-    const available=row?.available===true&&row.version===app.version;
-    const tile=root.querySelector('[data-craft-card="'+app.id+'"]');
-    const button=tile?.querySelector('[data-craft-open]');
-    const hint=tile?.querySelector('small');
-    if(!button||!hint)continue;
-    if(available){
-      ready.add(app.id);button.disabled=false;button.textContent='Edit inside Big LWA →';
-      hint.textContent='Browser edition · v'+app.version;
-    }else{
-      button.disabled=true;button.textContent='Web edition unavailable';
-      hint.textContent='Open-source release · v'+app.version;
-    }
-  }
-  if(manifest)setStatus(ready.size?
-    ready.size+' browser editor'+(ready.size===1?'':'s')+' installed · files stay on your device until you download/export them.':
-    'ArtCraft browser builds are unavailable in this deployment. Use the original ArtCraft download links.');
-  return {open:(id)=>load(id),close,available:()=>[...ready]};
+  status.textContent='Image Desk ready · '+(ready.size-1)+' advanced open-source engines available in this deployment.';
+ }catch(error){status.textContent='Image Desk ready · advanced engines are unavailable in this deployment.'}
+ if(!root.isConnected)return;
+ for(const app of ENGINES){
+  const tile=root.querySelector('[data-craft-card="'+app.id+'"]');
+  if(!tile)continue;
+  const button=tile.querySelector('button[data-craft-open]');
+  button.disabled=!ready.has(app.id);
+  button.textContent=ready.has(app.id)?'Edit inside BIG LWA →':'Browser engine unavailable';
+  if(!ready.has(app.id))tile.classList.add('craft-unavailable');
+ }
+ return {open,close,available:()=>[...ready]};
 }
