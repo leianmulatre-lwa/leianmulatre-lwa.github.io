@@ -133,3 +133,18 @@
 #craftSuite .craft-vault-card span{font:700 11px/1.2 system-ui;overflow-wrap:anywhere}
 #craftSuite .craft-vault-card button{background:#fff3e1;border:1px solid #886d56;border-radius:7px;padding:6px 7px;cursor:pointer;color:#382a23;font:650 10px/1.2 system-ui}
 #craftSuite .craft-vault-card button:hover{background:#f4d3ad}
+
+/* Workshop-native control row: the WASM canvas no longer carries a floating save overlay. */
+#craftSuite .craft-panel-head{gap:10px;min-width:0}
+#craftSuite .craft-panel-identity{min-width:0;display:flex;align-items:center;gap:10px;flex:1 1 200px}
+#craftSuite .craft-panel-identity strong{min-width:0;overflow-wrap:anywhere}
+#craftSuite .craft-panel-lights{display:inline-flex;gap:5px;align-items:center;flex:none}
+#craftSuite .craft-panel-lights i{width:10px;height:10px;display:block;border-radius:50%;background:#df605b;border:1px solid #1e1217}
+#craftSuite .craft-panel-lights i:nth-child(2){background:#f4c749}
+#craftSuite .craft-panel-lights i:nth-child(3){background:#57ac70}
+#craftSuite .craft-panel-actions{min-width:0;justify-content:flex-end;align-items:center}
+#craftSuite .craft-panel-save{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:31px;box-sizing:border-box;padding:7px 11px;background:#e4cfa9;border:1px solid #a7793b;border-radius:8px;color:#3a2920;white-space:nowrap;cursor:pointer;font:750 11px/1.2 system-ui}
+#craftSuite .craft-panel-save:hover,#craftSuite .craft-panel-save:focus-within{background:#f3dbaa;outline:2px solid #a7793b;outline-offset:1px}
+#craftSuite .craft-panel-save:has(input:disabled){opacity:.55;cursor:not-allowed}
+#craftSuite .craft-panel-save input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+@media(max-width:600px){#craftSuite .craft-panel-identity{flex-basis:100%}#craftSuite .craft-panel-actions{width:100%;justify-content:flex-start}#craftSuite .craft-panel-actions>*{flex:0 0 auto}}
