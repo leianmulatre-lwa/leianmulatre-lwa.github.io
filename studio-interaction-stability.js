@@ -48,8 +48,11 @@
  titleObserver.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['title']});
  window.addEventListener('biglwa:identity-updated',()=>{hintsHidden=readHidden();applyHintsPreference()});
  window.addEventListener('storage',event=>{if(event.key===hintsKey()){hintsHidden=readHidden();applyHintsPreference()}});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyHintsPreference,{once:true});
- else applyHintsPreference();
+ // Apply immediately so DOMContentLoaded cannot dismiss an actively-read hint.
+ applyHintsPreference();
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
+  if(hintsHidden)stripTitles(q('#studioApp')||document.body);
+ },{once:true});
  document.addEventListener('pointerover',event=>{const el=target(event.target);if(el){show(el);pointerInHelp=true}if(tip.contains(event.target)){pointerInHelp=true;clearTimeout(hideTimer)}});
  document.addEventListener('pointerout',event=>{if(!anchor||(!anchor.contains(event.target)&&!tip.contains(event.target)))return;if(anchor.contains(event.relatedTarget)||tip.contains(event.relatedTarget))return;pointerInHelp=false;hideTimer=setTimeout(hide,220)});
  document.addEventListener('focusin',event=>{const el=target(event.target);if(el)show(el)});
