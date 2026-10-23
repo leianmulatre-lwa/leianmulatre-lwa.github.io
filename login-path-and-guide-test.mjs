@@ -120,7 +120,7 @@ assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
 assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
 assert.ok(home.includes('brand-policy.css?v='));
 
-assert.ok(home.includes('/brand-policy.css?v=20261020-rich-maroon-curtain-2'),
+assert.ok(home.includes('/brand-policy.css?v=20261023-login-widget-ribbon-1'),
   'login explicitly loads the fresh true-white supporter carousel styles');
 const pureWhiteLogin=brand.slice(brand.indexOf('/* Login supporter marquee · true-white logo gallery.'));
 assert.ok(pureWhiteLogin.startsWith('/* Login supporter marquee · true-white logo gallery.'),
