@@ -2,7 +2,10 @@
  * The Rust/WASM editor internals, native project formats and author notices stay intact. */
 (()=>{
  'use strict';
- const id=location.pathname.match(/^\/craftapps\/(photocraft|vectorcraft|effectcraft|pdfcraft)(?:\/|$)/)?.[1];
+ const matched=location.pathname.match(/^\/bigapps\/(lightR|paintR|keyframeR|fileR|photocraft|vectorcraft|effectcraft|pdfcraft)(?:\/|$)/i)?.[1];
+ const ids={lightr:'photocraft',paintr:'vectorcraft',keyframer:'effectcraft',filer:'pdfcraft',photocraft:'photocraft',vectorcraft:'vectorcraft',effectcraft:'effectcraft',pdfcraft:'pdfcraft'};
+ const id=ids[matched?.toLowerCase()];
+ const links={github:'https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io',patreon:'https://www.patreon.com/cw/biglwa'};
  const apps={
   photocraft:{name:'lightR',letter:'𝖑',legacy:'PhotoCraft'},
   vectorcraft:{name:'paintR',letter:'𝖕',legacy:'VectorCraft'},
@@ -11,6 +14,7 @@
  };
  if(!id||!apps[id])return;
  document.documentElement.dataset.biglwaEditor=id;
+ document.documentElement.dataset.biglwaApp=matched;
  const item=apps[id];
  function setup(){
   if(document.querySelector('.biglwa-editor-chrome'))return;
@@ -25,7 +29,8 @@
    '<div class="biglwa-editor-links">'+
    '<label title="Upload an image you exported from this editor to your private BIG LWA snapshots">Save exported image<input id="biglwaAdvancedSnapshot" type="file" accept="image/png,image/jpeg,image/webp"></label>'+
    '<a href="/studio?view=tools">Workshop ↗</a>'+
-   '<a href="/bigapps/'+id+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Engine credits ↗</a></div>'+
+   '<a href="'+links.github+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+links.patreon+'" target="_blank" rel="noopener noreferrer">Patreon ↗</a>'+
+   '<a href="/bigapps/'+matched+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Licenses ↗</a></div>'+
    '<small class="biglwa-editor-status" role="status">Files stay local unless you choose to save a preview.</small>';
   const mini=document.createElement('button');mini.className='biglwa-editor-reopen';mini.hidden=true;
   mini.type='button';mini.textContent=item.letter+' · '+item.name;mini.setAttribute('aria-label','Show BIG LWA toolbar');

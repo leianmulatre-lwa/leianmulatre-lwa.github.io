@@ -39,14 +39,16 @@ with TemporaryDirectory() as directory:
     assert (old / "manifest.json").read_bytes() == (new / "manifest.json").read_bytes()
     for row in manifest["apps"]:
         slug = row["id"]
-        app = new / slug
+        app = new / row["route"].strip("/").split("/")[-1]
         assert (app / "editor.wasm").is_file()
         assert (app / "upstream-licenses/SOURCE.txt").is_file()
         assert (old / slug / "upstream-licenses/SOURCE.txt").read_bytes() == (app / "upstream-licenses/SOURCE.txt").read_bytes()
         assert "BIG LWA" in (app / "index.html").read_text()
         redirect = (old / slug / "index.html").read_text()
-        assert f"/bigapps/{slug}/" in redirect
+        assert row["route"] in redirect
+        assert row["route"] in (new / slug / "index.html").read_text()
         assert "location.search+location.hash" in redirect
         assert not (old / slug / "editor.wasm").exists()
+        assert not (new / slug / "editor.wasm").exists()
     assert "/studio?view=tools" in (old / "index.html").read_text()
 print("PASS: /bigapps/ editors, manifest, credits, and legacy bookmark redirects.")

@@ -17,6 +17,9 @@ const ENGINES=[
   description:'PDF viewing, annotation and editing',type:'Document',
   source:'https://github.com/storytold/pdfcraft'}
 ];
+const PUBLIC_APP_ROUTE={photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'};
+const BIGLWA_GITHUB='https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io';
+const BIGLWA_PATREON='https://www.patreon.com/cw/biglwa';
 const FUTURE=[
  ['FilmCraft','Video editing'],['LightCraft','Photography and RAW'],['DesignCraft','Page layout'],
  ['FigCraft','Interface design'],['SoundCraft','Audio production']
@@ -72,7 +75,7 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261023-editor-head-9';document.head.append(css);
+ css.href='/tools-craft.css?v=20261023-bigapps-ui-12';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
@@ -80,12 +83,12 @@ function card(item,local=false){
    '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
    '<div class="craft-tile-icon craft-arcade-block craft-block-'+escapeHtml(item.id)+'" aria-hidden="true">'+
      blockArtwork(item)+'</div>'+
-   '<h3>'+escapeHtml(item.name)+'</h3>'+
+   '<h3 aria-label="'+escapeHtml(item.name)+'">'+escapeHtml(item.name.slice(0,-1))+'<span class="craft-capital-r" aria-hidden="true">R</span></h3>'+
    '<p>'+escapeHtml(item.description)+'</p>'+
-   '<div class="craft-engine-credits">'+escapeHtml(item.credit)+'</div>'+
+   '<div class="craft-engine-credits">'+(local?'Made by BIG LWA':'BIG LWA edition · licensed editing engine')+'</div>'+
    '<button type="button" data-craft-open="'+item.id+'"'+(local?'':' disabled')+'>'+
       (local?'Start creating →':'Checking engine…')+'</button>'+
-   (local?'':('<a href="/bigapps/'+encodeURIComponent(item.id)+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
+   (local?'':('<a href="/bigapps/'+encodeURIComponent(PUBLIC_APP_ROUTE[item.id])+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
   '</article>';
 }
 export async function mountCraftSuite(root){
@@ -96,7 +99,7 @@ export async function mountCraftSuite(root){
   '<header class="craft-head">'+
    '<div class="craft-head-copy"><span class="craft-label">BIG LWA · maker\'s workspace</span>'+
    '<h2>the workshop</h2>'+
-   '<p>A creative operating room that belongs to this community: make your own work, keep drafts to yourself, export what you choose. Start with sqwibblR or step into one of our attributed open-source engines.</p></div>'+
+   '<p>A creative operating room that belongs to this community: make your own work, keep drafts to yourself, export what you choose.</p><nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support on Patreon ↗</a></nav></div>'+
    '<div class="craft-head-ornament" aria-hidden="true"><i></i><i></i><i></i><strong>✦</strong></div></header>'+
   '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
@@ -120,7 +123,7 @@ export async function mountCraftSuite(root){
     '<p><strong>Who made what?</strong> sqwibblR and this Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
     '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects still require the editor’s download/export commands. Some advanced builds require WebGPU/WebGL.</p>'+
     '<details><summary>More source projects for future BIG LWA editions</summary><div class="craft-more">'+
-      FUTURE.map(([name,note])=>'<a href="https://github.com/storytold/'+name.toLowerCase()+'" target="_blank" rel="noopener noreferrer">'+name+' · '+note+' ↗</a>').join('')+
+      FUTURE.map(([name,note])=>'<span>'+escapeHtml(name)+' · '+escapeHtml(note)+'</span>').join('')+
     '</div></details>'+
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
@@ -222,7 +225,7 @@ export async function mountCraftSuite(root){
  const title=root.querySelector('#craftPanelTitle'),direct=root.querySelector('#craftDirectLink'),info=root.querySelector('#craftEditorStatus');
  const status=root.querySelector('#craftInstallStatus');
  let current=null;
- const getUrl=(id,webgl=false)=>id===LOCAL.id?LOCAL.url:'/bigapps/'+id+'/'+(webgl?'?webgl':'');
+ const getUrl=(id,webgl=false)=>id===LOCAL.id?LOCAL.url:'/bigapps/'+PUBLIC_APP_ROUTE[id]+'/'+(webgl?'?webgl':'');
  const findItem=id=>id===LOCAL.id?LOCAL:ENGINES.find(item=>item.id===id);
  function close(){
   current=null;viewer.replaceChildren();panel.hidden=true;
@@ -250,7 +253,7 @@ export async function mountCraftSuite(root){
   title.textContent='BIG LWA · '+item.name;
   info.textContent=id===LOCAL.id?
     'Original sqwibblR editor · work with layers and export a project. Choose Save to BIG LWA for a small private preview.':
-    'Open-source '+item.credit+' editing engine, hosted inside BIG LWA. Import/export inside the editor; it does not publish to the Collective Feed.';
+    item.name+' · BIG LWA Workshop. Original source and licenses remain available in Source & license notes. Files stay local until you choose to export or save.';
   direct.href=getUrl(id,webgl);
   root.querySelector('[data-craft-webgl]').hidden=id===LOCAL.id;
   root.querySelectorAll('[data-craft-card]').forEach(el=>el.classList.toggle('is-selected',el.dataset.craftCard===id));

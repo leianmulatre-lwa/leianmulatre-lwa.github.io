@@ -24,6 +24,7 @@ APPS = (
     ("effectcraft", "0.8.0"),
     ("pdfcraft", "0.6.0"),
 )
+PUBLIC_NAMES = {"photocraft": "lightR", "vectorcraft": "paintR", "effectcraft": "keyframeR", "pdfcraft": "fileR"}
 MAX_ZIP_BYTES = 90 * 1024 * 1024
 MAX_EXPANDED_BYTES = 180 * 1024 * 1024
 MAX_ASSET_BYTES = 80 * 1024 * 1024  # GitHub Pages, not Cloudflare Pages
@@ -142,7 +143,7 @@ def preserve_notices(slug: str, version: str, dest: Path) -> None:
 
 def write_legacy_redirect(legacy_root: Path, slug: str) -> None:
     """Redirect historical GitHub Pages links without duplicating WebAssembly binaries."""
-    target = f"/bigapps/{slug}/"
+    target = f"/bigapps/{PUBLIC_NAMES[slug]}/"
     folder = legacy_root / slug
     folder.mkdir(parents=True, exist_ok=True)
     html = (
@@ -172,8 +173,8 @@ def stage(target: Path) -> None:
     )
     rows = []
     for slug, version in APPS:
-        destination = root / slug
-        row = {"id": slug, "version": version, "available": False,
+        destination = root / PUBLIC_NAMES[slug]
+        row = {"id": slug, "route": f"/bigapps/{PUBLIC_NAMES[slug]}/", "version": version, "available": False,
                "source": f"https://github.com/storytold/{slug}"}
         try:
             archive = release_archive(slug, version)
@@ -187,6 +188,7 @@ def stage(target: Path) -> None:
             print(f"[ArtCraft] unavailable: {slug} v{version}: {exc}", file=sys.stderr)
         rows.append(row)
         write_legacy_redirect(legacy_root, slug)
+        write_legacy_redirect(root, slug)  # previous /bigapps/photocraft bookmarks
         # Older browser tabs may still request the old source/notice links.
         # Mirror only these small legal text files, never duplicate WASM assets.
         if row["available"]:
@@ -195,6 +197,7 @@ def stage(target: Path) -> None:
                 legacy_root / slug / "upstream-licenses",
                 dirs_exist_ok=True,
             )
+            shutil.copytree(destination / "upstream-licenses", root / slug / "upstream-licenses", dirs_exist_ok=True)
     manifest_text = json.dumps({"schema": 1, "apps": rows}, indent=2) + "\n"
     (legacy_root / "manifest.json").write_text(manifest_text, encoding="utf-8")
     (root / "manifest.json").write_text(

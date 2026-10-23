@@ -28,7 +28,7 @@ assert.ok(stage.includes('.module-shell.lwa-curtain-veve-pending::after')&&
   'Veve images are covered with a continuous curtain placeholder');
 assert.ok(stage.includes("/* the single startup screen lives in index.html */"),
   'No undefined legacy loading-screen function can fire');
-assert.ok(workshop.includes("'/bigapps/'"),
+assert.ok(workshop.includes("'/bigapps/'")&&workshop.includes('PUBLIC_APP_ROUTE'),
   'Advanced editors use BIG LWA-hosted paths');
 assert.ok(workshop.includes('/upstream-licenses/SOURCE.txt')&&workshop.includes('craft-arcade-block'),
   'Workshop source credits remain on-site and branded icons use arcade blocks');

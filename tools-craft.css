@@ -148,3 +148,12 @@
 #craftSuite .craft-panel-save:has(input:disabled){opacity:.55;cursor:not-allowed}
 #craftSuite .craft-panel-save input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 @media(max-width:600px){#craftSuite .craft-panel-identity{flex-basis:100%}#craftSuite .craft-panel-actions{width:100%;justify-content:flex-start}#craftSuite .craft-panel-actions>*{flex:0 0 auto}}
+
+/* Canonical BIG LWA editor identities */
+#craftSuite .craft-tile h3 .craft-capital-r{font-family:Georgia,"Times New Roman",serif!important;font-variant:normal;font-weight:800;font-size:.88em;vertical-align:.01em;letter-spacing:-.025em;margin-left:1px}
+#craftSuite .craft-founder-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+#craftSuite .craft-founder-links a{font:750 11px/1.2 system-ui;display:inline-flex;text-decoration:none;border:1px solid #a6887b;padding:8px 11px;border-radius:8px;background:#fff7ef;color:#4c2b35}
+#craftSuite .craft-founder-links a:hover{background:#f1dccd}
+#craftSuite .craft-tile .craft-engine-credits{font-size:10px;color:#775e65}
+#craftSuite .craft-tile .craft-arcade-block{filter:drop-shadow(3px 5px 2px rgba(47,26,23,.22))!important}
+#craftSuite .craft-smallprint .craft-more span{display:inline-block;padding:7px 10px;background:#fff9ee;border-radius:6px;border:1px solid #c4ad9b}
