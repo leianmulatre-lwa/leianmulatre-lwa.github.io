@@ -1077,3 +1077,87 @@ body.about-site {
   background-image:linear-gradient(180deg,rgba(72,9,32,.14),rgba(238,198,186,.20)),url("/assets/login-curtain-film-grain-v2.webp")!important;
   background-size:cover!important;background-position:center!important;
 }
+
+
+/* 2026-10-23 compact login widget and shared public white ribbon */
+#loginPage .login-card{
+  position:relative!important;
+  width:min(386px,100%)!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  padding:44px 22px 19px!important;
+  border-radius:17px!important;
+  border:1px solid rgba(255,255,255,.73)!important;
+  box-shadow:0 16px 42px rgba(24,4,11,.26),inset 0 1px 0 rgba(255,255,255,.55)!important;
+}
+#loginPage .login-card .login-card-head{margin-bottom:13px!important}
+#loginPage #loginTitle{font-size:clamp(29px,2.4vw,34px)!important;line-height:1.04!important}
+#loginPage .login-card .login-tabs{margin-bottom:13px!important}
+#loginPage .login-card .login-tab{padding:8px 11px!important}
+#loginPage .login-card .login-field{margin:9px 0!important}
+#loginPage .login-card .login-field span{margin-bottom:5px!important}
+#loginPage .login-card .login-field input{height:40px!important;box-sizing:border-box!important}
+#loginPage .login-card .login-submit{font-size:19px!important;padding:10px 16px!important;margin-top:8px!important}
+#loginPage .login-card .login-under{margin-top:12px!important}
+#loginPage .login-card .login-privacy{margin-top:13px!important;padding-top:10px!important}
+#loginPage .login-card .login-message{margin-top:8px!important}
+#loginPage .login-card .login-card-lights{
+  position:absolute!important;top:17px!important;left:20px!important;right:auto!important;
+  display:flex!important;align-items:center!important;gap:6px!important;
+  margin:0!important;z-index:10!important;visibility:visible!important;opacity:1!important;
+}
+#loginPage .login-card .login-card-lights .window-light{
+  display:block!important;flex:0 0 10px!important;width:10px!important;height:10px!important;
+  border-radius:50%!important;box-shadow:inset 0 0 0 1px rgba(40,18,20,.14),0 1px 3px rgba(40,18,20,.17)!important;
+}
+#loginPage .login-card .login-card-lights .window-light.red{background:#e85f65!important}
+#loginPage .login-card .login-card-lights .window-light.yellow{background:#efc84b!important}
+#loginPage .login-card .login-card-lights .window-light.green{background:#59a96c!important}
+/* The white PNG ribbon on login and Important/About pages uses one height. */
+#loginPage .login-supporters .supporter-viewport,
+.public-page-footer .public-supporters .supporter-viewport{
+  display:block!important;
+  padding:4px 2px!important;min-height:0!important;max-height:none!important;
+  overflow:hidden!important;background:#fff!important;background-image:none!important;
+  border:0!important;border-radius:12px!important;box-shadow:none!important;
+  -webkit-mask-image:none!important;mask-image:none!important;
+}
+#loginPage .login-supporters .supporter-logo.supporter-logo-tile,
+.public-page-footer .public-supporters .supporter-logo.supporter-logo-tile{
+  flex:0 0 111px!important;width:111px!important;min-width:111px!important;
+  height:44px!important;min-height:44px!important;
+  padding:4px 7px!important;box-sizing:border-box!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;
+}
+#loginPage .login-supporters .supporter-logo.supporter-logo-tile:hover,
+.public-page-footer .public-supporters .supporter-logo.supporter-logo-tile:hover{
+  background:transparent!important;box-shadow:none!important;
+}
+#loginPage .login-supporters .supporter-logo.supporter-logo-tile img,
+.public-page-footer .public-supporters .supporter-logo.supporter-logo-tile img{
+  max-width:97px!important;max-height:33px!important;width:auto!important;height:auto!important;
+  object-fit:contain!important;background:transparent!important;
+}
+#loginPage .login-supporters .supporter-group,
+.public-page-footer .public-supporters .supporter-group{
+  gap:15px!important;padding-right:15px!important;
+}
+.public-page-footer .public-supporters{margin-top:18px!important}
+@media(max-width:650px){
+  #loginPage .login-card{width:min(386px,100%)!important;padding:42px 18px 17px!important}
+  #loginPage .login-card .login-card-lights{left:17px!important;top:15px!important}
+  #loginPage .login-supporters .supporter-logo.supporter-logo-tile,
+  .public-page-footer .public-supporters .supporter-logo.supporter-logo-tile{
+    flex-basis:100px!important;width:100px!important;min-width:100px!important;
+    height:40px!important;min-height:40px!important;padding:3px 5px!important;
+  }
+  #loginPage .login-supporters .supporter-logo.supporter-logo-tile img,
+  .public-page-footer .public-supporters .supporter-logo.supporter-logo-tile img{
+    max-width:90px!important;max-height:30px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #loginPage .login-supporters .supporter-viewport,
+  .public-page-footer .public-supporters .supporter-viewport{overflow-x:auto!important}
+}
