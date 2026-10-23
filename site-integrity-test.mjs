@@ -53,8 +53,10 @@ assert.match(modules, /--feed-heading-offset:calc/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] :is\(\.module-top,\.module-heading\)/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-heading h1\{\s*transform:none/);
 assert.match(projectCanvas, /module-heading lwa-project-heading/);
-assert.match(projectCanvas, /<h1>projects · canvas<\/h1>/);
-assert.match(projectCanvas, /margin:16px 0/);
+assert.match(projectCanvas, /<h1>visualz · visualeyez<\/h1>/);
+assert.match(projectCanvas, /visualslidez\.js\?v=/);
+assert.match(modules, /visualz:'visualz'/);
+assert.match(projectCanvas, /margin:10px 0/);
 assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not legacy purple.
 assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
 assert.match(index, /feed-polish\.js\?v=/);
