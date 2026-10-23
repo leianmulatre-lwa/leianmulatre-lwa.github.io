@@ -1,0 +1,33 @@
+/* Owner-only profile audience breakdown. These icons are local SVG assets. */
+#studioApp .profile-card .stats [data-profile-stat="followers"].biglwa-followers-trigger{
+ cursor:pointer!important;border-radius:8px;position:relative;min-height:40px;
+ transition:background .15s ease;user-select:none}
+#studioApp .profile-card .stats .biglwa-followers-trigger:hover,
+#studioApp .profile-card .stats .biglwa-followers-trigger:focus-visible{
+ background:rgba(206,93,115,.12)!important}
+#studioApp .profile-card .stats .biglwa-followers-trigger:focus-visible{
+ outline:2px solid #a33e56!important;outline-offset:2px}
+#studioApp .profile-card .stats .biglwa-followers-trigger::after{
+ content:"⌄";position:absolute;right:7px;top:2px;color:#a45061;font:700 13px/1 system-ui}
+.biglwa-followers-popover{position:fixed!important;z-index:999997!important;width:min(332px,calc(100vw - 18px));
+ min-height:120px;max-height:min(460px,calc(100dvh - 20px));overflow:auto;box-sizing:border-box;
+ background:#fff6e9;color:#342830;border:2px solid #af6977;box-shadow:0 15px 40px #200a1d55;
+ border-radius:14px;padding:15px;text-align:left}
+.biglwa-followers-popover[hidden]{display:none!important}
+.biglwa-followers-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.biglwa-followers-head h3{margin:0;color:#562f40;font:400 25px/1.15 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+.biglwa-followers-head button{border:1px solid #c9aba7;border-radius:50%;width:29px;height:29px;
+ background:#fff2ec;color:#502e38;font:700 20px/1 system-ui;cursor:pointer}
+.biglwa-followers-head button:focus-visible{outline:2px solid #8b4660;outline-offset:2px}
+.biglwa-followers-list{display:grid;gap:4px}
+.biglwa-followers-row{display:flex;align-items:center;gap:10px;min-width:0;
+ border-bottom:1px solid #e9d8d0;padding:7px 0}
+.biglwa-followers-icon{width:35px;height:35px;flex:0 0 35px;display:grid;place-items:center;
+ color:white;font:700 10px/1 system-ui;border-radius:10px}
+.biglwa-followers-icon img{width:23px;height:23px;filter:brightness(0) invert(1);object-fit:contain}
+.biglwa-followers-source{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.biglwa-followers-source strong{font:700 13px/1.3 system-ui;color:#352630}
+.biglwa-followers-source small{font:500 10px/1.35 system-ui;color:#77656b}
+.biglwa-followers-count{font:750 18px/1.2 system-ui;color:#3b2632;font-variant-numeric:tabular-nums}
+.biglwa-followers-foot{font:500 10px/1.55 system-ui;color:#705b60;margin:12px 0 0}
+@media(prefers-reduced-motion:reduce){#studioApp .profile-card .stats .biglwa-followers-trigger{transition:none}}
