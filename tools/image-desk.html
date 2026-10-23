@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BIG LWA · Image Desk</title>
+<title>BIG LWA · sqwibblR</title>
 <meta name="robots" content="noindex,nofollow">
 <style>
 :root{--ink:#271b22;--rose:#d76175;--paper:#f7eee5;--line:#bda499;color-scheme:light}
@@ -40,7 +40,7 @@ footer{font-size:10px;padding:10px;color:#8c7570}
 </style>
 </head>
 <body>
-<header><div><h1><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>BIG LWA · image desk</h1><p>Your own creative space · no login, no cloud upload, no third-party tracking</p></div><span>✦ handmade studio</span></header>
+<header><div><h1><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>BIG LWA · sqwibblR</h1><p>Your own creative space · no login, no cloud upload, no third-party tracking</p></div><span>✦ handmade studio</span></header>
 <div class="shell">
 <aside class="side">
 <h2>make something</h2>
@@ -74,7 +74,7 @@ footer{font-size:10px;padding:10px;color:#8c7570}
 <p class="note">Your artwork stays in this browser until you choose to export or download a project file. Nothing is added to your BIG LWA feed automatically.</p>
 </aside>
 </div>
-<footer>BIG LWA image desk · an original local canvas workspace. Advanced image, vector, motion and PDF engines are separately credited in Tools to their open-source authors.</footer>
+<footer>BIG LWA sqwibblR · an original local canvas workspace. Advanced image, vector, motion and PDF engines are separately credited in Tools to their open-source authors.</footer>
 <script>
 (()=>{
 'use strict';
@@ -175,7 +175,7 @@ function composite(type='image/png',quality=0.92){
 $('#exportPng').addEventListener('click',async()=>{try{download(await composite(),'biglwa-image.png');status('PNG exported to your device.')}catch(e){status(e.message)}});
 $('#exportJpg').addEventListener('click',async()=>{try{download(await composite('image/jpeg'),'biglwa-image.jpg');status('JPEG exported to your device.')}catch(e){status(e.message)}});
 $('#saveProject').addEventListener('click',()=>{
- try{const project={schema:1,app:'BIG LWA image desk',width:canvas.width,height:canvas.height,active,layers:layers.map(l=>({name:l.name,visible:l.visible,opacity:l.opacity,x:l.x,y:l.y,pixels:l.canvas.toDataURL('image/png')}))};
+ try{const project={schema:1,app:'BIG LWA sqwibblR',width:canvas.width,height:canvas.height,active,layers:layers.map(l=>({name:l.name,visible:l.visible,opacity:l.opacity,x:l.x,y:l.y,pixels:l.canvas.toDataURL('image/png')}))};
  download(new Blob([JSON.stringify(project)],{type:'application/json'}),'biglwa-artwork.lwa.json');status('Editable project downloaded.')}
  catch(e){status('Could not save project: '+e.message)}
 });
@@ -184,7 +184,7 @@ $('#openProject').addEventListener('change',async e=>{
  if(file.size>MAX_FILE){status('Project is too large (max 80 MB).');return}
  try{
   const data=JSON.parse(await file.text());
-  if(data.schema!==1||data.app!=='BIG LWA image desk'||!Number.isInteger(data.width)||!Number.isInteger(data.height)||data.width<1||data.height<1||data.width>MAX_SIDE||data.height>MAX_SIDE||!Array.isArray(data.layers)||data.layers.length<1||data.layers.length>25)throw Error('Invalid or unsafe project');
+  if(data.schema!==1||data.app!=='BIG LWA sqwibblR'||!Number.isInteger(data.width)||!Number.isInteger(data.height)||data.width<1||data.height<1||data.width>MAX_SIDE||data.height>MAX_SIDE||!Array.isArray(data.layers)||data.layers.length<1||data.layers.length>25)throw Error('Invalid or unsafe project');
   const prepared=[];
   for(const entry of data.layers){
    if(typeof entry.pixels!=='string'||entry.pixels.length>90_000_000||!entry.pixels.startsWith('data:image/png;base64,'))throw Error('Invalid layer pixels');

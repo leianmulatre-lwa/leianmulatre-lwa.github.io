@@ -9,7 +9,7 @@ const html=read('tools/image-desk.html'),suite=read('tools-craft.js'),css=read('
 const matches=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 assert.equal(matches.length,1,'Image Desk has one local editor script and no external script hosts');
 new vm.Script(matches[0][1],{filename:'ImageDesk-inline.js'});
-assert.match(html,/BIG LWA · image desk/i);
+assert.match(html,/BIG LWA · sqwibblR/i);
 assert.match(html,/id="openImage"/);
 assert.match(html,/id="openProject"/);
 assert.match(html,/id="saveProject"/);
@@ -79,3 +79,5 @@ assert.equal(downloads,2,'Editable project export triggers local download');
 assert.equal([...document.querySelectorAll('script[src]')].length,0,'No remote scripts or CDN editors in native desk');
 win.close();
 console.log('PASS BIG LWA native image editor: valid JS, layers, undo/redo, text, exports, and clear source attribution.');
+
+for(const name of ['sqwibblR','lightR','paintR','keyframeR','fileR'])assert.ok(suite.includes("name:'"+name+"'"),'Workshop shows '+name);

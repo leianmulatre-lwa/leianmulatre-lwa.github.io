@@ -104,10 +104,10 @@ def brand_web_shell(slug: str, dest: Path) -> None:
     """BIG LWA navigation for the hosted HTML shell, not a modification
     to the signed upstream Rust/WASM editor binary or its attribution."""
     names = {
-        "photocraft": "pixel lab",
-        "vectorcraft": "vector studio",
-        "effectcraft": "motion room",
-        "pdfcraft": "paper desk",
+        "photocraft": "lightR",
+        "vectorcraft": "paintR",
+        "effectcraft": "keyframeR",
+        "pdfcraft": "fileR",
     }
     page = dest / "index.html"
     html = page.read_text(encoding="utf-8")

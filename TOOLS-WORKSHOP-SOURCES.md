@@ -3,17 +3,17 @@
 ## Built and controlled by BIG LWA
 
 - **BIG LWA Workshop** (`tools-craft.js`, `tools-craft.css`): BIG LWA-authored design and launch layer.
-- **BIG LWA Image Desk** (`tools/image-desk.html`): BIG LWA's original in-browser canvas editor. Layers, drawing, text, transforms, local photo import, local editable `.lwa.json` projects, PNG/JPEG export, and undo/redo. Image Desk does **not** incorporate PhotoCraft source code, make external requests, or automatically upload a person's files.
+- **BIG LWA sqwibblR** (`tools/image-desk.html`): BIG LWA's original in-browser canvas editor. Layers, drawing, text, transforms, local photo import, local editable `.lwa.json` projects, PNG/JPEG export, and undo/redo. sqwibblR does **not** incorporate PhotoCraft source code, make external requests, or automatically upload a person's files.
 - The original Workshop is part of BIG LWA Tools alongside its independently implemented file conversion utilities.
 
 ## Open-source Storytold engines used as optional advanced tools
 
 | BIG LWA entry label | Engine | Repository | Installed release | License |
 |---|---|---|---|---|
-| Pixel Lab | PhotoCraft | https://github.com/storytold/photocraft | 0.7.0 | MIT OR Apache-2.0 |
-| Vector Studio | VectorCraft | https://github.com/storytold/vectorcraft | 0.9.0 | MIT OR Apache-2.0 |
-| Motion Room | EffectCraft | https://github.com/storytold/effectcraft | 0.8.0 | MIT OR Apache-2.0 |
-| Paper Desk | PdfCraft | https://github.com/storytold/pdfcraft | 0.6.0 | MIT OR Apache-2.0 |
+| lightR | PhotoCraft | https://github.com/storytold/photocraft | 0.7.0 | MIT OR Apache-2.0 |
+| paintR | VectorCraft | https://github.com/storytold/vectorcraft | 0.9.0 | MIT OR Apache-2.0 |
+| keyframeR | EffectCraft | https://github.com/storytold/effectcraft | 0.8.0 | MIT OR Apache-2.0 |
+| fileR | PdfCraft | https://github.com/storytold/pdfcraft | 0.6.0 | MIT OR Apache-2.0 |
 
 The **licensed editors are not BIG LWA-owned engines**. BIG LWA's build script `.github/scripts/stage-craft-apps.py` stages original, version-pinned WebAssembly releases from GitHub only when available and SHA-256 verified. Source terms from each original repository are copied to each staged engine under `/craftapps/<engine>/upstream-licenses/`. Availability is defined by `/craftapps/manifest.json`; a missing build must not be shown as working.
 
