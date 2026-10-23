@@ -382,13 +382,20 @@
         const handle=profileFromLink(input?.value||'');
         if(handle){
           if(!connected)throw Error('Profile link detected. Connect TikTok in Orbit first.');
-          if(!profile.username)throw Error('TikTok has not shared your @username yet. Connect with approved user.info.profile permission to match this link.');
-          if(String(profile.username).replace(/^@/,'').toLowerCase()!==handle.toLowerCase())
+          // A connected member may attach their public creator URL without requiring
+          // TikTok's optional profile/video scopes. When TikTok supplies the actual
+          // @username, reject a mismatch; display_name is NOT the account handle.
+          if(profile.username&&String(profile.username).replace(/^@/,'').toLowerCase()!==handle.toLowerCase())
             throw Error('Could not verify: username does not match your connected TikTok username.');
-          await restore();
-          if(videoPermissionPending)throw Error('TikTok video.list access has not been approved yet.');
-          if(videoLoadError)throw Error(videoLoadError);
-          if(status)status.textContent='Checked '+videos.length+' public videos from the connected account. Available videos are private MyFeed drafts.';
+          const links=window.BigLWAOrbitAccountLinks;
+          if(!links?.ready?.())throw Error('Orbit profile links are still loading. Try again.');
+          await links.save('tiktok','https://www.tiktok.com/@'+handle);
+          document.dispatchEvent(new CustomEvent('biglwa:tiktok-creator-link-saved',{detail:{handle}}));
+          if(status)status.textContent='Public @'+handle+' linked to your BIG LWA profile. TikTok’s creator embed shows recent videos and audience figures without video.list.';
+          if(!videoPermissionPending){
+            await restore().catch(()=>{});
+            if(videos.length&&status)status.textContent+=' '+videos.length+' authorized videos are also ready as drafts.';
+          }
           return;
         }
         const video=await publicVideo(String(input?.value||'').trim());
