@@ -11,7 +11,7 @@ use effectcraft_project::build::{self, Ids};
 use effectcraft_project::{Comp, ItemId, ItemKind, Layer, LayerSource, Project, PropGroup, Solid};
 use effectcraft_time::{FrameRate, Tick};
 
-pub const MAIN_COMP: &str = "EffectCraft Intro";
+pub const MAIN_COMP: &str = "keyframeR Intro";
 pub const SHOWCASE_3D: &str = "3D Showcase";
 
 /// Seconds → the nearest frame of the demo's 29.97 fps comps (AE keeps times frame-aligned).
@@ -116,8 +116,8 @@ fn lower_third(p: &mut Project) -> Comp {
     let mut title = text_layer(
         p,
         &c,
-        "Built with EffectCraft",
-        TextDoc { text: "Built with EffectCraft".into(), size: 40.0, style: "SemiBold".into(), justify: Justify::Center, ..Default::default() },
+        "Made with keyframeR",
+        TextDoc { text: "Made with keyframeR".into(), size: 40.0, style: "SemiBold".into(), justify: Justify::Center, ..Default::default() },
         [440.0, 914.0],
     );
     anim(&mut title, "transform/opacity", keys(&[(0.4, Value::Scalar(0.0)), (0.9, Value::Scalar(100.0))]));
@@ -286,7 +286,7 @@ pub fn demo_project() -> Project {
         &[
             ("start", Value::Vec2([960.0, 470.0])),
             ("end", Value::Vec2([960.0, 1500.0])),
-            ("startColor", Value::Color(hex("#26306E"))),
+            ("startColor", Value::Color(hex("#3A1F4B"))),
             ("endColor", Value::Color(hex("#05060D"))),
             ("shape", Value::Enum(1)),
         ],
@@ -305,11 +305,11 @@ pub fn demo_project() -> Project {
     {
         let mut ids = Ids(&mut next);
         let e1 = build::shape_ellipse(&mut ids, [720.0, 720.0], [0.0, 0.0]);
-        let s1 = build::shape_stroke(&mut ids, hex("#3D8FF5"), 4.0);
+        let s1 = build::shape_stroke(&mut ids, hex("#B679C5"), 4.0);
         let tr1 = build::shape_trim(&mut ids, 0.0, 0.0, 0.0);
         let g1 = build::shape_group(&mut ids, "Inner Ring", vec![e1, tr1, s1]);
         let e2 = build::shape_ellipse(&mut ids, [860.0, 860.0], [0.0, 0.0]);
-        let mut s2 = build::shape_stroke(&mut ids, hex("#8E6BFF"), 2.0);
+        let mut s2 = build::shape_stroke(&mut ids, hex("#E3B7EA"), 2.0);
         if let Some(d) = s2.sub_mut("dashes") {
             if let Some(x) = d.get_mut("dash") {
                 x.value = Value::Scalar(18.0);
@@ -369,7 +369,7 @@ pub fn demo_project() -> Project {
             [-320.0, 0.0],
             [320.0, 0.0],
             Gradient {
-                colors: vec![(0.0, [0.24, 0.56, 0.96, 1.0]), (1.0, [0.56, 0.42, 1.0, 1.0])],
+                colors: vec![(0.0, [0.53, 0.28, 0.64, 1.0]), (1.0, [0.83, 0.55, 0.78, 1.0])],
                 opacities: vec![(0.0, 0.0), (0.2, 1.0), (0.8, 1.0), (1.0, 0.0)],
             },
         );
@@ -384,8 +384,8 @@ pub fn demo_project() -> Project {
     let mut title = text_layer(
         &mut p,
         &comp,
-        "EFFECTCRAFT",
-        TextDoc { text: "EFFECTCRAFT".into(), size: 148.0, style: "Bold".into(), tracking: 120.0, justify: Justify::Center, ..Default::default() },
+        "keyframeR",
+        TextDoc { text: "keyframeR".into(), size: 148.0, style: "Bold".into(), tracking: 120.0, justify: Justify::Center, ..Default::default() },
         [960.0, 560.0],
     );
     let mut next = p.next_id;
@@ -430,7 +430,7 @@ pub fn demo_project() -> Project {
         &comp,
         "Tagline",
         TextDoc {
-            text: "MOTION GRAPHICS  ·  VISUAL EFFECTS  ·  PURE RUST".into(),
+            text: "MOTION GRAPHICS  ·  VISUAL EFFECTS  ·  BIG LWA".into(),
             size: 30.0,
             style: "Medium".into(),
             tracking: 260.0,
