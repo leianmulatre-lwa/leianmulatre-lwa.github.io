@@ -32,18 +32,20 @@
     const fallback=sameAccount&&prev?.provenance!=='external'?number(prev.followers):null;
     // A previously measured *provider* count takes precedence. Otherwise use
     // the owner-selected public-source snapshot and label its provenance.
-    const externalVerified=fresh===null&&fallback===null&&externalCount!==null;
+    const recoveredByProvider=fresh===null&&fallback===null&&externalCount!==null&&external?.verifiedFromProvider===true;
+    const externalVerified=fresh===null&&fallback===null&&externalCount!==null&&!recoveredByProvider;
     const value=fresh??fallback??externalCount;
-    const observedAt=externalVerified?String(external.checkedAt||''):
+    const observedAt=recoveredByProvider?new Date().toISOString():externalVerified?String(external.checkedAt||''):
       fresh!==null?(sameAccount&&prev.followers===fresh&&prev.observedAt?prev.observedAt:(checked||new Date().toISOString())):sameAccount?prev.observedAt||'':'';
     if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric,provenance:'provider'};
     // Only genuine engagement counts from provider-authorized responses are used.
     const likes=number(record.stats?.likes??record.likes);
-    const receivedLikes=(id==='tiktok'&&record.verifiedFromProvider!==false&&likes!==null)?likes:null;
+    const recoveredLikes=id==='tiktok'&&recoveredByProvider?number(external.likes):null;
+    const receivedLikes=id==='tiktok'&&record.verifiedFromProvider!==false?(likes??recoveredLikes):null;
     rows.push({id,followers:value,likes:receivedLikes,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
       handle:record.username||'',link:record.link||'',metric,
-      isLastKnown:fresh===null&&fallback!==null,verified:fresh!==null&&!!checked,
-       externalVerified,source:externalVerified?'TokPortal public profile':null});
+      isLastKnown:fresh===null&&fallback!==null,verified:(fresh!==null&&!!checked)||recoveredByProvider,
+       externalVerified,source:externalVerified?'External public source':recoveredByProvider?'TikTok OAuth user.info.stats':null});
   };
   // Provider-checked live records take priority over old Firestore snapshots;
   // absent counts remain missing rather than becoming manufactured zeros.
