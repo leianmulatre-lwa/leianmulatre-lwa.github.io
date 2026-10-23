@@ -58,9 +58,11 @@
    if(!auth.currentUser)throw Error('Sign in to BIG LWA before connecting a provider.');
    return {uid:auth.currentUser.uid,idToken:await auth.currentUser.getIdToken()};
  }
- async function query(provider,path,method='GET',idToken=''){
+ async function query(provider,path,method='GET',idToken='',data=null){
+   const headers=idToken?{Authorization:'Bearer '+idToken}:{};
+   if(data!==null)headers['Content-Type']='application/json';
    const response=await fetch(base+'/'+provider+'/'+path,{
-     method,headers:idToken?{Authorization:'Bearer '+idToken}:{},cache:'no-store'
+     method,headers,cache:'no-store',...(data!==null?{body:JSON.stringify(data)}:{})
    });
    const data=await response.json().catch(()=>({}));
    if(!response.ok)throw Error(data.error||(response.status===404?'OAuth endpoint not deployed yet.':'Provider request failed.'));
