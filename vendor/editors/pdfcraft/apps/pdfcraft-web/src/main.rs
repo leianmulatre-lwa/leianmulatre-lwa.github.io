@@ -56,19 +56,26 @@ fn main() {
                     warn_before_unload(app.unsaved_flag.clone());
                     // `?host=parent`: a same-origin page embedding PdfCraft in an iframe (such
                     // as the Nextcloud app) passes files in and takes saves back (`host` below).
-                    if query_param("host").as_deref() == Some("parent")
+                    // BIG LWA can send a saved native PDF through the existing same-origin
+                    // bridge, without replacing PdfCraft's local Save/Export semantics.
+                    // ?biglwaHost=1 is explicitly open-only: the private project shelf is
+                    // not allowed to acknowledge a save before durable cloud storage.
+                    let existing_host = query_param("host").as_deref() == Some("parent");
+                    let biglwa_open_only = query_param("biglwaHost").as_deref() == Some("1");
+                    if (existing_host || biglwa_open_only)
                         && let Some(bridge) = host::Bridge::new()
                     {
-                        // `?author=`: the host's name for the user signs their comments,
-                        // unless they chose a name in PdfCraft (the web default is "Guest").
-                        if let Some(author) = query_param("author").map(|a| a.trim().to_string()).filter(|a| !a.is_empty())
-                            && app.comment_prefs.author == "Guest"
-                        {
-                            app.comment_prefs.author = author.chars().take(200).collect();
+                        // Only existing full-host integrations own native Save callbacks.
+                        if existing_host {
+                            if let Some(author) = query_param("author").map(|a| a.trim().to_string()).filter(|a| !a.is_empty())
+                                && app.comment_prefs.author == "Guest"
+                            {
+                                app.comment_prefs.author = author.chars().take(200).collect();
+                            }
+                            app.host_save = Some(bridge.save_fn());
+                            app.host_dirty = Some(bridge.dirty_fn());
                         }
                         bridge.listen(app.startup_inbox.clone(), cc.egui_ctx.clone());
-                        app.host_save = Some(bridge.save_fn());
-                        app.host_dirty = Some(bridge.dirty_fn());
                         bridge.post_ready();
                     }
                     Ok(Box::new(app))
@@ -77,7 +84,7 @@ fn main() {
             .await;
         if let Err(e) = started {
             eframe::web_sys::console::error_1(&e);
-            if query_param("host").as_deref() == Some("parent")
+            if (query_param("host").as_deref() == Some("parent") || query_param("biglwaHost").as_deref() == Some("1"))
                 && let Some(bridge) = host::Bridge::new()
             {
                 bridge.post_failed(&e.as_string().unwrap_or_else(|| format!("{e:?}")));
