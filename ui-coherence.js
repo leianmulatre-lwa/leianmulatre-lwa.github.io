@@ -1428,7 +1428,7 @@
     const username=String(who.username||stored.username||'').trim().replace(/^@/,'').toLowerCase();
     // Use the entered name only; an @handle can never be a substitute.
     const candidate=[who.name,stored.name].map(v=>String(v||'').trim()).find(v=>v&&v.toLowerCase()!==username)||'';
-    const initial=(candidate.charAt(0).toLocaleUpperCase()||'B');
+    const initial=(String(who.name||stored.name||'').trim().charAt(0).toLocaleUpperCase()||'B');
     const photo=String(who.avatarUrl||stored.profilePhoto?.url||stored.avatarUrl||'').trim();
     for(const el of [avatar,mini].filter(Boolean)){
       if(photo){
