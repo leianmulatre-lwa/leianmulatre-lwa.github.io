@@ -951,16 +951,18 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
 
   /* Primary Orbit contains API-backed accounts. Link-only destinations live in Planetary. */
   const ORBIT_APPS=[
-    ['instagram','IG','Instagram','#f36b21'],['facebook','FB','Facebook','#1658be'],
+    ['instagram','IG','Instagram','#ffab63'],['facebook','FB','Facebook','#1658be'],
     ['tiktok','TT','TikTok','#772dcc'],['pinterest','P','Pinterest','#e60023'],
     ['x','𝕏','X','#080808'],['snapchat','SC','Snapchat','#ffeb00'],
     ['tumblr','T','Tumblr','#1b304b'],['youtube','YT','YouTube','#d0202f']
   ];
   const PLANETARY_APPS=[
     ['soundcloud','SC','SoundCloud','#e2622a'],['spotify','SP','Spotify','#1db954'],
-    ['drive','GD','Google Drive','#0f9d58'],['calendar','GC','Google Calendar','#4285f4'],
+    ['drive','GD','Google Drive','#e7be31'],['calendar','GC','Google Calendar','#4285f4'],
     ['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],
-    ['imdb','IMDb','IMDb','#e6a800']
+    ['imdb','IMDb','IMDb','#e6a800'],
+     ['vsco','VS','VSCO','#b51668'],['bereal','BR','BeReal','#777b83'],
+     ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e']
   ];
   const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
   const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
@@ -1158,7 +1160,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
-      const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row)].filter(Boolean).join(' · ');
+      const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row),orbitStat('likes','likes',row)].filter(Boolean).join(' · ');
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':row.verifiedFromProvider?'<em class="orbit-state is-on">Connected · verified</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header><div class="orbit-main">`+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}${row.verifiedFromProvider?'<small>Authenticated with '+esc(n)+' · verified just now</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':k==='snapchat'&&!links[k]?'<small>Snapchat connected. Add your public profile URL using Link to publish a quick link.</small>':k==='tumblr'&&!links[k]?'<small>Connected, but no public blog URL returned. Add your Tumblr blog link below.</small>':''}${k==='snapchat'?'<small>Spotlight imports require Snapchat Public Profile API access; Login Kit alone only shares account identity and optional Bitmoji.</small>':''}</div>`
         :'<div class="orbit-not-connected">Connect to show your account preview.</div>')+'</div>'+
