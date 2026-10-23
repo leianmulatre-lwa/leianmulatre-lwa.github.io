@@ -92,7 +92,24 @@
     const data=await response.json().catch(()=>({}));
     return data?.id&&data?.share_url?data:fallback;
   }
+  // Keep both TikTok import tools collapsed unless someone actively chooses them.
+  // No independent modal, tall panel or extra onboarding banner on MyFeed.
+  function ensureTikTokImportStyles(){
+    if(document.getElementById('biglwa-tiktok-import-compact'))return;
+    const style=document.createElement('style');
+    style.id='biglwa-tiktok-import-compact';
+    style.textContent=[
+      '[data-tiktok-public-import]{min-width:0}',
+      '[data-tiktok-public-import] .biglwa-tiktok-import-details{display:block;min-width:0}',
+      '[data-tiktok-public-import] .biglwa-tiktok-import-details>summary{display:list-item;cursor:pointer;font:650 11px/1.3 system-ui;list-style-position:inside;color:#71364e;padding:3px 1px;user-select:none}',
+      '[data-tiktok-public-import] .biglwa-tiktok-import-details:not([open]){max-height:28px;overflow:hidden}',
+      '[data-tiktok-public-import] .biglwa-tiktok-import-fields{display:grid;gap:7px;margin-top:9px;min-width:0}',
+      '[data-tiktok-public-import] .biglwa-tiktok-import-details:focus-visible>summary{outline:2px solid #a54d69;outline-offset:3px}'
+    ].join('');
+    document.head.append(style);
+  }
   function renderTikTokLinkImporter() {
+    ensureTikTokImportStyles();
     const workspace=document.querySelector('#moduleWorkspace[data-module-key="orbit"]');
     const row=workspace?.querySelector('[data-orbit-row="tiktok"]');
     if(!row||row.querySelector('[data-tiktok-public-import]'))return;
