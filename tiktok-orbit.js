@@ -55,12 +55,31 @@
   async function publicVideo(url) {
     const token=await firebaseIdToken();
     if(!token||!authUid)throw Error('Sign in to BIG LWA to save a TikTok video.');
-    const response=await fetch(API+'/tiktok/oembed?url='+encodeURIComponent(url),{
-      headers:{Authorization:'Bearer '+token},cache:'no-store'
-    });
+    // A manually pasted, strict TikTok URL is enough for a private draft:
+    // the post and playback stay with TikTok. Never fetch CDN video bytes.
+    let parsed,match;
+    try{parsed=new URL(String(url||''))}catch{throw Error('Paste the full public TikTok post link.')}
+    match=parsed.pathname.match(/^\/@([A-Za-z0-9._-]{1,80})\/video\/(\d{10,30})\/?$/);
+    if(parsed.protocol!=='https:'||!['www.tiktok.com','tiktok.com','m.tiktok.com'].includes(parsed.hostname)||parsed.port||!match)
+      throw Error('Use a full tiktok.com/@creator/video/123... link.');
+    const fallback={id:match[2],share_url:'https://www.tiktok.com'+parsed.pathname.replace(/\/$/,''),
+      title:'TikTok video · @'+match[1],author_name:match[1],embed_url:'https://www.tiktok.com/player/v1/'+match[2],
+      metadataUnavailable:true};
+    let response;
+    try{
+      response=await fetch(API+'/tiktok/oembed?url='+encodeURIComponent(fallback.share_url),{
+        headers:{Authorization:'Bearer '+token},cache:'no-store'
+      });
+    }catch{return fallback}
+    if(!response.ok){
+      // A private link can still be kept as an unverified private bookmark,
+      // but an explicit auth failure should never be masked by a fallback.
+      if(response.status===401)throw Error('Sign in to BIG LWA before importing TikTok.');
+      if(response.status===422)throw Error('TikTok rejected that video URL. Check the post and try again.');
+      return fallback;
+    }
     const data=await response.json().catch(()=>({}));
-    if(!response.ok)throw Error(data.error||'TikTok could not provide public video metadata.');
-    return data;
+    return data?.id&&data?.share_url?data:fallback;
   }
   function renderTikTokLinkImporter() {
     const workspace=document.querySelector('#moduleWorkspace[data-module-key="orbit"]');
@@ -317,8 +336,9 @@
           caption:video.title||'TikTok video',cover_image_url:video.cover_image_url,
           sourceUsername:video.author_name||'',embedUrl:video.embed_url,mediaType:'VIDEO'
         });
-        if(status)status.textContent=saved.created?'Saved in myfeed drafts. Choose when to post.':
-          'This video is already saved in your BIG LWA drafts.';
+        if(status)status.textContent=saved.created
+          ?(video.metadataUnavailable?'TikTok link saved privately. Preview it before publishing; TikTok details could not be verified.':'Saved in myfeed drafts. Choose when to post.')
+          :'This video is already saved in your BIG LWA drafts.';
         if(panel?.closest('#moduleWorkspace[data-module-key="feed"]'))document.dispatchEvent(new CustomEvent('biglwa:tiktok-draft-ready',{detail:{source:'tiktok'}}));
         if(preview&&/^\d{10,30}$/.test(String(video.id||''))){
           const frame=document.createElement('iframe');
