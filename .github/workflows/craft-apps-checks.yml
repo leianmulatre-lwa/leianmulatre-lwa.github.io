@@ -27,6 +27,8 @@ jobs:
           node --check module-pages.js
           python3 -m py_compile .github/scripts/stage-craft-apps.py
           node tools-studio-test.mjs
+          node --check tools-studio.js
+          test -f tools/image-desk.html
       - name: Download and verify licensed ArtCraft WASM release artifacts
         run: |
           mkdir -p "${RUNNER_TEMP}/craft-test"
