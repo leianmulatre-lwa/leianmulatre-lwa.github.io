@@ -21,7 +21,7 @@ assert.match(suite,/credit:'VectorCraft'/);
 assert.match(suite,/credit:'EffectCraft'/);
 assert.match(suite,/credit:'PdfCraft'/);
 assert.match(css,/\.craft-tile-home/);
-assert.ok(studio.includes('tools-craft.js?v=20261022-biglwa-workshop-3'));
+assert.ok(studio.includes('tools-craft.js?v=20261022-local-arcade-4'));
 assert.match(studio,/data-lwa-edit-image/,'Tools offers direct native image editing after sniffing a file');
 assert.match(suite,/function editFile\(file\)/,'Workshop accepts the selected image');
 assert.match(suite,/BIGLWA_IMAGE_DESK_IMPORT/,'Workshop passes files to the local editor');
