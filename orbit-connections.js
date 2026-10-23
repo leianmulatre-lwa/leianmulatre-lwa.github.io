@@ -40,13 +40,13 @@ const SOURCES = [
     profile: "/tiktok/profile",
     client: "__biglwaTikTokOrbit",
     read: (p) => ({
-      username: p.username || p.display_name,
+      username: p.username || '',
       sourceUserId: p.open_id,
       name: p.display_name,
       avatarUrl: p.avatar_url,
       followers: p.follower_count,
       likes: p.likes_count,
-      link: p.display_name ? "https://www.tiktok.com/@" + encodeURIComponent(p.display_name) : "https://www.tiktok.com/"
+      link: p.username ? "https://www.tiktok.com/@" + encodeURIComponent(p.username) : "https://www.tiktok.com/"
     })
   },
   {
