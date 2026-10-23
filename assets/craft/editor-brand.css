@@ -49,6 +49,10 @@ html[data-biglwa-editor] .biglwa-editor-reopen{
  border-radius:9px;cursor:pointer;font:700 11px/1.1 "BIG LWA Stitched",serif;
 }
 html[data-biglwa-editor] .biglwa-editor-reopen[hidden]{display:none!important}
+/* Studio already exposes editing controls outside the iframe. In an embedded editor,
+   the native Rust canvas must keep its entire visual and interactive surface. */
+html[data-biglwa-embedded="true"] :is(.biglwa-editor-chrome,.biglwa-editor-reopen){display:none!important}
+html[data-biglwa-embedded="false"] .biglwa-editor-reopen{bottom:14px;right:14px;max-width:150px;box-shadow:2px 3px 0 #281b1a66}
 @media(max-width:710px){
  html[data-biglwa-editor] .biglwa-editor-chrome{left:7px;right:7px;bottom:7px;gap:7px;flex-wrap:wrap;justify-content:center}
  html[data-biglwa-editor] .biglwa-editor-name strong{font-size:18px}
