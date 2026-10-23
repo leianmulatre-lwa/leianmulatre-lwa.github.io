@@ -34,13 +34,14 @@ let browser;
 async function main(){
   server.listen(0,'127.0.0.1');await once(server,'listening');
   const url='http://127.0.0.1:'+server.address().port+'/';
-  const errors=[];
+  const errors=[],httpFailures=[];
   browser=await chromium.launch({headless:true,args:[
     '--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader',
     '--enable-unsafe-swiftshader','--disable-gpu-sandbox'
   ]});
   const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
   page.on('pageerror',error=>errors.push('pageerror: '+error.message.slice(0,350)));
+  page.on('response',response=>{if(response.status()>=400)httpFailures.push({status:response.status(),url:response.url()})});
   page.on('console',message=>{if(message.type()==='error')errors.push('console: '+message.text().slice(0,350))});
   page.on('crash',()=>errors.push('Chromium renderer crashed'));
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
@@ -67,13 +68,14 @@ async function main(){
   const title=await page.title();
   const file=path.join(out,name+'.png');
   await page.screenshot({path:file,fullPage:false,timeout:30000});
-  const result={name,url,ready,canvas,title,errors:errors.slice(0,15),problem,
+  const result={name,url,ready,canvas,title,errors:errors.slice(0,15),httpFailures:httpFailures.slice(0,15),problem,
     screenshot:file,checkedAt:new Date().toISOString()};
   fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(result,null,2));
   console.log('NATIVE BROWSER SMOKE:',JSON.stringify(result));
   if(!ready)throw Error(name+' did not reach a usable WASM canvas.');
   if(!title.toLowerCase().includes(name.toLowerCase()))throw Error('Missing BIG LWA editor title: '+title);
   if(errors.some(x=>x.includes('renderer crashed')))throw Error('Chromium editor renderer crashed.');
+  if(httpFailures.some(f=>f.status>=400&&/\.wasm|\.js|favicon\.svg/.test(f.url)))throw Error(name+' native browser build has missing required assets: '+JSON.stringify(httpFailures));
   if(name==='keyframeR'&&errors.some(x=>/failed to start/i.test(x)))throw Error('keyframeR initialization failed.');
 }
 main().catch(error=>{console.error(error.stack||error);process.exitCode=1}).finally(async()=>{

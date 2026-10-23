@@ -1,0 +1,5 @@
+BIG LWA browser editor original stitched-block branding
+Copyright (c) 2026 BIG LWA. All rights reserved.
+These visual marks identify BIG LWA's customized editions. The original editing
+engines are separately licensed and credited in LICENSE-MIT, LICENSE-APACHE,
+and NOTICE. BIG LWA makes no Adobe or Storytold affiliation claim.

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BIG LWA P">
+<rect x="2" y="2" width="60" height="60" rx="11" fill="#4594ec" stroke="#30232b" stroke-width="3"/>
+<rect x="7" y="7" width="50" height="50" rx="8" fill="#fff0da" stroke="#265ca2" stroke-width="1.5"/>
+<path d="M12 46v-27h7v21h18v6Z" fill="#fff0da" opacity="0"/>
+<path d="M18 49V16h13c18 0 18 22 0 22H18" fill="none" stroke="#265ca2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="15" cy="12" r="2.5" fill="#df605b"/><circle cx="24" cy="12" r="2.5" fill="#f4c749"/><circle cx="33" cy="12" r="2.5" fill="#57ac70"/>
+</svg>
