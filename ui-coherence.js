@@ -121,7 +121,7 @@
       docked:readJson(DOCKED_WIDGET_KEY,[]),
       // Yellow-minimized shortcuts stay in their original row; red-docked
       // widgets retain their independent restore tiles after sign-in.
-      redDocked:$('[data-widget-id].widget-is-minimized.widget-is-docked',app).map(el=>el.dataset.widgetId).filter(Boolean),
+      redDocked:$$('[data-widget-id].widget-is-minimized.widget-is-docked',app).map(el=>el.dataset.widgetId).filter(Boolean),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
       updatedAtMs:now
     };
