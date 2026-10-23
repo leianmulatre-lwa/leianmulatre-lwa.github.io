@@ -22,6 +22,15 @@ assert(q('#projects').classList.contains('widget-is-minimized'));
 assert(q('[data-restore-widget="projects"]'));
 click('[data-restore-widget="projects"]');
 assert(!q('#projects').classList.contains('widget-is-minimized'));
+// Yellow had been a no-op: test hide, persisted layout and restoration.
+click('[data-minimize-widget="projects"]');
+assert(q('#projects').classList.contains('widget-is-minimized'),'Yellow actually minimizes');
+assert(!q('#projects').classList.contains('widget-is-docked'),'Yellow is not red dock');
+assert(q('[data-restore-widget="projects"]'),'Yellow creates visible restore control');
+assert(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).docked.includes('projects'),'Yellow saves minimized state');
+click('[data-restore-widget="projects"]');
+assert(!q('#projects').classList.contains('widget-is-minimized'),'Yellow restore works');
+assert(!q('[data-restore-widget="projects"]'),'Restore shortcut clears');
 
 // Run the production symbol loader after toolbar creation, as in index.html.
 const experience=fs.readFileSync(root+'studio-experience.js','utf8');

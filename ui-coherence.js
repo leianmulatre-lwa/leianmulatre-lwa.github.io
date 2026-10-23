@@ -977,8 +977,14 @@
         saveMinimized(app);return;
       }
       if(control.matches('[data-minimize-widget]')){
-        widget.classList.remove('widget-is-expanded');
+        // Yellow genuinely minimizes and creates a reversible restore action.
+        // Red alone marks a card as docked/closed in Skeleton Key.
+        const added=addRestore(app,widget);if(!added)return;
+        widget.classList.remove('widget-is-expanded','widget-is-docked');
+        widget.classList.add('widget-is-minimized');
         const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');
+        const {section,dock}=ensureDock(app);syncDock(dock,section);
+        saveMinimized(app);syncPrimaryWidgetDock(app);
         return;
       }
       const {section,dock}=ensureDock(app);
@@ -1042,7 +1048,7 @@
           control.setAttribute('aria-pressed',opening?'true':'false');
           return;
         }
-        if(control.matches('[data-minimize-widget]')){widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');return}
+        if(control.matches('[data-minimize-widget]')){widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
         if(control.matches('[data-rearrange-widget]')){
           const active=!app.classList.contains('biglwa-rearrange-mode');
           app.classList.toggle('biglwa-rearrange-mode',active);
@@ -1063,7 +1069,7 @@
       const green=event.target.closest('[data-expand-widget]');
       if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
       const minimize=event.target.closest('[data-minimize-widget]');
-      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');return}
+      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
       const yellow=event.target.closest('[data-rearrange-widget]');
       if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=false);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
       const red=event.target.closest('[data-dock-widget]');
@@ -1507,7 +1513,7 @@
   }
   const followerNames={instagram:'Instagram',tiktok:'TikTok',pinterest:'Pinterest',
     x:'X',tumblr:'Tumblr',youtube:'YouTube',facebook:'Facebook',snapchat:'Snapchat'};
-  const followerColors={instagram:'#d44f83',tiktok:'#26202a',pinterest:'#e60023',x:'#161616',
+  const followerColors={instagram:'#f36b21',tiktok:'#26202a',pinterest:'#e60023',x:'#161616',
     tumblr:'#20334e',youtube:'#e52235',facebook:'#1877f2',snapchat:'#ecd91c'};
   function drawFollowersPanel(stats,panel){
     const uid=String(window.__biglwaIdentity?.uid||'');
