@@ -1,0 +1,85 @@
+name: Build BIG LWA native paintR, keyframeR and fileR
+on:
+  push:
+    branches: [biglwa-native-editors]
+    paths:
+      - 'vendor/editors/vectorcraft/**'
+      - 'vendor/editors/effectcraft/**'
+      - 'vendor/editors/pdfcraft/**'
+      - '.github/workflows/build-native-editors.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-suite:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - editor: vectorcraft
+            product: paintR
+          - editor: effectcraft
+            product: keyframeR
+          - editor: pdfcraft
+            product: fileR
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust and wasm32 target
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.95.0'
+          targets: wasm32-unknown-unknown
+      - name: Install Trunk for vector and PDF editors
+        if: matrix.editor != 'effectcraft'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: trunk
+      - name: Install exact wasm-bindgen CLI for motion editor
+        if: matrix.editor == 'effectcraft'
+        run: cargo install wasm-bindgen-cli --version 0.2.129 --locked
+      - name: Compile edited native Rust application to browser WebAssembly
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "vendor/editors/${{ matrix.editor }}"
+          if [ "${{ matrix.editor }}" = "effectcraft" ]; then
+            cargo xtask web
+          else
+            cd "apps/${{ matrix.editor }}-web"
+            trunk build --release
+          fi
+      - name: Check static editor and preserve upstream licenses
+        shell: bash
+        run: |
+          set -euo pipefail
+          source="vendor/editors/${{ matrix.editor }}"
+          if [ "${{ matrix.editor }}" = "effectcraft" ]; then
+            dest="$source/target/web/dist"
+          else
+            dest="$source/dist/web"
+          fi
+          test -s "$dest/index.html"
+          find "$dest" -name '*.wasm' -size +0c | grep -q .
+          mkdir -p "$dest/upstream-licenses"
+          cp "$source/LICENSE-MIT" "$source/LICENSE-APACHE" "$source/NOTICE" "$dest/upstream-licenses/"
+          printf '%s\n' 'BIG LWA ${{ matrix.product }} native Rust browser pilot; modified source derived from Storytold ${{ matrix.editor }}.' 'This is an unverified test build and is NOT automatically deployed.' > "$dest/upstream-licenses/SOURCE.txt"
+          find "$dest" -name '*.wasm' -exec sha256sum {} \; >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload compiled editor for QA, not live deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.product }}-wasm-test-${{ github.sha }}
+          path: vendor/editors/${{ matrix.editor }}/dist/web/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload motion editor custom build directory
+        if: matrix.editor == 'effectcraft'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyframeR-motion-wasm-test-${{ github.sha }}
+          path: vendor/editors/effectcraft/target/web/dist/
+          if-no-files-found: error
+          retention-days: 14
