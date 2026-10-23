@@ -1040,8 +1040,28 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
      return {saved:true,already:false,board:board.title};
    }finally{savedBusy=false;render()}
  }
+ async function createVeveBoard(title){
+   const uid=authUid,clean=String(title||'').trim().slice(0,100);
+   if(!uid)throw Error('Sign in to create a private BIG LWA board.');
+   if(!clean)throw Error('Enter a board name.');
+   if(savedUid!==uid)await loadSaved();
+   if(savedBusy)throw Error('Boards are still saving. Try again.');
+   const next=JSON.parse(JSON.stringify(savedLibrary));
+   if(next.boards.length>=40)throw Error('You have reached the 40-board limit.');
+   const id='board_'+Array.from(crypto.getRandomValues(new Uint8Array(12))).map(n=>n.toString(16).padStart(2,'0')).join('');
+   next.boards.push({id,title:clean,pins:[]});
+   savedBusy=true;
+   try{
+     const result=await savedRequest('POST',next);
+     if(uid!==authUid)throw Error('Account changed during board creation.');
+     if(!result?.boards?.some(b=>b.id===id))throw Error('New board was not saved.');
+     savedLibrary=result;savedUid=uid;
+     document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
+     return {id,title:clean};
+   }finally{savedBusy=false;render()}
+ }
  const veveSavedBoards=()=>authUid?savedLibrary.boards.map(b=>({id:b.id,title:b.title,count:b.pins.length})):[];
-window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVevePin,veveSavedBoards,loadSaved,
+window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVevePin,createVeveBoard,veveSavedBoards,loadSaved,
   getPreview(){
    const seen=new Set(),out=[];
    const include=(id,url)=>{
