@@ -198,8 +198,18 @@ export async function mountCraftSuite(root){
   if(event.origin!==location.origin||!root.isConnected)return;
   const frame=viewer.querySelector('iframe');
   if(!frame||event.source!==frame.contentWindow||event.data?.type!=='BIGLWA_WORKSHOP_SAVE_IMAGE')return;
-  const ok=await saveVaultImage(event.data.blob,'sqwibblR artwork');
-  frame.contentWindow?.postMessage({type:'BIGLWA_WORKSHOP_SAVE_RESULT',ok},location.origin);
+  // A result belongs only to the active, same-origin editor that requested it.
+  const editor=current||LOCAL.id;
+  if(event.data.app&&event.data.app!==editor)return;
+  const name=typeof event.data.name==='string'
+    ?event.data.name.replace(/\.[^.]+$/,'').slice(0,80)
+    :(findItem(editor)?.name||'Workshop')+' artwork';
+  const ok=await saveVaultImage(event.data.blob,name);
+  const synced=ok&&/^Saved to your account/.test(String(window.BigLWAAccountStorage?.status||''));
+  if(frame.isConnected&&viewer.contains(frame))
+   frame.contentWindow?.postMessage({
+    type:'BIGLWA_WORKSHOP_SAVE_RESULT',requestId:event.data.requestId||null,ok,synced
+   },location.origin);
  });
 
  const title=root.querySelector('#craftPanelTitle'),direct=root.querySelector('#craftDirectLink'),info=root.querySelector('#craftEditorStatus');
