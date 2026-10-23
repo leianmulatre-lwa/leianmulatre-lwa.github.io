@@ -1,0 +1,57 @@
+/* BIG LWA's original, non-invasive R-suite overlay.
+ * Each color matches the stitched letter-block in Workshop.
+ * Native WebAssembly UI and its attribution are intentionally untouched. */
+@font-face{font-family:"BIG LWA Stitched";src:url("/assets/fonts/cs-bergamot-stitched.otf") format("opentype");font-display:swap}
+html[data-biglwa-editor="photocraft"]{--editor-rim:#b87817;--editor-bright:#e9ad39;--editor-dark:#70420e;--editor-letter:"𝖑"}
+html[data-biglwa-editor="vectorcraft"]{--editor-rim:#1568c3;--editor-bright:#4594ec;--editor-dark:#173e88;--editor-letter:"𝖕"}
+html[data-biglwa-editor="effectcraft"]{--editor-rim:#8848a2;--editor-bright:#b679c5;--editor-dark:#53336e;--editor-letter:"𝖐"}
+html[data-biglwa-editor="pdfcraft"]{--editor-rim:#bb5b54;--editor-bright:#e88a74;--editor-dark:#833b3c;--editor-letter:"𝖋"}
+html[data-biglwa-editor] :is(h1,h2,h3){font-family:"BIG LWA Stitched",Georgia,serif}
+html[data-biglwa-editor] .biglwa-editor-chrome{
+ position:fixed;z-index:2147482000;bottom:12px;right:12px;
+ display:flex;gap:9px;align-items:center;max-width:min(96vw,630px);
+ box-sizing:border-box;padding:9px 11px;border:2px solid var(--editor-dark,#633);
+ border-radius:15px;color:#241a17;
+ background:linear-gradient(125deg,#fff8e6,#f6dfbd);box-shadow:4px 5px 0 #31232166,0 9px 18px #0003;
+ font:700 11px/1.35 system-ui,-apple-system,sans-serif;
+}
+html[data-biglwa-editor] .biglwa-editor-chrome[hidden]{display:none!important}
+html[data-biglwa-editor] .biglwa-editor-glyph{
+ width:38px;height:38px;flex:none;display:grid;place-items:center;
+ background:linear-gradient(140deg,var(--editor-bright),var(--editor-rim) 65%,var(--editor-dark));
+ border:2px solid #241912;outline:1px solid var(--editor-dark);outline-offset:2px;
+ border-radius:8px;box-shadow:inset 0 0 0 3px #ffe8b1,inset 0 0 0 5px var(--editor-rim);
+ font:700 27px/1 "BIG LWA Stitched",Georgia,serif;color:#201719;
+}
+html[data-biglwa-editor] .biglwa-editor-name{display:flex;flex-direction:column;min-width:72px;gap:2px}
+html[data-biglwa-editor] .biglwa-editor-name strong{font:600 22px/1.1 "BIG LWA Stitched",Georgia,serif}
+html[data-biglwa-editor] .biglwa-editor-name small{font-size:9px;line-height:1.2;opacity:.8;font-family:system-ui}
+html[data-biglwa-editor] .biglwa-editor-lights{display:flex;gap:4px;align-items:center}
+html[data-biglwa-editor] .biglwa-editor-lights button{
+ display:block;width:13px;height:13px;min-width:13px;min-height:13px;padding:0;border:1px solid #382a1a88;
+ border-radius:50%;cursor:pointer;box-shadow:0 1px 1px #0003;
+}
+html[data-biglwa-editor] .biglwa-editor-lights [data-craft-chrome="exit"]{background:#df605b}
+html[data-biglwa-editor] .biglwa-editor-lights [data-craft-chrome="hide"]{background:#f4c749}
+html[data-biglwa-editor] .biglwa-editor-lights [data-craft-chrome="fullscreen"]{background:#57ac70}
+html[data-biglwa-editor] .biglwa-editor-links{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:end}
+html[data-biglwa-editor] .biglwa-editor-links :is(a,button,label){
+ display:inline-flex;align-items:center;gap:4px;text-decoration:none;white-space:nowrap;
+ border:1px solid var(--editor-dark);color:#241914;background:#fff8e8;
+ border-radius:7px;min-height:29px;padding:5px 8px;cursor:pointer;font:750 10px/1.2 system-ui;
+}
+html[data-biglwa-editor] .biglwa-editor-links :is(a,button,label):is(:focus-visible,:hover){background:var(--editor-bright);outline:2px solid var(--editor-dark);outline-offset:1px}
+html[data-biglwa-editor] .biglwa-editor-links input[type=file]{width:1px;height:1px;opacity:0;position:absolute}
+html[data-biglwa-editor] .biglwa-editor-status{max-width:160px;font-size:9px;font-weight:500;line-height:1.3}
+html[data-biglwa-editor] .biglwa-editor-reopen{
+ position:fixed;z-index:2147482000;right:9px;bottom:9px;
+ padding:7px 11px;border:2px solid var(--editor-dark);background:var(--editor-bright);color:#241914;
+ border-radius:9px;cursor:pointer;font:700 11px/1.1 "BIG LWA Stitched",serif;
+}
+html[data-biglwa-editor] .biglwa-editor-reopen[hidden]{display:none!important}
+@media(max-width:710px){
+ html[data-biglwa-editor] .biglwa-editor-chrome{left:7px;right:7px;bottom:7px;gap:7px;flex-wrap:wrap;justify-content:center}
+ html[data-biglwa-editor] .biglwa-editor-name strong{font-size:18px}
+ html[data-biglwa-editor] .biglwa-editor-links{justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){html[data-biglwa-editor] .biglwa-editor-chrome{transition:none!important}}
