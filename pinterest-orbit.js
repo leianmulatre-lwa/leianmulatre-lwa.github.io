@@ -758,6 +758,9 @@ async function connect(){await run(async()=>{
  let panel=document.getElementById('pinterestBoards');
  if(!panel){panel=document.createElement('section');panel.id='pinterestBoards';panel.className='module-card';panel.style.marginTop='20px';const heading=body.querySelector('.module-heading');if(heading)heading.after(panel);else body.prepend(panel)}
  panel.setAttribute('aria-busy',String(busy));
+ // One selected image enters multi-select mode. All other checkboxes appear
+ // until the final selection is cleared, on both imported and original Pins.
+ panel.classList.toggle('pn-selection-active',selectedBoardPins.size>0||selectedOriginalPins.size>0);
  const disabled=''; // Keep connected controls usable while run() queues work.
  const selectedCreated=createdPins.filter(pin=>selectedOriginalPins.has(String(pin.id)));
  const pendingPrivatePins=selectedCreated.filter(pin=>!['private','archived','live'].includes(profilePinStates.get(String(pin.id))));
