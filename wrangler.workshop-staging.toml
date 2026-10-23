@@ -1,0 +1,14 @@
+# Isolated vault QA. Never point to the production media R2 bucket or Worker.
+name = "biglwa-workshop-vault-staging"
+main = "workshop-vault-staging.js"
+compatibility_date = "2026-09-11"
+workers_dev = true
+keep_vars = false
+
+[vars]
+SITE_URL = "https://biglwa.com"
+FIREBASE_PROJECT_ID = "biglwa"
+
+[[r2_buckets]]
+binding = "WALLPAPER_BUCKET"
+bucket_name = "biglwa-preview-media"
