@@ -41,6 +41,6 @@ for(const asset of [
  'veve.js?v=20261022-board-save-3',
  'veve.css?v=20261023-orbit-colors-7',
  'pinterest-orbit.js?v=20261022-veve-board-9',
- 'studio-loading-dots-20261021.js?v=20261022-continuous-veve-13'
+ 'studio-loading-dots-20261021.js?v=20261023-document-teardown-1'
 ])assert.ok(html.includes(asset),'Site must load '+asset);
 console.log('PASS: Veve board saving, bounded lower loader, local ArtCraft links, arcade app identity.');
