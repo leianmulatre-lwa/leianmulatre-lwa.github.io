@@ -64,9 +64,9 @@
    const response=await fetch(base+'/'+provider+'/'+path,{
      method,headers,cache:'no-store',...(data!==null?{body:JSON.stringify(data)}:{})
    });
-   const data=await response.json().catch(()=>({}));
-   if(!response.ok)throw Error(data.error||(response.status===404?'OAuth endpoint not deployed yet.':'Provider request failed.'));
-   return data;
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(result.error||(response.status===404?'OAuth endpoint not deployed yet.':'Provider request failed.'));
+   return result;
  }
  function get(id){return state[id]||null}
  function configured(id){return config[id]||{configured:false,missing:[],checked:false}}
