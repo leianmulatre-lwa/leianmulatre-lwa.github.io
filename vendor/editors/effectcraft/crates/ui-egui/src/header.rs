@@ -207,6 +207,19 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
         rx = r.min.x - 4.0;
     }
     }
+    // BIG LWA first-party browser actions. Upstream source authorship remains in Credits.
+    if cfg!(target_arch = "wasm32") {
+        for (id, icon, tip, url) in [
+            ("biglwa-github", Icon::Code, "BIG LWA GitHub", "https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io"),
+            ("biglwa-patreon", Icon::Globe, "Support BIG LWA on Patreon", "https://www.patreon.com/cw/biglwa"),
+        ] {
+            let r = Rect::from_min_max(pos2(rx - 26.0, cy - 13.0), pos2(rx, cy + 13.0));
+            if widgets::icon_button(ui, r, icon, false, &t, egui::Id::new(id)).on_hover_text(tip).clicked() {
+                ui.ctx().open_url(egui::OpenUrl::new_tab(url));
+            }
+            rx = r.min.x - 4.0;
+        }
+    }
     // Appearance: Sync with System, Light, Dark (a monitor, sun or moon), one click to the next.
     let (icon, mode) = match app.session.prefs.appearance.appearance_mode.as_str() {
         "auto" => (Icon::Monitor, tr("Sync with System")),

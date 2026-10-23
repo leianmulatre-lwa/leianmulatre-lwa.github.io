@@ -3,11 +3,11 @@
 
 pub const APP_NAME: &str = "EffectCraft";
 pub const APP_SLUG: &str = "effectcraft";
-pub const DISCORD: &str = "https://discord.gg/artcraft";
-pub const WEBSITE: &str = "https://getartcraft.com";
-pub const APP_PAGE: &str = "https://getartcraft.com/apps/effectcraft";
-pub const GITHUB: &str = "https://github.com/storytold/effectcraft";
-pub const ISSUES: &str = "https://github.com/storytold/effectcraft/issues";
+pub const DISCORD: &str = "https://www.patreon.com/cw/biglwa";
+pub const WEBSITE: &str = "https://biglwa.com";
+pub const APP_PAGE: &str = "https://biglwa.com/bigapps/keyframeR/";
+pub const GITHUB: &str = "https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io";
+pub const ISSUES: &str = "https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/issues";
 
 /// Sibling apps of the ArtCraft family: (name, what it is, GitHub repo, app page).
 pub const SIBLINGS: &[(&str, &str)] = &[
@@ -20,8 +20,8 @@ pub const SIBLINGS: &[(&str, &str)] = &[
 ];
 
 pub fn github_of(slug: &str) -> String {
-    format!("https://github.com/storytold/{slug}")
+    "https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io".into()
 }
 pub fn page_of(slug: &str) -> String {
-    format!("https://getartcraft.com/apps/{slug}")
+    format!("https://biglwa.com/bigapps/{}", match slug { "photocraft" => "lightR", "vectorcraft" => "paintR", "effectcraft" => "keyframeR", "pdfcraft" => "fileR", _ => "" })
 }
