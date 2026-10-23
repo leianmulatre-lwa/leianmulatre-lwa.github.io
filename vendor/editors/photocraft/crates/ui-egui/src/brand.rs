@@ -30,40 +30,40 @@ pub fn paint_mark(ui: &Ui, r: Rect) {
 
     // The top, recessed side, and piped front are independent facets.
     p.add(egui::Shape::convex_polygon(
-        vec![pt(.08,.24), pt(.3,.03), pt(.95,.09), pt(.75,.31)],
+        vec![pt(0.08,0.24), pt(0.3,0.03), pt(0.95,0.09), pt(0.75,0.31)],
         light,
-        Stroke::new(.75, ink),
+        Stroke::new(0.75, ink),
     ));
     p.add(egui::Shape::convex_polygon(
-        vec![pt(.75,.31), pt(.95,.09), pt(.96,.81), pt(.75,.98)],
+        vec![pt(0.75,0.31), pt(0.95,0.09), pt(0.96,0.81), pt(0.75,0.98)],
         dark,
-        Stroke::new(.75, ink),
+        Stroke::new(0.75, ink),
     ));
-    let front = Rect::from_min_max(pt(.055,.26), pt(.77,.98));
+    let front = Rect::from_min_max(pt(0.055,0.26), pt(0.77,0.98));
     p.rect_filled(front, CornerRadius::same(3), gold);
-    p.rect_stroke(front, CornerRadius::same(3), Stroke::new(.95, ink), StrokeKind::Inside);
+    p.rect_stroke(front, CornerRadius::same(3), Stroke::new(0.95, ink), StrokeKind::Inside);
     let binding = front.shrink(1.35);
-    p.rect_stroke(binding, CornerRadius::same(2), Stroke::new(.7, stitch), StrokeKind::Inside);
-    let cloth = Rect::from_min_max(pt(.16,.37), pt(.68,.87));
+    p.rect_stroke(binding, CornerRadius::same(2), Stroke::new(0.7, stitch), StrokeKind::Inside);
+    let cloth = Rect::from_min_max(pt(0.16,0.37), pt(0.68,0.87));
     p.rect_filled(cloth, CornerRadius::same(1), linen);
-    p.rect_stroke(cloth, CornerRadius::same(1), Stroke::new(.6, ink), StrokeKind::Inside);
+    p.rect_stroke(cloth, CornerRadius::same(1), Stroke::new(0.6, ink), StrokeKind::Inside);
     let cloth_stitch = cloth.shrink(1.0);
-    p.rect_stroke(cloth_stitch, CornerRadius::same(1), Stroke::new(.4, stitch), StrokeKind::Inside);
+    p.rect_stroke(cloth_stitch, CornerRadius::same(1), Stroke::new(0.4, stitch), StrokeKind::Inside);
     p.text(
         cloth.center(),
         Align2::CENTER_CENTER,
         "L",
-        FontId::proportional((w * .43).clamp(7.0, 15.0)),
+        FontId::proportional((w * 0.43).clamp(7.0, 15.0)),
         ink,
     );
-    let diameter = (w / 11.0).clamp(.65, 1.9);
+    let diameter = (w / 11.0).clamp(0.65, 1.9);
     for (index, color) in [
         Color32::from_rgb(223, 96, 91),
         Color32::from_rgb(244, 199, 73),
         Color32::from_rgb(87, 172, 112),
     ].into_iter().enumerate() {
-        let px = x + w * (.23 + index as f32 * .17);
-        p.circle_filled(pos2(px, y + h * .935), diameter * .45, color);
+        let px = x + w * (0.23 + index as f32 * 0.17);
+        p.circle_filled(pos2(px, y + h * 0.935), diameter * 0.45, color);
     }
     ui.ctx().data_mut(|d| d.insert_temp(rect_id(), r));
 }
