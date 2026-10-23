@@ -23,7 +23,7 @@ assert.match(publisher,/async function createFeedDraft\(\{url,blob,caption\}=\{\
 assert.ok(publisher.includes('caption:clean(caption).slice(0,500)'));
 assert.ok(feed.includes('biglwa-lightbox-caption')&&feed.includes('esc(String(post.caption).slice(0,500))'));
 assert.ok(feed.includes("esc(String(post.caption||'Collective feed media').slice(0,160))"));
-assert.ok(html.includes('module-pages.js?v=20261023-archive-zoom-1'));
+assert.ok(html.includes('module-pages.js?v=20261023-tools-order-2'));
 assert.ok(html.includes('orbit-feed.js?v=20261015-mixed-source-6'));
 assert.ok(html.includes('collective-publish.js?v=20261015-captions-2'));
 assert.ok(boot.includes('feed-view.js?v=20261020-pinterest-clean-cards-7'));
