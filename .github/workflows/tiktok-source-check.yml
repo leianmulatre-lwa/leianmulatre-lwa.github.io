@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - ".github/workflows/tiktok-source-check.yml"
+      - "public-tiktok-snapshot-worker.js"
   workflow_dispatch:
 jobs:
   verify:
