@@ -21,7 +21,7 @@ assert.ok(posts.includes("pinterestOrigin: raw?.biglwaPinterestOrigin === 'creat
 assert.ok(feed.includes('p.pinterestOrigin==="created"'),'Feed review excludes saved board Pins');
 assert.ok(pages.includes('id="feedOrbitDraftToggle"')&&pages.includes('id="biglwaFeedSort"'),'Feed review toggle and sort exist');
 assert.ok(feed.includes('let draftTrayOpen = false')&&feed.includes('panel.hidden=!draftTrayOpen||!drafts.length'),'Private drafts are collapsed at first load');
-assert.ok(feed.includes('sortedFeed(posts.filter(usablePost))'),'Sort control changes public Feed order');
+assert.ok(feed.includes('sortedFeed(scoped).map((post) => {')&&feed.includes('posts.filter(usablePost).filter(post=>{'),'Sort control changes public Feed order');
 assert.ok(!feed.includes('biglwa-draft-card:nth-child(6n+2)'),'No yellow/orange alternating Pinterest draft colors');
 assert.ok(feed.includes('data-draft-source="pinterest"')&&feed.includes('#e60023'),'Draft shadows reflect Pinterest source red');
 assert.ok(css.includes('#pinterestBoards .pinterest-owned-grid'),'Boards and created Pin previews are separate');
