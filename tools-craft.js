@@ -144,5 +144,17 @@ export async function mountCraftSuite(root){
   button.textContent=ready.has(app.id)?'Edit inside BIG LWA →':'Browser engine unavailable';
   if(!ready.has(app.id))tile.classList.add('craft-unavailable');
  }
- return {open,close,available:()=>[...ready]};
+ function editFile(file){
+  if(!(file instanceof File)||!/^image\/(png|jpeg|webp|gif|avif)$/.test(file.type))return false;
+  const alreadyOpen=current===LOCAL.id;
+  if(!open(LOCAL.id))return false;
+  const iframe=viewer.querySelector('iframe');
+  if(!iframe)return false;
+  const send=()=>iframe.contentWindow?.postMessage(
+    {type:'BIGLWA_IMAGE_DESK_IMPORT',file},location.origin
+  );
+  if(alreadyOpen)send();else iframe.addEventListener('load',send,{once:true});
+  return true;
+ }
+ return {open,close,editFile,available:()=>[...ready]};
 }
