@@ -999,7 +999,49 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  importError='Pinterest connected, but BIG LWA could not save that connection to your account. Check your Firebase access rules and try refreshing.';
  render();
 });
-window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,
+// Veve uses the same private, account-backed saved-collection store as Boards.
+ // Only verified public Pinterest pin IDs can enter a Pinterest collection;
+ // no public feed post is edited or published by this action.
+ async function saveVevePin(item,boardId='default_saved'){
+   const uid=authUid;
+   if(!uid)throw Error('Sign in to BIG LWA before saving a discovery Pin.');
+   const id=String(item?.pinId||'');
+   const target=String(boardId||'default_saved');
+   if(!/^\d{6,25}$/.test(id))throw Error('This post has no valid Pinterest Pin ID.');
+   const raw=String(item?.url||'');
+   let url;
+   try{url=new URL(raw)}catch{throw Error('The original Pinterest link is missing.')}
+   if(url.protocol!=='https:'||!['www.pinterest.com','pinterest.com'].includes(url.hostname)||
+      url.pathname.replace(/\/$/,'')!=='/pin/'+id)throw Error('This post is not an original Pinterest Pin link.');
+   if(savedBusy)throw Error('Your boards are updating. Retry after the current save.');
+   if(savedUid!==uid)await loadSaved();
+   if(uid!==authUid)throw Error('Account changed; please try again.');
+   const next=JSON.parse(JSON.stringify(savedLibrary));
+   let board=next.boards.find(b=>b.id===target);
+   if(!board){
+     if(target!=='default_saved')throw Error('Select an existing BIG LWA board.');
+     board={id:'default_saved',title:'Saved',pins:[]};
+     next.boards.unshift(board);
+   }
+   if(board.pins.some(p=>p.id===id))return {saved:true,already:true,board:board.title};
+   if(board.pins.length>=400)throw Error('This collection is full (400 Pins).');
+   const rawImage=String(item?.image||'');let image='';
+   try{const u=new URL(rawImage);if(u.protocol==='https:'&&(u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com')))image=u.href}catch{}
+   board.pins.unshift({id,title:String(item?.title||'Pinterest Pin').slice(0,300),
+      image,url:'https://www.pinterest.com/pin/'+id+'/'});
+   savedBusy=true;
+   try{
+     const result=await savedRequest('POST',next);
+     if(uid!==authUid)throw Error('Account changed during save.');
+     const found=result?.boards?.find(b=>b.id===target)?.pins?.some(p=>p.id===id);
+     if(!found)throw Error('The saved Pin could not be verified. Retry.');
+     savedLibrary=result;savedUid=uid;savedError='';
+     document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
+     return {saved:true,already:false,board:board.title};
+   }finally{savedBusy=false;render()}
+ }
+ const veveSavedBoards=()=>authUid?savedLibrary.boards.map(b=>({id:b.id,title:b.title,count:b.pins.length})):[];
+window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVevePin,veveSavedBoards,loadSaved,
   getPreview(){
    const seen=new Set(),out=[];
    const include=(id,url)=>{
