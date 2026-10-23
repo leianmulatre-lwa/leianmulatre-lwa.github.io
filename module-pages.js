@@ -1679,6 +1679,36 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       location.href='mailto:'+encodeURIComponent(address)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(text);
       status.textContent='Your email app opened a draft. Send only if you want to invite this friend.';
     };
+    const contactFile=document.createElement('input');
+    contactFile.type='file';contactFile.accept='.csv,text/csv';contactFile.setAttribute('aria-label','Choose CSV contacts locally');
+    contactFile.style.maxWidth='240px';
+    const contactPanel=document.createElement('section');contactPanel.className='module-card wide';
+    contactPanel.style.marginTop='10px';
+    const heading=document.createElement('h2');heading.textContent='Choose friends from a contacts file';
+    const info=document.createElement('p');info.textContent='Optional CSV with email addresses. Only this browser reads the file; nothing is uploaded. Pick each recipient before opening an email draft.';
+    const localResults=document.createElement('div');localResults.className='module-list';localResults.setAttribute('aria-live','polite');
+    contactPanel.append(heading,info,contactFile,localResults);
+    body.append(contactPanel);
+    contactFile.addEventListener('change',async()=>{
+      localResults.replaceChildren();const file=contactFile.files?.[0];if(!file)return;
+      if(file.size>256*1024){localResults.textContent='Choose a contacts CSV smaller than 256 KB.';return}
+      try{
+        const raw=await file.text();
+        // Read only email-like tokens, never names, phone numbers or unrelated fields.
+        const emails=[...new Set((raw.match(/[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi)||[]).map(s=>s.trim().toLowerCase()))].slice(0,100);
+        if(!emails.length){localResults.textContent='No valid email addresses found in this CSV.';return}
+        for(const address of emails){
+          const row=document.createElement('div');row.className='module-list-item';
+          const label=document.createElement('span');label.textContent=address;
+          const choose=document.createElement('button');choose.type='button';choose.textContent='Invite';
+          choose.onclick=()=>{
+            const email=body.querySelector('#inviteFriendEmail');
+            email.value=address;body.querySelector('#sendManualInvite').click();
+          };
+          row.append(label,choose);localResults.append(row);
+        }
+      }catch{localResults.textContent='This contacts file could not be read locally.'}
+    });
     // Multiple public profiles live on the member's account, but are never
     // mislabeled as multiple authenticated OAuth sessions.
     const profilesPanel=document.createElement('section');
