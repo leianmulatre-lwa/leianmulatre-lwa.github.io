@@ -190,3 +190,16 @@
 #craftSuite .craft-toolbar{padding:6px}
 @media(max-width:740px){#craftSuite .craft-directory{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 @media(max-width:420px){#craftSuite .craft-directory{grid-template-columns:repeat(2,minmax(0,1fr))!important}#craftSuite .craft-tile{padding:8px!important}}
+
+/* BIG LWA: visible app-specific frame around licensed native editors */
+#craftSuite .craft-panel[data-craft-engine="image-desk"]{--craft-accent:#af3d55;--craft-light:#ffe3e4}
+#craftSuite .craft-panel[data-craft-engine="photocraft"]{--craft-accent:#d6911d;--craft-light:#fff0bd}
+#craftSuite .craft-panel[data-craft-engine="vectorcraft"]{--craft-accent:#1b68c9;--craft-light:#dcecff}
+#craftSuite .craft-panel[data-craft-engine="effectcraft"]{--craft-accent:#8d4cb3;--craft-light:#f0dcfa}
+#craftSuite .craft-panel[data-craft-engine="pdfcraft"]{--craft-accent:#ca5b55;--craft-light:#ffe0d8}
+#craftSuite .craft-panel[data-craft-engine]{border:3px solid var(--craft-accent);border-radius:16px;overflow:hidden;box-shadow:5px 6px 0 #18102044}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-head{background:linear-gradient(110deg,var(--craft-light),#fff8ed);color:#302029;border-bottom:3px solid var(--craft-accent);padding:9px 12px}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-head strong{display:flex;align-items:center;gap:8px;color:#302029;font:400 23px/1.1 "BIG LWA Stitched",Georgia,serif}
+#craftSuite .craft-panel-block{display:block;width:34px;height:34px;object-fit:contain;flex-shrink:0}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-actions :is(a,button,label){background:var(--craft-light);border-color:var(--craft-accent);color:#34242c}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-foot{background:var(--craft-light);color:#34242c;border-top:2px solid var(--craft-accent)}
