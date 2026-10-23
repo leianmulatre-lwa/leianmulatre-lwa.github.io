@@ -13,7 +13,7 @@ import sys
 repo=Path(__file__).resolve().parents[2]
 engines={"photocraft":"lightR","vectorcraft":"paintR","effectcraft":"keyframeR","pdfcraft":"fileR"}
 legacy=re.compile(r"PhotoCraft|VectorCraft|EffectCraft|PdfCraft|ArtCraft|getartcraft\\.com|github\\.com/storytold|discord\\.gg/artcraft",re.I)
-visible=re.compile(r'(?:tl!\\s*\\(|RichText::new|\\.label\\s*\\(|Window::new|ui\\.button|label\\s*:|description\\s*:|Help|About|Welcome|website|github|Discord|Url|link)',re.I)
+visible=re.compile(r'(?:tl!\s*\(|RichText::new|\.label\s*\(|Window::new|ui\.button|label\s*:|description\s*:|Help|About|Welcome|website|github|Discord|Url|link)',re.I)
 report={"apps":{},"total_visible":0}
 for app,new in engines.items():
     base=repo/"vendor"/"editors"/app
