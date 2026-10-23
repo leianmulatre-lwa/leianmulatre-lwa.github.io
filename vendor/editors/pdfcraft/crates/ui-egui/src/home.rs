@@ -32,7 +32,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         widgets::artcraft_mark(ui, 28.0);
                         ui.vertical(|ui| {
                             ui.label(egui::RichText::new("fileR · BIG LWA Workshop").font(theme::semibold(15.0)));
-                            ui.label(egui::RichText::new("Work with original PDFs locally. Save to your BIG LWA project shelf only when you choose to export.").color(t.text_muted));
+                            ui.label(egui::RichText::new("Work with original PDFs locally. Export your file, then save that original through the BIG LWA Workshop.").color(t.text_muted));
                         });
                     });
                 });
