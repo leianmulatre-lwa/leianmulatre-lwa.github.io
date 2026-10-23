@@ -38,6 +38,8 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node tools-workshop-native-test.mjs
       - name: Verify Step Inside native login submission and account creation
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node login-step-inside-regression-test.mjs
+      - name: Verify login laptop loads before its programmed cartoon
+        run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node login-laptop-floating-preview-test.mjs
       - name: Verify original toolbar startup, docking, shortcut dragging and recovery
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
       - name: Verify persistent help, color drafts, account analytics and Connect
