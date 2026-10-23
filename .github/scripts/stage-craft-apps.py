@@ -10,6 +10,8 @@ from __future__ import annotations
 from pathlib import Path, PurePosixPath
 import hashlib
 import io
+import os
+import tarfile
 import json
 import re
 import shutil
@@ -160,6 +162,58 @@ def write_legacy_redirect(legacy_root: Path, slug: str) -> None:
     (folder / "index.html").write_text(html, encoding="utf-8")
 
 
+
+def install_verified_native_archive(archive_path: Path, public: Path) -> dict:
+    """Install one four-app release made by prepare-native-release.py.
+
+    This archive is SHA-256 pinned in the repo before the build starts. Never
+    fall back to upstream if the activated release is missing or malformed.
+    """
+    permitted = {"lightR", "paintR", "keyframeR", "fileR"}
+    seen = set()
+    total = 0
+    metadata = None
+    with tarfile.open(archive_path, "r:gz") as archive:
+        members = archive.getmembers()
+        if len(members) > 3500:
+            raise ValueError("Native release has too many members")
+        for member in members:
+            rel = PurePosixPath(member.name)
+            if member.isdir():
+                continue
+            if not member.isfile() or rel.is_absolute() or ".." in rel.parts or member.name in seen:
+                raise ValueError("Unsafe native package entry")
+            seen.add(member.name)
+            if member.size > MAX_ASSET_BYTES:
+                raise ValueError("GitHub Pages cannot host an oversized native release file")
+            total += member.size
+            if total > 360 * 1024 * 1024:
+                raise ValueError("Native package exceeds safe expanded size")
+            if member.name == "biglwa-native-build.json":
+                metadata = json.load(archive.extractfile(member))
+            elif len(rel.parts) >= 3 and rel.parts[0] == "bigapps" and rel.parts[1] in permitted:
+                pass
+            else:
+                raise ValueError("Unknown file in native editor release: " + member.name)
+        if not isinstance(metadata, dict) or set(metadata.get("editors", {})) != permitted:
+            raise ValueError("Native release provenance does not cover all four editors")
+        for member in members:
+            if not member.isfile() or member.name == "biglwa-native-build.json":
+                continue
+            output = public.joinpath(*PurePosixPath(member.name).parts)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            with archive.extractfile(member) as incoming, output.open("wb") as written:
+                shutil.copyfileobj(incoming, written, length=1024 * 1024)
+    for app in permitted:
+        where = public / "bigapps" / app
+        if not (where / "index.html").is_file() or not any(where.rglob("*.wasm")):
+            raise ValueError(f"Native release lacks runnable {app}")
+        for license_file in ("LICENSE-MIT", "LICENSE-APACHE", "NOTICE", "SOURCE.txt"):
+            if not (where / "upstream-licenses" / license_file).is_file():
+                raise ValueError(f"Native release lacks {app}/{license_file}")
+    return metadata
+
+
 def stage(target: Path) -> None:
     target.mkdir(parents=True, exist_ok=True)
     root = target / "bigapps"
@@ -172,19 +226,34 @@ def stage(target: Path) -> None:
         '<a href="/studio?view=tools">Open BIG LWA Workshop</a>',
         encoding="utf-8",
     )
+    native_archive = os.environ.get("BIGLWA_NATIVE_ARCHIVE")
+    native_meta = install_verified_native_archive(Path(native_archive), target) if native_archive else None
     rows = []
     for slug, version in APPS:
         destination = root / PUBLIC_NAMES[slug]
         row = {"id": slug, "route": f"/bigapps/{PUBLIC_NAMES[slug]}/", "version": version, "available": False,
                "source": f"https://github.com/storytold/{slug}"}
         try:
-            archive = release_archive(slug, version)
-            size = install_zip(archive, slug, version, destination)
+            if native_meta:
+                # Native WASM was built from BIG LWA's Rust source, not
+                # downloaded from the old upstream editor releases.
+                row["build"] = "biglwa-native"
+                row["source"] = "https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io"
+                row["commit"] = native_meta["source_sha"]
+            else:
+                archive = release_archive(slug, version)
+                size = install_zip(archive, slug, version, destination)
+                preserve_notices(slug, version, destination)
+                print(f"[ArtCraft] staged upstream {slug} v{version} ({size} bytes)")
             brand_web_shell(slug, destination)
-            preserve_notices(slug, version, destination)
             row["available"] = True
-            print(f"[ArtCraft] staged {slug} v{version} ({size} bytes)")
+            if native_meta:
+                print(f"[BIG LWA] published verified Rust {PUBLIC_NAMES[slug]} from {native_meta['source_sha'][:12]}")
         except Exception as exc:
+            if native_meta:
+                # Never silently replace a bad custom Rust build with the
+                # upstream editor under the exact same BIG LWA release URL.
+                raise RuntimeError(f"Verified native {PUBLIC_NAMES[slug]} could not be staged: {exc}") from exc
             shutil.rmtree(destination, ignore_errors=True)
             print(f"[ArtCraft] unavailable: {slug} v{version}: {exc}", file=sys.stderr)
         rows.append(row)
