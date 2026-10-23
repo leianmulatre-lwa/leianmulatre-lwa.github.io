@@ -25,7 +25,7 @@ const shell=doc.querySelector('.module-shell');
 const curtain=shell.querySelector('.lwa-curtain[data-lwa-curtain="module"]');
 assert.ok(curtain,'Veve creates the loading curtain');
 assert.equal(curtain.hidden,false,'Curtain stays while public data is pending');
-assert.ok(shell.classList.contains('lwa-curtain-veve-pending'),'Veve cards are visually hidden while pending');
+assert.ok(shell.classList.contains('lwa-curtain-veve-pending'),'An opaque Veve cover is active while data loads');
 assert.ok(curtain.querySelector('.lwa-curtain-bypass'),'Always-available view anyway action');
 assert.equal(curtain.querySelector('.lwa-curtain-bypass').textContent,'Who’s you? →');
 assert.match(source,/\.lwa-curtain\[data-lwa-curtain="module"\] \.lwa-dot\{width:17px;height:17px/,'Dots enlarged');
@@ -56,7 +56,7 @@ assert.equal(shell.classList.contains('lwa-curtain-veve-pending'),false,'Bypass 
 doc.dispatchEvent(new w.CustomEvent('biglwa:veve-load-state',{detail:{stage:'Loading public posts…',ready:false}}));
 await sleep(45);
 assert.equal(reentered.hidden,true,'Bypass remains respected until a different page is opened');
-assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261022-one-startup-12'));
-assert.ok(html.includes('veve.js?v=20261022-ready-tracker-2'));
+assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261022-continuous-veve-13'));
+assert.ok(html.includes('veve.js?v=20261022-board-save-3'));
 w.close();
 console.log('PASS: Veve curtain covers feed tiles, tracks requests, dismisses for lazy images, and allows view anyway.');
