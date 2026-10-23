@@ -81,28 +81,63 @@
 @media(max-width:460px){#craftSuite .craft-directory{grid-template-columns:1fr}}
 
 
-/* BIG LWA Workshop icons echo the raised toy/game blocks inside the Arcade cabinet:
-   chunky silhouette, stepped ink edge, inset engraving and RGB player lights. */
+/* BIG LWA Workshop / Arcade alphabet blocks (reference: L-W-A vintage wooden cubes).
+   Each app gets one hand-inked letter cube, not a glossy game button. */
 #craftSuite .craft-tile-icon.craft-arcade-block{
- --block-top:#c95774;--block-side:#6e2e40;--block-edge:#401f30;
- position:relative;isolation:isolate;overflow:visible;display:grid;place-items:center;
- width:63px!important;height:63px!important;min-width:63px;
- border-radius:12px 12px 9px 9px!important;
- border:3px solid var(--block-edge)!important;
- background:linear-gradient(145deg,#fff6df 0 10%,var(--block-top) 13% 74%,var(--block-side) 96%)!important;
- box-shadow:inset 3px 3px 0 #ffffff65,inset -5px -5px 0 #1d0a1847,
-   4px 5px 0 var(--block-side),6px 7px 0 var(--block-edge)!important;
- transform:rotate(-3deg);margin:4px 0 7px 3px;
- font:800 32px/1 "CS Bergamot Stitched",Georgia,serif!important;color:#fff9e7!important;
- text-shadow:2px 2px 0 #2c1327a0!important}
-#craftSuite .craft-block-glyph{position:relative;z-index:2}
-#craftSuite .craft-arcade-block i{position:absolute;bottom:5px;width:6px;height:6px;border-radius:2px;background:#f66b78;border:1px solid #180c18}
-#craftSuite .craft-arcade-block i:first-of-type{left:8px;background:#f1c54c}
-#craftSuite .craft-arcade-block i:last-of-type{left:17px;background:#5ab97b}
-#craftSuite .craft-block-image-desk{--block-top:#d86183;--block-side:#843a57}
-#craftSuite .craft-block-photocraft{--block-top:#d15871;--block-side:#803549}
-#craftSuite .craft-block-vectorcraft{--block-top:#4c85b4;--block-side:#234d7a}
-#craftSuite .craft-block-effectcraft{--block-top:#9764bd;--block-side:#5c347e}
-#craftSuite .craft-block-pdfcraft{--block-top:#cf9551;--block-side:#915a2d}
+ --block-rim:#478963;--block-ink:#231711;
+ position:relative!important;isolation:isolate;overflow:visible!important;
+ display:block!important;width:82px!important;height:79px!important;min-width:82px!important;
+ padding:0!important;margin:0 0 7px 0!important;
+ border:0!important;border-radius:0!important;background:none!important;
+ box-shadow:none!important;color:var(--block-ink)!important;
+ transform:rotate(-3deg);filter:drop-shadow(2px 3px 0 #603f292f);
+ transition:transform .18s ease;
+}
+/* Light wood top and visible timber side, as in the original Arcade mark. */
+#craftSuite .craft-arcade-block::before{
+ content:"";position:absolute;left:4px;top:3px;width:76px;height:12px;z-index:0;
+ background:repeating-linear-gradient(110deg,transparent 0 3px,#5745272d 3px 4px),
+            linear-gradient(160deg,#ffe2a3,#ca9c57);
+ clip-path:polygon(0 100%,13% 0,100% 0,84% 100%);
+ border-top:2px solid #38261d;
+}
+#craftSuite .craft-arcade-block::after{
+ content:"";position:absolute;top:3px;left:67px;width:14px;height:73px;z-index:0;
+ background:repeating-linear-gradient(0deg,transparent 0 5px,#5d391e65 5px 6px),
+            repeating-linear-gradient(105deg,transparent 0 3px,#f9ca8259 3px 4px),
+            linear-gradient(90deg,#b77c3c,#815328);
+ clip-path:polygon(0 16%,100% 0,100% 85%,0 100%);
+ border-right:2px solid var(--block-ink);
+}
+/* Colored edging, grain, stitched/dotted square and cream print inset. */
+#craftSuite .craft-block-front{
+ position:absolute;z-index:1;left:3px;top:14px;width:66px;height:62px;
+ border:2px solid var(--block-ink);border-radius:2px;box-sizing:border-box;
+ background:repeating-linear-gradient(0deg,transparent 0 6px,#17141535 6px 7px),
+            repeating-linear-gradient(90deg,transparent 0 6px,#17141530 6px 7px),
+            linear-gradient(155deg,color-mix(in srgb,var(--block-rim) 72%,white),
+              var(--block-rim) 62%,color-mix(in srgb,var(--block-rim) 75%,black));
+ box-shadow:inset 1px 1px #f5dbac,inset -2px -2px #4d281a8f;
+}
+#craftSuite .craft-block-front::before{
+ content:"";position:absolute;inset:6px;border:2px solid #34211b;border-radius:1px;
+ background:repeating-linear-gradient(120deg,transparent 0 6px,#ab815319 7px 8px),
+            linear-gradient(145deg,#ffefc9,#ebce98 80%,#d9b478);
+ box-shadow:0 0 0 2px #d3a769,inset 0 0 0 2px #fff2d9,inset 2px 2px 1px #6b442346;
+}
+#craftSuite .craft-block-front::after{
+ content:"";position:absolute;inset:3px;border:1px dashed #2c2016a6;
+ pointer-events:none;opacity:.8;
+}
+#craftSuite .craft-block-glyph{
+ position:absolute;inset:9px 9px 7px;z-index:2;
+ display:grid;place-items:center;font:700 36px/1 "Old English Text MT","Noto Sans Math","DejaVu Serif",serif!important;
+ color:#1d1a18!important;text-shadow:1px 0 #18110e50,0 1px #8c6340!important;
+}
+#craftSuite .craft-block-image-desk{--block-rim:#43834f;transform:rotate(-3deg)}
+#craftSuite .craft-block-photocraft{--block-rim:#c18536;transform:rotate(3deg)}
+#craftSuite .craft-block-vectorcraft{--block-rim:#4a7da2;transform:rotate(-2deg)}
+#craftSuite .craft-block-effectcraft{--block-rim:#9c638b;transform:rotate(2deg)}
+#craftSuite .craft-block-pdfcraft{--block-rim:#ba6661;transform:rotate(-2deg)}
 #craftSuite .craft-tile:hover .craft-arcade-block{transform:rotate(0deg) translateY(-2px)}
 @media(prefers-reduced-motion:reduce){#craftSuite .craft-arcade-block{transition:none!important}}

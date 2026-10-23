@@ -4,16 +4,16 @@
  * original engine implementations. Upstream LICENSE and NOTICE remain intact.
  */
 const ENGINES=[
- {id:'photocraft',name:'Pixel Lab',credit:'PhotoCraft',letter:'◈',version:'0.7.0',
+ {id:'photocraft',name:'Pixel Lab',credit:'PhotoCraft',letter:'𝖕',version:'0.7.0',
   description:'Advanced layers, compositing, image workflows',type:'Image',
   source:'https://github.com/storytold/photocraft'},
- {id:'vectorcraft',name:'Vector Studio',credit:'VectorCraft',letter:'✤',version:'0.9.0',
+ {id:'vectorcraft',name:'Vector Studio',credit:'VectorCraft',letter:'𝖛',version:'0.9.0',
   description:'Paths, SVG drawing and vector artwork',type:'Vector',
   source:'https://github.com/storytold/vectorcraft'},
- {id:'effectcraft',name:'Motion Room',credit:'EffectCraft',letter:'◐',version:'0.8.0',
+ {id:'effectcraft',name:'Motion Room',credit:'EffectCraft',letter:'𝖒',version:'0.8.0',
   description:'Keyframes, animation and motion composition',type:'Motion',
   source:'https://github.com/storytold/effectcraft'},
- {id:'pdfcraft',name:'Paper Desk',credit:'PdfCraft',letter:'▤',version:'0.6.0',
+ {id:'pdfcraft',name:'Paper Desk',credit:'PdfCraft',letter:'𝖉',version:'0.6.0',
   description:'PDF viewing, annotation and editing',type:'Document',
   source:'https://github.com/storytold/pdfcraft'}
 ];
@@ -21,7 +21,7 @@ const FUTURE=[
  ['FilmCraft','Video editing'],['LightCraft','Photography and RAW'],['DesignCraft','Page layout'],
  ['FigCraft','Interface design'],['SoundCraft','Audio production']
 ];
-const LOCAL={id:'image-desk',name:'Image Desk',letter:'✎',url:'/tools/image-desk.html',
+const LOCAL={id:'image-desk',name:'Image Desk',letter:'𝖎',url:'/tools/image-desk.html',
  description:'Draw, paint, add text and layers, edit photos, save editable BIG LWA projects.',
  credit:'Original BIG LWA editor · works locally'};
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -31,14 +31,14 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261022-block-icons-4';document.head.append(css);
+ css.href='/tools-craft.css?v=20261022-vintage-woodblocks-5';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
  return '<article class="craft-tile'+(local?' craft-tile-home':'')+'" data-craft-card="'+item.id+'">'+
    '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
    '<div class="craft-tile-icon craft-arcade-block craft-block-'+escapeHtml(item.id)+'" aria-hidden="true">'+
-     '<span class="craft-block-glyph">'+escapeHtml(item.letter)+'</span><i></i><i></i></div>'+
+     '<span class="craft-block-front"><span class="craft-block-glyph">'+escapeHtml(item.letter)+'</span></span></div>'+
    '<h3>'+escapeHtml(item.name)+'</h3>'+
    '<p>'+escapeHtml(item.description)+'</p>'+
    '<div class="craft-engine-credits">'+escapeHtml(item.credit)+'</div>'+
