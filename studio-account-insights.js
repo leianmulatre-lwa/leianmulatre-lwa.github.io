@@ -51,6 +51,19 @@
     ingest('youtube',{username:channel.id,link:'https://www.youtube.com/channel/'+encodeURIComponent(channel.id)},
       raw,new Date().toISOString(),'subscribers');
   }
+  // Provider sessions with no public profile URL (e.g. Snapchat), or
+  // Facebook's separately authenticated profile, can still appear with an
+  // honest unavailable count. Never invent followers from connection status.
+  const live=[
+    ['facebook',window.BigLWAFacebookPersonal?.get?.()],
+    ['snapchat',window.BigLWAOrbitOAuth?.get?.('snapchat')],
+    ['tumblr',window.BigLWAOrbitOAuth?.get?.('tumblr')],
+    ['x',window.BigLWAOrbitOAuth?.get?.('x')]
+  ];
+  for(const [id,row]of live){
+    if(row?.verifiedFromProvider&&!rows.some(s=>s.id===id))
+      ingest(id,row,row.followers,row.lastVerifiedAt?new Date(row.lastVerifiedAt).toISOString():'');
+  }
   if(JSON.stringify(last)!==JSON.stringify(updates)){
     try{localStorage.setItem(cacheKey(accountUid),JSON.stringify(updates))}catch{}
   }
@@ -115,7 +128,7 @@
  }
  window.BigLWAAccountInsights={refresh,summarize};
  for(const event of ['biglwa:identity-updated','biglwa:user-directory-ready','biglwa:session-verified'])window.addEventListener(event,refresh);
- document.addEventListener('biglwa:module-open',refresh);document.addEventListener('biglwa:new-orbit-status',refresh);document.addEventListener('biglwa:google-state',refresh);
+ document.addEventListener('biglwa:module-open',refresh);document.addEventListener('biglwa:new-orbit-status',refresh);document.addEventListener('biglwa:google-state',refresh);document.addEventListener('biglwa:facebook-personal-status',refresh);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
  setTimeout(refresh,1200);
 })();
