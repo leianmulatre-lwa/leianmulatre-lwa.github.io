@@ -115,13 +115,16 @@ const slideUrls = (post) => pictureUrls(post).slice(0, MAX_SLIDES);
    show one shade for a post and another for the same account's live cards. */
 const SOURCES = {
   biglwa:   { label: "BIGLWA",    accent: "#c1355a" },
-  instagram:{ label: "Instagram", accent: "#7d3ec5" },
-  tiktok:   { label: "TikTok",    accent: "#111111" },
+  instagram:{ label: "Instagram", accent: "#f36b21" },
+  tiktok:   { label: "TikTok",    accent: "#772dcc" },
   pinterest:{ label: "Pinterest", accent: "#e60023" },
   facebook: { label: "Facebook",  accent: "#1877f2" },
-  youtube:  { label: "YouTube",   accent: "#d0202f" },
+  youtube:  { label: "YouTube",   accent: "#fff1ec" },
   soundcloud:{ label: "SoundCloud", accent: "#e2622a" },
-  google:   { label: "Google",    accent: "#4285f4" }
+  google:   { label: "Google",    accent: "#4285f4" },
+  snapchat: { label: "Snapchat",  accent: "#ffda00" },
+  tumblr:   { label: "Tumblr",    accent: "#1b304b" },
+  x:        { label: "X",         accent: "#0e0e0e" }
 };
 /* One wall, one shadow, but each source keeps a rim you can recognise it by. Blood orange
    is the wall's own colour and the default for anything without a rim of its own; TikTok is
@@ -133,7 +136,10 @@ const SOURCE_THEMES = {
   tiktok: { rim:"#772dcc", glow:"#b77cff", hot:"#4a187f" },
   facebook: { rim:"#1877f2", glow:"#5aa0ff" },
   pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" },
-  youtube: { rim:"#d0202f", glow:"#fff6ec", hot:"#ff0033" },
+  youtube: { rim:"#fff1ec", glow:"#e66e7e", hot:"#d44b67" },
+  snapchat:{ rim:"#ffda00", glow:"#ffe780", hot:"#b39700" },
+  tumblr:  { rim:"#1b304b", glow:"#5a7897", hot:"#0c172c" },
+  x:       { rim:"#0e0e0e", glow:"#666666", hot:"#161616" },
   soundcloud: { rim:"#ff5500", glow:"#ffb13b", hot:"#c93f00" },
   google: { rim:"#4285f4", glow:"#34a853", hot:"#fbbc04" },
   drive: { rim:"#4285f4", glow:"#34a853", hot:"#fbbc04" },
@@ -246,7 +252,7 @@ const STYLE = `
   width:100%!important;max-width:100%!important;margin:0 0 18px!important;padding:0!important;
   background:rgba(var(--aura-rgb,216,95,109),.09)!important;
   border-color:rgba(var(--aura-rgb,216,95,109),.2)!important;
-  box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#c13584)),0 12px 24px -16px rgba(216,95,109,.3))!important;
+  box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim,var(--orbit-rim,#f36b21)),0 12px 24px -16px rgba(216,95,109,.3))!important;
   border-radius:11px!important;overflow:hidden!important
 }
 .biglwa-instagram-card .biglwa-instagram-browser-strip,

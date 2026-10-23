@@ -154,8 +154,8 @@ function applyIdentity(data){
  * The links leave the site, so unlike everything else on a preview they are allowed to open
  * somewhere new. They say so on the label rather than surprising someone with a tab. */
 const SOCIAL_ACCENT={
-  instagram:"#c13584",
-  tiktok:"#0f8f95",
+  instagram:"#f36b21",
+  tiktok:"#772dcc",
   pinterest:"#e60023",
   x:"#151515",
   snapchat:"#e8c600",

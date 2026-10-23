@@ -41,8 +41,8 @@
   --feed-card-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026!important;
 }
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{
-  --feed-card-rim:#1877f2!important;
-  --feed-card-shadow:3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff!important;
+  --feed-card-rim:#1658be!important;
+  --feed-card-shadow:3px 3px 0 #1658be,0 12px 25px -16px #5aa0ff!important;
 }
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{
   --feed-card-rim:#772dcc!important;
@@ -484,3 +484,10 @@
  --feed-card-shadow:3px 3px 0 #772dcc,6px 7px 0 -2px #b77cff,0 14px 26px -14px #4a187f!important;
 }
 #feedPageList>.biglwa-facebook-card .biglwa-pin-link{display:none!important}
+
+
+/* Orbit is the single source palette: shared by live Veve and stored Archive cards. */
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-snapchat{--feed-card-rim:#ffda00!important;--feed-card-shadow:3px 3px 0 #ffda00,6px 6px 0 -2px #ffe780!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-tumblr{--feed-card-rim:#1b304b!important;--feed-card-shadow:3px 3px 0 #1b304b,6px 6px 0 -2px #5a7897!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-x,
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-twitter{--feed-card-rim:#0e0e0e!important;--feed-card-shadow:3px 3px 0 #0e0e0e,6px 6px 0 -2px #666!important}

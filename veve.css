@@ -29,11 +29,14 @@
 .veve-masonry{columns:5 185px;column-gap:16px;column-fill:balance}
 .veve-tile{display:inline-block;vertical-align:top;position:relative;break-inside:avoid;page-break-inside:avoid;width:100%;margin:0 0 17px;padding:0;overflow:hidden;border:1px solid rgba(87,67,58,.17);border-radius:15px;background:var(--widget-bg,#f7efe8);color:var(--widget-ink,#2c2525);box-shadow:3px 4px 0 rgba(111,77,86,.14)}
 .veve-photo{--veve-rim:#a52a0c;box-shadow:3px 3px 0 var(--veve-rim),6px 6px 0 -2px rgba(101,53,64,.24)}
-.veve-photo[data-veve-origin="instagram"]{--veve-rim:#7d3ec5}
+.veve-photo[data-veve-origin="instagram"]{--veve-rim:#f36b21}
 .veve-photo[data-veve-origin="pinterest"]{--veve-rim:#e60023}
-.veve-photo[data-veve-origin="tiktok"]{--veve-rim:#111}
-.veve-photo[data-veve-origin="facebook"]{--veve-rim:#1877f2}
-.veve-photo[data-veve-origin="youtube"]{--veve-rim:#d0202f}
+.veve-photo[data-veve-origin="tiktok"]{--veve-rim:#772dcc}
+.veve-photo[data-veve-origin="facebook"]{--veve-rim:#1658be}
+.veve-photo[data-veve-origin="youtube"]{--veve-rim:#fff1ec;box-shadow:0 0 0 1px #e66e7e,3px 3px 0 #fff1ec,6px 6px 0 -2px #e66e7e}
+.veve-photo[data-veve-origin="snapchat"]{--veve-rim:#ffda00}
+.veve-photo[data-veve-origin="tumblr"]{--veve-rim:#1b304b}
+.veve-photo[data-veve-origin="x"],.veve-photo[data-veve-origin="twitter"]{--veve-rim:#0e0e0e}
 .veve-photo-frame{position:relative;min-height:100px;overflow:hidden;border-radius:14px}
 .veve-photo-frame img{width:100%;height:auto;display:block;max-height:440px;object-fit:cover;background:#e3d8cf}
 .veve-provider{position:absolute;top:9px;left:9px;border:1px solid #fff7;border-radius:99px;background:#261f23dd;color:#fff;padding:6px 10px;font:700 11px/1.2 "CS Bergamot Stitched",Georgia,serif;letter-spacing:.01em}
