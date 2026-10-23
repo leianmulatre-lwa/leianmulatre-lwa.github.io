@@ -24,6 +24,9 @@ const WIDGET_H: f32 = 22.0;
 /// ([`titlebar`]): the caption buttons take the right end and the rest of the bar drags the window.
 /// With the system title bar (Windows and Linux, `system_title_bar`) the OS draws its own icon and
 /// title, so the in-app bar shows Home, menus and workspace controls only: no brand mark.
+// Source-level BIG LWA web identity; native menus and .svg/.ai support are retained.
+const WORKSHOP_NAME: &str = if cfg!(target_arch = "wasm32") { "paintR" } else { "VectorCraft" };
+
 pub fn app_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     let custom = app.custom_titlebar;
@@ -49,7 +52,7 @@ pub fn app_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
             // With the macOS menu bar the menus are at the top of the screen instead.
             let menus_end = if app.services.native_menu.is_some() {
                 let full = ui.max_rect();
-                ui.painter().text(full.center(), egui::Align2::CENTER_CENTER, "VectorCraft", egui::FontId::proportional(13.5), t.text);
+                ui.painter().text(full.center(), egui::Align2::CENTER_CENTER, WORKSHOP_NAME, egui::FontId::proportional(13.5), t.text);
                 ui.cursor().min.x
             } else {
                 menus::menu_bar(app, ui)
@@ -119,8 +122,8 @@ pub fn system_title_bar(app: &VectorcraftApp) -> bool {
 pub fn window_title(app: &VectorcraftApp) -> String {
     app.session
         .active()
-        .map(|d| format!("{}{} \u{2014} VectorCraft", if d.is_dirty() { "*" } else { "" }, d.title()))
-        .unwrap_or_else(|| "VectorCraft".into())
+        .map(|d| format!("{}{} \u{2014} {}", if d.is_dirty() { "*" } else { "" }, d.title(), WORKSHOP_NAME))
+        .unwrap_or_else(|| WORKSHOP_NAME.into())
 }
 
 /// Keep the OS window title (and the taskbar / Alt-Tab entry) on the active file. Sends
