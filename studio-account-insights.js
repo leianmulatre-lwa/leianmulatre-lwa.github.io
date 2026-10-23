@@ -6,10 +6,54 @@
  let overview=null,owner='',selected=monthOf(Date.now()),pending=false,lastSnapshot='',connectionAPI=null;
  const number=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=0?Number(v):null;
  const format=v=>v==null?'Not supplied':new Intl.NumberFormat().format(v);
+ // Stable last-known provider observations are user-scoped and only derived
+ // from a verified, persisted provider profile. Never share across logins or
+ // represent an unavailable field as a provider-verified zero.
+ const cacheKey=accountUid=>'biglwaFollowerObservationsV2:'+accountUid;
+ function previousCounts(accountUid){
+   if(!accountUid)return {};
+   try{const data=JSON.parse(localStorage.getItem(cacheKey(accountUid))||'{}');
+     return data&&typeof data==='object'&&!Array.isArray(data)?data:{}}
+   catch{return {}}
+ }
  function sources(){
   if(!overview||overview.uid!==uid())return [];
-  const rows=Object.entries(overview.connections||{}).map(([id,row])=>({id,followers:number(row.stats?.followers),lastCheckedAt:row.lastCheckedAt||'',reach:row.stats?.monthlyReach}));
-  for(const [id,row]of Object.entries(overview.orbitConnectedProfiles||{}))if(!rows.some(x=>x.id===id))rows.push({id,followers:null,lastCheckedAt:'',reach:null});
+  const accountUid=uid(),last=previousCounts(accountUid),updates={...last},rows=[];
+  const ingest=(id,record,count,checkedAt,metric='followers')=>{
+    if(!record||!id)return;
+    const handle=String(record.username||record.sourceUserId||'').trim().toLowerCase();
+    const fresh=number(count),prev=last[id];
+    const sameAccount=!!prev&&(!prev.handle||!handle||prev.handle===handle);
+    const checked=String(checkedAt||record.countCheckedAt||record.lastCheckedAt||'');
+    const fallback=sameAccount?number(prev.followers):null;
+    // Verified responses may *really* be zero. Unknown/omitted responses may
+    // never erase a previously verified figure from the same connected account.
+    const value=fresh??fallback;
+    const observedAt=fresh!==null?(checked||new Date().toISOString()):sameAccount?prev.observedAt||'':'';
+    if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric};
+    rows.push({id,followers:value,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
+      handle:record.username||'',link:record.link||'',metric,
+      isLastKnown:fresh===null&&fallback!==null,verified:!!checked});
+  };
+  for(const [id,row]of Object.entries(overview.connections||{})){
+    if(row&&typeof row==='object')ingest(id,row,row.stats?.followers,row.countCheckedAt||row.lastCheckedAt);
+  }
+  for(const [id,row]of Object.entries(overview.orbitConnectedProfiles||{})){
+    if(row&&typeof row==='object'&&!rows.some(x=>x.id===id))
+      ingest(id,row,row.followers,row.countCheckedAt||row.lastCheckedAt);
+  }
+  // YouTube provides *subscribers*, not "followers". Include these as an
+  // explicitly named source only when authenticated channel statistics exist.
+  const google=window.__biglwaGoogleOrbit?.state;
+  const channel=google?.connected?google.youtube:null;
+  if(channel?.id && !rows.some(r=>r.id==='youtube')){
+    const raw=channel.statistics?.hiddenSubscriberCount?null:channel.statistics?.subscriberCount;
+    ingest('youtube',{username:channel.id,link:'https://www.youtube.com/channel/'+encodeURIComponent(channel.id)},
+      raw,new Date().toISOString(),'subscribers');
+  }
+  if(JSON.stringify(last)!==JSON.stringify(updates)){
+    try{localStorage.setItem(cacheKey(accountUid),JSON.stringify(updates))}catch{}
+  }
   return rows;
  }
  function summarize(rows,month){
@@ -29,11 +73,20 @@
   const known=!!overview&&owner===uid();
   const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=format(value);if(node.textContent!==text)node.textContent=text}
-  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' synced accounts supply followers. Totals may include the same people across platforms. Monthly reach is shown only when a provider supplies it.';
-  const list=q('.analytics-sources',host);const signature=JSON.stringify(rows.map(r=>[r.id,r.followers,r.lastCheckedAt]));if(list.dataset.snapshot!==signature){list.dataset.snapshot=signature;list.replaceChildren(...rows.map(row=>{const p=document.createElement('p');p.textContent=row.id+': '+format(row.followers)+' followers · '+(row.lastCheckedAt?'synced '+new Date(row.lastCheckedAt).toLocaleDateString():'sync date unavailable');return p}))}
+  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have verified audience counts. Other sources are unavailable, not zero. Some people may follow you on more than one platform.';
+  const list=q('.analytics-sources',host);const signature=JSON.stringify(rows.map(r=>[r.id,r.followers,r.lastCheckedAt]));if(list.dataset.snapshot!==signature){list.dataset.snapshot=signature;list.replaceChildren(...rows.map(row=>{const p=document.createElement('p');p.textContent=row.id+': '+format(row.followers)+' '+(row.metric||'followers')+' · '+(row.lastCheckedAt?'verified '+new Date(row.lastCheckedAt).toLocaleDateString():'count unavailable')+(row.isLastKnown?' (last verified)':'');return p}))}
   q('.analytics-status',host).textContent=!uid()?'Sign in to see your private analytics.':!known?'Account data has not loaded yet.':!current&&!saved?'No observation saved for this month.':saved?.observedAt?'Observation: '+new Date(saved.observedAt).toLocaleString():'Latest available provider data; missing data is not zero.';
   const rank=q('#skeletonRankMount .real-rank');if(rank){const label=typeof overview?.realRank==='string'?overview.realRank:'Chopped';const strong=q('strong',rank);if(strong&&strong.textContent!==label)strong.textContent=label;rank.setAttribute('aria-label','Real Rank: '+label);}
-  window.__biglwaProfileMetrics={followers:values.followers,connections:values.people,reach:values.reach};window.dispatchEvent(new Event('biglwa:profile-metrics'));
+  if(known){
+    const currentSources=sources();
+    window.__biglwaProfileMetrics={uid:owner,followers:values.followers,
+      followersDisplay:stats.followers===null?'—':new Intl.NumberFormat().format(stats.followers)+(stats.coverage<rows.length?'+':''),
+      sources:currentSources,connections:values.people,reach:values.reach};
+  }else{
+    window.__biglwaProfileMetrics={uid:uid(),followers:null,followersDisplay:'—',
+      sources:[],connections:null,reach:null};
+  }
+  window.dispatchEvent(new Event('biglwa:profile-metrics'));
  }
  async function refresh(){
   attachSearch();
@@ -62,7 +115,7 @@
  }
  window.BigLWAAccountInsights={refresh,summarize};
  for(const event of ['biglwa:identity-updated','biglwa:user-directory-ready','biglwa:session-verified'])window.addEventListener(event,refresh);
- document.addEventListener('biglwa:module-open',refresh);document.addEventListener('biglwa:new-orbit-status',refresh);
+ document.addEventListener('biglwa:module-open',refresh);document.addEventListener('biglwa:new-orbit-status',refresh);document.addEventListener('biglwa:google-state',refresh);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
  setTimeout(refresh,1200);
 })();
