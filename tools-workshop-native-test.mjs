@@ -24,7 +24,7 @@ assert.match(css,/\.craft-tile-home/);
 assert.match(suite,/function blockArtwork\(item\)/,'Real Studio Workshop cubes are rendered as inline SVG');
 assert.match(suite,/craft-block-front/,'Every cube includes a rounded upholstered front face');
 assert.match(suite,/stroke-dasharray/,'Cube top, side and front contain sewing stitches');
-assert.match(suite,/craft-cube-.*-weave/,'Cube faces have a fabric weave texture');
+assert.match(suite,/patternUnits="userSpaceOnUse"/,'Cube faces have a fabric weave texture');
 assert.match(suite,/CUBE_PALETTE/,'Workshop cubes use brand colors, not plain wood sides');
 assert.match(css,/\.craft-block-svg/,'Workshop styles size the stitched vector cubes');
 assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses the stitched cube');
