@@ -44,18 +44,18 @@ export default {async fetch(request,env,ctx){
  if(!match)return answer({error:'Unknown public profile route'},404,origin,120);
  const handle=match[1];const upstream='https://www.tokportal.com/tool/tiktok-profile-analytics-checker/'+encodeURIComponent(handle);
  try{
-  const response=await fetch(upstream,{method:'GET',redirect:'error',headers:{Accept:'text/html'},
+  const response=await fetch(upstream,{method:'GET',redirect:'follow',headers:{Accept:'text/html'},
    cf:{cacheTtl:21600,cacheEverything:true}});
   if(!response.ok)return answer({available:false,handle,source:upstream,message:'No publicly indexed snapshot returned.'},200,origin,900);
   const type=response.headers.get('Content-Type')||'';
   if(!type.includes('text/html'))throw Error('Not HTML');
   const length=Number(response.headers.get('Content-Length')||0);
-  if(length>800000)throw Error('Response too large');
-  const html=(await response.text()).slice(0,800000);
+  if(length>3000000)throw Error('Response too large');
+  const html=(await response.text()).slice(0,3000000);
   const snapshot=parsePublicProfile(html,handle);
   if(!snapshot)return answer({available:false,handle,source:upstream,message:'No readable public counts for this profile.'},200,origin,1800);
   return answer({available:true,...snapshot,sourceUrl:upstream,checkedAt:new Date().toISOString()},200,origin,21600);
- }catch{
-  return answer({available:false,handle,source:upstream,message:'External source unavailable.'},200,origin,900);
+ }catch(error){
+  return answer({available:false,handle,source:upstream,message:'External source unavailable.',reason:['Response too large','Not HTML'].includes(error?.message)?error.message:'Fetch blocked'},200,origin,900);
  }
 }};
