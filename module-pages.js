@@ -254,14 +254,18 @@
     .booth-panel[hidden]{display:none!important}
     .booth-panel{min-width:0}
     @media(max-width:540px){.booth-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.booth-tab{min-width:0;padding:8px 6px;font-size:11px}}
-    .photobooth-stage{position:relative;min-height:420px;border:1px solid #cfc3ba;border-radius:18px;overflow:hidden;background:#171514;display:grid;place-items:center}
+    /* One actual camera-sized viewport for intro, camera, captures and files;
+       the full-width module itself can remain spacious. */
+    .photobooth-stage{position:relative;width:min(100%,700px);max-width:700px;min-height:0;max-height:460px;aspect-ratio:3/2;margin:12px auto 15px;border:1px solid #cfc3ba;border-radius:18px;overflow:hidden;background:#171514;display:grid;place-items:center}
     .video-booth-soon{position:relative;overflow:hidden}
     .video-booth-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
     .video-booth-head h2{margin:0}
     .coming-soon-badge{border-radius:999px;padding:3px 9px;background:rgba(var(--aura-rgb,216,95,109),.14);color:#8d3a49;font:700 9px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
     body.night-mode .coming-soon-badge{color:#f0b7c1}
-    .video-booth-preview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;max-width:520px}
-    .video-booth-tile{display:grid;place-items:center;aspect-ratio:3/4;border-radius:16px;border:1px solid #d8cec5;background:linear-gradient(160deg,#efe7e0,#ded3ca);color:#8a7f77;font:700 11px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+    /* Video Booth uses the same compact camera footprint, split into two
+       equal participant windows rather than one giant full-width preview. */
+    .video-booth-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px auto;width:min(100%,700px);max-width:700px;max-height:460px;aspect-ratio:3/2}
+    .video-booth-tile{display:grid;place-items:center;min-height:0;aspect-ratio:auto;border-radius:16px;border:1px solid #d8cec5;background:linear-gradient(160deg,#efe7e0,#ded3ca);color:#8a7f77;font:700 11px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
     body.night-mode .video-booth-tile{background:linear-gradient(160deg,#2b2724,#1d1a19);border-color:#4a423c;color:#a2968c}
     .video-booth-tile{padding:12px;min-width:0;box-sizing:border-box;gap:6px;text-align:center}
     .video-booth-profile-photo{display:grid;place-items:center;width:clamp(64px,14vw,104px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(var(--aura-rgb,216,95,109),.35);background:radial-gradient(circle at 45% 40%,rgba(var(--aura-rgb,216,95,109),.35),transparent 75%);font:700 28px Georgia,serif}
@@ -278,7 +282,7 @@
     .video-booth-checks li[data-ready="1"]::after{content:"";position:absolute;left:3px;top:5px;width:5px;height:2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg)}
     .photobooth-stage.has-intro{min-height:0;aspect-ratio:3/2;background:#c9c0bd}
     .photobooth-stage .photobooth-intro{width:100%;height:100%;max-height:none;object-fit:cover;object-position:center;filter:contrast(1.02)}
-    .photobooth-stage video,.photobooth-stage canvas,.photobooth-stage img{width:100%;height:100%;max-height:560px;object-fit:cover;display:block}
+    .photobooth-stage video,.photobooth-stage canvas,.photobooth-stage img{width:100%;height:100%;max-height:100%;object-fit:cover;display:block}
     .photobooth-stage .photo-empty{color:#ded7d0;text-align:center;font-size:12px;line-height:1.6;padding:24px}.photobooth-stage.flash:after{content:"";position:absolute;inset:0;background:white;animation:boothFlash .35s ease-out both;pointer-events:none}@keyframes boothFlash{0%{opacity:1}100%{opacity:0}}
     .photo-strip{display:grid;grid-template-columns:repeat(4,minmax(80px,1fr));gap:8px;margin-top:12px}.photo-strip figure{margin:0;position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#ddd}.photo-strip img{width:100%;height:100%;object-fit:cover}.photo-strip a{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(20,18,17,.76);color:#fff;text-decoration:none;font:700 8px/1 system-ui;padding:6px 7px}
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
@@ -530,7 +534,9 @@
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-soundcloud{--feed-card-rim:#e2622a}
 
     #studioApp #archive .archive-photo-preview{position:relative;display:block;width:100%;aspect-ratio:4/3;margin:10px 0 12px;padding:0;overflow:hidden;border:1px solid rgba(121,101,88,.22);border-radius:14px;background:#e9e1d9;box-shadow:0 6px 16px rgba(65,43,34,.10);cursor:pointer}
-    #studioApp #archive .archive-photo-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 43%;filter:saturate(.96) contrast(1.01)}
+    /* Turn the portrait polaroid sideways for the Studio thumbnail only.
+       Preserve the complete photograph with a little breathing room. */
+    #studioApp #archive .archive-photo-preview img{display:block;position:absolute;left:50%;top:50%;width:65%;height:118%;max-width:none;max-height:none;object-fit:contain;object-position:center;transform:translate(-50%,-50%) rotate(90deg) scale(.92);transform-origin:center;filter:saturate(.96) contrast(1.01)}
     #studioApp #archive .archive-photo-preview::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26)}
     #studioApp #archive .archive-photo-preview.archive-preview-load-failed::before{content:"Archive preview";position:absolute;inset:0;display:grid;place-items:center;color:#7d6f66;font:700 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em}
     #studioApp #notes .note-paper.has-saved-writing{display:flex!important;align-items:flex-start!important;justify-content:flex-start!important}
