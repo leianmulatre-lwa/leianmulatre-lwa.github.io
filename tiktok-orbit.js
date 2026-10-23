@@ -100,13 +100,14 @@
     panel.setAttribute('data-tiktok-public-import','');
     panel.setAttribute('aria-label','Save public TikTok post');
     panel.style.cssText='padding:10px 0;display:grid;gap:7px;min-width:0';
-    panel.innerHTML='<strong>Import a TikTok post</strong>'+
-      '<small>Paste a public video or profile URL. Private drafts require confirmation; profile syncing uses approved video.list access.</small>'+
-      '<label for="tiktokPublicVideoLink">Public TikTok link</label>'+
+    panel.innerHTML='<details class="biglwa-tiktok-import-details"><summary>Import TikTok video or sync profile</summary>'+
+      '<div class="biglwa-tiktok-import-fields">'+
+      '<small>Paste a video or profile URL. Private drafts are reviewed before publishing.</small>'+
+      '<label for="tiktokPublicVideoLink">TikTok link</label>'+
       '<input id="tiktokPublicVideoLink" class="module-input" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
       '<button class="module-action" type="button" data-tiktok-public-save>Save private video draft</button>'+
       '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
-      '<div data-tiktok-public-preview hidden></div>';
+      '<div data-tiktok-public-preview hidden></div></div></details>';
     row.append(panel);
   }
 
@@ -117,7 +118,7 @@
     panel.setAttribute('data-tiktok-public-import','');
     panel.setAttribute('aria-label','Import TikTok into myfeed');
     panel.style.cssText='display:grid;gap:6px;margin:8px 0;padding:9px 11px;border:1px solid #baa5c2;border-radius:10px;background:#f9efff;color:#362440';
-    panel.innerHTML='<strong>TikTok · import a public link</strong>'+
+    panel.innerHTML='<details class="biglwa-tiktok-import-details"><summary>Import from TikTok</summary><div class="biglwa-tiktok-import-fields">'+
      '<label for="tiktokFeedVideoLink">TikTok video or profile URL</label>'+
      '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><input id="tiktokFeedVideoLink" class="module-input" style="flex:1 1 215px;min-width:0" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
      '<button class="module-action" type="button" data-tiktok-public-save>Save to myfeed drafts</button></div>'+
