@@ -119,6 +119,9 @@
     const snapshot={
       order:realDomOrder(app),
       docked:readJson(DOCKED_WIDGET_KEY,[]),
+      // Yellow-minimized shortcuts stay in their original row; red-docked
+      // widgets retain their independent restore tiles after sign-in.
+      redDocked:$('[data-widget-id].widget-is-minimized.widget-is-docked',app).map(el=>el.dataset.widgetId).filter(Boolean),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
       updatedAtMs:now
     };
@@ -1064,6 +1067,7 @@
     // member's old browser-wide widget state.
     const scoped=scopedLayout();
     const minimized=Array.isArray(scoped?.docked)?scoped.docked:readWidgetShortcuts();
+    const redDocked=new Set(Array.isArray(scoped?.redDocked)?scoped.redDocked:[]);
     const saveMinimized=()=>writeWidgetShortcuts($$(selector,app).filter(widget=>widget.classList.contains('widget-is-minimized')).map(widget=>widget.dataset.widgetId).filter(Boolean));
     const addRestore=widget=>{
       const id=widget.dataset.widgetId,targetDock=restoreDockForWidget(app,widget,dock);if(!id||!targetDock||$('[data-shortcut-row="'+CSS.escape(id)+'"]',app))return true;
@@ -1074,10 +1078,12 @@
       if(!widget.dataset.widgetId)widget.dataset.widgetId=widgetId(widget,index);
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
       if(minimized.includes(widget.dataset.widgetId)){
+        const alreadyMinimized=widget.classList.contains('widget-is-minimized');
         widget.classList.add('widget-is-minimized');
         const inShortcut=shortcutForWidget(app,widget);
-        widget.classList.toggle('widget-is-docked',!inShortcut);
-        if(!inShortcut)addRestore(widget);
+        // Do not rewrite an already-red-docked widget during periodic hydration.
+        if(!alreadyMinimized)widget.classList.toggle('widget-is-docked',redDocked.has(widget.dataset.widgetId)||!inShortcut);
+        if(widget.classList.contains('widget-is-docked')||!inShortcut)addRestore(widget);
       }else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
     });
     $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
