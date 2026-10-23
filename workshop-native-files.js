@@ -47,10 +47,32 @@ function downloadBlob(blob,name){
   setTimeout(()=>URL.revokeObjectURL(href),60000);
 }
 async function downloadNativeProject(item){
+  // Ask for the save destination while the user's click gesture is still active.
+  // Chrome's File System Access API streams large originals to disk without
+  // building a second 500 MB Blob in JavaScript memory.
+  const destination=typeof window.showSaveFilePicker==='function'
+    ?await window.showSaveFilePicker({suggestedName:item.name}):null;
   const response=await call('/'+encodeURIComponent(item.id));
-  // Never let the browser navigate directly to an authenticated binary route:
-  // it would lose the Firebase bearer token and could expose an error page.
-  // The downloaded Blob is exactly the editor's original opaque native file.
+  // Authenticated bytes are never exposed through a public GET hyperlink.
+  const declared=Number(response.headers.get('Content-Length')||0);
+  if(declared&&declared!==item.size)throw Error('Project transfer size mismatch; file was not saved.');
+  if(destination&&response.body){
+    const writer=await destination.createWritable();
+    let received=0;
+    try{
+      const reader=response.body.getReader();
+      while(true){
+        const next=await reader.read();
+        if(next.done)break;
+        received+=next.value.byteLength;
+        if(received>item.size)throw Error('Project download exceeded the expected size.');
+        await writer.write(next.value);
+      }
+      if(received!==item.size)throw Error('The original project was incomplete.');
+      await writer.close();
+    }catch(err){await writer.abort().catch(()=>{});throw err}
+    return;
+  }
   const data=await response.blob();
   if(data.size!==item.size)throw Error('The downloaded project was incomplete. No file was saved.');
   downloadBlob(data,item.name);
