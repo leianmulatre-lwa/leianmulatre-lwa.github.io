@@ -29,7 +29,7 @@
    const id=callbackNotice.id;
    const name=id==='x'?'X':id==='snapchat'?'Snapchat':'Tumblr';
    return notice(callbackNotice.status==='connected'
-     ?name+' authorization returned. Your saved Orbit connection is being checked.'
+     ?(state[id]?.verifiedFromProvider&&!state[id]?.needsReauth?'✓ '+name+' verified by provider after login · @'+(state[id]?.username||'connected'):name+' login redirected, but BIG LWA could not restore a provider account. Check the callback registered in your '+name+' developer app.')
      :name+' connection was not completed. '+(callbackNotice.error||'Please retry from Orbit.'));
  }
  function firebase(){
@@ -121,7 +121,7 @@
            state[id]={...publicProfile,id,needsReauth:!!response.needsReauth,
              accounts:Array.isArray(response.accounts)?response.accounts.slice(0,5):[],
              activeSourceUserId:response.activeSourceUserId||publicProfile.sourceUserId,
-             verifiedFromProvider:true,lastVerifiedAt:Date.now()};
+             verifiedFromProvider:!response.needsReauth,lastVerifiedAt:Date.now()};
          }else delete state[id];
        }
      }catch(error){console.warn('Orbit new provider restore:',error)}
