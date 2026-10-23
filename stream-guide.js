@@ -312,6 +312,7 @@
    '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
    '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>▣ Dock player · keep watching while you browse</button><button type="button" class="stream-dock-open" data-stream-no-signal>◉ No signal?</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
+   '<form id="streamMediaLinkForm" class="stream-media-link-form" aria-label="Play a creator-hosted video or audio"><label for="streamMediaLink">Tune a link · YouTube, TikTok or Spotify</label><div><input id="streamMediaLink" type="url" inputmode="url" placeholder="Paste an individual video, track or episode link" aria-describedby="streamMediaLinkStatus"><button type="submit">▶ Play in Stream</button></div><small id="streamMediaLinkStatus" role="status" aria-live="polite">Only plays public, creator-hosted media. This does not import account data.</small></form>',
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
    '<div class="stream-date-actions"><label>Discovery mood <select id="streamDiscoveryMood" class="stream-mood-select" aria-label="Choose a discovery mood"><option value="all">Everything</option><option value="gaming">Games &amp; horror</option><option value="culture">Culture &amp; commentary</option><option value="calm">Unwind</option><option value="cartoons">Cartoons</option><option value="surprise">Surprise me</option></select></label><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
@@ -339,6 +340,7 @@
   date.max=localDay(new Date(now.getFullYear()+1,now.getMonth(),now.getDate()));
   date.addEventListener('change',()=>{state.day=date.value||localDay();state.shuffleOffset=0;renderGrid();renderFeaturedSlots();tuneCurrent()});
   root.addEventListener('click',onClick);
+  root.addEventListener('submit',onStreamMediaSubmit);
   root.querySelector('#streamDiscoveryMood').addEventListener('change',event=>{
     const next=String(event.target.value||'all');
     if(!['all','gaming','culture','calm','cartoons','surprise'].includes(next))return;
@@ -573,6 +575,46 @@
     '<button type="button" class="stream-monitor-open" data-stream-retry>↻ Retry player</button>'+link+'</div>';
   return true;
  }
+  // A unified optional player surface. Its provider embed remains hosted on the
+  // original platform; no TikTok data scraping or Spotify auth scope is implied.
+  function mediaTag(provider,src,title,extra=''){
+    const tag={youtube:'youtube-video',tiktok:'tiktok-video',spotify:'spotify-audio'}[provider];
+    if(!tag||!window.customElements?.get?.(tag))return '';
+    return '<'+tag+' class="stream-source-media" controls '+(provider==='youtube'?'playsinline ':'')+
+      'src="'+escapeHTML(src)+'" aria-label="'+escapeHTML(title)+'"'+extra+'></'+tag+'>';
+  }
+  function embeddedStreamLink(value){
+    let u;try{u=new URL(String(value||''))}catch{return null}
+    if(u.protocol!=='https:'||u.username||u.password||u.port)return null;
+    const h=u.hostname.toLowerCase();
+    if(['www.youtube.com','youtube.com','m.youtube.com','youtu.be'].includes(h)){
+      const id=h==='youtu.be'?u.pathname.slice(1):/^\/(?:shorts|live)\//.test(u.pathname)?u.pathname.split('/')[2]:u.pathname==='/watch'?u.searchParams.get('v'):null;
+      if(!/^[\w-]{11}$/.test(id||''))return null;
+      return {provider:'youtube',category:'lwa-tv',videoId:id,title:'YouTube video',source:'Member-selected video',url:'https://www.youtube.com/watch?v='+id};
+    }
+    if(['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(h)){
+      const m=u.pathname.match(/^\/@[A-Za-z0-9._-]{1,80}\/video\/(\d{10,30})\/?$/);
+      if(!m)return null;
+      return {provider:'tiktok',category:'lwa-tv',tiktokId:m[1],title:'TikTok video',source:'Member-selected video',url:'https://www.tiktok.com'+u.pathname.replace(/\/$/,'')};
+    }
+    if(h==='open.spotify.com'){
+      const m=u.pathname.match(/^\/(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]{16,32})\/?$/);
+      if(!m)return null;
+      return {provider:'spotify',category:'podcast',spotifyType:m[1],spotifyId:m[2],title:'Spotify '+m[1],source:'Member-selected audio',url:'https://open.spotify.com/'+m[1]+'/'+m[2]};
+    }
+    return null;
+  }
+  function onStreamMediaSubmit(event){
+    const form=event.target.closest?.('#streamMediaLinkForm');
+    if(!form||!root?.contains(form))return;
+    event.preventDefault();
+    const status=root.querySelector('#streamMediaLinkStatus');
+    const source=embeddedStreamLink(form.querySelector('input')?.value);
+    if(!source){if(status)status.textContent='Paste an individual public YouTube, TikTok or Spotify post link.';return}
+    if(status)status.textContent='Tuning to original '+source.provider+' player. Playback depends on its provider.';
+    state.followGuide=false;showSource(source);
+  }
+
  function showSource(source,options={}){
   const monitor=root?.querySelector('#streamMonitor');if(!monitor||!source)return;
   const surface=ensureMediaPortal();
@@ -617,9 +659,21 @@
     changeArchiveEpisode((active+1)%source.episodes.length);
    });
    if(!options.silent)video?.play()?.catch(()=>{});
+  }else if(source.provider==='spotify'&&/^[A-Za-z0-9]{16,32}$/.test(source.spotifyId||'')){
+   const uri='https://open.spotify.com/'+source.spotifyType+'/'+source.spotifyId;
+   const mux=mediaTag('spotify',uri,title);
+   surface.innerHTML='<div class="stream-screen is-program is-spotify"><div class="stream-player-label">'+caption+original+'</div>'+
+    (mux||'<iframe title="'+title+'" src="https://open.spotify.com/embed/'+source.spotifyType+'/'+source.spotifyId+'" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>')+'</div>';
+  }else if(source.provider==='tiktok'&&/^\d{10,30}$/.test(source.tiktokId||'')){
+   const player='https://www.tiktok.com/player/v1/'+source.tiktokId;
+   const mux=mediaTag('tiktok',player,title);
+   surface.innerHTML='<div class="stream-screen is-program is-tiktok"><div class="stream-player-label">'+caption+original+'</div>'+
+    (mux||'<iframe title="'+title+'" src="'+player+'" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>')+'</div>';
   }else if(source.videoId&&/^[A-Za-z0-9_-]{11}$/.test(source.videoId)){
+   const sourceUrl='https://www.youtube-nocookie.com/embed/'+source.videoId;
+   const mux=mediaTag('youtube',sourceUrl,title);
    surface.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+channelLink+'</div>'+
-    '<iframe title="'+title+'" src="https://www.youtube-nocookie.com/embed/'+source.videoId+'?rel=0&autoplay=1&playsinline=1" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="eager"></iframe></div>';
+    (mux||'<iframe title="'+title+'" src="'+sourceUrl+'?rel=0&autoplay=1&playsinline=1" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="eager"></iframe>')+'</div>';
   }else{
    const type=source.provider==='archive'?'cultural archive':source.provider==='youtube'?'creator channel':source.provider==='mixtape'?'mixtape':source.provider==='podcast'?'podcast':source.type||'radio station';
    const cta=source.provider==='archive'?'Explore original archive ↗':source.provider==='youtube'?'Browse original videos ↗':source.provider==='mixtape'?'Play on original release ↗':source.provider==='podcast'?'Listen with publisher ↗':'Listen on station website ↗';
@@ -801,7 +855,8 @@
   ensureMediaPortal().innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+
    '<span>'+escapeHTML(categories.find(c=>c[0]===item.category)?.[2]||'CH')+' / '+escapeHTML(item.title)+'</span>'+
    '<a href="'+escapeHTML(item.youtubeUrl)+'" target="_blank" rel="noopener noreferrer">YouTube ↗</a></div>'+
-   '<iframe title="'+escapeHTML(item.title)+'" src="https://www.youtube-nocookie.com/embed/'+escapeHTML(item.videoId)+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>'+
+   (mediaTag('youtube','https://www.youtube-nocookie.com/embed/'+item.videoId,item.title)||
+   '<iframe title="'+escapeHTML(item.title)+'" src="https://www.youtube-nocookie.com/embed/'+escapeHTML(item.videoId)+'?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>')+
    '</div>';
   renderFeaturedSlots();
   scheduleMediaPosition();
