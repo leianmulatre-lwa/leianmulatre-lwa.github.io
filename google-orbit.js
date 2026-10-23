@@ -75,6 +75,9 @@
       if (results[1].status === 'fulfilled') { state.calendar = results[1].value.items || []; }
       if (results[2].status === 'fulfilled') { state.youtube = (results[2].value.items || [])[0] || null; }
       render();
+      // YouTube subscriberCount can arrive after the initial OAuth event.
+      // Refresh audience observations only after channel stats actually load.
+      document.dispatchEvent(new CustomEvent('biglwa:google-state'));
     });
   }
 
