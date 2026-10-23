@@ -21,6 +21,22 @@ const server=http.createServer((req,res)=>{
   try{relative=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname)}catch{
     res.writeHead(400);res.end();return;
   }
+  if(relative==='/__biglwa_host_test'){
+    // Same-origin host fixture exercises Rust's native PDF inbox protocol.
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+    res.end(`<!doctype html><html lang="en"><head><title>BIG LWA native host proof</title></head><body style="margin:0">
+<script>
+window.__biglwaReady=false;window.__biglwaQueued='';
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==document.getElementById('editor')?.contentWindow)return;
+ if(event.data?.type==='pdfcraft:ready')window.__biglwaReady=true;
+ if(event.data?.type==='pdfcraft:queued')window.__biglwaQueued=event.data.requestId;
+});
+</script>
+<iframe id="editor" src="/?biglwaHost=1" title="Native fileR integration" style="width:100vw;height:100vh;border:0"></iframe>
+</body></html>`);
+    return;
+  }
   const target=path.resolve(dist,'.'+(relative==='/'?'/index.html':relative));
   if(!(target===dist||target.startsWith(dist+path.sep))){res.writeHead(403);res.end();return}
   fs.stat(target,(err,stat)=>{
@@ -70,6 +86,34 @@ async function main(){
   await page.screenshot({path:file,fullPage:false,timeout:30000});
   const result={name,url,ready,canvas,title,errors:errors.slice(0,15),httpFailures:httpFailures.slice(0,15),problem,
     screenshot:file,checkedAt:new Date().toISOString()};
+  if(name==='fileR'&&ready){
+    const host=await browser.newPage({viewport:{width:1440,height:900}});
+    try{
+      await host.goto(url+'__biglwa_host_test',{waitUntil:'domcontentloaded',timeout:60000});
+      await host.waitForFunction(()=>window.__biglwaReady===true,null,{timeout:95000,polling:500});
+      const fixture=fs.readFileSync('vendor/editors/pdfcraft/crates/ui-egui/tests/data/form.pdf');
+      const received=await host.evaluate(arr=>{
+        const data=Uint8Array.from(arr),bytes=data.buffer;
+        document.getElementById('editor').contentWindow.postMessage(
+          {type:'pdfcraft:open',name:'BIG LWA sample.pdf',requestId:'bridge-check',bytes},
+          location.origin,[bytes]);
+        return bytes.byteLength===0; // Transfer ownership to Rust app without duplicating it.
+      },Array.from(fixture));
+      if(!received)throw Error('Original PDF ArrayBuffer did not transfer to native editor');
+      await host.waitForFunction(()=>window.__biglwaQueued==='bridge-check',null,{timeout:20000,polling:200});
+      await host.waitForTimeout(1200);
+      const opened=path.join(out,'fileR-import.png');
+      await host.screenshot({path:opened,fullPage:false,timeout:30000});
+      result.fileImport={ready:true,acknowledged:true,bytes:fixture.byteLength,screenshot:opened};
+      console.log('FILE RUST IMPORT:',JSON.stringify(result.fileImport));
+    }catch(error){
+      result.fileImport={ready:false,error:String(error.message||error).slice(0,650)};
+      throw error;
+    }finally{
+      fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(result,null,2));
+      await host.close().catch(()=>{});
+    }
+  }
   fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(result,null,2));
   console.log('NATIVE BROWSER SMOKE:',JSON.stringify(result));
   if(!ready)throw Error(name+' did not reach a usable WASM canvas.');
