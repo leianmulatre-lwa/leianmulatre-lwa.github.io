@@ -4,8 +4,8 @@ const read=path=>readFileSync(new URL('./'+path,import.meta.url),'utf8');
 const modules=read('module-pages.js'),pinterest=read('pinterest-orbit.js'),
       styles=read('pinterest-boards.css'),home=read('index.html');
 const check=(description,condition)=>{assert.ok(condition,description);console.log('PASS: '+description)};
-check('Archive previews rotate 90 degrees without changing the uploaded image',
-  /#studioApp #archive \.archive-photo-preview img\{[^}]*object-fit:contain;[^}]*rotate\(90deg\) scale\(\.92\)/.test(modules));
+check('Archive preview zooms the rotated image to fill the frame',
+  /#studioApp #archive \.archive-photo-preview img\{[^}]*object-fit:cover;[^}]*rotate\(90deg\) scale\(1\.28\)/.test(modules));
 check('Archive thumbnail remains in its own rounded 4:3 frame',
   /#studioApp #archive \.archive-photo-preview\{[^}]*aspect-ratio:4\/3;/.test(modules));
 check('Photo Booth stage fits one camera-sized frame',

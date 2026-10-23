@@ -31,7 +31,7 @@
   {label:'Orbit',key:'orbit',detail:'Your connected account planets',fallback:'◎'},
   {label:'Connect',key:'connect',detail:'Find and connect with people',fallback:'✣'},
   {label:'myfeed',key:'feed',detail:'Your public posts',fallbackAsset:'/assets/feed-symbol-generated.png'},
-  {label:'Archive',key:'archive',detail:'Your saved media',fallback:'▥'},
+  {label:'Archive',key:'archive',detail:'Your saved media',fallback:'▤'},
   {label:'Boards',key:'boards',detail:'Pins and collections',fallback:'⊞'},
   {label:'Sqwidz',key:'notes',detail:'Quick notes',fallbackAsset:'/assets/quick-notes-symbol-generated.png'},
   {label:'Calendar',key:'calendar',detail:'Dates and events',fallback:'▦'},
@@ -272,6 +272,63 @@
    #studioApp .biglwa-skeleton-title{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center}
    #studioApp .biglwa-skeleton-title img{width:36px;height:36px;object-fit:contain}
    @media(prefers-reduced-motion:reduce){#biglwaTutorialDialog *{scroll-behavior:auto!important}}
+
+   /* Veve is paired with Skeleton Key at the fixed top of the tools rail. */
+   #studioApp .sidebar-top>.skeleton-quick-actions{
+    position:sticky!important;top:0!important;z-index:7!important;
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:center!important;gap:8px!important;min-height:39px!important;
+    width:100%!important;box-sizing:border-box!important;flex:0 0 auto!important;
+    padding:3px 2px!important;margin:0 0 5px!important;
+    background:var(--skeleton-rail-surface,#f7ede8)!important
+   }
+   #studioApp .skeleton-quick-actions #skeletonKeyLauncher,
+   #studioApp .skeleton-quick-actions #skeletonVeveLauncher{
+    display:grid!important;place-items:center!important;flex:0 0 33px!important;
+    width:33px!important;height:33px!important;min-height:33px!important;
+    margin:0!important;padding:5px!important;border-radius:8px!important;
+    border:1px solid transparent!important;background:transparent!important;
+    color:#312b32!important;cursor:pointer!important;box-shadow:none!important
+   }
+   #studioApp .skeleton-quick-actions #skeletonKeyLauncher img{
+    display:block!important;width:20px!important;height:23px!important;
+    object-fit:contain!important;filter:brightness(0) saturate(100%)!important
+   }
+   #studioApp .skeleton-quick-actions #skeletonVeveLauncher .skeleton-veve-mark{
+    display:block;font:700 25px/1 Georgia,serif!important;color:inherit!important
+   }
+   #studioApp .skeleton-quick-actions button:hover,
+   #studioApp .skeleton-quick-actions button:focus-visible{
+    background:rgba(130,70,99,.14)!important;border-color:currentColor!important;
+    outline:2px solid #a86d88!important;outline-offset:1px
+   }
+   body.sidebar-collapsed #studioApp .sidebar-top>.skeleton-quick-actions{
+    flex-direction:column!important;gap:6px!important;
+    min-height:78px!important;padding:4px 0!important
+   }
+   body.sidebar-collapsed #studioApp .sidebar-top>#sidebarCollapse{top:91px!important}
+   #studioApp .biglwa-skeleton-hub .skeleton-hint-setting{
+    display:flex;align-items:center;gap:9px;padding:9px 10px;margin:0;
+    border:1px solid #c9a9b6;border-radius:9px;
+    background:#fff4f5;color:#4d3442;font:650 11px/1.4 system-ui
+   }
+   #studioApp .biglwa-skeleton-hub .skeleton-hint-setting input{accent-color:#88415c;width:15px;height:15px;flex-shrink:0}
+   body:not(.night-mode) #studioApp{--skeleton-rail-surface:#f7ede8}
+   body:not(.night-mode) #studioApp #biglwaSkeletonHub,
+   body:not(.night-mode) #studioApp #biglwaSkeletonHub :is(h2,h3,summary,label,strong,a){color:#392d37!important}
+   body:not(.night-mode) #studioApp #biglwaSkeletonHub :is(p,small,figcaption){color:#66545f!important}
+   body.night-mode #studioApp{--skeleton-rail-surface:#25212a}
+   body.night-mode #studioApp .skeleton-quick-actions :is(#skeletonKeyLauncher,#skeletonVeveLauncher){color:#fff2ec!important}
+   body.night-mode #studioApp .skeleton-quick-actions #skeletonKeyLauncher img{filter:brightness(0) invert(1)!important}
+   body.night-mode #studioApp #biglwaSkeletonHub{color:#f8f0f3!important}
+   body.night-mode #studioApp #biglwaSkeletonHub :is(h2,h3,summary,label,strong,a){color:#fff3ee!important}
+   body.night-mode #studioApp #biglwaSkeletonHub :is(p,small,figcaption){color:#dfcfd9!important}
+   body.night-mode #studioApp #biglwaSkeletonHub :is(.tour-symbol-key,.skeleton-hint-setting,.biglwa-skeleton-squares button,.skeleton-model-widget){
+    background:#342c38!important;color:#fff2ec!important;border-color:#80677c!important
+   }
+   body.night-mode #studioApp #biglwaSkeletonHub :is(.tour-symbol-mark,svg,.skeleton-tile-glyph){color:#fff2ec!important}
+   body.night-mode #studioApp #biglwaSkeletonHub .tour-symbol-mark img{filter:brightness(0) invert(1)!important}
+   body.night-mode #studioApp #biglwaSkeletonHub .skeleton-hint-setting{color:#fff2ec!important}
   `;
   document.head.append(css);
  }
@@ -334,11 +391,28 @@
   // The text launcher leads the filters and replaces the old body heading.
   const sidebar=$('#studioApp .sidebar'),top=sidebar?.querySelector('.sidebar-top');
   if(sidebar)sidebar.setAttribute('aria-label','Skeleton Key');
-  if(top&&!$('#skeletonKeyLauncher',top)){
-   const launcher=document.createElement('button');launcher.id='skeletonKeyLauncher';launcher.type='button';launcher.className='biglwa-guide-launcher';
-   launcher.title='Skeleton Key';launcher.setAttribute('aria-label','Open Skeleton Key');
-   launcher.innerHTML='<img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true">';
-   launcher.addEventListener('click',openSkeleton);top.prepend(launcher);
+  if(top){
+   let quick=$('#biglwaSkeletonQuickActions',top);
+   if(!quick){quick=document.createElement('div');quick.id='biglwaSkeletonQuickActions';quick.className='skeleton-quick-actions';quick.setAttribute('role','group');quick.setAttribute('aria-label','Skeleton Key and Veve');top.prepend(quick)}
+   let launcher=$('#skeletonKeyLauncher',top);
+   if(!launcher){
+    launcher=document.createElement('button');launcher.id='skeletonKeyLauncher';launcher.type='button';launcher.className='biglwa-guide-launcher';
+    launcher.title='Skeleton Key';launcher.setAttribute('aria-label','Open Skeleton Key');
+    launcher.innerHTML='<img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true">';
+    launcher.addEventListener('click',openSkeleton);
+   }
+   if(launcher.parentElement!==quick)quick.append(launcher);
+   let veve=$('#skeletonVeveLauncher',top);
+   if(!veve){
+    veve=document.createElement('button');veve.id='skeletonVeveLauncher';veve.className='skeleton-veve-launcher';
+    veve.type='button';veve.title='Open Veve';veve.setAttribute('aria-label','Open Veve');
+    veve.innerHTML='<span aria-hidden="true" class="skeleton-veve-mark">✺</span>';
+    veve.addEventListener('click',()=>{
+     const open=window.openBIGLWAModule||window.BigLWAOpenModule;
+     if(typeof open==='function')open('veve');
+    });
+   }
+   if(veve.parentElement!==quick)quick.append(veve);
   }
   $('#biglwaBodyGuide')?.remove();
   return !!top;
@@ -355,7 +429,8 @@
    '<figure style="--model-shadow:#d9c6ee"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Individual</figcaption></figure>'+
    '<figure style="--model-shadow:#f7cddd"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Social</figcaption></figure>'+
    '<figure style="--model-shadow:#f8d4b0"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Political</figcaption></figure></div>'+
-   '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Show body shadows on hover</label></details>'+
+   '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Show body shadows on hover</label></details>'+ 
+   '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>'+
    '<details class="skeleton-symbol-details"><summary>Symbol key</summary><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools"></ul></details>'+
    '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>';
   hub.querySelectorAll(':scope > details').forEach(section=>section.addEventListener('toggle',()=>{if(section.open)hub.querySelectorAll(':scope > details').forEach(other=>{if(other!==section)other.open=false})}));
@@ -363,6 +438,12 @@
   $('.skeleton-symbol-details',hub).addEventListener('toggle',event=>{if(event.target.open)renderSymbolKey($('#biglwaSkeletonSymbols',hub))});
   const indicators=$('#skeletonBodyIndicators',hub);indicators.checked=window.BigLWAThreeBodies?.enabled?.()!==false;
   indicators.addEventListener('change',()=>window.BigLWAThreeBodies?.setEnabled(indicators.checked));
+  const hints=$('#skeletonHideHints',hub);
+  hints.checked=window.BigLWAStableInteractions?.areHintsHidden?.()===true;
+  hints.addEventListener('change',()=>window.BigLWAStableInteractions?.setHintsHidden?.(hints.checked));
+  window.addEventListener('biglwa:hints-preference',event=>{
+   if(hints.isConnected)hints.checked=!!event.detail?.hidden;
+  });
   card.appendChild(hub);
   const rank=$('#studioApp .profile-card .real-rank');if(rank){const value=$('strong',rank);if(value)value.textContent='Chopped';const track=$('.rank-track i',rank);if(track)track.style.width='0%';const next=$('.rank-next',rank);if(next)next.textContent='next: 007';$('#skeletonRankMount',hub).append(rank)}
   window.BigLWAAccountInsights?.refresh?.();

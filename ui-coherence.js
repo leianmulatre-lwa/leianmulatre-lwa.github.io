@@ -614,7 +614,7 @@
     ['diary','Journal','▱'],
     ['notes','Sqwidz','<img src="/assets/quick-notes-symbol-generated.png" alt="">'],
     ['feed','myfeed','<img src="/assets/feed-symbol-generated.png" alt="">'],
-    ['archive','Archive','▥'],
+    ['archive','Archive','<span class="biglwa-archive-box-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M5 7.5h22v7H5zM7.5 14.5v11h17v-11M12 19.5h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'],
     ['boards','Boards','⊞'],
     ['library','Library','▤'],
     ['games','Arcade','♟'],
@@ -801,10 +801,10 @@
     const libraryEntry=navigationCatalog.get('library');
     let libraryMarkup=widgetIconMarkup(libraryWidget)||libraryEntry?.symbolHTML||'';
     if(!libraryMarkup||/^[◇◆◈▰•]+$/.test(String(libraryMarkup).replace(/<[^>]+>/g,'').trim()))libraryMarkup='<svg class="biglwa-library-fallback" viewBox="0 0 26 34" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="25" rx="1.5"/><path d="M8 7h3M8 26h3"/><rect x="11" y="6" width="5" height="24" rx="1.5"/><path d="M16 9h3M16 27h3"/><rect x="19" y="3" width="4" height="26" rx="1.4"/></g></svg>';
-    const archiveMarkup='<span class="biglwa-archive-horizontal-symbol" aria-hidden="true">'+libraryMarkup+'</span>';
+    const archiveMarkup='<span class="biglwa-archive-box-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5h22v7H5zM7.5 14.5v11h17v-11M12 19.5h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10.5h16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>';
     const archiveWidget=$('#archive',app);
     const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
-    if(archiveIcon&&!archiveIcon.querySelector('.biglwa-archive-horizontal-symbol,.heading-normalized-glyph'))archiveIcon.innerHTML=archiveMarkup;
+    if(archiveIcon&&!archiveIcon.querySelector('.biglwa-archive-box-symbol'))archiveIcon.innerHTML=archiveMarkup;
 
     const projectEntry=navigationCatalog.get('projects');if(projectEntry)projectEntry.symbolHTML=projectMarkup;
     const archiveEntry=navigationCatalog.get('archive');if(archiveEntry)archiveEntry.symbolHTML=archiveMarkup;

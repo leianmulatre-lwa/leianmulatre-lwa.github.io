@@ -534,9 +534,10 @@
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-soundcloud{--feed-card-rim:#e2622a}
 
     #studioApp #archive .archive-photo-preview{position:relative;display:block;width:100%;aspect-ratio:4/3;margin:10px 0 12px;padding:0;overflow:hidden;border:1px solid rgba(121,101,88,.22);border-radius:14px;background:#e9e1d9;box-shadow:0 6px 16px rgba(65,43,34,.10);cursor:pointer}
-    /* Turn the portrait polaroid sideways for the Studio thumbnail only.
-       Preserve the complete photograph with a little breathing room. */
-    #studioApp #archive .archive-photo-preview img{display:block;position:absolute;left:50%;top:50%;width:65%;height:118%;max-width:none;max-height:none;object-fit:contain;object-position:center;transform:translate(-50%,-50%) rotate(90deg) scale(.92);transform-origin:center;filter:saturate(.96) contrast(1.01)}
+    /* Keep the landscape orientation of the reference polaroid. With a rotated
+       image the CSS width must equal the frame height, and vice versa.
+       Cover and a modest zoom remove excess empty mat without distortion. */
+    #studioApp #archive .archive-photo-preview img{display:block;position:absolute;left:50%;top:50%;width:75%;height:133.334%;max-width:none;max-height:none;object-fit:cover;object-position:center;transform:translate(-50%,-50%) rotate(90deg) scale(1.28);transform-origin:center;filter:saturate(.96) contrast(1.01)}
     #studioApp #archive .archive-photo-preview::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26)}
     #studioApp #archive .archive-photo-preview.archive-preview-load-failed::before{content:"Archive preview";position:absolute;inset:0;display:grid;place-items:center;color:#7d6f66;font:700 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em}
     #studioApp #notes .note-paper.has-saved-writing{display:flex!important;align-items:flex-start!important;justify-content:flex-start!important}

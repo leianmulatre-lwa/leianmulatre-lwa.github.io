@@ -372,3 +372,16 @@ html,body{overscroll-behavior-y:none}
   margin:0!important;padding-right:48px!important;min-height:36px!important;
   align-items:center!important}
 @media(max-width:700px){#studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-title h2{font-size:clamp(20px,6vw,27px)!important}}
+
+
+/* Original Archive box glyph, not a rotated Library shelf. */
+#studioApp .biglwa-archive-box-symbol{display:inline-grid!important;place-items:center!important;
+  width:28px!important;height:28px!important;line-height:1!important;transform:none!important;color:#34312e!important}
+#studioApp .biglwa-archive-box-symbol svg{display:block!important;width:26px!important;height:26px!important;max-width:26px!important;max-height:26px!important;color:inherit!important}
+#studioApp #archive .card-icon.archive-horizontal-mark{transform:none!important}
+body.night-mode #studioApp .biglwa-archive-box-symbol{color:#f7eee8!important}
+/* Keep the fixed quick actions grouped above the collapse/expand control. */
+#studioApp .sidebar-top>.skeleton-quick-actions{position:sticky!important;top:0!important;z-index:9!important;flex:0 0 auto!important}
+#studioApp .sidebar-top>#sidebarCollapse{top:45px!important}
+body.sidebar-collapsed #studioApp .sidebar-top>#sidebarCollapse{top:91px!important}
+
