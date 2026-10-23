@@ -5,7 +5,7 @@ const w=dom.window,q=s=>w.document.querySelector(s);
 w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false};
 w.eval(fs.readFileSync('studio-interaction-stability.js','utf8'));
 const hintCss=fs.readFileSync('studio-alignment-20261020.css','utf8');
-assert.match(hintCss,/#studioPersistentTooltip\\{[^}]*pointer-events:none!important/,'Hint cannot intercept clicks');
+assert.match(hintCss,/#studioPersistentTooltip\{[^}]*pointer-events:none!important/,'Hint cannot intercept clicks');
 const pointer=(type,target,related=null)=>target.dispatchEvent(new w.MouseEvent(type,{bubbles:true,relatedTarget:related}));
 pointer('pointerover',q('#glyph'));assert(!q('#studioPersistentTooltip').hidden);
 pointer('pointerout',q('#glyph'),q('#caption'));pointer('pointerover',q('#caption'),q('#glyph'));
