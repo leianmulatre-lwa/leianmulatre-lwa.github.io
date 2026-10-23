@@ -12,6 +12,11 @@ on:
 permissions:
   contents: read
 
+# One current build is more valuable than dozens of stale, expensive Rust builds.
+concurrency:
+  group: native-suite-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   native-suite:
     runs-on: ubuntu-24.04
@@ -33,6 +38,26 @@ jobs:
         with:
           toolchain: '1.95.0'
           targets: wasm32-unknown-unknown
+      - name: Cache Rust build outputs for each editor
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: vendor/editors/${{ matrix.editor }}
+          key: ${{ matrix.editor }}-wasm
+      - name: Verify source-owned brand assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="vendor/editors/${{ matrix.editor }}"
+          case "${{ matrix.editor }}" in
+            vectorcraft) grep -q '0x4594ec' "$root/crates/ui-egui/src/theme.rs";;
+            effectcraft)
+              grep -q 'Opening keyframeR' "$root/apps/effectcraft-web/web/index.html"
+              grep -q '0xb6, 0x79, 0xc5' "$root/crates/ui-egui/src/theme.rs"
+              test -s "$root/apps/effectcraft-web/web/favicon.svg";;
+            pdfcraft)
+              grep -q 'BIG LWA fileR' "$root/crates/ui-egui/src/widgets.rs"
+              test -s "$root/assets/biglwa/fileR-mark.svg";;
+          esac
       - name: Install Trunk for vector and PDF editors
         if: matrix.editor != 'effectcraft'
         uses: taiki-e/install-action@v2
@@ -68,12 +93,13 @@ jobs:
           cp "$source/LICENSE-MIT" "$source/LICENSE-APACHE" "$source/NOTICE" "$dest/upstream-licenses/"
           printf '%s\n' 'BIG LWA ${{ matrix.product }} native Rust browser pilot; modified source derived from Storytold ${{ matrix.editor }}.' 'This is an unverified test build and is NOT automatically deployed.' > "$dest/upstream-licenses/SOURCE.txt"
           find "$dest" -name '*.wasm' -exec sha256sum {} \; >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload compiled editor for QA, not live deployment
+      - name: Upload compiled vector/PDF editor for QA, not live deployment
+        if: matrix.editor != 'effectcraft'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.product }}-wasm-test-${{ github.sha }}
           path: vendor/editors/${{ matrix.editor }}/dist/web/
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 14
       - name: Upload motion editor custom build directory
         if: matrix.editor == 'effectcraft'
