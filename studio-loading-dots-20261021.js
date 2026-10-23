@@ -137,6 +137,7 @@
   return [...el.querySelectorAll('img:not([loading="lazy"])')].some(img=>!img.complete);
  }
  function loadingState(){
+  if(!window.document?.getElementById)return;
   const app=document.getElementById('studioApp');if(!app)return;
   const space=app.querySelector('.main.module-view>.module-workspace');const shell=space?.querySelector('.module-shell');
   const key=space?.dataset.moduleKey||'';
@@ -176,6 +177,7 @@
  const schedule=(()=>{let pending=false;return()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;loadingState()})}})();
  let wasStudio=studioVisible();
  const observe=new MutationObserver(()=>{
+  if(!window.document?.getElementById){observe.disconnect();return}
   ensure();scan();schedule();
   const now=studioVisible();
   if(now&&!wasStudio){hideTransition();setProfile(true);window.dispatchEvent(new Event('biglwa:studio-opened'))}
