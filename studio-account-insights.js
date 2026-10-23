@@ -33,7 +33,10 @@
     const value=fresh??fallback;
     const observedAt=fresh!==null?(sameAccount&&prev.followers===fresh&&prev.observedAt?prev.observedAt:(checked||new Date().toISOString())):sameAccount?prev.observedAt||'':'';
     if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric};
-    rows.push({id,followers:value,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
+    // Only genuine engagement counts from provider-authorized responses are used.
+    const likes=number(record.stats?.likes??record.likes);
+    const receivedLikes=(id==='tiktok'&&record.verifiedFromProvider!==false&&likes!==null)?likes:null;
+    rows.push({id,followers:value,likes:receivedLikes,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
       handle:record.username||'',link:record.link||'',metric,
       isLastKnown:fresh===null&&fallback!==null,verified:fresh!==null&&!!checked});
   };
@@ -79,9 +82,10 @@
  }
  function summarize(rows,month){
   const followerRows=rows.filter(s=>s.followers!=null);
+   const likeRows=rows.filter(s=>s.likes!=null);
   // Reach must explicitly identify the calendar month and a reach metric. Never use views/likes.
   const reachRows=rows.filter(s=>s.reach?.month===month&&s.reach?.metric==='reach'&&number(s.reach?.value)!=null);
-  return {followers:followerRows.length?followerRows.reduce((n,s)=>n+s.followers,0):null,reach:reachRows.length?reachRows.reduce((n,s)=>n+Number(s.reach.value),0):null,coverage:followerRows.length,reachCoverage:reachRows.length};
+  return {likes:likeRows.length?likeRows.reduce((n,s)=>n+s.likes,0):null,followers:followerRows.length?followerRows.reduce((n,s)=>n+s.followers,0):null,reach:reachRows.length?reachRows.reduce((n,s)=>n+Number(s.reach.value),0):null,coverage:followerRows.length,reachCoverage:reachRows.length};
  }
  function render(){
   const host=q('#skeletonAnalytics');if(!host)return;
@@ -92,7 +96,7 @@
   const current=selected===monthOf(Date.now()),saved=overview?.analyticsMonths?.[selected];
   const rows=current?sources():(saved?.sources||[]),stats=summarize(rows,selected);
   const known=!!overview&&owner===uid();
-  const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
+  const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,likes:stats.likes,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=format(value);if(node.textContent!==text)node.textContent=text}
   const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have verified audience counts. Other sources are unavailable, not zero. Some people may follow you on more than one platform.';
   const list=q('.analytics-sources',host);const signature=JSON.stringify(rows.map(r=>[r.id,r.followers,r.lastCheckedAt]));if(list.dataset.snapshot!==signature){list.dataset.snapshot=signature;list.replaceChildren(...rows.map(row=>{const p=document.createElement('p');p.textContent=row.id+': '+format(row.followers)+' '+(row.metric||'followers')+' · '+(row.lastCheckedAt?'verified '+new Date(row.lastCheckedAt).toLocaleDateString():'count unavailable')+(row.isLastKnown?' (last verified)':'');return p}))}
@@ -100,11 +104,11 @@
   const rank=q('#skeletonRankMount .real-rank');if(rank){const label=typeof overview?.realRank==='string'?overview.realRank:'Chopped';const strong=q('strong',rank);if(strong&&strong.textContent!==label)strong.textContent=label;rank.setAttribute('aria-label','Real Rank: '+label);}
   if(known){
     const currentSources=sources();
-    window.__biglwaProfileMetrics={uid:owner,followers:values.followers,
+    window.__biglwaProfileMetrics={uid:owner,followers:values.followers,likes:values.likes,
       followersDisplay:stats.followers===null?'—':new Intl.NumberFormat().format(stats.followers)+(stats.coverage<rows.length?'+':''),
       sources:currentSources,connections:values.people,reach:values.reach};
   }else{
-    window.__biglwaProfileMetrics={uid:uid(),followers:null,followersDisplay:'—',
+    window.__biglwaProfileMetrics={uid:uid(),followers:null,likes:null,followersDisplay:'—',
       sources:[],connections:null,reach:null};
   }
   window.dispatchEvent(new Event('biglwa:profile-metrics'));
@@ -118,7 +122,7 @@
  }
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
-  const month=monthOf(Date.now()),snapshot={sources:sources().map(({id,followers,lastCheckedAt,reach})=>({id,followers,lastCheckedAt,reach:reach?.month===month&&reach.metric==='reach'&&number(reach.value)!=null?{month,metric:'reach',value:Number(reach.value)}:null})),connections:Object.keys(overview.peopleConnections).length};
+  const month=monthOf(Date.now()),snapshot={sources:sources().map(({id,followers,likes,lastCheckedAt,reach})=>({id,followers,likes,lastCheckedAt,reach:reach?.month===month&&reach.metric==='reach'&&number(reach.value)!=null?{month,metric:'reach',value:Number(reach.value)}:null})),connections:Object.keys(overview.peopleConnections).length};
   const signature=uid()+month+JSON.stringify(snapshot);if(signature===lastSnapshot)return;lastSnapshot=signature;
   const expected=uid();try{const saved=await window.BigLWAUserDirectory.recordAnalyticsMonth(month,snapshot);if(uid()===expected&&overview?.uid===expected){overview.analyticsMonths[month]=saved;render()}}catch{lastSnapshot='';const status=q('#skeletonAnalytics .analytics-status');if(status)status.textContent='Current data shown; monthly observation could not be saved.'}
  }
