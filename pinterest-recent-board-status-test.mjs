@@ -9,7 +9,7 @@ const index=read('index.html');
 assert.doesNotThrow(()=>new Script(pinterest),'Pinterest client parses');
 assert.doesNotThrow(()=>new Script(layout),'Studio widget layout parses');
 assert.ok(index.includes('/pinterest-orbit.js?v=20261022-veve-board-9'),'Fresh Boards script shipped');
-assert.ok(index.includes('/ui-coherence.js?v=20261023-shortcut-minimized-4'),'Updated Stream and Room UI shipped');
+assert.ok(index.includes('/ui-coherence.js?v=20261023-veve-clean-5'),'Updated Stream and Room UI shipped');
 assert.ok(pinterest.includes('const tiles=orderedBoards().map'),'Every board is shown without manual pagination');
 assert.ok(pinterest.includes('authUid&&savedDrawerOpen?')&&pinterest.includes('savedBoardsMarkup()'), 'Private saved boards only appear in the optional management drawer');
 assert.ok(pinterest.indexOf('boardGrid(disabled)+')<pinterest.indexOf("+'originalPinsMarkup;") || pinterest.indexOf('boardGrid(disabled)+')<pinterest.lastIndexOf('originalPinsMarkup;'),'Board grid appears before original Pins');

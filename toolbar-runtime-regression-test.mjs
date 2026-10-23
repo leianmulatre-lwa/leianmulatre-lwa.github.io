@@ -16,6 +16,7 @@ w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
 const q=s=>w.document.querySelector(s);
 const click=s=>{assert(q(s),'Missing '+s);q(s).click()};
 assert.equal(q('#mobileCreate').textContent,'✺veve');
+assert(!q('#studioSidebarAvailableDock [data-sidebar-route-row="veve"]')&&!q('#studioSidebarShortcutDock [data-sidebar-route-row="veve"]'),'Veve stays in permanent top/hero shortcut only');
 assert(q('[data-dock-widget="projects"]'));
 click('[data-dock-widget="projects"]');
 assert(q('#projects').classList.contains('widget-is-minimized'));
