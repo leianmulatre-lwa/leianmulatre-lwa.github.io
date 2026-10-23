@@ -733,7 +733,7 @@ async function ttRoute(request, env) {
   }
   const scoped=String(session.scope||'').split(/[\s,]+/).includes('user.info.stats');
   const basic='open_id,display_name,avatar_url';
-  const profileScoped=String(session.scope||'').split(/[\\s,]+/).includes('user.info.profile');
+  const profileScoped=String(session.scope||'').split(/[\s,]+/).includes('user.info.profile');
   const identityFields=profileScoped?basic+',username,profile_deep_link':basic;
   const fields=scoped?identityFields+',follower_count,following_count,likes_count,video_count':identityFields;
   let response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields='+fields,{
