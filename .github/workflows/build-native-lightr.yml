@@ -1,0 +1,59 @@
+name: Build BIG LWA native lightR (pilot)
+on:
+  push:
+    branches: [biglwa-native-editors]
+    paths:
+      - 'vendor/editors/photocraft/**'
+      - '.github/workflows/build-native-lightr.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-lightr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-lightr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout source workbench, not production
+        uses: actions/checkout@v4
+      - name: Install the Rust compiler and WASM target
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.95.0'
+          targets: wasm32-unknown-unknown
+      - name: Install the Rust WebAssembly bundler
+        uses: taiki-e/install-action@v2
+        with:
+          tool: trunk
+      - name: Check native lightR source and test gold identity
+        working-directory: vendor/editors/photocraft
+        run: |
+          cargo test -p photocraft-ui-egui biglwa_lightr_theme_tests --lib
+      - name: Compile the native lightR editor for the browser
+        working-directory: vendor/editors/photocraft/apps/photocraft-web
+        run: trunk build --release
+      - name: Package verified WebAssembly and original source licenses
+        run: |
+          set -euo pipefail
+          dest=vendor/editors/photocraft/dist/web
+          test -s "$dest/index.html"
+          find "$dest" -name '*.wasm' -size +0c | grep -q .
+          mkdir -p "$dest/upstream-licenses"
+          cp vendor/editors/photocraft/LICENSE-MIT "$dest/upstream-licenses/"
+          cp vendor/editors/photocraft/LICENSE-APACHE "$dest/upstream-licenses/"
+          cp vendor/editors/photocraft/NOTICE "$dest/upstream-licenses/"
+          printf '%s\n' 'BIG LWA lightR native Rust pilot, derived from Storytold PhotoCraft 0.7.0.' 'Build output is for testing; it is not automatically deployed.' > "$dest/upstream-licenses/SOURCE.txt"
+          find "$dest" -name '*.wasm' -exec sha256sum {} \; | tee "$RUNNER_TEMP/lightr-wasm-sha256.txt"
+          cat "$RUNNER_TEMP/lightr-wasm-sha256.txt" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test build (not production)
+        uses: actions/upload-artifact@v4
+        with:
+          name: lightR-native-wasm-test-${{ github.sha }}
+          path: vendor/editors/photocraft/dist/web/
+          if-no-files-found: error
+          retention-days: 14
