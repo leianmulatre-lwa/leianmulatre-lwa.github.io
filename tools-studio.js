@@ -299,7 +299,7 @@ export function mountToolsStudio(root,helper){
 
   // Independently load creative editors; file conversions and video trim still
   // work even when the external ArtCraft release build is unavailable.
-  import('./tools-craft.js?v=20261023-bigapps-ui-12')
+  import('./tools-craft.js?v=20261023-stitch-png-1')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
     .then(api=>{craftApi=api})
     .catch(error=>{

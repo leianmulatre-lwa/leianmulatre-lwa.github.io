@@ -6,6 +6,9 @@ const require=createRequire(import.meta.url);
 const {JSDOM}=require('jsdom');
 const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const html=read('tools/image-desk.html'),suite=read('tools-craft.js'),css=read('tools-craft.css'),studio=read('tools-studio.js');
+assert.ok(suite.includes('CRAFT_ICON_NAME')&&suite.includes('craft-block-png'),'Workspace cards use new transparent PNG artwork');
+assert.ok(css.includes('.craft-block-png'),'Workshop image positioning styles exist');
+assert.ok(html.includes('icons/sqwibblR.png'),'sqwibblR native editor uses its matching favicon');
 const matches=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 assert.equal(matches.length,1,'Image Desk has one local editor script and no external script hosts');
 new vm.Script(matches[0][1],{filename:'ImageDesk-inline.js'});
@@ -36,7 +39,7 @@ assert.match(suite,/CUBE_PALETTE/,'Workshop cubes use brand colors, not plain wo
 assert.match(css,/\.craft-block-svg/,'Workshop styles size the stitched vector cubes');
 assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses the stitched cube');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
-assert.ok(studio.includes('tools-craft.js?v=20261023-bigapps-ui-12'));
+assert.ok(studio.includes('tools-craft.js?v=20261023-stitch-png-1'));
 assert.match(suite,/\/bigapps\/manifest\.json/,'Uses renamed manifest');
 assert.doesNotMatch(suite,/\/craftapps\//,'No legacy paths in editor launcher');
 assert.match(suite,/PUBLIC_APP_ROUTE/,'Public URLs use canonical names');
