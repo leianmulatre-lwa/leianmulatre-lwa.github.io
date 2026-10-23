@@ -97,3 +97,19 @@ process.exit(fail ? 1 : 0);
 
 check("Pinterest legend is red, matching imported cards", pages.includes("Pinterest · red</span>") && pages.includes("background:#e60023!important;box-shadow:2px 3px 0 #e60023"));
 check("archive control buttons are icons, not colored fake browser dots", pages.includes('data-archive-delete aria-label="Delete this post" title="Delete">×</button>') && pages.includes('data-archive-enlarge aria-label="Open this photo" title="Open this photo">↗</button>'));
+
+
+// Orbit's colors are the canonical UI contract. Check both live Veve and Archive.
+const orbitColors=readFileSync(new URL('./orbit-planets-20261015.css',import.meta.url),'utf8');
+const veveColors=readFileSync(new URL('./veve.css',import.meta.url),'utf8');
+const viewColors=readFileSync(new URL('./feed-view.js',import.meta.url),'utf8');
+const palette=[['instagram','#f36b21'],['tiktok','#772dcc'],['pinterest','#e60023'],['facebook','#1658be'],['snapchat','#ffda00'],['tumblr','#1b304b'],['x','#0e0e0e']];
+for(const [source,color]of palette){
+  assert.ok(orbitColors.includes('0 '+color+'!important')||orbitColors.includes(color),'Orbit recognizes '+source+' '+color);
+  assert.ok(veveColors.includes('data-veve-origin="'+source+'"]{--veve-rim:'+color),'Veve uses Orbit palette for '+source);
+  assert.ok(pages.includes('archive-key-'+source),'Archive color key names '+source);
+}
+assert.ok(pages.includes('Instagram · blood orange')&&!pages.includes('Instagram · purple'),'Archive does not revert Instagram to purple');
+assert.ok(pages.includes('TikTok · purple')&&!pages.includes('TikTok · black'),'Archive agrees on TikTok purple');
+assert.ok(viewColors.includes('Instagram", accent: "#f36b21"'),'myfeed metadata agrees on Instagram orange');
+assert.ok(pages.includes('veve-origin-legend'),'Veve also presents an origin color key');

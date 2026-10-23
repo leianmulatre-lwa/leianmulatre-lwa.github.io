@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261023-tools-order-2';
+        script.src = '/module-pages.js?v=20261023-orbit-color-key-3';
         document.head.appendChild(script);
       }, 250);
     }

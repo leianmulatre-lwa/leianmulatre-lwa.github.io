@@ -7,7 +7,7 @@ import { startIdentity, refreshIdentity, identity } from "./account-identity.js"
 import { startChrome, renderIdentityChrome } from "./account-chrome.js";
 import { loadProfilePhoto } from "./account-photo.js";
 import { startConnections } from "./orbit-connections.js?v=20261022-verified-followers-3";
-import { startFeed } from "./feed-view.js?v=20261020-pinterest-clean-cards-7";
+import { startFeed } from "./feed-view.js?v=20261023-orbit-color-key-8";
 
 function boot() {
   startIdentity();
