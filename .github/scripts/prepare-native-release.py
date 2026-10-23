@@ -19,6 +19,7 @@ import zipfile
 REPO = os.environ["GITHUB_REPOSITORY"]
 TOKEN = os.environ["GH_TOKEN"]
 PIN = os.environ["NATIVE_SOURCE_SHA"]
+LIGHTR_PIN = os.environ["NATIVE_LIGHTR_SHA"]
 OUT = Path(sys.argv[1])
 OUT.mkdir(parents=True, exist_ok=True)
 BASE = f"https://api.github.com/repos/{REPO}"
@@ -55,26 +56,37 @@ if compare.get("status") not in ("ahead", "identical"):
     raise RuntimeError("Pinned native source is not an ancestor of the native branch")
 changed = [f["filename"] for f in compare.get("files", [])]
 if compare.get("total_commits", 0) > 100 or any(
-    f.startswith("vendor/editors/") or f == ".github/scripts/native-editor-browser-smoke.cjs"
+    (f.startswith("vendor/editors/") and not f.startswith("vendor/editors/photocraft/"))
+    or f == ".github/scripts/native-editor-browser-smoke.cjs"
     for f in changed
 ):
     raise RuntimeError("Newer native editor source exists; rebuild it before publishing: " + str(changed[:12]))
 
+# The only native difference since the three-app suite build must be the
+# isolated lightR Rust monogram correction. All other app files are identical.
+if "vendor/editors/photocraft/crates/ui-egui/src/brand.rs" not in changed:
+    raise RuntimeError("Expected isolated lightR source correction not found")
+light_compare = api(f"/compare/{LIGHTR_PIN}...biglwa-native-editors")
+if light_compare.get("status") not in ("ahead", "identical") or any(
+    f["filename"].startswith("vendor/editors/") for f in light_compare.get("files", [])
+):
+    raise RuntimeError("lightR source changed again; rebuild with current source")
 runs = api("/actions/runs?branch=biglwa-native-editors&per_page=100")["workflow_runs"]
 proof = {}
 native = {}
 for app, workflow, artifact_prefix, evidence_prefix in APPS:
+    source_pin = LIGHTR_PIN if app == "lightR" else PIN
     candidates = [r for r in runs
-                  if r["name"] == workflow and r["head_sha"] == PIN
+                  if r["name"] == workflow and r["head_sha"] == source_pin
                   and r["status"] == "completed" and r["conclusion"] == "success"]
     if not candidates:
         raise RuntimeError(f"{app}: no successful, SHA-matched native build and browser test")
     run = sorted(candidates, key=lambda r: r["run_number"], reverse=True)[0]
     artifacts = api(f"/actions/runs/{run['id']}/artifacts?per_page=100")["artifacts"]
     def artifact_with(prefix):
-        matches = [a for a in artifacts if a["name"] == prefix + PIN and not a.get("expired")]
+        matches = [a for a in artifacts if a["name"] == prefix + source_pin and not a.get("expired")]
         if len(matches) != 1:
-            raise RuntimeError(f"{app}: expected one unexpired artifact for {prefix}{PIN}")
+            raise RuntimeError(f"{app}: expected one unexpired artifact for {prefix}{source_pin}")
         return matches[0]
     build_art = artifact_with(artifact_prefix)
     chrome_art = artifact_with(evidence_prefix)
@@ -114,13 +126,13 @@ for app, workflow, artifact_prefix, evidence_prefix in APPS:
     for license_name in ("LICENSE-MIT", "LICENSE-APACHE", "NOTICE"):
         if f"upstream-licenses/{license_name}" not in files:
             raise RuntimeError(f"{app}: missing {license_name}")
-    source_label = f"{app} BIG LWA customized Rust build at {PIN}\nOriginal engine by Storytold; original source licenses and notices preserved.\n"
+    source_label = f"{app} BIG LWA customized Rust build at {source_pin}\nOriginal engine by Storytold; original source licenses and notices preserved.\n"
     files["upstream-licenses/SOURCE.txt"] = source_label.encode()
     native[app] = files
     print(f"PASS {app}: {len(files)} native files, {total} bytes, Chromium and license proof from run {run['id']}", flush=True)
 
 package = OUT / "biglwa-native-editors.tar.gz"
-meta = {"schema": 1, "source_sha": PIN, "repository": REPO, "editors": proof,
+meta = {"schema": 1, "source_sha": PIN, "source_shas": {app: (LIGHTR_PIN if app == "lightR" else PIN) for app in native}, "repository": REPO, "editors": proof,
         "upstream_authorship": "Storytold, MIT OR Apache-2.0; notices retained"}
 with tarfile.open(package, mode="w:gz") as archive:
     for app, files in native.items():
@@ -136,6 +148,6 @@ with tarfile.open(package, mode="w:gz") as archive:
 
 digest = hashlib.sha256(package.read_bytes()).hexdigest()
 lock = {"tag": "biglwa-native-20261023", "archive": package.name,
-        "archive_sha256": digest, "source_sha": PIN}
+        "archive_sha256": digest, "source_sha": PIN, "lightR_sha": LIGHTR_PIN}
 (OUT / "native-release-lock.json").write_text(json.dumps(lock, indent=2) + "\n")
 print("Native publication package verified:", json.dumps(lock))
