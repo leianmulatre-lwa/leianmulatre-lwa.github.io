@@ -6,6 +6,7 @@ No production files are touched here. The caller signs a release and creates a
 separate activation lock only after every check succeeds.
 """
 import hashlib
+import gzip
 import io
 import json
 import os
@@ -134,17 +135,20 @@ for app, workflow, artifact_prefix, evidence_prefix in APPS:
 package = OUT / "biglwa-native-editors.tar.gz"
 meta = {"schema": 1, "source_sha": PIN, "source_shas": {app: (LIGHTR_PIN if app == "lightR" else PIN) for app in native}, "repository": REPO, "editors": proof,
         "upstream_authorship": "Storytold, MIT OR Apache-2.0; notices retained"}
-with tarfile.open(package, mode="w:gz") as archive:
-    for app, files in native.items():
-        for filename, content in files.items():
-            info = tarfile.TarInfo(f"bigapps/{app}/{filename}")
-            info.size = len(content)
-            info.mode = 0o644
-            archive.addfile(info, io.BytesIO(content))
-    data = (json.dumps(meta, indent=2) + "\n").encode()
-    info = tarfile.TarInfo("biglwa-native-build.json")
-    info.mode, info.size = 0o644, len(data)
-    archive.addfile(info, io.BytesIO(data))
+# Deterministic gzip bytes: retries verify against the same immutable release asset.
+with package.open("wb") as output:
+    with gzip.GzipFile(filename="", fileobj=output, mode="wb", mtime=0, compresslevel=6) as compressed:
+        with tarfile.open(fileobj=compressed, mode="w") as archive:
+            for app, files in native.items():
+                for filename, content in files.items():
+                    info = tarfile.TarInfo(f"bigapps/{app}/{filename}")
+                    info.size = len(content)
+                    info.mode = 0o644
+                    archive.addfile(info, io.BytesIO(content))
+            data = (json.dumps(meta, indent=2) + "\n").encode()
+            info = tarfile.TarInfo("biglwa-native-build.json")
+            info.mode, info.size = 0o644, len(data)
+            archive.addfile(info, io.BytesIO(data))
 
 digest = hashlib.sha256(package.read_bytes()).hexdigest()
 lock = {"tag": "biglwa-native-20261023", "archive": package.name,
