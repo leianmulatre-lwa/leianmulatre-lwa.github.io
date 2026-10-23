@@ -17,6 +17,14 @@ assert.ok(moduleCode.includes('Content-Length'),'Downloads verify native file si
 assert.ok(moduleCode.includes('await writer.close()'),'Streamed download is committed only when complete');
 assert.ok(moduleCode.includes('writer.abort()'),'Incomplete streamed downloads are discarded');
 assert.ok(!moduleCode.includes('localStorage.setItem'),'Native originals are not reduced to browser-local metadata');
+assert.ok(craftCode.includes("params.set('biglwaHost','1')"),'Only the explicit open-only Rust PDF bridge is requested');
+assert.ok(craftCode.includes("type:'pdfcraft:open'"),'Private originals go into the actual Rust import inbox');
+assert.ok(craftCode.includes("message.type==='pdfcraft:queued'&&message.requestId===requestId"),'Each native file import must acknowledge its own request');
+assert.ok(craftCode.includes("event.origin!==location.origin||event.source!==frame.contentWindow"),'A sibling or cross-origin frame cannot spoof a native file acknowledgement');
+assert.ok(moduleCode.includes("item.app==='fileR'&&item.size<=75*1024*1024"),'Native automatic reopening is only enabled where the Rust bridge exists and memory is bounded');
+assert.ok(moduleCode.includes("body.byteLength!==item.size"),'Incomplete private binary downloads may not be imported');
+assert.ok(moduleCode.includes("await openOriginal(item,body)"),'The downloaded original is handed to the real editor, not a mock preview');
+
 
 const dom=new JSDOM('<main><section id="craftProjectVault"></section></main>',{
  url:'https://biglwa.com/studio',runScripts:'outside-only'});
