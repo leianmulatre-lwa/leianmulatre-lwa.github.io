@@ -878,7 +878,7 @@
     $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const linked=shortcutWidget(app,row.dataset.shortcutRow||'');
       // Purge any outdated duplicate restore tile from an earlier session.
-      if(linked&&shortcutForWidget(app,linked)&&!linked.classList.contains('widget-is-docked')){
+      if(linked&&shortcutForWidget(app,linked)&&linked.classList.contains('widget-is-minimized')&&!linked.classList.contains('widget-is-docked')){
         row.remove();return;
       }
       const target=greenSidebarWidgetIds.has(row.dataset.shortcutRow||'')?greenDock:redDock;
