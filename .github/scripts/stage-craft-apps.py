@@ -99,6 +99,38 @@ def install_zip(archive: bytes, slug: str, version: str, dest: Path) -> int:
     return expanded
 
 
+
+def brand_web_shell(slug: str, dest: Path) -> None:
+    """BIG LWA navigation for the hosted HTML shell, not a modification
+    to the signed upstream Rust/WASM editor binary or its attribution."""
+    names = {
+        "photocraft": "pixel lab",
+        "vectorcraft": "vector studio",
+        "effectcraft": "motion room",
+        "pdfcraft": "paper desk",
+    }
+    page = dest / "index.html"
+    html = page.read_text(encoding="utf-8")
+    if "<body" not in html.lower() or "</body>" not in html.lower():
+        raise ValueError("Unexpected upstream editor HTML structure")
+    name = names[slug]
+    html = re.sub(r"(?is)<title>.*?</title>",
+                  f"<title>BIG LWA · {name}</title>", html, count=1)
+    # A first-party navigation point keeps direct /craftapps/ links on BIG LWA
+    # instead of sending users to an upstream demo. Upstream licenses stay intact.
+    dock = (
+        '<a id="biglwa-editor-home" href="https://biglwa.com/studio?view=tools" '
+        'aria-label="Return to BIG LWA Tools" '
+        'style="position:fixed;right:14px;bottom:14px;z-index:2147482000;'
+        'background:#3e2533;color:#fff4e5;border:2px solid #dfaa91;'
+        'border-radius:10px;padding:7px 12px;font:700 11px/1.25 system-ui;'
+        'text-decoration:none;box-shadow:3px 4px 0 #180d18;">'
+        '↖ big lwa tools</a>'
+    )
+    html = re.sub(r"(?i)</body>",dock+"</body>",html,count=1)
+    page.write_text(html,encoding="utf-8")
+
+
 def preserve_notices(slug: str, version: str, dest: Path) -> None:
     notices = dest / "upstream-licenses"
     notices.mkdir(exist_ok=True)
@@ -129,6 +161,7 @@ def stage(target: Path) -> None:
         try:
             archive = release_archive(slug, version)
             size = install_zip(archive, slug, version, destination)
+            brand_web_shell(slug, destination)
             preserve_notices(slug, version, destination)
             row["available"] = True
             print(f"[ArtCraft] staged {slug} v{version} ({size} bytes)")
