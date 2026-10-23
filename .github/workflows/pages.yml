@@ -45,6 +45,7 @@ jobs:
           node studio-layout-cache-test.mjs
           node dock-scroll-stability-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node veve-curtain-regression-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node stream-dock-no-signal-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js
       - name: Verify Veve, Arcade puzzles, media and board lock integration
