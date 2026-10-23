@@ -5,6 +5,7 @@ on:
     paths:
       - 'vendor/editors/photocraft/**'
       - '.github/workflows/build-native-lightr.yml'
+      - '.github/scripts/native-editor-browser-smoke.cjs'
   workflow_dispatch:
 
 permissions:
@@ -56,4 +57,23 @@ jobs:
           name: lightR-native-wasm-test-${{ github.sha }}
           path: vendor/editors/photocraft/dist/web/
           if-no-files-found: error
+          retention-days: 14
+
+      - name: Install Chromium for lightR native editor smoke
+        run: |
+          npm install --prefix "$RUNNER_TEMP/biglwa-playwright" playwright@1.55.1 --no-audit --no-fund
+          "$RUNNER_TEMP/biglwa-playwright/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Verify native lightR canvas and capture screenshot
+        env:
+          NODE_PATH: ${{ runner.temp }}/biglwa-playwright/node_modules
+        run: |
+          node --check .github/scripts/native-editor-browser-smoke.cjs
+          node .github/scripts/native-editor-browser-smoke.cjs vendor/editors/photocraft/dist/web lightR
+      - name: Keep browser screenshot evidence even after failure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lightR-chromium-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/biglwa-native-browser-proof/
+          if-no-files-found: warn
           retention-days: 14
