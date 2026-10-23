@@ -137,6 +137,7 @@
      const snapshot=await getDoc(ref);
      if(auth.currentUser?.uid!==uid)return;
      const profiles={};
+     const previous=snapshot.data()?.orbitConnectedProfiles||{};
      for(const id of providerIds){
        const row=state[id];if(!row?.verifiedFromProvider)continue;
        let link='';
@@ -148,12 +149,24 @@
             id==='tumblr'&&(host==='tumblr.com'||host==='www.tumblr.com'||host.endsWith('.tumblr.com'))||
             id==='snapchat'&&['snapchat.com','www.snapchat.com'].includes(host)))link=u.href;
        }catch{}
-       if(link)profiles[id]={link,name:String(row.name||id).slice(0,100),
-         label:id==='x'?'X':id==='tumblr'?'Tumblr':'Snapchat',
-         username:String(row.username||'').slice(0,80),
-         ...(id==='tumblr'?{blogCount:Math.max(0,Number(row.blogCount)||0)}:{})};
+       if(link){
+         const prior=previous[id]||{};
+         const sameAccount=String(prior.username||'').toLowerCase()===String(row.username||'').toLowerCase();
+         const count=row.followers!==null&&row.followers!==undefined&&row.followers!==''&&
+           Number.isSafeInteger(Number(row.followers))&&Number(row.followers)>=0?Number(row.followers):null;
+         const existing=sameAccount&&Number.isSafeInteger(Number(prior.followers))&&
+           prior.followers!==null&&prior.followers!==undefined?Number(prior.followers):null;
+         profiles[id]={link,name:String(row.name||id).slice(0,100),
+           label:id==='x'?'X':id==='tumblr'?'Tumblr':'Snapchat',
+           username:String(row.username||'').slice(0,80),
+           ...(id==='tumblr'?{blogCount:Math.max(0,Number(row.blogCount)||0)}:{})};
+         // Owner-only data. OAuth sessions/tokens never enter this record.
+         if(id==='x'&&(count!==null||existing!==null)){
+           profiles[id].followers=count??existing;
+           profiles[id].countCheckedAt=count!==null?new Date().toISOString():String(prior.countCheckedAt||'');
+         }
+       }
      }
-     const previous=snapshot.data()?.orbitConnectedProfiles||{};
      if(JSON.stringify(previous)!==JSON.stringify(profiles)){
        await setDoc(ref,{orbitConnectedProfiles:profiles,orbitProfilesUpdatedAt:serverTimestamp()},
          {mergeFields:['orbitConnectedProfiles','orbitProfilesUpdatedAt']});
