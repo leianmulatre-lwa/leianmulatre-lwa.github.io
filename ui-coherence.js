@@ -846,14 +846,14 @@
   function shortcutWidget(app,key){
     const route=String(key||'').toLowerCase();
     if(!route)return null;
-    return $('[data-widget-id]',app).find(el=>
+    return $$('[data-widget-id]',app).find(el=>
       (el.dataset.widgetRoute||'').toLowerCase()===route||
       (el.dataset.widgetId||'').toLowerCase()===route)||null;
   }
   function shortcutForWidget(app,widget){
     if(!widget)return null;
     const id=widget.dataset.widgetId,route=widget.dataset.widgetRoute||id;
-    return $('[data-sidebar-route-row].is-shortcut',app).find(row=>
+    return $$('[data-sidebar-route-row].is-shortcut',app).find(row=>
       row.dataset.sidebarRouteRow===route||row.dataset.sidebarRouteRow===id)||null;
   }
   function syncMinimizedShortcutRows(app){
