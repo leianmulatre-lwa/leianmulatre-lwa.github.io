@@ -15,7 +15,7 @@ const clean=(links)=>{
 };
 // Device-wide quick links may belong to a different member. Never import or show them.
 let localLegacy={};
-let refs,uid='',links={},ready=false,generation=0;
+let refs,uid='',links={},extraLinks=[],ready=false,generation=0;
 const broadcast=()=>{
   // Account links are held in owner-only Firestore; do not write a shared browser slot.
   window.dispatchEvent(new CustomEvent('biglwa:orbit-links-synced',{detail:{uid,links:{...links}}}));
@@ -47,7 +47,7 @@ async function firebase(){
 }
 async function load(nextUid){
   const g=++generation;
-  uid=nextUid||'';links={};ready=false;
+  uid=nextUid||'';links={};extraLinks=[];ready=false;
   if(!uid){broadcast();return;}
   try{
     const f=await firebase();await f.auth.authStateReady();
@@ -55,6 +55,9 @@ async function load(nextUid){
     const snapshot=await f.getDoc(f.doc(f.db,'users',uid));
     if(g!==generation)return;
     links=clean(snapshot.exists()?snapshot.data()?.orbitLinks:{});
+    extraLinks=(Array.isArray(snapshot.data()?.orbitExtraLinks)?snapshot.data().orbitExtraLinks:[])
+      .filter(x=>OPTIONS.has(x.provider)&&typeof x.url==='string'&&typeof x.id==='string')
+      .slice(0,25);
     ready=true;broadcast();
   }catch(err){
     if(g===generation){ready=false;links={};console.warn('Orbit account links:',err)}
@@ -98,6 +101,35 @@ async function save(id,value){
   links=next;broadcast();
   return true;
 }
+// Additional public profile shortcuts are NOT OAuth sessions or proof of ownership.
+async function addExtra(provider,value){
+  if(!OPTIONS.has(provider))throw Error('Choose an available Orbit platform.');
+  if(!uid||!ready)throw Error('Sign in before adding another profile.');
+  const url=clean({[provider]:value})[provider];
+  if(!url)throw Error('Use a complete https:// public profile URL.');
+  const normalized=normalizedDestination(url);
+  if(!normalized||normalized===normalizedDestination(links[provider])||
+     extraLinks.some(x=>normalizedDestination(x.url)===normalized))
+    throw Error('This profile has already been added.');
+  if(extraLinks.length>=25)throw Error('Maximum 25 additional profile links.');
+  const member=uid,f=await firebase();await f.auth.authStateReady();
+  if(f.auth.currentUser?.uid!==member)throw Error('Account changed; try again.');
+  const next=[...extraLinks,{id:crypto.randomUUID(),provider,url,addedAt:Date.now()}];
+  await f.setDoc(f.doc(f.db,'users',member),{orbitExtraLinks:next,orbitExtraLinksUpdatedAt:f.serverTimestamp()},
+     {mergeFields:['orbitExtraLinks','orbitExtraLinksUpdatedAt']});
+  if(uid!==member)return;
+  extraLinks=next;broadcast();return next[next.length-1];
+}
+async function removeExtra(id){
+  if(!uid||!ready)throw Error('Sign in before editing profiles.');
+  const member=uid,f=await firebase();await f.auth.authStateReady();
+  if(f.auth.currentUser?.uid!==member)throw Error('Account changed; retry.');
+  const next=extraLinks.filter(x=>x.id!==id);
+  await f.setDoc(f.doc(f.db,'users',member),{orbitExtraLinks:next,orbitExtraLinksUpdatedAt:f.serverTimestamp()},
+     {mergeFields:['orbitExtraLinks','orbitExtraLinksUpdatedAt']});
+  if(uid!==member)return;
+  extraLinks=next;broadcast();
+}
 async function importLocalLinks(){
   if(!ready||!uid)throw Error('Sign in before importing local profile links.');
   if(!Object.keys(localLegacy).length)throw Error('Unscoped legacy links cannot be attributed to a verified account. Re-add your own links individually.');
@@ -112,7 +144,7 @@ async function importLocalLinks(){
 }
 export function startOrbitAccountLinks(){
   if(window.BigLWAOrbitAccountLinks)return;
-  const api={get:()=>({...links}),save,ready:()=>ready,owner:()=>uid,localPending:()=>Object.keys(localLegacy).filter(k=>!links[k]),importLocalLinks};
+  const api={get:()=>({...links}),getExtra:()=>extraLinks.map(x=>({...x})),addExtra,removeExtra,save,ready:()=>ready,owner:()=>uid,localPending:()=>Object.keys(localLegacy).filter(k=>!links[k]),importLocalLinks};
   window.BigLWAOrbitAccountLinks=api;
   startIdentity();onIdentityChange(who=>load(who?.uid||''));
   load(identity()?.uid||'');
