@@ -1975,7 +1975,8 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
      expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||3600)*1000,createdAt:Date.now()};
    const shelfKey='new-orbit:'+provider+':accounts:'+saved.uid;
    const prior=await env.OAUTH_SESSIONS.get(shelfKey,'json');
-   const earlier=(Array.isArray(prior?.accounts)?prior.accounts:[])
+   const previousActive=await env.OAUTH_SESSIONS.get('new-orbit:'+provider+':account:'+saved.uid,'json');
+   const earlier=(Array.isArray(prior?.accounts)?prior.accounts:(previousActive?[previousActive]:[]))
      .filter(x=>x?.profile?.sourceUserId&&x.profile.sourceUserId!==profile.sourceUserId).slice(-4);
    const accounts=[...earlier,newAccount];
    await env.OAUTH_SESSIONS.put(shelfKey,JSON.stringify({accounts}),{expirationTtl:7776000});
