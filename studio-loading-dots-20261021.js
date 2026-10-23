@@ -158,9 +158,9 @@
    moduleCurtain.hidden=!visible;
    shell.classList.toggle('lwa-curtain-veve-pending',veve&&visible);
    const progress=moduleCurtain.querySelector('.lwa-curtain-progress');
-   if(progress)progress.textContent=veve
+   if(progress)progress.textContent=(veve
      ?String(feed?.stage||'Connecting to public collections…')
-     :(busy?'Loading page data…':unresolvedImages(shell)?'Preparing images…':'Opening '+key+'…');
+     :(busy?'Loading page data…':unresolvedImages(shell)?'Preparing images…':'Opening '+key+'…')).toLowerCase();
    // The view-anyway control is for Veve; every other widget can still be
    // revealed on demand if its own data request stalls.
    if(!visible&&veve)moduleCurtain.setAttribute('data-lwa-ready','true');
