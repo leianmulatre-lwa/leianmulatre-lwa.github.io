@@ -194,7 +194,9 @@
       if(!getSession()){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
       profile=await api('profile');
       if(!profile?.open_id)throw new Error('TikTok profile authorization could not be verified.');
+      const newlyConnected=!connected;
       connected=true;render();statusUpdate();
+      if(newlyConnected)privateTikTokLog('TikTok account authenticated and connected to Orbit.','TikTok connection');
       try{
         const result=await api('videos');
         videos=Array.isArray(result.videos)?result.videos:[];
