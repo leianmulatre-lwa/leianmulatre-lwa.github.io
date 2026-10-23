@@ -85,25 +85,12 @@
    const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
    if(mark){profile=document.createElement('span');profile.id='lwaProfileLoading';profile.setAttribute('role','status');profile.setAttribute('aria-label','Loading your profile');profile.append(make('falling'));const label=document.createElement('span');label.textContent='Loading profile';profile.append(label);mark.append(profile);profile.hidden=true}
   }
-  // The original login-to-Studio loading screen remains canonical.
-  // This file adds animated RGB dots to it without creating a second one.
-  decorateLegacyStudioLoading();
+  // Studio's startup and login-laptop intro have one authoritative
+  // dot-floating animation in index.html. Don't decorate a second loading
+  // element from this module; this module only handles widgets/profile.
  }
  function setProfile(loading){ensure();if(profile)profile.hidden=!loading}
  function hideTransition(){if(transitionTimer)clearTimeout(transitionTimer);if(transition)transition.hidden=true}
- function decorateLegacyStudioLoading(){
-   // Decorate the genuine preexisting loading screen; never paint another
-   // full-screen loader that races it on fast sign-ins.
-   const matches=[...document.querySelectorAll(
-     '[role="status"],[id*="loader" i],[id*="loading" i],[class*="loader" i],[class*="loading" i]'
-   )].filter(el=>el.id!=='lwaStudioTransition'&&!el.closest('#lwaStudioTransition'));
-   const target=matches.find(el=>/loading (your )?studio/i.test(el.textContent||''));
-   if(!target||target.querySelector('.lwa-legacy-loader-dots'))return;
-   const dots=make('floating');dots.classList.add('lwa-legacy-loader-dots');
-   dots.style.cssText='display:block;margin:18px auto 0';
-   target.classList.add('lwa-legacy-studio-loading');
-   target.append(dots);
- }
  function studioVisible(){return !!document.querySelector('#studioApp.is-active')}
  // Image pulse is only drawn while an image actually has network work outstanding.
  function imagePending(img){return img instanceof HTMLImageElement && !img.complete && !img.dataset.lwaLoadingBound}
