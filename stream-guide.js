@@ -629,6 +629,12 @@
     (url?'<a class="stream-monitor-open" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer">'+cta+'</a>':'')+
     '</div><span class="stream-screen-bottom">ORIGINAL PUBLISHER · NO MIRRORED CONTENT</span></div>';
   }
+  // Use uploaded broadcast bars when the browser reports player failure.
+  // Cross-origin players may silently block embedding; users can also use
+  // the explicit "No signal?" control in the main Stream guide.
+  surface.querySelectorAll('iframe,video').forEach(media=>{
+    media.addEventListener('error',()=>{if(surface.contains(media))showNoSignal()},{once:true});
+  });
   renderFeaturedSlots();
   scheduleMediaPosition();
   if(!options.silent)monitor.scrollIntoView({behavior:'smooth',block:'center'});
