@@ -39,9 +39,20 @@
   const esc = value => String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function notice(message) {
     lastError=String(message||'');statusUpdate();
-    let el = document.getElementById('tiktok-status');
-    if (!el) { el = document.createElement('div'); el.id = 'tiktok-status'; el.setAttribute('role','status'); el.style.cssText='position:fixed;bottom:12px;right:12px;z-index:15000;max-width:min(260px,calc(100vw - 24px));background:#fff5eb;color:#292322;padding:8px 11px;border:1px solid #c9aa95;border-radius:9px;box-shadow:0 3px 9px #0002;font:600 11px/1.4 system-ui;overflow-wrap:anywhere'; document.body.appendChild(el); }
-    el.textContent = message; clearTimeout(notice.timer); notice.timer = setTimeout(() => el.remove(), 4500);
+    document.getElementById('tiktok-status')?.remove();
+    const workspace=document.querySelector('#moduleWorkspace:not([hidden])');
+    const el=workspace?.querySelector('[data-orbit-row="tiktok"] [data-tiktok-public-message]')||
+      workspace?.querySelector('[data-tiktok-public-import] [data-tiktok-public-message]')||
+      workspace?.querySelector('#orbitPageStatus');
+    if(el)el.textContent=String(message||'').slice(0,340);
+  }
+  function profileFromLink(raw){
+    try{
+      const u=new URL(String(raw||'').trim());
+      if(u.protocol!=='https:'||u.port||!['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(u.hostname))return '';
+      const m=u.pathname.match(/^\/@([A-Za-z0-9._-]{1,80})\/?$/);
+      return m?m[1]:'';
+    }catch{return ''}
   }
   async function api(path, data) {
     const response = await fetch(API + '/tiktok/' + path, { method: data ? 'POST' : 'GET', headers: { 'Content-Type':'application/json', Authorization:'Bearer ' + getSession() }, ...(data ? {body:JSON.stringify(data)} : {}) });
@@ -90,8 +101,8 @@
     panel.setAttribute('aria-label','Save public TikTok post');
     panel.style.cssText='padding:10px 0;display:grid;gap:7px;min-width:0';
     panel.innerHTML='<strong>Import a TikTok post</strong>'+
-      '<small>Paste a public video URL to save a private MyFeed draft, even without video.list access. Original creator stays credited; playback remains on TikTok.</small>'+
-      '<label for="tiktokPublicVideoLink">Public TikTok video URL</label>'+
+      '<small>Paste a public video or profile URL. Private drafts require confirmation; profile syncing uses approved video.list access.</small>'+
+      '<label for="tiktokPublicVideoLink">Public TikTok link</label>'+
       '<input id="tiktokPublicVideoLink" class="module-input" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
       '<button class="module-action" type="button" data-tiktok-public-save>Save private video draft</button>'+
       '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
@@ -107,7 +118,7 @@
     panel.setAttribute('aria-label','Import TikTok into myfeed');
     panel.style.cssText='display:grid;gap:6px;margin:8px 0;padding:9px 11px;border:1px solid #baa5c2;border-radius:10px;background:#f9efff;color:#362440';
     panel.innerHTML='<strong>TikTok · import a public link</strong>'+
-     '<label for="tiktokFeedVideoLink">TikTok video URL</label>'+
+     '<label for="tiktokFeedVideoLink">TikTok video or profile URL</label>'+
      '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><input id="tiktokFeedVideoLink" class="module-input" style="flex:1 1 215px;min-width:0" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
      '<button class="module-action" type="button" data-tiktok-public-save>Save to myfeed drafts</button></div>'+
      '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
@@ -284,6 +295,15 @@
     }
     render();await restore();
   }
+  document.addEventListener('input',e=>{
+    if(!e.target.matches?.('[data-tiktok-public-url]'))return;
+    const panel=e.target.closest('[data-tiktok-public-import]');
+    const status=panel?.querySelector('[data-tiktok-public-message]');
+    const username=profileFromLink(e.target.value);
+    if(status)status.textContent=username?'TikTok profile @'+username+' detected. Sync requires authorized video.list access.':'';
+    const button=panel?.querySelector('[data-tiktok-public-save]');
+    if(button)button.textContent=username?'Sync profile videos':'Save private video draft';
+  });
   document.addEventListener('click',e=>{
     if (!(e.target instanceof Element)) return;
     const play=e.target.closest('[data-tiktok-play-video]');
@@ -341,6 +361,17 @@
       const original=publicSave.textContent;
       publicSave.disabled=true;publicSave.textContent='Importing…';
       Promise.resolve().then(async()=>{
+        const handle=profileFromLink(input?.value||'');
+        if(handle){
+          if(!connected)throw Error('Profile link detected. Connect TikTok in Orbit first.');
+          if(!profile.username||String(profile.username).replace(/^@/,'').toLowerCase()!==handle.toLowerCase())
+            throw Error('This TikTok profile does not match the OAuth-connected account.');
+          await restore();
+          if(videoPermissionPending)throw Error('TikTok video.list access has not been approved yet.');
+          if(videoLoadError)throw Error(videoLoadError);
+          if(status)status.textContent='Checked '+videos.length+' public videos from the connected account. Available videos are private MyFeed drafts.';
+          return;
+        }
         const video=await publicVideo(String(input?.value||'').trim());
         const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft ||
           (await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
@@ -364,7 +395,7 @@
           preview.replaceChildren(frame);preview.hidden=false;
         }
       }).catch(error=>{if(status)status.textContent=error.message||'Import failed.'})
-        .finally(()=>{publicSave.disabled=false;publicSave.textContent=original});
+        .finally(()=>{publicSave.disabled=false;publicSave.textContent=profileFromLink(input?.value||'')?'Sync profile videos':original});
       return;
     }
     const draft=e.target.closest('[data-tiktok-save-video]');
