@@ -1537,7 +1537,7 @@
     const number=key=>owned&&source[key]!==null&&source[key]!==undefined&&
       Number.isFinite(Number(source[key]))?new Intl.NumberFormat().format(Number(source[key])):'—';
     const followerNumber=owned?String(source.followersDisplay||number('followers')):'—';
-    const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach']];
+    const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach'],['likes','Likes']];
     const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\s+/g,' ').trim()]);
     const expected=metrics.map(([key,label])=>[key,(key==='followers'?followerNumber:number(key))+' '+label]);
     const same=current.length===expected.length&&current.every((item,i)=>item[0]===expected[i][0]&&item[1]===expected[i][1]);
@@ -1575,9 +1575,9 @@
     return true;
   }
   const followerNames={instagram:'Instagram',tiktok:'TikTok',pinterest:'Pinterest',
-    x:'X',tumblr:'Tumblr',youtube:'YouTube',facebook:'Facebook',snapchat:'Snapchat'};
-  const followerColors={instagram:'#f36b21',tiktok:'#26202a',pinterest:'#e60023',x:'#161616',
-    tumblr:'#20334e',youtube:'#e52235',facebook:'#1877f2',snapchat:'#ecd91c'};
+    x:'X',tumblr:'Tumblr',youtube:'YouTube',facebook:'Facebook',snapchat:'Snapchat',vsco:'VSCO',bereal:'BeReal',substack:'Substack',xbox:'Xbox'};
+  const followerColors={instagram:'#ffab63',tiktok:'#26202a',pinterest:'#e60023',x:'#161616',
+    tumblr:'#20334e',youtube:'#e52235',facebook:'#1877f2',snapchat:'#ecd91c',vsco:'#b51668',bereal:'#777b83',substack:'#da521b',xbox:'#a3d65e'};
   function drawFollowersPanel(stats,panel){
     const uid=String(window.__biglwaIdentity?.uid||'');
     const data=window.__biglwaProfileMetrics||{};
@@ -1598,7 +1598,14 @@
       const details=document.createElement('span');details.className='biglwa-followers-source';
       const name=document.createElement('strong');name.textContent=named||String(row.id);
       const note=document.createElement('small');note.textContent=row.followers==null?
-        'Connected · count not provided':row.isLastKnown?'Last verified count':'Provider-reported count';
+        'Connected · count not provided':row.isLastKnown?'Last verified count':row.verified?'Verified by provider':'External count · unverified';
+      // Check mark means an actual provider-returned metric, not an externally matched username.
+      if(row.verified&&!row.isLastKnown&&row.followers!=null){
+        const check=document.createElement('span');
+        check.className='biglwa-provider-check';
+        check.textContent='✓';check.setAttribute('aria-label','Count verified by provider');
+        name.append(document.createTextNode(' '),check);
+      }
       details.append(name,note);
       const value=document.createElement('b');value.className='biglwa-followers-count';
       value.textContent=row.followers==null?'—':new Intl.NumberFormat().format(row.followers);
