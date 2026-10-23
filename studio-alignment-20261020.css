@@ -227,7 +227,7 @@ body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!
 #studioApp .connect-user-results{display:grid;gap:6px;margin-top:7px}
 #studioApp .connect-user-results>div{display:flex;align-items:center;gap:8px;justify-content:space-between;font:12px system-ui}
 #studioApp .connect-user-results button{font:11px system-ui;padding:5px 8px}
-#studioPersistentTooltip{position:fixed;z-index:2147483646;box-sizing:border-box;max-width:230px;padding:9px 12px;border-radius:7px;background:#302733;color:#fff;font:12px/1.4 system-ui;box-shadow:0 4px 16px #0004;pointer-events:auto}
+#studioPersistentTooltip{position:fixed;z-index:2147483646;box-sizing:border-box;max-width:195px;padding:6px 9px;border:1px solid #ffffff44;border-radius:7px;background:rgba(48,39,51,.64);color:#fff;font:11px/1.35 system-ui;box-shadow:0 2px 8px #0002;pointer-events:none!important;user-select:none;transition:opacity .12s ease;backdrop-filter:blur(2px)}
 #studioPersistentTooltip[hidden]{display:none}
 #studioColorDialog{box-sizing:border-box;width:min(340px,calc(100vw - 28px));border:1px solid #bfa7b3;border-radius:14px;padding:20px;background:#fff8f0;color:#302733;box-shadow:0 15px 60px #0005}
 #studioColorDialog::backdrop{background:#20142166}
