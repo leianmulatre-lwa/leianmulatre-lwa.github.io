@@ -2190,8 +2190,10 @@ fn start_screen(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
     ui.scope_builder(egui::UiBuilder::new().max_rect(card), |ui| {
         ui.vertical_centered(|ui| {
             ui.horizontal(|ui| {
-                let title = ui.painter().layout_no_wrap(tl!("PhotoCraft").into(), crate::theme::semibold(38.0), t.text);
-                let by = ui.painter().layout_no_wrap(tl!("open source").into(), egui::FontId::proportional(13.0), t.text_faint);
+                let title_name = if cfg!(target_arch = "wasm32") { "lightR" } else { tl!("PhotoCraft") };
+                let title = ui.painter().layout_no_wrap(title_name.into(), crate::theme::semibold(38.0), t.text);
+                let edition = if cfg!(target_arch = "wasm32") { "BIG LWA EDITION" } else { tl!("open source") };
+                let by = ui.painter().layout_no_wrap(edition.into(), egui::FontId::proportional(13.0), t.text_faint);
                 let total = title.size().x + by.size().x + 10.0;
                 ui.add_space(((card.width() - total) / 2.0).max(0.0));
                 let (r, _) = ui.allocate_exact_size(title.size(), Sense::hover());
@@ -2227,9 +2229,17 @@ fn start_screen(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
                 home_recent(app, ui, &recent);
             }
             ui.add_space(26.0);
-            crate::links::discord_button(app, ui, 190.0);
-            ui.add_space(10.0);
-            crate::links::link_row(app, ui);
+            if cfg!(target_arch = "wasm32") {
+                ui.label(egui::RichText::new("Native image editing · Export to save editable project files").size(12.5).color(t.text_dim));
+                ui.add_space(10.0);
+                if crate::widgets::secondary_button(ui, "BIG LWA Workshop ↗", 190.0).clicked() {
+                    crate::links::open(app, ui.ctx(), "https://biglwa.com/studio");
+                }
+            } else {
+                crate::links::discord_button(app, ui, 190.0);
+                ui.add_space(10.0);
+                crate::links::link_row(app, ui);
+            }
         });
     });
 }

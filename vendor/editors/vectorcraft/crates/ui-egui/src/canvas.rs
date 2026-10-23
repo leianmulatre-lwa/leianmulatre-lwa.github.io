@@ -1842,9 +1842,11 @@ fn home(app: &mut VectorcraftApp, ui: &mut Ui, rect: egui::Rect) {
     let inner = rect.shrink2(vec2((rect.width() - 820.0).max(40.0) / 2.0, 60.0));
     let mut child = ui.new_child(egui::UiBuilder::new().max_rect(inner).layout(egui::Layout::top_down(egui::Align::Min)));
     let ui = &mut child;
-    ui.label(egui::RichText::new(tl!("Welcome to VectorCraft")).font(theme::semibold(26.0)).color(t.text));
+    let greeting = if cfg!(target_arch = "wasm32") { "Welcome to paintR" } else { tl!("Welcome to VectorCraft") };
+    ui.label(egui::RichText::new(greeting).font(theme::semibold(26.0)).color(t.text));
     ui.add_space(4.0);
-    ui.label(egui::RichText::new(tl!("Vector illustration — fast, open, scriptable.")).size(14.0).color(t.text_dim));
+    let subheading = if cfg!(target_arch = "wasm32") { "BIG LWA vector studio · editable shapes, paths, type and illustrations." } else { tl!("Vector illustration — fast, open, scriptable.") };
+    ui.label(egui::RichText::new(subheading).size(14.0).color(t.text_dim));
     ui.add_space(22.0);
     ui.horizontal(|ui| {
         if widgets::primary_button(ui, tl!("New file")).clicked() {
@@ -1871,9 +1873,15 @@ fn home(app: &mut VectorcraftApp, ui: &mut Ui, rect: egui::Rect) {
         }
     });
     ui.add_space(28.0);
-    ui.label(egui::RichText::new(tl!("Community")).font(theme::semibold(14.0)).color(t.text));
-    ui.add_space(10.0);
-    crate::community::links(app, ui);
+    if cfg!(target_arch = "wasm32") {
+        ui.label(egui::RichText::new("BIG LWA Workshop").font(theme::semibold(14.0)).color(t.text));
+        ui.add_space(8.0);
+        ui.label(egui::RichText::new("Export the native file, then store that original in your private Workshop project shelf.").size(13.0).color(t.text_dim));
+    } else {
+        ui.label(egui::RichText::new(tl!("Community")).font(theme::semibold(14.0)).color(t.text));
+        ui.add_space(10.0);
+        crate::community::links(app, ui);
+    }
 }
 
 /// The Home screen's Recent Files (#663): the first of File › Open Recent Files, each its name and
