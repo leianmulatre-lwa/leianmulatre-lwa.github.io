@@ -34,7 +34,9 @@ assert.match(suite,/CUBE_PALETTE/,'Workshop cubes use brand colors, not plain wo
 assert.match(css,/\.craft-block-svg/,'Workshop styles size the stitched vector cubes');
 assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses the stitched cube');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
-assert.ok(studio.includes('tools-craft.js?v=20261023-r-suite-name-7'));
+assert.ok(studio.includes('tools-craft.js?v=20261023-private-vault-8'));
+assert.match(suite,/craftAccountVault/,'Cloud snapshots have a visible first-party shelf');
+assert.match(read('account-storage-policy.js'),/biglwaWorkshopSnapshotsV1/,'Private snapshots use the allowlisted account-synced key');
 assert.match(studio,/data-lwa-edit-image/,'Tools offers direct native image editing after sniffing a file');
 assert.match(suite,/function editFile\(file\)/,'Workshop accepts the selected image');
 assert.match(suite,/BIGLWA_IMAGE_DESK_IMPORT/,'Workshop passes files to the local editor');

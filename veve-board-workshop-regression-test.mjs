@@ -35,7 +35,7 @@ assert.ok(workshop.includes('/upstream-licenses/SOURCE.txt')&&workshop.includes(
 assert.ok(workshopCss.includes('.craft-arcade-block')&&workshopCss.includes('box-shadow:'),
   'Workshop uses raised block icon styling');
 assert.ok(builder.includes('def brand_web_shell(')&&
-  builder.includes('https://biglwa.com/studio?view=tools')&&builder.includes('preserve_notices('),
+  builder.includes('/assets/craft/editor-brand.js') && source('assets/craft/editor-brand.js').includes('/studio?view=tools')&&builder.includes('preserve_notices('),
   'Hosted editors include a BIG LWA return path without removing upstream licensing');
 for(const asset of [
  'veve.js?v=20261022-board-save-3',
