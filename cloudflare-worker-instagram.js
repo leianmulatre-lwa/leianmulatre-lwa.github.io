@@ -609,7 +609,14 @@ async function ttRoute(request, env) {
     const returnTo=ttReturnUrl(url.searchParams.get('return_to'),env);
     await env.OAUTH_SESSIONS.put('tt:state:' + state, JSON.stringify({ browser, challenge, callback: ttCallback(request), returnTo }), { expirationTtl: 600 });
     const dest = new URL('https://www.tiktok.com/v2/auth/authorize/');
-    dest.search = new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, response_type: 'code', scope: env.TIKTOK_VIDEO_LIST_APPROVED==='true'?'user.info.basic,video.list':'user.info.basic', redirect_uri: ttCallback(request), state }).toString();
+    // Request optional statistics only when the TikTok developer app is
+    // approved for user.info.stats. A connected basic profile alone must not
+    // result in a fabricated zero audience.
+    const approved=['user.info.basic'];
+    if(env.TIKTOK_VIDEO_LIST_APPROVED==='true')approved.push('video.list');
+    if(env.TIKTOK_USER_STATS_APPROVED==='true')approved.push('user.info.stats');
+    dest.search = new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, response_type: 'code',
+      scope:approved.join(','), redirect_uri: ttCallback(request), state }).toString();
     return ttRedirect(dest.href, browser);
   }
   if (path === '/tiktok/callback' && request.method === 'GET') {
@@ -723,10 +730,19 @@ async function ttRoute(request, env) {
     return json({videos:collected,hasMore,cursor:hasMore?cursor:null,
       partialError,videoPermissionPending:false},200,request,env);
   }
-  const response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url', {
+  const scoped=String(session.scope||'').split(/[\\s,]+/).includes('user.info.stats');
+  const basic='open_id,display_name,avatar_url';
+  const fields=scoped?basic+',follower_count,following_count,likes_count,video_count':basic;
+  let response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields='+fields,{
     method:'GET',headers
   });
-  const body=await response.json().catch(()=>({}));
+  let body=await response.json().catch(()=>({}));
+  // If an approved field was rejected, the existing basic login must still
+  // work. Do not translate that permission gap into a follower count of zero.
+  if(scoped&&(!response.ok||(body.error&&body.error.code!=='ok'))){
+    response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields='+basic,{method:'GET',headers});
+    body=await response.json().catch(()=>({}));
+  }
   if(!response.ok||(body.error&&body.error.code!=='ok'))
     ttFail('TikTok could not return your profile. Check user.info.basic access for this app.',502);
   return json(body.data?.user||{},200,request,env);
