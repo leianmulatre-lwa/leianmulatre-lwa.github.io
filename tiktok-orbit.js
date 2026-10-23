@@ -37,15 +37,22 @@
     }));
   }
   const esc = value => String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  function notice(message) {
-    lastError=String(message||'');statusUpdate();
-    document.getElementById('tiktok-status')?.remove();
-    const workspace=document.querySelector('#moduleWorkspace:not([hidden])');
-    const el=workspace?.querySelector('[data-orbit-row="tiktok"] [data-tiktok-public-message]')||
-      workspace?.querySelector('[data-tiktok-public-import] [data-tiktok-public-message]')||
-      workspace?.querySelector('#orbitPageStatus');
-    if(el)el.textContent=String(message||'').slice(0,340);
+  function privateTikTokLog(message,title='TikTok'){
+    const text=String(message||'').trim().slice(0,340);
+    if(!text||!authUid)return;
+    const detail={title,source:'TikTok',detail:text,notified:false};
+    // Logs are scoped to the currently authenticated BIG LWA member.
+    // This event never creates a public Feed post or a follower notification.
+    if(window.BIGLWAActivity?.record)window.BIGLWAActivity.record(detail);
+    else window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail}));
   }
+  function notice(message) {
+    lastError=String(message||'');
+    statusUpdate();
+    document.getElementById('tiktok-status')?.remove();
+    privateTikTokLog(lastError,'TikTok connection');
+  }
+
   function profileFromLink(raw){
     try{
       const u=new URL(String(raw||'').trim());
@@ -108,24 +115,9 @@
     ].join('');
     document.head.append(style);
   }
-  function renderTikTokLinkImporter() {
-    ensureTikTokImportStyles();
-    const workspace=document.querySelector('#moduleWorkspace[data-module-key="orbit"]');
-    const row=workspace?.querySelector('[data-orbit-row="tiktok"]');
-    if(!row||row.querySelector('[data-tiktok-public-import]'))return;
-    const panel=document.createElement('section');
-    panel.setAttribute('data-tiktok-public-import','');
-    panel.setAttribute('aria-label','Save public TikTok post');
-    panel.style.cssText='padding:10px 0;display:grid;gap:7px;min-width:0';
-    panel.innerHTML='<details class="biglwa-tiktok-import-details"><summary>Import TikTok video or sync profile</summary>'+
-      '<div class="biglwa-tiktok-import-fields">'+
-      '<small>Paste a video or profile URL. Private drafts are reviewed before publishing.</small>'+
-      '<label for="tiktokPublicVideoLink">TikTok link</label>'+
-      '<input id="tiktokPublicVideoLink" class="module-input" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
-      '<button class="module-action" type="button" data-tiktok-public-save>Save private video draft</button>'+
-      '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
-      '<div data-tiktok-public-preview hidden></div></div></details>';
-    row.append(panel);
+  // Orbit cards show connection state only. The single optional importer lives in MyFeed.
+  function renderTikTokLinkImporter(){
+    document.querySelectorAll('#moduleWorkspace[data-module-key="orbit"] [data-tiktok-public-import]').forEach(node=>node.remove());
   }
 
   function renderTikTokFeedImporter(){
@@ -391,7 +383,8 @@
           if(!links?.ready?.())throw Error('Orbit profile links are still loading. Try again.');
           await links.save('tiktok','https://www.tiktok.com/@'+handle);
           document.dispatchEvent(new CustomEvent('biglwa:tiktok-creator-link-saved',{detail:{handle}}));
-          if(status)status.textContent='Public @'+handle+' linked to your BIG LWA profile. TikTok’s creator embed shows recent videos and audience figures without video.list.';
+          if(status)status.textContent='Profile linked.';
+          privateTikTokLog('Public @'+handle+' linked to your profile.','TikTok profile');
           if(!videoPermissionPending){
             await restore().catch(()=>{});
             if(videos.length&&status)status.textContent+=' '+videos.length+' authorized videos are also ready as drafts.';
@@ -420,7 +413,7 @@
           frame.src='https://www.tiktok.com/player/v1/'+video.id;
           preview.replaceChildren(frame);preview.hidden=false;
         }
-      }).catch(error=>{if(status)status.textContent=error.message||'Import failed.'})
+      }).catch(error=>{if(status)status.textContent='Import failed. See Logs.';privateTikTokLog(error.message||'Import failed.','TikTok import')})
         .finally(()=>{publicSave.disabled=false;publicSave.textContent=profileFromLink(input?.value||'')?'Sync profile videos':original});
       return;
     }
