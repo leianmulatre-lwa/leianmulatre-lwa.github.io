@@ -68,6 +68,13 @@
       ?'Preview saved to your BIG LWA account.'
       :'Preview stored for this signed-in account on this device. Cloud sync still needs confirmation.';
   });
+  // The Studio Workshop owns the editor's save and window controls. Never
+  // float a second toolbar over native Rust/egui layers, tools or canvas.
+  // Standalone tabs start with a small opt-in tools tab, not an open overlay.
+  const embedded=window.parent!==window;
+  document.documentElement.dataset.biglwaEmbedded=embedded?'true':'false';
+  dock.hidden=true;
+  mini.hidden=embedded;
   document.body.append(dock,mini);
   // Native credits stay visible. Avoid intrusive DOM mutation in the WebAssembly app.
   // Only correct a conventional top-level *exact* legacy title, when one exists.
