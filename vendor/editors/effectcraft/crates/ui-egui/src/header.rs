@@ -27,8 +27,9 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
     let brand = Rect::from_min_size(pos2(x, cy - 12.0), vec2(24.0, 24.0));
     paint_logo(&p, brand);
     let bresp = ui.interact(brand, egui::Id::new("brand"), Sense::click());
-    app.auto.add("header.about", brand, "About EffectCraft");
-    if bresp.on_hover_text(tr("About EffectCraft")).clicked() {
+    let about = if cfg!(target_arch = "wasm32") { "About keyframeR" } else { "About EffectCraft" };
+    app.auto.add("header.about", brand, about);
+    if bresp.on_hover_text(about).clicked() {
         app.dialog = Some(Dialog::About);
     }
     x += 32.0;
@@ -575,26 +576,25 @@ fn ws_menu(app: &mut EffectcraftApp, ui: &mut egui::Ui) {
     }
 }
 
-/// The ArtCraft mark as supplied in `docs/brand` (the README's and getartcraft.com's logo; used
-/// unmodified, see `docs/brand/LICENSE-brand.txt`).
-static ARTCRAFT_MARK: &[u8] = include_bytes!("../../../docs/brand/artcraft-mark.png");
-
-/// The ArtCraft mark in `r` (decoded once into a mipmapped texture, so it stays crisp from the
-/// 24 px Tools bar to the About dialog). Nothing is drawn if it can't be decoded.
+/// BIG LWA's original keyframeR monogram, drawn within the native egui
+/// header and About views. This deliberately does not reference upstream marks.
 pub fn paint_logo(p: &egui::Painter, r: Rect) {
-    let ctx = p.ctx();
-    let id = egui::Id::new("artcraft-mark");
-    let tex = ctx.data(|d| d.get_temp::<Option<egui::TextureHandle>>(id)).unwrap_or_else(|| {
-        let tex = image::load_from_memory_with_format(ARTCRAFT_MARK, image::ImageFormat::Png).ok().map(|img| {
-            let img = img.to_rgba8();
-            let ci = egui::ColorImage::from_rgba_unmultiplied([img.width() as usize, img.height() as usize], img.as_raw());
-            ctx.load_texture("artcraft-mark", ci, egui::TextureOptions::LINEAR.with_mipmap_mode(Some(egui::TextureFilter::Linear)))
-        });
-        ctx.data_mut(|d| d.insert_temp(id, tex.clone()));
-        tex
-    });
-    if let Some(t) = tex {
-        p.image(t.id(), r, Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)), Color32::WHITE);
+    let ink = Color32::from_rgb(46, 25, 51);
+    let purple = Color32::from_rgb(136, 72, 162);
+    let cloth = Color32::from_rgb(247, 219, 233);
+    p.rect_filled(r, egui::CornerRadius::same(5), purple);
+    p.rect_stroke(r, egui::CornerRadius::same(5), Stroke::new(1.2, ink), StrokeKind::Inside);
+    let inner = r.shrink(2.4);
+    p.rect_filled(inner, egui::CornerRadius::same(2), cloth);
+    p.rect_stroke(inner, egui::CornerRadius::same(2), Stroke::new(0.8, ink), StrokeKind::Inside);
+    p.text(inner.center(), Align2::CENTER_CENTER, "K", egui::FontId::proportional((r.width() * 0.62).clamp(10.0, 20.0)), ink);
+    for (index, color) in [
+        Color32::from_rgb(223, 96, 91),
+        Color32::from_rgb(244, 199, 73),
+        Color32::from_rgb(87, 172, 112),
+    ].into_iter().enumerate() {
+        let x = inner.left() + 2.8 + index as f32 * 4.0;
+        p.circle_filled(pos2(x, inner.bottom() - 2.0), 1.0, color);
     }
 }
 
