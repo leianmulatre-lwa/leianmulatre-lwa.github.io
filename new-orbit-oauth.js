@@ -99,7 +99,8 @@ function oaPhoto(url){
  try{const parsed=new URL(String(url||''));return parsed.protocol==='https:'?parsed.href:''}catch{return ''}
 }
 async function oaProfile(provider,token){
- const headers={Authorization:'Bearer '+token,'Accept':'application/json'};
+ const headers={Authorization:'Bearer '+token,'Accept':'application/json',
+  'User-Agent':'BIGLWA/1.0 (+https://biglwa.com; Tumblr OAuth integration)'};
  let endpoint,options={headers};
  if(provider==='x'){
   endpoint='https://api.x.com/2/users/me?user.fields=name,username,profile_image_url,public_metrics';
@@ -140,8 +141,8 @@ async function oaProfile(provider,token){
    return {id:'tumblr',sourceUserId:accountName,sourceBlogName:blogName,
      username:blogName,name:String(primary?.title||blogName).slice(0,100),
      avatarUrl:oaPhoto(original.avatar_url),link:'https://www.tumblr.com/'+encodeURIComponent(blogName),
-     followers:Number.isSafeInteger(Number(original.followers))?Number(original.followers):null,
-     likes:Number.isSafeInteger(Number(u.likes))?Number(u.likes):null,
+     followers:original.followers!=null&&Number.isSafeInteger(Number(original.followers))&&Number(original.followers)>=0?Number(original.followers):null,
+     likes:u.likes!=null&&Number.isSafeInteger(Number(u.likes))&&Number(u.likes)>=0?Number(u.likes):null,
      blogCount:blogs.length,blogs};
  }
  const me=data.data?.me||data.data?.user||data.me||{};
@@ -154,13 +155,14 @@ async function oaProfile(provider,token){
 export 
 // Read-only import preview: API tokens stay in the Worker KV store.
 // No imported text is published until the member selects it inside Sqwibz.
-async function oaTextImports(provider,saved){
+async function oaTextImports(provider,saved,env){
  if(!saved?.accessToken)oaError('Connect this account in Orbit before importing.',401);
  if(!saved.expiresAt||saved.expiresAt<=Date.now())
    oaError('This Orbit authorization expired. Reconnect the account.',401);
  if(!['x','tumblr'].includes(provider))
    oaError('This provider does not offer Sqwibz text imports.',422);
- const headers={Authorization:'Bearer '+saved.accessToken,Accept:'application/json'};
+ const headers={Authorization:'Bearer '+saved.accessToken,Accept:'application/json',
+  'User-Agent':'BIGLWA/1.0 (+https://biglwa.com; Tumblr OAuth integration)'};
  let uri;
  if(provider==='x'){
    const id=String(saved.profile?.sourceUserId||'');
@@ -174,6 +176,8 @@ async function oaTextImports(provider,saved){
    if(!/^[a-zA-Z0-9-]{1,80}$/.test(raw))oaError('Tumblr blog name missing. Reconnect Tumblr.',422);
    uri=new URL('https://api.tumblr.com/v2/blog/'+encodeURIComponent(raw)+'.tumblr.com/posts');
    uri.searchParams.set('limit','20');uri.searchParams.set('npf','true');
+   // Tumblr documents API-key authorization for blog posts; keep key server-side.
+   if(env.TUMBLR_CONSUMER_KEY)uri.searchParams.set('api_key',String(env.TUMBLR_CONSUMER_KEY));
  }
  const response=await fetch(uri.toString(),{headers});
  if(!response.ok){
@@ -187,7 +191,7 @@ async function oaTextImports(provider,saved){
  const clean=v=>String(v||'').replace(/<[^>]*>/g,' ').replace(/&(?:amp|lt|gt|quot|#39);/g,' ').replace(/\s+/g,' ').trim().slice(0,1200);
  let items=[];
  if(provider==='x'){
-   items=(Array.isArray(data.data)?data.data:[]).filter(x=>x?.id&&x?.text).map(x=>({
+   items=(Array.isArray(data.data)?data.data:[]).filter(x=>(x?.id_string||x?.id)&&x?.text).map(x=>({
      id:String(x.id),provider,text:clean(x.text),createdAt:x.created_at||'',
      url:'https://x.com/'+encodeURIComponent(saved.profile?.username||'i')+'/status/'+encodeURIComponent(String(x.id))
    }));
@@ -286,7 +290,7 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
   if(action==='imports'){
     const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
     if(!saved)return oaReply({error:'Connect '+provider+' from Orbit before importing posts.'},401,request);
-    const result=await oaTextImports(provider,saved);
+    const result=await oaTextImports(provider,saved,env);
     return oaReply(result,200,request);
   }
   if(action==='disconnect'){
