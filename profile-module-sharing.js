@@ -66,16 +66,46 @@ function controls(){
  const root=workspace.querySelector('.module-body')||workspace.querySelector('#moduleWorkspaceBody');if(!root)return;
  if(isVisitor()){renderPublic(kind,root);return;}
  if(!sections[kind])return;
- if(root.querySelector('[data-profile-share]'))return;
- const bar=node('section','');bar.dataset.profileShare=kind;bar.className='module-card';const status=node('p','Private account backup. Publish a snapshot only if you want profile visitors to see it.');status.setAttribute('role','status');bar.append(status);
- for(const [label,visible] of [['Publish snapshot on my profile',true],['Hide shared snapshot',false]]){const b=node('button',label);b.className='module-action';b.onclick=()=>{b.disabled=true;share(kind,visible,status).catch(e=>status.textContent=e.message).finally(()=>b.disabled=false)};bar.append(b)}
- if(kind==='projects'){const target=root.querySelector('#lwaProjects .lwa-project-tools')||root.querySelector('#lwaProjects .visualz-tabs [data-visualz-share-slot]');(target||root).append(bar)}
+ const visualButtons=kind==='projects'?
+    (root.querySelector('#lwaVisualSlides .vs-buttons')||root.querySelector('#lwaProjects .lwa-project-controls')):null;
+ if(kind==='projects'&&!visualButtons)return;
+ const existing=root.querySelector('[data-profile-share]');
+ if(existing){
+   if(kind==='projects'&&existing.parentElement!==visualButtons){
+     const lead=visualButtons.querySelector('[data-new],[data-new-board]');
+     if(lead)lead.after(existing);else visualButtons.append(existing);
+   }
+   return;
+ }
+ const bar=node('section','');bar.dataset.profileShare=kind;
+ bar.className=kind==='projects'?'visualz-share-controls':'module-card';
+ const status=node('p',kind==='projects'?'':'Private account backup. Publish a snapshot only if you want profile visitors to see it.');
+ status.setAttribute('role','status');
+ if(kind==='projects')status.hidden=true;
+ bar.append(status);
+ for(const [label,visible] of [['Publish snapshot on my profile',true],['Hide shared snapshot',false]]){
+   const b=node('button',kind==='projects'?(visible?'Publish snapshot':'Hide snapshot'):label);
+   b.className='module-action';
+   b.onclick=()=>{
+     b.disabled=true;
+     share(kind,visible,status).catch(e=>status.textContent=e.message).finally(()=>{
+       b.disabled=false;
+       if(kind==='projects')status.hidden=false;
+     });
+   };
+   bar.append(b);
+ }
+ if(kind==='projects'){
+   const lead=visualButtons.querySelector('[data-new],[data-new-board]');
+   if(lead)lead.after(bar);else visualButtons.append(bar);
+ }
  else if(kind==='closet'){const depop=root.querySelector('.module-grid .module-card:nth-child(2)');depop?.after(bar);if(!depop)root.append(bar)}
  else root.append(bar);
 }
 window.addEventListener('biglwa:public-profile-ready',e=>{visitor=e.detail;window.__biglwaPublicStorageView=true;controls()});
 document.addEventListener('biglwa:module-open',()=>setTimeout(controls,0));
 document.addEventListener('biglwa:visualz-render',()=>setTimeout(controls,0));
+document.addEventListener('biglwa:visualz-toolbar-ready',()=>setTimeout(controls,0));
 // A signed-in visitor still has no editing rights over another member's Studio.
 for(const type of ['submit','input','change'])document.addEventListener(type,event=>{if(isVisitor()&&event.target.closest?.('#moduleWorkspace')){event.preventDefault();event.stopImmediatePropagation();}},true);
 })();
