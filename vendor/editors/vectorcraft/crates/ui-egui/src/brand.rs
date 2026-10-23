@@ -1,21 +1,50 @@
-//! The VectorCraft brand mark: the app icon (the engraved dragon, `assets/app-icon/`, see its
-//! README). The PNG carries the icon's rounded corners; it is decoded once per context into a
-//! mipmapped texture, so it stays crisp from the 18 pt app-bar mark to the About box.
+//! BIG LWA paintR native mark. Rust draws original stitched-block-inspired pixels
+//! directly into the app-bar texture; no upstream trademarked icon is imported.
 
 use egui::{Color32, Context, Id, Rect, TextureHandle, TextureOptions, Ui, pos2};
 
-/// 128 px: sharp at 44 pt on a 2× display, and the mipmaps keep 22 pt clean.
-const ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.vectorcraft.png");
-
-/// The icon's pixels (one transparent pixel if it couldn't be decoded, which a test rules out).
+/// Original BIG LWA paintR artwork is generated in Rust: no upstream icon asset.
 fn decode() -> egui::ColorImage {
-    match image::load_from_memory_with_format(ICON_PNG, image::ImageFormat::Png) {
-        Ok(img) => {
-            let img = img.to_rgba8();
-            egui::ColorImage::from_rgba_unmultiplied([img.width() as usize, img.height() as usize], img.as_raw())
+    let mut image = egui::ColorImage::filled([128, 128], Color32::TRANSPARENT);
+    for y in 0_i32..128 {
+        for x in 0_i32..128 {
+            // Rounded corners, a blue upholstered border and cream fabric center.
+            let dx = (12 - x).max(0).max(x - 115);
+            let dy = (12 - y).max(0).max(y - 115);
+            if dx * dx + dy * dy > 12 * 12 {
+                continue;
+            }
+            let outer = x < 9 || y < 9 || x > 118 || y > 118;
+            let inner = x >= 20 && x <= 107 && y >= 20 && y <= 107;
+            let mut pixel = if outer {
+                Color32::from_rgb(30, 55, 97)
+            } else if inner {
+                Color32::from_rgb(250, 230, 195)
+            } else {
+                Color32::from_rgb(21, 104, 195)
+            };
+            // Native pixel-work P monogram.
+            let stem = (43..=55).contains(&x) && (34..=94).contains(&y);
+            let cap = (43..=82).contains(&x) && (34..=44).contains(&y);
+            let bar = (43..=81).contains(&x) && (60..=70).contains(&y);
+            let bowl = (73..=84).contains(&x) && (38..=66).contains(&y);
+            if stem || cap || bar || bowl {
+                pixel = Color32::from_rgb(23, 45, 88);
+            }
+            for (i, dot) in [
+                Color32::from_rgb(223, 96, 91),
+                Color32::from_rgb(244, 199, 73),
+                Color32::from_rgb(87, 172, 112),
+            ].into_iter().enumerate() {
+                let cx = 44 + i as i32 * 20;
+                if (x - cx).pow(2) + (y - 99).pow(2) <= 16 {
+                    pixel = dot;
+                }
+            }
+            image.pixels[(y * 128 + x) as usize] = pixel;
         }
-        Err(_) => egui::ColorImage::filled([1, 1], Color32::TRANSPARENT),
     }
+    image
 }
 
 /// The icon texture, uploaded on first use and kept in the context.
