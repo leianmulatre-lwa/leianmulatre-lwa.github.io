@@ -130,6 +130,7 @@ async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
 /// `type`:
 ///
 /// - `pdfcraft:ready` (to the parent): the app is listening; send files now.
+/// - `pdfcraft:queued` (to the parent): a specific requestId entered the Rust import inbox. Not a parsed-document or saved-file acknowledgement.
 /// - `pdfcraft:open` (from the parent): `{ name, bytes }`, where `bytes` is an `ArrayBuffer` or
 ///   `Uint8Array` holding a PDF. It opens in a tab, like a `?file=` URL.
 /// - `pdfcraft:save` (to the parent): `{ name, saveAs, bytes }` when the user saves; `bytes` is
@@ -203,10 +204,25 @@ mod host {
                 } else {
                     return;
                 };
-                if let Ok(mut q) = inbox.lock() {
+                // The host receives a receipt only once the original bytes have entered
+                // Rust's document-opening inbox. This is NOT a save confirmation.
+                let accepted = if let Ok(mut q) = inbox.lock() {
                     q.push((name, bytes));
+                    true
+                } else {
+                    false
+                };
+                if accepted {
+                    ctx.request_repaint();
+                    if let Some(request_id) = string(&data, "requestId").filter(|id| id.len() <= 100)
+                        && let Some(ack) = message(&[
+                            ("type", "pdfcraft:queued".into()),
+                            ("requestId", request_id.into()),
+                        ])
+                    {
+                        let _ = parent.post_message(&ack, &origin);
+                    }
                 }
-                ctx.request_repaint();
             });
             if self.window.add_event_listener_with_callback("message", on_message.as_ref().unchecked_ref()).is_ok() {
                 // The listener lives as long as the page.
