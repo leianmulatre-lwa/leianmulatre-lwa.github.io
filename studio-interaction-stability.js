@@ -8,28 +8,46 @@
  const hintsKey=()=>HINTS_PREFIX+uid();
  const readHidden=()=>{try{return localStorage.getItem(hintsKey())==='1'}catch{return false}};
  let hintsHidden=readHidden();
- let anchor=null,oldTitle='',hideTimer,pointerInHelp=false;
+ let anchor=null,hideTimer;
  const tip=document.createElement('div');tip.id='studioPersistentTooltip';tip.role='tooltip';tip.hidden=true;document.body.append(tip);
- function hide(){clearTimeout(hideTimer);if(anchor){if(oldTitle&&!anchor.title)anchor.title=oldTitle;anchor.removeAttribute('aria-describedby')}anchor=null;oldTitle='';pointerInHelp=false;tip.hidden=true}
- function show(el){if(hintsHidden)return;clearTimeout(hideTimer);if(anchor===el)return;hide();anchor=el;oldTitle=el.title||el.dataset.studioHelp||'';if(!oldTitle)return;el.dataset.studioHelp=oldTitle;el.removeAttribute('title');el.setAttribute('aria-describedby',tip.id);tip.textContent=oldTitle;tip.hidden=false;const box=el.getBoundingClientRect();tip.style.left=Math.max(8,Math.min(box.right+8,innerWidth-240))+'px';tip.style.top=Math.max(8,Math.min(box.top,innerHeight-tip.offsetHeight-8))+'px'}
- function target(node){return node instanceof Element?node.closest('#studioApp [title],#studioApp [data-studio-help]'):null}
- // No native title bubbles, and no oversized custom tooltip when hints are off.
- // Data attributes keep the original copy so hints can be restored instantly.
+ // A hint never accepts the pointer, and its browser-native title never
+ // comes back after hiding (that was producing the stuck dark tooltip).
+ function hide(){
+  clearTimeout(hideTimer);
+  anchor?.removeAttribute('aria-describedby');
+  anchor=null;tip.hidden=true;
+ }
  function stripTitles(scope){
-  if(!hintsHidden)return;
+  if(!scope)return;
   const nodes=[];
   if(scope.nodeType===1&&scope.matches?.('[title]'))nodes.push(scope);
-  if(scope.querySelectorAll)nodes.push(...scope.querySelectorAll('[title]'));
-  for(const el of nodes){if(!el.closest('#studioApp'))continue;
-   if(el.title&&!el.dataset.studioHelp)el.dataset.studioHelp=el.title;
+  scope.querySelectorAll?.('[title]').forEach(el=>nodes.push(el));
+  for(const el of nodes){
+   if(!el.closest?.('#studioApp'))continue;
+   if(el.title)el.dataset.studioHelp=el.title;
    el.removeAttribute('title');
   }
  }
+ function show(el){
+  if(hintsHidden)return;
+  stripTitles(el);
+  const text=(el?.dataset?.studioHelp||'').trim();
+  if(!text){hide();return}
+  if(anchor===el&&!tip.hidden)return;
+  hide();anchor=el;
+  el.setAttribute('aria-describedby',tip.id);
+  tip.textContent=text.slice(0,180);
+  tip.hidden=false;
+  const bounds=el.getBoundingClientRect();
+  tip.style.left=Math.max(8,Math.min(bounds.right+8,innerWidth-tip.offsetWidth-8))+'px';
+  tip.style.top=Math.max(8,Math.min(bounds.top,innerHeight-tip.offsetHeight-8))+'px';
+ }
+ function target(node){return node instanceof Element?node.closest('#studioApp [title],#studioApp [data-studio-help]'):null}
  function applyHintsPreference(){
   hide();
   const app=q('#studioApp');if(app){
    app.dataset.hintsHidden=hintsHidden?'true':'false';
-   if(hintsHidden)stripTitles(app);
+   stripTitles(app);
   }
   window.dispatchEvent(new CustomEvent('biglwa:hints-preference',{detail:{hidden:hintsHidden}}));
  }
@@ -39,7 +57,6 @@
   applyHintsPreference();
  }
  const titleObserver=new MutationObserver(records=>{
-  if(!hintsHidden)return;
   for(const record of records){
    if(record.type==='attributes'&&record.attributeName==='title')stripTitles(record.target);
    else for(const node of record.addedNodes)stripTitles(node);
@@ -51,12 +68,29 @@
  // Apply immediately so DOMContentLoaded cannot dismiss an actively-read hint.
  applyHintsPreference();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
-  if(hintsHidden)stripTitles(q('#studioApp')||document.body);
+  stripTitles(q('#studioApp')||document.body);
  },{once:true});
- document.addEventListener('pointerover',event=>{const el=target(event.target);if(el){show(el);pointerInHelp=true}if(tip.contains(event.target)){pointerInHelp=true;clearTimeout(hideTimer)}});
- document.addEventListener('pointerout',event=>{if(!anchor||(!anchor.contains(event.target)&&!tip.contains(event.target)))return;if(anchor.contains(event.relatedTarget)||tip.contains(event.relatedTarget))return;pointerInHelp=false;hideTimer=setTimeout(hide,220)});
- document.addEventListener('focusin',event=>{const el=target(event.target);if(el)show(el)});
- document.addEventListener('focusout',event=>{if(anchor?.contains(event.target)&&!anchor.contains(event.relatedTarget)&&!tip.contains(event.relatedTarget)&&!pointerInHelp)hide()});
+ document.addEventListener('pointerover',event=>{
+  const el=target(event.target);
+  if(el)show(el);
+  else if(anchor&&!anchor.contains(event.target))hide();
+ });
+ document.addEventListener('pointerout',event=>{
+  if(!anchor||!anchor.contains(event.target))return;
+  if(event.relatedTarget&&anchor.contains(event.relatedTarget))return;
+  // Brief tolerance for crossing nested controls; never sticky after leaving.
+  hideTimer=setTimeout(hide,65);
+ });
+ document.addEventListener('pointerdown',hide,true);
+ document.addEventListener('focusin',event=>{
+  const el=target(event.target);
+  if(el)show(el);else hide();
+ });
+ document.addEventListener('focusout',event=>{
+  if(anchor?.contains(event.target)&&(!event.relatedTarget||!anchor.contains(event.relatedTarget)))hide();
+ });
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)hide()});
+ window.addEventListener('blur',hide);
  window.addEventListener('scroll',hide,true);
  document.addEventListener('keydown',event=>{if(event.key==='Escape')hide()});
  let dialog=null,input=null,original='';
