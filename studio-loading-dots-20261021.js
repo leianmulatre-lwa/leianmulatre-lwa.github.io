@@ -23,6 +23,16 @@
  /* Old login owns the only Studio-opening screen. No duplicate overlay. */
  #lwaStudioTransition{display:none!important}
  #lwaStudioTransition[hidden]{display:none!important}
+ .lwa-legacy-studio-loading,.lwa-legacy-studio-loading *{
+   font-family:"CS Bergamot Stitched",Georgia,serif!important}
+ .lwa-legacy-studio-loading .lwa-legacy-loader-dots{
+   display:block!important;margin:18px auto 0!important;
+   width:17px!important;height:17px!important;background:#e65d6d}
+ .lwa-legacy-studio-loading .lwa-legacy-loader-dots::before,
+ .lwa-legacy-studio-loading .lwa-legacy-loader-dots::after{
+   width:17px!important;height:17px!important}
+ .lwa-legacy-studio-loading .lwa-legacy-loader-dots::before{left:-27px!important}
+ .lwa-legacy-studio-loading .lwa-legacy-loader-dots::after{left:27px!important}
  #lwaStudioTransition .lwa-loading-center{display:grid;place-items:center;gap:28px}
  .lwa-loading-image{position:relative}
  .lwa-curtain{position:absolute;z-index:120;inset:0;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:28px;background:#27060e url("/assets/login-curtain-film-grain-v2.webp") center center/cover no-repeat;color:#fff8ef;border-radius:inherit;pointer-events:none}
@@ -84,13 +94,15 @@
  function decorateLegacyStudioLoading(){
    // Decorate the genuine preexisting loading screen; never paint another
    // full-screen loader that races it on fast sign-ins.
-   const matches=[...document.querySelectorAll('#loginPage [role="status"],#loginPage .loading,#loginPage [class*="loader"],#studioApp [class*="studio-loading"],body > [class*="loading"]')];
+   const matches=[...document.querySelectorAll(
+     '[role="status"],[id*="loader" i],[id*="loading" i],[class*="loader" i],[class*="loading" i]'
+   )].filter(el=>el.id!=='lwaStudioTransition'&&!el.closest('#lwaStudioTransition'));
    const target=matches.find(el=>/loading (your )?studio/i.test(el.textContent||''));
    if(!target||target.querySelector('.lwa-legacy-loader-dots'))return;
    const dots=make('floating');dots.classList.add('lwa-legacy-loader-dots');
-   dots.style.cssText='display:block;margin:18px auto 0;transform:scale(1.65)';
+   dots.style.cssText='display:block;margin:18px auto 0';
+   target.classList.add('lwa-legacy-studio-loading');
    target.append(dots);
-   target.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
  }
  function studioVisible(){return !!document.querySelector('#studioApp.is-active')}
  // Image pulse is only drawn while an image actually has network work outstanding.
