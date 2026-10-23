@@ -48,7 +48,7 @@ export function renderIdentityChrome(profile) {
   const realName=clean(who.name);
   const username=clean(who.username).replace(/^@/,"");
   const name=realName && realName.toLowerCase()!==username.toLowerCase() ? realName : "";
-  const avatarName=name || "BIG LWA";
+  const avatarName=realName || "BIG LWA";
   // Banner and top-right greeting must paint the exact same photo URL and
   // name initial; the @handle is a separate identifier, never the letter.
   avatarTargets().forEach((el) => renderAvatar(el, who.avatarUrl, avatarName));
