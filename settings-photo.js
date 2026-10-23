@@ -4,7 +4,7 @@
  */
 import { uploadProfilePhoto, removeProfilePhoto, loadProfilePhoto } from "./account-photo.js";
 import { onIdentityChange, identity, startIdentity } from "./account-identity.js";
-import { onConnectionsChange, forget, startConnections } from "./orbit-connections.js?v=20261014-provider-expiry-5";
+import { onConnectionsChange, forget, startConnections } from "./orbit-connections.js?v=20261022-verified-followers-3";
 
 const el = (id) => document.getElementById(id);
 const say = (node, text, tone) => {
