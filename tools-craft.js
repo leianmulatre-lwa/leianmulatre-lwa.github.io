@@ -20,10 +20,6 @@ const ENGINES=[
 const PUBLIC_APP_ROUTE={photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'};
 const BIGLWA_GITHUB='https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io';
 const BIGLWA_PATREON='https://www.patreon.com/cw/biglwa';
-const FUTURE=[
- ['FilmCraft','Video editing'],['LightCraft','Photography and RAW'],['DesignCraft','Page layout'],
- ['FigCraft','Interface design'],['SoundCraft','Audio production']
-];
 const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-desk.html',
  description:'Draw, paint, add text and layers, edit photos, save editable BIG LWA projects.',
  credit:'Original BIG LWA editor · works locally'};
@@ -92,9 +88,6 @@ export async function mountCraftSuite(root){
   '<footer class="craft-smallprint">'+
     '<p><strong>Who made what?</strong> sqwibblR and this Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
     '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects still require the editor’s download/export commands. Some advanced builds require WebGPU/WebGL.</p>'+
-    '<details><summary>More source projects for future BIG LWA editions</summary><div class="craft-more">'+
-      FUTURE.map(([name,note])=>'<span>'+escapeHtml(name)+' · '+escapeHtml(note)+'</span>').join('')+
-    '</div></details>'+
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
  const vaultKey='biglwaWorkshopSnapshotsV1',vaultStatus=root.querySelector('#craftVaultStatus'),vaultFile=root.querySelector('#craftVaultFile');
