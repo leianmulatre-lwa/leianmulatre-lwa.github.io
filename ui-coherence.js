@@ -1598,12 +1598,13 @@
       const details=document.createElement('span');details.className='biglwa-followers-source';
       const name=document.createElement('strong');name.textContent=named||String(row.id);
       const note=document.createElement('small');note.textContent=row.followers==null?
-        'Connected · count not provided':row.isLastKnown?'Last verified count':row.verified?'Verified by provider':'External count · unverified';
+        'Connected · count not provided':row.isLastKnown?'Last verified count':row.verified?'Verified by provider':row.externalVerified?'Verified externally · public snapshot':'Count unavailable';
       // Check mark means an actual provider-returned metric, not an externally matched username.
-      if(row.verified&&!row.isLastKnown&&row.followers!=null){
+      if((row.verified||row.externalVerified)&&!row.isLastKnown&&row.followers!=null){
         const check=document.createElement('span');
-        check.className='biglwa-provider-check';
-        check.textContent='✓';check.setAttribute('aria-label','Count verified by provider');
+        check.className='biglwa-provider-check'+(row.externalVerified?' is-external':'');
+        check.textContent='✓';
+        check.setAttribute('aria-label',row.externalVerified?'Checked against public external snapshot; account ownership not confirmed':'Count verified by provider');
         name.append(document.createTextNode(' '),check);
       }
       details.append(name,note);
@@ -1617,7 +1618,7 @@
       const empty=document.createElement('p');empty.textContent='Connect an account in Orbit to view verified audience counts here.';list.append(empty);
     }
     panel.querySelector('.biglwa-followers-foot').textContent=
-      'Only provider-reported figures are counted. Missing permissions or unavailable stats show —, not zero. Totals can include the same people on multiple apps.';
+      'Provider-reported and externally sourced public counts are distinguished. External checkmarks verify the source was read, not account ownership. Missing counts show —, not zero.';
     const rect=stats.querySelector('[data-profile-stat="followers"]')?.getBoundingClientRect()||stats.getBoundingClientRect();
     panel.style.left=Math.max(8,Math.min(window.innerWidth-320,rect.left))+'px';
     panel.style.top=Math.max(8,Math.min(window.innerHeight-365,rect.bottom+8))+'px';
