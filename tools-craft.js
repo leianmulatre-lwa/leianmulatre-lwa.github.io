@@ -17,6 +17,7 @@ const ENGINES=[
   description:'PDF viewing, annotation and editing',type:'Document',
   source:'https://github.com/storytold/pdfcraft'}
 ];
+const PUBLIC_APP_ROUTE={photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'};
 const FUTURE=[
  ['FilmCraft','Video editing'],['LightCraft','Photography and RAW'],['DesignCraft','Page layout'],
  ['FigCraft','Interface design'],['SoundCraft','Audio production']
@@ -72,7 +73,7 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261023-editor-head-9';document.head.append(css);
+ css.href='/tools-craft.css?v=20261023-bigapps-ui-12';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
@@ -80,12 +81,12 @@ function card(item,local=false){
    '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
    '<div class="craft-tile-icon craft-arcade-block craft-block-'+escapeHtml(item.id)+'" aria-hidden="true">'+
      blockArtwork(item)+'</div>'+
-   '<h3>'+escapeHtml(item.name)+'</h3>'+
+   '<h3 aria-label="'+escapeHtml(item.name)+'">'+escapeHtml(item.name.slice(0,-1))+'<span class="craft-capital-r" aria-hidden="true">R</span></h3>'+
    '<p>'+escapeHtml(item.description)+'</p>'+
-   '<div class="craft-engine-credits">'+escapeHtml(item.credit)+'</div>'+
+   '<div class="craft-engine-credits">'+(local?'Made by BIG LWA':'BIG LWA edition · licensed editing engine')+'</div>'+
    '<button type="button" data-craft-open="'+item.id+'"'+(local?'':' disabled')+'>'+
       (local?'Start creating →':'Checking engine…')+'</button>'+
-   (local?'':('<a href="/bigapps/'+encodeURIComponent(item.id)+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
+   (local?'':('<a href="/bigapps/'+encodeURIComponent(PUBLIC_APP_ROUTE[item.id])+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
   '</article>';
 }
 export async function mountCraftSuite(root){
@@ -230,7 +231,7 @@ export async function mountCraftSuite(root){
   // The open-only fileR bridge never replaces local Save or Export.
   if(id==='pdfcraft')params.set('biglwaHost','1');
   const query=params.toString();
-  return '/bigapps/'+id+'/'+(query?'?'+query:'');
+  return '/bigapps/'+PUBLIC_APP_ROUTE[id]+'/'+(query?'?'+query:'');
  };
  const findItem=id=>id===LOCAL.id?LOCAL:ENGINES.find(item=>item.id===id);
  function close(){
