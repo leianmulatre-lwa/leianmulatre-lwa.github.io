@@ -841,27 +841,65 @@
       if(entry?.symbolHTML&&mark&&mark.innerHTML!==entry.symbolHTML)mark.innerHTML=entry.symbolHTML;
     });
   }
+  // When the widget already has a shortcut, its yellow minimize state stays
+  // in that exact row; only unmatched/RED-docked widgets use lower restore trays.
+  function shortcutWidget(app,key){
+    const route=String(key||'').toLowerCase();
+    if(!route)return null;
+    return $('[data-widget-id]',app).find(el=>
+      (el.dataset.widgetRoute||'').toLowerCase()===route||
+      (el.dataset.widgetId||'').toLowerCase()===route)||null;
+  }
+  function shortcutForWidget(app,widget){
+    if(!widget)return null;
+    const id=widget.dataset.widgetId,route=widget.dataset.widgetRoute||id;
+    return $('[data-sidebar-route-row].is-shortcut',app).find(row=>
+      row.dataset.sidebarRouteRow===route||row.dataset.sidebarRouteRow===id)||null;
+  }
+  function syncMinimizedShortcutRows(app){
+    $('[data-sidebar-route-row].is-shortcut',app).forEach(row=>{
+      const widget=shortcutWidget(app,row.dataset.sidebarRouteRow);
+      const minimized=!!widget?.classList.contains('widget-is-minimized');
+      const action=$('[data-remove-shortcut]',row);
+      row.classList.toggle('is-minimized',minimized);
+      row.dataset.widgetMinimized=minimized?'true':'false';
+      if(action){
+        action.textContent=minimized?'+':'−';
+        const title=minimized?'Restore '+(widget.dataset.widgetLabel||row.dataset.sidebarRouteRow)+' to Studio':
+          'Disconnect '+row.dataset.sidebarRouteRow+' from shortcut bar';
+        action.title=title;action.setAttribute('aria-label',title);
+        action.setAttribute('aria-pressed',minimized?'true':'false');
+      }
+    });
+  }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
-    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+      const linked=shortcutWidget(app,row.dataset.shortcutRow||'');
+      // Purge any outdated duplicate restore tile from an earlier session.
+      if(linked&&shortcutForWidget(app,linked)&&!linked.classList.contains('widget-is-docked')){
+        row.remove();return;
+      }
       const target=greenSidebarWidgetIds.has(row.dataset.shortcutRow||'')?greenDock:redDock;
       if(target&&row.parentElement!==target)target.appendChild(row);
     });
     refreshMinimizedWidgetIcons(app);
+    syncMinimizedShortcutRows(app);
     primary.hidden=!$('[data-shortcut-row]',greenDock);
     if(rest)rest.hidden=!$('[data-sidebar-route-row]',rest)&&!$('[data-shortcut-row]',redDock);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
     app.dataset.currentStudioRoute=normalized;
-    $$('.sidebar-navigation-row.is-shortcut',app).forEach(row=>{
+    $('.sidebar-navigation-row.is-shortcut',app).forEach(row=>{
       const active=!!normalized&&(row.dataset.sidebarRouteRow===normalized||
         (normalized==='rooms'&&row.dataset.sidebarRouteRow==='room'));
       row.classList.toggle('is-closed',!active);
       row.dataset.shortcutState=active?'open':'closed';
     });
-    $$('.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open,.hero-action-bar a,.hero-action-bar button',app).forEach(control=>{
+    syncMinimizedShortcutRows(app);
+    $('.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open,.hero-action-bar a,.hero-action-bar button',app).forEach(control=>{
       const controlKey=(control.dataset.sidebarWidget||control.dataset.sidebarRoute||control.dataset.shortcutRoute||control.dataset.widgetRoute||control.dataset.open||(control.getAttribute('href')||'').replace(/^#/, '')||(control.id==='mobileCreate'?'create':'')).toLowerCase();
       const current=!!normalized&&(controlKey===normalized||(normalized==='rooms'&&controlKey==='room')||(normalized==='create'&&controlKey==='desk'));
       control.classList.toggle('is-current',current);
@@ -951,7 +989,17 @@
       const sidebarRoute=target.closest('[data-sidebar-route]');
       if(sidebarRoute&&!sidebarRoute.dataset.policyRoute){event.preventDefault();event.stopImmediatePropagation();openWidgetDestination(app,sidebarRoute.dataset.sidebarRoute,sidebarRoute.dataset.sidebarRoute);return}
       const removeShortcut=target.closest('[data-remove-shortcut]');
-      if(removeShortcut){event.preventDefault();event.stopImmediatePropagation();moveNavigationShortcut(app,removeShortcut.dataset.removeShortcut,false);return}
+      if(removeShortcut){
+        event.preventDefault();event.stopImmediatePropagation();
+        const row=removeShortcut.closest('[data-sidebar-route-row]');
+        const minimized=shortcutWidget(app,removeShortcut.dataset.removeShortcut);
+        if(row?.classList.contains('is-minimized')&&minimized){
+          restoreWidget(app,minimized.dataset.widgetId,$('[data-shortcut-row="'+CSS.escape(minimized.dataset.widgetId)+'"]',app));
+          syncMinimizedShortcutRows(app);
+          return;
+        }
+        moveNavigationShortcut(app,removeShortcut.dataset.removeShortcut,false);return
+      }
       const addShortcut=target.closest('[data-add-shortcut]');
       if(addShortcut){event.preventDefault();event.stopImmediatePropagation();moveNavigationShortcut(app,addShortcut.dataset.addShortcut,true);return}
       const shortcut=target.closest('[data-widget-shortcut]');
@@ -977,14 +1025,15 @@
         saveMinimized(app);return;
       }
       if(control.matches('[data-minimize-widget]')){
-        // Yellow genuinely minimizes and creates a reversible restore action.
-        // Red alone marks a card as docked/closed in Skeleton Key.
-        const added=addRestore(app,widget);if(!added)return;
+        // Yellow stays in an existing shortcut instead of creating a bottom tile.
+        // Red still docks independently, and non-shortcut widgets keep their tray.
+        const inShortcut=shortcutForWidget(app,widget);
+        const added=inShortcut?true:addRestore(app,widget);if(!added)return;
         widget.classList.remove('widget-is-expanded','widget-is-docked');
         widget.classList.add('widget-is-minimized');
         const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');
         const {section,dock}=ensureDock(app);syncDock(dock,section);
-        saveMinimized(app);syncPrimaryWidgetDock(app);
+        saveMinimized(app);syncPrimaryWidgetDock(app);syncMinimizedShortcutRows(app);
         return;
       }
       const {section,dock}=ensureDock(app);
@@ -1018,12 +1067,18 @@
     const saveMinimized=()=>writeWidgetShortcuts($$(selector,app).filter(widget=>widget.classList.contains('widget-is-minimized')).map(widget=>widget.dataset.widgetId).filter(Boolean));
     const addRestore=widget=>{
       const id=widget.dataset.widgetId,targetDock=restoreDockForWidget(app,widget,dock);if(!id||!targetDock||$('[data-shortcut-row="'+CSS.escape(id)+'"]',app))return true;
+      if(shortcutForWidget(app,widget)&&!widget.classList.contains('widget-is-docked'))return true;
       targetDock.appendChild(shortcutButtonMarkup(widget));syncDock();return true;
     };
     widgets.forEach((widget,index)=>{
       if(!widget.dataset.widgetId)widget.dataset.widgetId=widgetId(widget,index);
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
-      if(minimized.includes(widget.dataset.widgetId)){widget.classList.add('widget-is-minimized','widget-is-docked');addRestore(widget)}else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
+      if(minimized.includes(widget.dataset.widgetId)){
+        widget.classList.add('widget-is-minimized');
+        const inShortcut=shortcutForWidget(app,widget);
+        widget.classList.toggle('widget-is-docked',!inShortcut);
+        if(!inShortcut)addRestore(widget);
+      }else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
     });
     $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
     // Never save during startup or on periodic run(): restoring the local
@@ -1048,7 +1103,7 @@
           control.setAttribute('aria-pressed',opening?'true':'false');
           return;
         }
-        if(control.matches('[data-minimize-widget]')){widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
+        if(control.matches('[data-minimize-widget]')){widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');if(!shortcutForWidget(app,widget))addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
         if(control.matches('[data-rearrange-widget]')){
           const active=!app.classList.contains('biglwa-rearrange-mode');
           app.classList.toggle('biglwa-rearrange-mode',active);
@@ -1069,7 +1124,7 @@
       const green=event.target.closest('[data-expand-widget]');
       if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
       const minimize=event.target.closest('[data-minimize-widget]');
-      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
+      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');if(!shortcutForWidget(app,widget))addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
       const yellow=event.target.closest('[data-rearrange-widget]');
       if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=false);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
       const red=event.target.closest('[data-dock-widget]');

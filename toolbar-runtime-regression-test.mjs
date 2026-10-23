@@ -26,10 +26,14 @@ assert(!q('#projects').classList.contains('widget-is-minimized'));
 click('[data-minimize-widget="projects"]');
 assert(q('#projects').classList.contains('widget-is-minimized'),'Yellow actually minimizes');
 assert(!q('#projects').classList.contains('widget-is-docked'),'Yellow is not red dock');
-assert(q('[data-restore-widget="projects"]'),'Yellow creates visible restore control');
+const projectRow=q('#studioSidebarShortcutDock [data-sidebar-route-row="projects"]');
+assert(projectRow,'Project shortcut is retained after minimizing');
+assert(!q('[data-restore-widget="projects"]'),'Yellow does not duplicate an existing shortcut in the bottom dock');
+assert.equal(projectRow.querySelector('[data-remove-shortcut]').textContent,'+','Shortcut changes minus to plus');
+assert(projectRow.classList.contains('is-minimized'),'Shortcut uses empty circle while minimized');
 assert(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).docked.includes('projects'),'Yellow saves minimized state');
-click('[data-restore-widget="projects"]');
-assert(!q('#projects').classList.contains('widget-is-minimized'),'Yellow restore works');
+click('#studioSidebarShortcutDock [data-sidebar-route-row="projects"] [data-remove-shortcut]');
+assert(!q('#projects').classList.contains('widget-is-minimized'),'Shortcut plus restores yellow-minimized widget');
 assert(!q('[data-restore-widget="projects"]'),'Restore shortcut clears');
 
 // Run the production symbol loader after toolbar creation, as in index.html.
