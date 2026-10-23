@@ -140,6 +140,28 @@ jobs:
             --exclude='.env*' \
             --exclude='*.log' \
             --exclude='.DS_Store'
+      - name: Download activated native editor release if verified
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f .github/native-release-lock.json ]; then
+            tag="$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["tag"])')"
+            gh release download "$tag" --pattern biglwa-native-editors.tar.gz --dir "$RUNNER_TEMP"
+            python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          lock=json.load(open('.github/native-release-lock.json'))
+          filename=pathlib.Path(os.environ['RUNNER_TEMP'])/lock['archive']
+          assert filename.exists(), "Pinned native release not downloaded"
+          assert hashlib.sha256(filename.read_bytes()).hexdigest()==lock['archive_sha256'], "Native release digest mismatch"
+          assert lock['source_sha'] == '279c52ddbe4d11f3309b331755c7daa08402f12a', "Unexpected native release revision"
+          print("Verified immutable native Rust production release:",lock['tag'])
+          PY
+            echo "BIGLWA_NATIVE_ARCHIVE=$RUNNER_TEMP/biglwa-native-editors.tar.gz" >> "$GITHUB_ENV"
+          else
+            echo "No activated native release yet; keeping existing published editor binaries."
+          fi
       - name: Stage verified open-source ArtCraft browser editions
         run: python3 .github/scripts/stage-craft-apps.py "$RUNNER_TEMP/biglwa-public"
       - name: Stage pinned self-hosted Flash emulator
