@@ -81,6 +81,23 @@
   dock.hidden=true;
   mini.hidden=embedded;
   document.body.append(dock,mini);
+  // A small, visibly branded in-engine marker is deliberately non-interactive:
+  // users can still paint, select and drag anywhere beneath it. This is not a
+  // substitute for rebuilding the Rust/WASM engine's native UI.
+  if(embedded){
+   const badge=document.createElement('div');
+   badge.className='biglwa-native-edition-mark';
+   badge.setAttribute('aria-hidden','true');
+   const badgeImage=document.createElement('img');
+   badgeImage.src='/assets/bigapps/icons/'+item.name+'.png?v=20261023-stitch-png-1';
+   badgeImage.alt='';badgeImage.width=34;badgeImage.height=34;
+   const badgeText=document.createElement('span');
+   const badgeTitle=document.createElement('strong');badgeTitle.textContent=item.name;
+   const badgeCredit=document.createElement('small');badgeCredit.textContent='BIG LWA edition · '+item.legacy+' engine';
+   badgeText.append(badgeTitle,badgeCredit);
+   badge.append(badgeImage,badgeText);
+   document.body.append(badge);
+  }
   // Native credits stay visible. Avoid intrusive DOM mutation in the WebAssembly app.
   // Only correct a conventional top-level *exact* legacy title, when one exists.
   const fixTitle=()=>{
