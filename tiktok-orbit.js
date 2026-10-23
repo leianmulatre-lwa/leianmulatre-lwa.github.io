@@ -40,8 +40,8 @@
   function notice(message) {
     lastError=String(message||'');statusUpdate();
     let el = document.getElementById('tiktok-status');
-    if (!el) { el = document.createElement('div'); el.id = 'tiktok-status'; el.setAttribute('role','status'); el.style.cssText='position:fixed;bottom:20px;right:20px;z-index:15000;max-width:360px;background:#fff5eb;color:#292322;padding:16px;border-radius:12px;box-shadow:0 5px 24px #0003'; document.body.appendChild(el); }
-    el.textContent = message; clearTimeout(notice.timer); notice.timer = setTimeout(() => el.remove(), 12000);
+    if (!el) { el = document.createElement('div'); el.id = 'tiktok-status'; el.setAttribute('role','status'); el.style.cssText='position:fixed;bottom:12px;right:12px;z-index:15000;max-width:min(260px,calc(100vw - 24px));background:#fff5eb;color:#292322;padding:8px 11px;border:1px solid #c9aa95;border-radius:9px;box-shadow:0 3px 9px #0002;font:600 11px/1.4 system-ui;overflow-wrap:anywhere'; document.body.appendChild(el); }
+    el.textContent = message; clearTimeout(notice.timer); notice.timer = setTimeout(() => el.remove(), 4500);
   }
   async function api(path, data) {
     const response = await fetch(API + '/tiktok/' + path, { method: data ? 'POST' : 'GET', headers: { 'Content-Type':'application/json', Authorization:'Bearer ' + getSession() }, ...(data ? {body:JSON.stringify(data)} : {}) });
