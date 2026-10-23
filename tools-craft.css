@@ -157,3 +157,12 @@
 #craftSuite .craft-tile .craft-engine-credits{font-size:10px;color:#775e65}
 #craftSuite .craft-tile .craft-arcade-block{filter:drop-shadow(3px 5px 2px rgba(47,26,23,.22))!important}
 #craftSuite .craft-smallprint .craft-more span{display:inline-block;padding:7px 10px;background:#fff9ee;border-radius:6px;border:1px solid #c4ad9b}
+
+/* Studio cards mirror their native Rust editor palette without losing the cream fabric. */
+#craftSuite .craft-tile[data-craft-card="photocraft"]{--app-block:#e9ad39;--app-rim:#b87817}
+#craftSuite .craft-tile[data-craft-card="vectorcraft"]{--app-block:#4594ec;--app-rim:#1568c3}
+#craftSuite .craft-tile[data-craft-card="effectcraft"]{--app-block:#b679c5;--app-rim:#8848a2}
+#craftSuite .craft-tile[data-craft-card="pdfcraft"]{--app-block:#e88a74;--app-rim:#bb5b54}
+#craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"]){border-color:var(--app-rim);box-shadow:3px 4px 0 color-mix(in srgb,var(--app-rim),transparent 54%)}
+#craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"])>button:not(:disabled){background:var(--app-rim);border-color:var(--app-rim)}
+#craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"]).is-selected{outline-color:var(--app-block)}

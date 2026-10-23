@@ -114,12 +114,13 @@ def brand_web_shell(slug: str, dest: Path) -> None:
     name = names[slug]
     html = re.sub(r"(?is)<title>.*?</title>",
                   f"<title>BIG LWA · {name}</title>", html, count=1)
-    css = ('<link rel="stylesheet" href="/assets/craft/editor-brand.css?v=20261023-r-suite-3">')
-    js = ('<script defer src="/assets/craft/editor-brand.js?v=20261023-r-suite-3"></script>')
+    favicon = f'<link rel="icon" type="image/svg+xml" href="/assets/bigapps/blocks/{name}.svg">'
+    css = ('<link rel="stylesheet" href="/assets/craft/editor-brand.css?v=20261023-bigapps-icon-4">')
+    js = ('<script defer src="/assets/craft/editor-brand.js?v=20261023-bigapps-icon-4"></script>')
     if re.search(r"(?i)</head>", html):
-        html = re.sub(r"(?i)</head>", lambda _: css + "</head>", html, count=1)
+        html = re.sub(r"(?i)</head>", lambda _: favicon + css + "</head>", html, count=1)
     else:
-        html = re.sub(r"(?i)<body", css + "<body", html, count=1)
+        html = re.sub(r"(?i)<body", favicon + css + "<body", html, count=1)
     html = re.sub(r"(?i)</body>", lambda _: js + "</body>", html, count=1)
     page.write_text(html, encoding="utf-8")
 

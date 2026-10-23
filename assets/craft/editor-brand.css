@@ -59,3 +59,8 @@ html[data-biglwa-embedded="false"] .biglwa-editor-reopen{bottom:14px;right:14px;
  html[data-biglwa-editor] .biglwa-editor-links{justify-content:center}
 }
 @media(prefers-reduced-motion:reduce){html[data-biglwa-editor] .biglwa-editor-chrome{transition:none!important}}
+
+/* BIG LWA edition block artwork inside each standalone app's branded window controls */
+html[data-biglwa-editor] .biglwa-editor-glyph{border:0!important;box-shadow:none!important;background:transparent!important;padding:0!important}
+html[data-biglwa-editor] .biglwa-editor-glyph img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 3px 2px rgba(29,13,17,.3))}
+html[data-biglwa-editor] .biglwa-editor-name strong{font-family:"BIG LWA Stitched","CS Bergamot Stitched",Georgia,serif!important;font-weight:400!important;letter-spacing:.01em}

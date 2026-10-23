@@ -20,7 +20,7 @@
   if(document.querySelector('.biglwa-editor-chrome'))return;
   const dock=document.createElement('aside');dock.className='biglwa-editor-chrome';
   dock.setAttribute('aria-label','BIG LWA editor controls');
-  dock.innerHTML='<div class="biglwa-editor-glyph" aria-hidden="true">'+item.letter+'</div>'+
+  dock.innerHTML='<div class="biglwa-editor-glyph" aria-hidden="true"><img src="/assets/bigapps/blocks/'+matched+'.svg" alt="" /></div>'+
    '<div class="biglwa-editor-name"><strong>'+item.name+'</strong><small>BIG LWA · licensed editing engine</small></div>'+
    '<div class="biglwa-editor-lights" role="group" aria-label="Window controls">'+
    '<button data-craft-chrome="exit" type="button" aria-label="Return to BIG LWA Tools" title="Back to Tools"></button>'+
@@ -33,7 +33,7 @@
    '<a href="/bigapps/'+matched+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Licenses ↗</a></div>'+
    '<small class="biglwa-editor-status" role="status">Files stay local unless you choose to save a preview.</small>';
   const mini=document.createElement('button');mini.className='biglwa-editor-reopen';mini.hidden=true;
-  mini.type='button';mini.textContent=item.letter+' · '+item.name;mini.setAttribute('aria-label','Show BIG LWA toolbar');
+  mini.type='button';mini.textContent=item.name;mini.setAttribute('aria-label','Show BIG LWA toolbar');
   const status=dock.querySelector('.biglwa-editor-status');
   dock.addEventListener('click',async ev=>{
    const key=ev.target.closest('[data-craft-chrome]')?.dataset.craftChrome;
