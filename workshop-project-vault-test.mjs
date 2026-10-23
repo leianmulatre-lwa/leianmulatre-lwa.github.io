@@ -3,7 +3,8 @@ import {readFileSync} from 'node:fs';
 import {webcrypto} from 'node:crypto';
 import vm from 'node:vm';
 
-const source=readFileSync(new URL('./cloudflare-worker-instagram.js',import.meta.url),'utf8');
+const isStaging=process.env.BIGLWA_VAULT_SOURCE==='staging';
+const source=readFileSync(new URL(isStaging?'./workshop-vault-staging.js':'./cloudflare-worker-instagram.js',import.meta.url),'utf8');
 const files=new Map(),sessions=new Map();
 let uploadSerial=0;
 function bytesOf(value){
@@ -80,6 +81,15 @@ async function data(request){const response=await worker(request,env);return {st
 let done=0;
 async function check(name,fn){await fn();done++;console.log('PASS '+name)}
 let id,etag;
+if(isStaging){
+ const forbidden=await data(req('/oauth/start'));
+ assert.equal(forbidden.status,404,'Staging must not expose production OAuth routes');
+ const health=await data(req('/health',{token:''}));
+ assert.equal(health.status,200);
+ assert.equal(health.data.environment,'workshop-staging');
+ assert.equal(health.data.productionStorage,false);
+}
+
 await check('real-browser CORS preflight allows binary PUT upload',async()=>{
  const options=new Request('https://api.biglwa.com/media/workshop-projects/test/part/1',{
    method:'OPTIONS',headers:{Origin:'https://biglwa.com',
@@ -169,7 +179,7 @@ await check('multipart upload supports files larger than one chunk',async()=>{
 });
 await check('upload size and filename sanitation enforced',async()=>{
   assert.equal((await data(req('/media/workshop-projects',{method:'POST',
-    body:JSON.stringify({name:'ab',app:'lightR',size:500*1024*1024+1})}))).status,413);
+    body:JSON.stringify({name:'ab',app:'lightR',size:(isStaging?25:500)*1024*1024+1})}))).status,413);
   const start=await data(req('/media/workshop-projects',{method:'POST',
     body:JSON.stringify({name:'../bad"<file>.psd',app:'lightR',size:3})}));
   assert.equal(start.status,201);
