@@ -79,6 +79,24 @@
       '<div data-tiktok-public-preview hidden></div>';
     row.append(panel);
   }
+
+  function renderTikTokFeedImporter(){
+    const host=document.querySelector('#moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-card');
+    if(!host||host.querySelector('[data-tiktok-public-import]'))return;
+    const panel=document.createElement('section');
+    panel.setAttribute('data-tiktok-public-import','');
+    panel.setAttribute('aria-label','Import TikTok into myfeed');
+    panel.style.cssText='display:grid;gap:8px;margin:12px 0;padding:13px;border:1px solid #baa5c2;border-radius:12px;background:#f9efff;color:#362440';
+    panel.innerHTML='<strong>Import TikTok to myfeed</strong>'+
+     '<small>Paste a public TikTok video link. It saves as a private draft; you decide when to publish. The video remains on TikTok with the creator credited.</small>'+
+     '<label for="tiktokFeedVideoLink">TikTok video URL</label>'+
+     '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><input id="tiktokFeedVideoLink" class="module-input" style="flex:1 1 215px;min-width:0" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
+     '<button class="module-action" type="button" data-tiktok-public-save>Save to myfeed drafts</button></div>'+
+     '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
+     '<div data-tiktok-public-preview hidden></div>';
+    (host.querySelector('#biglwaFeedImportStatusRail')||host.querySelector('.biglwa-feed-compose-head'))?.after(panel);
+  }
+
   async function connect() {
     try {
       if (!crypto.subtle) throw new Error('TikTok needs a secure page (https) to connect from this browser.');
@@ -164,6 +182,7 @@
   function render() {
     renderFeedList();
     renderTikTokLinkImporter();
+    renderTikTokFeedImporter();
     document.querySelectorAll('[data-orbit-app="tiktok"]').forEach(el => { el.classList.toggle('orbit-connected',connected); el.setAttribute('aria-label',connected?'Refresh TikTok':'Connect TikTok'); });
     document.querySelectorAll('[data-orbit-path="tiktok"]').forEach(input => {
       const actions = input.closest('.module-orbit-row')?.querySelector('.module-actions');
@@ -209,8 +228,10 @@
       try{const u=new URL(v.cover_image_url||'');if(u.protocol==='https:')cover=u.href}catch{}
       if(!href)return '';
       const title=esc(v.title||v.video_description||'TikTok video');
+      const id=/^\d{10,30}$/.test(String(v.id||''))?String(v.id):'';
       const photo=cover?'<img loading="lazy" decoding="async" src="'+esc(cover)+'" alt="TikTok video cover" style="width:100%;height:auto;object-fit:contain">':'';
-      return '<article class="module-list-item tiktok-feed-item" data-tiktok-video="'+esc(v.id||'')+'"><div>'+photo+
+      const player=id?'<button type="button" class="module-action secondary" data-tiktok-play-video="'+id+'">▶ Play video here</button><div data-tiktok-player-host></div>':'';
+      return '<article class="module-list-item tiktok-feed-item" data-tiktok-video="'+esc(v.id||'')+'"><div>'+photo+player+
         '<small>TikTok · '+esc(profile.display_name)+'</small><b>'+title+'</b>'+
         '<a class="module-action" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">Watch on TikTok ↗</a>'+
         '<button type="button" class="module-action secondary" data-tiktok-save-video="'+esc(href)+'" data-tiktok-video-title="'+title+'">Save private feed draft</button>'+
@@ -263,6 +284,19 @@
   }
   document.addEventListener('click',e=>{
     if (!(e.target instanceof Element)) return;
+    const play=e.target.closest('[data-tiktok-play-video]');
+    if(play){
+      e.preventDefault();
+      const id=play.dataset.tiktokPlayVideo,host=play.parentElement?.querySelector('[data-tiktok-player-host]');
+      if(!host||!/^\d{10,30}$/.test(id||''))return;
+      if(host.firstChild){host.replaceChildren();play.textContent='▶ Play video here';return}
+      const frame=document.createElement('iframe');
+      frame.title='TikTok video';frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';
+      frame.allow='fullscreen; encrypted-media; picture-in-picture';
+      frame.style.cssText='display:block;width:100%;height:480px;max-height:75vh;border:0;border-radius:12px';
+      frame.src='https://www.tiktok.com/player/v1/'+id;
+      host.append(frame);play.textContent='Close video';return;
+    }
     const publicSave=e.target.closest('[data-tiktok-public-save]');
     if(publicSave){
       e.preventDefault();e.stopImmediatePropagation();
@@ -283,8 +317,9 @@
           caption:video.title||'TikTok video',cover_image_url:video.cover_image_url,
           sourceUsername:video.author_name||'',embedUrl:video.embed_url,mediaType:'VIDEO'
         });
-        if(status)status.textContent=saved.created?'Saved privately in MyFeed. Review before publishing.':
-          'This post is already saved in your BIG LWA account.';
+        if(status)status.textContent=saved.created?'Saved in myfeed drafts. Choose when to post.':
+          'This video is already saved in your BIG LWA drafts.';
+        if(panel?.closest('#moduleWorkspace[data-module-key="feed"]'))document.dispatchEvent(new CustomEvent('biglwa:tiktok-draft-ready',{detail:{source:'tiktok'}}));
         if(preview&&/^\d{10,30}$/.test(String(video.id||''))){
           const frame=document.createElement('iframe');
           frame.title='TikTok post preview';frame.loading='lazy';
@@ -327,9 +362,9 @@
   },true);
   // Orbit is mounted after this script on some routes. Recreate the optional
   // importer after page mounts without leaving duplicate controls.
-  document.addEventListener('biglwa:module-open',()=>setTimeout(renderTikTokLinkImporter,70));
-  document.addEventListener('biglwa:new-orbit-status',()=>setTimeout(renderTikTokLinkImporter,70));
-  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,
+  document.addEventListener('biglwa:module-open',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();renderFeedList();},70));
+  document.addEventListener('biglwa:new-orbit-status',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();},70));
+  window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,renderTikTokFeedImporter,
     get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 }());

@@ -56,5 +56,7 @@ check("Orbit updates from verified TikTok session",
 check("connection hub can recover TikTok session by Firebase UID",
  connections.includes("async function recoverTikTokSession(uid)")&&connections.includes('source.id === "tiktok"'));
 
+check("TikTok importer is directly in myfeed",tiktok.includes("function renderTikTokFeedImporter()")&&tiktok.includes("Save to myfeed drafts"));
+check("TikTok inline videos use the official embedded player",tiktok.includes("data-tiktok-play-video")&&tiktok.includes("https://www.tiktok.com/player/v1/"));
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

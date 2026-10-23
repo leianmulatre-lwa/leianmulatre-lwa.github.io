@@ -980,7 +980,7 @@ function renderDraftPanel(){
  if(toggle){
   toggle.disabled=!drafts.length;
   toggle.setAttribute("aria-expanded",String(draftTrayOpen&&!!drafts.length));
-  toggle.textContent=(draftTrayOpen?"Hide":"View")+" pins ready to post"+(drafts.length?" ("+drafts.length+")":"");
+  toggle.textContent=(draftTrayOpen?"Hide":"View")+" imports ready to post"+(drafts.length?" ("+drafts.length+")":"");
  }
  panel.hidden=!draftTrayOpen||!drafts.length;
  if(panel.hidden){panel.replaceChildren();return}
@@ -1600,7 +1600,11 @@ function observeFeed() {
   tick();
 }
 
-window.addEventListener("biglwa:orbit-imported", () => { loadPosts(); });
+window.addEventListener("biglwa:orbit-imported", event => {
+  if(event.detail?.source==="tiktok")draftTrayOpen=true;
+  loadPosts();
+});
+document.addEventListener('biglwa:tiktok-draft-ready',()=>{draftTrayOpen=true;loadPosts()});
 window.addEventListener("biglwa:instagram-restored", () => { loadPosts(); });
 
 function watch() {
