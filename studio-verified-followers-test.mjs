@@ -59,7 +59,7 @@ assert.equal(stat().followers,150,'Actual verified zero supersedes a previous po
 w.__biglwaIdentity={uid:'test-owner-b'};w.BigLWAAccountStorage.uid='test-owner-b';
 account={uid:'test-owner-b',connections:{},orbitConnectedProfiles:{},peopleConnections:{},analyticsMonths:{}};
 await w.BigLWAAccountInsights.refresh();w.__testProfilePaint();
-assert.equal(stat().followers,null,'New owner never inherits previous owner's followers');
+assert.equal(stat().followers,null,"New owner never inherits previous owner\'s followers");
 assert.equal(d.querySelector('[data-profile-stat="followers"] b').textContent,'—');
 w.close();
 console.log('PASS provider follower totals, missing counts, real zero, per-app badges and per-UID privacy.');
