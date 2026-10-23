@@ -1,0 +1,11 @@
+BIG LWA brand assets
+Copyright (c) 2026 BIG LWA. All rights reserved.
+
+The BIG LWA stitched-block logos, graphics, names and associated brand
+identity are original assets for BIG LWA's own edition of this editor.
+They are not licensed by the upstream EffectCraft project's MIT or Apache
+code licenses. No affiliation or endorsement from the upstream ArtCraft
+team or Adobe is implied.
+
+The editing engine remains a derivative of Storytold EffectCraft under
+its separate MIT OR Apache-2.0 software licenses and preserved notices.

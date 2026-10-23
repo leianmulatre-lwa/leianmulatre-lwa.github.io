@@ -297,11 +297,9 @@ fn web(args: &[String]) -> Result<(), String> {
             std::fs::copy(e.path(), dist.join(&name)).map_err(|e| format!("{name}: {e}"))?;
         }
     }
-    // PWA icons: the app icon (assets/app-icon, attributed there).
-    for n in [256, 512] {
-        let src = format!("assets/app-icon/hicolor/{n}x{n}/apps/ai.storyteller.effectcraft.png");
-        std::fs::copy(&src, dist.join(format!("icon-{n}.png"))).map_err(|e| format!("{src}: {e}"))?;
-    }
+    // BIG LWA keyframeR uses an original SVG icon in the web/ distribution.
+    // No upstream ArtCraft trademark icons are shipped or required to build.
+    // The SVG is referenced in the web app manifest and browser favicon.
     service_worker(&dist)?;
     let size = |p: &std::path::Path| std::fs::metadata(p).map(|m| m.len()).unwrap_or(0);
     let total: u64 = dist_files(&dist).iter().map(|f| size(&dist.join(f))).sum();
