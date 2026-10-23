@@ -13,7 +13,7 @@ check('Photo Booth stage fits one camera-sized frame',
 check('Photo Booth camera/image/preview all use the same viewport',
   /\.photobooth-stage video,\.photobooth-stage canvas,\.photobooth-stage img\{[^}]*height:100%;max-height:100%;object-fit:cover;/.test(modules));
 check('Video Booth splits a compact video frame into equal side-by-side halves',
-  /\.video-booth-preview\{[^}]*grid-template-columns:repeat\\(2,minmax\\(0,1fr\\)\\);[^}]*max-width:700px;[^}]*aspect-ratio:3\/2;/.test(modules));
+  /\.video-booth-preview\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\);[^}]*max-width:700px;[^}]*aspect-ratio:3\/2;/.test(modules));
 check('New Pinterest multi-select activates from both saved and original pins',
   /panel\.classList\.toggle\('pn-selection-active',selectedBoardPins\.size>0\|\|selectedOriginalPins\.size>0\)/.test(pinterest));
 check('Board and original pin checkboxes keep native selection input',
