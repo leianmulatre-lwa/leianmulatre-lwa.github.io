@@ -875,7 +875,7 @@
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
-    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const linked=shortcutWidget(app,row.dataset.shortcutRow||'');
       // Purge any outdated duplicate restore tile from an earlier session.
       if(linked&&shortcutForWidget(app,linked)&&!linked.classList.contains('widget-is-docked')){
@@ -892,14 +892,14 @@
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
     app.dataset.currentStudioRoute=normalized;
-    $('.sidebar-navigation-row.is-shortcut',app).forEach(row=>{
+    $$('.sidebar-navigation-row.is-shortcut',app).forEach(row=>{
       const active=!!normalized&&(row.dataset.sidebarRouteRow===normalized||
         (normalized==='rooms'&&row.dataset.sidebarRouteRow==='room'));
       row.classList.toggle('is-closed',!active);
       row.dataset.shortcutState=active?'open':'closed';
     });
     syncMinimizedShortcutRows(app);
-    $('.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open,.hero-action-bar a,.hero-action-bar button',app).forEach(control=>{
+    $$('.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open,.hero-action-bar a,.hero-action-bar button',app).forEach(control=>{
       const controlKey=(control.dataset.sidebarWidget||control.dataset.sidebarRoute||control.dataset.shortcutRoute||control.dataset.widgetRoute||control.dataset.open||(control.getAttribute('href')||'').replace(/^#/, '')||(control.id==='mobileCreate'?'create':'')).toLowerCase();
       const current=!!normalized&&(controlKey===normalized||(normalized==='rooms'&&controlKey==='room')||(normalized==='create'&&controlKey==='desk'));
       control.classList.toggle('is-current',current);
