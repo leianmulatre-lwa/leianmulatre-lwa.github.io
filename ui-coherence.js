@@ -1453,21 +1453,114 @@
   function syncRealProfileMetrics(){
     const app=$('#studioApp');if(!app)return false;
     const stats=$('.profile-card .stats',app);if(!stats)return false;
-    const source=window.__biglwaProfileMetrics&&typeof window.__biglwaProfileMetrics==='object'?window.__biglwaProfileMetrics:{};
-    const number=(key)=>source[key]!=null&&Number.isFinite(Number(source[key]))?String(Math.max(0,Number(source[key]))):'—';
+    const uid=String(window.__biglwaIdentity?.uid||'');
+    const source=window.__biglwaProfileMetrics||{};
+    const owned=!!uid&&source.uid===uid;
+    const number=key=>owned&&source[key]!==null&&source[key]!==undefined&&
+      Number.isFinite(Number(source[key]))?new Intl.NumberFormat().format(Number(source[key])):'—';
+    const followerNumber=owned?String(source.followersDisplay||number('followers')):'—';
     const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach']];
-    const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\\s+/g,' ').trim()]);
-    const expected=metrics.map(([key,label])=>[key,number(key)+' '+label]);
+    const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\s+/g,' ').trim()]);
+    const expected=metrics.map(([key,label])=>[key,(key==='followers'?followerNumber:number(key))+' '+label]);
     const same=current.length===expected.length&&current.every((item,i)=>item[0]===expected[i][0]&&item[1]===expected[i][1]);
     if(!same){
       stats.replaceChildren(...metrics.map(([key,label])=>{
         const item=document.createElement('span');item.dataset.profileStat=key;
-        const value=document.createElement('b');value.textContent=number(key);
-        item.append(value,document.createTextNode(' '+label));return item;
+        const value=document.createElement('b');value.textContent=key==='followers'?followerNumber:number(key);
+        item.append(value,document.createTextNode(' '+label));
+        if(key==='followers'){
+          item.classList.add('biglwa-followers-trigger');
+          item.tabIndex=0;item.setAttribute('role','button');
+          item.setAttribute('aria-haspopup','dialog');
+          item.setAttribute('aria-controls','biglwaFollowersPopover');
+          item.setAttribute('aria-expanded','false');
+          item.setAttribute('aria-label','View follower counts by connected social app');
+          item.title='View verified followers by app';
+        }
+        return item;
       }));
     }
+    if(stats.dataset.biglwaFollowersBound!=='1'){
+      stats.dataset.biglwaFollowersBound='1';
+      stats.addEventListener('click',e=>{
+        if(e.target.closest?.('[data-profile-stat="followers"]'))showFollowersPanel(stats);
+      });
+      stats.addEventListener('keydown',e=>{
+        if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-profile-stat="followers"]')){
+          e.preventDefault();showFollowersPanel(stats);
+        }
+      });
+    }
+    const panel=document.getElementById('biglwaFollowersPopover');
+    if(panel&&!panel.hidden)drawFollowersPanel(stats,panel);
     stats.dataset.biglwaMetricSource='real-profile-metrics';
     return true;
+  }
+  const followerNames={instagram:'Instagram',tiktok:'TikTok',pinterest:'Pinterest',
+    x:'X',tumblr:'Tumblr',youtube:'YouTube',facebook:'Facebook',snapchat:'Snapchat'};
+  const followerColors={instagram:'#d44f83',tiktok:'#26202a',pinterest:'#e60023',x:'#161616',
+    tumblr:'#20334e',youtube:'#e52235',facebook:'#1877f2',snapchat:'#ecd91c'};
+  function drawFollowersPanel(stats,panel){
+    const uid=String(window.__biglwaIdentity?.uid||'');
+    const data=window.__biglwaProfileMetrics||{};
+    const rows=uid&&data.uid===uid&&Array.isArray(data.sources)?data.sources:[];
+    const title=panel.querySelector('h3'),list=panel.querySelector('.biglwa-followers-list');
+    title.textContent='followers by app';
+    list.replaceChildren();
+    for(const row of rows){
+      if(!row?.id)continue;
+      const entry=document.createElement('div');entry.className='biglwa-followers-row';
+      const icon=document.createElement('span');icon.className='biglwa-followers-icon';
+      icon.style.background=followerColors[row.id]||'#71656a';
+      const named=followerNames[row.id];
+      if(named){
+        const img=document.createElement('img');img.src='/assets/orbit-icons/'+row.id+'.svg';
+        img.alt='';img.width=22;img.height=22;img.loading='lazy';icon.append(img);
+      }else icon.textContent=String(row.id).slice(0,2).toUpperCase();
+      const details=document.createElement('span');details.className='biglwa-followers-source';
+      const name=document.createElement('strong');name.textContent=named||String(row.id);
+      const note=document.createElement('small');note.textContent=row.followers==null?
+        'Connected · count not provided':row.isLastKnown?'Last verified count':'Provider-reported count';
+      details.append(name,note);
+      const value=document.createElement('b');value.className='biglwa-followers-count';
+      value.textContent=row.followers==null?'—':new Intl.NumberFormat().format(row.followers);
+      value.setAttribute('aria-label',row.followers==null?'Count unavailable':
+        value.textContent+' '+(row.metric==='subscribers'?'subscribers':'followers'));
+      entry.append(icon,details,value);list.append(entry);
+    }
+    if(!list.childElementCount){
+      const empty=document.createElement('p');empty.textContent='Connect an account in Orbit to view verified audience counts here.';list.append(empty);
+    }
+    panel.querySelector('.biglwa-followers-foot').textContent=
+      'Only provider-reported figures are counted. Missing permissions or unavailable stats show —, not zero. Totals can include the same people on multiple apps.';
+    const rect=stats.querySelector('[data-profile-stat="followers"]')?.getBoundingClientRect()||stats.getBoundingClientRect();
+    panel.style.left=Math.max(8,Math.min(window.innerWidth-320,rect.left))+'px';
+    panel.style.top=Math.max(8,Math.min(window.innerHeight-365,rect.bottom+8))+'px';
+  }
+  function showFollowersPanel(stats){
+    let panel=document.getElementById('biglwaFollowersPopover');
+    if(!panel){
+      panel=document.createElement('section');panel.id='biglwaFollowersPopover';
+      panel.className='biglwa-followers-popover';panel.setAttribute('role','dialog');
+      panel.setAttribute('aria-label','Followers by connected platform');
+      const head=document.createElement('div');head.className='biglwa-followers-head';
+      const title=document.createElement('h3'),close=document.createElement('button');
+      close.type='button';close.textContent='×';close.setAttribute('aria-label','Close follower breakdown');
+      close.addEventListener('click',()=>{panel.hidden=true;stats.querySelector('[data-profile-stat="followers"]')?.setAttribute('aria-expanded','false')});
+      head.append(title,close);
+      const list=document.createElement('div');list.className='biglwa-followers-list';
+      const foot=document.createElement('p');foot.className='biglwa-followers-foot';
+      panel.append(head,list,foot);document.body.append(panel);
+      document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close.click()});
+      document.addEventListener('pointerdown',e=>{
+        if(!panel.hidden&&!panel.contains(e.target)&&!e.target.closest?.('.biglwa-followers-trigger'))close.click();
+      });
+      window.addEventListener('biglwa:identity-updated',()=>{panel.hidden=true});
+    }
+    const open=panel.hidden;
+    panel.hidden=!open;
+    stats.querySelector('[data-profile-stat="followers"]')?.setAttribute('aria-expanded',String(open));
+    if(open)drawFollowersPanel(stats,panel);
   }
 
   function latestStreamTitle(){
@@ -1663,24 +1756,9 @@
   }
 
   function ensureResetValues(){
-    const stats=$('#studioApp .profile-card .stats');
-    if(stats){
-      const items=$$('span',stats);
-      let followersFound=false;
-      items.forEach(item=>{
-        const label=item.textContent.trim().toLowerCase();
-        const value=$('b',item);
-        if(!value)return;
-        if(/\\bfollow(?:ers|ing)?\\b/.test(label)){
-          value.textContent='0';
-          followersFound=true;
-        }
-        if(/\\bprojects?\\b|\\brooms?\\b/.test(label))value.textContent='0';
-      });
-      const nums=$$('b',stats);
-      if(!followersFound&&nums.length>0)nums[0].textContent='0';
-      stats.dataset.biglwaReset='1';
-    }
+    // Followers are managed by provider-backed analytics. The old initialization
+    // handler unconditionally wrote zero on every navigation and async repaint.
+    // Never reset or invent audience totals here.
     const rank=$('#studioApp .profile-card .real-rank');
     if(rank){
       const value=$('strong',rank),track=$('.rank-track i',rank),next=$('.rank-next',rank);
