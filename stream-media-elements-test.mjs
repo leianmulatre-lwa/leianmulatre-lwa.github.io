@@ -11,11 +11,10 @@ for(const name of ['youtube-video-element','tiktok-video-element','spotify-audio
 assert.match(player,/function embeddedStreamLink/);
 assert.match(player,/function onStreamMediaSubmit/);
 assert.match(player,/streamMediaLinkForm/);
-assert.match(player,/mediaTag\\('youtube'/);
-assert.match(player,/mediaTag\\('spotify'/);
-assert.match(player,/mediaTag\\('tiktok'/);
-assert.match(css,/stream-media-link-form/);
-assert.match(shell,/assets\\/media-elements\\/loader\\.js/);
-assert.match(player,/www\\.youtube-nocookie\\.com\\/embed/);
-assert.match(player,/window\\.customElements\\?\\.get/);
+for(const name of ['youtube','spotify','tiktok'])
+ assert(player.includes("mediaTag('"+name+"'"),'Player is available for '+name);
+assert(css.includes('stream-media-link-form'));
+assert(shell.includes('assets/media-elements/loader.js'));
+assert(player.includes('www.youtube-nocookie.com/embed'));
+assert(player.includes('window.customElements?.get'));
 console.log('PASS Stream: pinned local Mux elements, guarded member links, creator-hosted fallbacks');
