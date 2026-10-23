@@ -24,6 +24,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       NATIVE_SOURCE_SHA: 279c52ddbe4d11f3309b331755c7daa08402f12a
+      NATIVE_LIGHTR_SHA: fdfd3d4f6746a0f03ea578d73c329a4b1ca25385
     steps:
       - name: Check out protected production release tooling
         uses: actions/checkout@v4
@@ -50,7 +51,7 @@ jobs:
           else
             gh release create "$tag" "$archive" \
               --title "BIG LWA lightR · paintR · keyframeR · fileR" \
-              --notes "Chromium-verified original BIG LWA Rust/WebAssembly editions built from $NATIVE_SOURCE_SHA. Includes source provenance and upstream licenses. Each app remains editable locally."
+              --notes "Chromium-verified original BIG LWA Rust/WebAssembly editions from verified source commits $NATIVE_SOURCE_SHA (paintR/keyframeR/fileR) and $NATIVE_LIGHTR_SHA (lightR). Includes source provenance and upstream licenses. Each app remains editable locally."
           fi
       - name: Activate verified release in production config
         shell: bash
