@@ -29,13 +29,13 @@ assert.ok(shell.classList.contains('lwa-curtain-veve-pending'),'An opaque Veve c
 assert.ok(curtain.querySelector('.lwa-curtain-bypass'),'Always-available view anyway action');
 assert.equal(curtain.querySelector('.lwa-curtain-bypass').textContent,'Who’s you? →');
 assert.match(source,/\.lwa-curtain\[data-lwa-curtain="module"\] \.lwa-dot\{width:17px;height:17px/,'Dots enlarged');
-assert.match(source,/font:700 clamp\(20px,2\.9vw,31px\)/,'Curtain heading enlarged');
+assert.match(source,/font:400 clamp\(20px,2\.9vw,31px\)/,'Curtain heading uses lowercase stitched style');
 assert.match(veve,/biglwa:veve-load-state/,'Veve reports its loading stages');
 assert.match(veve,/status\(\)\{return \{ready:state\.initialReady/,'Veve exports authoritative readiness');
 stage='Loading public Sqwidz…';
 doc.dispatchEvent(new w.CustomEvent('biglwa:veve-load-state',{detail:{stage,ready:false}}));
 await sleep(45);
-assert.equal(curtain.querySelector('.lwa-curtain-progress').textContent,stage,'Curtain displays real import stage');
+assert.equal(curtain.querySelector('.lwa-curtain-progress').textContent,stage.toLowerCase(),'Curtain displays the real import stage in lowercase');
 ready=true;stage='Public collections ready.';
 doc.dispatchEvent(new w.CustomEvent('biglwa:veve-load-state',{detail:{stage,ready:true}}));
 await sleep(45);
