@@ -9,6 +9,8 @@ const craftCode=read('tools-craft.js'),craftCss=read('tools-craft.css');
 const workerCode=read('cloudflare-worker-instagram.js');
 assert.ok(craftCode.includes("id=\"craftProjectVault\""),'Workshop mounts a distinct original editable-file shelf');
 assert.ok(craftCode.includes("import('/workshop-native-files.js?v="),'Workshop loads native project controls');
+assert.ok(craftCode.includes("'/bigapps/'")&&craftCode.includes("/bigapps/manifest.json"),'Future Workshop integration uses new editor URLs');
+assert.ok(!craftCode.includes('/craftapps/'),'No old editor URLs in future vault');
 assert.ok(craftCss.includes('.craft-project-vault')&&craftCss.includes('.craft-project-card-actions'));
 assert.ok(workerCode.includes("workshopProjectRoute(request,env)"));
 assert.ok(moduleCode.includes('file.slice((n-1)*start.chunkSize'),'Client sends chunks instead of loading full project into JS memory');

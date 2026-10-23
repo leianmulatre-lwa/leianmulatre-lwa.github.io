@@ -25,7 +25,7 @@
    '<div class="biglwa-editor-links">'+
    '<label title="Upload an image you exported from this editor to your private BIG LWA snapshots">Save exported image<input id="biglwaAdvancedSnapshot" type="file" accept="image/png,image/jpeg,image/webp"></label>'+
    '<a href="/studio?view=tools">Workshop ↗</a>'+
-   '<a href="/craftapps/'+id+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Engine credits ↗</a></div>'+
+   '<a href="/bigapps/'+id+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Engine credits ↗</a></div>'+
    '<small class="biglwa-editor-status" role="status">Files stay local unless you choose to save a preview.</small>';
   const mini=document.createElement('button');mini.className='biglwa-editor-reopen';mini.hidden=true;
   mini.type='button';mini.textContent=item.letter+' · '+item.name;mini.setAttribute('aria-label','Show BIG LWA toolbar');
