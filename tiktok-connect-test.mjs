@@ -29,7 +29,8 @@ check("base TikTok login stays basic until optional scopes are approved",
  worker.includes("if(env.TIKTOK_VIDEO_LIST_APPROVED==='true')approved.push('video.list')")&&
  worker.includes("if(env.TIKTOK_USER_STATS_APPROVED==='true')approved.push('user.info.stats')"));
 check("unapproved TikTok audience stays unknown, with verified-stats fallback",
- worker.includes("scoped?basic+',follower_count,following_count,likes_count,video_count':basic")&&
+ worker.includes("const identityFields=profileScoped?basic+',username,profile_deep_link':basic")&&
+ worker.includes("scoped?identityFields+',follower_count,following_count,likes_count,video_count':identityFields")&&
  worker.includes("response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields='+basic"));
 check("TikTok token request explicitly sends form encoding",
  worker.includes("'Content-Type':'application/x-www-form-urlencoded'")&&worker.includes("body.set('redirect_uri', String(params.redirect_uri))"));
