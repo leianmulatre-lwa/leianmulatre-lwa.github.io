@@ -28,7 +28,9 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Verify politc, calendar, and site SEO integrity
-        run: node site-integrity-test.mjs
+        run: |
+          node site-integrity-test.mjs
+          node studio-first-paint-rgb-regression-test.mjs
       - name: Install DOM test dependency outside public site
         run: npm install --prefix "$RUNNER_TEMP/biglwa-tests" jsdom@26.1.0 --no-audit --no-fund
       - name: Verify Step Inside native login submission and account creation
