@@ -71,8 +71,29 @@ async function oaExchange(provider,code,verifier,env,callback){
  }
  const resp=await fetch(c.token,{method:'POST',headers,body:form});
  const result=await resp.json().catch(()=>({}));
- if(!resp.ok||!result.access_token)oaError(provider+' did not accept this authorization. Check its public client ID, callback and granted scopes.',502);
+ if(!resp.ok||!result.access_token){const code=String(result.error||result.errors?.[0]?.code||result.title||'authorization_error').replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,45);oaError(provider+' OAuth token request failed (HTTP '+resp.status+', '+code+'). Check registered callback and app credentials.',502)}
  return result;
+}
+// Refresh server-side OAuth access without asking the member to connect again.
+async function oaRefreshSaved(provider,saved,env,key){
+ if(!saved||!['x','tumblr'].includes(provider)||!saved.refreshToken||
+    !saved.expiresAt||saved.expiresAt>Date.now()+60000)return saved;
+ const conf=PROVIDERS[provider],form=new URLSearchParams({
+  grant_type:'refresh_token',refresh_token:saved.refreshToken,client_id:String(env[conf.id])
+ });
+ const headers={'Content-Type':'application/x-www-form-urlencoded'};
+ if(provider==='x')headers.Authorization='Basic '+btoa(env[conf.id]+':'+env[conf.secret]);
+ else form.set('client_secret',String(env[conf.secret]));
+ try{
+  const response=await fetch(conf.token,{method:'POST',headers,body:form});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||!result.access_token)return saved;
+  const next={...saved,accessToken:result.access_token,
+   refreshToken:result.refresh_token||saved.refreshToken,
+   expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||2520)*1000};
+  await env.OAUTH_SESSIONS.put(key,JSON.stringify(next),{expirationTtl:7776000});
+  return next;
+ }catch{return saved}
 }
 function oaPhoto(url){
  try{const parsed=new URL(String(url||''));return parsed.protocol==='https:'?parsed.href:''}catch{return ''}
@@ -119,6 +140,8 @@ async function oaProfile(provider,token){
    return {id:'tumblr',sourceUserId:accountName,sourceBlogName:blogName,
      username:blogName,name:String(primary?.title||blogName).slice(0,100),
      avatarUrl:oaPhoto(original.avatar_url),link:'https://www.tumblr.com/'+encodeURIComponent(blogName),
+     followers:Number.isSafeInteger(Number(original.followers))?Number(original.followers):null,
+     likes:Number.isSafeInteger(Number(u.likes))?Number(u.likes):null,
      blogCount:blogs.length,blogs};
  }
  const me=data.data?.me||data.data?.user||data.me||{};
@@ -256,12 +279,12 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
 
   const accountKey='new-orbit:'+provider+':account:'+user.uid;
   if(action==='session'){
-   const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
+   const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
    const fresh=Boolean(saved?.expiresAt&&saved.expiresAt>Date.now());
    return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null},200,request);
   }
   if(action==='imports'){
-    const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
+    const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
     if(!saved)return oaReply({error:'Connect '+provider+' from Orbit before importing posts.'},401,request);
     const result=await oaTextImports(provider,saved);
     return oaReply(result,200,request);
