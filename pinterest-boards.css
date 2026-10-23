@@ -281,3 +281,38 @@
 }
 @media(prefers-reduced-motion:reduce){#pinterestBoards .pn-operation-indicator{animation:none!important}}
 
+
+/* Pin selection is opt-in: a small checkbox appears on hover/focus. When any
+   Pin is checked, all visible Pins expose their own checkbox for multi-select. */
+#pinterestBoards .pinterest-pin>.pn-pin-check,
+#pinterestBoards .pn-owned-pin-choice>.pn-pin-check{
+  display:inline-flex!important;align-items:center;justify-content:center;
+  gap:4px!important;min-height:24px!important;min-width:24px!important;
+  width:max-content!important;max-width:calc(100% - 12px);
+  padding:3px 5px!important;font:700 9px/1.1 system-ui!important;
+  background:rgba(255,250,245,.95);border-radius:6px!important;
+  opacity:0!important;transform:translateY(-3px);
+  pointer-events:none;transition:opacity .15s ease,transform .15s ease;
+}
+#pinterestBoards .pn-pin-check input{
+  width:13px!important;height:13px!important;flex:none;
+}
+#pinterestBoards :is(.pinterest-pin,.pn-owned-pin-choice):is(:hover,:focus-within)>.pn-pin-check,
+#pinterestBoards :is(.pinterest-pin,.pn-owned-pin-choice):has(.pn-pin-check input:checked)>.pn-pin-check,
+#pinterestBoards.pn-selection-active :is(.pinterest-pin,.pn-owned-pin-choice)>.pn-pin-check{
+  opacity:1!important;transform:none!important;pointer-events:auto!important;
+}
+#pinterestBoards.pn-selection-active .pn-pin-check{
+  width:25px!important;min-width:25px!important;height:25px!important;
+  min-height:25px!important;padding:3px!important;
+}
+#pinterestBoards.pn-selection-active .pn-pin-check span{display:none!important}
+#pinterestBoards .pn-pin-check:focus-within{outline:2px solid #e60023!important;outline-offset:2px}
+@media(hover:none){
+  #pinterestBoards :is(.pinterest-pin,.pn-owned-pin-choice)>.pn-pin-check{
+    opacity:1!important;transform:none!important;pointer-events:auto!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #pinterestBoards .pn-pin-check{transition:none!important}
+}
