@@ -193,3 +193,35 @@
 #biglwaVeve .veve-photo-details .veve-source-credit:focus-visible{outline:2px solid white;outline-offset:3px}
 @media(hover:none){#biglwaVeve .veve-photo-details{opacity:1;transform:none;pointer-events:auto}}
 @media(prefers-reduced-motion:reduce){#biglwaVeve .veve-photo-details{transition:none;transform:none}}
+
+
+/* Veve keeps the light-dot enlarge affordance; the redundant center arrow is gone.
+   Pinterest pins gain an actual private BIG LWA board action on hover/focus. */
+.veve-photo-frame{position:relative}
+.veve-media-open{display:none!important}
+.veve-pin-board-action{position:absolute;right:10px;bottom:11px;z-index:7;
+ border:1px solid #f2dcd8;border-radius:9px;background:#f4ebe4;color:#462a39;
+ box-shadow:0 3px 12px #1c101d66;padding:8px 12px;font:750 12px/1.1 system-ui;
+ opacity:0;transform:translateY(4px);pointer-events:none;cursor:pointer;
+ transition:opacity .15s ease,transform .15s ease}
+.veve-photo:is(:hover,:focus-within) .veve-pin-board-action{opacity:1;transform:none;pointer-events:auto}
+.veve-pin-board-action:focus-visible{opacity:1;transform:none;pointer-events:auto;outline:3px solid #f2ca55}
+@media(hover:none){.veve-pin-board-action{opacity:1;transform:none;pointer-events:auto}}
+@media(prefers-reduced-motion:reduce){.veve-pin-board-action{transition:none}}
+.veve-save-board-dialog{width:min(420px,calc(100vw - 28px));max-height:88dvh;
+ box-sizing:border-box;border:2px solid #8b5268;border-radius:15px;
+ background:#fff5e9;color:#37212e;padding:18px 20px;box-shadow:0 20px 70px #0006}
+.veve-save-board-dialog::backdrop{background:#170c16a8}
+.veve-save-board-dialog header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.veve-save-board-dialog h3{font:400 27px/1.2 "CS Bergamot Stitched",Georgia,serif;
+ text-transform:lowercase!important;color:#563044;margin:0}
+.veve-save-board-dialog header button{width:30px;height:30px;border-radius:50%;border:1px solid #a88d84;background:#fff8ef}
+.veve-save-board-dialog p{font:500 12px/1.5 system-ui}
+.veve-save-board-dialog label{display:grid;gap:5px;margin:12px 0;font:700 12px/1.3 system-ui}
+.veve-save-board-dialog select,.veve-save-board-dialog input{min-width:0;width:100%;min-height:38px;
+ box-sizing:border-box;border:1px solid #b99a9b;border-radius:8px;background:#fff;color:#322830;padding:8px}
+.veve-save-board-actions{display:flex;justify-content:flex-end;gap:9px}
+.veve-save-board-actions button{background:#d45872;color:#fff;border:0;border-radius:8px;padding:9px 13px;font:700 12px system-ui;cursor:pointer}
+.veve-save-board-actions button:first-child{background:#e2d1c9;color:#35262c}
+.veve-save-board-actions button:disabled{opacity:.65;cursor:wait}
+.veve-save-board-status{font-weight:700!important}
