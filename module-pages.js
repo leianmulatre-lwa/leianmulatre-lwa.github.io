@@ -230,7 +230,7 @@
     .orbit-quick-link b{font:700 12px/1.3 system-ui}
     .orbit-quick-link small{font:600 10px/1.35 system-ui;color:#8b8179;overflow-wrap:anywhere}
     .orbit-quick-link i{position:absolute;right:9px;top:9px;font-style:normal;font-size:11px;color:var(--accent)}
-    .orbit-quick-link.is-instagram{--accent:#c13584}.orbit-quick-link.is-tiktok{--accent:#0f8f95}.orbit-quick-link.is-pinterest{--accent:#e60023}.orbit-quick-link.is-facebook{--accent:#1877f2}.orbit-quick-link.is-youtube{--accent:#d0202f}.orbit-quick-link.is-soundcloud{--accent:#e2622a}
+    .orbit-quick-link.is-instagram{--accent:#f36b21}.orbit-quick-link.is-tiktok{--accent:#772dcc}.orbit-quick-link.is-pinterest{--accent:#e60023}.orbit-quick-link.is-facebook{--accent:#1877f2}.orbit-quick-link.is-youtube{--accent:#d0202f}.orbit-quick-link.is-soundcloud{--accent:#e2622a}
     .module-orbit-row.is-oauth{border-color:rgba(80,70,64,.24);background:rgba(255,255,255,.66)}
     .orbit-state{margin-left:auto;font:700 8px/1.6 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8b8179;padding:2px 7px;border-radius:999px;background:rgba(139,129,121,.14)}
     .module-orbit-row header .orbit-state+span{margin-left:6px}
@@ -288,7 +288,7 @@
     #studioApp #camera .contact-sheet.photobooth-reference-preview{display:block!important;width:100%;height:auto!important;aspect-ratio:3/2;margin:12px 0 14px;padding:0!important;border:1px solid rgba(81,65,58,.18);border-radius:13px;overflow:hidden;background:#c9c0bd;box-shadow:0 7px 18px rgba(55,42,34,.13)}
     #studioApp #camera .contact-sheet.photobooth-reference-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 46%;filter:contrast(1.02);transform:scale(1.09);transform-origin:center 46%}
     #studioApp .biglwa-instagram-feed-preview{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0 12px;padding:0;background:transparent;min-height:0}
-    #studioApp .biglwa-instagram-preview-tile{display:block;min-width:0;padding:0;border:0;border-radius:10px;overflow:hidden;background:#7d3ec5;cursor:pointer;aspect-ratio:1/1}
+    #studioApp .biglwa-instagram-preview-tile{display:block;min-width:0;padding:0;border:0;border-radius:10px;overflow:hidden;background:#f36b21;cursor:pointer;aspect-ratio:1/1}
     #studioApp .biglwa-instagram-preview-tile img{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
     #studioApp .biglwa-instagram-preview-tile:hover{transform:translateY(-1px);filter:brightness(1.03)}
     .module-workspace[data-module-key="archive"] .instagram-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
@@ -498,17 +498,25 @@
       border-radius:4px;background:#d7c8b5;box-shadow:2px 3px 0 #9b8075
     }
     .module-workspace[data-module-key="archive"] .archive-key-instagram{
-      background:#7d3ec5!important;box-shadow:2px 3px 0 #7d3ec5,4px 5px 0 #ad82e7!important
+      background:#f36b21!important;box-shadow:2px 3px 0 #f36b21,4px 5px 0 #ffad52!important
     }
     .module-workspace[data-module-key="archive"] .archive-key-pinterest{
       background:#e60023!important;box-shadow:2px 3px 0 #e60023,4px 5px 0 #ae0026!important
     }
     .module-workspace[data-module-key="archive"] .archive-key-facebook{
-      background:#1877f2!important;box-shadow:2px 3px 0 #1877f2!important
+      background:#1658be!important;box-shadow:2px 3px 0 #1658be!important
     }
     .module-workspace[data-module-key="archive"] .archive-key-tiktok{
-      background:#191919!important;box-shadow:2px 3px 0 #111!important
+      background:#772dcc!important;box-shadow:2px 3px 0 #772dcc,4px 5px 0 #b77cff!important
     }
+    .module-workspace[data-module-key="archive"] .archive-key-youtube{background:#fff1ec!important;box-shadow:2px 3px 0 #fff1ec,4px 5px 0 #e66e7e!important;border:1px solid #e66e7e}
+    .module-workspace[data-module-key="archive"] .archive-key-snapchat{background:#ffda00!important;box-shadow:2px 3px 0 #ffda00!important}
+    .module-workspace[data-module-key="archive"] .archive-key-tumblr{background:#1b304b!important;box-shadow:2px 3px 0 #1b304b!important}
+    .module-workspace[data-module-key="archive"] .archive-key-x{background:#0e0e0e!important;box-shadow:2px 3px 0 #0e0e0e!important}
+    .module-workspace[data-module-key="veve"] .veve-origin-legend{display:flex;align-items:center;flex-wrap:wrap;gap:7px 10px;padding:8px 11px;margin:3px 0 10px;background:var(--widget-bg,#faf5f0);border:1px solid rgba(105,75,82,.16);border-radius:11px;color:var(--widget-ink,#42363b);font:650 10px/1.45 system-ui}
+    .module-workspace[data-module-key="veve"] .veve-origin-legend>b{font-size:9px;letter-spacing:.07em}
+    .module-workspace[data-module-key="veve"] .veve-origin-key-item{display:inline-flex;align-items:center;gap:5px}
+    .module-workspace[data-module-key="veve"] .veve-origin-key-item>i{width:10px;height:10px;border:1px solid rgba(87,61,68,.4);border-radius:3px;box-shadow:1px 2px 0 rgba(88,62,68,.28)}
     .module-workspace[data-module-key="archive"] .archive-key-other{
       background:#8f756e!important;box-shadow:2px 3px 0 #96736c!important
     }
@@ -530,7 +538,7 @@
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-tiktok{--feed-card-rim:#772dcc}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-facebook{--feed-card-rim:#1877f2}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest:not(.is-pending-delete){--feed-card-rim:#e60023;box-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026!important}
-    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{--feed-card-rim:#d0202f}
+    .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-youtube{--feed-card-rim:#fff1ec}
     .module-workspace[data-module-key="archive"] .instagram-archive-card.archive-src-soundcloud{--feed-card-rim:#e2622a}
 
     #studioApp #archive .archive-photo-preview{position:relative;display:block;width:100%;aspect-ratio:4/3;margin:10px 0 12px;padding:0;overflow:hidden;border:1px solid rgba(121,101,88,.22);border-radius:14px;background:#e9e1d9;box-shadow:0 6px 16px rgba(65,43,34,.10);cursor:pointer}
@@ -2578,11 +2586,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   }
   function archiveSourceTheme(source){
     return ({
-      instagram:{rim:"#a52a0c",glow:"#962fbf",hot:"#fa7e1e"},
-      tiktok:{rim:"#111111",glow:"#25f4ee",hot:"#fe2c55"},
-      facebook:{rim:"#1877f2",glow:"#5aa0ff"},
+      instagram:{rim:"#f36b21",glow:"#ffad52",hot:"#bd430b"},
+      tiktok:{rim:"#772dcc",glow:"#b77cff",hot:"#4a187f"},
+      facebook:{rim:"#1658be",glow:"#5aa0ff"},
       pinterest:{rim:"#e60023",glow:"#ff5269",hot:"#ae0026"},
-      youtube:{rim:"#d0202f",glow:"#fff6ec",hot:"#ff0033"},
+      youtube:{rim:"#fff1ec",glow:"#e66e7e",hot:"#d44b67"},
+      snapchat:{rim:"#ffda00",glow:"#ffe780",hot:"#b39700"},
+      tumblr:{rim:"#1b304b",glow:"#5a7897",hot:"#0c172c"},
+      x:{rim:"#0e0e0e",glow:"#666666",hot:"#161616"},
+      twitter:{rim:"#0e0e0e",glow:"#666666",hot:"#161616"},
       soundcloud:{rim:"#ff5500",glow:"#ffb13b",hot:"#c93f00"}
     })[String(source||"").toLowerCase()]||{rim:"#a52a0c",glow:"#d95f6d"};
   }
@@ -2799,8 +2811,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           instagram:{rim:'#f36b21',shadow:'3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b'},
           pinterest:{rim:'#e60023',shadow:'3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026'},
           tiktok:{rim:'#772dcc',shadow:'3px 3px 0 #772dcc,7px 7px 0 -2px #b77cff,0 14px 28px -13px #4a187f'},
-          facebook:{rim:'#1877f2',shadow:'3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff'},
-          youtube:{rim:'#d0202f',shadow:'0 0 0 2px #d0202f,3px 3px 0 #fff6ec,0 13px 28px -16px #d0202f'},
+          facebook:{rim:'#1658be',shadow:'3px 3px 0 #1658be,0 12px 25px -16px #5aa0ff'},
+          youtube:{rim:'#fff1ec',shadow:'0 0 0 2px #e66e7e,3px 3px 0 #fff1ec,0 13px 28px -16px #d44b67'},
+          snapchat:{rim:'#ffda00',shadow:'3px 3px 0 #ffda00,6px 6px 0 -2px #ffe780'},
+          tumblr:{rim:'#1b304b',shadow:'3px 3px 0 #1b304b,6px 6px 0 -2px #5a7897'},
+          x:{rim:'#0e0e0e',shadow:'3px 3px 0 #0e0e0e,6px 6px 0 -2px #666'},
+          twitter:{rim:'#0e0e0e',shadow:'3px 3px 0 #0e0e0e,6px 6px 0 -2px #666'},
           soundcloud:{rim:'#ff5500',shadow:'3px 3px 0 #ff5500,0 12px 25px -16px #ffb13b'},
           google:{rim:'#4285f4',shadow:'3px 3px 0 #4285f4,0 12px 25px -16px #34a853'}
         };
@@ -2880,10 +2896,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(media.length?'Imported cards are saved to your account.':'Connect Instagram or Pinterest in Orbit, then refresh imports.'):'Shared with friends.'))+'</div>'+
           '<div class="archive-color-guide" aria-label="Card shadow color key">'+
   '<b>SHADOW KEY</b>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · purple</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · blood orange</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-pinterest" aria-hidden="true"></i>Pinterest · red</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-facebook" aria-hidden="true"></i>Facebook · blue</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-tiktok" aria-hidden="true"></i>TikTok · black</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-tiktok" aria-hidden="true"></i>TikTok · purple</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-youtube" aria-hidden="true"></i>YouTube · white/pink</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-snapchat" aria-hidden="true"></i>Snapchat · yellow</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-tumblr" aria-hidden="true"></i>Tumblr · navy</span>'+
+  '<span class="archive-color-guide-item"><i class="archive-key-x" aria-hidden="true"></i>X · black</span>'+
   '<span class="archive-color-guide-item"><i class="archive-key-other" aria-hidden="true"></i>Other source</span>'+
   '<small>Card shadow = origin · Live = on Collective Feed · Grey photo = not live</small>'+
  '</div>'+
@@ -3170,7 +3190,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   }
 
   function renderVeve(){
-    body.innerHTML=heading('veve')+'<div id="biglwaVeve" class="veve-root"><p role="status">Loading public discovery…</p></div>';
+    // Same origin legend as Archive, anchored to the Orbit planet shadow colors.
+    const sources=[['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
+      ['Facebook','#1658be'],['YouTube','#fff1ec'],['Snapchat','#ffda00'],['Tumblr','#1b304b'],['X','#0e0e0e']];
+    const legend='<div class="veve-origin-legend" aria-label="App shadow color key"><b>SHADOW KEY</b>'+
+      sources.map(([name,color])=>'<span class="veve-origin-key-item"><i style="background:'+color+'"></i>'+name+'</span>').join('')+'</div>';
+    body.innerHTML=heading('veve')+legend+'<div id="biglwaVeve" class="veve-root"><p role="status">Loading public discovery…</p></div>';
     const root=$('#biglwaVeve',body);
     if(window.BigLWAVeve?.mount)window.BigLWAVeve.mount(root);
     else root.innerHTML='<p role="alert">Veve is loading. Please refresh and try again.</p>';
