@@ -37,13 +37,14 @@ function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
  return '<article class="craft-tile'+(local?' craft-tile-home':'')+'" data-craft-card="'+item.id+'">'+
    '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
-   '<div class="craft-tile-icon" aria-hidden="true">'+escapeHtml(item.letter)+'</div>'+
+   '<div class="craft-tile-icon craft-arcade-block craft-block-'+escapeHtml(item.id)+'" aria-hidden="true">'+
+     '<span class="craft-block-glyph">'+escapeHtml(item.letter)+'</span><i></i><i></i></div>'+
    '<h3>'+escapeHtml(item.name)+'</h3>'+
    '<p>'+escapeHtml(item.description)+'</p>'+
    '<div class="craft-engine-credits">'+escapeHtml(item.credit)+'</div>'+
    '<button type="button" data-craft-open="'+item.id+'"'+(local?'':' disabled')+'>'+
       (local?'Start creating →':'Checking engine…')+'</button>'+
-   (local?'':('<a href="'+item.source+'" target="_blank" rel="noopener noreferrer">Open-source code & licenses ↗</a>'))+
+   (local?'':('<a href="/craftapps/'+encodeURIComponent(item.id)+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
   '</article>';
 }
 export async function mountCraftSuite(root){
