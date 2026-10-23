@@ -223,7 +223,15 @@ export async function mountCraftSuite(root){
  const title=root.querySelector('#craftPanelTitle'),direct=root.querySelector('#craftDirectLink'),info=root.querySelector('#craftEditorStatus');
  const status=root.querySelector('#craftInstallStatus');
  let current=null;
- const getUrl=(id,webgl=false)=>id===LOCAL.id?LOCAL.url:'/craftapps/'+id+'/'+(webgl?'?webgl':'');
+ const getUrl=(id,webgl=false)=>{
+  if(id===LOCAL.id)return LOCAL.url;
+  const params=new URLSearchParams();
+  if(webgl)params.set('webgl','1');
+  // The open-only fileR bridge never replaces local Save or Export.
+  if(id==='pdfcraft')params.set('biglwaHost','1');
+  const query=params.toString();
+  return '/craftapps/'+id+'/'+(query?'?'+query:'');
+ };
  const findItem=id=>id===LOCAL.id?LOCAL:ENGINES.find(item=>item.id===id);
  function close(){
   current=null;viewer.replaceChildren();panel.hidden=true;
@@ -300,6 +308,60 @@ export async function mountCraftSuite(root){
   if(alreadyOpen)send();else iframe.addEventListener('load',send,{once:true});
   return true;
  }
+ // Native Rust fileR can receive a private original PDF without a public URL.
+ // Accept acknowledgements only from the current same-origin editor iframe.
+ const fileRReadyFrames=new WeakSet();
+ window.addEventListener('message',event=>{
+  if(!root.isConnected||event.origin!==location.origin||event.data?.type!=='pdfcraft:ready')return;
+  const frame=viewer.querySelector('iframe');
+  if(frame&&current==='pdfcraft'&&event.source===frame.contentWindow)fileRReadyFrames.add(frame);
+ });
+ function sendNativeFileR(item,bytes){
+  if(item?.app!=='fileR'||!(/^[A-Za-z0-9_-]{22}$/).test(item.id||'')||
+     !(bytes instanceof ArrayBuffer)||bytes.byteLength!==item.size||
+     bytes.byteLength>75*1024*1024)
+   return Promise.reject(Error('Only a verified native PDF up to 75 MB can be opened inside fileR.'));
+  if(!open('pdfcraft'))return Promise.reject(Error('fileR is not available in this Workshop deployment.'));
+  const frame=viewer.querySelector('iframe');
+  if(!frame)return Promise.reject(Error('fileR could not be opened.'));
+  const requestId=crypto.randomUUID();
+  return new Promise((resolve,reject)=>{
+   let sent=false,finished=false;
+   let timer;
+   const cleanup=()=>{
+    if(finished)return false;finished=true;
+    clearTimeout(timer);window.removeEventListener('message',reply);
+    return true;
+   };
+   const send=()=>{
+    if(sent||finished||!frame.isConnected||viewer.querySelector('iframe')!==frame)return;
+    sent=true;
+    try{
+     frame.contentWindow?.postMessage(
+      {type:'pdfcraft:open',requestId,name:item.name,bytes},
+      location.origin,[bytes]);
+     info.textContent='Delivering your saved PDF to fileR…';
+    }catch(err){if(cleanup())reject(Error('Could not transfer the PDF into fileR: '+err.message))}
+   };
+   function reply(event){
+    if(event.origin!==location.origin||event.source!==frame.contentWindow||
+       viewer.querySelector('iframe')!==frame)return;
+    const message=event.data||{};
+    if(message.type==='pdfcraft:ready'){
+      fileRReadyFrames.add(frame);send();
+    }else if(message.type==='pdfcraft:failed'){
+      if(cleanup())reject(Error('fileR could not start: '+String(message.error||'unknown error')));
+    }else if(message.type==='pdfcraft:queued'&&message.requestId===requestId){
+      if(cleanup())resolve(true);
+    }
+   }
+   window.addEventListener('message',reply);
+   timer=setTimeout(()=>{
+    if(cleanup())reject(Error('fileR did not confirm receipt. Download the original file and use Open in the editor.'));
+   },25000);
+   if(fileRReadyFrames.has(frame))send();
+  });
+ }
  // Private native-file storage is separate from compressed image snapshots.
  // Cloud APIs must be deployed and account-authorized before a successful save
  // is reported; an unavailable API never falls back to a fake browser-only copy.
@@ -307,7 +369,7 @@ export async function mountCraftSuite(root){
  if(projectHost){
   import('/workshop-native-files.js?v=20261023-native-project-vault-1')
    .then(mod=>{
-    if(root.isConnected)mod.mountNativeProjectVault(projectHost,{open,active:()=>current||'other'});
+    if(root.isConnected)mod.mountNativeProjectVault(projectHost,{open,active:()=>current||'other',openOriginal:sendNativeFileR});
    })
    .catch(err=>{if(projectHost.isConnected)projectHost.textContent='Private editable project shelf unavailable: '+err.message});
  }
