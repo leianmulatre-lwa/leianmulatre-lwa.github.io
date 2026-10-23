@@ -276,7 +276,7 @@ export function mountToolsStudio(root,helper){
     </section>
     <section class="tool-result" id="toolResult"></section>
     <section class="tool-groups" id="toolGroups"></section>
-    <section class="module-card wide" id="craftSuite" aria-label="ArtCraft creative suite"><p role="status">Loading ArtCraft creative editors…</p></section>
+    <section class="module-card wide" id="craftSuite" aria-label="BIG LWA creative workshop"><p role="status">Opening the BIG LWA workshop…</p></section>
     <section class="module-card wide tool-directory">
       <h2>Online converters</h2>
       <p>These run on someone else's server, so your file leaves this device. Use them for the conversions a browser cannot do.</p>
