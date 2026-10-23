@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIG LWA · Image Desk</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{--ink:#271b22;--rose:#d76175;--paper:#f7eee5;--line:#bda499;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:#ebdcd1;color:var(--ink);font:500 13px/1.45 system-ui}
+button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#29191f;color:#fff3e7;padding:10px 16px;border-bottom:4px solid #b24c65}
+h1{font:400 clamp(23px,3vw,36px)/1.1 Georgia,serif;margin:0}header p{margin:3px 0 0;font-size:11px;color:#f4d3ca}
+header .lights{display:inline-flex;gap:5px;margin-right:9px}.lights i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ee7078}.lights i:nth-child(2){background:#eac25a}.lights i:nth-child(3){background:#5bad7b}
+.shell{display:grid;grid-template-columns:minmax(170px,220px) minmax(0,1fr) minmax(170px,235px);gap:10px;min-height:calc(100dvh - 85px);padding:10px}
+.side{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:12px;min-width:0}
+.side h2{font:400 22px/1.2 Georgia,serif;margin:0 0 10px}.side h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin:18px 0 8px}
+.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+button,.filebutton{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:33px;border:1px solid #b99190;background:#fff9f1;color:#422b31;border-radius:7px;padding:6px 9px;text-align:center;font-weight:650}
+button.active{background:#b34a65;color:white;border-color:#90394e}
+button:focus-visible,.filebutton:focus-within,input:focus-visible{outline:3px solid #d78298;outline-offset:2px}
+.field{display:grid;gap:4px;margin:10px 0}.field label{font-size:11px;font-weight:700}
+.field input[type=range],.field input[type=text]{width:100%}.field input[type=color]{width:50px;min-height:35px}
+.filebutton input{display:none}.pair{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.surface{min-width:0;display:flex;flex-direction:column;gap:9px}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;background:#f6ebe2;border:1px solid var(--line);border-radius:11px;padding:9px}
+.toolbar button{font-size:11px}.toolbar .filebutton{font-size:11px}
+.stagewrap{flex:1;min-height:270px;background:#20181c;border-radius:13px;border:4px solid #3e2a30;display:grid;place-items:center;padding:18px;overflow:auto}
+.stage{position:relative;max-width:100%;max-height:calc(100dvh - 200px);box-shadow:0 18px 30px #13070da6;background-color:#fff;background-image:linear-gradient(45deg,#d6d3d2 25%,transparent 25%),linear-gradient(-45deg,#d6d3d2 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d6d3d2 75%),linear-gradient(-45deg,transparent 75%,#d6d3d2 75%);background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0}
+#canvas{display:block;max-width:min(100%,1000px);max-height:calc(100dvh - 220px);width:auto;height:auto;touch-action:none;cursor:crosshair}
+.status{font-size:11px;color:#f7e7da;background:#473039;border-radius:7px;padding:8px 10px;min-height:32px}
+.layerlist{display:grid;gap:6px}
+.layerrow{display:grid;grid-template-columns:1fr auto;gap:5px;border:1px solid #c8aca1;border-radius:8px;background:#fffaf5;padding:7px;align-items:center}
+.layerrow.selected{border-color:#b34a65;background:#fce6e7}
+.layerrow button{font-size:11px;min-height:26px;padding:4px 6px}
+.layername{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.note{font-size:11px;color:#785e5e;margin-top:10px}
+footer{font-size:10px;padding:10px;color:#8c7570}
+@media(max-width:850px){.shell{grid-template-columns:minmax(160px,190px) minmax(0,1fr)}.side.layers{grid-column:1/-1}}
+@media(max-width:570px){.shell{grid-template-columns:1fr}.side.layers{grid-column:auto}.stagewrap{min-height:240px}}
+</style>
+</head>
+<body>
+<header><div><h1><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>BIG LWA · image desk</h1><p>Your own creative space · no login, no cloud upload, no third-party tracking</p></div><span>✦ handmade studio</span></header>
+<div class="shell">
+<aside class="side">
+<h2>make something</h2>
+<div class="controls" role="group" aria-label="Editing tools">
+<button class="active" data-tool="brush">✎ Brush</button><button data-tool="eraser">◌ Eraser</button>
+<button data-tool="text">T Text</button><button data-tool="move">✣ Move</button>
+</div>
+<div class="field"><label for="brushSize">Brush size</label><input type="range" id="brushSize" min="1" max="85" value="12"><output id="brushOutput">12 px</output></div>
+<div class="field"><label for="brushColor">Ink</label><div class="pair"><input type="color" id="brushColor" value="#c84f70"><span>Color of brush / type</span></div></div>
+<div class="field"><label for="textInput">Text to place</label><input id="textInput" type="text" maxlength="240" value="BIG LWA" placeholder="Type, then click the canvas"></div>
+<div class="field"><label for="fontSize">Letter size</label><input id="fontSize" type="range" min="12" max="160" value="54"><output id="fontOutput">54 px</output></div>
+<h3>Transform selected layer</h3>
+<div class="controls"><button id="rotate">↻ Rotate 90°</button><button id="flip">⇋ Flip</button><button id="opacityReset">◉ Full opacity</button><button id="clearLayer">⌫ Clear layer</button></div>
+<p class="note">Brush or erase directly. Use Move to drag the selected layer. Text places a line wherever you click.</p>
+</aside>
+<main class="surface">
+<div class="toolbar">
+<label class="filebutton" for="openImage">↥ Add photo<input id="openImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif"></label>
+<label class="filebutton" for="openProject">▤ Open project<input id="openProject" type="file" accept=".lwa.json,application/json"></label>
+<button id="newDoc">New</button><button id="undo" disabled>↶ Undo</button><button id="redo" disabled>↷ Redo</button>
+<button id="saveProject">Save project</button><button id="exportPng">Export PNG</button><button id="exportJpg">JPEG</button>
+</div>
+<div class="stagewrap" id="dropArea" aria-label="Image editing canvas. Drop photos here to add as a new layer."><div class="stage"><canvas id="canvas" width="1280" height="720" aria-label="Artwork editing surface"></canvas></div></div>
+<div class="status" id="status" role="status" aria-live="polite">Ready · 1280 × 720 · Drop an image, draw, add text, or export.</div>
+</main>
+<aside class="side layers"><h2>layers</h2>
+<div class="controls"><button id="addLayer">+ New layer</button><button id="removeLayer">− Remove</button>
+<button id="upLayer">↑ Forward</button><button id="downLayer">↓ Backward</button></div>
+<div class="field"><label for="layerOpacity">Selected layer opacity</label><input id="layerOpacity" type="range" min="0" max="100" value="100"></div>
+<div id="layerList" class="layerlist" aria-label="Artwork layers"></div>
+<p class="note">Your artwork stays in this browser until you choose to export or download a project file. Nothing is added to your BIG LWA feed automatically.</p>
+</aside>
+</div>
+<footer>BIG LWA image desk · an original local canvas workspace. Advanced image, vector, motion and PDF engines are separately credited in Tools to their open-source authors.</footer>
+<script>
+(()=>{
+'use strict';
+const $=selector=>document.querySelector(selector);
+const canvas=$('#canvas'),ctx=canvas.getContext('2d',{willReadFrequently:false});
+const MAX_SIDE=4096,MAX_FILE=80*1024*1024,MAX_HISTORY=12;
+let tool='brush',layers=[],active=0,undo=[],redo=[],gesture=null,importSerial=0;
+const status=message=>{$('#status').textContent=message};
+const createLayer=(name='Layer')=>{const c=document.createElement('canvas');c.width=canvas.width;c.height=canvas.height;return{name,canvas:c,visible:true,opacity:1,x:0,y:0}};
+function draw(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ for(const layer of layers){
+  if(!layer.visible)continue;
+  ctx.save();ctx.globalAlpha=layer.opacity;ctx.drawImage(layer.canvas,layer.x,layer.y);ctx.restore();
+ }
+}
+function listLayers(){
+ const list=$('#layerList');list.replaceChildren();
+ layers.slice().reverse().forEach((layer,index)=>{
+  const real=layers.length-index-1,row=document.createElement('div');row.className='layerrow'+(real===active?' selected':'');
+  const select=document.createElement('button');select.textContent=layer.name;select.className='layername';select.title='Select '+layer.name;select.addEventListener('click',()=>{active=real;listLayers()});
+  const show=document.createElement('button');show.textContent=layer.visible?'◉':'○';show.setAttribute('aria-label',(layer.visible?'Hide ':'Show ')+layer.name);show.addEventListener('click',()=>{snapshot();layer.visible=!layer.visible;draw();listLayers()});
+  row.append(select,show);list.append(row);
+ });
+ $('#layerOpacity').value=Math.round(layers[active]?.opacity*100||0);
+}
+function newDocument(width=1280,height=720){
+ canvas.width=width;canvas.height=height;layers=[createLayer('Background')];active=0;undo=[];redo=[];gesture=null;draw();listLayers();updateHistory();status('New local canvas · '+width+' × '+height);
+}
+function capture(){return {width:canvas.width,height:canvas.height,active,layers:layers.map(layer=>({...layer,canvas:copyCanvas(layer.canvas)}))}}
+function copyCanvas(source){const c=document.createElement('canvas');c.width=source.width;c.height=source.height;c.getContext('2d').drawImage(source,0,0);return c}
+function restore(state){canvas.width=state.width;canvas.height=state.height;layers=state.layers.map(layer=>({...layer,canvas:copyCanvas(layer.canvas)}));active=Math.min(state.active,layers.length-1);draw();listLayers();updateHistory()}
+function updateHistory(){$('#undo').disabled=!undo.length;$('#redo').disabled=!redo.length}
+function snapshot(){undo.push(capture());if(undo.length>MAX_HISTORY)undo.shift();redo=[];updateHistory()}
+function undoStep(){if(!undo.length)return;redo.push(capture());restore(undo.pop());status('Undid last change.')}
+function redoStep(){if(!redo.length)return;undo.push(capture());restore(redo.pop());status('Redid change.')}
+function position(event){const b=canvas.getBoundingClientRect();return{x:(event.clientX-b.left)*canvas.width/b.width,y:(event.clientY-b.top)*canvas.height/b.height}}
+function mark(event){const l=layers[active];if(!l||!l.visible)return;const p=position(event);const b=l.canvas.getContext('2d');b.save();b.globalCompositeOperation=tool==='eraser'?'destination-out':'source-over';b.strokeStyle=$('#brushColor').value;b.lineCap='round';b.lineJoin='round';b.lineWidth=Number($('#brushSize').value);const x=p.x-l.x,y=p.y-l.y;b.beginPath();b.moveTo(gesture?.x??x,gesture?.y??y);b.lineTo(x,y);b.stroke();if(!gesture){b.fillStyle=b.strokeStyle;b.beginPath();b.arc(x,y,b.lineWidth/2,0,Math.PI*2);b.fill()}b.restore();gesture={x,y};draw()}
+canvas.addEventListener('pointerdown',event=>{
+ if(event.button!==0||!layers[active])return;
+ event.preventDefault();const p=position(event);snapshot();
+ if(tool==='text'){
+  const val=$('#textInput').value.trim();if(!val){undo.pop();updateHistory();status('Type the text first.');return}
+  const l=layers[active],b=l.canvas.getContext('2d');b.save();b.font=Number($('#fontSize').value)+'px Georgia,serif';b.textBaseline='top';b.fillStyle=$('#brushColor').value;b.fillText(val,p.x-l.x,p.y-l.y,canvas.width);b.restore();draw();status('Text placed on '+l.name);return;
+ }
+ gesture=tool==='move'?{x:p.x,y:p.y,startX:layers[active].x,startY:layers[active].y}:null;
+ if(tool==='brush'||tool==='eraser')mark(event);
+ canvas.setPointerCapture(event.pointerId);
+});
+canvas.addEventListener('pointermove',event=>{
+ if(!canvas.hasPointerCapture(event.pointerId))return;
+ if(tool==='move'&&gesture){const p=position(event);const l=layers[active];l.x=gesture.startX+p.x-gesture.x;l.y=gesture.startY+p.y-gesture.y;draw()}
+ else if(tool==='brush'||tool==='eraser')mark(event);
+});
+const stop=event=>{if(canvas.hasPointerCapture(event.pointerId))canvas.releasePointerCapture(event.pointerId);gesture=null};
+canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);
+document.querySelectorAll('[data-tool]').forEach(button=>button.addEventListener('click',()=>{tool=button.dataset.tool;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b===button));status('Tool: '+button.textContent.trim())}));
+for(const [range,out] of [['brushSize','brushOutput'],['fontSize','fontOutput']])$('#'+range).addEventListener('input',()=>{$('#'+out).textContent=$('#'+range).value+' px'});
+$('#addLayer').addEventListener('click',()=>{snapshot();layers.push(createLayer('Layer '+(layers.length+1)));active=layers.length-1;draw();listLayers()});
+$('#removeLayer').addEventListener('click',()=>{if(layers.length===1){status('Keep at least one layer.');return}snapshot();layers.splice(active,1);active=Math.max(0,active-1);draw();listLayers()});
+$('#upLayer').addEventListener('click',()=>{if(active>=layers.length-1)return;snapshot();[layers[active],layers[active+1]]=[layers[active+1],layers[active]];active++;draw();listLayers()});
+$('#downLayer').addEventListener('click',()=>{if(active===0)return;snapshot();[layers[active],layers[active-1]]=[layers[active-1],layers[active]];active--;draw();listLayers()});
+$('#layerOpacity').addEventListener('change',event=>{snapshot();layers[active].opacity=Math.max(0,Math.min(1,Number(event.target.value)/100));draw()});
+$('#opacityReset').addEventListener('click',()=>{snapshot();layers[active].opacity=1;draw();listLayers()});
+$('#clearLayer').addEventListener('click',()=>{snapshot();layers[active].canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);draw()});
+$('#flip').addEventListener('click',()=>{snapshot();const l=layers[active],old=copyCanvas(l.canvas),b=l.canvas.getContext('2d');b.clearRect(0,0,canvas.width,canvas.height);b.save();b.translate(canvas.width,0);b.scale(-1,1);b.drawImage(old,0,0);b.restore();draw()});
+$('#rotate').addEventListener('click',()=>{snapshot();const l=layers[active],old=copyCanvas(l.canvas),b=l.canvas.getContext('2d');b.clearRect(0,0,canvas.width,canvas.height);b.save();b.translate(canvas.width/2,canvas.height/2);b.rotate(Math.PI/2);b.drawImage(old,-canvas.width/2,-canvas.height/2);b.restore();draw()});
+$('#undo').addEventListener('click',undoStep);$('#redo').addEventListener('click',redoStep);
+$('#newDoc').addEventListener('click',()=>{if(window.confirm('Clear this artwork and make a new canvas? Download a project first if you want to keep it.'))newDocument()});
+async function addPhoto(file){
+ if(!file||!/^image\\/(png|jpeg|webp|gif|avif)$/.test(file.type)){status('Choose a PNG, JPEG, WebP, GIF, or AVIF image.');return}
+ if(file.size>MAX_FILE){status('Image exceeds the 80 MB in-browser safety limit.');return}
+ const serial=++importSerial;let bitmap;
+ try{
+  bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});
+  if(serial!==importSerial)return;
+  if(bitmap.width>MAX_SIDE||bitmap.height>MAX_SIDE){status('Image exceeds the 4096 px per-side safety limit.');return}
+  snapshot();
+  const layer=createLayer(file.name.replace(/[<>]/g,'').slice(0,90)||'Imported photo');
+  const b=layer.canvas.getContext('2d');const ratio=Math.min(canvas.width/bitmap.width,canvas.height/bitmap.height,1);
+  const w=bitmap.width*ratio,h=bitmap.height*ratio;
+  b.drawImage(bitmap,(canvas.width-w)/2,(canvas.height-h)/2,w,h);
+  layers.push(layer);active=layers.length-1;draw();listLayers();
+  status('Added '+file.name+' privately · '+bitmap.width+' × '+bitmap.height);
+ }catch(error){status('Could not open photo: '+(error.message||'unsupported format'))}
+ finally{bitmap?.close?.()}
+}
+$('#openImage').addEventListener('change',e=>{if(e.target.files?.[0])addPhoto(e.target.files[0]);e.target.value=''});
+$('#dropArea').addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault()});
+$('#dropArea').addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files?.[0];if(f)addPhoto(f)});
+function download(blob,name){const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}
+function composite(type='image/png',quality=0.92){
+ const off=document.createElement('canvas');off.width=canvas.width;off.height=canvas.height;const b=off.getContext('2d');
+ if(type==='image/jpeg'){b.fillStyle='#ffffff';b.fillRect(0,0,off.width,off.height)}
+ b.drawImage(canvas,0,0);
+ return new Promise((resolve,reject)=>off.toBlob(blob=>blob?resolve(blob):reject(Error('Export failed')),type,quality));
+}
+$('#exportPng').addEventListener('click',async()=>{try{download(await composite(),'biglwa-image.png');status('PNG exported to your device.')}catch(e){status(e.message)}});
+$('#exportJpg').addEventListener('click',async()=>{try{download(await composite('image/jpeg'),'biglwa-image.jpg');status('JPEG exported to your device.')}catch(e){status(e.message)}});
+$('#saveProject').addEventListener('click',()=>{
+ try{const project={schema:1,app:'BIG LWA image desk',width:canvas.width,height:canvas.height,active,layers:layers.map(l=>({name:l.name,visible:l.visible,opacity:l.opacity,x:l.x,y:l.y,pixels:l.canvas.toDataURL('image/png')}))};
+ download(new Blob([JSON.stringify(project)],{type:'application/json'}),'biglwa-artwork.lwa.json');status('Editable project downloaded.')}
+ catch(e){status('Could not save project: '+e.message)}
+});
+$('#openProject').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];e.target.value='';if(!file)return;
+ if(file.size>MAX_FILE){status('Project is too large (max 80 MB).');return}
+ try{
+  const data=JSON.parse(await file.text());
+  if(data.schema!==1||data.app!=='BIG LWA image desk'||!Number.isInteger(data.width)||!Number.isInteger(data.height)||data.width<1||data.height<1||data.width>MAX_SIDE||data.height>MAX_SIDE||!Array.isArray(data.layers)||data.layers.length<1||data.layers.length>25)throw Error('Invalid or unsafe project');
+  const prepared=[];
+  for(const entry of data.layers){
+   if(typeof entry.pixels!=='string'||entry.pixels.length>90_000_000||!entry.pixels.startsWith('data:image/png;base64,'))throw Error('Invalid layer pixels');
+   const image=new Image();image.src=entry.pixels;await image.decode();
+   const cv=document.createElement('canvas');cv.width=data.width;cv.height=data.height;
+   cv.getContext('2d').drawImage(image,0,0,data.width,data.height);
+   prepared.push({name:String(entry.name||'Layer').slice(0,90),canvas:cv,visible:entry.visible!==false,opacity:Math.min(1,Math.max(0,Number(entry.opacity)||0)),x:Number(entry.x)||0,y:Number(entry.y)||0});
+  }
+  canvas.width=data.width;canvas.height=data.height;layers=prepared;active=Math.min(Math.max(0,data.active|0),layers.length-1);undo=[];redo=[];draw();listLayers();updateHistory();status('Project restored locally · '+layers.length+' layers.');
+ }catch(err){status('Could not open project: '+(err.message||'unsupported file'))}
+});
+document.addEventListener('keydown',event=>{
+ if(!(event.ctrlKey||event.metaKey)||event.target.matches('input,textarea'))return;
+ if(event.key.toLowerCase()==='z'){event.preventDefault();event.shiftKey?redoStep():undoStep()}
+ if(event.key.toLowerCase()==='y'){event.preventDefault();redoStep()}
+});
+newDocument();
+})();
+</script>
+</body></html>
