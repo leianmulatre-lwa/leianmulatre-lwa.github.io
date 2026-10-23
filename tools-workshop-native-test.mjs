@@ -36,8 +36,14 @@ assert.match(suite,/CUBE_PALETTE/,'Workshop cubes use brand colors, not plain wo
 assert.match(css,/\.craft-block-svg/,'Workshop styles size the stitched vector cubes');
 assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses the stitched cube');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
-assert.ok(studio.includes('tools-craft.js?v=20261023-private-vault-9'));
+assert.ok(studio.includes('tools-craft.js?v=20261023-workshop-native-10'));
 assert.match(suite,/craftAccountVault/,'Cloud snapshots have a visible first-party shelf');
+assert.match(suite,/id="craftPanelSaveFile"/,'Preview save lives in the Workshop header, not over native tools');
+assert.match(css,/\.craft-panel-save/,'Workshop header controls are styled');
+assert.match(read('assets/craft/editor-brand.js'),/dock\.hidden=true/,'Expanded dock does not cover editing by default');
+assert.match(read('assets/craft/editor-brand.js'),/mini\.hidden=embedded/,'Embedded editor has no duplicate floating toolbar');
+assert.match(read('assets/craft/editor-brand.css'),/data-biglwa-embedded="true"/,'Rust editor canvas is unobstructed');
+
 assert.match(read('account-storage-policy.js'),/biglwaWorkshopSnapshotsV1/,'Private snapshots use the allowlisted account-synced key');
 assert.match(studio,/data-lwa-edit-image/,'Tools offers direct native image editing after sniffing a file');
 assert.match(suite,/function editFile\(file\)/,'Workshop accepts the selected image');
