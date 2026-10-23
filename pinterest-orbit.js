@@ -1015,6 +1015,7 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
       url.pathname.replace(/\/$/,'')!=='/pin/'+id)throw Error('This post is not an original Pinterest Pin link.');
    if(savedBusy)throw Error('Your boards are updating. Retry after the current save.');
    if(savedUid!==uid)await loadSaved();
+   if(savedUid!==uid)throw Error('Saved boards could not be loaded. Retry without overwriting your existing collections.');
    if(uid!==authUid)throw Error('Account changed; please try again.');
    const next=JSON.parse(JSON.stringify(savedLibrary));
    let board=next.boards.find(b=>b.id===target);
@@ -1045,6 +1046,7 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
    if(!uid)throw Error('Sign in to create a private BIG LWA board.');
    if(!clean)throw Error('Enter a board name.');
    if(savedUid!==uid)await loadSaved();
+   if(savedUid!==uid)throw Error('Saved boards could not be loaded. Try again.');
    if(savedBusy)throw Error('Boards are still saving. Try again.');
    const next=JSON.parse(JSON.stringify(savedLibrary));
    if(next.boards.length>=40)throw Error('You have reached the 40-board limit.');
