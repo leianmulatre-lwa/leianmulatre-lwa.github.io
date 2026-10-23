@@ -198,7 +198,7 @@ export async function mountCraftSuite(root){
  const getUrl=(id,webgl=false)=>id===LOCAL.id?LOCAL.url:'/bigapps/'+PUBLIC_APP_ROUTE[id]+'/'+(webgl?'?webgl':'');
  const findItem=id=>id===LOCAL.id?LOCAL:ENGINES.find(item=>item.id===id);
  function close(){
-  current=null;viewer.replaceChildren();panel.hidden=true;
+  current=null;viewer.replaceChildren();panel.hidden=true;delete panel.dataset.craftEngine;
   root.querySelectorAll('[data-craft-card]').forEach(el=>el.classList.remove('is-selected'));
  }
  function open(id,webgl=false){
@@ -210,6 +210,7 @@ export async function mountCraftSuite(root){
     panel.hidden=false;panel.scrollIntoView({block:'nearest',behavior:'smooth'});return true;
   }
   current=id;
+  panel.dataset.craftEngine=id;
   const frame=document.createElement('iframe');frame.src=getUrl(id,webgl);
   frame.title=item.name+' · BIG LWA Tools';
   frame.loading='eager';frame.referrerPolicy='no-referrer';
@@ -220,7 +221,12 @@ export async function mountCraftSuite(root){
   frame.setAttribute('allowfullscreen','');
   frame.addEventListener('error',()=>{info.textContent='The editor failed to start. Try its own tab or another browser.'});
   viewer.replaceChildren(frame);panel.hidden=false;
-  title.textContent='BIG LWA · '+item.name;
+  // The native canvas is WebAssembly. Brand the surrounding Workshop frame.
+  title.replaceChildren();
+  const mark=document.createElement('img');mark.src='/assets/bigapps/icons/'+item.name+'.png?v=20261023-stitch-png-1';
+  mark.width=34;mark.height=34;mark.alt='';mark.className='craft-panel-block';
+  const titleName=document.createElement('span');titleName.textContent=item.name;
+  title.append(mark,titleName);
   info.textContent=id===LOCAL.id?
     'Original sqwibblR editor · work with layers and export a project. Choose Save to BIG LWA for a small private preview.':
     item.name+' · BIG LWA Workshop. Original source and licenses remain available in Source & license notes. Files stay local until you choose to export or save.';
