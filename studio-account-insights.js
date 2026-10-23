@@ -39,11 +39,13 @@
   };
   // Provider-checked live records take priority over old Firestore snapshots;
   // absent counts remain missing rather than becoming manufactured zeros.
-  const merged={
-    ...(overview.orbitConnectedProfiles||{}),
-    ...(overview.connections||{}),
-    ...(connectionAPI?.connections?.()||{})
-  };
+  const merged={...(overview.connections||{})};
+  for(const [id,row]of Object.entries(overview.orbitConnectedProfiles||{})){
+    if(!Object.prototype.hasOwnProperty.call(merged,id))merged[id]=row;
+  }
+  for(const [id,row]of Object.entries(connectionAPI?.connections?.()||{})){
+    merged[id]=row;
+  }
   for(const [id,row]of Object.entries(merged)){
     if(row&&typeof row==='object')
       ingest(id,row,row.stats?.followers??row.followers,row.countCheckedAt||'');
