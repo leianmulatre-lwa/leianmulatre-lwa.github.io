@@ -72,7 +72,7 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261023-private-vault-8';document.head.append(css);
+ css.href='/tools-craft.css?v=20261023-editor-head-9';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
@@ -107,7 +107,8 @@ export async function mountCraftSuite(root){
    '<div class="craft-vault-actions"><label class="craft-vault-file">Save an exported image<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
    '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
   '<div class="craft-panel" id="craftPanel" hidden>'+
-    '<div class="craft-panel-head"><strong id="craftPanelTitle">BIG LWA editor</strong><div class="craft-panel-actions">'+
+    '<div class="craft-panel-head"><div class="craft-panel-identity"><span class="craft-panel-lights" aria-hidden="true"><i></i><i></i><i></i></span><strong id="craftPanelTitle">BIG LWA editor</strong></div><div class="craft-panel-actions">'+
+       '<label class="craft-panel-save" title="Save a flattened exported image to your BIG LWA snapshot shelf">Save preview<input id="craftPanelSaveFile" type="file" accept="image/png,image/jpeg,image/webp"></label>'+ 
        '<button type="button" data-craft-webgl hidden>WebGL fallback</button>'+
        '<button type="button" data-craft-fullscreen>Fullscreen</button>'+
        '<a id="craftDirectLink" href="/tools/image-desk.html" target="_blank" rel="noopener noreferrer">Open in its own tab ↗</a>'+
@@ -124,7 +125,7 @@ export async function mountCraftSuite(root){
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
  const vaultKey='biglwaWorkshopSnapshotsV1',vaultStatus=root.querySelector('#craftVaultStatus'),vaultFile=root.querySelector('#craftVaultFile');
- const vaultGallery=root.querySelector('#craftVaultGallery');
+ const vaultGallery=root.querySelector('#craftVaultGallery'),panelSaveFile=root.querySelector('#craftPanelSaveFile');
  let vaultBusy=false;
  const vaultAccount=()=>window.BigLWAAccountStorage?.uid||'';
  function vaultRows(){
@@ -135,6 +136,7 @@ export async function mountCraftSuite(root){
   vaultGallery.replaceChildren();
   const uid=vaultAccount(),rows=uid?vaultRows():[];
   vaultFile.disabled=!uid||vaultBusy;
+  panelSaveFile.disabled=!uid||vaultBusy;
   vaultStatus.textContent=uid?(rows.length?rows.length+' private snapshot'+(rows.length===1?'':'s')+' saved to your account collection.':'No cloud snapshots yet. Export or create an image to save one.'):'Sign in to BIG LWA to save and reopen snapshots.';
   for(const item of rows){
    const card=document.createElement('article');card.className='craft-vault-card';
@@ -164,7 +166,7 @@ export async function mountCraftSuite(root){
   if(!blob||!/^image\/(?:png|jpeg|webp)$/.test(blob.type)||blob.size>12*1024*1024){
    vaultStatus.textContent='Choose a JPG, PNG or WebP image smaller than 12 MB.';return false
   }
-  vaultBusy=true;vaultFile.disabled=true;vaultStatus.textContent='Preparing a private account preview…';
+  vaultBusy=true;vaultFile.disabled=true;panelSaveFile.disabled=true;vaultStatus.textContent='Preparing a private account preview…';
   try{
    const bitmap=await createImageBitmap(blob);
    const scale=Math.min(1,640/bitmap.width,540/bitmap.height);
@@ -186,11 +188,16 @@ export async function mountCraftSuite(root){
    vaultStatus.textContent=/^Saved to your account/.test(outcome)?'Private image snapshot synced to BIG LWA. Editable layers must still be downloaded separately.':'Snapshot saved locally for this signed-in account; cloud sync status: '+outcome;
    return true;
   }catch(err){vaultStatus.textContent='Snapshot not saved: '+err.message;return false}
-  finally{vaultBusy=false;vaultFile.disabled=!vaultAccount()}
+  finally{vaultBusy=false;vaultFile.disabled=!vaultAccount();panelSaveFile.disabled=!vaultAccount()}
  }
- vaultFile.addEventListener('change',async event=>{
-  const file=event.target.files?.[0];event.target.value='';if(file)await saveVaultImage(file,file.name.replace(/\.[^.]+$/,''));
- });
+ for(const fileControl of [vaultFile,panelSaveFile]){
+  fileControl.addEventListener('change',async event=>{
+   const file=event.target.files?.[0];event.target.value='';
+   if(!file)return;
+   const saved=await saveVaultImage(file,file.name.replace(/\.[^.]+$/,''));
+   if(fileControl===panelSaveFile)info.textContent=saved?'Preview added to your private Workshop shelf; native project files still export within the editor.':vaultStatus.textContent;
+  });
+ }
  window.addEventListener('biglwa:account-storage-status',()=>{if(root.isConnected&&!vaultBusy)showVault()});
  Promise.resolve(window.BigLWAAccountStorage?.ready).then(()=>{if(root.isConnected)showVault()});
  // Only accept an explicit save request from the currently active, same-origin editor iframe.
