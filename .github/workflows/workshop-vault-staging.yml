@@ -1,0 +1,50 @@
+name: Isolated Workshop Vault Staging
+on:
+  push:
+    branches: [biglwa-project-vault]
+    paths:
+      - 'workshop-vault-staging.js'
+      - 'wrangler.workshop-staging.toml'
+      - 'workshop-project-vault-test.mjs'
+      - '.github/workflows/workshop-vault-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: biglwa-workshop-vault-staging-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-isolated-staging:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Guard separate Worker and R2 destination
+        run: |
+          python3 - <<'PY'
+          import pathlib,tomllib
+          s=tomllib.loads(pathlib.Path('wrangler.workshop-staging.toml').read_text())
+          assert s['name']=='biglwa-workshop-vault-staging'
+          assert s['main']=='workshop-vault-staging.js'
+          assert s['r2_buckets']==[{'binding':'WALLPAPER_BUCKET','bucket_name':'biglwa-preview-media'}]
+          assert s.get('workers_dev') is True
+          code=pathlib.Path(s['main']).read_text()
+          assert 'productionStorage:false' in code
+          assert 'FACEBOOK_PERSONAL_APP_SECRET' not in code
+          assert 'WORKSHOP_PROJECT_MAX=25*1024*1024' in code
+          print('Staging isolated: no OAuth or production R2 binding.')
+          PY
+      - name: Run staging auth, CORS, owner isolation and binary file tests
+        env:
+          BIGLWA_VAULT_SOURCE: staging
+        run: |
+          node --check workshop-vault-staging.js
+          node workshop-project-vault-test.mjs
+      - name: Dry-run WebAssembly-independent staging Worker bundle
+        run: npx --yes wrangler@4 deploy --config wrangler.workshop-staging.toml --dry-run --outdir "$RUNNER_TEMP/vault-staging-bundle"
