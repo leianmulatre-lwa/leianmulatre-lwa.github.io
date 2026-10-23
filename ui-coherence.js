@@ -1540,7 +1540,7 @@
   function showFollowersPanel(stats){
     let panel=document.getElementById('biglwaFollowersPopover');
     if(!panel){
-      panel=document.createElement('section');panel.id='biglwaFollowersPopover';
+      panel=document.createElement('section');panel.id='biglwaFollowersPopover';panel.hidden=true;
       panel.className='biglwa-followers-popover';panel.setAttribute('role','dialog');
       panel.setAttribute('aria-label','Followers by connected platform');
       const head=document.createElement('div');head.className='biglwa-followers-head';
