@@ -106,6 +106,7 @@ export async function mountCraftSuite(root){
    '<p>Save a small preview to your signed-in account. This is a flattened image you can reopen in sqwibblR, not an editable WASM project.</p></div>'+
    '<div class="craft-vault-actions"><label class="craft-vault-file">Save an exported image<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
    '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
+  '<section class="craft-project-vault" id="craftProjectVault" aria-label="Private original editable Workshop projects"></section>'+
   '<div class="craft-panel" id="craftPanel" hidden>'+
     '<div class="craft-panel-head"><div class="craft-panel-identity"><span class="craft-panel-lights" aria-hidden="true"><i></i><i></i><i></i></span><strong id="craftPanelTitle">BIG LWA editor</strong></div><div class="craft-panel-actions">'+
        '<label class="craft-panel-save" title="Save a flattened exported image to your BIG LWA snapshot shelf">Save preview<input id="craftPanelSaveFile" type="file" accept="image/png,image/jpeg,image/webp"></label>'+ 
@@ -298,6 +299,17 @@ export async function mountCraftSuite(root){
   );
   if(alreadyOpen)send();else iframe.addEventListener('load',send,{once:true});
   return true;
+ }
+ // Private native-file storage is separate from compressed image snapshots.
+ // Cloud APIs must be deployed and account-authorized before a successful save
+ // is reported; an unavailable API never falls back to a fake browser-only copy.
+ const projectHost=root.querySelector('#craftProjectVault');
+ if(projectHost){
+  import('/workshop-native-files.js?v=20261023-native-project-vault-1')
+   .then(mod=>{
+    if(root.isConnected)mod.mountNativeProjectVault(projectHost,{open,active:()=>current||'other'});
+   })
+   .catch(err=>{if(projectHost.isConnected)projectHost.textContent='Private editable project shelf unavailable: '+err.message});
  }
  return {open,close,editFile,available:()=>[...ready]};
 }
