@@ -54,7 +54,12 @@ jobs:
             effectcraft)
               grep -q 'Opening keyframeR' "$root/apps/effectcraft-web/web/index.html"
               grep -q '0xb6, 0x79, 0xc5' "$root/crates/ui-egui/src/theme.rs"
-              test -s "$root/apps/effectcraft-web/web/favicon.svg";;
+              test -s "$root/apps/effectcraft-web/web/favicon.svg"
+              grep -q 'keyframeR Intro' "$root/crates/engine/src/demo.rs"
+              if grep -q 'EFFECTCRAFT' "$root/crates/engine/src/demo.rs"; then
+                echo '::error::Old upstream demo title remains in the startup composition'
+                exit 1
+              fi;;
             pdfcraft)
               grep -q 'BIG LWA fileR' "$root/crates/ui-egui/src/widgets.rs"
               test -s "$root/assets/biglwa/fileR-mark.svg";;
