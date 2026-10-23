@@ -1663,6 +1663,22 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     body.innerHTML=heading('connect')+'<section class="module-card wide" style="margin-top:20px"><h2>Invite your people.</h2><p>Send a friend this link to join BIGLWA. They can choose Create account on the welcome page.</p><label for="biglwaInvite">Join BIGLWA link</label><input class="module-input" id="biglwaInvite" readonly value="'+invite+'"><div class="module-actions"><button type="button" class="module-action" id="copyBiglwaInvite">Copy invite link</button><button type="button" class="module-action ghost" id="shareBiglwaInvite">Share invitation</button></div><p class="module-status" id="inviteStatus" role="status"></p></section>';
     const status=$('#inviteStatus',body);
     async function copy(){try{await navigator.clipboard.writeText(invite);status.textContent='Invite link copied.'}catch{const input=$('#biglwaInvite',body);input.focus();input.select();status.textContent='Select and copy the link above to share it.'}}
+    // User-controlled invitations: contacts are never bulk-uploaded, harvested,
+    // or sent to friends without choosing an address and explicitly sending.
+    const inviteActions='<div class="module-actions" style="margin-top:12px;flex-wrap:wrap">'+
+      '<label for="inviteFriendEmail">Invite by email</label>'+
+      '<input class="module-input" id="inviteFriendEmail" type="email" autocomplete="off" placeholder="friend@example.com" style="min-width:190px;max-width:310px" />'+
+      '<button type="button" class="module-action ghost" id="sendManualInvite">Compose invitation</button>'+
+      '</div><p class="module-status">You choose the recipient and approve the message in your email app. BIG LWA does not upload your address book.</p>';
+    $('#inviteStatus',body).insertAdjacentHTML('afterend',inviteActions);
+    $('#sendManualInvite',body).onclick=()=>{
+      const field=$('#inviteFriendEmail',body),address=field.value.trim();
+      if(!field.checkValidity()||!address){status.textContent='Enter a valid email address first.';field.focus();return}
+      const subject='Join me on BIG LWA';
+      const text='I would love to connect with you on BIG LWA! You can join here: '+invite;
+      location.href='mailto:'+encodeURIComponent(address)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(text);
+      status.textContent='Your email app opened a draft. Send only if you want to invite this friend.';
+    };
     $('#copyBiglwaInvite',body).onclick=copy;
     $('#shareBiglwaInvite',body).onclick=async()=>{if(!navigator.share){await copy();return}try{await navigator.share({title:'Join BIGLWA',text:'Join me on BIGLWA — a space for creativity, culture, and connection.',url:invite});status.textContent='Invitation shared.'}catch(e){if(e.name!=='AbortError')await copy()}};
   }
