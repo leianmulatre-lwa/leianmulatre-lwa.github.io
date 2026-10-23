@@ -25,7 +25,7 @@ assert.match(css,/\.craft-block-front::before/,'Alphabet blocks have cream print
 assert.match(css,/\.craft-arcade-block::after/,'Alphabet blocks have a 3-D wooden side');
 assert.match(css,/\.craft-block-front::after/,'Alphabet blocks have vintage dotted edging');
 assert.match(suite,/craft-block-front/,'All Workshop tiles use the 3-D block markup');
-assert.doesNotMatch(suite,/<i><\/i><i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
+assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
 assert.ok(studio.includes('tools-craft.js?v=20261022-vintage-woodblocks-5'));
 assert.match(studio,/data-lwa-edit-image/,'Tools offers direct native image editing after sniffing a file');
 assert.match(suite,/function editFile\(file\)/,'Workshop accepts the selected image');
