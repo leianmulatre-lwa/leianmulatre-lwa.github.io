@@ -38,5 +38,5 @@ assert.match(css,/#studioApp \.sidebar \.sidebar-top\s*\{[^}]*overflow-y:auto!im
 assert.match(css,/#studioApp \.sidebar \.sidebar-bottom\s*\{[^}]*flex:0 0 auto!important;/s,'Theme controls stay attached to the same dock');
 assert.match(css,/#studioApp #moduleWorkspace\[data-module-key="notes"\] \.module-heading h1\s*\{[^}]*font-family:"Subwaygraph"/s,'Sqwidz module heading matches its widget font');
 assert.match(css,/@font-face\{font-family:'Subwaygraph'/,'Subwaygraph font registered');
-assert.ok(home.includes('/ui-coherence.js?v=20261022-fixed-joined-header-4')&&home.includes('/studio-alignment-20261020.css?v=layout-fixed-header-19'),'Both updated files are on the current site build');
+assert.ok(home.includes('/ui-coherence.js?v=20261022-followers-detail-5')&&home.includes('/studio-alignment-20261020.css?v=layout-fixed-header-19'),'Both updated files are on the current site build');
 console.log('PASS: dock header offset remains stable after resize and repeated initialization; Sqwidz title uses Subwaygraph; both assets are loaded');
