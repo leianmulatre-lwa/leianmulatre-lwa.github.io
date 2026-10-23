@@ -1684,10 +1684,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     contactFile.style.maxWidth='240px';
     const contactPanel=document.createElement('section');contactPanel.className='module-card wide';
     contactPanel.style.marginTop='10px';
-    const heading=document.createElement('h2');heading.textContent='Choose friends from a contacts file';
+    const contactHeading=document.createElement('h2');contactHeading.textContent='Choose friends from a contacts file';
     const info=document.createElement('p');info.textContent='Optional CSV with email addresses. Only this browser reads the file; nothing is uploaded. Pick each recipient before opening an email draft.';
     const localResults=document.createElement('div');localResults.className='module-list';localResults.setAttribute('aria-live','polite');
-    contactPanel.append(heading,info,contactFile,localResults);
+    contactPanel.append(contactHeading,info,contactFile,localResults);
     body.append(contactPanel);
     contactFile.addEventListener('change',async()=>{
       localResults.replaceChildren();const file=contactFile.files?.[0];if(!file)return;
