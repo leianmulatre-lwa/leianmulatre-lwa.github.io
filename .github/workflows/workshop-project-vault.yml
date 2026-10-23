@@ -5,6 +5,7 @@ on:
     paths:
       - 'cloudflare-worker-instagram.js'
       - 'workshop-project-vault-test.mjs'
+      - 'workshop-project-frontend-test.mjs'
       - 'workshop-native-files.js'
       - 'tools-craft.js'
       - 'tools-craft.css'
@@ -28,6 +29,12 @@ jobs:
         run: |
           node --check cloudflare-worker-instagram.js
           node workshop-project-vault-test.mjs
+      - name: Install DOM test dependencies without publishing to site
+        run: npm install --prefix "$RUNNER_TEMP/biglwa-tests" jsdom@26.1.0 --no-audit --no-fund
+      - name: Render editable file shelf and verify file-upload controls
+        env:
+          NODE_PATH: ${{ runner.temp }}/biglwa-tests/node_modules
+        run: node workshop-project-frontend-test.mjs
       - name: Confirm older profile media storage remains functional
         run: |
           node profile-music-test.mjs
