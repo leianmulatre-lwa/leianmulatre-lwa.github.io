@@ -31,14 +31,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     ui.horizontal(|ui| {
                         widgets::artcraft_mark(ui, 28.0);
                         ui.vertical(|ui| {
-                            ui.label(egui::RichText::new(tl!("Join the ArtCraft community")).font(theme::semibold(15.0)));
-                            ui.label(egui::RichText::new(tl!("Get help, share feedback and follow development on Discord.")).color(t.text_muted));
+                            ui.label(egui::RichText::new("fileR · BIG LWA Workshop").font(theme::semibold(15.0)));
+                            ui.label(egui::RichText::new("Work with original PDFs locally. Save to your BIG LWA project shelf only when you choose to export.").color(t.text_muted));
                         });
                     });
-                    ui.add_space(8.0);
-                    if let Some(cmd) = widgets::community_links(ui) {
-                        app.execute(cmd);
-                    }
                 });
             ui.add_space(22.0);
 
