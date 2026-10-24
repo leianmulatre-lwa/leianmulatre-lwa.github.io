@@ -44,5 +44,5 @@ assert.ok(external.includes('refresh(false)'), 'Try public stats on connect/link
 assert.ok(external.includes('verifiedFromProvider:false,publicSnapshot:true'),
  'Third-party counts must be visibly external');
 assert.ok(home.includes('/tiktok-external-stats.js?v=20261023-username-public-match-1'));
-assert.ok(home.includes('/profile-social-showcase.js?v=20261023-username-public-source-1'));
+assert.ok(home.includes('/profile-social-showcase.js?v=20261023-banner-story-rings-2'));
 console.log('Public TikTok/Snapchat username-match checks passed.');
