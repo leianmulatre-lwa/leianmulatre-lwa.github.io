@@ -118,7 +118,7 @@
                publicProfile.link='https://www.tumblr.com/'+encodeURIComponent(publicProfile.username);
              }
            }
-           state[id]={...publicProfile,id,needsReauth:!!response.needsReauth,
+           state[id]={...publicProfile,id,scopes:String(response.scopes||''),needsReauth:!!response.needsReauth,
              accounts:Array.isArray(response.accounts)?response.accounts.slice(0,5):[],
              activeSourceUserId:response.activeSourceUserId||publicProfile.sourceUserId,
              verifiedFromProvider:!response.needsReauth,lastVerifiedAt:Date.now()};
@@ -181,7 +181,7 @@
    try{await mirrorPromise}catch(error){console.warn('Orbit public profile mirror:',error)}
    finally{mirrorPromise=null}
  }
- async function connect(provider){
+ async function connect(provider,mode='full'){
    if(!providerIds.includes(provider))throw Error('Unknown Orbit provider.');
    // Recheck on each click; credentials may have been added since page load.
    if(!config[provider]?.configured)await load();
@@ -199,8 +199,9 @@
    }
    const user=await token();
    // The page already has a compact status area; no giant notification overlay.
-   notice('Opening '+provider+' authorization…');
-   const result=await query(provider,'start','POST',user.idToken);
+   const basicTest=provider==='x'&&mode==='profile-only';
+   notice(basicTest?'Opening X profile-only authentication test…':'Opening '+provider+' authorization…');
+   const result=await query(provider,'start','POST',user.idToken,basicTest?{mode:'profile-only'}:null);
    const uri=new URL(String(result.authorizeUrl||''));
    const valid=provider==='x'?['twitter.com','x.com']:provider==='tumblr'?['www.tumblr.com']:['accounts.snapchat.com'];
    if(uri.protocol!=='https:'||!valid.includes(uri.hostname))throw Error('Provider returned an invalid authorization destination.');
