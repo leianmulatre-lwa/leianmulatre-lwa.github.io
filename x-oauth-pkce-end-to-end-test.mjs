@@ -26,16 +26,18 @@ const env={
  }
 };
 const user=async()=>({uid:'test-member'});
-const start=async()=>{
+const start=async(mode='full')=>{
  const r=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/start',{
-  method:'POST',headers:{Origin:'https://biglwa.com',Authorization:'Bearer fake-test'}
+  method:'POST',headers:{Origin:'https://biglwa.com',Authorization:'Bearer fake-test','Content-Type':'application/json'},
+  body:JSON.stringify({mode})
  }),env,user);
  assert.equal(r.status,200);
  const d=await r.json(),auth=new URL(d.authorizeUrl),state=auth.searchParams.get('state');
  assert.equal(auth.origin+auth.pathname,'https://x.com/i/oauth2/authorize');
  assert.equal(auth.searchParams.get('redirect_uri'),'https://api.biglwa.com/x/callback');
  assert.equal(auth.searchParams.get('code_challenge_method'),'S256');
- assert.equal(auth.searchParams.get('scope'),'users.read tweet.read offline.access');
+ assert.equal(auth.searchParams.get('scope'),mode==='profile-only'?'users.read':'users.read tweet.read offline.access');
+ assert.equal(d.scopeMode,mode);
  assert.ok(auth.searchParams.get('code_challenge')?.length>=43);
  assert.ok(state?.length>=32);
  const saved=store.get('new-orbit:x:state:'+state);
@@ -45,6 +47,9 @@ const start=async()=>{
 const originalFetch=globalThis.fetch;
 let tokenExchanges=0,profileReads=0;
 try{
+ // Diagnostic scope must not weaken the normal production Connect X flow.
+ const limited=await start('profile-only');
+ assert.equal(store.get('new-orbit:x:state:'+limited.state).scopes,'users.read');
  const granted=await start();
  globalThis.fetch=async(url,options={})=>{
   if(url==='https://api.x.com/2/oauth2/token'){
@@ -78,6 +83,7 @@ try{
  assert.equal(saved.profile.followers,1492);
  assert.equal(saved.profile.sourceUserId,'12345');
  assert.equal(saved.refreshToken,'fake-test-refresh');
+ assert.equal(saved.scopes,'users.read tweet.read offline.access');
  const session=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/session',{headers:{Origin:'https://biglwa.com'}}),env,user);
  const json=await session.json();
  assert.equal(json.connected,true);
