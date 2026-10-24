@@ -27,20 +27,89 @@
    return null;
   }catch{return null}
  };
- let signature='';
+ const PUBLIC='https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev';
+ const validHandle=h=>/^[a-zA-Z0-9._]{2,40}$/.test(h||'');
+ const accountHandles=()=>{
+  const snap=window.BigLWAOrbitOAuth?.get?.('snapchat');
+  let snapchat=String(snap?.username||'').replace(/^@/,'').trim();
+  if(!validHandle(snapchat)){
+   try{const link=new URL(window.BigLWAOrbitAccountLinks?.get?.()?.snapchat||'');
+    if(link.hostname==='www.snapchat.com'||link.hostname==='snapchat.com'){
+     snapchat=link.pathname.match(/^\/add\/([a-zA-Z0-9._]{2,40})\/?$/)?.[1]||'';
+    }
+   }catch{}
+  }
+  const ig=window.__biglwaConnections?.connections?.()?.instagram;
+  const instagram=String(ig?.username||window.__biglwaInstagramOrbit?.state?.profile?.username||'').replace(/^@/,'').trim();
+  return {snapchat:active('snapchat')&&validHandle(snapchat)?snapchat:'',
+   instagram:active('instagram')&&validHandle(instagram)?instagram:''};
+ };
+ let snapSource={key:'',status:'',items:[],message:''},signature='';
+ function refreshPublicSnapchat(handle,who){
+  const next=who+':'+handle.toLowerCase();
+  if(snapSource.key===next)return;
+  snapSource={key:next,status:'loading',items:[],message:''};
+  fetch(PUBLIC+'/snapchat/'+encodeURIComponent(handle),{credentials:'omit',mode:'cors',cache:'no-store'})
+   .then(r=>{if(!r.ok)throw Error('Public source unavailable');return r.json()})
+   .then(data=>{
+    if(snapSource.key!==next||uid()!==who)return;
+    if(data?.handle?.toLowerCase()!==handle.toLowerCase()||data?.matchedHandle!==true)
+      throw Error('Public username did not match');
+    const items=Array.isArray(data.items)?data.items.filter(v=>
+     v?.kind==='Spotlight'&&typeof v.mediaUrl==='string'&&
+     /^https:\/\/cf-st\.sc-cdn\.net\//.test(v.mediaUrl)).slice(0,8):[];
+    snapSource={key:next,status:items.length?'ready':'empty',items,
+     message:items.length?'Public @'+handle+' matched · '+items.length+' Spotlight preview(s)':
+     'No public Spotlight media available for @'+handle};
+    schedule();
+   }).catch(e=>{
+    if(snapSource.key!==next)return;
+    snapSource={key:next,status:'error',items:[],message:'Snapchat public lookup unavailable; original profile remains accessible.'};
+    schedule();
+   });
+ }
  function show(){
   const root=document.querySelector('#studioApp .profile-card');
-  const who=uid(),entries=saved();
+  const who=uid(),entries=saved(),handles=accountHandles();
+  if(handles.snapchat)refreshPublicSnapchat(handles.snapchat,who);
+  else if(snapSource.key)snapSource={key:'',status:'',items:[],message:''};
+  const snapItems=handles.snapchat&&snapSource.key===who+':'+handles.snapchat.toLowerCase()?snapSource.items:[];
   if(!root||!who||(!active('snapchat')&&!active('instagram'))){root?.querySelector('[data-biglwa-public-showcase]')?.remove();signature='';return}
-  const tag=who+'|'+entries.map(x=>x.url).join('|')+'|'+active('snapchat')+'|'+active('instagram');
+  const tag=who+'|'+entries.map(x=>x.url).join('|')+'|'+handles.snapchat+'|'+handles.instagram+'|'+snapSource.status+'|'+snapItems.length;
   if(signature===tag&&root.querySelector('[data-biglwa-public-showcase]'))return;
   signature=tag;
   root.querySelector('[data-biglwa-public-showcase]')?.remove();
   const section=document.createElement('details');section.dataset.biglwaPublicShowcase='1';
   section.style.cssText='margin:8px 0 0;padding:6px 0 0;border-top:1px solid #dfcfce;min-width:0';
-  const title=document.createElement('summary');title.textContent='Spotlight & Highlights · '+entries.length;
+  const title=document.createElement('summary');title.textContent='Spotlight & Highlights · '+(entries.length+snapItems.length);
   title.style.cssText='cursor:pointer;font:700 11px/1.5 system-ui;color:#762e4b';
   section.append(title);
+  const discovery=document.createElement('div');
+  discovery.style.cssText='padding:5px 0 8px;font:500 10px/1.55 system-ui;color:#705364;display:grid;gap:5px';
+  if(active('snapchat')){
+   const a=document.createElement('a');a.target='_blank';a.rel='noopener noreferrer';
+   a.href=handles.snapchat?'https://story.snapchat.com/add/@'+encodeURIComponent(handles.snapchat):'https://www.snapchat.com';
+   a.textContent=handles.snapchat?'Snapchat · @'+handles.snapchat+' ↗':'Snapchat · provider did not supply a public @username';
+   discovery.append(a);
+   if(handles.snapchat){
+    const status=document.createElement('small');status.textContent=snapSource.status==='loading'
+     ?'Checking public Spotlight index for an exact username match…':
+     (snapSource.message||'No public Spotlight preview yet.');
+    discovery.append(status);
+   }
+  }
+  if(active('instagram')){
+   const a=document.createElement('a');
+   a.href='https://igexport.com/en/instagram-highlights-viewer/';
+   a.target='_blank';a.rel='noopener noreferrer';
+   a.textContent=handles.instagram?'Instagram Highlights · @'+handles.instagram+' · public viewer ↗':
+    'Instagram Highlights · provider has not returned a public @username';
+   discovery.append(a);
+   const note=document.createElement('small');
+   note.textContent='Instagram viewer is external; no automatic Highlight import API verified.';
+   discovery.append(note);
+  }
+  section.append(discovery);
   const form=document.createElement('form');form.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin:9px 0';
   const input=document.createElement('input');input.type='url';input.placeholder='Snapchat Spotlight or Instagram Highlight URL';
   input.setAttribute('aria-label','Public Spotlight or Highlight URL');input.required=true;input.maxLength=500;
@@ -60,6 +129,24 @@
    catch{notice.textContent='Browser storage unavailable.'}
   };
   const container=document.createElement('div');container.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px';
+  snapItems.forEach((item,i)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='min-width:0;border:1px solid #ead7a8;border-radius:9px;overflow:hidden;background:#fff9f0';
+    const a=document.createElement('a');
+    a.href='https://story.snapchat.com/add/@'+encodeURIComponent(handles.snapchat);
+    a.target='_blank';a.rel='noopener noreferrer';
+    a.textContent='Spotlight · @'+handles.snapchat+' ↗';
+    a.style.cssText='display:block;padding:6px;color:#6e3d19;font:700 10px system-ui';
+    const video=document.createElement('video');
+    video.controls=true;video.preload='none';video.playsInline=true;
+    video.referrerPolicy='no-referrer';
+    video.src=item.mediaUrl;video.setAttribute('aria-label','Public Spotlight preview '+(i+1));
+    video.style.cssText='display:block;width:100%;max-height:210px;background:#231b19;object-fit:contain';
+    const info=document.createElement('small');
+    info.textContent='External source preview · not imported or ownership-verified';
+    info.style.cssText='display:block;padding:5px;font:500 9px/1.3 system-ui';
+    wrap.append(a,video,info);container.append(wrap);
+  });
   entries.forEach((item,i)=>{
    const wrap=document.createElement('div');wrap.style.cssText='min-width:0;border:1px solid #debbc6;border-radius:9px;overflow:hidden;background:#fff9f4';
    const bar=document.createElement('div');bar.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:5px;gap:3px';
