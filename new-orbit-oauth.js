@@ -13,7 +13,9 @@ const PROVIDERS={
     scope:'https://auth.snapchat.com/oauth2/api/user.external_id https://auth.snapchat.com/oauth2/api/user.display_name https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar'}
 };
 const WORKER_ORIGIN='https://api.biglwa.com';
-const FINISH_URL='https://biglwa.com/studio?view=orbit';
+// Return directly to BIG LWA's canonical Studio entry point. The legacy /studio
+// stub may strip query parameters, including the X callback result.
+const FINISH_URL='https://biglwa.com/?route=studio&view=orbit';
 const SAFE_SITE=new Set(['https://biglwa.com','https://www.biglwa.com']);
 
 function oaReply(body,status=200,request){
