@@ -1,34 +1,43 @@
-/* Member-only TikTok audience refresh.
- * TikTok OAuth is the only source of machine-readable authorized audience counts.
- * Its public creator embed displays counts visually, but cannot be used as a
- * cross-origin stats API. TokPortal's checker has no keyless profile GET API.
+/* BIG LWA TikTok follower metrics.
+ * Prefer OAuth user.info.stats; when unavailable, use a public username-matched
+ * observation, explicitly marked as external and potentially stale.
+ * The external snapshot does not establish account ownership.
  */
 (()=>{
 'use strict';
 const $=(s,r=document)=>r.querySelector(s);
+const PUBLIC='https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev';
+const VALID=/^[a-zA-Z0-9._]{2,40}$/;
+const numeric=v=>v===null||v===undefined||v===''?null:Number.isSafeInteger(Number(v))&&Number(v)>=0?Number(v):null;
+let lastMessage='',busy=false,publicSnapshot=null,lastAttempt='',lastAttemptAt=0,lastState='';
 const current=()=>{
  const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'');
  const state=window.__biglwaTikTokOrbit?.state;
  if(!uid||!state?.connected||state.uid!==uid)return null;
- let handle=String(state.profile?.username||'').replace(/^@/,'');
+ const oauth=String(state.profile?.username||'').replace(/^@/,'').trim();
+ let linked='';
  try{
-  const link=window.BigLWAOrbitAccountLinks?.get?.()?.tiktok;
-  const url=new URL(link);
-  if(!handle&&url.protocol==='https:'&&['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(url.hostname))
-   handle=decodeURIComponent(url.pathname).match(/^\/@([a-zA-Z0-9._]{2,40})\/?$/)?.[1]||'';
+  const url=new URL(String(window.BigLWAOrbitAccountLinks?.get?.()?.tiktok||''));
+  if(url.protocol==='https:'&&['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(url.hostname)&&!url.port){
+   linked=decodeURIComponent(url.pathname).match(/^\/@([a-zA-Z0-9._]{2,40})\/?$/)?.[1]||'';
+  }
  }catch{}
- return {uid,handle,profile:state.profile||{}};
+ if(oauth&&linked&&oauth.toLowerCase()!==linked.toLowerCase())return {uid,handle:'',profile:state.profile||{},mismatch:true};
+ const handle=oauth||linked;
+ return {uid,handle:VALID.test(handle)?handle:'',profile:state.profile||{},matchedToOAuth:!!oauth};
 };
-const numeric=v=>v===null||v===undefined||v===''?null:Number.isSafeInteger(Number(v))&&Number(v)>=0?Number(v):null;
 const source=()=>{
- const account=current();if(!account)return null;
+ const account=current();if(!account||account.mismatch)return null;
  const n=numeric(account.profile.follower_count);
- if(n===null)return null;
- return {uid:account.uid,handle:account.handle,followers:n,following:numeric(account.profile.following_count),
-  likes:numeric(account.profile.likes_count),videoCount:numeric(account.profile.video_count),
-  source:'TikTok authorized user.info.stats',verifiedFromProvider:true};
+ if(n!==null)return {uid:account.uid,handle:account.handle,followers:n,
+  following:numeric(account.profile.following_count),likes:numeric(account.profile.likes_count),
+  videoCount:numeric(account.profile.video_count),source:'TikTok authorized user.info.stats',
+  verifiedFromProvider:true,checkedAt:new Date().toISOString()};
+ const pub=publicSnapshot;
+ if(pub&&pub.uid===account.uid&&pub.handle.toLowerCase()===account.handle.toLowerCase()&&numeric(pub.followers)!==null)
+  return {...pub,verifiedFromProvider:false,publicSnapshot:true};
+ return null;
 };
-let lastMessage='',busy=false;
 function paint(){
  const row=$('#moduleWorkspace[data-module-key="orbit"] [data-orbit-row="tiktok"]');
  if(!row)return;
@@ -37,52 +46,101 @@ function paint(){
  if(!button){
   button=document.createElement('button');button.type='button';button.className='module-action ghost';
   button.dataset.tiktokLookup='1';button.textContent='Refresh stats';
-  button.addEventListener('click',refresh);
+  button.addEventListener('click',()=>refresh(true));
   actions.append(button);
  }
  button.disabled=busy;
  button.textContent=busy?'Checking TikTok…':'Refresh stats';
  let help=$('[data-tiktok-lookup-status]',row);
- if(!help){help=document.createElement('small');help.dataset.tiktokLookupStatus='1';
+ if(!help){
+  help=document.createElement('small');help.dataset.tiktokLookupStatus='1';
   help.style.cssText='display:block;grid-column:1/-1;padding:2px 10px;color:#725365;font:500 10px/1.4 system-ui';
-  row.append(help)}
+  row.append(help);
+ }
  const member=current(),stats=source();
  help.replaceChildren();
- if(!member){help.textContent='Connect TikTok in Orbit to refresh your own account.';return}
+ if(!member){help.textContent='Connect TikTok to check your account.';return}
+ if(member.mismatch){help.textContent='Linked TikTok username differs from the OAuth username. Correct the link before syncing.';return}
  if(stats){
-  help.textContent='✓ TikTok-reported · '+stats.followers.toLocaleString()+' followers';
-  if(stats.likes!==null)help.textContent+=' · '+stats.likes.toLocaleString()+' received likes';
+  const label=stats.verifiedFromProvider?'TikTok-reported':'Public @'+stats.handle+' · '+stats.source;
+  help.textContent=label+' · '+stats.followers.toLocaleString()+' followers';
+  if(stats.verifiedFromProvider&&stats.likes!==null)help.textContent+=' · '+stats.likes.toLocaleString()+' likes';
+  if(!stats.verifiedFromProvider){
+   help.textContent+=' · external observation, not ownership verification';
+   if(stats.sourceObservedAt)help.textContent+=' · source date '+stats.sourceObservedAt;
+  }
   return;
  }
- help.append(document.createTextNode(lastMessage||'TikTok connected; numeric stats are not included in the current permission.'));
- if(member.handle&&/^[a-zA-Z0-9._]{2,40}$/.test(member.handle)){
-  const a=document.createElement('a');a.href='https://www.tiktok.com/@'+member.handle;
-  a.target='_blank';a.rel='noopener noreferrer';a.textContent=' · View public counts ↗';
-  a.style.cssText='color:#754054;font-weight:700';
-  help.append(a);
+ help.append(document.createTextNode(lastMessage||(
+  member.handle?'No readable public snapshot yet. TikTok authorized stats are unavailable.':
+  'TikTok basic login does not provide @username. Link your public TikTok profile in Orbit to enable username-matched lookup.'
+ )));
+ if(member.handle){
+  const a=document.createElement('a');
+  a.href='https://www.tokportal.com/tool/tiktok-profile-analytics-checker/'+encodeURIComponent(member.handle);
+  a.target='_blank';a.rel='noopener noreferrer';a.textContent=' · Open public checker ↗';
+  a.style.cssText='color:#754054;font-weight:700';help.append(a);
  }
 }
-async function refresh(){
+async function checkPublic(account){
+ if(!account.handle)throw Error('Link your public TikTok @username in Orbit to check its public metrics.');
+ const url=PUBLIC+'/tiktok/'+encodeURIComponent(account.handle);
+ const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store'});
+ if(!response.ok)throw Error('Public TikTok snapshot service is unavailable ('+response.status+').');
+ const data=await response.json();
+ if(!current()||current().uid!==account.uid)throw Error('TikTok connection changed during refresh.');
+ if(data?.handle?.toLowerCase()!==account.handle.toLowerCase())throw Error('Public username did not match the connected account link.');
+ if(!data.available||!data.matchedHandle||numeric(data.followers)===null)
+  throw Error('No indexed public TikTok statistics for @'+account.handle+' yet.');
+ publicSnapshot={
+  uid:account.uid,handle:account.handle,followers:numeric(data.followers),
+  following:numeric(data.following),videoCount:numeric(data.videoCount),likes:null,
+  engagementRate:typeof data.engagementRate==='number'?data.engagementRate:null,
+  sourceObservedAt:String(data.sourceObservedAt||''),source:'TokPortal public snapshot',
+  sourceUrl:String(data.sourceUrl||''),checkedAt:String(data.checkedAt||new Date().toISOString())
+ };
+ return publicSnapshot;
+}
+async function refresh(manual=false){
  if(busy)return;
  const before=current();
- if(!before){lastMessage='Connect TikTok to check account stats.';paint();return}
- busy=true;lastMessage='Checking TikTok authorization…';paint();
+ if(!before){lastMessage='Connect TikTok first.';paint();return}
+ if(before.mismatch){lastMessage='TikTok usernames do not match.';paint();return}
+ busy=true;lastMessage='Checking connected profile…';paint();
  try{
-  await window.__biglwaTikTokOrbit?.restore?.();
-  if(!current()||current().uid!==before.uid)throw Error('Your TikTok connection is no longer active.');
-  const stats=source();
-  lastMessage=stats?'TikTok profile counts updated.':
-   'TikTok did not return numeric counts for this connection. Public counts remain viewable on the original profile.';
+  if(manual)await window.__biglwaTikTokOrbit?.restore?.();
+  const account=current();
+  if(!account||account.uid!==before.uid)throw Error('Your TikTok connection is no longer active.');
+  const approved=numeric(account.profile.follower_count)!==null;
+  if(!approved){
+   lastMessage='Looking up @'+(account.handle||'username')+' from the public source…';paint();
+   await checkPublic(account);
+   lastMessage='Public TikTok snapshot matched @'+account.handle+'.';
+  }else{
+   publicSnapshot=null;
+   lastMessage='TikTok-authorized statistics retrieved.';
+  }
   window.dispatchEvent(new CustomEvent('biglwa:external-stats-updated'));
- }catch(e){lastMessage=String(e?.message||'Refresh unavailable.').slice(0,150)}
+ }catch(e){lastMessage=String(e?.message||'Refresh unavailable.').slice(0,190)}
  finally{busy=false;paint()}
 }
 let timer;
-function queue(){clearTimeout(timer);timer=setTimeout(paint,50)}
+function queue(){
+ clearTimeout(timer);timer=setTimeout(()=>{
+  const acc=current(),identityKey=acc?.uid+':'+(acc?.handle||'');
+  if(identityKey!==lastState){lastState=identityKey;publicSnapshot=null;lastMessage=''}
+  paint();
+  if(!acc||acc.mismatch||!acc.handle||numeric(acc.profile.follower_count)!==null)return;
+  const key=acc.uid+':'+acc.handle.toLowerCase();
+  if(lastAttempt===key&&Date.now()-lastAttemptAt<30*60*1000)return;
+  lastAttempt=key;lastAttemptAt=Date.now();
+  refresh(false);
+ },100);
+}
 document.addEventListener('biglwa:tiktok-status',queue);
 document.addEventListener('biglwa:module-open',queue);
 window.addEventListener('biglwa:orbit-links-synced',queue);
-window.addEventListener('biglwa:identity-updated',()=>{lastMessage='';queue()});
-window.BigLWAExternalTiktok=Object.freeze({snapshot:source,refresh});
+window.addEventListener('biglwa:identity-updated',queue);
+window.BigLWAExternalTiktok=Object.freeze({snapshot:source,refresh:()=>refresh(true)});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',queue,{once:true});else queue();
 })();
