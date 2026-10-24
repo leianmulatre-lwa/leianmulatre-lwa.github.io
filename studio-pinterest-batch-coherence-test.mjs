@@ -15,7 +15,7 @@ assert.ok(studio.includes('box-shadow:0 0 0 3px var(--three-body-color'),'Pastel
 assert.ok(index.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-compact-1'),'Studio script cache refreshed');
 assert.ok(index.includes('pinterest-orbit.js?v=20261022-veve-board-9'),'Pinterest code cache refreshed');
 assert.ok(index.includes('account-boot.js?v=20261023-platform-colors-13'),'Feed boot cache refreshed');
-assert.ok(boot.includes('feed-view.js?v=20261023-orbit-color-key-8'),'Feed code cache refreshed');
+assert.ok(boot.includes('feed-view.js?v=20261023-tiktok-collective-refresh-9'),'Feed code cache refreshed');
 assert.ok(pins.includes('workQueue.push({fn,silent,uid:authUid})'),'Queued Pinterest actions stay isolated to account');
 assert.ok(pins.includes('role="status" aria-live="polite"'),'Pinterest progress is announced without blocking controls');
 assert.ok(pins.includes('if(!saved&&!requested)')&&pins.includes('while(next&&page<100)'),'Full board pagination continues over fetched batches');
