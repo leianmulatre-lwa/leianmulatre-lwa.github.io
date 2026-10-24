@@ -93,7 +93,16 @@ export default {async fetch(request,env,ctx){
   if(length>3000000)throw Error('Response too large');
   const html=(await response.text()).slice(0,3000000);
   const snapshot=parsePublicProfile(html,handle);
-  if(!snapshot)return answer({available:false,handle,source:upstream,message:'No readable public counts for this profile.'},200,origin,1800);
+  if(!snapshot){
+   // Only expose non-sensitive parser flags; do not copy source HTML, cookies
+   // or hidden provider material to BIG LWA clients.
+   const visible=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ')
+     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ')
+     .replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
+   return answer({available:false,handle,source:upstream,message:'No readable public counts for this profile.',
+     diagnostics:{pageBytes:html.length,hasUsername:visible.toLowerCase().includes('@'+handle.toLowerCase()),
+       hasMetrics:/Profile metrics/i.test(visible),hasFollowers:/Followers\s*[\d,]+/i.test(visible)}},200,origin,1800);
+  }
   return answer({available:true,...snapshot,sourceUrl:upstream,checkedAt:new Date().toISOString()},200,origin,21600);
  }catch(error){
   return answer({available:false,handle,source:upstream,message:'External source unavailable.',reason:['Response too large','Not HTML'].includes(error?.message)?error.message:'Fetch blocked'},200,origin,900);
