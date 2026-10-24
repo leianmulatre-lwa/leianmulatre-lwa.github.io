@@ -19,11 +19,30 @@ async function seats(){
  if(house.occupied<300||senate.occupied<90)throw Error('incomplete');return {state:'ok',source:CONGRESS,house,senate};
  }catch(err){return {state:'unavailable',source:CONGRESS};}
 }
+/* Read the observer's current visible SSR summary, not its old HTML layout.
+ * Fail closed when counts disagree; no guessing from percentages.
+ */
 function parseTracker(html){
- const plain=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/\s+/g,' ');
- const m=plain.match(/(\d{1,4})\s+Total\s+(\d{1,4})\s+Done\s+(\d{1,4})\s+In Progress/i);if(!m)return null;
- const [total,done,inProgress]=m.slice(1).map(Number);if(total<50||total>2000||done>total||inProgress>total||done+inProgress>total)return null;
- return {total,done,inProgress,notStarted:total-done-inProgress,completedPct:+(100*done/total).toFixed(1),weightedPct:+(100*(done+inProgress/2)/total).toFixed(1)};
+ const plain=String(html).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ')
+  .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ')
+  .replace(/<[^>]*>/g,' ').replace(/&(?:nbsp|#160);/gi,' ').replace(/\s+/g,' ').trim();
+ const summary=plain.match(/(\d{1,4})\s+Completed\s+(\d{1,4})\s+In Progress\s+(\d{1,4})\s+Not Started\b/i);
+ const legacy=plain.match(/(\d{1,4})\s+Total\s+(\d{1,4})\s+Done\s+(\d{1,4})\s+In Progress\b/i);
+ const totalLabel=plain.match(/Total\s+Objectives\s+(\d{1,4})\b/i);
+ let total,done,inProgress,notStarted;
+ if(summary){
+  [done,inProgress,notStarted]=summary.slice(1).map(Number);
+  total=done+inProgress+notStarted;
+  if(totalLabel&&Number(totalLabel[1])!==total)return null;
+ }else if(legacy){
+  [total,done,inProgress]=legacy.slice(1).map(Number);notStarted=total-done-inProgress;
+  if(totalLabel&&Number(totalLabel[1])!==total)return null;
+ }else return null;
+ if(total<50||total>2000||done<0||inProgress<0||notStarted<0||
+    done+inProgress+notStarted!==total)return null;
+ return {total,done,inProgress,notStarted,
+  completedPct:+(100*done/total).toFixed(1),
+  weightedPct:Math.round(100*(done+inProgress/2)/total)};
 }
 async function tracker(){
  try{const res=await get(PROJECT);if(!res.ok)throw Error('upstream');const counts=parseTracker(await res.text());if(!counts)throw Error('unreadable');
@@ -34,7 +53,7 @@ addEventListener('fetch',event=>event.respondWith((async()=>{
  const req=event.request,url=new URL(req.url),headers=cors(req.headers.get('Origin')||'');
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
  if(req.method!=='GET')return new Response('Method not allowed',{status:405,headers});
- if(url.pathname==='/health')return new Response(JSON.stringify({ok:true,version:'politc-live-v1'}),{headers:{...headers,'Content-Type':'application/json','Cache-Control':'no-store'}});
+ if(url.pathname==='/health')return new Response(JSON.stringify({ok:true,version:'politc-live-v2'}),{headers:{...headers,'Content-Type':'application/json','Cache-Control':'no-store'}});
  if(url.pathname!=='/politc')return new Response('Not found',{status:404,headers});
  const cache=caches.default,key=new Request(url.origin+'/politc');
  if(!url.searchParams.has('refresh')){const cached=await cache.match(key);if(cached){const response=new Response(cached.body,cached);for(const [k,v] of Object.entries(headers))response.headers.set(k,v);return response;}}
