@@ -1636,8 +1636,16 @@ function observeFeed() {
   tick();
 }
 
+let orbitImportRefreshTimer=0;
 window.addEventListener("biglwa:orbit-imported", event => {
-  if(event.detail?.source==="tiktok")draftTrayOpen=true;
+  if(event.detail?.source==="tiktok"&&event.detail?.state==="draft")draftTrayOpen=true;
+  // OAuth imports may contain 100 videos. Refresh Collective Feed once after
+  // the batch instead of issuing a new Firestore query for every single post.
+  clearTimeout(orbitImportRefreshTimer);
+  orbitImportRefreshTimer=setTimeout(loadPosts,340);
+});
+document.addEventListener('biglwa:tiktok-collective-synced',()=>{
+  clearTimeout(orbitImportRefreshTimer);
   loadPosts();
 });
 document.addEventListener('biglwa:tiktok-draft-ready',()=>{draftTrayOpen=true;loadPosts()});
