@@ -879,11 +879,16 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   if(prior.exists()){
     const present=prior.data()||{};
     // Personal sync explicitly publishes drafts; respect removals and archived cards.
-    if(publishToCollective&&provider==='facebook'&&present.state==='draft'&&
+    // Auto-publish only posts returned by the connected TikTok account's
+    // authorized video.list API. A pasted link or an SSSTik response alone is
+    // not proof that the video belongs to this member.
+    const mayPublish=publishToCollective&&(provider==='facebook'||
+      (provider==='tiktok'&&item.authorizedFromTikTokVideoList===true));
+    if(mayPublish&&present.state==='draft'&&
        !['archived','pending_delete'].includes(present.archiveState)){
       if(store.auth.currentUser?.uid!==user.uid)throw Error('Account changed during import.');
       const written=await writePostRecords(store,user.uid,postId,{...present,state:'approved',archiveState:'collective',updatedAt:store.serverTimestamp()},{archiveState:'collective'});
-      if(written.denied.includes('root'))throw Error('Could not publish Facebook item to Collective Feed.');
+      if(written.denied.includes('root'))throw Error('Could not publish '+provider+' item to Collective Feed.');
       window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:provider,postId,state:'approved'}}));
       return {id:postId,created:false,published:true,state:'approved',source:provider};
     }
@@ -898,7 +903,8 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   const embedUrl=videoId?'https://www.tiktok.com/player/v1/'+videoId:null;
   const owner=await resolveOwner(user,{},null);
   const created=store.serverTimestamp();
-  const publish=publishToCollective&&provider==='facebook';
+  const publish=publishToCollective&&(provider==='facebook'||
+    (provider==='tiktok'&&item.authorizedFromTikTokVideoList===true));
   const state=publish?'approved':'draft',archiveState=publish?'collective':'saved';
   const data={
     uid:user.uid,username:owner.username,usernameLower:owner.usernameLower,
