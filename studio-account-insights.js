@@ -45,7 +45,7 @@
     const receivedLikes=id==='tiktok'&&record.verifiedFromProvider!==false?(likes??recoveredLikes):null;
     const monthlyReach=record.stats?.monthlyReach??record.monthlyReach??record.reach??null;
     rows.push({id,followers:value,likes:receivedLikes,lastCheckedAt:observedAt,reach:monthlyReach,
-      handle:record.username||'',link:record.link||'',metric,
+      handle:String(record.sourceUserId||record.username||''),link:record.link||'',metric,
       isLastKnown:fresh===null&&fallback!==null,verified:(fresh!==null&&!!checked)||recoveredByProvider,
        externalVerified,source:externalVerified?'External public source':recoveredByProvider?'TikTok OAuth user.info.stats':null});
   };
