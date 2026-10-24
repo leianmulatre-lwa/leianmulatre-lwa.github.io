@@ -196,6 +196,8 @@ async function oaTextImports(provider,saved,env){
   'User-Agent':'BIGLWA/1.0 (+https://biglwa.com; Tumblr OAuth integration)'};
  let uri;
  if(provider==='x'){
+   if(saved.scopes&&!String(saved.scopes).split(/\s+/).includes('tweet.read'))
+    oaError('X is connected for profile-only diagnostics. Reconnect with full X permissions to import posts.',403);
    const id=String(saved.profile?.sourceUserId||'');
    if(!/^\d{1,28}$/.test(id))oaError('X account identifier is missing. Reconnect X.',422);
    uri=new URL('https://api.x.com/2/users/'+id+'/tweets');
@@ -273,7 +275,7 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
    const result=await oaExchange(provider,code,saved.verifier||'',env,oaCallback(provider,env));
    const profile=await oaProfile(provider,result.access_token);
    await env.OAUTH_SESSIONS.put('new-orbit:'+provider+':account:'+saved.uid,JSON.stringify({
-     profile,accessToken:result.access_token,refreshToken:result.refresh_token||'',
+     profile,scopes:saved.scopes||PROVIDERS[provider].scope,accessToken:result.access_token,refreshToken:result.refresh_token||'',
      expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||3600)*1000,createdAt:Date.now()
    }),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
@@ -317,7 +319,8 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
   if(action==='session'){
    const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
    const fresh=Boolean(saved?.expiresAt&&saved.expiresAt>Date.now());
-   return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null},200,request);
+   return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null,
+    scopes:saved?.scopes||PROVIDERS[provider].scope},200,request);
   }
   if(action==='imports'){
     const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
@@ -331,21 +334,28 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
   }
   const missing=oaConfigured(env,provider);
   if(missing.length)return oaReply({error:'Provider is not configured yet.',missing},503,request);
+  // The optional reduced-scope X test isolates failures at the X consent
+  // screen. It never changes normal full Connect X behavior.
+  const probe=provider==='x'?await request.clone().json().catch(()=>({})):{};
+  const profileOnly=probe?.mode==='profile-only';
+  if(provider==='x'&&probe?.mode&&!['profile-only','full'].includes(probe.mode))
+   return oaReply({error:'Invalid X authorization mode.'},422,request);
+  const requestedScopes=profileOnly?'users.read':c.scope;
   const state=oaRandom(32),verifier=['x','snapchat'].includes(provider)?oaRandom(48):'';
   const callback=oaCallback(provider,env);
   const auth=new URL(c.authorize);
   auth.searchParams.set('response_type','code');
   auth.searchParams.set('client_id',env[c.id]);
   auth.searchParams.set('redirect_uri',callback);
-  auth.searchParams.set('scope',c.scope);
+  auth.searchParams.set('scope',requestedScopes);
   auth.searchParams.set('state',state);
   if(['x','snapchat'].includes(provider)){
    auth.searchParams.set('code_challenge_method','S256');
    auth.searchParams.set('code_challenge',await oaChallenge(verifier));
   }
   await env.OAUTH_SESSIONS.put('new-orbit:'+provider+':state:'+state,
-   JSON.stringify({uid:user.uid,verifier,createdAt:Date.now()}),{expirationTtl:600});
-  return oaReply({ok:true,authorizeUrl:auth.href,provider},200,request);
+   JSON.stringify({uid:user.uid,verifier,scopes:requestedScopes,createdAt:Date.now()}),{expirationTtl:600});
+  return oaReply({ok:true,authorizeUrl:auth.href,provider,scopeMode:profileOnly?'profile-only':'full'},200,request);
  }catch(error){
   if(action==='callback')return oaRedirect(provider,'failed',error.publicMessage||'Authorization failed; try again.');
   return oaReply({error:error.publicMessage||'Provider connection failed.',
