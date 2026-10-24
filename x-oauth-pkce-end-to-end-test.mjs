@@ -54,6 +54,11 @@ try{
  const cb=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/callback?state='+granted.state+'&code=fake-test-code'),env,user);
  assert.equal(cb.status,302);
  assert.match(cb.headers.get('location'),/orbit_status=connected/);
+ const returnUrl=new URL(cb.headers.get('location'));
+ assert.equal(returnUrl.pathname,'/');
+ assert.equal(returnUrl.searchParams.get('route'),'studio');
+ assert.equal(returnUrl.searchParams.get('view'),'orbit');
+ assert.equal(returnUrl.searchParams.get('orbit_provider'),'x');
  assert.equal(tokenExchanges,1);assert.equal(profileReads,1);
  const saved=store.get('new-orbit:x:account:test-member');
  assert.equal(saved.profile.username,'creator');
