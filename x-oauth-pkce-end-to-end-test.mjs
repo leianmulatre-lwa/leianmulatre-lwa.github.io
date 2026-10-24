@@ -37,6 +37,8 @@ const start=async(mode='full')=>{
  assert.equal(auth.searchParams.get('redirect_uri'),'https://api.biglwa.com/x/callback');
  assert.equal(auth.searchParams.get('code_challenge_method'),'S256');
  assert.equal(auth.searchParams.get('scope'),mode==='profile-only'?'users.read':'users.read tweet.read offline.access');
+ assert.ok(!d.authorizeUrl.includes('scope=users.read+tweet.read'),'X URL must encode scope spaces as %20');
+ if(mode==='full')assert.ok(d.authorizeUrl.includes('scope=users.read%20tweet.read%20offline.access'),'X OAuth URL follows documented percent encoding');
  assert.equal(d.scopeMode,mode);
  assert.ok(auth.searchParams.get('code_challenge')?.length>=43);
  assert.ok(state?.length>=32);
