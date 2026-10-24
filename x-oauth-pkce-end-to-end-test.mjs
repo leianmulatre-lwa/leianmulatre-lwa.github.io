@@ -40,6 +40,7 @@ try{
    assert.equal(options.body.get('code_verifier'),granted.verifier);
    assert.equal(options.body.get('redirect_uri'),'https://api.biglwa.com/x/callback');
    assert.equal(options.body.get('grant_type'),'authorization_code');
+   assert.equal(options.body.has('client_id'),false,'X confidential client authenticates via Basic, not form client_id');
    assert.ok(options.headers.Authorization?.startsWith('Basic '));
    return Response.json({access_token:'fake-test-access',refresh_token:'fake-test-refresh',expires_in:7200});
   }
