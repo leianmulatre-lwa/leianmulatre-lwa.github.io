@@ -355,7 +355,12 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
   }
   await env.OAUTH_SESSIONS.put('new-orbit:'+provider+':state:'+state,
    JSON.stringify({uid:user.uid,verifier,scopes:requestedScopes,createdAt:Date.now()}),{expirationTtl:600});
-  return oaReply({ok:true,authorizeUrl:auth.href,provider,scopeMode:profileOnly?'profile-only':'full'},200,request);
+  // X documents OAuth scopes with RFC3986 %20 separators. URLSearchParams
+  // emits form-style '+'; use explicit percent encoding for X authorization.
+  const authorizeUrl=provider==='x'
+    ?auth.href.replace(/([?&]scope=)[^&]*/,(_,head)=>head+encodeURIComponent(requestedScopes))
+    :auth.href;
+  return oaReply({ok:true,authorizeUrl,provider,scopeMode:profileOnly?'profile-only':'full'},200,request);
  }catch(error){
   if(action==='callback')return oaRedirect(provider,'failed',error.publicMessage||'Authorization failed; try again.');
   return oaReply({error:error.publicMessage||'Provider connection failed.',
