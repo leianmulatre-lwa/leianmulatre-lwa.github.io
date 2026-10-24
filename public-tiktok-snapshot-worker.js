@@ -30,7 +30,11 @@ function parsePublicProfile(html,handle){
  const engagement=segment.match(/Engagement\s+rate\s*[:·-]?\s*([\d.]+)%/i);
  // Require the profile heading or author's label to identify this handle.
  const observed=without.toLowerCase();
- if(!new RegExp('(?:^|\\s)@'+handle.replaceAll('.', '\\.')+'(?=\\s|$)','i').test(observed)||followers===null)return null;
+ const normalizedHandle=handle.replaceAll('.', '\\.');
+ const textMatch=new RegExp('(?:^|\\s)@\\s*'+normalizedHandle+'(?=\\s|$)','i').test(observed);
+ const rawTitle=String(html).match(/<title\b[^>]*>([^<]{1,180})<\/title>/i)?.[1]?.trim()||'';
+ const titleMatch=rawTitle.toLowerCase().startsWith(handle.toLowerCase()+' – tiktok performances');
+ if((!textMatch&&!titleMatch)||followers===null)return null;
  const rawDate=without.match(/(?:Scraped|Last update:)\s*(\d{1,2}\/\d{1,2}\/\d{4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4})/i)?.[1]||'';
  return {handle,matchedHandle:true,followers,following,videoCount:video?count(video[1]):null,
   engagementRate:engagement?Number(engagement[1]):null,sourceObservedAt:rawDate||null,
@@ -100,7 +104,7 @@ export default {async fetch(request,env,ctx){
      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ')
      .replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
    return answer({available:false,handle,source:upstream,message:'No readable public counts for this profile.',
-     diagnostics:{pageBytes:html.length,hasUsername:visible.toLowerCase().includes('@'+handle.toLowerCase()),
+     diagnostics:{pageBytes:html.length,publicTitle:(html.match(/<title[^>]*>([^<]{1,140})<\/title>/i)?.[1]||'').slice(0,140),hasUsername:visible.toLowerCase().includes('@'+handle.toLowerCase()),
        hasMetrics:/Profile metrics/i.test(visible),hasFollowers:/Followers\s*[\d,]+/i.test(visible)}},200,origin,1800);
   }
   return answer({available:true,...snapshot,sourceUrl:upstream,checkedAt:new Date().toISOString()},200,origin,21600);
