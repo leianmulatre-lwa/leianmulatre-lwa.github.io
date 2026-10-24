@@ -44,7 +44,7 @@ function copyPublic(src,dst){
     }
     if(!dirent.isFile())continue;
     const ext=extname(dirent.name).toLowerCase();
-    if(!allowedExt.has(ext))continue;
+    if(!allowedExt.has(ext)&&!(ext==='.md'&&['licenses','third-party'].includes(relative(root,from).split(sep)[0])))continue;
     if(dirent.name.endsWith('.map') || dirent.name.endsWith('.test.js'))continue;
     const sz=statSync(from).size;
     if(sz>maxBytes)throw Error('Cloudflare Pages asset exceeds 25MiB: '+relative(root,from));
@@ -74,6 +74,9 @@ for(const dirent of readdirSync(root,{withFileTypes:true})){
 }
 for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp']){
   if(!existsSync(join(dest,required)))throw Error('Missing required public asset: '+required);
+}
+for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','public-tiktok-snapshot-worker.js','wrangler.toml','firestore.rules','.github']){
+  if(existsSync(join(dest,hidden)))throw Error('Restricted development file reached public output: '+hidden);
 }
 if(count>19000)throw Error('Public file count exceeds Cloudflare Pages deployment safety limit.');
 // These are app routes; legal/about/settings pages keep their real HTML.
