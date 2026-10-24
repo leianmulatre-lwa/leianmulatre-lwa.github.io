@@ -1,4 +1,17 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+
+// Cloudflare deploys cloudflare-worker-instagram.js, not new-orbit-oauth.js.
+// Fail the test if the live Worker entry ever drifts from its OAuth source.
+const readLocal=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
+const productionWorker=readLocal('cloudflare-worker-instagram.js');
+const oauthSource=readLocal('new-orbit-oauth.js').replace(/\bexport\b/g,'').trim();
+const inlineStart=productionWorker.indexOf('/* BIG LWA additional Orbit OAuth');
+const inlineEnd=productionWorker.indexOf('/* Separate personal Facebook Login',inlineStart);
+assert.ok(inlineStart>=0&&inlineEnd>inlineStart,'Production Worker must embed the OAuth module');
+assert.equal(productionWorker.slice(inlineStart,inlineEnd).trim(),oauthSource,
+ 'Cloudflare Worker entry must embed the current X/Tumblr/Snapchat OAuth implementation');
+
 import {handleAdditionalOrbit} from './new-orbit-oauth.js';
 
 // No real X credentials, personal tokens, or account information.
