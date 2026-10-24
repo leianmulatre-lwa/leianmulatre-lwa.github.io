@@ -49,5 +49,5 @@ data={uid,analyticsMonths:{},connections:{},peopleConnections:{},orbitConnectedP
 await w.BigLWAAccountInsights.refresh();
 assert.equal(w.__biglwaProfileMetrics.likes,null,'Another member never inherits Likes');
 assert.equal(w.__biglwaProfileMetrics.reach,null,'Another member never inherits reach');
-dom.window.close();
+await new Promise(r=>setTimeout(r,40));
 console.log('PASS banner Likes and monthly reach without Skeleton Key, snapshot persistence, account isolation.');
