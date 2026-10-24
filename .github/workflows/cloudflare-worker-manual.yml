@@ -46,6 +46,7 @@ jobs:
         run: |
           node tiktok-connect-test.mjs
           node orbit-oauth-repair-test.mjs
+          node x-oauth-pkce-end-to-end-test.mjs
           node orbit-session-stability-test.mjs
           node orbit-provider-feed-end-to-end-test.mjs
       - name: Check Worker name and storage bindings before bundling
