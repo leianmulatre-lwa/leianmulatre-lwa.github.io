@@ -95,7 +95,8 @@ try{
   assert.match(worker,/page<5/);
   assert.match(worker,/has_more/);
   assert.match(tiktok,/data-tiktok-public-save/);
-  assert.match(tiktok,/publishToCollective:false/);
+  assert.match(tiktok,/authorizedFromTikTokVideoList:true/);
+  assert.match(tiktok,/publishToCollective:true/);
   assert.match(posts,/embedUrl/);
   assert.match(scopes,/keep_vars\s*=\s*true/);
   console.log('PASS Tumblr primary blog survives OAuth and user profile mirror');
