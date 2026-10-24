@@ -105,7 +105,9 @@
   const rows=known?sources():[];
   const current=summarize(rows,currentMonth);
   const saved=overview?.uid===accountUid?overview.analyticsMonths?.[currentMonth]:null;
-  const savedSummary=saved?.sources?summarize(saved.sources,currentMonth):{likes:null,reach:null};
+  const matchedSaved=(saved?.sources||[]).filter(old=>old.handle&&rows.some(row=>
+    row.id===old.id&&row.handle&&row.handle.toLowerCase()===String(old.handle).toLowerCase()));
+  const savedSummary=matchedSaved.length?summarize(matchedSaved,currentMonth):{likes:null,reach:null};
   const followers=current.followers;
   window.__biglwaProfileMetrics={
     uid:accountUid,
@@ -149,7 +151,14 @@
  }
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
-  const month=monthOf(Date.now()),snapshot={sources:sources().map(({id,followers,likes,lastCheckedAt,reach})=>({id,followers,likes,lastCheckedAt,reach:reach?.month===month&&reach.metric==='reach'&&number(reach.value)!=null?{month,metric:'reach',value:Number(reach.value)}:null})),connections:Object.keys(overview.peopleConnections||{}).length};
+  const month=monthOf(Date.now()),previous=overview.analyticsMonths?.[month]?.sources||[];
+  const snapshot={sources:sources().map(({id,handle,followers,likes,lastCheckedAt,reach})=>{
+    const old=previous.find(item=>item.id===id&&item.handle&&handle&&String(item.handle).toLowerCase()===handle.toLowerCase());
+    const validReach=value=>value?.month===month&&value.metric==='reach'&&number(value.value)!=null
+      ?{month,metric:'reach',value:Number(value.value)}:null;
+    return {id,handle,followers,likes:likes??number(old?.likes),lastCheckedAt,
+      reach:validReach(reach)||validReach(old?.reach)};
+  }),connections:Object.keys(overview.peopleConnections||{}).length};
   const signature=uid()+month+JSON.stringify(snapshot);if(signature===lastSnapshot)return;lastSnapshot=signature;
   const expected=uid();try{const saved=await window.BigLWAUserDirectory.recordAnalyticsMonth(month,snapshot);if(uid()===expected&&overview?.uid===expected){overview.analyticsMonths[month]=saved;render()}}catch{lastSnapshot='';const status=q('#skeletonAnalytics .analytics-status');if(status)status.textContent='Current data shown; monthly observation could not be saved.'}
  }
