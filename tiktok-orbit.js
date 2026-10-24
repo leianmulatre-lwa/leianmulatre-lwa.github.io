@@ -170,14 +170,15 @@
         id:v.id,sourcePostId:v.id,sourceUrl:v.share_url,expectedUid,
         caption:v.title||v.video_description||'TikTok video',
         cover_image_url:v.cover_image_url,
-        sourceUsername:profile.display_name||profile.username||'',
+        sourceUsername:profile.username||(String(v.share_url||'').match(/\/@([^/]+)\/video\//)?.[1]||'')||profile.display_name||'',
+        authorizedFromTikTokVideoList:true,
         mediaType:'VIDEO'
-      },{publishToCollective:false})));
+      },{publishToCollective:true})));
       saved+=results.filter(x=>x.status==='fulfilled'&&(x.value?.created||x.value?.published)).length;
       for(const result of results)if(result.status==='rejected'){failed++;firstError ||= result.reason?.message||'Save failed';}
     }
-    if(saved||failed)notice(saved+' TikTok video(s) saved as private MyFeed drafts.'+
-      (failed?' '+failed+' could not be saved: '+firstError+'. Retry sync.':''));
+    if(saved||failed)notice(saved+' authorized TikTok video(s) published to Collective Feed.'+
+      (failed?' '+failed+' could not be published: '+firstError+'. Retry sync.':''));
   }
 
   async function restore() {
@@ -202,8 +203,10 @@
         videos=Array.isArray(result.videos)?result.videos:[];
         videoPermissionPending=Boolean(result.videoPermissionPending);
         videoLoadError='';
-        if(videoPermissionPending)console.info('TikTok connected. Display API video.list permission is required to show videos.');
-        else await syncTikTokDrafts();
+        if(videoPermissionPending){
+          videoLoadError='TikTok connected, but video.list permission is not granted. The saved SSSTik page only accepts individual video URLs and cannot enumerate your profile.';
+          console.info(videoLoadError);
+        }else await syncTikTokDrafts();
       }catch(e){
         videos=[];videoLoadError=String(e.message||'TikTok video list unavailable.');
         console.warn('TikTok optional video listing:',e.message);
