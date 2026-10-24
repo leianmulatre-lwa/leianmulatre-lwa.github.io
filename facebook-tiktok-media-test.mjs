@@ -23,10 +23,10 @@ assert.ok(html.includes('facebook-orbit.js?v=20261017-media-modal-1'),'Facebook 
 console.log('PASS Facebook public profile and consent-based TikTok video previews; no unauthorized auto-publishing.');
 const syncSource=tt.slice(tt.indexOf('  async function syncTikTokDrafts()'),tt.indexOf('  async function restore()'));
 let imported=[],syncNotice='';
-const syncContext=vm.createContext({videoPermissionPending:false,videos:[{id:'one',share_url:'https://www.tiktok.com/@owner/video/1'}],authUid:'owner',profile:{},window:{__biglwaOrbitPosts:{saveExternalOrbitDraft:async(...args)=>{imported.push(args);return {published:true}}}},notice:text=>syncNotice=text});
+const syncContext=vm.createContext({videoPermissionPending:false,videos:[{id:'one',share_url:'https://www.tiktok.com/@owner/video/1'}],authUid:'owner',profile:{},window:{__biglwaOrbitPosts:{saveExternalOrbitDraft:async(...args)=>{imported.push(args);return {published:true}}}},document:{dispatchEvent:()=>{}},CustomEvent:class{constructor(name,options){this.type=name;this.detail=options.detail}},notice:text=>syncNotice=text});
 vm.runInContext(syncSource+';this.sync=syncTikTokDrafts;',syncContext);
 await syncContext.sync();
 assert.equal(imported[0][1].expectedUid,'owner');assert.equal(imported[0][1].authorizedFromTikTokVideoList,true);assert.equal(imported[0][2].publishToCollective,true);assert.match(syncNotice,/1 authorized TikTok video/);
 syncContext.window.__biglwaOrbitPosts.saveExternalOrbitDraft=async()=>{throw Error('Permission denied')};
-await syncContext.sync();assert.match(syncNotice,/1 could not be saved: Permission denied/);
+await syncContext.sync();assert.match(syncNotice,/1 could not be published: Permission denied/);
 console.log('PASS OAuth-only TikTok Collective publish, UID binding and visible failures');
