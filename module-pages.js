@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261023-new-satellites-1';
+        script.src = '/module-pages.js?v=20261023-x-scope-diagnostic-2';
         document.head.appendChild(script);
       }, 250);
     }
