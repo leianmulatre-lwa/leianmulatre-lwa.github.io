@@ -55,6 +55,21 @@ function oaConfigured(env,provider){
  const c=PROVIDERS[provider];
  return [c.id,c.secret,'OAUTH_SESSIONS'].filter(key=>!env[key]);
 }
+// Classify X errors without reflecting raw error descriptions or secrets.
+function oaXFailure(code,status=400,step='authorize'){
+ const reason=String(code||'').toLowerCase();
+ const hint=reason.includes('invalid_client')?'invalid_client: verify OAuth 2.0 Client ID, Client Secret and Web App type':
+  reason.includes('redirect')?'redirect_uri_mismatch: register https://api.biglwa.com/x/callback exactly':
+  reason.includes('invalid_scope')?'invalid_scope: check users.read, tweet.read, offline.access':
+  reason.includes('invalid_grant')?'invalid_grant: code expired, reused, or PKCE verifier mismatch':
+  reason.includes('access_denied')?'access_denied: member declined X access':
+  reason.includes('unauthorized_client')?'unauthorized_client: check X OAuth 2.0 app settings':
+  status===429?'rate_limited: retry after X rate limit':
+  status===402?'api_access: check X API tier or available credits':
+  status===401?'unauthorized: check X app credentials or token validity':
+  'provider_error: check X OAuth app settings and API access';
+ return 'X '+step+' failed (HTTP '+status+'): '+hint;
+}
 async function oaExchange(provider,code,verifier,env,callback){
  const c=PROVIDERS[provider],form=new URLSearchParams({
   grant_type:'authorization_code',code,client_id:String(env[c.id]),redirect_uri:callback
@@ -71,7 +86,11 @@ async function oaExchange(provider,code,verifier,env,callback){
  }
  const resp=await fetch(c.token,{method:'POST',headers,body:form});
  const result=await resp.json().catch(()=>({}));
- if(!resp.ok||!result.access_token){const code=String(result.error||result.errors?.[0]?.code||result.title||'authorization_error').replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,45);oaError(provider+' OAuth token request failed (HTTP '+resp.status+', '+code+'). Check registered callback and app credentials.',502)}
+ if(!resp.ok||!result.access_token){
+  const code=String(result.error||result.errors?.[0]?.code||result.title||'authorization_error');
+  if(provider==='x')oaError(oaXFailure(code,resp.status,'token exchange'),502);
+  oaError(provider+' OAuth token request failed (HTTP '+resp.status+', '+code.replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,45)+'). Check registered callback and app credentials.',502);
+ }
  return result;
 }
 // Refresh server-side OAuth access without asking the member to connect again.
@@ -113,7 +132,13 @@ async function oaProfile(provider,token){
  }
  const resp=await fetch(endpoint,options);
  const data=await resp.json().catch(()=>({}));
- if(!resp.ok)oaError(provider+' authorized, but its profile API could not be read. Confirm the app has the requested permissions.',502);
+ if(!resp.ok){
+  if(provider==='x'){
+   const error=String(data.title||data.error||data.errors?.[0]?.type||data.errors?.[0]?.code||'profile_error');
+   oaError(oaXFailure(error,resp.status,'profile lookup'),502);
+  }
+  oaError(provider+' authorized, but its profile API could not be read. Confirm the app has the requested permissions.',502);
+ }
  if(provider==='x'){
    const u=data.data||{};
    if(!u.id||!u.username)oaError('X did not return an authorized profile.',502);
@@ -235,7 +260,8 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
    const saved=await env.OAUTH_SESSIONS.get(key,'json');
    if(saved)await env.OAUTH_SESSIONS.delete(key);
    if(!saved||Date.now()-saved.createdAt>600000)return oaRedirect(provider,'failed','Connection expired; retry from Orbit.');
-   if(url.searchParams.get('error'))return oaRedirect(provider,'failed','Authorization cancelled.');
+   if(url.searchParams.get('error'))return oaRedirect(provider,'failed',
+    provider==='x'?oaXFailure(url.searchParams.get('error'),400,'authorization'):'Authorization cancelled.');
    const code=url.searchParams.get('code')||'';
    if(!code)return oaRedirect(provider,'failed','No authorization code received.');
    const result=await oaExchange(provider,code,saved.verifier||'',env,oaCallback(provider,env));
