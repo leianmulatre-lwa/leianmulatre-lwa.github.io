@@ -203,3 +203,48 @@
 #craftSuite .craft-panel-block{display:block;width:34px;height:34px;object-fit:contain;flex-shrink:0}
 #craftSuite .craft-panel[data-craft-engine] .craft-panel-actions :is(a,button,label){background:var(--craft-light);border-color:var(--craft-accent);color:#34242c}
 #craftSuite .craft-panel[data-craft-engine] .craft-panel-foot{background:var(--craft-light);color:#34242c;border-top:2px solid var(--craft-accent)}
+
+/* Native originals stay in a distinct account-backed shelf: no floating save tabs
+ * and no confusion with compressed image previews. */
+.craft-suite .craft-project-vault{
+  margin:14px 0 18px;padding:18px 20px;border:1px solid #b78773;border-radius:15px;
+  background:linear-gradient(143deg,#fff0de,#f5e3d7);color:#39252a;box-shadow:4px 5px 0 #71515e35
+}
+.craft-suite .craft-project-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.craft-suite .craft-project-heading>div:first-child{flex:1 1 230px;min-width:0}
+.craft-suite .craft-project-heading h3{font-family:'Old English Text MT','DejaVu Serif',Georgia,serif;font-size:23px;margin:5px 0 6px}
+.craft-suite .craft-project-heading p{font:500 12px/1.5 system-ui;margin:0;max-width:660px}
+.craft-suite .craft-project-controls{display:flex;gap:8px;flex:0 1 auto;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.craft-suite .craft-project-controls :is(select,button,.craft-project-save){
+  font:750 11px/1.2 system-ui;color:#362329;background:#fff9ed;border:1px solid #b59b85;border-radius:9px;
+  padding:9px 11px;min-height:35px;box-sizing:border-box;cursor:pointer
+}
+.craft-suite .craft-project-controls .craft-project-save{display:inline-flex;align-items:center;background:#e3b966;position:relative}
+.craft-suite .craft-project-controls .craft-project-save:has(input:disabled){opacity:.6;cursor:not-allowed}
+.craft-suite .craft-project-save input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.craft-suite .craft-project-controls :is(button,select,.craft-project-save):focus-visible,
+.craft-suite .craft-project-card button:focus-visible{outline:3px solid #a5738c;outline-offset:2px}
+.craft-suite .craft-project-status{font:600 12px/1.45 system-ui;margin:14px 0 8px}
+.craft-suite .craft-project-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(275px,100%),1fr));gap:10px;min-width:0}
+.craft-suite .craft-project-list>p{font:500 12px/1.4 system-ui;color:#735961}
+.craft-suite .craft-project-card{display:flex;min-width:0;align-items:center;flex-wrap:wrap;gap:10px;
+  padding:11px;border:1px solid #d4bcae;border-radius:12px;background:#fff9ef}
+.craft-suite .craft-project-glyph{width:39px;height:44px;flex:none;display:grid;place-items:center;
+  color:#fff4df;background:#744a64;border-radius:7px;border:2px solid #3f2a35;box-shadow:2px 2px 0 #301d29;
+  font:900 27px Georgia,serif}
+.craft-suite .craft-project-details{min-width:0;flex:1 1 175px;display:grid;gap:4px}
+.craft-suite .craft-project-details strong{overflow-wrap:anywhere;font:800 13px/1.4 system-ui}
+.craft-suite .craft-project-details small{font:600 10px/1.35 system-ui;color:#7a5c61}
+.craft-suite .craft-project-card-actions{flex:1 1 100%;display:flex;gap:6px;flex-wrap:wrap}
+.craft-suite .craft-project-card-actions button{
+  padding:7px 9px;border:1px solid #aa8a88;border-radius:7px;background:#f5ece2;color:#38262e;
+  font:750 10px/1.3 system-ui;cursor:pointer
+}
+.craft-suite .craft-project-card-actions button:first-child{background:#6f415c;color:#fff5ec;border-color:#4b2a3d}
+.craft-suite .craft-project-card-actions .craft-project-remove{margin-left:auto;background:#fae3df;color:#7b302e}
+.craft-suite .craft-project-card-actions button:disabled{opacity:.5;cursor:wait}
+@media(max-width:760px){
+ .craft-suite .craft-project-vault{padding:14px}
+ .craft-suite .craft-project-controls{flex:1 1 100%;justify-content:flex-start}
+}
+

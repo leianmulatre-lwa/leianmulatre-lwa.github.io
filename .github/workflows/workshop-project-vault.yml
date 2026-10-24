@@ -1,0 +1,44 @@
+name: Private Workshop project vault verification
+on:
+  push:
+    branches: [biglwa-workshop-vault-current]
+    paths:
+      - 'cloudflare-worker-instagram.js'
+      - 'workshop-project-vault-test.mjs'
+      - 'workshop-project-frontend-test.mjs'
+      - 'workshop-native-files.js'
+      - 'tools-craft.js'
+      - 'tools-craft.css'
+      - '.github/workflows/workshop-project-vault.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: workshop-project-vault-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  project-store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Cloudflare Worker and new private multipart storage
+        run: |
+          node --check cloudflare-worker-instagram.js
+          node workshop-project-vault-test.mjs
+      - name: Install DOM test dependencies without publishing to site
+        run: npm install --prefix "$RUNNER_TEMP/biglwa-tests" jsdom@26.1.0 --no-audit --no-fund
+      - name: Render editable file shelf and verify file-upload controls
+        env:
+          NODE_PATH: ${{ runner.temp }}/biglwa-tests/node_modules
+        run: node workshop-project-frontend-test.mjs
+      - name: Confirm older profile media storage remains functional
+        run: |
+          node profile-music-test.mjs
+          node --check workshop-native-files.js
+          node --input-type=module --check < tools-craft.js
+      - name: Check Worker bundle without publishing to Cloudflare
+        run: npx --yes wrangler@4 deploy --dry-run --outdir "$RUNNER_TEMP/biglwa-vault-worker"
