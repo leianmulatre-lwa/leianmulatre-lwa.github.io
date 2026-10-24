@@ -30,7 +30,7 @@ function parsePublicProfile(html,handle){
  const engagement=segment.match(/Engagement\s+rate\s*[:·-]?\s*([\d.]+)%/i);
  // Require the profile heading or author's label to identify this handle.
  const observed=without.toLowerCase();
- if(!new RegExp('(?:^|\\s)@'+handle.replace(/[.*+?^${}()|[\]\\]/g,'\\if(!observed.includes('@'+handle.toLowerCase())||followers===null)return null;')+'(?=\\s|$)','i').test(observed)||followers===null)return null;
+ if(!new RegExp('(?:^|\\s)@'+handle.replace(/\./g,'\\\\.')+'(?=\\s|$)','i').test(observed)||followers===null)return null;
  const rawDate=without.match(/(?:Scraped|Last update:)\s*(\d{1,2}\/\d{1,2}\/\d{4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4})/i)?.[1]||'';
  return {handle,matchedHandle:true,followers,following,videoCount:video?count(video[1]):null,
   engagementRate:engagement?Number(engagement[1]):null,sourceObservedAt:rawDate||null,
