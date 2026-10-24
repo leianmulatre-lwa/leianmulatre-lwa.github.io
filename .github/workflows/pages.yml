@@ -90,6 +90,7 @@ jobs:
           node facebook-personal-sync-test.mjs
           node preview-isolation-test.mjs
           node orbit-oauth-repair-test.mjs
+          node x-oauth-pkce-end-to-end-test.mjs
           node --check avatar/arcade-character.js
           node mii-webport-test.mjs
       - name: Verify imported cards, auth, video trim and accessible media UI
