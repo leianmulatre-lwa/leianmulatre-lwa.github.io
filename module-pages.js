@@ -2062,7 +2062,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         project.innerHTML='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><strong style="font:600 28px Georgia,serif">'+number(weighted)+'%</strong><small>'+number(p.total)+' tracked objectives</small></div>'+
           '<div class="politc-live-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+weighted+'" aria-label="Project 2025 Tracker weighted progress"><span style="width:'+weighted+'%"></span></div>'+
           '<p style="font:600 12px/1.6 system-ui">'+number(p.done)+' completed · '+number(p.inProgress)+' in progress · '+number(p.notStarted)+' remaining</p>'+
-          '<p class="politc-note">Tracker method: completed counts fully; in progress counts half. Not a percentage of laws passed or effects on people.</p>'+checked;
+          '<p class="politc-note">Tracker method: completed counts fully; in progress counts half. Not a percentage of laws passed or effects on people. <a href="https://www.project2025.observer/en" target="_blank" rel="noopener noreferrer">Verify source ↗</a></p>'+checked;
       }else{
         project.innerHTML='<p class="politc-note">Live tracker data unavailable. Open the source to see its latest published statuses.</p>';
       }

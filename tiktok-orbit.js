@@ -201,6 +201,23 @@
       if(!getSession()){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
       profile=await api('profile');
       if(!profile?.open_id)throw new Error('TikTok profile authorization could not be verified.');
+      // TikTok's authorized @username is the strongest profile identity we have.
+      // Preserve a member's manual link when the provider does not supply one;
+      // never infer ownership from display_name or an external stats page.
+      const authorizedHandle=String(profile.username||'').replace(/^@/,'').trim();
+      if(/^[A-Za-z0-9._]{2,40}$/.test(authorizedHandle)){
+        const canonical='https://www.tiktok.com/@'+authorizedHandle;
+        const linked=window.BigLWAOrbitAccountLinks;
+        if(linked?.ready?.()){
+          try{
+            const existing=String(linked.get?.()?.tiktok||'');
+            if(existing!==canonical){
+              await linked.save('tiktok',canonical);
+              window.dispatchEvent(new CustomEvent('biglwa:tiktok-creator-link-saved',{detail:{handle:authorizedHandle,verifiedFromProvider:true}}));
+            }
+          }catch(err){console.info('TikTok verified profile-link sync deferred:',err?.message||err)}
+        }
+      }
       const newlyConnected=!connected;
       connected=true;render();statusUpdate();
       if(newlyConnected)privateTikTokLog('TikTok account authenticated and connected to Orbit.','TikTok connection');
