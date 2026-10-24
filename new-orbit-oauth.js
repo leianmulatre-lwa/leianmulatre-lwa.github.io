@@ -72,8 +72,11 @@ function oaXFailure(code,status=400,step='authorize'){
 }
 async function oaExchange(provider,code,verifier,env,callback){
  const c=PROVIDERS[provider],form=new URLSearchParams({
-  grant_type:'authorization_code',code,client_id:String(env[c.id]),redirect_uri:callback
+  grant_type:'authorization_code',code,redirect_uri:callback
  });
+ // X's confidential-client flow authenticates with HTTP Basic, not a
+ // duplicate client_id form credential. Public clients use client_id.
+ if(provider!=='x')form.set('client_id',String(env[c.id]));
  const headers={'Content-Type':'application/x-www-form-urlencoded'};
  if(provider==='x'){
   form.set('code_verifier',verifier);
@@ -98,8 +101,9 @@ async function oaRefreshSaved(provider,saved,env,key){
  if(!saved||!['x','tumblr'].includes(provider)||!saved.refreshToken||
     !saved.expiresAt||saved.expiresAt>Date.now()+60000)return saved;
  const conf=PROVIDERS[provider],form=new URLSearchParams({
-  grant_type:'refresh_token',refresh_token:saved.refreshToken,client_id:String(env[conf.id])
+  grant_type:'refresh_token',refresh_token:saved.refreshToken
  });
+ if(provider!=='x')form.set('client_id',String(env[conf.id]));
  const headers={'Content-Type':'application/x-www-form-urlencoded'};
  if(provider==='x')headers.Authorization='Basic '+btoa(env[conf.id]+':'+env[conf.secret]);
  else form.set('client_secret',String(env[conf.secret]));
