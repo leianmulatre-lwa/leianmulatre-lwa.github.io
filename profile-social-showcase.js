@@ -68,18 +68,134 @@
     schedule();
    });
  }
+
+ const storyStyle=()=>{
+  if(document.getElementById('biglwa-story-circles-style'))return;
+  const css=document.createElement('style');css.id='biglwa-story-circles-style';
+  css.textContent=[
+   '#studioApp .profile-card .biglwa-stories-by-likes{display:flex!important;gap:12px!important;align-items:center!important;width:100%!important;min-width:0!important;margin:0!important}',
+   '#studioApp .profile-card .biglwa-stories-by-likes>.stats{flex:0 1 51%!important;width:auto!important;min-width:215px!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:2px!important;padding-top:10px!important;margin:0!important}',
+   '#studioApp .profile-card .biglwa-stories-by-likes>.stats>[data-profile-stat]{font-size:9px!important;min-width:0!important;padding-right:3px!important;white-space:normal!important;border:0!important}',
+   '#studioApp .profile-card .biglwa-stories-by-likes>.stats b{font-size:13px!important}',
+   '#studioApp .profile-card .biglwa-stories-ribbon{flex:1 1 40%!important;min-width:0!important;width:auto!important;max-width:440px!important;display:flex!important;gap:4px!important;align-items:center!important;margin-top:-11px!important;overflow:hidden!important}',
+   '#studioApp .profile-card .biglwa-stories-track{display:flex!important;flex:1 1 auto!important;gap:8px!important;align-items:flex-start!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;min-width:0!important;padding:2px!important}',
+   '#studioApp .profile-card .biglwa-stories-track::-webkit-scrollbar{display:none}',
+   '#studioApp .profile-card .biglwa-story-bubble{border:0!important;background:transparent!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:2px!important;flex:0 0 51px!important;width:51px!important;padding:0!important;cursor:pointer!important;color:#462d3c!important}',
+   '#studioApp .profile-card .biglwa-story-ring{width:42px!important;height:42px!important;padding:3px!important;border-radius:50%!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;background:conic-gradient(#eeb069,#e5729b,#9051b4,#eeb069)!important;transition:transform .15s ease!important}',
+   '#studioApp .profile-card .biglwa-story-bubble[data-source="snapchat"] .biglwa-story-ring{background:conic-gradient(#f2d250,#ffe97c,#e5b528,#f2d250)!important}',
+   '#studioApp .profile-card .biglwa-story-bubble[data-source="new"] .biglwa-story-ring{background:#e4dcd6!important}',
+   '#studioApp .profile-card .biglwa-story-bubble:hover .biglwa-story-ring,#studioApp .profile-card .biglwa-story-bubble:focus-visible .biglwa-story-ring{transform:scale(1.055)!important}',
+   '#studioApp .profile-card .biglwa-story-inner{width:100%!important;height:100%!important;box-sizing:border-box!important;display:grid!important;place-items:center!important;border-radius:50%!important;border:2px solid #fff8f1!important;background:#fff3ed!important;color:#673b57!important;font:700 17px Georgia,serif!important}',
+   '#studioApp .profile-card .biglwa-story-inner img{width:17px!important;height:17px!important;object-fit:contain!important}',
+   '#studioApp .profile-card .biglwa-story-name{width:100%!important;max-width:100%!important;display:block!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;text-align:center!important;font:650 8px/1.15 system-ui!important}',
+   '#studioApp .profile-card .biglwa-story-scroll{flex:0 0 17px!important;width:17px!important;height:22px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#fff9f1d9!important;color:#57364a!important;cursor:pointer!important;font:700 14px system-ui!important}',
+   '#studioApp .profile-card .biglwa-story-scroll:disabled{opacity:.25!important;cursor:default!important}',
+   'body .biglwa-showcase-editor:not([open]){display:none!important}',
+   'body .biglwa-showcase-editor[open]{display:block!important;position:fixed!important;z-index:999998!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;width:min(560px,calc(100vw - 28px))!important;max-height:83vh!important;overflow:auto!important;background:#fff8ef!important;border:1px solid #e5c9d4!important;border-radius:17px!important;box-shadow:0 20px 60px #1c0912aa!important;padding:17px!important;color:#4a2b3c!important}',
+   'body .biglwa-showcase-editor[open]>summary{font:25px "CS Bergamot Stitched",Georgia,serif!important;margin-bottom:11px!important}',
+   'body .biglwa-story-shade{position:fixed;inset:0;z-index:999997;background:rgba(25,10,22,.68)}',
+   'body .biglwa-story-popup{position:fixed;z-index:999999;top:50%;left:50%;transform:translate(-50%,-50%);width:min(380px,calc(100vw - 28px));max-height:85vh;overflow:auto;background:#fff8f0;color:#452c3c;border-radius:18px;padding:16px;box-shadow:0 20px 70px #1c0915a9}',
+   'body .biglwa-story-popup video{width:100%;max-height:59vh;object-fit:contain;background:#2b1826;border-radius:10px}',
+   'body .biglwa-story-popup a{display:inline-block;margin:8px 0;font:650 12px system-ui;color:#793b51}',
+   'body .biglwa-story-popup strong{font:22px "CS Bergamot Stitched",Georgia,serif;display:block;margin:2px 0 12px}',
+   'body .biglwa-story-popup small{display:block;font:500 10px/1.4 system-ui;color:#79636e}',
+   'body .biglwa-story-close{float:right;cursor:pointer;border:0;border-radius:50%;height:28px;width:28px;background:#f4e0e4;color:#66374e;font:700 18px system-ui}',
+   '@media(max-width:1050px){#studioApp .profile-card .biglwa-stories-by-likes{flex-wrap:wrap!important;gap:7px!important}#studioApp .profile-card .biglwa-stories-by-likes>.stats{flex:1 1 100%!important;max-width:none!important}#studioApp .profile-card .biglwa-stories-ribbon{flex:1 1 100%!important;max-width:none!important;margin-top:0!important}}',
+   '@media(max-width:620px){#studioApp .profile-card .biglwa-stories-by-likes>.stats{min-width:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .profile-card .biglwa-story-ring{width:36px!important;height:36px!important}#studioApp .profile-card .biglwa-story-bubble{flex-basis:44px!important;width:44px!important}#studioApp .profile-card .biglwa-stories-track{gap:5px!important}}',
+   '#studioApp.profile-editor-wallpaper .biglwa-stories-ribbon,#studioApp .profile-card.profile-is-editing .biglwa-stories-ribbon{display:none!important}'
+  ].join('\n');document.head.append(css);
+ };
+ function closeStory(){
+  document.querySelectorAll('.biglwa-story-shade,.biglwa-story-popup').forEach(el=>el.remove());
+  const editor=document.querySelector('[data-biglwa-public-showcase-editor]');if(editor)editor.open=false;
+ }
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeStory()});
+ function storyShade(){
+  closeStory();const shade=document.createElement('div');shade.className='biglwa-story-shade';
+  shade.addEventListener('click',closeStory);document.body.append(shade);
+ }
+ function storyEditor(section){
+  storyShade();section.open=true;
+  let btn=section.querySelector('.biglwa-story-close');
+  if(!btn){btn=document.createElement('button');btn.className='biglwa-story-close';btn.type='button';
+   btn.textContent='×';btn.setAttribute('aria-label','Close highlight editor');btn.onclick=closeStory;
+   section.insertBefore(btn,section.firstChild);}
+  btn.focus();
+ }
+ function storyPreview(item,platform){
+  storyShade();
+  const pop=document.createElement('div');pop.className='biglwa-story-popup';
+  pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');
+  const x=document.createElement('button');x.type='button';x.className='biglwa-story-close';
+  x.textContent='×';x.setAttribute('aria-label','Close story');x.onclick=closeStory;
+  const title=document.createElement('strong');title.textContent=platform==='snapchat'?'Spotlight':'Instagram Highlight';
+  pop.append(x,title);
+  if(typeof item.mediaUrl==='string'&&/^https:\/\/cf-st\.sc-cdn\.net\//.test(item.mediaUrl)){
+   const video=document.createElement('video');video.controls=true;video.preload='metadata';video.playsInline=true;
+   video.referrerPolicy='no-referrer';video.src=item.mediaUrl;pop.append(video);
+  }
+  const a=document.createElement('a');a.href=item.url;a.target='_blank';a.rel='noopener noreferrer';
+  a.textContent='View on '+(platform==='snapchat'?'Snapchat':'Instagram')+' ↗';pop.append(a);
+  const notice=document.createElement('small');notice.textContent='Source-hosted public story · availability may change';
+  pop.append(notice);document.body.append(pop);x.focus();
+ }
+ function storyBubble(platform,label,fn){
+  const b=document.createElement('button');b.type='button';b.className='biglwa-story-bubble';b.dataset.source=platform;
+  b.setAttribute('aria-label',label);
+  const ring=document.createElement('span');ring.className='biglwa-story-ring';
+  const inner=document.createElement('span');inner.className='biglwa-story-inner';
+  if(platform==='instagram'||platform==='snapchat'){
+   const img=document.createElement('img');img.src='/assets/orbit-icons/'+platform+'.svg';img.alt='';inner.append(img);
+  }else inner.textContent='+';
+  ring.append(inner);
+  const title=document.createElement('span');title.className='biglwa-story-name';title.textContent=label;
+  b.append(ring,title);b.onclick=fn;return b;
+ }
+ function mountStoryCircles(root,section,entries,snapItems,handles){
+  const copy=root.querySelector('.profile-copy'),stats=copy?.querySelector('.stats');if(!copy||!stats)return;
+  storyStyle();
+  let wrap=copy.querySelector('.biglwa-stories-by-likes');
+  if(!wrap){wrap=document.createElement('div');wrap.className='biglwa-stories-by-likes';
+   stats.parentNode.insertBefore(wrap,stats);wrap.append(stats);}
+  wrap.querySelector('.biglwa-stories-ribbon')?.remove();
+  const rail=document.createElement('div');rail.className='biglwa-stories-ribbon';rail.dataset.biglwaPublicShowcase='1';
+  rail.setAttribute('aria-label','Highlights and Spotlights beside Likes');
+  const track=document.createElement('div');track.className='biglwa-stories-track';
+  track.setAttribute('role','group');track.setAttribute('aria-label','Story highlights');
+  if(active('snapchat')){
+   if(snapItems.length)snapItems.forEach((item,i)=>track.append(storyBubble('snapchat','Spotlight '+(i+1),
+    ()=>storyPreview({...item,url:'https://story.snapchat.com/add/@'+handles.snapchat},'snapchat'))));
+   else track.append(storyBubble('snapchat','Spotlight',()=>storyEditor(section)));
+  }
+  const ig=entries.filter(x=>x.platform==='instagram'&&active('instagram'));
+  if(active('instagram')&&!ig.length)track.append(storyBubble('instagram','Highlights',()=>storyEditor(section)));
+  ig.forEach((item,i)=>track.append(storyBubble('instagram','Highlight '+(i+1),()=>storyPreview(item,'instagram'))));
+  entries.filter(x=>x.platform==='snapchat'&&active('snapchat')).forEach((item,i)=>
+   track.append(storyBubble('snapchat','Spotlight '+(snapItems.length+i+1),()=>storyPreview(item,'snapchat'))));
+  track.append(storyBubble('new','New',()=>storyEditor(section)));
+  const prev=document.createElement('button'),next=document.createElement('button');
+  prev.className=next.className='biglwa-story-scroll';prev.type=next.type='button';prev.textContent='‹';next.textContent='›';
+  prev.setAttribute('aria-label','Previous story highlights');next.setAttribute('aria-label','Next story highlights');
+  const arrows=()=>{prev.disabled=track.scrollLeft<=2;next.disabled=track.scrollLeft+track.clientWidth>=track.scrollWidth-2};
+  prev.onclick=()=>{track.scrollBy({left:-140,behavior:'smooth'});setTimeout(arrows,250)};
+  next.onclick=()=>{track.scrollBy({left:140,behavior:'smooth'});setTimeout(arrows,250)};
+  track.addEventListener('scroll',arrows,{passive:true});
+  rail.append(prev,track,next);wrap.append(rail);requestAnimationFrame(arrows);
+ }
+
  function show(){
   const root=document.querySelector('#studioApp .profile-card');
   const who=uid(),entries=saved(),handles=accountHandles();
   if(handles.snapchat)refreshPublicSnapchat(handles.snapchat,who);
   else if(snapSource.key)snapSource={key:'',status:'',items:[],message:''};
   const snapItems=handles.snapchat&&snapSource.key===who+':'+handles.snapchat.toLowerCase()?snapSource.items:[];
-  if(!root||!who||(!active('snapchat')&&!active('instagram'))){root?.querySelector('[data-biglwa-public-showcase]')?.remove();signature='';return}
-  const tag=who+'|'+entries.map(x=>x.url).join('|')+'|'+handles.snapchat+'|'+handles.instagram+'|'+snapSource.status+'|'+snapItems.length;
+  if(!root||!who||(!active('snapchat')&&!active('instagram'))){root?.querySelector('[data-biglwa-public-showcase]')?.remove();document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();signature='';return}
+  const tag=who+'|'+entries.map(x=>x.url).join('|')+'|'+handles.snapchat+'|'+handles.instagram+'|'+snapSource.status+'|'+snapItems.map(x=>x.mediaUrl||'').join('|');
   if(signature===tag&&root.querySelector('[data-biglwa-public-showcase]'))return;
   signature=tag;
   root.querySelector('[data-biglwa-public-showcase]')?.remove();
-  const section=document.createElement('details');section.dataset.biglwaPublicShowcase='1';
+  document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();
+  const section=document.createElement('details');section.dataset.biglwaPublicShowcaseEditor='1';section.className='biglwa-showcase-editor';
   section.style.cssText='margin:8px 0 0;padding:6px 0 0;border-top:1px solid #dfcfce;min-width:0';
   const title=document.createElement('summary');title.textContent='Spotlight & Highlights · '+(entries.length+snapItems.length);
   title.style.cssText='cursor:pointer;font:700 11px/1.5 system-ui;color:#762e4b';
@@ -185,12 +301,13 @@
   section.append(container);
   const foot=document.createElement('small');foot.textContent='Public links saved to this browser for your BIG LWA account. Original media stays on its platform.';
   foot.style.cssText='display:block;font:500 9px/1.4 system-ui;color:#766369;margin-top:7px';section.append(foot);
-  root.append(section);
+  document.body.append(section);
+  mountStoryCircles(root,section,entries,snapItems,handles);
  }
  function render(){
-  const open=document.querySelector('#studioApp .profile-card [data-biglwa-public-showcase]')?.open;
+  const open=document.querySelector('[data-biglwa-public-showcase-editor]')?.open;
   signature='';show();
-  if(open){const section=document.querySelector('#studioApp .profile-card [data-biglwa-public-showcase]');if(section)section.open=true}
+  if(open){const section=document.querySelector('[data-biglwa-public-showcase-editor]');if(section)section.open=true}
  }
  let timer;function schedule(){clearTimeout(timer);timer=setTimeout(show,90)}
  for(const event of ['biglwa:new-orbit-status','biglwa:identity-updated','biglwa:session-verified','biglwa:orbit-links-synced'])
