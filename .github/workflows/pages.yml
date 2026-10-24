@@ -119,6 +119,8 @@ jobs:
           node --check section-scroll-assistant-20261020.js
           node politc-scroll-body-regression-test.mjs
           node orbit-session-stability-test.mjs
+      - name: Verify username-matched public TikTok and Snapchat lookups
+        run: node public-source-username-match-regression-test.mjs
       - name: Verify Veve Save to Boards, lowercase loader and BIG LWA Workshop
         run: node veve-board-workshop-regression-test.mjs
       - name: Check Veve onboarding, Pinterest and supporter presentation
