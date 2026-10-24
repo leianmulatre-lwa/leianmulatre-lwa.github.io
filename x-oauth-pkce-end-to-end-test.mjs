@@ -67,6 +67,24 @@ try{
  assert.equal(json.profile.followers,1492);
  assert.ok(!JSON.stringify(json).includes('fake-test-access'),'X tokens cannot leak to browser');
 
+ // Refresh tokens also use confidential HTTP Basic authentication.
+ saved.expiresAt=Date.now()-1000;
+ store.set('new-orbit:x:account:test-member',saved);
+ let refreshChecked=false;
+ globalThis.fetch=async(url,options={})=>{
+  assert.equal(url,'https://api.x.com/2/oauth2/token');
+  assert.equal(options.body.get('grant_type'),'refresh_token');
+  assert.equal(options.body.get('refresh_token'),'fake-test-refresh');
+  assert.equal(options.body.has('client_id'),false);
+  assert.ok(options.headers.Authorization.startsWith('Basic '));
+  refreshChecked=true;
+  return Response.json({access_token:'fake-refreshed',refresh_token:'fake-refreshed-secret',expires_in:7200});
+ };
+ const refreshed=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/session',{headers:{Origin:'https://biglwa.com'}}),env,user);
+ assert.equal((await refreshed.json()).needsReauth,false);
+ assert.equal(refreshChecked,true);
+ assert.equal(store.get('new-orbit:x:account:test-member').accessToken,'fake-refreshed');
+
  const denied=await start();
  const rejection=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/callback?state='+denied.state+'&error=invalid_scope'),env,user);
  assert.equal(rejection.status,302);
