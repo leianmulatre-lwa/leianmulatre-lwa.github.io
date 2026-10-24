@@ -21,6 +21,10 @@ const ttHtml='<h1>@test.name</h1><section>Profile metrics</section>'+
  '<div>Followers</div><p>12,345</p><div>Following</div><p>99</p>'+
  '<div>Total videos</div><p>101</p>';
 assert.equal(parsePublicProfile(ttHtml,'test.name').followers,12345);
+assert.equal(parsePublicProfile('<title>test.name – TikTok Performances & Analytics – TokPortal</title><section>Profile metrics</section><div>Followers</div><p>12,345</p>','test.name')?.followers,12345,
+ 'A real indexed TokPortal page may identify its user in the document title');
+assert.equal(parsePublicProfile('<h1><span>@</span><b>test.name</b></h1><section>Profile metrics</section><div>Followers</div><p>12,345</p>','test.name')?.followers,12345,
+ 'Split username headings must still match exactly');
 assert.equal(parsePublicProfile(ttHtml,'testXname'),null,
  'A punctuation mismatch must never count as an identity match');
 assert.equal(parsePublicProfile('<h1>@different</h1>Followers 123','test.name'),null);
