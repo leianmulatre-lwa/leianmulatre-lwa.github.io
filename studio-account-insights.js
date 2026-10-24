@@ -17,8 +17,9 @@
    catch{return {}}
  }
  function sources(){
-  if(!overview||overview.uid!==uid())return [];
-  const accountUid=uid(),last=previousCounts(accountUid),updates={...last},rows=[];
+  const accountUid=uid();if(!accountUid)return [];
+  const activeOverview=overview?.uid===accountUid?overview:{connections:{},orbitConnectedProfiles:{}};
+  const last=previousCounts(accountUid),updates={...last},rows=[];
   const ingest=(id,record,count,checkedAt,metric='followers')=>{
     if(!record||!id)return;
     const handle=String(record.sourceUserId||record.username||'').trim().toLowerCase();
@@ -42,15 +43,16 @@
     const likes=number(record.stats?.likes??record.likes);
     const recoveredLikes=id==='tiktok'&&recoveredByProvider?number(external.likes):null;
     const receivedLikes=id==='tiktok'&&record.verifiedFromProvider!==false?(likes??recoveredLikes):null;
-    rows.push({id,followers:value,likes:receivedLikes,lastCheckedAt:observedAt,reach:record.stats?.monthlyReach||null,
+    const monthlyReach=record.stats?.monthlyReach??record.monthlyReach??record.reach??null;
+    rows.push({id,followers:value,likes:receivedLikes,lastCheckedAt:observedAt,reach:monthlyReach,
       handle:record.username||'',link:record.link||'',metric,
       isLastKnown:fresh===null&&fallback!==null,verified:(fresh!==null&&!!checked)||recoveredByProvider,
        externalVerified,source:externalVerified?'External public source':recoveredByProvider?'TikTok OAuth user.info.stats':null});
   };
   // Provider-checked live records take priority over old Firestore snapshots;
   // absent counts remain missing rather than becoming manufactured zeros.
-  const merged={...(overview.connections||{})};
-  for(const [id,row]of Object.entries(overview.orbitConnectedProfiles||{})){
+  const merged={...(activeOverview.connections||{})};
+  for(const [id,row]of Object.entries(activeOverview.orbitConnectedProfiles||{})){
     if(!Object.prototype.hasOwnProperty.call(merged,id))merged[id]=row;
   }
   for(const [id,row]of Object.entries(connectionAPI?.connections?.()||{})){
@@ -94,7 +96,33 @@
   const reachRows=rows.filter(s=>s.reach?.month===month&&s.reach?.metric==='reach'&&number(s.reach?.value)!=null);
   return {likes:likeRows.length?likeRows.reduce((n,s)=>n+s.likes,0):null,followers:followerRows.length?followerRows.reduce((n,s)=>n+s.followers,0):null,reach:reachRows.length?reachRows.reduce((n,s)=>n+Number(s.reach.value),0):null,coverage:followerRows.length,reachCoverage:reachRows.length};
  }
+ function publishProfileMetrics(){
+  // The profile banner exists before Skeleton Key's analytics panel is mounted.
+  // Publishing metrics must not depend on a widget being open or which month its
+  // selector happens to show.
+  const accountUid=uid(),known=!!accountUid;
+  const currentMonth=monthOf(Date.now());
+  const rows=known?sources():[];
+  const current=summarize(rows,currentMonth);
+  const saved=overview?.uid===accountUid?overview.analyticsMonths?.[currentMonth]:null;
+  const savedSummary=saved?.sources?summarize(saved.sources,currentMonth):{likes:null,reach:null};
+  const followers=current.followers;
+  window.__biglwaProfileMetrics={
+    uid:accountUid,
+    followers,
+    followersDisplay:followers===null?'—':new Intl.NumberFormat().format(followers)+(current.coverage<rows.length?'+':''),
+    likes:current.likes??savedSummary.likes,
+    reach:current.reach??savedSummary.reach,
+    reachMonth:currentMonth,
+    likesSource:current.likes!==null?'connected providers':savedSummary.likes!==null?'last saved observation':'unavailable',
+    reachSource:current.reach!==null?'connected providers':savedSummary.reach!==null?'last saved observation':'unavailable',
+    sources:rows,
+    connections:overview?.uid===accountUid?Object.keys(overview.peopleConnections||{}).length:null
+  };
+  window.dispatchEvent(new Event('biglwa:profile-metrics'));
+ }
  function render(){
+  publishProfileMetrics();
   const host=q('#skeletonAnalytics');if(!host)return;
   if(!q('.skeleton-analytics-grid',host)){
    host.innerHTML='<label>Account analytics <select aria-label="Analytics month"></select></label><div class="skeleton-analytics-grid"><div><strong data-metric="accounts">—</strong>Synced accounts</div><div><strong data-metric="followers">—</strong>Followers · snapshot</div><div><strong data-metric="likes">—</strong>Likes received · snapshot</div><div><strong data-metric="reach">—</strong>Monthly reach</div><div><strong data-metric="people">—</strong>People added</div></div><p class="analytics-coverage"></p><details><summary>Sources &amp; sync dates</summary><div class="analytics-sources"></div></details><p class="analytics-status" role="status"></p>';
@@ -105,20 +133,12 @@
   const known=!!overview&&owner===uid();
   const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,likes:stats.likes,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=format(value);if(node.textContent!==text)node.textContent=text}
-  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Other sources are unavailable, not zero. Some people may follow you on more than one platform.';
+  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Likes and monthly reach only appear when a source reports those exact metrics; video views and engagement estimates are not reach. Other sources are unavailable, not zero.';
   const list=q('.analytics-sources',host);const signature=JSON.stringify(rows.map(r=>[r.id,r.followers,r.lastCheckedAt]));if(list.dataset.snapshot!==signature){list.dataset.snapshot=signature;list.replaceChildren(...rows.map(row=>{const p=document.createElement('p');p.textContent=row.id+': '+format(row.followers)+' '+(row.metric||'followers')+' · '+(row.externalVerified?'externally sourced · TokPortal':row.lastCheckedAt?'provider reported '+new Date(row.lastCheckedAt).toLocaleDateString():'count unavailable')+(row.isLastKnown?' (last verified)':'');return p}))}
   q('.analytics-status',host).textContent=!uid()?'Sign in to see your private analytics.':!known?'Account data has not loaded yet.':!current&&!saved?'No observation saved for this month.':saved?.observedAt?'Observation: '+new Date(saved.observedAt).toLocaleString():'Latest available provider data; missing data is not zero.';
   const rank=q('#skeletonRankMount .real-rank');if(rank){const label=typeof overview?.realRank==='string'?overview.realRank:'Chopped';const strong=q('strong',rank);if(strong&&strong.textContent!==label)strong.textContent=label;rank.setAttribute('aria-label','Real Rank: '+label);}
-  if(known){
-    const currentSources=sources();
-    window.__biglwaProfileMetrics={uid:owner,followers:values.followers,likes:values.likes,
-      followersDisplay:stats.followers===null?'—':new Intl.NumberFormat().format(stats.followers)+(stats.coverage<rows.length?'+':''),
-      sources:currentSources,connections:values.people,reach:values.reach};
-  }else{
-    window.__biglwaProfileMetrics={uid:uid(),followers:null,likes:null,followersDisplay:'—',
-      sources:[],connections:null,reach:null};
-  }
-  window.dispatchEvent(new Event('biglwa:profile-metrics'));
+  // The source-of-truth profile metrics were already published above,
+  // independently of the Skeleton Key widget and its selected month.
  }
  async function refresh(){
   attachSearch();
@@ -129,7 +149,7 @@
  }
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
-  const month=monthOf(Date.now()),snapshot={sources:sources().map(({id,followers,likes,lastCheckedAt,reach})=>({id,followers,likes,lastCheckedAt,reach:reach?.month===month&&reach.metric==='reach'&&number(reach.value)!=null?{month,metric:'reach',value:Number(reach.value)}:null})),connections:Object.keys(overview.peopleConnections).length};
+  const month=monthOf(Date.now()),snapshot={sources:sources().map(({id,followers,likes,lastCheckedAt,reach})=>({id,followers,likes,lastCheckedAt,reach:reach?.month===month&&reach.metric==='reach'&&number(reach.value)!=null?{month,metric:'reach',value:Number(reach.value)}:null})),connections:Object.keys(overview.peopleConnections||{}).length};
   const signature=uid()+month+JSON.stringify(snapshot);if(signature===lastSnapshot)return;lastSnapshot=signature;
   const expected=uid();try{const saved=await window.BigLWAUserDirectory.recordAnalyticsMonth(month,snapshot);if(uid()===expected&&overview?.uid===expected){overview.analyticsMonths[month]=saved;render()}}catch{lastSnapshot='';const status=q('#skeletonAnalytics .analytics-status');if(status)status.textContent='Current data shown; monthly observation could not be saved.'}
  }
