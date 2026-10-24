@@ -10,7 +10,7 @@
   const CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
   const CALLBACK_ERROR=(()=>{try{return new URL(location.href).searchParams.get('tiktok_error')||''}catch{return''}})();
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
-  let lastError='',videoPermissionPending=false,videoLoadError='';
+  let lastError='',videoPermissionPending=false,videoLoadError='',lastCollectiveSync='';
   const scopedKey = () => authUid ? KEY + ':' + authUid : '';
   const getSession = () => { try { return scopedKey() ? localStorage.getItem(scopedKey()) || '' : ''; } catch { return ''; } };
   const save = value => { if (!scopedKey()) return; try { if (value) localStorage.setItem(scopedKey(), value); else localStorage.removeItem(scopedKey()); } catch {} };
@@ -164,7 +164,7 @@
     const expectedUid=authUid;
     const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
     if(typeof writer!=='function')throw Error('Feed importer unavailable. Retry TikTok sync.');
-    let saved=0,failed=0,firstError='';
+    let saved=0,failed=0,firstError='',alreadyPublished=0;
     for(let i=0;i<videos.length;i+=4){
       const results=await Promise.allSettled(videos.slice(i,i+4).map(v=>writer('tiktok',{
         id:v.id,sourcePostId:v.id,sourceUrl:v.share_url,expectedUid,
@@ -175,10 +175,16 @@
         mediaType:'VIDEO'
       },{publishToCollective:true})));
       saved+=results.filter(x=>x.status==='fulfilled'&&(x.value?.created||x.value?.published)).length;
+      alreadyPublished+=results.filter(x=>x.status==='fulfilled'&&x.value?.state==='approved'&&!x.value?.created&&!x.value?.published).length;
       for(const result of results)if(result.status==='rejected'){failed++;firstError ||= result.reason?.message||'Save failed';}
     }
+    lastCollectiveSync=(saved+alreadyPublished)+' authorized videos in Collective Feed'
+      +(failed?' · '+failed+' failed to sync':'');
     if(saved||failed)notice(saved+' authorized TikTok video(s) published to Collective Feed.'+
       (failed?' '+failed+' could not be published: '+firstError+'. Retry sync.':''));
+    document.dispatchEvent(new CustomEvent('biglwa:tiktok-collective-synced',{
+      detail:{uid:expectedUid,newlyPublished:saved,alreadyPublished,failed}
+    }));
   }
 
   async function restore() {
@@ -232,6 +238,12 @@
     document.querySelectorAll('[data-orbit-path="tiktok"]').forEach(input => {
       const actions = input.closest('.module-orbit-row')?.querySelector('.module-actions');
       if (!actions) return;
+      let feedback=actions.querySelector('[data-tiktok-video-sync-status]');
+      if(!feedback){feedback=document.createElement('small');feedback.dataset.tiktokVideoSyncStatus='1';
+        feedback.style.cssText='display:block;flex-basis:100%;font:500 10px/1.3 system-ui;color:#735166;margin:3px 0 0';actions.append(feedback);}
+      feedback.textContent=!connected?'':videoPermissionPending?
+        'Videos not synced · TikTok video.list permission unavailable. SSSTik needs individual URLs.':
+        (videoLoadError||lastCollectiveSync||(videos.length?'Preparing authorized videos for Collective Feed.':'No public TikTok videos returned by the authorized account.'));
       let area = actions.querySelector('[data-tt-actions]');
       if (!area) { area = document.createElement('span'); area.dataset.ttActions=''; actions.prepend(area); }
       area.innerHTML='<button type="button" class="module-action" data-tt-connect>' + (connected?'Refresh TikTok':'Connect TikTok') + '</button>' + (connected?'<button type="button" class="module-action" data-tt-disconnect>Disconnect</button>':'');
