@@ -1775,7 +1775,9 @@ const PROVIDERS={
     scope:'https://auth.snapchat.com/oauth2/api/user.external_id https://auth.snapchat.com/oauth2/api/user.display_name https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar'}
 };
 const WORKER_ORIGIN='https://api.biglwa.com';
-const FINISH_URL='https://biglwa.com/studio?view=orbit';
+// Return directly to BIG LWA's canonical Studio entry point. The legacy /studio
+// stub may strip query parameters, including the X callback result.
+const FINISH_URL='https://biglwa.com/?route=studio&view=orbit';
 const SAFE_SITE=new Set(['https://biglwa.com','https://www.biglwa.com']);
 
 function oaReply(body,status=200,request){
@@ -1817,10 +1819,28 @@ function oaConfigured(env,provider){
  const c=PROVIDERS[provider];
  return [c.id,c.secret,'OAUTH_SESSIONS'].filter(key=>!env[key]);
 }
+// Classify X errors without reflecting raw error descriptions or secrets.
+function oaXFailure(code,status=400,step='authorize'){
+ const reason=String(code||'').toLowerCase();
+ const hint=reason.includes('invalid_client')?'invalid_client: verify OAuth 2.0 Client ID, Client Secret and Web App type':
+  reason.includes('redirect')?'redirect_uri_mismatch: register https://api.biglwa.com/x/callback exactly':
+  reason.includes('invalid_scope')?'invalid_scope: check users.read, tweet.read, offline.access':
+  reason.includes('invalid_grant')?'invalid_grant: code expired, reused, or PKCE verifier mismatch':
+  reason.includes('access_denied')?'access_denied: member declined X access':
+  reason.includes('unauthorized_client')?'unauthorized_client: check X OAuth 2.0 app settings':
+  status===429?'rate_limited: retry after X rate limit':
+  status===402?'api_access: check X API tier or available credits':
+  status===401?'unauthorized: check X app credentials or token validity':
+  'provider_error: check X OAuth app settings and API access';
+ return 'X '+step+' failed (HTTP '+status+'): '+hint;
+}
 async function oaExchange(provider,code,verifier,env,callback){
  const c=PROVIDERS[provider],form=new URLSearchParams({
-  grant_type:'authorization_code',code,client_id:String(env[c.id]),redirect_uri:callback
+  grant_type:'authorization_code',code,redirect_uri:callback
  });
+ // X's confidential-client flow authenticates with HTTP Basic, not a
+ // duplicate client_id form credential. Public clients use client_id.
+ if(provider!=='x')form.set('client_id',String(env[c.id]));
  const headers={'Content-Type':'application/x-www-form-urlencoded'};
  if(provider==='x'){
   form.set('code_verifier',verifier);
@@ -1833,14 +1853,41 @@ async function oaExchange(provider,code,verifier,env,callback){
  }
  const resp=await fetch(c.token,{method:'POST',headers,body:form});
  const result=await resp.json().catch(()=>({}));
- if(!resp.ok||!result.access_token)oaError(provider+' did not accept this authorization. Check its public client ID, callback and granted scopes.',502);
+ if(!resp.ok||!result.access_token){
+  const code=String(result.error||result.errors?.[0]?.code||result.title||'authorization_error');
+  if(provider==='x')oaError(oaXFailure(code,resp.status,'token exchange'),502);
+  oaError(provider+' OAuth token request failed (HTTP '+resp.status+', '+code.replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,45)+'). Check registered callback and app credentials.',502);
+ }
  return result;
+}
+// Refresh server-side OAuth access without asking the member to connect again.
+async function oaRefreshSaved(provider,saved,env,key){
+ if(!saved||!['x','tumblr'].includes(provider)||!saved.refreshToken||
+    !saved.expiresAt||saved.expiresAt>Date.now()+60000)return saved;
+ const conf=PROVIDERS[provider],form=new URLSearchParams({
+  grant_type:'refresh_token',refresh_token:saved.refreshToken
+ });
+ if(provider!=='x')form.set('client_id',String(env[conf.id]));
+ const headers={'Content-Type':'application/x-www-form-urlencoded'};
+ if(provider==='x')headers.Authorization='Basic '+btoa(env[conf.id]+':'+env[conf.secret]);
+ else form.set('client_secret',String(env[conf.secret]));
+ try{
+  const response=await fetch(conf.token,{method:'POST',headers,body:form});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||!result.access_token)return saved;
+  const next={...saved,accessToken:result.access_token,
+   refreshToken:result.refresh_token||saved.refreshToken,
+   expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||2520)*1000};
+  await env.OAUTH_SESSIONS.put(key,JSON.stringify(next),{expirationTtl:7776000});
+  return next;
+ }catch{return saved}
 }
 function oaPhoto(url){
  try{const parsed=new URL(String(url||''));return parsed.protocol==='https:'?parsed.href:''}catch{return ''}
 }
 async function oaProfile(provider,token){
- const headers={Authorization:'Bearer '+token,'Accept':'application/json'};
+ const headers={Authorization:'Bearer '+token,'Accept':'application/json',
+  'User-Agent':'BIGLWA/1.0 (+https://biglwa.com; Tumblr OAuth integration)'};
  let endpoint,options={headers};
  if(provider==='x'){
   endpoint='https://api.x.com/2/users/me?user.fields=name,username,profile_image_url,public_metrics';
@@ -1853,7 +1900,13 @@ async function oaProfile(provider,token){
  }
  const resp=await fetch(endpoint,options);
  const data=await resp.json().catch(()=>({}));
- if(!resp.ok)oaError(provider+' authorized, but its profile API could not be read. Confirm the app has the requested permissions.',502);
+ if(!resp.ok){
+  if(provider==='x'){
+   const error=String(data.title||data.error||data.errors?.[0]?.type||data.errors?.[0]?.code||'profile_error');
+   oaError(oaXFailure(error,resp.status,'profile lookup'),502);
+  }
+  oaError(provider+' authorized, but its profile API could not be read. Confirm the app has the requested permissions.',502);
+ }
  if(provider==='x'){
    const u=data.data||{};
    if(!u.id||!u.username)oaError('X did not return an authorized profile.',502);
@@ -1881,6 +1934,8 @@ async function oaProfile(provider,token){
    return {id:'tumblr',sourceUserId:accountName,sourceBlogName:blogName,
      username:blogName,name:String(primary?.title||blogName).slice(0,100),
      avatarUrl:oaPhoto(original.avatar_url),link:'https://www.tumblr.com/'+encodeURIComponent(blogName),
+     followers:original.followers!=null&&Number.isSafeInteger(Number(original.followers))&&Number(original.followers)>=0?Number(original.followers):null,
+     likes:u.likes!=null&&Number.isSafeInteger(Number(u.likes))&&Number(u.likes)>=0?Number(u.likes):null,
      blogCount:blogs.length,blogs};
  }
  const me=data.data?.me||data.data?.user||data.me||{};
@@ -1890,15 +1945,17 @@ async function oaProfile(provider,token){
   username:'',avatarUrl:oaPhoto(avatar),
   link:''};
 }
+ 
 // Read-only import preview: API tokens stay in the Worker KV store.
 // No imported text is published until the member selects it inside Sqwibz.
-async function oaTextImports(provider,saved){
+async function oaTextImports(provider,saved,env){
  if(!saved?.accessToken)oaError('Connect this account in Orbit before importing.',401);
  if(!saved.expiresAt||saved.expiresAt<=Date.now())
    oaError('This Orbit authorization expired. Reconnect the account.',401);
  if(!['x','tumblr'].includes(provider))
    oaError('This provider does not offer Sqwibz text imports.',422);
- const headers={Authorization:'Bearer '+saved.accessToken,Accept:'application/json'};
+ const headers={Authorization:'Bearer '+saved.accessToken,Accept:'application/json',
+  'User-Agent':'BIGLWA/1.0 (+https://biglwa.com; Tumblr OAuth integration)'};
  let uri;
  if(provider==='x'){
    const id=String(saved.profile?.sourceUserId||'');
@@ -1912,6 +1969,8 @@ async function oaTextImports(provider,saved){
    if(!/^[a-zA-Z0-9-]{1,80}$/.test(raw))oaError('Tumblr blog name missing. Reconnect Tumblr.',422);
    uri=new URL('https://api.tumblr.com/v2/blog/'+encodeURIComponent(raw)+'.tumblr.com/posts');
    uri.searchParams.set('limit','20');uri.searchParams.set('npf','true');
+   // Tumblr documents API-key authorization for blog posts; keep key server-side.
+   if(env.TUMBLR_CONSUMER_KEY)uri.searchParams.set('api_key',String(env.TUMBLR_CONSUMER_KEY));
  }
  const response=await fetch(uri.toString(),{headers});
  if(!response.ok){
@@ -1925,7 +1984,7 @@ async function oaTextImports(provider,saved){
  const clean=v=>String(v||'').replace(/<[^>]*>/g,' ').replace(/&(?:amp|lt|gt|quot|#39);/g,' ').replace(/\s+/g,' ').trim().slice(0,1200);
  let items=[];
  if(provider==='x'){
-   items=(Array.isArray(data.data)?data.data:[]).filter(x=>x?.id&&x?.text).map(x=>({
+   items=(Array.isArray(data.data)?data.data:[]).filter(x=>(x?.id_string||x?.id)&&x?.text).map(x=>({
      id:String(x.id),provider,text:clean(x.text),createdAt:x.created_at||'',
      url:'https://x.com/'+encodeURIComponent(saved.profile?.username||'i')+'/status/'+encodeURIComponent(String(x.id))
    }));
@@ -1943,7 +2002,7 @@ async function oaTextImports(provider,saved){
  }
  return {provider,count:items.length,items:items.slice(0,30)};
 }
-async function handleAdditionalOrbit(request,env,getFirebaseUser){
+ async function handleAdditionalOrbit(request,env,getFirebaseUser){
  const url=new URL(request.url),parts=url.pathname.split('/').filter(Boolean);
  const provider=parts[0],action=parts[1];
  if(!PROVIDERS[provider]||parts.length!==2)return oaReply({error:'Not found'},404,request);
@@ -1969,26 +2028,22 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
    const saved=await env.OAUTH_SESSIONS.get(key,'json');
    if(saved)await env.OAUTH_SESSIONS.delete(key);
    if(!saved||Date.now()-saved.createdAt>600000)return oaRedirect(provider,'failed','Connection expired; retry from Orbit.');
-   if(url.searchParams.get('error'))return oaRedirect(provider,'failed','Authorization cancelled.');
+   if(url.searchParams.get('error'))return oaRedirect(provider,'failed',
+    provider==='x'?oaXFailure(url.searchParams.get('error'),400,'authorization'):'Authorization cancelled.');
    const code=url.searchParams.get('code')||'';
    if(!code)return oaRedirect(provider,'failed','No authorization code received.');
    const result=await oaExchange(provider,code,saved.verifier||'',env,oaCallback(provider,env));
    const profile=await oaProfile(provider,result.access_token);
-   const newAccount={profile,accessToken:result.access_token,refreshToken:result.refresh_token||'',
-     expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||3600)*1000,createdAt:Date.now()};
-   const shelfKey='new-orbit:'+provider+':accounts:'+saved.uid;
-   const prior=await env.OAUTH_SESSIONS.get(shelfKey,'json');
-   const previousActive=await env.OAUTH_SESSIONS.get('new-orbit:'+provider+':account:'+saved.uid,'json');
-   const earlier=(Array.isArray(prior?.accounts)?prior.accounts:(previousActive?[previousActive]:[]))
-     .filter(x=>x?.profile?.sourceUserId&&x.profile.sourceUserId!==profile.sourceUserId).slice(-4);
-   const accounts=[...earlier,newAccount];
-   await env.OAUTH_SESSIONS.put(shelfKey,JSON.stringify({accounts}),{expirationTtl:7776000});
-   await env.OAUTH_SESSIONS.put('new-orbit:'+provider+':account:'+saved.uid,JSON.stringify(newAccount),{expirationTtl:7776000});
+   await env.OAUTH_SESSIONS.put('new-orbit:'+provider+':account:'+saved.uid,JSON.stringify({
+     profile,accessToken:result.access_token,refreshToken:result.refresh_token||'',
+     expiresAt:Date.now()+Math.max(60,Number(result.expires_in)||3600)*1000,createdAt:Date.now()
+   }),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
   }
-  if(!['start','session','select','disconnect','media','hometown','imports','public-post'].includes(action))return oaReply({error:'Not found'},404,request);
+  if(!['start','session','disconnect','imports','public-post'].includes(action))return oaReply({error:'Not found'},404,request);
   if(action==='start'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
-  if(['session','media','hometown','imports','public-post'].includes(action)&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
+  if(action==='session'&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
+  if(action==='imports'&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='disconnect'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
   const user=await getFirebaseUser(request,env);
   if(!user?.uid)oaError('Sign in to BIG LWA before connecting.',401);
@@ -2022,45 +2077,19 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
 
   const accountKey='new-orbit:'+provider+':account:'+user.uid;
   if(action==='session'){
-   const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
-   const shelf=await env.OAUTH_SESSIONS.get('new-orbit:'+provider+':accounts:'+user.uid,'json');
-   const accounts=(Array.isArray(shelf?.accounts)?shelf.accounts:(saved?[saved]:[]))
-     .filter(x=>x?.profile?.sourceUserId).slice(0,5);
+   const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
    const fresh=Boolean(saved?.expiresAt&&saved.expiresAt>Date.now());
-   return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null,
-     accounts:accounts.map(x=>({...x.profile,needsReauth:!x.expiresAt||x.expiresAt<=Date.now()})),
-     activeSourceUserId:saved?.profile?.sourceUserId||null},200,request);
-  }
-  if(action==='select'&&request.method==='POST'){
-    const payload=await request.json().catch(()=>({}));
-    const sourceUserId=String(payload?.sourceUserId||'');
-    if(!sourceUserId||sourceUserId.length>120)oaError('Choose a saved account.',422);
-    const shelf=await env.OAUTH_SESSIONS.get('new-orbit:'+provider+':accounts:'+user.uid,'json');
-    const selected=(Array.isArray(shelf?.accounts)?shelf.accounts:[])
-      .find(x=>x?.profile?.sourceUserId===sourceUserId);
-    if(!selected)oaError('This account was not authorized by this member.',404);
-    await env.OAUTH_SESSIONS.put(accountKey,JSON.stringify(selected),{expirationTtl:7776000});
-    return oaReply({ok:true,profile:selected.profile,needsReauth:selected.expiresAt<=Date.now()},200,request);
+   return oaReply({connected:!!saved,needsReauth:!!saved&&!fresh,profile:saved?.profile||null},200,request);
   }
   if(action==='imports'){
-    const saved=await env.OAUTH_SESSIONS.get(accountKey,'json');
+    const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
     if(!saved)return oaReply({error:'Connect '+provider+' from Orbit before importing posts.'},401,request);
-    return oaReply(await oaTextImports(provider,saved),200,request);
+    const result=await oaTextImports(provider,saved,env);
+    return oaReply(result,200,request);
   }
   if(action==='disconnect'){
-    const selected=await env.OAUTH_SESSIONS.get(accountKey,'json');
-    const key='new-orbit:'+provider+':accounts:'+user.uid;
-    const shelf=await env.OAUTH_SESSIONS.get(key,'json');
-    const accounts=(Array.isArray(shelf?.accounts)?shelf.accounts:[])
-      .filter(x=>x?.profile?.sourceUserId!==selected?.profile?.sourceUserId);
-    if(accounts.length){
-      await env.OAUTH_SESSIONS.put(key,JSON.stringify({accounts}),{expirationTtl:7776000});
-      await env.OAUTH_SESSIONS.put(accountKey,JSON.stringify(accounts[accounts.length-1]),{expirationTtl:7776000});
-      return oaReply({ok:true,connected:true,profile:accounts[accounts.length-1].profile},200,request);
-    }
-    await env.OAUTH_SESSIONS.delete(accountKey);
-    await env.OAUTH_SESSIONS.delete(key);
-    return oaReply({ok:true,connected:false},200,request);
+   await env.OAUTH_SESSIONS.delete(accountKey);
+   return oaReply({ok:true,connected:false},200,request);
   }
   const missing=oaConfigured(env,provider);
   if(missing.length)return oaReply({error:'Provider is not configured yet.',missing},503,request);
@@ -2085,7 +2114,6 @@ async function handleAdditionalOrbit(request,env,getFirebaseUser){
     ...(error.status===503?{missing:oaConfigured(env,provider)}:{})},error.status||502,request);
  }
 }
-
 
 
 /* Separate personal Facebook Login for the user's NEW Meta app.
