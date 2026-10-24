@@ -81,6 +81,6 @@ for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','publ
 if(count>19000)throw Error('Public file count exceeds Cloudflare Pages deployment safety limit.');
 // These are app routes; legal/about/settings pages keep their real HTML.
 writeFileSync(join(dest,'_redirects'),
-  '/studio /index.html 200\n/studio/* /index.html 200\n/orbit /index.html 200\n');
+  '/studio /index.html 200\n/orbit /index.html 200\n');
 console.log('BIG LWA Cloudflare release:',count,'public files,',Math.round(total/1048576)+' MiB');
 console.log('Backend code, repository history, tests and developer documentation excluded.');
