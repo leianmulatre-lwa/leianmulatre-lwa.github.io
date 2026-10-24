@@ -36,12 +36,50 @@ function parsePublicProfile(html,handle){
   engagementRate:engagement?Number(engagement[1]):null,sourceObservedAt:rawDate||null,
   source:'TokPortal public profile checker',authentication:'external_public_data'};
 }
-export {parsePublicProfile};
+
+/* Public Snapchat Spotlight preview links; signed URLs remain source-hosted
+ * and are not copied into BIG LWA storage. Exact source handle match required. */
+function parsePublicSnapchat(html,handle){
+ const text=String(html||'');
+ const title=text.match(/<title[^>]*>([^<]{1,100})<\/title>/i)?.[1]?.trim()||'';
+ if(!new RegExp('^'+handle.replaceAll('.', '\\.')+"'s Story$",'i').test(title))return null;
+ const profile='https://story.snapchat.com/add/@'+handle,items=[];
+ const re=/<video\b[^>]*\bsrc="([^"]{10,3000})"/gi;
+ let match;
+ while((match=re.exec(text))&&items.length<12){
+   const url=match[1].replace(/&amp;/g,'&');
+   if(!/^https:\/\/cf-st\.sc-cdn\.net\/[a-zA-Z0-9/_?=&.%:-]+$/.test(url))continue;
+   if(!items.some(x=>x.mediaUrl===url))items.push({
+     kind:'Spotlight',mediaUrl:url,sourceUrl:profile,
+     external:true,verifiedFromProvider:false
+   });
+ }
+ return {handle,matchedHandle:true,items,source:'Storyclone public Spotlight index',
+  sourceUrl:'https://o.storyclone.com/u/'+encodeURIComponent(handle)+'/'};
+}
+
+export {parsePublicProfile,parsePublicSnapchat};
 export default {async fetch(request,env,ctx){
  const url=new URL(request.url),origin=request.headers.get('Origin')||'';
  if(request.method==='OPTIONS')return answer({ok:true},204,origin,0);
  if(request.method!=='GET')return answer({error:'GET only'},405,origin,0);
  if(url.pathname==='/health')return answer({ok:true,adapter:'public-tiktok-snapshot-v1'},200,origin,120);
+ const snapMatch=url.pathname.match(/^\/snapchat\/([a-zA-Z0-9._]{2,40})\/?$/);
+ if(snapMatch){
+  const handle=snapMatch[1],source='https://o.storyclone.com/u/'+encodeURIComponent(handle)+'/';
+  try{
+   const res=await fetch(source,{method:'GET',redirect:'error',
+    headers:{Accept:'text/html'},cf:{cacheTtl:900,cacheEverything:true}});
+   if(!res.ok||!String(res.headers.get('Content-Type')||'').includes('text/html'))
+    return answer({available:false,handle,sourceUrl:source,message:'Public Snapchat index unavailable.'},200,origin,300);
+   if(Number(res.headers.get('Content-Length')||0)>2000000)throw Error('Large response');
+   const parsed=parsePublicSnapchat((await res.text()).slice(0,2000000),handle);
+   if(!parsed)return answer({available:false,handle,sourceUrl:source,message:'Public page username did not match.'},200,origin,300);
+   return answer({available:parsed.items.length>0,...parsed,checkedAt:new Date().toISOString()},200,origin,300);
+  }catch{
+   return answer({available:false,handle,sourceUrl:source,message:'Public Snapchat source unavailable.'},200,origin,300);
+  }
+ }
  const match=url.pathname.match(/^\/tiktok\/([a-zA-Z0-9._]{2,40})\/?$/);
  if(!match)return answer({error:'Unknown public profile route'},404,origin,120);
  const handle=match[1];const upstream='https://www.tokportal.com/tool/tiktok-profile-analytics-checker/'+encodeURIComponent(handle);
