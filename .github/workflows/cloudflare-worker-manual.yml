@@ -24,17 +24,18 @@ concurrency:
 jobs:
   validate:
     name: Validate Worker + existing Orbit flows
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Check out selected commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
+          package-manager-cache: false
       - name: Check Worker and Orbit source syntax
         run: |
           node --check cloudflare-worker-instagram.js
@@ -69,12 +70,12 @@ jobs:
     name: Publish existing Cloudflare Worker
     needs: validate
     if: ${{ inputs.operation == 'deploy' && github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: cloudflare-production
     steps:
       - name: Check out exact validated commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Require Cloudflare credentials stored as GitHub secrets
