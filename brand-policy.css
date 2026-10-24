@@ -1161,3 +1161,82 @@ body.about-site {
   #loginPage .login-supporters .supporter-viewport,
   .public-page-footer .public-supporters .supporter-viewport{overflow-x:auto!important}
 }
+
+/* 2026-10-23 footer balance: full-width supporter ribbon.
+   Align public/affidavit and login endings on one centered vertical axis.
+   The login marquee formerly occupied an absolutely positioned 46vw sidebar. */
+#loginPage .login-public-tail{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  min-height:0!important;
+  padding:22px 0 34px!important;
+}
+#loginPage .login-public-footer,
+#loginPage .login-supporters{
+  box-sizing:border-box!important;
+  width:min(1140px,calc(100% - 36px))!important;
+  max-width:100%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+#loginPage .login-public-footer{
+  order:0;
+  padding:20px 0 0!important;
+}
+#loginPage .login-supporters{
+  order:1;
+  position:relative!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  margin-top:24px!important;
+  margin-bottom:0!important;
+  padding:0!important;
+}
+#loginPage .login-public-footer nav,
+.policy-page .policy-public-footer nav{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:12px clamp(17px,2.25vw,30px)!important;
+  width:100%!important;
+  max-width:none!important;
+  text-align:center!important;
+}
+#loginPage .login-public-footer p,
+.policy-page .policy-public-footer p{
+  max-width:none!important;
+  margin:14px 0 0!important;
+  text-align:center!important;
+}
+#loginPage .login-supporters .supporter-heading,
+.policy-page .policy-public-footer .supporter-heading{
+  justify-content:center!important;
+  text-align:center!important;
+  margin-bottom:10px!important;
+}
+#loginPage .login-supporters .supporter-viewport,
+.policy-page .policy-public-footer .supporter-viewport{
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+}
+.policy-page .policy-public-footer{
+  text-align:center;
+}
+@media(max-width:650px){
+  #loginPage .login-public-tail{padding:12px 0 28px!important}
+  #loginPage .login-public-footer,
+  #loginPage .login-supporters{
+    width:calc(100% - 28px)!important;
+  }
+  #loginPage .login-public-footer{padding:16px 0 0!important}
+  #loginPage .login-supporters{margin-top:20px!important}
+  #loginPage .login-public-footer nav,
+  .policy-page .policy-public-footer nav{gap:10px 18px!important}
+}
