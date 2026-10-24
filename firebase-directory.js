@@ -465,7 +465,7 @@ async function addPerson(username){
 async function recordAnalyticsMonth(month,snapshot){
  if(!/^\d{4}-\d{2}$/.test(month))throw Error('Invalid analytics month.');
  const c=await ownAccountContext();
- const sources=(snapshot.sources||[]).slice(0,12).map(s=>({id:String(s.id).slice(0,24),followers:Number.isFinite(s.followers)&&s.followers>=0?s.followers:null,likes:Number.isFinite(s.likes)&&s.likes>=0?s.likes:null,lastCheckedAt:String(s.lastCheckedAt||'').slice(0,40),reach:s.reach?.month===month&&s.reach?.metric==='reach'&&Number.isFinite(s.reach.value)&&s.reach.value>=0?{month,metric:'reach',value:s.reach.value}:null}));
+ const sources=(snapshot.sources||[]).slice(0,12).map(s=>({id:String(s.id).slice(0,24),handle:String(s.handle||'').slice(0,80),followers:Number.isFinite(s.followers)&&s.followers>=0?s.followers:null,likes:Number.isFinite(s.likes)&&s.likes>=0?s.likes:null,lastCheckedAt:String(s.lastCheckedAt||'').slice(0,40),reach:s.reach?.month===month&&s.reach?.metric==='reach'&&Number.isFinite(s.reach.value)&&s.reach.value>=0?{month,metric:'reach',value:s.reach.value}:null}));
  const data={sources,connections:Math.max(0,Number(snapshot.connections)||0),observedAt:new Date().toISOString()};
  await c.fire.setDoc(c.ref,{analyticsMonths:{[month]:data}},{merge:true});
  return data;
