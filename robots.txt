@@ -3,4 +3,5 @@ Allow: /
 Disallow: /settings
 Disallow: /studio
 Disallow: /archive
+# Public policy routes and marketing pages remain crawlable.
 Sitemap: https://biglwa.com/sitemap.xml
