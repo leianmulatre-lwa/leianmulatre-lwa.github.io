@@ -1652,7 +1652,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         <div id="biglwaOrbitDrafts" hidden></div>
         <form class="module-form biglwa-feed-compose-form" id="feedComposer">
          <div class="biglwa-feed-compose-fields">
-          <label class="biglwa-feed-field" for="feedComposerUrl">Link <span>(optional)</span><input class="module-input" id="feedComposerUrl" name="url" type="url" inputmode="url" placeholder="Paste a link to share"></label>
+          <label class="biglwa-feed-field" for="feedComposerUrl">Link <span>(optional)</span><input class="module-input" id="feedComposerUrl" name="url" type="url" inputmode="url" placeholder="Paste any Instagram, TikTok, Snapchat or other site link"></label>
           <label class="biglwa-feed-field" for="feedComposerCaption">Caption <span>(optional · 500 characters)</span><textarea class="module-input" id="feedComposerCaption" name="caption" maxlength="500" rows="2" placeholder="Add a caption or context…"></textarea></label>
          </div>
          <div class="biglwa-feed-compose-actions">

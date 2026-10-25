@@ -120,27 +120,11 @@
     document.querySelectorAll('#moduleWorkspace[data-module-key="orbit"] [data-tiktok-public-import]').forEach(node=>node.remove());
   }
 
+  // myfeed already has one platform-neutral link composer. Retire legacy
+  // TikTok-only import/analytics boxes without interrupting Orbit auto-sync.
   function renderTikTokFeedImporter(){
-    const host=document.querySelector('#moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-card');
-    if(!host||host.querySelector('[data-tiktok-public-import]'))return;
-    const panel=document.createElement('section');
-    panel.setAttribute('data-tiktok-public-import','');
-    panel.setAttribute('aria-label','Import TikTok into myfeed');
-    panel.style.cssText='display:grid;gap:6px;margin:8px 0;padding:9px 11px;border:1px solid #baa5c2;border-radius:10px;background:#f9efff;color:#362440';
-    panel.innerHTML='<details class="biglwa-tiktok-import-details"><summary>Import from TikTok</summary><div class="biglwa-tiktok-import-fields">'+
-     '<label for="tiktokFeedVideoLink">TikTok video or profile URL</label>'+
-     '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><input id="tiktokFeedVideoLink" class="module-input" style="flex:1 1 215px;min-width:0" type="url" inputmode="url" placeholder="https://www.tiktok.com/@creator/video/..." data-tiktok-public-url>'+
-     '<button class="module-action" type="button" data-tiktok-public-save>Save to myfeed drafts</button></div>'+
-     '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
-     '<details class="biglwa-tiktok-batch"><summary>Import multiple public links</summary><textarea class="module-input" data-tiktok-batch-links rows="2" maxlength="6000" placeholder="One public TikTok video URL per line (up to 20)"></textarea><button class="module-action secondary" type="button" data-tiktok-batch-save>Save private drafts</button><small data-tiktok-batch-status role="status"></small></details>'+
-     '<div data-tiktok-public-preview hidden></div></div></details>';
-    const reflection=document.createElement('details');
-    reflection.className='biglwa-tiktok-analytics-reflection';
-    reflection.style.cssText='font:500 11px/1.5 system-ui;border-top:1px solid #cfbfd4;padding-top:7px';
-    reflection.innerHTML='<summary style="cursor:pointer;font-weight:700">My TikTok · analytics reflection</summary><div data-tiktok-analytics-values style="display:grid;gap:4px;padding:7px 0" role="status"></div><button type="button" class="module-action secondary" data-tiktok-verify-migration>Verify my saved TikTok posts</button><small data-tiktok-verify-status role="status" aria-live="polite" style="display:block;margin-top:5px"></small>';
-    panel.append(reflection);
-    (host.querySelector('#biglwaFeedImportStatusRail')||host.querySelector('.biglwa-feed-compose-head'))?.after(panel);
-    renderTikTokAnalytics();
+    document.querySelectorAll('#moduleWorkspace[data-module-key="feed"] [data-tiktok-public-import]')
+      .forEach(node=>node.remove());
   }
 
   function renderTikTokAnalytics(){
@@ -393,7 +377,6 @@
     renderFeedList();
     renderTikTokLinkImporter();
     renderTikTokFeedImporter();
-    renderTikTokAnalytics();
     document.querySelectorAll('[data-orbit-app="tiktok"]').forEach(el => { el.classList.toggle('orbit-connected',connected); el.setAttribute('aria-label',connected?'Refresh TikTok':'Connect TikTok'); });
     document.querySelectorAll('[data-orbit-path="tiktok"]').forEach(input => {
       const actions = input.closest('.module-orbit-row')?.querySelector('.module-actions');

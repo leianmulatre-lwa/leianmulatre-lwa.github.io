@@ -26,7 +26,51 @@ async function postWriter(){
 }
 
 async function uploadBlob(blob){if(!(blob instanceof Blob)||!blob.size)throw new Error("Choose or capture an image first.");const {auth}=await firebase(),user=auth.currentUser;if(!user)throw new Error("Sign in before uploading to the collective feed.");const token=await user.getIdToken();const type=clean(blob.type)||"image/jpeg";const res=await fetch(WORKER+"/media/feed-image",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":type},body:blob});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"The image could not be uploaded.");return data}
-async function linkPreview(url){const value=clean(url);if(!/^https?:\/\//i.test(value))throw new Error("Use a full http:// or https:// link.");const parsed=new URL(value);if(parsed.username||parsed.password)throw new Error("Links with embedded login details are not allowed.");const host=parsed.hostname.toLowerCase();if(host==="localhost"||host.endsWith(".localhost")||host.endsWith(".local")||/^127\./.test(host)||/^10\./.test(host)||/^192\.168\./.test(host)||/^169\.254\./.test(host)||host==="::1"||host==="0.0.0.0")throw new Error("That link cannot be previewed.");const res=await fetch(WORKER+"/media/link-preview",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+(await (await firebase()).auth.currentUser.getIdToken())},body:JSON.stringify({url:value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"The link preview could not be loaded.");return data}
+/* A social network may block automated previews. Keep its original user
+ * link usable without claiming that BIG LWA copied or verified the content.
+ * Unknown domains still use the existing guarded Worker and fail normally. */
+function knownSocialProvider(host){
+ const pairs=[
+  ['instagram',['instagram.com']],['tiktok',['tiktok.com']],
+  ['snapchat',['snapchat.com']],['facebook',['facebook.com','fb.watch']],
+  ['pinterest',['pinterest.com','pin.it']],['x',['x.com','twitter.com']],
+  ['tumblr',['tumblr.com']],['youtube',['youtube.com','youtu.be']],
+  ['spotify',['spotify.com']],['soundcloud',['soundcloud.com']],
+  ['twitch',['twitch.tv']],['goodreads',['goodreads.com']],
+  ['letterboxd',['letterboxd.com']],['depop',['depop.com']],
+  ['imdb',['imdb.com']],['vsco',['vsco.co']],['bereal',['bere.al']],
+  ['threads',['threads.net']],['discord',['discord.com','discord.gg']],
+  ['reddit',['reddit.com']],['bandcamp',['bandcamp.com']]
+ ];
+ return pairs.find(([,hosts])=>hosts.some(domain=>host===domain||host.endsWith('.'+domain)))?.[0]||'';
+}
+async function linkPreview(url){
+ const value=clean(url);
+ if(!/^https:\/\//i.test(value))throw new Error('Use a full HTTPS link.');
+ const parsed=new URL(value);
+ if(parsed.username||parsed.password||parsed.port)throw new Error('Links containing credentials or custom ports are not supported.');
+ const host=parsed.hostname.toLowerCase();
+ if(host==='localhost'||host.endsWith('.localhost')||host.endsWith('.local')||
+    /^(127\.|10\.|192\.168\.|169\.254\.)/.test(host)||host==='::1'||host==='0.0.0.0')
+   throw new Error('That link cannot be previewed.');
+ const provider=knownSocialProvider(host);
+ try{
+  const {auth}=await firebase();
+  if(!auth.currentUser)throw new Error('Sign in before importing a link.');
+  const res=await fetch(WORKER+'/media/link-preview',{method:'POST',
+   headers:{'Content-Type':'application/json','Authorization':'Bearer '+(await auth.currentUser.getIdToken())},
+   body:JSON.stringify({url:value})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||'The link preview could not be loaded.');
+  return {...data,provider:provider||''};
+ }catch(error){
+  if(!provider)throw error;
+  // Source link is still useful even when its OG image is blocked.
+  return {url:value,title:provider.charAt(0).toUpperCase()+provider.slice(1)+' link',
+    imageUrl:'',siteName:host,provider,previewUnavailable:true};
+ }
+}
+
 
 async function createFeedDraft({url,blob,caption}={}){const {auth,serverTimestamp}=await firebase();const user=auth.currentUser;if(!user)throw new Error("Sign in to post to the collective feed.");const identity=window.__biglwaIdentity||{};const link=clean(url);if(!link&&!blob)throw new Error("Add a link or choose a photo.");let preview=null;if(link)preview=await linkPreview(link);let imageUrl="",imageKey=null;if(blob){const uploaded=await uploadBlob(blob);imageUrl=uploaded.url||"";imageKey=uploaded.key||null;}const id="feed_"+crypto.randomUUID().replace(/-/g,"");const now=Date.now();const data={uid:user.uid,username:clean(identity.username),usernameLower:clean(identity.usernameLower||identity.username).replace(/^@/,"").toLowerCase(),authorName:clean(identity.name||identity.username||user.displayName||""),caption:clean(caption).slice(0,500),imageUrl:imageUrl||preview?.imageUrl||null,imageKey:imageKey||null,imageUrls:(imageUrl?[imageUrl]:preview?.imageUrl?[preview.imageUrl]:[]),imageKeys:imageKey?[imageKey]:[],mediaItems:imageUrl?[{index:0,url:imageUrl,key:imageKey||null}]:[],source:"biglwa",sourcePostId:id,sourceUrl:link||null,thumbnailUrl:preview?.imageUrl||imageUrl||null,linkTitle:preview?.title||"",mediaType:imageUrl||preview?.imageUrl?"IMAGE":"LINK",orbitImported:false,studioImported:false,state:"draft",archiveState:"saved",sourceCreatedAtMs:now,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};const saved=await (await postWriter())(user.uid,id,data,{archiveState:"saved"});return {id,...saved}}
 
