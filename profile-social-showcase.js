@@ -81,10 +81,10 @@
    }).finally(()=>savingLinks.delete(provider));
   }
  }
- let snapSource={key:'',status:'',items:[],message:''},signature='';
+ let snapSource={key:'',status:'',items:[],message:'',checkedAt:0},signature='';
  function refreshPublicSnapchat(handle,who){
   const next=who+':'+handle.toLowerCase();
-  if(snapSource.key===next)return;
+  if(snapSource.key===next&&(snapSource.status==='loading'||Date.now()-snapSource.checkedAt<15*60*1000))return;
   snapSource={key:next,status:'loading',items:[],message:''};
   fetch(PUBLIC+'/snapchat/'+encodeURIComponent(handle),{credentials:'omit',mode:'cors',cache:'no-store'})
    .then(r=>{if(!r.ok)throw Error('Public source unavailable');return r.json()})
@@ -95,17 +95,33 @@
     const items=Array.isArray(data.items)?data.items.filter(v=>
      v?.kind==='Spotlight'&&typeof v.mediaUrl==='string'&&
      /^https:\/\/cf-st\.sc-cdn\.net\//.test(v.mediaUrl)).slice(0,8):[];
-    snapSource={key:next,status:items.length?'ready':'empty',items,
+    snapSource={key:next,status:items.length?'ready':'empty',checkedAt:Date.now(),items,
      message:items.length?'Public @'+handle+' matched · '+items.length+' Spotlight preview(s)':
      'No public Spotlight media available for @'+handle};
     schedule();
    }).catch(e=>{
     if(snapSource.key!==next)return;
-    snapSource={key:next,status:'error',items:[],message:'Snapchat public lookup unavailable; original profile remains accessible.'};
+    snapSource={key:next,status:'error',checkedAt:Date.now(),items:[],message:'Snapchat public lookup unavailable; original profile remains accessible.'};
     schedule();
    });
  }
 
+ // Some connected sources may return genuine pinned-Highlight permalink IDs.
+ // They are safe to auto-display; ordinary media posts are never mislabeled.
+ function instagramSourceHighlights(handle){
+  const state=window.__biglwaInstagramOrbit?.state;
+  if(!state?.connected||!Array.isArray(state.media)||!handle)return [];
+  const found=new Set();
+  return state.media.flatMap(item=>{
+   const raw=String(item?.permalink||'');
+   const resolved=clean(raw);
+   if(!resolved||resolved.platform!=='instagram'||found.has(resolved.url))return [];
+   const observed=String(item?.username||state.profile?.username||'').replace(/^@/,'').trim();
+   if(observed.toLowerCase()!==handle.toLowerCase())return [];
+   found.add(resolved.url);
+   return [{...resolved,autoDiscovered:true}];
+  }).slice(0,8);
+ }
  const storyStyle=()=>{
   if(document.getElementById('biglwa-story-circles-style'))return;
   const css=document.createElement('style');css.id='biglwa-story-circles-style';
@@ -251,7 +267,9 @@
 
  function show(){
   const root=document.querySelector('#studioApp .profile-card');
-  const who=uid(),entries=saved(),handles=accountHandles();
+  const who=uid(),handles=accountHandles();
+  const entries=[...instagramSourceHighlights(handles.instagram),...saved()]
+    .filter((item,i,list)=>list.findIndex(other=>other.url===item.url)===i).slice(0,8);
   persistProviderLinks(handles,who);
   if(handles.snapchat)refreshPublicSnapchat(handles.snapchat,who);
   else if(snapSource.key)snapSource={key:'',status:'',items:[],message:''};
@@ -294,6 +312,11 @@
    discovery.append(note);
   }
   section.append(discovery);
+  const advanced=document.createElement('details');advanced.style.marginTop='6px';
+  const advancedTitle=document.createElement('summary');
+  advancedTitle.textContent='Optional · add an individual Highlight or Spotlight link';
+  advancedTitle.style.cssText='cursor:pointer;font:650 11px system-ui;color:#7f425a';
+  advanced.append(advancedTitle);section.append(advanced);
   const form=document.createElement('form');form.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin:9px 0';
   const input=document.createElement('input');input.type='url';input.placeholder='Snapchat Spotlight or Instagram Highlight URL';
   input.setAttribute('aria-label','Public Spotlight or Highlight URL');input.required=true;input.maxLength=500;
@@ -301,7 +324,7 @@
   const button=document.createElement('button');button.type='submit';button.textContent='Add link';
   button.style.cssText='padding:6px 9px;border:1px solid #8c6072;background:#8a4261;color:white;border-radius:7px;font:700 11px system-ui;cursor:pointer';
   const notice=document.createElement('small');notice.role='status';notice.style.cssText='display:block;flex-basis:100%;font:500 10px system-ui;color:#714759';
-  form.append(input,button,notice);section.append(form);
+  form.append(input,button,notice);advanced.append(form);
   form.onsubmit=e=>{
    e.preventDefault();const item=clean(input.value);
    if(!item){notice.textContent='Use an original public Snapchat Spotlight or Instagram Highlight link.';return}
@@ -367,7 +390,7 @@
    };wrap.append(date);container.append(wrap);
   });
   section.append(container);
-  const foot=document.createElement('small');foot.textContent='Public links saved to this browser for your BIG LWA account. Original media stays on its platform.';
+  const foot=document.createElement('small');foot.textContent='Connected profiles appear automatically. Optional individual story links stay in this browser; source media stays on its original platform.';
   foot.style.cssText='display:block;font:500 9px/1.4 system-ui;color:#766369;margin-top:7px';section.append(foot);
   document.body.append(section);
   mountStoryCircles(root,section,entries,snapItems,handles);
@@ -381,5 +404,7 @@
  for(const event of ['biglwa:new-orbit-status','biglwa:identity-updated','biglwa:session-verified','biglwa:orbit-links-synced'])
   (event==='biglwa:new-orbit-status'?document:window).addEventListener(event,schedule);
  document.addEventListener('biglwa:new-orbit-status',schedule);
+ // Refresh source-hosted Spotlight previews periodically while the member is present.
+ setInterval(()=>{if(uid())schedule()},15*60*1000);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
 })();
