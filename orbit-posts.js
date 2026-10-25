@@ -947,8 +947,8 @@ export async function savePostRecords(ownerUid, postId, data, archiveExtra = {})
 
 /* Owner-session verification of REAL, persisted TikTok media records.
  * This is a database check, not a simulation or a public-source lookup.
- * It checks three Firestore locations and whether any media is actually
- * backed by BIG LWA's R2 instead of merely linking back to TikTok.
+ * It checks three Firestore locations and records R2 URL references separately.
+ * URL references alone do not prove storage bytes are available.
  */
 export async function verifyTikTokMigration(){
   const store=await firebase();
@@ -964,7 +964,7 @@ export async function verifyTikTokMigration(){
     checkedAt:new Date().toISOString(),ownerAuthenticated:true,records:posts.length,
     scannedLimit:50,limitReached:results.size===50,approved:0,drafts:0,
     ownerRecords:posts.length,rootRecords:0,archiveRecords:0,sourceLinks:0,
-    r2Backups:0,metadataOnly:0,unreadable:0,providerIdentityMatches:0
+    r2UrlReferences:0,metadataOnly:0,unreadable:0,providerIdentityMatches:0
   };
   const actualProvider=window.__biglwaTikTokOrbit?.state;
   const oauthName=actualProvider?.connected&&actualProvider?.uid===uid?
@@ -980,7 +980,7 @@ export async function verifyTikTokMigration(){
     const stored=urls.some(v=>{try{const u=new URL(v);return u.protocol==='https:'&&
       ['api.biglwa.com','biglwa-instagram-api.leianmulatre-284.workers.dev'].includes(u.hostname)&&
       /^\/media\/orbit\//.test(u.pathname)}catch{return false}});
-    if(stored)state.r2Backups++;else state.metadataOnly++;
+    if(stored)state.r2UrlReferences++;else state.metadataOnly++;
     const author=String(data.sourceUsername||'').replace(/^@/,'').toLowerCase();
     if(oauthName&&author===oauthName)state.providerIdentityMatches++;
   }
@@ -998,7 +998,9 @@ export async function verifyTikTokMigration(){
   }
   state.sampleChecked=Math.min(posts.length,10);
   state.provenPersistent=state.sampleChecked>0&&state.rootRecords>0&&state.archiveRecords>0;
-  state.provenMediaBackedUp=state.r2Backups>0;
+  // A matching URL is not proof that the R2 object exists. Verify storage bytes
+  // separately with an owner-authenticated storage HEAD check before claiming backup.
+  state.provenMediaBackedUp=false;
   return state;
 }
 
