@@ -4,7 +4,7 @@
  * visitor rendering a studio preview can show the picture without reading private data.
  */
 import { identity, patchIdentity } from "./account-identity.js";
-import { renderAvatar } from "./account-chrome.js";
+import { renderAvatar } from "./account-chrome.js?v=20261024-firstname-avatar-1";
 
 const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -95,7 +95,7 @@ export async function removeProfilePhoto() {
 
 function paint(url) {
   document.querySelectorAll("#studioApp .mini-avatar, #studioApp .profile-avatar").forEach((el) => {
-    renderAvatar(el, url, identity()?.name || identity()?.username);
+    renderAvatar(el, url, identity()?.name && identity()?.name?.toLowerCase()!==identity()?.username?.toLowerCase()?identity().name:"");
   });
   const preview = document.querySelector(".biglwa-photo-preview");
   if (preview) {
