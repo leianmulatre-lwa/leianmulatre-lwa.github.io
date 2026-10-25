@@ -206,6 +206,27 @@
   const notice=document.createElement('small');notice.textContent='Source-hosted public story · availability may change';
   pop.append(notice);document.body.append(pop);x.focus();
  }
+ function profilePreview(platform,handle){
+  // Keep members inside BIG LWA when a connected network has not exposed
+  // individual Highlight/Spotlight records. The source link is optional.
+  storyShade();
+  const valid=validHandle(handle),original=valid?
+   (platform==='instagram'?'https://www.instagram.com/'+encodeURIComponent(handle)+'/':
+    'https://www.snapchat.com/add/'+encodeURIComponent(handle)):'';
+  const pop=document.createElement('div');pop.className='biglwa-story-popup';
+  pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');
+  const close=document.createElement('button');close.type='button';close.className='biglwa-story-close';
+  close.textContent='×';close.setAttribute('aria-label','Close profile preview');close.onclick=closeStory;
+  const title=document.createElement('strong');title.textContent=platform==='instagram'?'Instagram profile':'Snapchat profile';
+  const handleText=document.createElement('p');handleText.textContent=valid?'@'+handle:'Public profile link unavailable';
+  const note=document.createElement('small');note.textContent='Connected account. Individual Highlights and Spotlights are shown here automatically only when their media can be retrieved.';
+  pop.append(close,title,handleText,note);
+  if(original){
+   const link=document.createElement('a');link.href=original;link.target='_blank';
+   link.rel='noopener noreferrer';link.textContent='Original public profile ↗';pop.append(link);
+  }
+  document.body.append(pop);close.focus();
+ }
  function storyBubble(platform,label,fn){
   const b=document.createElement('button');b.type='button';b.className='biglwa-story-bubble';b.dataset.source=platform;
   b.setAttribute('aria-label',label);
@@ -237,9 +258,7 @@
   if(active('snapchat')){
    if(snapItems.length)snapItems.forEach((item,i)=>track.append(storyBubble('snapchat','Spotlight '+(i+1),
     ()=>storyPreview({...item,url:'https://story.snapchat.com/add/@'+handles.snapchat},'snapchat'))));
-   else if(handles.snapchat)track.append(storyBubble('snapchat','Snapchat',()=>{
-     window.open('https://www.snapchat.com/add/'+encodeURIComponent(handles.snapchat),'_blank','noopener,noreferrer');
-   }));
+   else if(handles.snapchat)track.append(storyBubble('snapchat','Snapchat',()=>profilePreview('snapchat',handles.snapchat)));
   }
   const ig=entries.filter(x=>x.platform==='instagram'&&active('instagram'));
   // Link directly to the connected user's Instagram profile, where its
@@ -247,9 +266,7 @@
   // individual Highlight objects when it did not.
   if(handles.instagram&&!ig.length){
    const instagramUrl='https://www.instagram.com/'+encodeURIComponent(handles.instagram)+'/';
-   track.append(storyBubble('instagram','Instagram',()=>{
-    window.open(instagramUrl,'_blank','noopener,noreferrer');
-   }));
+   track.append(storyBubble('instagram','Instagram',()=>profilePreview('instagram',handles.instagram)));
   }
   ig.forEach((item,i)=>track.append(storyBubble('instagram','Highlight '+(i+1),()=>storyPreview(item,'instagram'))));
   entries.filter(x=>x.platform==='snapchat'&&active('snapchat')).forEach((item,i)=>
