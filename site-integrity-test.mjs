@@ -61,7 +61,7 @@ assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not lega
 assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(index, /project-canvas\.js\?v=/);
-assert.match(index, /tiktok-orbit\.js\?v=20261024-myfeed-migration-proof-1/);
+assert.match(index, /tiktok-orbit\.js\?v=20261024-unified-links-2/);
 assert.match(feedPolish, /biglwa-feed-lights/);
 assert.match(feedPolish, /data-feed-light/);
 assert.match(feedPolish, /data-post-/);
@@ -199,4 +199,4 @@ assert.doesNotMatch(tiktokOrbit, /row\.append\(panel\)/);
 assert.match(tiktokOrbit, /\[data-tiktok-public-import\]'\)\.forEach\(node=>node\.remove\(\)\)/);
 assert.match(tiktokOrbit, /notified:false/);
 assert.match(tiktokOrbit, /biglwa:studio-update/);
-assert.match(tiktokOrbit, /<\/div><\/details>/);
+assert.match(tiktokOrbit, /function renderTikTokFeedImporter/);

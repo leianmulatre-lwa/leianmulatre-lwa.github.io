@@ -64,13 +64,15 @@
  };
  // Once a provider reports its own public identity, keep that canonical URL
  // on the signed-in BIG LWA member's Orbit record (not browser-only storage).
- const savingLinks=new Set();
+ const savingLinks=new Set(),attemptedLinks=new Set();
  function persistProviderLinks(handles,who){
   const links=window.BigLWAOrbitAccountLinks;
   if(!who||!links?.ready?.()||links.owner?.()!==who)return;
   const records=links.get?.()||{};
   for(const [provider,handle] of [['instagram',handles.instagramOAuth],['snapchat',handles.snapchatProviderLink]]){
-   if(!handle||savingLinks.has(provider)||records[provider])continue;
+   const attempt=who+':'+provider+':'+handle.toLowerCase();
+   if(!handle||savingLinks.has(provider)||records[provider]||attemptedLinks.has(attempt))continue;
+   attemptedLinks.add(attempt);
    const canonical=provider==='instagram'?'https://www.instagram.com/'+handle+'/':
      'https://www.snapchat.com/add/'+handle;
    savingLinks.add(provider);
@@ -194,7 +196,14 @@
   const ring=document.createElement('span');ring.className='biglwa-story-ring';
   const inner=document.createElement('span');inner.className='biglwa-story-inner';
   if(platform==='snapchat'){
-   const img=document.createElement('img');img.src='/assets/orbit-icons/'+platform+'.svg';img.alt='';inner.append(img);
+   const img=document.createElement('img');img.src='/assets/orbit-icons/snapchat.svg';img.alt='';inner.append(img);
+  }else if(platform==='instagram'){
+   const photo=window.__biglwaInstagramOrbit?.state?.profile?.profile_picture_url||'';
+   if(/^https:\/\//.test(String(photo))){
+    const img=document.createElement('img');img.src=photo;img.alt='';
+    img.style.cssText='width:100%;height:100%;border-radius:50%;object-fit:cover';
+    inner.append(img);
+   }else inner.textContent='◌';
   }else inner.textContent='+';
   ring.append(inner);
   const title=document.createElement('span');title.className='biglwa-story-name';title.textContent=label;

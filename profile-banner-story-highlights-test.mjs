@@ -5,7 +5,7 @@ const require=createRequire(import.meta.url);
 const {JSDOM}=require('jsdom');
 const code=readFileSync(new URL('./profile-social-showcase.js',import.meta.url),'utf8');
 const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.ok(index.includes('/profile-social-showcase.js?v=20261024-lower-banner-rings-1'));
+assert.ok(index.includes('/profile-social-showcase.js?v=20261024-auto-connected-showcase-2'));
 
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+
 '<main id="studioApp"><article class="profile-card">'+
