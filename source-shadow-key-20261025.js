@@ -15,24 +15,25 @@
   ['goodreads','Goodreads','#7a5c3e'],['letterboxd','Letterboxd','#2c3440'],
   ['imdb','IMDb','#e6a800'],['vsco','VSCO','#b51668'],
   ['bereal','BeReal','#777b83'],['substack','Substack','#da521b'],
-  ['xbox','Xbox','#a3d65e'],['other','Other source','#8f756e']
+  ['xbox','Xbox','#a3d65e'],
+  ['website','My website · Aura','rgb(var(--aura-rgb,216,95,109))'],
+  ['lwa','BIG LWA','rainbow'],['ad','Advertisement','#ffffff']
  ]);
  const widgetColors=Object.freeze({individual:'#d9c6ee',social:'#f7cddd',political:'#f8d4b0'});
  const groups=Object.freeze({
    orbit:'social',archive:'individual',feed:'social',veve:'social',skeleton:'social'
  });
- const common=new Set(['instagram','tiktok','pinterest','facebook','youtube','snapchat','tumblr','x','other']);
+ const common=new Set(['instagram','tiktok','pinterest','facebook','youtube','snapchat','tumblr','x','website','lwa','ad']);
  function render(module){
    const group=groups[module]||'social';
-   const visible=module==='orbit'||module==='skeleton'?sources.filter(s=>s[0]!=='other'):
+   const visible=module==='orbit'||module==='skeleton'?sources:
      sources.filter(s=>common.has(s[0]));
-   const face=widgetColors[group];
-   return '<div class="module-shadow-key" data-shadow-key="'+module+'" data-widget-body="'+group+
-    '" role="group" aria-label="Platform shadow key: widget body color, one source shadow">'+
+    return '<div class="module-shadow-key" data-shadow-key="'+module+'" data-widget-body="'+group+
+    '" role="group" aria-label="Source shadow key: ivory card face, one source shadow">'+
     '<b>SHADOW KEY</b>'+
     visible.map(([id,label,shadow])=>
       '<span class="module-shadow-key-item" data-key-source="'+id+'">'+
-      '<i class="shadow-preview" aria-hidden="true" style="--key-face:'+face+';--key-shadow:'+shadow+'"></i>'+
+      '<i class="shadow-preview" aria-hidden="true" style="--key-shadow:'+shadow+'"></i>'+
       '<span>'+label+'</span></span>').join('')+'</div>';
  }
  window.BigLWAShadowKey=Object.freeze({render,sources,widgetColors,groups});
