@@ -18,7 +18,7 @@ assert.ok(tt.includes('data-tiktok-save-video')&&tt.includes("saveExternalOrbitD
 assert.ok(tt.includes('list.dataset.tiktokMediaSignature'),'Avoid source observer redraw loops');
 assert.ok(worker.includes('video/list/?fields=id,title,video_description,cover_image_url,share_url,embed_link'),'TikTok video embeds requested when scope is granted');
 assert.ok(html.includes('orbit-media-status-20261016.css?v=20261016-facebook-tiktok-1'),'Media styles deployed');
-assert.ok(html.includes('tiktok-orbit.js?v=20261023-collective-autosync-6'),'TikTok media status script deployed');
+assert.ok(html.includes('tiktok-orbit.js?v=20261024-myfeed-migration-proof-1'),'TikTok media status script deployed');
 assert.ok(html.includes('facebook-orbit.js?v=20261017-media-modal-1'),'Facebook profile link script deployed');
 console.log('PASS Facebook public profile and consent-based TikTok video previews; no unauthorized auto-publishing.');
 const syncSource=tt.slice(tt.indexOf('  async function syncTikTokDrafts()'),tt.indexOf('  async function restore()'));

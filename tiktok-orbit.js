@@ -190,7 +190,7 @@
     }
     button.disabled=true;status.textContent='Checking your saved myfeed records…';
     Promise.resolve().then(async()=>{
-      const mod=await import('/orbit-posts.js?v=20261017-personal-first-import-3');
+      const mod=await import('/orbit-posts.js?v=20261024-myfeed-migration-proof-1');
       const verify=window.__biglwaOrbitPosts?.verifyTikTokMigration||mod.verifyTikTokMigration;
       if(typeof verify!=='function')throw Error('Account migration verifier unavailable.');
       const proof=await verify();
@@ -236,7 +236,7 @@
   async function syncTikTokDrafts(){
     if(videoPermissionPending||!videos.length)return;
     const expectedUid=authUid;
-    const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+    const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261024-myfeed-migration-proof-1')).saveExternalOrbitDraft;
     if(typeof writer!=='function')throw Error('Feed importer unavailable. Retry TikTok sync.');
     let saved=0,failed=0,firstError='',alreadyPublished=0;
     for(let i=0;i<videos.length;i+=4){
@@ -299,7 +299,7 @@
       videoLoadError=data.message||'TikTok public profile did not provide video metadata.';
       return;
     }
-    const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+    const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261024-myfeed-migration-proof-1')).saveExternalOrbitDraft;
     if(typeof writer!=='function')throw Error('myfeed importer unavailable.');
     const providerMatched=Boolean(claimed&&claimed.toLowerCase()===handle.toLowerCase());
     let published=0,drafts=0,failed=0;
@@ -518,7 +518,7 @@
       batch.disabled=true;
       (async()=>{
         const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft ||
-          (await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+          (await import('/orbit-posts.js?v=20261024-myfeed-migration-proof-1')).saveExternalOrbitDraft;
         if(typeof writer!=='function')throw Error('Private drafts are unavailable.');
         let count=0,skipped=0;
         for(const link of links){
@@ -570,7 +570,7 @@
         }
         const video=await publicVideo(String(input?.value||'').trim());
         const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft ||
-          (await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+          (await import('/orbit-posts.js?v=20261024-myfeed-migration-proof-1')).saveExternalOrbitDraft;
         if(typeof writer!=='function')throw Error('Your private Orbit archive is not ready.');
         const saved=await writer('tiktok',{
           id:video.id,sourcePostId:video.id,sourceUrl:video.share_url,expectedUid:authUid,
