@@ -9,7 +9,7 @@ assert.ok(index.includes('/profile-social-showcase.js?v=20261024-auto-connected-
 
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+
 '<main id="studioApp"><article class="profile-card">'+
-'<div class="profile-copy"><div class="profile-name-line"><h1>@founder</h1></div>'+
+'<div class="profile-copy"><div class="profile-name-line"><h1>@founder</h1></div><p class="bio">Original member bio</p>'+
 '<div class="stats"><span data-profile-stat="followers">100 Followers</span>'+
 '<span data-profile-stat="following">20 Following</span>'+
 '<span data-profile-stat="connections">2 Connections</span>'+
@@ -39,6 +39,12 @@ const stats=card.querySelector('.stats'), likes=stats.querySelector('[data-profi
 const row=card;
 const rail=card.querySelector('[data-biglwa-public-showcase]');
 assert.ok(row,'Profile banner exists');
+const profileHighlights=card.querySelector('[data-biglwa-bio-highlights]');
+assert.ok(profileHighlights,'Connected Instagram handle adds a Highlight link after member bio');
+assert.equal(profileHighlights.getAttribute('href'),'https://pvgram.com/?u=leianstanley',
+  'Bio Highlights link passes the connected username without asking the member to paste it');
+assert.equal(profileHighlights.previousElementSibling.className,'bio','Bio text remains untouched');
+assert.equal(profileHighlights.getAttribute('target'),'_blank','External viewer opens without leaving BIG LWA');
 assert.equal(stats.parentElement,card.querySelector('.profile-copy'),'Metrics must remain in original profile copy');
 assert.equal(rail.parentElement,card,'Highlights must mount on the banner, not beside Likes');
 assert.ok(likes,'Likes remains intact');
