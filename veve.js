@@ -219,15 +219,17 @@
     const clip=Boolean(direct||embed),single=(Array.isArray(post.mediaItems)?post.mediaItems.length<=1:true);
     const ratio=Number(post.aspectRatio||post.videoAspectRatio||0);
     const match=single&&(!ratio||ratio>.15&&ratio<5);
+    // Resolve media dimensions before interpolating them into the card markup.
+    // Accessing a later const here used to abort the entire public media wall.
+    const displayRatio=Number(post.aspectRatio||post.imageAspectRatio||
+      (Number(post.imageWidth)>0&&Number(post.imageHeight)>0?Number(post.imageWidth)/Number(post.imageHeight):0));
+    const validRatio=Number.isFinite(displayRatio)&&displayRatio>=.35&&displayRatio<=3;
     const videoMarkup=direct&&match
       ?'<video class="veve-inline-video" src="'+e(direct)+'" '+(url?'poster="'+e(url)+'" ':'')+'autoplay muted loop playsinline controls preload="metadata"></video>'
       :url?'<img src="'+e(url)+'"'+(validRatio?' data-media-aspect="'+displayRatio+'"':'')+' loading="lazy" decoding="async" alt="'+e(caption||'Published collective media')+'">':
          '<div class="veve-video-fallback">Video preview</div>';
     const sourceKind=src==='pinterest'&&post.pinterestOriginVerified===true&&
       ['created','board'].includes(post.pinterestOrigin)?post.pinterestOrigin:'unknown';
-    const displayRatio=Number(post.aspectRatio||post.imageAspectRatio||
-      (Number(post.imageWidth)>0&&Number(post.imageHeight)>0?Number(post.imageWidth)/Number(post.imageHeight):0));
-    const validRatio=Number.isFinite(displayRatio)&&displayRatio>=.35&&displayRatio<=3;
     return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-pin-kind="'+e(sourceKind)+'" data-veve-post="'+e(post.id)+'">'+
       '<div class="veve-photo-frame"'+(validRatio?' style="--lwa-image-aspect:'+displayRatio+'"':'')+'>'+videoMarkup+
       '<span class="veve-provider">'+e(label)+'</span>'+
