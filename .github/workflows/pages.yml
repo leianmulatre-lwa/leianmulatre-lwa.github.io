@@ -84,6 +84,7 @@ jobs:
           node --check orbit-new-connect-20261017-v5.js
           node --check avatar/minecraft-mannequin.js
           node veve-arcade-regression-test.mjs
+          node veve-single-heading-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
           node arcade-curtain-folder-regression-test.mjs
           node arcade-approved-asset-test.mjs
