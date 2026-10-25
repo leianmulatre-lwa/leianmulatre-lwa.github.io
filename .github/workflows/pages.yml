@@ -86,6 +86,7 @@ jobs:
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
           node arcade-curtain-folder-regression-test.mjs
+          node arcade-approved-asset-test.mjs
           node games-arcade-test.mjs
           node arcade-input-loop-regression-test.mjs
           node sqwibz-orbit-routing-test.mjs
