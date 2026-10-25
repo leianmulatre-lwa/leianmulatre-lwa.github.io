@@ -7,6 +7,7 @@
 import {readdirSync,statSync,cpSync,mkdirSync,rmSync,existsSync,writeFileSync} from 'node:fs';
 import {join,extname,resolve,relative,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {generateOgImage} from './build-og-image.mjs';
 
 const root=resolve(fileURLToPath(new URL('.',import.meta.url)));
 const dest=join(root,'dist');
@@ -79,6 +80,8 @@ for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','publ
   if(existsSync(join(dest,hidden)))throw Error('Restricted development file reached public output: '+hidden);
 }
 if(count>19000)throw Error('Public file count exceeds Cloudflare Pages deployment safety limit.');
+generateOgImage(join(dest,'assets/brand/og-biglwa.png'));
+if(!existsSync(join(dest,'assets/brand/og-biglwa.png')))throw Error('Missing BIG LWA OG image');
 // These are app routes; legal/about/settings pages keep their real HTML.
 writeFileSync(join(dest,'_redirects'),
   '/studio /index.html 200\n/orbit /index.html 200\n');
