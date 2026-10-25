@@ -1506,7 +1506,9 @@
     const username=String(who.username||stored.username||'').trim().replace(/^@/,'').toLowerCase();
     // Use the entered name only; an @handle can never be a substitute.
     const candidate=[who.name,stored.name].map(v=>String(v||'').trim()).find(v=>v&&v.toLowerCase()!==username)||'';
-    const initial=(String(who.name||stored.name||'').trim().charAt(0).toLocaleUpperCase()||'B');
+    // No generic "B" fallback: only the chosen display name owns the monogram.
+    // An unset name leaves the no-signal portrait without a letter until saved.
+    const initial=candidate?Array.from(candidate.trim())[0].toLocaleUpperCase():'';
     const photo=String(who.avatarUrl||stored.profilePhoto?.url||stored.avatarUrl||'').trim();
     for(const el of [avatar,mini].filter(Boolean)){
       if(photo){
