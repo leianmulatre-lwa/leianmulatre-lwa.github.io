@@ -246,6 +246,24 @@
   const title=document.createElement('span');title.className='biglwa-story-name';title.textContent=label;
   b.append(ring,title);b.onclick=fn;return b;
  }
+ // The bio has a one-click, username-addressed public Highlight viewer link.
+ // Do not send OAuth tokens or background requests to third-party viewers.
+ const highlightViewerUrl=handle=>'https://pvgram.com/?u='+encodeURIComponent(handle);
+ function mountBioHighlightLink(root,handle){
+   const bio=root.querySelector('.profile-copy .bio');
+   root.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());
+   if(!bio||!validHandle(handle)||!active('instagram'))return;
+   const a=document.createElement('a');
+   a.dataset.biglwaBioHighlights='1';
+   a.className='biglwa-bio-highlights';
+   a.href=highlightViewerUrl(handle);
+   a.target='_blank';a.rel='noopener noreferrer';a.referrerPolicy='no-referrer';
+   a.textContent='Highlights · @'+handle+' ↗';
+   a.setAttribute('aria-label','View public Instagram Highlights for @'+handle);
+   a.title='Opens public Highlights from the connected Instagram username';
+   a.style.cssText='display:inline-flex;align-items:center;max-width:100%;margin:5px 0 2px;padding:5px 8px;border-radius:8px;border:1px solid #bba6ad;background:#fff7f0b8;color:#633749;font:650 10px/1.3 system-ui;text-decoration:none';
+   bio.insertAdjacentElement('afterend',a);
+ }
  function mountStoryCircles(root,section,entries,snapItems,handles){
   const copy=root.querySelector('.profile-copy'),stats=copy?.querySelector('.stats');if(!copy||!stats)return;
   storyStyle();
@@ -285,13 +303,14 @@
  function show(){
   const root=document.querySelector('#studioApp .profile-card');
   const who=uid(),handles=accountHandles();
+  if(root)mountBioHighlightLink(root,handles.instagram);
   const entries=[...instagramSourceHighlights(handles.instagram),...saved()]
     .filter((item,i,list)=>list.findIndex(other=>other.url===item.url)===i).slice(0,8);
   persistProviderLinks(handles,who);
   if(handles.snapchat)refreshPublicSnapchat(handles.snapchat,who);
   else if(snapSource.key)snapSource={key:'',status:'',items:[],message:''};
   const snapItems=handles.snapchat&&snapSource.key===who+':'+handles.snapchat.toLowerCase()?snapSource.items:[];
-  if(!root||!who||(!active('snapchat')&&!active('instagram'))){root?.querySelector('[data-biglwa-public-showcase]')?.remove();document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();signature='';return}
+  if(!root||!who||(!active('snapchat')&&!active('instagram'))){root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());root?.querySelector('[data-biglwa-public-showcase]')?.remove();document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();signature='';return}
   const tag=who+'|'+entries.map(x=>x.url).join('|')+'|'+handles.snapchat+'|'+handles.instagram+'|'+snapSource.status+'|'+snapItems.map(x=>x.mediaUrl||'').join('|');
   if(signature===tag&&root.querySelector('[data-biglwa-public-showcase]'))return;
   signature=tag;
@@ -327,6 +346,23 @@
     'Profile link recognized automatically. Individual pinned Highlights will appear when a source returns their IDs; no second login needed.':
     'Your Instagram login is connected; waiting for a readable public profile handle.';
    discovery.append(note);
+   if(validHandle(handles.instagram)){
+    const automatic=document.createElement('a');
+    automatic.href=highlightViewerUrl(handles.instagram);
+    automatic.textContent='View public Highlights for @'+handles.instagram+' ↗';
+    automatic.target='_blank';automatic.rel='noopener noreferrer';automatic.referrerPolicy='no-referrer';
+    discovery.append(automatic);
+    const igcomment=document.createElement('a');
+    igcomment.href='https://igcomment.com/instagram-highlight-viewer/';
+    igcomment.textContent='IGComment viewer · copy @'+handles.instagram+' ↗';
+    igcomment.target='_blank';igcomment.rel='noopener noreferrer';igcomment.referrerPolicy='no-referrer';
+    igcomment.addEventListener('click',()=>{
+      // IGComment does not expose a confirmed public URL/API that accepts a username.
+      // Clipboard works only on member gesture, never silently in the background.
+      navigator.clipboard?.writeText(handles.instagram).catch(()=>{});
+    });
+    discovery.append(igcomment);
+   }
   }
   section.append(discovery);
   const advanced=document.createElement('details');advanced.style.marginTop='6px';
