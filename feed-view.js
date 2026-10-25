@@ -570,6 +570,34 @@ function postTimeMs(post) {
   return timestampMs(post.createdAt || post.sourceCreatedAt);
 }
 
+// Published Aura is read only from the author's public directory look, not another
+// account's private customization record or the viewer's chosen color.
+const publicAuraCache=new Map();
+async function fillPublicAuthorAuras(store,records){
+  const origins=new Set();
+  for(const post of records){
+    if(!(post?.orbitImported===true||(post?.source==='biglwa'&&post?.sourceUrl)))continue;
+    if(safeAura(post.authorAuraColor||post.auraColor))continue;
+    const name=String(post.usernameLower||post.username||'').replace(/^@/,'').toLowerCase();
+    if(/^[a-z0-9._-]{5,24}$/.test(name))origins.add(name);
+  }
+  const names=[...origins].slice(0,24);
+  await Promise.allSettled(names.map(async name=>{
+    const cached=publicAuraCache.get(name);
+    if(cached&&Date.now()-cached.at<120000)return;
+    try{
+      const doc=await store.getDoc(store.doc(store.db,'usernames',name));
+      publicAuraCache.set(name,{color:safeAura(doc.data()?.look?.auraColor),at:Date.now()});
+    }catch{publicAuraCache.set(name,{color:'',at:Date.now()})}
+  }));
+  for(const post of records){
+    if(safeAura(post.authorAuraColor||post.auraColor))continue;
+    const name=String(post.usernameLower||post.username||'').replace(/^@/,'').toLowerCase();
+    const aura=publicAuraCache.get(name)?.color;
+    if(aura)post.authorAuraColor=aura;
+  }
+}
+
 async function loadPosts() {
   if (loading) return posts;
   loading = true;
@@ -582,6 +610,7 @@ async function loadPosts() {
       if(owner?.uid&&owner.accountVisibility!=='private'){
         const snap=await getDocs(query(collection(db,'users',owner.uid,'posts'),where('state','==','approved'),limit(FEED_SIZE)));
         posts=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>postTimeMs(b)-postTimeMs(a));
+        await fillPublicAuthorAuras({db,doc:(await firebase()).doc,getDoc:(await firebase()).getDoc},posts);
       }
       renderPosts(true);renderDraftPanel();renderHero(true);return posts;
     }
@@ -646,6 +675,9 @@ async function loadPosts() {
     studioOwnerUid=user?.uid||'';
     studioOwnPosts=user?profilePosts.filter(p=>p.uid===user.uid&&p.state==='approved')
       .sort((a,b)=>postTimeMs(b)-postTimeMs(a)).slice(0,FEED_SIZE):[];
+    // Resolve member Aura provenance from publicly shared author looks, keeping
+    // the card's own author color rather than borrowing the current viewer's.
+    await fillPublicAuthorAuras({db,doc:(await firebase()).doc,getDoc:(await firebase()).getDoc},rootPosts);
     posts = rootPosts
       .filter((p) => p.state === "approved")
       .sort((a, b) => postTimeMs(b) - postTimeMs(a))
