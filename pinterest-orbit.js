@@ -236,7 +236,7 @@ let handoffPromise=null;
    const importer=await waitForImporter();
    const publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
    if(typeof importer!=='function'||typeof publisher!=='function')throw new Error('Collective Feed publisher is not ready. Refresh and try again.');
-   await publishOnePin(pin,importer,publisher);
+   await publishOnePin({...pin,biglwaPinterestOrigin:fromBoard?'board':'created',biglwaPinterestBoardId:fromBoard||''},importer,publisher);
    window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published:1}}));
    notice('Pin posted to Collective Feed.');
   });
