@@ -17,7 +17,8 @@ assert.ok(!pn.includes('await importPinsToAccount(nextItems)'),'Board saves do n
 assert.ok(pn.includes('data-pn-more-created'),'Owner Pin pagination is available');
 assert.ok(pn.includes("||image(p);const id="),'Saved board thumbnails remain visible without reimport');
 assert.ok(!pn.includes("BIGLWAFeedMount('Pinterest'"),'Saved board Pins are not mounted publicly');
-assert.ok(posts.includes("pinterestOrigin: raw?.biglwaPinterestOrigin === 'created'"),'Original Pin identity is persisted');
+assert.ok(posts.includes("pinterestOrigin:pinOrigin")&&posts.includes("pinterestOriginVerified:pinOriginVerified"),
+  'Original Pin and Board origin require verified import provenance');
 assert.ok(feed.includes('p.pinterestOrigin==="created"'),'Feed review excludes saved board Pins');
 assert.ok(pages.includes('id="feedOrbitDraftToggle"')&&pages.includes('id="biglwaFeedSort"'),'Feed review toggle and sort exist');
 assert.ok(feed.includes('let draftTrayOpen = false')&&feed.includes('panel.hidden=!draftTrayOpen||!drafts.length'),'Private drafts are collapsed at first load');
