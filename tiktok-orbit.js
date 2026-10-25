@@ -227,6 +227,72 @@
     }));
   }
 
+  // TikTok public-page fallback: only use records whose author exactly matches
+  // the active linked profile. Never request Tik.ninja internal endpoints.
+  // OAuth-reported username allows publishing; user-entered links import
+  // privately for review because login alone doesn't identify a public handle.
+  let lastPublicLookup='',publicLookupAt=0;
+  async function syncPublicTikTokPosts(){
+    const owner=authUid;
+    if(!connected||!owner)return;
+    const claimed=String(profile.username||'').replace(/^@/,'').trim();
+    let linked='';
+    try{
+      const url=new URL(String(window.BigLWAOrbitAccountLinks?.get?.()?.tiktok||''));
+      if(url.protocol==='https:'&&!url.port&&['www.tiktok.com','tiktok.com','m.tiktok.com'].includes(url.hostname)){
+        linked=decodeURIComponent(url.pathname).match(/^\/@([a-zA-Z0-9._]{2,40})\/?$/)?.[1]||'';
+      }
+    }catch{}
+    if(claimed&&linked&&claimed.toLowerCase()!==linked.toLowerCase()){
+      videoLoadError='Saved profile link differs from TikTok OAuth username; public media sync paused.';
+      return;
+    }
+    const handle=claimed||linked;
+    if(!/^[A-Za-z0-9._]{2,40}$/.test(handle)){
+      videoLoadError='TikTok connected. Link your public TikTok profile in Orbit to discover its videos.';
+      return;
+    }
+    const key=owner+':'+handle.toLowerCase();
+    if(lastPublicLookup===key&&Date.now()-publicLookupAt<900000)return;
+    lastPublicLookup=key;publicLookupAt=Date.now();
+    const endpoint='https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev/tiktok/'+encodeURIComponent(handle)+'/posts';
+    const response=await fetch(endpoint,{mode:'cors',credentials:'omit',cache:'no-store'});
+    if(!response.ok)throw Error('Public TikTok lookup unavailable ('+response.status+').');
+    const data=await response.json();
+    if(authUid!==owner||!connected)return;
+    if(data.handle?.toLowerCase()!==handle.toLowerCase())throw Error('TikTok source username mismatch.');
+    if(!data.available||data.matchedHandle!==true||!Array.isArray(data.items)||!data.items.length){
+      videoLoadError=data.message||'TikTok public profile did not provide video metadata.';
+      return;
+    }
+    const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+    if(typeof writer!=='function')throw Error('myfeed importer unavailable.');
+    const providerMatched=Boolean(claimed&&claimed.toLowerCase()===handle.toLowerCase());
+    let published=0,drafts=0,failed=0;
+    for(const item of data.items.slice(0,30)){
+      if(!/^\d{12,25}$/.test(String(item.id||''))||
+         String(item.handle||'').toLowerCase()!==handle.toLowerCase())continue;
+      if(authUid!==owner||!connected)return;
+      try{
+        const saved=await writer('tiktok',{
+          id:item.id,sourcePostId:item.id,sourceUrl:item.sourceUrl,
+          sourceUsername:handle,expectedUid:owner,
+          caption:item.title||'TikTok video',cover_image_url:item.coverImageUrl,
+          matchedAuthorizedTikTokPublicProfile:providerMatched,mediaType:'VIDEO'
+        },{publishToCollective:providerMatched});
+        if(saved?.created||saved?.published){
+          if(saved.state==='approved')published++;else drafts++;
+        }
+      }catch(error){failed++;console.info('Public TikTok item import:',error?.message||error)}
+    }
+    lastCollectiveSync=providerMatched?
+      published+' matched public TikTok video(s) posted in myfeed':
+      drafts+' matched public TikTok video(s) saved privately in myfeed';
+    if(failed)lastCollectiveSync+=' · '+failed+' failed';
+    videoLoadError='';
+    document.dispatchEvent(new CustomEvent('biglwa:tiktok-draft-ready',{detail:{source:'tiktok',publicProfile:true}}));
+  }
+
   async function restore() {
     if(restoreBusy)return;
     restoreBusy=true;
@@ -267,8 +333,10 @@
         videoPermissionPending=Boolean(result.videoPermissionPending);
         videoLoadError='';
         if(videoPermissionPending){
-          videoLoadError='TikTok connected, but video.list permission is not granted. The saved SSSTik page only accepts individual video URLs and cannot enumerate your profile.';
-          console.info(videoLoadError);
+          // TikTok's Display API is not the only public-facing display surface.
+          // Attempt exact-handle public discovery; never guess absent data.
+          try{await syncPublicTikTokPosts()}
+          catch(error){videoLoadError=String(error?.message||'Public video discovery unavailable.');}
         }else await syncTikTokDrafts();
       }catch(e){
         videos=[];videoLoadError=String(e.message||'TikTok video list unavailable.');
@@ -300,7 +368,7 @@
       if(!feedback){feedback=document.createElement('small');feedback.dataset.tiktokVideoSyncStatus='1';
         feedback.style.cssText='display:block;flex-basis:100%;font:500 10px/1.3 system-ui;color:#735166;margin:3px 0 0';actions.append(feedback);}
       feedback.textContent=!connected?'':videoPermissionPending?
-        'Videos not synced · TikTok video.list permission unavailable. SSSTik needs individual URLs.':
+        (lastCollectiveSync||videoLoadError||'Checking connected public TikTok profile…'):
         (videoLoadError||lastCollectiveSync||(videos.length?'Preparing authorized videos for Collective Feed.':'No public TikTok videos returned by the authorized account.'));
       let area = actions.querySelector('[data-tt-actions]');
       if (!area) { area = document.createElement('span'); area.dataset.ttActions=''; actions.prepend(area); }
