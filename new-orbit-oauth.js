@@ -179,9 +179,27 @@ async function oaProfile(provider,token){
  const me=data.data?.me||data.data?.user||data.me||{};
  if(!me.externalId)oaError('Snapchat did not provide the requested Login Kit account identity.',502);
  const avatar=me.bitmoji?.avatar||me.bitmoji?.selfie||me.bitmojiAvatar||'';
+ // Some Snapchat accounts are allowed to expose a public profileLink.
+ // This is an OPTIONAL second request: restricted GraphQL fields must never
+ // make a valid Login Kit identity fail or masquerade displayName as username.
+ let publicLink='',publicHandle='';
+ try{
+  const optional=await fetch('https://kit.snapchat.com/v1/me',{
+   method:'POST',headers:{...headers,'Content-Type':'application/json'},
+   body:JSON.stringify({query:'query { me { profileLink } }'})
+  });
+  if(optional.ok){
+   const payload=await optional.json().catch(()=>({}));
+   const uri=new URL(String(payload.data?.me?.profileLink||''));
+   const host=uri.hostname.toLowerCase().replace(/^www\./,'');
+   const match=uri.pathname.match(/^\/(?:add\/@?|@)([A-Za-z0-9._]{2,40})\/?$/);
+   if(uri.protocol==='https:'&&['snapchat.com','story.snapchat.com'].includes(host)&&match){
+    publicHandle=match[1];publicLink='https://www.snapchat.com/add/'+publicHandle;
+   }
+  }
+ }catch{} // Ordinary accounts may not have profileLink access.
  return {id:'snapchat',sourceUserId:String(me.externalId),name:String(me.displayName||'Snapchat account').slice(0,100),
-  username:'',avatarUrl:oaPhoto(avatar),
-  link:''};
+  username:publicHandle,avatarUrl:oaPhoto(avatar),link:publicLink};
 }
 export 
 // Read-only import preview: API tokens stay in the Worker KV store.
