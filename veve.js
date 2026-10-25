@@ -75,6 +75,34 @@
       return dateDiff||String(a.id||'').localeCompare(String(b.id||''));
     });
   }
+  // Collapse repeat imports only when owner, source media and provenance agree.
+  // Two accounts repinning the same image are independent contributions.
+  // Distinct Board and original Pin records are kept if the source confirms both.
+  function uniquePublicPhotos(rows){
+    const seen=new Set(),output=[];
+    const pinId=post=>{
+      const id=String(post.sourcePostId||'').trim();
+      if(/^\d{6,25}$/.test(id))return id;
+      try{
+        const u=new URL(post.sourceUrl||'');
+        if(!/(^|\.)pinterest\./.test(u.hostname))return '';
+        return u.pathname.match(/^\/pin\/(\d{6,25})(?:\/|$)/)?.[1]||'';
+      }catch{return ''}
+    };
+    for(const post of rows){
+      if(String(post.source||'').toLowerCase()!=='pinterest'){output.push(post);continue}
+      const owner=String(post.uid||'').trim(),pid=pinId(post);
+      const fingerprint=String(post.sourceImageFingerprint||'');
+      const origin=post.pinterestOriginVerified===true&&['created','board'].includes(post.pinterestOrigin)?
+        post.pinterestOrigin:'unknown';
+      const media=/^pinimg:[a-f0-9]{16,64}$/.test(fingerprint)?fingerprint:'';
+      const key=owner&&(pid||media)?owner+'|'+origin+'|'+(media||'pin:'+pid):'';
+      if(key&&seen.has(key))continue;
+      if(key)seen.add(key);
+      output.push(post);
+    }
+    return output;
+  }
   function loadProgress(stage){
     state.loadStage=stage;
     document.dispatchEvent(new CustomEvent('biglwa:veve-load-state',{detail:{stage,ready:state.initialReady,loading:state.loading}}));
@@ -92,7 +120,7 @@
       const f=await fb();
       const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(160)));
       // Query public posts only. Do not load private board data into discovery.
-      state.items=rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true);
+      state.items=uniquePublicPhotos(rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true));
       state.sourceCounts=new Map();
       for(const p of state.items){
         if(String(p.source||'').toLowerCase()!=='pinterest')continue;
@@ -193,10 +221,15 @@
     const match=single&&(!ratio||ratio>.15&&ratio<5);
     const videoMarkup=direct&&match
       ?'<video class="veve-inline-video" src="'+e(direct)+'" '+(url?'poster="'+e(url)+'" ':'')+'autoplay muted loop playsinline controls preload="metadata"></video>'
-      :url?'<img src="'+e(url)+'" loading="lazy" decoding="async" alt="'+e(caption||'Published collective media')+'">':
+      :url?'<img src="'+e(url)+'"'+(validRatio?' data-media-aspect="'+displayRatio+'"':'')+' loading="lazy" decoding="async" alt="'+e(caption||'Published collective media')+'">':
          '<div class="veve-video-fallback">Video preview</div>';
-    return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-post="'+e(post.id)+'">'+
-      '<div class="veve-photo-frame">'+videoMarkup+
+    const sourceKind=src==='pinterest'&&post.pinterestOriginVerified===true&&
+      ['created','board'].includes(post.pinterestOrigin)?post.pinterestOrigin:'unknown';
+    const displayRatio=Number(post.aspectRatio||post.imageAspectRatio||
+      (Number(post.imageWidth)>0&&Number(post.imageHeight)>0?Number(post.imageWidth)/Number(post.imageHeight):0));
+    const validRatio=Number.isFinite(displayRatio)&&displayRatio>=.35&&displayRatio<=3;
+    return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-pin-kind="'+e(sourceKind)+'" data-veve-post="'+e(post.id)+'">'+
+      '<div class="veve-photo-frame"'+(validRatio?' style="--lwa-image-aspect:'+displayRatio+'"':'')+'>'+videoMarkup+
       '<span class="veve-provider">'+e(label)+'</span>'+
       (src==='pinterest'&&/^(?:[0-9]{6,25})$/.test(String(post.sourcePostId||''))&&link?
        '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save Pinterest Pin to a BIG LWA board" title="Save to board">+ board</button>':'')+
@@ -205,6 +238,7 @@
       ((usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
         (usage(post)?'<span class="veve-usage">'+e(usage(post))+' using this Pin</span>':'')+
         (src==='pinterest'&&link?'<a class="veve-source-credit" href="'+e(link)+'" target="_blank" rel="noopener noreferrer">Original Pinterest Pin ↗</a>':'')+
+        (src==='pinterest'&&post.pinterestOriginVerified===true?'<small class="veve-pin-provenance">'+(sourceKind==='board'?'Board Pin':'Original Pin')+'</small>':'')+
         '</div>':'')+
       '</article>';
   }
