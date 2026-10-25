@@ -128,6 +128,41 @@
     .module-heading p{max-width:700px;margin:12px 0 0;font-size:13px;line-height:1.6;color:#6e655f}
     .module-badge{align-self:start;border:1px solid #d8cec5;border-radius:999px;padding:8px 11px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.56);color:#746a64}
     .module-heading-actions{align-self:start;display:grid;justify-items:end;gap:9px;max-width:310px}
+    /* Shared heading row: compact swatches inherit Archive's dimensional shadows. */
+    .module-workspace:is([data-module-key="orbit"],[data-module-key="archive"],[data-module-key="feed"],[data-module-key="veve"]) .module-heading{
+      grid-template-columns:minmax(180px,.76fr) minmax(0,2.5fr);gap:14px;align-items:center
+    }
+    .module-heading-right{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0}
+    .module-heading-right>.module-update-preferences{flex:0 0 auto;max-width:148px}
+    .module-heading-right .module-shadow-key{display:flex;flex:1 1 auto;min-width:0;max-width:100%;align-items:center;
+      justify-content:flex-end;align-content:center;flex-wrap:wrap;gap:5px 10px;padding:8px 10px;
+      border:1px solid rgba(105,75,82,.16);border-radius:11px;
+      background:var(--widget-bg,rgba(255,250,242,.66));color:var(--widget-ink,#42363b);
+      font:650 10px/1.3 system-ui}
+    .module-heading-right .module-shadow-key>b{font:850 10px/1.2 ui-monospace,monospace;
+      letter-spacing:.06em;white-space:nowrap;margin-right:3px}
+    .module-heading-right .module-shadow-key-item{display:inline-flex;align-items:center;gap:5px;
+      white-space:nowrap;font:650 10px/1.3 system-ui}
+    .module-heading-right .module-shadow-key-item>i{display:inline-block;flex:none;width:11px;height:11px;
+      border-radius:3px;border:1px solid rgba(92,70,76,.25);background:var(--key-color,#8f756e);
+      box-shadow:2px 2px 0 var(--key-color,#8f756e),4px 4px 0 var(--key-glow,#b7a19b);margin-right:3px}
+    .module-workspace[data-module-key="orbit"] .module-shadow-key{gap:4px 8px;padding:7px 9px}
+    .module-workspace[data-module-key="orbit"] .module-shadow-key-item{font-size:9px;gap:4px}
+    .module-workspace[data-module-key="orbit"] .module-shadow-key-item>i{width:9px;height:9px}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-title{display:flex;align-items:center;gap:10px}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-title h2{margin:0!important}
+    .module-workspace[data-module-key="feed"] #feedComposerToggle{display:inline-grid;place-items:center;
+      width:25px;height:25px;min-width:25px;border:1px solid rgba(101,69,80,.3);border-radius:50%;
+      background:#fff9f2;color:#6e4050;font:750 18px/1 system-ui;cursor:pointer}
+    .module-workspace[data-module-key="feed"] #feedComposerToggle:focus-visible{outline:2px solid #8c4862;outline-offset:3px}
+    .module-workspace[data-module-key="feed"] #feedComposer[hidden]{display:none!important}
+    .module-workspace[data-module-key="archive"] .archive-toolbar{justify-content:flex-end}
+    @media(max-width:980px){
+      .module-workspace:is([data-module-key="orbit"],[data-module-key="archive"],[data-module-key="feed"],[data-module-key="veve"]) .module-heading{grid-template-columns:minmax(0,1fr);align-items:start}
+      .module-heading-right{justify-content:flex-start;flex-wrap:wrap}
+      .module-heading-right .module-shadow-key{justify-content:flex-start}
+    }
+
     .module-update-privacy{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border:1px solid #d8cec5;border-radius:12px;background:rgba(255,255,255,.48);font:600 11px/1.35 system-ui;color:#625a55;cursor:pointer}
     .module-update-privacy input{flex:0 0 auto;width:15px;height:15px;margin:0;accent-color:rgb(var(--aura-rgb,216,95,109))}
     .module-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(250px,.75fr);gap:14px;margin-top:20px}
@@ -894,7 +929,37 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
   const writeJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
   const quietUpdateKey = key => `biglwaQuietUpdate_${key}`;
-  const heading = (key, extra='') => `<div class="module-heading"><div><h1>${esc(labels[key] || key)}</h1><p>${esc(desc[key] || 'A working BIGLWA space.')}${extra ? ` <strong>${esc(extra)}</strong>` : ''}</p></div><details class="module-heading-actions module-update-preferences"><summary aria-label="Publishing preferences">Publishing preferences</summary><label class="module-update-privacy"><input type="checkbox" data-silent-update="${esc(key)}" ${localStorage.getItem(quietUpdateKey(key))==='1'?'checked':''}><span>Keep this update private</span></label></details></div>`;
+  // One header-height shadow key with the same layered swatches across modules.
+  const shadowPalette=[
+    ["instagram","Instagram","#f36b21","#ffad52"],
+    ["tiktok","TikTok","#772dcc","#b77cff"],
+    ["pinterest","Pinterest","#e60023","#ae0026"],
+    ["facebook","Facebook","#1658be","#528ee7"],
+    ["youtube","YouTube","#fff1ec","#e66e7e"],
+    ["snapchat","Snapchat","#ffda00","#dfb800"],
+    ["tumblr","Tumblr","#1b304b","#445c7b"],
+    ["x","X","#0e0e0e","#535353"],
+    ["soundcloud","SoundCloud","#ff7700","#ffc47b"],
+    ["spotify","Spotify","#1db954","#72d99c"],
+    ["drive","Google Drive","#e7be31","#4285f4"],
+    ["calendar","Calendar","#4285f4","#6dbf9b"],
+    ["goodreads","Goodreads","#7a5c3e","#bb9b6b"],
+    ["letterboxd","Letterboxd","#2c3440","#f5b951"],
+    ["imdb","IMDb","#e6a800","#f6d87c"],
+    ["vsco","VSCO","#b51668","#da81af"],
+    ["bereal","BeReal","#777b83","#b2b4b7"],
+    ["substack","Substack","#da521b","#f6a372"],
+    ["xbox","Xbox","#a3d65e","#479941"],
+    ["other","Other source","#8f756e","#b7a19b"]
+  ];
+  function shadowKey(key){
+    if(!['orbit','archive','feed','veve'].includes(key))return '';
+    const ids=key==='orbit'?shadowPalette.filter(row=>row[0]!=='other'):
+      shadowPalette.filter(row=>['instagram','tiktok','pinterest','facebook','youtube','snapchat','tumblr','x','other'].includes(row[0]));
+    return '<div class="module-shadow-key" data-shadow-key="'+key+'" role="group" aria-label="Platform shadow color key"><b>SHADOW KEY</b>'+
+      ids.map(([id,label,color,glow])=>'<span class="module-shadow-key-item" data-key-source="'+id+'"><i aria-hidden="true" style="--key-color:'+color+';--key-glow:'+glow+'"></i>'+label+'</span>').join('')+'</div>';
+  }
+  const heading = (key, extra='') => `<div class="module-heading"><div class="module-heading-copy"><h1>${esc(labels[key] || key)}</h1><p>${esc(desc[key] || 'A working BIGLWA space.')}${extra ? ` <strong>${esc(extra)}</strong>` : ''}</p></div><div class="module-heading-right">${shadowKey(key)}<details class="module-heading-actions module-update-preferences"><summary aria-label="Publishing preferences">Publishing preferences</summary><label class="module-update-privacy"><input type="checkbox" data-silent-update="${esc(key)}" ${localStorage.getItem(quietUpdateKey(key))==='1'?'checked':''}><span>Keep this update private</span></label></details></div></div>`;
   const recordStudioUpdate = (key, title, detail='') => {
     const silent=$(`[data-silent-update="${CSS.escape(key)}"]`,body)?.checked||false;
     window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title,source:labels[key]||key,detail,notified:!silent}}));
@@ -1186,15 +1251,6 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        '<div class="orbit-link-dialog-actions"><button type="button" class="module-action" data-orbit-save="'+esc(k)+'">Save link</button>'+
        '<button type="button" class="module-action ghost" data-orbit-close-link="'+esc(k)+'">Cancel</button></div></dialog>';
    }
-   // Source palette is identical to Veve's compact shadow key.
-   function orbitShadowLegend(){
-     const sources=[['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
-       ['Facebook','#1658be'],['YouTube','#fff1ec'],['Snapchat','#ffda00'],
-       ['Tumblr','#1b304b'],['X','#0e0e0e']];
-     return '<div class="orbit-shadow-legend" role="group" aria-label="App shadow color key"><b>SHADOW KEY</b>'+
-       sources.map(([name,color])=>'<span class="orbit-shadow-key-item"><i aria-hidden="true" style="background:'+color+'"></i>'+name+'</span>').join('')+
-       '</div>';
-   }
    function renderOrbitPage(){
     // Only show a real OAuth button once its public app key, secret and callback
     // are actually available. Until then an account-linked profile URL works.
@@ -1210,7 +1266,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
     const legacyCount=window.BigLWAOrbitAccountLinks?.localPending?.()?.length||0;
-    body.innerHTML=heading('orbit')+orbitShadowLegend()+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row),orbitStat('likes','likes',row)].filter(Boolean).join(' · ');
@@ -1694,7 +1750,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     body.innerHTML=heading('feed')+`<div class="module-grid biglwa-feed-module-grid">
        <section class="module-card wide biglwa-feed-compose-card" aria-labelledby="biglwaFeedComposeHeading">
         <div class="biglwa-feed-compose-head">
-         <div><h2 id="biglwaFeedComposeHeading">post to the feed</h2><p>Share a link or photo, with an optional caption. Your caption is saved with your post.</p></div>
+         <div class="biglwa-feed-compose-title"><h2 id="biglwaFeedComposeHeading">post to the feed</h2><button id="feedComposerToggle" type="button" aria-expanded="true" aria-controls="feedComposer" aria-label="Collapse post to the feed form" title="Collapse form">−</button></div>
          <div class="biglwa-feed-heading-tools">
           <button class="module-action ghost" type="button" id="feedStreamExplore">Explore Veve ↗</button>
           <button class="module-action ghost" type="button" id="feedOrbitDraftToggle" aria-controls="biglwaOrbitDrafts" aria-expanded="false">View imports ready to post</button>
@@ -1705,8 +1761,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         <div id="biglwaOrbitDrafts" hidden></div>
         <form class="module-form biglwa-feed-compose-form" id="feedComposer">
          <div class="biglwa-feed-compose-fields">
-          <label class="biglwa-feed-field" for="feedComposerUrl">Link <span>(optional)</span><input class="module-input" id="feedComposerUrl" name="url" type="url" inputmode="url" placeholder="Paste any Instagram, TikTok, Snapchat or other site link"></label>
-          <label class="biglwa-feed-field" for="feedComposerCaption">Caption <span>(optional · 500 characters)</span><textarea class="module-input" id="feedComposerCaption" name="caption" maxlength="500" rows="2" placeholder="Add a caption or context…"></textarea></label>
+          <label class="biglwa-feed-field" for="feedComposerUrl">Link<input class="module-input" id="feedComposerUrl" name="url" type="url" inputmode="url" placeholder="Paste any Instagram, TikTok, Snapchat or other site link"></label>
+          <label class="biglwa-feed-field" for="feedComposerCaption">Caption<textarea class="module-input" id="feedComposerCaption" name="caption" maxlength="500" rows="2" placeholder="Add a caption or context…"></textarea></label>
          </div>
          <div class="biglwa-feed-compose-actions">
           <label class="biglwa-pick biglwa-feed-photo-picker"><input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">＋ Add photo <span>(optional)</span></label>
@@ -1719,6 +1775,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       </div>`;
     const streamExplore=$('#feedStreamExplore',body);
     if(streamExplore)streamExplore.onclick=()=>window.BigLWAOpenModule?.('veve');
+    const feedToggle=$('#feedComposerToggle',body),feedForm=$('#feedComposer',body);
+    if(feedToggle&&feedForm)feedToggle.onclick=()=>{
+      const open=feedToggle.getAttribute('aria-expanded')!=='true';
+      feedToggle.setAttribute('aria-expanded',String(open));
+      feedToggle.setAttribute('aria-label',open?'Collapse post to the feed form':'Expand post to the feed form');
+      feedToggle.title=open?'Collapse form':'Expand form';
+      feedToggle.textContent=open?'−':'+';
+      feedForm.hidden=!open;
+    };
   }
 
   function renderConnect(){
@@ -3097,7 +3162,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       body.innerHTML=heading('archive',count?count+' card'+(count===1?'':'s')+' stored':'')+
         '<div class="module-grid">'+
         '<section class="module-card wide archive-wall-shell">'+
-          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive by app</h2><p>Expand each connected source to browse its saved posts. Live controls whether a post appears in Collective Feed.</p></div>'+
+          '<div class="archive-toolbar">'+
     (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveConnections" type="button">Manage connections</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
           (union.length?'<div class="archive-filter-bar" id="archiveFilterBar">'+
             union.map(k=>'<button type="button" class="archive-filter-chip '+((filtering?allowed.has(k):true)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'">'+esc({instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'}[k]||k)+'</button>').join('')+
@@ -3105,19 +3170,6 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           '':'')+
           '</div>'+
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(media.length?'Imported cards are saved to your account.':'Connect Instagram or Pinterest in Orbit, then refresh imports.'):'Shared with friends.'))+'</div>'+
-          '<div class="archive-color-guide" aria-label="Card shadow color key">'+
-  '<b>SHADOW KEY</b>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · blood orange</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-pinterest" aria-hidden="true"></i>Pinterest · red</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-facebook" aria-hidden="true"></i>Facebook · blue</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-tiktok" aria-hidden="true"></i>TikTok · purple</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-youtube" aria-hidden="true"></i>YouTube · white/pink</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-snapchat" aria-hidden="true"></i>Snapchat · yellow</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-tumblr" aria-hidden="true"></i>Tumblr · navy</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-x" aria-hidden="true"></i>X · black</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-other" aria-hidden="true"></i>Other source</span>'+
-  '<small>Card shadow = origin · Live = on Collective Feed · Grey photo = not live</small>'+
- '</div>'+
           (cards?'<div class="archive-page-list">'+cards+'</div>':'<div class="archive-empty">'+(media.length&&!mediaShown.length?'No cards match the filters you chose.':'No media has been imported yet.')+'</div>')+
           (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
@@ -3401,12 +3453,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   }
 
   function renderVeve(){
-    // Same origin legend as Archive, anchored to the Orbit planet shadow colors.
-    const sources=[['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
-      ['Facebook','#1658be'],['YouTube','#fff1ec'],['Snapchat','#ffda00'],['Tumblr','#1b304b'],['X','#0e0e0e']];
-    const legend='<div class="veve-origin-legend" aria-label="App shadow color key"><b>SHADOW KEY</b>'+
-      sources.map(([name,color])=>'<span class="veve-origin-key-item"><i style="background:'+color+'"></i>'+name+'</span>').join('')+'</div>';
-    body.innerHTML=heading('veve')+legend+'<div id="biglwaVeve" class="veve-root"><p role="status">Loading public discovery…</p></div>';
+    body.innerHTML=heading('veve')+'<div id="biglwaVeve" class="veve-root"><p role="status">Loading public discovery…</p></div>';
     const root=$('#biglwaVeve',body);
     if(window.BigLWAVeve?.mount)window.BigLWAVeve.mount(root);
     else root.innerHTML='<p role="alert">Veve is loading. Please refresh and try again.</p>';
