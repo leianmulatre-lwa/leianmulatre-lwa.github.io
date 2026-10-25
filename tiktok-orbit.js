@@ -137,7 +137,7 @@
     const reflection=document.createElement('details');
     reflection.className='biglwa-tiktok-analytics-reflection';
     reflection.style.cssText='font:500 11px/1.5 system-ui;border-top:1px solid #cfbfd4;padding-top:7px';
-    reflection.innerHTML='<summary style="cursor:pointer;font-weight:700">My TikTok · analytics reflection</summary><div data-tiktok-analytics-values style="display:grid;gap:4px;padding:7px 0" role="status"></div>';
+    reflection.innerHTML='<summary style="cursor:pointer;font-weight:700">My TikTok · analytics reflection</summary><div data-tiktok-analytics-values style="display:grid;gap:4px;padding:7px 0" role="status"></div><button type="button" class="module-action secondary" data-tiktok-verify-migration>Verify my saved TikTok posts</button><small data-tiktok-verify-status role="status" aria-live="polite" style="display:block;margin-top:5px"></small>';
     panel.append(reflection);
     (host.querySelector('#biglwaFeedImportStatusRail')||host.querySelector('.biglwa-feed-compose-head'))?.after(panel);
     renderTikTokAnalytics();
@@ -176,6 +176,40 @@
       '. Missing figures are never treated as zero. Reflection: use the metrics to understand your audience, not to rank your worth.';
     host.append(note);
   }
+
+  // Verification reads the actual signed-in member's Firestore collections.
+  // It never reports a successful migration from a public lookup alone.
+  document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('[data-tiktok-verify-migration]');
+    if(!button||button.disabled)return;
+    event.preventDefault();
+    const status=button.parentElement?.querySelector('[data-tiktok-verify-status]');
+    if(!status)return;
+    if(!connected||authUid!==String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'')){
+      status.textContent='Connect your TikTok account in Orbit before verifying your migration.';return;
+    }
+    button.disabled=true;status.textContent='Checking your saved myfeed records…';
+    Promise.resolve().then(async()=>{
+      const mod=await import('/orbit-posts.js?v=20261017-personal-first-import-3');
+      const verify=window.__biglwaOrbitPosts?.verifyTikTokMigration||mod.verifyTikTokMigration;
+      if(typeof verify!=='function')throw Error('Account migration verifier unavailable.');
+      const proof=await verify();
+      if(!connected||authUid!==String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'')){
+        status.textContent='Connection changed; verification cancelled.';return;
+      }
+      if(proof.records===0){
+        status.textContent='No TikTok video posts found in your BIG LWA account yet. A public lookup is not a saved migration.';return;
+      }
+      status.textContent=proof.records+' TikTok posts in your BIG LWA account; '+proof.approved+
+        ' published; owner + archive verified for '+proof.rootRecords+'/'+proof.archiveRecords+
+        ' of '+proof.sampleChecked+' checked. '+proof.r2Backups+
+        ' saved R2 preview or media URL(s); '+proof.metadataOnly+
+        ' link/metadata-only posts. '+(proof.limitReached?'Showing first 50. ':'')+
+        (proof.unreadable?'Some database records could not be read. ':'')+
+        'Checked '+new Date(proof.checkedAt).toLocaleString()+'.';
+    }).catch(err=>{status.textContent='Verification incomplete: '+String(err?.message||'Unknown error').slice(0,150)})
+      .finally(()=>{button.disabled=false});
+  });
 
   async function connect() {
     try {
