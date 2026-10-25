@@ -15,3 +15,7 @@ jobs:
       - run: |
           curl --fail --show-error --silent --max-time 30 https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev/tiktok/tiktok -o /tmp/source.json
           python3 -c "import json; x=json.load(open('/tmp/source.json')); assert x.get('handle')=='tiktok'; print('available', x.get('available'), 'reason', x.get('message'), 'source', x.get('source'))"
+      - name: Verify deployed TikTok public post route response
+        run: |
+          curl --fail --show-error --silent --max-time 30 https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev/tiktok/tiktok/posts -o /tmp/tiktok-posts.json
+          python3 -c "import json; d=json.load(open('/tmp/tiktok-posts.json')); assert d.get('handle')=='tiktok' and isinstance(d.get('items'),list); assert all(str(x.get('handle','')).lower()=='tiktok' for x in d['items']); print('Public account video discovery: available', d.get('available'), 'items', len(d['items']), 'message', d.get('message'))"
