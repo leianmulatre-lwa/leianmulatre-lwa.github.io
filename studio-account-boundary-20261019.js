@@ -30,7 +30,9 @@
      node.style.backgroundSize='cover';node.style.backgroundPosition='center';
      node.classList.remove('has-photo');node.classList.add('lwa-default-tv-avatar');
      node.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
-     node.textContent=(own?.name||own?.username||'B').trim().charAt(0).toUpperCase();
+     const chosen=String(own?.name||'').trim();
+     const handle=String(own?.username||'').trim().replace(/^@/,'');
+     node.textContent=chosen&&chosen.toLowerCase()!==handle.toLowerCase()?Array.from(chosen)[0].toLocaleUpperCase():'';
    });
    // A fresh account's initial cards are placeholders; only owner data may populate them.
    app.dataset.biglwaSeedCleared='1';
