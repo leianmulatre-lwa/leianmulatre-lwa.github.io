@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261025-header-shadow-1';
+        script.src = '/module-pages.js?v=20261025-source-face-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -145,7 +145,7 @@
       white-space:nowrap;font:650 10px/1.3 system-ui}
     .module-heading-right .module-shadow-key-item>i{display:inline-block;flex:none;width:11px;height:11px;
       border-radius:3px;border:1px solid rgba(92,70,76,.25);background:var(--key-color,#8f756e);
-      box-shadow:2px 2px 0 var(--key-color,#8f756e),4px 4px 0 var(--key-glow,#b7a19b);margin-right:3px}
+      box-shadow:3px 3px 0 var(--key-shadow,var(--key-color,#8f756e));margin-right:3px}
     .module-workspace[data-module-key="orbit"] .module-shadow-key{gap:4px 8px;padding:7px 9px}
     .module-workspace[data-module-key="orbit"] .module-shadow-key-item{font-size:9px;gap:4px}
     .module-workspace[data-module-key="orbit"] .module-shadow-key-item>i{width:9px;height:9px}
@@ -165,6 +165,18 @@
 
     .module-update-privacy{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border:1px solid #d8cec5;border-radius:12px;background:rgba(255,255,255,.48);font:600 11px/1.35 system-ui;color:#625a55;cursor:pointer}
     .module-update-privacy input{flex:0 0 auto;width:15px;height:15px;margin:0;accent-color:rgb(var(--aura-rgb,216,95,109))}
+    .module-heading:not(.module-heading--with-shadow){grid-template-columns:minmax(0,1fr)!important;gap:6px!important}
+    .module-heading:not(.module-heading--with-shadow) .module-heading-bottom{
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 20px;min-width:0
+    }
+    .module-heading:not(.module-heading--with-shadow) .module-heading-bottom p{
+      flex:1 1 380px;max-width:none;margin:0;min-width:0
+    }
+    .module-heading:not(.module-heading--with-shadow) .module-update-privacy{
+      display:inline-flex;align-items:center;flex:0 0 auto;gap:6px;white-space:nowrap;
+      padding:2px 0;background:transparent;border:0;box-shadow:none
+    }
+
     .module-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(250px,.75fr);gap:14px;margin-top:20px}
     .module-card{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(55,42,34,.05)}
     .module-card.wide{grid-column:1/-1}.module-card h2{font:600 18px/1.1 Georgia,serif;margin:0 0 6px}.module-card>p{margin:0 0 14px;font-size:11px;line-height:1.55;color:#766c66}
@@ -929,7 +941,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
   const writeJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
   const quietUpdateKey = key => `biglwaQuietUpdate_${key}`;
-  // One header-height shadow key with the same layered swatches across modules.
+  // Source-specific one-shadow face preview: shared with Skeleton Key.
   const shadowPalette=[
     ["instagram","Instagram","#f36b21","#ffad52"],
     ["tiktok","TikTok","#772dcc","#b77cff"],
@@ -954,12 +966,20 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   ];
   function shadowKey(key){
     if(!['orbit','archive','feed','veve'].includes(key))return '';
+    if(window.BigLWAShadowKey?.render)return window.BigLWAShadowKey.render(key);
     const ids=key==='orbit'?shadowPalette.filter(row=>row[0]!=='other'):
       shadowPalette.filter(row=>['instagram','tiktok','pinterest','facebook','youtube','snapchat','tumblr','x','other'].includes(row[0]));
-    return '<div class="module-shadow-key" data-shadow-key="'+key+'" role="group" aria-label="Platform shadow color key"><b>SHADOW KEY</b>'+
-      ids.map(([id,label,color,glow])=>'<span class="module-shadow-key-item" data-key-source="'+id+'"><i aria-hidden="true" style="--key-color:'+color+';--key-glow:'+glow+'"></i>'+label+'</span>').join('')+'</div>';
+    const face=key==='archive'?'#d9c6ee':'#f7cddd';
+    return '<div class="module-shadow-key" data-shadow-key="'+key+'" role="group" aria-label="Platform shadow key: widget face and one source shadow"><b>SHADOW KEY</b>'+
+      ids.map(([id,label,color])=>'<span class="module-shadow-key-item" data-key-source="'+id+'"><i class="shadow-preview" aria-hidden="true" style="--key-face:'+face+';--key-shadow:'+color+'"></i>'+label+'</span>').join('')+'</div>';
   }
-  const heading = (key, extra='') => `<div class="module-heading"><div class="module-heading-copy"><h1>${esc(labels[key] || key)}</h1><p>${esc(desc[key] || 'A working BIGLWA space.')}${extra ? ` <strong>${esc(extra)}</strong>` : ''}</p></div><div class="module-heading-right">${shadowKey(key)}<details class="module-heading-actions module-update-preferences"><summary aria-label="Publishing preferences">Publishing preferences</summary><label class="module-update-privacy"><input type="checkbox" data-silent-update="${esc(key)}" ${localStorage.getItem(quietUpdateKey(key))==='1'?'checked':''}><span>Keep this update private</span></label></details></div></div>`;
+  // H1 title row + accessible key, followed by FULL-WIDTH description and a
+  // directly clickable privacy checkbox. No hidden dropdown; preserve semantics
+  // and readable, indexable text for SEO and assistive technology.
+  const heading = (key, extra='') => {
+    const hasKey=['orbit','archive','feed','veve'].includes(key);
+    return `<div class="module-heading${hasKey?' module-heading--with-shadow':''}"><div class="module-heading-copy"><h1>${esc(labels[key] || key)}</h1></div>${hasKey?'<div class="module-heading-right">'+shadowKey(key)+'</div>':''}<div class="module-heading-bottom"><p>${esc(desc[key] || 'A working BIGLWA space.')}${extra?` <strong>${esc(extra)}</strong>`:''}</p><label class="module-update-privacy" title="Publishing preferences: whether Studio updates stay private"><input type="checkbox" data-silent-update="${esc(key)}" ${localStorage.getItem(quietUpdateKey(key))==='1'?'checked':''}><span>Keep this update private</span></label></div></div>`;
+  };
   const recordStudioUpdate = (key, title, detail='') => {
     const silent=$(`[data-silent-update="${CSS.escape(key)}"]`,body)?.checked||false;
     window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title,source:labels[key]||key,detail,notified:!silent}}));
