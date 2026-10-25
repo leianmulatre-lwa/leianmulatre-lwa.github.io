@@ -31,7 +31,7 @@ check("only the picture of an off card goes grey", pages.includes(".instagram-ar
 check("each card carries a Live switch", pages.includes("data-archive-live-input=\"'+esc(item.id)+'\""));
 check("the switch label is interactive", pages.includes("(posted?'Live':'Not live')+'</b>'"));
 check("the switch is wired to publish or archive", pages.includes("postsApi?.publishOrbitPost?.(id)") && pages.includes("postsApi?.setOrbitState?.(id,'archived')"));
-check("a card on the Collective Feed is coloured here", pages.includes("Card shadow = origin · Live = on Collective Feed"));
+check("a card on the Collective Feed is coloured here", pages.includes('aria-label="Platform shadow color key"'));
 check("the Archive no longer claims to be Instagram-only", !pages.includes("Instagram archive</h2>") && !pages.includes("Instagram posts imported"));
 
 console.log("\n=== GROUPED, WITH REPEATS SPOTTED ===");
@@ -88,14 +88,14 @@ check("Archive places its colored light controls within the image frame rather t
  pages.includes("archive-card-overlay") &&
  !pages.includes("const strip='<div class=\"instagram-archive-strip\">"));
 check("Archive has one source color key above the grid",
- pages.includes('class="archive-color-guide"') &&
- pages.includes('archive-key-instagram') && pages.includes('archive-key-pinterest'));
+ pages.includes('class="module-shadow-key"') &&
+ pages.includes('"instagram","Instagram","#f36b21"') && pages.includes('"pinterest","Pinterest","#e60023"'));
 check("Archive grid groups by source not every photo",
  pages.includes('const sourceGroups=new Map()') && pages.includes('data-archive-group="\'+esc(source)'));
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 
-check("Pinterest legend is red, matching imported cards", pages.includes("Pinterest · red</span>") && pages.includes("background:#e60023!important;box-shadow:2px 3px 0 #e60023"));
+check("Pinterest legend is red, matching imported cards", pages.includes('"pinterest","Pinterest","#e60023"') && pages.includes("box-shadow:2px 2px 0 var(--key-color"));
 check("archive control buttons are icons, not colored fake browser dots", pages.includes('data-archive-delete aria-label="Delete this post" title="Delete">×</button>') && pages.includes('data-archive-enlarge aria-label="Open this photo" title="Open this photo">↗</button>'));
 
 
@@ -107,9 +107,9 @@ const palette=[['instagram','#f36b21'],['tiktok','#772dcc'],['pinterest','#e6002
 for(const [source,color]of palette){
   assert.ok(orbitColors.includes('0 '+color+'!important')||orbitColors.includes(color),'Orbit recognizes '+source+' '+color);
   assert.ok(veveColors.includes('data-veve-origin="'+source+'"]{--veve-rim:'+color),'Veve uses Orbit palette for '+source);
-  assert.ok(pages.includes('archive-key-'+source),'Archive color key names '+source);
+  assert.ok(pages.includes('"'+source+'"'),'Archive color key names '+source);
 }
-assert.ok(pages.includes('Instagram · blood orange')&&!pages.includes('Instagram · purple'),'Archive does not revert Instagram to purple');
-assert.ok(pages.includes('TikTok · purple')&&!pages.includes('TikTok · black'),'Archive agrees on TikTok purple');
+assert.ok(pages.includes('"instagram","Instagram","#f36b21"')&&!pages.includes('"instagram","Instagram","#772dcc"'),'Archive does not revert Instagram to purple');
+assert.ok(pages.includes('"tiktok","TikTok","#772dcc"')&&!pages.includes('"tiktok","TikTok","#0e0e0e"'),'Archive agrees on TikTok purple');
 assert.ok(viewColors.includes('Instagram", accent: "#f36b21"'),'myfeed metadata agrees on Instagram orange');
-assert.ok(pages.includes('veve-origin-legend'),'Veve also presents an origin color key');
+assert.ok(pages.includes("['orbit','archive','feed','veve'].includes(key)"),'Veve also presents an origin color key');

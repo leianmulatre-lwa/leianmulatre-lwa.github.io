@@ -16,15 +16,20 @@ assert.match(css,/@media\(max-width:700px\)[^\n]*repeat\(3,minmax\(0,1fr\)\)!imp
 assert.match(css,/@media\(max-width:465px\)[^\n]*repeat\(2,minmax\(0,1fr\)\)!important/);
 assert.ok(code.includes('const visualPieces=pieces.length?archivePieceMarkup(pieces[0]'),'Carousel remains one interactive Archive post');
 assert.ok(code.includes('data-archive-live-input='),'Existing Live toggle stays');
-const o=code.slice(code.indexOf('function orbitShadowLegend(){'),code.indexOf('function renderOrbitPage(){'));
-const v=code.slice(code.indexOf('function renderVeve(){'),code.indexOf('function renderCreate(){'));
-assert.ok(code.includes("heading('orbit')+orbitShadowLegend()+"),'Orbit renders the shadow legend above its tiles');
-assert.ok(code.includes('.orbit-shadow-legend{')&&code.includes('.orbit-shadow-key-item>i{'));
-for(const [label,color] of [['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
+const key=code.slice(code.indexOf('const shadowPalette=['),code.indexOf('const heading = (key, extra='));
+assert.ok(code.includes('class="module-heading-right"'),'Shadow key is alongside title');
+assert.ok(code.includes("heading('orbit')+"),'Orbit renders shared heading with key');
+assert.ok(code.includes('.module-shadow-key-item>i{'),'One swatch style with Archive-style depth');
+assert.ok(code.includes('box-shadow:2px 2px 0 var(--key-color'),'Layered Archive-style shadow swatch');
+for(const [name,color] of [['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
  ['Facebook','#1658be'],['YouTube','#fff1ec'],['Snapchat','#ffda00'],
- ['Tumblr','#1b304b'],['X','#0e0e0e']]){
- assert.ok(o.includes("['"+label+"','"+color+"']"),'Orbit palette '+label);
- assert.ok(v.includes("['"+label+"','"+color+"']"),'Veve palette '+label);
+ ['Tumblr','#1b304b'],['X','#0e0e0e'],['Google Drive','#e7be31'],
+ ['Spotify','#1db954'],['SoundCloud','#ff7700'],['Letterboxd','#2c3440']]){
+ assert.ok(key.includes('"'+name+'","'+color+'"'),'Shared palette '+name);
 }
-assert.ok(o.includes('aria-label="App shadow color key"'));
-console.log('PASS dense Archive cards and compact Veve-style Orbit shadow key');
+assert.ok(code.includes('aria-label="Platform shadow color key"'));
+assert.ok(code.includes("key==='orbit'?shadowPalette.filter"),'Orbit lists all real provider destinations');
+assert.ok(code.includes('id="feedComposerToggle"')&&code.includes('feedForm.hidden=!open'),'Feed collapsible form retains fields');
+assert.ok(!code.includes('Archive by app</h2>'),'Archive redundant heading removed');
+assert.ok(!code.includes('class="archive-color-guide" aria-label="Card shadow color key"'),'Archive no longer shows a second key');
+console.log('PASS dense Archive cards and shared heading shadow keys');
