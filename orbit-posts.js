@@ -879,11 +879,11 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   if(prior.exists()){
     const present=prior.data()||{};
     // Personal sync explicitly publishes drafts; respect removals and archived cards.
-    // Auto-publish only posts returned by the connected TikTok account's
-    // authorized video.list API. A pasted link or an SSSTik response alone is
-    // not proof that the video belongs to this member.
+    // Autopublish only provider-authorized video.list records or public-profile
+    // records whose author was verified against TikTok's OAuth username by
+    // the caller. Pasted links remain private drafts.
     const mayPublish=publishToCollective&&(provider==='facebook'||
-      (provider==='tiktok'&&item.authorizedFromTikTokVideoList===true));
+      (provider==='tiktok'&&(item.authorizedFromTikTokVideoList===true||item.matchedAuthorizedTikTokPublicProfile===true)));
     if(mayPublish&&present.state==='draft'&&
        !['archived','pending_delete'].includes(present.archiveState)){
       if(store.auth.currentUser?.uid!==user.uid)throw Error('Account changed during import.');
@@ -904,7 +904,7 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   const owner=await resolveOwner(user,{},null);
   const created=store.serverTimestamp();
   const publish=publishToCollective&&(provider==='facebook'||
-    (provider==='tiktok'&&item.authorizedFromTikTokVideoList===true));
+    (provider==='tiktok'&&(item.authorizedFromTikTokVideoList===true||item.matchedAuthorizedTikTokPublicProfile===true)));
   const state=publish?'approved':'draft',archiveState=publish?'collective':'saved';
   const data={
     uid:user.uid,username:owner.username,usernameLower:owner.usernameLower,
