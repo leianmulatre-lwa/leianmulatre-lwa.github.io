@@ -165,6 +165,10 @@
    #studioApp .biglwa-skeleton-hub .tour-symbol-description{display:grid;min-width:0;font:650 10px/1.2 system-ui}
    #studioApp .biglwa-skeleton-hub .tour-symbol-description small{font:450 9px/1.25 system-ui;color:#806776}
    #studioApp .biglwa-skeleton-hub .skeleton-key-note{font:500 10px/1.35 Georgia,serif;color:#80667c;margin:0}
+   #studioApp .biglwa-skeleton-hub .skeleton-platform-key{min-width:0}
+   #studioApp .biglwa-skeleton-hub .skeleton-platform-key>summary{cursor:pointer;min-height:29px;display:flex;align-items:center}
+   #studioApp .biglwa-skeleton-hub .skeleton-platform-key summary:focus-visible{outline:2px solid #96576e;outline-offset:2px}
+
 
    @media(max-width:680px){#studioApp .biglwa-skeleton-hub .tour-symbol-key{grid-template-columns:1fr}}
 
@@ -456,6 +460,10 @@
    '<figure style="--model-shadow:#f7cddd"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Social</figcaption></figure>'+
    '<figure style="--model-shadow:#f8d4b0"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Political</figcaption></figure></div>'+
    '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Show body shadows on hover</label></details>'+ 
+   '<details class="skeleton-platform-key"><summary>Platform shadow key</summary>'+
+   '<p class="skeleton-shadow-explanation">Each miniature card shows its widget’s body color on the face, with one shadow matching its original platform. This example uses the Social widget color.</p>'+
+   (window.BigLWAShadowKey?.render?.('skeleton')||'<p class="skeleton-shadow-explanation">Platform preview is loading.</p>')+
+   '</details>'+
    '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>'+
    '<details class="skeleton-symbol-details"><summary>Symbol key</summary><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools"></ul></details>'+
    '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>';
