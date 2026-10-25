@@ -14,8 +14,8 @@ assert.doesNotThrow(()=>new Script(showcase),'Spotlight and Highlight showcase p
 const clean=worker.replace('export {parsePublicProfile,parsePublicSnapchat};','')
   .replace('export default','const __worker =');
 assert.doesNotThrow(()=>new Script(clean),'Public-source Worker parses');
-const {parsePublicProfile,parsePublicSnapchat}=new Function(clean+
-  '\nreturn {parsePublicProfile,parsePublicSnapchat};')();
+const {parsePublicProfile,parsePublicSnapchat,parseTikTokPublicPosts}=new Function(clean+
+  '\nreturn {parsePublicProfile,parsePublicSnapchat,parseTikTokPublicPosts};')();
 
 const ttHtml='<h1>@test.name</h1><section>Profile metrics</section>'+
  '<div>Followers</div><p>12,345</p><div>Following</div><p>99</p>'+
@@ -29,6 +29,18 @@ assert.equal(parsePublicProfile(ttHtml,'testXname'),null,
  'A punctuation mismatch must never count as an identity match');
 assert.equal(parsePublicProfile('<h1>@different</h1>Followers 123','test.name'),null);
 
+const ownPost={ItemModule:{'7380029000012345678':{
+ id:'7380029000012345678',author:{uniqueId:'my.creator'},
+ desc:'Found my post',video:{cover:'https://p16-tiktokcdn.com/cover.jpg'}},
+ '7380029000012345679':{id:'7380029000012345679',
+ author:{uniqueId:'another.creator'},desc:'Not mine'}}};
+const html='<script id="SIGI_STATE" type="application/json">'+JSON.stringify(ownPost)+'</script>';
+assert.equal(parseTikTokPublicPosts(html,'my.creator').length,1,'Only exact public-account video matches import');
+assert.equal(parseTikTokPublicPosts(html,'my.creator')[0].sourceUrl,
+ 'https://www.tiktok.com/@my.creator/video/7380029000012345678');
+assert.equal(parseTikTokPublicPosts(html,'wrong.creator').length,0,'Do not import other accounts');
+assert.equal(parseTikTokPublicPosts('No public hydration','my.creator').length,0,'No invented public videos');
+assert.ok(worker.includes('/posts'), 'TikTok public post discovery route exists');
 const matched=parsePublicSnapchat(story,'leianmulatre');
 assert.equal(matched?.handle,'leianmulatre');
 assert.equal(matched.items.length,3,'The supplied public Snapchat fixture lists three Spotlights');
