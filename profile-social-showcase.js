@@ -103,6 +103,20 @@
    '@media(max-width:1050px){#studioApp .profile-card .biglwa-stories-by-likes{flex-wrap:wrap!important;gap:7px!important}#studioApp .profile-card .biglwa-stories-by-likes>.stats{flex:1 1 100%!important;max-width:none!important}#studioApp .profile-card .biglwa-stories-ribbon{flex:1 1 100%!important;max-width:none!important;margin-top:0!important}}',
    '@media(max-width:620px){#studioApp .profile-card .biglwa-stories-by-likes>.stats{min-width:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#studioApp .profile-card .biglwa-story-ring{width:36px!important;height:36px!important}#studioApp .profile-card .biglwa-story-bubble{flex-basis:44px!important;width:44px!important}#studioApp .profile-card .biglwa-stories-track{gap:5px!important}}',
    '#studioApp.profile-editor-wallpaper .biglwa-stories-ribbon,#studioApp .profile-card.profile-is-editing .biglwa-stories-ribbon{display:none!important}'
+  ].join('\n');
+  css.textContent+='\n'+[
+   '#studioApp .profile-card{position:relative!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon{position:absolute!important;left:10px!important;right:10px!important;bottom:8px!important;z-index:6!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;display:flex!important;align-items:center!important;gap:6px!important;overflow:hidden!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-stories-track{display:flex!important;flex:1 1 auto!important;gap:clamp(5px,1vw,12px)!important;justify-content:space-evenly!important;align-items:center!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;padding:1px!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble{flex:0 0 44px!important;width:44px!important;display:flex!important;flex-direction:column!important;gap:1px!important;align-items:center!important;cursor:pointer!important;border:0!important;background:transparent!important;padding:0!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-ring{display:grid!important;place-items:center!important;width:35px!important;height:35px!important;box-sizing:border-box!important;border-radius:50%!important;padding:3px!important;background:conic-gradient(#eeb069,#e5729b,#9051b4,#eeb069)!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble[data-source="snapchat"] .biglwa-story-ring{background:conic-gradient(#f2d250,#ffe97c,#e5b528,#f2d250)!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble[data-source="new"] .biglwa-story-ring{background:#e4dcd6!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-inner{display:grid!important;place-items:center!important;width:100%!important;height:100%!important;box-sizing:border-box!important;border-radius:50%!important;border:2px solid #fff8f1!important;background:#fff3ed!important;color:#673b57!important;font:700 17px Georgia,serif!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-name{font:650 8px/1.1 system-ui!important;max-width:50px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#462d3c!important;text-align:center!important}',
+   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-scroll{flex:0 0 15px!important;cursor:pointer!important;border:0!important;background:#fff9f1d9!important;color:#57364a!important}',
+   '@media(max-width:640px){#studioApp .profile-card>.biglwa-stories-ribbon{left:6px!important;right:6px!important;bottom:4px!important}#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble{flex-basis:40px!important;width:40px!important}}',
+   '#studioApp.profile-editor-wallpaper .profile-card>.biglwa-stories-ribbon,#studioApp .profile-card.profile-is-editing>.biglwa-stories-ribbon{display:none!important}'
   ].join('\n');document.head.append(css);
  };
  function closeStory(){
@@ -144,7 +158,7 @@
   b.setAttribute('aria-label',label);
   const ring=document.createElement('span');ring.className='biglwa-story-ring';
   const inner=document.createElement('span');inner.className='biglwa-story-inner';
-  if(platform==='instagram'||platform==='snapchat'){
+  if(platform==='snapchat'){
    const img=document.createElement('img');img.src='/assets/orbit-icons/'+platform+'.svg';img.alt='';inner.append(img);
   }else inner.textContent='+';
   ring.append(inner);
@@ -154,12 +168,10 @@
  function mountStoryCircles(root,section,entries,snapItems,handles){
   const copy=root.querySelector('.profile-copy'),stats=copy?.querySelector('.stats');if(!copy||!stats)return;
   storyStyle();
-  let wrap=copy.querySelector('.biglwa-stories-by-likes');
-  if(!wrap){wrap=document.createElement('div');wrap.className='biglwa-stories-by-likes';
-   stats.parentNode.insertBefore(wrap,stats);wrap.append(stats);}
-  wrap.querySelector('.biglwa-stories-ribbon')?.remove();
+  // Banner highlights must not relocate the profile's stats.
+  root.querySelector(':scope > .biglwa-stories-ribbon')?.remove();
   const rail=document.createElement('div');rail.className='biglwa-stories-ribbon';rail.dataset.biglwaPublicShowcase='1';
-  rail.setAttribute('aria-label','Highlights and Spotlights beside Likes');
+  rail.setAttribute('aria-label','Highlights and Spotlights on banner');
   const track=document.createElement('div');track.className='biglwa-stories-track';
   track.setAttribute('role','group');track.setAttribute('aria-label','Story highlights');
   if(active('snapchat')){
@@ -180,7 +192,7 @@
   prev.onclick=()=>{track.scrollBy({left:-140,behavior:'smooth'});setTimeout(arrows,250)};
   next.onclick=()=>{track.scrollBy({left:140,behavior:'smooth'});setTimeout(arrows,250)};
   track.addEventListener('scroll',arrows,{passive:true});
-  rail.append(prev,track,next);wrap.append(rail);requestAnimationFrame(arrows);
+  rail.append(prev,track,next);root.append(rail);requestAnimationFrame(arrows);
  }
 
  function show(){
