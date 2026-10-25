@@ -40,7 +40,11 @@ function knownSocialProvider(host){
   ['letterboxd',['letterboxd.com']],['depop',['depop.com']],
   ['imdb',['imdb.com']],['vsco',['vsco.co']],['bereal',['bere.al']],
   ['threads',['threads.net']],['discord',['discord.com','discord.gg']],
-  ['reddit',['reddit.com']],['bandcamp',['bandcamp.com']]
+  ['reddit',['reddit.com']],['bandcamp',['bandcamp.com']],
+  ['drive',['drive.google.com','docs.google.com']],['calendar',['calendar.google.com']],
+  ['google',['google.com']],['substack',['substack.com']],
+  ['xbox',['xbox.com','xboxlive.com']],['whatsapp',['whatsapp.com','wa.me']],
+  ['telegram',['telegram.org','t.me']],['vimeo',['vimeo.com']]
  ];
  return pairs.find(([,hosts])=>hosts.some(domain=>host===domain||host.endsWith('.'+domain)))?.[0]||'';
 }

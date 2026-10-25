@@ -25,7 +25,7 @@ assert.ok(feed.includes('biglwa-lightbox-caption')&&feed.includes('esc(String(po
 assert.ok(feed.includes("esc(String(post.caption||'Collective feed media').slice(0,160))"));
 assert.ok(html.includes('module-pages.js?v=20261024-unified-links-2'));
 assert.ok(html.includes('orbit-feed.js?v=20261015-mixed-source-6'));
-assert.ok(html.includes('collective-publish.js?v=20261024-unified-links-2'));
+assert.ok(html.includes('collective-publish.js?v=20261024-unified-links-3'));
 assert.ok(boot.includes('feed-view.js?v=20261023-tiktok-collective-refresh-9'));
 console.log('PASS caption composer, Firestore persistence, expanded caption and responsive buttons');
 const start=orbit.indexOf('  function feedSource(card){'),end=orbit.indexOf('  function sweep() {',start);
