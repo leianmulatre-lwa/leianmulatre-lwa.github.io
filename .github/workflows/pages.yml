@@ -70,6 +70,7 @@ jobs:
           node orbit-veve-layout-test.mjs
           node archive-orbit-density-shadow-test.mjs
           node shared-shadow-header-regression-test.mjs
+          node source-shadow-single-depth-test.mjs
           node privacy-settings-orbit-test.mjs
           node account-storage-regression-test.mjs
           node politc-poster-layout-test.mjs

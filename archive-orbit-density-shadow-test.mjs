@@ -20,14 +20,14 @@ const key=code.slice(code.indexOf('const shadowPalette=['),code.indexOf('const h
 assert.ok(code.includes('class="module-heading-right"'),'Shadow key is alongside title');
 assert.ok(code.includes("heading('orbit')+"),'Orbit renders shared heading with key');
 assert.ok(code.includes('.module-shadow-key-item>i{'),'One swatch style with Archive-style depth');
-assert.ok(code.includes('box-shadow:2px 2px 0 var(--key-color'),'Layered Archive-style shadow swatch');
+assert.ok(code.includes('box-shadow:3px 3px 0 var(--key-shadow'),'Exactly one source-colored shadow');
 for(const [name,color] of [['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
  ['Facebook','#1658be'],['YouTube','#fff1ec'],['Snapchat','#ffda00'],
  ['Tumblr','#1b304b'],['X','#0e0e0e'],['Google Drive','#e7be31'],
  ['Spotify','#1db954'],['SoundCloud','#ff7700'],['Letterboxd','#2c3440']]){
  assert.ok(key.includes('"'+name+'","'+color+'"'),'Shared palette '+name);
 }
-assert.ok(code.includes('aria-label="Platform shadow color key"'));
+assert.ok(code.includes('aria-label="Platform shadow key: widget face and one source shadow"'));
 assert.ok(code.includes("key==='orbit'?shadowPalette.filter"),'Orbit lists all real provider destinations');
 assert.ok(code.includes('id="feedComposerToggle"')&&code.includes('feedForm.hidden=!open'),'Feed collapsible form retains fields');
 assert.ok(!code.includes('Archive by app</h2>'),'Archive redundant heading removed');

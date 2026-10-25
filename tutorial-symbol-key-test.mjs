@@ -4,7 +4,7 @@ import vm from 'node:vm';
 const read=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
 const src=read('studio-onboarding.js'),home=read('index.html');
 assert.doesNotThrow(()=>new vm.Script(src));
-assert.ok(home.includes('studio-onboarding.js?v=20261023-mint-quick-actions-2'),
+assert.ok(home.includes('studio-onboarding.js?v=20261025-skeleton-shadow-key-1'),
   'new visual tutorial version loads instead of cached text-only guide');
 assert.ok(src.includes('"visual":"symbols"')&&src.includes('Symbol key</summary>'),'Skeleton Keys shows visual symbols both in the tutorial and inline hub');
 assert.ok(!src.includes('Hanger = Projects, chess piece = Arcade'),

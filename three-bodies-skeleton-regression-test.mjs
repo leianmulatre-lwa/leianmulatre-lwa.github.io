@@ -9,8 +9,8 @@ const home=read('index.html'),body=read('studio-three-bodies-20261019.js'),
 for(const [name,src]of [['three-body',body],['Skeleton Key',onboarding],['Journal',pages],['toolbar',layout]])
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-compact-1'),'new three-body categorizer is deployed');
-assert.ok(home.includes('studio-onboarding.js?v=20261023-mint-quick-actions-2'),'updated Skeleton Key is deployed');
-assert.ok(home.includes('module-pages.js?v=20261025-header-shadow-1'),'owned Journal preview is deployed');
+assert.ok(home.includes('studio-onboarding.js?v=20261025-skeleton-shadow-key-1'),'updated Skeleton Key is deployed');
+assert.ok(home.includes('module-pages.js?v=20261025-source-face-1'),'owned Journal preview is deployed');
 assert.ok(home.includes('ui-coherence.js?v=20261023-external-snapshot-1'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};

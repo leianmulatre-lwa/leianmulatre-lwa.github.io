@@ -31,7 +31,7 @@ check("only the picture of an off card goes grey", pages.includes(".instagram-ar
 check("each card carries a Live switch", pages.includes("data-archive-live-input=\"'+esc(item.id)+'\""));
 check("the switch label is interactive", pages.includes("(posted?'Live':'Not live')+'</b>'"));
 check("the switch is wired to publish or archive", pages.includes("postsApi?.publishOrbitPost?.(id)") && pages.includes("postsApi?.setOrbitState?.(id,'archived')"));
-check("a card on the Collective Feed is coloured here", pages.includes('aria-label="Platform shadow color key"'));
+check("a card on the Collective Feed is coloured here", pages.includes('aria-label="Platform shadow key: widget face and one source shadow"'));
 check("the Archive no longer claims to be Instagram-only", !pages.includes("Instagram archive</h2>") && !pages.includes("Instagram posts imported"));
 
 console.log("\n=== GROUPED, WITH REPEATS SPOTTED ===");
@@ -95,7 +95,7 @@ check("Archive grid groups by source not every photo",
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 
-check("Pinterest legend is red, matching imported cards", pages.includes('"pinterest","Pinterest","#e60023"') && pages.includes("box-shadow:2px 2px 0 var(--key-color"));
+check("Pinterest legend is red, matching imported cards", pages.includes('"pinterest","Pinterest","#e60023"') && pages.includes("box-shadow:3px 3px 0 var(--key-shadow"));
 check("archive control buttons are icons, not colored fake browser dots", pages.includes('data-archive-delete aria-label="Delete this post" title="Delete">×</button>') && pages.includes('data-archive-enlarge aria-label="Open this photo" title="Open this photo">↗</button>'));
 
 
