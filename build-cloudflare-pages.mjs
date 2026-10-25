@@ -14,7 +14,7 @@ const dest=join(root,'dist');
 const publishDirs=new Set([
   'MiiEditor','about','arcade','archive','assets','avatar',
   'cedarville-pnkfun1-cursive-font','cuteness-font','data-deletion',
-  'licenses','logout','privacy','settings','stars-and-stripes-font',
+  'licenses','logout','privacy','rights','terms','settings','stars-and-stripes-font',
   'third-party','tools','wiimii'
 ]);
 const topPublic=new Set(['404.html','index.html','robots.txt','sitemap.xml',
