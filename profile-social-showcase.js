@@ -29,21 +29,56 @@
  };
  const PUBLIC='https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev';
  const validHandle=h=>/^[a-zA-Z0-9._]{2,40}$/.test(h||'');
- const accountHandles=()=>{
-  const snap=window.BigLWAOrbitOAuth?.get?.('snapchat');
-  let snapchat=String(snap?.username||'').replace(/^@/,'').trim();
-  if(!validHandle(snapchat)){
-   try{const link=new URL(window.BigLWAOrbitAccountLinks?.get?.()?.snapchat||'');
-    if(link.hostname==='www.snapchat.com'||link.hostname==='snapchat.com'){
-     snapchat=link.pathname.match(/^\/add\/([a-zA-Z0-9._]{2,40})\/?$/)?.[1]||'';
-    }
-   }catch{}
-  }
-  const ig=window.__biglwaConnections?.connections?.()?.instagram;
-  const instagram=String(ig?.username||window.__biglwaInstagramOrbit?.state?.profile?.username||'').replace(/^@/,'').trim();
-  return {snapchat:active('snapchat')&&validHandle(snapchat)?snapchat:'',
-   instagram:active('instagram')&&validHandle(instagram)?instagram:''};
+ const fromLink=(raw,provider)=>{
+  try{
+   const url=new URL(String(raw||''));
+   if(url.protocol!=='https:'||url.port||url.username||url.password)return '';
+   const host=url.hostname.toLowerCase().replace(/^www\./,'');
+   const path=decodeURIComponent(url.pathname);
+   const match=provider==='instagram'&&host==='instagram.com'?
+     path.match(/^\/([A-Za-z0-9._]{2,40})\/?$/):
+     provider==='snapchat'&&['snapchat.com','story.snapchat.com'].includes(host)?
+       path.match(/^\/(?:add\/@?|@)([A-Za-z0-9._]{2,40})\/?$/):null;
+   return match&&validHandle(match[1])?match[1]:'';
+  }catch{return ''}
  };
+ const accountHandles=()=>{
+  const links=window.BigLWAOrbitAccountLinks?.get?.()||{};
+  const snap=window.BigLWAOrbitOAuth?.get?.('snapchat');
+  const instagram=window.__biglwaInstagramOrbit?.state?.profile;
+  const connected=window.__biglwaConnections?.connections?.()?.instagram;
+  const instagramOAuth=String(instagram?.username||connected?.username||'').replace(/^@/,'').trim();
+  const instagramLinked=fromLink(links.instagram,'instagram');
+  const snapchatOAuth=String(snap?.username||'').replace(/^@/,'').trim();
+  const snapchatLinked=fromLink(snap?.link,'snapchat')||fromLink(links.snapchat,'snapchat');
+  // An OAuth handle wins over an old manually stored link. Never use a display
+  // name as an account handle, and don't borrow another logged-in member's links.
+  return {
+   instagram:active('instagram')&&(validHandle(instagramOAuth)||validHandle(instagramLinked))?
+     (validHandle(instagramOAuth)?instagramOAuth:instagramLinked):'',
+   snapchat:active('snapchat')&&(validHandle(snapchatOAuth)||validHandle(snapchatLinked))?
+     (validHandle(snapchatOAuth)?snapchatOAuth:snapchatLinked):'',
+   instagramOAuth:validHandle(instagramOAuth)?instagramOAuth:'',
+   snapchatProviderLink:active('snapchat')?fromLink(snap?.link,'snapchat'):''
+  };
+ };
+ // Once a provider reports its own public identity, keep that canonical URL
+ // on the signed-in BIG LWA member's Orbit record (not browser-only storage).
+ const savingLinks=new Set();
+ function persistProviderLinks(handles,who){
+  const links=window.BigLWAOrbitAccountLinks;
+  if(!who||!links?.ready?.()||links.owner?.()!==who)return;
+  const records=links.get?.()||{};
+  for(const [provider,handle] of [['instagram',handles.instagramOAuth],['snapchat',handles.snapchatProviderLink]]){
+   if(!handle||savingLinks.has(provider)||records[provider])continue;
+   const canonical=provider==='instagram'?'https://www.instagram.com/'+handle+'/':
+     'https://www.snapchat.com/add/'+handle;
+   savingLinks.add(provider);
+   Promise.resolve(links.save(provider,canonical)).catch(error=>{
+    console.info('Profile shortcut sync deferred:',error?.message||error);
+   }).finally(()=>savingLinks.delete(provider));
+  }
+ }
  let snapSource={key:'',status:'',items:[],message:''},signature='';
  function refreshPublicSnapchat(handle,who){
   const next=who+':'+handle.toLowerCase();
@@ -177,10 +212,20 @@
   if(active('snapchat')){
    if(snapItems.length)snapItems.forEach((item,i)=>track.append(storyBubble('snapchat','Spotlight '+(i+1),
     ()=>storyPreview({...item,url:'https://story.snapchat.com/add/@'+handles.snapchat},'snapchat'))));
-   else track.append(storyBubble('snapchat','Spotlight',()=>storyEditor(section)));
+   else if(handles.snapchat)track.append(storyBubble('snapchat','Snapchat',()=>{
+     window.open('https://www.snapchat.com/add/'+encodeURIComponent(handles.snapchat),'_blank','noopener,noreferrer');
+   }));
   }
   const ig=entries.filter(x=>x.platform==='instagram'&&active('instagram'));
-  if(active('instagram')&&!ig.length)track.append(storyBubble('instagram','Highlights',()=>storyEditor(section)));
+  // Link directly to the connected user's Instagram profile, where its
+  // Highlights appear. Do not imply the standard IG media API returned
+  // individual Highlight objects when it did not.
+  if(handles.instagram&&!ig.length){
+   const instagramUrl='https://www.instagram.com/'+encodeURIComponent(handles.instagram)+'/';
+   track.append(storyBubble('instagram','Instagram',()=>{
+    window.open(instagramUrl,'_blank','noopener,noreferrer');
+   }));
+  }
   ig.forEach((item,i)=>track.append(storyBubble('instagram','Highlight '+(i+1),()=>storyPreview(item,'instagram'))));
   entries.filter(x=>x.platform==='snapchat'&&active('snapchat')).forEach((item,i)=>
    track.append(storyBubble('snapchat','Spotlight '+(snapItems.length+i+1),()=>storyPreview(item,'snapchat'))));
@@ -198,6 +243,7 @@
  function show(){
   const root=document.querySelector('#studioApp .profile-card');
   const who=uid(),entries=saved(),handles=accountHandles();
+  persistProviderLinks(handles,who);
   if(handles.snapchat)refreshPublicSnapchat(handles.snapchat,who);
   else if(snapSource.key)snapSource={key:'',status:'',items:[],message:''};
   const snapItems=handles.snapchat&&snapSource.key===who+':'+handles.snapchat.toLowerCase()?snapSource.items:[];
@@ -209,7 +255,7 @@
   document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();
   const section=document.createElement('details');section.dataset.biglwaPublicShowcaseEditor='1';section.className='biglwa-showcase-editor';
   section.style.cssText='margin:8px 0 0;padding:6px 0 0;border-top:1px solid #dfcfce;min-width:0';
-  const title=document.createElement('summary');title.textContent='Spotlight & Highlights · '+(entries.length+snapItems.length);
+  const title=document.createElement('summary');title.textContent='Spotlight & Highlights';
   title.style.cssText='cursor:pointer;font:700 11px/1.5 system-ui;color:#762e4b';
   section.append(title);
   const discovery=document.createElement('div');
@@ -228,13 +274,14 @@
   }
   if(active('instagram')){
    const a=document.createElement('a');
-   a.href='https://igexport.com/en/instagram-highlights-viewer/';
+   a.href=handles.instagram?'https://www.instagram.com/'+encodeURIComponent(handles.instagram)+'/':'https://www.instagram.com/';
    a.target='_blank';a.rel='noopener noreferrer';
-   a.textContent=handles.instagram?'Instagram Highlights · @'+handles.instagram+' · public viewer ↗':
-    'Instagram Highlights · provider has not returned a public @username';
+   a.textContent=handles.instagram?'Instagram connected · @'+handles.instagram:'Instagram connected';
    discovery.append(a);
    const note=document.createElement('small');
-   note.textContent='Instagram viewer is external; no automatic Highlight import API verified.';
+   note.textContent=handles.instagram?
+    'Profile link recognized automatically. Individual pinned Highlights will appear when a source returns their IDs; no second login needed.':
+    'Your Instagram login is connected; waiting for a readable public profile handle.';
    discovery.append(note);
   }
   section.append(discovery);
