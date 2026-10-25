@@ -1091,7 +1091,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     ['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],
     ['imdb','IMDb','IMDb','#e6a800'],
      ['vsco','VS','VSCO','#b51668'],['bereal','BR','BeReal','#777b83'],
-     ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e']
+     ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e'],
+    ['website','WWW','My website','rgb(var(--aura-rgb,216,95,109))']
   ];
   const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
   const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
