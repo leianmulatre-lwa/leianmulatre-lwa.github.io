@@ -12,7 +12,7 @@ const CHROME_KEYS = ["biglwa-preview-identity"];
 let previewOverride = null;
 
 const clean = (v) => String(v || "").trim();
-const initial = (name) => clean(name).replace(/^@/, "").charAt(0).toLocaleUpperCase() || "B";
+const initial = (name) => Array.from(clean(name))[0]?.toLocaleUpperCase() || "";
 
 function avatarTargets() {
   return [...document.querySelectorAll("#studioApp .mini-avatar, #studioApp .profile-avatar")];
@@ -48,7 +48,8 @@ export function renderIdentityChrome(profile) {
   const realName=clean(who.name);
   const username=clean(who.username).replace(/^@/,"");
   const name=realName && realName.toLowerCase()!==username.toLowerCase() ? realName : "";
-  const avatarName=realName || "BIG LWA";
+  // No handle, logo or placeholder monogram can replace the member-chosen name.
+  const avatarName=name;
   // Banner and top-right greeting must paint the exact same photo URL and
   // name initial; the @handle is a separate identifier, never the letter.
   avatarTargets().forEach((el) => renderAvatar(el, who.avatarUrl, avatarName));
