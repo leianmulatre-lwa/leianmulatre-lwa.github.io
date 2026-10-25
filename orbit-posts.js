@@ -114,6 +114,15 @@ function isStoredOrbitUrl(url) {
       /^\/media\/orbit\/[A-Za-z0-9_-]+\//.test(parsed.pathname);
   } catch { return false; }
 }
+function pinterestImageFingerprint(url) {
+  try{
+    const parsed=new URL(clean(url));
+    if(parsed.protocol!=='https:'||!(parsed.hostname==='i.pinimg.com'||parsed.hostname.endsWith('.pinimg.com')))return '';
+    const filename=parsed.pathname.split('/').pop()||'';
+    const match=filename.match(/^([a-f0-9]{16,64})\.(?:jpg|jpeg|png|webp|gif)$/i);
+    return match?'pinimg:'+match[1].toLowerCase():'';
+  }catch{return ''}
+}
 function mediaFromItem(source, item, hostedMedia) {
   const normalizedSource = String(source || "").toLowerCase();
   const caption = clean(item.caption || item.title || item.description || item.alt_text || "Shared from " + source);
@@ -533,6 +542,13 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       item.imageUrlKey=existing.imageUrlKey||null;
       item.mediaItems=Array.isArray(existing.mediaItems)?existing.mediaItems:item.mediaItems;
     }
+    const pinRawOrigin=['created','board'].includes(raw?.biglwaPinterestOrigin)?raw.biglwaPinterestOrigin:'';
+    const priorPinOrigin=(existing?.pinterestOriginVerified===true?existing?.pinterestOrigin:
+      existingArchive?.pinterestOriginVerified===true?existingArchive?.pinterestOrigin:'');
+    const pinOrigin=pinRawOrigin||priorPinOrigin||'unknown';
+    const pinOriginVerified=Boolean(pinRawOrigin||priorPinOrigin);
+    const sourcePinFingerprint=pinterestImageFingerprint(pinterestImageUrl(raw))||
+      clean(existing?.sourceImageFingerprint||existingArchive?.sourceImageFingerprint);
     const data = {
       uid: owner.uid,
       username: owner.username,
@@ -555,7 +571,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       mediaType: item.mediaType,
       orbitImported: true,
       // Distinguish a Pinterest original from a saved board reference.
-      ...(item.source === 'pinterest' ? {pinterestOrigin: raw?.biglwaPinterestOrigin === 'created' ? 'created' : 'board', pinterestBoardId: clean(raw?.board_id || raw?.boardId)} : {}),
+      ...(item.source === 'pinterest' ? {pinterestOrigin:pinOrigin, pinterestOriginVerified:pinOriginVerified, pinterestBoardId:clean(raw?.biglwaPinterestBoardId||raw?.board_id||raw?.boardId||existing?.pinterestBoardId||existingArchive?.pinterestBoardId),sourceImageFingerprint:sourcePinFingerprint} : {}),
       state,
       archiveState,
       deletionAt: preservedDeleteAt,

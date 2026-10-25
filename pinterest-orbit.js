@@ -161,7 +161,9 @@ let handoffPromise=null;
  async function publishOnePin(pin,importer,publisher){
   const id=String(pin?.id||'');
   if(!/^\d+$/.test(id))throw Error('Invalid Pin identifier.');
-  const media={...pin,id,image_url:image(pin)||pin.image||'',url:'https://www.pinterest.com/pin/'+id+'/'};
+  const media={...pin,id,image_url:image(pin)||pin.image||'',url:'https://www.pinterest.com/pin/'+id+'/',
+    biglwaPinterestOrigin:pin.biglwaPinterestOrigin||'created',
+    biglwaPinterestBoardId:pin.biglwaPinterestBoardId||''};
   if(!media.image_url)throw Error('Missing Pin image. Sync this Pin first.');
   const imported=await importer('pinterest',[media],profile,window.__biglwaIdentity||{});
   if(!imported?.imported||imported.partial)throw Error('Pin '+id+' did not finish importing.');
@@ -213,7 +215,7 @@ let handoffPromise=null;
     for(const pin of list){
       if(uid!==authUid)throw Error('Account changed; publishing stopped.');
       if(saved&&boardLocks[id]===true)throw Error('Board locked while publishing.');
-      try{await publishOnePin(pin,importer,publisher);posted++;publishedPinIds.add(String(pin.id));profilePinStates.set(String(pin.id),'live')}
+      try{await publishOnePin({...pin,biglwaPinterestOrigin:'board',biglwaPinterestBoardId:String(id)},importer,publisher);posted++;publishedPinIds.add(String(pin.id));profilePinStates.set(String(pin.id),'live')}
       catch(err){failed++;console.warn('[BIGLWA] Pinterest publish:',pin.id,err)}
       if((posted+failed)%4===0||posted+failed===list.length)
         progress('Publishing to Collective + Veve · '+(posted+failed)+' / '+list.length+' · '+posted+' live');
@@ -879,7 +881,9 @@ document.addEventListener('click',e=>{
    if(!picked.length){notice('Choose Pins first.');return}
    const unsaved=original?picked.filter(pin=>!['private','archived','live'].includes(profilePinStates.get(String(pin.id)))):picked;
    if(!unsaved.length){notice('Those Pins are already saved privately in BIG LWA.');return}
-   run(async()=>{await importSelectedPins(unsaved);(original?selectedOriginalPins:selectedBoardPins).clear()});return;
+   run(async()=>{await importSelectedPins(unsaved.map(pin=>({...pin,
+     biglwaPinterestOrigin:original?'created':'board',biglwaPinterestBoardId:original?'':boardId
+   })));(original?selectedOriginalPins:selectedBoardPins).clear()});return;
  }
  if(e.target.closest('[data-pn-publish-original]')){e.preventDefault();e.stopImmediatePropagation();notice('Save original Pins privately here; public sharing happens from myfeed.');return}
  const boardPublish=e.target.closest('[data-pn-publish-board]');
