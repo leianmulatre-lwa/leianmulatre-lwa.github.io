@@ -5,7 +5,7 @@ const require=createRequire(import.meta.url);
 const {JSDOM}=require('jsdom');
 const code=readFileSync(new URL('./profile-social-showcase.js',import.meta.url),'utf8');
 const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.ok(index.includes('/profile-social-showcase.js?v=20261024-auto-connected-showcase-4'));
+assert.ok(index.includes('/profile-social-showcase.js?v=20261024-auto-connected-showcase-5'));
 
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+
 '<main id="studioApp"><article class="profile-card">'+
@@ -98,6 +98,17 @@ assert.equal(ad.querySelector('[data-biglwa-public-showcase-editor] form').paren
 autoSnap[0].click();
 assert.equal(ad.querySelector('.biglwa-story-popup video')?.getAttribute('src'),
  'https://cf-st.sc-cdn.net/d/auto-spotlight');
+// No pinned Highlight IDs available: the connected IG profile remains a
+// native BIG LWA dialog rather than unexpectedly opening an external tab.
+aw.__biglwaInstagramOrbit.state.media=[];
+aw.dispatchEvent(new aw.Event('biglwa:instagram-restored'));
+await new Promise(resolve=>setTimeout(resolve,150));
+const fallback=ad.querySelector('.biglwa-story-bubble[data-source="instagram"]');
+assert.ok(fallback,'Connected Instagram still appears when Highlight metadata is absent');
+fallback.click();
+assert.match(ad.querySelector('.biglwa-story-popup strong')?.textContent||'',/Instagram profile/);
+assert.equal(ad.querySelector('.biglwa-story-popup a')?.getAttribute('href'),
+ 'https://www.instagram.com/owner.ig/');
 autoDom.window.close();
 console.log('Profile banner linked identity + automatic source Highlight and Spotlight passed.');
 
