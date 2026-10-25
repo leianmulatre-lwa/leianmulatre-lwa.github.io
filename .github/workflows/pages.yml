@@ -53,6 +53,8 @@ jobs:
           node --check ui-coherence.js
           node --check settings-cache.js
           node --check veve.js
+          node --check media-placeholders.js
+          node media-visual-reliability-test.mjs
           node studio-layout-cache-test.mjs
           node dock-scroll-stability-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node veve-curtain-regression-test.mjs
