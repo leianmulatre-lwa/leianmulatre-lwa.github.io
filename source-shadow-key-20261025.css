@@ -1,0 +1,71 @@
+/* One neutral tray; each miniature widget has its THREE-BODY FACE and precisely ONE source-colored shadow. */
+#studioApp .module-heading .module-shadow-key,
+#studioApp .biglwa-skeleton-hub .module-shadow-key{
+ display:flex;flex:1 1 auto;flex-wrap:wrap;align-content:center;align-items:center;
+ gap:5px 10px;min-width:0;max-width:100%;padding:7px 10px;
+ background:rgba(255,250,242,.60);border:1px solid rgba(105,75,82,.16);
+ border-radius:11px;box-shadow:none!important;color:#42363b;
+ font:650 10px/1.35 system-ui;
+}
+#studioApp .module-shadow-key>b{font:800 10px/1.3 system-ui!important;letter-spacing:.06em;white-space:nowrap;margin-right:4px}
+#studioApp .module-shadow-key-item{display:inline-flex!important;align-items:center!important;gap:6px!important;
+ white-space:nowrap;font:650 10px/1.3 system-ui!important}
+#studioApp .module-shadow-key-item>.shadow-preview{
+ position:relative;box-sizing:border-box;display:inline-block!important;flex:0 0 12px!important;
+ width:12px!important;height:12px!important;margin:0 4px 3px 0!important;
+ border:1px solid rgba(63,49,50,.3)!important;border-radius:3px!important;
+ background:var(--key-face,#f7cddd)!important;
+ box-shadow:3px 3px 0 var(--key-shadow,#8f756e)!important;
+}
+#studioApp .module-workspace[data-module-key="orbit"] .module-shadow-key{gap:5px 9px;padding:8px 10px}
+#studioApp .module-heading .module-shadow-key{justify-content:center}
+#studioApp .biglwa-skeleton-hub .module-shadow-key{justify-content:flex-start;width:100%}
+#studioApp .biglwa-skeleton-hub .skeleton-platform-key>summary{cursor:pointer;font:750 12px/1.35 system-ui}
+#studioApp .biglwa-skeleton-hub .skeleton-platform-key>.module-shadow-key{margin:9px 0;box-sizing:border-box}
+#studioApp .biglwa-skeleton-hub .skeleton-shadow-explanation{font:500 11px/1.5 system-ui;color:#6d5260;margin:7px 0}
+#studioApp .module-workspace .module-heading.module-heading--with-shadow{
+ display:grid!important;grid-template-columns:max-content minmax(0,1fr)!important;
+ grid-template-areas:"title shadow" "meta meta"!important;
+ gap:8px 20px!important;align-items:center!important;
+ padding-bottom:14px!important;
+}
+#studioApp .module-workspace .module-heading--with-shadow .module-heading-copy{grid-area:title;min-width:0}
+#studioApp .module-workspace .module-heading--with-shadow .module-heading-right{grid-area:shadow;min-width:0;display:flex;justify-content:flex-end}
+#studioApp .module-workspace .module-heading--with-shadow .module-heading-bottom{
+ grid-area:meta;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+ gap:5px 24px;min-width:0
+}
+#studioApp .module-workspace .module-heading--with-shadow .module-heading-bottom>p{
+ flex:1 1 450px;max-width:none!important;min-width:0;margin:0!important;
+ font:400 13px/1.5 system-ui;color:#6e655f;
+ text-overflow:unset!important;overflow:visible!important;white-space:normal!important
+}
+#studioApp .module-workspace .module-heading-bottom .module-update-privacy{
+ display:inline-flex!important;flex:0 0 auto;align-items:center;gap:7px;
+ background:transparent!important;border:0!important;border-radius:0!important;
+ margin:0;padding:2px 0!important;box-shadow:none!important;
+ font:600 11px/1.4 system-ui;white-space:nowrap;cursor:pointer;color:#665450
+}
+#studioApp .module-workspace .module-heading-bottom .module-update-privacy input{
+ width:17px;height:17px;flex:0 0 17px;margin:0;accent-color:#a34e68;cursor:pointer
+}
+#studioApp .module-workspace .module-heading--with-shadow .module-heading-right .module-shadow-key{
+ flex:0 1 auto;width:auto;max-width:100%;justify-content:center
+}
+/* Shorter gap between Orbit description and first Quick Links panel. */
+#studioApp .module-workspace[data-module-key="orbit"] .module-grid{margin-top:10px!important}
+#studioApp .module-workspace[data-module-key="orbit"] .module-card.wide{padding-top:12px!important}
+#studioApp .module-workspace[data-module-key="orbit"] .module-card.wide>p{margin-bottom:7px!important}
+#studioApp .module-workspace[data-module-key="orbit"] #orbitPageStatus:empty{display:none!important}
+#studioApp .module-workspace[data-module-key="orbit"] .orbit-quick{margin-top:5px!important}
+@media(max-width:1000px){
+ #studioApp .module-workspace .module-heading.module-heading--with-shadow{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"title" "shadow" "meta"!important;gap:9px!important
+ }
+ #studioApp .module-workspace .module-heading--with-shadow .module-heading-right{justify-content:flex-start}
+ #studioApp .module-workspace .module-heading--with-shadow .module-shadow-key{justify-content:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp .module-shadow-key .shadow-preview{transition:none!important}
+}
