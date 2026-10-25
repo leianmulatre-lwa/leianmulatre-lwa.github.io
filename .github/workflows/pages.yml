@@ -66,6 +66,7 @@ jobs:
           node --check feed-polish.js
           node --check module-pages.js
           node orbit-veve-layout-test.mjs
+          node archive-orbit-density-shadow-test.mjs
           node privacy-settings-orbit-test.mjs
           node account-storage-regression-test.mjs
           node politc-poster-layout-test.mjs

@@ -361,6 +361,29 @@
     @media(max-width:1180px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
     @media(max-width:820px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:520px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:1fr}}
+    /* Boards-density Archive: fixed columns instead of auto-fit. Two stored
+       photos should remain two small tiles, not stretch into two huge panels. */
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{
+      display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;
+      gap:10px!important;align-items:start!important;justify-content:stretch!important
+    }
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid>.instagram-archive-card{
+      width:100%!important;min-width:0!important;max-width:none!important
+    }
+    @media(max-width:1600px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(7,minmax(0,1fr))!important}}
+    @media(max-width:1360px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}}
+    @media(max-width:1130px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+    @media(max-width:920px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+    @media(max-width:700px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}}
+    @media(max-width:465px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}}
+    /* Preserve one-card/one-post interaction, and shrink overlays with the tiles. */
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment .archive-media-meta{padding:5px 6px!important}
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment .archive-media-meta small{
+      max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+    }
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment .archive-live{
+      gap:4px!important;padding:5px 6px!important
+    }
     .module-workspace[data-module-key="archive"] .instagram-archive-card{
       --feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;
       border:1px solid rgba(var(--aura-rgb,216,95,109),.2);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.09);
@@ -517,6 +540,27 @@
     .module-workspace[data-module-key="veve"] .veve-origin-legend>b{font-size:9px;letter-spacing:.07em}
     .module-workspace[data-module-key="veve"] .veve-origin-key-item{display:inline-flex;align-items:center;gap:5px}
     .module-workspace[data-module-key="veve"] .veve-origin-key-item>i{width:10px;height:10px;border:1px solid rgba(87,61,68,.4);border-radius:3px;box-shadow:1px 2px 0 rgba(88,62,68,.28)}
+    /* Orbit starts the shared compact SHADOW KEY used by Veve: matching
+       colors, labels and square color chips. No large second legend panel. */
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-legend{
+      display:flex;align-items:center;flex-wrap:wrap;gap:7px 10px;
+      padding:8px 11px;margin:3px 0 10px;
+      background:var(--widget-bg,#faf5f0);
+      border:1px solid rgba(105,75,82,.16);border-radius:11px;
+      color:var(--widget-ink,#42363b);font:650 10px/1.45 system-ui;
+    }
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-legend>b{
+      font-size:9px;letter-spacing:.07em
+    }
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-key-item{
+      display:inline-flex;align-items:center;gap:5px;white-space:nowrap
+    }
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-key-item>i{
+      display:inline-block;flex:0 0 10px;width:10px;height:10px;
+      border:1px solid rgba(87,61,68,.4);border-radius:3px;
+      box-shadow:1px 2px 0 rgba(88,62,68,.28)
+    }
+
     .module-workspace[data-module-key="archive"] .archive-key-other{
       background:#8f756e!important;box-shadow:2px 3px 0 #96736c!important
     }
@@ -1142,6 +1186,15 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        '<div class="orbit-link-dialog-actions"><button type="button" class="module-action" data-orbit-save="'+esc(k)+'">Save link</button>'+
        '<button type="button" class="module-action ghost" data-orbit-close-link="'+esc(k)+'">Cancel</button></div></dialog>';
    }
+   // Source palette is identical to Veve's compact shadow key.
+   function orbitShadowLegend(){
+     const sources=[['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
+       ['Facebook','#1658be'],['YouTube','#fff1ec'],['Snapchat','#ffda00'],
+       ['Tumblr','#1b304b'],['X','#0e0e0e']];
+     return '<div class="orbit-shadow-legend" role="group" aria-label="App shadow color key"><b>SHADOW KEY</b>'+
+       sources.map(([name,color])=>'<span class="orbit-shadow-key-item"><i aria-hidden="true" style="background:'+color+'"></i>'+name+'</span>').join('')+
+       '</div>';
+   }
    function renderOrbitPage(){
     // Only show a real OAuth button once its public app key, secret and callback
     // are actually available. Until then an account-linked profile URL works.
@@ -1157,7 +1210,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
     const legacyCount=window.BigLWAOrbitAccountLinks?.localPending?.()?.length||0;
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
+    body.innerHTML=heading('orbit')+orbitShadowLegend()+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row),orbitStat('likes','likes',row)].filter(Boolean).join(' · ');
