@@ -179,6 +179,10 @@ jobs:
           else
             echo "No activated native release yet; keeping existing published editor binaries."
           fi
+      - name: Build original BIG LWA social preview image
+        run: |
+          node build-og-image.mjs "$RUNNER_TEMP/biglwa-public/assets/brand/og-biglwa.png"
+          node -e "const fs=require('node:fs');const p=process.env.RUNNER_TEMP+'/biglwa-public/assets/brand/og-biglwa.png',b=fs.readFileSync(p);if(b.toString('hex',0,8)!=='89504e470d0a1a0a'||b.readUInt32BE(16)!==1200||b.readUInt32BE(20)!==630)process.exit(1)"
       - name: Stage verified open-source ArtCraft browser editions
         run: python3 .github/scripts/stage-craft-apps.py "$RUNNER_TEMP/biglwa-public"
       - name: Stage pinned self-hosted Flash emulator
