@@ -102,9 +102,11 @@ assert.equal(ad.querySelector('.biglwa-story-popup video')?.getAttribute('src'),
 // native BIG LWA dialog rather than unexpectedly opening an external tab.
 aw.__biglwaInstagramOrbit.state.media=[];
 aw.dispatchEvent(new aw.Event('biglwa:instagram-restored'));
-await new Promise(resolve=>setTimeout(resolve,150));
+aw.dispatchEvent(new aw.Event('biglwa:orbit-links-synced'));
+await new Promise(resolve=>setTimeout(resolve,450));
 const fallback=ad.querySelector('.biglwa-story-bubble[data-source="instagram"]');
 assert.ok(fallback,'Connected Instagram still appears when Highlight metadata is absent');
+assert.match(fallback.textContent||'',/Instagram/,'No genuine Highlight returned means profile fallback, not fake Highlight');
 fallback.click();
 assert.match(ad.querySelector('.biglwa-story-popup strong')?.textContent||'',/Instagram profile/);
 assert.equal(ad.querySelector('.biglwa-story-popup a')?.getAttribute('href'),
