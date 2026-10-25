@@ -6,7 +6,7 @@ const original=read('bootstrap-v2.html');
 const expected={
   'module-pages.js':'20261024-unified-links-2',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
-  'pinterest-orbit.js':'20261022-veve-board-9',
+  'pinterest-orbit.js':'20261025-pin-origin-1',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
   'account-boot.js':'20261023-tiktok-collective-14'
 };

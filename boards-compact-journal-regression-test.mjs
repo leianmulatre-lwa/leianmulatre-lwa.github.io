@@ -7,7 +7,7 @@ const pinterest=read('pinterest-orbit.js'),css=read('pinterest-boards.css'),
  module=read('module-pages.js'),index=read('index.html');
 assert.doesNotThrow(()=>new Script(pinterest),'Pinterest Boards must be valid JavaScript');
 assert.doesNotThrow(()=>new Script(module),'Journal module must be valid JavaScript');
-assert.ok(index.includes('pinterest-orbit.js?v=20261022-veve-board-9'),
+assert.ok(index.includes('pinterest-orbit.js?v=20261025-pin-origin-1'),
  'Page must load new Boards UI instead of cached version');
 assert.ok(pinterest.includes("pinterest-boards.css?v=20261022-hover-select-7"),
  'New compact CSS must be loaded');
