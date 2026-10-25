@@ -59,4 +59,45 @@ assert.ok(doc.querySelector('[data-biglwa-public-showcase-editor][open]'),'New b
 doc.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 assert.equal(doc.querySelector('[data-biglwa-public-showcase-editor]').open,false);
 dom.window.close();
-console.log('Profile banner Instagram Highlight + Snapchat Spotlight story rings passed.');
+
+// A fresh member with only authorized account identity + one stored public
+// Snapchat URL receives their original Highlight and Spotlight automatically.
+// No platform-specific paste widget or second account login is required.
+const autoDom=new JSDOM('<!doctype html><html><head></head><body>'+
+ '<main id="studioApp"><article class="profile-card"><div class="profile-copy">'+
+ '<div class="stats"><span data-profile-stat="likes">Likes</span></div>'+
+ '</div></article></main></body></html>',{
+ url:'https://biglwa.com/studio',pretendToBeVisual:true,runScripts:'outside-only'
+});
+const aw=autoDom.window,ad=aw.document;
+aw.__biglwaIdentity={uid:'owner-two'};
+aw.__biglwaInstagramOrbit={state:{connected:true,
+ profile:{username:'owner.ig',profile_picture_url:'https://example.org/owned-avatar.jpg'},
+ media:[{id:'highlight-1',username:'owner.ig',
+ permalink:'https://www.instagram.com/stories/highlights/1234567890123456/'}]}};
+aw.__biglwaConnections={connections:()=>({instagram:{username:'owner.ig'}})};
+aw.BigLWAOrbitOAuth={get:id=>id==='snapchat'?{verifiedFromProvider:true,username:''}:null};
+const urls={snapchat:'https://www.snapchat.com/add/snapowner'};
+aw.BigLWAOrbitAccountLinks={ready:()=>true,owner:()=> 'owner-two',get:()=>({...urls}),
+ save:async(provider,url)=>{urls[provider]=url;return true}};
+aw.fetch=async()=>({ok:true,json:async()=>({available:true,matchedHandle:true,handle:'snapowner',
+ items:[{kind:'Spotlight',mediaUrl:'https://cf-st.sc-cdn.net/d/auto-spotlight'}]})});
+aw.eval(code);
+ad.dispatchEvent(new aw.Event('DOMContentLoaded'));
+await new Promise(resolve=>setTimeout(resolve,400));
+const banner=ad.querySelector('#studioApp .profile-card');
+const autoIg=banner.querySelectorAll('.biglwa-story-bubble[data-source="instagram"]');
+const autoSnap=banner.querySelectorAll('.biglwa-story-bubble[data-source="snapchat"]');
+assert.equal(autoIg.length,1,'A genuine Highlight permalink returned by the connected IG account auto-populates');
+assert.equal(autoSnap.length,1,'Snapchat public username sourced from a saved profile URL fetches Spotlight automatically');
+assert.equal(urls.instagram,'https://www.instagram.com/owner.ig/','IG OAuth public URL saved to account without paste');
+assert.ok(autoIg[0].querySelector('.biglwa-story-inner img'),'Use authenticated IG profile avatar, no IG logo');
+assert.equal(banner.querySelector('.biglwa-stories-track').lastElementChild.dataset.source,'new','Plus stays last');
+assert.equal(ad.querySelector('[data-biglwa-public-showcase-editor] form').parentElement.open,false,
+ 'Manual link fallback is collapsed by default');
+autoSnap[0].click();
+assert.equal(ad.querySelector('.biglwa-story-popup video')?.getAttribute('src'),
+ 'https://cf-st.sc-cdn.net/d/auto-spotlight');
+autoDom.window.close();
+console.log('Profile banner linked identity + automatic source Highlight and Spotlight passed.');
+
