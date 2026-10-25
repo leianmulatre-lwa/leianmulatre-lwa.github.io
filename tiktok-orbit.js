@@ -202,8 +202,8 @@
       }
       status.textContent=proof.records+' TikTok posts in your BIG LWA account; '+proof.approved+
         ' published; owner + archive verified for '+proof.rootRecords+'/'+proof.archiveRecords+
-        ' of '+proof.sampleChecked+' checked. '+proof.r2Backups+
-        ' saved R2 preview or media URL(s); '+proof.metadataOnly+
+        ' of '+proof.sampleChecked+' checked. '+proof.r2UrlReferences+
+        ' R2 URL reference(s) (bytes not verified); '+proof.metadataOnly+
         ' link/metadata-only posts. '+(proof.limitReached?'Showing first 50. ':'')+
         (proof.unreadable?'Some database records could not be read. ':'')+
         'Checked '+new Date(proof.checkedAt).toLocaleString()+'.';
