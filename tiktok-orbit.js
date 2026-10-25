@@ -134,7 +134,47 @@
      '<small data-tiktok-public-message role="status" aria-live="polite"></small>'+
      '<details class="biglwa-tiktok-batch"><summary>Import multiple public links</summary><textarea class="module-input" data-tiktok-batch-links rows="2" maxlength="6000" placeholder="One public TikTok video URL per line (up to 20)"></textarea><button class="module-action secondary" type="button" data-tiktok-batch-save>Save private drafts</button><small data-tiktok-batch-status role="status"></small></details>'+
      '<div data-tiktok-public-preview hidden></div></div></details>';
+    const reflection=document.createElement('details');
+    reflection.className='biglwa-tiktok-analytics-reflection';
+    reflection.style.cssText='font:500 11px/1.5 system-ui;border-top:1px solid #cfbfd4;padding-top:7px';
+    reflection.innerHTML='<summary style="cursor:pointer;font-weight:700">My TikTok · analytics reflection</summary><div data-tiktok-analytics-values style="display:grid;gap:4px;padding:7px 0" role="status"></div>';
+    panel.append(reflection);
     (host.querySelector('#biglwaFeedImportStatusRail')||host.querySelector('.biglwa-feed-compose-head'))?.after(panel);
+    renderTikTokAnalytics();
+  }
+
+  function renderTikTokAnalytics(){
+    const host=document.querySelector('#moduleWorkspace[data-module-key="feed"] [data-tiktok-analytics-values]');
+    if(!host)return;
+    const owner=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'');
+    if(!connected||!owner||authUid!==owner){
+      host.textContent='Connect TikTok in Orbit to see your account analytics.';
+      return;
+    }
+    const external=window.BigLWAExternalTiktok?.snapshot?.();
+    const current=external?.uid===owner?external:null;
+    const raw=profile||{};
+    const amount=v=>Number.isSafeInteger(Number(v))&&v!==null&&v!==undefined&&v!==''&&Number(v)>=0?
+      new Intl.NumberFormat().format(Number(v)):'Not available';
+    const rows=[
+      ['Followers',raw.follower_count??current?.followers],
+      ['Following',raw.following_count??current?.following],
+      ['Total video likes',raw.likes_count??current?.likes],
+      ['Published video count',raw.video_count??current?.videoCount]
+    ];
+    const source=raw.follower_count!=null?'TikTok authorized account statistics':
+      current?.publicSnapshot?'Public username-matched profile snapshot':'TikTok authorized account; audience metrics unavailable';
+    const checked=current?.checkedAt?' · observed '+new Date(current.checkedAt).toLocaleDateString():'';
+    host.replaceChildren();
+    const heading=document.createElement('p');heading.textContent=source+checked;host.append(heading);
+    for(const [name,value] of rows){
+      const line=document.createElement('div');
+      line.textContent=name+': '+amount(value);host.append(line);
+    }
+    const note=document.createElement('small');
+    note.textContent='Authorized video-list posts in myfeed: '+amount(videos.length)+
+      '. Missing figures are never treated as zero. Reflection: use the metrics to understand your audience, not to rank your worth.';
+    host.append(note);
   }
 
   async function connect() {
@@ -251,6 +291,7 @@
     renderFeedList();
     renderTikTokLinkImporter();
     renderTikTokFeedImporter();
+    renderTikTokAnalytics();
     document.querySelectorAll('[data-orbit-app="tiktok"]').forEach(el => { el.classList.toggle('orbit-connected',connected); el.setAttribute('aria-label',connected?'Refresh TikTok':'Connect TikTok'); });
     document.querySelectorAll('[data-orbit-path="tiktok"]').forEach(input => {
       const actions = input.closest('.module-orbit-row')?.querySelector('.module-actions');
@@ -482,6 +523,7 @@
   // importer after page mounts without leaving duplicate controls.
   document.addEventListener('biglwa:module-open',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();renderFeedList();},70));
   document.addEventListener('biglwa:new-orbit-status',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();},70));
+  window.addEventListener('biglwa:external-stats-updated',renderTikTokAnalytics);
   window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,renderTikTokFeedImporter,
     get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
