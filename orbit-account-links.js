@@ -1,7 +1,7 @@
 /* Account-scoped Orbit profile URLs; credentials never enter Firestore. */
 import { identity, onIdentityChange, startIdentity } from './account-identity.js';
 
-const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','tiktok','pinterest','x','snapchat','tumblr','imdb','vsco','bereal','substack','xbox']);
+const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','tiktok','pinterest','x','snapchat','tumblr','imdb','vsco','bereal','substack','xbox','website']);
 const clean=(links)=>{
   const output={};
   for(const [k,v] of Object.entries(links&&typeof links==='object'?links:{})){
@@ -12,7 +12,9 @@ const clean=(links)=>{
       const providers={vsco:['vsco.co','vsco.com'],bereal:['bere.al','bereal.com'],substack:['substack.com'],xbox:['xbox.com','xboxlive.com']};
       const allowed=providers[k];
       if(allowed&&!allowed.some(host=>domain===host||domain.endsWith('.'+host)))continue;
-      if(url.protocol==='https:'&&!url.username&&!url.password&&!url.port&&url.href.length<=1500)output[k]=url.href;
+      // Own websites may use any public HTTPS host; Orbit links are never credentials.
+      if(url.protocol==='https:'&&!url.username&&!url.password&&!url.port&&url.href.length<=1500&&
+         !/^(?:localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|\[::1\])$/i.test(domain))output[k]=url.href;
     }catch{}
   }
   return output;
