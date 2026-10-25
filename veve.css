@@ -1,7 +1,10 @@
 /* Veve uses the same image-first paper language as Collective Feed.
    Cards vary in height naturally, with responsive columns and no fake engagement. */
 .module-workspace[data-module-key="veve"] .module-shell{max-width:1880px!important;width:100%!important}
-.module-workspace[data-module-key="veve"] .module-heading{display:none!important}
+/* The page header is authoritative. Never hide it or duplicate it inside Veve. */
+.module-workspace[data-module-key="veve"] .module-heading{display:grid!important}
+.module-workspace[data-module-key="veve"] #biglwaVeve{padding-top:0!important}
+.module-workspace[data-module-key="veve"] #biglwaVeve .veve-top{justify-content:flex-end!important;margin:0 0 9px!important}
 #biglwaVeve{max-width:1810px;margin:0 auto;padding:12px 8px 60px;min-height:400px}
 .veve-top{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:end;margin:0 0 12px}
 .veve-intro{min-width:min(100%,310px);max-width:690px}
