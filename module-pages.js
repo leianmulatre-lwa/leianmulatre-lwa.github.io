@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261024-unified-links-2';
+        script.src = '/module-pages.js?v=20261025-header-shadow-1';
         document.head.appendChild(script);
       }, 250);
     }
