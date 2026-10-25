@@ -146,16 +146,23 @@ const SOURCE_THEMES = {
   calendar: { rim:"#4285f4", glow:"#fbbc04", hot:"#ea4335" }
 };
 const rimOf = (source) => (SOURCE_THEMES[String(source || "").toLowerCase()] || { rim:FEED_RIM }).rim;
-const shadowOf = (source) => {
-  const key = String(source || "").toLowerCase();
-  const theme = SOURCE_THEMES[key] || { rim:FEED_RIM, glow:"#d95f6d" };
-  if (key === "youtube") return "0 0 0 2px " + theme.rim + ",3px 3px 0 " + theme.glow + ",0 13px 28px -16px " + theme.rim;
-  if (key === "instagram") return "3px 3px 0 " + theme.rim + ",7px 7px 0 -2px " + theme.glow + ",0 14px 28px -13px " + theme.hot;
-  if (key === "pinterest") return "3px 3px 0 " + theme.rim + ",6px 6px 0 -2px " + theme.glow + ",0 14px 26px -14px " + theme.hot;
-  if (key === "tiktok") return "3px 3px 0 " + theme.rim + ",-2px 8px 20px -14px " + theme.glow + ",8px 13px 24px -16px " + theme.hot;
-  if (theme.hot) return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow + ",0 0 18px -12px " + theme.hot;
-  return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow;
-};
+// Exactly one visible offset shadow; source glows are not a second key.
+const shadowOf = (source) => '3px 3px 0 ' + rimOf(source);
+const safeAura = value => /^#[0-9a-fA-F]{6}$/.test(String(value||''))?String(value):'';
+function postShadow(post,managed,source){
+  if(post?.isAd===true||post?.sponsored===true||post?.advertisement===true)
+    return {kind:'ad',rim:'#ffffff',shadow:'3px 3px 0 #ffffff'};
+  // These are author-owned imported links, not anonymous platform advertisements.
+  // Never substitute the current viewer's Aura for a different author's Aura.
+  if(post?.orbitImported===true||(source==='biglwa'&&Boolean(post?.sourceUrl))){
+    const aura=safeAura(post?.authorAuraColor||post?.auraColor)||
+      (managed?'rgb(var(--aura-rgb,216,95,109))':'#eee7db');
+    return {kind:'aura',rim:aura,shadow:'3px 3px 0 '+aura};
+  }
+  if(source==='biglwa'||source==='lwa')return {kind:'lwa',rim:'#eee7db',shadow:'none'};
+  return {kind:'platform',rim:rimOf(source),shadow:shadowOf(source)};
+}
+
 const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
 
 const STYLE = `
@@ -175,6 +182,15 @@ const STYLE = `
 .biglwa-pin{--feed-card-rim:#a52a0c;--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px 25px -16px rgba(216,95,109,.35);position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
   box-shadow:var(--feed-card-shadow)}
 .biglwa-pin::before{content:none}
+/* Native BIG LWA cards wear one rainbow L-shaped shadow, not multiple colored glows. */
+.biglwa-pin-post[data-shadow-kind="lwa"]{overflow:visible!important;box-shadow:none!important;isolation:isolate}
+.biglwa-pin-post[data-shadow-kind="lwa"]::before{
+ content:""!important;display:block!important;position:absolute;inset:0;
+ transform:translate(3px,3px);border-radius:14px;
+ background:conic-gradient(#f36b79,#f2cd39,#58aa70,#4530bb,#f36b79);
+ clip-path:polygon(100% 0,100% 100%,0 100%,0 calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 0);
+ z-index:-1;pointer-events:none
+}
 #biglwaFeedHero .biglwa-feed-needs-sync{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-height:76px;border-radius:8px;background:#ede7e1;color:#61564c!important;font:700 10px/1.4 system-ui;text-decoration:none!important}
 #biglwaFeedHero .biglwa-feed-needs-sync span{font:24px/1 Georgia,serif}
 #biglwaFeedHero .biglwa-feed-resync{display:block;margin:8px 0 0;padding:7px 10px;border:1px solid #b9a499;border-radius:9px;background:#f6e9e1;color:#513d38;font:700 10px/1.2 system-ui;cursor:pointer}
@@ -1074,7 +1090,8 @@ function renderPosts(force) {
     const browserStrip = '';
     const provider=displaySource;
     const sourceLabel=provider==='instagram'?'Instagram':provider==='pinterest'?'Pinterest':provider.charAt(0).toUpperCase()+provider.slice(1);
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (displaySource === "tiktok" ? ' biglwa-tiktok-card' : '') + (displaySource === "facebook" ? ' biglwa-facebook-card' : '') + (displaySource === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(displaySource) + ';--feed-card-shadow:' + shadowOf(displaySource) + '" data-post-id="' + esc(post.id) + '" data-feed-owned="' + (managed?'1':'0') + '">' +
+    const shadow=postShadow(post,managed,displaySource);
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (displaySource === "tiktok" ? ' biglwa-tiktok-card' : '') + (displaySource === "facebook" ? ' biglwa-facebook-card' : '') + (displaySource === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" data-shadow-kind="' + shadow.kind + '" style="--feed-card-rim:' + shadow.rim + ';--feed-card-shadow:' + shadow.shadow + '" data-post-id="' + esc(post.id) + '" data-feed-owned="' + (managed?'1':'0') + '">' +
       '<div class="biglwa-unified-media">' + browserStrip + image + "</div>" + link +
       '<span class="biglwa-unified-source" aria-label="Source: '+esc(sourceLabel)+'">'+esc(sourceLabel)+'</span>' +
       sendBar(post, managed) +
