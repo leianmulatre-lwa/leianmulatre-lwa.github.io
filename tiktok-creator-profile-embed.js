@@ -27,8 +27,11 @@
   return {handle,verified:!!oauthName,uid:user.uid};
  }
  function display(){
-  const profile=q('#studioApp .profile-card');
-  if(!profile)return;
+  // Creator browsing lives in myfeed, never on the banner.
+  document.querySelectorAll('#studioApp .profile-card [data-biglwa-tiktok-creator]').forEach(node=>node.remove());
+  const profile=q('#moduleWorkspace[data-module-key="feed"] .biglwa-feed-compose-card')||
+    q('#moduleWorkspace[data-module-key="feed"] .module-shell');
+  if(!profile){currentKey='';return}
   const data=creator(),prior=q('[data-biglwa-tiktok-creator]',profile);
   if(!data){prior?.remove();currentKey='';return}
   const key=data.uid+':'+data.handle.toLowerCase();
@@ -36,8 +39,8 @@
   prior?.remove();currentKey=key;
   const wrap=document.createElement('details');wrap.dataset.biglwaTiktokCreator='1';
   wrap.className='biglwa-tiktok-creator';
-  wrap.style.cssText='border-top:1px solid #e5cdca;padding-top:7px;margin-top:8px;min-width:0';
-  const summary=document.createElement('summary');summary.textContent='TikTok · @'+data.handle+' · recent videos';
+  wrap.style.cssText='border:1px solid #e5cdca;padding:9px 11px;border-radius:10px;margin:8px 0;min-width:0';
+  const summary=document.createElement('summary');summary.textContent='My TikTok · @'+data.handle+' · public profile & videos';
   summary.style.cssText='cursor:pointer;color:#6e2d47;font:700 11px/1.5 system-ui;list-style-position:inside';
   const container=document.createElement('div');container.className='biglwa-tiktok-creator-content';
   container.style.cssText='max-width:100%;min-width:0;overflow:hidden;padding:6px 1px 3px';
@@ -79,5 +82,6 @@
    (event==='biglwa:tiktok-status'?document:window).addEventListener(event,refresh);
  }
  document.addEventListener('biglwa:tiktok-status',refresh);
+ document.addEventListener('biglwa:module-open',refresh);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 })();
