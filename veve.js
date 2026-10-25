@@ -385,8 +385,11 @@
     const select=['latest','popular','daily'].map(k=>'<option value="'+k+'" '+(state.prefs.sort===k?'selected':'')+'>'+
        ({latest:'most recent',popular:'most activity',daily:'daily mix'}[k])+'</option>').join('');
     const scope=['all',...state.prefs.sections.filter(k=>state.prefs.enabled.includes(k))];
-    root.innerHTML='<div class="veve-top"><div class="veve-intro"><span>BIG LWA · DISCOVERY</span><h1>veve</h1>'+
-      '<p>A collective of public ideas, photos, culture and communities. You choose the way it flows.</p></div>'+
+    // The Studio route already owns the accessible Veve heading and subtitle.
+    // Render only the feed controls below it; retain the intro for standalone mounts.
+    const hasRouteHeading=!!root.closest('.module-workspace[data-module-key="veve"]')?.querySelector('.module-heading');
+    root.innerHTML='<div class="veve-top">'+(hasRouteHeading?'':'<div class="veve-intro"><span>BIG LWA · DISCOVERY</span><h1>veve</h1>'+
+      '<p>A collective of public ideas, photos, culture and communities. You choose the way it flows.</p></div>')+
       '<div class="veve-toolbar"><label>Sort<select id="veveSort">'+select+'</select></label>'+
       '<label>Show<select id="veveScope">'+scope.map(k=>'<option value="'+e(k)+'" '+(state.active===k?'selected':'')+'>'+e(k==='all'?'everything':names[k])+'</option>').join('')+'</select></label>'+
       '<button type="button" data-veve-settings aria-expanded="'+state.showSettings+'">⚙ customize</button>'+
