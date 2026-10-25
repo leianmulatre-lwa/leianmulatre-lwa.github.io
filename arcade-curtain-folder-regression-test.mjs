@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
+const read=p=>readFileSync(new URL('./'+p,import.meta.url));
+const css=read('arcade-curtain-folder-20261025.css').toString();
+const js=read('arcade-curtain-variants-20261025.js').toString();
+const index=read('index.html').toString();
+assert.doesNotThrow(()=>new Script(js));
+const png=read('assets/arcade/screen-bezel-transparent.png');
+assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Screen bezel is a real PNG');
+assert.ok(css.includes("url('/assets/arcade/screen-bezel-transparent.png')"),'Transparent PNG overlay mounted on original screen');
+assert.ok(css.includes('pointer-events:none!important')&&css.includes('.arcade-library-viewport.arcade-library-viewport::after'),
+ 'No PNG layer steals game clicks');
+assert.ok(css.includes('repeating-linear-gradient(90deg'),'Red curtains shade cabinet behind the playable screen');
+assert.ok(css.includes('.games-arcade-brand.games-arcade-brand::before')&&css.includes('clip-path:polygon(0 11%'),'Raised folder back tab retained');
+assert.ok(css.includes('img:nth-child(2)')&&css.includes('display:none!important'),'Remove ARCADE title without changing BIG LWA pocket logo');
+assert.ok(css.includes('bottom:0!important')&&css.includes('height:27%!important'),'Control panel runs through cabinet lower crop');
+assert.ok(css.includes('.arcade-joystick.arcade-joystick>i')&&css.includes('border-radius:50%!important'),'Joystick sockets are visible on the control deck');
+assert.ok(js.includes('biglwaArcadeCurtainVersionV1')&&js.includes("version==='1'?'2':'1'"),'Exactly two persisted curtain looks');
+assert.ok(index.includes('arcade-curtain-folder-20261025.css')&&index.includes('arcade-curtain-variants-20261025.js'),'Source page loads cabinet assets');
+const old=read('arcade-folder-unified-20261017-v11.css').toString();
+assert.ok(old.includes('grid-template-columns:repeat(3,minmax(0,1fr))'),'Three game columns kept');
+console.log('PASS arcade folder, red curtains, transparent PNG bezel, integrated deck and two finishes');
