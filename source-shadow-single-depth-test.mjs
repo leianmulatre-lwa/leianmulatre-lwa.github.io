@@ -41,7 +41,7 @@ assert.ok(modules.includes('class="module-heading-bottom"'),'SEO description spa
 assert.ok(!modules.includes('<details class="module-heading-actions module-update-preferences"'),'Privacy checkbox is no longer behind a dropdown');
 assert.ok(modules.includes('data-silent-update'),'Privacy behavior preserved');
 assert.ok(css.includes('grid-template-areas:"title shadow" "meta meta"'),'Two-row full-width heading');
-assert.ok(html.indexOf('source-shadow-key-20261025.js')<html.indexOf('module-pages.js?v=20261025-source-face-1'),'Shared module loads before pages');
+assert.ok(html.indexOf('source-shadow-key-20261025.js')<html.indexOf('module-pages.js?v=20261026-tewlz-bookini-trophies-1'),'Shared module loads before pages');
 assert.ok(html.indexOf('source-shadow-key-20261025.js')<html.indexOf('studio-onboarding.js?v=20261025-skeleton-shadow-key-1'),'Shared module loads before Skeleton');
 
 assert.ok(feed.includes('fillPublicAuthorAuras'),'myfeed loads author-owned public Aura, not viewer Aura');
