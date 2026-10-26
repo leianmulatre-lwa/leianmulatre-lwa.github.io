@@ -6,7 +6,7 @@
  const findCard=()=>document.querySelector('#studioApp #tools, #studioApp article.card[data-widget="tools"]');
  function mount(){
   const card=findCard();
-  if(!card||card.querySelector(':scope > .lwazi-cabinet-thumb'))return;
+  if(!card||card.querySelector('.lwazi-cabinet-thumb'))return;
   const preview=document.createElement('button');
   preview.type='button';
   preview.className='lwazi-cabinet-thumb';
