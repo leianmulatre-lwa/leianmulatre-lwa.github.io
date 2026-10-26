@@ -1220,11 +1220,15 @@
     app.addEventListener('pointercancel',()=>{if(dragStart)dragStart.widget.classList.remove('widget-dragging');if(dragSlot)dragSlot.classList.remove('biglwa-drop-slot');if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);ghost=null;dragSlot=null;dragStart=null;dragMove=0});
   }
 
-  function renderWeeklyMood(card,text='add this week’s #mood',style='qwiky-note'){
+  function renderWeeklyMood(card,text='',style='qwiky-note'){
     if(!card)return;
     const allowed=new Set(['diary','widget','qwiky-note']);
     card.dataset.moodStyle=allowed.has(style)?style:'qwiky-note';
-    const value=$('.weekly-mood-value',card);if(value)value.textContent=text||'add this week’s #mood';
+    const raw=String(text||'').trim();
+    const actual=/^add this week['’]s #mood$/i.test(raw)||(raw==='#keepitcute'&&card.dataset.moodPreview==='1')?'':raw;
+    card.dataset.moodPreview=actual?'0':'1';
+    const value=$('.weekly-mood-value',card);
+    if(value){value.textContent=actual||'#keepitcute';value.setAttribute('aria-label',actual||'Example mood: #keepitcute');}
   }
 
   function renderAuraCopy(text='Focused\nbut dreaming.'){
@@ -1346,8 +1350,8 @@
     let railLocation=$('.profile-rail-location',rail);
     if(!railLocation){railLocation=document.createElement('div');railLocation.className='profile-rail-location';railLocation.textContent=meta&&$('span',meta)?$('span',meta).textContent.replace(/^⌖\s*/,''):'';rail.appendChild(railLocation)}
     let moodCard=$('#weeklyMoodCard',rail);
-    if(!moodCard){moodCard=document.createElement('div');moodCard.id='weeklyMoodCard';moodCard.className='weekly-mood-card';moodCard.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">add this week’s #mood</strong>';rail.appendChild(moodCard)}
-    if(!moodCard.dataset.moodStyle)renderWeeklyMood(moodCard,$('.weekly-mood-value',moodCard)?.textContent||'add this week’s #mood','qwiky-note');
+    if(!moodCard){moodCard=document.createElement('div');moodCard.id='weeklyMoodCard';moodCard.className='weekly-mood-card';moodCard.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">#keepitcute</strong>';rail.appendChild(moodCard)}
+    if(!moodCard.dataset.moodStyle)renderWeeklyMood(moodCard,$('.weekly-mood-value',moodCard)?.textContent==='#keepitcute'?'':($('.weekly-mood-value',moodCard)?.textContent||''),'qwiky-note');
     const stats=$('.stats',card);
     if(stats&&!$('[data-profile-stat="projects"]',stats)){
       const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>0</b> Projects';
@@ -1373,7 +1377,7 @@
     let profileSection=$('#profileDetailsEditor',panel);
     if(!profileSection){
       profileSection=document.createElement('div');profileSection.className='customize-section profile-details-section';profileSection.id='profileDetailsEditor';
-      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwib</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
+      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="#keepitcute"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwib</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
       if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
     $('#profileMoodPreview',profileSection)?.remove();
@@ -1400,7 +1404,7 @@
     actions.hidden=false;saveAction.hidden=false;cancelAction.hidden=false;
     const showTab=key=>{$$('[data-profile-editor-pane]',panel).forEach(pane=>{pane.hidden=pane.dataset.profileEditorPane!==key});$$('[data-profile-editor-tab]',tabs).forEach(tab=>{const active=tab.dataset.profileEditorTab===key;tab.setAttribute('aria-selected',active?'true':'false');tab.tabIndex=active?0:-1})};
     if(tabs.dataset.biglwaTabsBound!=='1'){tabs.dataset.biglwaTabsBound='1';tabs.addEventListener('click',event=>{const tab=event.target.closest('[data-profile-editor-tab]');if(tab)showTab(tab.dataset.profileEditorTab)})}
-    const syncMoodPreview=()=>renderWeeklyMood(moodCard,$('#profileMoodInput',panel)?.value.trim()||'add this week’s #mood',$('#profileMoodStyle',panel)?.value||'qwiky-note');
+    const syncMoodPreview=()=>renderWeeklyMood(moodCard,$('#profileMoodInput',panel)?.value.trim()||'',$('#profileMoodStyle',panel)?.value||'qwiky-note');
     if(profileSection.dataset.biglwaMoodPreviewBound!=='1'){
       profileSection.dataset.biglwaMoodPreviewBound='1';
       profileSection.addEventListener('input',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
@@ -1414,15 +1418,15 @@
       $('#profileLocationInput',panel).value=loc?loc.textContent.replace(/^⌖\s*/,'').trim():'';
       $('#profileWebsiteInput',panel).value=web?web.textContent.trim():'';
       const moodValue=$('.weekly-mood-value',moodCard)?.textContent||'';
-      $('#profileMoodInput',panel).value=moodValue==='add this week’s #mood'?'':moodValue;
+      $('#profileMoodInput',panel).value=moodCard.dataset.moodPreview==='1'||moodValue==='add this week’s #mood'?'':moodValue;
       $('#profileMoodStyle',panel).value=moodCard.dataset.moodStyle||'qwiky-note';
       const aura=$('#studioApp .aura-card p');$('#profileAuraTextInput',panel).value=aura?aura.innerText.trim():'Focused\nbut dreaming.';
       syncMoodPreview();
     };
     let button=$('#editProfileBtn',card),moodBeforeEdit=null;
     const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');panel.hidden=true;button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
-    const cancelEdit=()=>{if(moodBeforeEdit){renderWeeklyMood(moodCard,moodBeforeEdit.text,moodBeforeEdit.style);moodBeforeEdit=null}fillEditor();endEdit()};
-    const startEdit=()=>{moodBeforeEdit={text:$('.weekly-mood-value',moodCard)?.textContent||'add this week’s #mood',style:moodCard.dataset.moodStyle||'qwiky-note'};fillEditor();showTab('profile');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
+    const cancelEdit=()=>{if(moodBeforeEdit){renderWeeklyMood(moodCard,moodBeforeEdit.isPreview?'':moodBeforeEdit.text,moodBeforeEdit.style);moodBeforeEdit=null}fillEditor();endEdit()};
+    const startEdit=()=>{moodBeforeEdit={text:$('.weekly-mood-value',moodCard)?.textContent||'',isPreview:moodCard.dataset.moodPreview==='1',style:moodCard.dataset.moodStyle||'qwiky-note'};fillEditor();showTab('profile');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
     if(button&&button.dataset.biglwaProfileBound!=='3'){
       const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='3';button.type='button';button.textContent='Edit profile';
       button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(card.classList.contains('profile-is-editing'))cancelEdit();else startEdit()});
