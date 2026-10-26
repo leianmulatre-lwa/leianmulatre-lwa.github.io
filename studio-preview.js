@@ -627,11 +627,31 @@ function standDown(){
 }
 
 function leaveToAuth(mode){
+  // Return to the same public profile after signup/sign-in; never persist a
+  // new visitor's identity, full map, or someone else's profile content.
+  try{
+    if(preview.username)sessionStorage.setItem('biglwaPublicProfileReturnV1',JSON.stringify({
+      path:'/'+preview.username,createdAt:Date.now()
+    }));
+  }catch{}
   standDown();
   preview.nextMode=mode;
   history.replaceState({},"","/");
   showLoginScreen();
 }
+window.addEventListener('biglwa:session-verified',()=>{
+  try{
+    const raw=sessionStorage.getItem('biglwaPublicProfileReturnV1');if(!raw)return;
+    const next=JSON.parse(raw),dest=String(next.path||'');
+    if(Date.now()-Number(next.createdAt)>45*60*1000||!/^\/[a-z0-9._-]{5,24}$/.test(dest)){
+      sessionStorage.removeItem('biglwaPublicProfileReturnV1');return;
+    }
+    const current=String(window.__biglwaIdentity?.username||'').toLowerCase();
+    if(!window.__biglwaIdentity?.uid||!current)return;
+    sessionStorage.removeItem('biglwaPublicProfileReturnV1');
+    if(dest.slice(1)!==current&&location.pathname!==dest)location.assign(dest);
+  }catch{try{sessionStorage.removeItem('biglwaPublicProfileReturnV1')}catch{}}
+});
 
 async function checkSignedIn(){
   if(!preview.active || preview.signedIn || preview.checking) return;
