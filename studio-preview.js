@@ -304,8 +304,23 @@ const PREVIEW_CSS = `
 .biglwa-preview-actions .biglwa-preview-close{border:0;font-size:15px;line-height:1;padding:4px 8px;text-transform:none;letter-spacing:0}
 /* The banner is in normal flow, so everything below it already sits lower. Only the
    sticky chrome needs the measured height. */
-html.biglwa-preview-mode .topbar{top:var(--biglwa-preview-banner-h,0px)!important;padding-top:8px!important;min-height:66px!important;box-sizing:border-box!important;overflow:visible!important}
-html.biglwa-preview-mode .page-wallpaper{top:calc(66px + var(--biglwa-preview-banner-h,0px))!important}
+/* Account for the real sticky header's stronger #studioApp selector.
+   The announcement occupies document flow ONCE, rather than sitting over the
+   nav or generating an additional artificial padding band. */
+html.biglwa-preview-mode #studioApp .topbar{
+  position:sticky!important;top:var(--biglwa-preview-banner-h,0px)!important;
+  padding-top:0!important;box-sizing:border-box!important;overflow:visible!important
+}
+html.biglwa-preview-mode #studioApp .page-wallpaper{
+  top:calc(var(--biglwa-preview-banner-h,0px) + 76px)!important;
+  left:0!important
+}
+html.biglwa-preview-mode #studioApp .main{margin-left:0!important;width:100%!important;min-width:0!important}
+@media(max-width:900px){
+ html.biglwa-preview-mode #studioApp .page-wallpaper{
+  top:calc(var(--biglwa-preview-banner-h,0px) + 66px)!important
+ }
+}
 html.biglwa-preview-mode .policy-top{top:var(--biglwa-preview-banner-h,0px)!important}
 /* An explicitly private member shows only identity/banner, avatar, Aura, music and Guest Check.
    These restrictions complement owner-only Firestore rules; styling alone is not a
@@ -353,6 +368,27 @@ html.biglwa-preview-mode #studioApp #saveSidebarShortcuts,
 html.biglwa-preview-mode #studioApp .sidebar-shortcut-save,
 html.biglwa-preview-mode #studioApp .sidebar-shortcuts,
 html.biglwa-preview-mode #studioApp [data-public-owner-only]{display:none!important}
+/* Keep useful visitor shortcuts, not the owner's private editing controls. */
+html.biglwa-preview-mode:not(.biglwa-preview-private) #studioApp .hero .mobile-dock.hero-action-bar{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ gap:7px!important;min-height:48px!important;padding:8px 10px!important;
+ box-sizing:border-box!important
+}
+html.biglwa-preview-mode #studioApp .hero .mobile-dock.hero-action-bar > :not(.biglwa-visitor-shortcuts){display:none!important}
+html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts{
+ display:flex!important;gap:7px;align-items:center;flex-wrap:wrap;
+ width:100%;min-width:0
+}
+html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts button{
+ flex:1 1 90px;min-height:34px;cursor:pointer;
+ border:1px solid #aa8b8d;border-radius:9px;
+ background:#fff8f0;color:#553b46;
+ font:700 11px/1.2 system-ui;white-space:nowrap
+}
+html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts button:is(:hover,:focus-visible){
+ background:#f4d7cc;outline:2px solid #ce6b80;outline-offset:1px
+}
+html.biglwa-preview-mode #studioApp #connect{display:none!important}
 html.biglwa-preview-mode #studioApp .profile-card .biglwa-social-row{display:none!important}
 html.biglwa-preview-mode #studioApp .profile-card{overflow:visible!important}
 html.biglwa-preview-mode #studioApp .profile-card .profile-copy{min-width:0!important}
@@ -501,8 +537,9 @@ function gateReason(target,kind){
   /* Profile music stays free for guests. Its file pickers are rendered inside the
      profile editor, and the card's play button opens them programmatically. */
   if(target.closest(".music-card,.music-file-actions,#studioTrackInput,#studioCoverInput")) return "";
-  /* Orbit is the member's live connection settings. A guest may look at the list of
-     networks, but saving, opening or editing any of them stays with the owner. */
+  /* Published Orbit planets are outbound profile links. Never intercept them
+     with a Connect/signup prompt or launch the visitor's own OAuth. */
+  if(target.closest('#orbitGrid [data-public-orbit-href]'))return "";
   if(target.closest("[data-orbit-save],[data-orbit-open],[data-orbit-path],[data-orbit-auth],[data-orbit-app],#calOrbit,.module-orbit")) return "connect accounts";
   const app=studioApp();
   if(!app || !app.contains(target)) return "";
@@ -610,6 +647,7 @@ function standDown(){
   unbindGate();
   closePrompt(true);
   removeBanner();
+  $('#studioApp .biglwa-visitor-shortcuts')?.remove();
   document.documentElement.classList.remove("biglwa-preview-mode","biglwa-preview-private");
   restoreAppearance();
   clearPreviewIdentity();
@@ -671,6 +709,34 @@ async function checkSignedIn(){
 
 /* The live router treats every /name route as the signed-in owner, so label the guest
    affordance correctly while the account gate keeps the action itself closed. */
+/* Public shortcut desk: the same rail becomes read-only profile navigation,
+   and never leaves a useless translucent empty panel behind. */
+function decorateVisitorShortcuts(){
+  const rail=$('#studioApp .hero .mobile-dock.hero-action-bar');
+  if(!rail||preview.profile?.accountVisibility==='private')return;
+  let nav=$('.biglwa-visitor-shortcuts',rail);
+  if(nav)return;
+  nav=document.createElement('nav');
+  nav.className='biglwa-visitor-shortcuts';
+  nav.setAttribute('aria-label','Explore this member’s public BIG LWA Studio');
+  const entries=[
+    ['orbit','Orbit'],['diary','Journal'],['boards','Boards'],
+    ['veve','Veve'],['guest','Guest sheet']
+  ];
+  for(const [route,label] of entries){
+    const button=document.createElement('button');
+    button.type='button';button.textContent=label;
+    button.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      if(route==='guest'){
+        const open=$('#studioApp .biglwa-public-guest-open');
+        if(open)open.click();else openPrompt('view the guest sheet');
+      }else window.openBIGLWAModule?.(route);
+    });
+    nav.append(button);
+  }
+  rail.append(nav);
+}
 function decorateArchiveAccess(){
   const app=studioApp();
   if(!app)return;
@@ -726,6 +792,7 @@ function enforce(){
   renderSocials(preview.profile);
   decorateArchiveAccess();
   decorateGuestCard();
+  decorateVisitorShortcuts();
   window.dispatchEvent(new CustomEvent('biglwa:public-mirror-ready',{detail:{profile:preview.profile}}));
   guardOrbit();
   checkSignedIn();
