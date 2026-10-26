@@ -114,6 +114,7 @@
    label.hidden=true;
   }
   if(profile.parentElement!==mark)mark.append(profile);
+  if(!profile.hasAttribute('role'))profile.setAttribute('aria-hidden','true');
   profile.hidden=false;
   // Startup and login-laptop loaders remain separate; this is solely the
   // already-existing top-left three-dot element.
