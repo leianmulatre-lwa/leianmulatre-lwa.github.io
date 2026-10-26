@@ -135,7 +135,7 @@
   el.setAttribute('role','status');el.setAttribute('aria-label',label);
   const mark=document.createElement('div');mark.className='lwa-curtain-brand';
   mark.setAttribute('aria-hidden','true');
-  mark.innerHTML='<img class="lwa-curtain-brand-logo" src="/assets/brand/biglwa-stitched-cubes-loader.avif?v=20261026" alt="" width="320" height="143" decoding="async">';
+  mark.innerHTML='<span class="lwa-curtain-brand-b">big</span><span class="lwa-curtain-brand-w">lwa</span>';
   el.append(mark);
   el.append(make(kind==='avatar'?'pulse':'floating'));
   const t=document.createElement('span');t.className='lwa-curtain-label';t.textContent=label;el.append(t);
@@ -167,7 +167,7 @@
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
    moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
    const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
-   const curtainOffset=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+12);shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
+   const curtainOffset=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+16);shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
    const busy=space.querySelector('[aria-busy="true"]:not(.lwa-curtain)');
    const veve=key==='veve';
    const feed=veve?window.BigLWAVeve?.status?.():null;
