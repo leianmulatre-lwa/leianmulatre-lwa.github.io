@@ -1,0 +1,36 @@
+/* Studio-only approved arcade pair: ARCADE joystick cabinet for Games, BIG LWA keyboard cabinet for lwazi. 
+   Use the original approved illustration as a two-half sprite, with no change to widget header symbols. */
+#studioApp #games .games-library.games-library{
+  aspect-ratio:808/973!important;
+}
+#studioApp #games .games-library.games-library::before{
+  background-image:url('/assets/arcade/studio-cabinet-pair-20261026.avif')!important;
+  background-size:200% 100%!important;
+  background-position:left center!important;
+  background-repeat:no-repeat!important;
+}
+#studioApp #games .arcade-library-viewport.arcade-library-viewport{
+  left:10.8%!important;top:23.5%!important;
+  width:78.4%!important;height:47.4%!important;
+}
+#studioApp #games .games-arcade-brand .arcade-folder-dots.arcade-folder-dots{
+  left:16%!important;top:1.8%!important;width:19%!important;height:8%!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb{
+  width:100%;max-width:100%;
+  display:block;position:relative;overflow:hidden;box-sizing:border-box;
+  aspect-ratio:808/973;margin:8px auto 0;padding:0;border:0;
+  border-radius:0;background:#08070a;
+  cursor:pointer;box-shadow:none;
+}
+#studioApp #tools .lwazi-cabinet-thumb::before{
+  content:'';position:absolute;inset:0;
+  background:url('/assets/arcade/studio-cabinet-pair-20261026.avif') right center / 200% 100% no-repeat;
+  pointer-events:none;
+}
+#studioApp #tools .lwazi-cabinet-thumb:focus-visible{
+  outline:3px solid #b83144;outline-offset:3px;
+}
+@media (prefers-reduced-motion:reduce){
+  #studioApp #tools .lwazi-cabinet-thumb{transition:none!important}
+}
