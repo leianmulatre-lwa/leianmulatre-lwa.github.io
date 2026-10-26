@@ -1,0 +1,50 @@
+/* BIG LWA shared notice language — Site Tour, Map safety, future confirmations.
+   Shared shapes, ink, window lights and actions; each dialog owns its behavior. */
+.biglwa-dialog{
+  --biglwa-dialog-paper:#fff3e8;
+  --biglwa-dialog-ink:#322424;
+  --biglwa-dialog-edge:#b9938a;
+  --biglwa-dialog-primary:#462830;
+  --biglwa-dialog-shadow:0 22px 70px rgba(33,18,22,.47);
+  box-sizing:border-box;
+  border:1px solid var(--biglwa-dialog-edge);
+  border-radius:18px;
+  background:var(--biglwa-dialog-paper);
+  color:var(--biglwa-dialog-ink);
+  box-shadow:var(--biglwa-dialog-shadow);
+}
+.biglwa-dialog h2{font-family:Georgia,serif;color:var(--biglwa-dialog-ink);letter-spacing:-.012em}
+.biglwa-dialog p{overflow-wrap:anywhere}
+.biglwa-dialog-lights{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+.biglwa-dialog-lights i{display:block;width:10px;height:10px;border-radius:50%;border:1px solid #38292255}
+.biglwa-dialog-lights i:nth-child(1){background:#df605b}
+.biglwa-dialog-lights i:nth-child(2){background:#f4c749}
+.biglwa-dialog-lights i:nth-child(3){background:#57ac70}
+.biglwa-dialog :is(.map-safety-actions,.tour-controls){display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.biglwa-dialog :is(.map-safety-actions,.tour-controls) button{
+  border:1px solid #9d7871;border-radius:10px;
+  min-height:38px;padding:9px 13px;background:#fffaf4;
+  color:var(--biglwa-dialog-ink);font:700 12px/1.35 system-ui,sans-serif;cursor:pointer
+}
+.biglwa-dialog :is(.map-safety-actions,.tour-controls) button:is(.primary,[data-tour-next]){
+  color:#fff;background:var(--biglwa-dialog-primary);
+  border-color:var(--biglwa-dialog-primary)
+}
+.biglwa-dialog button:focus-visible,.biglwa-dialog input:focus-visible{outline:3px solid #b35d78;outline-offset:3px}
+.biglwa-dialog-checkbox{display:flex;align-items:center;gap:9px;cursor:pointer}
+.biglwa-dialog-checkbox input{accent-color:#9a3743}
+#biglwaTutorialDialog.biglwa-dialog,.map-safety-dialog.biglwa-dialog{
+  background:var(--biglwa-dialog-paper);
+  color:var(--biglwa-dialog-ink);
+  border:1px solid var(--biglwa-dialog-edge);
+  border-radius:18px;
+  box-shadow:var(--biglwa-dialog-shadow)
+}
+#biglwaTutorialDialog.biglwa-dialog::backdrop{background:rgba(31,18,23,.73)}
+.night-mode .map-safety-dialog.biglwa-dialog{
+  --biglwa-dialog-paper:#302b2a;
+  --biglwa-dialog-ink:#f3e5db;
+  --biglwa-dialog-edge:#b45e6e;
+  --biglwa-dialog-primary:#8d3e56;
+}
+@media(prefers-reduced-motion:reduce){.biglwa-dialog,.biglwa-dialog *{scroll-behavior:auto!important;animation-duration:.01ms!important}}
