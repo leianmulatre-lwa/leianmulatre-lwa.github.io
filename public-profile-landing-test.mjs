@@ -19,7 +19,7 @@ assert.ok(preview.includes('html.biglwa-preview-mode #studioApp .main{margin-lef
 assert.ok(preview.includes('top:var(--biglwa-preview-banner-h,0px)!important'),'Sticky header uses the measured preview notice height');
 assert.ok(preview.includes('decorateVisitorShortcuts()'),'Visitor shortcut rail stays populated');
 assert.ok(!landing.includes("make('button','View Orbit connections'"),'No duplicate View Orbit CTA on visitors');
-const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp"><article id="boards"><div class="card-head"><h2>Boards</h2></div><div id="connect-pinterest">Connect Pinterest</div></article><article id="diary"><button class="diary-page"><img src="/assets/diary-notebook-closeup.svg"></button></article><article id="orbit"><div id="orbitGrid"></div><p class="orbit-note"></p></article><article class="guest-check-card"></article><article id="map"></article><article id="studioAvatarCard"></article></main></body></html>',{url:'https://biglwa.com/leian',runScripts:'outside-only',pretendToBeVisual:true});
+const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp"><article id="boards"><div class="card-head"><h2>Boards</h2></div><div id="connect-pinterest">Connect Pinterest</div></article><article id="diary"><button class="diary-page"><img src="/assets/diary-notebook-closeup.svg"></button></article><article id="orbit"><div id="orbitGrid"></div><p class="orbit-note"></p></article><article class="guest-check-card"></article><article id="map"><button type="button" data-open="map">Open Map</button></article><article id="studioAvatarCard"></article></main></body></html>',{url:'https://biglwa.com/leian',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,doc=w.document;
 doc.documentElement.classList.add('biglwa-preview-mode');
 w.BigLWAUserDirectory={loadArchiveForUsername:async()=>[
@@ -60,10 +60,12 @@ w.open=(url)=>{opened=url;return {}};
 instagram.click();
 assert.equal(opened,'https://www.instagram.com/leian/','Clicking public planet opens owner hyperlink');
 assert.ok(doc.querySelector('.biglwa-public-avatar-preview img'),'Visitor sees public avatar/profile image');
-doc.querySelector('.biglwa-public-map-open').click();
-assert.equal(w.lastPrompt,'view public shared locations','Map gated until account creation');
+assert.equal(doc.querySelectorAll('#map [data-open="map"]').length,1,'Map has one existing CTA');
+doc.querySelector('#map [data-open="map"]').click();
+assert.equal(w.lastPrompt,'view this member’s published map','Map gated until account creation');
 doc.querySelector('.biglwa-public-guest-open').click();
 assert.ok(doc.getElementById('biglwaPublicGuestSheet'),'Guest sheet opens');
+assert.equal(doc.querySelectorAll('.biglwa-public-guest-paper .biglwa-guest-paper-line').length,4,'Guest Sheet preview shows read-only notebook lines');
 w.dispatchEvent(new w.Event('biglwa:public-profile-ended'));
 assert.equal(doc.querySelector('.biglwa-public-boards-home'),null,'Leaving preview removes visitor data');
 dom.window.close();
