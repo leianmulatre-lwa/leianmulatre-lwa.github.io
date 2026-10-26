@@ -327,6 +327,18 @@
           updatedAt:f.serverTimestamp()}
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched before avatar was saved.');
+      // Save a *public display reference only*, never presets, source projects or
+      // other private avatar configuration. Public Studio visitors need no owner login.
+      try{
+       const profile=await f.getDoc(f.doc(f.db,'users',uid));
+       const handle=String(profile.data()?.usernameLower||profile.data()?.username||'').toLowerCase();
+       if(/^[a-z0-9._-]{5,24}$/.test(handle)){
+        const publicRef=f.doc(f.db,'usernames',handle),verified=await f.getDoc(publicRef);
+        if(verified.data()?.uid===uid){
+         await f.setDoc(publicRef,{studioAvatarPublic:{type:kind,url:result.url}},{merge:true});
+        }
+       }
+      }catch(error){console.info('Avatar public preview will sync on next save:',error?.message||error)}
       state.avatar={type:kind,url:result.url,...(kind==='mii'&&preset?{preset:validateMiiPreset(preset)}:{})};
       showAvatar();setStatus(kind==='minecraft'?'Minecraft skin saved to your 3D avatar.':'Avatar saved to your BIG LWA account.');
       try{
