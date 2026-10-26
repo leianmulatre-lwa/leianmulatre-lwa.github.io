@@ -461,15 +461,25 @@
    '<figure style="--model-shadow:#f7cddd"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Social</figcaption></figure>'+
    '<figure style="--model-shadow:#f8d4b0"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Political</figcaption></figure></div>'+
    '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Show body shadows on hover</label></details>'+ 
-   '<details class="skeleton-platform-key"><summary>Platform shadow key</summary>'+
-   '<p class="skeleton-shadow-explanation">Each miniature card shows its widget’s body color on the face, with one shadow matching its original platform. This example uses the Social widget color.</p>'+
+   '<details class="skeleton-platform-key"><summary>Platform shadow key</summary><div class="skeleton-platform-content">'+
+   '<p class="skeleton-shadow-explanation">Each tile has one platform-colored shadow. Its ivory face stays consistent across the network.</p>'+
    (window.BigLWAShadowKey?.render?.('skeleton')||'<p class="skeleton-shadow-explanation">Platform preview is loading.</p>')+
-   '</details>'+
+   '</div></details>'+
    '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>'+
    '<details class="skeleton-symbol-details"><summary>Symbol key</summary><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools"></ul></details>'+
    '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>';
   hub.querySelectorAll(':scope > details').forEach(section=>section.addEventListener('toggle',()=>{if(section.open)hub.querySelectorAll(':scope > details').forEach(other=>{if(other!==section)other.open=false})}));
   $('.skeleton-analytics-details',hub).addEventListener('toggle',event=>{if(event.target.open)window.BigLWAAccountInsights?.refresh?.()});
+  $('.skeleton-platform-key',hub).addEventListener('toggle',event=>{
+    if(!event.target.open)return;
+    const slot=$('.skeleton-platform-content',hub);
+    const markup=window.BigLWAShadowKey?.render?.('skeleton');
+    if(markup&&slot){
+      const obsolete=slot.querySelector('.module-shadow-key,.skeleton-shadow-explanation:last-child');
+      if(obsolete)obsolete.outerHTML=markup;
+      else slot.insertAdjacentHTML('beforeend',markup);
+    }
+  });
   $('.skeleton-symbol-details',hub).addEventListener('toggle',event=>{if(event.target.open)renderSymbolKey($('#biglwaSkeletonSymbols',hub))});
   const indicators=$('#skeletonBodyIndicators',hub);indicators.checked=window.BigLWAThreeBodies?.enabled?.()!==false;
   indicators.addEventListener('change',()=>window.BigLWAThreeBodies?.setEnabled(indicators.checked));
