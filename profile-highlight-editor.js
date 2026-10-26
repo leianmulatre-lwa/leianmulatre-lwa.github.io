@@ -212,7 +212,8 @@
   return wrap;
  }
  function render(){
-  const container=el('#biglwaHighlightEditorList');if(!container||!owner())return;
+  const container=el('#biglwaHighlightEditorList');if(!container)return;
+  if(!owner()){container.replaceChildren();return;}
   const oldFocus=document.activeElement?.dataset?.highlightRow;
   container.replaceChildren();
   const groups=source();groups.slice(0,24).forEach((g,i)=>container.append(row(g,String(i),true,i)));
@@ -281,13 +282,27 @@
  let timer;
  function schedule(){clearTimeout(timer);timer=setTimeout(start,50)}
  for(const event of ['biglwa:identity-updated','biglwa:session-verified','biglwa:user-directory-ready','biglwa:highlights-imported','biglwa:customization-remote'])
-  window.addEventListener(event,()=>{if(event==='biglwa:customization-remote')remoteLoaded=false;schedule();if(event==='biglwa:highlights-imported')render()});
+  window.addEventListener(event,detail=>{
+   if(event==='biglwa:customization-remote'){
+    const snapshot=detail.detail;
+    if(snapshot?.uid===owner()&&snapshot.customization?.session?.highlightEdits){
+     stateOwner=owner();state=normalize(snapshot.customization.session.highlightEdits);
+     try{localStorage.setItem(storageKey(),JSON.stringify(state))}catch{}
+     remoteLoaded=true;refresh();render();
+    }else remoteLoaded=false;
+   }
+   if(event==='biglwa:identity-updated'||event==='biglwa:session-verified'){
+    stateOwner='';remoteLoaded=false;get();render();if(owner()&&!isPreview())remote();
+   }
+   if(event==='biglwa:highlights-imported')render();
+   schedule();
+  });
  window.addEventListener('biglwa:public-profile-ready',event=>{
    publicState=normalize(event.detail?.profile?.look?.highlights);
    refresh();
  });
  const observer=new MutationObserver(schedule);
- const ready=()=>{if(document.getElementById('studioApp'))observer.observe(document.getElementById('studioApp'),{childList:true,subtree:true});schedule()};
+ const ready=()=>{observer.observe(document.getElementById('studioApp')||document.body,{childList:true,subtree:true});schedule()};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
  window.BIGLWAHighlightEditor={get,customize,current,render,save};
 })();
