@@ -32,7 +32,7 @@ assert.ok(player.includes('const INTRO_MS = 2600;')&&player.includes('1800')&&pl
 assert.ok(player.includes("video.addEventListener('playing', revealWhenReady)"),'Programming reveal waits for playable content');
 assert.ok(!dots.includes('decorateLegacyStudioLoading();'),'Widget module cannot inject a second startup animation');
 assert.ok(html.includes('login-archive-player.js?v=20261022-floating-laptop-2'),'Fresh login player asset loaded');
-assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-wordmark-restored-4'),'Fresh nonduplicating widget-loader asset loaded');
+assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-persistent-brand-dots-5'),'Fresh nonduplicating widget-loader asset loaded');
 assert.ok(dots.includes('lwa-curtain-brand-b')&&dots.includes('lwa-curtain-brand-w'),'Loading modules restore the original stitched text wordmark');
 assert.ok(!dots.includes('biglwa-stitched-cubes-loader.avif'),'No stitched block image on module loader');
 assert.ok(!html.includes('<img class="biglwa-startup-logo"'),'No block image on initial loading screen');
