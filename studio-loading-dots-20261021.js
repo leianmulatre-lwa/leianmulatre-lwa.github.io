@@ -135,7 +135,7 @@
   el.setAttribute('role','status');el.setAttribute('aria-label',label);
   const mark=document.createElement('div');mark.className='lwa-curtain-brand';
   mark.setAttribute('aria-hidden','true');
-  mark.innerHTML='<img class="lwa-curtain-brand-logo" src="/assets/brand/biglwa-stitched-cubes-loader.webp?v=20261026" alt="" width="320" height="143" decoding="async">';
+  mark.innerHTML='<img class="lwa-curtain-brand-logo" src="/assets/brand/biglwa-stitched-cubes-loader.avif?v=20261026" alt="" width="320" height="143" decoding="async">';
   el.append(mark);
   el.append(make(kind==='avatar'?'pulse':'floating'));
   const t=document.createElement('span');t.className='lwa-curtain-label';t.textContent=label;el.append(t);
