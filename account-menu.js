@@ -235,8 +235,25 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
     addFooterLinks();
   }
 
+  function openPendingAddUser(){
+    if(sessionStorage.getItem('biglwaOpenAddUser')!=='1')return;
+    const login=document.getElementById('loginPage');
+    const create=document.getElementById('createTab');
+    if(login?.classList.contains('is-active')&&create){
+      sessionStorage.removeItem('biglwaOpenAddUser');
+      create.click();
+      return true;
+    }
+    return false;
+  }
   async function start() {
     watchFooters();
+    if(sessionStorage.getItem('biglwaOpenAddUser')==='1'){
+      let tries=0;
+      const poll=setInterval(()=>{
+        if(openPendingAddUser()||++tries>100)clearInterval(poll);
+      },100);
+    }
     for (let attempt = 0; attempt < 60; attempt += 1) {
       const trigger = document.getElementById(TRIGGER_ID);
       if (trigger) {
