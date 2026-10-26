@@ -26,7 +26,7 @@
   return right;
  }
  function addMark(right,icon){
-  const url='/assets/bigapps/blocks/'+icon+'.svg?v=20261026-1';
+  const url=icon==='visualizr'?'/assets/bigapps/icons/visualizr.png?v=20261026-stitched-v-2':'/assets/bigapps/blocks/'+icon+'.svg?v=20261026-1';
   let badge=$('.lwazi-series-badge',right);
   if(!badge){badge=document.createElement('span');badge.className='lwazi-series-badge';right.append(badge)}
   if(badge.dataset.lwaziIcon!==icon){
@@ -140,7 +140,7 @@
   }
   heading.classList.add('module-heading--with-versions','module-heading--single-line');
   const sub=$(':scope > .module-heading-bottom > p',heading);
-  if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks, part of the R/Lwazi seriez: our own apps, designed fo/r you. 3 web-friendly BIG LWA apps and 4 advanced open-source R-editors.';
+  if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks, part of the R/Lwazi seriez: our own apps, designed fo/r you. 2 web-friendly BIG LWA apps and 4 advanced open-source R-editors.';
   if(key==='camera'&&sub)sub.textContent='Your own booth to capture or chat with other bookini’s on Big LWA.';
  }
  let queued=false;
