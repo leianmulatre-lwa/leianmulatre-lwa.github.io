@@ -1,5 +1,5 @@
 /* BIG LWA: connected Snapchat Spotlight and Instagram Highlight showcase.
- * User-selected public links only. No scraping, hidden downloads or reposts.
+ * Connected public sources and owner-requested, username-matched imports.
  */
 (()=>{
  'use strict';
@@ -255,17 +255,19 @@
     ()=>storyPreview({...item,url:snapchatViewerUrl(handles.snapchat)},'snapchat'))));
    else if(handles.snapchat)track.append(viewerBubble('snapchat',handles.snapchat));
   }
-  const ig=entries.filter(x=>x.platform==='instagram'&&active('instagram'));
+  const imported=window.BigLWAImportedHighlights?.match(handles.instagram);
+  const ig=imported?[]:entries.filter(x=>x.platform==='instagram'&&active('instagram'));
+  imported?.highlights.forEach(group=>track.append(window.BigLWAImportedHighlights.bubble(group)));
   // Keep the approved username-addressed viewer available when the source
   // cannot return individual Highlight media. Do not invent imported records.
-  if(handles.instagram&&!ig.length){
+  if(handles.instagram&&!ig.length&&!imported){
 
    track.append(viewerBubble('instagram',handles.instagram));
   }
   ig.forEach((item,i)=>{const link=viewerBubble('instagram',handles.instagram);link.querySelector('.biglwa-story-name').textContent='Highlight '+(i+1);track.append(link)});
   entries.filter(x=>x.platform==='snapchat'&&active('snapchat')).forEach((item,i)=>
    track.append(storyBubble('snapchat','Spotlight '+(snapItems.length+i+1),()=>storyPreview(item,'snapchat'))));
-  track.append(storyBubble('new','New',()=>storyEditor(section)));
+  if(uid())track.append(storyBubble('new','New',()=>storyEditor(section)));
   const prev=document.createElement('button'),next=document.createElement('button');
   prev.className=next.className='biglwa-story-scroll';prev.type=next.type='button';prev.textContent='‹';next.textContent='›';
   prev.setAttribute('aria-label','Previous story highlights');next.setAttribute('aria-label','Next story highlights');
@@ -283,6 +285,8 @@
   const rank=root?.querySelector('.real-rank')||document.querySelector('#skeletonRankMount .real-rank');
   if(copy&&rank&&rank.parentElement!==copy)copy.append(rank);
   const who=uid(),handles=accountHandles();
+  const imported=window.BigLWAImportedHighlights?.match(handles.instagram);
+  if(root&&imported&&!who){mountStoryCircles(root,null,[],[],handles);return;}
   root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());
   const entries=[...instagramSourceHighlights(handles.instagram),...saved()]
     .filter((item,i,list)=>list.findIndex(other=>other.url===item.url)===i).slice(0,8);
@@ -291,7 +295,7 @@
   else if(snapSource.key)snapSource={key:'',status:'',items:[],message:''};
   const snapItems=handles.snapchat&&snapSource.key===who+':'+handles.snapchat.toLowerCase()?snapSource.items:[];
   if(!root||!who||(!active('snapchat')&&!active('instagram'))){root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());root?.querySelector('[data-biglwa-public-showcase]')?.remove();document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();signature='';return}
-  const tag=who+'|'+entries.map(x=>x.url).join('|')+'|'+handles.snapchat+'|'+handles.instagram+'|'+snapSource.status+'|'+snapItems.map(x=>x.mediaUrl||'').join('|');
+  const tag=Boolean(imported)+'|'+who+'|'+entries.map(x=>x.url).join('|')+'|'+handles.snapchat+'|'+handles.instagram+'|'+snapSource.status+'|'+snapItems.map(x=>x.mediaUrl||'').join('|');
   if(signature===tag&&root.querySelector('[data-biglwa-public-showcase]'))return;
   signature=tag;
   root.querySelector('[data-biglwa-public-showcase]')?.remove();
@@ -425,7 +429,7 @@
   if(open){const section=document.querySelector('[data-biglwa-public-showcase-editor]');if(section)section.open=true}
  }
  let timer;function schedule(){clearTimeout(timer);timer=setTimeout(show,90)}
- for(const event of ['biglwa:new-orbit-status','biglwa:identity-updated','biglwa:session-verified','biglwa:orbit-links-synced'])
+ for(const event of ['biglwa:highlights-imported','biglwa:new-orbit-status','biglwa:identity-updated','biglwa:session-verified','biglwa:orbit-links-synced'])
   (event==='biglwa:new-orbit-status'?document:window).addEventListener(event,schedule);
  document.addEventListener('biglwa:new-orbit-status',schedule);
  // Refresh source-hosted Spotlight previews periodically while the member is present.
