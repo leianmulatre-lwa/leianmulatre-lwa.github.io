@@ -17,7 +17,7 @@ check("TikTok is purple", feed.includes('tiktok: { rim:"#772dcc"'));
 check("Facebook is blue", feed.includes('facebook: { rim:"#1658be"'));
 check("Instagram is orange", feed.includes('instagram: { rim:"#f36b21", glow:"#ffad52"'));
 check("anything without a rim of its own falls back to blood orange", feed.includes('{ rim:FEED_RIM }'));
-check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(displaySource)"));
+check("a card takes the rim of its source", feed.includes("const shadow=postShadow(post,managed,displaySource)") && feed.includes("shadow.rim"));
 check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
 check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
