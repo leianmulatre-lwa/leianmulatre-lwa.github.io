@@ -55,7 +55,7 @@
   const url=imageUrl(published?.url||publicProfile?.profilePhotoUrl);
   let photo=$('.biglwa-public-avatar-preview',card);
   if(!photo){photo=make('div','','biglwa-public-avatar-preview');card.append(photo)}
-  const sig=(published?.type||'photo')+':'+url;
+  const sig=(published?.type||'photo')+':'+url+':'+String(published?.slim===true);
   if(photo.dataset.avatarSource===sig)return;
   photo.dataset.avatarSource=sig;
   if(url&&published?.type==='minecraft'){
@@ -63,21 +63,26 @@
    mannequin().then(viewer=>{
     if(!photo.isConnected||photo.dataset.avatarSource!==sig)return;
     photo.replaceChildren();
-    const model=viewer.mount(photo,url,{large:false});
+    const model=viewer.mount(photo,url,{large:false,slim:published?.slim===true});
     if(model?.ready)Promise.resolve(model.ready).catch(()=>{
      if(photo.dataset.avatarSource===sig)photo.textContent='This character could not be displayed.';
     });
    }).catch(()=>{if(photo.dataset.avatarSource===sig)photo.textContent='3D character unavailable'});
+  }else if(url&&published?.type==='sona360'){
+   photo.replaceChildren();
+   const frame=make('iframe');frame.src=url;frame.title=(publicProfile?.name||'Member')+' 360sona avatar';
+   frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';
+   frame.setAttribute('allow','fullscreen');frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups');
+   frame.className='biglwa-public-sona-frame';photo.append(frame);
   }else if(url){
    photo.replaceChildren();
    const img=make('img');img.src=url;img.alt=(publicProfile?.name||'Member')+' '+(published?'avatar preview':'profile picture');img.loading='lazy';
    photo.append(img);
   }else{
+   // Never put someone's monogram in the Avatar: initials belong on the Journal cover.
    photo.replaceChildren();
-   const letter=Array.from(String(publicProfile?.name||publicProfile?.username||'L').trim())[0]?.toUpperCase()||'L';
-   const fallback=make('span',letter,'biglwa-public-avatar-initial');
-   photo.append(fallback);
-   photo.setAttribute('aria-label','Avatar artwork not shared; '+letter+' member initial');
+   photo.append(make('span','Avatar not shared','biglwa-public-avatar-empty'));
+   photo.setAttribute('aria-label','This member has not published an Avatar');
   }
   card.dataset.publicAvatar='1';
  }
@@ -116,6 +121,29 @@
   home.append(grid);
   home.append(make('small',boardImages.length?'Shared, published Pins only · private imports remain private.':'Public Pins will appear when this member publishes them.','biglwa-public-boards-note'));
  }
+ function publicGuestEntries(){
+  // Public notes must be explicitly published; never expose private guest logs.
+  if(publicProfile?.publicGuestEntriesVisibility!=='public')return [];
+  return (Array.isArray(publicProfile?.publicGuestEntries)?publicProfile.publicGuestEntries:[]).slice(0,8).map(item=>{
+   const date=new Date(String(item?.createdAt||''));
+   return {who:String(item?.name||item?.who||'Guest').trim().slice(0,42),
+    note:String(item?.note||'').trim().slice(0,160),
+    date:Number.isFinite(date.getTime())?new Intl.DateTimeFormat(undefined,{year:'numeric',month:'short',day:'numeric'}).format(date):'—'};
+  }).filter(x=>x.note);
+ }
+ function guestPaper(){
+  const paper=make('div','','biglwa-public-guest-paper');
+  paper.setAttribute('aria-label','Guest Check visitor, note and date');
+  for(const heading of ['WHO WUZ HERE?','NOTE','DATE'])paper.append(make('b',heading,'biglwa-guest-paper-head'));
+  const entries=publicGuestEntries();
+  for(const item of entries){
+   paper.append(make('span',item.who,'biglwa-public-guest-who'));
+   paper.append(make('span',item.note,'biglwa-public-guest-message'));
+   paper.append(make('time',item.date,'biglwa-public-guest-date'));
+  }
+  if(!entries.length)paper.append(make('small','No Guest Check notes have been published.','biglwa-public-guest-note'));
+  return paper;
+ }
  function showGuestSheet(){
   if(!publicProfile)return;
   $('#biglwaPublicGuestSheet')?.remove();
@@ -123,35 +151,22 @@
   const heading=make('h2','Who wuz here?');
   const close=make('button','×');close.type='button';close.className='biglwa-public-guest-close';close.setAttribute('aria-label','Close Guest Sheet');
   close.onclick=()=>dialog.close();
-  const copy=make('p','You’re viewing @'+publicProfile.username+'’s guest sheet. This preview does not write messages into another account.');
-  const detail=make('p','Public entries appear here when the owner has chosen to share them. Private guest notes cannot be read in this preview.');
-  const sheet=make('div','','biglwa-guest-paper');
-  sheet.setAttribute('aria-label','Read-only guest sheet');
-  const cols=make('div','WHO WUZ HERE? · NOTE                         DATE','biglwa-guest-paper-head');
-  sheet.append(cols);
-  for(let i=0;i<4;i++)sheet.append(make('div','', 'biglwa-guest-paper-line'));
+  const copy=make('p','@'+publicProfile.username+' · Guest Check');
+  const detail=make('p','Only published entries appear; private visitor notes remain private.');
   const actions=make('div','','biglwa-public-guest-actions');
-  const join=make('button','Create account');join.type='button';join.onclick=()=>{dialog.close();window.BigLWAStudioPreview?.prompt?.('leave a guest-sheet note')};
-  const cancel=make('button','Got it');cancel.type='button';cancel.onclick=()=>dialog.close();
-  actions.append(join,cancel);dialog.append(close,heading,copy,sheet,detail,actions);
+  const join=make('button','Leave a note');join.type='button';join.onclick=()=>{dialog.close();window.BigLWAStudioPreview?.prompt?.('leave a guest-sheet note')};
+  const cancel=make('button','Close');cancel.type='button';cancel.onclick=()=>dialog.close();
+  actions.append(join,cancel);dialog.append(close,heading,copy,guestPaper(),detail,actions);
   dialog.onclose=()=>dialog.remove();document.body.append(dialog);
   if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');
  }
  function decorateGuest(){
   const card=$('#studioApp .guest-check-card')||$('#studioApp #guestCheckWidget');if(!card)return;
   card.dataset.publicGuestSheet='1';
-  let preview=$('.biglwa-public-guest-paper',card);
-  if(!preview){
-    preview=make('div','','biglwa-public-guest-paper');
-    preview.setAttribute('aria-label','Guest sheet public preview');
-    preview.append(make('b','WHO WUZ HERE? · NOTE             DATE','biglwa-guest-paper-head'));
-    for(let i=0;i<4;i++)preview.append(make('span','','biglwa-guest-paper-line'));
-    const note=make('small','No public entries have been supplied for this preview.','biglwa-public-guest-note');
-    preview.append(note);
-    card.append(preview);
-  }
+  const old=$('.biglwa-public-guest-paper',card),paper=guestPaper();
+  if(old)old.replaceWith(paper);else card.append(paper);
   let btn=$('.biglwa-public-guest-open',card);
-  if(!btn){btn=make('button','Open guest sheet','biglwa-public-guest-open');btn.type='button';card.append(btn)}
+  if(!btn){btn=make('button','Open Guest Check','biglwa-public-guest-open');btn.type='button';card.append(btn)}
   btn.onclick=showGuestSheet;
  }
  function decorateOrbit(){
@@ -242,6 +257,28 @@
  .biglwa-public-guest-actions button{background:#d95a6d;border:0;border-radius:10px;padding:10px 14px;color:white;font:700 12px system-ui;cursor:pointer}
  .biglwa-public-guest-actions button:last-child{background:#e9dbd7;color:#392c34}
  `;
+ style.textContent+=`
+ html.biglwa-preview-mode #studioAvatarCard .biglwa-public-sona-frame{width:100%;height:100%;border:0;border-radius:11px;background:transparent}
+ html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-empty{font:600 13px/1.3 system-ui;color:#6b5961;text-align:center;padding:18px}
+ html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-paper,
+ html.biglwa-preview-mode .biglwa-public-guest-dialog .biglwa-public-guest-paper{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr) minmax(68px,.85fr)!important;
+  grid-auto-rows:minmax(30px,auto)!important;align-items:center!important;gap:0 7px!important;
+  background:#fffaf0!important;border-radius:10px!important;min-height:170px!important;overflow:auto!important
+ }
+ html.biglwa-preview-mode .biglwa-public-guest-paper .biglwa-guest-paper-head{
+  white-space:normal!important;font:700 9px/1.25 system-ui!important;padding:8px 3px!important;
+  border-bottom:2px solid #d980a2!important;color:#5a3a51!important
+ }
+ html.biglwa-preview-mode .biglwa-public-guest-paper :is(.biglwa-public-guest-who,.biglwa-public-guest-message,.biglwa-public-guest-date){
+  font:500 11px/1.4 system-ui!important;padding:7px 3px!important;border-bottom:1px solid #b8cfdf!important;
+  color:#594851!important;overflow-wrap:anywhere!important
+ }
+ html.biglwa-preview-mode .biglwa-public-guest-paper .biglwa-public-guest-note{
+  grid-column:1/-1!important;margin:0!important;padding:15px 4px!important;
+  font:500 11px/1.4 system-ui!important
+ }
+`;
  style.textContent+=`
 
  html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-initial{font:400 64px/1 "CS Bergamot Stitched",Georgia,serif;color:#61364d;opacity:.8}
