@@ -304,7 +304,7 @@ const PREVIEW_CSS = `
 .biglwa-preview-actions .biglwa-preview-close{border:0;font-size:15px;line-height:1;padding:4px 8px;text-transform:none;letter-spacing:0}
 /* The banner is in normal flow, so everything below it already sits lower. Only the
    sticky chrome needs the measured height. */
-html.biglwa-preview-mode .topbar{top:var(--biglwa-preview-banner-h,0px)!important}
+html.biglwa-preview-mode .topbar{top:var(--biglwa-preview-banner-h,0px)!important;padding-top:8px!important;min-height:66px!important;box-sizing:border-box!important;overflow:visible!important}
 html.biglwa-preview-mode .page-wallpaper{top:calc(66px + var(--biglwa-preview-banner-h,0px))!important}
 html.biglwa-preview-mode .policy-top{top:var(--biglwa-preview-banner-h,0px)!important}
 /* An explicitly private member shows only identity/banner, avatar, Aura, music and Guest Check.
@@ -718,7 +718,11 @@ function enforce(){
   const lead=clean(preview.profile?.auraText).split(/\n+/)[0]||"Focused";
   const aura=$("#studioApp .aura-card p");
   const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
-  if(nameDrift || auraDrift) applyIdentity(preview.profile);
+  const metrics=preview.profile?.publicStats;
+  const follow=$('#studioApp [data-profile-stat="followers"] b');
+  const expected=typeof metrics?.followers==='number'?new Intl.NumberFormat().format(metrics.followers):'—';
+  const statsDrift=!!follow&&follow.textContent.trim()!==expected;
+  if(nameDrift||auraDrift||statsDrift)applyIdentity(preview.profile);
   renderSocials(preview.profile);
   decorateArchiveAccess();
   decorateGuestCard();
