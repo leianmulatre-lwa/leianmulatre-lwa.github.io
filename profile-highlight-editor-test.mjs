@@ -10,7 +10,7 @@ assert.ok(ui.includes('placeholder="#keepitcute"')&&ui.includes("dataset.moodPre
 const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp">'+
 '<article class="profile-card"></article><div id="wallpaperPanel">'+
 '<div id="profileEditorTabs"><button type="button" role="tab" data-profile-editor-tab="profile" aria-selected="true">Profile</button>'+
-'<button type="button" data-profile-editor-tab="wallpaper">Wallpaper</button></div>'+
+'<button type="button" data-profile-editor-tab="highlights">Highlights</button><button type="button" data-profile-editor-tab="wallpaper">Wallpaper</button></div>'+
 '<div id="profileEditorActions"><button id="saveProfileBtn">Save changes</button><button id="cancelProfileBtn">Cancel</button></div>'+
 '</div></main></body></html>',{url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,doc=w.document;
@@ -31,6 +31,18 @@ await new Promise(r=>setTimeout(r,190));
 const tab=doc.querySelector('[data-profile-editor-tab="highlights"]');
 const pane=doc.getElementById('profileHighlightsEditor');
 assert.ok(tab&&pane,'New Highlights tab mounts inside Edit Profile');
+assert.equal(doc.querySelectorAll('[data-profile-editor-tab="highlights"]').length,1,'Existing Highlights tab reused, no duplicate');
+assert.ok(doc.querySelector('.highlight-cover-adjust-heading')?.textContent.includes('Adjust preview photo'),'Photo preview adjustment controls explicitly labeled');
+const circle=doc.querySelector('.highlight-edit-cover img');
+const yCrop=[...doc.querySelectorAll('.highlight-cover-controls input[type="range"]')][1];
+assert.ok(circle&&yCrop,'Circle photo preview and crop sliders available');
+yCrop.value='73';yCrop.dispatchEvent(new w.Event('input',{bubbles:true}));
+assert.equal(circle.style.objectPosition,'50% 73%','Preview crop updates live while editing');
+assert.ok(ui.includes("highlightsTab.dataset.profileEditorTab='highlights'"),'Main Edit Profile exposes Highlights in navigation');
+assert.ok(css.includes('.biglwa-rank-rail-label'),'Real Rank label is styled beneath Mood');
+assert.match(css, /margin-top:29px!important/, 'Rank progress line lowered within banner');
+assert.match(css, /font-size:clamp\(17px,1\.5vw,21px\)/,'Current rank status enlarged approximately 35%');
+
 assert.equal(doc.querySelectorAll('#biglwaHighlightEditorList .highlight-edit-row').length,1,'Imported highlight is editable');
 tab.setAttribute('aria-selected','true');
 pane.hidden=false;
