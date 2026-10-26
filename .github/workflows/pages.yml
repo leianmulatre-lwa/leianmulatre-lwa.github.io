@@ -54,7 +54,11 @@ jobs:
           node --check public-profile-landing.js
           node --check profile-module-sharing.js
           node --check studio-preview.js
+          node --check account-menu.js
+          node --check avatar-studio-bitmoji-20261017-v3.js
+          node --check account-chrome.js
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node public-profile-landing-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node owner-preview-action-test.mjs
       - name: Verify imported highlight playback and account isolation
         run: |
           node --check profile-highlight-editor.js
