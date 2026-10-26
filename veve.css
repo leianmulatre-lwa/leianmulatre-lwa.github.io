@@ -231,3 +231,6 @@
 .veve-save-board-actions button:first-child{background:#e2d1c9;color:#35262c}
 .veve-save-board-actions button:disabled{opacity:.65;cursor:wait}
 .veve-save-board-status{font-weight:700!important}
+
+/* The route owns its heading even while an older cached renderer loads. */
+.module-workspace[data-module-key="veve"] #biglwaVeve .veve-intro{display:none!important}

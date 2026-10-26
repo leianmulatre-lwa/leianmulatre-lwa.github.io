@@ -101,7 +101,7 @@
     schedule();
    }).catch(e=>{
     if(snapSource.key!==next)return;
-    snapSource={key:next,status:'error',checkedAt:Date.now(),items:[],message:'Snapchat public lookup unavailable; original profile remains accessible.'};
+    snapSource={key:next,status:'error',checkedAt:Date.now(),items:[],message:'Snapchat public lookup unavailable; Storyclone viewer remains accessible.'};
     schedule();
    });
  }
@@ -159,17 +159,19 @@
   ].join('\n');
   css.textContent+='\n'+[
    '#studioApp .profile-card{position:relative!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon{position:absolute!important;left:10px!important;right:10px!important;bottom:8px!important;z-index:6!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;display:flex!important;align-items:center!important;gap:6px!important;overflow:hidden!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-stories-track{display:flex!important;flex:1 1 auto!important;gap:clamp(5px,1vw,12px)!important;justify-content:flex-start!important;align-items:center!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;padding:1px!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble{flex:0 0 44px!important;width:44px!important;display:flex!important;flex-direction:column!important;gap:1px!important;align-items:center!important;cursor:pointer!important;border:0!important;background:transparent!important;padding:0!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-ring{display:grid!important;place-items:center!important;width:35px!important;height:35px!important;box-sizing:border-box!important;border-radius:50%!important;padding:3px!important;background:conic-gradient(#eeb069,#e5729b,#9051b4,#eeb069)!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble[data-source="snapchat"] .biglwa-story-ring{background:conic-gradient(#f2d250,#ffe97c,#e5b528,#f2d250)!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble[data-source="new"] .biglwa-story-ring{background:#e4dcd6!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-inner{display:grid!important;place-items:center!important;width:100%!important;height:100%!important;box-sizing:border-box!important;border-radius:50%!important;border:2px solid #fff8f1!important;background:#fff3ed!important;color:#673b57!important;font:700 17px Georgia,serif!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-name{font:650 8px/1.1 system-ui!important;max-width:50px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#462d3c!important;text-align:center!important}',
-   '#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-scroll{flex:0 0 15px!important;cursor:pointer!important;border:0!important;background:#fff9f1d9!important;color:#57364a!important}',
-   '@media(max-width:640px){#studioApp .profile-card>.biglwa-stories-ribbon{left:6px!important;right:6px!important;bottom:4px!important}#studioApp .profile-card>.biglwa-stories-ribbon .biglwa-story-bubble{flex-basis:40px!important;width:40px!important}}',
-   '#studioApp.profile-editor-wallpaper .profile-card>.biglwa-stories-ribbon,#studioApp .profile-card.profile-is-editing>.biglwa-stories-ribbon{display:none!important}'
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{position:static!important;inset:auto!important;z-index:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:10px 0 0!important;display:flex!important;align-items:center!important;gap:6px!important;overflow:hidden!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-stories-track{display:flex!important;flex:1 1 auto!important;gap:clamp(5px,1vw,12px)!important;justify-content:flex-start!important;align-items:center!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;padding:1px!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-bubble{flex:0 0 44px!important;width:44px!important;display:flex!important;flex-direction:column!important;gap:1px!important;align-items:center!important;cursor:pointer!important;border:0!important;background:transparent!important;padding:0!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-ring{display:grid!important;place-items:center!important;width:35px!important;height:35px!important;box-sizing:border-box!important;border-radius:50%!important;padding:3px!important;background:conic-gradient(#eeb069,#e5729b,#9051b4,#eeb069)!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-bubble[data-source="snapchat"] .biglwa-story-ring{background:conic-gradient(#f2d250,#ffe97c,#e5b528,#f2d250)!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-bubble[data-source="new"] .biglwa-story-ring{background:#e4dcd6!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-inner{display:grid!important;place-items:center!important;width:100%!important;height:100%!important;box-sizing:border-box!important;border-radius:50%!important;border:2px solid #fff8f1!important;background:#fff3ed!important;color:#673b57!important;font:700 17px Georgia,serif!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-name{font:650 8px/1.1 system-ui!important;max-width:50px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#462d3c!important;text-align:center!important}',
+   '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-scroll{flex:0 0 15px!important;cursor:pointer!important;border:0!important;background:#fff9f1d9!important;color:#57364a!important}',
+   '@media(max-width:640px){#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{left:6px!important;right:6px!important;bottom:4px!important}#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-bubble{flex-basis:40px!important;width:40px!important}}',
+   '#studioApp.profile-editor-wallpaper .profile-card .profile-copy>.biglwa-stories-ribbon,#studioApp .profile-card.profile-is-editing .profile-copy>.biglwa-stories-ribbon{display:none!important}'
+   ,'#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy>.stats.stats{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;max-width:650px!important;gap:6px!important;margin:0!important}#studioApp .profile-card .profile-copy>.stats.stats>*{min-width:0!important;padding:0 6px 0 0!important}#studioApp .profile-card .profile-copy>.stats.stats b{font-size:clamp(13px,1.2vw,18px)!important}'
+   ,'#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{position:static!important;inset:auto!important;display:grid!important;grid-template-columns:auto auto minmax(60px,1fr) auto!important;align-items:center!important;gap:8px!important;width:100%!important;max-width:650px!important;margin:12px 0 0!important;padding:10px 0 0!important}.profile-copy>.real-rank .rank-track{display:block!important;min-width:60px}.profile-copy>.real-rank .rank-track i{display:block!important}'
   ].join('\n');document.head.append(css);
  };
  function closeStory(){
@@ -202,7 +204,7 @@
    video.referrerPolicy='no-referrer';video.src=item.mediaUrl;pop.append(video);
   }
   const a=document.createElement('a');a.href=item.url;a.target='_blank';a.rel='noopener noreferrer';
-  a.textContent='View on '+(platform==='snapchat'?'Snapchat':'Instagram')+' ↗';pop.append(a);
+  a.textContent=(platform==='snapchat'?'Open Storyclone':'View original Highlight')+' ↗';pop.append(a);
   const notice=document.createElement('small');notice.textContent='Source-hosted public story · availability may change';
   pop.append(notice);document.body.append(pop);x.focus();
  }
@@ -211,19 +213,18 @@
   // individual Highlight/Spotlight records. The source link is optional.
   storyShade();
   const valid=validHandle(handle),original=valid?
-   (platform==='instagram'?'https://www.instagram.com/'+encodeURIComponent(handle)+'/':
-    'https://www.snapchat.com/add/'+encodeURIComponent(handle)):'';
+   (platform==='instagram'?highlightViewerUrl(handle):snapchatViewerUrl(handle)):'';
   const pop=document.createElement('div');pop.className='biglwa-story-popup';
   pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');
   const close=document.createElement('button');close.type='button';close.className='biglwa-story-close';
   close.textContent='×';close.setAttribute('aria-label','Close profile preview');close.onclick=closeStory;
-  const title=document.createElement('strong');title.textContent=platform==='instagram'?'Instagram profile':'Snapchat profile';
+  const title=document.createElement('strong');title.textContent=platform==='instagram'?'Instagram Highlights':'Snapchat Stories';
   const handleText=document.createElement('p');handleText.textContent=valid?'@'+handle:'Public profile link unavailable';
-  const note=document.createElement('small');note.textContent='Connected account. Individual Highlights and Spotlights are shown here automatically only when their media can be retrieved.';
+  const note=document.createElement('small');note.textContent='Your connected username is already filled in. Open the viewer to see available public stories; retrievable media appears directly on your banner.';
   pop.append(close,title,handleText,note);
   if(original){
    const link=document.createElement('a');link.href=original;link.target='_blank';
-   link.rel='noopener noreferrer';link.textContent='Original public profile ↗';pop.append(link);
+   link.rel='noopener noreferrer';link.textContent='Open '+(platform==='instagram'?'IGExport Highlights':'Storyclone Stories')+' · @'+handle+' ↗';pop.append(link);
   }
   document.body.append(pop);close.focus();
  }
@@ -248,7 +249,8 @@
  }
  // The bio has a one-click, username-addressed public Highlight viewer link.
  // Do not send OAuth tokens or background requests to third-party viewers.
- const highlightViewerUrl=handle=>'https://pvgram.com/?u='+encodeURIComponent(handle);
+ const highlightViewerUrl=handle=>'https://igexport.com/en/instagram-highlights-viewer/?username='+encodeURIComponent(handle);
+ const snapchatViewerUrl=handle=>'https://o.storyclone.com/u/'+encodeURIComponent(handle)+'/';
  function mountBioHighlightLink(root,handle){
    const bio=root.querySelector('.profile-copy .bio');
    root.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());
@@ -268,23 +270,22 @@
   const copy=root.querySelector('.profile-copy'),stats=copy?.querySelector('.stats');if(!copy||!stats)return;
   storyStyle();
   // Banner highlights must not relocate the profile's stats.
-  root.querySelector(':scope > .biglwa-stories-ribbon')?.remove();
+  root.querySelector('.biglwa-stories-ribbon')?.remove();
   const rail=document.createElement('div');rail.className='biglwa-stories-ribbon';rail.dataset.biglwaPublicShowcase='1';
   rail.setAttribute('aria-label','Highlights and Spotlights on banner');
   const track=document.createElement('div');track.className='biglwa-stories-track';
   track.setAttribute('role','group');track.setAttribute('aria-label','Story highlights');
   if(active('snapchat')){
    if(snapItems.length)snapItems.forEach((item,i)=>track.append(storyBubble('snapchat','Spotlight '+(i+1),
-    ()=>storyPreview({...item,url:'https://story.snapchat.com/add/@'+handles.snapchat},'snapchat'))));
+    ()=>storyPreview({...item,url:snapchatViewerUrl(handles.snapchat)},'snapchat'))));
    else if(handles.snapchat)track.append(storyBubble('snapchat','Snapchat',()=>profilePreview('snapchat',handles.snapchat)));
   }
   const ig=entries.filter(x=>x.platform==='instagram'&&active('instagram'));
-  // Link directly to the connected user's Instagram profile, where its
-  // Highlights appear. Do not imply the standard IG media API returned
-  // individual Highlight objects when it did not.
+  // Keep the approved username-addressed viewer available when the source
+  // cannot return individual Highlight media. Do not invent imported records.
   if(handles.instagram&&!ig.length){
-   const instagramUrl='https://www.instagram.com/'+encodeURIComponent(handles.instagram)+'/';
-   track.append(storyBubble('instagram','Instagram',()=>profilePreview('instagram',handles.instagram)));
+
+   track.append(storyBubble('instagram','Highlights',()=>profilePreview('instagram',handles.instagram)));
   }
   ig.forEach((item,i)=>track.append(storyBubble('instagram','Highlight '+(i+1),()=>storyPreview(item,'instagram'))));
   entries.filter(x=>x.platform==='snapchat'&&active('snapchat')).forEach((item,i)=>
@@ -297,13 +298,23 @@
   prev.onclick=()=>{track.scrollBy({left:-140,behavior:'smooth'});setTimeout(arrows,250)};
   next.onclick=()=>{track.scrollBy({left:140,behavior:'smooth'});setTimeout(arrows,250)};
   track.addEventListener('scroll',arrows,{passive:true});
-  rail.append(prev,track,next);root.append(rail);requestAnimationFrame(arrows);
+  rail.append(prev,track,next);stats.insertAdjacentElement('afterend',rail);requestAnimationFrame(arrows);
  }
 
  function show(){
   const root=document.querySelector('#studioApp .profile-card');
+  storyStyle();
+  const copy=root?.querySelector('.profile-copy');
+  const rank=root?.querySelector('.real-rank')||document.querySelector('#skeletonRankMount .real-rank');
+  if(copy&&rank&&rank.parentElement!==copy)copy.append(rank);
   const who=uid(),handles=accountHandles();
-  if(root)mountBioHighlightLink(root,handles.instagram);
+  if(root){
+   mountBioHighlightLink(root,handles.instagram);
+   if(handles.snapchat){
+    const bio=root.querySelector('.profile-copy .bio');
+    if(bio){const link=document.createElement('a');link.dataset.biglwaBioHighlights='snapchat';link.className='biglwa-bio-highlights';link.href=snapchatViewerUrl(handles.snapchat);link.target='_blank';link.rel='noopener noreferrer';link.textContent='Snapchat Stories · @'+handles.snapchat+' ↗';bio.insertAdjacentElement('afterend',link)}
+   }
+  }
   const entries=[...instagramSourceHighlights(handles.instagram),...saved()]
     .filter((item,i,list)=>list.findIndex(other=>other.url===item.url)===i).slice(0,8);
   persistProviderLinks(handles,who);
@@ -325,7 +336,7 @@
   discovery.style.cssText='padding:5px 0 8px;font:500 10px/1.55 system-ui;color:#705364;display:grid;gap:5px';
   if(active('snapchat')){
    const a=document.createElement('a');a.target='_blank';a.rel='noopener noreferrer';
-   a.href=handles.snapchat?'https://story.snapchat.com/add/@'+encodeURIComponent(handles.snapchat):'https://www.snapchat.com';
+   a.href=handles.snapchat?snapchatViewerUrl(handles.snapchat):'https://o.storyclone.com/';
    a.textContent=handles.snapchat?'Snapchat · @'+handles.snapchat+' ↗':'Snapchat · provider did not supply a public @username';
    discovery.append(a);
    if(handles.snapchat){
@@ -337,7 +348,7 @@
   }
   if(active('instagram')){
    const a=document.createElement('a');
-   a.href=handles.instagram?'https://www.instagram.com/'+encodeURIComponent(handles.instagram)+'/':'https://www.instagram.com/';
+   a.href=handles.instagram?highlightViewerUrl(handles.instagram):'https://igexport.com/en/instagram-highlights-viewer/';
    a.target='_blank';a.rel='noopener noreferrer';
    a.textContent=handles.instagram?'Instagram connected · @'+handles.instagram:'Instagram connected';
    discovery.append(a);
@@ -352,16 +363,7 @@
     automatic.textContent='View public Highlights for @'+handles.instagram+' ↗';
     automatic.target='_blank';automatic.rel='noopener noreferrer';automatic.referrerPolicy='no-referrer';
     discovery.append(automatic);
-    const igcomment=document.createElement('a');
-    igcomment.href='https://igcomment.com/instagram-highlight-viewer/';
-    igcomment.textContent='IGComment viewer · copy @'+handles.instagram+' ↗';
-    igcomment.target='_blank';igcomment.rel='noopener noreferrer';igcomment.referrerPolicy='no-referrer';
-    igcomment.addEventListener('click',()=>{
-      // IGComment does not expose a confirmed public URL/API that accepts a username.
-      // Clipboard works only on member gesture, never silently in the background.
-      navigator.clipboard?.writeText(handles.instagram).catch(()=>{});
-    });
-    discovery.append(igcomment);
+
    }
   }
   section.append(discovery);
@@ -393,7 +395,7 @@
     const wrap=document.createElement('div');
     wrap.style.cssText='min-width:0;border:1px solid #ead7a8;border-radius:9px;overflow:hidden;background:#fff9f0';
     const a=document.createElement('a');
-    a.href='https://story.snapchat.com/add/@'+encodeURIComponent(handles.snapchat);
+    a.href=snapchatViewerUrl(handles.snapchat);
     a.target='_blank';a.rel='noopener noreferrer';
     a.textContent='Spotlight · @'+handles.snapchat+' ↗';
     a.style.cssText='display:block;padding:6px;color:#6e3d19;font:700 10px system-ui';

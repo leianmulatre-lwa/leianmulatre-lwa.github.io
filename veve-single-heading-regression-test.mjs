@@ -10,8 +10,8 @@ assert.ok(css.includes('.module-workspace[data-module-key="veve"] .module-headin
   'The route title is no longer hidden by old Veve CSS');
 assert.ok(css.includes('#biglwaVeve .veve-top{justify-content:flex-end!important'),
   'Sort, show and customize align under the authoritative title');
-assert.ok(index.includes('/veve.js?v=20261025-media-fallback-1&fix=veve-tdz-1-single-header-2'),
+assert.ok(index.includes('/veve.js?v=20261025-media-fallback-1&fix=veve-tdz-1-single-header-3'),
   'Browser requests the refreshed script');
-assert.ok(index.includes('/veve.css?v=20261023-orbit-colors-7-single-header-2'),
+assert.ok(index.includes('/veve.css?v=20261023-orbit-colors-7-single-header-3'),
   'Browser requests the refreshed styling');
 console.log('PASS one Veve heading, toolbar retained, source assets versioned');

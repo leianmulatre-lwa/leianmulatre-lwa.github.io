@@ -39,14 +39,15 @@ const stats=card.querySelector('.stats'), likes=stats.querySelector('[data-profi
 const row=card;
 const rail=card.querySelector('[data-biglwa-public-showcase]');
 assert.ok(row,'Profile banner exists');
-const profileHighlights=card.querySelector('[data-biglwa-bio-highlights]');
+const profileHighlights=card.querySelector('[data-biglwa-bio-highlights="1"]');
 assert.ok(profileHighlights,'Connected Instagram handle adds a Highlight link after member bio');
-assert.equal(profileHighlights.getAttribute('href'),'https://pvgram.com/?u=leianstanley',
+assert.equal(profileHighlights.getAttribute('href'),'https://igexport.com/en/instagram-highlights-viewer/?username=leianstanley',
   'Bio Highlights link passes the connected username without asking the member to paste it');
-assert.equal(profileHighlights.previousElementSibling.className,'bio','Bio text remains untouched');
+assert.equal(card.querySelector('.bio').textContent,'Original member bio','Bio text remains untouched');
 assert.equal(profileHighlights.getAttribute('target'),'_blank','External viewer opens without leaving BIG LWA');
 assert.equal(stats.parentElement,card.querySelector('.profile-copy'),'Metrics must remain in original profile copy');
-assert.equal(rail.parentElement,card,'Highlights must mount on the banner, not beside Likes');
+assert.equal(rail.parentElement,card.querySelector('.profile-copy'),'Highlights belong in the profile content, away from Mood');
+assert.equal(rail.previousElementSibling,stats,'Highlights sit directly below all five stats');
 assert.ok(likes,'Likes remains intact');
 assert.equal(rail.querySelector('.biglwa-stories-track').lastElementChild.dataset.source,'new','Add highlight moves after other highlights');
 assert.ok(rail.querySelectorAll('.biglwa-story-bubble[data-source="snapchat"]').length>=2,'Public Snapchat stories become circles');
@@ -112,11 +113,11 @@ aw.dispatchEvent(new aw.Event('biglwa:orbit-links-synced'));
 await new Promise(resolve=>setTimeout(resolve,450));
 const fallback=ad.querySelector('.biglwa-story-bubble[data-source="instagram"]');
 assert.ok(fallback,'Connected Instagram still appears when Highlight metadata is absent');
-assert.match(fallback.textContent||'',/Instagram/,'No genuine Highlight returned means profile fallback, not fake Highlight');
+assert.match(fallback.textContent||'',/Highlights/,'Viewer fallback is labelled Highlights');
 fallback.click();
-assert.match(ad.querySelector('.biglwa-story-popup strong')?.textContent||'',/Instagram profile/);
+assert.match(ad.querySelector('.biglwa-story-popup strong')?.textContent||'',/Instagram Highlights/);
 assert.equal(ad.querySelector('.biglwa-story-popup a')?.getAttribute('href'),
- 'https://www.instagram.com/owner.ig/');
+ 'https://igexport.com/en/instagram-highlights-viewer/?username=owner.ig');
 autoDom.window.close();
 console.log('Profile banner linked identity + automatic source Highlight and Spotlight passed.');
 

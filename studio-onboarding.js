@@ -479,7 +479,7 @@
    if(hints.isConnected)hints.checked=!!event.detail?.hidden;
   });
   card.appendChild(hub);
-  const rank=$('#studioApp .profile-card .real-rank');if(rank){const value=$('strong',rank);if(value)value.textContent='Chopped';const track=$('.rank-track i',rank);if(track)track.style.width='0%';const next=$('.rank-next',rank);if(next)next.textContent='next: 007';$('#skeletonRankMount',hub).append(rank)}
+  // Keep the original Real Rank bar and status on the profile banner.
   window.BigLWAAccountInsights?.refresh?.();
   return hub;
  }
