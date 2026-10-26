@@ -123,8 +123,43 @@
   };
   window.dispatchEvent(new Event('biglwa:profile-metrics'));
  }
+ let publicPublishAt=0,publicPending=false,publicSignature='';
+ async function sharePublicMetrics(){
+   const now=Date.now(),metrics=window.__biglwaProfileMetrics,who=uid();
+   if(publicPending||now-publicPublishAt<120000||!who||metrics?.uid!==who||
+     document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return;
+   const name=String(window.__biglwaIdentity?.username||'').toLowerCase().trim();
+   if(!/^[a-z0-9._-]{5,24}$/.test(name))return;
+   const snapshot={
+     followers:number(metrics.followers),likes:number(metrics.likes),reach:number(metrics.reach),
+     connections:number(metrics.connections),
+     realRank:typeof overview?.realRank==='string'?overview.realRank.slice(0,48):'Chopped',
+     observedAt:new Date().toISOString()
+   };
+   const signature=JSON.stringify({...snapshot,observedAt:''});
+   if(signature===publicSignature)return;
+   publicPending=true;publicPublishAt=now;
+   try{
+     const [{getApps},{getAuth},{getFirestore,doc,getDoc,setDoc,serverTimestamp}]=await Promise.all([
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+     ]);
+     const app=getApps()[0],user=app&&getAuth(app).currentUser;
+     if(!user||user.uid!==who)return;
+     const db=getFirestore(app);
+     const owner=await getDoc(doc(db,'users',who));
+     if(owner.data()?.accountVisibility==='private')return;
+     const ref=doc(db,'usernames',name),profile=await getDoc(ref);
+     if(!profile.exists()||profile.data()?.uid!==who)return;
+     await setDoc(ref,{publicStats:snapshot,updatedAt:serverTimestamp()},{merge:true});
+     publicSignature=signature;
+   }catch(error){console.info('Public aggregate stats mirror deferred:',error?.message||error)}
+   finally{publicPending=false}
+ }
  function render(){
   publishProfileMetrics();
+  if(!document.documentElement.classList.contains('biglwa-preview-mode'))void sharePublicMetrics();
   const rank=q('#studioApp .profile-card .real-rank')||q('#skeletonRankMount .real-rank');if(rank){const label=typeof overview?.realRank==='string'?overview.realRank:'Chopped';const strong=q('strong',rank);if(strong&&strong.textContent!==label)strong.textContent=label;rank.setAttribute('aria-label','Real Rank: '+label);}
   const host=q('#skeletonAnalytics');if(!host)return;
   if(!q('.skeleton-analytics-grid',host)){
