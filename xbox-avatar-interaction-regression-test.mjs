@@ -6,7 +6,7 @@ const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const src=read('avatar-studio-bitmoji-20261017-v3.js'),home=read('index.html');
 const minecraft=read('avatar/minecraft-mannequin.js');
 assert.doesNotThrow(()=>new Script(src));
-assert.match(home,/avatar-studio-bitmoji-20261017-v3\.js\?v=20261021-vanilla-skins-6/,'Cache bust active avatar release');
+assert.match(home,/avatar-studio-bitmoji-20261017-v3\.js\?v=20261026-publish-avatar-1/,'Cache bust active avatar release');
 assert.ok(src.includes("data-avatar-widget-action=\"enlarge\""),'Green dot enlarges, not deletes');
 assert.ok(src.includes("if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge()"),'Green action routes to dialog');
 assert.ok(src.includes("dialog.showModal()"),'Large avatar opens as interactive dialog');
