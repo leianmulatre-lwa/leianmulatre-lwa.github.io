@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261025-source-face-1';
+        script.src = '/module-pages.js?v=20261026-tewlz-bookini-trophies-1';
         document.head.appendChild(script);
       }, 250);
     }
