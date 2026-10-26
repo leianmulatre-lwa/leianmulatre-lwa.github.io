@@ -41,6 +41,12 @@ await new Promise(res=>setTimeout(res,80));
 const dots=d.getElementById('biglwaAccountActionDots');
 const menu=d.getElementById('biglwaAccountMenu');
 assert.ok(dots&&menu,'Account menu and color dots actually mount');
+assert.ok((d.getElementById('profileMenuBtn').compareDocumentPosition(dots) & 4)!==0,
+ 'Profile avatar/greeting comes before green/yellow/red account dots');
+assert.match(d.getElementById('biglwa-account-dots-style').textContent,/gap:9px/,
+ 'Colored account dots have slightly more breathing room');
+assert.match(d.getElementById('biglwa-account-dots-style').textContent,/\[data-biglwa-add-user\] img[^}]*width:12px/,
+ 'Connect icon itself is smaller without changing the button symbol');
 assert.equal(dots.querySelectorAll('button').length,3,'Exactly green/yellow/red account actions');
 assert.ok(dots.querySelector('[data-biglwa-add-user]'));
 assert.equal(dots.querySelector('[data-biglwa-add-user] img')?.getAttribute('src'),'/assets/connect-symbol.svg','Add user reuses the actual Connect icon');
