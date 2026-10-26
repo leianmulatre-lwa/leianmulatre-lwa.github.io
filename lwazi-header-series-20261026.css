@@ -171,3 +171,49 @@
   width:100%!important;min-width:0!important;gap:5px!important;
  }
 }
+
+
+/* Stream uses the existing same-line module version slot (Sqwibz pattern).
+   The functional native stream tabs remain hidden inside Stream as delegates. */
+#studioApp #moduleWorkspace[data-module-key="stream"] .module-heading.module-heading--with-versions{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) max-content!important;
+ align-items:center!important;
+ gap:7px 12px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-copy{
+ grid-row:1!important;grid-column:1!important;min-width:0!important
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-right{
+ grid-row:1!important;grid-column:2!important;display:flex!important;
+ align-items:center!important;justify-content:flex-end!important;
+ width:auto!important;max-width:min(58vw,460px)!important;min-width:0!important
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-bottom{
+ grid-row:2!important;grid-column:1/-1!important;
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions{
+ display:inline-flex!important;flex-flow:row nowrap!important;
+ width:max-content!important;max-width:100%!important;min-width:0!important;
+ background:#e9dfd5!important;border:1px solid #d5cbc2!important;
+ border-radius:12px!important;padding:4px!important;gap:3px!important;
+ overflow-x:auto!important;scrollbar-width:thin!important;
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button{
+ flex:0 0 auto!important;min-width:66px!important;min-height:31px!important;
+ padding:6px 10px!important;border:0!important;border-radius:8px!important;
+ background:transparent!important;color:#554845!important;box-shadow:none!important;
+ font:700 11px/1.2 system-ui!important;letter-spacing:0!important;text-transform:none!important;
+ white-space:nowrap!important;cursor:pointer!important;
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button[aria-selected="true"]{
+ background:#71374f!important;color:#fffaf7!important;box-shadow:0 1px 3px #20081033!important
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .biglwa-stream .stream-nav{
+ display:none!important
+}
+#studioApp #moduleWorkspace[data-module-key="stream"] .biglwa-stream{padding-top:0!important}
+@media(max-width:620px){
+ #studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-right{max-width:min(60vw,280px)!important}
+ #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button{min-width:51px!important;padding:5px 7px!important;font-size:10px!important}
+}
