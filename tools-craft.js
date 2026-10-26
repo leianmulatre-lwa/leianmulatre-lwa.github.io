@@ -24,10 +24,8 @@ const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-des
  description:'Draw, paint, add text and layers, edit photos, save editable BIG LWA projects.',
  credit:'Original BIG LWA editor · works locally'};
 const WEB_FRIENDLY=[
- {id:'visualizr',name:'visualizr',route:'projects',icon:'/assets/bigapps/blocks/visualizr.svg?v=20261026-1',
-  description:'Build visualeyez boards and visualslidez presentations inside your BIG LWA Studio.'},
- {id:'bookini',name:'bookini',route:'camera',icon:'/assets/bigapps/blocks/bookini.svg?v=20261026-1',
-  description:'Capture photos in your own browser booth; video meetups are coming soon.'}
+ {id:'visualizr',name:'visualizr',route:'projects',icon:'/assets/bigapps/icons/visualizr.png?v=20261026-stitched-v-2',
+  description:'Build visualeyez boards and visualslidez presentations inside your BIG LWA Studio.'}
 ];
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeId=id=>id===LOCAL.id||ENGINES.some(item=>item.id===id);
@@ -79,7 +77,7 @@ export async function mountCraftSuite(root){
   '<header class="craft-head">'+
    '<div class="craft-head-copy"><span class="craft-label">R / LWAZI SERIEZ · BIG LWA</span>'+
    '<h2>your werkshopeR</h2>'+
-   '<p>Meet the blocks, part of the R/Lwazi seriez: our own apps, designed fo/r you. 3 web-friendly BIG LWA apps and 4 advanced open-source R-editors.</p><nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support on Patreon ↗</a></nav></div>'+
+   '<p>Meet the blocks, part of the R/Lwazi seriez: our own apps, designed fo/r you. 2 web-friendly BIG LWA apps and 4 advanced open-source R-editors.</p><nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support on Patreon ↗</a></nav></div>'+
    '<div class="craft-head-ornament craft-lwazi-crest" aria-label="R / Lwazi series"><img src="/assets/bigapps/blocks/r-editor.svg?v=20261026-1" alt=""><strong>R / LWAZI SERIEZ</strong></div></header>'+
   '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
@@ -100,7 +98,7 @@ export async function mountCraftSuite(root){
     '<p class="craft-panel-foot" role="status" id="craftEditorStatus">Your workspace is ready.</p>'+
   '</div>'+
   '<footer class="craft-smallprint">'+
-    '<p><strong>Who made what?</strong> sqwibblR, visualizr, bookini and this Lwazi Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
+    '<p><strong>Who made what?</strong> sqwibblR, visualizr and this Lwazi Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
     '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects still require the editor’s download/export commands. Some advanced builds require WebGPU/WebGL.</p>'+
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
