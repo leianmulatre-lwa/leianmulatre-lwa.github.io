@@ -360,6 +360,7 @@ html.biglwa-preview-mode #studioApp .widget-drag-handle,
 html.biglwa-preview-mode #studioApp .minimized-widget-dock,
 html.biglwa-preview-mode #studioApp [data-studio-drag-handle],
 html.biglwa-preview-mode #studioApp #editProfileBtn,
+html.biglwa-preview-mode #studioApp #biglwaOwnerPreviewButton,
 html.biglwa-preview-mode #studioApp [data-open-widget-settings],
 html.biglwa-preview-mode #studioApp [data-expand-widget],
 html.biglwa-preview-mode #studioApp [data-minimize-widget],
@@ -867,6 +868,7 @@ function noticeMissing(username){
 }
 
 document.addEventListener('biglwa:session-verified',()=>setTimeout(installOwnerPreviewEntry,300));
+document.addEventListener('biglwa:studio-opened',()=>setTimeout(installOwnerPreviewEntry,150));
 document.addEventListener('DOMContentLoaded',()=>setTimeout(installOwnerPreviewEntry,500));
 async function boot(){
   const username=pathUsername();
