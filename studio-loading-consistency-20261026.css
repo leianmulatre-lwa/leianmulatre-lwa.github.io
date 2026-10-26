@@ -131,3 +131,21 @@
 @media(prefers-reduced-motion:reduce){
  #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-dot {animation:none!important}
 }
+
+
+/* JS-generated Veve styles load late; use the combined pending selector
+   to keep the cap above the masonry even when that stylesheet wins source order. */
+#studioApp .module-shell.lwa-curtain-loading.lwa-curtain-veve-pending{
+  max-height:calc(100dvh - 132px)!important;
+  min-height:min(520px,calc(100dvh - 132px))!important;
+  overflow:hidden!important;
+}
+#studioApp .module-shell.lwa-curtain-loading.lwa-curtain-veve-pending::after{
+  top:calc(var(--lwa-loading-top,0px) + var(--lwa-loading-hero-height))!important;
+  height:auto!important;
+  min-height:0!important;
+  background:linear-gradient(180deg,#310b16 0%,#21060e 14%,#17040b 100%)!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"][hidden]{
+  display:none!important;
+}
