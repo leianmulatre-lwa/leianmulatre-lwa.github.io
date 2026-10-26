@@ -13,6 +13,9 @@ assert.match(craft,/assets\/bigapps\/icons\//,'Original R-editor PNG blocks rest
 assert.match(editor,/assets\/bigapps\/icons\//,'Original R-editor PNG blocks restored in native editors');
 assert.match(craft,/WEB_FRIENDLY\.map\(webAppCard\)/,'Visualizr remains a standalone Workshop card');
 assert.match(craft,/assets\/bigapps\/icons\/visualizr\.png/,'New transparent pink Visualizr PNG is used in Lwazi');
+const visualizrPng=readFileSync(new URL('./assets/bigapps/icons/visualizr.png',import.meta.url));
+assert.ok(visualizrPng.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Visualizr replacement is a REAL PNG, not SVG or a link');
+assert.equal(visualizrPng.readUInt32BE(16),128,'Optimized icon PNG retained its square image format');
 assert.doesNotMatch(craft,/\{id:'bookini',name:'bookini'/,'Bookini is no longer a separate Workshop app');
 assert.match(craft,/2 web-friendly BIG LWA apps and 4 advanced/,'Workshop count reflects removal of standalone Bookini');
 assert.match(modulePages,/tools:'lwazi'/,'Lwazi route title');
