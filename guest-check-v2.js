@@ -81,7 +81,7 @@
  function makeDialog(){
   let dialog=$('#biglwaGuestCheckV2');if(dialog)return dialog;
   dialog=el('dialog','biglwa-guest-v2');dialog.id='biglwaGuestCheckV2';
-  dialog.innerHTML='<header class="biglwa-guest-v2-title"><h2>Guest Check</h2><button type="button" class="biglwa-guest-v2-close" aria-label="Close Guest Check">×</button></header><section class="biglwa-guest-v2-content"><div class="biglwa-guest-v2-permissions" hidden><label for="biglwaGuestPermission">Who can check in?</label><select id="biglwaGuestPermission"><option value="anyone">Anyone with a BIG LWA account</option><option value="connects">Connects only</option></select><small>“Connects only” uses your approved Archive friends list. Visitors can still read published entries.</small></div><p class="biglwa-guest-v2-status" role="status" aria-live="polite"></p><div class="biglwa-guest-v2-entries" aria-label="Published guest check-ins"></div><form class="biglwa-guest-v2-form" hidden><label>Note<textarea name="note" maxlength="450" rows="3" placeholder="Leave a note…" required></textarea></label><label>Emoji<select name="emoji"><option value="💐">💐</option><option value="❤️">❤️</option><option value="✨">✨</option><option value="🖤">🖤</option><option value="✿">✿</option></select></label><button type="submit">Add check-in</button></form></section>';
+  dialog.innerHTML='<header class="biglwa-guest-v2-title"><h2>Guest Check</h2><button type="button" class="biglwa-guest-v2-close" aria-label="Close Guest Check">×</button></header><section class="biglwa-guest-v2-content"><div class="biglwa-guest-v2-permissions" hidden><label for="biglwaGuestPermission">Who can check in?</label><select id="biglwaGuestPermission"><option value="anyone">Anyone</option><option value="connects">Connects only</option></select><small>“Connects only” uses your approved Archive friends list. Visitors can still read published entries.</small></div><p class="biglwa-guest-v2-status" role="status" aria-live="polite"></p><div class="biglwa-guest-v2-entries" aria-label="Published guest check-ins"></div><form class="biglwa-guest-v2-form" hidden><label>Note<textarea name="note" maxlength="450" rows="3" placeholder="Leave a note…" required></textarea></label><label>Emoji<select name="emoji"><option value="💐">💐</option><option value="❤️">❤️</option><option value="✨">✨</option><option value="🖤">🖤</option><option value="✿">✿</option></select></label><button type="submit">Add check-in</button></form></section>';
   dialog.querySelector('.biglwa-guest-v2-close').addEventListener('click',()=>dialog.close());
   document.body.append(dialog);return dialog;
  }
@@ -145,5 +145,26 @@
   if(!control)return;
   event.preventDefault();event.stopImmediatePropagation();open();
  },true);
+
+ function retireLegacy(){
+  const old=$('#guestCheckDialog');
+  if(!old||old.dataset.guestCheckRedirect==='1')return;
+  old.dataset.guestCheckRedirect='1';
+  const redirect=()=>{
+   if(!old.open)return;
+   if(typeof old.close==='function')old.close();else old.removeAttribute('open');
+   if(!$('#biglwaGuestCheckV2')?.open)void open();
+  };
+  new MutationObserver(redirect).observe(old,{attributes:true,attributeFilter:['open']});
+  redirect();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
+  retireLegacy();
+  new MutationObserver(retireLegacy).observe(document.body,{childList:true,subtree:true});
+ },{once:true});
+ else{
+  retireLegacy();
+  new MutationObserver(retireLegacy).observe(document.body,{childList:true,subtree:true});
+ }
  window.BigLWAGuestCheck=Object.freeze({open,summary,permission});
 })();
