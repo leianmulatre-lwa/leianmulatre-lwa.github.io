@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261026-tewlz-bookini-trophies-1';
+        script.src = '/module-pages.js?v=20261026-tewlz-bookini-trophies-1&fix=public-journal-1';
         document.head.appendChild(script);
       }, 250);
     }
