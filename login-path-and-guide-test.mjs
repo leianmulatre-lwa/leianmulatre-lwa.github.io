@@ -117,7 +117,7 @@ assert.equal(bare.children[0].tagName,'IMG','logo graphics remain real image ass
 assert.equal(bare.children[0].src,'/assets/supporters/ucla.png');
 assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
   'original white supporter tile declarations removed rather than overridden');
-assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
+assert.ok(home.includes('policy-card-cohesion.js?v=20261026-expanded-supporters-1'));
 assert.ok(home.includes('brand-policy.css?v='));
 
 assert.ok(/const brandPolicyCss=`<link rel="stylesheet" href="\/brand-policy\.css\?v=[^"]+">/.test(home),
