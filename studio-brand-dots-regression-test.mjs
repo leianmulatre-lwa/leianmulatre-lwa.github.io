@@ -4,7 +4,7 @@ import {createRequire} from 'node:module';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 const dots=readFileSync(new URL('./studio-loading-dots-20261021.js',import.meta.url),'utf8');
 const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.match(index,/studio-loading-dots-20261021\.js\?v=20261026-loading-only-dots-6/,'Current site loads fix');
+assert.match(index,/studio-loading-dots-20261021\.js\?v=20261026-curtain-sync-7/,'Current site loads fix');
 assert.match(dots,/#lwaProfileLoading\{display:inline-flex!important/,'Loading dots share one consistent DOM node in both modes');
 assert.match(dots,/if\(!profile\|\|!profile\.isConnected\)/,'Brand dots reattach after toolbar hydration');
 
