@@ -5,6 +5,8 @@
    const pathname=location.pathname.endsWith('/')?location.pathname.slice(0,-1):location.pathname;
    if(!data||!((handle||'').toLowerCase()===data.handle||pathname==='/leian'))return null;
    const editor=window.BIGLWAHighlightEditor;
+   // With no owner edits, preserve the exact original object for legacy previews.
+   if(typeof editor?.customize!=='function')return data;
    const groups=data.highlights.map((group,i)=>typeof editor?.customize==='function'?editor.customize(group,i):group)
      .filter(group=>group&&Array.isArray(group.items)&&group.items.length);
    return {...data,highlights:groups};
