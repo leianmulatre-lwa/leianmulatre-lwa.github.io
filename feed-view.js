@@ -1095,7 +1095,7 @@ function renderPosts(force) {
     const sourceVideoId=String(post.sourcePostId||"");
     const tiktokEmbed=post.sourceHostedMedia===true&&providerSafeTikTok(post)&&/^\d{6,25}$/.test(sourceVideoId)
       ? 'https://www.tiktok.com/embed/v2/'+sourceVideoId : '';
-    const externalVideo=tiktokEmbed
+    const externalVideo=tiktokEmbed && !playable
       ? '<div class="biglwa-source-video"><iframe title="TikTok video from '+esc(post.sourceUsername||'connected account')+'" src="'+esc(tiktokEmbed)+'" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
       : '';
     const image = externalVideo || (soleVideo
@@ -1114,7 +1114,7 @@ function renderPosts(force) {
     // Pinterest-imported media is a normal visual card. Even historical records
     // mislabeled as Instagram must not show a bulky "Shared link" footer.
     const pinSource=/^https?:\/\/(?:www\.)?pinterest\.[^/]+\/pin\//i.test(String(post.sourceUrl||''))||String(post.source||'').toLowerCase()==='pinterest';
-    const link = !pinSource && !isInstagram && !["facebook","pinterest"].includes(String(post.source||"").toLowerCase()) && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
+    const link = !pinSource && !isInstagram && !["facebook","pinterest"].includes(String(post.source||"").toLowerCase()) && !playable && !shown.length && !externalVideo && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     // Carousels are controlled directly on their photo: dots below, arrows on hover.
     // Numbered browser tabs belong to the retired feed header and are not rendered.
     // Use the same card header for every source; slideshow arrow controls
