@@ -118,7 +118,7 @@ def brand_web_shell(slug: str, dest: Path) -> None:
                   f"<title>BIG LWA · {name}</title>", html, count=1)
     favicon = f'<link rel="icon" type="image/png" sizes="160x160" href="/assets/bigapps/icons/{name}.png?v=20261023-stitch-png-1">'
     css = ('<link rel="stylesheet" href="/assets/craft/editor-brand.css?v=20261026-native-identity-1">')
-    js = ('<script defer src="/assets/craft/editor-brand.js?v=20261026-native-identity-1"></script>')
+    js = ('<script defer src="/assets/craft/editor-brand.js?v=20261026-original-icons-2"></script>')
     if re.search(r"(?i)</head>", html):
         html = re.sub(r"(?i)</head>", lambda _: favicon + css + "</head>", html, count=1)
     else:
