@@ -454,7 +454,7 @@
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
   hub.setAttribute('aria-label','Skeleton Key for the individual');
   hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div>'+
-   '<div id="skeletonRankMount"></div><details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
+   '<details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
    '<details class="skeleton-body-legend"><summary>Body shadow key</summary><div class="skeleton-body-models">'+
    '<figure style="--model-shadow:#d9c6ee"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Individual</figcaption></figure>'+
    '<figure style="--model-shadow:#f7cddd"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Social</figcaption></figure>'+

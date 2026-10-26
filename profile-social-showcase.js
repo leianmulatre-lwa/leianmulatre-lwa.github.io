@@ -170,8 +170,9 @@
    '#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-scroll{flex:0 0 15px!important;cursor:pointer!important;border:0!important;background:#fff9f1d9!important;color:#57364a!important}',
    '@media(max-width:640px){#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{left:6px!important;right:6px!important;bottom:4px!important}#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-bubble{flex-basis:40px!important;width:40px!important}}',
    '#studioApp.profile-editor-wallpaper .profile-card .profile-copy>.biglwa-stories-ribbon,#studioApp .profile-card.profile-is-editing .profile-copy>.biglwa-stories-ribbon{display:none!important}'
-   ,'#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy>.stats.stats{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;max-width:650px!important;gap:6px!important;margin:0!important}#studioApp .profile-card .profile-copy>.stats.stats>*{min-width:0!important;padding:0 6px 0 0!important}#studioApp .profile-card .profile-copy>.stats.stats b{font-size:clamp(13px,1.2vw,18px)!important}'
-   ,'#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{position:static!important;inset:auto!important;display:grid!important;grid-template-columns:auto auto minmax(60px,1fr) auto!important;align-items:center!important;gap:8px!important;width:100%!important;max-width:650px!important;margin:12px 0 0!important;padding:10px 0 0!important}.profile-copy>.real-rank .rank-track{display:block!important;min-width:60px}.profile-copy>.real-rank .rank-track i{display:block!important}'
+   ,'#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy>.stats.stats{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;max-width:none!important;gap:6px!important;margin:0!important}#studioApp .profile-card .profile-copy>.stats.stats>*{min-width:0!important;padding:0 6px 0 0!important}#studioApp .profile-card .profile-copy>.stats.stats b{font-size:clamp(13px,1.2vw,18px)!important}'
+   ,'#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{position:static!important;inset:auto!important;display:grid!important;grid-template-columns:auto auto minmax(60px,1fr) auto!important;align-items:center!important;gap:8px!important;width:100%!important;max-width:none!important;margin:12px 0 0!important;padding:10px 0 0!important}.profile-copy>.real-rank .rank-track{display:block!important;min-width:60px}.profile-copy>.real-rank .rank-track i{display:block!important}'
+   ,'#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing){height:auto!important;min-height:310px!important;max-height:none!important;overflow:visible!important}#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy{min-width:0!important;padding-bottom:18px!important;overflow:visible!important}#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-stories-track{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(58px,1fr))!important;gap:10px!important;overflow:visible!important;width:100%!important}#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon .biglwa-story-bubble{justify-self:center!important}#studioApp .profile-card .profile-copy>.real-rank .real-rank-explanation{display:none!important}#studioApp .profile-card .profile-copy>.real-rank .rank-track{height:8px!important;overflow:hidden!important}#studioApp .profile-card .profile-copy>.real-rank .rank-track i{height:100%!important}'
   ].join('\n');document.head.append(css);
  };
  function closeStory(){
@@ -208,33 +209,13 @@
   const notice=document.createElement('small');notice.textContent='Source-hosted public story · availability may change';
   pop.append(notice);document.body.append(pop);x.focus();
  }
- function profilePreview(platform,handle){
-  // Keep members inside BIG LWA when a connected network has not exposed
-  // individual Highlight/Spotlight records. The source link is optional.
-  storyShade();
-  const valid=validHandle(handle),original=valid?
-   (platform==='instagram'?highlightViewerUrl(handle):snapchatViewerUrl(handle)):'';
-  const pop=document.createElement('div');pop.className='biglwa-story-popup';
-  pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');
-  const close=document.createElement('button');close.type='button';close.className='biglwa-story-close';
-  close.textContent='×';close.setAttribute('aria-label','Close profile preview');close.onclick=closeStory;
-  const title=document.createElement('strong');title.textContent=platform==='instagram'?'Instagram Highlights':'Snapchat Stories';
-  const handleText=document.createElement('p');handleText.textContent=valid?'@'+handle:'Public profile link unavailable';
-  const note=document.createElement('small');note.textContent='Your connected username is already filled in. Open the viewer to see available public stories; retrievable media appears directly on your banner.';
-  pop.append(close,title,handleText,note);
-  if(original){
-   const link=document.createElement('a');link.href=original;link.target='_blank';
-   link.rel='noopener noreferrer';link.textContent='Open '+(platform==='instagram'?'IGExport Highlights':'Storyclone Stories')+' · @'+handle+' ↗';pop.append(link);
-  }
-  document.body.append(pop);close.focus();
- }
  function storyBubble(platform,label,fn){
   const b=document.createElement('button');b.type='button';b.className='biglwa-story-bubble';b.dataset.source=platform;
   b.setAttribute('aria-label',label);
   const ring=document.createElement('span');ring.className='biglwa-story-ring';
   const inner=document.createElement('span');inner.className='biglwa-story-inner';
   if(platform==='snapchat'){
-   const img=document.createElement('img');img.src='/assets/orbit-icons/snapchat.svg';img.alt='';inner.append(img);
+   inner.textContent='↗';
   }else if(platform==='instagram'){
    const photo=window.__biglwaInstagramOrbit?.state?.profile?.profile_picture_url||'';
    if(/^https:\/\//.test(String(photo))){
@@ -247,24 +228,18 @@
   const title=document.createElement('span');title.className='biglwa-story-name';title.textContent=label;
   b.append(ring,title);b.onclick=fn;return b;
  }
- // The bio has a one-click, username-addressed public Highlight viewer link.
+ // Highlight circles link directly to the username-addressed public viewer.
  // Do not send OAuth tokens or background requests to third-party viewers.
  const highlightViewerUrl=handle=>'https://igexport.com/en/instagram-highlights-viewer/?username='+encodeURIComponent(handle);
  const snapchatViewerUrl=handle=>'https://o.storyclone.com/u/'+encodeURIComponent(handle)+'/';
- function mountBioHighlightLink(root,handle){
-   const bio=root.querySelector('.profile-copy .bio');
-   root.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());
-   if(!bio||!validHandle(handle)||!active('instagram'))return;
-   const a=document.createElement('a');
-   a.dataset.biglwaBioHighlights='1';
-   a.className='biglwa-bio-highlights';
-   a.href=highlightViewerUrl(handle);
-   a.target='_blank';a.rel='noopener noreferrer';a.referrerPolicy='no-referrer';
-   a.textContent='Highlights · @'+handle+' ↗';
-   a.setAttribute('aria-label','View public Instagram Highlights for @'+handle);
-   a.title='Opens public Highlights from the connected Instagram username';
-   a.style.cssText='display:inline-flex;align-items:center;max-width:100%;margin:5px 0 2px;padding:5px 8px;border-radius:8px;border:1px solid #bba6ad;background:#fff7f0b8;color:#633749;font:650 10px/1.3 system-ui;text-decoration:none';
-   bio.insertAdjacentElement('afterend',a);
+ function viewerBubble(platform,handle){
+  const bubble=storyBubble(platform,platform==='instagram'?'Highlights':'Stories',()=>{});
+  const link=document.createElement('a');
+  for(const attribute of bubble.attributes)link.setAttribute(attribute.name,attribute.value);
+  link.href=platform==='instagram'?highlightViewerUrl(handle):snapchatViewerUrl(handle);
+  link.target='_blank';link.rel='noopener noreferrer';link.referrerPolicy='no-referrer';
+  link.setAttribute('aria-label','View '+platform+' highlights for @'+handle);
+  link.append(...bubble.childNodes);return link;
  }
  function mountStoryCircles(root,section,entries,snapItems,handles){
   const copy=root.querySelector('.profile-copy'),stats=copy?.querySelector('.stats');if(!copy||!stats)return;
@@ -278,16 +253,16 @@
   if(active('snapchat')){
    if(snapItems.length)snapItems.forEach((item,i)=>track.append(storyBubble('snapchat','Spotlight '+(i+1),
     ()=>storyPreview({...item,url:snapchatViewerUrl(handles.snapchat)},'snapchat'))));
-   else if(handles.snapchat)track.append(storyBubble('snapchat','Snapchat',()=>profilePreview('snapchat',handles.snapchat)));
+   else if(handles.snapchat)track.append(viewerBubble('snapchat',handles.snapchat));
   }
   const ig=entries.filter(x=>x.platform==='instagram'&&active('instagram'));
   // Keep the approved username-addressed viewer available when the source
   // cannot return individual Highlight media. Do not invent imported records.
   if(handles.instagram&&!ig.length){
 
-   track.append(storyBubble('instagram','Highlights',()=>profilePreview('instagram',handles.instagram)));
+   track.append(viewerBubble('instagram',handles.instagram));
   }
-  ig.forEach((item,i)=>track.append(storyBubble('instagram','Highlight '+(i+1),()=>storyPreview(item,'instagram'))));
+  ig.forEach((item,i)=>{const link=viewerBubble('instagram',handles.instagram);link.querySelector('.biglwa-story-name').textContent='Highlight '+(i+1);track.append(link)});
   entries.filter(x=>x.platform==='snapchat'&&active('snapchat')).forEach((item,i)=>
    track.append(storyBubble('snapchat','Spotlight '+(snapItems.length+i+1),()=>storyPreview(item,'snapchat'))));
   track.append(storyBubble('new','New',()=>storyEditor(section)));
@@ -298,7 +273,7 @@
   prev.onclick=()=>{track.scrollBy({left:-140,behavior:'smooth'});setTimeout(arrows,250)};
   next.onclick=()=>{track.scrollBy({left:140,behavior:'smooth'});setTimeout(arrows,250)};
   track.addEventListener('scroll',arrows,{passive:true});
-  rail.append(prev,track,next);stats.insertAdjacentElement('afterend',rail);requestAnimationFrame(arrows);
+  rail.append(track);stats.insertAdjacentElement('afterend',rail);requestAnimationFrame(arrows);
  }
 
  function show(){
@@ -308,13 +283,7 @@
   const rank=root?.querySelector('.real-rank')||document.querySelector('#skeletonRankMount .real-rank');
   if(copy&&rank&&rank.parentElement!==copy)copy.append(rank);
   const who=uid(),handles=accountHandles();
-  if(root){
-   mountBioHighlightLink(root,handles.instagram);
-   if(handles.snapchat){
-    const bio=root.querySelector('.profile-copy .bio');
-    if(bio){const link=document.createElement('a');link.dataset.biglwaBioHighlights='snapchat';link.className='biglwa-bio-highlights';link.href=snapchatViewerUrl(handles.snapchat);link.target='_blank';link.rel='noopener noreferrer';link.textContent='Snapchat Stories · @'+handles.snapchat+' ↗';bio.insertAdjacentElement('afterend',link)}
-   }
-  }
+  root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());
   const entries=[...instagramSourceHighlights(handles.instagram),...saved()]
     .filter((item,i,list)=>list.findIndex(other=>other.url===item.url)===i).slice(0,8);
   persistProviderLinks(handles,who);
