@@ -314,9 +314,10 @@ async function loadPublicProfile(rawUsername){
       profilePhotoUrl:/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/profile-photo\//.test(String(data.profilePhotoUrl||''))?String(data.profilePhotoUrl):'',
       studioAvatarPublic:(()=>{
        const avatar=data.studioAvatarPublic,url=String(avatar?.url||'');
-       if(!avatar||!['minecraft','mii','imvu','bitmoji'].includes(avatar.type)||
-         !/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/(?:profile-photo|feed-image)\//.test(url))return null;
-       return {type:avatar.type,url};
+       const owned= /^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/(?:profile-photo|feed-image)\//.test(url);
+       const sona=avatar?.type==='sona360' && /^https:\/\/(?:www\.)?360sona\.com\/w\/[a-zA-Z0-9_-]+\/?(?:[?#].*)?$/.test(url);
+       if(!avatar||!['minecraft','mii','imvu','bitmoji','sona360'].includes(avatar.type)||!(owned||sona))return null;
+       return {type:avatar.type,url,...(avatar.type==='minecraft'?{slim:avatar.slim===true}:{})};
       })(),
       publicStats:data.accountVisibility==='private'?null:(data.publicStats&&typeof data.publicStats==='object'?{
         followers:Number.isFinite(data.publicStats.followers)&&data.publicStats.followers>=0?data.publicStats.followers:null,
