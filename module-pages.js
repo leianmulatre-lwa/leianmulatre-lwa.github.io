@@ -3577,23 +3577,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         note.innerHTML='<span class="studio-private-writing">🔒 Sqwib · private</span>';
         note.setAttribute('aria-label','Sqwib is private');
       }
+      // The public-profile presenter owns the immutable composition-book cover.
+      // Do not replace this tile with asynchronous text on focus/module close:
+      // that destroys the owner's cover and races the visitor's profile data.
+      // Only the explicitly published Journal snapshot is read on its full page.
       const page=$('#studioApp #diary .diary-page');
-      if(page){
-        const username=(()=>{try{return decodeURIComponent(location.pathname.split('/').filter(Boolean)[0]||'')}catch{return ''}})();
-        if(page.dataset.publicJournalUsername!==username){
-          page.dataset.publicJournalUsername=username;
-          page.innerHTML='<span class="studio-private-writing">Journal · checking visibility…</span>';
-          Promise.resolve(window.BigLWAUserDirectory?.loadPublicProfile?.(username)).then(profile=>{
-            if(!page.isConnected||page.dataset.publicJournalUsername!==username)return;
-            if(profile?.journalVisibility==='public'&&profile.publicJournal){
-              page.innerHTML='<span class="studio-public-journal-heading">Journal · viewable</span><p class="studio-public-journal-excerpt"></p>';
-              page.querySelector('p').textContent=String(profile.publicJournal).slice(0,165);
-            }else{
-              page.innerHTML='<span class="studio-private-writing">🔒 Journal · private</span>';
-            }
-          }).catch(()=>{if(page.isConnected)page.innerHTML='<span class="studio-private-writing">Journal unavailable</span>'});
-        }
-      }
+      if(page)page.dataset.publicJournalViewer='1';
       return;
     }
     const journalInitial=()=>{
