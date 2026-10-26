@@ -65,3 +65,7 @@
  #studioApp #games .games-library.games-library{max-height:none!important}
  #studioApp #games .arcade-library-viewport.arcade-library-viewport{padding:2px!important}
 }
+
+/* Supersede legacy first-child artwork rules as well as the generic image rule. */
+#studioApp #games .games-arcade-brand.games-arcade-brand>img:first-child,
+#studioApp #games .games-arcade-brand.games-arcade-brand>img:nth-child(2){display:none!important}

@@ -15,7 +15,7 @@ assert.match(css,/\.arcade-library-viewport\.arcade-library-viewport\s*\{[^}]*po
  'Live games are aligned in transparent opening');
 assert.match(css,/\.arcade-game-tile\{pointer-events:auto!important\}/,
  'Game tiles remain interactive');
-assert.ok(index.includes('arcade-cabinet-approved-20261025.css?v=3'),'Studio loads approved asset');
+assert.ok(index.includes('arcade-cabinet-approved-20261025.css?v=4'),'Studio loads approved asset');
 assert.ok(index.indexOf('arcade-cabinet-approved-20261025.css')>index.indexOf('arcade-curtain-folder-20261025.css'),
  'New cabinet overrides legacy decorative layers');
 console.log('PASS full approved arcade PNG, responsive live game click layer');
