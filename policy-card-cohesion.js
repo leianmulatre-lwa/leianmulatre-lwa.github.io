@@ -205,12 +205,12 @@
     const section = document.createElement('section');
     section.className = `supporter-carousel ${className}`;
     section.hidden = true;
-    section.setAttribute('aria-label', 'Supported by researchers and alumni at');
+    section.setAttribute('aria-label', 'Supported by creatives, students, professors, lawyers, researchers and alumni at');
 
     const heading = document.createElement('div');
     heading.className = 'supporter-heading';
     const title = document.createElement('h2');
-    title.textContent = 'supported by researchers and alumni at';
+    title.textContent = 'supported by creatives, students, professors, lawyers, researchers and alumni at';
     heading.append(title);
 
     const viewport = document.createElement('div');
