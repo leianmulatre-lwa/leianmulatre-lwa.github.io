@@ -742,7 +742,8 @@ async function checkSignedIn(){
    and never leaves a useless translucent empty panel behind. */
 function installOwnerPreviewEntry(){
   if(preview.active)return;
-  const button=$('#studioApp #editProfileBtn');
+  // Preview now belongs in the account dropdown, not beneath Edit Profile.
+  const button=null;
   if(!button||$('#biglwaOwnerPreviewButton'))return;
   const mine=clean(identity()?.username||localProfile()?.username).toLowerCase().replace(/^@/,'');
   if(!/^[a-z0-9._-]{5,24}$/.test(mine))return;
@@ -811,7 +812,7 @@ function enforce(){
     }
   }
   if(!app.classList.contains("is-active") || loginPage()?.classList.contains("is-active")) showStudioScreen();
-  if(location.pathname!==preview.path) history.replaceState({},"",preview.path);
+  if(location.pathname+location.search!==preview.path) history.replaceState({},"",preview.path);
   if(preview.title && document.title!==preview.title) document.title=preview.title;
   const name=clean(preview.profile?.name)||clean(preview.profile?.username);
   const shown=$("#studioApp .profile-display-name");
@@ -837,7 +838,7 @@ function activate(profile){
   preview.profile=profile;
   window.__biglwaViewedProfile=profile;
   preview.username=profile.username||preview.username;
-  preview.path="/"+preview.username;
+  preview.path="/"+preview.username+(new URLSearchParams(location.search).get('preview')==='1'?'?preview=1':'');
   preview.title="@"+preview.username+"'s Studio - BIGLWA";
   preview.active=true;
   document.documentElement.classList.add("biglwa-preview-mode");
@@ -881,7 +882,9 @@ async function boot(){
   try{ mine=await dir.loadProfile(); }catch{}
   if(mine){
     const mineUsername=clean(mine.profile?.username||mine.username).toLowerCase();
-    if(mineUsername===username.toLowerCase()) return;
+    // The account owner may explicitly request the visitor view. Only ordinary
+    // self-navigation bypasses preview; ?preview=1 must activate read-only mode.
+    if(mineUsername===username.toLowerCase()&&new URLSearchParams(location.search).get('preview')!=='1') return;
     /* A signed-in member can still preview a friend's profile. Only the matching
        username is treated as the owner; otherwise keep preview mode active. */
     preview.signedIn=true;
