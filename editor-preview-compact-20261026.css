@@ -1,0 +1,111 @@
+/* Compact BIG LWA editor + login refinements. Scoped to editor routes only. */
+#studioApp #moduleWorkspace[data-module-key="notes"] .diary-section-nav.module-heading-versions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:center!important;justify-content:stretch!important;
+ gap:5px!important;min-width:min(33vw,350px)!important
+}
+#studioApp #moduleWorkspace[data-module-key="notes"] .diary-section-nav.module-heading-versions button{
+ width:100%!important;min-width:0!important;margin:0!important;
+ white-space:nowrap!important;display:flex!important;align-items:center!important;
+ justify-content:center!important
+}
+#studioApp #moduleWorkspace .werk-rz-mark{
+ display:inline-flex!important;align-items:center!important;
+ justify-content:center!important;max-width:145px!important;
+ font:700 10px/1.3 "CS Bergamot Stitched",Georgia,serif!important;
+ padding:7px 8px!important;color:#5f3358!important;
+ border:1px dashed #9b647d!important;border-radius:9px!important;
+ background:rgba(255,245,235,.75)!important;white-space:nowrap!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] .booth-tabs.module-heading-versions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ max-width:340px!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] .booth-tabs.module-heading-versions button{
+ width:100%!important;font-size:11px!important
+}
+#studioApp #moduleWorkspace[data-module-key="projects"] #lwaProjects .visualz-top-row{
+ display:none!important
+}
+/* visualeyez actions are physically inside the deck in project-canvas.js */
+#studioApp #lwaProjects .lwa-project-board{
+ position:relative!important;padding-bottom:77px!important;overflow:auto!important
+}
+#studioApp #lwaProjects .lwa-project-board>.lwa-project-tools{
+ position:sticky!important;bottom:10px!important;left:auto!important;
+ width:max-content!important;max-width:calc(100% - 20px)!important;
+ margin:10px 10px 0 auto!important;z-index:16!important;
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ justify-content:flex-end!important;gap:5px!important;
+ padding:7px!important;border-radius:12px!important;
+ background:rgba(255,248,238,.95)!important;
+ border:1px solid #cfaf9e!important;box-shadow:3px 4px 0 rgba(77,52,58,.18)!important
+}
+#studioApp #lwaProjects .lwa-project-board>.lwa-project-tools button{
+ font:700 11px/1.3 system-ui!important;padding:8px 10px!important;
+ border:1px solid #c1aaa6!important;border-radius:8px!important;white-space:nowrap
+}
+#studioApp #lwaProjects .lwa-project-toolbar{
+ gap:8px!important;padding:7px 10px!important;margin:0 0 6px!important
+}
+/* Slide canvas is a slide, not a second page-height banner. */
+#studioApp #lwaVisualSlides .vs-layout{
+ grid-template-columns:minmax(105px,145px) minmax(0,1fr)!important;
+ align-items:start!important;max-width:1130px!important;
+ margin:10px auto!important;gap:12px!important
+}
+#studioApp #lwaVisualSlides .vs-editor{max-width:950px!important;min-width:0!important}
+#studioApp #lwaVisualSlides .vs-slide{
+ width:min(100%,950px)!important;aspect-ratio:16/9!important;
+ border-width:7px!important;border-radius:10px!important;
+ padding:7px!important;max-height:535px!important
+}
+#studioApp #lwaVisualSlides .vs-stitch{padding:clamp(10px,2vw,24px)!important}
+#studioApp #lwaVisualSlides .vs-stitch input{font-size:clamp(18px,2.5vw,34px)!important}
+#studioApp #lwaVisualSlides .vs-stitch textarea{font-size:clamp(12px,1.3vw,18px)!important}
+#studioApp #lwaVisualSlides .vs-bottom{display:none!important}
+#studioApp #lwaVisualSlides .vs-nav-row{display:none!important}
+#studioApp #lwaVisualSlides .vs-toolbar{padding:3px 0!important;margin-bottom:8px!important}
+#studioApp #lwaVisualSlides .vs-pages{max-height:540px!important}
+@media(max-width:640px){
+ #studioApp #lwaVisualSlides .vs-layout{grid-template-columns:minmax(0,1fr)!important}
+ #studioApp #lwaVisualSlides .vs-pages{display:flex!important;flex-direction:row!important;max-height:108px!important}
+ #studioApp #lwaVisualSlides .vs-pages button{min-width:95px!important}
+ #studioApp #moduleWorkspace[data-module-key="notes"] .diary-section-nav.module-heading-versions{
+  min-width:0!important
+ }
+ #studioApp #moduleWorkspace .werk-rz-mark{display:none!important}
+}
+/* Cut the oversized Workshop marquee by roughly a quarter, keeping credits legible. */
+#craftSuite .craft-head{
+ padding:15px clamp(13px,2vw,26px) 10px!important;
+ gap:12px!important;align-items:center!important
+}
+#craftSuite .craft-head h2{
+ font-size:clamp(27px,2.5vw,35px)!important;margin:2px 0 4px!important
+}
+#craftSuite .craft-head p{max-width:650px!important;font-size:11px!important;line-height:1.4!important}
+#craftSuite .craft-founder-links{margin-top:8px!important}
+#craftSuite .craft-founder-links a{padding:7px 10px!important}
+#craftSuite .craft-lwazi-crest{width:75px!important;flex-basis:75px!important}
+#craftSuite .craft-lwazi-crest img{width:66px!important}
+#craftSuite .craft-lwazi-crest strong{font-size:7.5px!important}
+/* Use the supplied stitched crest mask already in use, not an alternative symbol.
+   25–30% smaller, and preserve the legibility of the black thread on cream. */
+#loginPage #loginCard::before{
+ content:""!important;display:block!important;visibility:visible!important;
+ width:clamp(110px,10.5vw,148px)!important;
+ height:clamp(87px,8vw,111px)!important;
+ margin:0 auto 8px!important;opacity:1!important;
+ background:#171318!important;
+ -webkit-mask-image:var(--biglwa-stitched-crest-mask)!important;
+ mask-image:var(--biglwa-stitched-crest-mask)!important;
+ -webkit-mask-size:contain!important;mask-size:contain!important;
+ -webkit-mask-position:center!important;mask-position:center!important;
+ -webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;
+ -webkit-mask-mode:luminance!important;mask-type:luminance!important
+}
+#loginPage .login-card-emblem,#loginPage #loginCardSnakeMark{display:none!important}
+@media(max-width:700px){
+ #loginPage #loginCard::before{width:113px!important;height:87px!important;margin-bottom:7px!important}
+}
