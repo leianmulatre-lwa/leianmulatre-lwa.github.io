@@ -44,6 +44,11 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
       - name: Verify owned TikTok import assets and isolation
         run: node tiktok-owned-import-test.mjs
+      - name: Verify Lwazi header versions and stitched R-series blocks
+        run: |
+          node --check module-version-header-20261026.js
+          node --check project-canvas.js
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node lwazi-title-row-test.mjs
       - name: Verify public Studio profile, read-only widgets and media
         run: |
           node --check public-profile-landing.js
