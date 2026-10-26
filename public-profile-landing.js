@@ -242,9 +242,46 @@
  .biglwa-public-guest-actions button{background:#d95a6d;border:0;border-radius:10px;padding:10px 14px;color:white;font:700 12px system-ui;cursor:pointer}
  .biglwa-public-guest-actions button:last-child{background:#e9dbd7;color:#392c34}
  `;
- style.textContent+="\n html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-initial{font:400 64px/1 \"CS Bergamot Stitched\",Georgia,serif;color:#61364d;opacity:.8}\n html.biglwa-preview-mode #studioApp .guest-check-card[data-public-guest-sheet=\"1\"]{position:relative!important}\n html.biglwa-preview-mode #studioApp .biglwa-public-guest-paper{\n  display:grid!important;align-content:start!important;gap:0!important;\n  min-height:170px!important;padding:12px 15px 16px!important;margin:0 10px!important;\n  background:#fffaf3!important;border-radius:8px!important;\n  border:1px solid #e1becd!important\n }\n html.biglwa-preview-mode #studioApp .biglwa-public-guest-paper .biglwa-guest-paper-head{\n  display:block;color:#655260;font:750 10px/1.3 system-ui!important;\n  padding:6px 0;border-bottom:2px solid #dca3bb\n }\n html.biglwa-preview-mode #studioApp .biglwa-guest-paper-line{\n  display:block;min-height:29px;border-bottom:1px solid #abc9dd\n }\n html.biglwa-preview-mode #studioApp .biglwa-public-guest-note{\n  padding-top:8px;color:#8d7e83;font:500 10px/1.3 system-ui\n }\n html.biglwa-preview-mode .biglwa-guest-paper{\n  background:#fffaf1;padding:10px 14px;border:1px solid #ceacb3;border-radius:12px;\n  margin:10px 0\n }\n html.biglwa-preview-mode .biglwa-guest-paper-head{font:700 10px/1.5 system-ui;color:#614459;padding:4px}\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card{\n  display:flex!important;flex-direction:column!important;align-items:center!important;\n  justify-content:center!important;gap:9px!important;\n  min-height:150px!important;padding:16px!important;margin:12px 0!important;\n  border:1px solid #8ca9a0!important;border-radius:14px!important;\n  background:repeating-linear-gradient(25deg,#e6eee5 0 16px,#d4ded2 17px 18px,#e6eee5 19px 34px)!important;\n  color:#34545c!important;text-align:center!important\n }\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-mark{font:400 40px Georgia,serif!important}\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card p{font:700 12px/1.4 system-ui!important;margin:0!important}\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-open,
+ style.textContent+=`
+
+ html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-initial{font:400 64px/1 "CS Bergamot Stitched",Georgia,serif;color:#61364d;opacity:.8}
+ html.biglwa-preview-mode #studioApp .guest-check-card[data-public-guest-sheet="1"]{position:relative!important}
+ html.biglwa-preview-mode #studioApp .biglwa-public-guest-paper{
+  display:grid!important;align-content:start!important;gap:0!important;
+  min-height:170px!important;padding:12px 15px 16px!important;margin:0 10px!important;
+  background:#fffaf3!important;border-radius:8px!important;
+  border:1px solid #e1becd!important
+ }
+ html.biglwa-preview-mode #studioApp .biglwa-public-guest-paper .biglwa-guest-paper-head{
+  display:block;color:#655260;font:750 10px/1.3 system-ui!important;
+  padding:6px 0;border-bottom:2px solid #dca3bb
+ }
+ html.biglwa-preview-mode #studioApp .biglwa-guest-paper-line{
+  display:block;min-height:29px;border-bottom:1px solid #abc9dd
+ }
+ html.biglwa-preview-mode #studioApp .biglwa-public-guest-note{
+  padding-top:8px;color:#8d7e83;font:500 10px/1.3 system-ui
+ }
+ html.biglwa-preview-mode .biglwa-guest-paper{
+  background:#fffaf1;padding:10px 14px;border:1px solid #ceacb3;border-radius:12px;
+  margin:10px 0
+ }
+ html.biglwa-preview-mode .biglwa-guest-paper-head{font:700 10px/1.5 system-ui;color:#614459;padding:4px}
+ html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card{
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  justify-content:center!important;gap:9px!important;
+  min-height:150px!important;padding:16px!important;margin:12px 0!important;
+  border:1px solid #8ca9a0!important;border-radius:14px!important;
+  background:repeating-linear-gradient(25deg,#e6eee5 0 16px,#d4ded2 17px 18px,#e6eee5 19px 34px)!important;
+  color:#34545c!important;text-align:center!important
+ }
+ html.biglwa-preview-mode #studioApp #map .biglwa-public-map-mark{font:400 40px Georgia,serif!important}
+ html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card p{font:700 12px/1.4 system-ui!important;margin:0!important}
+ html.biglwa-preview-mode #studioApp #map .biglwa-public-map-open,
  html.biglwa-preview-mode #studioApp #map iframe,
  html.biglwa-preview-mode #studioApp #map .map-widget-frame{display:none!important}
- html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card{width:100%!important;box-sizing:border-box!important}\n ";
+ html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card{width:100%!important;box-sizing:border-box!important}
+ 
+`;
  document.head.append(style);
 })();
