@@ -7,7 +7,7 @@ const preview=read('studio-preview.js'),accountMenu=read('account-menu.js');
 const avatar=read('avatar-studio-bitmoji-20261017-v3.js');
 const chrome=read('account-chrome.js'),publicPage=read('public-profile-landing.js');
 const curtain=read('studio-loading-consistency-20261026.css');
-assert.match(preview,/mineUsername===username\.toLowerCase\(\)&&new URLSearchParams\(location\.search\)\.get\('preview'\)!=='1'/,
+assert.match(preview,/mineUsername===username\.toLowerCase\(\)&&!PREVIEW_REQUESTED/,
  'Self profile can explicitly enter the real visitor preview');
 assert.match(preview,/location\.pathname\+location\.search!==preview\.path/,
  'Preview link query is not erased during forced page routing');
