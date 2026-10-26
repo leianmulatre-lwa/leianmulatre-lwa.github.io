@@ -6,6 +6,7 @@
  const $=(s,r=document)=>r?.querySelector(s);
  const config={
   camera:{title:'bookini',selector:'.booth-tabs',icon:'bookini'},
+  stream:{title:'stream',stream:true},
   notes:{title:'sqwibz',selector:'.diary-section-nav',series:'werkRZ'},
   projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
@@ -34,6 +35,46 @@
    const caption=document.createElement('span');caption.textContent='R / LWAZI SERIEZ';
    badge.append(img,caption);badge.setAttribute('aria-label',icon+' · R/Lwazi series');
   }
+ }
+ function streamVersions(ws,right){
+  // Stream delegates click handling to .biglwa-stream. A proxy in the heading
+  // forwards clicks to the ORIGINAL (hidden) buttons without breaking that
+  // delegation or losing the selection/data-loading logic.
+  const native=$('.biglwa-stream .stream-channels',ws);
+  if(!native)return;
+  const options=[...native.querySelectorAll('[data-stream-tab]')];
+  if(options.length!==3)return;
+  let row=$('.module-heading-versions[data-version-stream]',right);
+  if(!row){
+   row=document.createElement('div');
+   row.className='module-heading-versions stream-heading-versions';
+   row.dataset.versionStream='1';
+   row.setAttribute('role','tablist');
+   row.setAttribute('aria-label','Stream channels');
+   right.prepend(row);
+  }
+  for(const source of options){
+   const mode=source.dataset.streamTab;
+   let button=[...row.children].find(el=>el.dataset.streamHeadingTab===mode);
+   if(!button){
+    button=document.createElement('button');button.type='button';
+    button.dataset.streamHeadingTab=mode;
+    button.setAttribute('role','tab');
+    const label=document.createElement('span');
+    label.textContent=source.querySelector('b')?.textContent?.trim()||mode;
+    button.append(label);
+    button.addEventListener('click',()=>{
+     const live=$('.biglwa-stream .stream-channels [data-stream-tab="'+mode+'"]',ws);
+     live?.click();requestAnimationFrame(()=>streamVersions(ws,right));
+    });
+    row.append(button);
+   }
+   const active=source.getAttribute('aria-selected')==='true'||source.classList.contains('is-active');
+   if(button.getAttribute('aria-selected')!==String(active))button.setAttribute('aria-selected',String(active));
+   button.classList.toggle('is-active',active);
+   button.tabIndex=active?0:-1;
+  }
+  ws.classList.add('stream-versions-in-header');
  }
  function journalVersions(ws,right){
   let nav=$('nav.module-heading-versions[data-version-journal]',right);
@@ -89,6 +130,7 @@
    controls.setAttribute('aria-label','Choose '+item.title+' version');
    if(controls.parentElement!==right)right.prepend(controls);
   }
+  if(item.stream)streamVersions(ws,right);
   if(item.journal)journalVersions(ws,right);
   if(item.icon)addMark(right,item.icon);
   if(item.series){
