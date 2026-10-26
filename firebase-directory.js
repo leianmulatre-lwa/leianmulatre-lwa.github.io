@@ -310,6 +310,12 @@ async function loadPublicProfile(rawUsername){
       moodStyle:clean(data.moodStyle),
       auraText:clean(data.auraText),
       profilePhotoUrl:/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/profile-photo\//.test(String(data.profilePhotoUrl||''))?String(data.profilePhotoUrl):'',
+      studioAvatarPublic:(()=>{
+       const avatar=data.studioAvatarPublic,url=String(avatar?.url||'');
+       if(!avatar||!['minecraft','mii','imvu','bitmoji'].includes(avatar.type)||
+         !/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/(?:profile-photo|feed-image)\//.test(url))return null;
+       return {type:avatar.type,url};
+      })(),
       publicStats:data.accountVisibility==='private'?null:(data.publicStats&&typeof data.publicStats==='object'?{
         followers:Number.isFinite(data.publicStats.followers)&&data.publicStats.followers>=0?data.publicStats.followers:null,
         likes:Number.isFinite(data.publicStats.likes)&&data.publicStats.likes>=0?data.publicStats.likes:null,
