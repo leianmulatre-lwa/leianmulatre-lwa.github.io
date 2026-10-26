@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261026-bookini-lwazi-layout-4';
+        script.src = '/module-pages.js?v=20261026-two-original-workshop-5';
         document.head.appendChild(script);
       }, 250);
     }
