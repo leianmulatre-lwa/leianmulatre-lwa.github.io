@@ -363,6 +363,16 @@
         state.avatar={type:avatar.type,url:avatar.url,
           ...(avatar.type==='mii'&&avatar.preset?{preset:validateMiiPreset(avatar.preset)}:{})};
         showAvatar();sendSavedMiiToFrame();setStatus('Saved avatar restored from your account.');
+        // Older saved characters predate the public display reference. Backfill only
+        // their approved image/skin link, never editable presets or account data.
+        try{
+          const handle=String(snap.data()?.usernameLower||snap.data()?.username||'').toLowerCase();
+          if(/^[a-z0-9._-]{5,24}$/.test(handle)){
+            const publicRef=f.doc(f.db,'usernames',handle),pub=await f.getDoc(publicRef);
+            if(pub.data()?.uid===user.uid&&(!pub.data()?.studioAvatarPublic||pub.data().studioAvatarPublic.url!==avatar.url))
+              await f.setDoc(publicRef,{studioAvatarPublic:{type:avatar.type,url:avatar.url}},{merge:true});
+          }
+        }catch(error){console.info('Existing avatar public preview sync deferred:',error?.message||error)}
       }
     }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
   }
