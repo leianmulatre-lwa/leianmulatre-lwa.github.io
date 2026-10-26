@@ -5,6 +5,7 @@
  'use strict';
  const uid=()=>String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'');
  const active=(which)=>{
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return false;
   if(!uid())return false;
   if(which==='snapchat')return !!window.BigLWAOrbitOAuth?.get?.('snapchat')?.verifiedFromProvider;
   const row=window.__biglwaConnections?.connections?.()?.instagram;
@@ -286,7 +287,8 @@
   const copy=root?.querySelector('.profile-copy');
   const rank=root?.querySelector('.real-rank')||document.querySelector('#skeletonRankMount .real-rank');
   if(copy&&rank&&rank.parentElement!==copy)copy.append(rank);
-  const who=uid(),handles=accountHandles(),customGroups=window.BIGLWAHighlightEditor?.current?.()||[];
+  const publicPreview=document.documentElement.classList.contains('biglwa-preview-mode')||!!window.__biglwaPublicStorageView;
+   const who=publicPreview?'':uid(),handles=publicPreview?{instagram:'',snapchat:''}:accountHandles(),customGroups=window.BIGLWAHighlightEditor?.current?.()||[];
   const imported=window.BigLWAImportedHighlights?.match(handles.instagram);
   if(root&&imported&&location.pathname.replace(/\/$/,'')==='/leian'){mountStoryCircles(root,null,[],[],handles);return;}
   root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());
@@ -296,7 +298,7 @@
   if(handles.snapchat)refreshPublicSnapchat(handles.snapchat,who);
   else if(snapSource.key)snapSource={key:'',status:'',items:[],message:''};
   const snapItems=handles.snapchat&&snapSource.key===who+':'+handles.snapchat.toLowerCase()?snapSource.items:[];
-  if(!root||!who||(!active('snapchat')&&!active('instagram')&&!customGroups.length&&!imported)){root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());root?.querySelector('[data-biglwa-public-showcase]')?.remove();document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();signature='';return}
+  if(!root||(!who&&!publicPreview)||(publicPreview&&document.documentElement.classList.contains('biglwa-preview-private'))||(!active('snapchat')&&!active('instagram')&&!customGroups.length&&!imported)){root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());root?.querySelector('[data-biglwa-public-showcase]')?.remove();document.querySelector('[data-biglwa-public-showcase-editor]')?.remove();signature='';return}
   const tag=Boolean(imported)+'|'+who+'|'+entries.map(x=>x.url).join('|')+'|'+handles.snapchat+'|'+handles.instagram+'|'+snapSource.status+'|'+snapItems.map(x=>x.mediaUrl||'').join('|')+'|'+JSON.stringify(window.BIGLWAHighlightEditor?.get?.()||{}).slice(0,12000);
   if(signature===tag&&root.querySelector('[data-biglwa-public-showcase]'))return;
   signature=tag;
