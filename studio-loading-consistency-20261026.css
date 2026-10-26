@@ -49,7 +49,7 @@
    A fixed-proportion curtain caps the stage. A separate opaque back cover
    conceals unfinished cards below it without resizing either image or feed. */
 #studioApp .module-shell.lwa-curtain-loading {
-  --lwa-loading-hero-height:clamp(330px,55vh,440px);
+  --lwa-loading-hero-height:clamp(275px,43vh,355px);
   position:relative!important;
   isolation:isolate!important;
   max-height:calc(100dvh - 132px)!important;
@@ -82,8 +82,8 @@
   display:flex!important;
   align-items:center!important;justify-content:center!important;
   flex-direction:column!important;
-  gap:12px!important;
-  padding:16px 12px 22px!important;
+  gap:9px!important;
+  padding:14px 12px 18px!important;
   box-sizing:border-box!important;
   border-radius:18px 18px 0 0!important;
   background-color:#26070e!important;
@@ -96,13 +96,13 @@
 #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-brand {
   display:flex!important;align-items:center!important;justify-content:center!important;
   flex:none!important;
-  width:min(360px,80vw)!important;max-width:100%!important;
+  width:min(410px,80vw)!important;max-width:100%!important;
   height:auto!important;min-height:0!important;
-  padding:6px 13px!important;
-  background:rgba(249,231,203,.94)!important;
-  border:1px solid rgba(89,47,37,.68)!important;
-  box-shadow:0 5px 0 #2b0a12a3,0 9px 19px #08010680!important;
-  border-radius:13px!important;
+  padding:7px 26px!important;
+  background:linear-gradient(90deg,transparent 0%,rgba(250,230,201,.93) 10%,rgba(252,237,216,.98) 50%,rgba(250,230,201,.93) 90%,transparent 100%)!important;
+  border:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
   box-sizing:border-box!important;
 }
 #studioApp .lwa-curtain-brand-logo {
@@ -148,4 +148,16 @@
 }
 #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"][hidden]{
   display:none!important;
+}
+
+/* The photograph of the theatre curtain is one unmoving top scene. The
+   opaque lower backing hides unready cards and is deliberately NOT a scaled
+   continuation of the photograph. */
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"]{
+  background-size:cover!important;
+  background-position:center center!important;
+  transform:none!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-brand-logo{
+  display:block!important;max-height:142px!important;aspect-ratio:auto!important;
 }
