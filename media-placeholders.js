@@ -43,6 +43,7 @@
  function failed(img){
    if(!img.matches(selector))return;
    const shell=targetShell(img);if(!shell)return;
+   img.dataset.lwaImageState='failed';
    shell.classList.remove('lwa-image-loading','lwa-image-ready');
    shell.classList.add('lwa-image-failed');
    setRatio(shell,ratioFor(img));
@@ -57,18 +58,27 @@
    if(ratios.size>200)ratios.clear();
    ratios.set(src,ratio);
    setRatio(shell,ratio);
-   shell.classList.remove('lwa-image-loading','lwa-image-failed');
-   shell.classList.add('lwa-image-ready');
+   img.dataset.lwaImageState='ready';
+   const siblings=[...shell.querySelectorAll('img')].filter(x=>!x.hasAttribute('aria-hidden')||x.getAttribute('aria-hidden')!=='true');
+   const pending=siblings.some(x=>!x.complete);
+   shell.classList.toggle('lwa-image-loading',pending);
+   shell.classList.toggle('lwa-image-ready',!pending);
+   shell.classList.remove('lwa-image-failed');
    shell.querySelector(':scope > .lwa-image-status')?.remove();
  }
  function initialize(img){
-   if(!img?.matches?.(selector)||img.dataset.lwaImageManaged==='1')return;
+   if(!img?.matches?.(selector))return;
+   const current=img.getAttribute('src')||'';
+   if(img.dataset.lwaImageManaged==='1'&&img.dataset.lwaOriginalUrl===current)return;
    img.dataset.lwaImageManaged='1';
-   img.dataset.lwaOriginalUrl=img.getAttribute('src')||'';
+   img.dataset.lwaOriginalUrl=current;
+   img.dataset.lwaImageState='loading';
    const shell=targetShell(img);if(!shell)return;
    setRatio(shell,ratioFor(img));
+   shell.querySelector(':scope > .lwa-image-status')?.remove();
+   shell.classList.remove('lwa-image-ready','lwa-image-failed');
+   shell.classList.add('lwa-image-loading');
    if(img.complete){if(img.naturalWidth>0)loaded(img);else failed(img)}
-   else shell.classList.add('lwa-image-loading');
  }
  // Error capture runs before any local retry handler but does not block it.
  // A card's own fallback image handler may still try its alternate image.
@@ -94,9 +104,11 @@
  const start=()=>{
    apply(document);
    new MutationObserver(records=>{
-     for(const record of records)
-       for(const added of record.addedNodes)apply(added);
-   }).observe(document.documentElement,{subtree:true,childList:true});
+     for(const record of records){
+       if(record.type==='attributes'&&record.attributeName==='src')initialize(record.target);
+       else for(const added of record.addedNodes)apply(added);
+     }
+   }).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src']});
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
  else start();
