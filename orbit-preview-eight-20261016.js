@@ -65,6 +65,7 @@
     instagram:['instagram.com','www.instagram.com'],
     tiktok:['tiktok.com','www.tiktok.com'],
     pinterest:['pinterest.com','www.pinterest.com'],
+    youtube:['youtube.com','www.youtube.com','m.youtube.com'],
     x:['x.com','www.x.com','twitter.com','www.twitter.com'],
     snapchat:['snapchat.com','www.snapchat.com'],
     tumblr:['tumblr.com','www.tumblr.com']
@@ -81,7 +82,8 @@
       if(url.protocol!=='https:'||url.username||url.password)return '';
       if(!publicHosts[id].includes(host)&&!(id==='tumblr'&&host.endsWith('.tumblr.com'))&&
         !(id==='snapchat'&&host.endsWith('.snapchat.com')))return '';
-      if(url.pathname==='/'||!url.pathname)return '';
+      const tumblrRoot=id==='tumblr'&&host.endsWith('.tumblr.com')&&host!=='www.tumblr.com';
+      if((url.pathname==='/'||!url.pathname)&&!tumblrRoot)return '';
       return url.href;
     }catch{return ''}
   }
