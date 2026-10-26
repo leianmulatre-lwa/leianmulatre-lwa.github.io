@@ -677,7 +677,7 @@ function standDown(){
   closePrompt(true);
   removeBanner();
   $('#studioApp .biglwa-visitor-shortcuts')?.remove();
-  document.documentElement.classList.remove("biglwa-preview-mode","biglwa-preview-private");
+  document.documentElement.classList.remove("biglwa-preview-mode","biglwa-preview-private","biglwa-owner-self-preview");
   restoreAppearance();
   clearPreviewIdentity();
   const me=localProfile();
@@ -842,6 +842,7 @@ function activate(profile){
   preview.title="@"+preview.username+"'s Studio - BIGLWA";
   preview.active=true;
   document.documentElement.classList.add("biglwa-preview-mode");
+  document.documentElement.classList.toggle("biglwa-owner-self-preview",new URLSearchParams(location.search).get("preview")==="1"&&clean(identity()?.username).toLowerCase()===clean(profile.username).toLowerCase());
   document.documentElement.classList.toggle("biglwa-preview-private",profile.accountVisibility==='private');
   showStudioScreen();
   applyIdentity(profile);
