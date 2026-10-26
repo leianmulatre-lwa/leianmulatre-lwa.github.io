@@ -94,8 +94,9 @@
   const embedded=window.parent!==window;
   document.documentElement.dataset.biglwaEmbedded=embedded?'true':'false';
   dock.hidden=true;
-  // The compact embroidered block remains visible; the large dock opens on demand.
-  mini.hidden=false;
+  // Embedded Rust editors already have Workshop controls above the canvas.
+  // Keep their viewport clear; the standalone tab offers an embroidered launcher.
+  mini.hidden=embedded;
   document.body.append(dock,mini);
   // Native credits stay visible. Avoid intrusive DOM mutation in the WebAssembly app.
   // Only correct a conventional top-level *exact* legacy title, when one exists.
