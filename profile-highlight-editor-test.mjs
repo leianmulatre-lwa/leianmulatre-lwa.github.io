@@ -39,7 +39,10 @@ title.value='New title';title.dispatchEvent(new w.Event('input',{bubbles:true}))
 await w.BIGLWAHighlightEditor.save();
 assert.equal(lastSave.session.highlightEdits.imported['0'].title,'New title','Highlight title synced through owner customizations');
 assert.equal(w.BIGLWAHighlightEditor.customize(imported.highlights[0],0).title,'New title','Edited name appears on banner');
-doc.querySelector('#profileHighlightsEditor > .highlight-edit-actions button').click();
+const newHighlightButton=doc.querySelector('#profileHighlightsEditor > .highlight-edit-actions button');
+assert.equal(newHighlightButton.textContent,'+ New highlight','Explicit New highlight control selected');
+newHighlightButton.click();
+assert.equal(w.BIGLWAHighlightEditor.get().custom.length,1,'A new Highlight is added to the owner account draft');
 assert.equal(doc.querySelectorAll('#biglwaHighlightEditorList .highlight-edit-row').length,2,'New highlight can be created');
 const custom=doc.querySelectorAll('#biglwaHighlightEditorList .highlight-edit-row')[1];
 const customTitle=custom.querySelector('input[type="text"]');
