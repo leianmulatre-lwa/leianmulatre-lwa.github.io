@@ -23,17 +23,22 @@ const BIGLWA_PATREON='https://www.patreon.com/cw/biglwa';
 const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-desk.html',
  description:'Draw, paint, add text and layers, edit photos, save editable BIG LWA projects.',
  credit:'Original BIG LWA editor · works locally'};
+const WEB_FRIENDLY=[
+ {id:'visualizr',name:'visualizr',route:'projects',icon:'/assets/bigapps/blocks/visualizr.svg?v=20261026-1',
+  description:'Build visualeyez boards and visualslidez presentations inside your BIG LWA Studio.'},
+ {id:'bookini',name:'bookini',route:'camera',icon:'/assets/bigapps/blocks/bookini.svg?v=20261026-1',
+  description:'Capture photos in your own browser booth; video meetups are coming soon.'}
+];
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeId=id=>id===LOCAL.id||ENGINES.some(item=>item.id===id);
-/* Original BIG LWA cube art: cushioned piping, textile panels and thread stitching.
-   SVG stays inline so every icon is crisp at phone and desktop sizes. */
-/* Transparent, matched embroidered blocks for all five creative apps. */
+/* Use the ORIGINAL embroidered block art produced for the Workshop.
+   The alternate generated SVG interpretations are not these app icons. */
 const CRAFT_ICON_NAME={
  'image-desk':'sqwibblR',photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'
 };
 function blockArtwork(item){
  const name=CRAFT_ICON_NAME[item.id]||'sqwibblR';
- return '<img class="craft-block-png" src="/assets/bigapps/'+(item.id==='image-desk'?'icons/':'blocks/')+name+(item.id==='image-desk'?'.png?v=20261023-stitch-png-1':'.svg?v=20261026-unified-blocks-1')+'" alt="" width="160" height="160" decoding="async" />';
+ return '<img class="craft-block-png" src="/assets/bigapps/icons/'+name+'.png?v=20261026-original-stitch-1" alt="" width="160" height="160" decoding="async" />';
 }
 
 let stylesReady=false;
@@ -57,19 +62,28 @@ function card(item,local=false){
    (local?'':('<a href="/bigapps/'+encodeURIComponent(PUBLIC_APP_ROUTE[item.id])+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
   '</article>';
 }
+function webAppCard(item){
+ return '<article class="craft-tile craft-tile-home" data-craft-card="'+item.id+'">'+
+  '<div class="craft-tile-eyebrow">BIG LWA ORIGINAL · WEB FRIENDLY</div>'+
+  '<div class="craft-tile-icon craft-arcade-block" aria-hidden="true"><img class="craft-block-png" src="'+item.icon+'" width="160" height="160" alt="" decoding="async"></div>'+
+  '<h3>'+escapeHtml(item.name)+'</h3><p>'+escapeHtml(item.description)+'</p>'+
+  '<div class="craft-engine-credits">Made for BIG LWA · Studio native</div>'+
+  '<button type="button" data-craft-route="'+item.route+'">Open '+escapeHtml(item.name)+' →</button>'+
+  '</article>';
+}
 export async function mountCraftSuite(root){
  if(!root)return;
  installStyle();
  root.classList.add('craft-suite','craft-workshop');
  root.innerHTML=
   '<header class="craft-head">'+
-   '<div class="craft-head-copy"><span class="craft-label">BIG LWA · maker\'s workspace</span>'+
-   '<h2>the workshop</h2>'+
-   '<p>A creative operating room that belongs to this community: make your own work, keep drafts to yourself, export what you choose.</p><nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support on Patreon ↗</a></nav></div>'+
-   '<div class="craft-head-ornament" aria-hidden="true"><i></i><i></i><i></i><strong>✦</strong></div></header>'+
+   '<div class="craft-head-copy"><span class="craft-label">R / LWAZI SERIEZ · BIG LWA</span>'+
+   '<h2>your werkshopeR</h2>'+
+   '<p>Meet the blocks of the R/Lwazi series: our own apps, designed fo/r you. 3 web-friendly originals and 4 advanced open-source R-editors.</p><nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support on Patreon ↗</a></nav></div>'+
+   '<div class="craft-head-ornament craft-lwazi-crest" aria-label="R / Lwazi series"><img src="/assets/bigapps/blocks/r-editor.svg?v=20261026-1" alt=""><strong>R / LWAZI SERIEZ</strong></div></header>'+
   '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
-  '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
+  '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+WEB_FRIENDLY.map(webAppCard).join('')+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
   '<section class="craft-account-vault" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
    '<div><span class="craft-vault-eyebrow">03 / PRIVATE SHELF</span><h3>Your BIG LWA snapshots</h3>'+
    '<p>Save a small preview to your signed-in account. This is a flattened image you can reopen in sqwibblR, not an editable WASM project.</p></div>'+
@@ -86,7 +100,7 @@ export async function mountCraftSuite(root){
     '<p class="craft-panel-foot" role="status" id="craftEditorStatus">Your workspace is ready.</p>'+
   '</div>'+
   '<footer class="craft-smallprint">'+
-    '<p><strong>Who made what?</strong> sqwibblR and this Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
+    '<p><strong>Who made what?</strong> sqwibblR, visualizr, bookini and this Lwazi Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
     '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects still require the editor’s download/export commands. Some advanced builds require WebGPU/WebGL.</p>'+
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
@@ -232,6 +246,11 @@ export async function mountCraftSuite(root){
  root.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button||!root.contains(button))return;
   const id=button.dataset.craftOpen;
+  const route=button.dataset.craftRoute;
+  if(route&&WEB_FRIENDLY.some(item=>item.route===route)){
+    window.openBIGLWAModule?.(route);
+    return;
+  }
   if(id&&safeId(id)){open(id);return}
   if(button.hasAttribute('data-craft-close'))close();
   else if(button.hasAttribute('data-craft-webgl')&&current&&current!==LOCAL.id)open(current,true);
