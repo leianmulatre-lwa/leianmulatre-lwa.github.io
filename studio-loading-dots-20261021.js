@@ -97,7 +97,23 @@
   // dot-floating animation in index.html. Don't decorate a second loading
   // element from this module; this module only handles widgets/profile.
  }
- function setProfile(loading){ensure();if(profile)profile.hidden=!loading}
+ let ownerProfileTimer=0;
+ function setProfile(loading){
+  ensure();if(profile)profile.hidden=!loading;
+  if(!loading&&ownerProfileTimer){clearTimeout(ownerProfileTimer);ownerProfileTimer=0}
+ }
+ function pendingOwnerProfile(){
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||!studioVisible())return;
+  setProfile(true);
+  if(ownerProfileTimer)clearTimeout(ownerProfileTimer);
+  ownerProfileTimer=setTimeout(()=>setProfile(false),7000);
+ }
+ for(const event of ['biglwa:identity-updated','biglwa:session-verified']){
+  window.addEventListener(event,pendingOwnerProfile);
+ }
+ for(const event of ['biglwa:profile-metrics','biglwa:user-directory-ready']){
+  window.addEventListener(event,()=>{if(!document.documentElement.classList.contains('biglwa-preview-mode'))setProfile(false)});
+ }
  function hideTransition(){if(transitionTimer)clearTimeout(transitionTimer);if(transition)transition.hidden=true}
  function studioVisible(){return !!document.querySelector('#studioApp.is-active')}
  // Image pulse is only drawn while an image actually has network work outstanding.
