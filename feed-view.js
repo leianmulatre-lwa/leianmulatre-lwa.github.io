@@ -1064,7 +1064,7 @@ function renderPosts(force) {
   drawnSignature = signature;
 
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
-  stopSlideshows();
+  stopSlideshows(true);
   if (!posts.length) return;
   const scoped=posts.filter(usablePost).filter(post=>{
     if(feedAppFilter==='all')return true;
@@ -1099,7 +1099,7 @@ function renderPosts(force) {
       ? '<div class="biglwa-source-video"><iframe title="TikTok video from '+esc(post.sourceUsername||'connected account')+'" src="'+esc(tiktokEmbed)+'" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
       : '';
     const image = externalVideo || (soleVideo
-      ? '<video class="biglwa-pin-img" data-feed-video src="'+esc(playable)+'"'+(shown[0]||fallbackSrc?' poster="'+esc(shown[0]||fallbackSrc)+'"':'')+' muted playsinline preload="metadata" controls autoplay loop></video>'
+      ? '<video class="biglwa-pin-img" data-feed-video src="'+esc(playable)+'"'+(shown[0]||fallbackSrc?' poster="'+esc(shown[0]||fallbackSrc)+'"':'')+' muted playsinline preload="none" controls data-viewport-autoplay loop></video>'
       : !shown.length
       ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
       : shown.length === 1
@@ -1169,11 +1169,14 @@ const calmMotion = () => {
   catch { return false; }
 };
 
-function stopSlideshows() {
+function stopSlideshows(dispose = false) {
   // Hold using each controller so its own timer pointer is reset too.
   // Clearing raw interval IDs left stale pointers and caused duplicate
   // slideshow listeners every time the browser tab became visible.
-  document.querySelectorAll('[data-biglwa-slideshow]').forEach(frame=>frame._biglwaSlideController?.hold());
+  document.querySelectorAll('[data-biglwa-slideshow]').forEach(frame=>{
+    frame._biglwaSlideController?.hold();
+    if(dispose){frame._biglwaSlideController?.disconnect?.();delete frame._biglwaSlideController;}
+  });
   for(const timer of running)clearInterval(timer);
   running.clear();
 }
@@ -1231,11 +1234,12 @@ function startSlideshows(root) {
       timer = null;
     };
     const play = () => {
-      if (timer || document.hidden || calmMotion() || !frame.isConnected) return;
+      if (timer || !inView || document.hidden || calmMotion() || !frame.isConnected) return;
       timer = setInterval(() => show(at + 1), SLIDE_MS);
       running.add(timer);
     };
     let timer = null;
+    let inView = typeof IntersectionObserver !== "function";
     frame._biglwaSlideController={hold,play};
 
     frame.addEventListener("click", (event) => {
@@ -1263,9 +1267,10 @@ function startSlideshows(root) {
        timers for pictures nobody is looking at. */
     if (typeof IntersectionObserver === "function") {
       const seen = new IntersectionObserver((entries) => {
-        for (const entry of entries) entry.isIntersecting ? play() : hold();
+        for (const entry of entries) { inView=entry.isIntersecting; inView ? play() : hold(); }
       }, { rootMargin: "120px" });
       seen.observe(frame);
+      frame._biglwaSlideController.disconnect=()=>seen.disconnect();
     }
   }
 }

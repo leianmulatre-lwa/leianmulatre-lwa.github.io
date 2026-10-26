@@ -7,7 +7,7 @@ import { startIdentity, refreshIdentity, identity } from "./account-identity.js"
 import { startChrome, renderIdentityChrome } from "./account-chrome.js?v=20261024-firstname-avatar-1";
 import { loadProfilePhoto } from "./account-photo.js?v=20261024-firstname-avatar-1";
 import { startConnections } from "./orbit-connections.js?v=20261022-verified-followers-3";
-import { startFeed } from "./feed-view.js?v=20261023-tiktok-collective-refresh-9&fix=single-owner-shadow-1";
+import { startFeed } from "./feed-view.js?v=20261023-tiktok-collective-refresh-9&fix=viewport-video-2";
 
 function boot() {
   startIdentity();
