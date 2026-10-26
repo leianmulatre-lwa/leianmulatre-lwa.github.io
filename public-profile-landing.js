@@ -18,14 +18,42 @@
   button.setAttribute('aria-label',privateJournal?'Journal cover · locked':'Open public Journal');
   card.dataset.publicJournal=privateJournal?'locked':'shared';
  }
+ let mannequinPromise=null;
+ function mannequin(){
+  if(window.BigLWAMinecraftViewer?.mount)return Promise.resolve(window.BigLWAMinecraftViewer);
+  if(!mannequinPromise)mannequinPromise=new Promise((resolve,reject)=>{
+   const src='/avatar/minecraft-mannequin.js?v=20261014-model-4';
+   const existing=document.querySelector('script[src^="/avatar/minecraft-mannequin.js"]');
+   if(existing&&window.BigLWAMinecraftViewer?.mount)return resolve(window.BigLWAMinecraftViewer);
+   const script=make('script');script.src=src;script.async=true;
+   script.onload=()=>window.BigLWAMinecraftViewer?.mount?resolve(window.BigLWAMinecraftViewer):reject(Error('3D renderer unavailable'));
+   script.onerror=()=>reject(Error('3D renderer unavailable'));
+   document.head.append(script);
+  }).catch(error=>{mannequinPromise=null;throw error});
+  return mannequinPromise;
+ }
  function decorateAvatar(){
   const card=$('#studioAvatarCard');if(!card)return;
-  const url=imageUrl(publicProfile?.profilePhotoUrl);
+  const published=publicProfile?.studioAvatarPublic;
+  const url=imageUrl(published?.url||publicProfile?.profilePhotoUrl);
   let photo=$('.biglwa-public-avatar-preview',card);
   if(!photo){photo=make('div','','biglwa-public-avatar-preview');card.append(photo)}
-  if(url){
+  const sig=(published?.type||'photo')+':'+url;
+  if(photo.dataset.avatarSource===sig)return;
+  photo.dataset.avatarSource=sig;
+  if(url&&published?.type==='minecraft'){
+   photo.textContent='Rendering member character…';
+   mannequin().then(viewer=>{
+    if(!photo.isConnected||photo.dataset.avatarSource!==sig)return;
+    photo.replaceChildren();
+    const model=viewer.mount(photo,url,{large:false});
+    if(model?.ready)Promise.resolve(model.ready).catch(()=>{
+     if(photo.dataset.avatarSource===sig)photo.textContent='This character could not be displayed.';
+    });
+   }).catch(()=>{if(photo.dataset.avatarSource===sig)photo.textContent='3D character unavailable'});
+  }else if(url){
    photo.replaceChildren();
-   const img=make('img');img.src=url;img.alt=(publicProfile?.name||'Member')+' profile picture';img.loading='lazy';
+   const img=make('img');img.src=url;img.alt=(publicProfile?.name||'Member')+' '+(published?'avatar preview':'profile picture');img.loading='lazy';
    photo.append(img);
   }else{
    photo.textContent='◉';
