@@ -60,6 +60,59 @@
     if(changed)remember();
   }
   const grid=()=>document.querySelector('#studioApp #orbit #orbitGrid');
+  const isPublic=()=>document.documentElement.classList.contains('biglwa-preview-mode');
+  const publicHosts={
+    instagram:['instagram.com','www.instagram.com'],
+    tiktok:['tiktok.com','www.tiktok.com'],
+    pinterest:['pinterest.com','www.pinterest.com'],
+    x:['x.com','www.x.com','twitter.com','www.twitter.com'],
+    snapchat:['snapchat.com','www.snapchat.com'],
+    tumblr:['tumblr.com','www.tumblr.com']
+  };
+  function ownerLink(id){
+    const profile=window.__biglwaViewedProfile;
+    if(profile?.accountVisibility==='private')return '';
+    const links=Array.isArray(profile?.socials)?profile.socials:[];
+    const item=links.find(link=>link?.id===id);
+    if(!item||!publicHosts[id])return '';
+    try{
+      const url=new URL(item.url);
+      const host=url.hostname.toLowerCase();
+      if(url.protocol!=='https:'||url.username||url.password)return '';
+      if(!publicHosts[id].includes(host)&&!(id==='tumblr'&&host.endsWith('.tumblr.com'))&&
+        !(id==='snapchat'&&host.endsWith('.snapchat.com')))return '';
+      if(url.pathname==='/'||!url.pathname)return '';
+      return url.href;
+    }catch{return ''}
+  }
+  function visitorPlanets(root){
+    // A visitor sees the PROFILE OWNER'S published links. Never read the
+    // visitor's OAuth session or offer to connect the owner's accounts.
+    const owner=window.__biglwaViewedProfile;
+    const ids=APPS.map(row=>row[0]);
+    for(const old of [...root.children])if(!old.matches?.('button[data-orbit-app]')||!ids.includes(old.dataset.orbitApp))old.remove();
+    const existing=new Map([...root.querySelectorAll('button[data-orbit-app]')].map(el=>[el.dataset.orbitApp,el]));
+    for(const [id,glyph,label] of APPS){
+      const tile=existing.get(id)||createTile(id,glyph,label);
+      const url=ownerLink(id);
+      tile.dataset.publicOrbitHref=url;
+      tile.dataset.orbitPreview='public';
+      tile.classList.toggle('orbit-connected',Boolean(url));
+      tile.classList.toggle('orbit-public-unlinked',!url);
+      tile.querySelector('small').textContent=url?'Linked':'Not shared';
+      tile.querySelector('b').textContent=label;
+      tile.querySelector('.orbit-glyph').textContent=glyph;
+      tile.setAttribute('aria-label',url?'Open '+(owner?.username||'member')+' on '+label:'No published '+label+' link');
+      tile.title=url?'Open published '+label+' profile in new tab':'This member has not shared a '+label+' profile URL';
+      tile.disabled=!url;
+      root.append(tile);
+    }
+    const note=root.closest('#orbit')?.querySelector('.orbit-note');
+    if(note){
+      note.removeAttribute('data-orbit-error');
+      note.textContent='Tap a linked planet to visit this member’s published profile. Unshared links stay private.';
+    }
+  }
   function openOrbit(){
     if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('orbit');
     else location.assign('/studio?view=orbit');
@@ -93,6 +146,7 @@
     scheduled=false;
     const root=grid();
     if(!root)return;
+    if(isPublic()){visitorPlanets(root);return}
     loadOwner();
     rotated();
     const existing=Array.from(root.children).filter(el=>el.matches?.('button[data-orbit-app]'));
@@ -114,6 +168,9 @@
       if(title.textContent!==label)title.textContent=label;
       let status=tile.querySelector('small');
       if(!status){status=document.createElement('small');tile.append(status)}
+      tile.disabled=false;
+      delete tile.dataset.publicOrbitHref;
+      tile.classList.remove('orbit-public-unlinked');
       const isConnected=connected(id);
       const text=isConnected?'Connected':'Connect';
       if(status.textContent!==text)status.textContent=text;
@@ -163,6 +220,13 @@
     if(!tile)return;
     const id=tile.dataset.orbitApp;
     if(!allowed.has(id))return;
+    if(isPublic()){
+      // Public profiles are links, NOT authorisation/connect actions.
+      event.preventDefault();event.stopImmediatePropagation();
+      const href=tile.dataset.publicOrbitHref;
+      if(href)window.open(href,'_blank','noopener,noreferrer');
+      return;
+    }
     // The older provider SDKs add document-level capture listeners.
     // Handle the Studio preview once, before those handlers can divert to
     // Meta Business or a manually saved profile link.
@@ -218,6 +282,8 @@
     document.addEventListener(name,schedule);
   }
   window.addEventListener('biglwa:orbit-links-synced',schedule);
+  window.addEventListener('biglwa:public-profile-ready',schedule);
+  window.addEventListener('biglwa:public-profile-ended',schedule);
   window.addEventListener('biglwa:orbit-imported',schedule);
   window.__biglwaStudioOrbitRefresh=schedule;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
