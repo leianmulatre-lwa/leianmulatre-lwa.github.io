@@ -18,8 +18,13 @@
  .lwa-dot-falling::before{animation:lwaFall 1.05s ease-in-out -.22s infinite}
  .lwa-dot-falling::after{animation:lwaFall 1.05s ease-in-out .22s infinite}
  @keyframes lwaFall{0%{transform:translateY(-7px);opacity:0}55%{transform:translateY(2px);opacity:1}100%{transform:translateY(7px);opacity:0}}
- #lwaProfileLoading{display:inline-flex;align-items:center;gap:15px;font:600 10px system-ui;color:inherit;white-space:nowrap;margin-left:12px}
- #lwaProfileLoading[hidden]{display:none!important}
+ #lwaProfileLoading{display:inline-flex!important;align-items:center;justify-content:center;gap:10px;
+   flex:0 0 31px;min-width:31px;width:31px;height:20px;
+   font:600 10px system-ui;color:inherit;white-space:nowrap;
+   margin-left:4px;vertical-align:middle;overflow:visible;position:relative;z-index:2}
+ #lwaProfileLoading>.lwa-dot{display:inline-block;flex:none}
+ #lwaProfileLoading>.lwa-profile-loading-label[hidden]{display:none!important}
+ @media(max-width:720px){#lwaProfileLoading{flex-basis:24px;min-width:24px;width:24px;margin-left:0;transform:scale(.82);transform-origin:left center}}
  /* Old login owns the only Studio-opening screen. No duplicate overlay. */
  #lwaStudioTransition{display:none!important}
  #lwaStudioTransition[hidden]{display:none!important}
@@ -89,17 +94,47 @@
  let profile=null,transition=null,transitionTimer=null,transitionShownAt=0;
  function ensure(){
   if(!document.getElementById('studioApp'))return;
-  if(!profile){
-   const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
-   if(mark){profile=document.createElement('span');profile.id='lwaProfileLoading';profile.setAttribute('role','status');profile.setAttribute('aria-label','Loading your profile');profile.append(make('falling'));const label=document.createElement('span');label.textContent='loading profile';profile.append(label);mark.append(profile);profile.hidden=true}
+  const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
+  if(!mark)return;
+  // This rail is also the persistent three-dot marker beside the top-left
+  // stitched crest. Never tie its visibility to preview or load completion.
+  // The signed-in toolbar can be remounted after hydration; reattach the
+  // existing node rather than producing a duplicate or leaving it detached.
+  if(!profile||!profile.isConnected){
+   profile=document.getElementById('lwaProfileLoading')||document.createElement('span');
+   profile.id='lwaProfileLoading';
+   if(!profile.querySelector('.lwa-dot'))profile.append(make('falling'));
+   let label=profile.querySelector('.lwa-profile-loading-label');
+   if(!label){
+    label=document.createElement('span');
+    label.className='lwa-profile-loading-label';
+    label.textContent='loading profile';
+    profile.append(label);
+   }
+   label.hidden=true;
   }
-  // Studio's startup and login-laptop intro have one authoritative
-  // dot-floating animation in index.html. Don't decorate a second loading
-  // element from this module; this module only handles widgets/profile.
+  if(profile.parentElement!==mark)mark.append(profile);
+  profile.hidden=false;
+  // Startup and login-laptop loaders remain separate; this is solely the
+  // already-existing top-left three-dot element.
  }
  let ownerProfileTimer=0;
  function setProfile(loading){
-  ensure();if(profile)profile.hidden=!loading;
+  ensure();
+  if(profile){
+   profile.hidden=false;
+   const label=profile.querySelector('.lwa-profile-loading-label');
+   if(label)label.hidden=!loading;
+   if(loading){
+    profile.setAttribute('role','status');
+    profile.setAttribute('aria-label','Loading your profile');
+    profile.removeAttribute('aria-hidden');
+   }else{
+    profile.removeAttribute('role');
+    profile.removeAttribute('aria-label');
+    profile.setAttribute('aria-hidden','true');
+   }
+  }
   if(!loading&&ownerProfileTimer){clearTimeout(ownerProfileTimer);ownerProfileTimer=0}
  }
  function pendingOwnerProfile(){
