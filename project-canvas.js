@@ -49,7 +49,7 @@ function render(){
  const pageHeading='<div class="module-heading lwa-project-heading"><div><h1>visualz</h1><p>Your boards and presentations in one workspace.</p></div></div>';
  const tabBar='<nav class="visualz-tabs" aria-label="Visualz workspaces"><button type="button" data-visualz-mode="visualeyez" aria-pressed="'+(canvasMode==='visualeyez')+'" class="'+(canvasMode==='visualeyez'?'active':'')+'">visual·eyez</button><button type="button" data-visualz-mode="visualslidez" aria-pressed="'+(canvasMode==='visualslidez')+'" class="'+(canvasMode==='visualslidez'?'active':'')+'">visual·slidez</button></nav>';
  if(canvasMode==='visualslidez'){
-  root.innerHTML=pageHeading+'<section id="lwaVisualSlides" aria-label="Slide canvas"><p>Loading visual·slidez…</p></section>';
+  root.innerHTML=pageHeading+tabBar+'<section id="lwaVisualSlides" aria-label="Slide canvas"><p>Loading visual·slidez…</p></section>';
   document.dispatchEvent(new CustomEvent('biglwa:visualz-render'));
   import('/visualslidez.js?v=20261023-integrated-toolbar-2').then(()=>window.BigLWAVisualSlidez?.mount(root.querySelector('#lwaVisualSlides'))).catch(()=>{const stage=root.querySelector('#lwaVisualSlides');if(stage)stage.textContent='Slides could not start; the existing boards are safe.'});return;
  }
