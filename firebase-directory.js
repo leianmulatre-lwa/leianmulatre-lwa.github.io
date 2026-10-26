@@ -309,6 +309,15 @@ async function loadPublicProfile(rawUsername){
       mood:clean(data.mood),
       moodStyle:clean(data.moodStyle),
       auraText:clean(data.auraText),
+      profilePhotoUrl:/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/profile-photo\//.test(String(data.profilePhotoUrl||''))?String(data.profilePhotoUrl):'',
+      publicStats:data.accountVisibility==='private'?null:(data.publicStats&&typeof data.publicStats==='object'?{
+        followers:Number.isFinite(data.publicStats.followers)&&data.publicStats.followers>=0?data.publicStats.followers:null,
+        likes:Number.isFinite(data.publicStats.likes)&&data.publicStats.likes>=0?data.publicStats.likes:null,
+        reach:Number.isFinite(data.publicStats.reach)&&data.publicStats.reach>=0?data.publicStats.reach:null,
+        connections:Number.isFinite(data.publicStats.connections)&&data.publicStats.connections>=0?data.publicStats.connections:null,
+        realRank:safeText(data.publicStats.realRank,48)||'Chopped',
+        observedAt:safeText(data.publicStats.observedAt,40)
+      }:null),
       url:clean(data.url)||("/"+encodeURIComponent(username)),
       socials:readSocials(data.socials),
       archiveVisibility:data.archiveVisibility==='friends'?'friends':'private',
