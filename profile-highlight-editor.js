@@ -217,7 +217,7 @@
   const oldFocus=document.activeElement?.dataset?.highlightRow;
   container.replaceChildren();
   const groups=source();groups.slice(0,24).forEach((g,i)=>container.append(row(g,String(i),true,i)));
-  get().custom.forEach((g,i)=>container.append(row({title:g.title,cover:g.cover,items:g.added},g.id,false,i)));
+  get().custom.forEach((g,i)=>container.append(row(g,g.id,false,i)));
   if(!groups.length&&!get().custom.length)container.append(make('p','highlight-editor-intro','No imported highlights yet. Add one of your own below.'));
   if(oldFocus)el('[data-highlight-row="'+oldFocus+'"]',container)?.focus?.();
  }
