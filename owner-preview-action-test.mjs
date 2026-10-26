@@ -45,6 +45,8 @@ assert.ok((d.getElementById('profileMenuBtn').compareDocumentPosition(dots) & 4)
  'Profile avatar/greeting comes before green/yellow/red account dots');
 assert.match(d.getElementById('biglwa-account-dots-style').textContent,/gap:9px/,
  'Colored account dots have slightly more breathing room');
+assert.match(d.getElementById('biglwa-account-menu-style').textContent,/\.welcome\{[^}]*top:7px/,'Welcome text is shifted down to visually center beside avatar');
+assert.match(d.getElementById('biglwa-account-dots-style').textContent,/place-items:center!important/,'The green Add Friends symbol is centered without altering it');
 assert.match(d.getElementById('biglwa-account-dots-style').textContent,/\[data-biglwa-add-user\] img[^}]*width:12px/,
  'Connect icon itself is smaller without changing the button symbol');
 assert.equal(dots.querySelectorAll('button').length,3,'Exactly green/yellow/red account actions');
