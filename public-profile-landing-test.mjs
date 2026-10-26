@@ -27,6 +27,10 @@ w.BigLWAUserDirectory={loadArchiveForUsername:async()=>[
  {state:'private',source:'pinterest',thumbnailUrl:'https://example.com/private.jpg'}
 ]};
 w.BigLWAStudioPreview={prompt:(value)=>w.lastPrompt=value};
+w.BigLWAGuestCheck={
+ summary:(node,profile)=>{node.textContent='Published entries for @'+profile.username;w.summaryOwner=profile.uid},
+ open:()=>{w.guestOpens=(w.guestOpens||0)+1}
+};
 w.eval(landing);
 w.eval(planets);
 doc.dispatchEvent(new w.Event('DOMContentLoaded'));
@@ -63,10 +67,10 @@ assert.ok(doc.querySelector('.biglwa-public-avatar-preview img'),'Visitor sees p
 assert.equal(doc.querySelectorAll('#map [data-open="map"]').length,1,'Map has one existing CTA');
 doc.querySelector('#map [data-open="map"]').click();
 assert.equal(w.lastPrompt,'view this member’s published map','Map gated until account creation');
+assert.equal(w.summaryOwner,'ownerA','Visitor sheet reads the owner-scoped published entries');
+assert.ok(doc.querySelector('.biglwa-guest-v2-preview'),'Public profile contains the live Guest Check summary');
 doc.querySelector('.biglwa-public-guest-open').click();
-assert.ok(doc.getElementById('biglwaPublicGuestSheet'),'Guest sheet opens');
-assert.deepEqual([...doc.querySelectorAll('#biglwaPublicGuestSheet .biglwa-guest-paper-head')].map(e=>e.textContent),['WHO WUZ HERE?','NOTE','DATE'],'Guest Check uses the actual three dated columns rather than fake notebook lines');
-assert.equal(doc.querySelector('#biglwaPublicGuestSheet .biglwa-public-guest-note').textContent,'No Guest Check notes have been published.','No private entries are invented or exposed');
+assert.equal(w.guestOpens,1,'Read-only visitor opens the actual shared Guest Check rather than a fake dialog');
 w.dispatchEvent(new w.Event('biglwa:public-profile-ended'));
 assert.equal(doc.querySelector('.biglwa-public-boards-home'),null,'Leaving preview removes visitor data');
 dom.window.close();
