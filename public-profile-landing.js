@@ -9,14 +9,31 @@
  const make=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n};
  const imageUrl=raw=>{try{const u=new URL(String(raw||''));return u.protocol==='https:'&&!u.username&&!u.password?u.href:''}catch{return ''}};
  function decorateJournal(){
-  const card=$('#studioApp #diary'),button=$('.diary-page',card);if(!card||!button)return;
+  const card=$('#studioApp #diary'),button=$('.diary-page',card);
+  if(!card||!button||!publicProfile)return;
+  // Keep the REAL composition-book cover fixed through scrolling, focus,
+  // and module navigation. Never inject a private browser draft or swap
+  // the cover for an async "checking visibility" message.
+  const owner=String(publicProfile.uid||publicProfile.username||'');
+  if(button.dataset.publicJournalOwner!==owner){
+    const covers=[...button.querySelectorAll('img[src]')].filter(img=>{
+      try{const u=new URL(img.src,location.origin);return u.origin===location.origin&&u.pathname.startsWith('/assets/')}catch{return false}
+    });
+    button.replaceChildren(...covers);
+    button.dataset.publicJournalOwner=owner;
+  }
   let initial=$('.biglwa-public-journal-initial',button);
-  if(!initial){initial=make('span','','biglwa-public-journal-initial');initial.setAttribute('aria-hidden','true');button.append(initial)}
-  const title=String(publicProfile?.name||publicProfile?.username||'L').trim();
-  initial.textContent=title.slice(0,1).toUpperCase();
-  const privateJournal=publicProfile?.journalVisibility!=='public';
-  button.setAttribute('aria-label',privateJournal?'Journal cover · locked':'Open public Journal');
-  card.dataset.publicJournal=privateJournal?'locked':'shared';
+  if(!initial){
+    initial=make('span','','biglwa-public-journal-initial');
+    initial.setAttribute('aria-hidden','true');
+    button.append(initial);
+  }
+  const title=String(publicProfile.name||publicProfile.username||'L').trim();
+  const letter=Array.from(title)[0]?.toLocaleUpperCase()||'L';
+  if(initial.textContent!==letter)initial.textContent=letter;
+  const publicJournal=publicProfile.journalVisibility==='public'&&Boolean(publicProfile.publicJournal);
+  button.setAttribute('aria-label',publicJournal?'Open '+title+'’s public Journal':'Journal cover · private');
+  card.dataset.publicJournal=publicJournal?'shared':'locked';
  }
  let mannequinPromise=null;
  function mannequin(){
@@ -119,12 +136,11 @@
   btn.onclick=showGuestSheet;
  }
  function decorateOrbit(){
-  const card=$('#studioApp #connect')||$('#studioApp #orbit');if(!card)return;
-  let open=$('.biglwa-public-orbit-open',card);
-  if(!open){open=make('button','View Orbit connections','biglwa-public-orbit-open');open.type='button';card.append(open)}
-  const count=publicProfile?.socials?.length||0;
-  open.textContent=count?'View '+count+' Orbit connection'+(count===1?'':'s'):'View Orbit';
-  open.onclick=()=>window.openBIGLWAModule?.('orbit');
+  // The actual Orbit widget is the member's eight public planet tiles.
+  // Do not draw a duplicate "View Orbit" CTA on the Connect widget.
+  all('#studioApp .biglwa-public-orbit-open').forEach(button=>button.remove());
+  const card=$('#studioApp #orbit');
+  if(card)card.dataset.publicOrbitPlanets='1';
  }
  function decorateMap(){
   const card=$('#studioApp #map');if(!card)return;
@@ -157,6 +173,10 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
  const style=make('style');style.id='biglwa-public-landing-style';
  style.textContent=`
+ html.biglwa-preview-mode #studioApp #diary .diary-page .studio-journal-initial{display:none!important}
+ html.biglwa-preview-mode #studioApp #diary .diary-page .biglwa-public-journal-initial{display:grid!important}
+ html.biglwa-preview-mode #studioApp #orbit .orbit-grid button.orbit-public-unlinked{cursor:default!important;opacity:.78!important}
+ html.biglwa-preview-mode #studioApp #orbit .orbit-grid button.orbit-public-unlinked small{color:#6e6162!important}
  html.biglwa-preview-mode #studioApp .biglwa-public-boards-card>.biglwa-public-boards-home{display:grid!important;gap:8px;padding:3px 0 4px}
  html.biglwa-preview-mode #studioApp .biglwa-public-boards-card>:not(.card-head):not(.biglwa-public-boards-home){display:none!important}
  .biglwa-public-boards-tagline{margin:0;color:#8c817a;font:500 12px/1.4 system-ui}
