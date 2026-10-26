@@ -575,6 +575,9 @@ function gateReason(target,kind){
   if(!app || !app.contains(target)) return "";
   const widgetControl=target.closest("[data-expand-widget],[data-open-widget-settings],[data-minimize-widget],[data-dock-widget],[data-rearrange-widget],[data-restore-widget],[data-add-shortcut],[data-remove-shortcut],[data-studio-drag-handle]");
   if(widgetControl) return "enlarge and arrange widgets";
+  // The new public Guest Check is read-only for anonymous visitors; its own
+  // dialog independently enforces Firebase authentication before adding notes.
+  if(target.closest('#studioApp .guest-check-card [data-open-guest],#studioApp .guest-check-card .guest-check-sheet,#studioApp .guest-check-card .biglwa-public-guest-open'))return "";
   if(target.closest("[data-open-guest]")) return "leave a message";
   if(target.closest("#editProfileBtn,[data-profile-editor-tab],[data-profile-editor-pane],.profile-editor")) return "edit profiles";
   const form=target.closest("form");
