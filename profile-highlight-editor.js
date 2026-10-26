@@ -90,6 +90,29 @@
    image.src=url;
   });
  }
+ async function uploadHighlightImage(file){
+  if(!file||!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type)||file.size>8*1024*1024)
+   throw Error('Choose a JPG, PNG, WebP or GIF under 8 MB.');
+  const [{initializeApp,getApps},{getAuth}]=await Promise.all([
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')
+  ]);
+  const app=getApps()[0]||initializeApp({
+   apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+   authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'
+  });
+  const auth=getAuth(app);await auth.authStateReady();
+  const user=auth.currentUser;
+  if(!user||user.uid!==owner())throw Error('Sign in to your own account before uploading highlight media.');
+  const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/feed-image',{
+   method:'POST',headers:{Authorization:'Bearer '+await user.getIdToken(),'Content-Type':file.type},body:file
+  });
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error(payload.error||'Image upload failed.');
+  const url=cleanUrl(payload.url);
+  if(!url)throw Error('The upload did not return a usable image URL.');
+  return url;
+ }
  const make=(tag,className,text)=>{const n=document.createElement(tag);if(className)n.className=className;if(text!=null)n.textContent=text;return n};
  const input=(type,value,label,action)=>{
   const l=make('label','',label),n=document.createElement(type==='textarea'?'textarea':'input');
@@ -163,7 +186,20 @@
    if(!item){status('Use a direct HTTPS image or video link.');return}
    if(data.added.length>=12){status('Maximum 12 additional items per highlight.');return}
    data.added.push(item);url.value='';updateAdded();
-  };mediaForm.append(url,type,add);
+  };const upload=make('label','highlight-upload-label','Upload photo');
+  const photoFile=make('input');photoFile.type='file';photoFile.accept='image/jpeg,image/png,image/webp,image/gif';
+  photoFile.setAttribute('aria-label','Upload new highlight photo to BIG LWA');
+  photoFile.addEventListener('change',async()=>{
+   if(!photoFile.files?.[0])return;
+   try{
+    status('Uploading image to BIG LWA…');
+    const photoUrl=await uploadHighlightImage(photoFile.files[0]);
+    if(data.added.length>=12){status('Maximum 12 additional items per highlight.');return}
+    data.added.push({kind:'image',mediaUrl:photoUrl});
+    updateAdded();status('Photo uploaded. Save Highlights to publish it.');
+   }catch(e){status(e.message||'Photo upload failed.')}finally{photoFile.value=''}
+  });upload.append(photoFile);
+  mediaForm.append(url,type,add,upload);
   rows.append(added,mediaForm);fields.append(rows);
   const controls=make('div','highlight-row-actions');
   const hidden=make('label','','Hide from banner');const checked=make('input');checked.type='checkbox';checked.checked=data.hidden;checked.onchange=()=>{data.hidden=checked.checked;wrap.setAttribute('aria-disabled',String(data.hidden))};hidden.prepend(checked);controls.append(hidden);
