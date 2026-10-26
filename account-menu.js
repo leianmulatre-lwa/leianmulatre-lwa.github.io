@@ -25,53 +25,63 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
 `;
 
   const SIGNED_OUT_HINT = 'Sign in to open your settings';
+  /* Reuse Connect artwork and the NATIVE Logs and log-out controllers. */
   const actionStyle=document.createElement('style');
   actionStyle.id='biglwa-account-dots-style';
-  actionStyle.textContent="\n#biglwaAccountActionDots{display:inline-flex;align-items:center;gap:7px;margin:0 11px 0 4px;flex:none;position:relative;z-index:1001}\n#biglwaAccountActionDots .biglwa-account-dot{display:inline-grid;place-items:center;width:31px;height:31px;padding:0!important;border:1px solid #34272e44;border-radius:50%;box-shadow:inset 0 2px 1px #ffffff70,0 1px 2px #2e1f2333;color:#201820;font:800 17px/1 system-ui;cursor:pointer;opacity:1}\n#biglwaAccountActionDots .biglwa-account-dot:focus-visible{outline:3px solid #60364b;outline-offset:3px}\n#biglwaAccountActionDots [data-biglwa-add-user]{background:#48b579}\n#biglwaAccountActionDots [data-biglwa-logs]{background:#f0c84e}\n#biglwaAccountActionDots [data-biglwa-logout]{background:#f16b79}\n#biglwaAccountActionDots .biglwa-account-dot:hover{filter:brightness(1.07);transform:translateY(-1px)}\n#studioApp #studioSignOut{display:none!important}\nhtml.biglwa-preview-mode:not(.biglwa-owner-self-preview) #biglwaAccountActionDots{display:none!important}\n@media(max-width:590px){#biglwaAccountActionDots{gap:4px;margin-right:4px}#biglwaAccountActionDots .biglwa-account-dot{width:27px;height:27px;font-size:15px}}\n";
+  actionStyle.textContent="\n#biglwaAccountActionDots{display:inline-flex;align-items:center;gap:5px;margin:0 9px 0 3px;flex:none;position:relative;z-index:1001}\n#studioApp #biglwaAccountActionDots>button{display:inline-grid!important;place-items:center!important;width:26px!important;height:26px!important;min-width:26px!important;padding:4px!important;border:1px solid rgba(40,27,29,.2)!important;border-radius:50%!important;box-shadow:inset 0 1px rgba(255,255,255,.44)!important;margin:0!important;cursor:pointer!important;position:relative}\n#studioApp #biglwaAccountActionDots [data-biglwa-add-user]{background:#48b579!important}\n#studioApp #biglwaAccountActionDots #studioNotificationsBtn{background:#f0c84e!important}\n#studioApp #biglwaAccountActionDots #studioSignOut{background:#f16b79!important}\n#studioApp #biglwaAccountActionDots img,#studioApp #biglwaAccountActionDots svg{display:block!important;width:15px!important;height:15px!important;max-width:15px!important;max-height:15px!important;object-fit:contain!important}\n#studioApp #biglwaAccountActionDots .visitor-mail-icon,#studioApp #biglwaAccountActionDots .studio-logout-icon{width:15px!important;height:15px!important}\n#studioApp #biglwaAccountActionDots button:focus-visible{outline:2px solid #382e34!important;outline-offset:2px!important}\nhtml.biglwa-preview-mode:not(.biglwa-owner-self-preview) #biglwaAccountActionDots{display:none!important}\n@media(max-width:590px){#biglwaAccountActionDots{gap:4px!important;margin-right:4px!important}#studioApp #biglwaAccountActionDots>button{width:24px!important;height:24px!important;min-width:24px!important}}\n";
   document.head.append(actionStyle);
   function installActionDots(trigger){
-    if(document.getElementById('biglwaAccountActionDots'))return;
-    const wrapper=document.createElement('div');wrapper.id='biglwaAccountActionDots';
-    wrapper.setAttribute('role','group');wrapper.setAttribute('aria-label','Account actions');
-    const make=(kind,glyph,label,fn)=>{
-      const b=document.createElement('button');b.type='button';b.className='biglwa-account-dot';
-      b.dataset['biglwa'+kind]=true;b.textContent=glyph;b.title=label;b.setAttribute('aria-label',label);
-      b.addEventListener('click',event=>{event.stopPropagation();fn()});wrapper.append(b);return b;
-    };
-    make('AddUser','+','Add user · switch to account creation',()=>{
-      if(!window.confirm('Add another user? You will sign out of this account first.'))return;
-      const out=document.getElementById('studioSignOut');
-      if(!out){window.alert('Sign-out control unavailable. Open Settings to switch accounts.');return}
-      sessionStorage.setItem('biglwaOpenAddUser','1');
-      out.click();
-      let count=0;
-      const openCreate=()=>{
-        const login=document.getElementById('loginPage');
-        const tab=document.getElementById('createTab');
-        if(login?.classList.contains('is-active')&&tab){
-          sessionStorage.removeItem('biglwaOpenAddUser');tab.click();return true;
-        }
-        return false;
-      };
-      if(!openCreate()){
-        const poll=setInterval(()=>{
-          if(openCreate()||++count>80){clearInterval(poll);if(count>80)sessionStorage.removeItem('biglwaOpenAddUser')}
-        },100);
+    let wrapper=document.getElementById('biglwaAccountActionDots');
+    if(!wrapper){
+      wrapper=document.createElement('div');wrapper.id='biglwaAccountActionDots';
+      wrapper.setAttribute('role','group');wrapper.setAttribute('aria-label','Account actions');
+      trigger.parentNode.insertBefore(wrapper,trigger);
+    }
+    let add=wrapper.querySelector('[data-biglwa-add-user]');
+    if(!add){
+      add=document.createElement('button');add.type='button';add.dataset.biglwaAddUser='true';
+      add.title='Add user';add.setAttribute('aria-label','Add user');
+      const connect=document.querySelector('#studioApp #connect .card-icon img,#studioApp #connect .card-icon svg,#studioApp [data-shortcut-route="connect"] img,#studioApp [data-sidebar-route="connect"] img,#studioApp #connect .card-icon');
+      if(connect){
+        const icon=connect.cloneNode(true);icon.removeAttribute('id');
+        icon.setAttribute('aria-hidden','true');add.append(icon);
+      }else{
+        add.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6m-3-3h6"/></svg>';
       }
-    });
-    make('Logs','☷','Open activity logs',()=>{
-      const dialog=document.getElementById('studioLogsDialog');
-      const button=document.querySelector('[data-open-logs],#studioLogsBtn,#studioLogsButton');
-      if(button){button.click();return}
-      if(dialog){if(typeof dialog.showModal==='function'&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');return}
-      window.alert('Activity logs are not available in this view.');
-    });
-    make('Logout','×','Log out of BIG LWA',()=>{
-      const out=document.getElementById('studioSignOut');
-      if(out)out.click();
-      else window.alert('Log out is unavailable. Open Settings to manage this session.');
-    });
-    trigger.parentNode.insertBefore(wrapper,trigger);
+      add.addEventListener('click',event=>{
+        event.stopPropagation();
+        if(!window.confirm('Add another user? You will sign out of this account first.'))return;
+        const out=document.getElementById('studioSignOut');
+        if(!out){window.alert('Sign out is unavailable in this view.');return}
+        sessionStorage.setItem('biglwaOpenAddUser','1');out.click();
+        let count=0;
+        const openCreate=()=>{
+          const login=document.getElementById('loginPage'),tab=document.getElementById('createTab');
+          if(login?.classList.contains('is-active')&&tab){
+            sessionStorage.removeItem('biglwaOpenAddUser');tab.click();return true
+          }
+          return false;
+        };
+        if(!openCreate()){
+          const poll=setInterval(()=>{
+            if(openCreate()||++count>80){clearInterval(poll);if(count>80)sessionStorage.removeItem('biglwaOpenAddUser')}
+          },100);
+        }
+      });
+      wrapper.append(add);
+    }
+    const reconcile=()=>{
+      const logs=document.getElementById('studioNotificationsBtn');
+      const logout=document.getElementById('studioSignOut');
+      wrapper.querySelector('[data-biglwa-logs]')?.remove();
+      if(logs&&logs.parentElement!==wrapper){logs.title='Logs';logs.setAttribute('aria-label','Logs');wrapper.append(logs)}
+      if(logout&&logout.parentElement!==wrapper){logout.title='Log out';logout.setAttribute('aria-label','Log out');wrapper.append(logout)}
+      return !!(logs&&logout);
+    };
+    if(!reconcile()){
+      let attempts=0;
+      const retry=setInterval(()=>{if(reconcile()||++attempts>=40)clearInterval(retry)},125);
+    }
   }
 
   const ensureStyle = () => {
