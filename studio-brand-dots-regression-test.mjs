@@ -42,8 +42,38 @@ async function verify(preview){
  assert.ok(next,'Dots reattach when signed-in toolbar remounts');
  assert.equal(d.querySelectorAll('#lwaProfileLoading').length,1,'No duplicate dots');
  assert.equal(next.hidden,true,'Finished loading stays hidden even after toolbar remount');
+
+ // Opening a widget creates the EXISTING module curtain. The top-left crest
+ // should follow that exact curtain, then turn off the moment it is finished.
+ const main=d.querySelector('#studioApp .main');
+ const moduleView=d.createElement('div');
+ moduleView.className='main module-view';
+ moduleView.innerHTML='<div class="module-workspace" data-module-key="stream">'+
+  '<section class="module-shell"><header class="module-heading">Stream</header>'+
+  '<div class="widget-payload" aria-busy="true">Loading radio</div></section></div>';
+ main.replaceWith(moduleView);
+ await new Promise(resolve=>setTimeout(resolve,85));
+ const curtain=moduleView.querySelector('[data-lwa-curtain="module"]');
+ assert.ok(curtain,'New widget opens its original loading curtain');
+ assert.equal(curtain.hidden,false,'Module curtain is actively visible');
+ assert.equal(d.querySelector('#lwaProfileLoading').hidden,false,'Top-left dots appear WHILE widget curtain appears');
+ const busy=moduleView.querySelector('.widget-payload');
+ busy.removeAttribute('aria-busy');
+ await new Promise(resolve=>setTimeout(resolve,500));
+ assert.equal(curtain.hidden,true,'Original module curtain disappears when widget finishes');
+ assert.equal(d.querySelector('#lwaProfileLoading').hidden,true,'Top-left dots disappear in sync with curtain');
+ // When a widget is loaded but starts requesting new data, it is permitted to
+ // display the loading state again rather than becoming permanently stuck off.
+ busy.setAttribute('aria-busy','true');
+ await new Promise(resolve=>setTimeout(resolve,60));
+ assert.equal(curtain.hidden,false,'Curtain reopens for a later widget request');
+ assert.equal(d.querySelector('#lwaProfileLoading').hidden,false,'Top-left dots track later requests too');
+ curtain.querySelector('.lwa-curtain-bypass').click();
+ assert.equal(curtain.hidden,true,'View-anyway closes the curtain');
+ assert.equal(d.querySelector('#lwaProfileLoading').hidden,true,'View-anyway stops the top-left dots as well');
+
  w.close();
 }
 await verify(false);
 await verify(true);
-console.log('PASS: Top-left RGB dots show ONLY while loading for signed-in owner and preview; stay hidden after completion and toolbar remount, without duplicates.');
+console.log('PASS: RGB logo dots synchronize with widget curtain appearing, finishing, retrying and bypass, in owner and preview modes.');
