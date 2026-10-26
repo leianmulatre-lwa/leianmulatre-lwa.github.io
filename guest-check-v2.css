@@ -81,3 +81,20 @@
 #studioApp .module-shell.lwa-curtain-loading .lwa-curtain-brand{
  padding:0!important;filter:drop-shadow(0 3px 6px #0d030a90)!important
 }
+
+/* On visitor cards the original form-style sheet must not cover real check-ins. */
+html.biglwa-preview-mode #studioApp .guest-check-card .guest-check-sheet,
+html.biglwa-preview-mode #studioApp .guest-check-card .visitor-log-intro,
+html.biglwa-preview-mode #studioApp .guest-check-card .visitor-log-actions,
+html.biglwa-preview-mode #studioApp .guest-check-card .guest-check-lines-track{
+ visibility:hidden!important;pointer-events:none!important
+}
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview{
+ position:absolute!important;inset:25px 9px 40px!important;z-index:8!important;
+ margin:0!important;max-height:none!important;overflow:auto!important;
+ padding:7px 8px!important;background:#fffaf0!important;border-radius:10px!important
+}
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-open{
+ position:absolute!important;bottom:7px!important;right:10px!important;z-index:10!important;
+ padding:5px 10px!important;margin:0!important;font:700 10px/1.3 system-ui!important
+}
