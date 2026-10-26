@@ -20,7 +20,7 @@
   if(document.querySelector('.biglwa-editor-chrome'))return;
   const dock=document.createElement('aside');dock.className='biglwa-editor-chrome';
   dock.setAttribute('aria-label','BIG LWA editor controls');
-  dock.innerHTML='<div class="biglwa-editor-glyph" aria-hidden="true"><img src="/assets/bigapps/blocks/'+item.name+'.svg?v=20261026-native-blocks" alt="" /></div>'+
+  dock.innerHTML='<div class="biglwa-editor-glyph" aria-hidden="true"><img src="/assets/bigapps/icons/'+item.name+'.png?v=20261026-original-stitch" alt="" /></div>'+
    '<div class="biglwa-editor-name"><strong>'+item.name+'</strong><small>BIG LWA · licensed editing engine</small></div>'+
    '<div class="biglwa-editor-lights" role="group" aria-label="Window controls">'+
    '<button data-craft-chrome="exit" type="button" aria-label="Return to BIG LWA Tools" title="Back to Tools"></button>'+
@@ -28,7 +28,7 @@
    '<button data-craft-chrome="fullscreen" type="button" aria-label="Fullscreen" title="Fullscreen editor"></button></div>'+
    '<div class="biglwa-editor-links">'+
    '<label title="Upload an image you exported from this editor to your private BIG LWA snapshots">Save exported image<input id="biglwaAdvancedSnapshot" type="file" accept="image/png,image/jpeg,image/webp"></label>'+
-   '<a href="/studio?view=tools" aria-label="Return to BIG LWA tewlz">△ Studio / tewlz</a>'+ 
+   '<a href="/studio?view=tools" aria-label="Return to BIG LWA lwazi">△ Studio / lwazi</a>'+ 
    '<button data-craft-theme="light" type="button" aria-pressed="false" title="Light edition">☼</button>'+
    '<button data-craft-theme="dark" type="button" aria-pressed="false" title="Dark edition">☾</button>'+
    '<a href="'+links.github+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+links.patreon+'" target="_blank" rel="noopener noreferrer">Patreon ↗</a>'+
@@ -36,7 +36,7 @@
    '<small class="biglwa-editor-status" role="status">Files stay local unless you choose to save a preview.</small>';
   const mini=document.createElement('button');mini.className='biglwa-editor-reopen';mini.hidden=true;
   mini.type='button';
-  mini.innerHTML='<img src="/assets/bigapps/blocks/'+item.name+'.svg?v=20261026-native-blocks" alt="">'+item.name;
+  mini.innerHTML='<img src="/assets/bigapps/icons/'+item.name+'.png?v=20261026-original-stitch" alt="">'+item.name;
   mini.setAttribute('aria-label','Open '+item.name+' BIG LWA controls');
   const status=dock.querySelector('.biglwa-editor-status');
   const setTheme=value=>{
