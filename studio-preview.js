@@ -34,6 +34,7 @@ const $ = (sel,root=document)=>root.querySelector(sel);
 /* GitHub Pages uses 404.html as the SPA fallback. It now loads the root shell
    without changing the requested URL, so this value captures the real entry path
    before deferred scripts run. */
+const PREVIEW_REQUESTED=new URLSearchParams(location.search).get('preview')==='1'||window.__biglwaEntryPreview===true;
 const ENTRY_PATH=(()=>{
   if(window.__biglwaEntryPath) return window.__biglwaEntryPath;
   try{
@@ -730,7 +731,7 @@ async function checkSignedIn(){
     if(profile){
       const sameProfile=clean(profile.profile?.username||profile.username).toLowerCase()===clean(preview.username).toLowerCase();
       preview.signedIn=true;
-      if(sameProfile&&!new URLSearchParams(location.search).has('preview')) standDown();
+      if(sameProfile&&!PREVIEW_REQUESTED) standDown();
     }
   }catch{}
   preview.checking=false;
@@ -838,11 +839,11 @@ function activate(profile){
   preview.profile=profile;
   window.__biglwaViewedProfile=profile;
   preview.username=profile.username||preview.username;
-  preview.path="/"+preview.username+(new URLSearchParams(location.search).get('preview')==='1'?'?preview=1':'');
+  preview.path="/"+preview.username+(PREVIEW_REQUESTED?'?preview=1':'');
   preview.title="@"+preview.username+"'s Studio - BIGLWA";
   preview.active=true;
   document.documentElement.classList.add("biglwa-preview-mode");
-  document.documentElement.classList.toggle("biglwa-owner-self-preview",new URLSearchParams(location.search).get("preview")==="1"&&clean(identity()?.username).toLowerCase()===clean(profile.username).toLowerCase());
+  document.documentElement.classList.toggle("biglwa-owner-self-preview",PREVIEW_REQUESTED&&clean(identity()?.username).toLowerCase()===clean(profile.username).toLowerCase());
   document.documentElement.classList.toggle("biglwa-preview-private",profile.accountVisibility==='private');
   showStudioScreen();
   applyIdentity(profile);
@@ -885,7 +886,7 @@ async function boot(){
     const mineUsername=clean(mine.profile?.username||mine.username).toLowerCase();
     // The account owner may explicitly request the visitor view. Only ordinary
     // self-navigation bypasses preview; ?preview=1 must activate read-only mode.
-    if(mineUsername===username.toLowerCase()&&new URLSearchParams(location.search).get('preview')!=='1') return;
+    if(mineUsername===username.toLowerCase()&&!PREVIEW_REQUESTED) return;
     /* A signed-in member can still preview a friend's profile. Only the matching
        username is treated as the owner; otherwise keep preview mode active. */
     preview.signedIn=true;
