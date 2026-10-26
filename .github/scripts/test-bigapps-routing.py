@@ -1,6 +1,7 @@
 """Test BIG LWA app routes without downloading the upstream WebAssembly builds."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -26,7 +27,11 @@ def fake_notices(slug, version, dest):
 
 with TemporaryDirectory() as directory:
     dest = Path(directory)
-    with patch.object(stager, "release_archive", fake_archive), \
+    # This test checks the historical upstream fallback and bookmark redirects.
+    # Native release integration runs separately with its real archive in Pages CI.
+    # The production BIGLWA_NATIVE_ARCHIVE must not override these mocked fixtures.
+    with patch.dict(os.environ, {"BIGLWA_NATIVE_ARCHIVE": ""}), \
+         patch.object(stager, "release_archive", fake_archive), \
          patch.object(stager, "install_zip", fake_install), \
          patch.object(stager, "preserve_notices", fake_notices):
         stager.stage(dest)
