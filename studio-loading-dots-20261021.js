@@ -22,6 +22,7 @@
    flex:0 0 31px;min-width:31px;width:31px;height:20px;
    font:600 10px system-ui;color:inherit;white-space:nowrap;
    margin-left:4px;vertical-align:middle;overflow:visible;position:relative;z-index:2}
+ #lwaProfileLoading[hidden]{display:none!important}
  #lwaProfileLoading>.lwa-dot{display:inline-block;flex:none}
  #lwaProfileLoading>.lwa-profile-loading-label[hidden]{display:none!important}
  @media(max-width:720px){#lwaProfileLoading{flex-basis:24px;min-width:24px;width:24px;margin-left:0;transform:scale(.82);transform-origin:left center}}
@@ -91,13 +92,13 @@
  `;
  const style=document.createElement('style');style.id='lwaLoadingDotsStyles';style.textContent=css;document.head.append(style);
  const make=(type)=>{const el=document.createElement('i');el.className='lwa-dot lwa-dot-'+type;el.setAttribute('aria-hidden','true');return el};
- let profile=null,transition=null,transitionTimer=null,transitionShownAt=0;
+ let profile=null,profileLoading=false,transition=null,transitionTimer=null,transitionShownAt=0;
  function ensure(){
   if(!document.getElementById('studioApp'))return;
   const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
   if(!mark)return;
-  // This rail is also the persistent three-dot marker beside the top-left
-  // stitched crest. Never tie its visibility to preview or load completion.
+  // This rail is a loading indicator, not a permanent decoration. Both
+  // preview and the signed-in Studio hide it after hydration finishes.
   // The signed-in toolbar can be remounted after hydration; reattach the
   // existing node rather than producing a duplicate or leaving it detached.
   if(!profile||!profile.isConnected){
@@ -115,15 +116,16 @@
   }
   if(profile.parentElement!==mark)mark.append(profile);
   if(!profile.hasAttribute('role'))profile.setAttribute('aria-hidden','true');
-  profile.hidden=false;
+  profile.hidden=!profileLoading;
   // Startup and login-laptop loaders remain separate; this is solely the
   // already-existing top-left three-dot element.
  }
  let ownerProfileTimer=0;
  function setProfile(loading){
+  profileLoading=Boolean(loading);
   ensure();
   if(profile){
-   profile.hidden=false;
+   profile.hidden=!profileLoading;
    const label=profile.querySelector('.lwa-profile-loading-label');
    if(label)label.hidden=!loading;
    if(loading){
