@@ -168,6 +168,39 @@ function sanitizeLayout(raw){
  for(const key of ['heroWidgetRail','biglwaStudioMasonry'])if(value.order?.[key])order[key]=cleanIds(value.order[key]);
  return {order,docked:cleanIds(value.docked)};
 }
+/* The small, explicitly edited Highlight presentation may be mirrored publicly.
+   Never publish authentication state, full source archives, or private drafts. */
+function sanitizeHighlightEdits(raw){
+  if(!raw||typeof raw!=="object")return {version:1,imported:{},custom:[]};
+  const cover=value=>{
+    const u=String(value||"").trim();
+    if(/^data:image\/jpeg;base64,[A-Za-z0-9+/=]{1,36000}$/.test(u))return u;
+    if(/^\/assets\/highlights\/[\w.-]{1,180}$/.test(u))return u;
+    try{const x=new URL(u);return x.protocol==="https:"&&!x.username&&!x.password&&x.href.length<1300?x.href:""}catch{return ""}
+  };
+  const media=value=>{
+    const u=cover(value);
+    return u.startsWith("https://")?u:"";
+  };
+  const keep=entry=>({
+    title:safeText(entry?.title,48),cover:cover(entry?.cover),
+    x:Math.max(0,Math.min(100,Number(entry?.x)||50)),y:Math.max(0,Math.min(100,Number(entry?.y)||50)),
+    hidden:!!entry?.hidden,
+    order:Array.isArray(entry?.order)?[...new Set(entry.order.filter(i=>Number.isInteger(i)&&i>=0&&i<100))].slice(0,50):null,
+    added:Array.isArray(entry?.added)?entry.added.slice(0,12).flatMap(item=>{
+      const url=media(item?.mediaUrl);
+      return url?[{kind:item.kind==="video"?"video":"image",mediaUrl:url}]:[];
+    }):[]
+  });
+  const imported={};
+  for(const [key,value] of Object.entries(raw.imported||{})){
+    if(/^\d{1,2}$/.test(key)&&Number(key)<24)imported[key]=keep(value);
+  }
+  const custom=Array.isArray(raw.custom)?raw.custom.slice(0,8).map(value=>({
+    ...keep(value),id:safeText(value?.id,70).replace(/[^\w-]/g,"")
+  })):[];
+  return {version:1,imported,custom};
+}
 async function savePublicLook(custom={}){
   try{
     const {db,auth}=await getFirebase();
@@ -187,6 +220,7 @@ async function savePublicLook(custom={}){
       widgetBlur:safeNumber(appearance.blur,0),
       auraColor:safeText(appearance.aura,32),
       layout:account.accountVisibility==='private'?{}:sanitizeLayout(custom.layout),
+      highlights:account.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(custom.session?.highlightEdits),
       wallpaper:{
         fit:safeText(wallpaper.fit,16),
         blur:safeNumber(wallpaper.blur,0),
@@ -282,6 +316,7 @@ async function loadPublicProfile(rawUsername){
       publicJournal:data.journalVisibility==='public'?String(data.publicJournal||'').slice(0,12000):'',
       look:look?{
         layout:data.accountVisibility==='private'?{}:sanitizeLayout(look.layout),
+        highlights:data.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(look.highlights),
         appearance:{
           widgetColor:clean(look.widgetColor),
           widgetRadius:safeNumber(look.widgetRadius,0),
