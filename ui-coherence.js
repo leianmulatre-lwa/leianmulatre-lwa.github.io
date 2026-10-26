@@ -613,7 +613,7 @@
   // routes *before* drawing shortcut rows. Never mutate account layout here.
   const SIDEBAR_ROUTE_FALLBACKS=[
     ['politc','Politic','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
-    ['tools','Tools','<img src="/assets/tools-hand-eye.svg" alt="">'],
+    ['tools','lwazi','<img src="/assets/tools-hand-eye.svg" alt="">'],
     ['calendar','Calendar','▦'],
     ['map','Map','⌖'],
     ['projects','Projects','<img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">'],
