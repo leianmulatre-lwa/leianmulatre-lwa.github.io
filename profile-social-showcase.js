@@ -250,7 +250,7 @@
   rail.setAttribute('aria-label','Highlights and Spotlights on banner');
   const track=document.createElement('div');track.className='biglwa-stories-track';
   track.setAttribute('role','group');track.setAttribute('aria-label','Story highlights');
-  if(active('snapchat')){
+  if(active('snapchat')&&!window.BigLWAImportedHighlights?.match(handles.instagram)?.highlights.some(g=>g.platform==='snapchat')){
    if(snapItems.length)snapItems.forEach((item,i)=>track.append(storyBubble('snapchat','Spotlight '+(i+1),
     ()=>storyPreview({...item,url:snapchatViewerUrl(handles.snapchat)},'snapchat'))));
    else if(handles.snapchat)track.append(viewerBubble('snapchat',handles.snapchat));
@@ -286,7 +286,7 @@
   if(copy&&rank&&rank.parentElement!==copy)copy.append(rank);
   const who=uid(),handles=accountHandles();
   const imported=window.BigLWAImportedHighlights?.match(handles.instagram);
-  if(root&&imported&&!who){mountStoryCircles(root,null,[],[],handles);return;}
+  if(root&&imported&&location.pathname.replace(/\/$/,'')==='/leian'){mountStoryCircles(root,null,[],[],handles);return;}
   root?.querySelectorAll('[data-biglwa-bio-highlights]').forEach(el=>el.remove());
   const entries=[...instagramSourceHighlights(handles.instagram),...saved()]
     .filter((item,i,list)=>list.findIndex(other=>other.url===item.url)===i).slice(0,8);
