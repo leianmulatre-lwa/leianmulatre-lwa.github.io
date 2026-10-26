@@ -4,8 +4,8 @@ import {createRequire} from 'node:module';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 const dots=readFileSync(new URL('./studio-loading-dots-20261021.js',import.meta.url),'utf8');
 const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.match(index,/studio-loading-dots-20261021\.js\?v=20261026-persistent-brand-dots-5/,'Current site loads fix');
-assert.match(dots,/#lwaProfileLoading\{display:inline-flex!important/,'Brand dots are visible in both modes');
+assert.match(index,/studio-loading-dots-20261021\.js\?v=20261026-loading-only-dots-6/,'Current site loads fix');
+assert.match(dots,/#lwaProfileLoading\{display:inline-flex!important/,'Loading dots share one consistent DOM node in both modes');
 assert.match(dots,/if\(!profile\|\|!profile\.isConnected\)/,'Brand dots reattach after toolbar hydration');
 
 async function verify(preview){
@@ -19,14 +19,14 @@ async function verify(preview){
  let rail=d.getElementById('lwaProfileLoading');
  assert.ok(rail, 'Existing top-left dots mount with '+(preview?'preview':'signed-in owner'));
  assert.equal(rail.parentElement,d.querySelector('.studio-brand-row'),'Dots sit beside symbol logo');
- assert.equal(rail.hidden,false,'Dots initially visible');
+ assert.equal(rail.hidden,true,'Idle logo loading dots are hidden at startup');
  assert.equal(rail.querySelectorAll('.lwa-dot').length,1,'Exactly one floating triple-dot indicator');
  assert.ok(d.getElementById('lwaLoadingDotsStyles').textContent.includes('background:#4ba76a'),'RGB animations preserved');
  w.BigLWALoadingDots.profile(true);
  assert.equal(rail.hidden,false,'Dots remain visible when profile is loading');
  assert.equal(rail.querySelector('.lwa-profile-loading-label').hidden,false,'Only while loading is text visible');
  w.BigLWALoadingDots.ready();
- assert.equal(rail.hidden,false,'Dots remain visible AFTER loading finishes');
+ assert.equal(rail.hidden,true,'Dots disappear once profile loading finishes');
  assert.equal(rail.querySelector('.lwa-profile-loading-label').hidden,true,'Idle dots do not falsely say loading profile');
  assert.equal(rail.getAttribute('aria-hidden'),'true','Decorative idle dots are hidden from screen readers');
 
@@ -41,9 +41,9 @@ async function verify(preview){
  const next=d.querySelector('#studioApp .studio-brand-row #lwaProfileLoading');
  assert.ok(next,'Dots reattach when signed-in toolbar remounts');
  assert.equal(d.querySelectorAll('#lwaProfileLoading').length,1,'No duplicate dots');
- assert.equal(next.hidden,false,'Dots remain visible through the remount');
+ assert.equal(next.hidden,true,'Finished loading stays hidden even after toolbar remount');
  w.close();
 }
 await verify(false);
 await verify(true);
-console.log('PASS: Top-left RGB dots persist beside logo for signed-in owner AND preview, after load completion and toolbar remount; no duplicate or misleading text.');
+console.log('PASS: Top-left RGB dots show ONLY while loading for signed-in owner and preview; stay hidden after completion and toolbar remount, without duplicates.');
