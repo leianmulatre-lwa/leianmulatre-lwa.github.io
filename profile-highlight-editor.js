@@ -133,6 +133,7 @@
   const title=input('text',data.title||group.title||'','Name',value=>{data.title=value.slice(0,48);});
   title.querySelector('input').maxLength=48;fields.append(title);
   const covers=make('div','highlight-cover-controls');
+  covers.append(make('strong','highlight-cover-adjust-heading','Adjust preview photo'));
   covers.append(input('text',data.cover||'','Cover image URL (optional)',value=>{
    const url=cleanUrl(value,true);if(url){data.cover=url;picture.src=url}
    else if(!value.trim()){data.cover='';picture.src=group.cover||'/assets/tv-no-signal.svg'}
@@ -238,10 +239,15 @@
   if(!owner()||window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
   const panel=el('#studioApp #wallpaperPanel'),tabs=el('#profileEditorTabs',panel||document);
   if(!panel||!tabs||el('#biglwaHighlightEditorList',panel))return;
-  const tab=make('button','','Highlights');tab.type='button';tab.dataset.profileEditorTab='highlights';
-  tab.setAttribute('role','tab');tab.setAttribute('aria-controls','profileHighlightsEditor');tab.setAttribute('aria-selected','false');tab.tabIndex=-1;
-  const wallpaper=el('[data-profile-editor-tab="wallpaper"]',tabs);
-  if(wallpaper)wallpaper.before(tab);else tabs.append(tab);
+  // Reuse the visible tab installed by the main Profile editor; never add a
+  // duplicate tab or quietly hide editing behind another interface.
+  let tab=el('[data-profile-editor-tab="highlights"]',tabs);
+  if(!tab){
+   tab=make('button','','Highlights');tab.type='button';tab.dataset.profileEditorTab='highlights';
+   const media=el('[data-profile-editor-tab="media"]',tabs);
+   if(media)media.before(tab);else tabs.append(tab);
+  }
+  tab.setAttribute('role','tab');tab.setAttribute('aria-controls','profileHighlightsEditor');tab.tabIndex=-1;
   const pane=make('section','highlight-edit-pane');pane.id='profileHighlightsEditor';pane.dataset.profileEditorPane='highlights';pane.setAttribute('role','tabpanel');pane.hidden=true;
   pane.append(make('p','highlight-editor-intro','Edit your highlight names, individual content, and circle covers. Imported originals stay untouched.'));
   const rows=make('div','highlight-edit-list');rows.id='biglwaHighlightEditorList';pane.append(rows);
@@ -304,5 +310,5 @@
  const observer=new MutationObserver(schedule);
  const ready=()=>{observer.observe(document.getElementById('studioApp')||document.body,{childList:true,subtree:true});schedule()};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
- window.BIGLWAHighlightEditor={get,customize,current,render,save};
+ window.BIGLWAHighlightEditor={get,customize,current,render,save,mount:start};
 })();
