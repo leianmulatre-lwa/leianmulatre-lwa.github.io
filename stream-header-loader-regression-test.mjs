@@ -10,7 +10,7 @@ const overlay=read('studio-loading-consistency-20261026.css');
 const html=read('index.html');
 assert.ok(html.includes('module-version-header-20261026.js?v=20261026-visualizr-png-9'),'Fresh Stream layout loaded');
 assert.ok(html.includes('studio-loading-consistency-20261026.css?v=20261026-header-isolation-5'),'Fresh header-only loading stage loaded');
-assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-persistent-brand-dots-5'),'Original stitched loading wordmark loaded');
+assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-loading-only-dots-6'),'Original stitched loading wordmark loaded');
 assert.ok(!html.includes('<img class="biglwa-startup-logo"')&&!html.includes('<img class=\\"biglwa-startup-logo\\"'),'Both startup screens omit block logo');
 assert.ok(!loader.includes('biglwa-stitched-cubes-loader.avif'),'Module loader omits block logo');
 assert.ok(loader.includes('lwa-curtain-brand-b')&&loader.includes('lwa-curtain-brand-w'),'Original stitched letter wordmark restored');
