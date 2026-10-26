@@ -47,7 +47,7 @@ for(const name of ['sqwibblR','lightR','paintR','keyframeR','fileR']){
 }
 assert.match(read('.github/scripts/stage-craft-apps.py'),/type="image\/png"/,'Native browser editors advertise the new PNG favicons');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
-assert.ok(studio.includes('tools-craft.js?v=20261026-original-blocks-bookini-4'));
+assert.ok(studio.includes('tools-craft.js?v=20261026-visualizr-png-no-bookini-5'));
 assert.match(suite,/\/bigapps\/manifest\.json/,'Uses renamed manifest');
 assert.doesNotMatch(suite,/\/craftapps\//,'No legacy paths in editor launcher');
 assert.match(suite,/PUBLIC_APP_ROUTE/,'Public URLs use canonical names');
