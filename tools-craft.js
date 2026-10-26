@@ -33,7 +33,7 @@ const CRAFT_ICON_NAME={
 };
 function blockArtwork(item){
  const name=CRAFT_ICON_NAME[item.id]||'sqwibblR';
- return '<img class="craft-block-png" src="/assets/bigapps/icons/'+name+'.png?v=20261023-stitch-png-1" alt="" width="160" height="160" decoding="async" />';
+ return '<img class="craft-block-png" src="/assets/bigapps/'+(item.id==='image-desk'?'icons/':'blocks/')+name+(item.id==='image-desk'?'.png?v=20261023-stitch-png-1':'.svg?v=20261026-unified-blocks-1')+'" alt="" width="160" height="160" decoding="async" />';
 }
 
 let stylesReady=false;
