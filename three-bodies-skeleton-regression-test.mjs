@@ -10,7 +10,7 @@ for(const [name,src]of [['three-body',body],['Skeleton Key',onboarding],['Journa
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-compact-1'),'new three-body categorizer is deployed');
 assert.ok(home.includes('studio-onboarding.js?v=20261026-key-reformat-1'),'updated Skeleton Key is deployed');
-assert.ok(home.includes('module-pages.js?v=20261026-lwazi-visualizr-title-row-1'),'owned Journal preview is deployed');
+assert.ok(home.includes('module-pages.js?v=20261026-boo-lwazi-layout-3'),'owned Journal preview is deployed');
 assert.ok(home.includes('ui-coherence.js?v=20261026-lwazi-navbar-1'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};
@@ -38,7 +38,7 @@ assert.ok(!onboarding.includes('Take the site tour'));
 assert.ok(onboarding.includes("key:'politc',detail:'Civic life"),'Politic has a real symbol image in key');
 assert.ok(onboarding.includes("key:'orbit',detail:")&&onboarding.includes("key:'connect',detail:"),'Orbit and Connect have separate symbol entries');
 assert.ok(pages.includes('.main.module-view>.module-page-aura{display:none!important')&&!pages.includes('height:min(380px,46vh)'),'Module page ends without a 380px trailing decoration');
-assert.ok(pages.includes("camera:'Bookini'")&&pages.includes('id="boothPhotoTab"')&&pages.includes('id="boothVideoTab"') ,'Bookini retains separate Photo and Video tabs');
+assert.ok(pages.includes("camera:'boo'")&&pages.includes('id="boothPhotoTab"')&&pages.includes('id="boothVideoTab"') ,'Bookini retains separate Photo and Video tabs');
 assert.ok(pages.includes('photoPanel.hidden=video;videoPanel.hidden=!video'),'Booth tab selection controls panel visibility');
 assert.ok(layout.includes("navigationCatalog.set('politc'"),'Politic becomes a first-class left toolbar destination');
 assert.ok(layout.includes("status.textContent='ON AIR'"),'Stream uses ON AIR without synthetic watchers');
