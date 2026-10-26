@@ -10,7 +10,7 @@ for(const [name,src]of [['three-body',body],['Skeleton Key',onboarding],['Journa
  assert.doesNotThrow(()=>new vm.Script(src),name+' must parse');
 assert.ok(home.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-compact-1'),'new three-body categorizer is deployed');
 assert.ok(home.includes('studio-onboarding.js?v=20261026-key-reformat-1'),'updated Skeleton Key is deployed');
-assert.ok(home.includes('module-pages.js?v=20261026-bookini-lwazi-layout-4'),'owned Journal preview is deployed');
+assert.ok(home.includes('module-pages.js?v=20261026-two-original-workshop-5'),'owned Journal preview is deployed');
 assert.ok(home.includes('ui-coherence.js?v=20261026-lwazi-navbar-1'),'ON AIR and ONLINE badges are deployed');
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(){},querySelector(){return null},documentElement:{}},
  MutationObserver:class{observe(){}},requestAnimationFrame(){},console};
