@@ -2,7 +2,8 @@
 (()=>{'use strict';
  let data=null;
  const match=handle=>{
-   if(!data||!((handle||'').toLowerCase()===data.handle||location.pathname.replace(/\\/$/,'')==='/leian'))return null;
+   const pathname=location.pathname.endsWith('/')?location.pathname.slice(0,-1):location.pathname;
+   if(!data||!((handle||'').toLowerCase()===data.handle||pathname==='/leian'))return null;
    const editor=window.BIGLWAHighlightEditor;
    const groups=data.highlights.map((group,i)=>typeof editor?.customize==='function'?editor.customize(group,i):group)
      .filter(group=>group&&Array.isArray(group.items)&&group.items.length);
