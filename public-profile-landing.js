@@ -145,28 +145,19 @@
   return paper;
  }
  function showGuestSheet(){
-  if(!publicProfile)return;
-  $('#biglwaPublicGuestSheet')?.remove();
-  const dialog=make('dialog','','biglwa-public-guest-dialog');dialog.id='biglwaPublicGuestSheet';
-  const heading=make('h2','Who wuz here?');
-  const close=make('button','×');close.type='button';close.className='biglwa-public-guest-close';close.setAttribute('aria-label','Close Guest Sheet');
-  close.onclick=()=>dialog.close();
-  const copy=make('p','@'+publicProfile.username+' · Guest Check');
-  const detail=make('p','Only published entries appear; private visitor notes remain private.');
-  const actions=make('div','','biglwa-public-guest-actions');
-  const join=make('button','Leave a note');join.type='button';join.onclick=()=>{dialog.close();window.BigLWAStudioPreview?.prompt?.('leave a guest-sheet note')};
-  const cancel=make('button','Close');cancel.type='button';cancel.onclick=()=>dialog.close();
-  actions.append(join,cancel);dialog.append(close,heading,copy,guestPaper(),detail,actions);
-  dialog.onclose=()=>dialog.remove();document.body.append(dialog);
-  if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');
+  // One real Guest Check for the owner and every visitor, not an empty mock.
+  window.BigLWAGuestCheck?.open?.();
  }
  function decorateGuest(){
-  const card=$('#studioApp .guest-check-card')||$('#studioApp #guestCheckWidget');if(!card)return;
+  const card=$('#studioApp .guest-check-card')||$('#studioApp #guestCheckWidget');if(!card||!publicProfile)return;
   card.dataset.publicGuestSheet='1';
-  const old=$('.biglwa-public-guest-paper',card),paper=guestPaper();
-  if(old)old.replaceWith(paper);else card.append(paper);
+  card.querySelectorAll('.biglwa-public-guest-paper,.biglwa-public-guest-preview').forEach(node=>node.remove());
+  let preview=$('.biglwa-guest-v2-preview',card);
+  if(!preview){preview=make('div','','biglwa-guest-v2-preview');card.append(preview)}
+  void window.BigLWAGuestCheck?.summary?.(preview,publicProfile);
   let btn=$('.biglwa-public-guest-open',card);
   if(!btn){btn=make('button','Open Guest Check','biglwa-public-guest-open');btn.type='button';card.append(btn)}
+  btn.textContent='Open Guest Check';
   btn.onclick=showGuestSheet;
  }
  function decorateOrbit(){
@@ -221,7 +212,7 @@
  window.addEventListener('biglwa:public-profile-ended',()=>{
   publicProfile=null;boardImages=[];boardOwner='';
   $('#biglwaPublicGuestSheet')?.remove();
-  all('.biglwa-public-boards-home,.biglwa-public-avatar-preview,.biglwa-public-journal-initial,.biglwa-public-guest-open,.biglwa-public-guest-paper,.biglwa-public-map-card,.biglwa-public-map-open,.biglwa-public-orbit-open').forEach(e=>e.remove());
+  all('.biglwa-public-boards-home,.biglwa-public-avatar-preview,.biglwa-public-journal-initial,.biglwa-public-guest-open,.biglwa-public-guest-paper,.biglwa-guest-v2-preview,.biglwa-public-map-card,.biglwa-public-map-open,.biglwa-public-orbit-open').forEach(e=>e.remove());
   all('.biglwa-public-boards-card').forEach(e=>e.classList.remove('biglwa-public-boards-card'));
  });
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
@@ -257,7 +248,23 @@
  .biglwa-public-guest-actions button{background:#d95a6d;border:0;border-radius:10px;padding:10px 14px;color:white;font:700 12px system-ui;cursor:pointer}
  .biglwa-public-guest-actions button:last-child{background:#e9dbd7;color:#392c34}
  `;
- style.textContent+=`
+ style.textContent+=` 
+ html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview{
+  display:block!important;max-height:180px!important;overflow:hidden!important;
+  padding:8px 12px!important;margin:0 11px 8px!important;background:#fffaf0!important;border-radius:10px!important;
+  font:500 10px/1.35 system-ui;color:#614c50
+ }
+ html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-head,
+ html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-row{
+  display:grid!important;grid-template-columns:1fr 2fr 75px 25px!important;gap:4px!important;padding:5px 0!important;
+  border-bottom:1px solid #adc9d9!important
+ }
+ html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-row>*{
+  font:inherit!important;overflow-wrap:anywhere!important
+ }
+ html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-head b{font:700 8px/1.2 system-ui!important}
+ html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-empty{padding:8px 0!important;margin:0!important;font-size:10px!important}
+
  html.biglwa-preview-mode #studioAvatarCard .biglwa-public-sona-frame{width:100%;height:100%;border:0;border-radius:11px;background:transparent}
  html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-empty{font:600 13px/1.3 system-ui;color:#6b5961;text-align:center;padding:18px}
  html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-paper,
