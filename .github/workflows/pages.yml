@@ -60,6 +60,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node public-profile-landing-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node owner-preview-action-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node stream-header-loader-regression-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-brand-dots-regression-test.mjs
           node guest-check-v2-test.mjs
       - name: Verify imported highlight playback and account isolation
         run: |
