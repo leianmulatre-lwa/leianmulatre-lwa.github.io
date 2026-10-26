@@ -34,7 +34,7 @@ const w=dom.window,d=w.document;
 w.__biglwaIdentity={uid:'owner-1',username:'leian',name:'Leian'};
 let signedOut=0;
 d.getElementById('studioSignOut').addEventListener('click',()=>signedOut++);
-d.getElementById('studioNotificationsBtn').addEventListener('click',()=>d.getElementById('studioLogsDialog').showModal());
+d.getElementById('studioNotificationsBtn').addEventListener('click',()=>d.getElementById('studioLogsDialog').setAttribute('open',''));
 w.eval(accountMenu);
 d.dispatchEvent(new w.Event('DOMContentLoaded'));
 await new Promise(res=>setTimeout(res,80));
