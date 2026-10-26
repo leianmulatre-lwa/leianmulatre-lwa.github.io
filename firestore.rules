@@ -223,6 +223,52 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.uid);
     }
 
+
+    /* Public Guest Check entries stay in a dedicated collection. Public read
+       never grants anonymous write. A member's connect-only selection is
+       enforced by Firestore, not the client's button state. "Connects" means
+       the owner's existing approved archiveFriends UID list. */
+    match /guestCheckEntries/{ownerUid}/entries/{entryId} {
+      allow get, list: if resource.data.visibility == 'public'
+        || isOwner(ownerUid);
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll([
+          'ownerUid', 'authorUid', 'name', 'note', 'emoji', 'visibility', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'authorUid', 'name', 'note', 'emoji', 'visibility', 'createdAt'
+        ])
+        && request.resource.data.ownerUid == ownerUid
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.visibility == 'public'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.note is string
+        && request.resource.data.note.size() > 0
+        && request.resource.data.note.size() <= 450
+        && request.resource.data.emoji is string
+        && request.resource.data.emoji.size() <= 10
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60
+        && exists(/databases/$(database)/documents/users/$(ownerUid))
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && request.resource.data.name == (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('name','') != ''
+          ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('name','')
+          : get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('usernameLower','')
+        )
+        && (
+          request.auth.uid == ownerUid
+          || get(/databases/$(database)/documents/users/$(ownerUid)).data.get('guestCheckPermission','anyone') == 'anyone'
+          || (
+            get(/databases/$(database)/documents/users/$(ownerUid)).data.get('guestCheckPermission','anyone') == 'connects'
+            && request.auth.uid in get(/databases/$(database)/documents/users/$(ownerUid)).data.get('archiveFriends',[])
+          )
+        );
+      allow update: if false;
+      allow delete: if isOwner(ownerUid);
+    }
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;
