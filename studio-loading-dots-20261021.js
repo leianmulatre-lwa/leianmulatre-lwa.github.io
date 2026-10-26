@@ -117,6 +117,10 @@
   const el=document.createElement('div');el.className='lwa-curtain';el.dataset.lwaCurtain=kind;
   label=String(label||'loading').toLowerCase();
   el.setAttribute('role','status');el.setAttribute('aria-label',label);
+  const mark=document.createElement('div');mark.className='lwa-curtain-brand';
+  mark.setAttribute('aria-hidden','true');
+  mark.innerHTML='<span class="lwa-curtain-brand-b">big</span><span class="lwa-curtain-brand-w">lwa</span>';
+  el.append(mark);
   el.append(make(kind==='avatar'?'pulse':'floating'));
   const t=document.createElement('span');t.className='lwa-curtain-label';t.textContent=label;el.append(t);
   if(kind==='module'){
@@ -126,7 +130,7 @@
    skip.textContent='Who’s you? →';skip.setAttribute('aria-label','View anyway before loading finishes');
    skip.title='View anyway';skip.addEventListener('click',event=>{
      event.preventDefault();event.stopPropagation();
-     viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending');
+     viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');
    });el.append(skip);
   }
   container.append(el);return el
@@ -141,8 +145,8 @@
   const app=document.getElementById('studioApp');if(!app)return;
   const space=app.querySelector('.main.module-view>.module-workspace');const shell=space?.querySelector('.module-shell');
   const key=space?.dataset.moduleKey||'';
-  if(key&&key!==moduleKey){moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
-  if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending');moduleCurtain?.remove();moduleCurtain=null}
+  if(key&&key!==moduleKey){moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
+  if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null}
   if(shell&&key){
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
    moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
@@ -157,7 +161,9 @@
      (Date.now()-moduleStarted>=320 && !unresolvedImages(shell) && !busy);
    const visible=!ready&&viewAnywayFor!==key;
    moduleCurtain.hidden=!visible;
+   if(visible)moduleCurtain.style.zIndex='1502';
    shell.classList.toggle('lwa-curtain-veve-pending',veve&&visible);
+   shell.classList.toggle('lwa-curtain-loading',visible);
    const progress=moduleCurtain.querySelector('.lwa-curtain-progress');
    if(progress)progress.textContent=(veve
      ?String(feed?.stage||'Connecting to public collections…')
