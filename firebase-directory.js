@@ -38,6 +38,7 @@ const SOCIAL_HOSTS={
   instagram:["instagram.com","www.instagram.com"],
   tiktok:["tiktok.com","www.tiktok.com"],
   pinterest:["pinterest.com","www.pinterest.com"],
+  youtube:["youtube.com","www.youtube.com","m.youtube.com"],
   x:["x.com","www.x.com","twitter.com","www.twitter.com"],
   snapchat:["snapchat.com","www.snapchat.com"],
   tumblr:["tumblr.com","www.tumblr.com"]
@@ -253,7 +254,8 @@ function readSocials(raw){
     if(parsed.protocol!=="https:")return [];
     const host=parsed.hostname.toLowerCase();
     if(!SOCIAL_HOSTS[id].includes(host)&&!((id==='tumblr'&&host.endsWith('.tumblr.com'))||(id==='snapchat'&&host.endsWith('.snapchat.com'))))return [];
-    if(['x','snapchat','tumblr'].includes(id)&&(!parsed.pathname||parsed.pathname==='/'))return [];
+    const tumblrRoot=id==='tumblr'&&host.endsWith('.tumblr.com')&&host!=='www.tumblr.com';
+    if((!parsed.pathname||parsed.pathname==='/')&&!tumblrRoot)return [];
     return [{
       id,
       label:safeText(entry.label,32)||id,
