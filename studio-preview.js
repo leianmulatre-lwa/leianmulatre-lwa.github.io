@@ -307,13 +307,22 @@ const PREVIEW_CSS = `
 /* Account for the real sticky header's stronger #studioApp selector.
    The announcement occupies document flow ONCE, rather than sitting over the
    nav or generating an additional artificial padding band. */
+/* Real owner chrome is position:fixed and #studioApp reserves its height.
+   The banner is in normal flow ABOVE the app; do not change the bar to sticky,
+   or both its fixed-header padding and its sticky flow create a blank strip. */
+html.biglwa-preview-mode #studioApp{
+ padding-top:var(--biglwa-dock-top,64px)!important;
+ margin-top:0!important;
+}
 html.biglwa-preview-mode #studioApp .topbar{
-  position:sticky!important;top:var(--biglwa-preview-banner-h,0px)!important;
-  padding-top:0!important;box-sizing:border-box!important;overflow:visible!important
+ position:fixed!important;top:var(--biglwa-preview-banner-h,0px)!important;
+ left:0!important;right:0!important;margin:0!important;padding-top:0!important;
+ box-sizing:border-box!important;overflow:visible!important;
+ z-index:160!important
 }
 html.biglwa-preview-mode #studioApp .page-wallpaper{
-  top:calc(var(--biglwa-preview-banner-h,0px) + 76px)!important;
-  left:0!important
+ top:0!important;left:0!important;
+ min-height:100%!important;
 }
 html.biglwa-preview-mode #studioApp .main{margin-left:0!important;width:100%!important;min-width:0!important}
 @media(max-width:900px){
@@ -376,11 +385,16 @@ html.biglwa-preview-mode:not(.biglwa-preview-private) #studioApp .hero .mobile-d
 }
 html.biglwa-preview-mode #studioApp .hero .mobile-dock.hero-action-bar > :not(.biglwa-visitor-shortcuts){display:none!important}
 html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts{
- display:flex!important;gap:7px;align-items:center;flex-wrap:wrap;
+ display:flex!important;gap:0!important;align-items:center;justify-content:center!important;
  width:100%;min-width:0
 }
+html.biglwa-preview-mode #studioApp .hero .mobile-dock.hero-action-bar{
+ display:flex!important;justify-content:center!important;align-items:center!important;
+ min-height:60px!important;height:60px!important;
+ padding:5px 9px!important
+}
 html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts button{
- flex:1 1 90px;min-height:34px;cursor:pointer;
+ flex:0 0 auto!important;min-width:125px;min-height:43px;cursor:pointer;
  border:1px solid #aa8b8d;border-radius:9px;
  background:#fff8f0;color:#553b46;
  font:700 11px/1.2 system-ui;white-space:nowrap
@@ -400,7 +414,14 @@ html.biglwa-preview-mode #studioApp .topbar{overflow:visible!important}
 html.biglwa-preview-mode #studioApp [data-profile-stat] [data-public-hidden]{display:none!important}
 html.biglwa-preview-mode #studioApp #diary .diary-page{position:relative!important;min-height:135px!important}
 html.biglwa-preview-mode #studioApp #diary .diary-page img{display:block!important;opacity:1!important;visibility:visible!important}
-html.biglwa-preview-mode #studioApp #diary .biglwa-public-journal-initial{position:absolute;inset:0;display:grid;place-items:center;font:400 clamp(38px,6vw,65px)/1 "CS Bergamot Stitched",Georgia,serif;color:#171018;text-shadow:0 1px #fff8ef;pointer-events:none}
+html.biglwa-preview-mode #studioApp #diary .biglwa-public-journal-initial{
+ position:absolute!important;
+ left:37%!important;top:36%!important;
+ width:27%!important;height:31%!important;inset:auto!important;
+ display:grid!important;place-items:center!important;
+ font:400 clamp(34px,4.4vw,60px)/1 "CS Bergamot Stitched",Georgia,serif;
+ color:#171018;text-shadow:0 1px #fff8ef;pointer-events:none
+}
 html.biglwa-preview-mode #studioApp #boards .pinterest-board-grid,
 html.biglwa-preview-mode #studioApp #boards [data-pn-connect],
 html.biglwa-preview-mode #studioApp #boards .pn-orbit-connect{display:none!important}
@@ -465,9 +486,16 @@ function buildBanner(){
     preview.bannerObserver=new ResizeObserver(measureBanner);
     preview.bannerObserver.observe(banner);
   }
+  if(new URLSearchParams(location.search).has('preview')){
+    const close=banner.querySelector('[data-preview-leave]');
+    close?.setAttribute('title','Exit owner preview');
+  }
   banner.addEventListener("click",event=>{
     const button=event.target.closest("button");
     if(!button) return;
+    if(button.hasAttribute("data-preview-leave")&&new URLSearchParams(location.search).has('preview')){
+      location.assign('/studio');return;
+    }
     if(button.hasAttribute("data-preview-join")){ leaveToAuth("create"); return; }
     if(button.hasAttribute("data-preview-signin")){ leaveToAuth("signin"); return; }
     if(button.hasAttribute("data-preview-leave")){ standDown(); history.replaceState({},"","/"); showLoginScreen(); }
@@ -701,7 +729,7 @@ async function checkSignedIn(){
     if(profile){
       const sameProfile=clean(profile.profile?.username||profile.username).toLowerCase()===clean(preview.username).toLowerCase();
       preview.signedIn=true;
-      if(sameProfile) standDown();
+      if(sameProfile&&!new URLSearchParams(location.search).has('preview')) standDown();
     }
   }catch{}
   preview.checking=false;
@@ -711,6 +739,20 @@ async function checkSignedIn(){
    affordance correctly while the account gate keeps the action itself closed. */
 /* Public shortcut desk: the same rail becomes read-only profile navigation,
    and never leaves a useless translucent empty panel behind. */
+function installOwnerPreviewEntry(){
+  if(preview.active)return;
+  const button=$('#studioApp #editProfileBtn');
+  if(!button||$('#biglwaOwnerPreviewButton'))return;
+  const mine=clean(identity()?.username||localProfile()?.username).toLowerCase().replace(/^@/,'');
+  if(!/^[a-z0-9._-]{5,24}$/.test(mine))return;
+  const link=document.createElement('a');
+  link.id='biglwaOwnerPreviewButton';
+  link.textContent='Preview profile';
+  link.href='/'+encodeURIComponent(mine)+'?preview=1';
+  link.title='See the read-only public Studio exactly as a visitor sees it';
+  link.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:28px;margin:6px 0 0;padding:5px 12px;border:1px solid #ac7781;border-radius:14px;background:#fff8ef;color:#583444;font:700 11px system-ui;text-decoration:none';
+  button.insertAdjacentElement('afterend',link);
+}
 function decorateVisitorShortcuts(){
   const rail=$('#studioApp .hero .mobile-dock.hero-action-bar');
   if(!rail||preview.profile?.accountVisibility==='private')return;
@@ -719,22 +761,14 @@ function decorateVisitorShortcuts(){
   nav=document.createElement('nav');
   nav.className='biglwa-visitor-shortcuts';
   nav.setAttribute('aria-label','Explore this member’s public BIG LWA Studio');
-  const entries=[
-    ['orbit','Orbit'],['diary','Journal'],['boards','Boards'],
-    ['veve','Veve'],['guest','Guest sheet']
-  ];
-  for(const [route,label] of entries){
-    const button=document.createElement('button');
-    button.type='button';button.textContent=label;
-    button.addEventListener('click',event=>{
-      event.preventDefault();event.stopPropagation();
-      if(route==='guest'){
-        const open=$('#studioApp .biglwa-public-guest-open');
-        if(open)open.click();else openPrompt('view the guest sheet');
-      }else window.openBIGLWAModule?.(route);
-    });
-    nav.append(button);
-  }
+  const button=document.createElement('button');
+  button.type='button';button.textContent='Veve';
+  button.setAttribute('aria-label','Explore this member’s public Veve');
+  button.addEventListener('click',event=>{
+    event.preventDefault();event.stopPropagation();
+    window.openBIGLWAModule?.('veve');
+  });
+  nav.append(button);
   rail.append(nav);
 }
 function decorateArchiveAccess(){
@@ -832,6 +866,8 @@ function noticeMissing(username){
   }
 }
 
+document.addEventListener('biglwa:session-verified',()=>setTimeout(installOwnerPreviewEntry,300));
+document.addEventListener('DOMContentLoaded',()=>setTimeout(installOwnerPreviewEntry,500));
 async function boot(){
   const username=pathUsername();
   if(!username) return;
