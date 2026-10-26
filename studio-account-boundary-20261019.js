@@ -23,7 +23,7 @@
    text('.profile-card .meta-row a','');
    text('.profile-rail-location','');
    text('.aura-card p','Add your own Aura.');
-   text('.weekly-mood-value','add this week’s #mood');
+   text('.weekly-mood-value','#keepitcute');
    doc.querySelectorAll('#studioApp .profile-card .stats').forEach(node=>node.replaceChildren());
    doc.querySelectorAll('#studioApp .profile-avatar,#studioApp .mini-avatar').forEach(node=>{
      node.style.backgroundImage='linear-gradient(rgba(10,7,13,.12),rgba(10,7,13,.4)),url("/assets/tv-no-signal.svg")';
