@@ -1352,6 +1352,12 @@
     let moodCard=$('#weeklyMoodCard',rail);
     if(!moodCard){moodCard=document.createElement('div');moodCard.id='weeklyMoodCard';moodCard.className='weekly-mood-card';moodCard.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">#keepitcute</strong>';rail.appendChild(moodCard)}
     if(!moodCard.dataset.moodStyle)renderWeeklyMood(moodCard,$('.weekly-mood-value',moodCard)?.textContent==='#keepitcute'?'':($('.weekly-mood-value',moodCard)?.textContent||''),'qwiky-note');
+    // Keep the REAL RANK label on the left identity rail, directly beneath
+    // this member's Mood note. The rank value and progress track stay across
+    // the profile card rather than being squeezed into the rail.
+    const rankLabel=$('.real-rank .rank-label',card)||$('.rank-label',rail);
+    if(rankLabel&&rankLabel.parentElement!==rail)moodCard.insertAdjacentElement('afterend',rankLabel);
+    if(rankLabel)rankLabel.classList.add('biglwa-rank-rail-label');
     const stats=$('.stats',card);
     if(stats&&!$('[data-profile-stat="projects"]',stats)){
       const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>0</b> Projects';
@@ -1389,6 +1395,16 @@
     if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel')}
     let tabs=$('#profileEditorTabs',panel);
     if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileMediaEditor" data-profile-editor-tab="media">Song &amp; Aura</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
+    // The Highlights tools are a native part of Edit Profile, not a hidden
+    // secondary popup. Keep the tab visible even if imported data arrives later.
+    if(!tabs.querySelector('[data-profile-editor-tab="highlights"]')){
+      const highlightsTab=document.createElement('button');
+      highlightsTab.type='button';highlightsTab.dataset.profileEditorTab='highlights';
+      highlightsTab.setAttribute('role','tab');highlightsTab.setAttribute('aria-controls','profileHighlightsEditor');
+      highlightsTab.textContent='Highlights';
+      const next=tabs.querySelector('[data-profile-editor-tab="media"]');
+      if(next)next.before(highlightsTab);else tabs.append(highlightsTab);
+    }
     if(!tabs.querySelector('[data-profile-editor-tab="media"]')){const mediaTab=document.createElement('button');mediaTab.type='button';mediaTab.setAttribute('role','tab');mediaTab.setAttribute('aria-controls','profileMediaEditor');mediaTab.dataset.profileEditorTab='media';mediaTab.textContent='Song & Aura';tabs.querySelector('[data-profile-editor-tab="wallpaper"]')?.insertAdjacentElement('beforebegin',mediaTab)}
     let actions=$('#profileEditorActions',panel);
     if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';panel.appendChild(actions)}
@@ -1426,7 +1442,7 @@
     let button=$('#editProfileBtn',card),moodBeforeEdit=null;
     const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');panel.hidden=true;button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
     const cancelEdit=()=>{if(moodBeforeEdit){renderWeeklyMood(moodCard,moodBeforeEdit.isPreview?'':moodBeforeEdit.text,moodBeforeEdit.style);moodBeforeEdit=null}fillEditor();endEdit()};
-    const startEdit=()=>{moodBeforeEdit={text:$('.weekly-mood-value',moodCard)?.textContent||'',isPreview:moodCard.dataset.moodPreview==='1',style:moodCard.dataset.moodStyle||'qwiky-note'};fillEditor();showTab('profile');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
+    const startEdit=()=>{moodBeforeEdit={text:$('.weekly-mood-value',moodCard)?.textContent||'',isPreview:moodCard.dataset.moodPreview==='1',style:moodCard.dataset.moodStyle||'qwiky-note'};fillEditor();window.BIGLWAHighlightEditor?.mount?.();showTab('profile');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
     if(button&&button.dataset.biglwaProfileBound!=='3'){
       const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='3';button.type='button';button.textContent='Edit profile';
       button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(card.classList.contains('profile-is-editing'))cancelEdit();else startEdit()});
