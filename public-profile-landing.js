@@ -73,8 +73,11 @@
    const img=make('img');img.src=url;img.alt=(publicProfile?.name||'Member')+' '+(published?'avatar preview':'profile picture');img.loading='lazy';
    photo.append(img);
   }else{
-   photo.textContent='◉';
-   photo.setAttribute('aria-label','Character preview not shared');
+   photo.replaceChildren();
+   const letter=Array.from(String(publicProfile?.name||publicProfile?.username||'L').trim())[0]?.toUpperCase()||'L';
+   const fallback=make('span',letter,'biglwa-public-avatar-initial');
+   photo.append(fallback);
+   photo.setAttribute('aria-label','Avatar artwork not shared; '+letter+' member initial');
   }
   card.dataset.publicAvatar='1';
  }
@@ -121,16 +124,32 @@
   const close=make('button','×');close.type='button';close.className='biglwa-public-guest-close';close.setAttribute('aria-label','Close Guest Sheet');
   close.onclick=()=>dialog.close();
   const copy=make('p','You’re viewing @'+publicProfile.username+'’s guest sheet. This preview does not write messages into another account.');
-  const detail=make('p','Sign in to BIG LWA to use member-only guest features.');
+  const detail=make('p','Public entries appear here when the owner has chosen to share them. Private guest notes cannot be read in this preview.');
+  const sheet=make('div','','biglwa-guest-paper');
+  sheet.setAttribute('aria-label','Read-only guest sheet');
+  const cols=make('div','WHO WUZ HERE? · NOTE                         DATE','biglwa-guest-paper-head');
+  sheet.append(cols);
+  for(let i=0;i<4;i++)sheet.append(make('div','', 'biglwa-guest-paper-line'));
   const actions=make('div','','biglwa-public-guest-actions');
   const join=make('button','Create account');join.type='button';join.onclick=()=>{dialog.close();window.BigLWAStudioPreview?.prompt?.('leave a guest-sheet note')};
   const cancel=make('button','Got it');cancel.type='button';cancel.onclick=()=>dialog.close();
-  actions.append(join,cancel);dialog.append(close,heading,copy,detail,actions);
+  actions.append(join,cancel);dialog.append(close,heading,copy,sheet,detail,actions);
   dialog.onclose=()=>dialog.remove();document.body.append(dialog);
   if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');
  }
  function decorateGuest(){
   const card=$('#studioApp .guest-check-card')||$('#studioApp #guestCheckWidget');if(!card)return;
+  card.dataset.publicGuestSheet='1';
+  let preview=$('.biglwa-public-guest-paper',card);
+  if(!preview){
+    preview=make('div','','biglwa-public-guest-paper');
+    preview.setAttribute('aria-label','Guest sheet public preview');
+    preview.append(make('b','WHO WUZ HERE? · NOTE             DATE','biglwa-guest-paper-head'));
+    for(let i=0;i<4;i++)preview.append(make('span','','biglwa-guest-paper-line'));
+    const note=make('small','No public entries have been supplied for this preview.','biglwa-public-guest-note');
+    preview.append(note);
+    card.append(preview);
+  }
   let btn=$('.biglwa-public-guest-open',card);
   if(!btn){btn=make('button','Open guest sheet','biglwa-public-guest-open');btn.type='button';card.append(btn)}
   btn.onclick=showGuestSheet;
@@ -144,15 +163,35 @@
  }
  function decorateMap(){
   const card=$('#studioApp #map');if(!card)return;
-  let button=$('.biglwa-public-map-open',card);
-  if(!button){button=make('button','View shared places','biglwa-public-map-open');button.type='button';card.append(button)}
-  button.onclick=()=>{
-   if(!signedIn()){window.BigLWAStudioPreview?.prompt?.('view public shared locations');return}
-   if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('map');
-   else window.BigLWAStudioPreview?.prompt?.('view public shared locations');
-  };
+  // The original Map card already has one "Open Map" action. The old guest
+  // decorator added an additional, contradictory View shared places button.
+  all('.biglwa-public-map-open',card).forEach(el=>el.remove());
   card.dataset.publicMap='1';
+  let tile=$('.biglwa-public-map-card',card);
+  if(!tile){
+    tile=make('div','','biglwa-public-map-card');
+    tile.setAttribute('aria-label','Map preview; exact locations are not shared');
+    const label=make('div','⌖','biglwa-public-map-mark');
+    const message=make('p','Shared places · read-only preview');
+    tile.append(label,message);
+    const original=card.querySelector('.map-preview,.map-thumb,.map-widget-preview');
+    if(original)original.setAttribute('aria-hidden','true');
+    const button=card.querySelector('[data-open="map"],[data-widget-route="map"],.card-cta');
+    if(button)button.before(tile);else card.append(tile);
+  }
+  const entry=card.querySelector('[data-open="map"],[data-widget-route="map"],.card-cta');
+  if(entry&&!entry.dataset.publicMapBound){
+    entry.dataset.publicMapBound='1';
+    entry.addEventListener('click',event=>{
+      if(!preview())return;
+      if(!signedIn()){
+        event.preventDefault();event.stopImmediatePropagation();
+        window.BigLWAStudioPreview?.prompt?.('view this member’s published map');
+      }
+    },true);
+  }
  }
+
  function sync(){
   if(!preview()||!publicProfile)return;
   decorateBoards();decorateJournal();decorateAvatar();decorateGuest();decorateOrbit();decorateMap();
@@ -167,7 +206,7 @@
  window.addEventListener('biglwa:public-profile-ended',()=>{
   publicProfile=null;boardImages=[];boardOwner='';
   $('#biglwaPublicGuestSheet')?.remove();
-  all('.biglwa-public-boards-home,.biglwa-public-avatar-preview,.biglwa-public-journal-initial,.biglwa-public-guest-open,.biglwa-public-map-open,.biglwa-public-orbit-open').forEach(e=>e.remove());
+  all('.biglwa-public-boards-home,.biglwa-public-avatar-preview,.biglwa-public-journal-initial,.biglwa-public-guest-open,.biglwa-public-guest-paper,.biglwa-public-map-card,.biglwa-public-map-open,.biglwa-public-orbit-open').forEach(e=>e.remove());
   all('.biglwa-public-boards-card').forEach(e=>e.classList.remove('biglwa-public-boards-card'));
  });
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
@@ -203,5 +242,6 @@
  .biglwa-public-guest-actions button{background:#d95a6d;border:0;border-radius:10px;padding:10px 14px;color:white;font:700 12px system-ui;cursor:pointer}
  .biglwa-public-guest-actions button:last-child{background:#e9dbd7;color:#392c34}
  `;
+ style.textContent+="\n html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-initial{font:400 64px/1 \"CS Bergamot Stitched\",Georgia,serif;color:#61364d;opacity:.8}\n html.biglwa-preview-mode #studioApp .guest-check-card[data-public-guest-sheet=\"1\"]{position:relative!important}\n html.biglwa-preview-mode #studioApp .biglwa-public-guest-paper{\n  display:grid!important;align-content:start!important;gap:0!important;\n  min-height:170px!important;padding:12px 15px 16px!important;margin:0 10px!important;\n  background:#fffaf3!important;border-radius:8px!important;\n  border:1px solid #e1becd!important\n }\n html.biglwa-preview-mode #studioApp .biglwa-public-guest-paper .biglwa-guest-paper-head{\n  display:block;color:#655260;font:750 10px/1.3 system-ui!important;\n  padding:6px 0;border-bottom:2px solid #dca3bb\n }\n html.biglwa-preview-mode #studioApp .biglwa-guest-paper-line{\n  display:block;min-height:29px;border-bottom:1px solid #abc9dd\n }\n html.biglwa-preview-mode #studioApp .biglwa-public-guest-note{\n  padding-top:8px;color:#8d7e83;font:500 10px/1.3 system-ui\n }\n html.biglwa-preview-mode .biglwa-guest-paper{\n  background:#fffaf1;padding:10px 14px;border:1px solid #ceacb3;border-radius:12px;\n  margin:10px 0\n }\n html.biglwa-preview-mode .biglwa-guest-paper-head{font:700 10px/1.5 system-ui;color:#614459;padding:4px}\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card{\n  display:flex!important;flex-direction:column!important;align-items:center!important;\n  justify-content:center!important;gap:9px!important;\n  min-height:150px!important;padding:16px!important;margin:12px 0!important;\n  border:1px solid #8ca9a0!important;border-radius:14px!important;\n  background:repeating-linear-gradient(25deg,#e6eee5 0 16px,#d4ded2 17px 18px,#e6eee5 19px 34px)!important;\n  color:#34545c!important;text-align:center!important\n }\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-mark{font:400 40px Georgia,serif!important}\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-card p{font:700 12px/1.4 system-ui!important;margin:0!important}\n html.biglwa-preview-mode #studioApp #map .biglwa-public-map-open{display:none!important}\n ";
  document.head.append(style);
 })();
