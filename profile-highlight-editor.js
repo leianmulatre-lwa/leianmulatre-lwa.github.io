@@ -34,8 +34,9 @@
   if(Array.isArray(raw.custom))result.custom=raw.custom.slice(0,8).map(c=>({...safeEntry(c),id:String(c?.id||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,70)||'h'+Math.random().toString(36).slice(2)}));
   return result;
  };
- let state=empty(),stateOwner='',remoteLoaded=false,bound=false,saveBusy=false;
- const get=()=>{const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
+ let state=empty(),publicState=null,stateOwner='',remoteLoaded=false,saveBusy=false;
+ const isPreview=()=>!!window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode');
+ const get=()=>{if(isPreview())return publicState||empty();const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
  const source=()=>window.BigLWAImportedHighlights?.source?.()?.highlights||[];
  const status=(message)=>{const box=el('#biglwaHighlightStatus');if(box)box.textContent=message};
  function applyCover(img,record){
@@ -238,13 +239,17 @@
    e.preventDefault();e.stopImmediatePropagation();save();
   },true);
   const cancel=el('#cancelProfileBtn',panel);
-  cancel?.addEventListener('click',()=>{stateOwner='';get();render()},true);
+  cancel?.addEventListener('click',()=>{stateOwner='';get();render();refresh()},true);
   render();if(!remoteLoaded)remote();
  }
  let timer;
  function schedule(){clearTimeout(timer);timer=setTimeout(start,50)}
  for(const event of ['biglwa:identity-updated','biglwa:session-verified','biglwa:user-directory-ready','biglwa:highlights-imported','biglwa:customization-remote'])
-  window.addEventListener(event,()=>{if(event==='biglwa:customization-remote')remoteLoaded=false;schedule()});
+  window.addEventListener(event,()=>{if(event==='biglwa:customization-remote')remoteLoaded=false;schedule();if(event==='biglwa:highlights-imported')render()});
+ window.addEventListener('biglwa:public-profile-ready',event=>{
+   publicState=normalize(event.detail?.profile?.look?.highlights);
+   refresh();
+ });
  const observer=new MutationObserver(schedule);
  const ready=()=>{if(document.getElementById('studioApp'))observer.observe(document.getElementById('studioApp'),{childList:true,subtree:true});schedule()};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
