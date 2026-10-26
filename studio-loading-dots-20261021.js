@@ -92,13 +92,13 @@
  `;
  const style=document.createElement('style');style.id='lwaLoadingDotsStyles';style.textContent=css;document.head.append(style);
  const make=(type)=>{const el=document.createElement('i');el.className='lwa-dot lwa-dot-'+type;el.setAttribute('aria-hidden','true');return el};
- let profile=null,profileLoading=false,transition=null,transitionTimer=null,transitionShownAt=0;
+ let profile=null,profileLoading=false,moduleLoading=false,transition=null,transitionTimer=null,transitionShownAt=0;
  function ensure(){
   if(!document.getElementById('studioApp'))return;
   const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
   if(!mark)return;
-  // This rail is a loading indicator, not a permanent decoration. Both
-  // preview and the signed-in Studio hide it after hydration finishes.
+  // This top-left indicator mirrors BOTH profile hydration and the active
+  // module's own curtain; it disappears whenever the actual work finishes.
   // The signed-in toolbar can be remounted after hydration; reattach the
   // existing node rather than producing a duplicate or leaving it detached.
   if(!profile||!profile.isConnected){
@@ -116,29 +116,38 @@
   }
   if(profile.parentElement!==mark)mark.append(profile);
   if(!profile.hasAttribute('role'))profile.setAttribute('aria-hidden','true');
-  profile.hidden=!profileLoading;
+  profile.hidden=!(profileLoading||moduleLoading);
   // Startup and login-laptop loaders remain separate; this is solely the
   // already-existing top-left three-dot element.
  }
  let ownerProfileTimer=0;
+ function syncTopLeftDots(){
+  ensure();
+  if(!profile)return;
+  const active=profileLoading||moduleLoading;
+  profile.hidden=!active;
+  const label=profile.querySelector('.lwa-profile-loading-label');
+  if(label)label.hidden=!profileLoading||moduleLoading;
+  if(active){
+   profile.setAttribute('role','status');
+   profile.setAttribute('aria-label',moduleLoading?'Loading current widget':'Loading your profile');
+   profile.removeAttribute('aria-hidden');
+  }else{
+   profile.removeAttribute('role');
+   profile.removeAttribute('aria-label');
+   profile.setAttribute('aria-hidden','true');
+  }
+ }
  function setProfile(loading){
   profileLoading=Boolean(loading);
-  ensure();
-  if(profile){
-   profile.hidden=!profileLoading;
-   const label=profile.querySelector('.lwa-profile-loading-label');
-   if(label)label.hidden=!loading;
-   if(loading){
-    profile.setAttribute('role','status');
-    profile.setAttribute('aria-label','Loading your profile');
-    profile.removeAttribute('aria-hidden');
-   }else{
-    profile.removeAttribute('role');
-    profile.removeAttribute('aria-label');
-    profile.setAttribute('aria-hidden','true');
-   }
-  }
+  syncTopLeftDots();
   if(!loading&&ownerProfileTimer){clearTimeout(ownerProfileTimer);ownerProfileTimer=0}
+ }
+ function setModuleLoading(loading){
+  const next=Boolean(loading);
+  if(next===moduleLoading)return;
+  moduleLoading=next;
+  syncTopLeftDots();
  }
  function pendingOwnerProfile(){
   if(document.documentElement.classList.contains('biglwa-preview-mode')||!studioVisible())return;
@@ -184,7 +193,7 @@
    skip.textContent='Who’s you? →';skip.setAttribute('aria-label','View anyway before loading finishes');
    skip.title='View anyway';skip.addEventListener('click',event=>{
      event.preventDefault();event.stopPropagation();
-     viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');
+     viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');setModuleLoading(false);
    });el.append(skip);
   }
   container.append(el);return el
@@ -200,7 +209,7 @@
   const space=app.querySelector('.main.module-view>.module-workspace');const shell=space?.querySelector('.module-shell');
   const key=space?.dataset.moduleKey||'';
   if(key&&key!==moduleKey){moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
-  if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null}
+  if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setModuleLoading(false)}
   if(shell&&key){
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
    moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
@@ -215,6 +224,8 @@
      (Date.now()-moduleStarted>=320 && !unresolvedImages(shell) && !busy);
    const visible=!ready&&viewAnywayFor!==key;
    moduleCurtain.hidden=!visible;
+   // Drive the top-left dots from the very same boolean as the module curtain.
+   setModuleLoading(visible);
    if(visible)moduleCurtain.style.zIndex='1502';
    shell.classList.toggle('lwa-curtain-veve-pending',veve&&visible);
    shell.classList.toggle('lwa-curtain-loading',visible);
