@@ -26,7 +26,7 @@ const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-des
 const WEB_FRIENDLY=[
  {id:'visualizr',name:'visualizr',route:'projects',icon:'/assets/bigapps/blocks/visualizr.svg?v=20261026-1',
   description:'Build visualeyez boards and visualslidez presentations inside your BIG LWA Studio.'},
- {id:'bookini',name:'bookini',route:'camera',icon:'/assets/bigapps/blocks/bookini.svg?v=20261026-1',
+ {id:'bookini',name:'boo',route:'camera',icon:'/assets/bigapps/blocks/bookini.svg?v=20261026-1',
   description:'Capture photos in your own browser booth; video meetups are coming soon.'}
 ];
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
