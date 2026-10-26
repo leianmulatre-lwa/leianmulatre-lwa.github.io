@@ -1,0 +1,26 @@
+/* BIG LWA login: the embroidered emblem should read on cream and velvet,
+   not disappear into the dark laptop/TV screen. Reuse the site's actual crest mask. */
+#loginPage #loginCard{position:relative!important;isolation:isolate}
+#loginPage #loginCard::before{
+ width:clamp(172px,15vw,210px)!important;height:clamp(132px,11vw,158px)!important;
+ margin:1px auto 11px!important;display:block!important;opacity:1!important;
+ background:#211819!important;
+ -webkit-mask-image:var(--biglwa-stitched-crest-mask)!important;
+ mask-image:var(--biglwa-stitched-crest-mask)!important;
+ -webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;
+ -webkit-mask-size:contain!important;mask-size:contain!important;
+ -webkit-mask-position:center!important;mask-position:center!important;
+ -webkit-mask-mode:luminance!important;mask-mode:luminance!important;
+}
+#loginPage #loginCard::after{
+ content:"";position:absolute;inset:6px;pointer-events:none;border:1.5px dashed rgba(75,42,42,.28);
+ border-radius:inherit;z-index:0;box-shadow:inset 0 0 0 4px rgba(255,250,245,.34)
+}
+#loginPage #loginCard>*{position:relative;z-index:1}
+#loginPage .login-card-emblem,#loginPage #loginCardSnakeMark{display:none!important}
+/* The contrast pair supplied for the brand: pale thread belongs on velvet,
+   black stitching belongs on the cream card. No duplicate giant header logo. */
+@media(max-width:700px){
+ #loginPage #loginCard::before{width:155px!important;height:115px!important}
+ #loginPage #loginCard::after{inset:4px}
+}
