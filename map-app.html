@@ -695,6 +695,30 @@ body.preview .map-side{position:relative!important;display:block!important;width
 body.preview #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;background:#e1ecdf}
 body.preview .leaflet-container{cursor:grab}
 body.preview .leaflet-control-attribution{font-size:8px}
+
+/* The safety reminder opens in the map layer, not inside the pin form. */
+.map-stage{position:relative;isolation:isolate;min-width:0}
+.map-safety-overlay{position:absolute;inset:0;z-index:2000;display:grid;place-items:center;padding:clamp(8px,2.5vw,20px);background:rgba(37,29,30,.54);backdrop-filter:blur(3px);overflow:auto}
+.map-safety-overlay[hidden]{display:none!important}
+.map-safety-dialog{width:min(100%,485px);max-height:100%;overflow:auto;background:#fff8ef;color:#3a2826;border:2px solid #9a3743;border-radius:15px;box-shadow:0 14px 38px #170d0d70;padding:clamp(14px,3vw,22px);font:500 13px/1.55 system-ui,sans-serif}
+.map-safety-dialog h2{font:700 clamp(20px,3vw,27px)/1.2 Georgia,serif;color:#712b36;margin:7px 0 11px}
+.map-safety-dialog p{margin:0 0 10px}
+.map-safety-dialog .map-safety-signoff{font-weight:800;color:#712b36}
+.map-safety-lights{display:flex;gap:6px}
+.map-safety-lights i{width:9px;height:9px;border-radius:50%;border:1px solid #3a28264d}
+.map-safety-lights i:nth-child(1){background:#d65459}.map-safety-lights i:nth-child(2){background:#e8c052}.map-safety-lights i:nth-child(3){background:#61a97c}
+.map-safety-checkbox{display:flex;gap:9px;align-items:center;cursor:pointer;max-width:max-content;margin:9px 0 13px;font:650 12px/1.4 system-ui}
+.map-safety-checkbox input{width:17px;height:17px;margin:0;accent-color:#9a3743}
+.map-safety-actions{display:flex;justify-content:flex-end;gap:8px}
+.map-safety-actions button{min-height:35px;padding:7px 13px;font:700 12px/1.3 system-ui}
+#mapSafetyKey{margin-left:auto;min-height:35px;padding:7px 10px;white-space:nowrap;font:700 11px/1.3 system-ui;border:1px solid #bda9a3;background:#fff8ef;color:#712b36}
+#mapSafetyKey .map-safety-indicator{font-size:10px;color:#9a3743;margin-right:3px}
+.night-mode .map-safety-dialog{background:#302b2a;color:#f3e5db;border-color:#b45e6e}
+.night-mode .map-safety-dialog h2,.night-mode .map-safety-dialog .map-safety-signoff{color:#f0b1bc}
+.night-mode #mapSafetyKey{background:#302b2a;color:#f0b1bc;border-color:#68575a}
+body.preview .map-stage{width:100%;height:100%}
+body.preview #mapSafetyKey,body.preview .map-safety-overlay{display:none!important}
+@media(max-width:540px){.map-safety-overlay{padding:8px}.map-safety-dialog{padding:12px}.map-safety-dialog h2{font-size:20px}.map-safety-dialog p{font-size:11px}.map-safety-checkbox{margin:5px 0 9px}}
 </style><script src="/account-storage-policy.js?v=20261023-private-shelf-2"></script><script src="/account-storage.js?v=20261023-private-shelf-2"></script></head><body>
 <header><h1>Map</h1><a href="/studio">Back to Studio</a></header>
 <style id="biglwaMapStudioLayout">
@@ -730,8 +754,19 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
 }
 </style>
 <main><section class="map-side" aria-label="Map and location controls">
-<div class="toolbar"><button id="drop" class="primary" type="button" disabled>Drop pin at center</button><button id="locate" type="button">Use my location</button><button id="fit" type="button" disabled>Show saved pins</button></div>
+<div class="toolbar"><button id="drop" class="primary" type="button" disabled>Drop pin at center</button><button id="locate" type="button">Use my location</button><button id="fit" type="button" disabled>Show saved pins</button><button id="mapSafetyKey" type="button" aria-controls="mapSafetyOverlay" aria-expanded="false" title="Review Map safety notice"><span aria-hidden="true" class="map-safety-indicator">●</span> Map safety</button></div>
+<div class="map-stage">
 <div id="map" aria-label="Interactive map. Tap to choose a location, or use Drop pin at center."></div>
+<div class="map-safety-overlay" id="mapSafetyOverlay" hidden>
+  <section class="map-safety-dialog" role="dialog" aria-modal="true" aria-labelledby="mapSafetyTitle" aria-describedby="mapSafetyDescription" tabindex="-1">
+    <div class="map-safety-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h2 id="mapSafetyTitle">Protect your location.</h2>
+    <p id="mapSafetyDescription">Never risk your safety by entering your exact home address — or anyone else’s. Use a nearby public place, neighborhood, landmark, school, museum, restaurant, or other general location instead. Sharing someone’s private address or using the Map to dox another person can result in a permanent ban.</p>
+    <p class="map-safety-signoff">No doxxing anyone. Yes, even oligarchs.</p>
+    <label class="map-safety-checkbox"><input id="mapSafetyNeverAgain" type="checkbox"> <span>Don't show again</span></label>
+    <div class="map-safety-actions"><button id="mapSafetyDuh" type="button">duh...</button><button class="primary" id="mapSafetyGotIt" type="button">Got it</button></div>
+  </section>
+</div></div>
 <p id="mapStatus" class="status" role="status">Loading map… You can also enter coordinates below.</p><p id="tileStatus" class="status" role="status"></p>
 <p class="hint">Tap the map to choose a place. Drag the draft pin to adjust it. Pins are saved in this browser; they are not shared with other members or devices.</p>
 </section><aside><h2 id="formTitle">Add a pin</h2><form id="pinForm">
@@ -740,7 +775,7 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
 <label>Category<select id="pinCategory"><option>Place</option><option>Memory</option><option>Project</option><option>Event</option><option>Resource</option></select></label>
 <label>Photo <span class="label-note">optional</span><input id="pinPhotoUrl" type="url" placeholder="https://… picture to show on this pin"></label>
 <label class="pin-public"><input id="pinPublic" type="checkbox"><span><b>Make this pin public</b><em>Anyone signed in to BIGLWA can see this pin and its photo. Leave it off and only you can see it.</em></span></label>
-<div class="map-safety" role="note"><strong>Protect your location.</strong>Never risk your safety by entering your exact home address — or anyone else’s. Use a nearby public place, neighborhood, landmark, school, museum, restaurant, or other general location instead. Sharing someone’s private address or using the Map to dox another person can result in a permanent ban. <em>No doxxing anyone. Yes, even oligarchs.</em></div><label class="place-search-label">Address or place<div class="place-search-wrap"><input id="placeSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Museum, restaurant, school, address…"><div id="placeSuggestions" class="place-suggestions" role="listbox" hidden></div></div></label><p id="placeSearchStatus" class="place-search-status" role="status">Start typing a place name or address.</p><p class="place-source">Place search data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · Photon</p>
+<label class="place-search-label">Address or place<div class="place-search-wrap"><input id="placeSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Museum, restaurant, school, address…"><div id="placeSuggestions" class="place-suggestions" role="listbox" hidden></div></div></label><p id="placeSearchStatus" class="place-search-status" role="status">Start typing a place name or address.</p><p class="place-source">Place search data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · Photon</p>
 <label>Detected area<input id="area" type="text" readonly placeholder="Neighborhood · city · region · country"></label>
 <div class="row"><label>Latitude<input id="lat" type="number" min="-90" max="90" step="any" required placeholder="Filled automatically"></label><label>Longitude<input id="lng" type="number" min="-180" max="180" step="any" required placeholder="Filled automatically"></label></div>
 <div class="toolbar"><button class="primary" type="submit">Save pin</button><button id="cancel" type="button">Clear selection</button></div></form>
@@ -1042,4 +1077,48 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
     }
   }catch{$('mapStatus').textContent='Map display is unavailable. You can still save pins using the address search or latitude and longitude.';}
 })();
-</script></body></html>
+</script>
+<script>
+/* Map safety notice preference is a UI-only setting; no coordinates are stored. */
+(() => {
+  const params = new URLSearchParams(location.search);
+  if(params.has('preview') || (window.parent!==window && window.parent.__biglwaPublicStorageView))return;
+  const overlay=document.getElementById('mapSafetyOverlay');
+  const toggle=document.getElementById('mapSafetyKey');
+  const never=document.getElementById('mapSafetyNeverAgain');
+  const gotIt=document.getElementById('mapSafetyGotIt');
+  if(!overlay||!toggle||!never||!gotIt)return;
+  const key='biglwa:map:safety-notice:hide:v1';
+  const getPref=()=>{try{return localStorage.getItem(key)==='1'}catch(_){return false}};
+  const savePref=()=>{try{if(never.checked)localStorage.setItem(key,'1');else localStorage.removeItem(key)}catch(_){}};
+  never.checked=getPref();
+  let previousFocus=null;
+  const open=()=>{
+    previousFocus=document.activeElement;
+    overlay.hidden=false;
+    toggle.setAttribute('aria-expanded','true');
+    gotIt.focus({preventScroll:true});
+  };
+  const close=()=>{
+    savePref();
+    overlay.hidden=true;
+    toggle.setAttribute('aria-expanded','false');
+    const target=previousFocus?.isConnected ? previousFocus : toggle;
+    target?.focus?.({preventScroll:true});
+  };
+  toggle.addEventListener('click',open);
+  document.getElementById('mapSafetyDuh').addEventListener('click',close);
+  gotIt.addEventListener('click',close);
+  overlay.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();close();return}
+    if(e.key!=='Tab')return;
+    const focusable=[...overlay.querySelectorAll('button:not([disabled]),input:not([disabled])')].filter(el=>el.getClientRects().length);
+    if(!focusable.length)return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus()}
+    else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus()}
+  });
+  if(!never.checked)open();
+})();
+</script>
+</body></html>
