@@ -1,36 +1,105 @@
-/* Studio-only approved arcade pair: ARCADE joystick cabinet for Games, BIG LWA keyboard cabinet for lwazi. 
-   Use the original approved illustration as a two-half sprite, with no change to widget header symbols. */
+/* Studio cabinet ART, not replacement content. The existing Games carousel stays live.
+   The second cabinet frames a NEW carousel of Workshop block icons. */
 #studioApp #games .games-library.games-library{
-  aspect-ratio:808/973!important;
+ aspect-ratio:0.807!important;background:transparent!important;overflow:visible!important;
 }
 #studioApp #games .games-library.games-library::before{
-  background-image:url('/assets/arcade/studio-cabinet-pair-20261026.avif')!important;
-  background-size:200% 100%!important;
-  background-position:left center!important;
-  background-repeat:no-repeat!important;
+ background-image:url('/assets/arcade/studio-games-cabinet-20261026.png')!important;
+ background-size:100% 100%!important;background-position:center!important;
+ background-repeat:no-repeat!important;
 }
 #studioApp #games .arcade-library-viewport.arcade-library-viewport{
-  left:10.8%!important;top:23.5%!important;
-  width:78.4%!important;height:47.4%!important;
+ left:10%!important;top:25.2%!important;width:80%!important;height:43.7%!important;
+ background:#080813!important;z-index:4!important;
 }
 #studioApp #games .games-arcade-brand .arcade-folder-dots.arcade-folder-dots{
-  left:16%!important;top:1.8%!important;width:19%!important;height:8%!important;
+ left:12%!important;top:1.7%!important;width:18%!important;height:6%!important;
 }
+/* Preserve Games' original scrolling arcade tracks, item thumbnails and links. */
+#studioApp #games .arcade-library-viewport>.arcade-track{
+ display:flex!important;flex-direction:column!important;min-width:0!important;
+ animation-name:biglwa-arcade-scroll!important;
+ animation-timing-function:linear!important;animation-iteration-count:infinite!important;
+}
+#studioApp #games .arcade-library-viewport:is(:hover,:focus-within)>.arcade-track{
+ animation-play-state:paused!important;
+}
+/* The Lwazi cabinet is a FRAME. Its .arcade-library-viewport is the content.
+   Do not use a full-surface button; it would swallow scrolling and app clicks. */
 #studioApp #tools .lwazi-cabinet-thumb{
-  width:100%;max-width:100%;
-  display:block;position:relative;overflow:hidden;box-sizing:border-box;
-  aspect-ratio:808/973;margin:8px auto 0;padding:0;border:0;
-  border-radius:0;background:#08070a;
-  cursor:pointer;box-shadow:none;
+ position:relative!important;display:block!important;width:100%!important;
+ aspect-ratio:0.784!important;height:auto!important;overflow:visible!important;
+ box-sizing:border-box!important;margin:8px auto 0!important;padding:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ box-shadow:none!important;isolation:isolate!important;
 }
 #studioApp #tools .lwazi-cabinet-thumb::before{
-  content:'';position:absolute;inset:0;
-  background:url('/assets/arcade/studio-cabinet-pair-20261026.avif') right center / 200% 100% no-repeat;
-  pointer-events:none;
+ content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+ background:url('/assets/arcade/studio-lwazi-cabinet-20261026.png') center / 100% 100% no-repeat;
 }
-#studioApp #tools .lwazi-cabinet-thumb:focus-visible{
-  outline:3px solid #b83144;outline-offset:3px;
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport{
+ position:absolute!important;z-index:2!important;
+ left:11%!important;top:25.8%!important;width:78%!important;height:44.8%!important;
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:6px!important;min-height:0!important;max-height:none!important;
+ margin:0!important;padding:6px!important;box-sizing:border-box!important;
+ overflow:hidden!important;border:0!important;border-radius:4%!important;
+ background:#080813!important;box-shadow:none!important;
+ mask-image:none!important;-webkit-mask-image:none!important;
 }
-@media (prefers-reduced-motion:reduce){
-  #studioApp #tools .lwazi-cabinet-thumb{transition:none!important}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-track{
+ display:flex!important;flex-direction:column!important;gap:9px!important;
+ min-width:0!important;animation:biglwa-arcade-scroll 28s linear infinite!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-track:nth-child(2){
+ animation-duration:34s!important;animation-delay:-11s!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-track:nth-child(3){
+ animation-duration:31s!important;animation-delay:-19s!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport:is(:hover,:focus-within) .arcade-track{
+ animation-play-state:paused!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-game-tile{
+ display:block!important;flex:0 0 auto!important;position:relative!important;
+ height:clamp(86px,13vw,122px)!important;min-height:0!important;
+ width:100%!important;margin:0!important;padding:8px 5px 20px!important;
+ border:1px solid rgba(245,214,159,.3)!important;border-radius:10px!important;
+ background:#fff1dd!important;box-shadow:0 3px 8px #0006!important;
+ color:#29181a!important;cursor:pointer!important;box-sizing:border-box!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-game-tile img{
+ display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-game-tile .lwazi-block-name{
+ position:absolute;bottom:2px;left:2px;right:2px;overflow:hidden;text-overflow:ellipsis;
+ color:#381a22;font:700 9px/1.3 system-ui,sans-serif;text-align:center;white-space:nowrap;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-game-tile:focus-visible,
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-open:focus-visible{
+ outline:3px solid #ffdb7b!important;outline-offset:1px!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-open{
+ position:absolute;z-index:3;left:10%;bottom:5%;width:80%;height:21%;
+ cursor:pointer;border:0;background:transparent;color:transparent;
+}
+/* Click the header to enter the entire Workshop, or a block to enter its editor. */
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-marquee{
+ position:absolute;z-index:3;left:7%;top:7%;width:86%;height:14%;
+ border:0;background:transparent;cursor:pointer;
+}
+@media(max-width:650px){
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;padding:4px!important;
+ }
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-game-tile{
+  height:78px!important;padding:4px 2px 17px!important;border-radius:7px!important;
+ }
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-game-tile .lwazi-block-name{font-size:7px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp #games .arcade-library-viewport>.arcade-track,
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-track{
+  animation:none!important;transform:none!important;
+ }
 }
