@@ -7,6 +7,10 @@ on:
     types: [completed]
     branches: [biglwa-native-editors]
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/native-release-request.json'
 
 permissions:
   contents: write
@@ -18,13 +22,13 @@ concurrency:
 
 jobs:
   promote:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
       GH_TOKEN: ${{ github.token }}
       NATIVE_SOURCE_SHA: 279c52ddbe4d11f3309b331755c7daa08402f12a
-      NATIVE_LIGHTR_SHA: fdfd3d4f6746a0f03ea578d73c329a4b1ca25385
+      NATIVE_LIGHTR_SHA: 688c579b3dada389b62c8fad95a024bff1a78564
     steps:
       - name: Check out protected production release tooling
         uses: actions/checkout@v4
