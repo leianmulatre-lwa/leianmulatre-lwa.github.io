@@ -1,0 +1,41 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const {JSDOM}=createRequire(import.meta.url)('jsdom');
+const landing=readFileSync(new URL('./public-profile-landing.js',import.meta.url),'utf8');
+const preview=readFileSync(new URL('./studio-preview.js',import.meta.url),'utf8');
+const sharing=readFileSync(new URL('./profile-module-sharing.js',import.meta.url),'utf8');
+const feed=readFileSync(new URL('./feed-view.js',import.meta.url),'utf8');
+const login=readFileSync(new URL('./login-stitch-polish.css',import.meta.url),'utf8');
+const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+assert.ok(feed.includes('const externalVideo=tiktokEmbed && !playable'),'Stored video preferred over external TikTok embed');
+assert.ok(feed.includes('!playable && !shown.length && !externalVideo'),'No duplicate external link footer below imported media');
+assert.ok(preview.includes('publicStats')&&preview.includes('biglwa-preview-mode #studioApp .sidebar'),'Public metrics and no owner sidebar');
+assert.ok(sharing.includes('publicOrbit(root)')&&sharing.includes('publicBoards(root)'),'Orbit and Boards are handled as public read-only modules');
+assert.ok(index.includes('/public-profile-landing.js')&&index.includes('/login-stitch-polish.css'),'Public landing and stitch theme loaded');
+assert.ok(login.includes('stitched-crest-mask'),'Login emblem retains stitched shape');
+const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp"><article id="boards"><div class="card-head"><h2>Boards</h2></div><div id="connect-pinterest">Connect Pinterest</div></article><article id="diary"><button class="diary-page"><img src="/assets/diary-notebook-closeup.svg"></button></article><article class="guest-check-card"></article><article id="map"></article><article id="studioAvatarCard"></article></main></body></html>',{url:'https://biglwa.com/leian',runScripts:'outside-only',pretendToBeVisual:true});
+const w=dom.window,doc=w.document;
+doc.documentElement.classList.add('biglwa-preview-mode');
+w.BigLWAUserDirectory={loadArchiveForUsername:async()=>[
+ {state:'approved',source:'pinterest',thumbnailUrl:'https://example.com/a.jpg'},
+ {state:'private',source:'pinterest',thumbnailUrl:'https://example.com/private.jpg'}
+]};
+w.BigLWAStudioPreview={prompt:(value)=>w.lastPrompt=value};
+w.eval(landing);
+doc.dispatchEvent(new w.Event('DOMContentLoaded'));
+w.dispatchEvent(new w.CustomEvent('biglwa:public-profile-ready',{detail:{profile:{uid:'ownerA',username:'leian',name:'Leian',journalVisibility:'private',profilePhotoUrl:'https://example.com/avatar.jpg'}}}));
+await new Promise(r=>setTimeout(r,360));
+assert.equal(doc.querySelectorAll('.biglwa-public-board-slot').length,6,'Exactly two rows of three board previews');
+assert.equal(doc.querySelectorAll('.biglwa-public-board-slot img').length,1,'Only approved owner Pinterest media rendered');
+assert.ok(!doc.querySelector('.biglwa-public-boards-home').textContent.includes('Connect Pinterest'));
+assert.equal(doc.querySelector('.biglwa-public-journal-initial').textContent,'L');
+assert.ok(doc.querySelector('.biglwa-public-avatar-preview img'),'Visitor sees public avatar/profile image');
+doc.querySelector('.biglwa-public-map-open').click();
+assert.equal(w.lastPrompt,'view public shared locations','Map gated until account creation');
+doc.querySelector('.biglwa-public-guest-open').click();
+assert.ok(doc.getElementById('biglwaPublicGuestSheet'),'Guest sheet opens');
+w.dispatchEvent(new w.Event('biglwa:public-profile-ended'));
+assert.equal(doc.querySelector('.biglwa-public-boards-home'),null,'Leaving preview removes visitor data');
+dom.window.close();
+console.log('PASS public Studio: approved Boards, locked Journal initial, avatar fallback, Guest Sheet and gated Map; original sources protected.');
