@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 const landing=readFileSync(new URL('./public-profile-landing.js',import.meta.url),'utf8');
+const planets=readFileSync(new URL('./orbit-preview-eight-20261016.js',import.meta.url),'utf8');
 const preview=readFileSync(new URL('./studio-preview.js',import.meta.url),'utf8');
 const sharing=readFileSync(new URL('./profile-module-sharing.js',import.meta.url),'utf8');
 const feed=readFileSync(new URL('./feed-view.js',import.meta.url),'utf8');
@@ -14,7 +15,11 @@ assert.ok(preview.includes('publicStats')&&preview.includes('biglwa-preview-mode
 assert.ok(sharing.includes('publicOrbit(root)')&&sharing.includes('publicBoards(root)'),'Orbit and Boards are handled as public read-only modules');
 assert.ok(index.includes('/public-profile-landing.js')&&index.includes('/login-stitch-polish.css'),'Public landing and stitch theme loaded');
 assert.ok(login.includes('stitched-crest-mask'),'Login emblem retains stitched shape');
-const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp"><article id="boards"><div class="card-head"><h2>Boards</h2></div><div id="connect-pinterest">Connect Pinterest</div></article><article id="diary"><button class="diary-page"><img src="/assets/diary-notebook-closeup.svg"></button></article><article class="guest-check-card"></article><article id="map"></article><article id="studioAvatarCard"></article></main></body></html>',{url:'https://biglwa.com/leian',runScripts:'outside-only',pretendToBeVisual:true});
+assert.ok(preview.includes('html.biglwa-preview-mode #studioApp .main{margin-left:0!important'),'Public profile expands into the hidden sidebar space');
+assert.ok(preview.includes('top:var(--biglwa-preview-banner-h,0px)!important'),'Sticky header uses the measured preview notice height');
+assert.ok(preview.includes('decorateVisitorShortcuts()'),'Visitor shortcut rail stays populated');
+assert.ok(!landing.includes("make('button','View Orbit connections'"),'No duplicate View Orbit CTA on visitors');
+const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp"><article id="boards"><div class="card-head"><h2>Boards</h2></div><div id="connect-pinterest">Connect Pinterest</div></article><article id="diary"><button class="diary-page"><img src="/assets/diary-notebook-closeup.svg"></button></article><article id="orbit"><div id="orbitGrid"></div><p class="orbit-note"></p></article><article class="guest-check-card"></article><article id="map"></article><article id="studioAvatarCard"></article></main></body></html>',{url:'https://biglwa.com/leian',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,doc=w.document;
 doc.documentElement.classList.add('biglwa-preview-mode');
 w.BigLWAUserDirectory={loadArchiveForUsername:async()=>[
@@ -23,13 +28,37 @@ w.BigLWAUserDirectory={loadArchiveForUsername:async()=>[
 ]};
 w.BigLWAStudioPreview={prompt:(value)=>w.lastPrompt=value};
 w.eval(landing);
+w.eval(planets);
 doc.dispatchEvent(new w.Event('DOMContentLoaded'));
-w.dispatchEvent(new w.CustomEvent('biglwa:public-profile-ready',{detail:{profile:{uid:'ownerA',username:'leian',name:'Leian',journalVisibility:'private',profilePhotoUrl:'https://example.com/avatar.jpg'}}}));
+const ownerProfile={uid:'ownerA',username:'leian',name:'Leian',journalVisibility:'private',
+ profilePhotoUrl:'https://example.com/avatar.jpg',
+ socials:[{id:'instagram',label:'Instagram',url:'https://www.instagram.com/leian/'},
+ {id:'youtube',label:'YouTube',url:'https://www.youtube.com/@leian'}]};
+w.__biglwaViewedProfile=ownerProfile;
+w.dispatchEvent(new w.CustomEvent('biglwa:public-profile-ready',{detail:{profile:ownerProfile}}));
 await new Promise(r=>setTimeout(r,360));
 assert.equal(doc.querySelectorAll('.biglwa-public-board-slot').length,6,'Exactly two rows of three board previews');
 assert.equal(doc.querySelectorAll('.biglwa-public-board-slot img').length,1,'Only approved owner Pinterest media rendered');
 assert.ok(!doc.querySelector('.biglwa-public-boards-home').textContent.includes('Connect Pinterest'));
 assert.equal(doc.querySelector('.biglwa-public-journal-initial').textContent,'L');
+const book=doc.querySelector('#diary .diary-page');
+const letter=doc.querySelector('.biglwa-public-journal-initial');
+const bookCover=book.querySelector('img');
+w.dispatchEvent(new w.Event('biglwa:public-mirror-ready'));
+await new Promise(r=>setTimeout(r,180));
+assert.equal(doc.querySelector('.biglwa-public-journal-initial'),letter,'Journal initial is stable after public mirror refresh');
+assert.equal(doc.querySelector('#diary .diary-page img'),bookCover,'Journal notebook cover is not replaced');
+const instagram=doc.querySelector('#orbitGrid [data-orbit-app="instagram"]');
+const youtube=doc.querySelector('#orbitGrid [data-orbit-app="youtube"]');
+const calendar=doc.querySelector('#orbitGrid [data-orbit-app="calendar"]');
+assert.equal(instagram.querySelector('small').textContent,'Linked','Owner Instagram planet has published status');
+assert.equal(youtube.querySelector('small').textContent,'Linked','Owner YouTube planet has published status');
+assert.equal(calendar.querySelector('small').textContent,'Not shared','Private Calendar is never invented as linked');
+assert.equal(calendar.disabled,true,'Unshared planet cannot start OAuth');
+let opened='';
+w.open=(url)=>{opened=url;return {}};
+instagram.click();
+assert.equal(opened,'https://www.instagram.com/leian/','Clicking public planet opens owner hyperlink');
 assert.ok(doc.querySelector('.biglwa-public-avatar-preview img'),'Visitor sees public avatar/profile image');
 doc.querySelector('.biglwa-public-map-open').click();
 assert.equal(w.lastPrompt,'view public shared locations','Map gated until account creation');
