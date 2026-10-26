@@ -1225,7 +1225,7 @@
     const allowed=new Set(['diary','widget','qwiky-note']);
     card.dataset.moodStyle=allowed.has(style)?style:'qwiky-note';
     const raw=String(text||'').trim();
-    const actual=/^add this week['’]s #mood$/i.test(raw)||(raw==='#keepitcute'&&card.dataset.moodPreview==='1')?'':raw;
+    const actual=/^add this week['’]s #mood$/i.test(raw)?'':raw;
     card.dataset.moodPreview=actual?'0':'1';
     const value=$('.weekly-mood-value',card);
     if(value){value.textContent=actual||'#keepitcute';value.setAttribute('aria-label',actual||'Example mood: #keepitcute');}
