@@ -44,6 +44,12 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
       - name: Verify owned TikTok import assets and isolation
         run: node tiktok-owned-import-test.mjs
+      - name: Verify public Studio profile, read-only widgets and media
+        run: |
+          node --check public-profile-landing.js
+          node --check profile-module-sharing.js
+          node --check studio-preview.js
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node public-profile-landing-test.mjs
       - name: Verify imported highlight playback and account isolation
         run: |
           node --check profile-highlight-editor.js
