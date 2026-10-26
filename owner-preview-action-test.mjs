@@ -24,13 +24,17 @@ assert.match(curtain,/--lwa-loading-hero-height:clamp\(275px,43vh,355px\)/,
 
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+
  '<div id="studioApp"><div class="topbar"><div class="account-right">'+
- '<button id="profileMenuBtn">Account</button><button id="studioSignOut">Sign out</button>'+
- '</div></div></div><dialog id="studioLogsDialog"></dialog></body></html>',
+ '<button id="profileMenuBtn">Account</button>'+
+ '<button id="studioNotificationsBtn"><img class="visitor-mail-icon" src="/assets/mail-symbol.svg" alt=""></button>'+
+ '<button id="studioSignOut"><img class="studio-logout-icon" src="/assets/logout-symbol.svg" alt=""></button>'+
+ '</div></div><section id="connect"><span class="card-icon"><img src="/assets/connect-symbol.svg" alt=""></span></section></div>'+
+ '<dialog id="studioLogsDialog"></dialog></body></html>',
  {url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,d=w.document;
 w.__biglwaIdentity={uid:'owner-1',username:'leian',name:'Leian'};
 let signedOut=0;
 d.getElementById('studioSignOut').addEventListener('click',()=>signedOut++);
+d.getElementById('studioNotificationsBtn').addEventListener('click',()=>d.getElementById('studioLogsDialog').showModal());
 w.eval(accountMenu);
 d.dispatchEvent(new w.Event('DOMContentLoaded'));
 await new Promise(res=>setTimeout(res,80));
@@ -39,16 +43,20 @@ const menu=d.getElementById('biglwaAccountMenu');
 assert.ok(dots&&menu,'Account menu and color dots actually mount');
 assert.equal(dots.querySelectorAll('button').length,3,'Exactly green/yellow/red account actions');
 assert.ok(dots.querySelector('[data-biglwa-add-user]'));
-assert.ok(dots.querySelector('[data-biglwa-logs]'));
-assert.ok(dots.querySelector('[data-biglwa-logout]'));
+assert.equal(dots.querySelector('[data-biglwa-add-user] img')?.getAttribute('src'),'/assets/connect-symbol.svg','Add user reuses the actual Connect icon');
+assert.equal(dots.querySelector('#studioNotificationsBtn'),d.getElementById('studioNotificationsBtn'),'The original Logs/mail button is MOVED, not duplicated');
+assert.equal(dots.querySelector('#studioSignOut'),d.getElementById('studioSignOut'),'Original logout button and listener preserved');
+assert.equal(d.querySelectorAll('#studioNotificationsBtn').length,1,'Exactly ONE native mail/logs button');
+assert.equal(dots.querySelector('[data-biglwa-logs]'),null,'Broken replacement Logs control removed');
+assert.match(d.getElementById('biglwa-account-dots-style').textContent,/width:26px!important/,'Buttons shrunk to 26px');
 d.getElementById('profileMenuBtn').click();
 assert.equal(menu.hidden,false,'Dropdown opens');
 assert.equal(d.getElementById('biglwaMenuPreview').getAttribute('href'),'/leian?preview=1',
  'Preview option navigates to actual owner public profile');
-dots.querySelector('[data-biglwa-logout]').click();
-assert.equal(signedOut,1,'Red logout delegates to existing authenticated sign-out');
-dots.querySelector('[data-biglwa-logs]').click();
-assert.equal(d.getElementById('studioLogsDialog').open,true,'Yellow logs opens original activity dialog');
+dots.querySelector('#studioSignOut').click();
+assert.equal(signedOut,1,'Red logout runs the ORIGINAL authenticated sign-out action');
+dots.querySelector('#studioNotificationsBtn').click();
+assert.equal(d.getElementById('studioLogsDialog').open,true,'Yellow original mail/Logs button opens the REAL Logs dialog');
 d.documentElement.classList.add('biglwa-preview-mode','biglwa-owner-self-preview');
 d.getElementById('profileMenuBtn').click();
 assert.notEqual(d.getElementById('profileMenuBtn').getAttribute('aria-disabled'),'true',
