@@ -57,15 +57,15 @@
  }
  function renameNavigation(){
   const routes=[
-    ['tools','lwazi'],['projects','visualizr']
+    ['tools','lwazi'],['projects','visualizr'],['camera','boo'],['notes','sqwibz']
   ];
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
       const label=link.querySelector('.hero-shortcut-label,.sidebar-route-label,.nav-label');
       if(label&&label.textContent.trim()!==name)label.textContent=name;
-      if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects'}[route]))link.setAttribute('aria-label',name);
+      if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Bookini',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
     }
-    const widget=document.querySelector('#studioApp #'+(route==='projects'?'projects':'tools')+' .card-head h2');
+    const widget=document.querySelector('#studioApp #'+route+' .card-head h2');
     if(widget&&widget.textContent.trim()!==name)widget.textContent=name;
   }
  }
