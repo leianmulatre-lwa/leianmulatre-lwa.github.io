@@ -98,7 +98,7 @@
   }
   heading.classList.add('module-heading--with-versions','module-heading--single-line');
   const sub=$(':scope > .module-heading-bottom > p',heading);
-  if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks of the R/Lwazi series: our own apps, designed fo/r you. 3 web-friendly originals and 4 advanced open-source R-editors.';
+  if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks, part of the R/Lwazi seriez: our own apps, designed fo/r you. 3 web-friendly BIG LWA apps and 4 advanced open-source R-editors.';
   if(key==='camera'&&sub)sub.textContent='Your own booth to capture or chat with other bookini’s on Big LWA.';
  }
  let queued=false;
