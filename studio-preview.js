@@ -129,6 +129,36 @@ function applyIdentity(data){
     if(clean(data.moodStyle)) moodCard.dataset.moodStyle=clean(data.moodStyle);
   }
   if(data.auraText!=null) renderAuraCopy(data.auraText);
+  // Preserve only the owner's explicitly public aggregate observations.
+  const stats=data.publicStats;
+  const format=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0?
+    new Intl.NumberFormat().format(value):'—';
+  const cardStats=$(".stats",card);
+  if(cardStats){
+    for(const kind of ['followers','connections','reach','likes']){
+      const field=$('[data-profile-stat="'+kind+'"]',cardStats);
+      if(!field)continue;
+      const value=stats?.[kind];
+      const displayed=format(value);
+      const primary=field.querySelector('b,strong');
+      if(primary)primary.textContent=displayed;
+      else{
+        const text=field.firstChild;
+        if(text?.nodeType===3)text.textContent=displayed+' ';
+      }
+      field.dataset.publicAggregate=displayed;
+      field.title=stats?.observedAt?'Last published account observation '+stats.observedAt.slice(0,10):'Unavailable until this member publishes verified counts';
+    }
+  }
+  const rank=$(".real-rank strong",card);
+  if(rank)rank.textContent=stats?.realRank||'Chopped';
+  const photo=data.profilePhotoUrl||'';
+  const profileAvatar=$(".profile-avatar",card);
+  if(profileAvatar&&/^https:\/\/biglwa-instagram-api\./.test(photo)){
+    profileAvatar.style.backgroundImage='url("'+photo+'")';
+    profileAvatar.style.backgroundSize='cover';
+    profileAvatar.style.backgroundPosition='center';
+  }
   const welcome=$("#studioApp .welcome strong");
   if(welcome && name) welcome.textContent=name.charAt(0).toUpperCase()+name.slice(1);
   const avatar=$("#studioApp .mini-avatar");
@@ -166,8 +196,12 @@ const SOCIAL_ACCENT={
 function renderSocials(data){
   const card=$("#studioApp .profile-card");
   if(!card||!data) return false;
-  let row=$(".biglwa-social-row",card);
+  // Public Orbit owns the external connection list, not the banner's identity row.
+  const old=$(".biglwa-social-row",card);if(old)old.remove();
   const links=Array.isArray(data.socials)?data.socials:[];
+  window.__biglwaPublicOrbitLinks=links;
+  return !!links.length;
+  let row=$(".biglwa-social-row",card);
   /* An empty set clears the row rather than leaving a stale one behind: the same card is
      reused if the viewer navigates from one profile to another. */
   if(!links.length){
@@ -311,10 +345,29 @@ html.biglwa-preview-mode #studioApp [data-restore-widget],
 html.biglwa-preview-mode #studioApp [data-add-shortcut],
 html.biglwa-preview-mode #studioApp [data-remove-shortcut],
 html.biglwa-preview-mode #studioApp [data-open-guest],
-html.biglwa-preview-mode #studioApp .module-launcher,
-html.biglwa-preview-mode #studioApp [data-module],
-html.biglwa-preview-mode #studioApp .customize-heading button,
-html.biglwa-preview-mode #studioApp .sidebar [data-module]{display:none!important}
+html.biglwa-preview-mode #studioApp .customize-heading button{display:none!important}
+/* Public viewing is a read-only portfolio, not the visitor's editable workspace. */
+html.biglwa-preview-mode #studioApp .sidebar,
+html.biglwa-preview-mode #studioApp .hero-action-bar,
+html.biglwa-preview-mode #studioApp #saveSidebarShortcuts,
+html.biglwa-preview-mode #studioApp .sidebar-shortcut-save,
+html.biglwa-preview-mode #studioApp .sidebar-shortcuts,
+html.biglwa-preview-mode #studioApp [data-public-owner-only]{display:none!important}
+html.biglwa-preview-mode #studioApp .profile-card .biglwa-social-row{display:none!important}
+html.biglwa-preview-mode #studioApp .profile-card{overflow:visible!important}
+html.biglwa-preview-mode #studioApp .profile-card .profile-copy{min-width:0!important}
+html.biglwa-preview-mode #studioApp .real-rank{z-index:1!important}
+/* Keep the page heading and avatar away from the preview notice and topbar. */
+html.biglwa-preview-mode #studioApp .hero{scroll-margin-top:calc(var(--biglwa-preview-banner-h,54px) + 70px)}
+html.biglwa-preview-mode #studioApp .studio-brand-row,
+html.biglwa-preview-mode #studioApp .topbar{overflow:visible!important}
+html.biglwa-preview-mode #studioApp [data-profile-stat] [data-public-hidden]{display:none!important}
+html.biglwa-preview-mode #studioApp #diary .diary-page{position:relative!important;min-height:135px!important}
+html.biglwa-preview-mode #studioApp #diary .diary-page img{display:block!important;opacity:1!important;visibility:visible!important}
+html.biglwa-preview-mode #studioApp #diary .biglwa-public-journal-initial{position:absolute;inset:0;display:grid;place-items:center;font:400 clamp(38px,6vw,65px)/1 "CS Bergamot Stitched",Georgia,serif;color:#171018;text-shadow:0 1px #fff8ef;pointer-events:none}
+html.biglwa-preview-mode #studioApp #boards .pinterest-board-grid,
+html.biglwa-preview-mode #studioApp #boards [data-pn-connect],
+html.biglwa-preview-mode #studioApp #boards .pn-orbit-connect{display:none!important}
 .biglwa-prompt-backdrop{position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:20px;background:rgba(28,20,18,.52);backdrop-filter:blur(3px)}
 .biglwa-prompt-card{width:min(430px,100%);border-radius:20px;background:#fbf8f2;color:#171717;padding:24px 22px 18px;box-shadow:0 26px 70px rgba(20,14,12,.34);border:1px solid rgba(23,23,23,.08)}
 .biglwa-prompt-card h3{margin:0 0 8px;font:700 19px/1.2 "CS Bergamot Stitched",Georgia,serif}
@@ -521,9 +574,10 @@ function guardOrbit(){
   preview.openModule=open;
   const wrapped=function(key,...rest){
     const name=String(key||"").toLowerCase();
-    if(preview.active && !preview.signedIn && ORBIT_KEYS.has(name)){
-      openPrompt("connect accounts");
-      return;
+    // Opening another member's Orbit is allowed; profile-module-sharing supplies
+    // a read-only list. OAuth, editing and connecting remain blocked by the gate.
+    if(preview.active && ORBIT_KEYS.has(name)){
+      return open.call(this,key,...rest);
     }
     if(preview.active && !preview.signedIn && ARCHIVE_KEYS.has(name)){
       openPrompt("view this Archive");
@@ -648,6 +702,7 @@ function enforce(){
   renderSocials(preview.profile);
   decorateArchiveAccess();
   decorateGuestCard();
+  window.dispatchEvent(new CustomEvent('biglwa:public-mirror-ready',{detail:{profile:preview.profile}}));
   guardOrbit();
   checkSignedIn();
 }
