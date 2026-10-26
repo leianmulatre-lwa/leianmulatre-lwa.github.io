@@ -136,3 +136,38 @@
 #craftSuite .craft-tile[data-craft-card="bookini"]{border-color:#68a998;box-shadow:4px 4px 0 #4fa18b5c}
 #craftSuite .craft-tile[data-craft-card="visualizr"]>button{background:#b65f81}
 #craftSuite .craft-tile[data-craft-card="bookini"]>button{background:#477c72}
+
+/* Keep the switch and embroidered R-series block *beside* the title.
+   This overrides older generic module-heading and tabs-as-body rules. */
+#studioApp #moduleWorkspace .module-heading.module-heading--single-line{
+ grid-template-columns:minmax(0,1fr) max-content!important;
+ grid-template-rows:auto auto!important;
+ align-items:center!important;column-gap:16px!important;
+}
+#studioApp #moduleWorkspace .module-heading.module-heading--single-line > .module-heading-copy{
+ grid-column:1!important;grid-row:1!important;min-width:0!important;
+}
+#studioApp #moduleWorkspace .module-heading.module-heading--single-line > .module-version-right{
+ grid-column:2!important;grid-row:1!important;display:flex!important;
+ flex-direction:row!important;align-items:center!important;
+ justify-content:flex-end!important;gap:12px!important;
+ align-self:center!important;margin:0!important;
+}
+#studioApp #moduleWorkspace .module-heading.module-heading--single-line > .module-heading-bottom{
+ grid-column:1 / -1!important;grid-row:2!important;
+}
+#studioApp #moduleWorkspace .module-heading--single-line .module-heading-versions{
+ margin:0!important;white-space:nowrap!important;flex-wrap:nowrap!important
+}
+#studioApp #moduleWorkspace .module-heading--single-line .lwazi-series-badge{
+ flex-shrink:0!important;margin-left:auto!important
+}
+@media(max-width:680px){
+ #studioApp #moduleWorkspace .module-heading.module-heading--single-line{
+  grid-template-columns:minmax(0,1fr) minmax(0,60%)!important;
+  gap:8px!important
+ }
+ #studioApp #moduleWorkspace .module-heading.module-heading--single-line > .module-version-right{
+  width:100%!important;min-width:0!important;gap:5px!important;
+ }
+}
