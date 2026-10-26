@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261026-lwazi-visualizr-title-row-1&widget=lwazi-2';
+        script.src = '/module-pages.js?v=20261026-boo-lwazi-layout-3';
         document.head.appendChild(script);
       }, 250);
     }
