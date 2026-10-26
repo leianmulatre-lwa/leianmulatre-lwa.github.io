@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "request": "promote-verified-native-editor-release",
+  "sourceBranch": "biglwa-native-editors",
+  "sources": {
+    "lightR": "688c579b3dada389b62c8fad95a024bff1a78564",
+    "paintR_keyframeR_fileR": "279c52ddbe4d11f3309b331755c7daa08402f12a"
+  },
+  "releaseTag": "biglwa-native-20261023",
+  "policy": "Promote only if source ancestry, verified build artifacts, Chromium tests, preserved license notices, and prefixed production smoke tests all pass."
+}
