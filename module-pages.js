@@ -2361,7 +2361,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     import('/tools-studio.js?v=20261023-workshop-native-8')
       .then(mod=>mod.mountToolsStudio($('#toolStudio',body),{downloadBlob}))
       .catch(error=>{
-        $('#toolStudio',body).innerHTML='<section class="module-card wide"><h2>Tools could not start</h2><p>Give the page a refresh and it will load again.</p></section>';
+        $('#toolStudio',body).innerHTML='<section class="module-card wide"><h2>lwazi could not start</h2><p>Give the page a refresh and it will load again.</p></section>';
         console.error('BIGLWA Tools:',error);
       });
   }
@@ -3885,7 +3885,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         toolsCard.className='card studio-tools-card';
         toolsCard.dataset.search='tools pdf compression youtube mp3 mp4 download converter file image audio video convert';
         toolsCard.dataset.widgetRoute='tools';
-        toolsCard.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">🛠</span><h2>Tools</h2></div><button class="arrow-btn" type="button" data-open="tools" aria-label="Open Tools">→</button></div><p class="sub">Drop any file and it is sorted out automatically — convert video or audio, compress a PDF or image, or send it to a converter online.</p><button class="card-cta" type="button" data-open="tools">Open Tools →</button>';
+        toolsCard.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">🛠</span><h2>lwazi</h2></div><button class="arrow-btn" type="button" data-open="tools" aria-label="Open lwazi">→</button></div><p class="sub">Drop any file and it is sorted out automatically — convert video or audio, compress a PDF or image, or send it to a converter online.</p><button class="card-cta" type="button" data-open="tools">Open lwazi →</button>';
         const mapRef=$('#map');
         if(mapRef&&mapRef.parentElement===masonry)mapRef.insertAdjacentElement('afterend',toolsCard);else masonry.appendChild(toolsCard);
       }
