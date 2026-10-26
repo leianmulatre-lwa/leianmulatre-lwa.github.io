@@ -1,71 +1,101 @@
-/* BIG LWA — put existing working version switches beside page titles.
-   No fake tabs: use the actual controls and preserve their event handlers. */
+/* BIG LWA R / LWAZI: page title | functional version controls | series block
+   The version controls are moved, not cloned; upstream click listeners survive. */
 (()=>{'use strict';
  if(window.__biglwaHeadingVersions20261026)return;
  window.__biglwaHeadingVersions20261026=true;
  const $=(s,r=document)=>r?.querySelector(s);
- const root=()=>$('#studioApp #moduleWorkspace');
- const variants={
-  camera:'.booth-tabs',
-  notes:'.diary-section-nav',
-  projects:'.visualz-tabs',project:'.visualz-tabs',visualz:'.visualz-tabs'
+ const config={
+  camera:{title:'bookini',selector:'.booth-tabs',icon:'bookini'},
+  notes:{title:'sqwibz',selector:'.diary-section-nav'},
+  projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
+  diary:{title:'Journal',journal:true},
+  tools:{title:'lwazi',icon:'r-editor'}
  };
- function install(){
-  const workspace=root();if(!workspace||!workspace.isConnected)return;
-  const key=workspace.dataset.moduleKey||'';
-  const heading=$('.module-heading',workspace),body=$('.module-body',workspace)||$('#moduleWorkspaceBody',workspace)||workspace;
-  if(!heading)return;
-  const h1=$('h1',heading);if(!h1)return;
-  const names={camera:'bookini',tools:'tewlz',notes:'sqwibz',projects:'visualz',project:'visualz',visualz:'visualz'};
-  if(names[key]&&h1.textContent.trim()!==names[key])h1.textContent=names[key];
-  const copy=$('.module-heading-bottom p',heading)||$('.module-heading-copy p',heading);
-  if(copy&&key==='camera')copy.textContent="Your own booth to capture or chat with other bookini’s on Big LWA.";
-  if(copy&&key==='tools')copy.textContent='Creative toolz to make, edit, convert, and keep your files.';
-  let target=$(variants[key]||'#not-present',workspace);
-  // The Visualz canvas has its own inner heading and delegated handlers.
-  let location=heading;
-  if(['projects','project','visualz'].includes(key)){
-   const inner=$('#lwaProjects .lwa-project-heading',workspace);
-   if(inner)location=inner;
+ const workspace=()=>$('#studioApp #moduleWorkspace');
+ function rightSlot(heading){
+  let right=$(':scope > .module-heading-right',heading);
+  if(!right){
+   right=document.createElement('div');
+   right.className='module-heading-right module-version-right';
+   const bottom=$(':scope > .module-heading-bottom',heading);
+   if(bottom)heading.insertBefore(right,bottom);
+   else heading.append(right);
   }
-  if(target){
-   if(!location.contains(target)){
-    const copy=location.querySelector('h1');
-    if(copy)copy.insertAdjacentElement('afterend',target);
-    else location.append(target);
-   }
-   target.classList.add('module-heading-versions');
-   target.setAttribute('aria-label','Choose '+(names[key]||key)+' version');
-  }
-  if(key==='diary'){
-   let actions=$('.module-heading-versions[data-version-journal]',heading);
-   if(!actions){
-    actions=document.createElement('nav');actions.className='module-heading-versions';
-    actions.dataset.versionJournal='';actions.setAttribute('aria-label','Journal writing and reading');
-    const edit=document.createElement('button');edit.type='button';edit.dataset.journalHeadingVersion='edit';edit.textContent='Write';
-    const read=document.createElement('button');read.type='button';read.dataset.journalHeadingVersion='read';read.textContent='Read';
-    edit.onclick=()=>$('#journalReturnEdit',workspace)?.click();
-    read.onclick=()=>$('#journalViewButton',workspace)?.click();
-    actions.append(edit,read);h1.after(actions);
-   }
-   const reading=$('#journalReaderPanel',workspace);
-   const isRead=reading&&reading.hidden===false;
-   actions.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.journalHeadingVersion===(isRead?'read':'edit'))));
-   // Reading mode is only available for owners with a rendered journal editor.
-   actions.hidden=!$('#journalViewButton',workspace);
+  right.classList.add('module-version-right');
+  return right;
+ }
+ function addMark(right,icon){
+  const url='/assets/bigapps/blocks/'+icon+'.svg?v=20261026-1';
+  let badge=$('.lwazi-series-badge',right);
+  if(!badge){badge=document.createElement('span');badge.className='lwazi-series-badge';right.append(badge)}
+  if(badge.dataset.lwaziIcon!==icon){
+   badge.dataset.lwaziIcon=icon;badge.replaceChildren();
+   const img=document.createElement('img');img.src=url;img.alt='';img.width=76;img.height=76;
+   const caption=document.createElement('span');caption.textContent='R / LWAZI SERIEZ';
+   badge.append(img,caption);badge.setAttribute('aria-label',icon+' · R/Lwazi series');
   }
  }
- let scheduled=false;
- const schedule=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;install()})};
- const boot=()=>{
-  const workspace=root();
-  if(workspace)new MutationObserver(records=>{
-   if(records.some(r=>r.addedNodes.length||r.removedNodes.length))schedule();
-  }).observe(workspace,{childList:true,subtree:true});
-  document.addEventListener('biglwa:module-open',()=>setTimeout(schedule,0));
+ function journalVersions(ws,right){
+  let nav=$('nav.module-heading-versions[data-version-journal]',right);
+  if(!nav){
+   nav=document.createElement('nav');nav.className='module-heading-versions';
+   nav.dataset.versionJournal='1';nav.setAttribute('aria-label','Journal versions');
+   for(const [mode,title,source]of [['edit','Write','#journalReturnEdit'],['read','Read','#journalViewButton']]){
+    const b=document.createElement('button');b.type='button';b.dataset.journalHeadingVersion=mode;b.textContent=title;
+    b.onclick=()=>$(source,ws)?.click();nav.append(b);
+   }
+   right.prepend(nav);
+  }
+  const edit=$('#journalViewButton',ws),reader=$('#journalReaderPanel',ws);
+  nav.hidden=!edit;
+  if(edit){
+   const open=Boolean(reader&&!reader.hidden);
+   nav.querySelectorAll('button').forEach(b=>{
+    b.setAttribute('aria-pressed',String(b.dataset.journalHeadingVersion===(open?'read':'edit')));
+   });
+  }
+ }
+ function install(){
+  const ws=workspace();if(!ws?.isConnected)return;
+  const key=ws.dataset.moduleKey;
+  const item=config[key];if(!item)return;
+  // Project editor redraws the inside of the module page, so target its own
+  // heading. Others use the regular Studio page header.
+  const heading=key==='projects'
+   ?$('.lwa-project-heading',ws)
+   :$('#moduleWorkspaceBody > .module-heading',ws)||$('.module-heading',ws);
+  if(!heading)return;
+  const title=$('h1',heading);if(!title)return;
+  if(title.textContent.trim()!==item.title)title.textContent=item.title;
+  const right=rightSlot(heading);
+  const controls=item.selector?$(item.selector,ws):null;
+  if(controls){
+   controls.classList.add('module-heading-versions');
+   controls.setAttribute('aria-label','Choose '+item.title+' version');
+   if(controls.parentElement!==right)right.prepend(controls);
+  }
+  if(item.journal)journalVersions(ws,right);
+  if(item.icon)addMark(right,item.icon);
+  heading.classList.add('module-heading--with-versions','module-heading--single-line');
+  const sub=$(':scope > .module-heading-bottom > p',heading);
+  if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks of the R/Lwazi series: our own apps, designed fo/r you. 3 web-friendly originals and 4 advanced open-source R-editors.';
+  if(key==='camera'&&sub)sub.textContent='Your own booth to capture or chat with other bookini’s on Big LWA.';
+ }
+ let queued=false;
+ function schedule(){
+  if(queued)return;queued=true;
+  requestAnimationFrame(()=>{queued=false;install()});
+ }
+ function boot(){
+  const ws=workspace();if(!ws)return;
+  const observer=new MutationObserver(records=>{
+   if(records.some(rec=>rec.addedNodes.length||rec.removedNodes.length))schedule();
+  });
+  observer.observe(ws,{subtree:true,childList:true});
+  document.addEventListener('biglwa:module-open',schedule);
   document.addEventListener('biglwa:visualz-render',schedule);
-  document.addEventListener('click',e=>{if(e.target.closest('.module-heading-versions'))setTimeout(schedule,0)});
+  document.addEventListener('click',e=>{if(e.target.closest('.module-heading-versions'))schedule()});
   install();
- };
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
