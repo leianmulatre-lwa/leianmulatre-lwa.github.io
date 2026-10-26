@@ -45,7 +45,7 @@ ws.dataset.moduleKey='camera';
 ws.querySelector('#moduleWorkspaceBody').innerHTML='<header class="module-heading"><div class="module-heading-copy"><h1>Booth</h1></div><div class="module-heading-bottom"><p>Camera</p></div></header><nav class="booth-tabs"><button id="boothPhotoTab">Photo</button><button id="boothVideoTab">Video</button></nav>';
 await settle();
 h=ws.querySelector('.module-heading');
-assert.equal(h.querySelector('h1').textContent,'boo');
+assert.equal(h.querySelector('h1').textContent,'bookini');
 assert.equal(h.querySelector('.booth-tabs').parentElement,h.querySelector('.module-heading-right'));
 assert.match(h.querySelector('.lwazi-series-badge img').src,/bookini\.svg/);
 ws.dataset.moduleKey='tools';
@@ -53,7 +53,7 @@ ws.querySelector('#moduleWorkspaceBody').innerHTML='<header class="module-headin
 await settle();
 h=ws.querySelector('.module-heading');
 assert.equal(h.querySelector('h1').textContent,'lwazi');
-assert.match(h.querySelector('.module-heading-bottom p').textContent,/3 web-friendly originals and 4 advanced open-source R-editors/);
+assert.match(h.querySelector('.module-heading-bottom p').textContent,/3 web-friendly BIG LWA apps and 4 advanced open-source R-editors/);
 assert.match(h.querySelector('.lwazi-series-badge img').src,/r-editor\.svg/);
 ws.dataset.moduleKey='projects';
 ws.querySelector('#moduleWorkspaceBody').innerHTML='<section id="lwaProjects"><header class="module-heading lwa-project-heading"><div class="module-heading-copy"><h1>visualz</h1></div><div class="module-heading-bottom"><p>Projects</p></div></header><nav class="visualz-tabs"><button data-visualz-mode="visualeyez">visualeyez</button><button data-visualz-mode="visualslidez">visualslidez</button></nav></section>';
