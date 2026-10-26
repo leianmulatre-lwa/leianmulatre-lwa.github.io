@@ -161,3 +161,70 @@
 #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-brand-logo{
   display:block!important;max-height:142px!important;aspect-ratio:auto!important;
 }
+
+
+/* 2026-10-26 correction: overlay applies to CONTENT only, not the top
+   breadcrumbs, H1, publication key, description, or separating rule. */
+#studioApp .module-shell.lwa-curtain-loading,
+#studioApp .module-shell.lwa-curtain-loading.lwa-curtain-veve-pending{
+ background:transparent!important;
+ background-image:none!important;
+ border-radius:0!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.module-top,
+#studioApp .module-shell.lwa-curtain-loading #moduleWorkspaceBody>.module-heading{
+ position:relative!important;
+ z-index:1505!important;
+ opacity:1!important;
+ visibility:visible!important;
+ background:transparent!important;
+ color:inherit!important;
+}
+#studioApp .module-shell.lwa-curtain-loading::after,
+#studioApp .module-shell.lwa-curtain-loading.lwa-curtain-veve-pending::after{
+ left:0!important;right:0!important;
+ top:calc(var(--lwa-loading-top,0px) + var(--lwa-loading-hero-height))!important;
+ bottom:0!important;height:auto!important;
+ z-index:1499!important;
+ background:#200b11!important;
+ background-image:linear-gradient(180deg,#250b13 0%,#19070c 95%)!important;
+ border-radius:0 0 18px 18px!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"]{
+ top:var(--lwa-loading-top,0px)!important;
+ bottom:auto!important;
+ height:var(--lwa-loading-hero-height)!important;
+ min-height:0!important;max-height:unset!important;
+ padding:14px 18px 18px!important;
+ gap:12px!important;
+ background-color:#21070e!important;
+ background-image:linear-gradient(rgba(14,3,9,.36),rgba(25,4,11,.53)),url('/assets/login-curtain-film-grain-v2.webp')!important;
+ background-repeat:no-repeat!important;
+ background-size:cover!important;
+ background-position:center center!important;
+ border-radius:17px 17px 0 0!important;
+ overflow:hidden!important;
+ box-shadow:none!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-brand{
+ width:auto!important;max-width:90%!important;
+ min-height:0!important;height:auto!important;
+ padding:0!important;margin:0!important;
+ background:none!important;background-color:transparent!important;background-image:none!important;
+ border:0!important;box-shadow:none!important;
+ filter:drop-shadow(0 2px 4px #18081060)!important;
+ font:400 clamp(45px,5.6vw,76px)/1 "CS Bergamot Stitched",Georgia,serif!important;
+ color:#f9e6cc!important;letter-spacing:-.045em!important;
+}
+#studioApp .module-shell.lwa-curtain-loading .lwa-curtain-brand-b{color:#fff5e7!important}
+#studioApp .module-shell.lwa-curtain-loading .lwa-curtain-brand-w{color:#efcdac!important}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-label{
+ font-size:clamp(23px,3.2vw,36px)!important;
+ margin:0!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-progress{
+ margin:0!important
+}
+@media(max-height:570px){
+ #studioApp .module-shell.lwa-curtain-loading{--lwa-loading-hero-height:clamp(225px,48vh,310px)}
+}
