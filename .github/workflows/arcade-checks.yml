@@ -6,6 +6,10 @@ on:
       - 'module-pages.js'
       - 'games-arcade-test.mjs'
       - 'index.html'
+      - 'studio-cabinets-carousel-regression-test.mjs'
+      - 'studio-cabinet-thumbnails-20261026.css'
+      - 'studio-lwazi-thumbnail-20261026.js'
+      - '.github/workflows/arcade-checks.yml'
   push:
     branches:
       - 'arcade-safe-game-launcher-20261013'
@@ -14,6 +18,10 @@ on:
       - 'module-pages.js'
       - 'games-arcade-test.mjs'
       - 'index.html'
+      - 'studio-cabinets-carousel-regression-test.mjs'
+      - 'studio-cabinet-thumbnails-20261026.css'
+      - 'studio-lwazi-thumbnail-20261026.js'
+      - '.github/workflows/arcade-checks.yml'
   workflow_dispatch:
 
 permissions:
@@ -29,3 +37,7 @@ jobs:
         run: node --check module-pages.js
       - name: Run Arcade regression checks
         run: node games-arcade-test.mjs
+      - name: Verify both interactive Studio carousels and cabinet PNGs
+        run: |
+          node --check studio-lwazi-thumbnail-20261026.js
+          node studio-cabinets-carousel-regression-test.mjs
