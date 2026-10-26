@@ -186,7 +186,7 @@
    if(!item){status('Use a direct HTTPS image or video link.');return}
    if(data.added.length>=12){status('Maximum 12 additional items per highlight.');return}
    data.added.push(item);url.value='';updateAdded();
-  };const upload=make('label','highlight-upload-label','Upload photo');
+  };const mediaUploadLabel=make('label','highlight-upload-label','Upload photo');
   const photoFile=make('input');photoFile.type='file';photoFile.accept='image/jpeg,image/png,image/webp,image/gif';
   photoFile.setAttribute('aria-label','Upload new highlight photo to BIG LWA');
   photoFile.addEventListener('change',async()=>{
@@ -198,8 +198,8 @@
     data.added.push({kind:'image',mediaUrl:photoUrl});
     updateAdded();status('Photo uploaded. Save Highlights to publish it.');
    }catch(e){status(e.message||'Photo upload failed.')}finally{photoFile.value=''}
-  });upload.append(photoFile);
-  mediaForm.append(url,type,add,upload);
+  });mediaUploadLabel.append(photoFile);
+  mediaForm.append(url,type,add,mediaUploadLabel);
   rows.append(added,mediaForm);fields.append(rows);
   const controls=make('div','highlight-row-actions');
   const hidden=make('label','','Hide from banner');const checked=make('input');checked.type='checkbox';checked.checked=data.hidden;checked.onchange=()=>{data.hidden=checked.checked;wrap.setAttribute('aria-disabled',String(data.hidden))};hidden.prepend(checked);controls.append(hidden);
