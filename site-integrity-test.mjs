@@ -53,9 +53,9 @@ assert.match(modules, /--feed-heading-offset:calc/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] :is\(\.module-top,\.module-heading\)/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-heading h1\{\s*transform:none/);
 assert.match(projectCanvas, /module-heading lwa-project-heading/);
-assert.match(projectCanvas, /<h1>visualz<\/h1>/);
+assert.match(projectCanvas, /<h1>visualizr<\/h1>/);
 assert.match(projectCanvas, /visualslidez\.js\?v=/);
-assert.match(modules, /visualz:'visualz'/);
+assert.match(modules, /visualz:'visualizr'/);
 assert.match(projectCanvas, /\.lwa-project-toolbar\{display:flex/);
 assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not legacy purple.
 assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
