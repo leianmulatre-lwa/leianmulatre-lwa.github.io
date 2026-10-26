@@ -134,6 +134,7 @@
  };
  function style(){
   if($('#biglwaTourStyles'))return;
+  if(!document.getElementById('biglwaDialogSystemCss')){const shared=document.createElement('link');shared.id='biglwaDialogSystemCss';shared.rel='stylesheet';shared.href='/assets/biglwa-dialog.css?v=20261025-shared-popups-1';document.head.append(shared)}
   const css=document.createElement('style');css.id='biglwaTourStyles';
   css.textContent=`
    #studioApp .manifesto-card.is-tutorial-dismissed{display:none!important}
@@ -390,8 +391,8 @@
  }
  function ensureDialog(){
   if(dialog)return dialog;
-  dialog=document.createElement('dialog');dialog.id='biglwaTutorialDialog';dialog.setAttribute('aria-labelledby','biglwaTourTitle');
-  dialog.innerHTML='<div class="tutorial-head"><span id="biglwaTourPosition" class="tour-step"></span>'+
+  dialog=document.createElement('dialog');dialog.id='biglwaTutorialDialog';dialog.className='biglwa-dialog';dialog.setAttribute('aria-labelledby','biglwaTourTitle');
+  dialog.innerHTML='<div class="tutorial-head"><span class="biglwa-dialog-lights" aria-hidden="true"><i></i><i></i><i></i></span><span id="biglwaTourPosition" class="tour-step"></span>'+
    '<button type="button" data-tour-close aria-label="Close tutorial">×</button></div>'+
    '<h2 id="biglwaTourTitle"></h2><p id="biglwaTourBody"></p>'+
    '<ul id="biglwaTourSymbolLegend" class="tour-symbol-key" aria-label="Big LWA symbols and their destinations" hidden></ul>'+
