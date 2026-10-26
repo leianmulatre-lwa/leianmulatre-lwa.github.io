@@ -299,7 +299,7 @@ export function mountToolsStudio(root,helper){
 
   // Independently load creative editors; file conversions and video trim still
   // work even when the external ArtCraft release build is unavailable.
-  import('./tools-craft.js?v=20261026-original-blocks-lwazi-2')
+  import('./tools-craft.js?v=20261026-original-blocks-boo-3')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
     .then(api=>{craftApi=api})
     .catch(error=>{
