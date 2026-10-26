@@ -3,7 +3,7 @@
  * that member's studio. Browsing stays open, profile music keeps playing, and
  * anything that would change or personalise the space asks for an account first.
  */
-import { showPreviewIdentity, clearPreviewIdentity } from "./account-chrome.js?v=20261024-firstname-avatar-1";
+import { showPreviewIdentity, clearPreviewIdentity } from "./account-chrome.js?v=20261026-journal-cover-init-1";
 import { identity } from "./account-identity.js";
 const PREVIEW_RESERVED = new Set([
   "studio","login","privacy","terms","rights","photo-booth","map-app",
