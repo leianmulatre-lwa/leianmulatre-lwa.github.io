@@ -4,7 +4,7 @@
  * visitor rendering a studio preview can show the picture without reading private data.
  */
 import { identity, patchIdentity } from "./account-identity.js";
-import { renderAvatar } from "./account-chrome.js?v=20261024-firstname-avatar-1";
+import { renderAvatar } from "./account-chrome.js?v=20261026-journal-cover-init-1";
 
 const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
