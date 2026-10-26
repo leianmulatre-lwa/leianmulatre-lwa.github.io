@@ -98,6 +98,7 @@ jobs:
           node --check module-pages.js
           node orbit-veve-layout-test.mjs
           node archive-orbit-density-shadow-test.mjs
+          node archive-paper-surface-regression-test.mjs
           node shared-shadow-header-regression-test.mjs
           node source-shadow-single-depth-test.mjs
           node privacy-settings-orbit-test.mjs
