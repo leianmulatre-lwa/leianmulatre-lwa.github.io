@@ -42,6 +42,8 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node login-laptop-floating-preview-test.mjs
       - name: Verify original toolbar startup, docking, shortcut dragging and recovery
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
+      - name: Verify owned TikTok import assets and isolation
+        run: node tiktok-owned-import-test.mjs
       - name: Verify imported highlight playback and account isolation
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node imported-profile-highlights-test.mjs
       - name: Verify trophy achievement map interactions
