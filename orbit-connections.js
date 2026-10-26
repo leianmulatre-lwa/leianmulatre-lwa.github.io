@@ -323,6 +323,7 @@ const PUBLIC_HOSTS = {
   instagram: ["instagram.com", "www.instagram.com"],
   tiktok: ["tiktok.com", "www.tiktok.com"],
   pinterest: ["pinterest.com", "www.pinterest.com"],
+  youtube: ["youtube.com", "www.youtube.com", "m.youtube.com"],
   x: ["x.com", "www.x.com", "twitter.com", "www.twitter.com"],
   snapchat: ["snapchat.com", "www.snapchat.com"],
   tumblr: ["tumblr.com", "www.tumblr.com"]
@@ -333,15 +334,14 @@ function publicLink(id, record) {
   if (!raw) return null;
   let url;
   try { url = new URL(raw); } catch { return null; }
-  if (url.protocol !== "https:") return null;
+  if (url.protocol !== "https:" || url.username || url.password) return null;
   const host = url.hostname.toLowerCase();
   const allowed=(PUBLIC_HOSTS[id]||[]).includes(host)
     || ((id==='tumblr' && host.endsWith('.tumblr.com')) || (id==='snapchat' && host.endsWith('.snapchat.com')));
   // A Tumblr subdomain's root is itself a valid public blog; other
   // provider roots are not account profiles.
   const tumblrBlogRoot=id==='tumblr'&&host.endsWith('.tumblr.com')&&host!=='www.tumblr.com';
-  if(!allowed || (['snapchat','x','tumblr'].includes(id) &&
-    (!url.pathname || url.pathname==='/') && !tumblrBlogRoot))return null;
+  if(!allowed || ((!url.pathname || url.pathname==='/') && !tumblrBlogRoot))return null;
   return {
     id,
     label: clean(record.label) || id,
