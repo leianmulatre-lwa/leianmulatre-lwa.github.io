@@ -4,7 +4,7 @@ const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const entry=read('index.html'), modules=read('module-pages.js'), css=read('orbit-cards-unified-20261016.css');
 const original=read('bootstrap-v2.html');
 const expected={
-  'module-pages.js':'20261026-lwazi-visualizr-title-row-1',
+  'module-pages.js':'20261026-boo-lwazi-layout-3',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
   'pinterest-orbit.js':'20261025-pin-origin-1',
   'orbit-preview-eight-20261016.js':'20261016-featured-refill-4',
