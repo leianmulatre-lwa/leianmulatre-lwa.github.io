@@ -12,7 +12,8 @@ assert.match(entry,/guest-check-v2\.css\?v=/,'Live shell must include notebook p
 assert.match(client,/if\(!user\?\.uid\)throw Error\('Sign in to leave a Guest Check/,'Signed-out visitors cannot submit');
 assert.match(client,/form.hidden=!signedIn/,'Visitor composer hidden without a member account');
 assert.match(client,/guestCheckPermission/,'Owner preference persisted');
-assert.match(client,/archiveFriends/,'Connects-only UI describes existing approved-member list');
+assert.match(client,/approved Archive friends list/,'Connects-only UI describes the existing approved-member list');
+assert.match(rules,/archiveFriends/,'Server checks approved connects from owner record');
 assert.match(client,/f\.where\('visibility','==','public'\)/,'Preview only queries published entries');
 assert.match(rules,/match \/guestCheckEntries\/\{ownerUid\}\/entries\/\{entryId\}/,'Dedicated public Guest Check records');
 assert.match(rules,/request\.resource\.data\.authorUid == request\.auth\.uid/,'Writer UID validated by Firebase');
