@@ -1,11 +1,11 @@
 /* BIG LWA | Studio shortcuts and owner highlight editing.
-   Keep the dock itself full-width; bring its actions closer together. */
-@media(min-width:1500px){
- #studioApp .hero .mobile-dock.hero-action-bar{
-  grid-template-columns:repeat(var(--studio-action-count,9),minmax(0,150px))!important;
-  justify-content:center!important;
-  column-gap:clamp(5px,.8vw,14px)!important;
- }
+   Reduce the vertical air BETWEEN the hero widgets and the shortcut shelf
+   by roughly 8px; preserve the shelf's full-width alignment and drag ordering. */
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair){
+ row-gap:8px!important;
+}
+#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.mobile-dock.hero-action-bar{
+ margin-top:0!important;
 }
 #studioApp #profileEditorTabs [data-profile-editor-tab="highlights"]{white-space:nowrap}
 #studioApp .highlight-edit-pane{display:grid;gap:12px;min-width:0;color:inherit}
