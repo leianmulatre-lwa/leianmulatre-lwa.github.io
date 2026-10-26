@@ -223,6 +223,7 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
   }
 
   function addFooterLinks() {
+    if(!document.body||!document.documentElement)return;
     // Remove stale dynamically inserted links from the public login footer,
     // including ones placed by an older cached version of this script.
     document.querySelectorAll('.login-public-footer nav a[href="/settings"]').forEach(link=>link.remove());
