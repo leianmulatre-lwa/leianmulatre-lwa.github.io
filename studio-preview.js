@@ -124,7 +124,8 @@ function applyIdentity(data){
   const moodCard=$("#weeklyMoodCard",card);
   if(moodCard && data.mood!=null){
     const value=$(".weekly-mood-value",moodCard);
-    if(value) value.textContent=clean(data.mood)||"add this week's #mood";
+    if(value) value.textContent=clean(data.mood)||"#keepitcute";
+    moodCard.dataset.moodPreview=clean(data.mood)?"0":"1";
     if(clean(data.moodStyle)) moodCard.dataset.moodStyle=clean(data.moodStyle);
   }
   if(data.auraText!=null) renderAuraCopy(data.auraText);
