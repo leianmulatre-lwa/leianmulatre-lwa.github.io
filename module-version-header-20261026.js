@@ -5,8 +5,8 @@
  window.__biglwaHeadingVersions20261026=true;
  const $=(s,r=document)=>r?.querySelector(s);
  const config={
-  camera:{title:'bookini',selector:'.booth-tabs',icon:'bookini'},
-  notes:{title:'sqwibz',selector:'.diary-section-nav'},
+  camera:{title:'boo',selector:'.booth-tabs',icon:'bookini'},
+  notes:{title:'sqwibz',selector:'.diary-section-nav',series:'werkRZ'},
   projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
   tools:{title:'lwazi',icon:'r-editor'}
@@ -91,10 +91,15 @@
   }
   if(item.journal)journalVersions(ws,right);
   if(item.icon)addMark(right,item.icon);
+  if(item.series){
+   let mark=$('.werk-rz-mark',right);
+   if(!mark){mark=document.createElement('span');mark.className='werk-rz-mark';right.append(mark)}
+   mark.textContent='sqwibblR / '+item.series;
+  }
   heading.classList.add('module-heading--with-versions','module-heading--single-line');
   const sub=$(':scope > .module-heading-bottom > p',heading);
   if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks of the R/Lwazi series: our own apps, designed fo/r you. 3 web-friendly originals and 4 advanced open-source R-editors.';
-  if(key==='camera'&&sub)sub.textContent='Your own booth to capture or chat with other bookini’s on Big LWA.';
+  if(key==='camera'&&sub)sub.textContent='Your own boo to capture photos or chat with other bookinis on Big LWA.';
  }
  let queued=false;
  function schedule(){
