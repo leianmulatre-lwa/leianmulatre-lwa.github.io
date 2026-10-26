@@ -55,7 +55,22 @@
    });
   }
  }
+ function renameNavigation(){
+  const routes=[
+    ['tools','lwazi'],['projects','visualizr']
+  ];
+  for(const [route,name]of routes){
+    for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
+      const label=link.querySelector('.hero-shortcut-label,.sidebar-route-label,.nav-label');
+      if(label&&label.textContent.trim()!==name)label.textContent=name;
+      if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects'}[route]))link.setAttribute('aria-label',name);
+    }
+    const widget=document.querySelector('#studioApp #'+(route==='projects'?'projects':'tools')+' .card-head h2');
+    if(widget&&widget.textContent.trim()!==name)widget.textContent=name;
+  }
+ }
  function install(){
+  renameNavigation();
   const ws=workspace();if(!ws?.isConnected)return;
   const key=ws.dataset.moduleKey;
   const item=config[key];if(!item)return;
