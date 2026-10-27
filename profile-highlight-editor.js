@@ -330,19 +330,48 @@
   pane.id='profilePictureEditor';pane.dataset.profileEditorPane='picture';pane.setAttribute('role','tabpanel');pane.hidden=true;
   const photo=make('section','highlight-profile-photo');
   photo.append(make('strong','','Main profile picture'));
-  photo.append(make('p','','Upload or replace your main profile picture. Your photo is saved directly to your BIG LWA account.'));
+  photo.append(make('p','','Upload or replace your main profile picture. Your photo and its alignment are saved directly to your BIG LWA account.'));
+  const photoPreview=make('div','highlight-profile-photo-preview');photoPreview.setAttribute('role','img');photoPreview.setAttribute('aria-label','Current profile picture alignment');
+  photo.append(photoPreview);
+  const showPhotoPreview=(url,position={x:50,y:50})=>{
+    photoPreview.style.backgroundImage=url?'url('+JSON.stringify(url)+')':'none';
+    photoPreview.style.backgroundPosition=(position.x??50)+'% '+(position.y??50)+'%';
+    photoPreview.classList.toggle('has-photo',Boolean(url));
+  };
+  (async()=>{try{
+    const api=await import('/account-photo.js');
+    const details=await api.getProfilePhotoDetails();
+    if(photoPreview.isConnected&&owner()&&!isPreview())showPhotoPreview(details.url,details.position);
+  }catch{}})();
   const pic=make('input');pic.type='file';pic.accept='image/jpeg,image/png,image/webp,image/gif';pic.setAttribute('aria-label','Choose new profile picture');
   pic.onchange=async()=>{
    if(!pic.files?.[0])return;
    pictureStatus('Uploading profile picture…');
-   try{const api=await import('/account-photo.js');await api.uploadProfilePhoto(pic.files[0]);pictureStatus('Profile picture saved to your account.')}
+   try{const api=await import('/account-photo.js');const result=await api.uploadProfilePhoto(pic.files[0]);showPhotoPreview(result.url,{x:50,y:50});pictureStatus('Profile picture saved to your account. Use Adjust to position it.') }
    catch(e){pictureStatus(e.message||'Could not upload picture.')}finally{pic.value=''}
   };
   const clear=make('button','','Remove profile picture');clear.type='button';clear.onclick=async()=>{
-   try{const api=await import('/account-photo.js');await api.removeProfilePhoto();pictureStatus('Profile picture removed.')}
+   try{const api=await import('/account-photo.js');await api.removeProfilePhoto();showPhotoPreview('',{x:50,y:50});pictureStatus('Profile picture removed.') }
    catch(e){pictureStatus(e.message)}
   };
-  photo.append(pic,clear);pane.append(photo);
+  const adjust=make('button','highlight-profile-adjust','Adjust');adjust.type='button';adjust.id='adjustProfilePicture';
+  adjust.addEventListener('click',async()=>{
+    try{
+      const api=await import('/account-photo.js');
+      const current=await api.getProfilePhotoDetails();
+      if(!current.url){pictureStatus('Choose a profile picture before adjusting it.');return}
+      const editor=window.BIGLWAMediaAdjust;
+      if(!editor){pictureStatus('Alignment editor unavailable. Reload Studio to try again.');return}
+      editor.open({type:'photo',url:current.url,position:(current.position.x??50)+'% '+(current.position.y??50)+'%',fit:'cover',
+        onSave:async changes=>{
+          await api.saveProfilePhotoPosition(changes);
+          showPhotoPreview(current.url,changes);
+          pictureStatus('Profile picture alignment saved to your account.');
+        }});
+    }catch(e){pictureStatus(e.message||'Could not open profile picture adjustment.')}
+  });
+  const actions=make('div','highlight-profile-photo-actions');actions.append(pic,adjust,clear);
+  photo.append(actions);pane.append(photo);
   const archiveLink=make('div','profile-highlight-archive-link');
   archiveLink.append(make('p','','Highlights are managed in Archive.'));
   const open=make('button','module-action ghost','Go to Archive');
