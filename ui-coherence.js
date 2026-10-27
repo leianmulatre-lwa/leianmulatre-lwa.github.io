@@ -1820,16 +1820,41 @@
     const card=$('#studioApp #camera');
     if(card){
       const header=$('.card-head h2,.card-head h3',card);
-      if(header)header.textContent='booth';
-      card.dataset.widgetLabel='Booth';
+      if(header)header.textContent='boothi';
+      card.dataset.widgetLabel='Boothi';
+      const sub=$('.sub',card);
+      if(sub)sub.textContent='Use our booth to feel yourself or chat with other bookiniz using Big LWA.';
       if(!String(card.dataset.search||'').includes('video booth'))card.dataset.search=(card.dataset.search||'')+' booth photo booth video booth';
     }
     // Rename only the visible caption, never routing/storage keys or icon markup.
     $$('#studioApp [data-sidebar-route="camera"] .sidebar-route-label,#studioApp [data-open="camera"] .shortcut-label').forEach(label=>{
-      if(/^(photo\s*booth|photobooth)$/i.test(label.textContent?.trim()||''))label.textContent='booth';
+      if(/^(photo\s*booth|photobooth|booth|bookini)$/i.test(label.textContent?.trim()||''))label.textContent='boothi';
     });
   }
 
+  function syncSmallWidgetLabels(){
+    const connect=$('#studioApp #connect');
+    if(connect){
+      connect.querySelectorAll('button,a').forEach(control=>{
+        const text=control.textContent?.trim()||'';
+        if(/^invite friends(?:\\s*[→↗])?$/i.test(text)&&!control.querySelector('svg,img')){
+          control.textContent='invite boo·kiniz';
+          control.setAttribute('aria-label','Invite boo·kiniz');
+        }else{
+          for(const leaf of control.querySelectorAll('span,small,b,strong')){
+            if(!leaf.children.length&&/^invite friends(?:\\s*[→↗])?$/i.test(leaf.textContent.trim()))leaf.textContent='invite boo·kiniz';
+          }
+        }
+      });
+    }
+    const tools=$('#studioApp #tools');
+    if(tools){
+      const sub=$('.sub',tools);
+      if(sub)sub.textContent="every tool you'll ever need is here. we promise.";
+      const cta=$('.card-cta',tools);
+      if(cta){cta.textContent='open tools';cta.dataset.open='tools';cta.setAttribute('aria-label','Open tools')}
+    }
+  }
   function watchRoomStreamFooter(){
     const app=$('#studioApp');if(!app||app.dataset.roomStreamFooterWatcher==='1')return;
     app.dataset.roomStreamFooterWatcher='1';
@@ -1958,7 +1983,7 @@
     // Restore the essential dock before optional widgets / editors can fail.
     try{ensureStyles();synchronizeWidgetDockAnchor();ensureSidebar()}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
     ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncVeveLauncher();
-    for(const update of [syncQwikyNoteWidget,syncBoothWidget]){try{update()}catch(error){console.warn('[BIGLWA] Widget caption update',error)}}
+    for(const update of [syncQwikyNoteWidget,syncBoothWidget,syncSmallWidgetLabels]){try{update()}catch(error){console.warn('[BIGLWA] Widget caption update',error)}}
     // Sidebar has its own recovery boundary, so an unrelated editor or
     // account-layout exception cannot leave its primary navigation empty.
     try{ensureSidebar()}catch(error){console.warn('[BIGLWA] Widget dock setup retry',error)}
