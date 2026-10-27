@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261026-archive-flat-gallery-7';
+        script.src = '/module-pages.js?v=20261026-boothi-studio-text-1';
         document.head.appendChild(script);
       }, 250);
     }
