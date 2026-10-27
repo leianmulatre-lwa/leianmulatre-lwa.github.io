@@ -339,7 +339,7 @@
     photoPreview.classList.toggle('has-photo',Boolean(url));
   };
   (async()=>{try{
-    const api=await import('/account-photo.js');
+    const api=await import('/account-photo.js?v=20261027-adjust-position-1');
     const details=await api.getProfilePhotoDetails();
     if(photoPreview.isConnected&&owner()&&!isPreview())showPhotoPreview(details.url,details.position);
   }catch{}})();
@@ -347,17 +347,17 @@
   pic.onchange=async()=>{
    if(!pic.files?.[0])return;
    pictureStatus('Uploading profile picture…');
-   try{const api=await import('/account-photo.js');const result=await api.uploadProfilePhoto(pic.files[0]);showPhotoPreview(result.url,{x:50,y:50});pictureStatus('Profile picture saved to your account. Use Adjust to position it.') }
+   try{const api=await import('/account-photo.js?v=20261027-adjust-position-1');const result=await api.uploadProfilePhoto(pic.files[0]);showPhotoPreview(result.url,{x:50,y:50});pictureStatus('Profile picture saved to your account. Use Adjust to position it.') }
    catch(e){pictureStatus(e.message||'Could not upload picture.')}finally{pic.value=''}
   };
   const clear=make('button','','Remove profile picture');clear.type='button';clear.onclick=async()=>{
-   try{const api=await import('/account-photo.js');await api.removeProfilePhoto();showPhotoPreview('',{x:50,y:50});pictureStatus('Profile picture removed.') }
+   try{const api=await import('/account-photo.js?v=20261027-adjust-position-1');await api.removeProfilePhoto();showPhotoPreview('',{x:50,y:50});pictureStatus('Profile picture removed.') }
    catch(e){pictureStatus(e.message)}
   };
   const adjust=make('button','highlight-profile-adjust','Adjust');adjust.type='button';adjust.id='adjustProfilePicture';
   adjust.addEventListener('click',async()=>{
     try{
-      const api=await import('/account-photo.js');
+      const api=await import('/account-photo.js?v=20261027-adjust-position-1');
       const current=await api.getProfilePhotoDetails();
       if(!current.url){pictureStatus('Choose a profile picture before adjusting it.');return}
       const editor=window.BIGLWAMediaAdjust;
