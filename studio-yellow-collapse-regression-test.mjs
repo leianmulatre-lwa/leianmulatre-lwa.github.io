@@ -64,5 +64,42 @@ assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[da
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261026-1'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
+
+/* Verify the two NEW cabinet widgets specifically. Their live content is
+   preserved in place while yellow hides the large decorative machine. */
+const masonry=doc.querySelector('.masonry');
+for(const [id,title,bodyClass] of [
+  ['games','games','games-library'],
+  ['tools','lwazi','lwazi-cabinet-thumb']
+]){
+  const widget=doc.createElement('article');
+  widget.className='card';widget.id=id;widget.dataset.widgetId=id;widget.dataset.widgetLabel=title;
+  widget.innerHTML='<div class="widget-window-controls"><button class="window-light green" data-open="'+id+'">Green</button><button class="window-light yellow" data-minimize-widget="'+id+'">Yellow</button><button class="window-light red" data-dock-widget="'+id+'">Red</button></div>'+
+    '<button class="widget-drag-handle" data-studio-drag-handle>Drag</button>'+
+    '<div class="biglwa-card-heading-row"><span class="card-icon">♟</span><h2>'+title+'</h2></div>'+
+    '<div class="'+bodyClass+'"><div class="arcade-library-viewport"><div class="arcade-track"><button class="arcade-game-tile">Game or app</button></div></div></div>';
+  masonry.appendChild(widget);
+  const yellowDot=widget.querySelector('.window-light.yellow'),carousel=widget.querySelector('.arcade-library-viewport');
+  yellowDot.click();
+  assert(widget.classList.contains('studio-header-only'),id+' yellow collapses within its card');
+  assert(!widget.classList.contains('widget-is-minimized'),id+' yellow must not dock');
+  assert.equal(widget.parentElement,masonry,id+' keeps its position');
+  assert.equal(widget.querySelector('.widget-drag-handle').tagName,'BUTTON',id+' drag handle stays');
+  assert.equal(widget.querySelectorAll('.window-light').length,3,id+' window dots stay');
+  assert.equal(widget.querySelector('h2').textContent,title,id+' name stays');
+  assert.strictEqual(widget.querySelector('.arcade-library-viewport'),carousel,id+' carousel is never destroyed');
+  yellowDot.click();
+  assert(!widget.classList.contains('studio-header-only'),id+' yellow restores');
+  assert.strictEqual(widget.querySelector('.arcade-library-viewport'),carousel,id+' carousel restored without remount');
+}
+const cabinets=read('studio-cabinet-thumbnails-20261026.css');
+assert(cabinets.includes('#studioApp #games.studio-header-only .games-library'),'Games CSS hides full machine during yellow collapse');
+assert(cabinets.includes('#studioApp #tools.studio-header-only .lwazi-cabinet-thumb'),'Lwazi CSS hides keyboard during yellow collapse');
+assert(cabinets.includes('studio-games-cabinet-open-20261026.png'),'Games uses real transparent HD cabinet');
+assert(cabinets.includes('studio-lwazi-cabinet-open-20261026.png'),'Lwazi uses real transparent HD cabinet');
+const lwaziSource=read('studio-lwazi-thumbnail-20261026.js');
+assert(lwaziSource.includes('data.lwaziCarouselVersion')||lwaziSource.includes('dataset.lwaziCarouselVersion'),'Lwazi independent carousel version');
+assert(lwaziSource.includes('aria-hidden'),'Repeated carousel tiles do not double-count for screenreaders');
+assert(lwaziSource.includes("window.openBIGLWAModule"),'Workshop keeps its existing app router');
 dom.window.close();
 console.log('PASS: yellow header-only toggle and account save; green/red/drag/image unaffected');
