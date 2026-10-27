@@ -41,8 +41,13 @@ function card(item){
  if(item.type==='image')content='<img src="'+esc(item.url||'')+'" alt="'+esc(item.text||'Project reference')+'" loading="lazy"><textarea placeholder="Image caption" data-field="text">'+esc(item.text)+'</textarea>';
  else if(item.type==='link')content='<input aria-label="Link URL" data-field="url" placeholder="https://…" value="'+esc(item.url)+'"><textarea data-field="text" placeholder="Reference name">'+esc(item.text)+'</textarea><a href="'+esc(/^https?:\/\//i.test(item.url||'')?item.url:'#')+'" target="_blank" rel="noopener noreferrer">Open reference ↗</a>';
  else if(item.type==='tasks')content='<textarea data-field="text" placeholder="One task per line; prefix completed tasks with [x]">'+esc(item.text)+'</textarea><small>Use [x] for finished tasks</small>';
+ else if(item.type==='note'){
+  const kind=String(item.textKind||'Normal');
+  const kinds=['Normal','Title','Scene heading','Action','Character','Dialogue','Parenthetical','Transition','Shot'];
+  content='<label class="lwa-note-text-kind">Text format <select data-field="textKind" aria-label="Note text formatting">'+kinds.map(v=>'<option'+(kind===v?' selected':'')+'>'+v+'</option>').join('')+'</select></label><textarea data-field="text" placeholder="Write an idea…">'+esc(item.text)+'</textarea>';
+ }
  else content='<textarea data-field="text" placeholder="Write an idea…">'+esc(item.text)+'</textarea>';
- return '<article class="lwa-project-item '+esc(item.type)+'" data-card="'+esc(item.id)+'" style="left:'+Number(item.x||0)+'px;top:'+Number(item.y||0)+'px"><header data-drag><span>⠿ '+esc(item.type)+'</span><button data-delete="'+esc(item.id)+'" aria-label="Delete card" title="Delete card">×</button></header>'+content+'</article>';
+ return '<article class="lwa-project-item '+esc(item.type)+(item.type==='note'?' lwa-note-'+esc(String(item.textKind||'Normal').toLowerCase().replace(/[^a-z]+/g,'-')):'')+'" data-card="'+esc(item.id)+'" style="left:'+Number(item.x||0)+'px;top:'+Number(item.y||0)+'px"><header data-drag><span>⠿ '+esc(item.type)+'</span><button data-delete="'+esc(item.id)+'" aria-label="Delete card" title="Delete card">×</button></header>'+content+'</article>';
 }
 function render(){
  const root=$('#lwaProjects');if(!root)return;
@@ -196,7 +201,13 @@ document.addEventListener('change',e=>{
  if(canvasMode!=='visualeyez')return;
  if(e.target.id==='lwaProjectChoice'){current=e.target.value;render();return}
  const itemEl=e.target.closest('#lwaProjects [data-card]');if(!itemEl||!board())return;
- const item=board().items.find(i=>i.id===itemEl.dataset.card);if(item&&e.target.dataset.field){item[e.target.dataset.field]=e.target.value;save()}
+ const item=board().items.find(i=>i.id===itemEl.dataset.card);if(item&&e.target.dataset.field){
+  item[e.target.dataset.field]=e.target.value;save();
+  if(e.target.dataset.field==='textKind'){
+    [...itemEl.classList].filter(k=>k.startsWith('lwa-note-')).forEach(k=>itemEl.classList.remove(k));
+    itemEl.classList.add('lwa-note-'+String(item.textKind||'Normal').toLowerCase().replace(/[^a-z]+/g,'-'));
+  }
+}
 });
 document.addEventListener('input',e=>{
  const itemEl=e.target.closest('#lwaProjects [data-card]');if(!itemEl||!board()||!e.target.dataset.field)return;
@@ -313,5 +324,12 @@ const css=document.createElement('style');css.textContent=`
 .lwa-project-orbit-gallery img{width:100%;height:100%;object-fit:cover}
 .lwa-project-picker-status{font:600 11px/1.5 system-ui;color:#79675c}
 
-`;document.head.append(css);
+`;css.textContent+=`
+ #lwaProjects .lwa-project-item.note .lwa-note-text-kind{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 7px;font:600 10px/1.3 system-ui;color:#684a54}
+ #lwaProjects .lwa-project-item.note .lwa-note-text-kind select{max-width:140px;min-width:90px;border:1px solid #cbb7ad;border-radius:5px;background:#fff8f0;font:600 10px system-ui;color:#372a35}
+ #lwaProjects .lwa-project-item.lwa-note-scene-heading textarea,#lwaProjects .lwa-project-item.lwa-note-transition textarea,#lwaProjects .lwa-project-item.lwa-note-character textarea{text-transform:uppercase;font-family:ui-monospace,monospace;letter-spacing:.02em}
+ #lwaProjects .lwa-project-item.lwa-note-dialogue textarea,#lwaProjects .lwa-project-item.lwa-note-parenthetical textarea{font-family:ui-monospace,monospace;text-align:center;padding-left:14%;padding-right:14%}
+ #lwaProjects .lwa-project-item.lwa-note-action textarea,#lwaProjects .lwa-project-item.lwa-note-shot textarea{font-family:ui-monospace,monospace}
+`;
+document.head.append(css);
 })();
