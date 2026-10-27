@@ -3883,7 +3883,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         toolsCard.className='card studio-tools-card';
         toolsCard.dataset.search='tools pdf compression youtube mp3 mp4 download converter file image audio video convert';
         toolsCard.dataset.widgetRoute='tools';
-        toolsCard.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">🛠</span><h2>lwazi</h2></div><button class="arrow-btn" type="button" data-open="tools" aria-label="Open lwazi">→</button></div><p class="sub">Drop any file and it is sorted out automatically — convert video or audio, compress a PDF or image, or send it to a converter online.</p><button class="card-cta" type="button" data-open="tools">Open lwazi →</button>';
+        toolsCard.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">🛠</span><h2>lwazi</h2></div><button class="arrow-btn" type="button" data-open="tools" aria-label="Open lwazi">→</button></div><p class="sub">every tool you\'ll ever need is here. we promise.</p><button class="card-cta" type="button" data-open="tools">open tools</button>';
         const mapRef=$('#map');
         if(mapRef&&mapRef.parentElement===masonry)mapRef.insertAdjacentElement('afterend',toolsCard);else masonry.appendChild(toolsCard);
       }
