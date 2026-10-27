@@ -48,6 +48,16 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
   max-width:12px!important;max-height:12px!important;
   margin:auto!important;transform:none!important;position:static!important
 }\n#studioApp #biglwaAccountActionDots #studioNotificationsBtn{background:#f0c84e!important}\n#studioApp #biglwaAccountActionDots #studioSignOut{background:#f16b79!important}\n#studioApp #biglwaAccountActionDots img,#studioApp #biglwaAccountActionDots svg{display:block!important;width:15px!important;height:15px!important;max-width:15px!important;max-height:15px!important;object-fit:contain!important}#studioApp #biglwaAccountActionDots [data-biglwa-open-connect] img,#studioApp #biglwaAccountActionDots [data-biglwa-open-connect] svg{width:12px!important;height:12px!important;max-width:12px!important;max-height:12px!important}\n#studioApp #biglwaAccountActionDots .visitor-mail-icon,#studioApp #biglwaAccountActionDots .studio-logout-icon{width:15px!important;height:15px!important}\n#studioApp #biglwaAccountActionDots button:focus-visible{outline:2px solid #382e34!important;outline-offset:2px!important}\nhtml.biglwa-preview-mode:not(.biglwa-owner-self-preview) #biglwaAccountActionDots{display:none!important}\n@media(max-width:590px){#biglwaAccountActionDots{gap:7px!important;margin-left:8px!important;margin-right:2px!important}#studioApp #biglwaAccountActionDots>button{width:24px!important;height:24px!important;min-width:24px!important}}\n`;
+  actionStyle.textContent+=`
+  #studioApp #studioNotificationsBtn[data-wallpaper-flagged="true"]::after{content:"";position:absolute;right:-2px;top:-3px;width:8px;height:8px;background:#d64c58;border:2px solid #fffaf5;border-radius:50%;pointer-events:none}
+  #biglwaWallpaperLogPopover{position:absolute;right:0;top:37px;z-index:10030;display:grid;gap:8px;width:min(310px,calc(100vw - 32px));max-height:min(380px,58vh);overflow:auto;padding:12px;border:1px solid #a9898b;border-radius:11px;background:#fff9f3;color:#32282b;box-shadow:0 16px 40px #1c102c40;font:12px/1.4 system-ui}
+  #biglwaWallpaperLogPopover[hidden]{display:none!important}
+  #biglwaWallpaperLogPopover .wallpaper-log-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:760}
+  #biglwaWallpaperLogPopover .wallpaper-log-heading button{font:inherit;cursor:pointer;padding:2px 7px;border-radius:6px;border:1px solid #b99da6;background:#fff}
+  #biglwaWallpaperLogPopover .wallpaper-log-entry{padding:8px;border:1px solid #dfcdd0;border-radius:8px;background:#fff3ec}
+  #biglwaWallpaperLogPopover .wallpaper-log-entry strong,#biglwaWallpaperLogPopover .wallpaper-log-entry span{display:block}
+  #biglwaWallpaperLogPopover .wallpaper-log-entry span{font-size:11px;margin-top:2px}
+  `;
   document.head.append(actionStyle);
   function installActionDots(trigger){
     let wrapper=document.getElementById('biglwaAccountActionDots');
@@ -77,11 +87,53 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
       });
       wrapper.append(add);
     }
+    function walletLogs(){
+      const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'');
+      if(!uid)return [];
+      try{const records=JSON.parse(localStorage.getItem('biglwaWallpaperLogV1:'+uid)||'[]');return Array.isArray(records)?records.slice(0,12):[]}catch{return []}
+    }
+    function installWallpaperLogs(logs){
+      if(logs.dataset.wallpaperLogBound==='1')return;
+      logs.dataset.wallpaperLogBound='1';
+      let panel=wrapper.querySelector('#biglwaWallpaperLogPopover');
+      if(!panel){
+        panel=document.createElement('section');panel.id='biglwaWallpaperLogPopover';
+        panel.hidden=true;panel.setAttribute('role','region');panel.setAttribute('aria-label','Wallpaper safety alerts');
+        wrapper.appendChild(panel);
+      }
+      const update=()=>{
+        const entries=walletLogs();
+        logs.dataset.wallpaperFlagged=String(entries.length>0);
+        if(entries.length)logs.title='Logs · '+entries.length+' wallpaper safety alert'+(entries.length===1?'':'s');
+      };
+      const show=()=>{
+        const entries=walletLogs();
+        if(!entries.length)return;
+        if(!panel.hidden){panel.hidden=true;return}
+        panel.replaceChildren();
+        const top=document.createElement('div');top.className='wallpaper-log-heading';
+        const heading=document.createElement('strong');heading.textContent='Wallpaper safety · Logs';
+        const close=document.createElement('button');close.type='button';close.textContent='Close';close.addEventListener('click',()=>{panel.hidden=true});
+        top.append(heading,close);panel.append(top);
+        for(const entry of entries){
+          const item=document.createElement('div');item.className='wallpaper-log-entry';
+          const title=document.createElement('strong');title.textContent=entry.title||'Wallpaper review';
+          const detail=document.createElement('span');detail.textContent=entry.detail||'A wallpaper needs review.';
+          const when=document.createElement('span');when.textContent=Number.isFinite(entry.at)?new Date(entry.at).toLocaleString():'';
+          item.append(title,detail,when);panel.append(item);
+        }
+        panel.hidden=false;
+      };
+      logs.addEventListener('click',show);
+      document.addEventListener('biglwa:wallpaper-review-alert',update);
+      update();
+    }
     const reconcile=()=>{
       const logs=document.getElementById('studioNotificationsBtn');
       const logout=document.getElementById('studioSignOut');
       wrapper.querySelector('[data-biglwa-logs]')?.remove();
       if(logs&&logs.parentElement!==wrapper){logs.title='Logs';logs.setAttribute('aria-label','Logs');wrapper.append(logs)}
+      if(logs)installWallpaperLogs(logs);
       if(logout&&logout.parentElement!==wrapper){logout.title='Log out';logout.setAttribute('aria-label','Log out');wrapper.append(logout)}
       return !!(logs&&logout);
     };
