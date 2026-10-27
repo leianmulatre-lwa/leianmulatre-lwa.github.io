@@ -163,3 +163,13 @@ body.night-mode #studioApp #moduleWorkspace[data-module-key="archive"] .archive-
 body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-card{background:#42383a;border-color:#8b6875}
 body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-name{color:#fff0ed}
 body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-live{color:#f0a8c5}
+
+/* Draggable profile-picture alignment, without a cluttered crop form. */
+#studioApp .profile-picture-pane .highlight-profile-photo{display:grid;gap:10px}
+#studioApp .profile-picture-pane .highlight-profile-photo-preview{width:112px;height:112px;border:2px dashed #a67383;border-radius:50%;background-color:#e5d3c9;background-size:cover;background-position:center;box-shadow:0 0 0 4px #fff7f1;margin:7px auto;overflow:hidden}
+#studioApp .profile-picture-pane .highlight-profile-photo-preview:not(.has-photo)::after{content:"Choose a photo";display:grid;place-items:center;width:100%;height:100%;font:600 11px system-ui;text-align:center;color:#684653}
+#studioApp .profile-picture-pane .highlight-profile-photo-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#studioApp .profile-picture-pane .highlight-profile-photo-actions input[type=file]{flex:1 1 230px;min-width:160px}
+#studioApp .profile-picture-pane .highlight-profile-photo-actions button{flex:none;cursor:pointer;border:1px solid #b3919b;background:#fff8f0;color:#623849;border-radius:9px;padding:9px 13px;font:750 11px system-ui}
+#studioApp .profile-picture-pane .highlight-profile-photo-actions #adjustProfilePicture{border:1px dashed #98546c;background:#fce9df}
+#studioApp .profile-picture-pane .highlight-profile-photo-actions button:focus-visible{outline:2px solid #7b476d;outline-offset:2px}
