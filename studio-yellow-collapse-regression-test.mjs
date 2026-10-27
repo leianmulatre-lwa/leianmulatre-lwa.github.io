@@ -60,7 +60,7 @@ assert.equal(legacyRed,1,'Red keeps its original action');
 assert(!card.classList.contains('studio-header-only'),'Red clears the local header-only state');
 assert.equal(saveCount,3,'Explicit yellow click writes; startup does not');
 assert.equal(legacyYellow,0);
-assert(read('ui-coherence.js').includes("collapsed:$$('[data-widget-id].studio-header-only',app)"),'Canonical account snapshot saves collapsed IDs');
+assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]"),'Canonical account snapshot saves collapsed IDs');
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261026-1'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
