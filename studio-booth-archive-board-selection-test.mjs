@@ -28,6 +28,6 @@ check('After first selection, every checkbox appears without extra Select labels
 check('Touch devices keep selection checkboxes available without hover',
   /@media\(hover:none\)/.test(styles));
 check('Current site loads fresh module and Pinterest assets',
-  home.includes('module-pages.js?v=20261026-archive-flat-gallery-7')&&
+  home.includes('module-pages.js?v=20261026-boothi-studio-text-1')&&
   home.includes('pinterest-orbit.js?v=20261025-pin-origin-1')&&
   pinterest.includes('pinterest-boards.css?v=20261022-hover-select-7'));
