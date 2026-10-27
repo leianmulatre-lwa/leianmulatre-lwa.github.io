@@ -11,7 +11,7 @@ function save(){
  userTouched=true;
  if(sourcePptx||slides.some(x=>x.imported)){
    // Save original OOXML and rich scene in IndexedDB, not quota-limited localStorage.
-   window.BigLWAVisualPptx?.persist(key(),slides,sourcePptx,sourceMeta).catch(()=>say('Storage unavailable. Download Backup before leaving.'));
+   window.BigLWAVisualPptx?.persist?.(key(),slides,sourcePptx,sourceMeta)?.catch?.(()=>say('Storage unavailable. Download Backup before leaving.'));
    try{localStorage.setItem(key(),JSON.stringify({imported:true,total:slides.length}))}catch{}
  }else try{localStorage.setItem(key(),JSON.stringify({slides}))}catch{say('Browser storage full. Export a backup.')}
 }

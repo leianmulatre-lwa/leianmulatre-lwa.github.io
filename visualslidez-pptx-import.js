@@ -175,7 +175,7 @@
          for(const run of para.runs||[]){
            const span=document.createElement('span');span.textContent=run.text;
            if(run.font)span.style.fontFamily='"'+run.font.replace(/[^a-zA-Z0-9 ._-]/g,'')+'", Georgia, sans-serif';
-           if(run.size)span.style.fontSize='clamp(4px,'+(run.size/7.5)+'vw,44px)';
+           if(run.size)span.style.fontSize='clamp(4px,'+(run.size/9.6)+'cqw,44px)';
            if(run.color)span.style.color=run.color;
            if(run.bold)span.style.fontWeight='bold';
            if(run.italic)span.style.fontStyle='italic';
@@ -218,7 +218,7 @@
  const sheet=document.createElement('style');sheet.id='biglwa-visual-pptx-style';
  sheet.textContent=`
   #lwaVisualSlides .vs-import-shell{display:grid;gap:9px}
-  #lwaVisualSlides .vs-import-stage{position:relative;aspect-ratio:16/9;overflow:hidden;width:100%;background:#fff}
+  #lwaVisualSlides .vs-import-stage{position:relative;container-type:inline-size;aspect-ratio:16/9;overflow:hidden;width:100%;background:#fff}
   #lwaVisualSlides .vs-slide:has(.vs-import-shell){padding:0!important;border-width:0!important;overflow:hidden}
   #lwaVisualSlides .vs-layer{position:absolute;box-sizing:border-box;overflow:hidden;overflow-wrap:anywhere}
   #lwaVisualSlides .vs-layer-image img{width:100%;height:100%;object-fit:fill;display:block}
