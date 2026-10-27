@@ -18,6 +18,6 @@ assert.ok(!m.includes('Link <span>(optional)</span>'),'Link optional line remove
 assert.ok(!m.includes('Caption <span>(optional'),'Caption optional line removed');
 assert.ok(m.includes('id="feedComposerToggle"')&&m.includes('feedForm.hidden=!open'),'Plus/minus toggles existing form');
 assert.ok(m.includes("feedToggle.setAttribute('aria-expanded',String(open))"),'Toggle state accessible');
-assert.ok(html.includes('module-pages.js?v=20261026-archive-flat-gallery-7'),'Cache busted');
+assert.ok(html.includes('module-pages.js?v=20261026-boothi-studio-text-1'),'Cache busted');
 assert.ok(html.includes('#studioApp .orbit-grid button[data-orbit-app="drive"] .orbit-glyph::after')&&html.includes('#34a853 65%'),'Drive planet keeps multicolor emblem');
 console.log('PASS header shadow key, Drive planet, compact Archive, plus/minus feed form');
