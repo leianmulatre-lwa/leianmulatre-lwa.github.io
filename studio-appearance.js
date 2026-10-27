@@ -401,7 +401,7 @@
     const active=$('[data-profile-editor-tab][aria-selected="true"]',panel),key=active?.dataset.profileEditorTab||'profile';
     app.classList.remove('profile-editor-profile','profile-editor-wallpaper','profile-editor-widgets');
     if(card.classList.contains('profile-is-editing'))app.classList.add(`profile-editor-${key}`);
-    const title=$('.panel-title strong',panel);if(title)title.textContent=key==='highlights'?'Edit highlights':key==='widgets'?'Edit widgets live':key==='wallpaper'?'Edit wallpaper':key==='media'?'Edit song & Aura':'Edit profile';
+    const title=$('.panel-title strong',panel);if(title)title.textContent=key==='picture'?'Edit profile picture':key==='widgets'?'Edit widgets live':key==='wallpaper'?'Edit wallpaper':key==='media'?'Edit song & Aura':'Edit profile';
     const save=$('#saveProfileBtn',panel);if(save)save.textContent='Save changes';
   }
 
