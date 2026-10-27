@@ -38,7 +38,8 @@
  const isPreview=()=>!!window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode');
  const get=()=>{if(isPreview())return publicState||empty();const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
  const source=()=>window.BigLWAImportedHighlights?.source?.()?.highlights||[];
- const status=(message)=>{const box=el('#biglwaHighlightStatus');if(box)box.textContent=message};
+ const status=message=>{const box=el('#biglwaHighlightStatus');if(box)box.textContent=message};
+ const pictureStatus=message=>{const box=el('#biglwaProfilePictureStatus');if(box)box.textContent=message};
  function applyCover(img,record){
   img.style.objectPosition=(record.x??50)+'% '+(record.y??50)+'%';
  }
@@ -235,55 +236,95 @@
    status('Highlights saved to your account.');refresh();render();
   }catch(e){status(e.message||'Could not save highlights.')}finally{saveBusy=false}
  }
- function start(){
-  if(!owner()||window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
-  const panel=el('#studioApp #wallpaperPanel'),tabs=el('#profileEditorTabs',panel||document);
-  if(!panel||!tabs||el('#biglwaHighlightEditorList',panel))return;
-  // Reuse the visible tab installed by the main Profile editor; never add a
-  // duplicate tab or quietly hide editing behind another interface.
-  let tab=el('[data-profile-editor-tab="highlights"]',tabs);
-  if(!tab){
-   tab=make('button','','Highlights');tab.type='button';tab.dataset.profileEditorTab='highlights';
-   const media=el('[data-profile-editor-tab="media"]',tabs);
-   if(media)media.before(tab);else tabs.append(tab);
-  }
-  tab.setAttribute('role','tab');tab.setAttribute('aria-controls','profileHighlightsEditor');tab.tabIndex=-1;
-  const pane=make('section','highlight-edit-pane');pane.id='profileHighlightsEditor';pane.dataset.profileEditorPane='highlights';pane.setAttribute('role','tabpanel');pane.hidden=true;
-  pane.append(make('p','highlight-editor-intro','Edit your highlight names, individual content, and circle covers. Imported originals stay untouched.'));
+ let archiveExpanded=false;
+ function mountArchive(){
+  if(!owner()||isPreview())return;
+  const shell=el('#studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell');
+  if(!shell||el('#archiveHighlightsPanel',shell))return;
+  const toolbar=el('.archive-toolbar',shell);
+  if(!toolbar)return;
+  const actions=el('.archive-toolbar-actions',toolbar);
+  const button=make('button','module-action ghost archive-highlights-button','Highlights');
+  button.type='button';button.setAttribute('aria-controls','archiveHighlightsPanel');
+  const pane=make('section','archive-highlights-panel highlight-edit-pane');
+  pane.id='archiveHighlightsPanel';
+  const header=make('div','archive-highlights-heading');
+  header.append(make('h2','','Highlights'),make('p','highlight-editor-intro','Manage the highlights shown on your profile banner. Imported originals stay untouched.'));
+  pane.append(header);
   const rows=make('div','highlight-edit-list');rows.id='biglwaHighlightEditorList';pane.append(rows);
-  const actions=make('div','highlight-edit-actions');
+  const controls=make('div','highlight-edit-actions');
   const create=make('button','','+ New highlight');create.type='button';
-  create.onclick=()=>{if(get().custom.length+source().length>=12){status('Maximum 12 highlights.');return}
-    get().custom.push({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),...safeEntry({title:'New highlight'})});render();
+  create.addEventListener('click',()=>{
+   if(get().custom.length+source().length>=12){status('Maximum 12 highlights.');return}
+   get().custom.push({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),...safeEntry({title:'New highlight'})});
+   render();
+  });
+  const saveBtn=make('button','','Save highlights');saveBtn.type='button';saveBtn.dataset.highlightSave='1';
+  saveBtn.addEventListener('click',save);
+  controls.append(create,saveBtn);pane.append(controls);
+  const message=make('p','highlight-editor-status','');message.id='biglwaHighlightStatus';
+  message.setAttribute('role','status');pane.append(message);
+  toolbar.insertAdjacentElement('afterend',pane);
+  if(actions)actions.append(button);else toolbar.prepend(button);
+  const show=open=>{
+   archiveExpanded=!!open;pane.hidden=!archiveExpanded;
+   button.setAttribute('aria-expanded',String(archiveExpanded));
+   button.classList.toggle('is-active',archiveExpanded);
+   if(archiveExpanded){get();render();if(!remoteLoaded)remote()}
   };
-  const saveBtn=make('button','','Save highlights');saveBtn.type='button';saveBtn.dataset.highlightSave='1';saveBtn.onclick=save;
-  actions.append(create,saveBtn);pane.append(actions);
+  button.addEventListener('click',()=>show(!archiveExpanded));
+  show(archiveExpanded);
+ }
+ function openArchive(){
+  archiveExpanded=true;
+  if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('archive');
+  else if(typeof window.BigLWAOpenModule==='function')window.BigLWAOpenModule('archive');
+  mountArchive();
+  const pane=el('#archiveHighlightsPanel');
+  if(pane){
+   pane.hidden=false;
+   const button=el('.archive-highlights-button',pane.parentElement);
+   if(button){button.setAttribute('aria-expanded','true');button.classList.add('is-active')}
+  }
+ }
+ function start(){
+  if(!owner()||isPreview())return;
+  mountArchive();
+  const panel=el('#studioApp #wallpaperPanel'),tabs=el('#profileEditorTabs',panel||document);
+  if(!panel||!tabs||el('#profilePictureEditor',panel))return;
+  let tab=el('[data-profile-editor-tab="picture"]',tabs);
+  if(!tab){
+   tab=make('button','','Profile Picture');tab.type='button';tab.dataset.profileEditorTab='picture';
+   tabs.prepend(tab);
+  }
+  tab.textContent='Profile Picture';
+  tab.setAttribute('role','tab');tab.setAttribute('aria-controls','profilePictureEditor');tab.tabIndex=-1;
+  const pane=make('section','highlight-edit-pane profile-picture-pane');
+  pane.id='profilePictureEditor';pane.dataset.profileEditorPane='picture';pane.setAttribute('role','tabpanel');pane.hidden=true;
   const photo=make('section','highlight-profile-photo');
   photo.append(make('strong','','Main profile picture'));
-  photo.append(make('p','','Upload or replace your main profile picture. This uses BIG LWA’s account photo storage, not the highlight cover.'));
+  photo.append(make('p','','Upload or replace your main profile picture. Your photo is saved directly to your BIG LWA account.'));
   const pic=make('input');pic.type='file';pic.accept='image/jpeg,image/png,image/webp,image/gif';pic.setAttribute('aria-label','Choose new profile picture');
   pic.onchange=async()=>{
    if(!pic.files?.[0])return;
-   status('Uploading profile picture…');
-   try{const api=await import('/account-photo.js');await api.uploadProfilePhoto(pic.files[0]);status('Profile picture saved to your account.')}
-   catch(e){status(e.message||'Could not upload picture.')}finally{pic.value=''}
+   pictureStatus('Uploading profile picture…');
+   try{const api=await import('/account-photo.js');await api.uploadProfilePhoto(pic.files[0]);pictureStatus('Profile picture saved to your account.')}
+   catch(e){pictureStatus(e.message||'Could not upload picture.')}finally{pic.value=''}
   };
-  const clear=make('button','','Remove profile picture');clear.type='button';clear.onclick=async()=>{try{
-   const api=await import('/account-photo.js');await api.removeProfilePhoto();status('Profile picture removed.');
-  }catch(e){status(e.message)}};
+  const clear=make('button','','Remove profile picture');clear.type='button';clear.onclick=async()=>{
+   try{const api=await import('/account-photo.js');await api.removeProfilePhoto();pictureStatus('Profile picture removed.')}
+   catch(e){pictureStatus(e.message)}
+  };
   photo.append(pic,clear);pane.append(photo);
-  const message=make('p','highlight-editor-status','');message.id='biglwaHighlightStatus';message.setAttribute('role','status');pane.append(message);
+  const archiveLink=make('div','profile-highlight-archive-link');
+  archiveLink.append(make('p','','Highlights are managed in Archive.'));
+  const open=make('button','module-action ghost','Go to Archive');
+  open.type='button';open.addEventListener('click',openArchive);archiveLink.append(open);
+  pane.append(archiveLink);
+  const message=make('p','highlight-editor-status','');message.id='biglwaProfilePictureStatus';
+  message.setAttribute('role','status');pane.append(message);
   const footer=el('#profileEditorActions',panel);
   if(footer)footer.before(pane);else panel.append(pane);
-  tab.addEventListener('click',()=>{get();render();if(!remoteLoaded)remote()});
-  const mainSave=el('#saveProfileBtn',panel);
-  mainSave?.addEventListener('click',e=>{
-   if(tab.getAttribute('aria-selected')!=='true')return;
-   e.preventDefault();e.stopImmediatePropagation();save();
-  },true);
-  const cancel=el('#cancelProfileBtn',panel);
-  cancel?.addEventListener('click',()=>{stateOwner='';get();render();refresh()},true);
-  render();if(!remoteLoaded)remote();
  }
  let timer;
  function schedule(){clearTimeout(timer);timer=setTimeout(start,50)}
@@ -307,8 +348,9 @@
    publicState=normalize(event.detail?.profile?.look?.highlights);
    refresh();
  });
+ window.addEventListener('biglwa:module-close',()=>{archiveExpanded=false});
  const observer=new MutationObserver(schedule);
  const ready=()=>{observer.observe(document.getElementById('studioApp')||document.body,{childList:true,subtree:true});schedule()};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
- window.BIGLWAHighlightEditor={get,customize,current,render,save,mount:start};
+ window.BIGLWAHighlightEditor={get,customize,current,render,save,mount:start,mountArchive,openArchive};
 })();
