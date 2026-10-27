@@ -73,7 +73,7 @@ for(const dirent of readdirSync(root,{withFileTypes:true})){
   cpSync(join(root,name),join(dest,name));
   count++;total+=sz;
 }
-for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp']){
+for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html']){
   if(!existsSync(join(dest,required)))throw Error('Missing required public asset: '+required);
 }
 for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','public-tiktok-snapshot-worker.js','wrangler.toml','firestore.rules','.github']){
