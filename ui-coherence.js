@@ -629,7 +629,7 @@
     ['orbit','Orbit','◎'],
     ['connect','Connect','✣'],
     ['veve','veve','✺'],
-    ['camera','booth','◉'],
+    ['camera','boothi','◉'],
     ['stream','Stream','◌'],
     ['rooms','The Lounge','♧'],
     ['closet','Closet','♧']
@@ -1836,15 +1836,16 @@
     const connect=$('#studioApp #connect');
     if(connect){
       connect.querySelectorAll('button,a').forEach(control=>{
-        const text=control.textContent?.trim()||'';
-        if(/^invite friends(?:\s*[→↗])?$/i.test(text)&&!control.querySelector('svg,img')){
-          control.textContent='invite boo·kiniz';
-          control.setAttribute('aria-label','Invite boo·kiniz');
-        }else{
-          for(const leaf of control.querySelectorAll('span,small,b,strong')){
-            if(!leaf.children.length&&/^invite friends(?:\s*[→↗])?$/i.test(leaf.textContent.trim()))leaf.textContent='invite boo·kiniz';
+        let changed=false;
+        for(const leaf of control.querySelectorAll('span,small,b,strong')){
+          if(!leaf.children.length&&/^invite friends(?:\s*[→↗])?$/i.test(leaf.textContent.trim())){
+            leaf.textContent='invite boo·kiniz';changed=true;
           }
         }
+        if(!changed&&!control.children.length&&/^invite friends(?:\s*[→↗])?$/i.test(control.textContent.trim())){
+          control.textContent='invite boo·kiniz';changed=true;
+        }
+        if(changed)control.setAttribute('aria-label','Invite boo·kiniz');
       });
     }
     const tools=$('#studioApp #tools');
