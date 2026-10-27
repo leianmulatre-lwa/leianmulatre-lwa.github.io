@@ -2,7 +2,7 @@
  * Kept apart from settings-account.js because the photo pipeline is a module that shares
  * the account identity and chrome with the studio.
  */
-import { uploadProfilePhoto, removeProfilePhoto, loadProfilePhoto } from "./account-photo.js";
+import { uploadProfilePhoto, removeProfilePhoto, loadProfilePhoto } from "./account-photo.js?v=20261027-adjust-position-1";
 import { onIdentityChange, identity, startIdentity } from "./account-identity.js";
 import { onConnectionsChange, forget, startConnections } from "./orbit-connections.js?v=20261022-verified-followers-3";
 
