@@ -30,6 +30,7 @@ jobs:
       - name: Verify politc, calendar, and site SEO integrity
         run: |
           node site-integrity-test.mjs
+          node google-identity-seo-test.mjs
           node studio-first-paint-rgb-regression-test.mjs
           node studio-booth-archive-board-selection-test.mjs
       - name: Install DOM test dependency outside public site
