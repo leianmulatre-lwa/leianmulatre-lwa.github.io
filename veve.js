@@ -13,7 +13,29 @@
   const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
   const order=arr=>[...new Set(arr.filter(x=>groups.includes(x)))].concat(groups.filter(x=>!arr.includes(x)));
   const defaults={sections:groups,enabled:groups.filter(x=>x!=='ads'),sort:'latest'};
-  const state={items:[],sqwibs:[],resqwibs:[],loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
+  const INTEREST_TERMS={
+    'Style & fashion':['fashion','style','outfit','designer','runway','model','wardrobe','streetwear','couture'],
+    'Music':['music','song','album','artist','record','sound','concert','rap','r&b','dj'],
+    'Visual art':['art','artwork','drawing','illustration','painting','gallery','artist'],
+    'Photography':['photo','camera','portrait','film photo','photography'],
+    'Film & television':['film','movie','cinema','series','television','tv','animation'],
+    'Games':['game','gaming','arcade','puzzle','playthrough'],
+    'Books & literature':['book','literature','author','novel','read','poetry'],
+    'Writing & poetry':['writing','poem','poetry','writing prompt','story','journal','sqwib'],
+    'Politics & civic life':['politics','election','civic','candidate','policy','organizing'],
+    'History':['history','historical','archive','heritage'],
+    'Education':['education','school','learning','study','university'],
+    'Culture & heritage':['culture','heritage','community','tradition','diaspora'],
+    'Technology':['technology','tech','ai','computer','software','coding'],
+    'Design':['design','graphic','interface','architecture','typography'],
+    'Beauty':['beauty','makeup','skin','nails','hair'],
+    'Sports':['sports','basketball','football','soccer','athlete','nba'],
+    'Food':['food','recipe','cooking','restaurant','baking'],
+    'DIY & making':['diy','craft','maker','tutorial','handmade','build'],
+    'Comedy':['comedy','joke','funny','humor','meme'],
+    'Nature':['nature','outdoors','plants','environment','animal']
+  };
+  const state={items:[],sqwibs:[],resqwibs:[],interests:[],sensitivity:'general',loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
   let firebasePromise=null;
   async function fb(){
     if(!firebasePromise)firebasePromise=Promise.all([
@@ -30,7 +52,7 @@
     return {
       sections:order(Array.isArray(settings.sections)?settings.sections:defaults.sections),
       enabled:[...new Set(Array.isArray(settings.enabled)?settings.enabled.filter(x=>groups.includes(x)):defaults.enabled)],
-      sort:['latest','popular','daily'].includes(settings.sort)?settings.sort:'latest'
+      sort:['latest','popular','daily','for-you'].includes(settings.sort)?settings.sort:'latest'
     };
   }
   async function restorePrefs(){
@@ -40,9 +62,16 @@
     if(state.uid){
       try{
         const f=await fb(),snap=await f.getDoc(f.doc(f.db,'users',state.uid));
-        if(snap.exists()&&snap.data().vevePrefs){
-          state.prefs=validPrefs(snap.data().vevePrefs);
-          localStorage.setItem(localKey(),JSON.stringify(state.prefs));
+        if(snap.exists()){
+          const owned=snap.data(),intro=owned.lwaOnboarding||{};
+          state.interests=Array.isArray(intro.interests)?intro.interests.filter(v=>INTEREST_TERMS[v]).slice(0,12):[];
+          state.sensitivity=['general','mature','permitted'].includes(intro.sensitivity)?intro.sensitivity:'general';
+          if(owned.vevePrefs){
+            state.prefs=validPrefs(owned.vevePrefs);
+            localStorage.setItem(localKey(),JSON.stringify(state.prefs));
+          }else if(state.interests.length&&(!local||!local.sort)){
+            state.prefs.sort='for-you'; // Explicit choices seed the first discovery sort.
+          }
         }
       }catch{/* Local choices remain usable while account preferences are unavailable. */}
     }
@@ -62,9 +91,29 @@
     const keys=['likeCount','likes','saves','saveCount','resqwibCount','commentCount','views'];
     return keys.reduce((n,key)=>n+Math.max(0,Number(p[key])||0),0);
   }
+  const sensitivityRank={general:0,mature:1,permitted:2};
+  function allowedPost(p){
+    const label=String(p?.contentRating||p?.sensitivity||p?.contentWarning||'').toLowerCase();
+    const risk=p?.isSensitive===true||p?.isMature===true||['mature','sensitive','violence','strong-themes'].includes(label)?1:0;
+    // Explicit/age-gated content is not made eligible just by selecting a preference.
+    if(p?.ageRestricted===true||p?.adultOnly===true||['adult','explicit','nsfw','18+'].includes(label))return false;
+    return risk<=sensitivityRank[state.sensitivity||'general'];
+  }
+  function affinity(p){
+    if(!state.interests.length)return 0;
+    const tags=Array.isArray(p?.tags)?p.tags.join(' '):String(p?.tags||'');
+    const topics=Array.isArray(p?.topics)?p.topics.join(' '):String(p?.topics||'');
+    const words=[p?.title,p?.caption,p?.description,p?.category,tags,topics,p?.hashtags].filter(Boolean).join(' ').toLowerCase();
+    return state.interests.reduce((total,interest)=>{
+      const terms=INTEREST_TERMS[interest]||[];
+      return total+(terms.some(term=>new RegExp('(?:^|[^a-z])'+term.replace(/[.*+?^{}()|[\]\\]/g,'\\$&')+'(?:$|[^a-z])','i').test(words))?1:0);
+    },0);
+  }
   function rank(list){
     const sort=state.prefs?.sort||'latest';
-    return [...list].sort((a,b)=>{
+    return [...list].filter(allowedPost).sort((a,b)=>{
+      if(sort==='for-you'&&state.interests.length){const delta=affinity(b)-affinity(a);if(delta)return delta;}
+
       if(sort==='popular'){const delta=score(b)-score(a);if(delta)return delta;}
       if(sort==='daily'){
         const day=new Date().toISOString().slice(0,10);
@@ -286,7 +335,7 @@
     if(key==='sqwibs'){
       const allowed=new Map(state.sqwibs.map(p=>[p.id,p]));
       const notes=rank(state.sqwibs).slice(0,16).map(p=>sqwibMarkup(p));
-      const reshares=state.resqwibs.slice(0,8).map(r=>allowed.get(r.sourceId)).filter(p=>p?.allowResqwib).map(p=>sqwibMarkup(p,true));
+      const reshares=state.resqwibs.slice(0,8).map(r=>allowed.get(r.sourceId)).filter(p=>p?.allowResqwib&&allowedPost(p)).map(p=>sqwibMarkup(p,true));
       return notes.concat(reshares).join('')||quickCard('sqwib','No public Sqwibs yet','Write a private Sqwib, then explicitly publish it and decide whether resqwibing is allowed.','notes');
     }
     if(key==='rooms')return quickCard('lounge','the lounge','Browse the room list and join a conversation. Current room messages are local prototypes, not verified live streams.','rooms','Live status will appear only when real room synchronization is available.');
@@ -382,8 +431,8 @@
     }
     const sectionHtml='<section class="veve-section"><div class="veve-masonry">'+
       mixed.join('')+'</div></section>';
-    const select=['latest','popular','daily'].map(k=>'<option value="'+k+'" '+(state.prefs.sort===k?'selected':'')+'>'+
-       ({latest:'most recent',popular:'most activity',daily:'daily mix'}[k])+'</option>').join('');
+    const select=['for-you','latest','popular','daily'].map(k=>'<option value="'+k+'" '+(state.prefs.sort===k?'selected':'')+'>'+ 
+       ({'for-you':'for you · chosen interests',latest:'most recent',popular:'most activity',daily:'daily mix'}[k])+'</option>').join('');
     const scope=['all',...state.prefs.sections.filter(k=>state.prefs.enabled.includes(k))];
     // The Studio route already owns the accessible Veve heading and subtitle.
     // Render only the feed controls below it; retain the intro for standalone mounts.
@@ -515,6 +564,12 @@
     document.addEventListener('biglwa:sqwib-published',()=>{if(state.mounted?.isConnected)refresh()});
     document.addEventListener('biglwa:sqwib-reshared',()=>{if(state.mounted?.isConnected)refresh()});
     document.addEventListener('biglwa:feed-ready',()=>{if(state.mounted?.isConnected)refresh()});
+    window.addEventListener('biglwa:discovery-preferences-updated',event=>{
+      state.interests=Array.isArray(event.detail?.interests)?event.detail.interests.filter(v=>INTEREST_TERMS[v]):[];
+      state.sensitivity=['general','mature','permitted'].includes(event.detail?.sensitivity)?event.detail.sensitivity:'general';
+      if(state.interests.length&&state.prefs?.sort==='latest')state.prefs.sort='for-you';
+      if(state.mounted?.isConnected){draw();savePrefs()}
+    });
   }
   async function refresh(){
     const generation=++state.renderGen;
