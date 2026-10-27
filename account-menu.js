@@ -33,21 +33,21 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
   /* Reuse Connect artwork and the NATIVE Logs and log-out controllers. */
   const actionStyle=document.createElement('style');
   actionStyle.id='biglwa-account-dots-style';
-  actionStyle.textContent=`\n #biglwaAccountActionDots{display:inline-flex;align-items:center;gap:9px;margin:0 0 0 13px;flex:none;position:relative;z-index:1001}\n#studioApp #biglwaAccountActionDots>button{display:inline-grid!important;place-items:center!important;width:26px!important;height:26px!important;min-width:26px!important;padding:4px!important;border:1px solid rgba(40,27,29,.2)!important;border-radius:50%!important;box-shadow:inset 0 1px rgba(255,255,255,.44)!important;margin:0!important;cursor:pointer!important;position:relative}\n#studioApp #biglwaAccountActionDots [data-biglwa-add-user]{background:#48b579!important}#studioApp #biglwaAccountActionDots [data-biglwa-add-user]{display:grid!important;place-items:center!important;padding:0!important}
-#studioApp #biglwaAccountActionDots [data-biglwa-add-user]>.card-icon,
-#studioApp #biglwaAccountActionDots [data-biglwa-add-user]>img,
-#studioApp #biglwaAccountActionDots [data-biglwa-add-user]>svg{
+  actionStyle.textContent=`\n #biglwaAccountActionDots{display:inline-flex;align-items:center;gap:9px;margin:0 0 0 13px;flex:none;position:relative;z-index:1001}\n#studioApp #biglwaAccountActionDots>button{display:inline-grid!important;place-items:center!important;width:26px!important;height:26px!important;min-width:26px!important;padding:4px!important;border:1px solid rgba(40,27,29,.2)!important;border-radius:50%!important;box-shadow:inset 0 1px rgba(255,255,255,.44)!important;margin:0!important;cursor:pointer!important;position:relative}\n#studioApp #biglwaAccountActionDots [data-biglwa-open-connect]{background:#48b579!important}#studioApp #biglwaAccountActionDots [data-biglwa-open-connect]{display:grid!important;place-items:center!important;padding:0!important}
+#studioApp #biglwaAccountActionDots [data-biglwa-open-connect]>.card-icon,
+#studioApp #biglwaAccountActionDots [data-biglwa-open-connect]>img,
+#studioApp #biglwaAccountActionDots [data-biglwa-open-connect]>svg{
   display:grid!important;place-items:center!important;position:static!important;
   inset:auto!important;transform:none!important;margin:0 auto!important;
   width:12px!important;height:12px!important;max-width:12px!important;max-height:12px!important;
   padding:0!important;line-height:1!important
 }
-#studioApp #biglwaAccountActionDots [data-biglwa-add-user] .card-icon img,
-#studioApp #biglwaAccountActionDots [data-biglwa-add-user] .card-icon svg{
+#studioApp #biglwaAccountActionDots [data-biglwa-open-connect] .card-icon img,
+#studioApp #biglwaAccountActionDots [data-biglwa-open-connect] .card-icon svg{
   display:block!important;width:12px!important;height:12px!important;
   max-width:12px!important;max-height:12px!important;
   margin:auto!important;transform:none!important;position:static!important
-}\n#studioApp #biglwaAccountActionDots #studioNotificationsBtn{background:#f0c84e!important}\n#studioApp #biglwaAccountActionDots #studioSignOut{background:#f16b79!important}\n#studioApp #biglwaAccountActionDots img,#studioApp #biglwaAccountActionDots svg{display:block!important;width:15px!important;height:15px!important;max-width:15px!important;max-height:15px!important;object-fit:contain!important}#studioApp #biglwaAccountActionDots [data-biglwa-add-user] img,#studioApp #biglwaAccountActionDots [data-biglwa-add-user] svg{width:12px!important;height:12px!important;max-width:12px!important;max-height:12px!important}\n#studioApp #biglwaAccountActionDots .visitor-mail-icon,#studioApp #biglwaAccountActionDots .studio-logout-icon{width:15px!important;height:15px!important}\n#studioApp #biglwaAccountActionDots button:focus-visible{outline:2px solid #382e34!important;outline-offset:2px!important}\nhtml.biglwa-preview-mode:not(.biglwa-owner-self-preview) #biglwaAccountActionDots{display:none!important}\n@media(max-width:590px){#biglwaAccountActionDots{gap:7px!important;margin-left:8px!important;margin-right:2px!important}#studioApp #biglwaAccountActionDots>button{width:24px!important;height:24px!important;min-width:24px!important}}\n`;
+}\n#studioApp #biglwaAccountActionDots #studioNotificationsBtn{background:#f0c84e!important}\n#studioApp #biglwaAccountActionDots #studioSignOut{background:#f16b79!important}\n#studioApp #biglwaAccountActionDots img,#studioApp #biglwaAccountActionDots svg{display:block!important;width:15px!important;height:15px!important;max-width:15px!important;max-height:15px!important;object-fit:contain!important}#studioApp #biglwaAccountActionDots [data-biglwa-open-connect] img,#studioApp #biglwaAccountActionDots [data-biglwa-open-connect] svg{width:12px!important;height:12px!important;max-width:12px!important;max-height:12px!important}\n#studioApp #biglwaAccountActionDots .visitor-mail-icon,#studioApp #biglwaAccountActionDots .studio-logout-icon{width:15px!important;height:15px!important}\n#studioApp #biglwaAccountActionDots button:focus-visible{outline:2px solid #382e34!important;outline-offset:2px!important}\nhtml.biglwa-preview-mode:not(.biglwa-owner-self-preview) #biglwaAccountActionDots{display:none!important}\n@media(max-width:590px){#biglwaAccountActionDots{gap:7px!important;margin-left:8px!important;margin-right:2px!important}#studioApp #biglwaAccountActionDots>button{width:24px!important;height:24px!important;min-width:24px!important}}\n`;
   document.head.append(actionStyle);
   function installActionDots(trigger){
     let wrapper=document.getElementById('biglwaAccountActionDots');
@@ -56,10 +56,10 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
       wrapper.setAttribute('role','group');wrapper.setAttribute('aria-label','Account actions');
       trigger.insertAdjacentElement('afterend',wrapper);
     }
-    let add=wrapper.querySelector('[data-biglwa-add-user]');
+    let add=wrapper.querySelector('[data-biglwa-open-connect]');
     if(!add){
-      add=document.createElement('button');add.type='button';add.dataset.biglwaAddUser='true';
-      add.title='Add user';add.setAttribute('aria-label','Add user');
+      add=document.createElement('button');add.type='button';add.dataset.biglwaOpenConnect='true';
+      add.title='Open Connect · find and add people';add.setAttribute('aria-label','Open Connect to find and add people');
       const connect=document.querySelector('#studioApp #connect .card-icon img,#studioApp #connect .card-icon svg,#studioApp [data-shortcut-route="connect"] img,#studioApp [data-sidebar-route="connect"] img,#studioApp #connect .card-icon');
       if(connect){
         const icon=connect.cloneNode(true);icon.removeAttribute('id');
@@ -68,24 +68,12 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
         add.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6m-3-3h6"/></svg>';
       }
       add.addEventListener('click',event=>{
-        event.stopPropagation();
-        if(!window.confirm('Add another user? You will sign out of this account first.'))return;
-        const out=document.getElementById('studioSignOut');
-        if(!out){window.alert('Sign out is unavailable in this view.');return}
-        sessionStorage.setItem('biglwaOpenAddUser','1');out.click();
-        let count=0;
-        const openCreate=()=>{
-          const login=document.getElementById('loginPage'),tab=document.getElementById('createTab');
-          if(login?.classList.contains('is-active')&&tab){
-            sessionStorage.removeItem('biglwaOpenAddUser');tab.click();return true
-          }
-          return false;
-        };
-        if(!openCreate()){
-          const poll=setInterval(()=>{
-            if(openCreate()||++count>80){clearInterval(poll);if(count>80)sessionStorage.removeItem('biglwaOpenAddUser')}
-          },100);
-        }
+        event.preventDefault();event.stopPropagation();
+        // Connect is for finding and adding people, never for creating a new login.
+        if(typeof window.openBIGLWAModule==='function'){window.openBIGLWAModule('connect');return}
+        const trigger=document.querySelector('#studioApp [data-open="connect"],#studioApp [data-sidebar-route="connect"]');
+        if(trigger){trigger.click();return}
+        window.location.assign('/studio?panel=connect');
       });
       wrapper.append(add);
     }
