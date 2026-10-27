@@ -282,7 +282,7 @@
   mountArchive();
   const pane=el('#archiveHighlightsPanel');
   if(pane){
-   pane.hidden=false;
+   pane.hidden=false;get();render();if(!remoteLoaded)remote();
    const button=el('.archive-highlights-button',pane.parentElement);
    if(button){button.setAttribute('aria-expanded','true');button.classList.add('is-active')}
   }
