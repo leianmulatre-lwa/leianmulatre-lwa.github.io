@@ -355,6 +355,19 @@
     cloud.onAuthStateChange((user)=>{if(user){restored=false;restoring=false;restoreWallpaper()}});
   }
 
+  function wallpaperReviewAlert(message){
+    const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'');
+    const item={title:'Wallpaper safety alert',source:'Wallpaper',detail:message,at:Date.now()};
+    if(uid){
+      const key='biglwaWallpaperLogV1:'+uid;
+      try{
+        const previous=JSON.parse(localStorage.getItem(key)||'[]');
+        localStorage.setItem(key,JSON.stringify([item,...(Array.isArray(previous)?previous:[])].slice(0,12)));
+      }catch{}
+    }
+    window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{...item,notified:false}}));
+    document.dispatchEvent(new CustomEvent('biglwa:wallpaper-review-alert',{detail:item}));
+  }
   async function processWallpaper(file,context,button,input){
     const safety=window.BIGLWAWallpaperSafety;
     const cloud=window.BIGLWAWallpaperCloud;
@@ -369,11 +382,11 @@
         result={status:'local-only',engine:'local preview fallback'};
       }
       if(result.status==='invalid'){setSafetyStatus('error',result.message||'This file could not be read safely.');return}
-      if(result.status==='block'){setSafetyStatus('error','This appears to be explicit photographic media, so it cannot be used as a wallpaper.');return}
+      if(result.status==='block'){setSafetyStatus('error','This appears to be explicit photographic media, so it cannot be used as a wallpaper.');wallpaperReviewAlert('A wallpaper upload was blocked by the safety scanner. It was not published.');return}
       let rating=result.status==='local-only'?'local-only':'general';
       if(result.status==='age-restricted'){
         setSafetyStatus('checking','Adult or uncertain context detected. Checking signed age verification…','18+ · checking');
-        if(!await safety?.hasVerifiedAdultClaim?.()){setSafetyStatus('held','Held for review. A birthday entry is not enough, and secure age verification is not connected yet, so this wallpaper is not published.','18+ · held');return}
+        if(!await safety?.hasVerifiedAdultClaim?.()){setSafetyStatus('held','Held for review. A birthday entry is not enough, and secure age verification is not connected yet, so this wallpaper is not published.','18+ · held');wallpaperReviewAlert('A wallpaper was flagged for age verification and is not published.');return}
         rating='18+';
       }
       if(!cloud){setSafetyStatus('error','Account media is unavailable, so this wallpaper was not saved.');return}
@@ -392,6 +405,7 @@
       /* Uncertain or adult-coded media is stored for a human, shown to the member, and
          never written to the public profile. */
       await cloud.review({media,verdict:result.status,context,kind:media.kind,scores:result.scores,name:file.name});
+      wallpaperReviewAlert('A wallpaper was flagged or could not be verified and is waiting in the private moderation queue.');
       paintWallpaper({blob:file,kind:media.kind,contentType:media.contentType,state:'held'});
       const [state,message,badge]=wallpaperStatusCopy({state:'held'},rating);
       setSafetyStatus(state,message,badge);
