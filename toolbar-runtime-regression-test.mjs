@@ -150,6 +150,14 @@ w.BIGLWAStudioAppearance.apply({appearance:{color:'#abcdef'}});
 assert.equal(color.value,'#123456','Delayed account values cannot overwrite color draft');
 assert.equal(q('#widgetColor'),color,'Native color input stays connected');
 assert(q('#studioApp').style.getPropertyValue('--widget-bg').includes('18,52,86'),'Live preview retains chosen color');
+const opacity=q('#widgetOpacity');
+assert(opacity&&opacity.min==='20','Widget opacity now allows 20% transparency without changing default');
+opacity.getBoundingClientRect=()=>({left:10,top:0,width:200,height:24,right:210,bottom:24});
+opacity.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,clientX:90,clientY:12,button:0}));
+w.document.dispatchEvent(new w.MouseEvent('pointermove',{bubbles:true,clientX:10,clientY:12}));
+w.document.dispatchEvent(new w.MouseEvent('pointerup',{bubbles:true}));
+assert.equal(opacity.value,'20','Widget opacity bar supports pointer dragging down to 20%');
+assert(q('#studioApp').style.getPropertyValue('--widget-bg').includes(',0.2)'), '20% opacity truly renders 0.20 alpha, not an internal 72% floor');
 if(process.env.UPDATE_NAV_SPECIMEN==='1'){
  const original=fs.readFileSync(root+'qa/widget-headers.html','utf8');
  const sidebar='<aside class="sidebar" aria-label="Skeleton Key"><div class="sidebar-top">'+q('#skeletonKeyLauncher').outerHTML+q('#studioSidebarShortcuts').outerHTML+'</div></aside>';
