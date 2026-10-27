@@ -31,7 +31,7 @@ const checks=[
  ['Widget three-dot action controls the dock',layout.includes('data-dock-widget')&&layout.includes('data-restore-widget')],
  ['Original green dock appears only for closed widgets',layout.includes("primary.hidden=!$('[data-shortcut-row]',greenDock)")],
  ['Original sidebar is not hidden before script hydration',!home.includes('#studioApp .sidebar-top>nav{display:none!important}')],
- ['Fresh Studio layout script',/ui-coherence\\.js\\?v=20261027-song-widget-aura-silent-1/.test(home)],
+ ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261027-song-widget-aura-silent-1')],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
