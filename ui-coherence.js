@@ -121,9 +121,9 @@
       docked:readJson(DOCKED_WIDGET_KEY,[]),
       // Yellow-minimized shortcuts stay in their original row; red-docked
       // widgets retain their independent restore tiles after sign-in.
-      redDocked:$('[data-widget-id].widget-is-minimized.widget-is-docked',app).map(el=>el.dataset.widgetId).filter(Boolean),
+      redDocked:[...app.querySelectorAll('[data-widget-id].widget-is-minimized.widget-is-docked')].map(el=>el.dataset.widgetId).filter(Boolean),
       // Yellow keeps a widget in its masonry position with only the header showing.
-      collapsed:$('[data-widget-id].studio-header-only',app).map(el=>el.dataset.widgetId).filter(Boolean),
+      collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')].map(el=>el.dataset.widgetId).filter(Boolean),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
       updatedAtMs:now
     };
@@ -1281,7 +1281,7 @@
         if(row)row.remove();
       }
     });
-    $('[data-widget-id]',app).forEach(widget=>{
+    [...app.querySelectorAll('[data-widget-id]')].forEach(widget=>{
       widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
     });
     window.dispatchEvent(new Event('biglwa:studio-collapse-applied'));
