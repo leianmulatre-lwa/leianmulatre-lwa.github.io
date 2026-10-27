@@ -1,0 +1,38 @@
+/* Yellow Studio dot: collapse in place to the same title/icon + handle + window dots.
+   Red dock retains .widget-is-minimized; green continues to open the full module. */
+#studioApp .studio-header-only:not(.widget-is-minimized){
+ position:relative!important;display:block!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ aspect-ratio:auto!important;overflow:visible!important;
+ padding:12px 16px!important;box-sizing:border-box!important;
+ align-self:start!important;
+}
+#studioApp .studio-header-only:not(.widget-is-minimized) > :not(.studio-collapse-keep):not(.widget-window-controls):not(.widget-drag-handle):not([data-studio-drag-handle]){
+ display:none!important;
+}
+#studioApp .studio-header-only:not(.widget-is-minimized) > .studio-collapse-keep{
+ display:flex!important;align-items:center!important;
+ margin:0!important;min-height:32px!important;max-height:none!important;
+ padding:0!important;
+}
+#studioApp .studio-header-only:not(.widget-is-minimized) > .studio-collapse-keep h1,
+#studioApp .studio-header-only:not(.widget-is-minimized) > .studio-collapse-keep h2{
+ margin-bottom:0!important;
+}
+#studioApp .studio-header-only:not(.widget-is-minimized) > .widget-window-controls,
+#studioApp .studio-header-only:not(.widget-is-minimized) > [data-studio-drag-handle]{
+ visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+}
+#studioApp .studio-header-only:not(.widget-is-minimized)::before,
+#studioApp .studio-header-only:not(.widget-is-minimized)::after{
+ display:none!important;
+}
+#studioApp .studio-header-only:not(.widget-is-minimized) .window-light.yellow{
+ cursor:pointer!important;
+}
+#studioApp .studio-header-only:not(.widget-is-minimized) .window-light.yellow:focus-visible{
+ outline:2px solid #292124!important;outline-offset:3px!important;
+}
+@media(max-width:680px){
+ #studioApp .studio-header-only:not(.widget-is-minimized){padding:10px 12px!important}
+}

@@ -121,7 +121,9 @@
       docked:readJson(DOCKED_WIDGET_KEY,[]),
       // Yellow-minimized shortcuts stay in their original row; red-docked
       // widgets retain their independent restore tiles after sign-in.
-      redDocked:$$('[data-widget-id].widget-is-minimized.widget-is-docked',app).map(el=>el.dataset.widgetId).filter(Boolean),
+      redDocked:$('[data-widget-id].widget-is-minimized.widget-is-docked',app).map(el=>el.dataset.widgetId).filter(Boolean),
+      // Yellow keeps a widget in its masonry position with only the header showing.
+      collapsed:$('[data-widget-id].studio-header-only',app).map(el=>el.dataset.widgetId).filter(Boolean),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
       updatedAtMs:now
     };
@@ -1070,6 +1072,7 @@
     const scoped=scopedLayout();
     const minimized=Array.isArray(scoped?.docked)?scoped.docked:readWidgetShortcuts();
     const redDocked=new Set(Array.isArray(scoped?.redDocked)?scoped.redDocked:[]);
+    const collapsed=new Set(Array.isArray(scoped?.collapsed)?scoped.collapsed.map(String):[]);
     const saveMinimized=()=>writeWidgetShortcuts($$(selector,app).filter(widget=>widget.classList.contains('widget-is-minimized')).map(widget=>widget.dataset.widgetId).filter(Boolean));
     const addRestore=widget=>{
       const id=widget.dataset.widgetId,targetDock=restoreDockForWidget(app,widget,dock);if(!id||!targetDock||$('[data-shortcut-row="'+CSS.escape(id)+'"]',app))return true;
@@ -1087,6 +1090,7 @@
         if(!alreadyMinimized)widget.classList.toggle('widget-is-docked',redDocked.has(widget.dataset.widgetId)||!inShortcut);
         if(widget.classList.contains('widget-is-docked')||!inShortcut)addRestore(widget);
       }else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
+      widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
     });
     $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
     // Never save during startup or on periodic run(): restoring the local
@@ -1261,6 +1265,7 @@
 
   function applyRemoteLayout(layout){
     const app=$('#studioApp');if(!app||!layout)return;
+    const collapsed=Array.isArray(layout.collapsed)?new Set(layout.collapsed.map(String)):new Set();
     const docked=Array.isArray(layout.docked)?layout.docked:[];
     const greenDock=$('#minimizedWidgetDock',app);
     $$('.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)',app).forEach(widget=>{
@@ -1276,6 +1281,10 @@
         if(row)row.remove();
       }
     });
+    $('[data-widget-id]',app).forEach(widget=>{
+      widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
+    });
+    window.dispatchEvent(new Event('biglwa:studio-collapse-applied'));
     const order=layout.order&&typeof layout.order==='object'?layout.order:{};
     Object.keys(order).forEach(key=>{
       const parent=$('#'+CSS.escape(key),app);if(!parent)return;
