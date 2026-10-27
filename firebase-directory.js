@@ -30,6 +30,10 @@ const normalize=v=>String(v||"").trim().replace(/^@/,"").toLowerCase();
 const clean=v=>String(v||"").trim();
 const safeNumber=(v,fallback=0)=>{const n=Number(v);return Number.isFinite(n)?n:fallback};
 const safeText=(v,max=64)=>clean(v).slice(0,max);
+const safePhotoPosition=value=>{
+  const axis=v=>Math.min(100,Math.max(0,safeNumber(v,50)));
+  return {x:axis(value?.x),y:axis(value?.y)};
+};
 
 /* Which hosts a public social link is allowed to point at. A visitor clicking a link on
    someone else's profile is leaving the site, so the address has to be one we recognise
@@ -224,6 +228,7 @@ async function savePublicLook(custom={}){
       highlights:account.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(custom.session?.highlightEdits),
       wallpaper:{
         fit:safeText(wallpaper.fit,16),
+        position:safeText(wallpaper.position,32),
         blur:safeNumber(wallpaper.blur,0),
         overlay:safeNumber(wallpaper.overlay,0)
       }
@@ -312,6 +317,7 @@ async function loadPublicProfile(rawUsername){
       moodStyle:clean(data.moodStyle),
       auraText:clean(data.auraText),
       profilePhotoUrl:/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/profile-photo\//.test(String(data.profilePhotoUrl||''))?String(data.profilePhotoUrl):'',
+      profilePhotoPosition:safePhotoPosition(data.profilePhotoPosition),
       studioAvatarPublic:(()=>{
        const avatar=data.studioAvatarPublic,url=String(avatar?.url||'');
        const owned= /^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/(?:profile-photo|feed-image)\//.test(url);
@@ -344,6 +350,7 @@ async function loadPublicProfile(rawUsername){
         },
         wallpaper:{
           fit:clean(look.wallpaper&&look.wallpaper.fit),
+          position:clean(look.wallpaper&&look.wallpaper.position),
           blur:safeNumber(look.wallpaper&&look.wallpaper.blur,0),
           overlay:safeNumber(look.wallpaper&&look.wallpaper.overlay,0)
         },
