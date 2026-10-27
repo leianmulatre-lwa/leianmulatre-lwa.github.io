@@ -427,6 +427,8 @@
       }
       if(result.status==='invalid'){setSafetyStatus('error',result.message||'This file could not be read safely.');return}
       if(result.status==='block'){setSafetyStatus('error','This appears to be explicit photographic media, so it cannot be used as a wallpaper.');wallpaperReviewAlert('A wallpaper upload was blocked by the safety scanner. It was not published.');return}
+      // One clear rule: the manual queue is only for flagged/uncertain scans.
+      // A validated, confidently safe 'allow' verdict never waits for moderator push.
       let rating=result.status==='local-only'?'local-only':'general';
       if(result.status==='age-restricted'){
         setSafetyStatus('checking','Adult or uncertain context detected. Checking signed age verification…','18+ · checking');
@@ -435,8 +437,8 @@
       }
       if(!cloud){setSafetyStatus('error','Account media is unavailable, so this wallpaper was not saved.');return}
       if(!await cloud.isSignedIn()){setSafetyStatus('held','Sign in to save this wallpaper to your account. Nothing was kept on this device.','not saved');return}
-      setSafetyStatus('checking','Safety check passed · uploading to your account…');
-      const confident=rating==='general'&&result.status===cloud.autoPublishStatus;
+      const confident=result.status==='allow'&&rating==='general';
+      setSafetyStatus('checking',confident?'Clean scan · publishing automatically (no manual review)…':'Flagged or unverifiable scan · securely holding for review…');
       const media=await cloud.upload(file,{state:confident?'approved':'pending'});
       if(confident){
         await cloud.publish(media,{approvedBy:'auto'});
@@ -449,7 +451,7 @@
       /* Uncertain or adult-coded media is stored for a human, shown to the member, and
          never written to the public profile. */
       await cloud.review({media,verdict:result.status,context,kind:media.kind,scores:result.scores,name:file.name});
-      wallpaperReviewAlert('A wallpaper was flagged or could not be verified and is waiting in the private moderation queue.');
+      wallpaperReviewAlert('A wallpaper safety scan was flagged or could not be completed; manual review is required. Clean scans publish automatically.');
       paintWallpaper({blob:file,kind:media.kind,contentType:media.contentType,state:'held'});
       const [state,message,badge]=wallpaperStatusCopy({state:'held'},rating);
       setSafetyStatus(state,message,badge);
@@ -499,7 +501,7 @@
     }
     if(!$('#wallpaperMediaContext',section)){
       const context=document.createElement('label');context.className='wallpaper-media-context';context.innerHTML='Media context<select id="wallpaperMediaContext"><option value="photo">Photo or video</option><option value="art">Artwork or illustration</option><option value="mixed">Mixed or other</option></select>';row.insertAdjacentElement('afterend',context);
-      const note=document.createElement('p');note.className='wallpaper-safety-note';note.textContent='Artwork is reviewed in context, not automatically blocked. Likely explicit photographic nudity is blocked. A confident clean scan publishes straight to your account. Uncertain or adult-coded media is uploaded for a moderator and stays off your public profile until approved.';context.insertAdjacentElement('afterend',note);
+      const note=document.createElement('p');note.className='wallpaper-safety-note';note.textContent='Clean safety scans publish automatically. No manual moderator push is required. Only flagged, uncertain, or unverified media enters the review queue; blocked content stays unpublished.';context.insertAdjacentElement('afterend',note);
       const badge=document.createElement('span');badge.id='wallpaper18Badge';badge.className='wallpaper-18-badge';note.insertAdjacentElement('afterend',badge);
       const status=document.createElement('p');status.id='wallpaperSafetyStatus';status.className='wallpaper-safety-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');badge.insertAdjacentElement('afterend',status);
     }
