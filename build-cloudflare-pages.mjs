@@ -12,7 +12,7 @@ import {generateOgImage} from './build-og-image.mjs';
 const root=resolve(fileURLToPath(new URL('.',import.meta.url)));
 const dest=join(root,'dist');
 const publishDirs=new Set([
-  'MiiEditor','about','arcade','archive','assets','avatar',
+  'MiiEditor','about','arcade','archive','assets','avatar','leian-mulatre',
   'cedarville-pnkfun1-cursive-font','cuteness-font','data-deletion',
   'licenses','logout','privacy','rights','terms','settings','stars-and-stripes-font',
   'third-party','tools','wiimii'
