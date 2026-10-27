@@ -17,7 +17,16 @@
     let style=$('#biglwa-studio-appearance-style');
     if(!style){style=document.createElement('style');style.id='biglwa-studio-appearance-style';document.head.appendChild(style)}
     style.textContent=`
-      /* Every control in Widgets & colors targets the visible Studio cards. */
+      /* Color chips + editable HEX value sit beside the native color wheel. */
+      #studioApp .biglwa-color-choices{display:grid;gap:7px;padding:9px;margin:5px 0 12px;border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:10px;background:rgba(255,255,255,.15)}
+      #studioApp .biglwa-color-choices strong{font:650 11px/1.3 Inter,system-ui,sans-serif}
+      #studioApp .biglwa-color-swatches{display:flex;flex-wrap:wrap;gap:7px}
+      #studioApp .biglwa-color-swatch{width:30px;height:30px;min-width:30px;border-radius:8px;border:2px solid rgba(50,38,35,.32);background:var(--swatch);cursor:pointer;padding:0;box-sizing:border-box}
+      #studioApp .biglwa-color-swatch[aria-pressed="true"]{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:2px}
+      #studioApp .biglwa-color-swatch:focus-visible{outline:3px solid #604a91;outline-offset:3px}
+      #studioApp .biglwa-color-hex{display:flex;align-items:center;gap:7px;font:600 10px/1.25 Inter,system-ui,sans-serif}
+      #studioApp .biglwa-color-hex input{width:96px!important;min-width:0!important;padding:6px 8px!important;border:1px solid rgba(90,76,73,.35);border-radius:7px;font:600 12px/1.3 ui-monospace,monospace;color:inherit;background:rgba(255,255,255,.7)}
+      /* Every control in Widget & Aura targets the visible Studio cards. */
       #studioApp .profile-card,
       #studioApp .music-card,
       #studioApp .aura-card,
@@ -147,6 +156,40 @@
     applyAppearance(false);
   }
 
+  function syncColorChoices(id){
+    const input=$('#'+id),panel=$('#'+id+'Choices');if(!input||!panel)return;
+    const value=String(input.value||'').toLowerCase();
+    const hex=$('.biglwa-color-hex input',panel);
+    if(hex&&document.activeElement!==hex)hex.value=value;
+    $('.biglwa-color-swatch',panel).forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.color===value)));
+  }
+  function installColorChoices(id,colors){
+    const input=$('#'+id),label=input?.closest('label');
+    if(!input||!label)return;
+    const existing=$('#'+id+'Choices');
+    if(existing){syncColorChoices(id);return}
+    const panel=document.createElement('div');panel.id=id+'Choices';panel.className='biglwa-color-choices';
+    const heading=document.createElement('strong');heading.textContent='Quick colors · or use the color wheel';panel.append(heading);
+    const swatches=document.createElement('div');swatches.className='biglwa-color-swatches';
+    colors.forEach(color=>{
+      const chip=document.createElement('button');chip.type='button';chip.className='biglwa-color-swatch';
+      chip.dataset.color=color;chip.style.setProperty('--swatch',color);
+      chip.title='Choose '+color;chip.setAttribute('aria-label','Choose '+color);
+      chip.addEventListener('click',()=>{input.value=color;input.dispatchEvent(new Event('input',{bubbles:true}));syncColorChoices(id)});
+      swatches.append(chip);
+    });panel.append(swatches);
+    const hexLabel=document.createElement('label');hexLabel.className='biglwa-color-hex';
+    const word=document.createElement('span');word.textContent='Hex';const hex=document.createElement('input');
+    hex.type='text';hex.inputMode='text';hex.maxLength=7;hex.setAttribute('aria-label',id==='auraColor'?'Aura color hex':'Widget color hex');
+    hex.addEventListener('change',()=>{
+      const v=hex.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}))}
+      syncColorChoices(id);
+    });hexLabel.append(word,hex);panel.append(hexLabel);
+    label.insertAdjacentElement('afterend',panel);
+    input.addEventListener('input',()=>syncColorChoices(id));
+    syncColorChoices(id);
+  }
+
   function ensureWidgetConnection(){
     const section=$('#profileWidgetEditor')||$('[data-profile-editor-pane="widgets"]');if(!section)return;
     let live=$('#widgetLiveConnection',section);
@@ -168,19 +211,13 @@
       section.addEventListener('change',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor'))applyAppearance(true)});
       $('#resetWidgets',section)?.addEventListener('click',()=>queueMicrotask(()=>applyAppearance(true)));
     }
-    // Aura hue belongs beside Aura text and music, not wallpaper/widget styling.
-    const media=$('#profileMediaEditor');
-    const auraInput=$('#auraColor');
-    const auraLabel=auraInput?.closest('label');
-    if(media&&auraLabel){
-      auraLabel.classList.add('biglwa-media-aura-color');
-      if(auraLabel.parentElement!==media)media.appendChild(auraLabel);
-      if(media.dataset.auraAppearanceBound!=='1'){
-        media.dataset.auraAppearanceBound='1';
-        media.addEventListener('input',event=>{if(event.target.id==='auraColor')applyAppearance(true)});
-        media.addEventListener('change',event=>{if(event.target.id==='auraColor')applyAppearance(true)});
-      }
-    }
+    // Aura hue and text now live together in Widget & Aura, not the Song pane.
+    const auraInput=$('#auraColor'),auraLabel=auraInput?.closest('label');
+    if(auraLabel&&auraLabel.parentElement!==section)section.appendChild(auraLabel);
+    const auraText=$('#profileAuraTextInput')?.closest('label');
+    if(auraText&&auraText.parentElement!==section)section.appendChild(auraText);
+    installColorChoices('widgetColor',['#faf7f1','#fff7e1','#f6cad9','#d9c9f1','#b5dcd6','#23212b','#ffffff']);
+    installColorChoices('auraColor',['#d85f6d','#f36b79','#f2cd39','#58aa70','#6787bf','#aa7adb','#ce8d60']);
     if(section.dataset.appearanceRestored!==activeUid()&&!$('#studioApp .profile-card.profile-is-editing')){restoreAppearance();section.dataset.appearanceRestored=activeUid()}
   }
 
@@ -401,7 +438,7 @@
     const active=$('[data-profile-editor-tab][aria-selected="true"]',panel),key=active?.dataset.profileEditorTab||'profile';
     app.classList.remove('profile-editor-profile','profile-editor-wallpaper','profile-editor-widgets');
     if(card.classList.contains('profile-is-editing'))app.classList.add(`profile-editor-${key}`);
-    const title=$('.panel-title strong',panel);if(title)title.textContent=key==='picture'?'Edit profile picture':key==='widgets'?'Edit widgets live':key==='wallpaper'?'Edit wallpaper':key==='media'?'Edit song & Aura':'Edit profile';
+    const title=$('.panel-title strong',panel);if(title)title.textContent=key==='picture'?'Edit profile picture':key==='widgets'?'Edit Widget & Aura':key==='wallpaper'?'Edit wallpaper':key==='media'?'Edit song':'Edit profile';
     const save=$('#saveProfileBtn',panel);if(save)save.textContent='Save changes';
   }
 
