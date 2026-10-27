@@ -25,7 +25,7 @@ const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const EXTENSIONS = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' };
 /* Only a confident clean pass may publish without a human. */
-const AUTO_PUBLISH_STATUS = 'general';
+const AUTO_PUBLISH_STATUS = 'allow';
 
 const clean = value => String(value == null ? '' : value).trim();
 const isVideo = type => VIDEO_TYPES.includes(String(type || '').toLowerCase());
