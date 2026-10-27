@@ -101,5 +101,8 @@ const lwaziSource=read('studio-lwazi-thumbnail-20261026.js');
 assert(lwaziSource.includes('data.lwaziCarouselVersion')||lwaziSource.includes('dataset.lwaziCarouselVersion'),'Lwazi independent carousel version');
 assert(lwaziSource.includes('aria-hidden'),'Repeated carousel tiles do not double-count for screenreaders');
 assert(lwaziSource.includes("window.openBIGLWAModule"),'Workshop keeps its existing app router');
+// Flush one animation frame: the Studio MutationObserver schedules header sync
+// after the test inserts the Games and Lwazi fixtures.
+await new Promise(resolve=>setTimeout(resolve,120));
 dom.window.close();
 console.log('PASS: yellow header-only toggle and account save; green/red/drag/image unaffected');
