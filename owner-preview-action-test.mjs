@@ -47,11 +47,16 @@ assert.match(d.getElementById('biglwa-account-dots-style').textContent,/gap:9px/
  'Colored account dots have slightly more breathing room');
 assert.match(d.getElementById('biglwa-account-menu-style').textContent,/\.welcome\{[^}]*top:7px/,'Welcome text is shifted down to visually center beside avatar');
 assert.match(d.getElementById('biglwa-account-dots-style').textContent,/place-items:center!important/,'The green Add Friends symbol is centered without altering it');
-assert.match(d.getElementById('biglwa-account-dots-style').textContent,/\[data-biglwa-add-user\] img[^}]*width:12px/,
+assert.match(d.getElementById('biglwa-account-dots-style').textContent,/\[data-biglwa-open-connect\] img[^}]*width:12px/,
  'Connect icon itself is smaller without changing the button symbol');
 assert.equal(dots.querySelectorAll('button').length,3,'Exactly green/yellow/red account actions');
-assert.ok(dots.querySelector('[data-biglwa-add-user]'));
-assert.equal(dots.querySelector('[data-biglwa-add-user] img')?.getAttribute('src'),'/assets/connect-symbol.svg','Add user reuses the actual Connect icon');
+assert.ok(dots.querySelector('[data-biglwa-open-connect]'));
+assert.equal(dots.querySelector('[data-biglwa-open-connect] img')?.getAttribute('src'),'/assets/connect-symbol.svg','Connect action reuses the actual Connect icon');
+let openedConnect=0;
+w.openBIGLWAModule=module=>{if(module==='connect')openedConnect++};
+dots.querySelector('[data-biglwa-open-connect]').click();
+assert.equal(openedConnect,1,'Green Connect button routes to people without leaving the account');
+assert.equal(signedOut,0,'Opening Connect does not sign the member out');
 assert.equal(dots.querySelector('#studioNotificationsBtn'),d.getElementById('studioNotificationsBtn'),'The original Logs/mail button is MOVED, not duplicated');
 assert.equal(dots.querySelector('#studioSignOut'),d.getElementById('studioSignOut'),'Original logout button and listener preserved');
 assert.equal(d.querySelectorAll('#studioNotificationsBtn').length,1,'Exactly ONE native mail/logs button');
