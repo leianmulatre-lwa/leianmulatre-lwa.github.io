@@ -36,6 +36,27 @@ pointer('pointerout',dialog,w.document.body);pointer('pointerover',w.document.bo
 assert(dialog.open,'Leaving picker and clicking backdrop do not dismiss draft');
 q('#studioColorCancel').click();assert(!dialog.open);assert.equal(q('#widgetColor').value,'#123456','Cancel restores initial color');
 q('#widgetColor').click();q('#studioColorHex').value='#345678';q('#studioColorHex').dispatchEvent(new w.Event('input',{bubbles:true}));q('#studioColorDone').click();assert.equal(q('#widgetColor').value,'#345678');assert(!dialog.open);
+assert(q('#studioColorPlane')&&q('#studioColorHue'),'Visual saturation plane and rainbow hue bar are available');
+assert(dialog.classList.contains('biglwa-stitched-dialog'),'Picker uses the stitched dialog design');
+q('#widgetColor').click();
+const hue=q('#studioColorHue'),plane=q('#studioColorPlane');
+hue.value='120';hue.dispatchEvent(new w.Event('input',{bubbles:true}));
+assert.equal(Number(q('#studioColorHue').value),120,'Hue slider changes underlying color continuously');
+plane.getBoundingClientRect=()=>({left:0,top:0,width:200,height:100,right:200,bottom:100});
+plane.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,button:0,clientX:100,clientY:30}));
+w.document.dispatchEvent(new w.MouseEvent('pointermove',{bubbles:true,clientX:200,clientY:0}));
+w.document.dispatchEvent(new w.MouseEvent('pointerup',{bubbles:true}));
+assert.match(q('#widgetColor').value,/^#[0-9a-f]{6}$/,'Dragging saturation/brightness surface selects a hex color');
+assert.equal(q('#widgetColor').value,'#00ff00','Saturation and hue together can select arbitrary vivid colors');
+const red=q('#studioColorRed');
+red.getBoundingClientRect=()=>({left:0,top:0,width:240,height:20});
+red.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,button:0,clientX:0,clientY:10}));
+w.document.dispatchEvent(new w.MouseEvent('pointermove',{bubbles:true,clientX:240,clientY:10}));
+w.document.dispatchEvent(new w.MouseEvent('pointerup',{bubbles:true}));
+assert.equal(q('#studioColorRedValue').textContent,'255','RGB bars are draggable through pointer movement');
+q('#studioColorCancel').click();
+assert.equal(q('#widgetColor').value,'#345678','Cancel restores color after a full pointer drag');
+
 // Run actual analytics/search UI against deterministic account responses, never live user data.
 w.__biglwaIdentity={uid:'owner-a'};const month=new Date().toISOString().slice(0,7);let saved=0,added=0;
 let account={uid:'owner-a',connections:{instagram:{stats:{followers:20},lastCheckedAt:new Date().toISOString()},pinterest:{stats:{followers:null}}},peopleConnections:{},analyticsMonths:{},orbitConnectedProfiles:{x:{username:'tester'}}};
