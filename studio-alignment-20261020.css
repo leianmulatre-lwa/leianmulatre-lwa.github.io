@@ -229,16 +229,57 @@ body.night-mode #studioApp #notes .card-icon img{filter:brightness(0) invert(1)!
 #studioApp .connect-user-results button{font:11px system-ui;padding:5px 8px}
 #studioPersistentTooltip{position:fixed;z-index:2147483646;box-sizing:border-box;max-width:195px;padding:6px 9px;border:1px solid #ffffff44;border-radius:7px;background:rgba(48,39,51,.64);color:#fff;font:11px/1.35 system-ui;box-shadow:0 2px 8px #0002;pointer-events:none!important;user-select:none;transition:opacity .12s ease;backdrop-filter:blur(2px)}
 #studioPersistentTooltip[hidden]{display:none}
-#studioColorDialog{box-sizing:border-box;width:min(340px,calc(100vw - 28px));border:1px solid #bfa7b3;border-radius:14px;padding:20px;background:#fff8f0;color:#302733;box-shadow:0 15px 60px #0005}
-#studioColorDialog::backdrop{background:#20142166}
-#studioColorDialog h2{font:700 18px system-ui;margin:0 0 12px}
-#studioColorDialog label{display:grid;grid-template-columns:1fr auto;gap:5px;font:12px system-ui;margin:12px 0}
-#studioColorDialog input{grid-column:1/-1;width:100%;box-sizing:border-box}
-#studioColorHex{padding:8px;border:1px solid #bfa7b3;border-radius:6px}
-#studioColorSwatch{height:44px;border:1px solid #bfa7b3;border-radius:8px}
-.studio-color-actions{display:flex;justify-content:flex-end;gap:10px}
-.studio-color-actions button{padding:8px 15px;border:1px solid #bfa7b3;border-radius:7px}
-#studioColorDone{background:#703b53;color:white}
+/* BIG LWA stitched color card: compact, soft thread, not a generic OS dialog. */
+#studioColorDialog.biglwa-stitched-dialog{
+ box-sizing:border-box;width:min(380px,calc(100vw - 24px));max-height:min(94dvh,750px);
+ overflow:auto;position:fixed;border:2px solid #734151;border-radius:15px;
+ padding:20px 22px;background:#fff8f0;color:#34272d;
+ box-shadow:inset 0 0 0 5px #fff8f0,inset 0 0 0 6px #d9afa9,0 18px 55px #21102170;
+ isolation:isolate;
+}
+#studioColorDialog.biglwa-stitched-dialog::before{
+ content:"";position:absolute;inset:8px;border:1px dashed #bb9392;border-radius:8px;
+ pointer-events:none;z-index:-1;
+}
+#studioColorDialog::backdrop{background:#26152187;backdrop-filter:blur(3px)}
+#studioColorDialog .studio-color-heading{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding-bottom:9px;border-bottom:1px dashed #bc9297}
+#studioColorDialog h2{font:400 23px/1.12 "CS Bergamot Stitched",Georgia,serif;letter-spacing:.012em;color:#603849;margin:0}
+#studioColorDialog .studio-color-dots{display:flex;gap:5px;flex:none}
+#studioColorDialog .studio-color-dots i{width:9px;height:9px;border-radius:50%;background:#e36e72;border:1px solid #b15c61}
+#studioColorDialog .studio-color-dots i:nth-child(2){background:#e6c05d;border-color:#b69d57}
+#studioColorDialog .studio-color-dots i:nth-child(3){background:#7bb18b;border-color:#5f9671}
+#studioColorDialog #studioColorSwatch{height:34px;border-radius:7px;border:1px solid #b8979d;box-shadow:inset 0 0 0 1px #fff9;margin-bottom:13px}
+#studioColorDialog label{display:grid;grid-template-columns:1fr auto;gap:5px;font:700 11px/1.3 Inter,system-ui,sans-serif;margin:10px 0;color:#48303b}
+#studioColorDialog input:not([type=range]){grid-column:1/-1;width:100%;box-sizing:border-box}
+#studioColorDialog #studioColorHex{padding:8px 10px;border:1px solid #bea6ad;border-radius:7px;background:#fffdfb;color:#46313b;font:600 13px ui-monospace,monospace}
+#studioColorDialog .studio-color-visual{display:grid;gap:9px}
+#studioColorDialog #studioColorPlane{position:relative;height:156px;border:1px solid #b58e99;border-radius:9px;
+ background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl(var(--plane-hue,0) 100% 50%);
+ cursor:crosshair;touch-action:none;user-select:none;box-shadow:inset 0 1px 3px #0003;outline-offset:3px
+}
+#studioColorDialog #studioColorPointer{position:absolute;width:13px;height:13px;left:0;top:0;transform:translate(-50%,-50%);
+ border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1.5px #31212a,0 1px 4px #0009;pointer-events:none}
+#studioColorDialog input[type=range]{grid-column:1/-1;display:block;box-sizing:border-box;width:100%;
+ margin:3px 0 4px;min-height:24px;cursor:ew-resize;touch-action:none;accent-color:#8b4965;pointer-events:auto;user-select:none
+}
+#studioColorDialog #studioColorHue{appearance:none;-webkit-appearance:none;height:20px;min-height:20px;
+ border-radius:999px;border:1px solid #bb9fa6;
+ background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)
+}
+#studioColorDialog #studioColorHue::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;
+ width:19px;height:24px;border:2px solid #fff;border-radius:7px;background:#532e43;box-shadow:0 0 0 1px #4d2d3b;cursor:grab}
+#studioColorDialog #studioColorHue::-moz-range-thumb{width:15px;height:20px;border:2px solid #fff;border-radius:7px;background:#532e43;box-shadow:0 0 0 1px #4d2d3b;cursor:grab}
+#studioColorDialog output{font:700 11px/1.2 ui-monospace,monospace}
+#studioColorDialog .studio-color-rgb{margin:11px 0 12px;padding:7px 10px;border:1px dashed #c7a9ac;border-radius:8px;background:#fffbf74d}
+#studioColorDialog .studio-color-rgb summary{font:700 11px/1.35 Inter,system-ui,sans-serif;cursor:pointer}
+#studioColorDialog .studio-color-rgb-fields{padding-top:3px}
+#studioColorDialog .studio-color-rgb-fields label{margin:6px 0 2px}
+#studioColorDialog .studio-color-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:13px}
+#studioColorDialog .studio-color-actions button{padding:9px 15px;border:1px solid #b998a2;border-radius:8px;
+ font:700 12px Inter,system-ui,sans-serif;background:#fffaf5;color:#603747;cursor:pointer}
+#studioColorDialog #studioColorDone{background:#73394f;color:#fff8f0;border-color:#73394f}
+#studioColorDialog :is(button,input,summary,#studioColorPlane):focus-visible{outline:2px solid #713c76;outline-offset:3px}
+@media(max-height:650px){#studioColorDialog.biglwa-stitched-dialog{padding:14px 20px}#studioColorDialog #studioColorPlane{height:108px}}
 #studioApp .biglwa-skeleton-title .skeleton-settings{margin-left:auto;font:11px system-ui;color:inherit}
 
 /* 2026-10-21 follow-up: slim the Studio shortcut rail and balance its gutters.
