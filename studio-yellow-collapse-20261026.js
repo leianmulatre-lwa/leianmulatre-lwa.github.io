@@ -39,6 +39,10 @@
   if(isVisitor())return;
   const saved=getSaved();
   document.querySelectorAll(widgetSelector).forEach(widget=>{
+   if(widget.dataset.yellowCollapseOwner!==(uid()||'')){
+    delete widget.dataset.yellowCollapseTouched;
+    widget.dataset.yellowCollapseOwner=uid()||'';
+   }
    const id=key(widget);
    if(saved&&id&&widget.dataset.yellowCollapseTouched!=='1'&&!widget.classList.contains('widget-is-minimized')){
     widget.classList.toggle('studio-header-only',saved.has(id));
@@ -48,6 +52,7 @@
  }
  function persist(){
   if(isVisitor()||!uid())return;
+  if(!window.__biglwaIdentity?.uid)return; // match the account ID used by Studio layout persistence
   window.BigLWAStudioLayout?.save?.();
  }
  // Capture at WINDOW level before legacy document-capture minimization.
@@ -63,6 +68,7 @@
    widget.classList.remove('widget-is-expanded');
    widget.classList.toggle('studio-header-only');
    widget.dataset.yellowCollapseTouched='1';
+   widget.dataset.yellowCollapseOwner=uid()||'';
    sync(widget);
    persist();
    return;

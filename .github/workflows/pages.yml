@@ -80,11 +80,13 @@ jobs:
       - name: Verify persistent Studio layout and safe Settings cache controls
         run: |
           node --check ui-coherence.js
+          node --check studio-yellow-collapse-20261026.js
           node --check settings-cache.js
           node --check veve.js
           node --check media-placeholders.js
           node media-visual-reliability-test.mjs
           node studio-layout-cache-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-yellow-collapse-regression-test.mjs
           node dock-scroll-stability-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node veve-curtain-regression-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node stream-dock-no-signal-test.mjs
