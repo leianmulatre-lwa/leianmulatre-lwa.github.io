@@ -77,6 +77,11 @@
   }else if(url){
    photo.replaceChildren();
    const img=make('img');img.src=url;img.alt=(publicProfile?.name||'Member')+' '+(published?'avatar preview':'profile picture');img.loading='lazy';
+   if(!published&&publicProfile?.profilePhotoPosition){
+     const pos=publicProfile.profilePhotoPosition;
+     const norm=value=>Math.min(100,Math.max(0,Number.isFinite(Number(value))?Number(value):50));
+     img.style.objectPosition=norm(pos.x)+'% '+norm(pos.y)+'%';
+   }
    photo.append(img);
   }else{
    // Never put someone's monogram in the Avatar: initials belong on the Journal cover.
