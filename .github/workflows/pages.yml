@@ -78,6 +78,9 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node profile-highlight-editor-test.mjs
           node --check studio-media-adjust-20261027.js
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-media-adjust-test.mjs
+          node --check lwa-welcome.js
+          node --check veve.js
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node lwa-welcome-test.mjs
       - name: Verify trophy achievement map interactions
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node trophy-achievement-map-test.mjs
       - name: Verify provider followers, per-app badges and stable animated dots
