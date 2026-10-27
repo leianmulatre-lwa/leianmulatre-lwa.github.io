@@ -18,8 +18,8 @@ for(const [label,p] of [
  assert.ok(img.readUInt32BE(16)>=1000,label+' HD PNG width');
  assert.ok(img.readUInt32BE(20)>=1000,label+' HD PNG height');
 }
-assert.ok(css.includes('studio-games-cabinet-20261026.png'));
-assert.ok(css.includes('studio-lwazi-cabinet-20261026.png'));
+assert.ok(css.includes('studio-games-cabinet-hd-20261026.png'));
+assert.ok(css.includes('studio-lwazi-cabinet-hd-20261026.png'));
 assert.ok(css.includes('#studioApp #games .arcade-library-viewport>.arcade-track'),'Games keeps existing carousel tracks');
 assert.ok(css.includes('animation-play-state:paused'),'Carousel pause on hover/focus');
 assert.ok(!css.includes('display:none!important;animation:none'),'No carousel hidden');
