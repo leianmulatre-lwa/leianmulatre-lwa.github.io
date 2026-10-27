@@ -144,3 +144,22 @@ body.night-mode #studioApp #moduleWorkspace[data-module-key="archive"] .archive-
   min-width:0!important;padding:7px 10px!important
  }
 }
+
+/* Archive highlights: actual media cards, not anonymous Photo 1 checkboxes. */
+#studioApp #archiveHighlightsPanel .highlight-item-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:9px 0 3px}
+#studioApp #archiveHighlightsPanel .highlight-item-card{position:relative;display:grid!important;gap:3px!important;min-width:0;cursor:pointer;overflow:hidden;border:2px solid rgba(100,74,76,.19);border-radius:10px;background:#fff8f2;padding:5px!important;transition:border-color .16s,box-shadow .16s,opacity .16s}
+#studioApp #archiveHighlightsPanel .highlight-item-card[data-live="true"]{border-color:#96516c;box-shadow:0 0 0 1px #96516c29}
+#studioApp #archiveHighlightsPanel .highlight-item-card[data-live="false"]{opacity:.65}
+#studioApp #archiveHighlightsPanel .highlight-item-media{width:100%;aspect-ratio:4/5;overflow:hidden;border-radius:6px;background:#ebe2db;display:grid;place-items:center}
+#studioApp #archiveHighlightsPanel .highlight-item-media :is(img,video){display:block;width:100%;height:100%;object-fit:cover;max-width:none}
+#studioApp #archiveHighlightsPanel .highlight-item-card input[type=checkbox]{position:absolute;top:9px;right:9px;width:18px!important;height:18px!important;min-height:18px!important;margin:0;z-index:2;cursor:pointer;accent-color:#88435e;box-shadow:0 1px 5px #1b0c1280}
+#studioApp #archiveHighlightsPanel .highlight-item-kind{position:absolute;top:10px;left:9px;max-width:calc(100% - 39px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:7px;background:#20191dbc;color:#fff;font:700 10px/1.2 system-ui;padding:3px 5px}
+#studioApp #archiveHighlightsPanel .highlight-item-name{color:#3e3032;font:700 11px/1.2 system-ui}
+#studioApp #archiveHighlightsPanel .highlight-item-live{color:#6c3450;font:750 11px/1.2 system-ui}
+#studioApp #archiveHighlightsPanel .highlight-item-card[data-live="false"] .highlight-item-live{color:#665b59}
+#studioApp #archiveHighlightsPanel .highlight-item-card:focus-within{outline:2px solid #843e61;outline-offset:2px}
+@media(max-width:1100px){#studioApp #archiveHighlightsPanel .highlight-item-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){#studioApp #archiveHighlightsPanel .highlight-item-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
+body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-card{background:#42383a;border-color:#8b6875}
+body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-name{color:#fff0ed}
+body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-live{color:#f0a8c5}
