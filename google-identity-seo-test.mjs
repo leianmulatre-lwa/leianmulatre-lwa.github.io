@@ -20,7 +20,7 @@ assert.match(profile,/Leian Stanley/);
 assert.match(about,/href="\/leian-mulatre\/"/,'About links to founder profile');
 assert.match(footer,/founderLink\.href = '\/leian-mulatre\/';/,'Policy footer links to founder profile');
 assert.match(sitemap,/https:\/\/biglwa\.com\/leian-mulatre\//);
-assert.match(robots,/Allow: \/\n/,'Founder's public page not robots-blocked');
+assert.match(robots,/Allow: \/\n/,'Founder public page is not robots-blocked');
 assert.match(privacy,/Privacy should be the bare minimum/);
 assert.match(privacy,/Some profile settings, connected-account details/,'Privacy reflects cloud synchronization');
 const homepageData=JSON.parse(homepage.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
