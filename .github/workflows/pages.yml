@@ -99,6 +99,7 @@ jobs:
           node orbit-veve-layout-test.mjs
           node archive-orbit-density-shadow-test.mjs
           node archive-paper-surface-regression-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node archive-flat-gallery-dom-test.mjs
           node shared-shadow-header-regression-test.mjs
           node source-shadow-single-depth-test.mjs
           node privacy-settings-orbit-test.mjs
