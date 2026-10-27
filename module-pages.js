@@ -316,7 +316,9 @@
     body.night-mode .video-booth-tile{background:linear-gradient(160deg,#2b2724,#1d1a19);border-color:#4a423c;color:#a2968c}
     .video-booth-tile{padding:12px;min-width:0;box-sizing:border-box;gap:6px;text-align:center}
     .video-booth-profile-photo{display:grid;place-items:center;width:clamp(64px,14vw,104px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(var(--aura-rgb,216,95,109),.35);background:radial-gradient(circle at 45% 40%,rgba(var(--aura-rgb,216,95,109),.35),transparent 75%);font:700 28px Georgia,serif}
-    .video-booth-tile b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;font:700 17px/1.2 Georgia,serif;letter-spacing:normal;text-transform:none;color:inherit}
+     .video-booth-profile-photo{overflow:hidden}
+     .video-booth-profile-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+     .video-booth-tile b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;font:700 17px/1.2 Georgia,serif;letter-spacing:normal;text-transform:none;color:inherit}
     .video-booth-tile small,.video-booth-card-note{display:block;font:700 10px/1.35 system-ui;text-transform:none;letter-spacing:normal;color:inherit;opacity:.8}
     .video-booth-card-note{font-size:9px;opacity:.66}
     @media(max-width:520px){.video-booth-preview{grid-template-columns:1fr 1fr;gap:6px}.video-booth-tile{padding:8px}}
@@ -934,8 +936,8 @@
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','visualz','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'bookini',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwibz',projects:'visualizr',project:'visualizr',visualz:'visualizr',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'lwazi',reviews:'Wallpaper Reviews',politc:'politc'};
-  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite friends to join BIGLWA.',camera:'Your own booth to capture or chat with other bookini’s on Big LWA.',diary:'A private writing page that autosaves in this browser.',stream:'LWA Radio, TV, live channels and independent broadcasts.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Your wardrobe, resale links and preloved listings.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'A creative home for visualeyez boards and visualslidez presentations.',visualz:'A creative home for visualeyez boards and visualslidez presentations.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Your werkshopeR. Meet the blocks of the R/Lwazi series: our own apps, designed fo/r you. 2 web-friendly originals and 4 advanced open-source R-editors.',politc:'Politics, elections, the pendulum, public records and reporting.'};
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'boothi',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwibz',projects:'visualizr',project:'visualizr',visualz:'visualizr',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'lwazi',reviews:'Wallpaper Reviews',politc:'politc'};
+  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite boo·kiniz to join Big LWA.',camera:'Use our booth to feel yourself or chat with other bookiniz using Big LWA.',diary:'A private writing page that autosaves in this browser.',stream:'LWA Radio, TV, live channels and independent broadcasts.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Your wardrobe, resale links and preloved listings.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'A creative home for visualeyez boards and visualslidez presentations.',visualz:'A creative home for visualeyez boards and visualslidez presentations.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Your werkshopeR. Meet the blocks of the R/Lwazi series: our own apps, designed fo/r you. 2 web-friendly originals and 4 advanced open-source R-editors.',politc:'Politics, elections, the pendulum, public records and reporting.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
@@ -1809,7 +1811,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
 
   function renderConnect(){
     const invite='https://biglwa.com/login';
-    body.innerHTML=heading('connect')+'<section class="module-card wide" style="margin-top:20px"><h2>Invite your people.</h2><p>Send a friend this link to join BIGLWA. They can choose Create account on the welcome page.</p><label for="biglwaInvite">Join BIGLWA link</label><input class="module-input" id="biglwaInvite" readonly value="'+invite+'"><div class="module-actions"><button type="button" class="module-action" id="copyBiglwaInvite">Copy invite link</button><button type="button" class="module-action ghost" id="shareBiglwaInvite">Share invitation</button></div><p class="module-status" id="inviteStatus" role="status"></p></section>';
+    body.innerHTML=heading('connect')+'<section class="module-card wide" style="margin-top:20px"><h2>Invite boo·kiniz.</h2><p>Send a friend this link to join BIGLWA. They can choose Create account on the welcome page.</p><label for="biglwaInvite">Join BIGLWA link</label><input class="module-input" id="biglwaInvite" readonly value="'+invite+'"><div class="module-actions"><button type="button" class="module-action" id="copyBiglwaInvite">Copy invite link</button><button type="button" class="module-action ghost" id="shareBiglwaInvite">Share invitation</button></div><p class="module-status" id="inviteStatus" role="status"></p></section>';
     const status=$('#inviteStatus',body);
     async function copy(){try{await navigator.clipboard.writeText(invite);status.textContent='Invite link copied.'}catch{const input=$('#biglwaInvite',body);input.focus();input.select();status.textContent='Select and copy the link above to share it.'}}
     // User-controlled invitations: contacts are never bulk-uploaded, harvested,
@@ -1945,7 +1947,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose a boo version"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo-boo</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video-boo <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo-boo</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
+    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose boothi mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/login-curtain-film-grain-v2.webp?v=20261026-boothi" alt="Red curtain for photo booth" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
     const photoTab=$('#boothPhotoTab',body),videoTab=$('#boothVideoTab',body);
     const photoPanel=$('#boothPhotoPanel',body),videoPanel=$('#boothVideoPanel',body);
     const selectBooth=mode=>{
@@ -1959,7 +1961,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const cameraStage=$('#photoStage',body);
         if(cameraStage?.querySelector('#boothVideo')){
           cameraStage.classList.add('has-intro');
-          cameraStage.innerHTML='<img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Photo Booth preview" width="800" height="533">';
+          cameraStage.innerHTML='<img class="photobooth-intro" src="/assets/login-curtain-film-grain-v2.webp?v=20261026-boothi" alt="Red photo booth curtain" width="800" height="533">';
           $('#photoCapture',body).disabled=true;$('#photoFlip',body).disabled=true;
           $('#photoStatus',body).textContent='Camera stopped when switching to Video Booth. Start camera again to take photos.';
         }
@@ -1988,7 +1990,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function renderVideoBooth(){
     return `<section class="module-card wide video-booth-soon booth-panel" id="boothVideoPanel" role="tabpanel" aria-labelledby="boothVideoTab" hidden>
       <div class="video-booth-head">
-        <h2 id="videoBoothTitle">Video Booth</h2>
+        <h2 id="videoBoothTitle">video·booth</h2>
         <span class="coming-soon-badge">Coming soon</span>
       </div>
       <p>Meet the person before the call. You'll see their profile picture, display name and BIG LWA rank — never their @handle. Connect only when you both agree.</p>
@@ -1998,7 +2000,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           <b>Your profile</b><small>Your rank appears here</small>
         </div>
         <div class="video-booth-tile them" id="videoBoothCandidateCard" aria-label="Candidate's public preview before a video connection">
-          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto" aria-hidden="true">?</span>
+          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto"><img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Video Booth sample portrait" loading="lazy"></span>
           <b id="videoBoothCandidateName">Display name</b>
           <small class="video-booth-profile-rank" id="videoBoothCandidateRank">BIG LWA rank</small>
           <span class="video-booth-card-note">No @handle shown</span>
@@ -3675,8 +3677,24 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(!leaf.length&&!control.children.length)leaf.push(control);
       leaf.forEach(node=>{if(/^(qwiky|quick|sqwib)\s*note$/i.test(node.textContent.trim()))node.textContent='Sqwib'});
     });
-    const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
-    if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Black-and-white photobooth preview');cameraPreview.innerHTML='<img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy">'}
+    const toolsCard=$('#tools');
+     if(toolsCard){
+       const sub=$('.sub',toolsCard);
+       if(sub&&sub.textContent!=="every tool you'll ever need is here. we promise.")sub.textContent="every tool you'll ever need is here. we promise.";
+       const cta=$('.card-cta',toolsCard);
+       if(cta){cta.textContent='open tools';cta.dataset.open='tools';cta.setAttribute('aria-label','Open tools')}
+     }
+     const connectCard=$('#connect');
+     if(connectCard){
+       connectCard.querySelectorAll('button,a').forEach(control=>{
+         for(const leaf of [control,...control.querySelectorAll('span,small,b,strong')]){
+           if(leaf.children.length)continue;
+           if(/^invite friends$/i.test(leaf.textContent.trim()))leaf.textContent='invite boo·kiniz';
+         }
+       });
+     }
+     const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
+    if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Photo booth curtain preview');cameraPreview.innerHTML='<img src="/assets/login-curtain-film-grain-v2.webp?v=20261026-boothi" alt="Red curtain for photo booth" width="800" height="533" loading="lazy">'}
     const archiveCard=$('#archive');
     if(archiveCard){
       archiveCard.dataset.widgetRoute='archive';
