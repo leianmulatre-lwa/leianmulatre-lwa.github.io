@@ -341,7 +341,7 @@
   (async()=>{try{
     const api=await import('/account-photo.js?v=20261027-adjust-position-1');
     const details=await api.getProfilePhotoDetails();
-    if(photoPreview.isConnected&&owner()&&!isPreview())showPhotoPreview(details.url,details.position);
+    if(photoPreview.isConnected&&owner()&&!isPreview()){showPhotoPreview(details.url,details.position);api.applyProfilePhotoPosition(details.position)}
   }catch{}})();
   const pic=make('input');pic.type='file';pic.accept='image/jpeg,image/png,image/webp,image/gif';pic.setAttribute('aria-label','Choose new profile picture');
   pic.onchange=async()=>{
