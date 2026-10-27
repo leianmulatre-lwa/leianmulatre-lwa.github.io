@@ -53,7 +53,11 @@
     });
 
     const founder = document.createElement('p');
-    founder.textContent = 'Big LWA · Founded by Leian Stanley · All rights reserved.';
+    founder.append('BIG LWA · Founded by ');
+    const founderLink = document.createElement('a');
+    founderLink.href = '/leian-mulatre/';
+    founderLink.textContent = 'Leian Mulatre / Leian Stanley';
+    founder.append(founderLink, ' · All rights reserved.');
     footer.append(nav, founder);
     return footer;
   };
