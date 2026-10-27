@@ -104,6 +104,7 @@
    field.value='';renderRoots();
   };
   add.addEventListener('click',commit);
+  field.addEventListener('change',commit);
   field.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commit()}});
   wrap.append(field,add,list);body.append(wrap,selected);renderRoots();
  }
@@ -172,10 +173,12 @@
    const f=await firebase(),user=f.auth.currentUser;
    if(!user||user.uid!==session.uid)throw Error('Sign in to your account to save preferences.');
    const payload=sanitize({...data,complete:true});
-   await f.setDoc(f.doc(f.db,'users',user.uid),{lwaOnboarding:{
-    version:1,complete:true,conductAgreedAt:f.serverTimestamp(),gender:payload.gender,pronouns:payload.pronouns,
+   const record={
+    version:1,complete:true,gender:payload.gender,pronouns:payload.pronouns,
     roots:payload.roots,interests:payload.interests,sensitivity:payload.sensitivity,updatedAt:f.serverTimestamp()
-   }},{merge:true});
+   };
+   if(mode==='signup')record.conductAgreedAt=f.serverTimestamp();
+   await f.setDoc(f.doc(f.db,'users',user.uid),{lwaOnboarding:record},{merge:true});
    data={...payload};dialog.close();
    window.dispatchEvent(new CustomEvent('biglwa:discovery-preferences-updated',{detail:{interests:payload.interests,sensitivity:payload.sensitivity}}));
    if(mode==='signup'&&document.querySelector('#studioApp')){
