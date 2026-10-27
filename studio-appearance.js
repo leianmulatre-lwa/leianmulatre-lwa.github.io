@@ -11,7 +11,7 @@
   const readOwned=base=>{const k=ownedKey(base);if(!k)return null;try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
   const WALLPAPER_SETTINGS_KEY='biglwaWallpaperSettings';
   const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card),#studioApp .module-workspace .module-card,#studioApp .module-workspace .calendar-board,#studioApp .module-workspace .module-launcher';
-  let activeObjectUrl='';
+  let activeObjectUrl='',activeWallpaperSource='',activeWallpaperKind='image';
 
   function ensureStyles(){
     let style=$('#biglwa-studio-appearance-style');
@@ -91,7 +91,11 @@
       #studioApp .wallpaper-safety-status[data-state="error"],#studioApp .wallpaper-safety-status[data-state="held"]{border-color:rgba(166,48,48,.38);color:#983737!important}
       #studioApp .wallpaper-18-badge{display:none;width:max-content;margin:5px 0;padding:4px 7px;border-radius:999px;background:#1d1b1a;color:#fff;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
       #studioApp .wallpaper-18-badge.is-visible{display:block}
-      #studioApp .wallpaper-button-row{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:start}
+      #studioApp .wallpaper-button-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:start}
+      #studioApp .wallpaper-button-row .wallpaper-adjust{border:1px dashed #95556b!important;background:#fff6ed!important;color:#613a4c!important;font:750 12px system-ui;padding:11px 16px;cursor:pointer}
+      #studioApp #profileWallpaperEditor .wallpaper-position-native{display:none!important}
+      @media(max-width:500px){#studioApp .wallpaper-button-row{grid-template-columns:minmax(0,1fr) auto auto;gap:4px}#studioApp .wallpaper-button-row .wallpaper-adjust{padding:10px 9px}}
+
       #studioApp .wallpaper-button-row .secondary-btn{margin:0!important}
       #studioApp .wallpaper-button-row .wallpaper-remove{width:auto!important;min-width:72px!important;background:rgba(255,255,255,.54)!important;color:var(--widget-ink,#272321)!important;border:1px solid rgba(65,54,49,.18)!important}
       #pageWallpaper>.biglwa-wallpaper-video{position:absolute;inset:-3%;z-index:0;display:none;width:106%;height:106%;object-fit:var(--page-size,cover);object-position:var(--page-position,center);pointer-events:none}
@@ -285,6 +289,7 @@
     if(!page||(!media?.url&&!media?.blob))return false;
     clearWallpaperDisplay();
     const url=media.blob?(activeObjectUrl=URL.createObjectURL(media.blob)):String(media.url);
+    activeWallpaperSource=url;activeWallpaperKind=isVideoMedia(media)?'video':'image';
     if(isVideoMedia(media)){
       page.classList.add('biglwa-video-wallpaper');
       [video,previewVideo].forEach(el=>{el.src=url;el.style.display='block'});
@@ -301,20 +306,31 @@
 
   function clearWallpaperDisplay(){
     const {page,preview,video,previewVideo}=getWallpaperElements();if(!page)return;
-    revokeActiveUrl();
+    revokeActiveUrl();activeWallpaperSource='';activeWallpaperKind='image';
     page.classList.remove('custom-image','biglwa-video-wallpaper');page.style.removeProperty('--page-image');page.style.removeProperty('background-image');
     [video,previewVideo].forEach(media=>{media.pause();media.removeAttribute('src');media.load();media.style.display='none'});
     preview.style.removeProperty('background-image');preview.style.removeProperty('background-size');preview.style.removeProperty('background-position');
   }
 
+  function setWallpaperPosition(value){
+    const select=$('#positionSelect');if(!select)return;
+    const candidate=String(value||'center');
+    const valid=/^(?:center|top|left|right|bottom|(?:\d{1,3}(?:\.\d)?%\s+){1}\d{1,3}(?:\.\d)?%)$/.test(candidate)?candidate:'center';
+    if(![...select.options].some(option=>option.value===valid)){
+      select.querySelector('[data-custom-position]')?.remove();
+      const option=document.createElement('option');option.value=valid;option.textContent='Custom alignment';option.dataset.customPosition='1';select.append(option);
+    }
+    select.value=valid;
+  }
   function currentWallpaperSettings(){
     return {fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'};
   }
 
   function applyWallpaperSettings(save=true){
-    const settings=currentWallpaperSettings(),{page,video,previewVideo}=getWallpaperElements();if(!page)return;
+    const settings=currentWallpaperSettings(),{page,preview,video,previewVideo}=getWallpaperElements();if(!page)return;
     page.style.setProperty('--page-size',settings.fit);page.style.backgroundSize=settings.fit;page.style.setProperty('--page-position',settings.position);page.style.backgroundPosition=settings.position;
     page.style.setProperty('--page-blur',`${settings.blur}px`);page.style.setProperty('--page-overlay',Number(settings.overlay)/100);
+    if(preview){preview.style.backgroundSize=settings.fit;preview.style.backgroundPosition=settings.position}
     [video,previewVideo].forEach(media=>{media.style.objectFit=settings.fit;media.style.objectPosition=settings.position});
     const labels={blurValue:`${settings.blur}%`,overlayValue:`${settings.overlay}%`};Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
     if(save)saveOwned(WALLPAPER_SETTINGS_KEY,settings)
@@ -331,7 +347,7 @@
 
   function restoreWallpaperSettings(){
     let settings=readOwned(WALLPAPER_SETTINGS_KEY)
-    if(settings){const mapping={fitSelect:'fit',positionSelect:'position',blurRange:'blur',overlayRange:'overlay'};Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&settings[key]!=null)input.value=settings[key]})}
+    if(settings){const mapping={fitSelect:'fit',blurRange:'blur',overlayRange:'overlay'};Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&settings[key]!=null)input.value=settings[key]});setWallpaperPosition(settings.position)}
     applyWallpaperSettings(false);
   }
 
@@ -455,6 +471,32 @@
     }
     let row=$('.wallpaper-button-row',section);
     if(!row){row=document.createElement('div');row.className='wallpaper-button-row';button.replaceWith(row);row.appendChild(button);const remove=document.createElement('button');remove.type='button';remove.id='removeWallpaper';remove.className='secondary-btn wallpaper-remove';remove.textContent='Remove';row.appendChild(remove)}
+    if(!$('#adjustWallpaper',row)){
+      const adjust=document.createElement('button');adjust.type='button';adjust.id='adjustWallpaper';adjust.className='secondary-btn wallpaper-adjust';adjust.textContent='Adjust';
+      const remove=$('#removeWallpaper',row);if(remove)row.insertBefore(adjust,remove);else row.append(adjust);
+    }
+    // Fit and preset positions are still available inside Adjust; do not clutter the main editor.
+    for(const id of ['fitSelect','positionSelect'])$('#'+id,section)?.closest('label')?.classList.add('wallpaper-position-native');
+    const adjust=$('#adjustWallpaper',row);
+    if(adjust&&adjust.dataset.biglwaAdjustBound!=='1'){
+      adjust.dataset.biglwaAdjustBound='1';adjust.addEventListener('click',()=>{
+        const editor=window.BIGLWAMediaAdjust;if(!editor){setSafetyStatus('error','Picture alignment controls have not loaded. Reload Studio to try again.');return}
+        const elements=getWallpaperElements();
+        const src=activeWallpaperSource||elements.previewVideo?.currentSrc||elements.previewVideo?.src||'';
+        if(!src){setSafetyStatus('idle','Choose a wallpaper before adjusting it.');return}
+        const settings=currentWallpaperSettings();
+        editor.open({type:'wallpaper',url:src,video:activeWallpaperKind==='video',fit:settings.fit,position:settings.position,
+          onSave:async changes=>{
+            const fit=$('#fitSelect');if(fit)fit.value=changes.fit;
+            setWallpaperPosition(changes.position);applyWallpaperSettings(true);
+            // Keep the authenticated account and approved public preview aligned, not just this device.
+            if(window.BigLWAUserDirectory?.saveCustomizations){
+              const ok=await window.BigLWAUserDirectory.saveCustomizations({wallpaper:currentWallpaperSettings()});
+              if(ok===false)throw Error('Your wallpaper position could not sync. Try Save changes.');
+            }
+          }});
+      });
+    }
     if(!$('#wallpaperMediaContext',section)){
       const context=document.createElement('label');context.className='wallpaper-media-context';context.innerHTML='Media context<select id="wallpaperMediaContext"><option value="photo">Photo or video</option><option value="art">Artwork or illustration</option><option value="mixed">Mixed or other</option></select>';row.insertAdjacentElement('afterend',context);
       const note=document.createElement('p');note.className='wallpaper-safety-note';note.textContent='Artwork is reviewed in context, not automatically blocked. Likely explicit photographic nudity is blocked. A confident clean scan publishes straight to your account. Uncertain or adult-coded media is uploaded for a moderator and stays off your public profile until approved.';context.insertAdjacentElement('afterend',note);
@@ -507,7 +549,7 @@
         if(values&&typeof values.wallpaper==='object'){
           const ws=values.wallpaper;
           const fit=$('#fitSelect');if(fit&&ws.fit!=null)fit.value=ws.fit;
-          const pos=$('#positionSelect');if(pos&&ws.position!=null)pos.value=ws.position;
+          if(ws.position!=null)setWallpaperPosition(ws.position);
           const blur=$('#blurRange');if(blur&&ws.blur!=null)blur.value=Number(ws.blur);
           const over=$('#overlayRange');if(over&&ws.overlay!=null)over.value=Number(ws.overlay);
         }
