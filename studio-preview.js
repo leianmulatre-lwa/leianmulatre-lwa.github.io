@@ -158,7 +158,9 @@ function applyIdentity(data){
   if(profileAvatar&&/^https:\/\/biglwa-instagram-api\./.test(photo)){
     profileAvatar.style.backgroundImage='url("'+photo+'")';
     profileAvatar.style.backgroundSize='cover';
-    profileAvatar.style.backgroundPosition='center';
+    const placement=data.profilePhotoPosition||{x:50,y:50};
+    const axis=v=>Math.min(100,Math.max(0,Number.isFinite(Number(v))?Number(v):50));
+    profileAvatar.style.backgroundPosition=axis(placement.x)+'% '+axis(placement.y)+'%';
   }
   const welcome=$("#studioApp .welcome strong");
   if(welcome && name) welcome.textContent=name.charAt(0).toUpperCase()+name.slice(1);
