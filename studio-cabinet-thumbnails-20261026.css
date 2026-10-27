@@ -1,15 +1,18 @@
+/* Original full-resolution 26 Oct cabinet art. Each PNG is a painted frame,
+   NEVER a static replacement for the moving carousel in its screen.
+   Both HD files are exact Git blob copies of the user's dated new-image uploads. */
 /* Studio cabinet ART, not replacement content. The existing Games carousel stays live.
    The second cabinet frames a NEW carousel of Workshop block icons. */
 #studioApp #games .games-library.games-library{
- aspect-ratio:0.807!important;background:transparent!important;overflow:visible!important;
+ aspect-ratio:1122 / 1402!important;background:transparent!important;overflow:visible!important;
 }
 #studioApp #games .games-library.games-library::before{
- background-image:url('/assets/arcade/studio-games-cabinet-20261026.png')!important;
+ background-image:url('/assets/arcade/studio-games-cabinet-hd-20261026.png')!important;
  background-size:100% 100%!important;background-position:center!important;
  background-repeat:no-repeat!important;
 }
 #studioApp #games .arcade-library-viewport.arcade-library-viewport{
- left:10%!important;top:25.2%!important;width:80%!important;height:43.7%!important;
+ left:10.15%!important;top:25.85%!important;width:79.7%!important;height:42.7%!important;
  background:#080813!important;z-index:4!important;
 }
 #studioApp #games .games-arcade-brand .arcade-folder-dots.arcade-folder-dots{
@@ -28,18 +31,18 @@
    Do not use a full-surface button; it would swallow scrolling and app clicks. */
 #studioApp #tools .lwazi-cabinet-thumb{
  position:relative!important;display:block!important;width:100%!important;
- aspect-ratio:0.784!important;height:auto!important;overflow:visible!important;
+ aspect-ratio:1122 / 1402!important;height:auto!important;overflow:visible!important;
  box-sizing:border-box!important;margin:8px auto 0!important;padding:0!important;
  border:0!important;border-radius:0!important;background:transparent!important;
  box-shadow:none!important;isolation:isolate!important;
 }
 #studioApp #tools .lwazi-cabinet-thumb::before{
  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
- background:url('/assets/arcade/studio-lwazi-cabinet-20261026.png') center / 100% 100% no-repeat;
+ background:url('/assets/arcade/studio-lwazi-cabinet-hd-20261026.png') center / 100% 100% no-repeat;
 }
 #studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport{
  position:absolute!important;z-index:2!important;
- left:11%!important;top:25.8%!important;width:78%!important;height:44.8%!important;
+ left:10.75%!important;top:23.9%!important;width:78.5%!important;height:43%!important;
  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
  gap:6px!important;min-height:0!important;max-height:none!important;
  margin:0!important;padding:6px!important;box-sizing:border-box!important;
@@ -102,4 +105,22 @@
  #studioApp #tools .lwazi-cabinet-thumb .arcade-track{
   animation:none!important;transform:none!important;
  }
+}
+
+/* Screen must remain above the cabinet art and interactive at all sizes.
+   Decorative art cannot intercept pointer/touch/keyboard input. */
+#studioApp #games .games-library.games-library::before,
+#studioApp #tools .lwazi-cabinet-thumb::before{
+ pointer-events:none!important;
+ image-rendering:auto!important;
+}
+#studioApp #games .arcade-library-viewport.arcade-library-viewport{
+ position:absolute!important;z-index:4!important;pointer-events:auto!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport{
+ position:absolute!important;z-index:2!important;pointer-events:auto!important;
+}
+#studioApp #games .arcade-library-viewport > .arcade-track,
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport > .arcade-track{
+ visibility:visible!important;opacity:1!important;
 }
