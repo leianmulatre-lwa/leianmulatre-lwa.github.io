@@ -1,36 +1,36 @@
 /* BIG LWA / Archive: isolated, cache-busted and loadable even if the
    legacy module's long embedded CSS is unavailable after route hydration.
    A single gallery; native card gestures, source shadows and auth remain. */
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell{
   display:block!important;box-sizing:border-box!important;min-width:0!important;
   width:100%!important;padding:16px 18px 20px!important;margin:14px 0 0!important;
   border:1px solid #ded4cb!important;border-radius:16px!important;
   background:#faf6ef!important;background-image:none!important;
   box-shadow:0 3px 10px rgba(48,32,24,.06)!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar{
   display:grid!important;grid-template-columns:max-content minmax(0,1fr)!important;
   align-items:center!important;gap:10px 16px!important;
   margin:0 0 6px!important;padding:0 0 12px!important;
   border-bottom:1px solid #e4d9cf!important;
   background:transparent!important;min-width:0!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions{
   grid-column:1!important;display:flex!important;align-items:center!important;
   gap:8px!important;flex-wrap:nowrap!important;min-width:0!important;margin:0!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions .module-action{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions .module-action{
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
   white-space:nowrap!important;min-height:34px!important;padding:8px 13px!important;
   border-radius:10px!important;font:700 11px/1.15 system-ui!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-bar{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-bar{
   grid-column:2!important;display:flex!important;align-items:center!important;
   justify-content:flex-end!important;gap:6px!important;flex-wrap:wrap!important;
   min-width:0!important;margin:0!important;padding:0!important;
   background:transparent!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip{
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
   flex:0 0 auto!important;min-height:29px!important;padding:6px 10px!important;
   border:1px solid #dcb6af!important;border-radius:999px!important;
@@ -39,36 +39,36 @@
   text-transform:none!important;white-space:nowrap!important;box-shadow:none!important;
   cursor:pointer!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip.is-on,
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip[aria-pressed="true"]{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip.is-on,
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip[aria-pressed="true"]{
   background:#864053!important;color:#fff9f2!important;border-color:#864053!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip:focus-visible{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-chip:focus-visible{
   outline:2px solid #864053!important;outline-offset:2px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-dupes{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-dupes{
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
   flex:0 0 auto!important;gap:5px!important;margin:0 0 0 5px!important;
   white-space:nowrap!important;font:600 10px/1.25 system-ui!important;
   color:#625b55!important;cursor:pointer!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-dupes input{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-dupes input{
   width:15px!important;height:15px!important;margin:0!important;
   accent-color:#864053!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] #archiveInstagramStatus{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveInstagramStatus{
   display:block!important;margin:0 0 12px!important;padding:4px 1px!important;
   border:0!important;background:transparent!important;
   font:500 10px/1.4 system-ui!important;color:#786d64!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{
   display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;
   align-items:start!important;align-content:start!important;justify-content:stretch!important;
   gap:14px!important;min-width:0!important;max-width:100%!important;
   margin:0!important;padding:0 3px 4px 0!important;
   background:transparent!important;border:0!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list>.instagram-archive-card{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list>.instagram-archive-card{
   box-sizing:border-box!important;display:block!important;width:100%!important;
   min-width:0!important;max-width:none!important;position:relative!important;
   isolation:isolate!important;overflow:hidden!important;border-radius:14px!important;
@@ -76,51 +76,51 @@
   box-shadow:var(--feed-card-shadow,3px 3px 0 var(--feed-card-rim,#a52a0c))!important;
   content-visibility:visible!important;contain-intrinsic-size:auto!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-media{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-media{
   display:block!important;position:relative!important;min-width:0!important;
   overflow:hidden!important;background:transparent!important;
   filter:none!important;opacity:1!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece{
   box-sizing:border-box!important;position:relative!important;display:block!important;
   width:100%!important;min-width:0!important;height:auto!important;
   aspect-ratio:var(--archive-photo-ratio,4/5)!important;
   max-height:none!important;min-height:0!important;overflow:hidden!important;
   background:#e8d8cb!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece img,
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece video{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece img,
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-piece video{
   display:block!important;position:absolute!important;inset:0!important;
   width:100%!important;height:100%!important;max-width:none!important;
   margin:0!important;object-fit:cover!important;object-position:center!important;
   background:transparent!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-piece>img,
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-piece>video,
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-piece>img,
-#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-piece>video{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-piece>img,
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-off .instagram-archive-piece>video,
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-piece>img,
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.is-archived .instagram-archive-piece>video{
   filter:grayscale(1)!important;opacity:.78!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions{
   position:absolute!important;right:6px!important;top:6px!important;
   z-index:9!important;display:flex!important;align-items:center!important;
   gap:3px!important;margin:0!important;padding:3px!important;
   border-radius:999px!important;background:#fff8eeec!important;
   box-shadow:0 2px 7px #15100f33!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button{
   box-sizing:border-box!important;display:block!important;flex:0 0 9px!important;
   width:9px!important;height:9px!important;min-width:9px!important;
   padding:0!important;border:0!important;border-radius:50%!important;
   box-shadow:none!important;cursor:pointer!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button[data-archive-light="delete"]{background:#e96270!important}
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button[data-archive-light="archive"]{background:#ecc046!important}
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button[data-archive-light="enlarge"]{background:#4ca476!important}
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button:focus-visible{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button[data-archive-light="delete"]{background:#e96270!important}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button[data-archive-light="archive"]{background:#ecc046!important}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button[data-archive-light="enlarge"]{background:#4ca476!important}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-browser-actions button:focus-visible{
   outline:2px solid #302728!important;outline-offset:2px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-card-overlay{
   box-sizing:border-box!important;position:absolute!important;inset:auto 0 0!important;
   display:flex!important;align-items:flex-end!important;justify-content:space-between!important;
   gap:5px!important;z-index:7!important;min-width:0!important;
@@ -128,24 +128,24 @@
   background:linear-gradient(0deg,rgba(20,14,16,.87),rgba(20,14,16,.68) 64%,transparent)!important;
   color:#fff8f1!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta{
   flex:1 1 auto!important;min-width:0!important;margin:0!important;padding:0!important;
   background:transparent!important;border:0!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta span,
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta small{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta span,
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta small{
   display:block!important;max-width:100%!important;overflow:hidden!important;
   text-overflow:ellipsis!important;white-space:nowrap!important;
   margin:0!important;color:#fff5ec!important;
   font:600 9px/1.35 system-ui!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta small{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-media-meta small{
   opacity:.86!important;font-size:8px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-state-line{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-state-line{
   display:none!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live{
   box-sizing:border-box!important;position:relative!important;
   display:inline-flex!important;align-items:center!important;
   flex:0 0 auto!important;gap:4px!important;flex-wrap:nowrap!important;
@@ -154,99 +154,99 @@
   background:#201719cd!important;color:#fff9f5!important;
   box-shadow:0 1px 4px #00000030!important;cursor:pointer!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input{
   position:absolute!important;width:100%!important;height:100%!important;inset:0!important;
   margin:0!important;opacity:0!important;cursor:pointer!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live-track{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live-track{
   display:block!important;position:relative!important;flex:0 0 23px!important;
   width:23px!important;height:14px!important;margin:0!important;
   border-radius:999px!important;background:#8a7d7c!important;
   box-shadow:inset 0 1px 2px #10101055!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live-track i{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live-track i{
   position:absolute!important;top:2px!important;left:2px!important;
   display:block!important;width:10px!important;height:10px!important;
   border-radius:50%!important;background:#fff!important;
   transition:transform .15s ease!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input:checked+.archive-live-track{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input:checked+.archive-live-track{
   background:#eb6679!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input:checked+.archive-live-track i{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input:checked+.archive-live-track i{
   transform:translateX(9px)!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input:focus-visible+.archive-live-track{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live input:focus-visible+.archive-live-track{
   outline:2px solid #fff!important;outline-offset:2px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live b{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live b{
   font:800 8px/1.2 system-ui!important;letter-spacing:.02em!important;
   color:#fff!important;text-transform:uppercase!important;white-space:nowrap!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-live.is-locked{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-live.is-locked{
   cursor:default!important;opacity:.8!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-actions{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-actions{
   position:absolute!important;z-index:8!important;inset:50% 5px auto!important;
   transform:translateY(-50%)!important;
   display:flex!important;justify-content:space-between!important;pointer-events:none!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-actions button{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-actions button{
   pointer-events:auto!important;display:grid!important;place-items:center!important;
   width:24px!important;height:29px!important;min-width:24px!important;
   padding:0!important;background:#201519ad!important;border:1px solid #fff8!important;
   border-radius:9px!important;color:white!important;font:800 18px/1 system-ui!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dots{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dots{
   position:absolute!important;z-index:8!important;left:50%!important;bottom:64px!important;
   transform:translateX(-50%)!important;display:flex!important;align-items:center!important;
   justify-content:center!important;gap:4px!important;margin:0!important;padding:0!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dot{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dot{
   display:block!important;width:6px!important;height:6px!important;
   min-width:6px!important;padding:0!important;border:1px solid #fff!important;
   border-radius:50%!important;background:#ffffff77!important;cursor:pointer!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dot.is-active{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-carousel-dot.is-active{
   background:#fff!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-pending-note{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-pending-note{
   position:absolute!important;z-index:10!important;left:3px!important;right:3px!important;top:3px!important;
   padding:4px 7px!important;background:#d85b65!important;color:#fff!important;
   font:700 9px/1.2 system-ui!important;border-radius:7px!important;
 }
-#studioApp #moduleWorkspace[data-module-key="archive"] .archive-empty{
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-empty{
   padding:18px!important;text-align:center!important;background:transparent!important;
   color:#756a62!important;
 }
 @media(max-width:1600px){
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(7,minmax(0,1fr))!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(7,minmax(0,1fr))!important}
 }
 @media(max-width:1360px){
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(6,minmax(0,1fr))!important}
 }
 @media(max-width:1130px){
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 }
 @media(max-width:920px){
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar{grid-template-columns:1fr!important}
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions{grid-column:1!important}
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-bar{
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar{grid-template-columns:1fr!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions{grid-column:1!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-bar{
     grid-column:1!important;justify-content:flex-start!important;
   }
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
 @media(max-width:700px){
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell{padding:12px!important}
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell{padding:12px!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{
     grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important
   }
 }
 @media(max-width:465px){
-  #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important
   }
 }
-body.night-mode #studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell{
+html body.night-mode #studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell{
   background:#302a29!important;color:#f5eee8!important;border-color:#665953!important;
 }
