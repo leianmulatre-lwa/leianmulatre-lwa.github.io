@@ -1,0 +1,25 @@
+/* Top-left Studio brand: use the member-supplied tipi only on internal module pages.
+   The existing stitched BIG LWA crest remains untouched on Studio home. */
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
+ display:none!important;flex:0 0 auto!important;
+ width:64px!important;height:64px!important;max-width:100%!important;
+ margin-left:26px!important;object-fit:contain!important;
+ filter:none!important;pointer-events:none!important
+}
+#studioApp:has(.main.module-view) .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{
+ display:none!important
+}
+#studioApp:has(.main.module-view) .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
+ display:block!important
+}
+body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{filter:invert(1)!important}
+@media(max-width:980px){
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
+  width:56px!important;height:56px!important;margin-left:23px!important
+ }
+}
+@media(max-width:720px){
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
+  width:43px!important;height:43px!important;margin-left:16px!important
+ }
+}
