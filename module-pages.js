@@ -2976,39 +2976,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     return {order,groups,sorted:order.flatMap(key=>groups.get(key))};
   }
     function groupCards(cardList,items,grouped,hideDupes){
-    const names={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'};
-    // Fingerprints identify duplicates, not layout rows. All posts from a
-    // source belong in ONE full-width grid; otherwise unique photos create
-    // an endless series of single-card horizontal rows.
-    const sourceGroups=new Map();
-    grouped.order.forEach(fingerprint=>{
+    // Platform chips already filter the wall; a second layer of collapsible
+    // source groups hides cards and wastes horizontal space. Keep the original
+    // source-aware sorting and fingerprint-based duplicate control, but render
+    // one flat, responsive gallery with each card's own platform rim.
+    const visible=grouped.order.flatMap(fingerprint=>{
       const indexes=grouped.groups.get(fingerprint)||[];
-      const visible=hideDupes?indexes.slice(0,1):indexes;
-      for(const index of visible){
-        const source=String(items[index]?.source||'instagram').toLowerCase();
-        if(!sourceGroups.has(source))sourceGroups.set(source,[]);
-        sourceGroups.get(source).push(index);
-      }
+      return hideDupes?indexes.slice(0,1):indexes;
     });
-    const repeatCount=source=>{
-      let count=0;
-      grouped.order.forEach(key=>{
-        const indices=grouped.groups.get(key)||[];
-        if(indices.length>1&&String(items[indices[0]]?.source||'instagram').toLowerCase()===source)
-          count+=indices.length-1;
-      });
-      return count;
-    };
-    return [...sourceGroups].map(([source,indexes],groupIndex)=>
-      '<section class="archive-source-group" data-archive-source="'+esc(source)+'">'+
-      '<details class="archive-app-compartment" data-archive-app="'+esc(source)+'"'+(groupIndex===0?' open':'')+'>'+
-      '<summary class="archive-group-head"><span class="archive-app-icon" aria-hidden="true">◉</span><strong>'+esc(names[source]||source)+'</strong>'+
-      '<em class="archive-group-count">'+indexes.length+' stored'+(hideDupes?' (unique)':'')+'</em>'+
-      (repeatCount(source)?'<em class="archive-group-repeats">'+repeatCount(source)+' additional copies</em>':'')+
-      '<span class="archive-app-expand" aria-hidden="true">⌄</span></summary>'+
-      '<div class="instagram-archive-grid" data-archive-group="'+esc(source)+'">'+
-      indexes.map(index=>cardList[index]).join('')+'</div></details></section>'
-    ).join('');
+    return visible.map(index=>cardList[index]).join('');
   }
 
   function renderArchive(){
@@ -3086,7 +3062,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const username=profile.username||profile.name||previewUsername||'BIGLWA member';
       const filters=readFilters();
       const seenSources=[...new Set(media.map(sourceNameOf))];
-      const union=[...new Set([...seenSources,...filters.sources])];
+      const union=[...new Set([...seenSources,...filters.sources])].sort((a,b)=>{
+        const order=['pinterest','instagram','tiktok','facebook'];
+        const ai=order.indexOf(a),bi=order.indexOf(b);
+        return (ai<0?999:ai)-(bi<0?999:bi)||a.localeCompare(b);
+      });
       const allowed=new Set(filters.sources);
       const filtering=filters.sources.length>0;
       const mediaShown=filtering?media.filter(item=>allowed.has(sourceNameOf(item))):media;
@@ -3135,8 +3115,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
             ? '<label class="archive-live" data-archive-live="'+esc(item.id)+'">'
               +'<input type="checkbox" data-archive-live-input="'+esc(item.id)+'"'+(posted?' checked':'')+'>'
               +'<span class="archive-live-track" aria-hidden="true"><i></i></span>'
-              +'<b>'+(posted?'Live':'Not live')+'</b>'
-              +'<em>'+(posted?'Showing on the Collective Feed':'Only kept here')+'</em>'
+              +'<b>'+(posted?'Live':'Off')+'</b>'
+              
               +'</label>'
             : '<div class="archive-live is-locked"><span class="archive-live-track" aria-hidden="true"><i></i></span><b>'+(posted?'Live':'Not live')+'</b></div>';
         const statusLine=posted
@@ -3184,11 +3164,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       body.innerHTML=heading('archive',count?count+' card'+(count===1?'':'s')+' stored':'')+
         '<div class="module-grid">'+
         '<section class="module-card wide archive-wall-shell">'+
-          '<div class="archive-toolbar">'+
+          '<div class="archive-toolbar" role="group" aria-label="Archive management and platform filters">'+
     (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveConnections" type="button">Manage connections</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
-          (union.length?'<div class="archive-filter-bar" id="archiveFilterBar">'+
-            union.map(k=>'<button type="button" class="archive-filter-chip '+((filtering?allowed.has(k):true)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'">'+esc({instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'}[k]||k)+'</button>').join('')+
-            '<label class="archive-dupes"><input type="checkbox" id="archiveHideDupes"'+(hideDupes?' checked':'')+'><span>Hide duplicates</span></label></div>':'')+
+          '<div class="archive-filter-bar" id="archiveFilterBar" role="group" aria-label="Choose platform">'+
+            '<button type="button" class="archive-filter-chip '+(!filtering?'is-on':'')+'" data-archive-source-filter="all" aria-pressed="'+(!filtering?'true':'false')+'">All</button>'+
+            union.map(k=>'<button type="button" class="archive-filter-chip '+(allowed.has(k)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'" aria-pressed="'+(allowed.has(k)?'true':'false')+'">'+esc({instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'}[k]||k)+'</button>').join('')+
+            '<label class="archive-dupes"><input type="checkbox" id="archiveHideDupes"'+(hideDupes?' checked':'')+'><span>Hide duplicates</span></label></div>'+
           '':'')+
           '</div>'+
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(media.length?'Imported cards are saved to your account.':'Connect Instagram or Pinterest in Orbit, then refresh imports.'):'Shared with friends.'))+'</div>'+
@@ -3253,8 +3234,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           if(!chip)return;
           const k=chip.dataset.archiveSourceFilter;
           const f=readFilters();
-          if(!f.sources.length)f.sources=Array.from(filterBar.querySelectorAll('[data-archive-source-filter]')).map(n=>n.dataset.archiveSourceFilter);
-          if(f.sources.includes(k))f.sources=f.sources.filter(x=>x!==k);else f.sources.push(k);
+          f.sources=k==='all'?[]:[k];
           saveFilters(f);await draw();
         });
         $('#archiveHideDupes',body)?.addEventListener('change',async(event)=>{
