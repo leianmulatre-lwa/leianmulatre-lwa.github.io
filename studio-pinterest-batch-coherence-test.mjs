@@ -29,5 +29,5 @@ assert.ok(pins.includes('● Private in BIG LWA'),'Original status makes private
 assert.ok(feed.includes('const pinOrigin=/^https?:'),'Old Pinterest links fix card attribution');
 assert.ok(feed.includes('const displaySource=pinOrigin?'),'Correct label/color based on true source');
 assert.ok(feed.includes('const link = !pinSource'),'No bottom Shared link block on Pinterest-origin cards');
-assert.ok(archive.includes('function groupCards(cardList,items,grouped,hideDupes)')&&archive.includes('class="archive-app-compartment"'),'Archive is compartmentalized by app without flattening media');
-console.log('PASS aligned Studio, hover-only rings, Pinterest queue/pagination/select, true source labels and Archive app compartments');
+assert.ok(archive.includes('function groupCards(cardList,items,grouped,hideDupes)')&&archive.includes('return visible.map(index=>cardList[index]).join(\'\')'),'Archive uses flat card gallery; source identity preserved on individual cards');
+console.log('PASS aligned Studio, hover-only rings, Pinterest queue/pagination/select, true source labels and Archive flat responsive gallery');
