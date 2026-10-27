@@ -1398,12 +1398,19 @@
     $('#profileMoodPreview',profileSection)?.remove();
     profileSection.dataset.profileEditorPane='profile';profileSection.setAttribute('role','tabpanel');
     let mediaSection=$('#profileMediaEditor',panel);
-    if(!mediaSection){mediaSection=document.createElement('div');mediaSection.id='profileMediaEditor';mediaSection.className='customize-section profile-media-section';mediaSection.dataset.profileEditorPane='media';mediaSection.setAttribute('role','tabpanel');mediaSection.innerHTML='<h3>Song &amp; Aura</h3><p>Choose the song shown on your card and write the words beneath your Aura.</p><div id="profileSongEditorMount" class="profile-song-editor-mount"><span class="profile-song-editor-wait">Song controls are connecting…</span></div><label class="profile-aura-text-label">Aura text<textarea id="profileAuraTextInput" rows="2" maxlength="100" placeholder="Focused&#10;but dreaming."></textarea></label>';panel.appendChild(mediaSection)}
+    if(!mediaSection){mediaSection=document.createElement('div');mediaSection.id='profileMediaEditor';mediaSection.className='customize-section profile-media-section';mediaSection.dataset.profileEditorPane='media';mediaSection.setAttribute('role','tabpanel');mediaSection.innerHTML='<h3>Song</h3><p>Choose the song shown on your profile.</p><div id="profileSongEditorMount" class="profile-song-editor-mount"><span class="profile-song-editor-wait">Song controls are connecting…</span></div><label class="profile-aura-text-label">Aura text<textarea id="profileAuraTextInput" rows="2" maxlength="100" placeholder="Focused&#10;but dreaming."></textarea></label>';panel.appendChild(mediaSection)}
     const sections=$$('.customize-section',panel),wallpaperSection=sections.find(section=>section!==profileSection&&section!==mediaSection&&!section.classList.contains('widget-style-section')),widgetSection=sections.find(section=>section.classList.contains('widget-style-section'));
     if(wallpaperSection){wallpaperSection.id=wallpaperSection.id||'profileWallpaperEditor';wallpaperSection.dataset.profileEditorPane='wallpaper';wallpaperSection.setAttribute('role','tabpanel')}
-    if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel')}
+    if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel');
+      const auraText=$('#profileAuraTextInput',panel)?.closest('label');
+      if(auraText&&auraText.parentElement!==widgetSection)widgetSection.append(auraText);
+      const heading=$('h3',widgetSection);if(heading)heading.textContent='Widget & Aura';
+      const intro=$('p',widgetSection);if(intro)intro.textContent='Choose widget styling, color and your Aura hue and text.';
+    }
+    const mediaHeading=$('h3',mediaSection);if(mediaHeading)mediaHeading.textContent='Song';
+    const mediaIntro=$('p',mediaSection);if(mediaIntro)mediaIntro.textContent='Choose the song shown on your profile.';
     let tabs=$('#profileEditorTabs',panel);
-    if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileMediaEditor" data-profile-editor-tab="media">Song &amp; Aura</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
+    if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileMediaEditor" data-profile-editor-tab="media">Song</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widget &amp; Aura</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
     // Profile Picture is first. Highlights are now managed from Archive.
     // Reuse any tab from an older first paint instead of creating duplicates.
     let pictureTab=tabs.querySelector('[data-profile-editor-tab="picture"]')||tabs.querySelector('[data-profile-editor-tab="highlights"]');
@@ -1415,7 +1422,9 @@
     pictureTab.setAttribute('aria-controls','profilePictureEditor');
     pictureTab.textContent='Profile Picture';
     if(tabs.firstElementChild!==pictureTab)tabs.prepend(pictureTab);
-    if(!tabs.querySelector('[data-profile-editor-tab="media"]')){const mediaTab=document.createElement('button');mediaTab.type='button';mediaTab.setAttribute('role','tab');mediaTab.setAttribute('aria-controls','profileMediaEditor');mediaTab.dataset.profileEditorTab='media';mediaTab.textContent='Song & Aura';tabs.querySelector('[data-profile-editor-tab="wallpaper"]')?.insertAdjacentElement('beforebegin',mediaTab)}
+    if(!tabs.querySelector('[data-profile-editor-tab="media"]')){const mediaTab=document.createElement('button');mediaTab.type='button';mediaTab.setAttribute('role','tab');mediaTab.setAttribute('aria-controls','profileMediaEditor');mediaTab.dataset.profileEditorTab='media';mediaTab.textContent='Song';tabs.querySelector('[data-profile-editor-tab="wallpaper"]')?.insertAdjacentElement('beforebegin',mediaTab)}
+    const mediaTabLabel=$('[data-profile-editor-tab="media"]',tabs);if(mediaTabLabel)mediaTabLabel.textContent='Song';
+    const widgetTabLabel=$('[data-profile-editor-tab="widgets"]',tabs);if(widgetTabLabel)widgetTabLabel.textContent='Widget & Aura';
     let actions=$('#profileEditorActions',panel);
     if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';panel.appendChild(actions)}
     let saveAction=$('#saveProfileBtn',actions);if(!saveAction){saveAction=document.createElement('button');saveAction.type='button';saveAction.className='secondary-btn profile-editor-save';saveAction.id='saveProfileBtn';saveAction.textContent='Save changes';actions.appendChild(saveAction)}
@@ -1423,7 +1432,7 @@
     let updatePrivacy=$('#profileUpdatePrivacy',actions);
     if(!updatePrivacy){
       updatePrivacy=document.createElement('label');updatePrivacy.id='profileUpdatePrivacy';updatePrivacy.className='profile-update-privacy';
-      updatePrivacy.innerHTML='<input id="profileSilentUpdate" type="checkbox"><span>Do not notify followers/connections of this update</span>';
+      updatePrivacy.innerHTML='<input id="profileSilentUpdate" type="checkbox" checked><span>Do not notify followers/connections of this update</span>';
       actions.prepend(updatePrivacy);
     }
     if(actions.previousElementSibling!==tabs)tabs.insertAdjacentElement('afterend',actions);
@@ -1437,6 +1446,8 @@
       profileSection.addEventListener('change',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
     }
     const fillEditor=()=>{
+      // Private by default for every account and every edit session; the member can opt in to notifying others.
+      const silent=$('#profileSilentUpdate',panel);if(silent)silent.checked=true;
       $('#profileNameInput',panel).value=display?display.textContent.trim():'';
       $('#profileUsernameInput',panel).value=handle?handle.textContent.trim().replace(/^@/,''):'';
       $('#profileBioEditor',panel).value=bio?bio.textContent.trim():'';
