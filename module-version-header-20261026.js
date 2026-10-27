@@ -5,9 +5,9 @@
  window.__biglwaHeadingVersions20261026=true;
  const $=(s,r=document)=>r?.querySelector(s);
  const config={
-  camera:{title:'bookini',selector:'.booth-tabs',icon:'bookini'},
+  camera:{title:'boothi',selector:'.booth-tabs',icon:'bookini'},
   stream:{title:'stream',stream:true},
-  notes:{title:'sqwibz',selector:'.diary-section-nav',series:'werkRZ'},
+  notes:{title:'sqwibz',selector:'.diary-section-nav',icon:'sqwibblR'},
   projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
   tools:{title:'lwazi',icon:'r-editor'}
@@ -26,7 +26,7 @@
   return right;
  }
  function addMark(right,icon){
-  const url=icon==='visualizr'?'/assets/bigapps/icons/visualizr.png?v=20261026-stitched-v-2':'/assets/bigapps/blocks/'+icon+'.svg?v=20261026-1';
+  const url=icon==='visualizr'?'/assets/bigapps/icons/visualizr.png?v=20261026-stitched-v-2':icon==='sqwibblR'?'/assets/bigapps/icons/sqwibblR.png?v=20261026-original-stitch-1':'/assets/bigapps/blocks/'+icon+'.svg?v=20261026-1';
   let badge=$('.lwazi-series-badge',right);
   if(!badge){badge=document.createElement('span');badge.className='lwazi-series-badge';right.append(badge)}
   if(badge.dataset.lwaziIcon!==icon){
@@ -98,13 +98,13 @@
  }
  function renameNavigation(){
   const routes=[
-    ['tools','lwazi'],['projects','visualizr'],['camera','bookini'],['notes','sqwibz']
+    ['tools','lwazi'],['projects','visualizr'],['camera','boothi'],['notes','sqwibz']
   ];
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
       const label=link.querySelector('.hero-shortcut-label,.sidebar-route-label,.nav-label');
       if(label&&label.textContent.trim()!==name)label.textContent=name;
-      if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Bookini',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
+      if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Boothi',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
     }
     const widget=document.querySelector('#studioApp #'+route+' .card-head h2');
     if(widget&&widget.textContent.trim()!==name)widget.textContent=name;
@@ -133,15 +133,12 @@
   if(item.stream)streamVersions(ws,right);
   if(item.journal)journalVersions(ws,right);
   if(item.icon)addMark(right,item.icon);
-  if(item.series){
-   let mark=$('.werk-rz-mark',right);
-   if(!mark){mark=document.createElement('span');mark.className='werk-rz-mark';right.append(mark)}
-   mark.textContent='sqwibblR / '+item.series;
-  }
+  // Show the original R-series block instead of a cramped stitched text label.
+  right.querySelector('.werk-rz-mark')?.remove();
   heading.classList.add('module-heading--with-versions','module-heading--single-line');
   const sub=$(':scope > .module-heading-bottom > p',heading);
   if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks, part of the R/Lwazi seriez: our own apps, designed fo/r you. 2 web-friendly BIG LWA apps and 4 advanced open-source R-editors.';
-  if(key==='camera'&&sub)sub.textContent='Your own booth to capture or chat with other bookini’s on Big LWA.';
+  if(key==='camera'&&sub)sub.textContent='Use our booth to feel yourself or chat with other bookiniz using Big LWA.';
  }
  let queued=false;
  function schedule(){
