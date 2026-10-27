@@ -38,7 +38,7 @@ assert.ok(builder.includes('def brand_web_shell(')&&
   builder.includes('/assets/craft/editor-brand.js') && source('assets/craft/editor-brand.js').includes('/studio?view=tools')&&builder.includes('preserve_notices('),
   'Hosted editors include a BIG LWA return path without removing upstream licensing');
 for(const asset of [
- 'veve.js?v=20261025-media-fallback-1',
+ 'veve.js?v=20261027-lwazi-interest-sensitivity-1',
  'veve.css?v=20261023-orbit-colors-7',
  'pinterest-orbit.js?v=20261025-pin-origin-1',
  'studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'
