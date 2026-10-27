@@ -44,6 +44,12 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
       - name: Verify owned TikTok import assets and isolation
         run: node tiktok-owned-import-test.mjs
+      - name: Verify VisualSlidez rich PowerPoint imports
+        run: |
+          npm install --prefix "$RUNNER_TEMP/biglwa-tests" jszip@3.10.1 --no-audit --no-fund
+          node --check visualslidez.js
+          node --check visualslidez-pptx-import.js
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node visualslidez-pptx-import-test.mjs
       - name: Verify Lwazi header versions and stitched R-series blocks
         run: |
           node --check module-version-header-20261026.js
