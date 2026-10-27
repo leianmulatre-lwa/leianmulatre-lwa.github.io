@@ -160,15 +160,42 @@
    const selection=data.order===null?[...Array(items.length).keys()]:data.order.filter(i=>i<items.length);
    const label=make('strong','',items.length+' imported items · choose visible content');
    rows.append(label);
-   items.forEach((_,i)=>{
+   const gallery=make('div','highlight-item-gallery');
+   gallery.setAttribute('aria-label','Choose highlights to show live on the profile');
+   items.forEach((item,i)=>{
+    const kind=item?.kind==='video'?'video':'image';
+    const card=make('label','highlight-item-card');
     const checkbox=make('input');checkbox.type='checkbox';checkbox.checked=selection.includes(i);
-    const note=make('label','', (group.items[i]?.kind==='video'?'Video ':'Photo ')+(i+1));
-    note.prepend(checkbox);
+    checkbox.setAttribute('aria-label',(checkbox.checked?'Keep ':'Show ')+(kind==='video'?'video ':'photo ')+(i+1)+' live');
+    const preview=make('span','highlight-item-media');
+    const thumb=cleanUrl(item?.thumbnail||item?.poster||item?.cover,true);
+    const photo=cleanUrl(item?.mediaUrl,true);
+    if(kind==='video'&&!thumb){
+     const video=make('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.preload='metadata';
+     video.poster=cleanUrl(group.cover,true)||'/assets/tv-no-signal.svg';
+     if(photo)video.src=photo;
+     preview.append(video);
+    }else{
+     const image=make('img');image.alt='';image.loading='lazy';image.referrerPolicy='no-referrer';
+     image.src=thumb||(kind==='image'?photo:'')||cleanUrl(group.cover,true)||'/assets/tv-no-signal.svg';
+     image.onerror=()=>{image.onerror=null;image.src=cleanUrl(group.cover,true)||'/assets/tv-no-signal.svg'};
+     preview.append(image);
+    }
+    const kindTag=make('span','highlight-item-kind',kind==='video'?'▶ Video':'Photo');
+    const name=make('span','highlight-item-name',''+(i+1));
+    const live=make('span','highlight-item-live',checkbox.checked?'Live':'Hidden');
+    card.dataset.live=String(checkbox.checked);
+    card.append(checkbox,preview,kindTag,name,live);
     checkbox.addEventListener('change',()=>{
      const all=data.order===null?[...Array(items.length).keys()]:data.order.slice();
      data.order=checkbox.checked?[...all.filter(v=>v!==i),i]:all.filter(v=>v!==i);
-    });rows.append(note);
+     card.dataset.live=String(checkbox.checked);
+     live.textContent=checkbox.checked?'Live':'Hidden';
+     checkbox.setAttribute('aria-label',(checkbox.checked?'Keep ':'Show ')+(kind==='video'?'video ':'photo ')+(i+1)+' live');
+    });
+    gallery.append(card);
    });
+   rows.append(gallery);
   }else rows.append(make('strong','','Highlight content'));
   const added=make('div','highlight-extra-media');
   const updateAdded=()=>{added.replaceChildren();
