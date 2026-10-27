@@ -27,7 +27,7 @@ for(const [name,src] of [['firebase directory',dir],['public preview',publicPrev
  assert.doesNotMatch(src,/localStorage\.getItem\(["']biglwaProfileDetails["']\)/,'Unscoped legacy storage in '+name);
 }
 assert.match(styles,/const ownedKey=base=>activeUid\(\)/,'Widget preferences use account keys');
-assert.match(styles,/Math\.max\(\.72,/,'Widget opacity cannot make backgrounds disappear');
+assert.match(styles,/Math\\.max\\(\\.20,/,'Widget backgrounds honor the explicit 20% minimum');
 assert.match(rules,/match \/users\/\{userId\} \{[\s\S]*?allow read, create, delete: if isOwner\(userId\)/,'Owner Firestore rule in source');
 assert.match(rules,/match \/posts\/\{postId\} \{[\s\S]*?allow read: if resource\.data\.state == 'approved'/,'Collective posts stay draft-private');
 
