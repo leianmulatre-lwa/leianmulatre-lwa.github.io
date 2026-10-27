@@ -7,7 +7,7 @@
 #studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.mobile-dock.hero-action-bar{
  margin-top:0!important;
 }
-#studioApp #profileEditorTabs [data-profile-editor-tab="highlights"]{white-space:nowrap}
+#studioApp #profileEditorTabs [data-profile-editor-tab="picture"]{white-space:nowrap}
 #studioApp .highlight-edit-pane{display:grid;gap:12px;min-width:0;color:inherit}
 #studioApp .highlight-edit-pane[hidden]{display:none!important}
 #studioApp .highlight-editor-intro{font:500 12px/1.45 system-ui;margin:0;color:inherit}
@@ -84,7 +84,7 @@
  display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;
  scrollbar-width:thin!important;gap:5px!important;
 }
-#studioApp #profileEditorTabs [data-profile-editor-tab="highlights"]{
+#studioApp #profileEditorTabs [data-profile-editor-tab="picture"]{
  display:inline-flex!important;visibility:visible!important;flex:0 0 auto!important;
  white-space:nowrap!important;min-width:max-content!important;
 }
@@ -93,4 +93,44 @@
 }
 #studioApp #profileHighlightsEditor .highlight-edit-cover{
  width:76px!important;height:76px!important;
+}
+
+/* Highlights are edited in Archive without changing its flat photo gallery. */
+#studioApp .profile-picture-pane .highlight-profile-photo{margin:0}
+#studioApp .profile-picture-pane .profile-highlight-archive-link{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+ border:1px solid rgba(96,56,66,.23);border-radius:12px;padding:12px;
+ background:rgba(255,250,244,.72)
+}
+#studioApp .profile-picture-pane .profile-highlight-archive-link p{margin:0;font:600 12px/1.35 system-ui}
+#studioApp .profile-picture-pane .profile-highlight-archive-link button{
+ border:1px solid #ac8190;border-radius:9px;padding:8px 13px;
+ background:#fff8f2;color:#593445;font:750 11px/1.2 system-ui;cursor:pointer
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-button.is-active{
+ background:#864053!important;color:#fff9f2!important;border-color:#864053!important
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel{
+ margin:12px 0 16px;padding:clamp(12px,2vw,18px);min-width:0;
+ border:1px solid #ddc7bc;border-radius:13px;background:#fff9f3;color:#3d302f
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel[hidden]{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-heading h2{
+ margin:0 0 4px;font:700 20px/1.2 "CS Bergamot Stitched",Georgia,serif;color:#613745
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-heading p{margin:0}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel .highlight-edit-list{
+ max-height:min(65vh,650px);overflow-y:auto;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;
+ padding:4px;gap:12px
+}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel .highlight-edit-row{min-width:0}
+#studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel button:focus-visible,
+#studioApp .profile-picture-pane button:focus-visible{outline:2px solid #864053;outline-offset:2px}
+@media(max-width:780px){
+ #studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel .highlight-edit-list{
+  grid-template-columns:minmax(0,1fr)
+ }
+}
+body.night-mode #studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel{
+ background:#302a29;color:#f8eee9;border-color:#665953
 }
