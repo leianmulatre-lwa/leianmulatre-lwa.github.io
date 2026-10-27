@@ -161,7 +161,7 @@
     const value=String(input.value||'').toLowerCase();
     const hex=$('.biglwa-color-hex input',panel);
     if(hex&&document.activeElement!==hex)hex.value=value;
-    $('.biglwa-color-swatch',panel).forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.color===value)));
+    $$('.biglwa-color-swatch',panel).forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.color===value)));
   }
   function installColorChoices(id,colors){
     const input=$('#'+id),label=input?.closest('label');
