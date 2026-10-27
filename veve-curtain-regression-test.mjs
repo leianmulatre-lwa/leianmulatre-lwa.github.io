@@ -57,6 +57,6 @@ doc.dispatchEvent(new w.CustomEvent('biglwa:veve-load-state',{detail:{stage:'Loa
 await sleep(45);
 assert.equal(reentered.hidden,true,'Bypass remains respected until a different page is opened');
 assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'));
-assert.ok(html.includes('veve.js?v=20261025-media-fallback-1'));
+assert.ok(html.includes('veve.js?v=20261027-lwazi-interest-sensitivity-1'));
 w.close();
 console.log('PASS: Veve curtain covers feed tiles, tracks requests, dismisses for lazy images, and allows view anyway.');
