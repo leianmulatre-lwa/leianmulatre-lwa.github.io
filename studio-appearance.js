@@ -431,8 +431,10 @@
       // A validated, confidently safe 'allow' verdict never waits for moderator push.
       let rating=result.status==='local-only'?'local-only':'general';
       if(result.status==='age-restricted'){
-        setSafetyStatus('checking','Adult or uncertain context detected. Checking signed age verification…','18+ · checking');
-        if(!await safety?.hasVerifiedAdultClaim?.()){setSafetyStatus('held','Held for review. A birthday entry is not enough, and secure age verification is not connected yet, so this wallpaper is not published.','18+ · held');wallpaperReviewAlert('A wallpaper was flagged for age verification and is not published.');return}
+        // An uncertain/adult-coded safety verdict is a flag, not a clean pass.
+        // Securely enqueue it for review, regardless of age, and never auto-publish it.
+        // Explicit photographic nudity has already been blocked above.
+        setSafetyStatus('checking','Sensitive content was flagged · saving to the private moderator queue…','flagged · review');
         rating='18+';
       }
       if(!cloud){setSafetyStatus('error','Account media is unavailable, so this wallpaper was not saved.');return}
