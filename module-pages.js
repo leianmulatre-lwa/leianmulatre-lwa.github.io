@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261026-archive-flat-gallery-6';
+        script.src = '/module-pages.js?v=20261026-archive-flat-gallery-7';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2998,7 +2998,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     let archiveLoading=false;
     const FILTER_KEY='biglwaArchiveFilters';
     const sourceNameOf=item=>String(item.source||'instagram').toLowerCase();
-    const readFilters=()=>{let f={sources:[],hideDupes:false};try{f={sources:[],hideDupes:false,...JSON.parse(localStorage.getItem(FILTER_KEY)||'null')}}catch{}if(!Array.isArray(f.sources))f.sources=[];return f};
+    const readFilters=()=>{let f={sources:[],hideDupes:false};try{f={sources:[],hideDupes:false,...JSON.parse(localStorage.getItem(FILTER_KEY)||'null')}}catch{}if(!Array.isArray(f.sources))f.sources=[];if(f.sources.length>1)f.sources=[];f.sources=f.sources.filter(k=>k&&k!=='all');return f};
     const saveFilters=f=>{try{localStorage.setItem(FILTER_KEY,JSON.stringify(f))}catch{}};
 
     const loadInitial=async()=>{
