@@ -88,10 +88,10 @@
  display:inline-flex!important;visibility:visible!important;flex:0 0 auto!important;
  white-space:nowrap!important;min-width:max-content!important;
 }
-#studioApp #profileHighlightsEditor .highlight-cover-adjust-heading{
+#studioApp #archiveHighlightsPanel .highlight-cover-adjust-heading{
  display:block;font:700 11px/1.35 system-ui;color:inherit;margin:2px 0 0;
 }
-#studioApp #profileHighlightsEditor .highlight-edit-cover{
+#studioApp #archiveHighlightsPanel .highlight-edit-cover{
  width:76px!important;height:76px!important;
 }
 
@@ -133,4 +133,14 @@
 }
 body.night-mode #studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-panel{
  background:#302a29;color:#f8eee9;border-color:#665953
+}
+
+/* Keep the Archive action row comfortably within compact screens. */
+@media(max-width:720px){
+ #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions{
+  flex-wrap:wrap!important;gap:6px!important
+ }
+ #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions .module-action{
+  min-width:0!important;padding:7px 10px!important
+ }
 }
