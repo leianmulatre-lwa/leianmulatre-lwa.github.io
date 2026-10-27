@@ -125,7 +125,7 @@
   function applyAppearance(save=true){
     const app=$('#studioApp');if(!app)return;
     const values=readAppearance();
-    const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.72,Number(values.opacity)/100||.9));
+    const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.20,(Number(values.opacity)||84)/100));
     const luminance=(.2126*r+.7152*g+.0722*b)/255;
     app.dataset.widgetInkTone=luminance<.48?'light':'dark';
     const [ar,ag,ab]=parseHex(values.aura,'#d85f6d');
@@ -199,10 +199,38 @@
     }
     let opacity=$('#widgetOpacity',section),opacityLabel=opacity?.closest('label');
     if(!opacity){
-      opacityLabel=document.createElement('label');opacityLabel.innerHTML='Widget opacity <span id="widgetOpacityValue">84%</span><input id="widgetOpacity" type="range" min="35" max="100" value="84" aria-label="Widget opacity">';
+      opacityLabel=document.createElement('label');opacityLabel.innerHTML='Widget opacity <span id="widgetOpacityValue">84%</span><input id="widgetOpacity" type="range" min="20" max="100" value="84" aria-label="Widget opacity">';
       opacity=$('#widgetOpacity',opacityLabel);
     }
+    // The optional 20% see-through setting is real: no 72% rendering floor.
+    opacity.min='20';opacity.max='100';opacity.step='1';
     opacityLabel.classList.add('widget-opacity-control');
+    if(opacity.dataset.biglwaPointerDrag!=='1'){
+      opacity.dataset.biglwaPointerDrag='1';
+      let dragging=false,activePointer=null;
+      const setFromPointer=event=>{
+        if(!dragging||(activePointer!=null&&event.pointerId!=null&&event.pointerId!==activePointer))return;
+        const bounds=opacity.getBoundingClientRect();if(bounds.width<=0)return;
+        const fraction=Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width));
+        const value=Math.round(20+80*fraction);
+        if(Number(opacity.value)!==value){opacity.value=String(value);opacity.dispatchEvent(new Event('input',{bubbles:true}))}
+        event.preventDefault();
+      };
+      const end=()=>{
+        dragging=false;activePointer=null;
+        document.removeEventListener('pointermove',setFromPointer);
+        document.removeEventListener('pointerup',end);
+        document.removeEventListener('pointercancel',end);
+      };
+      opacity.addEventListener('pointerdown',event=>{
+        if(event.button!==undefined&&event.button!==0)return;
+        dragging=true;activePointer=event.pointerId??null;
+        document.addEventListener('pointermove',setFromPointer);
+        document.addEventListener('pointerup',end);
+        document.addEventListener('pointercancel',end);
+        setFromPointer(event);
+      });
+    }
     const labelText=[...opacityLabel.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());if(labelText)labelText.textContent='Widget opacity ';
     if(live.nextElementSibling!==opacityLabel)live.insertAdjacentElement('afterend',opacityLabel);
     if(section.dataset.biglwaAppearanceBound!=='1'){
