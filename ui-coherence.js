@@ -1837,12 +1837,12 @@
     if(connect){
       connect.querySelectorAll('button,a').forEach(control=>{
         const text=control.textContent?.trim()||'';
-        if(/^invite friends(?:\\s*[→↗])?$/i.test(text)&&!control.querySelector('svg,img')){
+        if(/^invite friends(?:\s*[→↗])?$/i.test(text)&&!control.querySelector('svg,img')){
           control.textContent='invite boo·kiniz';
           control.setAttribute('aria-label','Invite boo·kiniz');
         }else{
           for(const leaf of control.querySelectorAll('span,small,b,strong')){
-            if(!leaf.children.length&&/^invite friends(?:\\s*[→↗])?$/i.test(leaf.textContent.trim()))leaf.textContent='invite boo·kiniz';
+            if(!leaf.children.length&&/^invite friends(?:\s*[→↗])?$/i.test(leaf.textContent.trim()))leaf.textContent='invite boo·kiniz';
           }
         }
       });
