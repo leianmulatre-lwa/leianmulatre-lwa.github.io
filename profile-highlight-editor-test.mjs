@@ -10,9 +10,9 @@ assert.ok(ui.includes('placeholder="#keepitcute"')&&ui.includes("dataset.moodPre
 const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp">'+
 '<article class="profile-card"></article><div id="wallpaperPanel">'+
 '<div id="profileEditorTabs"><button type="button" role="tab" data-profile-editor-tab="profile" aria-selected="true">Profile</button>'+
-'<button type="button" data-profile-editor-tab="highlights">Highlights</button><button type="button" data-profile-editor-tab="wallpaper">Wallpaper</button></div>'+
+'<button type="button" data-profile-editor-tab="picture">Profile Picture</button><button type="button" data-profile-editor-tab="wallpaper">Wallpaper</button></div>'+
 '<div id="profileEditorActions"><button id="saveProfileBtn">Save changes</button><button id="cancelProfileBtn">Cancel</button></div>'+
-'</div></main></body></html>',{url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
+'</div><div id="moduleWorkspace" data-module-key="archive"><section class="archive-wall-shell"><div class="archive-toolbar"><div class="archive-toolbar-actions"></div><div class="archive-filter-bar"></div></div><div class="archive-page-list"></div></section></div></main></body></html>',{url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,doc=w.document;
 w.__biglwaIdentity={uid:'u1'};
 w.BigLWAAccountStorage={uid:'u1'};
@@ -28,30 +28,39 @@ w.BigLWAUserDirectory={
 w.eval(source);
 doc.dispatchEvent(new w.Event('DOMContentLoaded'));
 await new Promise(r=>setTimeout(r,190));
-const tab=doc.querySelector('[data-profile-editor-tab="highlights"]');
-const pane=doc.getElementById('profileHighlightsEditor');
-assert.ok(tab&&pane,'New Highlights tab mounts inside Edit Profile');
-assert.equal(doc.querySelectorAll('[data-profile-editor-tab="highlights"]').length,1,'Existing Highlights tab reused, no duplicate');
+const tab=doc.querySelector('[data-profile-editor-tab="picture"]');
+const pane=doc.getElementById('profilePictureEditor');
+const archivePane=doc.getElementById('archiveHighlightsPanel');
+const highlightButton=doc.querySelector('.archive-highlights-button');
+assert.ok(tab&&pane,'Main profile photo uploader mounts in Profile Picture section');
+assert.ok(archivePane&&highlightButton,'Archive has Highlights editor and a control to reveal it');
+assert.equal(doc.querySelectorAll('[data-profile-editor-tab="highlights"]').length,0,'No duplicate Highlights tab in profile editor');
+assert.equal(tab.textContent,'Profile Picture');
+assert.ok(archivePane.hidden,'Highlights panel does not crowd Archive gallery until requested');
+assert.ok(doc.querySelector('.archive-page-list'),'Existing Archive gallery remains intact');
+const go=doc.querySelector('.profile-highlight-archive-link button');
+assert.equal(go?.textContent,'Go to Archive','Profile Picture links directly to Highlights in Archive');
+let opened='';w.openBIGLWAModule=k=>{opened=k};go.click();
+assert.equal(opened,'archive');assert.ok(!archivePane.hidden,'Profile link expands Highlights inside Archive');
 assert.ok(doc.querySelector('.highlight-cover-adjust-heading')?.textContent.includes('Adjust preview photo'),'Photo preview adjustment controls explicitly labeled');
 const circle=doc.querySelector('.highlight-edit-cover img');
 const yCrop=[...doc.querySelectorAll('.highlight-cover-controls input[type="range"]')][1];
 assert.ok(circle&&yCrop,'Circle photo preview and crop sliders available');
 yCrop.value='73';yCrop.dispatchEvent(new w.Event('input',{bubbles:true}));
 assert.equal(circle.style.objectPosition,'50% 73%','Preview crop updates live while editing');
-assert.ok(ui.includes("highlightsTab.dataset.profileEditorTab='highlights'"),'Main Edit Profile exposes Highlights in navigation');
+assert.ok(ui.includes("pictureTab.dataset.profileEditorTab='picture'")&&ui.includes("showTab('picture')"),'Main Edit Profile leads with Profile Picture');
 assert.ok(css.includes('.biglwa-rank-rail-label'),'Real Rank label is styled beneath Mood');
 assert.match(css, /margin-top:29px!important/, 'Rank progress line lowered within banner');
 assert.match(css, /font-size:clamp\(17px,1\.5vw,21px\)/,'Current rank status enlarged approximately 35%');
 
 assert.equal(doc.querySelectorAll('#biglwaHighlightEditorList .highlight-edit-row').length,1,'Imported highlight is editable');
-tab.setAttribute('aria-selected','true');
-pane.hidden=false;
+highlightButton.setAttribute('aria-expanded','true');
 const title=doc.querySelector('#biglwaHighlightEditorList .highlight-edit-row input[type="text"]');
 title.value='New title';title.dispatchEvent(new w.Event('input',{bubbles:true}));
 await w.BIGLWAHighlightEditor.save();
 assert.equal(lastSave.session.highlightEdits.imported['0'].title,'New title','Highlight title synced through owner customizations');
 assert.equal(w.BIGLWAHighlightEditor.customize(imported.highlights[0],0).title,'New title','Edited name appears on banner');
-const newHighlightButton=doc.querySelector('#profileHighlightsEditor > .highlight-edit-actions button');
+const newHighlightButton=doc.querySelector('#archiveHighlightsPanel > .highlight-edit-actions button');
 assert.equal(newHighlightButton.textContent,'+ New highlight','Explicit New highlight control selected');
 newHighlightButton.click();
 assert.equal(w.BIGLWAHighlightEditor.get().custom.length,1,'A new Highlight is added to the owner account draft');
@@ -74,4 +83,4 @@ w.document.documentElement.classList.remove('biglwa-preview-mode');
 w.__biglwaIdentity.uid='u2';w.BigLWAAccountStorage.uid='u2';
 assert.equal(w.BIGLWAHighlightEditor.current().length,0,'Account switch cannot leak previous owner highlights');
 dom.window.close();
-console.log('PASS: owner-only highlight editing, cloud save, immutable source, public preview isolation, mood and shortcut spacing.');
+console.log('PASS: Profile Picture first, Archive-only Highlights editor, gallery preserved, cloud save, immutable imports, public preview isolation.');
