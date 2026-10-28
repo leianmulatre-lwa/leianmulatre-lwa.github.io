@@ -163,7 +163,7 @@ assert.match(instagramOrbit, /hostedById/);
 assert.match(pinterestOrbit, /hostedPinUrls/);
 assert.match(index, /orbit-posts\.js\?v=/);
 assert.match(modules, /\['map','politc'\]\.includes\(params\.get\('panel'\)\)/);
-assert.match(sessionRestore, /\['map','politc'\]\.includes\(panel\)/);
+assert.ok(sessionRestore.includes("params.has('panel')")&&sessionRestore.includes('requestedRoute()'),'Explicit Studio panel and OAuth navigation take precedence over remembered view');
 assert.match(recovery, /data-open="politc"/);
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(feedPolish, /data-publish-connected/);
