@@ -303,7 +303,8 @@
   // Opening Stream returns the existing player to its full-sized home.
   if(docked){docked=false;if(dockShell)dockShell.hidden=true}
   root=host;root.classList.add('biglwa-stream');
-  requestAnimationFrame(syncYouTubeOrbitButton);
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(syncYouTubeOrbitButton);
+  else syncYouTubeOrbitButton();
   state.day=localDay();
   root.innerHTML=[
    '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / THREE-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span>', 
@@ -615,7 +616,7 @@
    btn.querySelector('[data-stream-youtube-status]').textContent=connected?'YouTube Orbit · Connected':'YouTube Orbit · Connect';
    btn.title=connected?(name?'Connected to '+name:'YouTube connected through Google Orbit'):'Connect your YouTube account in Orbit';
  }
- document.addEventListener('biglwa:google-state',syncYouTubeOrbitButton);
+ if(typeof document!=='undefined')document.addEventListener('biglwa:google-state',syncYouTubeOrbitButton);
  function onStreamMediaSubmit(event){
     const form=event.target.closest?.('#streamMediaLinkForm');
     if(!form||!root?.contains(form))return;
