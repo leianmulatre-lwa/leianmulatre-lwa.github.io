@@ -1361,12 +1361,19 @@
     let moodCard=$('#weeklyMoodCard',rail);
     if(!moodCard){moodCard=document.createElement('div');moodCard.id='weeklyMoodCard';moodCard.className='weekly-mood-card';moodCard.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">#keepitcute</strong>';rail.appendChild(moodCard)}
     if(!moodCard.dataset.moodStyle)renderWeeklyMood(moodCard,$('.weekly-mood-value',moodCard)?.textContent==='#keepitcute'?'':($('.weekly-mood-value',moodCard)?.textContent||''),'qwiky-note');
-    // Keep the REAL RANK label on the left identity rail, directly beneath
-    // this member's Mood note. The rank value and progress track stay across
-    // the profile card rather than being squeezed into the rail.
-    const rankLabel=$('.real-rank .rank-label',card)||$('.rank-label',rail);
-    if(rankLabel&&rankLabel.parentElement!==rail)moodCard.insertAdjacentElement('afterend',rankLabel);
-    if(rankLabel)rankLabel.classList.add('biglwa-rank-rail-label');
+    // The REAL RANK label belongs immediately LEFT of the rank title
+    // in the lower profile status row, never above the profile picture.
+    // Move the existing label node (don't duplicate it or change the metric).
+    const rankRow=$('.profile-copy > .real-rank',card)||$('.real-rank',card);
+    const rankLabel=$('.rank-label',rankRow)||$('.biglwa-rank-rail-label',rail)||$('.rank-label',card);
+    if(rankRow&&rankLabel){
+      const rankTitle=$('strong',rankRow);
+      if(rankLabel.parentElement!==rankRow||rankLabel.nextElementSibling!==rankTitle){
+        rankRow.insertBefore(rankLabel,rankTitle||rankRow.firstChild);
+      }
+      rankLabel.classList.remove('biglwa-rank-rail-label');
+      rankLabel.classList.add('biglwa-rank-inline-label');
+    }
     const stats=$('.stats',card);
     if(stats&&!$('[data-profile-stat="projects"]',stats)){
       const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>0</b> Projects';

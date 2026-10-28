@@ -49,7 +49,10 @@ assert.ok(circle&&yCrop,'Circle photo preview and crop sliders available');
 yCrop.value='73';yCrop.dispatchEvent(new w.Event('input',{bubbles:true}));
 assert.equal(circle.style.objectPosition,'50% 73%','Preview crop updates live while editing');
 assert.ok(ui.includes("pictureTab.dataset.profileEditorTab='picture'")&&ui.includes("showTab('picture')"),'Main Edit Profile leads with Profile Picture');
-assert.ok(css.includes('.biglwa-rank-rail-label'),'Real Rank label is styled beneath Mood');
+assert.ok(ui.includes("rankRow.insertBefore(rankLabel,rankTitle||rankRow.firstChild)"),'REAL RANK label is moved directly before the current rank title');
+assert.ok(ui.includes("rankLabel.classList.remove('biglwa-rank-rail-label')"),'Old above-avatar label placement is retired');
+assert.ok(css.includes('.rank-label.biglwa-rank-inline-label'),'REAL RANK is styled inline with rank title');
+assert.ok(css.includes('grid-template-columns:max-content max-content minmax(80px,1fr) max-content'),'Rank row keeps title, progress and next status on one line');
 assert.match(css, /margin-top:29px!important/, 'Rank progress line lowered within banner');
 assert.match(css, /font-size:clamp\(17px,1\.5vw,21px\)/,'Current rank status enlarged approximately 35%');
 
