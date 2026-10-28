@@ -22,10 +22,10 @@ assert.ok(feed.includes('Explore Veve ↗')&&!feed.includes('Explore Stream ↗'
 assert.ok(feed.includes("window.BigLWAOpenModule?.('veve')"),'Feed action opens Veve module');
 assert.ok(feed.includes('id="feedComposer"')&&feed.includes('id="feedComposerCaption"')&&feed.includes('id="biglwaFeedPicker"'),'Feed composer retains functionality');
 assert.ok(style.includes('biglwa-feed-compose-card')&&style.includes('biglwa-feed-compose-fields'),'Slimmer Feed styles loaded');
-assert.ok(pages.includes("if(activeModuleKey)closeModule();")&&pages.includes("else openModule('veve');"),'Top logo returns from any widget to Studio and opens Veve only from home');
+assert.ok(pages.includes("if(activeModuleKey)closeModule();")&&!pages.includes("else openModule('veve');"),'Studio mark returns from a module and never opens Veve by accident');
 assert.ok(index.includes('/studio-tipi-navigation-20261026.js')&&index.includes('/studio-tipi-navigation-20261026.css'),'Tipi navigation assets load on Studio');
 assert.ok(pages.includes("event.stopImmediatePropagation()"),'Logo toggle prevents browser navigation and re-login');
-assert.ok(ui.includes("a.setAttribute('aria-label','Open Veve')"),'Accessible logo label');
+assert.ok(ui.includes("a.setAttribute('aria-label','Studio home')"),'Studio symbol is labeled accurately');
 assert.ok(/module-pages\.js\?v=202610[0-3][0-9]-/.test(index)&&index.includes('orbit-cards-unified-20261016.css?v='),'Current Orbit renderer and its compact CSS are deployed with cache-busting');
 assert.ok(wrangler.includes('keep_vars = true'),'Cloudflare dashboard variables survive future Worker deploys');
 assert.ok(wrangler.includes('TIKTOK_CLIENT_SECRET')&&wrangler.includes('[secrets]'),'Worker requires configured secret names without checking values into repository');

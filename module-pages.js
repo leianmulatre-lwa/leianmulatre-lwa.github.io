@@ -3500,20 +3500,20 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   const syncVeveLogoLabel=()=>{
     const logo=document.querySelector('#studioApp .studio-brand-row > a.brand.biglwa-block-brand');
     if(!logo)return;
-    const title=activeModuleKey?'Return to Studio':'Open Veve';
+    const title=activeModuleKey?'Return to Studio':'Studio home';
     logo.setAttribute('aria-label',title);
     logo.setAttribute('title',title);
   };
   document.addEventListener('biglwa:module-open',syncVeveLogoLabel);
   document.addEventListener('biglwa:module-close',syncVeveLogoLabel);
-  // The BIGLWA crest toggles between Studio and Veve without reloading the
-  // signed-in session or interrupting any other modules or their stored data.
+  // The Studio mark is always a return-home control. Veve has its own
+  // permanent button; clicking the Studio symbol must never force Veve.
   document.addEventListener('click',event=>{
     const logo=event.target?.closest?.('#studioApp .studio-brand-row > a.brand.biglwa-block-brand');
     if(!logo||document.documentElement.classList.contains('biglwa-preview-mode'))return;
     event.preventDefault();event.stopImmediatePropagation();
     if(activeModuleKey)closeModule();
-    else openModule('veve');
+    // Already on Studio home: stay here. This intentionally does not open Orbit or Veve.
   },true);
   function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
