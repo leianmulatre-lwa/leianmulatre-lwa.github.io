@@ -40,7 +40,7 @@ assert.ok(builder.includes('def brand_web_shell(')&&
 for(const asset of [
  'veve.js?v=20261027-lwazi-interest-sensitivity-1',
  'veve.css?v=20261023-orbit-colors-7',
- 'pinterest-orbit.js?v=20261025-pin-origin-1',
+ 'pinterest-orbit.js?v=20261028-oauth-return-2',
  'studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'
 ])assert.ok(html.includes(asset),'Site must load '+asset);
 console.log('PASS: Veve board saving, bounded lower loader, local ArtCraft links, arcade app identity.');

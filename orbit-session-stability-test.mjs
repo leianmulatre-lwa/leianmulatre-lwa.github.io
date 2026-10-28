@@ -23,7 +23,7 @@ assert.ok(patched.includes("await auth.authStateReady();\n\n  const routeWithAut
        'refresh first restores the existing member, without rewriting persistence');
 assert.equal((patched.match(/await setPersistence\(auth, browserLocalPersistence\)/g)||[]).length,2,
   'persistence is set only on deliberate sign-in and registration');
-assert.ok(html.includes('instagram-orbit.js?v=20261015-orange-cards-16'));
+assert.ok(html.includes('instagram-orbit.js?v=20261028-oauth-return-2'));
 
 assert.ok(!instagram.includes("state.sessionLookupError='Sign in to your BIGLWA account to restore Instagram.'"),
  'provider status never claims the member must log in again');
