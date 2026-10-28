@@ -44,6 +44,12 @@ data.connections.tiktok.sourceUserId='changed-tiktok-open-id';
 await w.BigLWAAccountInsights.refresh();
 assert.equal(w.__biglwaProfileMetrics.likes,null,'Replaced TikTok account never inherits old likes');
 assert.equal(w.__biglwaProfileMetrics.reach,null,'Replaced TikTok account never inherits old reach');
+// Pinterest monthly views are imported separately and never relabeled reach.
+data.connections.pinterest={username:'owner-pins',sourceUserId:'pinterest-9',stats:{followers:19,monthlyViews:4242}};
+await w.BigLWAAccountInsights.refresh();
+assert.equal(w.__biglwaProfileMetrics.sources.find(s=>s.id==='pinterest').monthlyViews,4242,'Pinterest views live in owner analytics');
+assert.equal(w.__biglwaProfileMetrics.reach,null,'Monthly Pinterest views do not become reach');
+assert.equal(persisted.at(-1).snapshot.sources.find(s=>s.id==='pinterest').monthlyViews,4242,'Pinterest views saved to monthly history');
 uid='metric-owner-b';w.__biglwaIdentity={uid};
 data={uid,analyticsMonths:{},connections:{},peopleConnections:{},orbitConnectedProfiles:{}};
 await w.BigLWAAccountInsights.refresh();
