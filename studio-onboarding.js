@@ -24,6 +24,7 @@
  // be customized, so the guide also searches the Sidebar and Studio widgets.
  // Fallbacks match existing Big LWA assets/glyphs, never generic UI clip art.
  const symbolKey=[
+  {label:'Studio',key:'studio',detail:'Return to your Studio home',fallbackAsset:'/assets/studio-tipi-symbol.svg?v=20261026-1'},
   {label:'Projects',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
   {label:'Politic',key:'politc',detail:'Civic life and global context',fallbackAsset:'/assets/politc-nyame-baatanpa.svg?v=20261014-1'},
   {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},

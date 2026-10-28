@@ -614,6 +614,7 @@
   // Build a reliable route catalog from real widgets and known public Studio
   // routes *before* drawing shortcut rows. Never mutate account layout here.
   const SIDEBAR_ROUTE_FALLBACKS=[
+    ['studio','Studio','<img src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">'],
     ['politc','Politic','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
     ['tools','lwazi','<img src="/assets/tools-hand-eye.svg" alt="">'],
     ['calendar','Calendar','▦'],
@@ -678,7 +679,7 @@
     if(!hasSavedShortcuts){
       // Default a useful accessibility-first dock once. Existing saved orders
       // are always honored, including people who choose another arrangement.
-      const choices=['politc','tools','calendar','map','projects','diary','notes','feed','archive'];
+      const choices=['studio','politc','tools','calendar','map','projects','diary','notes','feed','archive'];
       shortcuts=[...choices.filter(k=>navigationCatalog.has(k)),
         ...initialNavigationShortcuts.filter(k=>navigationCatalog.has(k))].filter((k,i,a)=>a.indexOf(k)===i).slice(0,SHORTCUT_LIMIT);
     }
@@ -816,6 +817,14 @@
     const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
     if(archiveIcon&&!archiveIcon.querySelector('.biglwa-archive-horizontal-symbol'))archiveIcon.innerHTML=archiveMarkup;
 
+    // The Studio shortcut and Skeleton Key always use the actual tipi,
+    // irrespective of a stale older icon in saved navigation markup.
+    const studioMarkup='<img class="studio-symbol-image biglwa-nav-tipi" src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">';
+    const studioEntry=navigationCatalog.get('studio');
+    if(studioEntry)studioEntry.symbolHTML=studioMarkup;
+    const studioWidget=$('#studio',app);
+    const studioIcon=studioWidget&&$('.card-icon,.studio-symbol-mark',studioWidget);
+    if(studioIcon)studioIcon.innerHTML=studioMarkup;
     const projectEntry=navigationCatalog.get('projects');if(projectEntry)projectEntry.symbolHTML=projectMarkup;
     const archiveEntry=navigationCatalog.get('archive');if(archiveEntry)archiveEntry.symbolHTML=archiveMarkup;
   }
@@ -919,7 +928,14 @@
   function openWidgetDestination(app,id,route=''){
     const widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null;
     const destination=(route||widget?.dataset.widgetRoute||id||'').toLowerCase();
-    if(destination==='home'||destination==='studio'){$('.hero-action-bar a[href="#home"]',app)?.click();setSidebarCurrent(app,'home');return}
+    if(destination==='home'||destination==='studio'){
+      const back=$('#moduleBack',app);
+      if(back&&!$('#moduleWorkspace',app)?.hidden)back.click();
+      else if(location.pathname!=='/studio')history.pushState({},'','/studio');
+      const hero=$('.hero,.profile-card',app);hero?.scrollIntoView?.({behavior:'smooth',block:'start'});
+      setSidebarCurrent(app,'studio');
+      return;
+    }
     if(destination==='guest-check'||id==='guest-check'){$('[data-open-guest="check"]',widget||app)?.click();setSidebarCurrent(app,'guest-check');return}
     if(fullWidgetRoutes.has(destination)&&typeof window.openBIGLWAModule==='function'){window.openBIGLWAModule(destination);setSidebarCurrent(app,destination);return}
     if(destination==='profile'||destination==='profile-card'||destination==='aura'||destination==='music'||widget){
