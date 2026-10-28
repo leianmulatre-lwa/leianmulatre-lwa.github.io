@@ -32,12 +32,29 @@ const tab=doc.querySelector('[data-profile-editor-tab="picture"]');
 const pane=doc.getElementById('profilePictureEditor');
 const archivePane=doc.getElementById('archiveHighlightsPanel');
 const highlightButton=doc.querySelector('.archive-highlights-button');
+assert.ok(css.includes('.mini-avatar.has-photo'),'Loaded photo hides any late initial overlays');
 assert.ok(tab&&pane,'Main profile photo uploader mounts in Profile Picture section');
 assert.ok(archivePane&&highlightButton,'Archive has Highlights editor and a control to reveal it');
 assert.equal(doc.querySelectorAll('[data-profile-editor-tab="highlights"]').length,0,'No duplicate Highlights tab in profile editor');
 assert.equal(tab.textContent,'Profile Picture');
 assert.ok(archivePane.hidden,'Highlights panel does not crowd Archive gallery until requested');
 assert.ok(doc.querySelector('.archive-page-list'),'Existing Archive gallery remains intact');
+// The Archive toolbar is refreshed independently of the Highlights panel.
+const actions=doc.querySelector('.archive-toolbar-actions');
+actions.replaceChildren(); // reproduces a refresh that removes Highlights
+assert.equal(doc.querySelector('.archive-highlights-button'),null);
+assert.ok(doc.querySelector('#archiveHighlightsPanel'),'Editor survives the toolbar refresh');
+w.BIGLWAHighlightEditor.mountArchive();
+const restored=doc.querySelector('.archive-highlights-button');
+assert.ok(restored,'Highlights action is restored when the editor still exists');
+assert.strictEqual(doc.querySelector('#archiveHighlightsPanel'),archivePane,'Editor is reused, not duplicated');
+assert.equal(doc.querySelectorAll('#archiveHighlightsPanel').length,1,'Only one editor panel exists');
+restored.click();
+assert.equal(restored.getAttribute('aria-expanded'),'true','Recovered button still opens the panel');
+assert.equal(archivePane.hidden,false,'Recovered action shows the existing editor');
+restored.click();
+assert.equal(archivePane.hidden,true,'Recovered button also closes the panel');
+
 const go=doc.querySelector('.profile-highlight-archive-link button');
 assert.equal(go?.textContent,'Go to Archive','Profile Picture links directly to Highlights in Archive');
 let opened='';w.openBIGLWAModule=k=>{opened=k};go.click();

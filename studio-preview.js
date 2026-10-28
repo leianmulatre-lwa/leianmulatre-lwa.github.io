@@ -165,7 +165,13 @@ function applyIdentity(data){
   const welcome=$("#studioApp .welcome strong");
   if(welcome && name) welcome.textContent=name.charAt(0).toUpperCase()+name.slice(1);
   const avatar=$("#studioApp .mini-avatar");
-  if(avatar && name) avatar.textContent=name.charAt(0).toUpperCase();
+  const avatarPhoto=data.avatarUrl||data.profilePhotoUrl||data.profilePhoto?.url||"";
+  if(avatar && name){
+    // The fallback initial belongs only to a profile without a photo.
+    // A late public-profile hydration must not paint a letter over an image.
+    if(avatarPhoto)avatar.textContent="";
+    else if(!avatar.classList.contains("has-photo"))avatar.textContent=name.charAt(0).toUpperCase();
+  }
   /* The top-right chip repeats the viewer's own name, so a previewing visitor sees their
      own account labelled on somebody else's studio. Paint the profile being looked at. */
   showPreviewIdentity({
