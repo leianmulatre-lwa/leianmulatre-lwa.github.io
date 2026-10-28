@@ -15,7 +15,7 @@ function check(name, cond, extra = "") {
 console.log("=== TIKTOK CONNECT DOES NOT DIE SILENTLY ===");
 check("connect guards the secure context it needs for PKCE", tiktok.includes("if (!crypto.subtle) throw new Error('TikTok needs a secure page"));
 check("health is still checked first", tiktok.includes("const health = await api('health');"));
-check("the oauth start uses the stable Studio Orbit return route", tiktok.includes("location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit'))"));
+check("the oauth start uses the stable Studio Orbit return route", tiktok.includes("location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit&orbit_return=1'))"));
 check("the verifier is remembered for the handoff", tiktok.includes("sessionStorage.setItem('tt_verifier', verifier)"));
 
 console.log("\n=== THE NEW SCRIPT IS SERVED ===");
