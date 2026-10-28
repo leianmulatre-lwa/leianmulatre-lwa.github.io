@@ -1,25 +1,65 @@
-/* Top-left Studio brand: use the member-supplied tipi only on internal module pages.
-   The existing stitched BIG LWA crest remains untouched on Studio home. */
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
- display:none!important;flex:0 0 auto!important;
- width:64px!important;height:64px!important;max-width:100%!important;
- margin-left:26px!important;object-fit:contain!important;
- filter:none!important;pointer-events:none!important
+/* Active module symbol at rest. Hover or keyboard focus reveals the
+   SAME Studio tipi already used throughout the shortcut and Skeleton Key. */
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
+ position:relative!important;isolation:isolate;display:grid!important;
+ place-items:center!important;flex:0 0 90px!important;width:90px!important;
+ min-height:72px!important;text-decoration:none!important
 }
-#studioApp:has(.main.module-view) .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"] .biglwa-topbar-crest{
  display:none!important
 }
-#studioApp:has(.main.module-view) .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
- display:block!important
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi,
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{
+ grid-area:1/1!important;display:grid!important;place-items:center!important;
+ width:64px!important;height:64px!important;max-width:100%!important;
+ object-fit:contain!important;margin:0!important;padding:0!important;
+ pointer-events:none!important;transition:opacity .14s ease!important
 }
-body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{filter:invert(1)!important}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{
+ opacity:0!important;font:700 42px/1 Georgia,serif!important;color:#101010!important;
+ overflow:hidden!important
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current :is(svg,img){
+ width:56px!important;height:56px!important;max-height:100%!important;
+ object-fit:contain!important
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-active-module]:not([data-biglwa-active-module=""]) .biglwa-topbar-current{
+ opacity:1!important
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-active-module]:not([data-biglwa-active-module=""]) .biglwa-module-tipi{
+ opacity:0!important
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand:is(:hover,:focus-visible) .biglwa-topbar-current{
+ opacity:0!important
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand:is(:hover,:focus-visible) .biglwa-module-tipi{
+ opacity:1!important
+}
+body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
+ filter:invert(1)!important
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand:focus-visible{
+ outline:2px solid currentColor!important;outline-offset:3px!important
+}
 @media(max-width:980px){
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
-  width:56px!important;height:56px!important;margin-left:23px!important
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
+  width:76px!important;flex-basis:76px!important;min-height:60px!important
+ }
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand :is(.biglwa-module-tipi,.biglwa-topbar-current){
+  width:54px!important;height:54px!important
  }
 }
 @media(max-width:720px){
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
-  width:43px!important;height:43px!important;margin-left:16px!important
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
+  width:58px!important;flex-basis:58px!important;min-height:50px!important
  }
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand :is(.biglwa-module-tipi,.biglwa-topbar-current){
+  width:43px!important;height:43px!important
+ }
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current :is(svg,img){
+  width:38px!important;height:38px!important
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp .studio-brand-row>a.brand.biglwa-block-brand :is(.biglwa-module-tipi,.biglwa-topbar-current){transition:none!important}
 }
