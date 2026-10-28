@@ -24,7 +24,7 @@ assert.ok(style.includes(':is(:hover,:focus-visible) .biglwa-module-tipi'),'Poin
 assert.ok(route.includes("if(activeModuleKey)closeModule();")&&!route.includes("else openModule('veve');"),'Logo does not open Veve');
 assert.ok(route.includes('explicitOrbitReturn(params)'),'Stale Orbit deep links are distinguished from OAuth callbacks');
 assert.ok(route.includes('params.has(\'instagram_handoff\')'),'Instagram OAuth handoff preserved');
-assert.ok(html.includes('session-restore.js?v=20261028-user-last-view-2'),'Latest account-scoped restore is deployed');
+assert.ok(html.includes('session-restore.js?v=20261028-initial-logout-fix-1') && session.includes("let lastConfirmedUid=null"),'Account-scoped restore is deployed and first signed-out session cannot stay pending');
 const dom=new JSDOM('<!doctype html><html><head></head><body><div id="studioApp"><div class="studio-brand-row"><a class="brand biglwa-block-brand" href="/studio"><span class="biglwa-topbar-crest">LWA</span></a></div><div class="sidebar-navigation-row" data-sidebar-route-row="stream"><span class="sidebar-route-icon">◌</span></div><div class="main"><button id="moduleBack">Back</button><section id="moduleWorkspace" data-module-key="stream"></section></div></div></body></html>',{url:'https://biglwa.com/studio/stream',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,d=w.document;
 w.eval(mark);
