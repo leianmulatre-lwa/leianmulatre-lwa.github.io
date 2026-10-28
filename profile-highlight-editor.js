@@ -267,12 +267,43 @@
  function mountArchive(){
   if(!owner()||isPreview())return;
   const shell=el('#studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell');
-  if(!shell||el('#archiveHighlightsPanel',shell))return;
+  if(!shell)return;
   const toolbar=el('.archive-toolbar',shell);
   if(!toolbar)return;
   const actions=el('.archive-toolbar-actions',toolbar);
-  const button=make('button','module-action ghost archive-highlights-button','Highlights');
-  button.type='button';button.setAttribute('aria-controls','archiveHighlightsPanel');
+  // Archive refreshes its action row without necessarily replacing the highlights
+  // editor below it. Reconnect the button even when the panel already exists.
+  const ensureButton=()=>{
+   let button=el('.archive-highlights-button',shell);
+   if(!button){
+    button=make('button','module-action ghost archive-highlights-button','Highlights');
+    button.type='button';
+    button.addEventListener('click',()=>{
+     const current=el('#archiveHighlightsPanel',shell);
+     if(!current)return;
+     archiveExpanded=!archiveExpanded;
+     current.hidden=!archiveExpanded;
+     button.setAttribute('aria-expanded',String(archiveExpanded));
+     button.classList.toggle('is-active',archiveExpanded);
+     if(archiveExpanded){get();render();if(!remoteLoaded)remote()}
+    });
+   }
+   button.setAttribute('aria-controls','archiveHighlightsPanel');
+   button.setAttribute('aria-expanded',String(archiveExpanded));
+   button.classList.toggle('is-active',archiveExpanded);
+   if(actions&&button.parentElement!==actions)actions.append(button);
+   else if(!actions&&button.parentElement!==toolbar)toolbar.prepend(button);
+   return button;
+  };
+  const existing=el('#archiveHighlightsPanel',shell);
+  if(existing){
+   if(toolbar.nextElementSibling!==existing)toolbar.insertAdjacentElement('afterend',existing);
+   existing.hidden=!archiveExpanded;
+   ensureButton();
+   return;
+  }
+  // If only the editor was replaced, do not leave an obsolete button behind.
+  el('.archive-highlights-button',shell)?.remove();
   const pane=make('section','archive-highlights-panel highlight-edit-pane');
   pane.id='archiveHighlightsPanel';
   const header=make('div','archive-highlights-heading');
@@ -292,15 +323,9 @@
   const message=make('p','highlight-editor-status','');message.id='biglwaHighlightStatus';
   message.setAttribute('role','status');pane.append(message);
   toolbar.insertAdjacentElement('afterend',pane);
-  if(actions)actions.append(button);else toolbar.prepend(button);
-  const show=open=>{
-   archiveExpanded=!!open;pane.hidden=!archiveExpanded;
-   button.setAttribute('aria-expanded',String(archiveExpanded));
-   button.classList.toggle('is-active',archiveExpanded);
-   if(archiveExpanded){get();render();if(!remoteLoaded)remote()}
-  };
-  button.addEventListener('click',()=>show(!archiveExpanded));
-  show(archiveExpanded);
+  pane.hidden=!archiveExpanded;
+  ensureButton();
+  if(archiveExpanded){get();render();if(!remoteLoaded)remote()}
  }
  function openArchive(){
   archiveExpanded=true;
