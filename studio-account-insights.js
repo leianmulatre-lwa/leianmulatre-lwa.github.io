@@ -258,6 +258,10 @@
   }
  }
  window.BigLWAAccountInsights={refresh,summarize};
+ // A provider/tracker refresh can complete after the first profile paint. Let
+ // that update through the 120s write throttle once so visitors see the full
+ // combined Reach instead of waiting for the next owner visit.
+ window.addEventListener('biglwa:external-stats-updated',()=>{publicPublishAt=0});
  for(const event of ['biglwa:identity-updated','biglwa:user-directory-ready','biglwa:session-verified','biglwa:external-stats-updated'])window.addEventListener(event,refresh);
  document.addEventListener('biglwa:module-open',refresh);document.addEventListener('biglwa:new-orbit-status',refresh);document.addEventListener('biglwa:google-state',refresh);document.addEventListener('biglwa:facebook-personal-status',refresh);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
