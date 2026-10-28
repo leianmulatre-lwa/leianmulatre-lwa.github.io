@@ -135,7 +135,7 @@ assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
 assert.match(tiktokOrbit, /lastError/);
 assert.match(modules, /orbit-main/); // Provider diagnostics are no longer injected into planet previews.
 assert.match(modules, /orbitPageStatus/); // Detailed OAuth errors belong in the page status area.
-assert.match(tiktokOrbit, /location\.origin \+ '\/studio\?view=orbit'/);
+assert.ok(tiktokOrbit.includes("location.origin + '/studio?view=orbit&orbit_return=1'"),'TikTok OAuth opens Orbit only on explicit connection return');
 
 assert.match(feedView, /instagram: \{ rim:"#f36b21"/);
 
