@@ -84,4 +84,40 @@ await new Promise(resolve=>setTimeout(resolve,0));
 assert.equal(d.getElementById('biglwaMenuPreview').textContent,'Preview my profile',
  'Preview action switches back when visitor mode ends');
 dom.window.close();
-console.log('PASS owner preview routing, menu preview/settings, green/yellow/red live actions, avatar backfill, dated public-only guest sheet and Journal initial.');
+
+// Real preview module in a browser-like document: account identity can arrive
+// AFTER the public profile. The banner must not wait for authentication, and
+// the Return-to-profile state must recognize the UID when it arrives.
+const previewDom=new JSDOM('<!doctype html><html><head></head><body>'+
+ '<div id="studioApp"><div class="profile-card"><div class="profile-display-name"></div><div class="profile-name-line"><h1></h1></div><div class="profile-copy"><div class="real-rank"><strong></strong></div></div><div class="stats"></div></div>'+
+ '<div class="aura-card"><p></p></div></div><section id="loginPage"></section></body></html>',
+ {url:'https://biglwa.com/leian?preview=1',runScripts:'outside-only',pretendToBeVisual:true});
+const pw=previewDom.window,pd=pw.document;
+pw.__fakeIdentity=null;
+pw.BigLWAUserDirectory={
+ loadProfile:async()=>({profile:{username:'leian'}}),
+ loadPublicProfile:async()=>({uid:'owner-1',username:'leian',name:'Leian',accountVisibility:'public'})
+};
+const esmStub=[
+ 'const identity=()=>window.__fakeIdentity;',
+ 'const onIdentityChange=fn=>{window.__fireIdentity=fn};',
+ 'const showPreviewIdentity=()=>{};',
+ 'const clearPreviewIdentity=()=>{};'
+].join('\n');
+pw.eval(esmStub+'\n'+preview.replace(/^import [^\n]+\n/gm,''));
+pd.dispatchEvent(new pw.Event('DOMContentLoaded'));
+await new Promise(resolve=>setTimeout(resolve,100));
+assert.ok(pd.getElementById('biglwaPreviewBanner'),'The visitor preview notice is mounted even before identity exists');
+assert.equal(pd.body.firstElementChild.id,'biglwaPreviewBanner','Preview banner is above the Studio content');
+assert.ok(pd.documentElement.classList.contains('biglwa-preview-mode'),'Visitor projection is active');
+assert.equal(pd.documentElement.classList.contains('biglwa-owner-self-preview'),false,'No owner assumption before UID is verified');
+pw.__fakeIdentity={uid:'different-uid',username:'leian'};
+pw.__fireIdentity();
+assert.equal(pd.documentElement.classList.contains('biglwa-owner-self-preview'),false,'An unrelated UID cannot unlock owner preview controls');
+pw.__fakeIdentity={uid:'owner-1',username:'leian'};
+pw.__fireIdentity();
+assert.equal(pd.documentElement.classList.contains('biglwa-owner-self-preview'),true,'Late verified UID enables owner-return state');
+pw.BigLWAStudioPreview.standDown();
+previewDom.window.close();
+console.log('PASS owner preview routing, delayed UID hydration, visible top bar and Return to profile menu state.');
+
