@@ -303,16 +303,18 @@
   // Opening Stream returns the existing player to its full-sized home.
   if(docked){docked=false;if(dockShell)dockShell.hidden=true}
   root=host;root.classList.add('biglwa-stream');
+  requestAnimationFrame(syncYouTubeOrbitButton);
   state.day=localDay();
   root.innerHTML=[
-   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / THREE-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span></div>',
+   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / THREE-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span>', 
+   '<div class="stream-nav-actions"><form id="streamMediaLinkForm" class="stream-media-link-form" aria-label="Play a creator-hosted video or audio"><label for="streamMediaLink">Tune a link</label><div><input id="streamMediaLink" type="url" inputmode="url" placeholder="YouTube, TikTok or Spotify URL" aria-describedby="streamMediaLinkStatus"><button type="submit">▶ Tune</button></div><small id="streamMediaLinkStatus" role="status" aria-live="polite">Play a public creator-hosted track or video inside Stream.</small></form><button class="stream-youtube-orbit" type="button" data-google-orbit-connect aria-label="Connect YouTube through Orbit" title="Connect YouTube through Orbit"><img src="/assets/orbit-icons/youtube.svg" alt="" width="19" height="19"><span data-stream-youtube-status>YouTube Orbit · Connect</span></button></div></div>',
    '<div class="stream-channels" role="tablist" aria-label="Stream category">',
    categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></nav>',
    '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
    '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>▣ Dock player · keep watching while you browse</button><button type="button" class="stream-dock-open" data-stream-no-signal>◉ No signal?</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
-   '<form id="streamMediaLinkForm" class="stream-media-link-form" aria-label="Play a creator-hosted video or audio"><label for="streamMediaLink">Tune a link · YouTube, TikTok or Spotify</label><div><input id="streamMediaLink" type="url" inputmode="url" placeholder="Paste an individual video, track or episode link" aria-describedby="streamMediaLinkStatus"><button type="submit">▶ Play in Stream</button></div><small id="streamMediaLinkStatus" role="status" aria-live="polite">Only plays public, creator-hosted media. This does not import account data.</small></form>',
+   
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
    '<div class="stream-date-actions"><label>Discovery mood <select id="streamDiscoveryMood" class="stream-mood-select" aria-label="Choose a discovery mood"><option value="all">Everything</option><option value="gaming">Games &amp; horror</option><option value="culture">Culture &amp; commentary</option><option value="calm">Unwind</option><option value="cartoons">Cartoons</option><option value="surprise">Surprise me</option></select></label><label>Rotation date <input id="streamDate" type="date" aria-label="Rotation date" value="'+state.day+'"></label><button type="button" id="streamShuffleAgain" class="stream-shuffle-button">↻ shuffle again</button></div></div>',
@@ -604,7 +606,17 @@
     }
     return null;
   }
-  function onStreamMediaSubmit(event){
+  function syncYouTubeOrbitButton(){
+   const btn=root?.querySelector('.stream-youtube-orbit');
+   if(!btn)return;
+   const connected=!!window.__biglwaGoogleOrbit?.state?.connected;
+   const name=window.__biglwaGoogleOrbit?.state?.youtube?.snippet?.title;
+   btn.dataset.connected=connected?'1':'0';
+   btn.querySelector('[data-stream-youtube-status]').textContent=connected?'YouTube Orbit · Connected':'YouTube Orbit · Connect';
+   btn.title=connected?(name?'Connected to '+name:'YouTube connected through Google Orbit'):'Connect your YouTube account in Orbit';
+ }
+ document.addEventListener('biglwa:google-state',syncYouTubeOrbitButton);
+ function onStreamMediaSubmit(event){
     const form=event.target.closest?.('#streamMediaLinkForm');
     if(!form||!root?.contains(form))return;
     event.preventDefault();

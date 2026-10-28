@@ -8,6 +8,11 @@ const stream=readFileSync(new URL('./stream-guide.js',import.meta.url),'utf8');
 const style=readFileSync(new URL('./stream-guide.css',import.meta.url),'utf8');
 const pages=readFileSync(new URL('./module-pages.js',import.meta.url),'utf8');
 const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+assert.ok(stream.indexOf('id="streamMediaLinkForm"')<stream.indexOf('class="stream-channels"'),'Tune input belongs to top Stream navigation');
+assert.equal((stream.match(/id="streamMediaLinkForm"/g)||[]).length,1,'Only one tuner form is mounted');
+assert.ok(stream.includes('data-google-orbit-connect')&&stream.includes('data-stream-youtube-status'),'YouTube Orbit connect sits beside tuner');
+assert.ok(stream.includes('syncYouTubeOrbitButton'),'YouTube button tracks actual Google Orbit connection');
+assert.ok(style.includes('.stream-nav-actions .stream-media-link-form'),'Top tuner has responsive styles');
 const bucketRecords=new Map();
 const fakeR2={
  async put(key,text){bucketRecords.set(key,String(text))},

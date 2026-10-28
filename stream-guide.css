@@ -475,3 +475,63 @@ body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .s
 .biglwa-stream .stream-media-link-form small{color:inherit;opacity:.75}
 body.night-mode .biglwa-stream .stream-media-link-form{background:#2b2530;color:#f7eee9;border-color:#736173}
 body.night-mode .biglwa-stream .stream-media-link-form input{background:#1e1b25;color:#fff4ec;border-color:#877988}
+
+/* Stream header quick tools: Tune a link and YouTube Orbit connect now occupy
+   the top channel bar, not an extra block below the player. */
+.biglwa-stream .stream-nav-meta{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ align-items:center!important;gap:8px 14px!important;overflow:visible!important
+}
+.biglwa-stream .stream-nav-meta>.stream-eyebrow{grid-column:1;grid-row:1}
+.biglwa-stream .stream-nav-meta>.stream-nav-clock{grid-column:2;grid-row:1}
+.biglwa-stream .stream-nav-actions{
+ grid-column:1/-1;grid-row:2;display:flex;align-items:end;justify-content:flex-end;
+ gap:8px;min-width:0;max-width:100%;padding-top:5px;border-top:1px solid #d9cbbb
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+ flex:1 1 440px!important;width:auto!important;max-width:720px!important;
+ margin:0!important;padding:0!important;gap:6px 9px!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent!important;color:#34252b!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form label{
+ font:750 11px/1.2 system-ui!important;white-space:nowrap
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form>div{
+ display:flex!important;flex:1 1 270px;min-width:0;flex-wrap:nowrap!important;gap:5px!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form input{
+ flex:1 1 auto!important;min-width:80px!important;max-width:none!important;
+ height:33px!important;padding:6px 9px!important;font:500 11px system-ui!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form button{
+ height:33px!important;white-space:nowrap;font:750 11px system-ui!important;padding:5px 10px!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form small{
+ flex:0 0 100%;font:500 10px/1.2 system-ui!important;color:#755c57!important;
+ min-height:12px;margin-left:76px!important
+}
+.biglwa-stream .stream-youtube-orbit{
+ display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+ gap:6px;min-height:33px;padding:6px 10px;border:1px solid #b56b77;
+ border-radius:6px;background:#fff0ed;color:#572c37;cursor:pointer;
+ font:700 11px/1.3 system-ui;white-space:nowrap
+}
+.biglwa-stream .stream-youtube-orbit img{width:19px;height:19px;object-fit:contain}
+.biglwa-stream .stream-youtube-orbit[data-connected="1"]{
+ border-color:#4c936d;background:#e9f8e7;color:#23553c
+}
+.biglwa-stream .stream-youtube-orbit:hover,.biglwa-stream .stream-youtube-orbit:focus-visible{
+ outline:2px solid #bd7888;outline-offset:2px
+}
+@media(max-width:780px){
+ .biglwa-stream .stream-nav-actions{flex-wrap:wrap;justify-content:stretch}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form{flex-basis:100%!important}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form small{margin-left:0!important}
+ .biglwa-stream .stream-youtube-orbit{margin-left:auto}
+}
+@media(max-width:430px){
+ .biglwa-stream .stream-nav-actions .stream-media-link-form label{flex-basis:100%}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form>div{flex-basis:100%!important}
+}
