@@ -12,7 +12,7 @@ import {generateOgImage} from './build-og-image.mjs';
 const root=resolve(fileURLToPath(new URL('.',import.meta.url)));
 const dest=join(root,'dist');
 const publishDirs=new Set([
-  'MiiEditor','about','arcade','archive','assets','avatar','leian-mulatre',
+  'MiiEditor','about','affidavit','arcade','archive','assets','avatar','leian-mulatre',
   'cedarville-pnkfun1-cursive-font','cuteness-font','data-deletion',
   'licenses','logout','privacy','rights','terms','settings','stars-and-stripes-font',
   'third-party','tools','wiimii'
@@ -73,7 +73,7 @@ for(const dirent of readdirSync(root,{withFileTypes:true})){
   cpSync(join(root,name),join(dest,name));
   count++;total+=sz;
 }
-for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html']){
+for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html','affidavit/index.html']){
   if(!existsSync(join(dest,required)))throw Error('Missing required public asset: '+required);
 }
 for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','public-tiktok-snapshot-worker.js','wrangler.toml','firestore.rules','.github']){
