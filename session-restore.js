@@ -24,7 +24,9 @@ async function getAuth(){
 const qs=()=>new URLSearchParams(location.search);
 const clean=v=>String(v||"").trim();
 const SCOPED_VIEW_PREFIX='biglwaLastStudioView:v2:';
-let lastConfirmedUid='',restoreScheduled=false,pendingView='';
+// Null marks the *unresolved* first auth check. An initial signed-out result
+// has uid === '', and must still call finishAuth() to reveal the login page.
+let lastConfirmedUid=null,restoreScheduled=false,pendingView='';
 const currentUid=()=>lastConfirmedUid||window.__biglwaIdentity?.uid||'';
 const scopedViewKey=()=>currentUid()?SCOPED_VIEW_PREFIX+currentUid():'';
 function lastViewFromLocal(){
