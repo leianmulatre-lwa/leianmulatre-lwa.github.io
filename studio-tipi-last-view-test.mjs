@@ -18,7 +18,7 @@ assert.doesNotThrow(()=>new vm.Script(mark));
 assert.doesNotThrow(()=>new vm.Script(session));
 assert.doesNotThrow(()=>new vm.Script(route));
 assert.ok(sidebar.includes("['studio','Studio','<img src=\"/assets/studio-tipi-symbol.svg"),'Studio shortcut sources the tipi');
-assert.ok(sidebar.includes("['studio','politc','tools'"),'New accounts see Studio in the shortcut bar');
+assert.ok(sidebar.includes("['studio','Studio'"),'Studio is a selectable shortcut without displacing saved shortcuts');
 assert.ok(skeleton.includes("label:'Studio',key:'studio'")&&skeleton.includes('fallbackAsset:\'/assets/studio-tipi-symbol.svg'),'Skeleton symbol key has Studio tipi');
 assert.ok(style.includes(':is(:hover,:focus-visible) .biglwa-module-tipi'),'Pointer and keyboard reveal tipi');
 assert.ok(route.includes("if(activeModuleKey)closeModule();")&&!route.includes("else openModule('veve');"),'Logo does not open Veve');
