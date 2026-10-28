@@ -43,6 +43,11 @@ assert.deepEqual(invoke(privateLogin,'/privacy'),['/'],'ordinary login navigatio
 assert.deepEqual(invoke(privateLogin,'/'),[],'login root stays on root');
 assert.deepEqual(invoke(privateStudio,'/'),['/studio'],'signed-in homepage returns to Studio');
 assert.deepEqual(invoke(privateStudio,'/studio','?route=unknown'),['/studio'],'unrecognized query cleaned');
+assert.deepEqual(invoke(privateStudio,'/imani'),[],'a public profile address is never rewritten to Studio');
+assert.deepEqual(invoke(privateStudio,'/sam.kalina'),[],'dotted usernames keep their public profile address');
+assert.deepEqual(invoke(privateStudio,'/sam.kalina','?preview=1'),[],'explicit preview keeps the profile address and query');
+assert.deepEqual(invoke(privateStudio,'/theme.css'),['/studio'],'file-like paths still return to Studio');
+assert.deepEqual(invoke(privateStudio,'/affidavit'),['/studio'],'reserved static routes are not treated as profiles');
 assert.ok(home.includes("location.hostname.toLowerCase()==='www.biglwa.com'"),
   'www host redirects before initializing a different Firebase auth origin');
 assert.ok(home.includes("location.replace('https://biglwa.com'+location.pathname+location.search+location.hash)"),

@@ -37,7 +37,7 @@ assert.equal(stat().followers,300,'Sum includes only provider-verified Instagram
 assert.equal(stat().followersDisplay,'300+','Incomplete sources use + rather than falsely claiming full audience total');
 assert.equal(stat().sources.find(x=>x.id==='pinterest').followers,null);
 assert.equal(stat().sources.find(x=>x.id==='pinterest').monthlyViews,2154);
-assert.equal(stat().reach,null,'Views are not unique monthly reach');
+assert.equal(stat().reach,2154,'Monthly views count toward reach');
 assert.ok(read('studio-onboarding.js').includes('openAnalytics};'),'Skeleton Key exports analytics navigation');
 assert.ok(read('studio-followers.css').includes('color:#090909!important'),'Profile stat ink is high contrast');
 assert.ok(!app.includes('function showFollowersPanel('),'Old follower dropdown removed');

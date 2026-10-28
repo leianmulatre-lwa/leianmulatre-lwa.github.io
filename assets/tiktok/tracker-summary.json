@@ -1,0 +1,23 @@
+{
+  "handle": "leianstanley",
+  "ownerUid": "lxUOaCqJGpdgkLYgEsIvQ3xtN552",
+  "source": "https://tik.ninja/",
+  "sourceLabel": "tik.ninja public TikTok tracker",
+  "observedAt": "2026-10-26T01:39:08.731Z",
+  "followers": 35230,
+  "following": 1025,
+  "videos": 28,
+  "totalLikes": 1400000,
+  "monthlyStat": 19700,
+  "monthlyStatLabel": "Avg Likes / Month",
+  "display": {
+    "followers": "35.2K",
+    "following": "1K",
+    "videos": "28",
+    "totalLikes": "1.4M",
+    "monthlyStat": "19.7K",
+    "avgViewsPerVideo": "21K",
+    "avgLikesPerVideo": "5.6K",
+    "engagementRate": "17.81%"
+  }
+}

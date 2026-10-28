@@ -20,6 +20,7 @@ assert.ok(preview.includes("function syncPublicWidgets()"),'Public preview has e
 assert.ok(preview.includes("visible.has(key)?'1':'0'"),'Unshared widgets do not become public automatically');
 assert.ok(preview.includes('biglwa-preview-mode #studioApp .masonry >'),'Public grid is filtered');
 assert.ok(preview.includes("if(!document.getElementById('biglwaPreviewBanner'))buildBanner()"),'Preview notice restores after late Studio hydration');
+assert.ok(preview.includes('function isPublicProfilePath')&&preview.includes('PREVIEW_FILE')&&!preview.includes('segment.includes(".")'),'Dotted public usernames stay addresses while file-like paths are rejected');
 assert.ok(preview.includes("window.__biglwaPublicStorageView=true"),'Owner-local drafts are disabled at public preview activation');
 assert.ok(preview.includes('if(preview.snapshot)return'),'Reapplying public appearance does not overwrite viewer theme backup');
 assert.ok(appearance.includes("if(!document.documentElement.classList.contains('biglwa-preview-mode'))"),'Viewer preferences never persist imported public appearance');
@@ -27,7 +28,7 @@ assert.ok(guestCss.includes('repeating-linear-gradient(to bottom'),'Guest Check 
 assert.ok(landing.includes('background:transparent!important;color:#111'),'Public Avatar does not paint a mismatched beige panel');
 assert.ok(rankCss.includes('color:#000!important;opacity:1!important'),'REAL RANK label and status display readable black ink');
 assert.ok(menu.includes("location.assign(ownsThisPreview()?'/studio':'/'+encodeURIComponent(mine)+'?preview=1')"),'Owner Preview Profile routes to public preview and returns to Studio');
-assert.ok(index.includes('/studio-preview.js?v=20261028-photo-initial-guard-1'),'Both routes use the refreshed public profile runtime');
+assert.ok(index.includes('/studio-preview.js?v=20261028-public-preview-path-1'),'Both routes use the refreshed public profile runtime');
 assert.ok(sharing.includes('publicOrbit(root)')&&sharing.includes('publicBoards(root)'),'Orbit and Boards are handled as public read-only modules');
 assert.ok(index.includes('/public-profile-landing.js')&&index.includes('/login-stitch-polish.css'),'Public landing and stitch theme loaded');
 assert.ok(login.includes('stitched-crest-mask'),'Login emblem retains stitched shape');

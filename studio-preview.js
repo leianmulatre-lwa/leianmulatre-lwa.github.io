@@ -7,9 +7,13 @@ import { showPreviewIdentity, clearPreviewIdentity } from "./account-chrome.js?v
 import { identity, onIdentityChange } from "./account-identity.js";
 const PREVIEW_RESERVED = new Set([
   "studio","login","privacy","terms","rights","photo-booth","map-app",
-  "bootstrap-v2","base-v1","index","404","favicon","assets"
+  "bootstrap-v2","base-v1","index","404","favicon","assets",
+  "about","affidavit","data-deletion","settings","logout","arcade","archive","tools"
 ]);
 const PREVIEW_PATH = /^\/([a-z0-9._-]{5,24})\/?$/;
+/* A dotted username (sam.kalina) is a valid member address. Only file-like paths
+   are rejected so /theme.css or /app.js never open a profile preview. */
+const PREVIEW_FILE = /\.(?:html?|js|mjs|css|json|map|txt|xml|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|mp4|webm|pdf|webmanifest)$/i;
 const APPEARANCE_KEYS = ["biglwaWidgetStyle","biglwaWallpaperSettings","biglwaDockedWidgetsV3","biglwaWidgetOrder"];
 const ownerAppearanceKey=key=>{const uid=window.BigLWAAccountStorage?.uid||identity()?.uid;return uid && ["biglwaWidgetStyle","biglwaWallpaperSettings"].includes(key)?key+":"+uid:key};
 
@@ -44,12 +48,18 @@ const ENTRY_PATH=(()=>{
   return location.pathname;
 })();
 const entryPath = ()=>ENTRY_PATH;
-const pathUsername = (path=entryPath())=>{
-  let segment="";
-  try{segment=decodeURIComponent(String(path||"")).replace(/^\/+|\/+$/g,"").toLowerCase()}catch{}
-  if(!segment || PREVIEW_RESERVED.has(segment) || segment.includes(".")) return "";
-  return PREVIEW_PATH.test("/"+segment) ? segment : "";
+const normalizeSegment = path=>{
+  try{return decodeURIComponent(String(path||"")).replace(/^\/+|\/+$/g,"").toLowerCase()}catch{return ""}
 };
+function isPublicProfilePath(path){
+  const segment=normalizeSegment(path);
+  if(!segment || PREVIEW_RESERVED.has(segment) || PREVIEW_FILE.test(segment)) return false;
+  return PREVIEW_PATH.test("/"+segment);
+}
+const pathUsername = (path=entryPath())=>isPublicProfilePath(path)?normalizeSegment(path):"";
+/* The signed-in shell evaluates this before its own auth callbacks so a public
+   profile address survives showStudio()'s history rewrite. */
+window.__biglwaIsPublicProfilePath=isPublicProfilePath;
 const clean = v=>String(v==null?"":v).trim();
 
 async function waitFor(test,timeout=20000){
@@ -136,6 +146,9 @@ function applyIdentity(data){
     new Intl.NumberFormat().format(value):'—';
   const cardStats=$(".stats",card);
   if(cardStats){
+    // The static shell predates the Likes field. Reuse the shared strip builder
+    // so public profiles keep the same rows (and preview-aware values) as Studio.
+    try{window.__biglwaSyncProfileMetrics?.()}catch{}
     for(const kind of ['followers','connections','reach','likes']){
       const field=$('[data-profile-stat="'+kind+'"]',cardStats);
       if(!field)continue;
@@ -863,15 +876,13 @@ function enforce(){
   const app=studioApp();
   if(!app) return;
   const live=pathUsername(location.pathname);
-  if(live!==preview.username){
-    if(location.pathname==="/studio"){
-      preview.lastCheck=0;
-      checkSignedIn();
-      if(preview.signedIn){ standDown(); return; }
-    }else if(live){
-      standDown();
-      return;
-    }
+  if(live && live!==preview.username){ standDown(); return; }
+  if(!live && location.pathname==="/studio"){
+    // The signed-in shell can rewrite the address bar to /studio while this
+    // preview is still hydrating. That is not a visitor navigation, so keep the
+    // profile (and its preview banner) and restore the public address below.
+    preview.lastCheck=0;
+    checkSignedIn();
   }
   if(!app.classList.contains("is-active") || loginPage()?.classList.contains("is-active")) showStudioScreen();
   if(location.pathname+location.search!==preview.path) history.replaceState({},"",preview.path);
@@ -883,9 +894,14 @@ function enforce(){
   const aura=$("#studioApp .aura-card p");
   const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
   const metrics=preview.profile?.publicStats;
-  const follow=$('#studioApp [data-profile-stat="followers"] b');
-  const expected=typeof metrics?.followers==='number'?new Intl.NumberFormat().format(metrics.followers):'—';
-  const statsDrift=!!follow&&follow.textContent.trim()!==expected;
+  const expected=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0?
+    new Intl.NumberFormat().format(value):'—';
+  const statsDrift=['followers','connections','reach','likes'].some(kind=>{
+    const field=$('#studioApp [data-profile-stat="'+kind+'"]');
+    if(!field)return true;
+    const shown=field.querySelector('b');
+    return !!shown&&shown.textContent.trim()!==expected(metrics?.[kind]);
+  });
   if(nameDrift||auraDrift||statsDrift)applyIdentity(preview.profile);
   renderSocials(preview.profile);
   decorateArchiveAccess();

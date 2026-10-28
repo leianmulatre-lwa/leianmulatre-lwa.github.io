@@ -1597,9 +1597,13 @@
   function syncRealProfileMetrics(){
     const app=$('#studioApp');if(!app)return false;
     const stats=$('.profile-card .stats',app);if(!stats)return false;
+    // A visitor (or a signed-in member previewing a friend) must only ever see the
+    // published aggregates of the profile being viewed, never the viewer's own.
+    const previewing=document.documentElement.classList.contains('biglwa-preview-mode')||!!window.__biglwaPublicStorageView;
+    const viewed=previewing?window.__biglwaViewedProfile:null;
     const uid=String(window.__biglwaIdentity?.uid||'');
-    const source=window.__biglwaProfileMetrics||{};
-    const owned=!!uid&&source.uid===uid;
+    const source=previewing?(viewed?.publicStats||{}):(window.__biglwaProfileMetrics||{});
+    const owned=previewing?!!viewed:!!uid&&source.uid===uid;
     const number=key=>owned&&source[key]!==null&&source[key]!==undefined&&
       Number.isFinite(Number(source[key]))?new Intl.NumberFormat().format(Number(source[key])):'—';
     const followerNumber=owned?String(source.followersDisplay||number('followers')):'—';
@@ -1639,6 +1643,9 @@
     stats.dataset.biglwaMetricSource='real-profile-metrics';
     return true;
   }
+  // Public previews rebuild the strip through the same code path as the owner,
+  // so Likes/Reach stay present without borrowing the viewer's numbers.
+  window.__biglwaSyncProfileMetrics=syncRealProfileMetrics;
   function latestStreamTitle(){
     const current=window.BigLWAStreamGuide?.lastWatchedTitle;
     if(current)return String(current);

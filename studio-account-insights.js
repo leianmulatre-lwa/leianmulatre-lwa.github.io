@@ -26,7 +26,8 @@
     const legacyHandle=String(record.username||'').trim().toLowerCase();
     const fresh=number(count),prev=last[id];
     const external=id==='tiktok'&&window.BigLWAExternalTiktok?.snapshot?.();
-    const externalCount=external&&external.uid===accountUid?number(external.followers):null;
+    const externalMine=!!external&&external.uid===accountUid;
+    const externalCount=externalMine?number(external.followers):null;
     const sameAccount=!!prev&&!!handle&&!!prev.handle&&(prev.handle===handle||prev.handle===legacyHandle);
     // A basic-profile fetch must not count as a verified follower measurement.
     const checked=String(checkedAt||record.countCheckedAt||'');
@@ -39,14 +40,19 @@
     const observedAt=recoveredByProvider?new Date().toISOString():externalVerified?String(external.checkedAt||''):
       fresh!==null?(sameAccount&&prev.followers===fresh&&prev.observedAt?prev.observedAt:(checked||new Date().toISOString())):sameAccount?prev.observedAt||'':'';
     if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric,provenance:'provider'};
-    // Only genuine engagement counts from provider-authorized responses are used.
-    const likes=number(record.stats?.likes??record.likes);
-    const recoveredLikes=id==='tiktok'&&recoveredByProvider?number(external.likes):null;
-    const receivedLikes=id==='tiktok'&&record.verifiedFromProvider!==false?(likes??recoveredLikes):null;
+    // Likes are cumulative provider counts; accept them from any connected app
+    // and fall back to the owner-approved external TikTok tracker snapshot.
+    const providerLikes=record.verifiedFromProvider===false?null:number(record.stats?.likes??record.likes);
+    const externalLikes=externalMine?number(external.likes):null;
+    const receivedLikes=providerLikes??externalLikes;
     const monthlyReach=record.stats?.monthlyReach??record.monthlyReach??record.reach??null;
-    // Pinterest monthly_views are impressions, not unique reach.
-    const monthlyViews=id==='pinterest'?number(record.stats?.monthlyViews??record.monthlyViews):null;
-    rows.push({id,followers:value,likes:receivedLikes,monthlyViews,lastCheckedAt:observedAt,reach:monthlyReach,
+    // Monthly views are reach. Pinterest publishes monthly_views directly; the
+    // public TikTok tracker exposes its own monthly statistic for the same window.
+    const monthlyViews=number(record.stats?.monthlyViews??record.monthlyViews);
+    const monthlyStat=externalMine?number(external.monthlyStat):null;
+    const monthlyStatLabel=externalMine?String(external.monthlyStatLabel||''):'';
+    rows.push({id,followers:value,likes:receivedLikes,monthlyViews,monthlyStat,monthlyStatLabel,
+      lastCheckedAt:observedAt,reach:monthlyReach,
       handle:String(record.sourceUserId||record.username||''),link:record.link||'',metric,
       isLastKnown:fresh===null&&fallback!==null,verified:(fresh!==null&&!!checked)||recoveredByProvider,
        externalVerified,source:externalVerified?'External public source':recoveredByProvider?'TikTok OAuth user.info.stats':null});
@@ -93,12 +99,22 @@
  }
  function summarize(rows,month){
   const followerRows=rows.filter(s=>s.followers!=null);
-   const likeRows=rows.filter(s=>s.likes!=null);
-  // Reach must explicitly identify the calendar month and a reach metric. Never use views/likes.
-  const reachRows=rows.filter(s=>s.reach?.month===month&&s.reach?.metric==='reach'&&number(s.reach?.value)!=null);
-  return {likes:likeRows.length?likeRows.reduce((n,s)=>n+s.likes,0):null,followers:followerRows.length?followerRows.reduce((n,s)=>n+s.followers,0):null,reach:reachRows.length?reachRows.reduce((n,s)=>n+Number(s.reach.value),0):null,coverage:followerRows.length,reachCoverage:reachRows.length};
+  const likeRows=rows.filter(s=>s.likes!=null);
+  // Reach covers a calendar month. A source may report it explicitly, or publish
+  // monthly views / its monthly tracker statistic (the product owner's definition
+  // is that monthly views and the TikTok monthly stat both count as reach).
+  const reachValue=source=>{
+   if(source.reach?.month===month&&source.reach?.metric==='reach'&&number(source.reach?.value)!=null)return Number(source.reach.value);
+   const views=number(source.monthlyViews);if(views!=null)return views;
+   return number(source.monthlyStat);
+  };
+  const reachRows=rows.filter(source=>reachValue(source)!=null);
+  return {likes:likeRows.length?likeRows.reduce((n,s)=>n+s.likes,0):null,followers:followerRows.length?followerRows.reduce((n,s)=>n+s.followers,0):null,reach:reachRows.length?reachRows.reduce((n,s)=>n+reachValue(s),0):null,coverage:followerRows.length,reachCoverage:reachRows.length};
  }
  function publishProfileMetrics(){
+  // Never publish the viewer's own aggregates into somebody else's public
+  // profile. The preview owns the strip from the viewed member's publicStats.
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return;
   // The profile banner exists before Skeleton Key's analytics panel is mounted.
   // Publishing metrics must not depend on a widget being open or which month its
   // selector happens to show.
@@ -180,9 +196,9 @@
   const known=!!overview&&owner===uid();
   const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,likes:stats.likes,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=format(value);if(node.textContent!==text)node.textContent=text}
-  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Likes and monthly reach only appear when a source reports those exact metrics; video views and engagement estimates are not reach. Other sources are unavailable, not zero.';
+  const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Likes are cumulative provider counts. Reach includes an explicit monthly reach metric, monthly views, and the TikTok monthly tracker statistic; other per-video views and engagement estimates are not treated as monthly reach. Other sources are unavailable, not zero.';
   const list=q('.analytics-sources',host);
-  const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.followers,r.likes,r.monthlyViews,r.reach,r.lastCheckedAt]));
+  const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.followers,r.likes,r.monthlyViews,r.monthlyStat,r.monthlyStatLabel,r.reach,r.lastCheckedAt]));
   if(list.dataset.snapshot!==signature){
     list.dataset.snapshot=signature;list.replaceChildren();
     for(const row of rows){
@@ -195,7 +211,8 @@
       title.textContent=row.id.charAt(0).toUpperCase()+row.id.slice(1)+(row.handle?' · @'+row.handle:'');
       const segments=[format(row.followers)+' '+(row.metric||'followers')];
       if(row.likes!=null)segments.push(format(row.likes)+' likes');
-      if(row.id==='pinterest'&&number(row.monthlyViews)!=null)segments.push(format(row.monthlyViews)+' monthly views (not reach)');
+      if(number(row.monthlyViews)!=null)segments.push(format(row.monthlyViews)+' monthly views · reach');
+      if(number(row.monthlyStat)!=null)segments.push(format(row.monthlyStat)+' '+(row.monthlyStatLabel||'monthly tracker stat')+' · reach');
       if(row.reach?.month===selected&&row.reach.metric==='reach'&&number(row.reach.value)!=null)segments.push(format(row.reach.value)+' reported reach');
       meta.textContent=segments.join(' · ')+(row.isLastKnown?' · last known':row.lastCheckedAt?' · checked '+new Date(row.lastCheckedAt).toLocaleDateString():'');
       copy.append(title,meta);entry.append(icon,copy);list.append(entry);
@@ -217,11 +234,12 @@
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
   const month=monthOf(Date.now()),previous=overview.analyticsMonths?.[month]?.sources||[];
-  const snapshot={sources:sources().map(({id,handle,followers,likes,monthlyViews,lastCheckedAt,reach})=>{
+  const snapshot={sources:sources().map(({id,handle,followers,likes,monthlyViews,monthlyStat,monthlyStatLabel,lastCheckedAt,reach})=>{
     const old=previous.find(item=>item.id===id&&item.handle&&handle&&String(item.handle).toLowerCase()===handle.toLowerCase());
     const validReach=value=>value?.month===month&&value.metric==='reach'&&number(value.value)!=null
       ?{month,metric:'reach',value:Number(value.value)}:null;
-    return {id,handle,followers,likes:likes??number(old?.likes),monthlyViews:monthlyViews??number(old?.monthlyViews),lastCheckedAt,
+    return {id,handle,followers,likes:likes??number(old?.likes),monthlyViews:monthlyViews??number(old?.monthlyViews),
+      monthlyStat:monthlyStat??number(old?.monthlyStat),monthlyStatLabel:monthlyStatLabel||old?.monthlyStatLabel||'',lastCheckedAt,
       reach:validReach(reach)||validReach(old?.reach)};
   }),connections:Object.keys(overview.peopleConnections||{}).length};
   const signature=uid()+month+JSON.stringify(snapshot);if(signature===lastSnapshot)return;lastSnapshot=signature;

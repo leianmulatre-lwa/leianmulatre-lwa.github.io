@@ -7,9 +7,13 @@
 'use strict';
 const $=(s,r=document)=>r.querySelector(s);
 const PUBLIC='https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev';
+/* The public snapshot adapter exposes followers only. The owner-approved tracker
+   summary supplies cumulative likes and the monthly statistic that counts toward
+   Reach on the profile, without claiming provider authorization. */
+const TRACKER='/assets/tiktok/tracker-summary.json?v=20261028-1';
 const VALID=/^[a-zA-Z0-9._]{2,40}$/;
 const numeric=v=>v===null||v===undefined||v===''?null:Number.isSafeInteger(Number(v))&&Number(v)>=0?Number(v):null;
-let lastMessage='',busy=false,publicSnapshot=null,lastAttempt='',lastAttemptAt=0,lastState='';
+let lastMessage='',busy=false,publicSnapshot=null,lastAttempt='',lastAttemptAt=0,lastState='',trackerSummary=null,trackerRequested=false;
 const current=()=>{
  const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'');
  const state=window.__biglwaTikTokOrbit?.state;
@@ -26,18 +30,48 @@ const current=()=>{
  const handle=oauth||linked;
  return {uid,handle:VALID.test(handle)?handle:'',profile:state.profile||{},matchedToOAuth:!!oauth};
 };
+const trackerFor=account=>{
+ if(!trackerSummary||!account?.handle)return null;
+ if(String(trackerSummary.ownerUid||'')&&String(trackerSummary.ownerUid)!==account.uid)return null;
+ return String(trackerSummary.handle||'').toLowerCase()===String(account.handle).toLowerCase()?trackerSummary:null;
+};
+const withTracker=account=>{
+ const data=trackerFor(account);if(!data)return {};
+ const extra={};
+ const likes=numeric(data.totalLikes??data.likes);
+ const monthlyStat=numeric(data.monthlyStat??data.monthlyViews);
+ if(likes!==null)extra.likes=likes;
+ if(monthlyStat!==null){extra.monthlyStat=monthlyStat;extra.monthlyStatLabel=String(data.monthlyStatLabel||'Monthly views');}
+ if(data.observedAt)extra.trackerObservedAt=String(data.observedAt);
+ if(data.source)extra.trackerSource=String(data.source);
+ return extra;
+};
 const source=()=>{
  const account=current();if(!account||account.mismatch)return null;
- const n=numeric(account.profile.follower_count);
- if(n!==null)return {uid:account.uid,handle:account.handle,followers:n,
-  following:numeric(account.profile.following_count),likes:numeric(account.profile.likes_count),
+ const tracker=withTracker(account),n=numeric(account.profile.follower_count);
+ if(n!==null)return {...tracker,uid:account.uid,handle:account.handle,followers:n,
+  following:numeric(account.profile.following_count),likes:tracker.likes??numeric(account.profile.likes_count),
   videoCount:numeric(account.profile.video_count),source:'TikTok authorized user.info.stats',
   verifiedFromProvider:true,checkedAt:new Date().toISOString()};
  const pub=publicSnapshot;
  if(pub&&pub.uid===account.uid&&pub.handle.toLowerCase()===account.handle.toLowerCase()&&numeric(pub.followers)!==null)
-  return {...pub,verifiedFromProvider:false,publicSnapshot:true};
+  return {...pub,...tracker,verifiedFromProvider:false,publicSnapshot:true};
  return null;
 };
+async function loadTracker(){
+ if(trackerRequested)return trackerSummary;
+ trackerRequested=true;
+ try{
+  const response=await fetch(TRACKER,{method:'GET',credentials:'omit',cache:'no-store'});
+  if(!response.ok)return null;
+  const data=await response.json();
+  if(!data||!VALID.test(String(data.handle||'')))return null;
+  trackerSummary=data;
+  paint();
+  window.dispatchEvent(new CustomEvent('biglwa:external-stats-updated'));
+  return trackerSummary;
+ }catch{return null}
+}
 function paint(){
  const row=$('#moduleWorkspace[data-module-key="orbit"] [data-orbit-row="tiktok"]');
  if(!row)return;
@@ -64,7 +98,8 @@ function paint(){
  if(stats){
   const label=stats.verifiedFromProvider?'TikTok-reported':'Public @'+stats.handle+' · '+stats.source;
   help.textContent=label+' · '+stats.followers.toLocaleString()+' followers';
-  if(stats.verifiedFromProvider&&stats.likes!==null)help.textContent+=' · '+stats.likes.toLocaleString()+' likes';
+  if(stats.likes!==null)help.textContent+=' · '+stats.likes.toLocaleString()+' likes';
+  if(stats.monthlyStat!=null)help.textContent+=' · '+stats.monthlyStat.toLocaleString()+' '+(stats.monthlyStatLabel||'monthly stat')+' toward reach';
   if(!stats.verifiedFromProvider){
    help.textContent+=' · external observation, not ownership verification';
    if(stats.sourceObservedAt)help.textContent+=' · source date '+stats.sourceObservedAt;
@@ -142,5 +177,6 @@ document.addEventListener('biglwa:module-open',queue);
 window.addEventListener('biglwa:orbit-links-synced',queue);
 window.addEventListener('biglwa:identity-updated',queue);
 window.BigLWAExternalTiktok=Object.freeze({snapshot:source,refresh:()=>refresh(true)});
+void loadTracker();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',queue,{once:true});else queue();
 })();

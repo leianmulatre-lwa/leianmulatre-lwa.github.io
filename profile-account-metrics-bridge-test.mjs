@@ -44,12 +44,21 @@ data.connections.tiktok.sourceUserId='changed-tiktok-open-id';
 await w.BigLWAAccountInsights.refresh();
 assert.equal(w.__biglwaProfileMetrics.likes,null,'Replaced TikTok account never inherits old likes');
 assert.equal(w.__biglwaProfileMetrics.reach,null,'Replaced TikTok account never inherits old reach');
-// Pinterest monthly views are imported separately and never relabeled reach.
+// Monthly views are reach: Pinterest's monthly_views contributes to the aggregate.
 data.connections.pinterest={username:'owner-pins',sourceUserId:'pinterest-9',stats:{followers:19,monthlyViews:4242}};
 await w.BigLWAAccountInsights.refresh();
 assert.equal(w.__biglwaProfileMetrics.sources.find(s=>s.id==='pinterest').monthlyViews,4242,'Pinterest views live in owner analytics');
-assert.equal(w.__biglwaProfileMetrics.reach,null,'Monthly Pinterest views do not become reach');
+assert.equal(w.__biglwaProfileMetrics.reach,4242,'Pinterest monthly views count as reach');
 assert.equal(persisted.at(-1).snapshot.sources.find(s=>s.id==='pinterest').monthlyViews,4242,'Pinterest views saved to monthly history');
+// The public TikTok tracker supplies cumulative likes and the monthly stat that
+// counts toward reach, without being mistaken for provider authorization.
+w.BigLWAExternalTiktok={snapshot:()=>({uid,handle:'maker',followers:35230,likes:1400000,
+ monthlyStat:19700,monthlyStatLabel:'Avg Likes / Month',verifiedFromProvider:false})};
+data.connections.tiktok={username:'maker',sourceUserId:'tiktok-openid-1',stats:{followers:35230}};
+await w.BigLWAAccountInsights.refresh();
+assert.equal(w.__biglwaProfileMetrics.likes,1400000,'TikTok tracker likes reach the profile banner');
+assert.equal(w.__biglwaProfileMetrics.reach,4242+19700,'TikTok monthly tracker stat counts toward reach');
+assert.equal(persisted.at(-1).snapshot.sources.find(s=>s.id==='tiktok').monthlyStat,19700,'TikTok monthly stat saved to monthly history');
 uid='metric-owner-b';w.__biglwaIdentity={uid};
 data={uid,analyticsMonths:{},connections:{},peopleConnections:{},orbitConnectedProfiles:{}};
 await w.BigLWAAccountInsights.refresh();
