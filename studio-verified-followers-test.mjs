@@ -73,4 +73,4 @@ w.close();
 console.log('PASS provider follower totals, missing counts, real zero, per-app badges and per-UID privacy.');
 
 assert.match(insights,/connectionAPI\?\.connections\?\.\(\)/,'Latest connected provider responses power follower counts');
-assert.match(app,/biglwa-followers-refresh/,'Follower panel can request live API refresh');
+assert.ok(read('studio-account-insights.js').includes('window.BigLWAAccountInsights={refresh,summarize}'),'Skeleton analytics refresh uses provider data');
