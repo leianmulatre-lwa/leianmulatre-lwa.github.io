@@ -193,3 +193,6 @@ body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-live{color:#f
   font-size:9px!important;letter-spacing:.45px!important
  }
 }
+
+/* Rank wording must be readable against the red curtain wallpaper. */
+#studioApp#studioApp .profile-card .profile-copy>.real-rank :is(.rank-label,strong,.rank-next){color:#000!important;opacity:1!important;text-shadow:none!important}

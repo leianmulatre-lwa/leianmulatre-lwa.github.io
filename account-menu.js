@@ -203,9 +203,12 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
       const mine=String(window.__biglwaIdentity?.username||'').trim().toLowerCase().replace(/^@/,'');
       if(!/^[a-z0-9._-]{5,24}$/.test(mine)){event.preventDefault();return}
       previewLink.href='/'+encodeURIComponent(mine)+'?preview=1';
+      // Real navigation is required so the visitor renderer and banner both start.
+      event.preventDefault();event.stopImmediatePropagation();
       if(document.documentElement.classList.contains('biglwa-owner-self-preview')){
-        event.preventDefault();location.assign('/studio');return;
+        location.assign('/studio');return;
       }
+      location.assign(previewLink.href);
     });
     const updatePreview=()=>{
       const mine=String(window.__biglwaIdentity?.username||'').trim().toLowerCase().replace(/^@/,'');

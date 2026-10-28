@@ -240,7 +240,7 @@
  .biglwa-public-board-slot.placeholder:nth-child(6n+6){background:linear-gradient(144deg,#282328 0 53%,#ab7962 54%)}
  .biglwa-public-boards-note{font:500 10px system-ui;color:#83716c}
  html.biglwa-preview-mode #studioAvatarCard[data-public-avatar]{position:relative}
- html.biglwa-preview-mode #studioAvatarCard[data-public-avatar] .biglwa-public-avatar-preview{position:absolute;inset:46px 12px 10px;display:grid;place-items:center;border-radius:12px;overflow:hidden;background:#eadcce;color:#513943;font:40px Georgia,serif}
+ html.biglwa-preview-mode #studioAvatarCard[data-public-avatar] .biglwa-public-avatar-preview{position:absolute;inset:46px 12px 10px;display:grid;place-items:center;border-radius:12px;overflow:hidden;background:transparent!important;color:#111;font:40px Georgia,serif}
  html.biglwa-preview-mode #studioAvatarCard[data-public-avatar] .biglwa-public-avatar-preview img{width:100%;height:100%;object-fit:contain}
  .biglwa-public-guest-open,.biglwa-public-map-open,.biglwa-public-orbit-open{border:1px solid #b78b8c;border-radius:8px;background:#fff8f0;color:#573648;padding:8px 12px;font:700 11px system-ui;cursor:pointer;z-index:2;position:relative}
  html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-open{display:inline-flex!important;margin:10px}

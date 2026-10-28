@@ -561,7 +561,10 @@
       applyAppearance(false);applyWallpaperSettings(false);
       /* A signed-out preview passes the approved public media URL straight through. */
       if(values&&values.media&&values.media.url)paintWallpaper(values.media);
-      try{applyAppearance(true);applyWallpaperSettings(true)}catch{}
+      // Viewing a public profile must never overwrite the viewer's theme or wallpaper.
+      if(!document.documentElement.classList.contains('biglwa-preview-mode')){
+        try{applyAppearance(true);applyWallpaperSettings(true)}catch{}
+      }
     },
     media:paintWallpaper,
     clearMedia(){clearWallpaperDisplay()}
