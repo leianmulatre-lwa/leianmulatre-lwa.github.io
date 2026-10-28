@@ -199,24 +199,38 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
     previewLink.setAttribute('role','menuitem');
     previewLink.textContent='Preview my profile';
     previewLink.href='#';
+    const ownsThisPreview=()=>{
+      if(document.documentElement.classList.contains('biglwa-owner-self-preview'))return true;
+      const mine=String(window.__biglwaIdentity?.username||'').trim().toLowerCase().replace(/^@/,'');
+      const route=decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g,'')).toLowerCase();
+      // URL alone cannot make another member's page the signed-in owner's
+      // preview. Require an authenticated matching identity AND active preview.
+      return !!mine && route===mine &&
+        new URLSearchParams(location.search).get('preview')==='1' &&
+        window.BigLWAStudioPreview?.state?.().active===true;
+    };
     previewLink.addEventListener('click',event=>{
       const mine=String(window.__biglwaIdentity?.username||'').trim().toLowerCase().replace(/^@/,'');
       if(!/^[a-z0-9._-]{5,24}$/.test(mine)){event.preventDefault();return}
-      previewLink.href='/'+encodeURIComponent(mine)+'?preview=1';
-      // Real navigation is required so the visitor renderer and banner both start.
+      // A full navigation is intentional: loading the visitor's route
+      // initializes the read-only public projection rather than owner Studio.
       event.preventDefault();event.stopImmediatePropagation();
-      if(document.documentElement.classList.contains('biglwa-owner-self-preview')){
-        location.assign('/studio');return;
-      }
-      location.assign(previewLink.href);
+      location.assign(ownsThisPreview()?'/studio':'/'+encodeURIComponent(mine)+'?preview=1');
     });
     const updatePreview=()=>{
       const mine=String(window.__biglwaIdentity?.username||'').trim().toLowerCase().replace(/^@/,'');
-      previewLink.href=/^[a-z0-9._-]{5,24}$/.test(mine)?'/'+encodeURIComponent(mine)+'?preview=1':'#';
-      previewLink.textContent=document.documentElement.classList.contains('biglwa-owner-self-preview')?'Return to my Studio':'Preview my profile';
+      const back=ownsThisPreview();
+      previewLink.href=back?'/studio':/^[a-z0-9._-]{5,24}$/.test(mine)?'/'+encodeURIComponent(mine)+'?preview=1':'#';
+      previewLink.textContent=back?'Return to profile':'Preview my profile';
+      previewLink.setAttribute('aria-label',back?'Return to your Studio profile':'Preview your profile as a visitor');
     };
     updatePreview();
     menu.addEventListener('pointerdown',updatePreview);
+    window.addEventListener('biglwa:preview-owner-state',updatePreview);
+    // The public module may initialize after this account menu is built.
+    new MutationObserver(updatePreview).observe(document.documentElement,{
+      attributes:true,attributeFilter:['class']
+    });
     menu.append(label,link,previewLink);
     trigger.parentNode.insertBefore(menu, trigger.nextSibling);
     installActionDots(trigger);
@@ -244,6 +258,7 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     const toggle = (open) => {
+      menu.querySelector('#biglwaMenuPreview')?.dispatchEvent(new Event('pointerdown',{bubbles:true}));
       if (previewing()) return close(menu, trigger);
       menu.hidden = !open;
       trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
