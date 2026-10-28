@@ -679,7 +679,7 @@
     if(!hasSavedShortcuts){
       // Default a useful accessibility-first dock once. Existing saved orders
       // are always honored, including people who choose another arrangement.
-      const choices=['studio','politc','tools','calendar','map','projects','diary','notes','feed','archive'];
+      const choices=['politc','tools','calendar','map','projects','diary','notes','feed','archive'];
       shortcuts=[...choices.filter(k=>navigationCatalog.has(k)),
         ...initialNavigationShortcuts.filter(k=>navigationCatalog.has(k))].filter((k,i,a)=>a.indexOf(k)===i).slice(0,SHORTCUT_LIMIT);
     }
