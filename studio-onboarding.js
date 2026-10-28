@@ -506,6 +506,31 @@
   // The visible class overrides the saved dismissal only for this open session.
   card.scrollIntoView?.({behavior:'smooth',block:'nearest'});
  }
+
+ function openAnalytics(metric='followers'){
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return false;
+  const workspace=$('#moduleWorkspace');
+  if(workspace&&!workspace.hidden){
+    const back=$('#moduleBack');
+    if(back)back.click();
+  }
+  if(!card?.isConnected)attach();
+  openSkeleton();
+  const hub=$('#biglwaSkeletonHub',card||document);
+  const details=hub?.querySelector('.skeleton-analytics-details');
+  if(!details)return false;
+  details.open=true;
+  window.BigLWAAccountInsights?.refresh?.();
+  requestAnimationFrame(()=>{
+    const target=hub.querySelector('[data-metric="'+String(metric).replace(/[^a-z]/g,'')+'"]')||details.querySelector('summary');
+    details.scrollIntoView?.({behavior:'smooth',block:'center'});
+    // Move focus without interfering with the input the person was using.
+    const summary=details.querySelector('summary');
+    summary?.setAttribute('tabindex','-1');
+    summary?.focus?.({preventScroll:true});
+  });
+  return true;
+ }
  function attach(){
   style();ensureSkeletonToolbar();
   const next=$('#studioApp .manifesto-card');
@@ -539,7 +564,7 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});
  // Reapply the guide when delayed Studio layout restoration replaces its
  // card. Keep the sidebar launcher available after dismissing the card.
- window.BigLWASiteGuide={open:openTour,openKeys:openSkeleton};
+ window.BigLWASiteGuide={open:openTour,openKeys:openSkeleton,openAnalytics};
  let pending=false;
  const observer=new MutationObserver(()=>{
   if(card?.isConnected && $('.biglwa-tour-actions',card) &&

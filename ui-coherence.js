@@ -1596,118 +1596,33 @@
         const item=document.createElement('span');item.dataset.profileStat=key;
         const value=document.createElement('b');value.textContent=key==='followers'?followerNumber:number(key);
         item.append(value,document.createTextNode(' '+label));
-        if(key==='followers'){
+        if(['followers','likes','reach','connections'].includes(key)){
           item.classList.add('biglwa-followers-trigger');
           item.tabIndex=0;item.setAttribute('role','button');
-          item.setAttribute('aria-haspopup','dialog');
-          item.setAttribute('aria-controls','biglwaFollowersPopover');
-          item.setAttribute('aria-expanded','false');
-          item.setAttribute('aria-label','View follower counts by connected social app');
-          item.title='View verified followers by app';
+          item.setAttribute('aria-label','Open Skeleton Key for verified follower counts by app');
+          item.title='Show provider counts in Skeleton Key';
         }
         return item;
       }));
     }
-    if(stats.dataset.biglwaFollowersBound!=='1'){
-      stats.dataset.biglwaFollowersBound='1';
-      stats.addEventListener('click',e=>{
-        if(e.target.closest?.('[data-profile-stat="followers"]'))showFollowersPanel(stats);
-      });
-      stats.addEventListener('keydown',e=>{
-        if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-profile-stat="followers"]')){
-          e.preventDefault();showFollowersPanel(stats);
-        }
-      });
+    if(stats.dataset.biglwaAnalyticsBound!=='1'){
+      stats.dataset.biglwaAnalyticsBound='1';
+      const navigate=event=>{
+        const node=event.target.closest?.('[data-profile-stat]');
+        if(!node)return;
+        if(event.type==='keydown'&&event.key!=='Enter'&&event.key!==' ')return;
+        if(event.type==='keydown')event.preventDefault();
+        const metric=node.dataset.profileStat;
+        if(!['followers','likes','reach','connections'].includes(metric))return;
+        window.BigLWASiteGuide?.openAnalytics?.(metric);
+      };
+      stats.addEventListener('click',navigate);
+      stats.addEventListener('keydown',navigate);
     }
-    const panel=document.getElementById('biglwaFollowersPopover');
-    if(panel&&!panel.hidden)drawFollowersPanel(stats,panel);
+    document.getElementById('biglwaFollowersPopover')?.remove();
     stats.dataset.biglwaMetricSource='real-profile-metrics';
     return true;
   }
-  const followerNames={instagram:'Instagram',tiktok:'TikTok',pinterest:'Pinterest',
-    x:'X',tumblr:'Tumblr',youtube:'YouTube',facebook:'Facebook',snapchat:'Snapchat',vsco:'VSCO',bereal:'BeReal',substack:'Substack',xbox:'Xbox'};
-  const followerColors={instagram:'#ffab63',tiktok:'#26202a',pinterest:'#e60023',x:'#161616',
-    tumblr:'#20334e',youtube:'#e52235',facebook:'#1877f2',snapchat:'#ecd91c',vsco:'#b51668',bereal:'#777b83',substack:'#da521b',xbox:'#a3d65e'};
-  function drawFollowersPanel(stats,panel){
-    const uid=String(window.__biglwaIdentity?.uid||'');
-    const data=window.__biglwaProfileMetrics||{};
-    const rows=uid&&data.uid===uid&&Array.isArray(data.sources)?data.sources:[];
-    const title=panel.querySelector('h3'),list=panel.querySelector('.biglwa-followers-list');
-    title.textContent='followers by app';
-    list.replaceChildren();
-    for(const row of rows){
-      if(!row?.id)continue;
-      const entry=document.createElement('div');entry.className='biglwa-followers-row';
-      const icon=document.createElement('span');icon.className='biglwa-followers-icon';
-      icon.style.background=followerColors[row.id]||'#71656a';
-      const named=followerNames[row.id];
-      if(named){
-        const img=document.createElement('img');img.src='/assets/orbit-icons/'+row.id+'.svg';
-        img.alt='';img.width=22;img.height=22;img.loading='lazy';icon.append(img);
-      }else icon.textContent=String(row.id).slice(0,2).toUpperCase();
-      const details=document.createElement('span');details.className='biglwa-followers-source';
-      const name=document.createElement('strong');name.textContent=named||String(row.id);
-      const note=document.createElement('small');note.textContent=row.followers==null?
-        'Connected · count not provided':row.isLastKnown?'Last verified count':row.verified?'Verified by provider':row.externalVerified?'Verified externally · public snapshot':'Count unavailable';
-      // Check mark means an actual provider-returned metric, not an externally matched username.
-      if((row.verified||row.externalVerified)&&!row.isLastKnown&&row.followers!=null){
-        const check=document.createElement('span');
-        check.className='biglwa-provider-check'+(row.externalVerified?' is-external':'');
-        check.textContent='✓';
-        check.setAttribute('aria-label',row.externalVerified?'Checked against public external snapshot; account ownership not confirmed':'Count verified by provider');
-        name.append(document.createTextNode(' '),check);
-      }
-      details.append(name,note);
-      const value=document.createElement('b');value.className='biglwa-followers-count';
-      value.textContent=row.followers==null?'—':new Intl.NumberFormat().format(row.followers);
-      value.setAttribute('aria-label',row.followers==null?'Count unavailable':
-        value.textContent+' '+(row.metric==='subscribers'?'subscribers':'followers'));
-      entry.append(icon,details,value);list.append(entry);
-    }
-    if(!list.childElementCount){
-      const empty=document.createElement('p');empty.textContent='Connect an account in Orbit to view verified audience counts here.';list.append(empty);
-    }
-    panel.querySelector('.biglwa-followers-foot').textContent=
-      'Provider-reported and externally sourced public counts are distinguished. External checkmarks verify the source was read, not account ownership. Missing counts show —, not zero.';
-    const rect=stats.querySelector('[data-profile-stat="followers"]')?.getBoundingClientRect()||stats.getBoundingClientRect();
-    panel.style.left=Math.max(8,Math.min(window.innerWidth-320,rect.left))+'px';
-    panel.style.top=Math.max(8,Math.min(window.innerHeight-365,rect.bottom+8))+'px';
-  }
-  function showFollowersPanel(stats){
-    let panel=document.getElementById('biglwaFollowersPopover');
-    if(!panel){
-      panel=document.createElement('section');panel.id='biglwaFollowersPopover';panel.hidden=true;
-      panel.className='biglwa-followers-popover';panel.setAttribute('role','dialog');
-      panel.setAttribute('aria-label','Followers by connected platform');
-      const head=document.createElement('div');head.className='biglwa-followers-head';
-      const title=document.createElement('h3'),close=document.createElement('button');
-      const refresh=document.createElement('button');
-      refresh.type='button';refresh.textContent='↻ Refresh';refresh.className='biglwa-followers-refresh';
-      refresh.setAttribute('aria-label','Refresh provider-reported follower counts');
-      refresh.addEventListener('click',async()=>{
-        if(refresh.disabled)return;refresh.disabled=true;refresh.textContent='Checking…';
-        try{await window.__biglwaConnections?.refresh?.();await window.BigLWAAccountInsights?.refresh?.();}
-        catch(error){console.warn('Provider follower refresh unavailable',error)}
-        finally{refresh.disabled=false;refresh.textContent='↻ Refresh';drawFollowersPanel(stats,panel)}
-      });
-      close.type='button';close.textContent='×';close.setAttribute('aria-label','Close follower breakdown');
-      close.addEventListener('click',()=>{panel.hidden=true;stats.querySelector('[data-profile-stat="followers"]')?.setAttribute('aria-expanded','false')});
-      head.append(title,refresh,close);
-      const list=document.createElement('div');list.className='biglwa-followers-list';
-      const foot=document.createElement('p');foot.className='biglwa-followers-foot';
-      panel.append(head,list,foot);document.body.append(panel);
-      document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close.click()});
-      document.addEventListener('pointerdown',e=>{
-        if(!panel.hidden&&!panel.contains(e.target)&&!e.target.closest?.('.biglwa-followers-trigger'))close.click();
-      });
-      window.addEventListener('biglwa:identity-updated',()=>{panel.hidden=true});
-    }
-    const open=panel.hidden;
-    panel.hidden=!open;
-    stats.querySelector('[data-profile-stat="followers"]')?.setAttribute('aria-expanded',String(open));
-    if(open)drawFollowersPanel(stats,panel);
-  }
-
   function latestStreamTitle(){
     const current=window.BigLWAStreamGuide?.lastWatchedTitle;
     if(current)return String(current);

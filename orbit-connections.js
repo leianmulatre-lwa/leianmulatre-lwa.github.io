@@ -61,6 +61,7 @@ const SOURCES = [
       name: p.business_name || p.username,
       avatarUrl: p.profile_image,
       followers: p.follower_count,
+      monthlyViews: p.monthly_views,
       link: p.username ? "https://www.pinterest.com/" + encodeURIComponent(p.username) + "/" : "https://www.pinterest.com/"
     })
   }
@@ -248,6 +249,7 @@ async function syncSource(source, uid) {
     followers: followers ?? preserved,
     mediaCount: count(details.mediaCount)??(sameAccount?count(old.stats?.mediaCount):null),
     likes: count(details.likes)??(sameAccount?count(old.stats?.likes):null),
+    monthlyViews: source.id==='pinterest'?(count(details.monthlyViews)??(sameAccount?count(old.stats?.monthlyViews):null)):null,
     boards: sameAccount?count(old.stats?.boards):null,
     pins: sameAccount?count(old.stats?.pins):null
   };

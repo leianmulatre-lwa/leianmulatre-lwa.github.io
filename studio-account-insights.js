@@ -44,7 +44,9 @@
     const recoveredLikes=id==='tiktok'&&recoveredByProvider?number(external.likes):null;
     const receivedLikes=id==='tiktok'&&record.verifiedFromProvider!==false?(likes??recoveredLikes):null;
     const monthlyReach=record.stats?.monthlyReach??record.monthlyReach??record.reach??null;
-    rows.push({id,followers:value,likes:receivedLikes,lastCheckedAt:observedAt,reach:monthlyReach,
+    // Pinterest monthly_views are impressions, not unique reach.
+    const monthlyViews=id==='pinterest'?number(record.stats?.monthlyViews??record.monthlyViews):null;
+    rows.push({id,followers:value,likes:receivedLikes,monthlyViews,lastCheckedAt:observedAt,reach:monthlyReach,
       handle:String(record.sourceUserId||record.username||''),link:record.link||'',metric,
       isLastKnown:fresh===null&&fallback!==null,verified:(fresh!==null&&!!checked)||recoveredByProvider,
        externalVerified,source:externalVerified?'External public source':recoveredByProvider?'TikTok OAuth user.info.stats':null});
@@ -163,7 +165,7 @@
   const rank=q('#studioApp .profile-card .real-rank')||q('#skeletonRankMount .real-rank');if(rank){const label=typeof overview?.realRank==='string'?overview.realRank:'Chopped';const strong=q('strong',rank);if(strong&&strong.textContent!==label)strong.textContent=label;rank.setAttribute('aria-label','Real Rank: '+label);}
   const host=q('#skeletonAnalytics');if(!host)return;
   if(!q('.skeleton-analytics-grid',host)){
-   host.innerHTML='<label>Account analytics <select aria-label="Analytics month"></select></label><div class="skeleton-analytics-grid"><div><strong data-metric="accounts">—</strong>Synced accounts</div><div><strong data-metric="followers">—</strong>Followers · snapshot</div><div><strong data-metric="likes">—</strong>Likes received · snapshot</div><div><strong data-metric="reach">—</strong>Monthly reach</div><div><strong data-metric="people">—</strong>People added</div></div><p class="analytics-coverage"></p><details><summary>Sources &amp; sync dates</summary><div class="analytics-sources"></div></details><p class="analytics-status" role="status"></p>';
+   host.innerHTML='<label>Account analytics <select aria-label="Analytics month"></select></label><div class="skeleton-analytics-grid"><div><strong data-metric="accounts">—</strong>Synced accounts</div><div><strong data-metric="followers">—</strong>Followers · snapshot</div><div><strong data-metric="likes">—</strong>Likes received · snapshot</div><div><strong data-metric="reach">—</strong>Monthly reach</div><div><strong data-metric="people">—</strong>People added</div></div><p class="analytics-coverage"></p><section class="skeleton-provider-breakdown" aria-label="Audience by connected platform"><h3>By connected app</h3><div class="analytics-sources"></div></section><p class="analytics-status" role="status"></p>';
    const select=q('select',host);for(let i=0;i<12;i++){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);const o=document.createElement('option');o.value=monthOf(d);o.textContent=d.toLocaleDateString(undefined,{month:'short',year:'numeric'});select.append(o)}select.value=selected;select.onchange=()=>{selected=select.value;render()};
   }
   const current=selected===monthOf(Date.now()),saved=overview?.analyticsMonths?.[selected];
@@ -172,7 +174,27 @@
   const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,likes:stats.likes,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=format(value);if(node.textContent!==text)node.textContent=text}
   const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Likes and monthly reach only appear when a source reports those exact metrics; video views and engagement estimates are not reach. Other sources are unavailable, not zero.';
-  const list=q('.analytics-sources',host);const signature=JSON.stringify(rows.map(r=>[r.id,r.followers,r.lastCheckedAt]));if(list.dataset.snapshot!==signature){list.dataset.snapshot=signature;list.replaceChildren(...rows.map(row=>{const p=document.createElement('p');p.textContent=row.id+': '+format(row.followers)+' '+(row.metric||'followers')+' · '+(row.externalVerified?'externally sourced · TokPortal':row.lastCheckedAt?'provider reported '+new Date(row.lastCheckedAt).toLocaleDateString():'count unavailable')+(row.isLastKnown?' (last verified)':'');return p}))}
+  const list=q('.analytics-sources',host);
+  const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.followers,r.likes,r.monthlyViews,r.reach,r.lastCheckedAt]));
+  if(list.dataset.snapshot!==signature){
+    list.dataset.snapshot=signature;list.replaceChildren();
+    for(const row of rows){
+      const entry=document.createElement('div');entry.className='skeleton-provider-stat';
+      const icon=document.createElement('img');
+      if(/^(instagram|tiktok|pinterest|x|tumblr|youtube|facebook|snapchat)$/.test(row.id)){
+        icon.src='/assets/orbit-icons/'+row.id+'.svg';icon.alt='';icon.loading='lazy';icon.width=23;icon.height=23;
+      }else{icon.alt='';icon.style.display='none'}
+      const copy=document.createElement('div'),title=document.createElement('strong'),meta=document.createElement('small');
+      title.textContent=row.id.charAt(0).toUpperCase()+row.id.slice(1)+(row.handle?' · @'+row.handle:'');
+      const segments=[format(row.followers)+' '+(row.metric||'followers')];
+      if(row.likes!=null)segments.push(format(row.likes)+' likes');
+      if(row.id==='pinterest')segments.push(format(row.monthlyViews)+' monthly views (not reach)');
+      if(row.reach?.month===selected&&row.reach.metric==='reach'&&number(row.reach.value)!=null)segments.push(format(row.reach.value)+' reported reach');
+      meta.textContent=segments.join(' · ')+(row.isLastKnown?' · last known':row.lastCheckedAt?' · checked '+new Date(row.lastCheckedAt).toLocaleDateString():'');
+      copy.append(title,meta);entry.append(icon,copy);list.append(entry);
+    }
+    if(!rows.length)list.textContent='Connect an account in Orbit to show verified social statistics.';
+  }
   q('.analytics-status',host).textContent=!uid()?'Sign in to see your private analytics.':!known?'Account data has not loaded yet.':!current&&!saved?'No observation saved for this month.':saved?.observedAt?'Observation: '+new Date(saved.observedAt).toLocaleString():'Latest available provider data; missing data is not zero.';
 
   // The source-of-truth profile metrics were already published above,
@@ -188,11 +210,11 @@
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
   const month=monthOf(Date.now()),previous=overview.analyticsMonths?.[month]?.sources||[];
-  const snapshot={sources:sources().map(({id,handle,followers,likes,lastCheckedAt,reach})=>{
+  const snapshot={sources:sources().map(({id,handle,followers,likes,monthlyViews,lastCheckedAt,reach})=>{
     const old=previous.find(item=>item.id===id&&item.handle&&handle&&String(item.handle).toLowerCase()===handle.toLowerCase());
     const validReach=value=>value?.month===month&&value.metric==='reach'&&number(value.value)!=null
       ?{month,metric:'reach',value:Number(value.value)}:null;
-    return {id,handle,followers,likes:likes??number(old?.likes),lastCheckedAt,
+    return {id,handle,followers,likes:likes??number(old?.likes),monthlyViews:monthlyViews??number(old?.monthlyViews),lastCheckedAt,
       reach:validReach(reach)||validReach(old?.reach)};
   }),connections:Object.keys(overview.peopleConnections||{}).length};
   const signature=uid()+month+JSON.stringify(snapshot);if(signature===lastSnapshot)return;lastSnapshot=signature;
