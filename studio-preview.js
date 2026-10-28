@@ -459,7 +459,7 @@ html.biglwa-preview-mode #studioApp #boards .pn-orbit-connect{display:none!impor
 .biglwa-social-label{font:600 12px/1.3 system-ui;color:#2f2a27}
 .biglwa-social small{font:500 11px/1.3 system-ui;color:#8a7a6c;max-width:180px;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
-html.biglwa-preview-mode #studioApp .masonry > :is(.card,article):not([data-biglwa-public-visible="1"]){display:none!important}
+html.biglwa-preview-mode #studioApp .masonry > :is(.card,article,[data-widget-id]):not([data-biglwa-public-visible="1"]){display:none!important}
 html.biglwa-preview-mode #studioApp :is(#moduleWorkspace,.module-workspace){display:none!important}
 html.biglwa-preview-mode #studioApp .real-rank :is(.rank-label,strong,.rank-next){color:#000!important;opacity:1!important}
 `;
@@ -826,7 +826,7 @@ function syncPublicWidgets(){
     if((profile.socials||[]).length)visible.add('orbit');
     if(profile.archiveVisibility==='public')visible.add('archive');
   }
-  app.querySelectorAll('.masonry > .card,.masonry > article').forEach(node=>{
+  app.querySelectorAll('.masonry > .card,.masonry > article,.masonry > [data-widget-id]').forEach(node=>{
     const key=String(node.id||node.dataset.widgetId||'').toLowerCase();
     node.dataset.biglwaPublicVisible=visible.has(key)?'1':'0';
   });
