@@ -255,6 +255,7 @@ function localProfile(){
 }
 
 function snapshotAppearance(){
+  if(preview.snapshot)return; // Do not overwrite the owner's original snapshot on late repaint.
   const snap={};
   APPEARANCE_KEYS.forEach(key=>{ try{snap[key]=localStorage.getItem(ownerAppearanceKey(key))}catch{} });
   preview.snapshot=snap;
@@ -277,18 +278,26 @@ function restoreAppearance(){
 }
 
 function applyLook(look){
-  if(!look || typeof look!=="object") return;
-  const mirror=look.appearance||{},wallpaper=look.wallpaper||{},media=look.wallpaperMedia||null;
-  const appearance={};
-  if(mirror.widgetColor) appearance.color=mirror.widgetColor;
-  if(mirror.widgetRadius!=null) appearance.radius=mirror.widgetRadius;
-  if(mirror.widgetOpacity!=null) appearance.opacity=mirror.widgetOpacity;
-  if(mirror.widgetBlur!=null) appearance.blur=mirror.widgetBlur;
-  if(mirror.auraColor) appearance.aura=mirror.auraColor;
-  const hasAppearance=Object.keys(appearance).length>0;
-  const hasWallpaper=Object.keys(wallpaper).some(key=>wallpaper[key]!==""&&wallpaper[key]!=null);
-  if(!hasAppearance && !hasWallpaper && !media?.url) return;
+  // A visitor sees only the published palette. Never inherit the device's
+  // signed-in owner theme when a public profile has no customized appearance.
+  const published=look&&typeof look==='object'?look:{};
+  const mirror=published.appearance||{},settings=published.wallpaper||{},media=published.wallpaperMedia||null;
+  const appearance={
+    color:mirror.widgetColor||'#faf7f1',
+    radius:mirror.widgetRadius||16,
+    opacity:mirror.widgetOpacity==null?84:mirror.widgetOpacity,
+    blur:mirror.widgetBlur==null?18:mirror.widgetBlur,
+    aura:mirror.auraColor||'#d85f6d'
+  };
+  const wallpaper={
+    fit:settings.fit||'cover',
+    position:settings.position||'center',
+    blur:settings.blur==null?0:settings.blur,
+    overlay:settings.overlay==null?0:settings.overlay
+  };
   snapshotAppearance();
+  // Remove the last browser's media before using the owner's published image.
+  if(!media?.url)window.BIGLWAStudioAppearance?.clearMedia?.();
   window.BIGLWAStudioAppearance?.apply?.({appearance,wallpaper,media});
 }
 
