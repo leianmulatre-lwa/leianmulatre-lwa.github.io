@@ -3,7 +3,7 @@
 
   const links=(active)=>{
     const pages=[['privacy','Privacy'],['terms','Terms'],['rights','Rights & Likeness'],['affidavit','Affidavit of Good Faith']];
-    return `<nav class="policy-links">${pages.filter(([id])=>id!==active).map(([id,label])=>`<a href="/${id}" data-policy-route="${id}">${label}</a>`).join('')}</nav>`;
+    return `<nav class="policy-links">${pages.filter(([id])=>id!==active).map(([id,label])=>`<a href="/${id}/" data-policy-route="${id}">${label}</a>`).join('')}</nav>`;
   };
 
   const rights=`

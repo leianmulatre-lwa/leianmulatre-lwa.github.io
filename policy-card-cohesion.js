@@ -3,7 +3,7 @@
     { label: 'About', href: '/about/' },
     { label: 'Privacy', href: '/privacy', route: 'privacy' },
     { label: 'Terms', href: '/terms', route: 'terms' },
-    { label: 'Good Faith', href: '/affidavit', route: 'affidavit' },
+    { label: 'Good Faith', href: '/affidavit/', route: 'affidavit' },
     { label: 'Rights & Likeness', href: '/rights', route: 'rights' }
   ];
 
