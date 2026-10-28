@@ -71,8 +71,17 @@ assert.equal(signedOut,1,'Red logout runs the ORIGINAL authenticated sign-out ac
 dots.querySelector('#studioNotificationsBtn').click();
 assert.equal(d.getElementById('studioLogsDialog').open,true,'Yellow original mail/Logs button opens the REAL Logs dialog');
 d.documentElement.classList.add('biglwa-preview-mode','biglwa-owner-self-preview');
+await new Promise(resolve=>setTimeout(resolve,0));
 d.getElementById('profileMenuBtn').click();
 assert.notEqual(d.getElementById('profileMenuBtn').getAttribute('aria-disabled'),'true',
  'Account menu works during self-preview');
+assert.equal(d.getElementById('biglwaMenuPreview').textContent,'Return to profile',
+ 'Preview action becomes Return to profile when owner preview starts');
+assert.equal(d.getElementById('biglwaMenuPreview').getAttribute('href'),'/studio',
+ 'Return action points back to editable Studio');
+d.documentElement.classList.remove('biglwa-owner-self-preview','biglwa-preview-mode');
+await new Promise(resolve=>setTimeout(resolve,0));
+assert.equal(d.getElementById('biglwaMenuPreview').textContent,'Preview my profile',
+ 'Preview action switches back when visitor mode ends');
 dom.window.close();
 console.log('PASS owner preview routing, menu preview/settings, green/yellow/red live actions, avatar backfill, dated public-only guest sheet and Journal initial.');
