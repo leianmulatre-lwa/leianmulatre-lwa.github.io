@@ -61,8 +61,8 @@ assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT p
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
-assert.ok(home.includes('studio-onboarding.js?v=20261028-skeleton-stats-1'));
-assert.ok(home.includes('session-restore.js?v=20261014-persistence-stability-6'));
+assert.ok(home.includes('studio-onboarding.js?v=20261028-studio-tipi-guide-2'));
+assert.ok(home.includes('session-restore.js?v=20261028-user-last-view-2'));
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');
 console.log('PASS · pink card guide, sidebar relaunch, Orbit explanation, journal offset');
@@ -137,7 +137,7 @@ assert.ok(!pureWhiteLogin.includes('.public-page-footer .supporter-viewport'),
 assert.ok(brand.includes('animation: biglwa-supporter-marquee'),
   'logo carousel still moves after changing the background');
 
-assert.ok(home.includes('pinterest-orbit.js?v=20261025-pin-origin-1'),'current Pinterest imports include original Pins and board thumbnails');
+assert.ok(home.includes('pinterest-orbit.js?v=20261028-oauth-return-2'),'current Pinterest imports include original Pins and board thumbnails');
 console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
 
 /* Step 3 visually colors the actual three "o" letters without changing the

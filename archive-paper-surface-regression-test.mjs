@@ -11,7 +11,7 @@ const rule=sel=>{
   return css.slice(css.indexOf('{',i)+1,css.indexOf('}',i));
 };
 assert.ok(index.includes('archive-flat-gallery-20261026.css?v=flat-grid-a1'),'New dedicated CSS file loaded by the actual Studio shell');
-assert.ok(index.includes('module-pages.js?v=20261026-boothi-studio-text-1'),'Current flat-gallery renderer is used, not stale accordion module');
+assert.ok(index.includes('module-pages.js?v=20261028-studio-route-memory-2'),'Current flat-gallery renderer is used, not stale accordion module');
 assert.match(rule(root+'.archive-wall-shell'),/background:#faf6ef!important/,'One opaque paper shelf');
 assert.match(rule(root+'.archive-toolbar'),/grid-template-columns:max-content minmax\(0,1fr\)/,'Buttons stay left while filters fill the right');
 assert.match(rule(root+'.archive-filter-bar'),/justify-content:flex-end!important/,'App choices are top-right');
