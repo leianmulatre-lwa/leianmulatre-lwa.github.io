@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261026-boothi-studio-text-1';
+        script.src = '/module-pages.js?v=20261028-studio-route-memory-2';
         document.head.appendChild(script);
       }, 250);
     }
