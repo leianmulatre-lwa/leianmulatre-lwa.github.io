@@ -3897,8 +3897,29 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
 
   document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const directory=e.target.closest('.hero-action-bar a[href^="#"]');const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!directory&&!mobile&&!trigger)return;let key=mobile?'veve':directory?(directory.getAttribute('href')||'').replace(/^#/,''):trigger.dataset.open;if(key==='home'){e.preventDefault();e.stopImmediatePropagation();closeModule();window.scrollTo({top:0,behavior:'smooth'});return}if(key==='desk')key='create';const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key||!known.has(String(key).toLowerCase()))return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
   const cleanStudioModulePath=()=>{try{const parts=location.pathname.replace(/^\/+|\/+$/g,'').split('/').filter(Boolean).map(x=>decodeURIComponent(x).toLowerCase());if(parts[0]!=='studio'||parts.length!==2)return '';return known.has(parts[1])?parts[1]:''}catch{return ''}};
-  const routeViewFromUrl=()=>{const params=new URLSearchParams(location.search);if(location.pathname.replace(/\/+$/,'')==='/studio'&&['map','politc'].includes(params.get('panel')))return params.get('panel');const legacy=params.get('view');return legacy&&known.has(legacy.toLowerCase())?legacy.toLowerCase():cleanStudioModulePath()};
-  const canonicalizeLegacyView=()=>{const legacy=new URLSearchParams(location.search).get('view');if(!legacy||!known.has(legacy.toLowerCase())||legacy.toLowerCase()==='orbit')return;try{history.replaceState({biglwaModule:legacy.toLowerCase()},'',['map','politc'].includes(legacy.toLowerCase())?`/studio?panel=${encodeURIComponent(legacy.toLowerCase())}`:`/studio/${encodeURIComponent(legacy.toLowerCase())}`)}catch{}};
+  const explicitOrbitReturn=params=>params.get('orbit_return')==='1'||
+    params.get('nav')==='1'||params.has('instagram_handoff')||
+    params.has('instagram_error')||params.has('pinterest_handoff')||params.has('tiktok_handoff');
+  const routeViewFromUrl=()=>{
+    const params=new URLSearchParams(location.search);
+    if(location.pathname.replace(/\/+$/,'')==='/studio'&&['map','politc'].includes(params.get('panel')))return params.get('panel');
+    const legacy=(params.get('view')||'').toLowerCase();
+    if(legacy==='orbit'&&!explicitOrbitReturn(params))return cleanStudioModulePath();
+    return legacy&&known.has(legacy)?legacy:cleanStudioModulePath();
+  };
+  const canonicalizeLegacyView=()=>{
+    const params=new URLSearchParams(location.search),legacy=(params.get('view')||'').toLowerCase();
+    if(!legacy||!known.has(legacy))return;
+    if(legacy==='orbit'){
+      // A stale ?view=orbit from a previous tab is not an OAuth request.
+      // Keep authentic handoff parameters intact until the provider reads them.
+      if(!explicitOrbitReturn(params))try{history.replaceState({},'','/studio')}catch{}
+      return;
+    }
+    try{history.replaceState({biglwaModule:legacy},'',
+      ['map','politc'].includes(legacy)?`/studio?panel=${encodeURIComponent(legacy)}`:
+       `/studio/${encodeURIComponent(legacy)}`)}catch{}
+  };
   window.addEventListener('popstate',()=>{const v=routeViewFromUrl();if(v)openModule(v,'',false);else closeModule(false)});
   // Map stays on the authenticated Studio route, even when an older deep link is opened.
   const deepPanel=location.pathname.match(/^\/studio\/(map|politc)\/?$/i);
