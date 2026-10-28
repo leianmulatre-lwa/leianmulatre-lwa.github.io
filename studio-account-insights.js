@@ -142,7 +142,7 @@
    if(signature===publicSignature)return;
    publicPending=true;publicPublishAt=now;
    try{
-     const [{getApps},{getAuth},{getFirestore,doc,getDoc,setDoc,serverTimestamp}]=await Promise.all([
+     const [{getApps},{getAuth},{getFirestore,doc,getDoc,setDoc,deleteField,serverTimestamp}]=await Promise.all([
        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
@@ -151,9 +151,16 @@
      if(!user||user.uid!==who)return;
      const db=getFirestore(app);
      const owner=await getDoc(doc(db,'users',who));
-     if(owner.data()?.accountVisibility==='private')return;
      const ref=doc(db,'usernames',name),profile=await getDoc(ref);
      if(!profile.exists()||profile.data()?.uid!==who)return;
+     if(owner.data()?.accountVisibility==='private'){
+      // Keep no public aggregate mirror for a private account, including one
+      // written before the account was switched to private.
+      if(publicSignature==='private:'+name)return;
+      await setDoc(ref,{publicStats:deleteField(),updatedAt:serverTimestamp()},{merge:true});
+      publicSignature='private:'+name;
+      return;
+     }
      await setDoc(ref,{publicStats:snapshot,updatedAt:serverTimestamp()},{merge:true});
      publicSignature=signature;
    }catch(error){console.info('Public aggregate stats mirror deferred:',error?.message||error)}
@@ -188,7 +195,7 @@
       title.textContent=row.id.charAt(0).toUpperCase()+row.id.slice(1)+(row.handle?' · @'+row.handle:'');
       const segments=[format(row.followers)+' '+(row.metric||'followers')];
       if(row.likes!=null)segments.push(format(row.likes)+' likes');
-      if(row.id==='pinterest')segments.push(format(row.monthlyViews)+' monthly views (not reach)');
+      if(row.id==='pinterest'&&number(row.monthlyViews)!=null)segments.push(format(row.monthlyViews)+' monthly views (not reach)');
       if(row.reach?.month===selected&&row.reach.metric==='reach'&&number(row.reach.value)!=null)segments.push(format(row.reach.value)+' reported reach');
       meta.textContent=segments.join(' · ')+(row.isLastKnown?' · last known':row.lastCheckedAt?' · checked '+new Date(row.lastCheckedAt).toLocaleDateString():'');
       copy.append(title,meta);entry.append(icon,copy);list.append(entry);

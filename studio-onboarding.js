@@ -467,9 +467,9 @@
    '<p class="skeleton-shadow-explanation">Each tile has one platform-colored shadow. Its ivory face stays consistent across the network.</p>'+
    (window.BigLWAShadowKey?.render?.('skeleton')||'<p class="skeleton-shadow-explanation">Platform preview is loading.</p>')+
    '</div></details>'+
-   '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>'+
    '<details class="skeleton-symbol-details"><summary>Symbol key</summary><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools"></ul></details>'+
-   '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>';
+   '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>'+
+   '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>';
   hub.querySelectorAll(':scope > details').forEach(section=>section.addEventListener('toggle',()=>{if(section.open)hub.querySelectorAll(':scope > details').forEach(other=>{if(other!==section)other.open=false})}));
   $('.skeleton-analytics-details',hub).addEventListener('toggle',event=>{if(event.target.open)window.BigLWAAccountInsights?.refresh?.()});
   $('.skeleton-platform-key',hub).addEventListener('toggle',event=>{
