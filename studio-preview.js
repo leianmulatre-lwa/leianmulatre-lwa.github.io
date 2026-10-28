@@ -4,7 +4,7 @@
  * anything that would change or personalise the space asks for an account first.
  */
 import { showPreviewIdentity, clearPreviewIdentity } from "./account-chrome.js?v=20261026-journal-cover-init-1";
-import { identity } from "./account-identity.js";
+import { identity, onIdentityChange } from "./account-identity.js";
 const PREVIEW_RESERVED = new Set([
   "studio","login","privacy","terms","rights","photo-booth","map-app",
   "bootstrap-v2","base-v1","index","404","favicon","assets"
@@ -300,6 +300,25 @@ function applyLook(look){
   if(!media?.url)window.BIGLWAStudioAppearance?.clearMedia?.();
   window.BIGLWAStudioAppearance?.apply?.({appearance,wallpaper,media});
 }
+
+/* Owner preview is authorized by the UID on the published profile, not by
+   whichever username string happened to hydrate first on this browser. */
+function isOwnerPreview(){
+  const mine=identity()||window.__biglwaIdentity;
+  return PREVIEW_REQUESTED && !!mine?.uid && !!preview.profile?.uid &&
+    mine.uid===preview.profile.uid;
+}
+function synchronizeOwnerPreview(){
+  if(!preview.active)return;
+  const self=isOwnerPreview();
+  const old=document.documentElement.classList.contains('biglwa-owner-self-preview');
+  document.documentElement.classList.toggle('biglwa-owner-self-preview',self);
+  if(old!==self){
+    window.dispatchEvent(new CustomEvent('biglwa:preview-owner-state',{detail:{active:true,owner:self}}));
+  }
+}
+onIdentityChange(()=>synchronizeOwnerPreview());
+window.addEventListener('biglwa:session-verified',synchronizeOwnerPreview);
 
 /* ---------- banner ---------- */
 const PREVIEW_CSS = `
@@ -833,6 +852,7 @@ function syncPublicWidgets(){
 }
 function enforce(){
   if(!preview.active) return;
+  synchronizeOwnerPreview();
   if(!document.getElementById('biglwaPreviewBanner'))buildBanner();
   const app=studioApp();
   if(!app) return;
@@ -880,7 +900,7 @@ function activate(profile){
   preview.active=true;
   window.__biglwaPublicStorageView=true;
   document.documentElement.classList.add("biglwa-preview-mode");
-  document.documentElement.classList.toggle("biglwa-owner-self-preview",PREVIEW_REQUESTED&&clean(identity()?.username).toLowerCase()===clean(profile.username).toLowerCase());
+  synchronizeOwnerPreview();
   document.documentElement.classList.toggle("biglwa-preview-private",profile.accountVisibility==='private');
   showStudioScreen();
   applyIdentity(profile);
@@ -891,6 +911,7 @@ function activate(profile){
   window.BigLWAStudioLayout?.applyPublic?.(profile.look?.layout);
   syncPublicWidgets();
   buildBanner();
+  synchronizeOwnerPreview();
   setTimeout(()=>{if(preview.active&&preview.profile===profile){applyLook(profile.look);syncPublicWidgets();}},900);
   bindGate();
   window.addEventListener("pagehide",restoreAppearance,{once:true});
@@ -916,6 +937,9 @@ async function boot(){
   const username=pathUsername();
   if(!username) return;
   preview.username=username;
+  // A deliberately requested preview gets its top notice immediately, even
+  // while the directory and authenticated identity are still initializing.
+  if(PREVIEW_REQUESTED)buildBanner();
   const moved=()=>{const live=pathUsername(location.pathname);return !!live && live!==username;};
   const dir=await waitFor(()=>window.BigLWAUserDirectory?.loadPublicProfile?window.BigLWAUserDirectory:null);
   if(!dir || moved()) return;
@@ -932,7 +956,16 @@ async function boot(){
   }
   const profile=await dir.loadPublicProfile(username);
   if(moved()) return;
-  if(!profile){ noticeMissing(username); return; }
+  if(!profile){
+    noticeMissing(username);
+    if(PREVIEW_REQUESTED){
+      const banner=$('#biglwaPreviewBanner');
+      const heading=banner?.querySelector('p strong'),caption=banner?.querySelector('p span');
+      if(heading)heading.textContent='Preview unavailable for @'+username;
+      if(caption)caption.textContent='We could not load the public profile. Refresh or return to Studio.';
+    }
+    return;
+  }
   const app=await waitFor(()=>studioApp()&&$("#studioApp .profile-card")?studioApp():null);
   if(!app || moved()) return;
   activate(profile);
