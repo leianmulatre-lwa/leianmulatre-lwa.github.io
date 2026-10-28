@@ -47,7 +47,7 @@ function setup(uid,remote,search=''){
  const saved=new Map([['biglwaLastStudioView','orbit']]),calls=[],tasks=[],cloud=[];
  const store={getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)};
  const win={__biglwaIdentity:{uid},BigLWAUserDirectory:{saveCustomizations:x=>cloud.push(x)},openBIGLWAModule:key=>calls.push(key)};
- const context={window:win,location:{pathname:'/studio',search},localStorage:store,console,setTimeout:f=>tasks.push(f),
+ const context={window:win,location:{pathname:'/studio',search},localStorage:store,console,URLSearchParams,setTimeout:f=>tasks.push(f),
    document:{readyState:'loading',addEventListener(){},documentElement:{classList:{contains:()=>false}},querySelector:()=>null}};
  const where=session.lastIndexOf('})();');
  assert(where>0,'Restoration module footer found');
