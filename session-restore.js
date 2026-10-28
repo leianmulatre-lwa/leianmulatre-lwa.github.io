@@ -23,23 +23,50 @@ async function getAuth(){
 }
 const qs=()=>new URLSearchParams(location.search);
 const clean=v=>String(v||"").trim();
+const SCOPED_VIEW_PREFIX='biglwaLastStudioView:v2:';
+let lastConfirmedUid='',restoreScheduled=false,pendingView='';
+const currentUid=()=>lastConfirmedUid||window.__biglwaIdentity?.uid||'';
+const scopedViewKey=()=>currentUid()?SCOPED_VIEW_PREFIX+currentUid():'';
 function lastViewFromLocal(){
-  try{return clean(localStorage.getItem("biglwaLastStudioView"))}catch{return""}
+  const key=scopedViewKey();
+  if(!key)return '';
+  try{return clean(localStorage.getItem(key)).toLowerCase()}catch{return ''}
 }
 function setLastView(key){
   const value=clean(key).toLowerCase();
-  if(!value)return;
-  try{localStorage.setItem("biglwaLastStudioView",value)}catch{}
+  if(!/^[a-z][a-z0-9-]{0,35}$/.test(value))return;
+  if(!currentUid()){pendingView=value;return}
+  const storageKey=scopedViewKey();
+  try{localStorage.setItem(storageKey,value);localStorage.removeItem('biglwaLastStudioView')}catch{}
   try{window.BigLWAUserDirectory?.saveCustomizations?.({session:{lastView:value}})}catch{}
 }
+function requestedRoute(){
+  if(location.pathname!=='/studio')return true;
+  const params=qs();
+  // OAuth return is deliberate, while a stale plain ?view=orbit is not.
+  return params.has('panel')||params.has('nav')||params.has('orbit_return')||
+     (params.has('view') && params.get('view')!=='orbit')||
+     params.has('instagram_handoff')||params.has('instagram_error');
+}
 function restoreLastView(remote){
-  if(location.pathname!="/studio")return;
-  // An explicit Studio panel beats an older last-view preference.
-  const panel=clean(qs().get('panel')).toLowerCase();
-  const current=['map','politc'].includes(panel)?panel:clean(qs().get("view")).toLowerCase();
-  const saved=clean(remote?.customization?.session?.lastView)||lastViewFromLocal();
-  if(current||!saved||typeof window.openBIGLWAModule!=="function")return;
-  setTimeout(()=>{try{window.openBIGLWAModule(saved,"",false)}catch{}},140);
+  if(!currentUid()||requestedRoute()||restoreScheduled||
+     document.documentElement.classList.contains('biglwa-preview-mode'))return;
+  // Never reopen a module over an intentional navigation performed while auth
+  // or cloud customizations were loading.
+  if(document.querySelector('#studioApp .main.module-view #moduleWorkspace[data-module-key]'))return;
+  const local=lastViewFromLocal();
+  let saved=local||clean(remote?.customization?.session?.lastView||remote?.session?.lastView).toLowerCase();
+  // Old unscoped / remote Orbit defaults cause surprise redirects. Only an
+  // explicit Orbit navigation or a fresh account-scoped selection restores it.
+  if(!local&&saved==='orbit')saved='studio';
+  if(!saved||saved==='studio'||!/^[a-z][a-z0-9-]{0,35}$/.test(saved))return;
+  restoreScheduled=true;
+  setTimeout(()=>{
+    if(requestedRoute()||document.querySelector('#studioApp .main.module-view #moduleWorkspace[data-module-key]'))return;
+    if(typeof window.openBIGLWAModule==='function'){
+      try{window.openBIGLWAModule(saved,'',false)}catch(error){console.warn('[BIGLWA] Restore last Studio view:',error)}
+    }
+  },180);
 }
 function finishAuth(user){
   // Some legacy login routes can be painted before the Firebase callback.
@@ -66,7 +93,7 @@ function finishAuth(user){
     }catch{}
   }
 }
-let lastConfirmedUid,authListenerAttached=false,starting=false,repairingScreen=false;
+let authListenerAttached=false,starting=false,repairingScreen=false;
 async function repairLateLoginPaint(){
   if(!lastConfirmedUid||repairingScreen)return;
   const login=document.getElementById('loginPage');
@@ -96,6 +123,8 @@ function resolveVerifiedUser(user){
   // about the same user is NOT another sign-in or a reason to repaint pages.
   if(lastConfirmedUid===uid)return;
   lastConfirmedUid=uid;
+  restoreScheduled=false;
+  if(uid&&pendingView){const next=pendingView;pendingView='';setLastView(next)}
   finishAuth(user);
   try{window.dispatchEvent(new CustomEvent('biglwa:session-verified',{detail:{uid,signedIn:!!uid}}))}catch{}
   if(user) setTimeout(()=>restoreLastView(window.__biglwaRemoteCustomization),250);
@@ -131,7 +160,10 @@ async function boot(){
   window.addEventListener("biglwa:customization-remote",event=>restoreLastView(event.detail));
   document.addEventListener("biglwa:module-open",event=>setLastView(event.detail?.key||""));
   document.addEventListener("biglwa:module-close",()=>{
-    if(location.pathname==="/studio")try{localStorage.setItem("biglwaLastStudioView","")}catch{}
+    // Returning home is a real last-view choice. Clear the cloud-synced stale
+    // module too, rather than clearing only the device's local key.
+    setLastView('studio');
+    restoreScheduled=true;
   });
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
