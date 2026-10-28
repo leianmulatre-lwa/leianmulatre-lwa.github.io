@@ -117,7 +117,7 @@
   }
   function openOrbit(){
     if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('orbit');
-    else location.assign('/studio?view=orbit');
+    else location.assign('/studio/orbit');
   }
   function connected(id){
     // Only actual provider authorizations count. Link-only Quick Links never do.
