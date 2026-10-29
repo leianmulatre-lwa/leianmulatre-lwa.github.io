@@ -50,7 +50,17 @@
   const platform=archiveSource();
   if(platform==='snapchat')return window.BigLWASocialShowcase?.highlightsFor?.('snapchat')||[];
   if(!['instagram','facebook'].includes(platform))return [];
-  const imported=window.BigLWAImportedHighlights?.source?.()?.highlights||[];
+  const data=window.BigLWAImportedHighlights?.source?.();
+  const sourceHandle=String(data?.handle||'').toLowerCase();
+  // The static legacy Instagram snapshot is not a universal import. Never
+  // expose another member's collection just because they opened Archive.
+  const live=window.__biglwaInstagramOrbit?.state;
+  const connected=window.__biglwaConnections?.connections?.()?.instagram;
+  const verifiedHandles=[live?.connected?live.profile?.username:null,
+    connected?.verifiedFromProvider?connected.username:null]
+    .map(value=>String(value||'').replace(/^@/,'').toLowerCase()).filter(Boolean);
+  if(sourceHandle&&!verifiedHandles.includes(sourceHandle))return [];
+  const imported=Array.isArray(data?.highlights)?data.highlights:[];
   return imported.map((group,i)=>({...group,_importKey:String(i)}))
    .filter(group=>platformOf(group)===platform);
  };
