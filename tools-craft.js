@@ -44,7 +44,7 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261029-machine-face-1';document.head.append(css);
+ css.href='/tools-craft.css?v=20261029-real-folder-2';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
@@ -74,15 +74,19 @@ export async function mountCraftSuite(root){
  installStyle();
  root.classList.add('craft-suite','craft-workshop');
  root.innerHTML=
-  '<header class="craft-head craft-machine-head">'+
-   '<div class="craft-machine-tab"><span class="craft-machine-lights" aria-hidden="true"><i></i><i></i><i></i></span><span>R / LWAZI SERIEZ</span></div>'+
-   '<div class="craft-machine-face">'+
-    '<img class="craft-machine-art" src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA stitched wordmark and colored blocks" width="1200" height="675" decoding="async">'+
-    '<div class="craft-machine-copy"><span class="craft-label">YOUR LWAZI WORKSHOP</span>'+
-     '<p>Meet the blocks · 2 BIG LWA originals + 4 advanced open-source R-editors. Make, edit, keep or share.</p>'+
-     '<nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support ↗</a></nav>'+
+  '<header class="craft-head craft-folder-cover" aria-label="BIG LWA Lwazi folder">'+
+   '<div class="craft-folder-back" aria-hidden="true"></div>'+
+   '<div class="craft-folder-tab"><span class="craft-folder-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="craft-folder-tab-name">R / LWAZI</span></div>'+
+   '<div class="craft-folder-front">'+
+    '<div class="craft-folder-inner">'+
+     '<div class="craft-folder-brand"><img class="craft-folder-logo" src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA stitched letters and colored blocks" width="1200" height="675" decoding="async">'+
+      '<span class="craft-folder-seal">R / LWAZI SERIEZ</span></div>'+
+     '<div class="craft-folder-details"><p>2 BIG LWA originals + 4 advanced open-source R-editors · pick a block to begin.</p>'+
+      '<nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support ↗</a></nav>'+
+     '</div>'+
     '</div>'+
-   '</div></header>'+
+   '</div>'+
+  '</header>'+
   '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
   '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+WEB_FRIENDLY.map(webAppCard).join('')+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
