@@ -18,7 +18,14 @@
   };
   const revealWhenReady = () => {
     if(!previewStarted||revealed)return;
-    if(Date.now()-introStartedAt<INTRO_MS)return;
+    const elapsed=Date.now()-introStartedAt;
+    if(elapsed<INTRO_MS){
+      // A browser timer may fire a millisecond early. Recheck once the
+      // full intro has elapsed, rather than leaving a ready video behind
+      // the loading screen until the 8-second recovery timeout.
+      setTimeout(revealWhenReady,INTRO_MS-elapsed+12);
+      return;
+    }
     if(video.readyState>=2)revealProgramming();
   };
   video.poster='/assets/tv-no-signal.svg';
