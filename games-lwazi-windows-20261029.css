@@ -2,26 +2,26 @@
    Applied inside the original module tree; never remount active tools,
    reset saved widgets or navigate away from a playable frame. */
 
-/* Workshop icons: the two stitched blocks are siblings, not a primary cube
-   with a tiny decorative badge orbiting it. Both occupy the same baseline. */
+/* Raise and slightly shrink the stitched block pairs; preserve the horizontal gap. */
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-tile-icon.craft-arcade-block,
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile[data-craft-card="visualizr"] .craft-tile-icon.craft-arcade-block {
   display:flex!important;align-items:center!important;
-  width:100%!important;max-width:178px!important;height:101px!important;
-  min-height:101px!important;margin:2px 0 7px!important;overflow:visible!important;
+  width:100%!important;max-width:178px!important;height:91px!important;
+  min-height:91px!important;margin:-3px 0 3px!important;overflow:visible!important;
 }
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-block-pair,
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-pair {
   display:flex!important;flex-direction:row!important;align-items:flex-end!important;
   justify-content:flex-start!important;gap:15px!important;flex-wrap:nowrap!important;
-  width:100%!important;max-width:178px!important;height:97px!important;
-  min-height:97px!important;margin:0!important;overflow:visible!important;
+  width:100%!important;max-width:178px!important;height:89px!important;
+  min-height:89px!important;margin:0!important;overflow:visible!important;
+  transform:translateY(-4px)!important;
 }
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-block-main,
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-main {
   position:static!important;display:flex!important;align-items:flex-end!important;
-  flex:0 0 79px!important;width:79px!important;min-width:79px!important;
-  max-width:79px!important;height:89px!important;max-height:89px!important;
+  flex:0 0 75px!important;width:75px!important;min-width:75px!important;
+  max-width:75px!important;height:84px!important;max-height:84px!important;
   padding:0!important;margin:0!important;transform:none!important;
 }
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-block-main .craft-block-png,
@@ -31,16 +31,20 @@
   vertical-align:bottom!important;opacity:1!important;
 }
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-block-main .craft-block-png {
-  width:79px!important;min-width:79px!important;max-width:79px!important;
-  height:88px!important;min-height:88px!important;max-height:88px!important;
+  width:75px!important;min-width:75px!important;max-width:75px!important;
+  height:83px!important;min-height:83px!important;max-height:83px!important;
 }
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-block-alt {
-  flex:0 0 70px!important;width:70px!important;min-width:70px!important;max-width:70px!important;
-  height:83px!important;min-height:83px!important;max-height:83px!important;
+  flex:0 0 64px!important;width:64px!important;min-width:64px!important;max-width:64px!important;
+  height:74px!important;min-height:74px!important;max-height:74px!important;
   margin:0!important;padding:0!important;
 }
+/* Visualizr's high-definition image has more internal padding than its siblings. */
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-main img.craft-block-png{
+ transform:scale(1.1)!important;transform-origin:50% 58%!important;
+}
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile h3{
-  margin-top:4px!important;
+  margin-top:3px!important;
 }
 /* The private snapshot shelf shares the same bevels, horizontal rhythm,
    and title scale as the vintage editor directory rather than a floating
