@@ -48,6 +48,10 @@
  background:#c7c7c7!important;color:#171717!important;
  font:800 18px/1 Arial,sans-serif!important;
 }
+/* BIG LWA retro minimize, maximize and close colors. */
+#studioApp #moduleWorkspace .retro-window-controls>.retro-window-min{background:#e7be49!important}
+#studioApp #moduleWorkspace .retro-window-controls>.retro-window-max{background:#6db98b!important}
+#studioApp #moduleWorkspace .retro-window-controls>.retro-window-close{background:#d75d61!important}
 #studioApp #moduleWorkspace .retro-window-close{cursor:pointer!important}
 #studioApp #moduleWorkspace .retro-window-close:hover{background:#f3c5c7!important}
 #studioApp #moduleWorkspace .retro-window-close:focus-visible{outline:3px solid #ffda65!important;outline-offset:2px!important}
