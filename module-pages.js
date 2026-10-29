@@ -3319,6 +3319,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
               ?[jobs[i].label+': '+String(result.reason?.message||'could not refresh')]:[]);
             const facebookPersonalResult=results.find((result,i)=>jobs[i].label==='Facebook Personal'&&result.status==='fulfilled');
             const fbNote=facebookPersonalResult?.value?.result;
+            const fbBusinessResult=results.find((result,i)=>
+              jobs[i].label==='Facebook Business'&&result.status==='fulfilled');
+            const fbBusiness=fbBusinessResult?.value?.result;
             archiveInitialized=false;archiveMedia=[];archiveCursor=null;archiveHasMore=false;
             await draw();
             const nextStatus=$('#archiveInstagramStatus',body);
@@ -3326,6 +3329,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
               const refreshed=results.filter(result=>result.status==='fulfilled').length;
               const notices=[refreshed?refreshed+' source refresh(es) completed.':'No active source refresh was available.'];
               if(typeof fbNote==='string')notices.push('Facebook: '+fbNote);
+              if(fbBusiness&&typeof fbBusiness==='object'){
+                notices.push('Facebook Business: '+fbBusiness.photos+' photos, '+fbBusiness.videos+' videos returned.');
+                if(fbBusiness.missing?.length)notices.push('Grant '+fbBusiness.missing.join(' and ')+' in Meta and reconnect Facebook.');
+                if(fbBusiness.saveError)notices.push(fbBusiness.saveError);
+              }
               if(failed.length)notices.push(failed.join(' · '));
               if(selection==='facebook'&&!jobs.length)notices.push('Connect Facebook in Orbit, then try again.');
               nextStatus.textContent=notices.join(' ');
