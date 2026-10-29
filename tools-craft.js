@@ -72,7 +72,7 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261029-weekly-red-3';document.head.append(css);
+ css.href='/tools-craft.css?v=20261029-folder-seam-4';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
@@ -103,7 +103,6 @@ export async function mountCraftSuite(root){
  root.classList.add('craft-suite','craft-workshop');
  root.innerHTML=
   '<header class="craft-head craft-folder-cover" aria-label="BIG LWA Lwazi folder">'+
-   '<div class="craft-folder-back" aria-hidden="true"></div>'+
    '<div class="craft-folder-tab"><span class="craft-folder-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="craft-folder-tab-name">R / LWAZI</span></div>'+
    '<div class="craft-folder-front">'+
     '<div class="craft-folder-inner craft-folder-inner--tri">'+
