@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261029-arcade-links-keys-7';
+        script.src = '/module-pages.js?v=20261029-arcade-verified-8';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2682,7 +2682,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(framed.origin===location.origin){
         if(['/arcade-puzzles.html','/arcade/local.html'].includes(framed.pathname))
           framed.searchParams.set('embed','1');
-        framed.searchParams.set('release','20261029-arcade-keyboard-4');
+        framed.searchParams.set('release','20261029-arcade-selector-5');
       }
       frame.src=framed.href;
       frame.tabIndex=0;
