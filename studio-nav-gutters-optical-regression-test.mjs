@@ -19,7 +19,7 @@ assert(css.includes('width:calc(100% - (2 * var(--biglwa-widget-edge)))!importan
 assert(css.includes('margin-left:var(--biglwa-widget-edge)!important')&&css.includes('margin-right:var(--biglwa-widget-edge)!important'),'Equal insets on both sides');
 assert(css.includes('.main.module-view > .masonry.biglwa-free-layout'),'Router can hide masonry when page open');
 assert(drag.includes("main?.classList.contains('module-view')"),'Do not measure while on a module page');
-assert(drag.includes("!parent.getClientRects().length"),'Do not measure a hidden or disconnected masonry');
+assert(drag.includes("!(parent.clientWidth||parent.getBoundingClientRect().width)"),'Do not measure a hidden or disconnected masonry');
 assert(drag.includes("document.addEventListener('biglwa:module-close',schedule)"),'On return, remeasure widgets');
 assert(drag.includes("document.addEventListener('biglwa:module-open',schedule)"),'Module transitions are observed');
 assert(drag.includes("parent.clientWidth||parent.getBoundingClientRect().width"),'Column math uses inset masonry content');
