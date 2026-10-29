@@ -2403,7 +2403,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     ];
     const tile=(game,index)=>game.internal==='cultureQuiz'
       ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
-      :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="Play '+esc(game.title)+' in the arcade"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play in cabinet ▶</small></button>';
+      :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="'+(game.launch==='external'?'Open ':'Play ')+esc(game.title)+'"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>'+(game.launch==='external'?'official site ↗':'play in cabinet ▶')+'</small></button>';
     const track=items=>{
       // The visible frame can exceed five cards in height. Repeat the source
       // playlist until a full cycle is taller than the viewport; THEN clone
@@ -2412,7 +2412,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const complete=cycle.slice(0,Math.max(9,cycle.length));
       return complete.concat(complete).map(game=>tile(game,gameLibrary.indexOf(game))).join('');
     };
-    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>Play in screen</button><a class="module-action ghost" href="'+href+'">Original site →</a>')+'</div></div>'};
+    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>'+(game.launch==='external'?'Official game →':'Play in screen')+'</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Original site ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
         '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><div class="module-arcade-folder-depth"><span class="module-arcade-wordmark" aria-hidden="true">ARCADE</span><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Play local games or load a saved Flash file inside this cabinet. Original-site entries may restrict embedding; in-site alternatives are always available.</div></section>'+
@@ -2548,6 +2548,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // the initial attempt. Providers' CSP/X-Frame-Options remain respected.
     const providerName=uri=>{
       const host=uri.hostname.replace(/^www\./,'');
+      if(host==='8ballpool.com'||host.endsWith('.8ballpool.com')||host==='agar.io')return 'Miniclip';
       if(host.endsWith('coolmathgames.com'))return 'Coolmath Games';
       if(host.endsWith('nytimes.com'))return 'The New York Times Games';
       if(host.endsWith('chess.com'))return 'Chess.com';
@@ -2605,22 +2606,25 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       heading.textContent=game.title;
       const description=document.createElement('p');
       const steam=uri.hostname==='store.steampowered.com';
-      const blocked=restrictsEmbed(uri);
+      const officialExternal=game.launch==='external';
+      const blocked=restrictsEmbed(uri)||officialExternal;
       description.textContent=steam
         ? 'This entry is a PC-game reference, not a browser-playable copy. Choose a local game below to stay in the arcade.'
-        : blocked
-          ? 'This provider restricts embedded play. Choose a local alternative, or load your saved Flash file in the preservation player.'
-          : 'Try this original provider in the cabinet. If it does not load, choose a local alternative or the Flash player below.';
+        : officialExternal
+          ? 'This official Miniclip game is available in your browser on the original website. Use Play on Miniclip for its full-sized game window; BIG LWA does not rehost or bypass their frame restrictions.'
+          : blocked
+            ? 'The provider may block embedded play. Open its original game page to play there, or choose a local BIG LWA game.'
+            : 'Try the original provider in the cabinet. If it refuses to display, open its own game page or choose a local game.';
       const actions=document.createElement('div');
       actions.className='arcade-game-launch-actions';
       actions.append(makeAction('Local games','arcadeLocal',''),makeAction('Load Flash file','arcadeFlash','ghost'));
-      actions.append(createOpenLink(uri,steam?'Steam listing (leave arcade) →':'Original site (leave arcade) →','ghost'));
+      actions.append(createOpenLink(uri,steam?'Steam listing ↗':officialExternal?'Play on Miniclip ↗':'Play on original site ↗','ghost'));
       if(!steam&&!blocked) actions.append(makeAction('Try in this screen','arcadeTryEmbed','ghost'));
       actions.append(makeAction('Copy game link','arcadeCopy','ghost'));
       const note=document.createElement('small');
       note.className='arcade-game-notice';
       note.setAttribute('role','status');
-      note.textContent=blocked?'This is an archive reference until a playable, hostable game file is available.':'External games remain hosted by their original providers.';
+      note.textContent=officialExternal?'The game opens at its official website; fullscreen controls belong to that game.':blocked?'This provider controls whether it can run inside other websites.':'External games remain hosted by their original providers.';
       details.append(label,heading,description,actions,note);
       const feature=document.createElement('div');
       feature.className='arcade-game-feature';
@@ -2759,6 +2763,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       selectedGame=game;
       try{
         const target=new URL(game.href,location.href);
+        if(game.launch==='external'||restrictsEmbed(target)||target.hostname==='store.steampowered.com'){
+          showGameLinks(game); // No blank game iframe for providers with restricted framing.
+          return;
+        }
         if(target.protocol==='https:'||target.origin===location.origin){
           tryEmbedded();
           return;
