@@ -13,7 +13,7 @@ assert.doesNotThrow(()=>new Script(pages),'Module-page JavaScript stays valid');
 // Feed is an ES module with imports: Node's classic vm.Script cannot parse it.
 // Its published behavior is checked below without evaluating its dependencies.
 assert.doesNotThrow(()=>new Script(defaults),'Default-image loader stays valid');
-assert(index.includes('studio-myfeed-filmstrip-20261029.css?v=20261029-four-photo-film-1'),'Filmstrip CSS is loaded');
+assert(index.includes('studio-myfeed-filmstrip-20261029.css?v=20261029-dark-photo-negative-2'),'Filmstrip CSS is loaded');
 assert(index.includes('studio-default-images-20261029.js?v=20261029-archive-wallpaper-2'),'Fresh Archive thumbnail JS served');
 assert(index.includes('module-pages.js?v=20261029-lwazi-merged-header-9'),'Current module build served');
 assert(pages.includes('/module-pages.js?v=20261029-lwazi-merged-header-9')&&route.includes('/module-pages.js?v=20261029-lwazi-merged-header-9'),'Fallback URLs do not request stale builds');
