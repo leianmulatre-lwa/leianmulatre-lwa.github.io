@@ -588,8 +588,18 @@
   const navigationCatalog=new Map();
   // The masthead reads the same symbol record as shortcuts and Skeleton Key.
   window.BigLWAWidgetSymbols=Object.freeze({
-    markup(key){return navigationCatalog.get(key)?.symbolHTML||''},
-    keys(){return [...navigationCatalog.keys()]}
+    markup(key){
+      const known=navigationCatalog.get(key)?.symbolHTML;if(known)return known;
+      const app=$('#studioApp');if(!app)return '';
+      // Veve has a dedicated launcher; Trophies is intentionally not in the
+      // shortcut catalog. Read their existing artwork, not a fallback glyph.
+      if(key==='veve')return $('.studio-veve-mark,.skeleton-veve-mark',app)?.innerHTML||'';
+      const safe=String(key||'').replace(/[^a-z0-9_-]/g,'');
+      const widget=$('[data-widget-route="'+safe+'"]',app)||$('#'+safe,app);
+      return widget?widgetIconMarkup(widget):'';
+    },
+    keys(){return [...new Set([...navigationCatalog.keys(),...$$('[data-widget-route]',$('#studioApp')||document).map(n=>n.dataset.widgetRoute),'veve'])]}
+
   });
   let initialNavigationShortcuts=null;
   let draggedNavigationKey='';
