@@ -3,6 +3,10 @@
 name: "BIG LWA Worker — check or deploy"
 
 on:
+  # Temporary validation-only trigger; production deploy remains manual.
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cloudflare-worker-manual.yml']
   workflow_dispatch:
     inputs:
       operation:
