@@ -48,8 +48,7 @@
  const platformOf=group=>String(group?.platform||'instagram').toLowerCase();
  const source=()=>{
   const platform=archiveSource();
-  if(platform==='snapchat')return window.BigLWASocialShowcase?.highlightsFor?.('snapchat')||[];
-  if(!['instagram','facebook'].includes(platform))return [];
+  if(!['instagram','snapchat','facebook'].includes(platform))return [];
   const data=window.BigLWAImportedHighlights?.source?.();
   const sourceHandle=String(data?.handle||'').toLowerCase();
   // The static legacy Instagram snapshot is not a universal import. Never

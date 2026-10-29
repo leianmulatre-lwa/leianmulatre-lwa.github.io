@@ -108,6 +108,10 @@ assert.ok(!doc.querySelector('.archive-highlights-button').hidden,'Snapchat High
 doc.querySelector('.archive-highlights-button').click();
 assert.equal(doc.querySelector('#biglwaHighlightEditorList .highlight-edit-row input[type="text"]')?.value,'Spotlight preview','Snapchat shows Spotlight data');
 assert.ok(!doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Original'),'Snapchat never shows Instagram data');
+imported.highlights.push({title:'Banner Snapchat story',platform:'snapchat',items:[{kind:'image',mediaUrl:'https://example.com/banner-snap.jpg'}]});
+w.BIGLWAHighlightEditor.render();
+assert.equal(doc.querySelectorAll('#biglwaHighlightEditorList .highlight-edit-row').length,2,'Snapchat includes both its existing banner highlight and live Spotlight lookup');
+assert.ok([...doc.querySelectorAll('#biglwaHighlightEditorList input[type="text"]')].some(e=>e.value==='Banner Snapchat story'),'Banner source metadata routes the Snapchat group to its own category');
 w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['facebook'],hideDupes:false}));
 w.BIGLWAHighlightEditor.mountArchive();
 assert.ok(doc.querySelector('.archive-highlights-button').hidden,'Facebook has no Highlight button without imported Highlight groups');
