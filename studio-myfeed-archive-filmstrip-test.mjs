@@ -99,7 +99,7 @@ const fewOne=shuffleEnv.pick(few);
 const fewTwo=shuffleEnv.pick(few,fewOne.map(p=>p.id+':'+p.imageUrl));
 assert.notDeepEqual(fewTwo.map(p=>p.id),fewOne.map(p=>p.id),
   'Smaller photo collections still change order rather than repeat unchanged');
-assert.deepEqual(shuffleEnv.pick([]),[],'Empty library does not invent default photos');
+assert.equal(shuffleEnv.pick([]).length,0,'Empty library does not invent default photos');
 
 // Archive preview image becomes grayscale only while hovering the Studio widget;
 // imported/member media, photo dimensions and navigation are not rewritten.
