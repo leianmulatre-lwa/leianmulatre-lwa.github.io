@@ -60,6 +60,19 @@ await w.BigLWAAccountInsights.refresh();
 assert.equal(w.__biglwaProfileMetrics.likes,1400000,'TikTok tracker likes reach the profile banner');
 assert.equal(w.__biglwaProfileMetrics.reach,4242+19700,'TikTok monthly tracker stat counts toward reach');
 assert.equal(persisted.at(-1).snapshot.sources.find(s=>s.id==='tiktok').monthlyStat,19700,'TikTok monthly stat saved to monthly history');
+// A provider user id is identity, never a public @handle. The real vanity name
+// is recovered from the profile link, and a numeric Facebook id stays blank.
+data.connections.tiktok={username:'-000Iv8CvtWteaNYasp6RBtPJSuqVD1ZEwwC',sourceUserId:'tiktok-openid-1',
+ link:'https://www.tiktok.com/@leianstanley',stats:{followers:35230}};
+data.connections.facebook={username:'7737741593164989',sourceUserId:'7737741593164989',
+ link:'https://www.facebook.com/profile.php?id=7737741593164989',stats:{followers:8}};
+await w.BigLWAAccountInsights.refresh();
+const row=id=>w.__biglwaProfileMetrics.sources.find(s=>s.id===id);
+assert.equal(row('tiktok').handle,'leianstanley','TikTok open_id is replaced by the real vanity handle');
+assert.equal(row('tiktok').accountKey,'tiktok-openid-1','TikTok stable id remains the account key');
+assert.equal(row('facebook').handle,'','A numeric Facebook id never becomes a fake @handle');
+assert.ok(!w.__biglwaProfileMetrics.sources.some(s=>/^-?\d{6,}$/.test(String(s.handle||''))||String(s.handle||'').startsWith('-000')),
+ 'No provider id appears in the handle column');
 uid='metric-owner-b';w.__biglwaIdentity={uid};
 data={uid,analyticsMonths:{},connections:{},peopleConnections:{},orbitConnectedProfiles:{}};
 await w.BigLWAAccountInsights.refresh();
