@@ -1516,6 +1516,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         onSelection:()=>{clearTimeout(t)},
       });
     }
+    if(key==='diary'){
+      // Journal's page list may be taller than the writing form. Keep the
+      // visibility controls INSIDE the writing column, immediately after
+      // "Private draft", so they never wait for the sidebar's full height.
+      // Moving the existing node preserves its buttons, IDs and permissions.
+      const visibility=$('#journalShareControls',body);
+      if(visibility)form.append(visibility);
+    }
     if(key==='notes'){
       const publisher=$('#diaryWritingSection',body);
       if(publisher){
