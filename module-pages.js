@@ -2387,7 +2387,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'8 Ball Pool',image:'/assets/arcade/miniclip-pool-20261029.svg',href:'https://8ballpool.com/game',launch:'external',provider:'Miniclip'},
       {title:'Agar.io',image:'/assets/arcade/miniclip-agar-20261029.svg',href:'https://agar.io/',launch:'external',provider:'Miniclip'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-watergirl-5-elements'},
-      {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
+      {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://poki.com/en/g/sugar-sugar-html5'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
       {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://www.coolmathgames.com/0-raft-wars'},
       {title:'sudoku',image:'/assets/arcade/sudoku.jpg',href:'https://www.coolmathgames.com/0-sudoku'},
@@ -2550,6 +2550,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const host=uri.hostname.replace(/^www\./,'');
       if(host==='8ballpool.com'||host.endsWith('.8ballpool.com')||host==='agar.io')return 'Miniclip';
       if(host.endsWith('coolmathgames.com'))return 'Coolmath Games';
+      if(host==='poki.com'||host.endsWith('.poki.com'))return 'Poki';
       if(host.endsWith('nytimes.com'))return 'The New York Times Games';
       if(host.endsWith('chess.com'))return 'Chess.com';
       if(host.endsWith('steampowered.com'))return 'Steam';
