@@ -8,7 +8,7 @@ const begin=page.indexOf('  function renderGames(){'),end=page.indexOf('  const 
 assert(begin>=0&&end>begin,'Games module found');
 const arcade=page.slice(begin,end);
 assert.doesNotThrow(()=>new Script(page),'Games JS parses without malformed avatar URL validator');
-assert(index.includes('games-lwazi-windows-20261029.css?v=20261029-lwazi-raised-blocks-3'),'New connected-window and cube CSS loaded');
+assert(index.includes('games-lwazi-windows-20261029.css?v=20261029-coded-shrink-4'),'New connected-window and cube CSS loaded');
 const moduleBuild=index.match(/\/module-pages\.js\?v=[\w.-]+/)?.[0];
 assert(moduleBuild&&page.includes(moduleBuild),'Games uses the current cache-busted module build across initial and fallback loading');
 assert(arcade.includes('biglwa-game-avatar-sidecar')&&arcade.includes('gameStage.after(companion)'),'Separate character window is mounted beside the existing player');
