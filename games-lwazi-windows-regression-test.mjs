@@ -8,7 +8,7 @@ const begin=page.indexOf('  function renderGames(){'),end=page.indexOf('  const 
 assert(begin>=0&&end>begin,'Games module found');
 const arcade=page.slice(begin,end);
 assert.doesNotThrow(()=>new Script(page),'Games JS parses without malformed avatar URL validator');
-assert(index.includes('games-lwazi-windows-20261029.css?v=20261029-games-sidecar-2'),'New connected-window and cube CSS loaded');
+assert(index.includes('games-lwazi-windows-20261029.css?v=20261029-lwazi-raised-blocks-3'),'New connected-window and cube CSS loaded');
 const moduleBuild=index.match(/\/module-pages\.js\?v=[\w.-]+/)?.[0];
 assert(moduleBuild&&page.includes(moduleBuild),'Games uses the current cache-busted module build across initial and fallback loading');
 assert(arcade.includes('biglwa-game-avatar-sidecar')&&arcade.includes('gameStage.after(companion)'),'Separate character window is mounted beside the existing player');
@@ -22,6 +22,10 @@ assert(css.includes('biglwa-game-aura-wobble')&&css.includes('prefers-reduced-mo
 assert(css.includes('grid-template-columns:minmax(0,1fr) clamp(235px,23vw,325px)'),'Games allocates actual usable width to companion window');
 assert(css.includes('module-games-grid>.module-game-directory'),'Directory remains below both windows');
 assert(css.includes('.craft-block-pair')&&css.includes('align-items:flex-end'),'Both R-series blocks align on the same baseline');
+assert(tools.indexOf('class="craft-toolbar" aria-label="Workshop stages"') < tools.indexOf("'</header>'+"),'Workshop stages share the same header element as the brand');
+assert(css.includes('transform:translateY(-4px)!important')&&css.includes('width:64px!important'),'R-series blocks are smaller and raised');
+assert(css.includes('transform:scale(1.1)!important'),'Visualizr HD primary block gets its own optical enlargement');
+
 assert(css.includes('gap:15px!important'),'R-series blocks have breathing space');
 assert(css.includes('.craft-account-vault')&&css.includes('.craft-vault-actions')&&css.includes('.craft-vault-gallery'),'Snapshot title, save controls and collection stay visible/aligned');
 assert(tools.includes('data-craft-open=')&&tools.includes('id="craftVaultFile"')&&tools.includes('id="craftVaultGallery"'),'Existing Workshop launches and private shelf retained');
