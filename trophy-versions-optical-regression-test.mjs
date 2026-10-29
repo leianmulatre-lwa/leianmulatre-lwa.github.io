@@ -4,7 +4,7 @@ import {createRequire} from 'node:module';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const code=read('module-pages.js'),map=read('trophy-achievement-map.js'),styles=read('studio-trophy-versions-symbol-bounds-20261029.css'),index=read('index.html');
-assert(index.includes('module-pages.js?v=20261029-arcade-companion-4'));
+assert(index.includes('module-pages.js?v=20261029-journal-column-5'));
 assert(index.includes('trophy-achievement-map.js?v=20261029-rank-only-1'));
 assert(index.includes('studio-trophy-versions-symbol-bounds-20261029.css'));
 assert(!code.includes('<b>No trophies yet</b>'),'Do not show a redundant empty-state below achievement artwork');
