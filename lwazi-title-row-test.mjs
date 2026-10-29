@@ -17,7 +17,7 @@ const visualizrPng=readFileSync(new URL('./assets/bigapps/icons/visualizr.png',i
 assert.ok(visualizrPng.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Visualizr replacement is a REAL PNG, not SVG or a link');
 assert.equal(visualizrPng.readUInt32BE(16),128,'Optimized icon PNG retained its square image format');
 assert.doesNotMatch(craft,/\{id:'bookini',name:'bookini'/,'Bookini is no longer a separate Workshop app');
-assert.match(craft,/2 web-friendly BIG LWA apps and 4 advanced/,'Workshop count reflects removal of standalone Bookini');
+assert.match(craft,/2 BIG LWA originals \+ 4 advanced/,'Workshop count reflects removal of standalone Bookini');
 assert.match(modulePages,/tools:'lwazi'/,'Lwazi route title');
 assert.match(modulePages,/projects:'visualizr'/,'Visualizr route title');
 assert.match(index,/lwazi-header-series-20261026\.css/,'New heading layout reaches published site');
