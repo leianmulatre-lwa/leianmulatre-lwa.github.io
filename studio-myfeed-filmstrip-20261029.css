@@ -191,3 +191,71 @@
 @media(prefers-reduced-motion:reduce){
   #studioApp #biglwaFeedHero .biglwa-feed-hero-grid>*{transition:none!important}
 }
+
+/* Orbit's rainbow signature stays in the existing photo-count slot.
+   It is a visual reference to Orbit, never a fabricated connected status.
+   The counter stays legible and does not change its source or interactions. */
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head span{
+  position:relative!important;
+  display:inline-block!important;
+  flex:0 0 auto!important;
+  box-sizing:border-box!important;
+  padding:4px 6px 7px!important;
+  border-radius:2px!important;
+  background:linear-gradient(90deg,
+    rgba(238,87,96,.14) 0%,
+    rgba(230,153,73,.13) 20%,
+    rgba(225,199,70,.12) 35%,
+    rgba(80,171,114,.12) 52%,
+    rgba(85,142,203,.13) 72%,
+    rgba(170,100,186,.14) 100%)!important;
+  color:#eee4d6!important;
+  text-shadow:0 1px 1px rgba(0,0,0,.65)!important;
+}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head span::after{
+  content:""!important;
+  position:absolute!important;
+  left:6px!important;
+  right:6px!important;
+  bottom:2px!important;
+  height:3px!important;
+  border-radius:1px!important;
+  background:linear-gradient(90deg,
+    #e45a65 0%,#e79055 17%,#e8cd64 33%,
+    #69b984 50%,#68a7d0 66%,#9d83c9 84%,#d579ad 100%)!important;
+  opacity:.92!important;
+  pointer-events:none!important;
+}
+/* Gentle chemical grain, small emulsion marks, and fine processing scratches.
+   Only the film BODY and header are textured; photographic content is untouched. */
+#studioApp #biglwaFeedHero.biglwa-feed-hero{
+  background-color:#171514!important;
+  background-image:
+    radial-gradient(circle at 17% 26%,rgba(236,218,189,.085) .55px,transparent 1.4px),
+    radial-gradient(circle at 76% 66%,rgba(225,207,182,.075) .5px,transparent 1.3px),
+    repeating-linear-gradient(0deg,rgba(210,190,167,.024) 0 1px,transparent 1px 13px)!important;
+  background-size:43px 41px,61px 53px,100% 100%!important;
+}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head{
+  background-image:
+    radial-gradient(circle at 23% 37%,rgba(238,216,181,.10) .55px,transparent 1.4px),
+    repeating-linear-gradient(90deg,transparent 0 36px,rgba(230,209,181,.027) 36px 37px,transparent 37px 95px)!important;
+  background-size:47px 43px,100% 100%!important;
+}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid,
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{
+  background-image:
+    radial-gradient(circle at 13% 32%,rgba(223,209,188,.055) .5px,transparent 1.3px),
+    radial-gradient(circle at 81% 64%,rgba(225,199,162,.04) .5px,transparent 1.4px),
+    repeating-linear-gradient(0deg,transparent 0 22px,rgba(210,195,179,.018) 22px 23px,transparent 23px 60px),
+    linear-gradient(180deg,#1b1918 0%,#141313 55%,#1c1918 100%)!important;
+  background-size:39px 37px,59px 57px,100% 100%,100% 100%!important;
+}
+@media(max-width:600px){
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-head span{
+    padding:3px 4px 6px!important;
+  }
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-head span::after{
+    left:4px!important;right:4px!important;bottom:2px!important;height:2px!important;
+  }
+}
