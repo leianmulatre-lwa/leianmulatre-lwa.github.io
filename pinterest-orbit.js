@@ -53,7 +53,7 @@ let handoffPromise=null;
    const result=await savedRequest('POST',next);
    savedLibrary=result;savedUid=authUid;savedError='';
    document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
-   notice('Saved to your Big LWA collections.');
+   notice('Board updated.');
   }catch(error){savedError=error.message||'Could not update saved Pins.';notice(savedError)}
   finally{savedBusy=false;render()}
  }
@@ -170,6 +170,7 @@ let handoffPromise=null;
   const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('pinterest:'+id)));
   const postId='orbit_'+Array.from(digest).map(n=>n.toString(16).padStart(2,'0')).join('').slice(0,40);
   await publisher(postId);
+  return postId;
  }
  async function publishBoardToVeve(id,saved,selectedIds=null){
   const board=saved?savedLibrary.boards.find(b=>String(b.id)===String(id)):boards.find(b=>String(b.id)===String(id));
@@ -245,8 +246,8 @@ let handoffPromise=null;
   if(!authUid)return '';
   const boardRows=savedLibrary.boards.map(board=>{
    const cols=(board.pins||[]).slice(0,16).map(pin=>
-    '<article class="pn-saved-pin"><a href="'+esc(pin.url)+'" target="_blank" rel="noopener noreferrer">'+
-    (pin.image?'<img src="'+esc(pin.image)+'" loading="lazy" alt="">':'')+'</a>'+
+    '<article class="pn-saved-pin"><button type="button" class="pn-pin-photo" data-pn-preview="'+esc(pin.id)+'" aria-label="Enlarge Pin">'+
+    (pin.image?'<img src="'+esc(pin.image)+'" loading="lazy" alt="">':'')+'</button>'+
     '<span>'+esc(pin.title)+'</span>'+
     '<div class="pn-saved-pin-actions"><button type="button" data-pn-edit-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Edit</button>'+
     '<button type="button" data-pn-remove-saved="'+esc(pin.id)+'" data-pn-saved-from="'+esc(board.id)+'">Remove</button>'+
@@ -265,7 +266,7 @@ let handoffPromise=null;
    (boardRows||'<p>Save a Pin to start a collection, or create a new board.</p>')+'</section>';
  }
 
- let savedDrawerOpen=false;
+ let savedDrawerOpen=false,showAllBoards=false,activeSavedBoard='',originalView=false,scrollBoardAfterRender=false;
  let workQueue=[],queuedTasks=0,selectedBoardPins=new Set(),selectedOriginalPins=new Set(),publishedPinIds=new Set();
  let operationProgress='',profilePinStates=new Map();
  const progress=label=>{operationProgress=label;render()};
@@ -281,7 +282,7 @@ let handoffPromise=null;
   if(!key){recentBoardIds=[];return}
   try{
    const value=JSON.parse(localStorage.getItem(key)||'[]');
-   recentBoardIds=Array.isArray(value)?[...new Set(value.map(String).filter(id=>/^\d+$/.test(id)))].slice(0,30):[];
+   recentBoardIds=Array.isArray(value)?[...new Set(value.map(String).filter(id=>/^(?:\d+|board_[a-f0-9]+|default_saved)$/.test(id)))].slice(0,30):[];
   }catch{recentBoardIds=[]}
  };
  const orderedBoards=()=>boards.slice().sort((a,b)=>{
@@ -308,11 +309,12 @@ let handoffPromise=null;
   storageDrop(KEY);
  };
  const resetView=()=>{
+  document.querySelector('#pnPinPreview')?.close();document.querySelector('#pnBoardDestination')?.close();
   connected=false;profile={};boards=[];pins=[];createdPins=[];boardId='';boardsNext='';pinsNext='';createdNext='';covers={};
   recentBoardIds=[];
   selectedBoardPins.clear();selectedOriginalPins.clear();publishedPinIds.clear();profilePinStates.clear();workQueue=[];queuedTasks=0;operationProgress='';
   hostedPinUrls.clear();
-  savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};savedDrawerOpen=false;
+  savedLibrary={version:1,boards:[]};savedUid='';savedError='';boardLocks={};savedDrawerOpen=false;activeSavedBoard='';originalView=false;showAllBoards=false;
   document.dispatchEvent(new CustomEvent('biglwa:pinterest-status',{detail:{connected:false,uid:authUid}}));
   restorePromise=null;boardsPromise=null;pinsPromise=null;createdPromise=null;lastImport={imported:0,skipped:0,partial:0};importError='';
   render();
@@ -668,7 +670,7 @@ async function connect(){await run(async()=>{
  }
  async function choose(id,more=false){if(!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===String(id)))return;
   await run(async()=>{
-    if(!more){rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();void loadCovers()}
+    if(!more){activeSavedBoard='';originalView=false;scrollBoardAfterRender=true;rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();void loadCovers()}
     await loadPins(id,more);
     if(!more)void hydrateBrowse({scope:'pins',uid:authUid,selected:id});
   });
@@ -710,31 +712,137 @@ async function connect(){await run(async()=>{
      feed, so the two grids read as different things. Before a connection it is six empty
      slots rather than a prompt, which shows the shape of what is coming without pretending
      there is something there. A board with no cover yet keeps its slot and waits. */
+ function pinActions(id){
+  return '<div class="pn-pin-actions pn-compact-actions"><button type="button" data-pn-save-pin="'+esc(id)+'" aria-label="Save Pin to boards" title="Save to boards">⊞</button><a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" aria-label="Open original Pin on Pinterest" title="Open original Pin">↗</a></div>';
+ }
+ function selectionActions(original,count){
+  const which=original?'original':'board';
+  const privateSaveUnavailable=original&&count>0&&createdPins.filter(p=>selectedOriginalPins.has(String(p.id))).every(p=>['private','archived','live'].includes(profilePinStates.get(String(p.id))));
+  return '<div class="pn-selection-toolbar" role="group" aria-label="Selected Pin actions">'+
+   '<button type="button" data-pn-select-'+which+'-all>Select all</button>'+
+   '<span aria-live="polite">'+count+' selected</span>'+
+   (count?'<button type="button" data-pn-deselect>Deselect</button>'+
+    '<button type="button" data-pn-send-selected="boards" data-pn-selection="'+which+'">⊞ Boards</button>'+
+    '<button type="button" data-pn-import-'+which+(privateSaveUnavailable?' disabled aria-disabled="true" title="Already in your private Archive"':'')+'>Keep private in Archive</button>'+
+    '<button type="button" data-pn-send-selected="feed" data-pn-selection="'+which+'">Post to MyFeed</button>'+
+    '<button type="button" data-pn-send-selected="veve" data-pn-selection="'+which+'">Post to Veve</button>':'')+'</div>';
+ }
+ function openPinPreview(id){
+  const pin=pinById(id);if(!pin)return;
+  document.querySelector('#pnPinPreview')?.close();document.querySelector('#pnPinPreview')?.remove();
+  const dialog=document.createElement('dialog');dialog.id='pnPinPreview';dialog.className='pn-pin-preview';
+  const title=String(pin.title||pin.description||'Pinterest Pin');
+  const src=(hostedPinUrls.get(String(id))||[])[0]||image(pin)||pin.image||'';
+  const neighbours=[...new Map([...pins,...createdPins].filter(p=>String(p.id)!==String(id)&&image(p)).map(p=>[String(p.id),p])).values()].slice(0,12);
+  dialog.setAttribute('aria-label','Pin preview');
+  dialog.innerHTML='<button type="button" class="pn-preview-close" aria-label="Close Pin preview">×</button>'+
+   '<div class="pn-preview-layout"><div class="pn-preview-image"><img src="'+esc(src)+'" alt="'+esc(title)+'"></div>'+
+   '<aside><h2>'+esc(title)+'</h2>'+pinActions(id)+
+   (neighbours.length?'<h3>More from your boards</h3><div class="pn-preview-neighbours">'+neighbours.map(p=>'<button type="button" data-pn-preview="'+esc(p.id)+'" aria-label="Enlarge '+esc(p.title||'Pin')+'"><img src="'+esc(image(p))+'" alt="" loading="lazy"></button>').join('')+'</div>':'')+'</aside></div>';
+  dialog.querySelector('.pn-preview-close').onclick=()=>dialog.close();
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+  document.body.append(dialog);dialog.showModal();
+ }
+ function openBoardPicker(ids){
+  const selected=[...new Set(ids.map(String))].filter(id=>pinById(id));
+  document.querySelector('#pnBoardDestination')?.close();document.querySelector('#pnBoardDestination')?.remove();
+  const dialog=document.createElement('dialog');dialog.id='pnBoardDestination';dialog.className='pn-board-destination';
+  dialog.setAttribute('aria-labelledby','pnDestinationTitle');
+  dialog.innerHTML='<header><h2 id="pnDestinationTitle">'+(selected.length?'Save '+selected.length+' Pin'+(selected.length===1?'':'s')+' to boards':'Your boards')+'</h2><button type="button" data-pn-picker-close aria-label="Close board picker">×</button></header>'+
+   '<p>Choose one or more BIG LWA boards. Pins stay private here.</p><div class="pn-destination-list"></div>'+
+   '<form class="pn-destination-create"><label for="pnNewBoardTitle">New board</label><div><input id="pnNewBoardTitle" maxlength="100" placeholder="Board name" required><button type="submit">Create board</button></div></form>'+
+   '<footer><button type="button" data-pn-picker-save'+(!selected.length?' hidden':'')+'>Save to selected boards</button>'+
+   (selected.length?'<button type="button" data-pn-picker-publish="feed">MyFeed</button><button type="button" data-pn-picker-publish="veve">Veve</button>':'')+'</footer><p class="pn-destination-status" role="status" aria-live="polite"></p>';
+  const list=dialog.querySelector('.pn-destination-list'),status=dialog.querySelector('[role="status"]'),picked=new Set();
+  const paint=()=>{
+   list.innerHTML=savedLibrary.boards.length?savedLibrary.boards.map(b=>'<label><input type="checkbox" value="'+esc(b.id)+'"'+(picked.has(b.id)?' checked':'')+'><span>'+esc(b.title)+'</span><small>'+b.pins.length+' Pins</small></label>').join(''):'<p>No BIG LWA boards yet. Create one below.</p>';
+   const save=dialog.querySelector('[data-pn-picker-save]');save.disabled=!picked.size||!selected.length;
+  };
+  list.addEventListener('change',e=>{if(e.target.checked)picked.add(e.target.value);else picked.delete(e.target.value);paint()});
+  dialog.querySelector('[data-pn-picker-close]').onclick=()=>dialog.close();
+  dialog.querySelector('form').onsubmit=async e=>{
+   e.preventDefault();const input=dialog.querySelector('#pnNewBoardTitle'),button=e.submitter;
+   if(!input.value.trim())return;button.disabled=true;status.textContent='Creating board…';
+   try{const board=await createVeveBoard(input.value);picked.add(board.id);input.value='';paint();status.textContent='Created “'+board.title+'”.'+(selected.length?' Choose Save to add your Pin'+(selected.length===1?'':'s')+'.':'');}
+   catch(error){status.textContent=error.message}finally{button.disabled=false}
+  };
+  dialog.querySelector('[data-pn-picker-save]').onclick=async e=>{
+   const button=e.currentTarget,targets=[...picked];button.disabled=true;status.textContent='Saving…';
+   try{
+    const uid=authUid;if(!uid)throw Error('Sign in before saving Pins.');
+    const names=[];
+    for(const target of targets){
+     for(const id of selected){
+      if(uid!==authUid)throw Error('Account changed; save stopped.');
+      const pin=pinById(id);if(!pin)throw Error('This Pin is no longer loaded.');
+      const result=await saveVevePin({pinId:id,title:pin.title||pin.description,image:image(pin)||pin.image,url:'https://www.pinterest.com/pin/'+id+'/'},target);
+      if(!names.includes(result.board))names.push(result.board);
+     }
+    }
+    status.textContent=selected.length+' Pin'+(selected.length===1?'':'s')+' saved to '+names.map(n=>'“'+n+'”').join(', ')+'.';
+    const view=document.createElement('button');view.type='button';view.textContent='View '+names[0];
+    view.onclick=()=>{activeSavedBoard=targets[0];recentBoardIds=[activeSavedBoard,...recentBoardIds.filter(id=>id!==activeSavedBoard)];try{localStorage.setItem(recentBoardKey(),JSON.stringify(recentBoardIds))}catch{}originalView=false;selectedBoardPins.clear();scrollBoardAfterRender=true;dialog.close();document.querySelector('#pnPinPreview')?.close();render()};status.append(' ',view);
+    selectedBoardPins.clear();selectedOriginalPins.clear();render();
+   }catch(error){status.textContent=error.message}finally{button.disabled=false}
+  };
+  dialog.querySelectorAll('[data-pn-picker-publish]').forEach(button=>button.onclick=()=>{const to=button.dataset.pnPickerPublish;dialog.close();document.querySelector('#pnPinPreview')?.close();publishSelection(selected,to)});
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);paint();dialog.showModal();
+  if(savedUid!==authUid)loadSaved().then(()=>{if(dialog.isConnected)paint()});
+ }
+ async function discoveryDestination(postId,featured){
+  const [{getApps},{getAuth},{getFirestore,doc,writeBatch}]=await Promise.all([
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')]);
+  const app=getApps()[0],user=app&&getAuth(app).currentUser;
+  if(!user||user.uid!==authUid)throw Error('Account changed; posting stopped.');
+  const db=getFirestore(app),batch=writeBatch(db),patch={veveFeatured:featured,veveOptOut:!featured};
+  batch.update(doc(db,'posts',postId),patch);batch.set(doc(db,'users',user.uid,'posts',postId),patch,{merge:true});await batch.commit();
+ }
+ async function publishSelection(ids,destination){
+  const picked=ids.map(pinById).filter(Boolean);if(!picked.length){notice('Select Pins first.');return}
+  if(activeSavedBoard&&boardLocks[activeSavedBoard]===true){notice('Unlock this board before posting its Pins.');return}
+  const label=destination==='veve'?'Veve':'MyFeed';
+  if(!window.confirm('Post '+picked.length+' selected Pin'+(picked.length===1?'':'s')+' publicly to '+label+'?'+(destination==='veve'?' Veve posts also appear on MyFeed.':'')))return;
+  const uid=authUid;
+  await run(async()=>{
+   const importer=await waitForImporter(),publisher=window.__biglwaOrbitPosts?.publishOrbitPost;
+   if(typeof importer!=='function'||typeof publisher!=='function')throw Error('Posting is still loading. Try again shortly.');
+   let posted=0;
+   for(const pin of picked){
+    if(uid!==authUid)throw Error('Account changed; posting stopped.');
+    await publishOnePin({...pin,biglwaPinterestOrigin:originalView?'created':'board',biglwaPinterestBoardId:activeSavedBoard||boardId},importer,async postId=>{
+     await discoveryDestination(postId,destination==='veve');await publisher(postId);
+    });posted++;profilePinStates.set(String(pin.id),'live');
+    progress('Posted '+posted+' / '+picked.length+' to '+label);
+   }
+   selectedBoardPins.clear();selectedOriginalPins.clear();notice(posted+' Pin'+(posted===1?'':'s')+' posted to '+label+'.');
+   window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:'pinterest',published:posted}}));window.BigLWAVeve?.refresh?.();
+  });
+ }
+
  function boardGrid(disabled){
   /* Before a connection the six slots are the connection control itself. They used to be
      inert divs marked aria-hidden, so the tiles that plainly said "Connect Pinterest" did
      nothing when tapped, which read as the button being broken. Each tile now connects. */
-  if(!connected){
+  if(!connected&&!savedLibrary.boards.length){
    const tile='<button type="button" class="pinterest-board is-empty" data-pn-connect'+(disabled||'')+'><span>Connect Pinterest</span></button>';
    return '<div class="pinterest-board-grid">'+Array.from({length:6},()=>tile).join('')+'</div>';
   }
-  if(!boards.length)return'<p role="status">No Pinterest boards were returned. Use Refresh boards to retry.</p>';
-  const tiles=orderedBoards().map(b=>{
-   const coverEntry=covers[b.id];
+  if(!boards.length&&!savedLibrary.boards.length)return'<p role="status">No boards yet. Create a board above.</p>';
+  const entries=[...orderedBoards().map(b=>({...b,local:false})),...savedLibrary.boards.map(b=>({...b,name:b.title,pin_count:b.pins.length,local:true}))];
+  entries.sort((a,b)=>{const ai=recentBoardIds.indexOf(String(a.id)),bi=recentBoardIds.indexOf(String(b.id));return (ai<0?1e6:ai)-(bi<0?1e6:bi)});
+  const tiles=(showAllBoards?entries:entries.slice(0,6)).map(b=>{
+   const coverEntry=b.local?{images:b.pins.slice(0,3).map(p=>p.image).filter(Boolean)}:covers[b.id];
    const urls=Array.isArray(coverEntry?.images)?coverEntry.images.filter(Boolean).slice(0,3):[];
    const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||image(coverEntry)||image(b);
    if(!urls.length&&cover)urls.push(cover);
-   const previews=urls.map((url,index)=>
-    '<img class="pinterest-board-preview pn-cover-'+index+'" loading="lazy" src="'+esc(url)+'" alt="" aria-hidden="true">').join('');
-   return '<button type="button" data-pn-board="'+esc(String(b.id))+'" class="pinterest-board'+(cover?'':' is-empty')+'" aria-label="Open '+esc(b.name)+' board">'+
-    '<span class="pinterest-board-media">'+(previews||'<span>No cover yet</span>')+'</span>'+
-    '<span class="pinterest-board-copy"><strong>'+esc(b.name)+'</strong>'+
-    '<small>'+(b.pin_count!=null?esc(String(b.pin_count))+' Pins':'View Pins')+'</small></span>'+
-    '<span class="pinterest-board-stack" aria-hidden="true">▧ '+(b.pin_count||'')+'</span></button>';
+   const previews=urls.map((url,index)=>'<img class="pinterest-board-preview pn-cover-'+index+'" loading="lazy" src="'+esc(url)+'" alt="" aria-hidden="true">').join('');
+   return '<button type="button" '+(b.local?'data-pn-saved-board':'data-pn-board')+'="'+esc(String(b.id))+'" class="pinterest-board'+(urls.length?'':' is-empty')+'" aria-label="Open '+esc(b.name)+' board">'+
+    '<span class="pinterest-board-media">'+(previews||'<span>⊞</span>')+'</span>'+
+    '<span class="pinterest-board-copy"><strong>'+esc(b.name)+'</strong><small>'+b.pin_count+' Pins · '+(b.local?'BIG LWA':'Pinterest')+'</small></span></button>';
   });
   /* Fewer than six boards still fill the grid, so the row never looks half drawn. */
-  while(tiles.length<6)tiles.push('<div class="pinterest-board is-empty"><span>&nbsp;</span></div>');
-  return '<div class="pinterest-board-grid">'+tiles.join('')+'</div>';
+
+  return '<div class="pinterest-board-grid">'+tiles.join('')+'</div>'+((entries.length>6)?'<button type="button" data-pn-toggle-boards>'+(showAllBoards?'Show recent six':'Browse all '+entries.length+' boards')+'</button>':'');
  }
  // Private board saves are not mounted into Collective Feed.
  const waitForImporter=()=>new Promise(resolve=>{
@@ -764,23 +872,17 @@ async function connect(){await run(async()=>{
  // until the final selection is cleared, on both imported and original Pins.
  panel.classList.toggle('pn-selection-active',selectedBoardPins.size>0||selectedOriginalPins.size>0);
  const disabled=''; // Keep connected controls usable while run() queues work.
- const selectedCreated=createdPins.filter(pin=>selectedOriginalPins.has(String(pin.id)));
- const pendingPrivatePins=selectedCreated.filter(pin=>!['private','archived','live'].includes(profilePinStates.get(String(pin.id))));
- const privateSaveUnavailable=pendingPrivatePins.length===0;
  const originalPinsMarkup=
   (connected?'<section class="pinterest-owned-section"><header><h3>Original Pins <small>('+createdPins.length+(createdNext?'+':'')+')</small></h3>'+
     '<p>Original Pins stay private in your BIG LWA profile unless you later choose to publish them from myfeed.</p>'+
-    '<div class="pn-original-controls"><button type="button" data-pn-select-original-all>Select all shown</button>'+
-    '<button type="button" data-pn-import-original title="'+(privateSaveUnavailable?(selectedCreated.length?'Every selected Pin is already stored in BIG LWA':'Select Pins to import privately'):'Import '+pendingPrivatePins.length+' unsaved Pin(s) privately without publishing')+'"'+(privateSaveUnavailable?' disabled aria-disabled="true"':'')+'>Keep selected private</button>'+
-    ''+
-    '<span>'+selectedOriginalPins.size+' selected</span></div></header><div class="pinterest-owned-grid">'+
+    selectionActions(true,selectedOriginalPins.size)+'</header><div class="pinterest-owned-grid">'+
     (createdPins.map(pin=>{const id=String(pin.id||'');const pic=(hostedPinUrls.get(id)||[])[0]||image(pin);
       const status=profilePinStates.get(id)||'unknown';
       return '<article class="pn-owned-pin-choice" data-pn-owned-pin="'+esc(id)+'">'+
-       '<label class="pn-pin-check"><input type="checkbox" data-pn-original-select="'+esc(id)+'"'+(selectedOriginalPins.has(id)?' checked':'')+'><span>Select</span></label>'+
-       '<a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" title="Open original Pin on Pinterest">'+
-       (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</a>'+
-       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Shared to myfeed':status==='archived'?'Archived · not live':status==='private'?'● Private in BIG LWA':'● On Pinterest · not yet saved to BIG LWA')+'</small></article>';
+       '<label class="pn-pin-check"><input aria-label="Select Pin" type="checkbox" data-pn-original-select="'+esc(id)+'"'+(selectedOriginalPins.has(id)?' checked':'')+'><span>Select</span></label>'+
+       '<button type="button" class="pn-pin-photo" data-pn-preview="'+esc(id)+'" aria-label="Enlarge Pin">'+
+       (pic?'<img loading="lazy" src="'+esc(pic)+'" alt="'+esc(pin.title||pin.description||'Original Pin')+'">':'<span>Original Pin</span>')+'</button>'+pinActions(id)+
+       '<small class="pn-publish-status '+(status==='live'?'is-live':'')+'">'+(status==='live'?'● Shared to myfeed':status==='archived'?'Archived · not live':status==='private'?'Private in Archive':'On Pinterest')+'</small></article>';
     }).join('')||'<p>No original Pins were returned.</p>')+'</div>'+
     (createdNext?'<p class="pn-more-loading">More original Pins are loading automatically.</p>':'')+'</section>':'');
  const connectedName=String(profile.username||profile.business_name||'').trim().replace(/^@/,'');
@@ -790,21 +892,17 @@ async function connect(){await run(async()=>{
    ?'<button type="button" class="module-action" data-pn-refresh>↻ Refresh</button>'+
     '<span class="pn-synced-hint" title="Pins refresh when you visit Boards">Automatically synced</span>'
    :'<button type="button" class="module-action pn-orbit-connect" data-pn-connect'+disabled+'>🪐 Connect Pinterest</button>';
- const boardPicker=connected?'<label class="pn-board-picker" for="pinterestBoardPicker"><span>Now showing pins from</span>'+
-   '<select id="pinterestBoardPicker" class="module-input"'+disabled+'><option value="">Select a public board</option>'+
-   orderedBoards().map(b=>'<option value="'+esc(b.id)+'"'+(String(b.id)===String(boardId)?' selected':'')+'>'+esc(b.name)+'</option>').join('')+
-   '</select></label>':'<span class="pn-board-picker pn-picker-empty">Connect Pinterest to browse your boards</span>';
- const boardActions=connected?'<div class="pn-board-view-actions">'+
-   (boardsNext?'<span class="pn-more-loading">Loading more boards automatically…</span>':'')+
-   '<button type="button" class="module-action pn-secondary" data-pn-select-board-all>Select all shown</button>'+
-   '<button type="button" class="module-action pn-secondary" data-pn-import-board>Keep selected private</button>'+
-   '<span class="pn-privacy-note">Private first · Share later from myfeed</span></div>':'';
+ const selectedSet=originalView?selectedOriginalPins:selectedBoardPins;
+ const activePins=originalView?createdPins:activeSavedBoard?(savedLibrary.boards.find(b=>b.id===activeSavedBoard)?.pins||[]):pins;
+ const activeName=originalView?'Original Pins':activeSavedBoard?(savedLibrary.boards.find(b=>b.id===activeSavedBoard)?.title||'Board'):boardNameFor(boardId);
+ const boardPicker='<h3 id="pnActiveBoardTitle">'+esc(activeName||'Pins')+'</h3>';
+ const boardActions=selectionActions(false,selectedSet.size);
  panel.innerHTML='<div class="pn-primary-head"><div class="pn-primary-identity"><h2>board</h2>'+
    '<div class="pn-connected-row"><span class="pn-orbit-planet" aria-hidden="true">●</span><span>'+
    (connected?'Pinterest connected'+(safeName?' · @'+esc(safeName):''):'Pinterest not connected')+'</span>'+
    (connected?'<a class="pn-qwiklinkz" href="'+esc(qwikHref)+'" target="_blank" rel="noopener noreferrer" title="Open Pinterest profile in a new tab">↗ Qwiklinkz</a>':'')+
    '</div></div><div class="pn-head-controls">'+headerControls+
-   (authUid?'<div class="pn-new-board-combo"><button type="button" class="module-action pn-new-board" data-pn-new-board title="Create a private BIGLWA collection">+ New board</button>'+
+   (authUid?'<div class="pn-new-board-combo"><button type="button" class="module-action pn-new-board" data-pn-new-board title="Create a private BIG LWA board">+ New board</button>'+
    '<button type="button" class="pn-manage-board-menu" data-pn-manage-boards aria-controls="pnSavedLibraryDrawer" aria-expanded="'+String(savedDrawerOpen)+'" title="Manage saved boards">▾</button></div>':'')+
    '</div></div>'+
    (authUid&&savedDrawerOpen?'<div class="pn-saved-popover" id="pnSavedLibraryDrawer" role="region" aria-label="Manage BIGLWA saved boards">'+
@@ -819,26 +917,21 @@ async function connect(){await run(async()=>{
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
   boardGrid(disabled)+
-  '<div class="pn-current-board-bar">'+boardPicker+boardActions+'</div>'+
+  '<div class="pn-browse-tabs"><button type="button" data-pn-original-view aria-pressed="'+originalView+'">Original Pins</button></div>'+
+  '<div class="pn-current-board-bar" id="pnActiveBoard">'+boardPicker+(!originalView?boardActions:'')+'</div>'+
   (!boards.length&&connected&&!busy?'<p>No public boards were returned for this account.</p>':'')+
-  (boardId?'<p class="pn-board-scope-note">Now showing Pins from <strong>'+esc(boardNameFor(boardId)||'selected board')+'</strong> · '+pins.length+' loaded · '+selectedBoardPins.size+' selected · Privately saved Pins remain private until you share from myfeed.</p>':'')+
-  '<div class="pinterest-pin-grid">'+pins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
+  '<div class="pinterest-pin-grid"'+(originalView?' hidden':'')+'>'+activePins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
    const src=(hostedPinUrls.get(String(p.id))||[])[0]||image(p);const id=esc(String(p.id));
    const caption=esc(p.title||p.description||p.alt_text||'Pinterest Pin');
-   const opts='<option value="default_saved">Saved</option>'+
-    savedLibrary.boards.filter(b=>b.id!=='default_saved').map(b=>'<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>').join('');
    return '<article class="pinterest-pin" data-pn-pin-card="'+id+'">'+
-    '<label class="pn-pin-check"><input type="checkbox" data-pn-board-select="'+id+'"'+(selectedBoardPins.has(String(p.id))?' checked':'')+'><span>Select</span></label>'+
-    '<a class="pn-pin-photo" href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View '+caption+' on Pinterest">'+
-    (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+caption+'">':'<span class="pn-pin-placeholder">Image unavailable</span>')+'</a>'+
-    '<div class="pn-pin-meta">'+(caption?'<p>'+caption+'</p>':'')+
-    '<div class="pn-pin-actions">'+
-    '<label class="pn-save-select"><span>Board</span><select data-pn-target-board="'+id+'" aria-label="Save Pin into Big LWA board">'+opts+'</select></label>'+
-    '<button type="button" data-pn-save-pin="'+id+'">Save</button>'+
-    '<a href="https://www.pinterest.com/pin/'+id+'/" target="_blank" rel="noopener noreferrer" aria-label="View on Pinterest">↗</a></div></div></article>';
+    '<label class="pn-pin-check"><input aria-label="Select Pin" type="checkbox" data-pn-board-select="'+id+'"'+(selectedBoardPins.has(String(p.id))?' checked':'')+'><span>Select</span></label>'+
+    '<button type="button" class="pn-pin-photo" data-pn-preview="'+id+'" aria-label="Enlarge '+caption+'">'+
+    (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+caption+'">':'<span class="pn-pin-placeholder">Image unavailable</span>')+'</button>'+pinActions(id)+
+    (caption?'<p class="pn-pin-caption">'+caption+'</p>':'')+'</article>';
   }).join('')+'</div>'+
- (boardId&&!pins.length&&!busy?'<p>No Pins were returned for this board.</p>':'')+
- (pinsNext?'<p class="pn-more-loading">Loading more Pins automatically…</p>':'')+originalPinsMarkup;
+ (boardId&&!activePins.length&&!busy?'<p>No Pins in this board yet.</p>':'')+
+ (!activeSavedBoard&&pinsNext?'<p class="pn-more-loading">Loading more Pins automatically…</p>':'')+(originalView?originalPinsMarkup:'');
+ if(scrollBoardAfterRender){scrollBoardAfterRender=false;requestAnimationFrame(()=>document.getElementById('pnActiveBoard')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 }
 document.addEventListener('change',e=>{
  const target=e.target;
@@ -859,16 +952,29 @@ document.addEventListener('click',e=>{
  const manageBoards=e.target.closest('[data-pn-manage-boards]');
  if(manageBoards){e.preventDefault();e.stopImmediatePropagation();savedDrawerOpen=!savedDrawerOpen;render();return;}
  const newBoard=e.target.closest('[data-pn-new-board]');
- if(newBoard){e.preventDefault();e.stopImmediatePropagation();newSavedBoard();return;}
+ if(newBoard){e.preventDefault();e.stopImmediatePropagation();openBoardPicker([]);return;}
+ const preview=e.target.closest('[data-pn-preview]');
+ if(preview){e.preventDefault();e.stopImmediatePropagation();openPinPreview(preview.dataset.pnPreview);return}
  const savePin=e.target.closest('[data-pn-save-pin]');
- if(savePin){e.preventDefault();e.stopImmediatePropagation();
-  const id=savePin.dataset.pnSavePin;
-  const target=document.querySelector('[data-pn-target-board="'+id+'"]')?.value||'default_saved';
-  addSavedPin(id,target);return;}
+ if(savePin){e.preventDefault();e.stopImmediatePropagation();openBoardPicker([savePin.dataset.pnSavePin]);return}
+ const savedTile=e.target.closest('[data-pn-saved-board]');
+ if(savedTile){e.preventDefault();e.stopImmediatePropagation();activeSavedBoard=savedTile.dataset.pnSavedBoard;recentBoardIds=[activeSavedBoard,...recentBoardIds.filter(id=>id!==activeSavedBoard)];try{localStorage.setItem(recentBoardKey(),JSON.stringify(recentBoardIds))}catch{}originalView=false;selectedBoardPins.clear();scrollBoardAfterRender=true;render();return}
+ if(e.target.closest('[data-pn-toggle-boards]')){e.preventDefault();showAllBoards=!showAllBoards;render();return}
+ if(e.target.closest('[data-pn-original-view]')){e.preventDefault();originalView=!originalView;selectedBoardPins.clear();selectedOriginalPins.clear();scrollBoardAfterRender=true;render();return}
+ const deselect=e.target.closest('[data-pn-deselect]');
+ if(deselect){e.preventDefault();selectedBoardPins.clear();selectedOriginalPins.clear();render();return}
+ const destination=e.target.closest('[data-pn-send-selected]');
+ if(destination){e.preventDefault();e.stopImmediatePropagation();
+   const original=destination.dataset.pnSelection==='original';
+   const ids=[...(original?selectedOriginalPins:selectedBoardPins)];
+   if(destination.dataset.pnSendSelected==='boards')openBoardPicker(ids);
+   else publishSelection(ids,destination.dataset.pnSendSelected);
+   return;
+ }
  const allSelected=e.target.closest('[data-pn-select-board-all],[data-pn-select-original-all]');
  if(allSelected){e.preventDefault();e.stopImmediatePropagation();
   const original=allSelected.hasAttribute('data-pn-select-original-all');
-  const list=original?createdPins:pins,set=original?selectedOriginalPins:selectedBoardPins;
+  const list=original?createdPins:activeSavedBoard?(savedLibrary.boards.find(b=>b.id===activeSavedBoard)?.pins||[]):pins,set=original?selectedOriginalPins:selectedBoardPins;
   const ids=list.map(item=>String(item.id)).filter(id=>/^\d+$/.test(id));
   const all=ids.length&&ids.every(id=>set.has(id));
   for(const id of ids){if(all)set.delete(id);else set.add(id)}
@@ -877,10 +983,10 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-pn-import-original],[data-pn-import-board]')){
    e.preventDefault();e.stopImmediatePropagation();
    const original=!!e.target.closest('[data-pn-import-original]');
-   const picked=(original?createdPins:pins).filter(pin=>(original?selectedOriginalPins:selectedBoardPins).has(String(pin.id)));
+   const picked=(original?createdPins:activeSavedBoard?(savedLibrary.boards.find(b=>b.id===activeSavedBoard)?.pins||[]):pins).filter(pin=>(original?selectedOriginalPins:selectedBoardPins).has(String(pin.id)));
    if(!picked.length){notice('Choose Pins first.');return}
    const unsaved=original?picked.filter(pin=>!['private','archived','live'].includes(profilePinStates.get(String(pin.id)))):picked;
-   if(!unsaved.length){notice('Those Pins are already saved privately in BIG LWA.');return}
+   if(!unsaved.length){notice('Those Pins are already in your private Archive.');return}
    run(async()=>{await importSelectedPins(unsaved.map(pin=>({...pin,
      biglwaPinterestOrigin:original?'created':'board',biglwaPinterestBoardId:original?'':boardId
    })));(original?selectedOriginalPins:selectedBoardPins).clear()});return;
@@ -928,8 +1034,9 @@ document.addEventListener('click',e=>{
  else connect();
 },true);
 document.addEventListener('biglwa:module-open',()=>{
- render();
  const route=document.getElementById('moduleRouteName')?.textContent||'';
+ if(route==='Boards')showAllBoards=false;
+ render();
  if(route==='Boards' && (session()||authUid)){
   restore().catch(()=>{});
  }
@@ -962,7 +1069,7 @@ async function init(){
   if(!document.getElementById('pinterestBoardsStyle')){
    const link=document.createElement('link');
    link.id='pinterestBoardsStyle';link.rel='stylesheet';
-   link.href='/pinterest-boards.css?v=20261022-hover-select-7';
+   link.href='/pinterest-boards.css?v=20261022-hover-select-7&browse=20261029-destinations-1';
    document.head.append(link);
   }
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');

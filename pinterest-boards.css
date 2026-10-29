@@ -316,3 +316,78 @@
 @media(prefers-reduced-motion:reduce){
   #pinterestBoards .pn-pin-check{transition:none!important}
 }
+
+/* Boards browsing: one photo wall, explicit destinations, compact controls. */
+html body #studioApp #pinterestBoards :is(.pinterest-pin-grid,.pinterest-owned-grid)[hidden]{display:none!important}
+html body #studioApp #pinterestBoards .pn-pin-check,
+html body #studioApp #pinterestBoards.pn-selection-active .pn-pin-check{
+ width:18px!important;min-width:18px!important;max-width:18px!important;
+ height:18px!important;min-height:18px!important;max-height:18px!important;
+ padding:0!important;margin:0!important;gap:0!important;background:transparent!important;
+ border:0!important;box-shadow:none!important;border-radius:3px!important;
+}
+html body #studioApp #pinterestBoards .pn-pin-check span{display:none!important}
+html body #studioApp #pinterestBoards .pn-pin-check input{width:17px!important;height:17px!important;margin:0!important;filter:drop-shadow(0 1px 2px #0005)}
+html body #studioApp #pinterestBoards button.pn-pin-photo{
+ display:block!important;position:relative!important;width:100%!important;min-height:0!important;
+ height:auto!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;
+ border-radius:inherit!important;overflow:hidden!important;cursor:zoom-in!important;
+}
+html body #studioApp #pinterestBoards button.pn-pin-photo img{display:block!important;width:100%!important;height:auto!important;object-fit:cover!important}
+html body #studioApp #pinterestBoards :is(.pinterest-pin,.pn-owned-pin-choice){position:relative!important;break-inside:avoid}
+html body #studioApp #pinterestBoards .pn-compact-actions{
+ position:absolute!important;right:8px!important;bottom:8px!important;left:auto!important;top:auto!important;
+ display:flex!important;gap:7px!important;padding:0!important;margin:0!important;background:none!important;
+ opacity:0;transition:opacity .12s;z-index:5;
+}
+html body #studioApp #pinterestBoards :is(.pinterest-pin,.pn-owned-pin-choice):is(:hover,:focus-within) .pn-compact-actions{opacity:1}
+html body #studioApp #pinterestBoards .pn-compact-actions :is(button,a){
+ display:grid!important;place-items:center!important;width:32px!important;height:32px!important;
+ min-width:32px!important;min-height:32px!important;padding:0!important;border:0!important;border-radius:50%!important;
+ background:#fff9efee!important;color:#552835!important;text-decoration:none!important;font:700 22px/1 system-ui!important;box-shadow:0 2px 7px #0003!important;
+}
+html body #studioApp #pinterestBoards .pn-pin-caption{display:none!important}
+html body #studioApp #pinterestBoards .pn-current-board-bar{display:block!important;scroll-margin-top:82px;gap:10px}
+html body #studioApp #pinterestBoards #pnActiveBoardTitle{margin:12px 0 8px!important;font-size:22px!important}
+html body #studioApp #pinterestBoards .pn-selection-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+html body #studioApp #pinterestBoards .pn-selection-toolbar button,
+html body #studioApp #pinterestBoards .pn-browse-tabs button,
+html body #studioApp #pinterestBoards [data-pn-toggle-boards]{min-height:30px!important;padding:6px 11px!important;font:650 12px/1.2 system-ui!important;border:1px solid #d5bcb1;border-radius:16px;background:#fff9f0;color:#653d43}
+html body #studioApp #pinterestBoards .pn-selection-toolbar span{font-size:12px;color:#76655f;padding:0}
+html body #studioApp #pinterestBoards .pn-browse-tabs{display:flex;justify-content:flex-end;margin-top:8px}
+html body #studioApp #pinterestBoards .pn-browse-tabs [aria-pressed="true"]{background:#76394c;color:white}
+html body #studioApp #pinterestBoards .pinterest-owned-section>header>h3,
+html body #studioApp #pinterestBoards .pinterest-owned-section>header>p{display:none!important}
+@media(hover:none){html body #studioApp #pinterestBoards .pn-compact-actions{opacity:1}}
+
+.pn-pin-preview,.pn-board-destination{box-sizing:border-box;border:1px solid #ddc9ba;border-radius:20px;background:#fff9f0;color:#352928;box-shadow:0 20px 80px #0006;padding:24px;max-height:90dvh;overflow:auto;font:14px/1.45 system-ui}
+.pn-pin-preview::backdrop,.pn-board-destination::backdrop{background:#171018a8;backdrop-filter:blur(4px)}
+.pn-pin-preview{width:min(1060px,94vw)}
+.pn-preview-close{position:absolute;right:10px;top:8px;z-index:2;border:0;background:#fff9ef;color:#352928;border-radius:50%;width:32px;height:32px;font:26px/1 system-ui;cursor:pointer}
+.pn-preview-layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(240px,.7fr);gap:24px}
+.pn-preview-image{display:grid;place-items:center;min-width:0;border-radius:13px;overflow:hidden;background:#eadfd3}
+.pn-preview-image>img{display:block;max-width:100%;max-height:76dvh;width:auto;height:auto;object-fit:contain}
+.pn-preview-layout h2{font:650 18px/1.4 system-ui;margin:12px 0;overflow-wrap:anywhere}
+.pn-preview-layout h3{font:650 13px/1.3 system-ui;margin-top:24px}
+.pn-preview-layout .pn-compact-actions{display:flex;gap:8px;position:static}
+.pn-preview-layout .pn-compact-actions :is(button,a){display:grid;place-items:center;text-decoration:none;background:#793f51;color:white;border:0;border-radius:50%;width:38px;height:38px;font:24px/1 system-ui;cursor:pointer}
+.pn-preview-neighbours{columns:3;column-gap:8px}
+.pn-preview-neighbours button{width:100%;padding:0;border:0;border-radius:9px;overflow:hidden;margin-bottom:8px;display:block;break-inside:avoid;cursor:zoom-in;background:none}
+.pn-preview-neighbours img{display:block;width:100%;height:auto}
+.pn-board-destination{width:min(510px,94vw)}
+.pn-board-destination header{display:flex;gap:15px;align-items:center;justify-content:space-between}
+.pn-board-destination h2{font:700 20px/1.3 system-ui;margin:0}
+.pn-board-destination header button{border:0;background:none;font-size:26px;cursor:pointer}
+.pn-board-destination>p{color:#75645d;margin:8px 0 15px}
+.pn-destination-list{max-height:36dvh;overflow:auto;display:grid;gap:6px}
+.pn-destination-list label{display:flex;align-items:center;gap:10px;background:#f1e7dc;border-radius:10px;padding:12px;cursor:pointer}
+.pn-destination-list input{accent-color:#9a405b;width:17px;height:17px}
+.pn-destination-list small{margin-left:auto;color:#776760}
+.pn-destination-create{border-top:1px solid #e2d2c3;padding-top:16px;margin-top:16px}
+.pn-destination-create>div{display:flex;gap:8px;margin-top:6px}
+.pn-destination-create input{min-width:0;flex:1;padding:9px;border:1px solid #ccb7a7;border-radius:8px;background:#fff}
+.pn-board-destination button:not(header button){padding:9px 13px;border:0;border-radius:9px;background:#814056;color:#fff;font:650 12px/1.3 system-ui;cursor:pointer}
+.pn-board-destination button:disabled{opacity:.45;cursor:default}
+.pn-board-destination footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.pn-board-destination .pn-destination-status{color:#573e39}
+@media(max-width:650px){.pn-preview-layout{grid-template-columns:1fr}.pn-preview-image>img{max-height:65dvh}.pn-pin-preview{padding:16px}.pn-preview-layout aside{min-width:0}}

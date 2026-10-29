@@ -184,6 +184,7 @@ jobs:
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs
           node pinterest-recent-board-status-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node boards-browsing-regression-test.mjs
           node boards-compact-journal-regression-test.mjs
           node studio-pinterest-batch-coherence-test.mjs
           node facebook-quicklinks-test.mjs

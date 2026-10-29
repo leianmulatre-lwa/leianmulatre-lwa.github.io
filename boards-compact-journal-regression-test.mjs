@@ -21,12 +21,12 @@ assert.ok(pinterest.includes('data-pn-manage-boards')&&pinterest.includes("saved
 assert.ok(pinterest.includes("authUid&&savedDrawerOpen?"),'Saved drawer only visible to signed-in owner and when intentionally opened');
 assert.ok(pinterest.includes("savedBoardsMarkup()+'</div>':'')"),'Saved contents live in compact management drawer');
 assert.ok(!pinterest.includes(":'')+savedBoardsMarkup()+originalPinsMarkup;"),'No lower always-open Saved on BIGLWA section');
-assert.ok(pinterest.includes("Now showing pins from"),'Active board selector explains its purpose');
-assert.ok(pinterest.includes('pn-current-board-bar')&&pinterest.includes('pn-board-view-actions'),'Single toolbar for choosing and privately saving');
-assert.ok(pinterest.includes('hydrateBrowse(')&&pinterest.includes('Keep selected private'),'Boards automatically load additional pages and allow private saving');
-assert.ok(pinterest.includes('Private first · Share later from myfeed'),'Board privacy is separate from myfeed publishing');
-assert.ok(pinterest.includes('const tiles=orderedBoards().map'),'All boards appear in recent-first order');
-assert.ok(pinterest.indexOf('boardGrid(disabled)+')<pinterest.lastIndexOf("originalPinsMarkup;"),'Original Pins follow boards');
+assert.ok(pinterest.includes('id="pnActiveBoardTitle"'),'Active board selector explains its purpose');
+assert.ok(pinterest.includes('pn-current-board-bar')&&pinterest.includes('pn-selection-toolbar'),'Single toolbar for choosing and privately saving');
+assert.ok(pinterest.includes('hydrateBrowse(')&&pinterest.includes('Keep private in Archive'),'Boards automatically load additional pages and allow private saving');
+assert.ok(pinterest.includes('publishSelection(ids,destination)')&&pinterest.includes("window.confirm('Post '"),'Board privacy is separate from myfeed publishing');
+assert.ok(pinterest.includes('showAllBoards?entries:entries.slice(0,6)'),'Six recent boards appear, with other boards available on demand');
+assert.ok(pinterest.indexOf('boardGrid(disabled)+')<pinterest.lastIndexOf("(originalView?originalPinsMarkup:'')"),'Original Pins follow boards');
 assert.ok(css.includes('#pinterestBoards .pn-primary-head')&&css.includes('#pinterestBoards .pn-current-board-bar'),'Header and row styles scoped to Boards');
 assert.ok(css.includes('flex-wrap:nowrap')&&css.includes('pn-board-view-actions'),'Single-line toolbar on desktop');
 assert.ok(css.includes('position:absolute!important;z-index:60'),'Saved management is overlay, not full-page segment');

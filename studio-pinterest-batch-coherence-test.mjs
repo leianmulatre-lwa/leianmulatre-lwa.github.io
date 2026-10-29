@@ -25,7 +25,7 @@ assert.ok(!pins.includes('>Post to Collective</button>')&&!pins.includes('>Load 
 assert.ok(pins.includes('privateSaveUnavailable')&&pins.includes('disabled aria-disabled="true"'),'Already imported selected originals cannot be redundantly imported');
 assert.ok(pins.includes('importPinsToAccount(originals)'),'Original creations auto-import to account privately');
 assert.ok(pins.includes('20 actions are already queued (not a 20-Pin import limit)'),'Queue cap distinguished from Pin count');
-assert.ok(pins.includes('● Private in BIG LWA'),'Original status makes private-import state clear');
+assert.ok(pins.includes('Private in Archive'),'Original status makes private-import state clear');
 assert.ok(feed.includes('const pinOrigin=/^https?:'),'Old Pinterest links fix card attribution');
 assert.ok(feed.includes('const displaySource=pinOrigin?'),'Correct label/color based on true source');
 assert.ok(feed.includes('const link = !pinSource'),'No bottom Shared link block on Pinterest-origin cards');
