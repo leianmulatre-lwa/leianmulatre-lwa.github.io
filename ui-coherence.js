@@ -134,7 +134,7 @@
     const snapshot={
       order:realDomOrder(app),
       // Actual grid slots allow a card to occupy an empty column or new row.
-      positions:Object.fromEntries($('[data-widget-id][data-biglwa-grid-position]',app)
+      positions:Object.fromEntries($$('[data-widget-id][data-biglwa-grid-position]',app)
         .map(el=>[el.dataset.widgetId,el.dataset.biglwaGridPosition])
         .filter(([id,pos])=>id&&/^\d+:\d+$/.test(pos))),
       docked:readJson(DOCKED_WIDGET_KEY,[]),
