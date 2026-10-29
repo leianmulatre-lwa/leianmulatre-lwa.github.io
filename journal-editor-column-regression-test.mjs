@@ -9,7 +9,7 @@ const css=read('writing-collections.css');
 const html=read('index.html');
 
 assert(html.includes('writing-collections.css?v=20261029-journal-column-2'),'Latest Journal styling is included');
-assert(html.includes('module-pages.js?v=20261029-arcade-links-keys-7'),'Latest Journal markup is included');
+assert(html.includes('module-pages.js?v=20261029-arcade-verified-8'),'Latest Journal markup is included');
 assert(pages.includes("if(visibility)form.append(visibility);"),'Visibility controls move to the editor rather than waiting beneath the page sidebar');
 assert(css.includes('min-height:clamp(560px,72vh,780px)!important;'),'Lined Journal paper grows taller');
 assert(css.includes('#moduleWritingForm > #journalShareControls.journal-owner-share'),'Visibility card width is tied to the writing column');
