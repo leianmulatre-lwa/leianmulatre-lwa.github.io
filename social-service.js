@@ -54,8 +54,8 @@ export async function socialRoute(request,env,{user,json,preflight,allowed}){
  if(path==='upload'&&request.method==='POST'){
   const data=await bytes(request,25*1024*1024),type=(request.headers.get('Content-Type')||'').split(';')[0];
   const ascii=(a,z)=>new TextDecoder().decode(data.slice(a,z));
-  const signatures={'image/jpeg':data[0]===255&&data[1]===216&&data[2]===255,'image/png':data[0]===137&&ascii(1,4)==='PNG','image/webp':ascii(0,4)==='RIFF'&&ascii(8,12)==='WEBP','video/mp4':ascii(4,8)==='ftyp','video/webm':data[0]===26&&data[1]===69&&data[2]===223&&data[3]===163,'audio/webm':data[0]===26&&data[1]===69&&data[2]===223&&data[3]===163,'audio/mpeg':ascii(0,3)==='ID3'||(data[0]===255&&(data[1]&224)===224),'audio/wav':ascii(0,4)==='RIFF'&&ascii(8,12)==='WAVE','audio/ogg':ascii(0,4)==='OggS','audio/mp4':ascii(4,8)==='ftyp'};
-  if(!signatures[type])fail('Choose a JPEG, PNG, WebP, MP4, WebM, MP3, WAV or Ogg file.');
+  const signatures={'image/jpeg':data[0]===255&&data[1]===216&&data[2]===255,'image/png':data[0]===137&&ascii(1,4)==='PNG','image/webp':ascii(0,4)==='RIFF'&&ascii(8,12)==='WEBP','video/quicktime':ascii(4,8)==='ftyp','video/mp4':ascii(4,8)==='ftyp','video/webm':data[0]===26&&data[1]===69&&data[2]===223&&data[3]===163,'audio/webm':data[0]===26&&data[1]===69&&data[2]===223&&data[3]===163,'audio/mpeg':ascii(0,3)==='ID3'||(data[0]===255&&(data[1]&224)===224),'audio/wav':ascii(0,4)==='RIFF'&&ascii(8,12)==='WAVE','audio/ogg':ascii(0,4)==='OggS','audio/mp4':ascii(4,8)==='ftyp'};
+  if(!signatures[type])fail('Choose a JPEG, PNG, WebP, MP4, MOV, WebM, MP3, WAV or Ogg file.');
   const id=crypto.randomUUID();await b.put(ROOT+own+'uploads/'+id,data,{httpMetadata:{contentType:type,cacheControl:'private, no-store'}});return json({ok:true,asset:id,type},200,request,env);
  }
  const input=request.method==='POST'?await body(request):{};

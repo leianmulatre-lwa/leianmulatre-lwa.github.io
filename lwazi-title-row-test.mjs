@@ -55,8 +55,8 @@ const settle=()=>new Promise(resolve=>setTimeout(resolve,90));
 await settle();
 let h=doc.querySelector('.module-heading');
 assert.ok(h.classList.contains('module-heading--with-versions'));
-assert.equal(original.closest('.module-heading-right'),h.querySelector('.module-heading-right'),
- 'The actual Sqwip version switch belongs beside the heading');
+assert.equal(original.closest('.module-heading-right'),null,
+ 'Private Sqwip switches remain with private writing rather than the public Sqwidz timeline heading');
 original.click();assert.equal(clicks,1,'Mode switch retained its original click listener');
 assert.match(h.querySelector('.lwazi-series-badge img').src,/sqwibblR\.png/,'Sqwibz uses original R-series block artwork');
 assert.equal(h.querySelectorAll('.werk-rz-mark').length,0,'Old cramped text badge removed');
