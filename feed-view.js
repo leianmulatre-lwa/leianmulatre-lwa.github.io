@@ -713,12 +713,8 @@ function timestampMs(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-/* The preview strip sits above the board. It shows the four newest pictures in a single
-   row, so a visitor sees colour and activity before they start reading. It is decoration
-   over the same data the list already holds, never a second query, so the two can never
-   disagree about what the feed contains. Slots with no picture are left as dashed gaps
-   rather than shrinking the row, which keeps the row four wide until there is something
-   to put in it. */
+/* Studio's picture reel shuffles real published photographs; it never uses
+   defaults or edits the underlying feed order and account data. */
 const HERO_SLOTS = 4;
 /* Film preview is a contact sheet for PHOTOGRAPHS, not video posters.
    Other Feed cards remain mixed-media and keep their existing video behavior.
@@ -745,35 +741,66 @@ const heroPhotoUrl = post => {
 };
 let heroOn = null;
 let heroSignature = null;
+let heroSelectedKeys = [];
+let heroPoolSize = 0;
+const HERO_SHUFFLE_MS = 45000;
+const heroPostKey = post => String(post.id||'')+':'+heroPhotoUrl(post);
 
-function renderHero(force) {
+/* Shuffle a copy of approved photo posts; prefer unseen pictures between
+   rotations when a member has enough, with no fixed four-photo default. */
+function shuffleHeroPosts(pool, previous=[]) {
+  const unique=[...new Map(pool.map(post=>[heroPostKey(post),post])).values()];
+  for(let i=unique.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [unique[i],unique[j]]=[unique[j],unique[i]];
+  }
+  if(previous.length&&unique.length>HERO_SLOTS){
+    const old=new Set(previous);
+    const unseen=unique.filter(post=>!old.has(heroPostKey(post)));
+    const seen=unique.filter(post=>old.has(heroPostKey(post)));
+    unique.splice(0,unique.length,...unseen,...seen);
+  }
+  let selected=unique.slice(0,HERO_SLOTS);
+  if(previous.length&&selected.length>1&&
+    selected.every((post,index)=>heroPostKey(post)===previous[index])){
+    selected=[...selected.slice(1),selected[0]];
+  }
+  return selected;
+}
+function renderHero(force,reshuffle=false) {
   const anchor = document.getElementById("biglwaFeedHero");
   if (!anchor) return;
   /* The class lives on the markup in the module page, but it is asserted here as well so
      the strip is still a panel if that markup is ever built without it. */
   anchor.classList.add("biglwa-feed-hero");
-  /* A feed with nothing in it at all stays clean: the strip is a preview of pictures, so
-     showing four empty slots over an empty board would only add noise. Once a single post
-     exists the strip appears and holds its width, gaps included. */
+  /* Owner Studio uses only that signed-in member's approved account posts.
+     Visitor previews use only the viewed profile's approved posts. */
   const isPublicProfile=Boolean(window.__biglwaPublicStorageView);
   const verifiedUid=String(window.BigLWAAccountStorage?.uid||identity()?.uid||'');
   const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
-  // A new Studio shows its own neutral photo placeholders, never another member's wall.
-  anchor.hidden = isPublicProfile&&!previewPosts.length;
-  if (anchor.hidden) {
-    heroOn = null;
-    heroSignature = null;
+  const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post));
+  const requiresSync=previewPosts.some(post=>post.orbitImported&&
+    ['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
+  // No member-published pictures? Never display fixed sample photographs.
+  // Keep the restoration prompt if the account's Orbit photos need syncing.
+  anchor.hidden=!storedPosts.length&&!requiresSync;
+  if(anchor.hidden){
+    heroOn=null;heroSignature=null;heroSelectedKeys=[];heroPoolSize=0;
     return;
   }
-  const signature = verifiedUid+'|'+(isPublicProfile?'public':'owner')+'|'+previewPosts.map((p) => p.id + ":" + heroPhotoUrl(p) + ":" + (p.caption || "")).join("|");
-  if (!force && anchor === heroOn && signature === heroSignature) return;
-  heroOn = anchor;
-  heroSignature = signature;
+  const viewedUid=isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid;
+  const signature=viewedUid+'|'+(isPublicProfile?'public':'owner')+'|'+
+    previewPosts.map(p=>p.id+':'+p.state+':'+heroPhotoUrl(p)+':'+(p.caption||'')).join('|');
+  const sameContent=anchor===heroOn&&signature===heroSignature;
+  if(sameContent&&!reshuffle)return;
+  if(!sameContent)heroSelectedKeys=[];
+  heroOn=anchor;
+  heroSignature=signature;
+  heroPoolSize=storedPosts.length;
 
-  /* Studio filmstrip selects four real photographs, skipping video-only
-     posts and their poster frames while leaving Feed playback untouched. */
-  const storedPosts=previewPosts.filter(post=>heroPhotoUrl(post));
-  const slots=storedPosts.slice(0,HERO_SLOTS);
+  // Film previews change without reordering posts in MyFeed or altering storage.
+  const slots=shuffleHeroPosts(storedPosts,heroSelectedKeys);
+  heroSelectedKeys=slots.map(heroPostKey);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
@@ -789,7 +816,6 @@ function renderHero(force) {
 
   const withImage=storedPosts;
   const rest=Math.max(0,withImage.length-slots.length);
-  const requiresSync=previewPosts.some(post=>post.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
   anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>'+(isPublicProfile?'Published pictures':'Your published pictures')+'</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
     "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):Array.from({length:HERO_SLOTS},()=>'<div class="biglwa-feed-hero-empty" aria-label="Add your own published photo">Add your photo</div>').join('')) + "</div>" +
@@ -801,6 +827,7 @@ function renderHero(force) {
       openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)));
     });
   });
+  anchor.querySelector('.biglwa-feed-hero-grid')?.setAttribute('aria-label','Shuffle of published photographs');
   anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
     img.addEventListener('error',()=>{
       const slot=img.closest('a,button');
@@ -815,6 +842,16 @@ function renderHero(force) {
 
 }
 
+/* Only rotate when the film is visible. Hover, focus or a background tab
+   pauses the shuffle, preserving an active user's target and accessibility. */
+function shuffleVisibleHero(){
+  const anchor=document.getElementById('biglwaFeedHero');
+  if(!anchor||anchor!==heroOn||anchor.hidden||heroPoolSize<2||document.hidden||
+     anchor.matches(':hover,:focus-within')||!anchor.getClientRects().length)return;
+  const bounds=anchor.getBoundingClientRect();
+  if(bounds.bottom<=0||bounds.top>=window.innerHeight)return;
+  renderHero(false,true);
+}
 let repairingFeedImages=false;
 document.addEventListener('click',async event=>{
   const trigger=event.target.closest('[data-feed-resync]');
@@ -1757,6 +1794,7 @@ export async function startFeed() {
      two sets of listeners fighting over the same list. */
   if (booted) return window.__biglwaFeed;
   booted = true;
+  window.setInterval(shuffleVisibleHero,HERO_SHUFFLE_MS);
   startIdentity();
   onIdentityChange((who) => {
     watch();
@@ -1768,6 +1806,7 @@ export async function startFeed() {
       posts = [];
       draftPosts = [];
       renderPosts(true);
+      renderHero(true);
     }
   });
   watch();
