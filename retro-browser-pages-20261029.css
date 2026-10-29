@@ -258,3 +258,26 @@
 @media(prefers-reduced-motion:reduce){
  #studioApp #moduleWorkspace[data-module-key="games"] .module-game-track{animation:none!important;transform:none!important}
 }
+
+
+/* The culture quiz needs its original scrollable block layout, not a flex player. */
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-quiz{
+ display:block!important;overflow-y:auto!important;background:#fff!important;
+}
+/* Original game and advanced-editor player chrome adopts the same OS palette. */
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport.is-playing>.arcade-player-head{
+ background:#184e96!important;color:#fff!important;border-radius:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport.is-playing>.arcade-player-deck{
+ background:#dedede!important;color:#222!important;border-top:2px solid #fff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport.is-embed>.arcade-browser-notice{
+ background:#fff3c5!important;color:#493822!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-panel-head{
+ background:linear-gradient(90deg,#0d3e94,#4c91cd)!important;color:#fff!important;
+ border-radius:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-viewer{
+ min-width:0!important;overflow:auto!important;
+}
