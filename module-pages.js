@@ -3495,7 +3495,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     headingRoot.classList.add('module-heading--with-versions','module-heading--single-line');
     const draw=()=>{
       const items=readTrophies();list.innerHTML=trophyEntriesMarkup(items);
-      if(!rankPane.hidden)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),items);
+      if(!rankPane.hidden)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),items,{mode:'rank'});
     };
     const setVersion=mode=>{
       const rank=mode==='rank';
@@ -3504,7 +3504,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const active=button.dataset.trophyVersion===mode;
         button.setAttribute('aria-pressed',String(active));button.classList.toggle('is-active',active);
       });
-      if(rank)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),readTrophies());
+      if(rank)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),readTrophies(),{mode:'rank'});
     };
     versionTabs.addEventListener('click',event=>{
       const button=event.target.closest('[data-trophy-version]');if(button)setVersion(button.dataset.trophyVersion);
