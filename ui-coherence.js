@@ -82,7 +82,15 @@
             return ra-rb||a.i-b.i;
           }).map(x=>x.el)
         : sortPreferred(elements,el=>el.dataset.widgetRoute||el.dataset.widgetId);
-      ordered.forEach(el=>parent.appendChild(el));
+      // Free-position layouts use saved slots as their visual order. Moving
+      // already-mounted widgets here restarts iframes, map previews and players.
+      if(parent.classList.contains('masonry')&&elements.some(el=>el.dataset.biglwaGridPosition))continue;
+      // Preserve DOM when the saved order already matches the current order.
+      if(ordered.every((el,index)=>el===elements[index]))continue;
+      ordered.forEach((el,index)=>{
+        const at=[...parent.children].filter(node=>node.dataset.widgetId)[index];
+        if(at!==el)parent.insertBefore(el,at||null);
+      });
     }
   }
   function restoreLocalStudioOrder(app){
