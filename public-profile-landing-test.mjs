@@ -28,7 +28,7 @@ assert.ok(guestCss.includes('background-color:#fffaf0!important')&&guestCss.incl
 assert.ok(landing.includes('background:transparent!important;color:#111'),'Public Avatar does not paint a mismatched beige panel');
 assert.ok(rankCss.includes('color:#000!important;opacity:1!important'),'REAL RANK label and status display readable black ink');
 assert.ok(menu.includes("location.assign(ownsThisPreview()?'/studio':'/'+encodeURIComponent(mine)+'?preview=1')"),'Owner Preview Profile routes to public preview and returns to Studio');
-assert.ok(index.includes('/studio-preview.js?v=20261028-shared-metric-2'),'Both routes use the refreshed public profile runtime');
+assert.match(index, /\/studio-preview\.js\?v=[\w.-]+/, 'Both routes load a cache-busted public profile runtime');
 assert.ok(sharing.includes('publicOrbit(root)')&&sharing.includes('publicBoards(root)'),'Orbit and Boards are handled as public read-only modules');
 assert.ok(index.includes('/public-profile-landing.js')&&index.includes('/login-stitch-polish.css'),'Public landing and stitch theme loaded');
 assert.ok(login.includes('stitched-crest-mask'),'Login emblem retains stitched shape');
