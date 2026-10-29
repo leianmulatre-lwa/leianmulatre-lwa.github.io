@@ -13,7 +13,7 @@ assert.doesNotThrow(()=>new Script(pages),'Module-page JavaScript stays valid');
 // Feed is an ES module with imports: Node's classic vm.Script cannot parse it.
 // Its published behavior is checked below without evaluating its dependencies.
 assert.doesNotThrow(()=>new Script(defaults),'Default-image loader stays valid');
-assert(index.includes('studio-myfeed-filmstrip-20261029.css?v=20261029-dark-photo-negative-2'),'Filmstrip CSS is loaded');
+assert(index.includes('studio-myfeed-filmstrip-20261029.css?v=20261029-orbit-rainbow-film-3'),'Filmstrip CSS is loaded');
 assert(index.includes('studio-default-images-20261029.js?v=20261029-archive-wallpaper-2'),'Fresh Archive thumbnail JS served');
 assert(index.includes('module-pages.js?v=20261029-lwazi-merged-header-9'),'Current module build served');
 assert(pages.includes('/module-pages.js?v=20261029-lwazi-merged-header-9')&&route.includes('/module-pages.js?v=20261029-lwazi-merged-header-9'),'Fallback URLs do not request stale builds');
@@ -28,6 +28,15 @@ assert(feed.includes('openLightbox(post,Math.max(0,slideUrls(post).indexOf(selec
 assert(index.includes('account-boot.js?v=20261029-feed-photos-only-2'),'Fresh account bootstrap on the live site');
 assert(read('account-boot.js').includes('feed-view.js?v=20261029-contact-sheet-photo-only-2'),'Feed module cache version changes');
 assert(css.includes('background:#171514!important')&&css.includes('padding:0!important'),'White outer card is removed');
+assert(css.includes("/* Orbit's rainbow signature") && css.includes('.biglwa-feed-hero-head span::after'),
+  'Orbit-inspired rainbow is confined to the existing counter, not the member photos');
+assert(css.includes('#e45a65') && css.includes('#69b984') && css.includes('#9d83c9'),
+  'Rainbow accents include red, green and violet');
+assert(css.includes('radial-gradient(circle at 13% 32%') && css.includes('repeating-linear-gradient(0deg,transparent 0 22px'),
+  'Subtle emulsion grain and scratches are applied behind photo frames');
+assert(css.includes('pointer-events:none!important'),
+  'Color ribbon is decorative and cannot intercept clicks');
+
 const begin=feed.indexOf('const heroPhotoUrl = post => {'),end=feed.indexOf('\nlet heroOn =',begin);
 assert(begin>=0&&end>begin,'Photograph selector is present');
 const sandbox={
