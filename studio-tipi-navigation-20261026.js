@@ -38,12 +38,13 @@
  function iconFor(key){
    const app=$('#studioApp');if(!app)return null;
    // Prefer the icon that the *same page* already uses in its navigation.
+   const safeKey=key.replace(/[^a-z0-9_-]/g,'');
    const selectors=[
      '[data-shortcut-route="'+key+'"] .hero-shortcut-icon',
      '[data-sidebar-route="'+key+'"] .sidebar-route-icon',
      '[data-sidebar-route-row="'+key+'"] .sidebar-route-icon',
-     '#'+CSS.escape(key)+' .card-icon',
-     '#'+CSS.escape(key)+' .studio-symbol-mark'
+     '#'+safeKey+' .card-icon',
+     '#'+safeKey+' .studio-symbol-mark'
    ];
    if(key==='rooms')selectors.push('#room .card-icon');
    for(const selector of selectors){
