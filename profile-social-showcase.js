@@ -432,6 +432,24 @@
   signature='';show();
   if(open){const section=document.querySelector('[data-biglwa-public-showcase-editor]');if(section)section.open=true}
  }
+ // Read-only, owner-scoped Spotlight bridge for Archive. Do not present ordinary
+ // Snapchat posts or unverified profiles as imported Highlights.
+ window.BigLWASocialShowcase=Object.freeze({
+   isConnected(platform){
+     return platform==='snapchat'&&active('snapchat');
+   },
+   highlightsFor(platform){
+     if(platform!=='snapchat'||!active('snapchat'))return [];
+     const who=uid(),handle=accountHandles().snapchat;
+     if(!who||!handle||snapSource.key!==who+':'+handle.toLowerCase())return [];
+     return snapSource.items.filter(item=>item?.kind==='Spotlight'&&
+       /^https:\/\/cf-st\.sc-cdn\.net\//.test(String(item.mediaUrl||''))).map((item,i)=>({
+       platform:'snapchat',title:'Spotlight '+(i+1),
+       cover:String(item.thumbnailUrl||item.poster||''),
+       items:[{kind:'video',mediaUrl:item.mediaUrl}],_importKey:'snapchat:'+i
+     }));
+   }
+ });
  let timer;function schedule(){clearTimeout(timer);timer=setTimeout(show,90)}
  for(const event of ['biglwa:public-profile-ready','biglwa:highlights-imported','biglwa:new-orbit-status','biglwa:identity-updated','biglwa:session-verified','biglwa:orbit-links-synced'])
   (event==='biglwa:new-orbit-status'?document:window).addEventListener(event,schedule);
