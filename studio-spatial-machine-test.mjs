@@ -53,6 +53,17 @@ map.classList.remove('studio-header-only');
 await new Promise(resolve=>setTimeout(resolve,65));
 assert(parseFloat(feed.style.top)>=296+14&&parseFloat(feed.style.top)>feedAfter,'Restoring Map re-expands only the affected column');
 
+// Red-docking removes a card entirely from the visible column. Restore it
+// without changing its saved spatial slot or leaving an empty reserved row.
+map.classList.add('widget-is-minimized');
+await new Promise(resolve=>setTimeout(resolve,65));
+assert.equal(parseFloat(feed.style.top),0,'Red-docked Map occupies no visual space');
+map.classList.remove('widget-is-minimized');
+await new Promise(resolve=>setTimeout(resolve,65));
+assert(parseFloat(feed.style.top)>=296+14,'Restored Map re-enters its column at full height');
+assert.equal(map.dataset.biglwaGridPosition,'1:3','Red-docking preserves Map placement');
+
+
 /* A drop must not reparent the mounted card (which restarts iframes/media).
    Drag preview and drop outline must represent the FULL original height. */
 let movedNodes=0;
@@ -80,6 +91,7 @@ assert(!css.includes('grid-auto-rows:4px!important'),'Old overlapping four-pixel
 
 assert.match(read('ui-coherence.js'),/positions:Object\.fromEntries/,'Canonical account layout persists grid slots');
 assert.match(read('ui-coherence.js'),/const positions=layout\.positions/,'Cloud account rehydrate restores slots');
+assert.match(read('ui-coherence.js'),/parent\.classList\.contains\('masonry'\).*data-biglwa-grid-position/,'Saved masonry slots prevent account hydration from remounting widgets');
 const index=read('index.html');
 assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-stable-flow-3'));
 assert(index.includes('studio-machine-pages-20261029.css?v=20261029-1'));
