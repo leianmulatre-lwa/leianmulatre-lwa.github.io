@@ -299,7 +299,7 @@ export function mountToolsStudio(root,helper){
 
   // Independently load creative editors; file conversions and video trim still
   // work even when the external ArtCraft release build is unavailable.
-  import('./tools-craft.js?v=20261029-folder-seam-4')
+  import('./tools-craft.js?v=20261029-header-merge-5')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
     .then(api=>{craftApi=api})
     .catch(error=>{
