@@ -1,130 +1,176 @@
-/* Spatial Studio drag: handles can drop into occupied or empty grid cells.
-   This is additive; the existing Alt+arrow reordering and red dock stay intact. */
+/* BIG LWA Studio spatial Pinterest flow.
+   Explicit drag selects column and insertion order; a measured 4px-row CSS
+   grid stacks cards independently. Collapsing a widget never reserves the
+   height of its taller neighbors, and no card content is remounted. */
 (()=>{'use strict';
- if(window.__biglwaSpatialDragV1)return;window.__biglwaSpatialDragV1=true;
+ if(window.__biglwaSpatialDragV2)return;window.__biglwaSpatialDragV2=true;
  const selector='#studioApp .masonry > [data-widget-id]';
  const owner=()=>String(window.__biglwaIdentity?.uid||'').trim();
  const allowed=()=>!!owner()&&!window.__biglwaPublicStorageView&&!document.documentElement.classList.contains('biglwa-preview-mode');
- const columns=()=>matchMedia('(max-width:620px)').matches?1:matchMedia('(max-width:980px)').matches?2:4;
- let active=null;
- const status=text=>{
-   const target=document.querySelector('#biglwaStudioOrderStatus');
-   if(target)target.textContent=text;
+ const columns=()=>{
+  const matches=query=>typeof window.matchMedia==='function'&&window.matchMedia(query).matches;
+  return matches('(max-width:620px)')?1:matches('(max-width:980px)')?2:4;
  };
- const getCards=parent=>[...parent.children].filter(el=>el.dataset.widgetId&&el.isConnected&&!el.classList.contains('widget-is-minimized'));
- const cellFromPointer=(parent,x,y,existing)=>{
-   const rect=parent.getBoundingClientRect(),count=columns();
-   const col=Math.max(1,Math.min(count,Math.floor((x-rect.left)/Math.max(1,rect.width/count))+1));
-   const rows=[...new Set(existing.map(a=>Math.round(a.rect.top)))].sort((a,b)=>a-b);
-   let row=1;
-   if(rows.length){
-     const first=rows[0],last=rows[rows.length-1];
-     if(y>last+Math.max(85,(existing.filter(a=>Math.abs(a.rect.top-last)<24)[0]?.rect.height||120)*.6)){
-       row=rows.length+Math.max(1,Math.ceil((y-last)/Math.max(100,existing[0]?.rect.height||160)));
-     }else{
-       let nearest=Infinity;
-       rows.forEach((top,i)=>{const distance=Math.abs(y-top);if(distance<nearest){nearest=distance;row=i+1}});
-     }
-   }
-   return {row:Math.min(50,row),col};
+ const ROW_PX=4,GAP_PX=14;
+ const visible=el=>el.dataset.widgetId&&el.isConnected&&!el.hidden&&!el.classList.contains('widget-is-minimized')&&
+  window.getComputedStyle(el).display!=='none';
+ const getCards=parent=>[...parent.children].filter(visible);
+ const slot=el=>{
+  const m=/^(\d+):(\d+)$/.exec(el.dataset.biglwaGridPosition||'');
+  return m?{row:Math.max(1,Number(m[1])),col:Math.max(1,Number(m[2]))}:null;
  };
- const slotIndex=(row,col,count)=>(row-1)*count+col-1;
- const assign=(parent,moving,chosen,measured)=>{
-   const count=columns(),cards=getCards(parent),taken=new Set();
-   // Preserve all other cards' reading order. Dropping into an occupied
-   // cell inserts there; dropping into an empty cell leaves the gap intact.
-   const existing=cards.filter(el=>el!==moving).map(el=>{
-     const measuredRow=measured.find(item=>item.el===el);
-     const pos=el.dataset.biglwaGridPosition?.split(':').map(Number);
-     const row=pos&&pos.length===2&&pos[0]>0?pos[0]:measuredRow?.row||1;
-     const col=pos&&pos.length===2&&pos[1]>0?Math.min(count,pos[1]):measuredRow?.col||1;
-     return {el,index:slotIndex(row,col,count)};
-   }).sort((a,b)=>a.index-b.index);
-   // Reinsert from the chosen destination, pushing only colliding cells.
-   const dest=slotIndex(chosen.row,chosen.col,count);
-   const slots=new Map([[dest,moving]]);taken.add(dest);
-   for(const item of existing){
-     let index=item.index;
-     while(taken.has(index))index++;
-     taken.add(index);slots.set(index,item.el);
+ const visualColumn=(col,count)=>((col-1)%count)+1;
+ let active=null,queued=false,parentObserver=null,resizeObserver=null,observed=new Set(),watchedParent=null,lastWidth=0;
+ const status=text=>{const node=document.querySelector('#biglwaStudioOrderStatus');if(node)node.textContent=text};
+ const raf=fn=>typeof window.requestAnimationFrame==='function'?window.requestAnimationFrame(fn):window.setTimeout(fn,0);
+ const schedule=()=>{if(queued)return;queued=true;raf(()=>{queued=false;sync()})};
+ const group=(parent,count)=>{
+  const buckets=Array.from({length:count},()=>[]);
+  const cards=getCards(parent);
+  cards.forEach((el,index)=>{
+   const pos=slot(el);
+   if(pos){
+    buckets[visualColumn(pos.col,count)-1].push({el,row:pos.row,index});
+   }else{
+    // New widgets enter the shortest existing column, not a global row.
+    const lengths=buckets.map(b=>b.reduce((sum,item)=>sum+Math.max(50,item.el.getBoundingClientRect().height||100)+GAP_PX,0));
+    const col=lengths.indexOf(Math.min(...lengths));
+    buckets[col].push({el,row:1e7+index,index});
    }
-   [...slots].sort((a,b)=>a[0]-b[0]).forEach(([index,el])=>{
-     const row=Math.floor(index/count)+1,col=index%count+1;
-     el.dataset.biglwaGridPosition=row+':'+col;
-     el.style.gridRowStart=String(row);
-     el.style.gridColumnStart=String(col);
-     parent.appendChild(el);
+  });
+  buckets.forEach(items=>items.sort((a,b)=>a.row-b.row||a.index-b.index));
+  return buckets;
+ };
+ const flow=parent=>{
+  if(!parent.classList.contains('biglwa-free-layout'))return;
+  const count=columns(),buckets=group(parent,count);
+  buckets.forEach((items,col)=>{
+   let start=1;
+   items.forEach(({el})=>{
+    const measured=el.getBoundingClientRect().height||el.offsetHeight||46;
+    const span=Math.max(12,Math.ceil((measured+GAP_PX)/ROW_PX));
+    if(el.style.gridColumnStart!==String(col+1))el.style.gridColumnStart=String(col+1);
+    if(el.style.gridRowStart!==String(start))el.style.gridRowStart=String(start);
+    if(el.style.gridRowEnd!=='span '+span)el.style.gridRowEnd='span '+span;
+    start+=span;
    });
-   parent.classList.add('biglwa-free-layout');
-   window.BigLWAStudioLayout?.save?.();
-   status((moving.dataset.widgetLabel||moving.dataset.widgetId)+' moved to row '+chosen.row+', column '+chosen.col+'. Layout saved.');
+  });
  };
- function begin(event){
-   if(!allowed()||event.button!==0||active)return;
-   const handle=event.target.closest?.('[data-studio-drag-handle]');
-   const widget=handle?.closest?.('[data-widget-id]');
-   const parent=widget?.parentElement;
-   if(!parent?.matches?.('#studioApp .masonry'))return;
-   if(event.target.closest('input,textarea,select'))return;
-   event.preventDefault();event.stopImmediatePropagation();
-   const cards=getCards(parent).map(el=>({el,rect:el.getBoundingClientRect()}));
-   const unique=[...new Set(cards.map(a=>Math.round(a.rect.top)))].sort((a,b)=>a-b);
-   const count=columns(),r=parent.getBoundingClientRect();
-   const measured=cards.map(a=>({...a,row:unique.findIndex(y=>Math.abs(y-a.rect.top)<3)+1,
-     col:Math.max(1,Math.min(count,Math.floor((a.rect.left-r.left)/Math.max(1,r.width/count))+1))}));
-   const original=widget.getBoundingClientRect();
-   const ghost=widget.cloneNode(true);ghost.className=widget.className+' biglwa-spatial-ghost';
-   ghost.style.cssText='position:fixed!important;z-index:100000!important;pointer-events:none!important;opacity:.8!important;box-sizing:border-box!important;width:'+original.width+'px!important;height:'+original.height+'px!important;left:'+original.left+'px;top:'+original.top+'px;max-height:70vh!important;overflow:hidden!important;transform:none!important;';
-   document.body.appendChild(ghost);
-   const target=document.createElement('div');target.className='biglwa-spatial-target';
-   target.setAttribute('aria-hidden','true');parent.append(target);
-   const tail=document.createElement('div');tail.className='biglwa-spatial-tail';
-   tail.setAttribute('aria-hidden','true');parent.append(tail);
-   parent.classList.add('biglwa-spatial-dragging');
-   active={widget,parent,ghost,target,tail,measured,initial:original,offsetX:event.clientX-original.left,offsetY:event.clientY-original.top,chosen:cellFromPointer(parent,event.clientX,event.clientY,measured),pointerId:event.pointerId};
-   handle.setPointerCapture?.(event.pointerId);
-   update(event);
- }
+ const watch=parent=>{
+  if(parent===watchedParent)return;
+  parentObserver?.disconnect();resizeObserver?.disconnect();observed.clear();
+  watchedParent=parent;lastWidth=parent.getBoundingClientRect().width;
+  if(typeof window.ResizeObserver==='function'){
+   resizeObserver=new window.ResizeObserver(entries=>{
+    if(entries.some(entry=>entry.target!==parent)){schedule();return}
+    const width=parent.getBoundingClientRect().width;
+    if(Math.abs(width-lastWidth)>.5){lastWidth=width;schedule()}
+   });
+   resizeObserver.observe(parent);
+  }
+  parentObserver=new MutationObserver(records=>{
+   if(records.some(r=>r.type==='childList'&&r.target===parent||
+      r.type==='attributes'&&r.target.matches?.('[data-widget-id]')))schedule();
+  });
+  parentObserver.observe(parent,{childList:true,attributes:true,attributeFilter:['class','data-biglwa-grid-position'],subtree:true});
+ };
+ const sync=()=>{
+  const app=document.querySelector('#studioApp');if(!app||!allowed())return;
+  const parent=app.querySelector('.masonry');if(!parent)return;
+  watch(parent);
+  const hasSlots=!!parent.querySelector('[data-biglwa-grid-position]');
+  parent.classList.toggle('biglwa-free-layout',hasSlots);
+  if(!hasSlots)return;
+  if(resizeObserver){
+   for(const el of getCards(parent))if(!observed.has(el)){observed.add(el);resizeObserver.observe(el)}
+   for(const el of [...observed])if(!el.isConnected||el.parentElement!==parent){resizeObserver.unobserve(el);observed.delete(el)}
+  }
+  if(!active)flow(parent);
+ };
+ const assign=(parent,moving,chosen)=>{
+  const count=columns(),buckets=group(parent,count);
+  for(const bucket of buckets){const i=bucket.findIndex(item=>item.el===moving);if(i!==-1)bucket.splice(i,1)}
+  const col=Math.max(0,Math.min(count-1,chosen.col-1)),bucket=buckets[col];
+  bucket.splice(Math.max(0,Math.min(bucket.length,chosen.index)),0,{el:moving});
+  // Convert old global-grid row numbers to dense per-column insertion order.
+  // This deliberately does not move the widget's DOM *content* out of masonry.
+  const reading=[];
+  const max=Math.max(0,...buckets.map(items=>items.length));
+  for(let row=0;row<max;row++)for(let c=0;c<count;c++){
+   const item=buckets[c][row];if(!item)continue;
+   item.el.dataset.biglwaGridPosition=(row+1)+':'+(c+1);
+   reading.push(item.el);
+  }
+  reading.forEach(el=>parent.appendChild(el));
+  parent.classList.add('biglwa-free-layout');
+  flow(parent);
+  window.BigLWAStudioLayout?.save?.();
+  status((moving.dataset.widgetLabel||moving.dataset.widgetId)+' moved to column '+chosen.col+', position '+(chosen.index+1)+'. Layout saved.');
+ };
+ const destination=(parent,x,y)=>{
+  const rect=parent.getBoundingClientRect(),count=columns();
+  const col=Math.max(1,Math.min(count,Math.floor(((x-rect.left)/Math.max(1,rect.width))*count)+1));
+  const items=group(parent,count)[col-1];
+  let index=items.findIndex(({el})=>{
+   const r=el.getBoundingClientRect();
+   return y<r.top+r.height/2;
+  });
+  if(index<0)index=items.length;
+  return {col,index};
+ };
  function update(event){
-   const a=active;if(!a||a.pointerId!==event.pointerId)return;
-   event.preventDefault();
-   a.ghost.style.left=(event.clientX-a.offsetX)+'px';
-   a.ghost.style.top=(event.clientY-a.offsetY)+'px';
-   a.chosen=cellFromPointer(a.parent,event.clientX,event.clientY,a.measured);
-   const count=columns(),rect=a.parent.getBoundingClientRect(),colWidth=rect.width/count;
-   // A fixed, noninteractive placeholder works even in a completely empty row.
-   const chosen=a.chosen;
-   a.target.style.left=(rect.left+(chosen.col-1)*colWidth+4)+'px';
-   const rowTop=a.measured.find(item=>item.row===chosen.row)?.rect.top;
-   const last=Math.max(rect.top,...a.measured.map(item=>item.rect.bottom));
-   a.target.style.top=(rowTop??(last+(chosen.row-a.measured.reduce((n,item)=>Math.max(n,item.row),0)-1)*110+10))+'px';
-   a.target.style.width=Math.max(40,colWidth-8)+'px';
-   a.target.style.height=Math.max(56,Math.min(120,a.initial.height))+'px';
+  const a=active;if(!a||a.pointerId!==event.pointerId)return;
+  event.preventDefault();
+  a.ghost.style.left=(event.clientX-a.offsetX)+'px';
+  a.ghost.style.top=(event.clientY-a.offsetY)+'px';
+  a.chosen=destination(a.parent,event.clientX,event.clientY);
+  const rect=a.parent.getBoundingClientRect(),count=columns(),width=rect.width/count;
+  const items=group(a.parent,count)[a.chosen.col-1];
+  const next=items[a.chosen.index]?.el.getBoundingClientRect();
+  const prev=items[a.chosen.index-1]?.el.getBoundingClientRect();
+  const top=next?next.top-7:prev?prev.bottom+9:rect.top+8;
+  a.target.style.left=(rect.left+(a.chosen.col-1)*width+4)+'px';
+  a.target.style.top=top+'px';
+  a.target.style.width=Math.max(40,width-8)+'px';
+  a.target.style.height=Math.max(36,Math.min(70,a.initial.height))+'px';
+ }
+ function begin(event){
+  if(!allowed()||event.button!==0||active)return;
+  const handle=event.target.closest?.('[data-studio-drag-handle]'),widget=handle?.closest?.('[data-widget-id]');
+  const parent=widget?.parentElement;
+  if(!parent?.matches?.('#studioApp .masonry')||!visible(widget))return;
+  if(event.target.closest('input,textarea,select'))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const original=widget.getBoundingClientRect();
+  const ghost=widget.cloneNode(true);ghost.className=widget.className+' biglwa-spatial-ghost';
+  ghost.style.cssText='position:fixed!important;z-index:100000!important;pointer-events:none!important;opacity:.8!important;box-sizing:border-box!important;width:'+original.width+'px!important;height:'+original.height+'px!important;left:'+original.left+'px;top:'+original.top+'px;max-height:70vh!important;overflow:hidden!important;transform:none!important;';
+  document.body.appendChild(ghost);
+  const target=document.createElement('div');target.className='biglwa-spatial-target';target.setAttribute('aria-hidden','true');parent.append(target);
+  const tail=document.createElement('div');tail.className='biglwa-spatial-tail';tail.setAttribute('aria-hidden','true');parent.append(tail);
+  parent.classList.add('biglwa-spatial-dragging');
+  active={widget,parent,ghost,target,tail,initial:original,offsetX:event.clientX-original.left,offsetY:event.clientY-original.top,pointerId:event.pointerId,chosen:destination(parent,event.clientX,event.clientY)};
+  handle.setPointerCapture?.(event.pointerId);
+  update(event);
  }
  function end(event,cancel=false){
-   const a=active;if(!a||a.pointerId!==event.pointerId)return;
-   event.preventDefault();event.stopImmediatePropagation();
-   active=null;
-   a.ghost.remove();a.target.remove();a.tail.remove();
-   a.parent.classList.remove('biglwa-spatial-dragging');
-   const rect=a.parent.getBoundingClientRect();
-   // Ignore drops into sidebar, but accept open grid space and its empty tail.
-   const accepted=!cancel&&event.clientX>=rect.left-28&&event.clientX<=rect.right+28&&
-     event.clientY>=rect.top-25&&event.clientY<=rect.bottom+220;
-   if(accepted)assign(a.parent,a.widget,a.chosen,a.measured);
+  const a=active;if(!a||a.pointerId!==event.pointerId)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  active=null;
+  a.ghost.remove();a.target.remove();a.tail.remove();a.parent.classList.remove('biglwa-spatial-dragging');
+  const rect=a.parent.getBoundingClientRect();
+  const accepted=!cancel&&event.clientX>=rect.left-28&&event.clientX<=rect.right+28&&event.clientY>=rect.top-25&&event.clientY<=rect.bottom+220;
+  if(accepted){assign(a.parent,a.widget,a.chosen);schedule()}
  }
  window.addEventListener('pointerdown',begin,true);
  window.addEventListener('pointermove',update,true);
- window.addEventListener('pointerup',e=>end(e),true);
- window.addEventListener('pointercancel',e=>end(e,true),true);
- window.addEventListener('blur',()=>{if(active){const a=active;active=null;a.ghost.remove();a.target.remove();a.tail.remove();a.parent.classList.remove('biglwa-spatial-dragging')}});
- // Snapshot restore sets individual coordinates. Make the grid honor them
- // only for owners with a recorded free-form layout.
- const sync=()=>{
-   const app=document.querySelector('#studioApp');if(!app||!allowed())return;
-   const parent=app.querySelector('.masonry');if(!parent)return;
-   parent.classList.toggle('biglwa-free-layout',!!parent.querySelector('[data-biglwa-grid-position]'));
- };
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
- window.addEventListener('biglwa:studio-collapse-applied',sync);
+ window.addEventListener('pointerup',event=>end(event),true);
+ window.addEventListener('pointercancel',event=>end(event,true),true);
+ window.addEventListener('blur',()=>{
+  if(!active)return;
+  const a=active;active=null;a.ghost.remove();a.target.remove();a.tail.remove();a.parent.classList.remove('biglwa-spatial-dragging');
+ });
+ window.addEventListener('resize',schedule,{passive:true});
+ window.addEventListener('biglwa:studio-collapse-applied',schedule);
+ window.addEventListener('biglwa:customization-remote',schedule);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
 })();
