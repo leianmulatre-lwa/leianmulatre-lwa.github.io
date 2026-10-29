@@ -31,7 +31,7 @@ for(const name of ['sqwibblR','visualizr','lightR','paintR','keyframeR','fileR']
 assert.ok(js.includes("window.openBIGLWAModule"),'Reuse the existing real module router');
 assert.ok(js.includes("data-craft-open"),'Use original editor launchers');
 assert.ok(index.includes('studio-cabinet-thumbnails-20261026.css?v=20261026-open-hd-4'));
-assert.ok(index.includes('studio-lwazi-thumbnail-20261026.js?v=20261026-real-carousel-3'));
+assert.ok(index.includes('studio-lwazi-thumbnail-20261026.js?v=20261029-horizontal-carousel-4'));
 console.log('PASS: RGBA PNG cabinet borders and both intact Studio carousels');
 
 assert.ok(css.includes('pointer-events:none!important'),'Painted frame does not block screen input');
