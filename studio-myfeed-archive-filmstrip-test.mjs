@@ -56,4 +56,15 @@ assert(pages.includes('src="/assets/studio-defaults/archive-windows-hill.webp?v=
 assert(defaults.includes("archive:base+'archive-windows-hill.webp?v=20261029-win-default-2'"),'Default-image module matches same file revision');
 assert(defaults.includes("Never replace member-provided media"),'Custom media preserved');
 assert(statSync(new URL('./assets/studio-defaults/archive-windows-hill.webp',import.meta.url)).size>2000,'New wallpaper image exists, non-empty');
+
+// Archive preview image becomes grayscale only while hovering the Studio widget;
+// imported/member media, photo dimensions and navigation are not rewritten.
+const defaultStyle=read('studio-default-images-20261029.css');
+assert(index.includes('studio-default-images-20261029.css?v=20261029-archive-bw-hover-2'),'Current Archive grayscale stylesheet is served');
+assert(defaultStyle.includes('#studioApp #archive:hover .archive-photo-preview img'),'Entire Studio Archive widget triggers grayscale on hover');
+assert(defaultStyle.includes('#studioApp #archive:hover .archive-photo-preview.biglwa-archive-default-windows img.biglwa-windows-archive-photo'),'Default Windows thumbnail wins specificity over its original filter:none!important');
+assert(defaultStyle.includes('filter:grayscale(1)!important'),'Hover makes preview black-and-white');
+assert(defaultStyle.includes('transition:filter 220ms ease!important'),'Hover-out smoothly returns original colours');
+assert(defaultStyle.includes('@media(prefers-reduced-motion:reduce)'),'Reduced-motion users do not receive extra animation');
+assert(!defaultStyle.includes('#studioApp #archive:hover{filter:'),'Only the photo changes, not the Archive text or buttons');
 console.log('PASS MyFeed four-photo analog strip, Archive new direct wallpaper, original feed lightbox and member data guards');
