@@ -93,7 +93,7 @@ assert.match(read('ui-coherence.js'),/positions:Object\.fromEntries/,'Canonical 
 assert.match(read('ui-coherence.js'),/const positions=layout\.positions/,'Cloud account rehydrate restores slots');
 assert.match(read('ui-coherence.js'),/parent\.classList\.contains\('masonry'\).*data-biglwa-grid-position/,'Saved masonry slots prevent account hydration from remounting widgets');
 const index=read('index.html');
-assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-stable-flow-3'));
+assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-route-inset-4'));
 assert(index.includes('studio-machine-pages-20261029.css?v=20261029-1'));
 assert(!read('tools-craft.js').includes('<h2>your werkshopeR</h2>'),'Old Lwazi hero is removed');
 assert(read('tools-craft.js').includes('class="craft-folder-front"'),'Lwazi folder face replaces it');
