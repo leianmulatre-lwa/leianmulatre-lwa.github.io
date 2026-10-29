@@ -82,7 +82,7 @@
   parent.classList.remove('biglwa-free-layout');
   parent.style.removeProperty('height');
   for(const el of [...parent.children].filter(isCard)){
-   for(const key of ['left','top','width','grid-row-start','grid-row-end','grid-column-start','grid-column-end'])
+   for(const key of ['position','left','top','width','grid-row-start','grid-row-end','grid-column-start','grid-column-end'])
     el.style.removeProperty(key);
   }
  }
@@ -100,6 +100,7 @@
   // Width must be set BEFORE measuring height. The previous implementation
   // measured from self-referential grid-row spans and caused stacked overlays.
   for(const el of cards(parent)){
+   el.style.setProperty('position','absolute','important');
    el.style.setProperty('width',columnWidth+'px','important');
    el.style.removeProperty('grid-row-start');
    el.style.removeProperty('grid-row-end');
