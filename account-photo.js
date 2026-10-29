@@ -151,7 +151,7 @@ export async function loadProfilePhoto() {
   const user = auth.currentUser;
   if (!user) return "";
   try {
-    const durable=await durablePhoto();if(Object.hasOwn(durable,'profilePhotoUrl')){if(!document.documentElement.classList.contains('biglwa-preview-mode'))paint(durable.profilePhotoUrl,durable.profilePhotoPosition);return durable.profilePhotoUrl}
+    const durable=await durablePhoto();if(Object.hasOwn(durable,'profilePhotoUrl')){if(!document.documentElement.classList.contains('biglwa-preview-mode')){if(identity()?.uid===user.uid&&identity()?.avatarUrl!==durable.profilePhotoUrl)patchIdentity({avatarUrl:durable.profilePhotoUrl});paint(durable.profilePhotoUrl,durable.profilePhotoPosition)}return durable.profilePhotoUrl}
     const snap = await getDoc(doc(db, "users", user.uid));
     const url = clean(snap.exists() ? snap.data()?.profilePhoto?.url : "");
     if (url) paint(url,snap.data()?.profilePhotoPosition);

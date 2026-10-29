@@ -119,7 +119,7 @@
  function renderSymbolKey(root){
   root.replaceChildren();
   for(const entry of symbolKey){
-   const row=document.createElement('li');row.className='tour-symbol-item';row.dataset.widgetAudienceKey=entry.key;
+   const row=document.createElement('li');row.className='tour-symbol-item';row.setAttribute('data-widget-audience-key',entry.key);
    const glyph=document.createElement('span');glyph.className='tour-symbol-mark';
    glyph.setAttribute('aria-hidden','true');
    const mark=findRealSymbol(entry);
