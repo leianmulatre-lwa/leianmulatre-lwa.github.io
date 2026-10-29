@@ -36,7 +36,7 @@ assert.match(suite,/CRAFT_ICON_NAME/,'The proper PNG is chosen for each editor')
 assert.match(suite,/sqwibblR/,'The original green BIG LWA editor is also included');
 assert.match(suite,/craft-block-png/,'Studio renders trimmed transparent PNG artwork');
 assert.match(css,/\.craft-arcade-block \.craft-block-png/,'Workshop sizes icons without stretching');
-assert.match(suite,/blockArtwork\(item\)\+'<\/div>'/,'Every creative app tile uses an approved stitched cube');
+assert.match(suite,/blockPair\(item,blockArtwork\(item\)\)/,'Every advanced app shows the main stitched cube alongside its smaller coded block');
 const pngHeader=Buffer.from('89504e470d0a1a0a','hex');
 for(const name of ['sqwibblR','lightR','paintR','keyframeR','fileR']){
  const png=readFileSync(new URL('./assets/bigapps/icons/'+name+'.png',import.meta.url));
@@ -47,12 +47,17 @@ for(const name of ['sqwibblR','lightR','paintR','keyframeR','fileR']){
 }
 assert.match(read('.github/scripts/stage-craft-apps.py'),/type="image\/png"/,'Native browser editors advertise the new PNG favicons');
 assert.doesNotMatch(suite,/craft-block-glyph[^\n]*<i><\/i>/,'Remove game-controller RGB dots from alphabet blocks');
-assert.ok(studio.includes('tools-craft.js?v=20261029-real-folder-2'));
+assert.ok(studio.includes('tools-craft.js?v=20261029-weekly-red-3'),'Workshop uses current Lwazi folder app build');
 assert.match(suite,/\/bigapps\/manifest\.json/,'Uses renamed manifest');
 assert.doesNotMatch(suite,/\/craftapps\//,'No legacy paths in editor launcher');
 assert.match(suite,/PUBLIC_APP_ROUTE/,'Public URLs use canonical names');
 assert.match(suite,/craft-capital-r/,'Visible app headings have a distinct uppercase R');
 assert.match(suite,/BIGLWA_PATREON/,'Workshop links to founder Patreon');
+assert.match(suite,/craft-block-alt/,'Every R tile can display its smaller coded block');
+assert.match(suite,/data-craft-weekly/,'Weekly block chooser is rendered');
+assert.match(suite,/Source & notices/,'Required notice links are still accessible');
+assert.match(read('.github/scripts/stage-craft-apps.py'),/editor-prepaint\.js/,'Legacy engine titles are corrected before first paint');
+assert.match(read('assets/craft/editor-prepaint.js'),/MutationObserver/,'Late-mounted native editor title is caught');
 assert.match(suite,/craftAccountVault/,'Cloud snapshots have a visible first-party shelf');
 assert.match(suite,/id="craftPanelSaveFile"/,'Preview save lives in the Workshop header, not over native tools');
 assert.match(css,/\.craft-panel-save/,'Workshop header controls are styled');
