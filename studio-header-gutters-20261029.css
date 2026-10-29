@@ -45,3 +45,8 @@
  #studioApp .topbar .top-actions .profile-avatar{width:34px!important;height:34px!important}
  #studioApp .main:not(.module-view) > .masonry{--biglwa-widget-edge:12px}
 }
+
+/* One clean Studio header edge. The dock continues using the measured header height. */
+#studioApp .topbar{border:0!important;border-bottom:1px solid rgba(78,59,54,.23)!important;box-shadow:none!important;outline:0!important;background-clip:padding-box!important}
+#studioApp .topbar::after{content:none!important;display:none!important}
+#studioApp .main{border-top:0!important}
