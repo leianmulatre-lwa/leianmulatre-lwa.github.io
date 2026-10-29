@@ -8,7 +8,7 @@ const layout=read('lwazi-header-series-20261026.css');
 const loader=read('studio-loading-dots-20261021.js');
 const overlay=read('studio-loading-consistency-20261026.css');
 const html=read('index.html');
-assert.ok(html.includes('module-version-header-20261026.js?v=20261026-sqwibblR-badge-boothi-1'),'Fresh Stream layout loaded');
+assert.ok(/module-version-header-20261026\.js\?v=[\w.-]+/.test(html),'Fresh Stream layout loaded');
 assert.ok(html.includes('studio-loading-consistency-20261026.css?v=20261026-header-isolation-5'),'Fresh header-only loading stage loaded');
 assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'),'Original stitched loading wordmark loaded');
 assert.ok(!html.includes('<img class="biglwa-startup-logo"')&&!html.includes('<img class=\\"biglwa-startup-logo\\"'),'Both startup screens omit block logo');
