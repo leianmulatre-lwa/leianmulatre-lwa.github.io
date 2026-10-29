@@ -10,7 +10,7 @@ const layout=read('studio-spatial-drag-20261029.js');
 const ui=read('ui-coherence.js');
 assert(index.includes('studio-header-gutters-20261029.css?v=20261029-compact-1'),'New gutters stylesheet is actually loaded');
 assert(index.includes('studio-tipi-navigation-20261026.js?v=20261029-crest-module-hover-1'),'New masthead runtime has cache-busted URL');
-assert(index.includes('studio-tipi-navigation-20261026.css?v=20261029-crest-module-hover-1'),'New masthead CSS has cache-busted URL');
+assert(index.includes('studio-tipi-navigation-20261026.css?v=20261029-optical-marks-2'),'New masthead CSS has cache-busted URL');
 assert(css.includes('height:60px!important')&&css.includes('max-height:60px!important'),'Desktop masthead is limited to 60px');
 assert(css.includes('height:54px!important')&&css.includes('max-height:54px!important'),'Mobile masthead is limited to 54px');
 assert(css.includes('margin-left:var(--biglwa-widget-edge)!important')&&
