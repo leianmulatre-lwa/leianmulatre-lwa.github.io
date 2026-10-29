@@ -26,14 +26,14 @@ const d=dom.window.document,computed=selector=>dom.window.getComputedStyle(d.que
 assert.equal(computed('.archive-toolbar').display,'grid','Desktop toolbar has two columns, not stacked raw controls');
 assert.match(computed('.archive-toolbar').gridTemplateColumns,/max-content/,'Left buttons / right filters columns exist');
 assert.equal(computed('.archive-page-list').display,'grid','Card wall is an actual CSS grid');
-assert.match(computed('.archive-page-list').gridTemplateColumns,/repeat\(8/,'Desktop gallery is compact');
+assert.match(computed('.archive-page-list').gridTemplateColumns,/repeat\(4/,'Desktop gallery remains four readable columns');
 assert.equal(computed('.archive-filter-bar').justifyContent,'flex-end','Platform filters align on top right');
 assert.equal(computed('.archive-card-overlay').position,'absolute','Caption and switch overlay the media');
 assert.equal(computed('.archive-live').borderRadius,'999px','Live control renders as a pill');
 assert.equal(computed('.archive-live input').opacity,'0','Native checkbox is visually hidden, not a bare form checkbox');
 assert.equal(computed('.archive-browser-actions').position,'absolute','Window dots remain inside card');
 assert.equal(d.querySelectorAll('.archive-app-compartment').length,0,'No duplicate collapsible navigation layer');
-assert.ok(index.includes('/archive-flat-gallery-20261026.css?v=flat-grid-a1'),'Real site loads independent Archive CSS');
+assert.ok(index.includes('/archive-flat-gallery-20261026.css?v=20261028-four-column-archive-2'),'Real site loads independent Archive CSS');
 const source=js.slice(js.indexOf('    function groupCards(cardList,items,grouped,hideDupes){'),js.indexOf('\n  function renderArchive(){'));
 const fn=runInNewContext(source+';groupCards',{});
 const grouped={order:['A','B'],groups:new Map([['A',[0,2]],['B',[1]]])};
