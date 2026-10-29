@@ -84,6 +84,16 @@ assert.equal(map.querySelector('p')?.textContent,'Map content');
 assert(Number.isFinite(parseFloat(masonry.style.height)),'Parent reserves height of the tallest full content column');
 assert(!d.querySelector('.biglwa-spatial-ghost'),'Full-sized drag ghost is cleaned up');
 
+// Skeleton Key is not a movable widget, but still occupies the first column.
+const guide=d.createElement('article');guide.className='card manifesto-card is-skeleton-open';
+guide.getBoundingClientRect=()=>rect(10,10,200,420);masonry.prepend(guide);
+two.dataset.biglwaGridPosition='1:1';
+await new Promise(resolve=>setTimeout(resolve,65));
+assert(parseFloat(two.style.top)>=434,'Skeleton Key reserves its full height before the first widget');
+assert.equal(two.dataset.biglwaGridPosition,'1:1','Opening the key never changes saved slots');
+guide.classList.remove('is-skeleton-open');guide.style.display='none';
+await new Promise(resolve=>setTimeout(resolve,65));
+assert.equal(parseFloat(two.style.top),0,'Closing the key reclaims the reserved space');
 const css=read('studio-spatial-drag-20261029.css');
 assert(css.includes('position:absolute!important'),'Full-size cards are positioned independently of shared grid rows');
 assert(css.includes('display:block!important'),'Rigid grid-row sizing is disabled');

@@ -81,7 +81,7 @@
  function resetLayout(parent){
   parent.classList.remove('biglwa-free-layout');
   parent.style.removeProperty('height');
-  for(const el of [...parent.children].filter(isCard)){
+  for(const el of [...parent.children].filter(el=>isCard(el)||el.matches?.('.manifesto-card'))){
    for(const key of ['position','left','top','width','grid-row-start','grid-row-end','grid-column-start','grid-column-end'])
     el.style.removeProperty(key);
   }
@@ -114,10 +114,19 @@
    el.style.removeProperty('grid-column-end');
    if(resize&&!observedCards.has(el)){observedCards.add(el);resize.observe(el)}
   }
+  const guide=parent.querySelector(':scope > .manifesto-card.is-skeleton-open');
+  let guideHeight=0;
+  if(guide&&getComputedStyle(guide).display!=='none'){
+   guide.style.setProperty('position','absolute','important');
+   guide.style.setProperty('width',columnWidth+'px','important');
+   guide.style.setProperty('left','0px','important');guide.style.setProperty('top','0px','important');
+   guideHeight=measured(guide)+GAP;
+   if(resize&&!observedCards.has(guide)){observedCards.add(guide);resize.observe(guide)}
+  }
   if(drag)return;
-  let maxHeight=0;
+  let maxHeight=Math.max(0,guideHeight-GAP);
   groups.forEach((items,col)=>{
-   let top=0;
+   let top=col===0?guideHeight:0;
    const left=col*(columnWidth+GAP);
    items.forEach(({el})=>{
     const height=measured(el);
@@ -130,7 +139,7 @@
   });
   parent.style.setProperty('height',Math.ceil(maxHeight)+'px','important');
   for(const el of [...observedCards])
-   if(!el.isConnected||el.parentElement!==parent||!shown(el)){
+   if(!el.isConnected||el.parentElement!==parent||(!shown(el)&&el!==guide)){
     resize?.unobserve(el);observedCards.delete(el);
    }
  }
