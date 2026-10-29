@@ -119,6 +119,7 @@ assert.ok(doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes(
 assert.ok(!doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Original'),'Facebook never shows Instagram groups');
 w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['instagram'],hideDupes:false}));
 w.BIGLWAHighlightEditor.mountArchive();
+doc.querySelector('.archive-highlights-button').click();
 w.dispatchEvent(new w.CustomEvent('biglwa:archive-rendered',{detail:{sources:[],count:1,owner:true}}));
 await new Promise(r=>setTimeout(r,80));
 assert.ok(doc.querySelector('.archive-highlights-button'),'Archive redraw remounts the Highlights action');
