@@ -2384,6 +2384,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
       {title:'2048',image:'/assets/arcade/2048.svg',href:location.origin+'/arcade-puzzles.html?game=2048'},
       {title:'mini crossword',image:'/assets/arcade/crossword.svg',href:location.origin+'/arcade-puzzles.html?game=crossword'},
+      {title:'8 Ball Pool',image:'/assets/arcade/miniclip-pool-20261029.svg',href:'https://www.8ballpool.com/',launch:'external',provider:'Miniclip'},
+      {title:'Agar.io',image:'/assets/arcade/miniclip-agar-20261029.svg',href:'https://agar.io/',launch:'external',provider:'Miniclip'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-and-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
@@ -2424,6 +2426,34 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         '</form></section>'+
       '</div>';
 
+    // The avatar belongs to a second connected Windows-style pane beside
+    // the playable cabinet, not a thin banner that hides the character.
+    const gameStage=$('.module-game-stage',body);
+    if(gameStage){
+      const companion=document.createElement('aside');
+      companion.className='biglwa-game-avatar-sidecar';
+      companion.setAttribute('aria-label','Your interactive Arcade character and Aura');
+      companion.innerHTML='<div class="biglwa-game-avatar-titlebar"><span>Your character</span><span class="biglwa-sidecar-window-buttons" aria-hidden="true">▁ □ ×</span></div>'+
+        '<div class="biglwa-game-aura-stage"><div class="biglwa-game-aura-wiggle" aria-hidden="true"></div><div class="biglwa-game-avatar-live" id="biglwaGameAvatarLive" aria-label="Your Arcade avatar preview"><span class="biglwa-game-avatar-placeholder" aria-hidden="true">◉</span></div></div>'+
+        '<div class="biglwa-game-avatar-actions"><button type="button" data-game-avatar-edit>Edit in Studio Avatar ↗</button><button type="button" data-game-avatar-rotate aria-label="Rotate avatar preview">↻ rotate</button></div>';
+      const identity=$('#biglwaArcadePlayer',gameStage);
+      if(identity)companion.insertBefore(identity,companion.querySelector('.biglwa-game-aura-stage'));
+      gameStage.after(companion);
+      companion.querySelector('[data-game-avatar-edit]')?.addEventListener('click',()=>{
+        $('#moduleBack')?.click();
+        const avatarWidget=$('#studioAvatarCard');
+        const enlarge=avatarWidget?.querySelector('[data-avatar-widget-action="enlarge"]');
+        if(enlarge)enlarge.click();
+        else $('#editProfileBtn')?.click();
+      });
+      companion.querySelector('[data-game-avatar-rotate]')?.addEventListener('click',()=>{
+        const live=$('#biglwaGameAvatarLive',companion);
+        if(!live)return;
+        live.classList.toggle('is-reversed');
+        const frame=live.querySelector('iframe');
+        if(frame)frame.focus({preventScroll:true});
+      });
+    }
     const showArcadeIdentity=async()=>{
       const badge=$('#biglwaArcadePlayer',body);
       if(!badge)return;
@@ -2441,14 +2471,33 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const trusted='https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-photo/';
         const raw=String(record?.url||'');
         const url=raw.startsWith(trusted)?raw:'';
-        const label=record?.type==='mii'?String(record?.preset?.name||'your Mii').slice(0,32):record?.type==='minecraft'?'minecraft character':'your character';
+        let sona='';
+        if(record?.type==='sona360'){
+          try{
+            const u=new URL(raw);
+            if(u.protocol==='https:'&&['360sona.com','www.360sona.com'].includes(u.hostname)&&
+               /^\\/w\\/[A-Za-z0-9_-]{8,96}\\/?$/.test(u.pathname)&&!u.search&&!u.hash)
+              sona=u.origin+u.pathname;
+          }catch{}
+        }
+        const label=record?.type==='mii'?String(record?.preset?.name||'your Mii').slice(0,32):
+          record?.type==='minecraft'?'minecraft character':record?.type==='sona360'?'360sona':'your character';
         badge.querySelector('strong').textContent='playing as '+(record?.type?label:'yourself');
-        badge.querySelector('small').textContent=url?'account character synced · ready to play':'set a character in Studio Avatar';
+        badge.querySelector('small').textContent=url||sona?'account character synced · ready to play':'set a character in Studio Avatar';
         const holder=badge.querySelector('.biglwa-arcade-portrait');
+        const live=$('#biglwaGameAvatarLive',body);
         if(url){
           const img=document.createElement('img');img.src=url;img.alt='';
           img.onerror=()=>img.replaceWith(document.createTextNode('◉'));
           holder.replaceChildren(img);
+          if(live){const art=document.createElement('img');art.src=url;art.alt='Your saved avatar';
+            art.className='biglwa-game-avatar-photo';art.onerror=()=>art.replaceWith(document.createTextNode('◉'));
+            live.replaceChildren(art);}
+        }else if(sona&&live){
+          const frame=document.createElement('iframe');frame.src=sona;frame.title='Interactive 360sona avatar';
+          frame.loading='lazy';frame.referrerPolicy='no-referrer';
+          frame.setAttribute('allow','fullscreen');frame.setAttribute('allowfullscreen','');
+          frame.className='biglwa-game-sona-frame';live.replaceChildren(frame);
         }
       }catch(error){console.warn('[BIGLWA Arcade] Avatar preview unavailable:',error)}
     };
