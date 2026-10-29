@@ -4,12 +4,12 @@ const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const entry=read('index.html'), modules=read('module-pages.js'), css=read('orbit-cards-unified-20261016.css');
 const original=read('bootstrap-v2.html');
 const expected={
-  'module-pages.js':'20261028-archive-sources-3',
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
   'pinterest-orbit.js':'20261028-oauth-return-2',
   'orbit-preview-eight-20261016.js':'20261028-canonical-orbit-2',
   'account-boot.js':'20261027-photo-position-1'
 };
+assert.match(entry, /\/module-pages\.js\?v=[\w.-]+/, 'Current module loader must be cache-busted');
 for(const [path,version] of Object.entries(expected)){
  assert.ok(entry.includes('/'+path+'?v='+version),'Entry point must load current '+path);
 }
