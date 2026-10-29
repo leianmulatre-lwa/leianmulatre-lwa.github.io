@@ -59,6 +59,10 @@ assert.equal(brand.querySelectorAll('.hero-shortcut-icon,.sidebar-route-icon,.ca
 assert.equal(art.dataset.symbolKey,'archive','Actual symbol record is associated with the active route');
 assert.equal(art.querySelector('g').getAttribute('transform'),'rotate(90)','Archive keeps its canonical horizontal orientation instead of becoming Library');
 assert(!art.querySelector('.heading-normalized-glyph'),'Copied small-icon layout metadata is not reused');
+w.BigLWAWidgetSymbols={markup:()=>'<span class="biglwa-archive-horizontal-symbol"><svg class="heading-normalized-glyph" viewBox="2 -17 21 21"><text font-family="Georgia" font-size="26">▥</text></svg></span>',keys:()=>['archive']};
+w.BigLWAStudioMark.sync();
+assert.equal(brand.querySelector('.masthead-native-symbol svg').getAttribute('viewBox'),'-4 2 21 21','Archive rotates the measured ink box without replacing it with font line metrics');
+assert(!brand.querySelector('.masthead-native-symbol svg').hasAttribute('data-heading-layout'),'Small navigation geometry is never copied');
 workspace.dataset.moduleKey='unknown-module';w.BigLWAStudioMark.sync();
 assert.equal(brand.querySelector('.biglwa-topbar-current').children.length,0,'A missing real record cannot be replaced by an invented glyph');
 workspace.hidden=true;d.querySelector('.main').classList.remove('module-view');
