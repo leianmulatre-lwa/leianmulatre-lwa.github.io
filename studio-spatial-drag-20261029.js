@@ -93,7 +93,7 @@
   // Never measure its 0px hidden box or write stale widths back into widgets.
   // A route-close event below schedules fresh measurements after Studio returns.
   const main=parent.closest('.main');
-  if(main?.classList.contains('module-view')||!parent.getClientRects().length||
+  if(main?.classList.contains('module-view')||!(parent.clientWidth||parent.getBoundingClientRect().width)||
      getComputedStyle(parent).display==='none')return;
   watch(parent);
   const enabled=!!parent.querySelector(':scope > [data-widget-id][data-biglwa-grid-position]');
