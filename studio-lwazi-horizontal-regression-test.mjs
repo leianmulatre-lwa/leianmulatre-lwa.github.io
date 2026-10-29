@@ -1,0 +1,56 @@
+/* Verify the shorter, horizontal Lwazi Studio carousel and optical masthead. */
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+const {JSDOM}=createRequire(import.meta.url)('jsdom');
+const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
+const svg=read('assets/frames/retro-browser-lwazi-wide-20261029.svg');
+const css=read('studio-lwazi-horizontal-20261029.css');
+const js=read('studio-lwazi-thumbnail-20261026.js');
+const mark=read('studio-tipi-navigation-20261026.css');
+const index=read('index.html');
+assert(svg.includes('viewBox="0 0 1000 510"'),'Lwazi frame is shortened to 1000×510');
+assert(svg.includes('y=137..441'),'Transparent viewport coordinates match');
+assert(!/<rect[^>]*width="1000"[^>]*height="510"/.test(svg),'Viewport is not painted over');
+assert(css.includes('aspect-ratio:1000 / 510!important'),'Responsive Lwazi frame uses shorter geometry');
+assert(css.includes('retro-browser-lwazi-wide-20261029.svg'),'Shorter SVG is actually used');
+assert(css.includes('overflow-x:auto!important'),'Lwazi track is natively horizontal-scrollable');
+assert(css.includes('flex-direction:row!important'),'The carousel scrolls across, not down');
+assert(css.includes('animation:none!important'),'Old vertical CSS animation is disabled');
+assert(css.includes('top:26.87%!important')&&css.includes('height:59.61%!important'),'Viewport aligns to the transparent aperture');
+assert(css.includes('top:90.1%!important'),'Workshop and carousel buttons stay outside live viewport');
+assert(mark.includes('width:62px!important')&&mark.includes('height:62px!important'),'Other module icons enlarged to tipi optical footprint');
+assert(mark.includes('margin-left:-20px!important'),'Top-left symbols nudged left');
+assert(index.includes('studio-lwazi-horizontal-20261029.css?v=20261029-short-browser-1'));
+assert(index.includes('studio-lwazi-thumbnail-20261026.js?v=20261029-horizontal-carousel-4'));
+assert(index.includes('studio-tipi-navigation-20261026.css?v=20261029-optical-marks-2'));
+const dom=new JSDOM('<!doctype html><html><body><main id="studioApp"><section id="tools" class="card"><header class="card-head"><h2>lwazi</h2></header></section></main></body></html>',{
+  url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true
+});
+const w=dom.window,d=w.document;
+const calls=[];
+w.openBIGLWAModule=key=>calls.push(key);
+// Do not spin a continuous animation clock while asserting DOM semantics.
+w.requestAnimationFrame=()=>0;
+w.eval(js);
+d.dispatchEvent(new w.Event('DOMContentLoaded'));
+const frame=d.querySelector('#studioApp #tools .lwazi-cabinet-thumb');
+const viewport=frame?.querySelector('.arcade-library-viewport');
+const tracks=viewport?.querySelectorAll(':scope > .arcade-track');
+assert(frame&&viewport,'Lwazi browser mounts after the existing card heading');
+assert.equal(viewport.dataset.lwaziCarouselVersion,'4');
+assert.equal(tracks.length,1,'Exactly ONE horizontal carousel track, no vertical columns');
+assert.equal(tracks[0].children.length,12,'Six interactive apps plus six seamless duplicates');
+assert.equal(tracks[0].querySelectorAll('button:not([aria-hidden])').length,6,'Only six keyboard-accessible originals');
+assert.equal(tracks[0].querySelectorAll('button[aria-hidden="true"][tabindex="-1"]').length,6,'Duplicated cards are not tab stops');
+assert.equal(frame.querySelectorAll('.lwazi-carousel-controls button').length,2,'Left/right navigation is available');
+assert.equal(frame.querySelectorAll('.lwazi-cabinet-marquee,.lwazi-cabinet-open').length,2,'Workshop opening controls preserved');
+assert.deepEqual([...tracks[0].querySelectorAll('button:not([aria-hidden])')].map(x=>x.textContent.trim()),['sqwibblR','visualizr','lightR','paintR','keyframeR','fileR']);
+tracks[0].querySelector('[data-lwazi-app="visualizr"]').click();
+assert.deepEqual(calls,['projects'],'Visualizr still opens its native module route');
+frame.querySelector('.lwazi-cabinet-open').click();
+assert.deepEqual(calls,['projects','tools'],'Open Workshop hitbox still opens Lwazi');
+frame.querySelector('.lwazi-carousel-controls button').click();
+assert.equal(viewport.tabIndex,0,'Carousel can receive keyboard focus');
+w.close();
+console.log('PASS: short Lwazi browser, horizontal carousel, all six live tools, navigation, and bigger masthead glyphs');
