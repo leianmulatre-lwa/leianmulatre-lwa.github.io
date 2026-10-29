@@ -586,6 +586,11 @@
   }
 
   const navigationCatalog=new Map();
+  // The masthead reads the same symbol record as shortcuts and Skeleton Key.
+  window.BigLWAWidgetSymbols=Object.freeze({
+    markup(key){return navigationCatalog.get(key)?.symbolHTML||''},
+    keys(){return [...navigationCatalog.keys()]}
+  });
   let initialNavigationShortcuts=null;
   let draggedNavigationKey='';
   function navigationKey(control){

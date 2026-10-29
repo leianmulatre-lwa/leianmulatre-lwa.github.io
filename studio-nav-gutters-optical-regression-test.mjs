@@ -23,11 +23,12 @@ assert(drag.includes("!(parent.clientWidth||parent.getBoundingClientRect().width
 assert(drag.includes("document.addEventListener('biglwa:module-close',schedule)"),'On return, remeasure widgets');
 assert(drag.includes("document.addEventListener('biglwa:module-open',schedule)"),'Module transitions are observed');
 assert(drag.includes("parent.clientWidth||parent.getBoundingClientRect().width"),'Column math uses inset masonry content');
-assert(css.includes('width:54px!important')&&css.includes('height:54px!important'),'Shared optical bounding box');
-assert(css.includes('overflow:hidden!important'),'Excess symbol size cannot escape invisible box');
-assert(css.includes('.biglwa-topbar-current :is(img,svg)'),'Images and SVGs share same constraint');
-assert(css.includes('.biglwa-topbar-current :is(span,div,i,b,strong,em)'),'Nested text symbols share same constraint');
-assert(css.includes('[data-biglwa-active-module="trophies"]'),'Already balanced trophy star remains its own small optical scale');
+const masthead=read('studio-tipi-navigation-20261026.css');
+assert(!css.includes('.biglwa-topbar-current'),'Gutter CSS cannot resize the masthead');
+assert(masthead.includes('width:52px!important')&&masthead.includes('height:52px!important'),'Every masthead state uses the same anchor');
+assert(!masthead.includes('[data-biglwa-active-module="trophies"]'),'No per-page optical exceptions');
+assert(nav.includes('window.BigLWAWidgetSymbols?.markup(key)'),'Masthead reads the shared symbol catalog');
+assert(!nav.includes('const GLYPHS=')&&!nav.includes('const FALLBACK='),'Masthead cannot invent page symbols');
 const dom=new JSDOM(`<!doctype html><main id="studioApp">
 <div class="studio-brand-row"><a class="brand biglwa-block-brand" href="/studio"><span class="biglwa-topbar-crest">crest</span></a></div>
 <section class="main module-view"><div class="masonry">
@@ -38,7 +39,7 @@ const dom=new JSDOM(`<!doctype html><main id="studioApp">
 <a data-shortcut-route="trophies"><span class="hero-shortcut-icon">★</span></a></nav></main>`,{url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,d=w.document,workspace=d.querySelector('#moduleWorkspace'),brand=d.querySelector('.biglwa-block-brand');
 w.eval(nav);
-for(const key of ['library','map','trophies','tools','politc','feed']){
+for(const key of ['library','map','trophies']){
  workspace.dataset.moduleKey=key;
  w.BigLWAStudioMark.sync();
  assert.equal(brand.dataset.biglwaActiveModule,key,key+' symbol tracks its page');
@@ -47,6 +48,19 @@ for(const key of ['library','map','trophies','tools','politc','feed']){
  assert(glyph.querySelector('img,svg')||glyph.textContent.trim(),key+' artwork not blank');
  assert.equal(brand.querySelectorAll('.biglwa-module-tipi').length,1,'Single hover tipi across all modules');
 }
+// Reproduce the real bug: copying navigation classes let the shortcut sizing
+// observer overwrite the masthead's dimensions after every widget update.
+const canonical='<span class="biglwa-archive-horizontal-symbol"><svg viewBox="0 0 20 30"><path d="M0 0H20V30H0Z"/></svg></span>';
+w.BigLWAWidgetSymbols={markup:key=>key==='archive'?canonical:'',keys:()=>['archive']};
+workspace.dataset.moduleKey='archive';w.BigLWAStudioMark.sync();
+const art=brand.querySelector('.masthead-native-symbol');
+assert(art,'Masthead owns an independent artwork container');
+assert.equal(brand.querySelectorAll('.hero-shortcut-icon,.sidebar-route-icon,.card-icon').length,0,'Navigation/heading sizing selectors cannot touch copied artwork');
+assert.equal(art.dataset.symbolKey,'archive','Actual symbol record is associated with the active route');
+assert.equal(art.querySelector('g').getAttribute('transform'),'rotate(90)','Archive keeps its canonical horizontal orientation instead of becoming Library');
+assert(!art.querySelector('.heading-normalized-glyph'),'Copied small-icon layout metadata is not reused');
+workspace.dataset.moduleKey='unknown-module';w.BigLWAStudioMark.sync();
+assert.equal(brand.querySelector('.biglwa-topbar-current').children.length,0,'A missing real record cannot be replaced by an invented glyph');
 workspace.hidden=true;d.querySelector('.main').classList.remove('module-view');
 w.BigLWAStudioMark.sync();
 assert.equal(brand.dataset.biglwaActiveModule,'','Return to Studio restores crest state');

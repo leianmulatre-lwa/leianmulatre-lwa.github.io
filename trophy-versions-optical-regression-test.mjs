@@ -12,7 +12,7 @@ assert(code.includes('preview.querySelectorAll(\'.trophy-preview-count,.trophy-p
 assert(code.includes("['rank','Real Rank'")&&code.includes("['case','Trophy Case'"),'Two versions exist');
 assert(code.includes("{mode:'rank'}"),'Real Rank is a separate rank-only map');
 assert(styles.includes('.trophy-version-pane[hidden]'),'Hidden version remains hidden despite grid styles');
-assert(styles.includes('overflow:hidden!important')&&styles.includes('width:112px!important'),'Icons and crest fit the defined optical boxes');
+assert(!styles.includes('.biglwa-topbar-current'),'Trophy page cannot override shared masthead geometry');
 const dom=new JSDOM('<!doctype html><html><body><main id="studioApp"><div class="profile-copy"><div class="real-rank"><strong>007</strong></div></div><div class="main"><article id="trophies" class="card"><div id="trophyPreview"><img class="biglwa-default-trophy-image" src="/assets/studio-defaults/trophy-achievement-made.webp"></div></article></div></main></body></html>',{url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,d=w.document;
 w.scrollTo=()=>{};

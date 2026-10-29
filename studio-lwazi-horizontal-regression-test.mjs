@@ -20,7 +20,7 @@ assert(css.includes('animation:none!important'),'Old vertical CSS animation is d
 assert(css.includes('top:32.62%!important')&&css.includes('height:50.95%!important'),'Viewport aligns to the transparent aperture');
 assert(css.includes('top:88.1%!important'),'Workshop and carousel buttons stay outside live viewport');
 assert(mark.includes('width:52px!important')&&mark.includes('height:52px!important'),'All module icons share the measured optical canvas');
-assert(mark.includes('margin-left:-15px!important'),'Top-left shared anchor retained');
+assert(mark.includes('margin:0!important'),'Masthead has no negative positioning hacks');
 assert(index.includes('studio-lwazi-horizontal-20261029.css?v=20261029-short-browser-2'));
 assert(index.includes('studio-lwazi-thumbnail-20261026.js?v=20261029-horizontal-carousel-4'));
 assert(index.includes('studio-tipi-navigation-20261026.css?v=20261029-uniform-archive-1'));

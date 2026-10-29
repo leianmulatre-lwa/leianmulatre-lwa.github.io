@@ -33,7 +33,7 @@
   if(icon.querySelector('.heading-normalized-glyph'))return;
   const source=icon.querySelector('svg');
   if(source){const box=source.getBBox();if(box.width&&box.height){source.setAttribute('viewBox',`${box.x} ${box.y} ${box.width} ${box.height}`);source.setAttribute('preserveAspectRatio','xMidYMid meet');source.classList.add('heading-normalized-glyph');}return;}
-  const rotate=!!icon.querySelector('.biglwa-archive-horizontal-symbol');
+  const rotate=icon.dataset.symbolRotation==='90'||!!icon.querySelector('.biglwa-archive-horizontal-symbol');
   const glyph=icon.textContent.trim();if(!glyph)return;
   ctx.font='26px Georgia';const m=ctx.measureText(glyph),w=m.actualBoundingBoxLeft+m.actualBoundingBoxRight,h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;if(!w||!h)return;
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('heading-normalized-glyph');svg.setAttribute('viewBox',`${-m.actualBoundingBoxLeft} ${-m.actualBoundingBoxAscent} ${w} ${h}`);svg.setAttribute('preserveAspectRatio','xMidYMid meet');svg.setAttribute('aria-hidden','true');
@@ -41,7 +41,7 @@
  }
  function refresh(){
   pending=false;
-  app.querySelectorAll('.sidebar-route-icon,.hero-shortcut-icon').forEach(icon=>{const rail=icon.classList.contains('sidebar-route-icon');normalize(icon,rail?16:18,rail?14:16)});
+  app.querySelectorAll('.sidebar-route-icon,.hero-shortcut-icon').forEach(icon=>{if(icon.closest('.biglwa-topbar-current'))return;const rail=icon.classList.contains('sidebar-route-icon');normalize(icon,rail?16:18,rail?14:16)});
   app.querySelectorAll('.card-icon').forEach(icon=>{
    const card=icon.closest('.card'),parent=icon.parentElement;if(!card||icon.closest('.sidebar,.module-page'))return;
    const title=[...parent.children].find(n=>n.matches('h2,h3'));if(!title)return;

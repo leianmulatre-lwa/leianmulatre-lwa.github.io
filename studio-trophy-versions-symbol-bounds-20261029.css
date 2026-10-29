@@ -41,97 +41,11 @@
 #studioApp #trophies .trophy-preview:has(>.biglwa-default-trophy-image){
  min-height:0!important;align-content:start!important;
 }
-/* A bounded optical square keeps the star, bird, and stitched symbols aligned.
-   Previously every nested SVG/image was forced to 62×62 and overflowed. */
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
- overflow:visible!important;max-height:58px!important;min-height:58px!important;
- height:58px!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"] .biglwa-topbar-crest{
- width:112px!important;max-width:112px!important;
- height:57px!important;max-height:57px!important;min-height:0!important;
- object-fit:contain!important;overflow:hidden!important;
- justify-self:center!important;align-self:center!important;transform:none!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current,
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
- width:54px!important;min-width:54px!important;max-width:54px!important;
- height:54px!important;min-height:54px!important;max-height:54px!important;
- place-self:center!important;position:relative!important;
- transform-origin:center center!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{
- overflow:hidden!important;font-size:40px!important;line-height:1!important;
- display:none!important;place-items:center!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand.biglwa-brand-in-module .biglwa-topbar-current{
- display:grid!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current>*{
- box-sizing:border-box!important;
- display:grid!important;place-items:center!important;
- position:static!important;inset:auto!important;
- width:54px!important;min-width:0!important;max-width:54px!important;
- height:54px!important;min-height:0!important;max-height:54px!important;
- padding:0!important;margin:0!important;
- font-size:40px!important;line-height:1!important;
- overflow:hidden!important;transform:none!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current :is(img,svg),
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .studio-symbol-mark,
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .biglwa-archive-horizontal-symbol{
- display:block!important;width:50px!important;max-width:50px!important;
- min-width:0!important;height:50px!important;max-height:50px!important;
- min-height:0!important;object-fit:contain!important;
- transform:none!important;position:static!important;margin:auto!important;
-}
-/* Rank's glyph was disproportionately large; balance its optical footprint. */
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-active-module="trophies"] .biglwa-topbar-current,
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-active-module="trophies"] .biglwa-topbar-current>*{
- font-size:38px!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-active-module="trophies"] .biglwa-topbar-current :is(img,svg){
- width:44px!important;height:44px!important;
-}
+/* Masthead rules live in the shared masthead stylesheet, not page styles. */
 @media(max-width:850px){
- #studioApp .module-workspace[data-module-key="trophies"] .trophy-case-version{
-  grid-template-columns:1fr!important;
- }
+ #studioApp .module-workspace[data-module-key="trophies"] .trophy-case-version{grid-template-columns:1fr!important}
 }
 @media(max-width:720px){
- #studioApp .module-workspace[data-module-key="trophies"] .module-heading{
-  grid-template-columns:1fr!important;
- }
- #studioApp .module-workspace[data-module-key="trophies"] .module-heading .module-heading-right{
-  grid-column:1!important;grid-row:auto!important;justify-content:flex-start!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
-  height:46px!important;min-height:46px!important;max-height:46px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"] .biglwa-topbar-crest{
-  width:73px!important;max-width:73px!important;height:45px!important;max-height:45px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current,
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
-  width:43px!important;min-width:43px!important;max-width:43px!important;
-  height:43px!important;min-height:43px!important;max-height:43px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current>*{
-  width:43px!important;max-width:43px!important;
-  height:43px!important;max-height:43px!important;font-size:32px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current :is(img,svg),
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .studio-symbol-mark,
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .biglwa-archive-horizontal-symbol{
-  width:41px!important;max-width:41px!important;height:41px!important;max-height:41px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-active-module="trophies"] .biglwa-topbar-current,
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-active-module="trophies"] .biglwa-topbar-current>*{
-  font-size:30px!important;
- }
-}
-@media(prefers-reduced-motion:reduce){
- #studioApp .module-workspace[data-module-key="trophies"] .trophy-heading-versions button{
- transition:none!important;
- }
+ #studioApp .module-workspace[data-module-key="trophies"] .module-heading{grid-template-columns:1fr!important}
+ #studioApp .module-workspace[data-module-key="trophies"] .module-heading .module-heading-right{grid-column:1!important;grid-row:auto!important;justify-content:flex-start!important}
 }

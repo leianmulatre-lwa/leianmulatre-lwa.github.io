@@ -1,124 +1,63 @@
-/* BIG LWA masthead optical square: home crest; module mark; hover tipi.
-   Both the page symbol and tipi occupy the SAME 52x52 canvas (no baseline
-   or width shifts for Gothic text, SVG or PNG marks). */
+/* One masthead coordinate system. All page marks, crest and hover tipi share
+   this anchor. Artwork comes from the shared navigation symbol catalog. */
 #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
- position:relative!important;isolation:isolate!important;display:grid!important;
- place-items:center!important;align-content:center!important;justify-content:center!important;
- grid-template-columns:1fr!important;grid-template-rows:1fr!important;
- flex:0 0 112px!important;width:112px!important;min-width:112px!important;max-width:112px!important;
- height:56px!important;min-height:56px!important;max-height:56px!important;
- margin-left:-15px!important;padding:0!important;box-sizing:border-box!important;
- overflow:visible!important;text-decoration:none!important;cursor:pointer!important;
+ --masthead-size:52px;--masthead-ink:46px;
+ position:relative!important;display:grid!important;place-items:center!important;
+ grid-template:1fr / 1fr!important;box-sizing:border-box!important;
+ width:52px!important;height:52px!important;min-width:52px!important;min-height:52px!important;
+ max-width:52px!important;max-height:52px!important;flex:0 0 52px!important;
+ margin:0!important;padding:0!important;align-self:center!important;
+ overflow:visible!important;isolation:isolate!important;text-decoration:none!important;
+ color:#141414!important;cursor:pointer!important;
 }
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"] .biglwa-topbar-crest{
- grid-area:1/1!important;justify-self:center!important;align-self:center!important;
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]>:is(.biglwa-topbar-current,.biglwa-topbar-crest,.biglwa-module-tipi){
+ position:absolute!important;inset:0!important;box-sizing:border-box!important;
+ width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;
+ transform:none!important;pointer-events:none!important;grid-area:1/1!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]>.biglwa-topbar-crest{
+ display:block!important;mask-size:var(--masthead-ink) auto!important;
+ -webkit-mask-size:var(--masthead-ink) auto!important;
+ mask-position:center!important;-webkit-mask-position:center!important;
+ opacity:1!important;visibility:visible!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]>.biglwa-topbar-current{
+ display:none!important;overflow:visible!important;font:400 26px/1 Georgia,serif!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]>.biglwa-module-tipi{
+ display:none!important;object-fit:contain!important;padding:3px!important;
+ opacity:0!important;visibility:hidden!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand .masthead-native-symbol{
+ display:block!important;position:relative!important;box-sizing:border-box!important;
+ min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
+ padding:0!important;margin:0!important;border:0!important;background:none!important;
+ overflow:visible!important;line-height:1!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand .masthead-native-symbol>:is(img,svg){
+ display:block!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
+ padding:0!important;margin:0!important;border:0!important;object-fit:contain!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand.biglwa-brand-in-module>.biglwa-topbar-crest{
+ display:none!important;opacity:0!important;visibility:hidden!important;
+}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand.biglwa-brand-in-module>.biglwa-topbar-current{
  display:block!important;opacity:1!important;visibility:visible!important;
- width:101px!important;height:52px!important;max-width:101px!important;
- min-height:0!important;flex:none!important;
- margin:0!important;padding:0!important;transform:none!important;
- pointer-events:none!important;
 }
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current,
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
- grid-area:1/1!important;justify-self:center!important;align-self:center!important;
- position:relative!important;inset:auto!important;
- width:52px!important;min-width:52px!important;max-width:52px!important;
- height:52px!important;min-height:52px!important;max-height:52px!important;
- margin:0!important;padding:0!important;border:0!important;
- box-sizing:border-box!important;pointer-events:none!important;
- transform-origin:50% 50%!important;
- transition:opacity .15s ease,transform .15s ease!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{
- display:none!important;opacity:0!important;visibility:hidden!important;
- align-items:center!important;justify-content:center!important;
- font:400 36px/1 "CS Bergamot Stitched",Georgia,serif!important;
- color:#141414!important;text-align:center!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{
- display:none!important;opacity:0!important;visibility:hidden!important;
- object-fit:contain!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current>*{
- display:flex!important;align-items:center!important;justify-content:center!important;
- width:52px!important;max-width:52px!important;height:52px!important;max-height:52px!important;
- margin:0!important;padding:0!important;position:relative!important;inset:auto!important;
- line-height:1!important;transform:none!important;box-sizing:border-box!important;
- font-size:36px!important;background:transparent!important;border:0!important;
- box-shadow:none!important;filter:none!important;text-align:center!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current :is(svg,img),
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .studio-symbol-mark,
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .biglwa-archive-horizontal-symbol{
- display:block!important;width:46px!important;height:46px!important;
- min-width:0!important;max-width:46px!important;min-height:0!important;max-height:46px!important;
- object-fit:contain!important;margin:0 auto!important;padding:0!important;
- position:static!important;transform:none!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand.biglwa-brand-in-module .biglwa-topbar-crest{
- display:none!important;opacity:0!important;visibility:hidden!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand.biglwa-brand-in-module .biglwa-topbar-current{
- display:grid!important;opacity:1!important;visibility:visible!important;transform:scale(1)!important;
-}
-/* Hover/focus replaces the page mark with tipi, without moving the 52px square. */
 #studioApp .studio-brand-row>a.brand.biglwa-block-brand.biglwa-brand-in-module:is(:hover,:focus-visible) .biglwa-topbar-current{
- opacity:0!important;visibility:hidden!important;transform:scale(.92)!important;
+ opacity:0!important;visibility:hidden!important;
 }
 #studioApp .studio-brand-row>a.brand.biglwa-block-brand.biglwa-brand-in-module:is(:hover,:focus-visible) .biglwa-module-tipi{
- display:block!important;opacity:1!important;visibility:visible!important;transform:scale(1)!important;
+ display:block!important;opacity:1!important;visibility:visible!important;
 }
-body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{color:#fff6ec!important}
+body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand{color:#fff6ec!important}
 body.night-mode #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{filter:invert(1)!important}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand:focus-visible{
- outline:2px solid currentColor!important;outline-offset:3px!important;
-}
-@media(max-width:980px){
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
-  flex-basis:96px!important;width:96px!important;min-width:96px!important;max-width:96px!important;
-  margin-left:-9px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"] .biglwa-topbar-crest{
-  width:89px!important;max-width:89px!important;height:48px!important;
- }
-}
+#studioApp .studio-brand-row>a.brand.biglwa-block-brand:focus-visible{outline:2px solid currentColor!important;outline-offset:3px!important}
 @media(max-width:720px){
  #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"]{
-  flex-basis:70px!important;width:70px!important;min-width:70px!important;max-width:70px!important;
-  height:46px!important;min-height:46px!important;max-height:46px!important;margin-left:0!important;
+  --masthead-size:44px;--masthead-ink:38px;
+  width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+  max-width:44px!important;max-height:44px!important;flex-basis:44px!important;
  }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"] .biglwa-topbar-crest{
-  width:66px!important;max-width:66px!important;height:42px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current,
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi,
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current>*{
-  width:43px!important;min-width:43px!important;max-width:43px!important;
-  height:43px!important;min-height:43px!important;max-height:43px!important;
- }
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current :is(svg,img){
-  width:39px!important;height:39px!important;max-width:39px!important;max-height:39px!important;
- }
-}
-@media(prefers-reduced-motion:reduce){
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current,
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-module-tipi{transition:none!important}
-}
-
-
-/* Every route uses one centered canvas. Normalization measures actual image ink,
-   so transparent source padding cannot move or shrink an individual mark. */
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{overflow:visible!important}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current>[data-heading-layout]{
- position:relative!important;width:52px!important;min-width:52px!important;max-width:none!important;
- height:52px!important;min-height:52px!important;max-height:none!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current [data-heading-layout] img{
- position:absolute!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
-}
-#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .heading-normalized-glyph{
- position:absolute!important;inset:3px!important;width:46px!important;height:46px!important;margin:0!important;
-}
-@media(max-width:720px){
- #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{transform:scale(.827)!important}
 }
