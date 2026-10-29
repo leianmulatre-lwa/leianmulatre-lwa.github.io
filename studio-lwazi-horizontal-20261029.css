@@ -1,19 +1,19 @@
-/* BIG LWA Studio / Lwazi: a shorter 1000×510 Win95 browser with ONE real
+/* BIG LWA Studio / Lwazi: a shorter 1000×420 Win95 browser with ONE real
    horizontal carousel. Original live editor buttons and module controls persist.
-   The central SVG window remains truly transparent (x34..946, y137..441). */
+   The central SVG window remains truly transparent (x34..946, y137..351). */
 #studioApp #tools .lwazi-cabinet-thumb.lwazi-cabinet-thumb{
- aspect-ratio:1000 / 510!important;height:auto!important;min-height:0!important;
+ aspect-ratio:1000 / 420!important;height:auto!important;min-height:0!important;
  max-height:none!important;width:100%!important;max-width:100%!important;
  margin:6px auto 0!important;overflow:visible!important;
 }
 #studioApp #tools .lwazi-cabinet-thumb.lwazi-cabinet-thumb::before{
- background-image:url('/assets/frames/retro-browser-lwazi-wide-20261029.svg')!important;
+ background-image:url('/assets/frames/retro-browser-lwazi-wide-20261029.svg?v=20261029-compact-2')!important;
  background-size:100% 100%!important;inset:0!important;
  pointer-events:none!important;
 }
 #studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport.arcade-library-viewport{
- position:absolute!important;top:26.87%!important;left:3.4%!important;
- width:91.2%!important;height:59.61%!important;
+ position:absolute!important;top:32.62%!important;left:3.4%!important;
+ width:91.2%!important;height:50.95%!important;
  display:block!important;box-sizing:border-box!important;
  grid-template-columns:none!important;grid-auto-columns:none!important;
  padding:4px!important;margin:0!important;gap:0!important;
@@ -58,7 +58,7 @@
  bottom:2px!important;white-space:nowrap!important;
 }
 #studioApp #tools .lwazi-cabinet-thumb .lwazi-carousel-controls{
- position:absolute!important;top:90.1%!important;left:3.5%!important;
+ position:absolute!important;top:87%!important;left:3.5%!important;
  display:flex!important;align-items:center!important;justify-content:flex-start!important;
  gap:3px!important;height:7%!important;max-height:29px!important;
  width:19%!important;padding:0!important;margin:0!important;
@@ -83,8 +83,8 @@
  top:3.2%!important;left:7%!important;width:68%!important;height:5.1%!important;
 }
 #studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-open{
- top:90.1%!important;bottom:auto!important;left:70.5%!important;
- width:25.5%!important;height:5.8%!important;min-height:0!important;
+ top:88.1%!important;bottom:auto!important;left:70.5%!important;
+ width:25.5%!important;height:7.7%!important;min-height:0!important;
 }
 #studioApp #tools.studio-header-only .lwazi-cabinet-thumb{display:none!important;height:0!important}
 @media(max-width:650px){
