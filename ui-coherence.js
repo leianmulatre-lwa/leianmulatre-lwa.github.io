@@ -106,6 +106,21 @@
     // when the account or membership changed, never on a timer alone.
     if(app.dataset.biglwaLayoutAppliedUid!==uid||app.dataset.biglwaLayoutMembership!==signature){
       applyStudioOrder(app,order&&Object.keys(order).length?order:null);
+      // Restore saved free-grid coordinates, if the member has placed cards.
+      const slots=saved?.positions&&typeof saved.positions==='object'?saved.positions:{};
+      $('.masonry [data-widget-id]',app).forEach(el=>{
+        const pos=String(slots[el.dataset.widgetId]||'');
+        if(/^\\d+:\\d+$/.test(pos)){
+          const [row,col]=pos.split(':').map(Number);
+          if(row>=1&&row<=60&&col>=1&&col<=6){
+            el.dataset.biglwaGridPosition=pos;
+            el.style.gridRowStart=String(row);el.style.gridColumnStart=String(col);
+            return;
+          }
+        }
+        delete el.dataset.biglwaGridPosition;
+        el.style.removeProperty('grid-row-start');el.style.removeProperty('grid-column-start');
+      });
       app.dataset.biglwaLayoutAppliedUid=uid;
       app.dataset.biglwaLayoutMembership=signature;
     }
@@ -118,6 +133,10 @@
     const now=Date.now();
     const snapshot={
       order:realDomOrder(app),
+      // Actual grid slots allow a card to occupy an empty column or new row.
+      positions:Object.fromEntries($('[data-widget-id][data-biglwa-grid-position]',app)
+        .map(el=>[el.dataset.widgetId,el.dataset.biglwaGridPosition])
+        .filter(([id,pos])=>id&&/^\\d+:\\d+$/.test(pos))),
       docked:readJson(DOCKED_WIDGET_KEY,[]),
       // Yellow-minimized shortcuts stay in their original row; red-docked
       // widgets retain their independent restore tiles after sign-in.
@@ -1310,6 +1329,22 @@
       widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
     });
     window.dispatchEvent(new Event('biglwa:studio-collapse-applied'));
+    const positions=layout.positions&&typeof layout.positions==='object'?layout.positions:{};
+    $('.masonry [data-widget-id]',app).forEach(widget=>{
+      const pos=String(positions[widget.dataset.widgetId]||'');
+      if(/^\\d+:\\d+$/.test(pos)){
+        const [row,col]=pos.split(':').map(Number);
+        if(row>=1&&row<=60&&col>=1&&col<=6){
+          widget.dataset.biglwaGridPosition=pos;
+          widget.style.gridRowStart=String(row);
+          widget.style.gridColumnStart=String(col);
+          return;
+        }
+      }
+      delete widget.dataset.biglwaGridPosition;
+      widget.style.removeProperty('grid-row-start');
+      widget.style.removeProperty('grid-column-start');
+    });
     const order=layout.order&&typeof layout.order==='object'?layout.order:{};
     Object.keys(order).forEach(key=>{
       const parent=$('#'+CSS.escape(key),app);if(!parent)return;
