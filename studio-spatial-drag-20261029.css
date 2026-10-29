@@ -1,0 +1,16 @@
+/* Actual free-form Studio slots. Only an owner-created spatial layout opts in. */
+#studioApp .masonry.biglwa-free-layout{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-flow:row!important;grid-auto-rows:minmax(86px,auto)!important;align-items:start!important;gap:14px!important}
+#studioApp .masonry.biglwa-free-layout > [data-widget-id]{min-width:0!important;max-width:100%!important;align-self:start!important;justify-self:stretch!important}
+#studioApp .masonry.biglwa-free-layout > [data-widget-id].studio-header-only{min-height:46px!important}
+#studioApp .masonry.biglwa-spatial-dragging{position:relative!important}
+#studioApp .masonry .biglwa-spatial-tail{grid-column:1/-1;min-height:115px;border:2px dashed rgba(159,73,82,.42);border-radius:12px;background:rgba(255,249,231,.12);pointer-events:none}
+.biglwa-spatial-target{position:fixed;z-index:99999;pointer-events:none;border:3px dashed #9d3046;border-radius:12px;background:rgba(250,206,130,.28);box-shadow:0 0 0 3px rgba(255,255,255,.55)}
+.biglwa-spatial-ghost,.biglwa-spatial-ghost *{pointer-events:none!important}
+#studioApp [data-studio-drag-handle]{touch-action:none;cursor:grab}
+#studioApp .studio-collapse-fallback:not(.studio-collapse-keep){display:none!important}
+#studioApp [data-widget-id]:not(.studio-header-only) > .studio-collapse-fallback{display:none!important}
+@media(max-width:980px){#studioApp .masonry.biglwa-free-layout{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:620px){#studioApp .masonry.biglwa-free-layout{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+#studioApp .masonry.biglwa-free-layout > [data-widget-id]{grid-column:1!important;grid-row:auto!important}
+}
+@media(prefers-reduced-motion:reduce){.biglwa-spatial-ghost{transition:none!important}}
