@@ -32,7 +32,7 @@ const begin=feed.indexOf('const heroPhotoUrl = post => {'),end=feed.indexOf('\nl
 assert(begin>=0&&end>begin,'Photograph selector is present');
 const sandbox={
  pictureUrls:p=>p.testUrls||[],
- looksLikeVideoFile:u=>/\\.(mp4|mov|m4v|webm)(\\?|#|$)/i.test(String(u||'')),
+ looksLikeVideoFile:u=>/\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(String(u||'')),
  playableVideo:p=>p.videoUrl||'',
  orbitUrlFromKey:key=>key?'https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/orbit/'+key:'',
  managedOrbitUrl:url=>String(url||'').includes('/media/orbit/')
