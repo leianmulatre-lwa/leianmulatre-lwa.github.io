@@ -137,7 +137,7 @@
   right.querySelector('.werk-rz-mark')?.remove();
   heading.classList.add('module-heading--with-versions','module-heading--single-line');
   const sub=$(':scope > .module-heading-bottom > p',heading);
-  if(key==='tools'&&sub)sub.textContent='Your werkshopeR. Meet the blocks, part of the R/Lwazi seriez: our own apps, designed fo/r you. 2 web-friendly BIG LWA apps and 4 advanced open-source R-editors.';
+  if(key==='tools'&&sub)sub.textContent='Open a block to create, edit, keep or share. The folder below holds your BIG LWA tools.';
   if(key==='camera'&&sub)sub.textContent='Use our booth to feel yourself or chat with other bookiniz using Big LWA.';
  }
  let queued=false;
