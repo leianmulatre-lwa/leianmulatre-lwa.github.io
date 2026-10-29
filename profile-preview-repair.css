@@ -47,3 +47,5 @@ html.biglwa-preview-mode #camera .public-widget-safe-face{padding:0;border:0;bac
 #studioApp .profile-card:not(.profile-is-editing) .real-rank.rank-under-note{position:absolute!important;left:180px!important;right:20px!important;bottom:32px!important;padding:0!important;min-height:20px!important}
 #studioApp .profile-card .real-rank.rank-under-note .rank-label.rank-duplicate-label{display:none!important}
 #studioApp .music-card.stereo-music-widget .card-kicker{position:absolute!important;top:11px!important;left:18px!important;bottom:auto!important}
+html.biglwa-preview-mode body #studioApp #contentGrid.masonry [data-private-preview-hidden="1"]{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite #craftAccountVault.craft-vault-inline{background:none!important;box-shadow:none!important;border:0!important;border-top:1px solid #a9a292!important;padding:10px 0!important;margin:12px 0 0!important}
