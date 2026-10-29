@@ -47,3 +47,19 @@
 #studioApp #moduleWorkspace .biglwa-map-error-fallback{max-width:900px;margin:14px auto;padding-bottom:16px}
 #studioApp #moduleWorkspace .biglwa-map-island-image{max-height:430px}
 @media(max-width:580px){#studioApp #map .studio-map-preview-slot>.biglwa-map-error-fallback{min-height:150px}}
+
+/* Studio Archive: hovering the widget turns ONLY its photo monochrome.
+   Preserve the original uploaded image, existing click target, and colour
+   when the pointer leaves. Match both default and member-uploaded covers. */
+#studioApp #archive .archive-photo-preview img{
+  transition:filter 220ms ease!important;
+}
+#studioApp #archive:hover .archive-photo-preview img,
+#studioApp #archive:hover .archive-photo-preview.biglwa-archive-default-windows img.biglwa-windows-archive-photo{
+  filter:grayscale(1)!important;
+}
+@media(prefers-reduced-motion:reduce){
+  #studioApp #archive .archive-photo-preview img{
+    transition:none!important;
+  }
+}
