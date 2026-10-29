@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="510" viewBox="0 0 1000 510" role="img" aria-label="L'wazi Workshop — BIG LWA short horizontal browser window border with a transparent content opening">
+<!-- Real alpha-transparent viewport: x=34..946; y=137..441. This is border artwork only. -->
+<path d="M10 8H989V501H10Z" fill="none" stroke="#242424" stroke-width="4"/>
+<path d="M13 11H987V498H13Z" fill="none" stroke="#f7f7f7" stroke-width="4"/>
+<path d="M17 15H983V494H17Z" fill="none" stroke="#777777" stroke-width="3"/>
+<rect x="19" y="19" width="961" height="115" fill="#c3c3c3"/>
+<rect x="19" y="134" width="15" height="310" fill="#c3c3c3"/>
+<rect x="946" y="134" width="34" height="520" fill="#c3c3c3"/>
+<rect x="19" y="444" width="961" height="47" fill="#c3c3c3"/>
+<path d="M20 489H979M979 19V490" stroke="#656565" stroke-width="3"/>
+<path d="M21 19V488M21 19H979" stroke="#ffffff" stroke-width="2"/>
+<rect x="23" y="22" width="954" height="39" fill="#16468e"/>
+<rect x="28" y="27" width="32" height="28" fill="#f4c9d6" stroke="#26132c" stroke-width="2"/><path d="M37 31v20h12" fill="none" stroke="#9a2d60" stroke-width="5"/>
+<text x="70" y="49" font-family="Tahoma,Verdana,Arial,sans-serif" font-weight="700" font-size="23" fill="white">L&apos;wazi Workshop — BIG LWA</text>
+<g stroke="#404040" stroke-width="2">
+ <rect x="875" y="28" width="28" height="25" fill="#c3c3c3"/><rect x="908" y="28" width="28" height="25" fill="#c3c3c3"/><rect x="941" y="28" width="28" height="25" fill="#c3c3c3"/>
+ <path d="M878 29h24M911 29h24M944 29h24" stroke="#fff"/>
+</g>
+<path d="M883 47h12" stroke="#222" stroke-width="3"/><path d="M915 35h15v12h-15z" fill="none" stroke="#222" stroke-width="2"/><path d="M948 35l13 12m0-12l-13 12" stroke="#222" stroke-width="2.6"/>
+<path d="M23 68H977" stroke="#f1f1f1" stroke-width="2"/>
+<text x="36" y="88" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="17" fill="#181818">File</text>
+<text x="96" y="88" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="17" fill="#181818">Edit</text>
+<text x="153" y="88" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="17" fill="#181818">View</text>
+<text x="219" y="88" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="17" fill="#181818">Favorites</text>
+<text x="318" y="88" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="17" fill="#181818">Help</text>
+<path d="M26 97H973" stroke="#7e7e7e" stroke-width="2"/>
+<path d="M26 99H973" stroke="#ffffff" stroke-width="2"/>
+<path d="M51 112l-13 0m0 0l9-8m-9 8l9 8" fill="none" stroke="#202020" stroke-width="3" stroke-linecap="square"/>
+<path d="M75 112h13m0 0l-9-8m9 8l-9 8" fill="none" stroke="#5d5d5d" stroke-width="3" stroke-linecap="square"/>
+<path d="M112 113l12-12 12 12v10h-24z" fill="#777" stroke="#242424" stroke-width="1.8"/><rect x="119" y="113" width="7" height="10" fill="#d9d9d9"/>
+<path d="M155 104v21" stroke="#777"/><path d="M157 104v21" stroke="#f8f8f8"/>
+<text x="167" y="118" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="15.5" fill="#333">Address</text>
+<rect x="239" y="102" width="715" height="27" fill="#fff" stroke="#555" stroke-width="2"/>
+<path d="M240 128h712M953 103v26" stroke="#fff" stroke-width="2"/>
+<text x="250" y="121" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="17.5" fill="#333">biglwa://studio/lwazi</text>
+<rect x="958" y="102" width="17" height="27" fill="#bdbdbd" stroke="#444" stroke-width="1"/>
+<path d="m962 113 5 6 5-6" fill="none" stroke="#242424" stroke-width="2"/>
+<path d="M33 442V135H947" fill="none" stroke="#777777" stroke-width="3"/>
+<path d="M34 441H947V136" fill="none" stroke="#fefefe" stroke-width="2"/>
+<rect x="950" y="136" width="24" height="305" fill="#ededed" stroke="#6f6f6f" stroke-width="1"/>
+<rect x="952" y="138" width="20" height="21" fill="#c3c3c3" stroke="#888"/>
+<path d="m956 153 6-8 6 8z" fill="#2e2e2e"/>
+<rect x="953" y="170" width="18" height="67" fill="#bdbdbd" stroke="#777" stroke-width="2"/>
+<path d="M954 171h16M954 172v64" stroke="#fff" stroke-width="2"/>
+<rect x="952" y="417" width="20" height="21" fill="#c3c3c3" stroke="#888"/>
+<path d="m956 425 6 8 6-8z" fill="#2e2e2e"/>
+<path d="M25 450H975" stroke="#777" stroke-width="2"/>
+<path d="M25 453H975" stroke="#fff" stroke-width="2"/>
+<rect x="30" y="460" width="665" height="23" fill="#c3c3c3" stroke="#8d8d8d"/>
+<text x="39" y="478" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="16.5" fill="#292929">Ready  •  Choose a creative app</text>
+<rect x="704" y="460" width="256" height="23" fill="#c3c3c3" stroke="#8d8d8d"/>
+<text x="723" y="688" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="16" fill="#292929">Open Workshop</text>
+<g fill="#777"><path d="M955 481l16-16v4l-12 12z"/><path d="M964 481l7-7v4l-3 3z"/></g>
+</svg>
