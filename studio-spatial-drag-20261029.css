@@ -1,46 +1,64 @@
-/* BIG LWA Studio: measured Pinterest columns.
-   Do not let a tall neighboring widget reserve an entire row when another
-   column contains a minimized/header-only widget. */
+/* BIG LWA Studio stable columns v3.
+   No self-referential 4px grid rows. The JS positions each whole-size widget
+   under its neighbor; the parent height is the tallest column. */
 #studioApp .masonry.biglwa-free-layout{
- display:grid!important;
- grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ position:relative!important;
+ display:block!important;
+ box-sizing:border-box!important;
+ grid-template-columns:none!important;
+ grid-auto-rows:auto!important;
  grid-template-rows:none!important;
- grid-auto-flow:row!important;
- grid-auto-rows:4px!important;
- align-items:start!important;
- align-content:start!important;
- column-gap:14px!important;
- row-gap:0!important;
+ grid-auto-flow:unset!important;
+ min-height:0!important;
+ padding-top:0!important;
+ padding-bottom:0!important;
+ margin-bottom:0!important;
 }
 #studioApp .masonry.biglwa-free-layout > [data-widget-id]{
- min-width:0!important;max-width:100%!important;
- align-self:start!important;justify-self:stretch!important;
- grid-column-end:span 1!important;
- /* Grid row spans are calculated from each card's ACTUAL height in JS. */
+ position:absolute!important;
+ display:block;
+ box-sizing:border-box!important;
+ margin:0!important;
+ grid-column:auto!important;
+ grid-row:auto!important;
+ grid-column-end:auto!important;
+ grid-row-end:auto!important;
+ width:auto;
+ height:auto!important;
+ max-height:none!important;
+ min-width:0!important;
+ max-width:none!important;
+ align-self:start!important;
+ justify-self:start!important;
+ transition:background-color .18s,border-color .18s,box-shadow .18s!important;
 }
-#studioApp .masonry.biglwa-free-layout > [data-widget-id].studio-header-only{
+#studioApp .masonry.biglwa-free-layout > [data-widget-id].studio-header-only:not(.widget-is-minimized){
  min-height:46px!important;
+ height:auto!important;
+ max-height:none!important;
+ overflow:visible!important;
+}
+#studioApp .masonry.biglwa-free-layout > [data-widget-id].widget-is-minimized{
+ display:none!important;
 }
 #studioApp .masonry.biglwa-spatial-dragging{position:relative!important}
-#studioApp .masonry .biglwa-spatial-tail{
- grid-column:1/-1;min-height:115px;align-self:start;
- border:2px dashed rgba(159,73,82,.42);border-radius:12px;
- background:rgba(255,249,231,.12);pointer-events:none;
-}
+#studioApp .masonry.biglwa-free-layout > .biglwa-spatial-tail{display:none!important}
 .biglwa-spatial-target{
- position:fixed;z-index:99999;pointer-events:none;
- border:3px dashed #9d3046;border-radius:12px;
- background:rgba(250,206,130,.28);box-shadow:0 0 0 3px rgba(255,255,255,.55);
+ position:fixed!important;display:block!important;
+ z-index:99999!important;pointer-events:none!important;box-sizing:border-box!important;
+ border:3px dashed #9d3046!important;border-radius:12px!important;
+ background:rgba(250,206,130,.25)!important;
+ box-shadow:0 0 0 3px rgba(255,255,255,.56)!important;
 }
-.biglwa-spatial-ghost,.biglwa-spatial-ghost *{pointer-events:none!important}
+.biglwa-spatial-ghost{
+ position:fixed!important;
+ z-index:100000!important;pointer-events:none!important;
+ transform:none!important;max-height:none!important;
+ contain:paint!important;filter:none!important;
+}
+.biglwa-spatial-ghost *{pointer-events:none!important}
+#studioApp .masonry.biglwa-free-layout .biglwa-spatial-origin{opacity:.45!important}
 #studioApp [data-studio-drag-handle]{touch-action:none;cursor:grab}
 #studioApp .studio-collapse-fallback:not(.studio-collapse-keep){display:none!important}
 #studioApp [data-widget-id]:not(.studio-header-only) > .studio-collapse-fallback{display:none!important}
-@media(max-width:980px){
- #studioApp .masonry.biglwa-free-layout{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-}
-@media(max-width:620px){
- #studioApp .masonry.biglwa-free-layout{grid-template-columns:minmax(0,1fr)!important;column-gap:0!important}
- #studioApp .masonry.biglwa-free-layout > [data-widget-id]{max-width:100%!important}
-}
 @media(prefers-reduced-motion:reduce){.biglwa-spatial-ghost{transition:none!important}}
