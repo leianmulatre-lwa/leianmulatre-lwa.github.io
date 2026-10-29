@@ -12,7 +12,7 @@
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-block-pair,
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-pair {
   display:flex!important;flex-direction:row!important;align-items:flex-end!important;
-  justify-content:flex-start!important;gap:15px!important;flex-wrap:nowrap!important;
+  justify-content:flex-start!important;gap:22px!important;flex-wrap:nowrap!important;
   width:100%!important;max-width:178px!important;height:89px!important;
   min-height:89px!important;margin:0!important;overflow:visible!important;
   transform:translateY(-4px)!important;
@@ -35,8 +35,8 @@
   height:83px!important;min-height:83px!important;max-height:83px!important;
 }
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-block-alt {
-  flex:0 0 64px!important;width:64px!important;min-width:64px!important;max-width:64px!important;
-  height:74px!important;min-height:74px!important;max-height:74px!important;
+  flex:0 0 51px!important;width:51px!important;min-width:51px!important;max-width:51px!important;
+  height:59px!important;min-height:59px!important;max-height:59px!important;
   margin:0!important;padding:0!important;
 }
 /* Visualizr's high-definition image has more internal padding than its siblings. */
@@ -240,7 +240,7 @@
 }
 @media(max-width:630px){
   #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile .craft-tile-icon.craft-arcade-block{max-width:165px!important}
-  #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-block-pair{gap:10px!important}
+  #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-block-pair{gap:17px!important}
   #studioApp #moduleWorkspace[data-module-key="games"] .biglwa-game-avatar-live{height:245px!important}
 }
 @media(prefers-reduced-motion:reduce){
