@@ -29,7 +29,7 @@ check("both stored states are grouped colour-first", pages.includes(".module-wor
 check("the colour keeps the source rim, not a blanket grey", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes("box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c)!important;filter:none;opacity:1}") && !pages.includes("filter:grayscale(1)!important;opacity:.86}"));
 check("only the picture of an off card goes grey", pages.includes(".instagram-archive-card.is-off .instagram-archive-media,") && pages.includes(".instagram-archive-card.is-archived .instagram-archive-media{filter:grayscale(1);opacity:.7}"));
 check("each card carries a Live switch", pages.includes("data-archive-live-input=\"'+esc(item.id)+'\""));
-check("the switch label is interactive", pages.includes("(posted?'Live':'Not live')+'</b>'"));
+check("the switch label is interactive", pages.includes('<label class="archive-live" data-archive-live="') && pages.includes("(posted?'Live':'Off')+'</b>'"));
 check("the switch is wired to publish or archive", pages.includes("postsApi?.publishOrbitPost?.(id)") && pages.includes("postsApi?.setOrbitState?.(id,'archived')"));
 check("a card on the Collective Feed is coloured here", pages.includes('aria-label="Platform shadow key: widget face and one source shadow"'));
 check("the Archive no longer claims to be Instagram-only", !pages.includes("Instagram archive</h2>") && !pages.includes("Instagram posts imported"));
@@ -39,8 +39,8 @@ check("a card is fingerprinted", pages.includes("function archiveFingerprint(ite
 check("cards are bucketed by that fingerprint", pages.includes("const groups=new Map();"));
 check("cards are sorted into source blocks", pages.includes("const sa=archiveItemSource(items[a]), sb=archiveItemSource(items[b]);"));
 check("newest first inside a source", pages.includes("return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);"));
-check("a repeat is counted, not hidden", pages.includes("additional copies"));
-check("each group is drawn under a source heading", pages.includes('class="archive-source-group"'));
+check("a repeat stays under fingerprint control", pages.includes("const key=archiveFingerprint(items[index]);") && pages.includes("hideDupes?indexes.slice(0,1):indexes"));
+check("source order is kept without hiding cards", pages.includes("const sa=archiveItemSource(items[a]), sb=archiveItemSource(items[b]);") && pages.includes("const visible=grouped.order.flatMap(fingerprint=>{"));
 check("the groups are styled as blocks", pages.includes(".archive-source-group{margin:0 0 26px}") && pages.includes(".archive-group-head{"));
 check("a repeat group is called out", pages.includes(".archive-group-head .archive-group-repeats{"));
 check("the card list is built first, then grouped", pages.includes("const cardList=mediaShown.map(") && pages.includes("const cards=groupCards(cardList,mediaShown,grouped,hideDupes);"));
@@ -53,7 +53,7 @@ check("Archive derives each photo ratio, bounded against very wide images", page
 check("images fill their frames without grey letterboxing",pages.includes("object-fit:cover!important") && pages.includes("background:transparent!important"));
 check("carousel media stays one card instead of showing a 2x2 tile wall", pages.includes("archive-carousel-actions") && pages.includes("function archivePieceMarkup(piece,index,total,cardIndex)"));
 check("the card renders one media frame with navigation", pages.includes("const visualPieces=pieces.length?archivePieceMarkup(pieces[0]") && pages.includes("data-archive-step") && pages.includes("archive-carousel-actions"));
-check("duplicate photos can hide repeated copies without breaking the source grid",pages.includes("const visible=hideDupes?indexes.slice(0,1):indexes;")&&pages.includes("if(!sourceGroups.has(source))sourceGroups.set(source,[]);"));
+check("duplicate photos can hide repeated copies without breaking the source order",pages.includes("return hideDupes?indexes.slice(0,1):indexes;")&&pages.includes("if(!groups.has(key)){groups.set(key,[]);order.push(key)}"));
 
 check("first load uses the updated Archive media array", pages.indexOf("const media=archiveMedia;")>pages.indexOf("if(!archiveInitialized) await loadInitial();"));
 check("Pinterest images can fall back to known thumbnails", pages.includes("data-archive-fallback"));
@@ -90,8 +90,8 @@ check("Archive places its colored light controls within the image frame rather t
 check("Archive has one source color key above the grid",
  pages.includes('class="module-shadow-key"') &&
  pages.includes('"instagram","Instagram","#f36b21"') && pages.includes('"pinterest","Pinterest","#e60023"'));
-check("Archive grid groups by source not every photo",
- pages.includes('const sourceGroups=new Map()') && pages.includes('data-archive-group="\'+esc(source)'));
+check("Archive keeps one flat source-aware gallery",
+ pages.includes("return visible.map(index=>cardList[index]).join('');") && pages.includes("archiveGroups(mediaShown)"));
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 
