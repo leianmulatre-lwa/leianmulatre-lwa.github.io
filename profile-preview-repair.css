@@ -43,3 +43,7 @@ html.biglwa-preview-mode #studioApp .masonry>.public-widget-face{display:block!i
 
 html.biglwa-preview-mode #camera .public-widget-safe-face{padding:0;border:0;background:none;overflow:hidden}html.biglwa-preview-mode .public-booth-image{display:block;width:100%;height:180px;object-fit:cover;object-position:center 25%}body.night-mode .public-booth-image{content:url('/assets/booth-dark-20261029.webp')}
 #biglwaSkeletonSymbols .tour-symbol-item{display:flex;align-items:center;gap:9px}#biglwaSkeletonSymbols .tour-symbol-description{flex:1}#biglwaSkeletonSymbols .widget-audience-lock{width:25px!important;font-size:15px!important;border:0;background:transparent;cursor:pointer;padding:4px}
+/* Match the final chrome rules loaded by the live profile module. */
+#studioApp .profile-card:not(.profile-is-editing) .real-rank.rank-under-note{position:absolute!important;left:180px!important;right:20px!important;bottom:32px!important;padding:0!important;min-height:20px!important}
+#studioApp .profile-card .real-rank.rank-under-note .rank-label.rank-duplicate-label{display:none!important}
+#studioApp .music-card.stereo-music-widget .card-kicker{position:absolute!important;top:11px!important;left:18px!important;bottom:auto!important}
