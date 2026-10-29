@@ -1,0 +1,260 @@
+/* BIG LWA full-page Windows 95 / old-internet treatment for Games and Lwazi.
+   Functional controls and content are existing DOM. Chrome only adds title/menu/address/status.
+   Scope all selectors to the two respective module pages, not global Studio widgets. */
+#studioApp #moduleWorkspace:is([data-module-key="games"],[data-module-key="tools"]){
+ --retro-outer:#c6c6c6;--retro-blue:#094398;--retro-ink:#161616;
+ background:linear-gradient(180deg,#dedfdf,#d1d5dc)!important;color:#202020!important;
+}
+#studioApp #moduleWorkspace:is([data-module-key="games"],[data-module-key="tools"]) .module-shell{max-width:1400px}
+#studioApp #moduleWorkspace:is([data-module-key="games"],[data-module-key="tools"]) .module-back{
+ border-radius:0!important;border:2px solid #666!important;border-top-color:#fff!important;border-left-color:#fff!important;
+ padding:8px 14px!important;color:#151515!important;background:#d2d2d2!important;box-shadow:1px 1px 0 #222!important;
+}
+#studioApp #moduleWorkspace:is([data-module-key="games"],[data-module-key="tools"]) .module-heading{
+ border-bottom-color:#90959b!important;
+}
+/* Exact same browser chrome for both full pages. Its X is a *real* Studio back button;
+   the vintage minus/square are decorative, never pretending to minimize an application. */
+#studioApp #moduleWorkspace .retro-window-chrome{
+ position:relative!important;z-index:2!important;display:block!important;flex:none!important;
+ width:100%!important;box-sizing:border-box!important;padding:0!important;margin:0!important;
+ color:#1d1d1d!important;background:var(--retro-outer,#c6c6c6)!important;
+ border:0!important;font:12px/1.3 Tahoma,Verdana,Arial,sans-serif!important;
+}
+#studioApp #moduleWorkspace .retro-window-titlebar{
+ min-height:35px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:10px!important;margin:0!important;padding:3px 5px 3px 9px!important;
+ background:linear-gradient(90deg,#072c82 0%,#075dba 60%,#3b98d3 100%)!important;
+ color:#fff!important;
+}
+#studioApp #moduleWorkspace .retro-window-title{
+ display:flex!important;align-items:center!important;min-width:0!important;gap:9px!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+ font:700 clamp(11px,1.4vw,16px)/1.3 Tahoma,Verdana,Arial,sans-serif!important;
+}
+#studioApp #moduleWorkspace .retro-window-title strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#studioApp #moduleWorkspace .retro-window-icon{
+ display:grid!important;place-items:center!important;flex:none!important;width:21px!important;height:20px!important;
+ background:#f6e9c2!important;color:#132a62!important;border:1px solid #fff!important;
+ box-shadow:1px 1px 0 #323232!important;font:700 16px/1 monospace!important;
+}
+#studioApp #moduleWorkspace .retro-window-controls{display:flex!important;flex:none!important;gap:4px!important;align-items:center!important}
+#studioApp #moduleWorkspace .retro-window-controls>span,
+#studioApp #moduleWorkspace .retro-window-close{
+ box-sizing:border-box!important;display:grid!important;place-items:center!important;
+ width:27px!important;height:24px!important;margin:0!important;padding:0!important;
+ border:2px solid #555!important;border-top-color:#fff!important;border-left-color:#fff!important;
+ border-radius:0!important;box-shadow:1px 1px 0 #222!important;
+ background:#c7c7c7!important;color:#171717!important;
+ font:800 18px/1 Arial,sans-serif!important;
+}
+#studioApp #moduleWorkspace .retro-window-close{cursor:pointer!important}
+#studioApp #moduleWorkspace .retro-window-close:hover{background:#f3c5c7!important}
+#studioApp #moduleWorkspace .retro-window-close:focus-visible{outline:3px solid #ffda65!important;outline-offset:2px!important}
+#studioApp #moduleWorkspace .retro-window-menu{
+ min-height:25px!important;display:flex!important;align-items:center!important;gap:19px!important;
+ padding:3px 11px!important;border-bottom:1px solid #777!important;
+ background:#c6c6c6!important;color:#161616!important;font:12px Tahoma,Verdana,Arial,sans-serif!important;
+}
+#studioApp #moduleWorkspace .retro-window-navigation{
+ display:flex!important;align-items:center!important;gap:9px!important;min-height:37px!important;
+ padding:5px 10px!important;background:#c6c6c6!important;border-top:1px solid #fff!important;
+ border-bottom:2px solid #797979!important;
+}
+#studioApp #moduleWorkspace .retro-window-navicons{flex:none!important;white-space:nowrap!important;color:#464646!important;font:900 15px/1 monospace!important}
+#studioApp #moduleWorkspace .retro-window-address-label{font:12px Tahoma,Verdana,Arial,sans-serif!important;color:#252525!important}
+#studioApp #moduleWorkspace .retro-window-address{
+ min-width:0!important;flex:1!important;display:block!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+ border:2px solid #858585!important;border-right-color:#fff!important;border-bottom-color:#fff!important;
+ background:#fff!important;padding:4px 8px!important;color:#17243f!important;
+ font:12px/1.2 Tahoma,Verdana,Arial,sans-serif!important;
+}
+#studioApp #moduleWorkspace .retro-window-status{
+ display:flex!important;flex-wrap:wrap!important;justify-content:space-between!important;align-items:center!important;
+ gap:6px 12px!important;min-height:33px!important;margin:0!important;padding:6px 10px!important;
+ background:#c6c6c6!important;color:#252525!important;border-top:2px solid #fff!important;
+ font:11px/1.35 Tahoma,Verdana,Arial,sans-serif!important;
+}
+#studioApp #moduleWorkspace .retro-window-status>span:last-child{
+ border-left:1px solid #777!important;padding-left:12px!important;
+}
+/* Games: retire the decorative joystick shell, not the actual emulator or directory. */
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage[data-biglwa-retro-browser="games"]{
+ position:relative!important;display:block!important;min-width:0!important;min-height:0!important;
+ margin:0!important;padding:3px!important;overflow:hidden!important;border:3px solid #565656!important;
+ border-top-color:#fff!important;border-left-color:#fff!important;border-radius:0!important;
+ box-shadow:3px 4px 0 #888!important;background:#c6c6c6!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage::before,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage::after{display:none!important;content:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-controls{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth{
+ position:relative!important;overflow:visible!important;isolation:auto!important;
+ margin:0!important;padding:11px 16px!important;border:0!important;border-radius:0!important;
+ background:#f5f5f5!important;box-shadow:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth::before,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth::after{display:none!important;content:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-wordmark{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage-head{
+ position:relative!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ justify-content:space-between!important;gap:12px!important;
+ min-height:73px!important;height:auto!important;margin:0!important;padding:0!important;
+ overflow:visible!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;color:#303030!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage-head::before,
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage-head::after{content:none!important;display:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee{
+ position:relative!important;inset:auto!important;display:flex!important;align-items:center!important;
+ justify-content:flex-start!important;width:min(260px,62%)!important;min-width:105px!important;
+ height:72px!important;min-height:0!important;margin:0!important;padding:0!important;
+ pointer-events:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee img:first-child{
+ position:static!important;display:block!important;transform:none!important;width:100%!important;
+ max-height:68px!important;height:68px!important;object-fit:contain!important;object-position:left center!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage-head>span{
+ position:static!important;display:block!important;max-width:100%!important;color:#454545!important;
+ font:700 11px/1.25 ui-monospace,monospace!important;letter-spacing:.02em!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #biglwaArcadePlayer{
+ margin:10px 14px 0!important;max-width:calc(100% - 28px)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport{
+ isolation:isolate!important;display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;
+ position:relative!important;height:clamp(320px,48vw,590px)!important;min-height:0!important;
+ width:calc(100% - 26px)!important;margin:0 13px 10px!important;padding:9px!important;
+ border:2px solid #777!important;border-right-color:#fff!important;border-bottom-color:#fff!important;
+ border-radius:0!important;background:#11172b!important;outline:0!important;box-shadow:none!important;
+ overflow:hidden!important;mask-image:none!important;-webkit-mask-image:none!important;clip-path:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport::after{content:none!important;display:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport:is(.is-playing,.is-quiz,.is-launcher,.is-embed){
+ display:flex!important;flex-direction:column!important;gap:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage>.module-status{
+ margin:0 13px 10px!important;padding:4px 0!important;max-width:100%!important;
+ font:11px/1.4 Tahoma,Verdana,Arial,sans-serif!important;color:#525252!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] :is(.module-game-directory,.module-game-submit){
+ border:2px solid #838383!important;border-top-color:#fff!important;border-left-color:#fff!important;
+ border-radius:0!important;background:#eee!important;color:#282828!important;box-shadow:2px 3px 0 #999!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-directory-row{
+ border-radius:0!important;background:#fff!important;border-color:#a8a8a8!important;
+}
+/* Lwazi: same browser frame, preserving every real editor launch, file input and vault. */
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite.craft-workshop[data-biglwa-retro-browser="lwazi"]{
+ --folder-red:#b73450;--folder-outline:#676767;
+ position:relative!important;display:block!important;margin:8px 0 14px!important;
+ padding:3px!important;min-width:0!important;overflow:visible!important;isolation:isolate!important;
+ border:3px solid #656565!important;border-top-color:#fff!important;border-left-color:#fff!important;
+ border-radius:0!important;box-shadow:3px 4px 0 #888!important;background:#c6c6c6!important;
+ color:#252525!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-head.craft-folder-cover{
+ position:relative!important;overflow:visible!important;display:block!important;
+ margin:0!important;padding:9px 12px!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;background:#f4f4f4!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-back,
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-tab{
+ display:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-front{
+ padding:0!important;margin:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-inner.craft-folder-inner--tri{
+ display:grid!important;grid-template-columns:minmax(130px,1fr) minmax(180px,1.3fr) minmax(170px,.9fr)!important;
+ min-height:125px!important;align-items:center!important;gap:16px!important;padding:10px!important;
+ border:1px solid #bdbdbd!important;border-radius:0!important;
+ background:#fff!important;box-shadow:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-logo{
+ width:min(100%,265px)!important;height:100px!important;object-fit:contain!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-details p{
+ color:#3d3d3d!important;font:600 11px/1.45 Tahoma,Verdana,Arial,sans-serif!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-details .craft-folder-seal{
+ color:#9a2444!important;font:800 10px/1.3 ui-monospace,monospace!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-toolbar{
+ margin:0!important;padding:9px 10px!important;border:0!important;border-top:2px solid #fff!important;
+ border-bottom:2px solid #808080!important;border-radius:0!important;
+ background:#c6c6c6!important;color:#252525!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-status{
+ padding:7px 11px!important;background:#ececec!important;color:#555!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-directory{
+ display:grid!important;grid-template-columns:repeat(auto-fit,minmax(178px,1fr))!important;
+ gap:10px!important;max-height:clamp(350px,60vh,650px)!important;overflow-y:auto!important;
+ padding:12px!important;background:#ededed!important;scrollbar-color:#a3a3a3 #e5e5e5!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile{
+ border:1px solid #777!important;border-top-color:#fff!important;border-left-color:#fff!important;
+ border-radius:0!important;box-shadow:2px 2px 0 #aaa!important;background:#fff!important;
+ padding:12px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile-home{
+ border-left:3px solid #b73450!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile>button{
+ border-radius:0!important;box-shadow:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite :is(.craft-account-vault,.craft-panel){
+ border:2px solid #7e7e7e!important;border-top-color:#fff!important;border-left-color:#fff!important;
+ border-radius:0!important;box-shadow:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-panel{
+ margin:9px!important;overflow:hidden!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-smallprint{
+ background:#e8e8e8!important;color:#333!important;
+}
+#studioApp #moduleWorkspace[data-module-key="tools"] #toolStudio>.tool-intake,
+#studioApp #moduleWorkspace[data-module-key="tools"] #toolStudio>.tool-directory,
+#studioApp #moduleWorkspace[data-module-key="tools"] #toolStudio>.tool-links{
+ border:2px solid #808080!important;border-top-color:#fff!important;border-left-color:#fff!important;
+ border-radius:0!important;background:#f2f2f2!important;box-shadow:2px 3px 0 #aaa!important;
+}
+/* Keep authentic page usability on tablet / narrow Studio. */
+@media(max-width:800px){
+ #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-inner.craft-folder-inner--tri{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-weekly{
+  grid-column:1/-1!important;justify-self:stretch!important;max-width:none!important;
+ }
+}
+@media(max-width:600px){
+ #studioApp #moduleWorkspace .retro-window-menu{gap:11px!important;font-size:10px!important}
+ #studioApp #moduleWorkspace .retro-window-navigation{gap:5px!important;padding-inline:5px!important}
+ #studioApp #moduleWorkspace .retro-window-address-label{display:none!important}
+ #studioApp #moduleWorkspace .retro-window-navicons{font-size:12px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage-head{min-height:61px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee{height:57px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee img:first-child{height:56px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport{
+  width:calc(100% - 12px)!important;margin:0 6px 6px!important;padding:4px!important;
+  height:clamp(310px,80vw,470px)!important;gap:4px!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport:not(.is-playing)>.module-game-track:nth-child(3){display:none!important}
+ #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-inner.craft-folder-inner--tri{grid-template-columns:1fr!important}
+ #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-folder-logo{height:85px!important}
+ #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-directory{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;padding:6px!important}
+ #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-tile{padding:8px!important}
+ #studioApp #moduleWorkspace .retro-window-status>span:last-child{display:none!important}
+}
+@media(max-width:400px){
+ #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-directory{grid-template-columns:1fr!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-game-track{animation:none!important;transform:none!important}
+}
