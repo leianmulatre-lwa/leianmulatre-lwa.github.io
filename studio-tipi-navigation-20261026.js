@@ -35,17 +35,25 @@
    const art=source.matches('img,svg')?source:source.querySelector('img,svg');
    if(art){
      const clean=art.cloneNode(true);
+     const measured=clean.classList.contains('heading-normalized-glyph');
      for(const node of [clean,...clean.querySelectorAll('*')]){
        if(node.hasAttribute('data-heading-layout'))node.removeAttribute('style');
        node.removeAttribute('data-heading-layout');node.removeAttribute('id');
        node.classList.remove('heading-normalized-glyph');
      }
      clean.removeAttribute('style');clean.removeAttribute('class');
+     if(measured)clean.classList.add('heading-normalized-glyph');
      clean.setAttribute('aria-hidden','true');
      if(rotated&&clean.tagName.toLowerCase()==='svg'){
        const group=document.createElementNS('http://www.w3.org/2000/svg','g');
        group.setAttribute('transform','rotate(90)');group.append(...clean.childNodes);
        clean.append(group);mark.dataset.symbolRotation='90';
+       // Preserve the ink box measured by the shared normalizer. getBBox on
+       // SVG text can return a font line box instead of the visible glyph.
+       if(measured){
+         const [x,y,w,h]=clean.getAttribute('viewBox').trim().split(/[ ,]+/).map(Number);
+         if([x,y,w,h].every(Number.isFinite))clean.setAttribute('viewBox',[-y-h,x,h,w].join(' '));
+       }
      }
      mark.append(clean);
    }else{
