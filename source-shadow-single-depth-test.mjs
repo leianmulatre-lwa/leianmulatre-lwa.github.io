@@ -63,5 +63,5 @@ assert.ok(photoMarkup>=0,'Veve photo renderer exists');
 const videoMarkup=veve.indexOf('const videoMarkup=',photoMarkup);
 const ratioReady=veve.indexOf('const validRatio=',photoMarkup);
 assert.ok(ratioReady>photoMarkup&&ratioReady<videoMarkup,'Veve aspect ratio is initialized before media markup');
-assert.ok(boot.includes('single-owner-shadow-1'),'Account entry imports current feed rendering');
+assert.ok(boot.includes('20261029-contact-sheet-photo-only-2'),'Account entry imports current feed rendering');
 console.log('PASS key, profile letter, actual feed shadows, own-site planet, Veve render order');
