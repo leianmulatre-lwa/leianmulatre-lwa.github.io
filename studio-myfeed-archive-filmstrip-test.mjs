@@ -10,7 +10,8 @@ const index=read('index.html'),pages=read('module-pages.js'),
   css=read('studio-myfeed-filmstrip-20261029.css'),
   feed=read('feed-view.js'),route=read('politc-route-guard.js');
 assert.doesNotThrow(()=>new Script(pages),'Module-page JavaScript stays valid');
-assert.doesNotThrow(()=>new Script(feed),'The original feed runtime stays valid');
+// Feed is an ES module with imports: Node's classic vm.Script cannot parse it.
+// Its published behavior is checked below without evaluating its dependencies.
 assert.doesNotThrow(()=>new Script(defaults),'Default-image loader stays valid');
 assert(index.includes('studio-myfeed-filmstrip-20261029.css?v=20261029-four-photo-film-1'),'Filmstrip CSS is loaded');
 assert(index.includes('studio-default-images-20261029.js?v=20261029-archive-wallpaper-2'),'Fresh Archive thumbnail JS served');
