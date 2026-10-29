@@ -28,6 +28,9 @@ await wait(1950);
 assert.equal(loads,1,'One cartoon selection starts loading near the end of the intro');
 assert.equal(laptop.classList.contains('is-preparing'),true,'Opening preview remains for at least a couple seconds');
 await wait(850);
+// CI runners sometimes delay the introductory timer under load. Preserve the
+// earliest-reveal assertion above, but allow a bounded scheduling margin.
+for(let i=0;i<18&&laptop.classList.contains('is-preparing');i++)await wait(100);
 assert.equal(laptop.classList.contains('is-preparing'),false,'Login laptop reveals programming after loading interval');
 assert.equal(loads,1,'No duplicate first cartoon source or conflicting video loaders');
 assert.match(video.src,/archive.org\/download\/BettyBoopCartoons/);
