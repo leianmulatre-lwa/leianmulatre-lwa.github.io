@@ -21,7 +21,7 @@
   const dock=document.createElement('aside');dock.className='biglwa-editor-chrome';
   dock.setAttribute('aria-label','BIG LWA editor controls');
   dock.innerHTML='<div class="biglwa-editor-glyph" aria-hidden="true"><img src="/assets/bigapps/icons/'+item.name+'.png?v=20261026-original-stitch" alt="" /></div>'+
-   '<div class="biglwa-editor-name"><strong>'+item.name+'</strong><small>BIG LWA · licensed editing engine</small></div>'+
+   '<div class="biglwa-editor-name"><strong>'+item.name+'</strong><small>BIG LWA · R-series editor</small></div>'+
    '<div class="biglwa-editor-lights" role="group" aria-label="Window controls">'+
    '<button data-craft-chrome="exit" type="button" aria-label="Return to BIG LWA Tools" title="Back to Tools"></button>'+
    '<button data-craft-chrome="hide" type="button" aria-label="Hide toolbar" title="Hide toolbar"></button>'+
@@ -32,7 +32,7 @@
    '<button data-craft-theme="light" type="button" aria-pressed="false" title="Light edition">☼</button>'+
    '<button data-craft-theme="dark" type="button" aria-pressed="false" title="Dark edition">☾</button>'+
    '<a href="'+links.github+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+links.patreon+'" target="_blank" rel="noopener noreferrer">Patreon ↗</a>'+
-   '<a href="/bigapps/'+matched+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Licenses ↗</a></div>'+
+   '<a href="/bigapps/'+matched+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & notices ↗</a></div>'+
    '<small class="biglwa-editor-status" role="status">Files stay local unless you choose to save a preview.</small>';
   const mini=document.createElement('button');mini.className='biglwa-editor-reopen';mini.hidden=true;
   mini.type='button';
@@ -98,7 +98,8 @@
   // Keep their viewport clear; the standalone tab offers an embroidered launcher.
   mini.hidden=embedded;
   document.body.append(dock,mini);
-  // Native credits stay visible. Avoid intrusive DOM mutation in the WebAssembly app.
+  // The early head script handles source-title flashes before this
+  // standalone toolbar mounts. Original source notices remain unaltered.
   // Only correct a conventional top-level *exact* legacy title, when one exists.
   const fixTitle=()=>{
    for(const heading of document.querySelectorAll('h1,h2,[role=banner] strong')){
