@@ -73,6 +73,18 @@ assert.equal(row('tiktok').accountKey,'tiktok-openid-1','TikTok stable id remain
 assert.equal(row('facebook').handle,'','A numeric Facebook id never becomes a fake @handle');
 assert.ok(!w.__biglwaProfileMetrics.sources.some(s=>/^-?\d{6,}$/.test(String(s.handle||''))||String(s.handle||'').startsWith('-000')),
  'No provider id appears in the handle column');
+// Mount the Skeleton Key panel to check the visible provider rows and grid.
+const host=w.document.createElement('section');host.id='skeletonAnalytics';w.document.body.append(host);
+await w.BigLWAAccountInsights.refresh();
+const panel=host.textContent.replace(/\s+/g,' ');
+const grid=Object.fromEntries([...host.querySelectorAll('[data-metric]')].map(n=>[n.dataset.metric,n.textContent]));
+assert.ok(panel.includes('Tiktok · @leianstanley'),'Provider row shows the real vanity @handle');
+assert.ok(panel.includes('19.7k+ monthly reach (TikTok avg likes/mo)'),'TikTok tracker is labelled monthly reach, not monthly views');
+assert.ok(panel.includes('1.4m+ likes'),'Provider rows use the shared m+ grammar for likes');
+assert.equal(grid.reach,'23.9k+','Skeleton grid abbreviates reach with k+');
+assert.equal(grid.followers,'35,257','Skeleton grid keeps followers exact');
+assert.equal(grid.likes,'1.4m+','Skeleton grid abbreviates likes with m+');
+assert.ok(!panel.includes('7737741593164989')&&!panel.includes('-000Iv'),'Provider ids never appear in the visible panel');
 uid='metric-owner-b';w.__biglwaIdentity={uid};
 data={uid,analyticsMonths:{},connections:{},peopleConnections:{},orbitConnectedProfiles:{}};
 await w.BigLWAAccountInsights.refresh();
