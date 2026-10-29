@@ -1,0 +1,100 @@
+/* BIG LWA Studio / Lwazi: a shorter 1000×510 Win95 browser with ONE real
+   horizontal carousel. Original live editor buttons and module controls persist.
+   The central SVG window remains truly transparent (x34..946, y137..441). */
+#studioApp #tools .lwazi-cabinet-thumb.lwazi-cabinet-thumb{
+ aspect-ratio:1000 / 510!important;height:auto!important;min-height:0!important;
+ max-height:none!important;width:100%!important;max-width:100%!important;
+ margin:6px auto 0!important;overflow:visible!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb.lwazi-cabinet-thumb::before{
+ background-image:url('/assets/frames/retro-browser-lwazi-wide-20261029.svg')!important;
+ background-size:100% 100%!important;inset:0!important;
+ pointer-events:none!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport.arcade-library-viewport{
+ position:absolute!important;top:26.87%!important;left:3.4%!important;
+ width:91.2%!important;height:59.61%!important;
+ display:block!important;box-sizing:border-box!important;
+ grid-template-columns:none!important;grid-auto-columns:none!important;
+ padding:4px!important;margin:0!important;gap:0!important;
+ background:#f1eae6!important;overflow-x:auto!important;overflow-y:hidden!important;
+ overscroll-behavior-inline:contain!important;touch-action:pan-x pan-y!important;
+ scroll-behavior:auto!important;scrollbar-width:none!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ z-index:2!important;pointer-events:auto!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport::-webkit-scrollbar{display:none!important}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-track.lwazi-horizontal-track{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;flex-wrap:nowrap!important;
+ gap:6px!important;width:max-content!important;min-width:100%!important;
+ height:100%!important;min-height:0!important;max-height:100%!important;
+ padding:0!important;margin:0!important;
+ animation:none!important;transform:none!important;transition:none!important;
+ will-change:auto!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-track.lwazi-horizontal-track:nth-child(2),
+#studioApp #tools .lwazi-cabinet-thumb .arcade-track.lwazi-horizontal-track:nth-child(3){
+ animation:none!important;transform:none!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-horizontal-track .arcade-game-tile.lwazi-block-tile{
+ display:flex!important;flex-direction:column!important;
+ flex:0 0 clamp(72px,6.2vw,105px)!important;
+ width:clamp(72px,6.2vw,105px)!important;min-width:0!important;
+ height:calc(100% - 2px)!important;min-height:0!important;
+ max-height:100%!important;overflow:hidden!important;
+ padding:3px 4px 16px!important;margin:0!important;
+ border:1px solid #e2c7ae!important;border-radius:3px!important;
+ background:#fff4e5!important;box-shadow:1px 2px 0 rgba(61,30,20,.17)!important;
+ transform:none!important;animation:none!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-horizontal-track .arcade-game-tile img{
+ display:block!important;width:100%!important;height:calc(100% - 6px)!important;
+ max-width:100%!important;max-height:none!important;
+ min-height:0!important;object-fit:contain!important;transform:none!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-horizontal-track .lwazi-block-name{
+ font:700 clamp(7px,.7vw,10px)/1.05 system-ui,sans-serif!important;
+ bottom:2px!important;white-space:nowrap!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-carousel-controls{
+ position:absolute!important;top:90.1%!important;left:3.5%!important;
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ gap:3px!important;height:7%!important;max-height:29px!important;
+ width:19%!important;padding:0!important;margin:0!important;
+ border:0!important;background:transparent!important;z-index:5!important;
+ pointer-events:none!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-carousel-controls button{
+ display:grid!important;place-items:center!important;flex:0 0 auto!important;
+ width:clamp(15px,1.55vw,22px)!important;height:clamp(15px,1.55vw,22px)!important;
+ min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
+ color:#292929!important;background:#ddd!important;
+ border:1px solid #777!important;border-top-color:#fff!important;
+ border-left-color:#fff!important;border-radius:0!important;
+ font:700 19px/1 Arial,sans-serif!important;cursor:pointer!important;
+ pointer-events:auto!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-carousel-controls button:hover{background:#fff!important}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-carousel-controls button:focus-visible{
+ outline:2px solid #225ab8!important;outline-offset:1px!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-marquee{
+ top:3.2%!important;left:7%!important;width:68%!important;height:5.1%!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-open{
+ top:90.1%!important;bottom:auto!important;left:70.5%!important;
+ width:25.5%!important;height:5.8%!important;min-height:0!important;
+}
+#studioApp #tools.studio-header-only .lwazi-cabinet-thumb{display:none!important;height:0!important}
+@media(max-width:650px){
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport.arcade-library-viewport{padding:2px!important}
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-track.lwazi-horizontal-track{gap:4px!important}
+ #studioApp #tools .lwazi-cabinet-thumb .lwazi-horizontal-track .arcade-game-tile.lwazi-block-tile{
+   width:68px!important;flex-basis:68px!important;padding:2px 2px 13px!important;
+ }
+ #studioApp #tools .lwazi-cabinet-thumb .lwazi-horizontal-track .lwazi-block-name{font-size:7px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-track.lwazi-horizontal-track{animation:none!important}
+}
