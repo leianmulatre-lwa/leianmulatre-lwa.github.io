@@ -10,7 +10,7 @@ const css=read('studio-nav-gutters-optical-20261029.css');
 const page=read('index.html');
 const drag=read('studio-spatial-drag-20261029.js');
 const nav=read('studio-tipi-navigation-20261026.js');
-assert(page.includes('studio-nav-gutters-optical-20261029.css?v=20261029-shared-icon-inset-1'),'Final shared CSS is loaded');
+assert(page.includes('studio-nav-gutters-optical-20261029.css?v=20261029-uniform-archive-1'),'Final shared CSS is loaded');
 assert.doesNotThrow(()=>new Script(drag),'Drag layout JavaScript syntax');
 assert.doesNotThrow(()=>new Script(nav),'Top-left navigation JavaScript syntax');
 assert(css.includes('#studioApp .main > .masonry'),'Side gutters do not depend on the active route');

@@ -166,3 +166,18 @@
     font-size:30px!important;
   }
 }
+
+/* Measured ink from BigLWAHeadingRule overrides legacy nested navigation boxes. */
+html body #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current{
+ width:52px!important;min-width:52px!important;max-width:52px!important;height:52px!important;min-height:52px!important;max-height:52px!important;overflow:visible!important;
+}
+html body #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current>[data-heading-layout]{overflow:visible!important;width:52px!important;height:52px!important;max-width:none!important;max-height:none!important}
+html body #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current [data-heading-layout] :is(span,div){display:contents!important;overflow:visible!important}
+html body #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current .heading-normalized-glyph{
+ position:absolute!important;inset:3px!important;width:46px!important;height:46px!important;max-width:none!important;max-height:none!important;margin:0!important;
+}
+html body #studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-current [data-heading-layout] img{min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important}
+
+html body #studioApp .studio-brand-row>a.brand.biglwa-block-brand[data-biglwa-tipi-ready="1"] .biglwa-topbar-crest{
+ width:46px!important;min-width:0!important;max-width:46px!important;height:46px!important;min-height:0!important;max-height:46px!important;flex:none!important;margin:0!important;
+}

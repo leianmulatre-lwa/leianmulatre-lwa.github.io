@@ -73,7 +73,11 @@
    const key=moduleKey();
    if(key && (brand.dataset.biglwaActiveModule!==key||!current.firstElementChild)){
      current.replaceChildren(iconFor(key));
+     const mark=current.firstElementChild;
+     if(mark)window.BigLWAHeadingRule?.normalize(mark,52,46);
    }
+   if(key&&current.firstElementChild&&!current.firstElementChild.dataset.headingLayout)
+     window.BigLWAHeadingRule?.normalize(current.firstElementChild,52,46);
    brand.dataset.biglwaActiveModule=key;
    brand.classList.toggle('biglwa-brand-in-module',Boolean(key));
    brand.dataset.biglwaTipiReady='1';
@@ -116,5 +120,5 @@
    setTimeout(()=>clearInterval(timer),10000);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
- window.BigLWAStudioMark={sync};
+ window.BigLWAStudioMark={sync,iconFor,keys:[...new Set([...Object.keys(GLYPHS),...Object.keys(FALLBACK),...Object.keys(ALIASES)])]};
 })();

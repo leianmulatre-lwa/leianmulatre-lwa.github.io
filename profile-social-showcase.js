@@ -439,15 +439,20 @@
      return platform==='snapchat'&&active('snapchat');
    },
    highlightsFor(platform){
-     if(platform!=='snapchat'||!active('snapchat'))return [];
+     if(!uid()||!['instagram','snapchat'].includes(platform))return [];
+     const linked=saved().filter(item=>item.platform===platform).map((item,i)=>({
+       platform,title:item.title||item.kind||'Highlight',cover:item.cover||item.thumbnailUrl||'',
+       items:[{kind:'image',mediaUrl:item.mediaUrl||'',url:item.url}],_importKey:platform+':link:'+i
+     }));
+     if(platform!=='snapchat'||!active('snapchat'))return linked;
      const who=uid(),handle=accountHandles().snapchat;
-     if(!who||!handle||snapSource.key!==who+':'+handle.toLowerCase())return [];
-     return snapSource.items.filter(item=>item?.kind==='Spotlight'&&
+     if(!who||!handle||snapSource.key!==who+':'+handle.toLowerCase())return linked;
+     return [...linked,...snapSource.items.filter(item=>item?.kind==='Spotlight'&&
        /^https:\/\/cf-st\.sc-cdn\.net\//.test(String(item.mediaUrl||''))).map((item,i)=>({
        platform:'snapchat',title:'Spotlight '+(i+1),
        cover:String(item.thumbnailUrl||item.poster||''),
        items:[{kind:'video',mediaUrl:item.mediaUrl}],_importKey:'snapchat:'+i
-     }));
+     }))];
    }
  });
  let timer;function schedule(){clearTimeout(timer);timer=setTimeout(show,90)}

@@ -19,11 +19,11 @@ assert(css.includes('flex-direction:row!important'),'The carousel scrolls across
 assert(css.includes('animation:none!important'),'Old vertical CSS animation is disabled');
 assert(css.includes('top:32.62%!important')&&css.includes('height:50.95%!important'),'Viewport aligns to the transparent aperture');
 assert(css.includes('top:88.1%!important'),'Workshop and carousel buttons stay outside live viewport');
-assert(mark.includes('width:62px!important')&&mark.includes('height:62px!important'),'Other module icons enlarged to tipi optical footprint');
-assert(mark.includes('margin-left:-20px!important'),'Top-left symbols nudged left');
+assert(mark.includes('width:52px!important')&&mark.includes('height:52px!important'),'All module icons share the measured optical canvas');
+assert(mark.includes('margin-left:-15px!important'),'Top-left shared anchor retained');
 assert(index.includes('studio-lwazi-horizontal-20261029.css?v=20261029-short-browser-2'));
 assert(index.includes('studio-lwazi-thumbnail-20261026.js?v=20261029-horizontal-carousel-4'));
-assert(index.includes('studio-tipi-navigation-20261026.css?v=20261029-optical-marks-2'));
+assert(index.includes('studio-tipi-navigation-20261026.css?v=20261029-uniform-archive-1'));
 const dom=new JSDOM('<!doctype html><html><body><main id="studioApp"><section id="tools" class="card"><header class="card-head"><h2>lwazi</h2></header></section></main></body></html>',{
   url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true
 });

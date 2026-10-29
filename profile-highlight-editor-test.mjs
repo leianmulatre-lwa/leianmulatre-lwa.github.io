@@ -43,7 +43,7 @@ assert.equal(tab.textContent,'Profile Picture');
 assert.ok(archivePane.hidden,'Highlights panel does not crowd Archive gallery until requested');
 assert.ok(doc.querySelector('.archive-page-list'),'Existing Archive gallery remains intact');
 // The Archive toolbar is refreshed independently of the Highlights panel.
-const actions=doc.querySelector('.archive-toolbar-actions');
+const actions=doc.querySelector('.archive-filter-bar');
 actions.replaceChildren(); // reproduces a refresh that removes Highlights
 assert.equal(doc.querySelector('.archive-highlights-button'),null);
 assert.ok(doc.querySelector('#archiveHighlightsPanel'),'Editor survives the toolbar refresh');

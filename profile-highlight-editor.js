@@ -59,10 +59,11 @@
   const verifiedHandles=[live?.connected?live.profile?.username:null,
     connected?.verifiedFromProvider?connected.username:null]
     .map(value=>String(value||'').replace(/^@/,'').toLowerCase()).filter(Boolean);
-  if(sourceHandle&&!verifiedHandles.includes(sourceHandle))return [];
+  const linked=window.BigLWASocialShowcase?.highlightsFor?.(platform)||[];
+  if(sourceHandle&&!verifiedHandles.includes(sourceHandle))return linked;
   const imported=Array.isArray(data?.highlights)?data.highlights:[];
-  return imported.map((group,i)=>({...group,_importKey:String(i)}))
-   .filter(group=>platformOf(group)===platform);
+  return [...imported.map((group,i)=>({...group,_importKey:String(i)}))
+   .filter(group=>platformOf(group)===platform),...linked];
  };
  const status=message=>{const box=el('#biglwaHighlightStatus');if(box)box.textContent=message};
  const pictureStatus=message=>{const box=el('#biglwaProfilePictureStatus');if(box)box.textContent=message};
@@ -81,14 +82,13 @@
  }
  const current=()=>get().custom.filter(x=>!x.hidden&&x.added.length).map(x=>({
   title:x.title||'Highlight',cover:x.cover||'',coverX:x.x,coverY:x.y,
-  platform:['snapchat','facebook'].includes(x.platform)?x.platform:'new',items:x.added,customId:x.id
+  platform:platformOf(x),items:x.added,customId:x.id
  }));
  function refresh(){window.dispatchEvent(new Event('biglwa:highlight-config-changed'))}
  // A provider owns its own Highlights. No global or cross-app button.
  function highlightsInScope(){
   const platform=archiveSource();
-  if(platform==='instagram')return true;
-  if(platform==='snapchat')return !!window.BigLWASocialShowcase?.isConnected?.('snapchat')||source().length>0;
+  if(platform==='instagram'||platform==='snapchat')return true;
   // Facebook can opt in when genuine imported Highlight groups exist.
   return platform==='facebook'&&source().length>0;
  }
@@ -401,7 +401,7 @@
   if(!shell)return;
   const toolbar=el('.archive-toolbar',shell);
   if(!toolbar)return;
-  const actions=el('.archive-toolbar-actions',toolbar);
+  const actions=el('.archive-filter-bar',toolbar)||toolbar;
   const platform=archiveSource(),allowed=highlightsInScope();
   if(archiveLastSource!==platform){archiveExpanded=false;archiveLastSource=platform}
   if(!allowed)archiveExpanded=false;
@@ -434,7 +434,7 @@
   };
   const existing=el('#archiveHighlightsPanel',shell);
   if(existing){
-   const heading=el('h2',existing);if(heading)heading.textContent=platform==='snapchat'?'Snapchat Spotlights':platform==='facebook'?'Facebook Highlights':'Instagram Highlights';
+   const heading=el('h2',existing),title=platform==='snapchat'?'Snapchat Spotlights':platform==='facebook'?'Facebook Highlights':'Instagram Highlights';if(heading&&heading.textContent!==title)heading.textContent=title;
    if(toolbar.nextElementSibling!==existing)toolbar.insertAdjacentElement('afterend',existing);
    existing.hidden=!allowed||!archiveExpanded;
    ensureButton();

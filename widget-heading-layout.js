@@ -58,5 +58,5 @@
  new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
  document.addEventListener('biglwa:widget-symbols-ready',schedule);
  document.fonts.ready.then(schedule);document.fonts.addEventListener('loadingdone',schedule);
- refresh();window.BigLWAHeadingRule={refresh,size:SIZE,ink:INK,font:FONT,gap:GAP};
+ refresh();window.BigLWAHeadingRule={refresh,normalize,size:SIZE,ink:INK,font:FONT,gap:GAP};
 })();
