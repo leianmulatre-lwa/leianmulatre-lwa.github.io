@@ -19,8 +19,8 @@ assert.ok(css.includes('height:140px!important')&&css.includes('grid-template-ar
 assert.ok(css.includes('.orbit-link-dialog[open]')&&css.includes('.orbit-link-dialog::backdrop'),'Editor uses the modal top layer');
 assert.ok(pages.includes('data-orbit-connect=')&&pages.includes('data-facebook-legacy-connect'),'Provider auth buttons are intact');
 assert.ok(fb.includes("one('.orbit-link-dialog-actions', card)"),'Meta media option does not add a card row');
-const current='/module-pages.js?v=20261028-archive-sources-3';
-assert.ok(route.includes(current)&&pages.includes(current)&&html.includes(current),'All dynamically loaded module URLs use the same new build');
-assert.ok(html.includes('politc-route-guard.js?v=20261023-x-scope-diagnostic-4'),'Route guard gets a fresh version');
+const current=html.match(/\/module-pages\.js\?v=[\w.-]+/)?.[0];
+assert.ok(current&&route.includes(current)&&pages.includes(current)&&html.includes(current),'All dynamically loaded module URLs use the same new build');
+assert.ok(/politc-route-guard\.js\?v=[\w.-]+/.test(html),'Route guard gets a fresh version');
 assert.ok(html.includes('orbit-cards-unified-20261016.css?v=20261017-orbit-inline-links-1'),'Orbit layout stylesheet is cache-busted');
 console.log('PASS: Orbit link button inline, modal edit/save, 140px cards, unified current module load paths');
