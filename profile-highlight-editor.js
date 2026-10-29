@@ -81,7 +81,7 @@
  }
  const current=()=>get().custom.filter(x=>!x.hidden&&x.added.length).map(x=>({
   title:x.title||'Highlight',cover:x.cover||'',coverX:x.x,coverY:x.y,
-  platform:'new',items:x.added,customId:x.id
+  platform:['snapchat','facebook'].includes(x.platform)?x.platform:'new',items:x.added,customId:x.id
  }));
  function refresh(){window.dispatchEvent(new Event('biglwa:highlight-config-changed'))}
  // A provider owns its own Highlights. No global or cross-app button.
