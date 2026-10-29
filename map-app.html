@@ -1037,6 +1037,8 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
     const baseLayers={Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain};let preferred='Street';try{const savedMode=localStorage.getItem('biglwaMapMode');if(savedMode&&baseLayers[savedMode])preferred=savedMode;}catch{}baseLayers[preferred].addTo(map);
     L.control.layers(baseLayers,null,{position:'topright',collapsed:document.body.classList.contains('preview')}).addTo(map);map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}$('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
     map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));$('drop').disabled=false;draw();if(pins.some(valid))$('fit').click();$('mapStatus').textContent='Search for a place or tap the map. Switch map modes in the upper-right.';
+    // Tell the Studio container the map is actually interactive, not merely an iframe that loaded HTML.
+    try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-ready'},location.origin)}catch{}
     watchPublic();
     firestore().then(who=>{
       if(!who.account)return;
@@ -1075,7 +1077,7 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
       });
       try{window.parent?.postMessage({type:'biglwa:map-ready',pins:pins.filter(valid).length},location.origin)}catch{}
     }
-  }catch{$('mapStatus').textContent='Map display is unavailable. You can still save pins using the address search or latitude and longitude.';}
+  }catch(error){$('mapStatus').textContent='Map display is unavailable. You can still save pins using the address search or latitude and longitude.';try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-failed'},location.origin)}catch{}}
 })();
 </script>
 <script>
