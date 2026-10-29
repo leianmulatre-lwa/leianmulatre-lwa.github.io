@@ -57,7 +57,7 @@ check("duplicate photos can hide repeated copies without breaking the source ord
 
 check("first load uses the updated Archive media array", pages.indexOf("const media=archiveMedia;")>pages.indexOf("if(!archiveInitialized) await loadInitial();"));
 check("Pinterest images can fall back to known thumbnails", pages.includes("data-archive-fallback"));
-check("Archive refresh includes Pinterest", pages.includes("window.__biglwaPinterest.syncAllBoards()"));
+check("Archive refresh includes Pinterest", pages.includes("await pins.syncAllBoards?.()"));
 console.log("\n=== MANAGE POPUP FOR EVERY ORBIT CONNECTION ===");
 check("the toolbar opens a connections popup", pages.includes('id="archiveConnections"') && pages.includes("()=>openConnectionsPopup()"));
 check("the popup covers every Orbit source", pages.includes("[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{") && pages.includes("root.className='biglwa-popup-backdrop'"));
