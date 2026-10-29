@@ -17,8 +17,9 @@ const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp
 const w=dom.window,doc=w.document;
 w.__biglwaIdentity={uid:'u1'};
 w.BigLWAAccountStorage={uid:'u1'};
+w.__biglwaInstagramOrbit={state:{connected:true,profile:{username:'testowner'}}};
 w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['instagram'],hideDupes:false}));
-const imported={highlights:[{title:'Original',cover:'/assets/highlights/original.jpg',items:[
+const imported={handle:'testowner',highlights:[{title:'Original',cover:'/assets/highlights/original.jpg',items:[
  {kind:'image',mediaUrl:'https://example.com/original.jpg'},
  {kind:'video',mediaUrl:'https://example.com/original.mp4'}]}]};
 w.BigLWAImportedHighlights={source:()=>imported};
