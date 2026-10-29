@@ -110,7 +110,7 @@
       const slots=saved?.positions&&typeof saved.positions==='object'?saved.positions:{};
       $('.masonry [data-widget-id]',app).forEach(el=>{
         const pos=String(slots[el.dataset.widgetId]||'');
-        if(/^\\d+:\\d+$/.test(pos)){
+        if(/^\d+:\d+$/.test(pos)){
           const [row,col]=pos.split(':').map(Number);
           if(row>=1&&row<=60&&col>=1&&col<=6){
             el.dataset.biglwaGridPosition=pos;
@@ -136,7 +136,7 @@
       // Actual grid slots allow a card to occupy an empty column or new row.
       positions:Object.fromEntries($('[data-widget-id][data-biglwa-grid-position]',app)
         .map(el=>[el.dataset.widgetId,el.dataset.biglwaGridPosition])
-        .filter(([id,pos])=>id&&/^\\d+:\\d+$/.test(pos))),
+        .filter(([id,pos])=>id&&/^\d+:\d+$/.test(pos))),
       docked:readJson(DOCKED_WIDGET_KEY,[]),
       // Yellow-minimized shortcuts stay in their original row; red-docked
       // widgets retain their independent restore tiles after sign-in.
@@ -1332,7 +1332,7 @@
     const positions=layout.positions&&typeof layout.positions==='object'?layout.positions:{};
     $('.masonry [data-widget-id]',app).forEach(widget=>{
       const pos=String(positions[widget.dataset.widgetId]||'');
-      if(/^\\d+:\\d+$/.test(pos)){
+      if(/^\d+:\d+$/.test(pos)){
         const [row,col]=pos.split(':').map(Number);
         if(row>=1&&row<=60&&col>=1&&col<=6){
           widget.dataset.biglwaGridPosition=pos;
