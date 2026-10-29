@@ -1,97 +1,193 @@
-/* BIG LWA MyFeed / Studio preview: analog four-frame filmstrip.
-   Based on the supplied 35mm and medium-format contact-strip references.
-   Presentation only: original member media, click/lightbox handlers, and
-   approved-post ordering remain owned by feed-view.js. */
-#studioApp #biglwaFeedHero.biglwa-feed-hero{
-  --lwa-film-bg:#191715;
-  --lwa-film-edge:#3b3936;
-  margin-bottom:18px!important;
-  overflow:visible!important;
+/* BIG LWA | MyFeed Studio: photographic contact strip, not a video reel.
+   One continuous dark film body with no surrounding white card or light
+   aperture borders. Photo-only selection is handled by feed-view.js.
+   Restore original posts, controls and accessibility outside this preview. */
+
+#studioApp #biglwaFeedHero.biglwa-feed-hero {
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0 0 15px!important;
+  padding:0!important;
+  border:1px solid #272321!important;
+  border-radius:3px!important;
+  background:#171514!important;
+  background-image:none!important;
+  box-shadow:0 3px 9px rgba(33,20,19,.14)!important;
+  overflow:hidden!important;
 }
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid{
-  --lwa-film-cell:#171615;
-  position:relative!important;isolation:isolate!important;
+#studioApp #biglwaFeedHero.biglwa-feed-hero[hidden] {display:none!important}
+
+/* The heading sits ON the negative, not in a separate white capsule. */
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head {
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  padding:10px 13px 5px!important;
+  margin:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head h3 {
+  margin:0!important;
+  min-width:0!important;
+  color:#e9ded0!important;
+  font:700 clamp(12px,1.15vw,15px)/1.3 "CS Bergamot Stitched",Georgia,serif!important;
+  letter-spacing:.01em!important;
+  text-transform:none!important;
+}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head span {
+  margin:0!important;
+  color:#a69c8c!important;
+  font:600 10px/1.2 ui-monospace,SFMono-Regular,monospace!important;
+  letter-spacing:.03em!important;
+  white-space:nowrap!important;
+}
+/* A single strip of 35mm-inspired photo apertures, with no thick white frame. */
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid,
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid {
+  position:relative!important;
+  isolation:isolate!important;
   box-sizing:border-box!important;
   display:grid!important;
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  gap:10px!important;
-  padding:27px 11px 27px!important;
-  margin:0!important;
-  counter-reset:lwa-film-frame 12;
+  grid-template-rows:auto!important;
+  gap:8px!important;
   min-width:0!important;
-  background:linear-gradient(180deg,#262322 0%,#121211 8%,#1c1a19 92%,#302d2b 100%)!important;
-  border:2px solid #4b4744!important;border-radius:2px!important;
-  box-shadow:inset 0 0 0 1px #0a0909,0 4px 10px #25190f2f!important;
+  width:100%!important;
+  margin:0!important;
+  padding:20px 12px 21px!important;
+  counter-reset:lwa-film-frame 12;
+  background:linear-gradient(180deg,#1b1918 0%,#141313 55%,#1c1918 100%)!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
   overflow:hidden!important;
 }
-/* Sprocket windows stay on top/bottom strips and never block the photos. */
+/* Small muted rectangular film perforations, not decorative white circles. */
 #studioApp #biglwaFeedHero .biglwa-feed-hero-grid::before,
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::after{
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::after {
   content:""!important;
-  position:absolute!important;left:6px!important;right:6px!important;
-  height:13px!important;z-index:3!important;pointer-events:none!important;
-  background-image:radial-gradient(ellipse 6px 4px at center,#ded8cd 0 68%,#807c75 74%,transparent 78%)!important;
-  background-size:26px 13px!important;background-repeat:repeat-x!important;
-  background-position:0 50%!important;opacity:.97!important;
+  position:absolute!important;
+  z-index:2!important;
+  pointer-events:none!important;
+  left:9px!important;right:9px!important;
+  height:6px!important;
+  border-radius:0!important;
+  opacity:.68!important;
+  background:repeating-linear-gradient(90deg,
+    transparent 0 9px,#aaa197 9px 16px,transparent 16px 25px)!important;
 }
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::before{top:5px!important}
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::after{bottom:5px!important}
-/* Each existing clickable item is the film's aperture, not a new content card. */
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>:is(button,.biglwa-feed-hero-empty,.biglwa-feed-needs-sync,span,div){
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::before {top:6px!important}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::after {bottom:7px!important}
+
+/* Photograph frames have natural 3:2 proportions. Frame numbers are printed
+   on the film edge below each image, never stamped over somebody's face. */
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>:is(button,.biglwa-feed-hero-empty,.biglwa-feed-needs-sync,span,div),
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview {
   position:relative!important;
-  box-sizing:border-box!important;display:block!important;
-  min-width:0!important;width:100%!important;
-  margin:0!important;padding:0!important;
-  aspect-ratio:4 / 5!important;
-  min-height:0!important;height:auto!important;
-  border:3px solid #d3cac1!important;border-radius:1px!important;
-  background:#55504b!important;
-  box-shadow:inset 0 0 0 1px #000b,0 0 0 2px #080807!important;
-  overflow:hidden!important;
+  display:block!important;
+  box-sizing:border-box!important;
+  min-width:0!important;
+  max-width:100%!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  aspect-ratio:3 / 2!important;
+  border:2px solid #534c47!important;
+  border-radius:0!important;
+  background:#24201e!important;
+  box-shadow:inset 0 0 0 1px #0c0c0c!important;
+  outline-offset:3px!important;
+  overflow:visible!important;
   counter-increment:lwa-film-frame;
 }
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview{
-  appearance:none!important;cursor:zoom-in!important;
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview {
+  appearance:none!important;
+  cursor:zoom-in!important;
 }
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview img{
-  display:block!important;position:relative!important;
-  width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;
-  object-fit:cover!important;object-position:center center!important;
-  border:0!important;border-radius:0!important;
-  filter:none!important;transform:none!important;
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview img {
+  display:block!important;
+  position:relative!important;
+  inset:auto!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  object-position:center 43%!important;
+  border:0!important;
+  border-radius:0!important;
+  filter:none!important;
+  transform:none!important;
 }
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview::after{
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview::after {
   content:counter(lwa-film-frame)!important;
-  position:absolute!important;z-index:2!important;right:3px!important;bottom:3px!important;
-  color:#fff7c1!important;background:#1119!important;
-  padding:2px 3px!important;
-  font:700 8px/1.1 ui-monospace,monospace!important;
-  text-shadow:0 1px 1px #000!important;pointer-events:none!important;
+  position:absolute!important;
+  z-index:3!important;
+  bottom:-13px!important;right:0!important;
+  padding:0!important;
+  background:transparent!important;
+  color:#aaa093!important;
+  text-shadow:none!important;
+  font:600 8px/1 ui-monospace,SFMono-Regular,monospace!important;
+  pointer-events:none!important;
 }
-/* Pending photos keep a readable placeholder instead of looking like published frames. */
 #studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-empty,
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-needs-sync{
-  display:grid!important;place-items:center!important;
-  background:#3c3936!important;color:#fff7e5!important;
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-needs-sync {
+  display:grid!important;
+  place-items:center!important;
   border-style:dashed!important;
   padding:8px!important;
-  font:700 10px/1.3 system-ui!important;text-align:center!important;
+  color:#b8ad9f!important;
+  font:600 10px/1.3 system-ui!important;
+  text-align:center!important;
 }
-#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview:focus-visible{
-  outline:3px solid #f3d16e!important;outline-offset:3px!important;
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview:focus-visible {
+  outline:3px solid #e8b45c!important;
 }
-@media(max-width:680px){
- #studioApp #biglwaFeedHero .biglwa-feed-hero-grid{
-   gap:5px!important;padding:22px 6px!important;
- }
- #studioApp #biglwaFeedHero .biglwa-feed-hero-grid>:is(button,.biglwa-feed-hero-empty,.biglwa-feed-needs-sync,span,div){
-   border-width:2px!important;
- }
- #studioApp #biglwaFeedHero .biglwa-feed-hero-grid::before,
- #studioApp #biglwaFeedHero .biglwa-feed-hero-grid::after{
-   background-size:21px 13px!important;
- }
+#studioApp #biglwaFeedHero .biglwa-feed-resync {
+  margin:5px 12px 10px!important;
+}
+#studioApp #biglwaFeedHero .biglwa-feed-sync-note {
+  display:block!important;
+  margin:0 12px 12px!important;
+  color:#cabba7!important;
+}
+@media(max-width:600px){
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-head {
+    padding:9px 10px 5px!important;
+  }
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-head h3 {
+    font-size:11px!important;
+  }
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-head span {
+    font-size:8px!important;
+  }
+  /* Keep four apertures on a single film strip with swipe scrolling, not a
+     visually unrelated 2x2 pile or illegible 40px thumbnails. */
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-grid,
+  #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid {
+    grid-auto-flow:column!important;
+    grid-template-columns:none!important;
+    grid-auto-columns:minmax(135px,40%)!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    gap:6px!important;
+    padding:19px 10px 20px!important;
+    scrollbar-width:thin!important;
+    scroll-snap-type:x proximity!important;
+  }
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview {
+    scroll-snap-align:start!important;
+  }
 }
 @media(prefers-reduced-motion:reduce){
- #studioApp #biglwaFeedHero .biglwa-feed-hero-grid>*{transition:none!important;}
+  #studioApp #biglwaFeedHero .biglwa-feed-hero-grid>*{transition:none!important}
 }
