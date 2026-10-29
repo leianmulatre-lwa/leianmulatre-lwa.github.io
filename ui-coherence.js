@@ -108,7 +108,7 @@
       applyStudioOrder(app,order&&Object.keys(order).length?order:null);
       // Restore saved free-grid coordinates, if the member has placed cards.
       const slots=saved?.positions&&typeof saved.positions==='object'?saved.positions:{};
-      $('.masonry [data-widget-id]',app).forEach(el=>{
+      $$('.masonry [data-widget-id]',app).forEach(el=>{
         const pos=String(slots[el.dataset.widgetId]||'');
         if(/^\d+:\d+$/.test(pos)){
           const [row,col]=pos.split(':').map(Number);
@@ -1330,7 +1330,7 @@
     });
     window.dispatchEvent(new Event('biglwa:studio-collapse-applied'));
     const positions=layout.positions&&typeof layout.positions==='object'?layout.positions:{};
-    $('.masonry [data-widget-id]',app).forEach(widget=>{
+    $$('.masonry [data-widget-id]',app).forEach(widget=>{
       const pos=String(positions[widget.dataset.widgetId]||'');
       if(/^\d+:\d+$/.test(pos)){
         const [row,col]=pos.split(':').map(Number);
