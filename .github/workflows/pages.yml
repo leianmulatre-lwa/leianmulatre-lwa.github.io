@@ -42,7 +42,9 @@ jobs:
       - name: Verify login laptop loads before its programmed cartoon
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node login-laptop-floating-preview-test.mjs
       - name: Verify original toolbar startup, docking, shortcut dragging and recovery
-        run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
+        run: |
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-spatial-machine-test.mjs
       - name: Verify Studio tipi, active widget mark and last-view restore
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-tipi-last-view-test.mjs
       - name: Verify owned TikTok import assets and isolation
