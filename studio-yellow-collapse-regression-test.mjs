@@ -62,7 +62,7 @@ assert.equal(saveCount,3,'Explicit yellow click writes; startup does not');
 assert.equal(legacyYellow,0);
 assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]"),'Canonical account snapshot saves collapsed IDs');
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
-assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261026-1'),'Script included in actual Studio');
+assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261029-universal-1'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
 
 /* Verify the two NEW cabinet widgets specifically. Their live content is
@@ -103,6 +103,19 @@ assert(lwaziSource.includes('aria-hidden'),'Repeated carousel tiles do not doubl
 assert(lwaziSource.includes("window.openBIGLWAModule"),'Workshop keeps its existing app router');
 // Flush one animation frame: the Studio MutationObserver schedules header sync
 // after the test inserts the Games and Lwazi fixtures.
+// A widget that lacks recognizable heading markup must STILL collapse in place.
+const headerless=doc.createElement('article');
+headerless.className='card';headerless.id='headerless';headerless.dataset.widgetId='headerless';
+headerless.dataset.widgetLabel='headless demo';
+headerless.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="headerless">Yellow</button></div><section class="unexpected-body">Loaded content</section>';
+masonry.append(headerless);
+headerless.querySelector('.window-light.yellow').click();
+assert(headerless.classList.contains('studio-header-only'),'Missing headings use a safe fallback and stay put');
+assert(!headerless.classList.contains('widget-is-minimized'),'Missing headings never fall through to red dock');
+assert(headerless.querySelector('.studio-collapse-fallback'),'A compact accessible header is created without removing content');
+assert.equal(headerless.parentElement,masonry);
+assert(read('index.html').includes('studio-spatial-drag-20261029.js?v=20261029-1'),'Free-position drag handler loads on Studio');
+
 await new Promise(resolve=>setTimeout(resolve,120));
 dom.window.close();
 console.log('PASS: yellow header-only toggle and account save; green/red/drag/image unaffected');
