@@ -27,10 +27,39 @@ assert(masonry.classList.contains('biglwa-free-layout'),'Free-grid layout activa
 assert(!d.querySelector('.biglwa-spatial-ghost'),'Temporary ghost is cleaned up');
 assert(!d.querySelector('.biglwa-spatial-tail'),'Trailing drop zone is cleaned up');
 assert.equal([...masonry.querySelectorAll('[data-widget-id]')].length,2,'Both widgets remain mounted');
+
+/* Regression: a collapsed Map must not leave the next card stranded below
+   a tall Archive card in another column (Pinterest-style independent stacks). */
+const map=d.createElement('article'),feed=d.createElement('article');
+map.className='card';map.dataset.widgetId='map';map.dataset.biglwaGridPosition='1:3';
+map.innerHTML='<button class="window-light yellow">Minimize map</button><p>Map content</p>';
+feed.className='card';feed.dataset.widgetId='myfeed';feed.dataset.biglwaGridPosition='2:3';
+feed.innerHTML='<h2>MyFeed</h2><p>Feed content preserved</p>';
+map.getBoundingClientRect=()=>rect(435,20,200,map.classList.contains('studio-header-only')?56:296);
+feed.getBoundingClientRect=()=>rect(435,338,200,126);
+masonry.append(map,feed);
+await new Promise(resolve=>setTimeout(resolve,65));
+const feedBefore=Number(feed.style.gridRowStart);
+assert(feedBefore>50,'Tall Map initially pushes only its own column down');
+map.classList.add('studio-header-only');
+await new Promise(resolve=>setTimeout(resolve,65));
+const feedAfter=Number(feed.style.gridRowStart);
+assert(feedAfter>1&&feedAfter<feedBefore,'Minimizing Map pulls MyFeed up in the same Pinterest column');
+assert.equal(map.dataset.biglwaGridPosition,'1:3','Map keeps its saved spatial position');
+assert.equal(feed.dataset.biglwaGridPosition,'2:3','Following widget keeps its slot and content');
+assert.equal(feed.parentElement,masonry,'No remount or reparenting breaks widget integrations');
+assert(feed.querySelector('h2')?.textContent==='MyFeed');
+map.classList.remove('studio-header-only');
+await new Promise(resolve=>setTimeout(resolve,65));
+assert(Number(feed.style.gridRowStart)>feedAfter,'Restoring Map re-expands only the affected column');
+const css=read('studio-spatial-drag-20261029.css');
+assert(css.includes('grid-auto-rows:4px!important'),'Pinterest sizing uses fine-grained independent row spans');
+assert(!css.includes('grid-auto-rows:minmax(86px,auto)'),'Tall global-row layout cannot return');
+
 assert.match(read('ui-coherence.js'),/positions:Object\.fromEntries/,'Canonical account layout persists grid slots');
 assert.match(read('ui-coherence.js'),/const positions=layout\.positions/,'Cloud account rehydrate restores slots');
 const index=read('index.html');
-assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-1'));
+assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-pinterest-masonry-2'));
 assert(index.includes('studio-machine-pages-20261029.css?v=20261029-1'));
 assert(!read('tools-craft.js').includes('<h2>your werkshopeR</h2>'),'Old Lwazi hero is removed');
 assert(read('tools-craft.js').includes('class="craft-folder-front"'),'Lwazi folder face replaces it');
