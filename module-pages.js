@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261028-archive-sources-3';
+        script.src = '/module-pages.js?v=20261028-source-aware-refresh-3';
         document.head.appendChild(script);
       }, 250);
     }
