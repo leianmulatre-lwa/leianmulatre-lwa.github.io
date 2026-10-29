@@ -33,7 +33,7 @@ const index=read('index.html');
 assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-1'));
 assert(index.includes('studio-machine-pages-20261029.css?v=20261029-1'));
 assert(!read('tools-craft.js').includes('<h2>your werkshopeR</h2>'),'Old Lwazi hero is removed');
-assert(read('tools-craft.js').includes('class="craft-machine-face"'),'Lwazi folder face replaces it');
+assert(read('tools-craft.js').includes('class="craft-folder-front"'),'Lwazi folder face replaces it');
 assert(read('studio-machine-pages-20261029.css').includes('module-arcade-folder-depth'),'Games cabinet is re-skinned');
 dom.window.close();
 console.log('PASS new Studio spatial drag into empty row, clean lifecycle, saved cloud layout, shared Lwazi/Games machine skin');
