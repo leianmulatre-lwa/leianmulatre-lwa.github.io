@@ -32,7 +32,7 @@ assert.equal([...masonry.querySelectorAll('[data-widget-id]')].length,2,'Both wi
    a tall Archive card in another column (Pinterest-style independent stacks). */
 const map=d.createElement('article'),feed=d.createElement('article');
 map.className='card';map.dataset.widgetId='map';map.dataset.biglwaGridPosition='1:3';
-map.innerHTML='<button class="window-light yellow">Minimize map</button><p>Map content</p>';
+map.innerHTML='<button data-studio-drag-handle>Drag map</button><button class="window-light yellow">Minimize map</button><p>Map content</p>';
 feed.className='card';feed.dataset.widgetId='myfeed';feed.dataset.biglwaGridPosition='2:3';
 feed.innerHTML='<h2>MyFeed</h2><p>Feed content preserved</p>';
 map.getBoundingClientRect=()=>rect(435,20,200,map.classList.contains('studio-header-only')?56:296);
@@ -58,7 +58,7 @@ assert(parseFloat(feed.style.top)>=296+14&&parseFloat(feed.style.top)>feedAfter,
 let movedNodes=0;
 const origAppend=masonry.appendChild.bind(masonry);
 masonry.appendChild=child=>{movedNodes++;return origAppend(child)};
-const handleMap=map.querySelector('button');
+const handleMap=map.querySelector('[data-studio-drag-handle]');
 const event=(kind,x,y,target=handleMap)=>target.dispatchEvent(new w.MouseEvent(kind,{bubbles:true,button:0,clientX:x,clientY:y}));
 event('pointerdown',443,31);
 const ghost=d.querySelector('.biglwa-spatial-ghost'),target=d.querySelector('.biglwa-spatial-target');
