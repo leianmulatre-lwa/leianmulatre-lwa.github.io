@@ -1017,7 +1017,14 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function syncTrophyCard(){
     const preview=$('#trophyPreview'),card=$('#trophies');if(!preview||!card)return;
     const items=readTrophies();
-    preview.innerHTML=items.length?`<div class="trophy-preview-count">${items.length} ${items.length===1?'entry':'entries'} saved</div>${items.slice(0,3).map(item=>{const kind=trophyKindValue(item.kind);return `<div class="trophy-preview-item kind-${kind}"><span class="trophy-preview-dot" aria-hidden="true"></span><b>${esc(item.title)}</b><small>${esc(trophyKinds[kind])}</small></div>`}).join('')}`:`<div class="trophy-preview-empty"><span class="trophy-preview-mark" aria-hidden="true">★</span><b>No trophies yet</b><small>Add your first award, finish, record, or milestone.</small></div>`;
+    // Preserve the Minecraft achievement thumbnail: only redraw optional saved entries.
+    // Empty account state intentionally has no "No trophies yet" box under the image.
+    preview.querySelectorAll('.trophy-preview-count,.trophy-preview-item,.trophy-preview-empty').forEach(el=>el.remove());
+    if(items.length){
+      const holder=document.createElement('div');
+      holder.innerHTML=`<div class="trophy-preview-count">${items.length} ${items.length===1?'entry':'entries'} saved</div>${items.slice(0,3).map(item=>{const kind=trophyKindValue(item.kind);return `<div class="trophy-preview-item kind-${kind}"><span class="trophy-preview-dot" aria-hidden="true"></span><b>${esc(item.title)}</b><small>${esc(trophyKinds[kind])}</small></div>`}).join('')}`;
+      preview.append(...holder.children);
+    }
   }
 
   function renderCollection(key, fields, sample=[]){
@@ -3466,10 +3473,43 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   }
 
   function renderTrophies(){
-    body.innerHTML=heading('trophies')+`<div class="module-grid trophy-page-grid"><section class="module-card"><h2 id="trophyFormTitle">Add to your trophy case</h2><p>Everything is optional except the title. Add an Athletic.net page or another public result link when you want proof attached.</p><form class="module-form" id="trophyForm"><input type="hidden" name="editIndex" id="trophyEditIndex"><div class="trophy-form-grid"><label class="trophy-field full"><span>Title</span><input class="module-input" name="title" placeholder="Award, credential, race, achievement, or milestone" required></label><label class="trophy-field"><span>Type</span><select class="module-select" name="kind"><optgroup label="Recognition"><option value="award">Award</option><option value="honor">Honor / distinction</option><option value="scholarship">Scholarship / fellowship</option></optgroup><optgroup label="Education &amp; credentials"><option value="license">License</option><option value="certification">Certification</option><option value="diploma">Diploma</option><option value="degree">Degree</option><option value="ged">GED / equivalency</option></optgroup><optgroup label="Milestones &amp; athletics"><option value="achievement">Achievement</option><option value="milestone">Personal milestone</option><option value="record">Record / personal best</option><option value="race">Race / marathon</option><option value="athletic-result">Athletic result</option></optgroup></select></label><label class="trophy-field"><span>Month &amp; year</span><input class="module-input" name="date" type="month" placeholder="YYYY-MM"></label><label class="trophy-field full"><span>Organization or event</span><input class="module-input" name="organization" placeholder="School, licensing body, race, league, workplace, or presenter"></label><label class="trophy-field full"><span>Result or details</span><input class="module-input" name="result" placeholder="Credential, finish time, placement, distinction, or note"></label><label class="trophy-field full"><span>Result or proof link</span><input class="module-input" name="url" inputmode="url" placeholder="https://www.athletic.net/… or another public page"></label></div><div class="module-actions"><button class="module-action" id="trophySave" type="submit">Save trophy</button><button class="module-action ghost" id="trophyCancel" type="button" hidden>Cancel edit</button></div><div class="module-status" id="trophyStatus" role="status" aria-live="polite"></div></form></section><section class="module-card trophy-display-case"><h2>Trophy case</h2><p>Follow your Real Rank inside the case, alongside awards, finishes, and milestones you save.</p><div id="trophyAchievementMap"></div><div class="trophy-list" id="trophyList">${trophyEntriesMarkup(readTrophies())}</div></section></div>`;
+    body.innerHTML=heading('trophies')+`<section class="trophy-version-pane" id="trophyRankVersion" data-trophy-version-pane="rank" role="tabpanel" aria-labelledby="trophyRankVersionButton"><section class="module-card trophy-rank-panel"><h2>Real Rank</h2><p>Explore your BIG LWA rank journey. Locked ranks are shown as goals, not earned achievements.</p><div id="trophyAchievementMap"></div></section></section><div class="module-grid trophy-page-grid trophy-case-version trophy-version-pane" id="trophyCaseVersion" data-trophy-version-pane="case" role="tabpanel" aria-labelledby="trophyCaseVersionButton" hidden>`<section class="module-card"><h2 id="trophyFormTitle">Add to your trophy case</h2><p>Everything is optional except the title. Add an Athletic.net page or another public result link when you want proof attached.</p><form class="module-form" id="trophyForm"><input type="hidden" name="editIndex" id="trophyEditIndex"><div class="trophy-form-grid"><label class="trophy-field full"><span>Title</span><input class="module-input" name="title" placeholder="Award, credential, race, achievement, or milestone" required></label><label class="trophy-field"><span>Type</span><select class="module-select" name="kind"><optgroup label="Recognition"><option value="award">Award</option><option value="honor">Honor / distinction</option><option value="scholarship">Scholarship / fellowship</option></optgroup><optgroup label="Education &amp; credentials"><option value="license">License</option><option value="certification">Certification</option><option value="diploma">Diploma</option><option value="degree">Degree</option><option value="ged">GED / equivalency</option></optgroup><optgroup label="Milestones &amp; athletics"><option value="achievement">Achievement</option><option value="milestone">Personal milestone</option><option value="record">Record / personal best</option><option value="race">Race / marathon</option><option value="athletic-result">Athletic result</option></optgroup></select></label><label class="trophy-field"><span>Month &amp; year</span><input class="module-input" name="date" type="month" placeholder="YYYY-MM"></label><label class="trophy-field full"><span>Organization or event</span><input class="module-input" name="organization" placeholder="School, licensing body, race, league, workplace, or presenter"></label><label class="trophy-field full"><span>Result or details</span><input class="module-input" name="result" placeholder="Credential, finish time, placement, distinction, or note"></label><label class="trophy-field full"><span>Result or proof link</span><input class="module-input" name="url" inputmode="url" placeholder="https://www.athletic.net/… or another public page"></label></div><div class="module-actions"><button class="module-action" id="trophySave" type="submit">Save trophy</button><button class="module-action ghost" id="trophyCancel" type="button" hidden>Cancel edit</button></div><div class="module-status" id="trophyStatus" role="status" aria-live="polite"></div></form></section><section class="module-card trophy-display-case"><h2>Trophy Case</h2><p>Keep your awards, finishes, and milestones here. Saved trophies remain separate from your Real Rank.</p><div class="trophy-list" id="trophyList">${trophyEntriesMarkup(readTrophies())}</div></section></div>`;
     const form=$('#trophyForm',body),list=$('#trophyList',body),status=$('#trophyStatus',body),editField=$('#trophyEditIndex',body),saveButton=$('#trophySave',body),cancelButton=$('#trophyCancel',body),formTitle=$('#trophyFormTitle',body);
-    const draw=()=>{list.innerHTML=trophyEntriesMarkup(readTrophies());window.BigLWATrophyMap?.mount(document.getElementById('trophyAchievementMap'),readTrophies())};
-    draw();
+    const rankPane=$('#trophyRankVersion',body),casePane=$('#trophyCaseVersion',body),headingRoot=$('.module-heading',body);
+    let versionRight=$('.module-heading-right',headingRoot);
+    if(!versionRight){
+      versionRight=document.createElement('div');versionRight.className='module-heading-right module-version-right';
+      const bottom=$('.module-heading-bottom',headingRoot);
+      if(bottom)headingRoot.insertBefore(versionRight,bottom);else headingRoot.append(versionRight);
+    }
+    const versionTabs=document.createElement('nav');
+    versionTabs.className='module-heading-versions trophy-heading-versions';
+    versionTabs.setAttribute('aria-label','Trophies page versions');
+    const tabs=[['rank','Real Rank','trophyRankVersionButton'],['case','Trophy Case','trophyCaseVersionButton']];
+    for(const [mode,label,id] of tabs){
+      const button=document.createElement('button');button.id=id;button.type='button';button.textContent=label;
+      button.dataset.trophyVersion=mode;button.setAttribute('aria-controls',mode==='rank'?'trophyRankVersion':'trophyCaseVersion');
+      versionTabs.append(button);
+    }
+    versionRight.prepend(versionTabs);
+    headingRoot.classList.add('module-heading--with-versions','module-heading--single-line');
+    const draw=()=>{
+      const items=readTrophies();list.innerHTML=trophyEntriesMarkup(items);
+      if(!rankPane.hidden)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),items);
+    };
+    const setVersion=mode=>{
+      const rank=mode==='rank';
+      rankPane.hidden=!rank;casePane.hidden=rank;
+      versionTabs.querySelectorAll('[data-trophy-version]').forEach(button=>{
+        const active=button.dataset.trophyVersion===mode;
+        button.setAttribute('aria-pressed',String(active));button.classList.toggle('is-active',active);
+      });
+      if(rank)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),readTrophies());
+    };
+    versionTabs.addEventListener('click',event=>{
+      const button=event.target.closest('[data-trophy-version]');if(button)setVersion(button.dataset.trophyVersion);
+    });
+    draw();setVersion('rank');
     const leaveEdit=()=>{form.reset();editField.value='';saveButton.textContent='Save trophy';cancelButton.hidden=true;formTitle.textContent='Add to your trophy case'};
     form.addEventListener('submit',event=>{
       event.preventDefault();const fd=new FormData(form),title=String(fd.get('title')||'').trim();
