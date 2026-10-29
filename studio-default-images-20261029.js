@@ -6,7 +6,7 @@
  window.__biglwaStudioDefaultImages20261029=true;
  const base='/assets/studio-defaults/';
  const images={
-  archive:base+'archive-windows-hill.webp',
+  archive:base+'archive-windows-hill.webp?v=20261029-win-default-2',
   visualizr:base+'visualizr-stick-animation.webp',
   map:base+'map-bikini-bottom-fallback.webp',
   trophy:base+'trophy-achievement-made.webp'
@@ -18,12 +18,15 @@
  };
  function archive(){
   const card=$('#studioApp #archive'),slot=card?.querySelector('.archive-photo-preview');
-  if(!slot||slot.dataset.biglwaDefault20261029==='1')return;
+  if(!slot)return;
+  // Never replace a custom member thumbnail, but repair an out-of-date
+  // built-in thumbnail even when Studio marked its old default as complete.
   let img=slot.querySelector('img');
   if(img){
    const source=img.getAttribute('src')||'';
+   if(source===images.archive&&slot.dataset.biglwaDefault20261029==='1')return;
    // Never replace member-provided media or a cloud-uploaded custom cover.
-   if(!/^(?:\/|\.\/)?(?:archive\/)?assets\/|(?:archive|polaroid|default|placeholder|sample)[\w/-]*\.(?:jpe?g|png|webp)/i.test(source))return;
+   if(!(/^data:image\/jpeg;base64,/.test(source)||/^(?:\/|\.\/)?(?:archive\/)?assets\/|(?:archive|polaroid|default|placeholder|sample)[\w/-]*\.(?:jpe?g|png|webp)(?:\?[^#]*)?/i.test(source)))return;
    img.src=images.archive;
   }else img=make(images.archive,'Green hillside under the classic blue Windows sky','biglwa-windows-archive-photo');
   img.classList.add('biglwa-windows-archive-photo');
