@@ -119,8 +119,8 @@ export async function mountCraftSuite(root){
      '</aside>'+
     '</div>'+
    '</div>'+
+   '<div class="craft-toolbar" aria-label="Workshop stages"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
   '</header>'+
-  '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
   '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+WEB_FRIENDLY.map(webAppCard).join('')+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
   '<section class="craft-account-vault" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
