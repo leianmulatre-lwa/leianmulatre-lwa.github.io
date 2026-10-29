@@ -23,7 +23,7 @@ assert(css.includes('background:repeating-linear-gradient(90deg,')&&css.includes
 assert(css.includes('aspect-ratio:3 / 2!important'),'Four photo apertures retain consistent landscape proportions');
 assert(css.includes('pointer-events:none!important'),'Decorative perforations never block clicks');
 assert(css.includes('.biglwa-feed-hero-preview:focus-visible'),'Keyboard users can see active thumbnails');
-assert(feed.includes("const storedPosts=previewPosts.filter(post=>heroPhotoUrl(post))")&&feed.includes('const HERO_SLOTS = 4'),'Four photo-only slots exclude video posters');
+assert(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post))")&&feed.includes('const HERO_SLOTS = 4'),'Four photo-only slots exclude video posters');
 assert(feed.includes('openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)))'),'Filmstrip photo opens at the selected frame in the existing lightbox');
 assert(index.includes('account-boot.js?v=20261029-film-shuffle-3'),'Fresh account bootstrap on the live site');
 assert(read('account-boot.js').includes('feed-view.js?v=20261029-owned-photo-shuffle-3'),'Feed module cache version changes');
