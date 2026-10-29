@@ -2392,7 +2392,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
       {title:'2048',image:'/assets/arcade/2048.svg',href:location.origin+'/arcade-puzzles.html?game=2048'},
       {title:'mini crossword',image:'/assets/arcade/crossword.svg',href:location.origin+'/arcade-puzzles.html?game=crossword'},
-      {title:'8 Ball Pool',image:'/assets/arcade/miniclip-pool-20261029.svg',href:'https://8ballpool.com/game',launch:'external',provider:'Miniclip'},
+      {title:'8 Ball Pool',image:'/assets/arcade/miniclip-pool-20261029.svg',href:'https://8ballpool.com/',launch:'external',provider:'Miniclip'},
       {title:'Agar.io',image:'/assets/arcade/miniclip-agar-20261029.svg',href:'https://agar.io/',launch:'external',provider:'Miniclip'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://poki.com/en/g/sugar-sugar-html5'},
@@ -2423,7 +2423,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>'+(game.launch==='external'?'Official game →':'Play in screen')+'</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Original site ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><div class="module-arcade-folder-depth"><span class="module-arcade-wordmark" aria-hidden="true">ARCADE</span><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Play local games or load a saved Flash file inside this cabinet. Original-site entries may restrict embedding; in-site alternatives are always available.</div></section>'+
+        '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><span id="arcadeEmulatorTitle" hidden>choose a game</span><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Play local games or load a saved Flash file inside this cabinet. Original-site entries may restrict embedding; in-site alternatives are always available.</div></section>'+
         '<section class="module-card module-game-directory wide"><details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle"><span>all games</span><small>'+gameLibrary.length+' titles · expand or collapse</small><span class="arcade-directory-chevron" aria-hidden="true">⌄</span></summary><p>Local games and the Flash player run here. Every game is first tried inside the cabinet. Some providers refuse embedded browsing; the original then opens in a separate tab.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></details></section>'+
         '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
         '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
@@ -2441,7 +2441,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const companion=document.createElement('aside');
       companion.className='biglwa-game-avatar-sidecar';
       companion.setAttribute('aria-label','Your interactive Arcade character and Aura');
-      companion.innerHTML='<div class="biglwa-game-avatar-titlebar"><span>Your character</span><span class="biglwa-sidecar-window-buttons" aria-hidden="true">▁ □ ×</span></div>'+
+      companion.innerHTML='<div class="biglwa-game-avatar-titlebar"><span>Your character</span><span class="biglwa-sidecar-window-buttons" aria-hidden="true"><i class="retro-window-min">_</i><i class="retro-window-max">□</i><i class="retro-window-close-mark">×</i></span></div>'+
         '<div class="biglwa-game-aura-stage"><div class="biglwa-game-aura-wiggle" aria-hidden="true"></div><div class="biglwa-game-avatar-live" id="biglwaGameAvatarLive" aria-label="Your Arcade avatar preview"><span class="biglwa-game-avatar-placeholder" aria-hidden="true">◉</span></div></div>'+
         '<div class="biglwa-game-avatar-actions"><button type="button" data-game-avatar-edit>Edit in Studio Avatar ↗</button><button type="button" data-game-avatar-rotate aria-label="Rotate avatar preview">↻ rotate</button></div>';
       const identity=$('#biglwaArcadePlayer',gameStage);
@@ -2682,7 +2682,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(framed.origin===location.origin){
         if(['/arcade-puzzles.html','/arcade/local.html'].includes(framed.pathname))
           framed.searchParams.set('embed','1');
-        framed.searchParams.set('release','20261018-arcade-input-3');
+        framed.searchParams.set('release','20261029-arcade-keyboard-4');
       }
       frame.src=framed.href;
       frame.tabIndex=0;
@@ -2753,10 +2753,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // If the Arcade cabinet has focus while its frame is not focused, arrow
     // keys must still reach 2048/Snake instead of scrolling the page.
     // No key forwarding to third-party frames or while typing elsewhere.
-    document.addEventListener('keydown',ev=>{
+    window.addEventListener('keydown',ev=>{
       if(!emulatorScreen.isConnected||!emulatorScreen.classList.contains('is-embed')
          ||workspace.dataset.moduleKey!=='games'
          ||ev.target?.closest?.('input,textarea,[contenteditable="true"]'))return;
+      if(ev.ctrlKey||ev.altKey||ev.metaKey)return;
       const key=ev.key,playing=emulatorScreen.querySelector('iframe');
       if(!playing||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d','W','A','S','D'].includes(key))return;
       let origin;
