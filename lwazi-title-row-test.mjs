@@ -20,6 +20,10 @@ assert.doesNotMatch(craft,/\{id:'bookini',name:'bookini'/,'Bookini is no longer 
 assert.match(craft,/Two BIG LWA originals and four advanced R-editors/,'Workshop count reflects two original apps plus four R-series editors');
 assert.match(craft,/function weeklyBlock\(\)/,'Lwazi deterministically rotates its weekly featured block');
 assert.match(craft,/data-craft-weekly/,'Featured block is a functional launch target');
+assert.doesNotMatch(craft, /<div class="craft-folder-back"/,'No extra backing element can protrude around folder corners');
+assert.match(read('tools-craft.css'), /R\/Lwazi folder seam refinement/,'Folder seam override is present');
+assert.match(read('tools-craft.css'), /box-shadow:0 7px 0 #641e33/,'Folder depth has no sideways overshoot');
+assert.match(read('tools-craft.css'), /craft-folder-tab::after/,'Top tab joins the folder face cleanly');
 assert.match(craft,/craft-block-alt/,'Cards render the smaller alternate coded block');
 assert.match(craft,/data-craft-card/,'Existing editor selection is retained');
 assert.match(craft,/Source & notices/,'Technical notices remain available without former identities in the main UX');
