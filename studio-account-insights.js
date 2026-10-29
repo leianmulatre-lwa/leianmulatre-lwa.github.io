@@ -104,9 +104,10 @@
     // Monthly views are reach. Pinterest publishes monthly_views directly; the
     // public TikTok tracker exposes its own monthly statistic for the same window.
     const monthlyViews=number(record.stats?.monthlyViews??record.monthlyViews);
+    const monthlyInteractions=number(record.stats?.monthlyInteractions??record.monthlyInteractions);
     const monthlyStat=externalMine?number(external.monthlyStat):null;
     const monthlyStatLabel=externalMine?String(external.monthlyStatLabel||''):'';
-    rows.push({id,followers:value,likes:receivedLikes,monthlyViews,monthlyStat,monthlyStatLabel,
+    rows.push({id,followers:value,likes:receivedLikes,monthlyViews,monthlyInteractions,monthlyStat,monthlyStatLabel,
       lastCheckedAt:observedAt,reach:monthlyReach,
       handle,username,accountKey,sourceUserId,link:record.link||'',metric,
       displayName:id==='facebook'?String(record.name||record.displayName||'').trim().slice(0,75):'',
@@ -294,7 +295,7 @@
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=value==null?'Not supplied':metricFormat(metricKinds[key],value);if(node.textContent!==text)node.textContent=text}
   const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Likes are cumulative provider counts. Reach includes an explicit monthly reach metric, monthly views, and the TikTok monthly tracker statistic; other per-video views and engagement estimates are not treated as monthly reach. Other sources are unavailable, not zero.';
   const list=q('.analytics-sources',host);
-  const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.displayName,r.followers,r.likes,r.monthlyViews,r.monthlyStat,r.monthlyStatLabel,r.reach,r.lastCheckedAt]));
+  const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.displayName,r.followers,r.likes,r.monthlyViews,r.monthlyInteractions,r.monthlyStat,r.monthlyStatLabel,r.reach,r.lastCheckedAt]));
   if(list.dataset.snapshot!==signature){
     list.dataset.snapshot=signature;list.replaceChildren();
     for(const row of rows){
@@ -307,7 +308,8 @@
       title.textContent=row.id.charAt(0).toUpperCase()+row.id.slice(1)+(row.handle?' · @'+row.handle:row.displayName?' · '+row.displayName:'');
       const segments=[metricFormat('followers',row.followers)+' '+(row.metric||'followers')];
       if(row.likes!=null)segments.push(metricFormat('likes',row.likes)+' likes');
-      if(number(row.monthlyViews)!=null)segments.push(metricFormat('reach',row.monthlyViews)+' monthly views · reach');
+      if(number(row.monthlyViews)!=null)segments.push(metricFormat('reach',row.monthlyViews)+' monthly views'+(row.id==='instagram'?' · Meta':' · reach'));
+      if(number(row.monthlyInteractions)!=null)segments.push(metricFormat('count',row.monthlyInteractions)+' month-to-date interactions');
       if(number(row.monthlyStat)!=null){
         const label=/avg\s*likes/i.test(String(row.monthlyStatLabel||''))?'TikTok avg likes/mo':
           (String(row.monthlyStatLabel||'').trim()||'monthly tracker stat');
@@ -334,7 +336,7 @@
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
   const month=monthOf(Date.now()),previous=overview.analyticsMonths?.[month]?.sources||[];
-  const snapshot={sources:sources().map(({id,handle,displayName,username,accountKey,sourceUserId,followers,likes,monthlyViews,monthlyStat,monthlyStatLabel,lastCheckedAt,reach})=>{
+  const snapshot={sources:sources().map(({id,handle,displayName,username,accountKey,sourceUserId,followers,likes,monthlyViews,monthlyInteractions,monthlyStat,monthlyStatLabel,lastCheckedAt,reach})=>{
     const old=previous.find(item=>item.id===id&&(
       (accountKey&&item.accountKey&&accountKey===item.accountKey)||
       (handle&&item.handle&&String(item.handle).toLowerCase()===handle.toLowerCase())));
@@ -342,6 +344,7 @@
       ?{month,metric:'reach',value:Number(value.value)}:null;
     return {id,handle,displayName,accountKey,username:username||cleanHandle(old?.username)||handle,followers,
       likes:likes??number(old?.likes),monthlyViews:monthlyViews??number(old?.monthlyViews),
+      monthlyInteractions:monthlyInteractions??number(old?.monthlyInteractions),
       monthlyStat:monthlyStat??number(old?.monthlyStat),monthlyStatLabel:monthlyStatLabel||old?.monthlyStatLabel||'',lastCheckedAt,
       reach:validReach(reach)||validReach(old?.reach)};
   }),connections:Object.keys(overview.peopleConnections||{}).length};
