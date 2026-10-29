@@ -17,6 +17,10 @@ const q=s=>w.document.querySelector(s);
 const click=s=>{assert(q(s),'Missing '+s);q(s).click()};
 assert.equal(q('#mobileCreate').textContent,'✺veve');
 assert(!q('#studioSidebarAvailableDock [data-sidebar-route-row="veve"]')&&!q('#studioSidebarShortcutDock [data-sidebar-route-row="veve"]'),'Veve stays in permanent top/hero shortcut only');
+assert(source.includes('#studioApp #studioSidebarShortcuts .sidebar-navigation-row::after{content:none!important;display:none!important}'),
+  'Yellow shortcut destinations have no decorative red dots');
+assert(source.includes('#studioApp #studioSidebarRest .sidebar-navigation-row.is-available.is-disconnected::after'),
+  'Only explicitly removed destinations fill the red-section dot');
 assert(q('[data-dock-widget="projects"]'));
 click('[data-dock-widget="projects"]');
 assert(q('#projects').classList.contains('widget-is-minimized'));
@@ -74,9 +78,20 @@ const drag=(key,target)=>{
 };
 drag(initial[0],'#studioSidebarRest');
 assert.deepEqual(ids(w),initial.slice(1),'Dragging yellow to red disconnects shortcut');
+const disconnectedRow=q('#studioSidebarAvailableDock [data-sidebar-route-row="'+initial[0]+'"]');
+assert(disconnectedRow?.classList.contains('is-disconnected'),
+  'Removed yellow destination is shown as a filled red indicator in available section');
+assert(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).disconnectedNavigation.includes(initial[0]),
+  'Disconnected status is saved to the member account layout');
+const untouched=q('#studioSidebarAvailableDock [data-sidebar-route-row]');
+assert(untouched,'Other unselected routes remain in available section');
 drag(initial[0],'#studioSidebarShortcutDock [data-sidebar-route-row="'+initial[2]+'"]');
 const expected=[initial[1],initial[0],...initial.slice(2)];
 assert.deepEqual(ids(w),expected,'Dragging back restores shortcut at chosen position');
+assert(!q('#studioSidebarShortcutDock [data-sidebar-route-row="'+initial[0]+'"]').classList.contains('is-disconnected'),
+  'Reconnecting clears the removed status');
+assert(!JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).disconnectedNavigation.includes(initial[0]),
+  'Reconnecting clears the persisted red dot');
 click('#saveSidebarShortcuts');
 assert.deepEqual(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).navigation,expected);
 assert.equal(q('.hero-action-bar').querySelectorAll('a').length,8,'Banner stays connected to shortcut lane');
@@ -98,7 +113,25 @@ fresh.eval(source);fresh.document.dispatchEvent(new fresh.Event('DOMContentLoade
 assert.deepEqual(ids(fresh),expected,'Fresh page restores account navigation without legacy global storage');
 assert(fresh.document.querySelector('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));
 assert.equal(fresh.document.querySelector('#mobileCreate').textContent,'✺veve');
-await new Promise(resolve=>setImmediate(resolve));reloaded.window.close();
+const lastKey=expected[expected.length-1];
+const redAtRest=fresh.document.querySelector('#studioSidebarAvailableDock [data-sidebar-route-row]');
+if(redAtRest)assert(!redAtRest.classList.contains('is-disconnected'),
+  'Untouched lower destinations keep hollow dots');
+fresh.document.querySelector('#studioSidebarShortcutDock [data-sidebar-route-row="'+lastKey+'"] [data-remove-shortcut]').click();
+assert(fresh.document.querySelector('#studioSidebarAvailableDock [data-sidebar-route-row="'+lastKey+'"]').classList.contains('is-disconnected'),
+  'Minus button sets lower red-section status as well as drag-to-red');
+const reloadRemoved=new JSDOM(html.replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi,''),{
+  url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
+const reread=reloadRemoved.window;
+reread.CSS=fresh.CSS;reread.matchMedia=fresh.matchMedia;
+reread.__biglwaIdentity={uid:'test-owner'};
+reread.HTMLElement.prototype.scrollIntoView=function(){};
+reread.localStorage.setItem('biglwaStudioLayoutV4:test-owner',
+  fresh.localStorage.getItem('biglwaStudioLayoutV4:test-owner'));
+reread.eval(source);reread.document.dispatchEvent(new reread.Event('DOMContentLoaded'));
+assert(reread.document.querySelector('#studioSidebarAvailableDock [data-sidebar-route-row="'+lastKey+'"]').classList.contains('is-disconnected'),
+  'Removed shortcut red status survives an account-scoped reload');
+await new Promise(resolve=>setImmediate(resolve));reloadRemoved.window.close();reloaded.window.close();
 // Use the real shared-heading implementation on every widget, including old inline headers.
 const headingCode=experience.slice(experience.indexOf('  function ensureCardHeadingRows(){'),experience.indexOf('  function ensureThemeAndMailboxIcons(){'));
 w.eval(`(()=>{const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];${headingCode}ensureCardHeadingRows()})()`);
