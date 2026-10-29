@@ -1,7 +1,7 @@
 const INSTAGRAM_AUTHORIZE_URL = 'https://www.instagram.com/oauth/authorize';
 const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
-const OAUTH_SCOPES = 'instagram_business_basic,instagram_business_manage_messages';
+const OAUTH_SCOPES = 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_insights';
 const SESSION_TTL = 60 * 60 * 24 * 60; // align storage with valid long-lived Instagram access tokens
 const FIREBASE_WEB_API_KEY = 'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY';
 
@@ -28,6 +28,7 @@ async function route(request, env) {
   if (url.pathname === '/session/exchange' && request.method === 'POST') return exchangeHandoff(request, env);
   if (url.pathname === '/session/account' && request.method === 'GET') return accountSession(request, env);
   if (url.pathname === '/instagram/profile' && request.method === 'GET') return proxyProfile(request, env);
+  if (url.pathname === '/instagram/insights' && request.method === 'GET') return proxyInsights(request, env);
   if (url.pathname === '/instagram/media' && request.method === 'GET') return proxyMedia(request, env);
   if (url.pathname === '/instagram/disconnect' && request.method === 'POST') return disconnect(request, env);
   if (url.pathname === '/meta/webhook') return webhook(request, env, url);
@@ -269,6 +270,34 @@ async function proxyProfile(request, env) {
      request, and album children are never used here. */
   const profile = await graph('/me', session, 'username,name,profile_picture_url,followers_count,media_count');
   return json(profile, 200, request, env);
+}
+
+// Member-only Instagram professional account insights. Never export access tokens
+// or mistake an unavailable Meta metric for a zero.
+async function proxyInsights(request, env) {
+  requireOrigin(request,env);
+  const session=await sessionFromRequest(request,env);
+  if(!session)return json({error:'Instagram session expired.'},401,request,env);
+  const now=new Date(),month=now.toISOString().slice(0,7);
+  const since=Math.floor(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),1)/1000);
+  const until=Math.floor(now.getTime()/1000);
+  const results={},errors=[];
+  // Separate requests isolate a currently unsupported metric from available ones.
+  for(const metric of ['reach','views','total_interactions']){
+    try{
+      const args=new URLSearchParams({metric,period:'day',
+        metric_type:'total_value',since:String(since),until:String(until)});
+      const data=await graph('/me/insights?'+args.toString(),session);
+      const item=(Array.isArray(data.data)?data.data:[]).find(row=>row.name===metric);
+      const value=item?.total_value?.value;
+      if(value!==null&&value!==undefined&&Number.isFinite(Number(value))&&Number(value)>=0)
+        results[metric]=Number(value);
+    }catch(error){
+      errors.push(metric+': '+String(error.message||'unavailable').slice(0,180));
+    }
+  }
+  return json({month,period:'month_to_date',checkedAt:now.toISOString(),
+    metrics:results,unavailable:errors,permission:'instagram_business_manage_insights'},200,request,env);
 }
 
 async function proxyMedia(request, env) {
