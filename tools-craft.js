@@ -113,7 +113,7 @@ export async function mountCraftSuite(root){
       '<nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support ↗</a></nav>'+
      '</div>'+
      '<aside class="craft-folder-weekly" aria-label="Block of the week"><span class="craft-weekly-eyebrow">block of the week</span>'+
-      '<button class="craft-weekly-choice" type="button" data-craft-weekly="'+(weeklyBlock().open||weeklyBlock().route)+'"'>'+
+      '<button class="craft-weekly-choice" type="button" data-craft-weekly="'+(weeklyBlock().open||weeklyBlock().route)+'">'+
         '<img src="/assets/bigapps/icons/'+weeklyBlock().image+'.png?v=20261026-original-stitch-1" alt="" width="64" height="64">'+
         '<span><strong>'+weeklyBlock().name+'</strong><small>new block every Monday · open ↗</small></span>'+
       '</button>'+
