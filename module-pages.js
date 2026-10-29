@@ -3286,15 +3286,54 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         });
         $('#archiveRefreshInstagram',body)?.addEventListener('click',async()=>{
           const button=$('#archiveRefreshInstagram',body),st=$('#archiveInstagramStatus',body);
-          button.disabled=true;if(st)st.textContent='Syncing connected Orbit sources, including Pinterest…';
+          const selection=readFilters().sources[0]||'all';
+          const wants=platform=>selection==='all'||selection===platform;
+          button.disabled=true;
+          if(st)st.textContent='Refreshing '+(selection==='all'?'connected Orbit sources':archiveSourceLabel(selection))+'…';
           try{
-            // Do not let a disconnected Instagram account block Pinterest sync.
-            const sources=[orbit?.restore?.bind(orbit),window.__biglwaPinterest?.restore?.bind(window.__biglwaPinterest)].filter(Boolean);
-            await Promise.allSettled(sources.map(fn=>fn()));
-            if(window.__biglwaPinterest?.syncAllBoards)await window.__biglwaPinterest.syncAllBoards();
+            const jobs=[];
+            const add=(label,fn)=>{if(typeof fn==='function')jobs.push({label,run:fn})};
+            if(wants('instagram'))add('Instagram',orbit?.restore?.bind(orbit));
+            if(wants('pinterest')){
+              const pins=window.__biglwaPinterest;
+              if(pins) add('Pinterest',async()=>{
+                await pins.restore?.();
+                await pins.syncAllBoards?.();
+              });
+            }
+            if(wants('tiktok'))add('TikTok',window.__biglwaTikTokOrbit?.restore?.bind(window.__biglwaTikTokOrbit));
+            if(wants('facebook')){
+              const personal=window.BigLWAFacebookPersonal;
+              if(personal) add('Facebook Personal',async()=>{
+                const session=await personal.load();
+                if(!session?.connected)return 'not connected';
+                if(session.needsReauth)throw Error('Reconnect Facebook Personal to refresh your permissions.');
+                await personal.sync();
+                return personal.state?.syncMessage||'Import attempted';
+              });
+              const business=window.__biglwaFacebookOrbit;
+              if(business?.state?.connected)add('Facebook Business',business.refresh?.bind(business));
+            }
+            const results=await Promise.allSettled(jobs.map(async job=>({label:job.label,result:await job.run()})));
+            const failed=results.flatMap((result,i)=>result.status==='rejected'
+              ?[jobs[i].label+': '+String(result.reason?.message||'could not refresh')]:[]);
+            const facebookPersonalResult=results.find((result,i)=>jobs[i].label==='Facebook Personal'&&result.status==='fulfilled');
+            const fbNote=facebookPersonalResult?.value?.result;
             archiveInitialized=false;archiveMedia=[];archiveCursor=null;archiveHasMore=false;
             await draw();
-          }catch(error){if(st)st.textContent=error?.message||'The Archive could not refresh its connected Orbit imports.'}finally{button.disabled=false}
+            const nextStatus=$('#archiveInstagramStatus',body);
+            if(nextStatus){
+              const refreshed=results.filter(result=>result.status==='fulfilled').length;
+              const notices=[refreshed?refreshed+' source refresh(es) completed.':'No active source refresh was available.'];
+              if(typeof fbNote==='string')notices.push('Facebook: '+fbNote);
+              if(failed.length)notices.push(failed.join(' · '));
+              if(selection==='facebook'&&!jobs.length)notices.push('Connect Facebook in Orbit, then try again.');
+              nextStatus.textContent=notices.join(' ');
+            }
+          }catch(error){
+            const latest=$('#archiveInstagramStatus',body);
+            if(latest)latest.textContent=error?.message||'The Archive could not refresh its connected Orbit imports.';
+          }finally{const latest=$('#archiveRefreshInstagram',body);if(latest)latest.disabled=false}
         });
         $('#archiveLoadMore',body)?.addEventListener('click',loadMore);
         $('#archiveVisibility',body)?.addEventListener('change',async(event)=>{
