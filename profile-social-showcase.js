@@ -99,11 +99,11 @@
     snapSource={key:next,status:items.length?'ready':'empty',checkedAt:Date.now(),items,
      message:items.length?'Public @'+handle+' matched · '+items.length+' Spotlight preview(s)':
      'No public Spotlight media available for @'+handle};
-    schedule();
+    schedule();window.dispatchEvent(new Event('biglwa:snapchat-showcase-ready'));
    }).catch(e=>{
     if(snapSource.key!==next)return;
     snapSource={key:next,status:'error',checkedAt:Date.now(),items:[],message:'Snapchat public lookup unavailable; Storyclone viewer remains accessible.'};
-    schedule();
+    schedule();window.dispatchEvent(new Event('biglwa:snapchat-showcase-ready'));
    });
  }
 
