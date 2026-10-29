@@ -220,20 +220,68 @@
   const wrap=make('section','highlight-edit-row');
   wrap.dataset.highlightRow=key;
   const head=make('div','highlight-edit-row-head');
+  wrap.dataset.highlightImported=isImported?'true':'false';
   const circle=make('span','highlight-edit-cover');
   const picture=document.createElement('img');picture.alt='Highlight cover preview';
   picture.src=data.cover||group.cover||'/assets/tv-no-signal.svg';applyCover(picture,data);circle.append(picture);
   const h=make('strong','',isImported?'Imported highlight '+(index+1):'Custom highlight');
-  head.append(circle,h);wrap.append(head);
+  const adjustButton=make('button','highlight-cover-adjust-button','Adjust');
+  adjustButton.type='button';adjustButton.setAttribute('aria-pressed','false');
+  adjustButton.setAttribute('aria-label','Adjust '+(data.title||group.title||'highlight')+' circle cover by dragging');
+  const headActions=make('div','highlight-row-head-actions');
+  headActions.append(h,adjustButton);
+  head.append(circle,headActions);wrap.append(head);
+  // Explicit opt-in dragging: crop positions are persisted with the existing
+  // Highlight record (x/y), without modifying the imported original image.
+  let adjusting=false,drag=null;
+  const clamp=v=>Math.max(0,Math.min(100,Math.round(v)));
+  const place=(x,y)=>{data.x=clamp(x);data.y=clamp(y);applyCover(picture,data)};
+  const enableAdjust=on=>{
+   adjusting=on;drag=null;
+   circle.classList.toggle('is-adjusting',on);
+   circle.style.touchAction=on?'none':'';
+   circle.tabIndex=on?0:-1;
+   adjustButton.setAttribute('aria-pressed',String(on));
+   adjustButton.textContent=on?'Done':'Adjust';
+   circle.setAttribute('aria-label',on?'Drag to reposition cover. Arrow keys also work.':'Highlight cover preview');
+  };
+  adjustButton.addEventListener('click',()=>{enableAdjust(!adjusting);if(adjusting)circle.focus()});
+  circle.addEventListener('pointerdown',event=>{
+   if(!adjusting||event.button!==0)return;
+   event.preventDefault();
+   drag={pointer:event.pointerId,x:event.clientX,y:event.clientY,coverX:data.x??50,coverY:data.y??50};
+   try{circle.setPointerCapture(event.pointerId)}catch{}
+  });
+  circle.addEventListener('pointermove',event=>{
+   if(!adjusting||!drag||drag.pointer!==event.pointerId)return;
+   event.preventDefault();
+   const box=circle.getBoundingClientRect();
+   const size=Math.max(1,box.width);
+   place(drag.coverX+(event.clientX-drag.x)*100/size,drag.coverY+(event.clientY-drag.y)*100/size);
+  });
+  const endDrag=event=>{if(drag?.pointer===event.pointerId)drag=null};
+  circle.addEventListener('pointerup',endDrag);
+  circle.addEventListener('pointercancel',endDrag);
+  circle.addEventListener('lostpointercapture',()=>{drag=null});
+  circle.addEventListener('keydown',event=>{
+   if(!adjusting||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+   event.preventDefault();
+   const step=event.shiftKey?10:3;
+   place((data.x??50)+(event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0),
+         (data.y??50)+(event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0));
+  });
   const fields=make('div','highlight-edit-fields');
   const title=input('text',data.title||group.title||'','Name',value=>{data.title=value.slice(0,48);});
   title.querySelector('input').maxLength=48;fields.append(title);
   const covers=make('div','highlight-cover-controls');
-  covers.append(make('strong','highlight-cover-adjust-heading','Adjust preview photo'));
-  covers.append(input('text',data.cover||'','Cover image URL (optional)',value=>{
-   const url=cleanUrl(value,true);if(url){data.cover=url;picture.src=url}
-   else if(!value.trim()){data.cover='';picture.src=group.cover||'/assets/tv-no-signal.svg'}
+  covers.append(make('p','highlight-cover-adjust-hint','Select Adjust above, then drag the circle cover to reposition it.'));
+  const advanced=make('details','highlight-cover-advanced');
+  advanced.append(make('summary','','Cover image URL (optional)'));
+  advanced.append(input('text',data.cover||'','Paste direct HTTPS cover URL',value=>{
+   const url=cleanUrl(value,true);if(url){data.cover=url;picture.src=url;applyCover(picture,data)}
+   else if(!value.trim()){data.cover='';picture.src=group.cover||'/assets/tv-no-signal.svg';applyCover(picture,data)}
   }));
+  covers.append(advanced);
   const upload=make('label','highlight-upload-label','Upload circle cover');
   const file=make('input');file.type='file';file.accept='image/jpeg,image/png,image/webp,image/gif';
   file.setAttribute('aria-label','Upload highlight cover');
@@ -243,12 +291,7 @@
    catch(e){status(e.message)}finally{file.value=''}
   });
   upload.append(file);covers.append(upload);
-  for(const axis of ['x','y']){
-   const label=make('label','','Cover '+(axis==='x'?'horizontal':'vertical')+' position');
-   const range=make('input');range.type='range';range.min=0;range.max=100;range.value=String(data[axis]??50);
-   range.addEventListener('input',()=>{data[axis]=Number(range.value);applyCover(picture,data)});
-   label.append(range);covers.append(label);
-  }fields.append(covers);
+  fields.append(covers);
   const rows=make('div','highlight-edit-items');
   if(isImported){
    const items=group.items||[];
@@ -374,8 +417,10 @@
   const oldFocus=document.activeElement?.dataset?.highlightRow;
   container.replaceChildren();
   const platform=archiveSource(),groups=source();
-  groups.slice(0,24).forEach((g,i)=>container.append(row(g,g._importKey||String(i),true,i)));
   const custom=get().custom.filter(g=>platformOf(g)===platform);
+  container.dataset.highlightPlatform=platform;
+  container.dataset.highlightLayout=platform==='snapchat'||(groups.length+custom.length<=1)?'single':'masonry';
+  groups.slice(0,24).forEach((g,i)=>container.append(row(g,g._importKey||String(i),true,i)));
   custom.forEach((g,i)=>container.append(row(g,g.id,false,i)));
   if(!groups.length&&!custom.length)container.append(make('p','highlight-editor-intro','No '+platform+' highlights imported yet. Add one of your own below.'));
   if(oldFocus)el('[data-highlight-row="'+oldFocus+'"]',container)?.focus?.();
