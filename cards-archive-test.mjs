@@ -22,7 +22,7 @@ check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
 check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
 console.log("\n=== THE ARCHIVE HOLDS EVERY SOURCE, COLOUR KEPT, GREY ONLY WHEN OFF ===");
-check("a card is read for its own source", pages.includes("const source=String(item.source||'instagram').toLowerCase();"));
+check("a card is read for its own source", pages.includes("const source=sourceNameOf(item);") && pages.includes("function archiveItemSource(item)"), "Cards use the detected app source, not a default shelf");
 check("the rim comes from the source palette", pages.includes("const visualTheme=themes[source]") && pages.includes("instagram:{rim:'#f36b21'"));
 check("the card is marked with its source and shadow", pages.includes("' archive-src-'+esc(source)+'\" style=\"--feed-card-rim:'+rim+';--feed-card-shadow:'+visualTheme.shadow"));
 check("both stored states are grouped colour-first", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-archived{"));
@@ -37,7 +37,7 @@ check("the Archive no longer claims to be Instagram-only", !pages.includes("Inst
 console.log("\n=== GROUPED, WITH REPEATS SPOTTED ===");
 check("a card is fingerprinted", pages.includes("function archiveFingerprint(item)"));
 check("cards are bucketed by that fingerprint", pages.includes("const groups=new Map();"));
-check("cards are sorted into source blocks", pages.includes("const sa=String(items[a].source||'').toLowerCase(), sb=String(items[b].source||'').toLowerCase();"));
+check("cards are sorted into source blocks", pages.includes("const sa=archiveItemSource(items[a]), sb=archiveItemSource(items[b]);"));
 check("newest first inside a source", pages.includes("return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);"));
 check("a repeat is counted, not hidden", pages.includes("additional copies"));
 check("each group is drawn under a source heading", pages.includes('class="archive-source-group"'));

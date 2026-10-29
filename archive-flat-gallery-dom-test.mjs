@@ -42,5 +42,15 @@ assert.equal(fn(['card-0,','card-1,','card-2,'],[],grouped,true),'card-0,card-1,
 assert.ok(js.includes("f.sources=k==='all'?[]:[k]"),'Selecting a platform replaces, not stacks filters');
 assert.ok(js.includes("input type=\"checkbox\" data-archive-live-input"),'Existing publish/unpublish listener is preserved');
 assert.ok(js.includes("await postsApi?.publishOrbitPost?.(id)")&&js.includes("await postsApi?.setOrbitState?.(id,'archived')"),'Live state is account backed');
+const helpers=js.slice(js.indexOf('  const ARCHIVE_GENERIC_SOURCES'),js.indexOf('  function archiveSourceRim'));
+const sourceApi=runInNewContext(helpers+';({archiveItemSource,archiveSourceFromHost,archiveSourceLabel})',{location:{origin:'https://biglwa.com'},URL});
+assert.equal(sourceApi.archiveItemSource({source:'',sourceUrl:'https://www.instagram.com/p/abc/'}),'instagram','A pasted Instagram link lands in Instagram');
+assert.equal(sourceApi.archiveItemSource({source:'unknown',url:'https://www.tiktok.com/@x/video/1'}),'tiktok','A generic source still finds its app from the link');
+assert.equal(sourceApi.archiveItemSource({source:'pinterest',sourceUrl:'https://www.instagram.com/p/x'}),'pinterest','An explicit saved source is not overridden by a link');
+assert.equal(sourceApi.archiveItemSource({source:'snapchat'}),'snapchat');
+assert.equal(sourceApi.archiveItemSource({}),'instagram','Unlabelled legacy cards keep their Instagram home');
+assert.equal(sourceApi.archiveSourceLabel('snapchat'),'Snapchat','Snapchat has a named section');
+assert.ok(js.includes("const pinnedSources=['instagram','tiktok','snapchat']"),'Snapchat is always offered next to All');
+assert.ok(js.includes("biglwa:archive-rendered"),'A finished Archive draw announces itself so Highlights remount');
 dom.window.close();
 console.log('PASS actual computed Archive layout: two-column toolbar, top-right app chips, compact grid, in-card Live pill, flat grouping, duplicate logic, publish action.');

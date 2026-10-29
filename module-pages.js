@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261028-studio-route-memory-2';
+        script.src = '/module-pages.js?v=20261028-archive-sources-3';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2897,6 +2897,45 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       soundcloud:{rim:"#ff5500",glow:"#ffb13b",hot:"#c93f00"}
     })[String(source||"").toLowerCase()]||{rim:"#a52a0c",glow:"#d95f6d"};
   }
+  /* A saved card should sit under the app it actually came from. Orbit imports already
+     carry a source, but links pasted into Studio, older records, and hand-added embeds can
+     arrive with a blank or generic source. The link itself still names the app, so the host
+     is the fallback that keeps an Instagram embed in Instagram instead of leaving it on the
+     All shelf only. */
+  const ARCHIVE_GENERIC_SOURCES=new Set(['','unknown','other','link','links','import','imported']);
+  const ARCHIVE_SOURCE_LABELS={instagram:'Instagram',tiktok:'TikTok',snapchat:'Snapchat',
+    pinterest:'Pinterest',facebook:'Facebook',youtube:'YouTube',tumblr:'Tumblr',x:'X',
+    twitter:'X',soundcloud:'SoundCloud',google:'Google',biglwa:'Big LWA',studio:'Studio'};
+  function archiveSourceFromHost(value){
+    let host='';
+    try{host=new URL(String(value||''),location.origin).hostname.replace(/^www\./i,'').toLowerCase()}catch{return ''}
+    if(/^(?:[a-z0-9-]+\.)*instagram\.com$/.test(host))return 'instagram';
+    if(/^(?:[a-z0-9-]+\.)*tiktok\.com$/.test(host))return 'tiktok';
+    if(host==='pin.it'||/^(?:[a-z0-9-]+\.)*pinterest\.[a-z.]+$/.test(host))return 'pinterest';
+    if(/^(?:[a-z0-9-]+\.)*snapchat\.com$/.test(host))return 'snapchat';
+    if(/^(?:[a-z0-9-]+\.)*facebook\.com$/.test(host)||host==='fb.com'||host==='fb.watch')return 'facebook';
+    if(/^(?:[a-z0-9-]+\.)*youtube\.com$/.test(host)||host==='youtu.be')return 'youtube';
+    if(/^(?:[a-z0-9-]+\.)*tumblr\.com$/.test(host))return 'tumblr';
+    if(/^(?:[a-z0-9-]+\.)*(?:x|twitter)\.com$/.test(host))return 'x';
+    if(/^(?:[a-z0-9-]+\.)*soundcloud\.com$/.test(host))return 'soundcloud';
+    if(/^(?:[a-z0-9-]+\.)*google\.[a-z.]+$/.test(host))return 'google';
+    return '';
+  }
+  function archiveItemSource(item){
+    const raw=String(item?.source||'').trim().toLowerCase();
+    const value=raw==='twitter'?'x':raw;
+    if(value&&!ARCHIVE_GENERIC_SOURCES.has(value))return value;
+    const links=[item?.sourceUrl,item?.url,item?.permalink,item?.link,item?.originalUrl,item?.postUrl];
+    for(const link of links){
+      const detected=archiveSourceFromHost(link);
+      if(detected)return detected;
+    }
+    return 'instagram';
+  }
+  function archiveSourceLabel(source){
+    const key=String(source||'').toLowerCase();
+    return ARCHIVE_SOURCE_LABELS[key]||key;
+  }
   function archiveSourceRim(source){return archiveSourceTheme(source).rim}
   function archiveSourceShadow(source){
     const key=String(source||"").toLowerCase(),t=archiveSourceTheme(key);
@@ -2966,7 +3005,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const groups=new Map();
     /* Sorted by source so the wall reads as source blocks rather than a mixed shelf. */
     [...items.keys()].sort((a,b)=>{
-      const sa=String(items[a].source||'').toLowerCase(), sb=String(items[b].source||'').toLowerCase();
+      const sa=archiveItemSource(items[a]), sb=archiveItemSource(items[b]);
       if(sa!==sb)return sa<sb?-1:1;
       return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);
     }).forEach(index=>{
@@ -2999,7 +3038,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     let archiveInitialized=false;
     let archiveLoading=false;
     const FILTER_KEY='biglwaArchiveFilters';
-    const sourceNameOf=item=>String(item.source||'instagram').toLowerCase();
+    const sourceNameOf=item=>archiveItemSource(item);
     const readFilters=()=>{let f={sources:[],hideDupes:false};try{f={sources:[],hideDupes:false,...JSON.parse(localStorage.getItem(FILTER_KEY)||'null')}}catch{}if(!Array.isArray(f.sources))f.sources=[];if(f.sources.length>1)f.sources=[];f.sources=f.sources.filter(k=>k&&k!=='all');return f};
     const saveFilters=f=>{try{localStorage.setItem(FILTER_KEY,JSON.stringify(f))}catch{}};
 
@@ -3063,8 +3102,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const username=profile.username||profile.name||previewUsername||'BIGLWA member';
       const filters=readFilters();
       const seenSources=[...new Set(media.map(sourceNameOf))];
-      const union=[...new Set([...seenSources,...filters.sources])].sort((a,b)=>{
-        const order=['pinterest','instagram','tiktok','facebook'];
+      /* Snapchat is a first-class source even before the first Spotlight lands, so the row
+         always offers it next to All. Every other app appears on its own as soon as a card
+         from that app is saved. */
+      const pinnedSources=['instagram','tiktok','snapchat'];
+      const union=[...new Set([...pinnedSources,...seenSources,...filters.sources])].sort((a,b)=>{
+        const order=['instagram','tiktok','snapchat','pinterest','facebook','youtube','tumblr','x','soundcloud','google','biglwa','studio'];
         const ai=order.indexOf(a),bi=order.indexOf(b);
         return (ai<0?999:ai)-(bi<0?999:bi)||a.localeCompare(b);
       });
@@ -3085,7 +3128,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
            card or a Facebook card can be told from an Instagram one at a glance. A card that
            is live keeps its colour and appears on the Collective Feed; one switched off greys
            its picture and stays here only. */
-        const source=String(item.source||'instagram').toLowerCase();
+        const source=sourceNameOf(item);
         const themes={
           instagram:{rim:'#f36b21',shadow:'3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b'},
           pinterest:{rim:'#e60023',shadow:'3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026'},
@@ -3169,7 +3212,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveConnections" type="button">Manage connections</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
           '<div class="archive-filter-bar" id="archiveFilterBar" role="group" aria-label="Choose platform">'+
             '<button type="button" class="archive-filter-chip '+(!filtering?'is-on':'')+'" data-archive-source-filter="all" aria-pressed="'+(!filtering?'true':'false')+'">All</button>'+
-            union.map(k=>'<button type="button" class="archive-filter-chip '+(allowed.has(k)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'" aria-pressed="'+(allowed.has(k)?'true':'false')+'">'+esc({instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'}[k]||k)+'</button>').join('')+
+            union.map(k=>'<button type="button" class="archive-filter-chip '+(allowed.has(k)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'" aria-pressed="'+(allowed.has(k)?'true':'false')+'">'+esc(archiveSourceLabel(k))+'</button>').join('')+
             '<label class="archive-dupes"><input type="checkbox" id="archiveHideDupes"'+(hideDupes?' checked':'')+'><span>Hide duplicates</span></label></div>'+
           '':'')+
           '</div>'+
@@ -3320,6 +3363,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           }
         });
       }
+      /* The Highlights panel lives above the wall and is rebuilt with it. Tell the profile
+         editor the draw is finished so it can mount the panel on the new toolbar instead of
+         waiting for a mutation that may already have happened. */
+      try{
+        window.dispatchEvent(new CustomEvent('biglwa:archive-rendered',{detail:{
+          sources:filters.sources.slice(),count:mediaShown.length,owner
+        }}));
+      }catch{}
 };
     draw();
   }

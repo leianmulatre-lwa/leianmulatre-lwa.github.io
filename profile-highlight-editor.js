@@ -58,6 +58,77 @@
   platform:'new',items:x.added,customId:x.id
  }));
  function refresh(){window.dispatchEvent(new Event('biglwa:highlight-config-changed'))}
+ /* Highlights belong to Instagram. While the Archive is filtered to another app the
+    panel and its button step out of the way, and All or Instagram brings them back. */
+ function highlightsInScope(){
+  try{
+   const parsed=JSON.parse(localStorage.getItem('biglwaArchiveFilters')||'null');
+   const active=Array.isArray(parsed?.sources)&&parsed.sources.length?String(parsed.sources[0]).toLowerCase():'';
+   return !active||active==='instagram';
+  }catch{return true}
+ }
+ function saveHighlightToBoards(imageUrl,caption,sourceUrl){
+  let items=[];
+  try{const raw=JSON.parse(localStorage.getItem('biglwaModule_boards')||'[]');items=Array.isArray(raw)?raw:[]}catch{}
+  items.unshift({
+   title:(caption||'Highlight photo').slice(0,120),
+   meta:[imageUrl,sourceUrl||''].filter(Boolean).join(' · '),
+   photo:imageUrl,sourceUrl:sourceUrl||'',date:new Date().toLocaleDateString()
+  });
+  localStorage.setItem('biglwaModule_boards',JSON.stringify(items.slice(0,500)));
+  document.dispatchEvent(new CustomEvent('biglwa:boards-updated'));
+  return 'Saved to Boards.';
+ }
+ async function copyHighlightImage(imageUrl){
+  const response=await fetch(imageUrl,{mode:'cors',credentials:'omit'});
+  if(!response.ok)throw Error('The original photo blocked the copy.');
+  const blob=await response.blob();
+  if(!blob.size||!/^image\//i.test(blob.type))throw Error('The original photo blocked the copy.');
+  return blob;
+ }
+ async function copyHighlightToFeed(imageUrl,caption,sourceUrl){
+  const publisher=window.__biglwaCollectivePublish;
+  if(typeof publisher?.createFeedDraft!=='function')throw Error('The Collective Feed is still loading. Try again in a moment.');
+  let blob=null;
+  try{blob=await copyHighlightImage(imageUrl)}catch{}
+  /* A copied image is uploaded into BIG LWA storage. When the source refuses that copy the
+     post still goes out as a link back to the original rather than failing outright. */
+  const draft=blob
+   ?await publisher.createFeedDraft({blob,caption})
+   :await publisher.createFeedDraft({url:sourceUrl||imageUrl,caption});
+  if(!draft?.id)throw Error('That highlight could not be posted.');
+  const orbit=window.__biglwaOrbitPosts;
+  if(typeof orbit?.publishOrbitPost==='function')await orbit.publishOrbitPost(draft.id);
+  else if(typeof orbit?.setOrbitState==='function')await orbit.setOrbitState(draft.id,'approved');
+  return draft.id;
+ }
+ async function featureHighlightOnVeve(postId){
+  const [{getApps,initializeApp},{getAuth},{getFirestore,doc,updateDoc,setDoc}]=await Promise.all([
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+  ]);
+  const app=getApps()[0]||initializeApp({
+   apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+   authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'
+  });
+  const user=getAuth(app).currentUser;
+  if(!user)throw Error('Sign in to send a highlight to Veve.');
+  const db=getFirestore(app);
+  const patch={veveFeatured:true,veveOptOut:false};
+  await updateDoc(doc(db,'posts',postId),patch);
+  try{await setDoc(doc(db,'users',user.uid,'posts',postId),patch,{merge:true})}catch(error){console.warn('Veve profile mirror could not update:',error)}
+  document.dispatchEvent(new CustomEvent('biglwa:feed-ready'));
+ }
+ async function sendHighlightPhoto(destination,imageUrl,caption,sourceUrl){
+  if(destination==='boards')return saveHighlightToBoards(imageUrl,caption,sourceUrl);
+  const postId=await copyHighlightToFeed(imageUrl,caption,sourceUrl);
+  if(destination==='veve'){
+   await featureHighlightOnVeve(postId);
+   return 'Sent to Veve. The post stays on your Collective Feed.';
+  }
+  return 'Posted to My Feed.';
+ }
  async function remote(){
   if(!owner()||remoteLoaded)return;
   try{
@@ -164,8 +235,9 @@
    gallery.setAttribute('aria-label','Choose highlights to show live on the profile');
    items.forEach((item,i)=>{
     const kind=item?.kind==='video'?'video':'image';
-    const card=make('label','highlight-item-card');
+    const card=make('div','highlight-item-card');
     const checkbox=make('input');checkbox.type='checkbox';checkbox.checked=selection.includes(i);
+    checkbox.className='highlight-item-live-input';
     checkbox.setAttribute('aria-label',(checkbox.checked?'Keep ':'Show ')+(kind==='video'?'video ':'photo ')+(i+1)+' live');
     const preview=make('span','highlight-item-media');
     const thumb=cleanUrl(item?.thumbnail||item?.poster||item?.cover,true);
@@ -183,9 +255,12 @@
     }
     const kindTag=make('span','highlight-item-kind',kind==='video'?'▶ Video':'Photo');
     const name=make('span','highlight-item-name',''+(i+1));
-    const live=make('span','highlight-item-live',checkbox.checked?'Live':'Hidden');
+    const live=make('b','',checkbox.checked?'Live':'Hidden');
+    const liveSwitch=make('label','archive-live highlight-item-live');
+    const liveTrack=make('span','archive-live-track');liveTrack.setAttribute('aria-hidden','true');liveTrack.append(make('i'));
+    liveSwitch.append(checkbox,liveTrack,live);
     card.dataset.live=String(checkbox.checked);
-    card.append(checkbox,preview,kindTag,name,live);
+    card.append(preview,kindTag,name,liveSwitch);
     checkbox.addEventListener('change',()=>{
      const all=data.order===null?[...Array(items.length).keys()]:data.order.slice();
      data.order=checkbox.checked?[...all.filter(v=>v!==i),i]:all.filter(v=>v!==i);
@@ -193,6 +268,35 @@
      live.textContent=checkbox.checked?'Live':'Hidden';
      checkbox.setAttribute('aria-label',(checkbox.checked?'Keep ':'Show ')+(kind==='video'?'video ':'photo ')+(i+1)+' live');
     });
+    /* A highlight photo can leave the Archive for the Feed, Veve, or the Boards list the
+       same way a Pinterest card can. Videos keep their single job: playing in place. */
+    if(kind==='image'){
+     const send=make('details','highlight-item-send');
+     send.append(make('summary','','Send to'));
+     const menu=make('div','highlight-item-send-menu');
+     const sendStatus=make('small','highlight-item-send-status');sendStatus.setAttribute('role','status');
+     for(const [destination,label] of [['feed','My Feed'],['veve','Veve'],['boards','Boards']]){
+      const button=make('button','',label);button.type='button';button.dataset.highlightSend=destination;
+      button.addEventListener('click',async()=>{
+       if(button.dataset.busy==='1')return;
+       const imageUrl=photo||thumb;
+       if(!imageUrl){sendStatus.textContent='This photo has no direct image link.';return}
+       button.dataset.busy='1';
+       menu.querySelectorAll('button').forEach(other=>other.disabled=true);
+       sendStatus.textContent='Sending to '+label+'…';
+       try{
+        sendStatus.textContent=await sendHighlightPhoto(destination,imageUrl,
+          String(group.title||data.title||'Highlight').slice(0,300),
+          cleanUrl(item?.sourceUrl||item?.permalink||''));
+        send.open=false;
+       }catch(error){sendStatus.textContent=error?.message||'Could not send this photo.'}
+       finally{menu.querySelectorAll('button').forEach(other=>other.disabled=false);button.dataset.busy='0'}
+      });
+      menu.append(button);
+     }
+     send.append(menu,sendStatus);
+     card.append(send);
+    }
     gallery.append(card);
    });
    rows.append(gallery);
@@ -271,6 +375,8 @@
   const toolbar=el('.archive-toolbar',shell);
   if(!toolbar)return;
   const actions=el('.archive-toolbar-actions',toolbar);
+  const allowed=highlightsInScope();
+  if(!allowed)archiveExpanded=false;
   // Archive refreshes its action row without necessarily replacing the highlights
   // editor below it. Reconnect the button even when the panel already exists.
   const ensureButton=()=>{
@@ -279,6 +385,7 @@
     button=make('button','module-action ghost archive-highlights-button','Highlights');
     button.type='button';
     button.addEventListener('click',()=>{
+     if(!highlightsInScope())return;
      const current=el('#archiveHighlightsPanel',shell);
      if(!current)return;
      archiveExpanded=!archiveExpanded;
@@ -291,6 +398,7 @@
    button.setAttribute('aria-controls','archiveHighlightsPanel');
    button.setAttribute('aria-expanded',String(archiveExpanded));
    button.classList.toggle('is-active',archiveExpanded);
+   button.hidden=!allowed;
    if(actions&&button.parentElement!==actions)actions.append(button);
    else if(!actions&&button.parentElement!==toolbar)toolbar.prepend(button);
    return button;
@@ -298,7 +406,7 @@
   const existing=el('#archiveHighlightsPanel',shell);
   if(existing){
    if(toolbar.nextElementSibling!==existing)toolbar.insertAdjacentElement('afterend',existing);
-   existing.hidden=!archiveExpanded;
+   existing.hidden=!allowed||!archiveExpanded;
    ensureButton();
    return;
   }
@@ -323,17 +431,17 @@
   const message=make('p','highlight-editor-status','');message.id='biglwaHighlightStatus';
   message.setAttribute('role','status');pane.append(message);
   toolbar.insertAdjacentElement('afterend',pane);
-  pane.hidden=!archiveExpanded;
+  pane.hidden=!allowed||!archiveExpanded;
   ensureButton();
-  if(archiveExpanded){get();render();if(!remoteLoaded)remote()}
+  if(allowed&&archiveExpanded){get();render();if(!remoteLoaded)remote()}
  }
  function openArchive(){
-  archiveExpanded=true;
+  archiveExpanded=highlightsInScope();
   if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('archive');
   else if(typeof window.BigLWAOpenModule==='function')window.BigLWAOpenModule('archive');
   mountArchive();
   const pane=el('#archiveHighlightsPanel');
-  if(pane){
+  if(pane&&archiveExpanded){
    pane.hidden=false;get();render();if(!remoteLoaded)remote();
    const button=el('.archive-highlights-button',pane.parentElement);
    if(button){button.setAttribute('aria-expanded','true');button.classList.add('is-active')}
@@ -409,7 +517,7 @@
  }
  let timer;
  function schedule(){clearTimeout(timer);timer=setTimeout(start,50)}
- for(const event of ['biglwa:identity-updated','biglwa:session-verified','biglwa:user-directory-ready','biglwa:highlights-imported','biglwa:customization-remote'])
+ for(const event of ['biglwa:identity-updated','biglwa:session-verified','biglwa:user-directory-ready','biglwa:highlights-imported','biglwa:customization-remote','biglwa:archive-rendered'])
   window.addEventListener(event,detail=>{
    if(event==='biglwa:customization-remote'){
     const snapshot=detail.detail;
