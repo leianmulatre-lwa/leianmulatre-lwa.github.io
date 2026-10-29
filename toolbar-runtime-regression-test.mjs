@@ -120,7 +120,7 @@ if(redAtRest)assert(!redAtRest.classList.contains('is-disconnected'),
 fresh.document.querySelector('#studioSidebarShortcutDock [data-sidebar-route-row="'+lastKey+'"] [data-remove-shortcut]').click();
 assert(fresh.document.querySelector('#studioSidebarAvailableDock [data-sidebar-route-row="'+lastKey+'"]').classList.contains('is-disconnected'),
   'Minus button sets lower red-section status as well as drag-to-red');
-const reloadRemoved=new JSDOM(html.replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi,''),{
+const reloadRemoved=new JSDOM(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,''),{
   url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
 const reread=reloadRemoved.window;
 reread.CSS=fresh.CSS;reread.matchMedia=fresh.matchMedia;
