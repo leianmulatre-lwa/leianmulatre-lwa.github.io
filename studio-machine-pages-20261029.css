@@ -1,0 +1,95 @@
+/* Shared stitched machine language — Lwazi workshop and Games cabinet, 2026-10-29. */
+#craftSuite.craft-workshop{
+ background:#d8b9a9!important;border:5px solid #552129!important;border-radius:21px!important;
+ box-shadow:0 8px 0 #2b1519,0 16px 24px rgba(42,20,22,.24)!important;overflow:visible!important;
+}
+#craftSuite .craft-head.craft-machine-head{
+ position:relative!important;display:block!important;isolation:isolate;
+ margin:15px 15px 0!important;padding:30px 12px 14px!important;
+ border:5px solid #38151e!important;border-radius:18px 18px 11px 11px!important;
+ background:repeating-linear-gradient(90deg,#c14b60 0 14px,#bc465a 14px 15px)!important;
+ box-shadow:inset 0 0 0 3px #e7a77e,0 7px 0 #321820!important;
+}
+#craftSuite .craft-machine-tab{
+ position:absolute;top:-32px;left:0;right:auto;height:37px;min-width:220px;
+ display:flex;gap:13px;align-items:center;padding:5px 17px;border:5px solid #38151e;
+ border-bottom:0;border-radius:20px 20px 0 0;
+ background:#b9485b;color:#fff5d9;font:900 10px/1.2 ui-monospace,monospace;letter-spacing:.11em;
+}
+#craftSuite .craft-machine-lights{display:flex;gap:5px;align-items:center}
+#craftSuite .craft-machine-lights i{display:block;width:13px;height:13px;border:2px solid #211717;border-radius:50%;background:#e25766;box-shadow:inset 1px 2px 0 #ffffff80}
+#craftSuite .craft-machine-lights i:nth-child(2){background:#f5c84a}
+#craftSuite .craft-machine-lights i:nth-child(3){background:#61bf73}
+#craftSuite .craft-machine-face{
+ display:grid;grid-template-columns:minmax(170px,36%) minmax(0,1fr);align-items:center;gap:18px;
+ min-height:156px;padding:13px clamp(12px,2vw,26px);
+ border:4px double #a97759;border-radius:10px;
+ background:linear-gradient(165deg,#fff8e9,#f4dfbd)!important;
+ box-shadow:inset 0 2px 2px #fff9e7,0 2px 0 #38151e;
+}
+#craftSuite .craft-machine-art{display:block;max-width:100%;width:100%;height:126px;object-fit:contain;object-position:center;filter:drop-shadow(1px 3px 1px #32181933)}
+#craftSuite .craft-machine-copy{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:9px}
+#craftSuite .craft-machine-copy .craft-label{font:850 10px/1.3 ui-monospace,monospace!important;color:#80333d!important;letter-spacing:.13em}
+#craftSuite .craft-machine-copy p{margin:0!important;max-width:58ch!important;font:600 12px/1.5 system-ui!important;color:#51332d!important}
+#craftSuite .craft-founder-links{display:flex;flex-wrap:wrap;gap:7px}
+#craftSuite .craft-founder-links a{
+ padding:8px 11px;border:2px solid #703c39;border-radius:8px;background:#fff6df;
+ font:800 10px/1.3 system-ui;text-decoration:none;color:#40232a;box-shadow:2px 3px 0 #b8886b;
+}
+#craftSuite .craft-founder-links a:hover,#craftSuite .craft-founder-links a:focus-visible{background:#ffe4a9;outline-offset:2px}
+#craftSuite .craft-toolbar{margin-top:10px!important;border-top:3px solid #632f37;border-bottom:3px solid #632f37!important;background:#4b222c!important}
+#craftSuite .craft-directory{background:#eee0d0!important}
+/* Games: the title is embedded in the cabinet rather than floating on a generic card. */
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{
+ position:relative;overflow:visible!important;border:10px solid #401e23!important;border-radius:30px 30px 19px 19px!important;
+ background:linear-gradient(90deg,#752f3b,#b64b5b 7%,#a83c4c 50%,#b94b59 93%,#782f3b)!important;
+ box-shadow:inset 0 0 0 4px #e6a278,0 10px 0 #31161d,0 19px 28px #30161d3f!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth{
+ margin:12px 12px 20px!important;padding:30px 15px 16px!important;overflow:visible!important;
+ border:5px solid #311b1e!important;border-radius:18px!important;
+ background:#aa4050!important;box-shadow:inset 0 0 0 3px #e8a977,0 6px 0 #351a20!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth::before{
+ content:"";position:absolute;top:-30px;left:0;width:46%;height:31px;
+ background:#aa4050;border:5px solid #311b1e;border-bottom:0;border-radius:16px 17px 0 0;
+ clip-path:none;box-shadow:none;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth::after{
+ content:"";position:absolute;top:-19px;left:18px;width:67px;height:13px;z-index:5;
+ border:1px solid #2d1c20;border-radius:20px;
+ background:radial-gradient(circle at 7px 6px,#e25d65 0 5px,#1b1215 5.7px 6.5px,transparent 7px),
+ radial-gradient(circle at 32px 6px,#efc547 0 5px,#1b1215 5.7px 6.5px,transparent 7px),
+ radial-gradient(circle at 57px 6px,#5dbf73 0 5px,#1b1215 5.7px 6.5px,transparent 7px);
+ box-shadow:none;pointer-events:none;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage-head{
+ min-height:145px!important;padding:15px!important;border:4px double #ab7c52!important;border-radius:8px!important;
+ background:linear-gradient(145deg,#fff5d9,#f6dca5)!important;
+ box-shadow:inset 0 2px 0 #fff8e6!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee{position:relative!important;inset:auto!important;display:grid!important;place-items:center!important;height:100px!important;width:100%!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee img:first-child{
+ position:static!important;transform:none!important;width:min(440px,90%)!important;height:110px!important;
+ max-height:110px!important;object-fit:contain!important;mix-blend-mode:normal!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-wordmark{top:auto!important;bottom:10px!important;right:25px!important;font-size:11px!important;color:#501e2a!important;text-shadow:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-viewport{
+ border:12px solid #2a191d!important;border-radius:15px!important;
+ box-shadow:inset 0 0 0 3px #50909a,0 5px 0 #4f1f2b!important;
+}
+@media(max-width:650px){
+ #craftSuite .craft-head.craft-machine-head{margin:22px 8px 0!important;padding:25px 8px 9px!important}
+ #craftSuite .craft-machine-tab{min-width:180px;font-size:9px;padding-inline:10px}
+ #craftSuite .craft-machine-face{grid-template-columns:1fr;gap:4px;text-align:center}
+ #craftSuite .craft-machine-copy{align-items:center}
+ #craftSuite .craft-machine-art{height:96px}
+ #craftSuite .craft-machine-copy p{font-size:11px!important}
+ #craftSuite .craft-toolbar{gap:4px!important;font-size:8px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage{border-width:6px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth{margin:12px 4px!important;padding:22px 5px 9px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-folder-depth::before{height:24px;top:-22px}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-game-stage-head{min-height:110px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee{height:77px!important}
+ #studioApp #moduleWorkspace[data-module-key="games"] .module-arcade-marquee img:first-child{height:77px!important}
+}
