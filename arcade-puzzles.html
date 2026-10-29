@@ -93,16 +93,17 @@ const move=direction=>{if(Q('#game2048').hidden)return;const before=board.join('
 Q('#new2048').onclick=reset2048;reset2048();
 const moveKeys={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down',
   A:'left',D:'right',W:'up',S:'down'};
-document.addEventListener('keydown',ev=>{
-  if(ev.target?.closest?.('input,textarea,[contenteditable="true"]')||Q('#game2048').hidden)return;
-  const direction=moveKeys[ev.key];
+// Parent cabinet and embedded game can own keyboard focus independently.
+window.addEventListener('keydown',ev=>{
+  if(ev.ctrlKey||ev.altKey||ev.metaKey||ev.target?.closest?.('input,textarea,[contenteditable="true"]')||Q('#game2048').hidden)return;
+  const direction=moveKeys[ev.key]||moveKeys[({KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d'})[ev.code]];
   if(direction){ev.preventDefault();move(direction)}
 },true);
 document.querySelectorAll('[data-2048-direction]').forEach(button=>button.addEventListener('click',()=>{
-  move(button.dataset['2048Direction']);Q('#grid2048').focus({preventScroll:true});
+  move(button.getAttribute('data-2048-direction'));Q('#grid2048').focus({preventScroll:true});
 }));
 window.addEventListener('message',ev=>{
-  if(ev.origin!==location.origin||!window.frameElement)return;
+  if(ev.origin!==location.origin||window.parent===window||ev.source!==window.parent)return;
   if(ev.data?.type==='biglwa-arcade-key'&&moveKeys[ev.data.key])move(moveKeys[ev.data.key]);
 });
 let x0=0,y0=0;Q('#grid2048').addEventListener('touchstart',ev=>{x0=ev.touches[0].clientX;y0=ev.touches[0].clientY},{passive:true});
