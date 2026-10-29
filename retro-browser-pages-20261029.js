@@ -21,6 +21,7 @@
    identity.append(make('span','retro-window-icon',games?'▣':'▤'),
                    make('strong','',name));
    const controls=make('span','retro-window-controls');
+   controls.setAttribute('aria-label','Window controls');
    controls.append(make('span','retro-window-min','_'),make('span','retro-window-max','□'));
    controls.querySelectorAll('span').forEach(el=>el.setAttribute('aria-hidden','true'));
    const close=make('button','retro-window-close','×');
