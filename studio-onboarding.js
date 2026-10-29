@@ -119,7 +119,7 @@
  function renderSymbolKey(root){
   root.replaceChildren();
   for(const entry of symbolKey){
-   const row=document.createElement('li');row.className='tour-symbol-item';
+   const row=document.createElement('li');row.className='tour-symbol-item';row.dataset.widgetAudienceKey=entry.key;
    const glyph=document.createElement('span');glyph.className='tour-symbol-mark';
    glyph.setAttribute('aria-hidden','true');
    const mark=findRealSymbol(entry);
@@ -142,6 +142,7 @@
    const detail=document.createElement('small');detail.textContent=entry.detail;
    description.append(name,detail);row.append(glyph,description);root.append(row);
   }
+  if(root.id==='biglwaSkeletonSymbols')window.BigLWAProfileRepair?.paintLocks?.();
  }
  let index=0,card=null,dialog=null,currentUid='guest';
  const $=(q,root=document)=>root.querySelector(q);

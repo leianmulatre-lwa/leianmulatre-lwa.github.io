@@ -522,6 +522,11 @@ export default {
       try { return await streamRoute(request, config); }
       catch (error) { return json({ error: error.publicMessage || 'Stream service is unavailable. Please try again.' }, error.status || 500, request, config); }
     }
+    if (new URL(request.url).pathname.startsWith('/media/profile-state')) {
+      const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
+      try{const {mediaStateRoute}=await import('./profile-media-state.js');return await mediaStateRoute(request,config,{user:mediaUser,json,preflight:corsPreflight,allowed:allowedOrigin})}
+      catch(error){return json({error:error.publicMessage||'Profile media could not be loaded.'},error.status||500,request,config)}
+    }
     if (new URL(request.url).pathname.startsWith('/media/')) {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
       try { return await mediaRoute(request, config); }
@@ -1751,6 +1756,10 @@ async function mediaUpload(request, env, url, segment = 'wallpaper') {
     httpMetadata: { contentType, cacheControl: (photo ? 'public, ' : 'private, ') + 'max-age=31536000, immutable' },
     customMetadata: { uid: user.uid, kind, state, name: String(url.searchParams.get('name') || '').slice(0, 120), createdAt: String(createdAt) }
   });
+  if(state==='approved'&&['profile-photo','wallpaper'].includes(segment)){
+    const {updateMediaState}=await import('./profile-media-state.js');
+    await updateMediaState(bucket,user.uid,segment==='profile-photo'?{profilePhotoUrl:url.origin+'/media/profile-photo/'+user.uid+'/'+name,profilePhotoPosition:{x:50,y:50}}:{wallpaperMedia:{url:url.origin+'/media/wallpaper/'+user.uid+'/'+name,kind,state:'approved'}});
+  }
   return json({
     ok: true,
     key: user.uid + '/' + name,

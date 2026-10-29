@@ -303,10 +303,12 @@ async function loadPublicProfile(rawUsername){
     const {doc,getDoc}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
     const snap=await getDoc(doc(db,"usernames",username));
     if(!snap.exists())return null;
-    const data=snap.data()||{};
+    const data={...(snap.data()||{})};
+    if(data.uid){try{const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-state/'+encodeURIComponent(data.uid),{cache:'no-store',signal:AbortSignal.timeout(6000)});if(response.ok){const media=await response.json();if(media.uid===data.uid){if(media.photoKnown)data.profilePhotoUrl=media.profilePhotoUrl;if(media.profilePhotoPosition)data.profilePhotoPosition=media.profilePhotoPosition;if(media.wallpaperKnown)data.look={...(data.look||{}),wallpaperMedia:media.wallpaperMedia};data.widgetAudience=media.widgetAudience||{}}}}catch{}}
     const look=data.look&&typeof data.look==="object"?data.look:null;
     return {
       uid:clean(data.uid),
+      widgetAudience:data.widgetAudience||{},
       accountVisibility:data.accountVisibility==='private'?'private':'public',
       username:clean(data.username)||username,
       name:clean(data.name),

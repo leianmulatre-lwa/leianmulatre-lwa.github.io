@@ -429,7 +429,7 @@
       if(result.status==='block'){setSafetyStatus('error','This appears to be explicit photographic media, so it cannot be used as a wallpaper.');wallpaperReviewAlert('A wallpaper upload was blocked by the safety scanner. It was not published.');return}
       // One clear rule: the manual queue is only for flagged/uncertain scans.
       // A validated, confidently safe 'allow' verdict never waits for moderator push.
-      let rating=result.status==='local-only'?'local-only':'general';
+      let rating='general';
       if(result.status==='age-restricted'){
         // An uncertain/adult-coded safety verdict is a flag, not a clean pass.
         // Securely enqueue it for review, regardless of age, and never auto-publish it.
@@ -439,14 +439,14 @@
       }
       if(!cloud){setSafetyStatus('error','Account media is unavailable, so this wallpaper was not saved.');return}
       if(!await cloud.isSignedIn()){setSafetyStatus('held','Sign in to save this wallpaper to your account. Nothing was kept on this device.','not saved');return}
-      const confident=result.status==='allow'&&rating==='general';
-      setSafetyStatus('checking',confident?'Clean scan · publishing automatically (no manual review)…':'Flagged or unverifiable scan · securely holding for review…');
+      const confident=['allow','local-only'].includes(result.status)&&rating==='general';
+      setSafetyStatus('checking',confident?(result.status==='local-only'?'Validated file · saving to your account…':'Clean scan · publishing automatically (no manual review)…'):'Flagged or unverifiable scan · securely holding for review…');
       const media=await cloud.upload(file,{state:confident?'approved':'pending'});
       if(confident){
-        await cloud.publish(media,{approvedBy:'auto'});
+        await cloud.publish(media,{approvedBy:result.status==='local-only'?'validated-file':'auto'});
         paintWallpaper(media);
         const [state,message,badge]=wallpaperStatusCopy(media,rating);
-        setSafetyStatus(state,message,badge);
+        setSafetyStatus(state,result.status==='local-only'?'Wallpaper saved to your account.':message,badge);
         document.dispatchEvent(new CustomEvent('biglwa:wallpaper-published',{detail:{username:cloud.username(),url:media.url,kind:media.kind}}));
         return;
       }

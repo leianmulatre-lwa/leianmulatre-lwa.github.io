@@ -22,7 +22,7 @@ assert(css.includes('biglwa-game-aura-wobble')&&css.includes('prefers-reduced-mo
 assert(css.includes('grid-template-columns:minmax(0,1fr) clamp(235px,23vw,325px)'),'Games allocates actual usable width to companion window');
 assert(css.includes('module-games-grid>.module-game-directory'),'Directory remains below both windows');
 assert(css.includes('.craft-block-pair')&&css.includes('align-items:flex-end'),'Both R-series blocks align on the same baseline');
-assert(tools.includes('class="craft-toolbar" aria-label="Workshop stages"')&&tools.indexOf('class="craft-toolbar" aria-label="Workshop stages"') < tools.indexOf("'</header>'+"),'Workshop stage labels render inside the same heading element');
+assert(tools.includes('craft-account-vault craft-vault-inline')&&tools.indexOf('id="craftAccountVault"') < tools.indexOf("'</header>'+"),'Snapshot controls live inside the single Seriez heading');
 assert(css.includes('transform:translateY(-4px)!important')&&css.includes('width:51px!important'),'R-series blocks are smaller and raised');
 assert(css.includes('transform:scale(1.1)!important'),'Visualizr HD primary block gets its own optical enlargement');
 

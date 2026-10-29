@@ -95,7 +95,7 @@
  let profile=null,profileLoading=false,moduleLoading=false,transition=null,transitionTimer=null,transitionShownAt=0;
  function ensure(){
   if(!document.getElementById('studioApp'))return;
-  const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
+  const mark=document.querySelector('#studioApp .topbar.profile-header-repaired')||document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
   if(!mark)return;
   // This top-left indicator mirrors BOTH profile hydration and the active
   // module's own curtain; it disappears whenever the actual work finishes.
@@ -114,7 +114,7 @@
    }
    label.hidden=true;
   }
-  if(profile.parentElement!==mark)mark.append(profile);
+  if(profile.parentElement!==mark){const search=mark.querySelector('.search-wrap');if(search)search.after(profile);else mark.append(profile);}
   if(!profile.hasAttribute('role'))profile.setAttribute('aria-hidden','true');
   profile.hidden=!(profileLoading||moduleLoading);
   // Startup and login-laptop loaders remain separate; this is solely the

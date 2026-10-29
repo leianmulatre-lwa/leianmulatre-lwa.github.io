@@ -79,17 +79,20 @@ export async function uploadProfilePhoto(file) {
   return payload;
 }
 
+async function durablePhoto(values){
+ const {token}=await authHeaders();const response=await fetch(WORKER+'/media/profile-state',{method:values?'POST':'GET',headers:{Authorization:'Bearer '+token,...(values?{'Content-Type':'application/json'}:{})},...(values?{body:JSON.stringify(values)}:{})});const data=await response.json();if(!response.ok)throw Error(data.error||'Account photo could not be saved.');return data;
+}
 async function persistPhoto(media) {
   const { db, user, doc, setDoc, serverTimestamp } = { ...(await firebase()), ...(await authHeaders()) };
   const record = {
     key: media.key, url: media.url, contentType: media.contentType,
     size: media.size, state: "approved", updatedAt: serverTimestamp()
   };
-  await setDoc(doc(db, "users", user.uid), { profilePhoto: record, profilePhotoPosition: PHOTO_DEFAULT_POSITION, updatedAt: serverTimestamp() }, { merge: true });
-  const username = identity()?.username;
-  if (username) {
-    await setDoc(doc(db, "usernames", username), { profilePhotoUrl: media.url, profilePhotoPosition: PHOTO_DEFAULT_POSITION, updatedAt: serverTimestamp() }, { merge: true });
-  }
+  await durablePhoto({profilePhotoUrl:media.url,profilePhotoPosition:PHOTO_DEFAULT_POSITION});
+  const username=identity()?.username;
+  void setDoc(doc(db,"users",user.uid),{profilePhoto:record,profilePhotoPosition:PHOTO_DEFAULT_POSITION,updatedAt:serverTimestamp()},{merge:true})
+   .then(()=>username?setDoc(doc(db,"usernames",username),{profilePhotoUrl:media.url,profilePhotoPosition:PHOTO_DEFAULT_POSITION,updatedAt:serverTimestamp()},{merge:true}):null)
+   .catch(error=>console.warn('[BIGLWA] Legacy photo mirror deferred:',error.message));
   patchIdentity({ avatarUrl: media.url });
   paint(media.url,PHOTO_DEFAULT_POSITION);
   return record;
@@ -98,16 +101,17 @@ async function persistPhoto(media) {
 export async function removeProfilePhoto() {
   const { db, user, doc, getDoc, setDoc, serverTimestamp } = { ...(await firebase()), ...(await authHeaders()) };
   const username = identity()?.username;
-  await setDoc(doc(db, "users", user.uid), { profilePhoto: null, profilePhotoPosition: PHOTO_DEFAULT_POSITION, updatedAt: serverTimestamp() }, { merge: true });
-  if (username) {
-    await setDoc(doc(db, "usernames", username), { profilePhotoUrl: null, profilePhotoPosition: PHOTO_DEFAULT_POSITION, updatedAt: serverTimestamp() }, { merge: true });
-  }
+  await durablePhoto({profilePhotoUrl:null,profilePhotoPosition:PHOTO_DEFAULT_POSITION});
+  void setDoc(doc(db,"users",user.uid),{profilePhoto:null,profilePhotoPosition:PHOTO_DEFAULT_POSITION,updatedAt:serverTimestamp()},{merge:true})
+   .then(()=>username?setDoc(doc(db,"usernames",username),{profilePhotoUrl:null,profilePhotoPosition:PHOTO_DEFAULT_POSITION,updatedAt:serverTimestamp()},{merge:true}):null)
+   .catch(error=>console.warn('[BIGLWA] Legacy photo mirror deferred:',error.message));
   patchIdentity({ avatarUrl: "" });
   paint("",PHOTO_DEFAULT_POSITION);
 }
 export async function getProfilePhotoDetails() {
   const {db,auth,doc,getDoc}=await firebase();
   if(!auth.currentUser)return {url:'',position:PHOTO_DEFAULT_POSITION};
+  const durable=await durablePhoto();if(Object.hasOwn(durable,'profilePhotoUrl'))return {url:durable.profilePhotoUrl,position:normalizePosition(durable.profilePhotoPosition)};
   const snap=await getDoc(doc(db,'users',auth.currentUser.uid));
   const data=snap.exists()?snap.data()||{}:{};
   return {url:clean(data.profilePhoto?.url),position:normalizePosition(data.profilePhotoPosition)};
@@ -116,12 +120,14 @@ export async function saveProfilePhotoPosition(position) {
   const {db,auth,doc,getDoc,setDoc,serverTimestamp}=await firebase();
   const user=auth.currentUser;
   if(!user||!identity()?.uid||identity()?.uid!==user.uid)throw Error('Sign in to your own Studio to adjust your picture.');
-  const snap=await getDoc(doc(db,'users',user.uid));
-  if(!snap.exists()||!clean(snap.data()?.profilePhoto?.url))throw Error('Choose a profile picture before adjusting it.');
+  const durable=await durablePhoto();
+  if(!durable.profilePhotoUrl){const snap=await getDoc(doc(db,'users',user.uid));if(!snap.exists()||!clean(snap.data()?.profilePhoto?.url))throw Error('Choose a profile picture before adjusting it.')}
   const values=normalizePosition(position);
-  await setDoc(doc(db,'users',user.uid),{profilePhotoPosition:values,updatedAt:serverTimestamp()},{merge:true});
+  await durablePhoto({profilePhotoPosition:values});
   const username=identity()?.username;
-  if(username)await setDoc(doc(db,'usernames',username),{profilePhotoPosition:values,updatedAt:serverTimestamp()},{merge:true});
+  void setDoc(doc(db,'users',user.uid),{profilePhotoPosition:values,updatedAt:serverTimestamp()},{merge:true})
+   .then(()=>username?setDoc(doc(db,'usernames',username),{profilePhotoPosition:values,updatedAt:serverTimestamp()},{merge:true}):null)
+   .catch(error=>console.warn('[BIGLWA] Legacy photo position mirror deferred:',error.message));
   applyProfilePhotoPosition(values);
   window.dispatchEvent(new CustomEvent('biglwa:photo-position-changed',{detail:values}));
   return values;
@@ -145,6 +151,7 @@ export async function loadProfilePhoto() {
   const user = auth.currentUser;
   if (!user) return "";
   try {
+    const durable=await durablePhoto();if(Object.hasOwn(durable,'profilePhotoUrl')){if(!document.documentElement.classList.contains('biglwa-preview-mode'))paint(durable.profilePhotoUrl,durable.profilePhotoPosition);return durable.profilePhotoUrl}
     const snap = await getDoc(doc(db, "users", user.uid));
     const url = clean(snap.exists() ? snap.data()?.profilePhoto?.url : "");
     if (url) paint(url,snap.data()?.profilePhotoPosition);

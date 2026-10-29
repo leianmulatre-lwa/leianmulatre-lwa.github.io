@@ -1,0 +1,45 @@
+/* One masthead edge and one measured grid: logo | search | load state | weather | account. */
+#studioApp .topbar.profile-header-repaired{grid-template-columns:76px minmax(160px,1fr) minmax(0,110px) max-content max-content!important;gap:12px!important;border:0!important;border-bottom:1px solid #69595035!important;box-shadow:none!important;outline:0!important;background-clip:border-box!important}
+#studioApp .topbar.profile-header-repaired::before,#studioApp .topbar.profile-header-repaired::after{display:none!important;content:none!important}
+#studioApp .topbar.profile-header-repaired .search-wrap{grid-column:2!important;min-width:0!important;width:100%!important;max-width:none!important;margin:0!important}
+#studioApp .topbar.profile-header-repaired #lwaProfileLoading{position:static!important;grid-column:3!important;transform:none!important;inset:auto!important;min-width:0!important;width:auto!important;max-width:110px!important;margin:0!important;overflow:hidden!important;white-space:nowrap!important;font-size:10px!important}
+#studioApp .topbar.profile-header-repaired #studioWeather{grid-column:4!important;justify-self:end!important;margin:0!important;padding:6px 0 6px 12px!important}
+#studioApp .topbar.profile-header-repaired .top-actions{grid-column:5!important;min-width:0!important;width:auto!important;margin:0!important}
+html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired{grid-template-columns:76px minmax(100px,1fr) minmax(0,110px) max-content max-content!important}
+#studioApp .main,#studioApp .hero{border-top:0!important;outline:0!important}
+#studioApp #camera .photobooth-intro,#studioApp #camera .photobooth-reference-preview img{object-position:center 35%!important}
+/* Rainbow stitches around the existing Lwazi face, no extra card or header. */
+#studioApp #tools.card{outline:0!important;border-color:#958a8555!important}
+#studioApp #tools.card::after{content:'';position:absolute;inset:3px;border-radius:inherit;pointer-events:none;background:url('/assets/lwazi-rainbow-stitch.svg') center/100% 100% no-repeat}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-card .craft-app-icon-r,#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-card .craft-edition-mark,#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-card .craft-card-mark{transform:translateY(-6px)!important}
+/* The shared profile rail owns the label; the rank name and track use the remaining width. */
+#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail{justify-content:flex-start!important;padding-top:12px!important;gap:6px!important}
+#studioApp .profile-card:not(.profile-is-editing) .profile-identity-rail>.profile-avatar{margin-top:-4px!important}
+#studioApp .profile-card .profile-identity-rail>.real-rank-label{display:block;order:6;align-self:center;text-align:center;width:100%;margin-top:auto;padding-top:4px;font:700 10px/1.3 system-ui;text-transform:uppercase;letter-spacing:.12em;opacity:.65}
+#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank.rank-under-note{display:grid!important;grid-template-columns:max-content minmax(70px,1fr) max-content!important;align-items:center!important;gap:12px!important;padding-top:0!important;bottom:14px!important;min-height:20px!important;border-top:0!important}
+#studioApp .real-rank .rank-duplicate-label{display:none!important}
+#studioApp .real-rank .rank-track{position:relative!important;overflow:visible!important;height:12px!important;border-radius:3px!important;background:repeating-linear-gradient(90deg,#746a6833 0 calc(16.66% - 2px),transparent calc(16.66% - 2px) 16.66%)!important;border:1px solid #7b746444!important;box-shadow:inset 0 1px 2px #2e1b2433}
+#studioApp .real-rank .rank-track>i:not(.rank-marker){display:block;height:100%!important;border-radius:2px;background:repeating-linear-gradient(90deg,#5caf7c 0 12px,#b1e5b6 12px 14px)!important;box-shadow:0 0 6px #78cb9c55}
+#studioApp .real-rank .rank-marker{position:absolute;left:var(--rank-progress,0%);top:50%;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);border:1px solid #32674c;background:#e5efaa;box-shadow:1px 1px #233c3555}
+#studioApp .music-card .card-kicker,#studioApp .music-card #profileMusicOpen{top:11px!important;min-height:20px!important;line-height:18px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;margin-top:0!important}
+#studioApp .music-card #profileMusicOpen{padding-top:0!important;padding-bottom:0!important}
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview{background-color:#fffaf0!important;background-image:repeating-linear-gradient(to bottom,transparent 0 27px,#9cbdcf66 27px 28px)!important;line-height:28px!important;min-height:126px!important;border:1px solid #d9ccad!important;border-radius:3px!important;padding:12px!important}
+html.biglwa-preview-mode #studioApp [data-private-preview-hidden="1"]{display:none!important}
+html.biglwa-preview-mode #studioApp .masonry>.public-widget-face{display:block!important;visibility:visible!important;opacity:1!important}
+.public-widget-safe-face{display:grid;place-items:center;min-height:110px;padding:20px 12px;text-align:center;font:13px/1.5 system-ui;color:var(--widget-ink,#463d3c);background:repeating-linear-gradient(135deg,#65857608 0 8px,transparent 8px 16px);border:1px dashed #79978155;border-radius:7px;margin-top:12px}
+.widget-audience-lock{padding:2px!important;width:20px!important;min-width:20px!important;height:22px!important;background:transparent!important;color:inherit!important;border:0!important;cursor:pointer;opacity:.65;font:12px system-ui!important;flex:none}
+.widget-audience-lock:hover{opacity:1}
+#widgetAudienceDialog{max-width:340px;border:1px solid #879a86;background:#fffaf0;color:#352d29;padding:20px;border-radius:8px}#widgetAudienceDialog h2{font:700 18px Georgia}#widgetAudienceDialog p{font:12px/1.5 system-ui}#widgetAudienceDialog select,#widgetAudienceDialog button{padding:8px;margin:6px 4px 0 0;cursor:pointer}#widgetAudienceDialog::backdrop{background:#1f162955}
+@media(max-width:760px){#studioApp .topbar.profile-header-repaired,html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired{grid-template-columns:54px minmax(80px,1fr) 28px max-content max-content!important;gap:7px!important}#studioApp .topbar.profile-header-repaired #lwaProfileLoading{max-width:28px!important;font-size:0!important}#studioApp .topbar.profile-header-repaired #studioWeather{font-size:10px!important;padding-left:0!important}#studioApp .profile-card .profile-identity-rail>.real-rank-label{font-size:9px!important;letter-spacing:.06em}}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-vault-inline{margin:12px 0 0!important;padding:10px 12px!important;border:0!important;border-top:1px solid #a9a292!important;background:transparent!important;box-shadow:none!important}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-vault-inline .craft-vault-gallery:empty{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-vault-inline .craft-vault-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite [data-craft-card] .craft-block-pair .craft-r-block,#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite [data-craft-card] .craft-r-badge{transform:translateY(-6px)!important}
+#studioApp .sidebar-navigation-row .widget-audience-lock{width:14px!important;min-width:14px!important;padding:0!important;font-size:9px!important}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite [data-craft-card] .craft-block-pair>:last-child{translate:0 -5px}
+#studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-vault-inline .craft-vault-gallery{max-height:132px;overflow:auto}
+
+#studioApp .real-rank.rank-under-note .real-rank-explanation{display:none!important}
+
+html.biglwa-preview-mode #camera .public-widget-safe-face{padding:0;border:0;background:none;overflow:hidden}html.biglwa-preview-mode .public-booth-image{display:block;width:100%;height:180px;object-fit:cover;object-position:center 25%}body.night-mode .public-booth-image{content:url('/assets/booth-dark-20261029.webp')}
+#biglwaSkeletonSymbols .tour-symbol-item{display:flex;align-items:center;gap:9px}#biglwaSkeletonSymbols .tour-symbol-description{flex:1}#biglwaSkeletonSymbols .widget-audience-lock{width:25px!important;font-size:15px!important;border:0;background:transparent;cursor:pointer;padding:4px}

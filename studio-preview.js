@@ -635,6 +635,7 @@ function gateReason(target,kind){
   if(target.closest("[data-orbit-save],[data-orbit-open],[data-orbit-path],[data-orbit-auth],[data-orbit-app],#calOrbit,.module-orbit")) return "connect accounts";
   const app=studioApp();
   if(!app || !app.contains(target)) return "";
+  if(target.closest('[data-open],[data-sidebar-route],[data-module-launch],[data-open-module],.hero-action-bar a[href^="#"]'))return 'open this read-only widget';
   const widgetControl=target.closest("[data-expand-widget],[data-open-widget-settings],[data-minimize-widget],[data-dock-widget],[data-rearrange-widget],[data-restore-widget],[data-add-shortcut],[data-remove-shortcut],[data-studio-drag-handle]");
   if(widgetControl) return "enlarge and arrange widgets";
   // The new public Guest Check is read-only for anonymous visitors; its own
@@ -920,6 +921,7 @@ function enforce(){
   decorateGuestCard();
   decorateVisitorShortcuts();
   syncPublicWidgets();
+  window.BigLWAProfileRepair?.previewFaces?.(preview.profile);
   window.dispatchEvent(new CustomEvent('biglwa:public-mirror-ready',{detail:{profile:preview.profile}}));
   guardOrbit();
   checkSignedIn();
@@ -947,6 +949,7 @@ function activate(profile){
   applyLook(profile.look);
   window.BigLWAStudioLayout?.applyPublic?.(profile.look?.layout);
   syncPublicWidgets();
+  window.BigLWAProfileRepair?.previewFaces?.(preview.profile);
   buildBanner();
   synchronizeOwnerPreview();
 
@@ -981,8 +984,8 @@ async function boot(){
   const moved=()=>{const live=pathUsername(location.pathname);return !!live && live!==username;};
   const dir=await waitFor(()=>window.BigLWAUserDirectory?.loadPublicProfile?window.BigLWAUserDirectory:null);
   if(!dir || moved()) return;
-  let mine=null;
-  try{ mine=await dir.loadProfile(); }catch{}
+  let mine=identity()||window.__biglwaIdentity||null;
+  if(!mine)try{mine=await Promise.race([dir.loadProfile(),new Promise(resolve=>setTimeout(()=>resolve(null),1500))])}catch{}
   if(mine){
     const mineUsername=clean(mine.profile?.username||mine.username).toLowerCase();
     // The account owner may explicitly request the visitor view. Only ordinary
@@ -992,7 +995,7 @@ async function boot(){
        username is treated as the owner; otherwise keep preview mode active. */
     preview.signedIn=true;
   }
-  const profile=await dir.loadPublicProfile(username);
+  const profile=await Promise.race([dir.loadPublicProfile(username),new Promise(resolve=>setTimeout(()=>resolve(null),10000))]);
   if(moved()) return;
   if(!profile){
     noticeMissing(username);
@@ -1000,7 +1003,7 @@ async function boot(){
       const banner=$('#biglwaPreviewBanner');
       const heading=banner?.querySelector('p strong'),caption=banner?.querySelector('p span');
       if(heading)heading.textContent='Preview unavailable for @'+username;
-      if(caption)caption.textContent='We could not load the public profile. Refresh or return to Studio.';
+      if(caption)caption.textContent='The account directory is temporarily unavailable. Your saved cloud media has not been deleted.';
     }
     return;
   }

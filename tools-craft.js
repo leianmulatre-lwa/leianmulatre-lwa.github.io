@@ -107,7 +107,7 @@ export async function mountCraftSuite(root){
    '<div class="craft-folder-front">'+
     '<div class="craft-folder-inner craft-folder-inner--tri">'+
      '<div class="craft-folder-brand"><img class="craft-folder-logo" src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA stitched letters and colored blocks" width="1200" height="675" decoding="async"></div>'+
-     '<div class="craft-folder-details"><span class="craft-folder-seal">R / LWAZI SERIEZ</span>'+
+     '<div class="craft-folder-details"><span class="craft-folder-seal">R / LWAZI SERIEZ · YOUR SNAPSHOTS</span>'+
       '<p>Make, edit, keep or share. Two BIG LWA originals and four advanced R-editors, all in your werkshop.</p>'+
       '<nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support ↗</a></nav>'+
      '</div>'+
@@ -118,16 +118,13 @@ export async function mountCraftSuite(root){
       '</button>'+
      '</aside>'+
     '</div>'+
-    '<div class="craft-toolbar" aria-label="Workshop stages"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
+    '<section class="craft-account-vault craft-vault-inline" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
+     '<div class="craft-vault-actions"><label class="craft-vault-file">Save a snapshot<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
+     '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
    '</div>'+
   '</header>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
   '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+WEB_FRIENDLY.map(webAppCard).join('')+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
-  '<section class="craft-account-vault" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
-   '<div><span class="craft-vault-eyebrow">03 / PRIVATE SHELF</span><h3>Your BIG LWA snapshots</h3>'+
-   '<p>Save a small preview to your signed-in account. This is a flattened image you can reopen in sqwibblR, not an editable WASM project.</p></div>'+
-   '<div class="craft-vault-actions"><label class="craft-vault-file">Save an exported image<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
-   '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
   '<div class="craft-panel" id="craftPanel" hidden>'+
     '<div class="craft-panel-head"><div class="craft-panel-identity"><span class="craft-panel-lights" aria-hidden="true"><i></i><i></i><i></i></span><strong id="craftPanelTitle">BIG LWA editor</strong></div><div class="craft-panel-actions">'+
        '<label class="craft-panel-save" title="Save a flattened exported image to your BIG LWA snapshot shelf">Save preview<input id="craftPanelSaveFile" type="file" accept="image/png,image/jpeg,image/webp"></label>'+ 
