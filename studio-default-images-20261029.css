@@ -48,11 +48,11 @@
 #studioApp #moduleWorkspace .biglwa-map-island-image{max-height:430px}
 @media(max-width:580px){#studioApp #map .studio-map-preview-slot>.biglwa-map-error-fallback{min-height:150px}}
 
-/* Studio Archive: hovering the widget turns ONLY its photo monochrome.
+/* Studio Archive: hovering the widget slowly fades ONLY its photo to monochrome.
    Preserve the original uploaded image, existing click target, and colour
    when the pointer leaves. Match both default and member-uploaded covers. */
 #studioApp #archive .archive-photo-preview img{
-  transition:filter 220ms ease!important;
+  transition:filter 1100ms ease-in-out!important;
 }
 #studioApp #archive:hover .archive-photo-preview img,
 #studioApp #archive:hover .archive-photo-preview.biglwa-archive-default-windows img.biglwa-windows-archive-photo{
