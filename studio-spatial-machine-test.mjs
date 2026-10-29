@@ -39,27 +39,49 @@ map.getBoundingClientRect=()=>rect(435,20,200,map.classList.contains('studio-hea
 feed.getBoundingClientRect=()=>rect(435,338,200,126);
 masonry.append(map,feed);
 await new Promise(resolve=>setTimeout(resolve,65));
-const feedBefore=Number(feed.style.gridRowStart);
-assert(feedBefore>50,'Tall Map initially pushes only its own column down');
+const feedBefore=parseFloat(feed.style.top);
+assert(feedBefore>=296+14,'Tall Map initially pushes only its own column down, without overlapping');
 map.classList.add('studio-header-only');
 await new Promise(resolve=>setTimeout(resolve,65));
-const feedAfter=Number(feed.style.gridRowStart);
-assert(feedAfter>1&&feedAfter<feedBefore,'Minimizing Map pulls MyFeed up in the same Pinterest column');
+const feedAfter=parseFloat(feed.style.top);
+assert(feedAfter>=56+14&&feedAfter<feedBefore,'Minimizing Map pulls MyFeed up in its own column without any overlap');
 assert.equal(map.dataset.biglwaGridPosition,'1:3','Map keeps its saved spatial position');
 assert.equal(feed.dataset.biglwaGridPosition,'2:3','Following widget keeps its slot and content');
 assert.equal(feed.parentElement,masonry,'No remount or reparenting breaks widget integrations');
 assert(feed.querySelector('h2')?.textContent==='MyFeed');
 map.classList.remove('studio-header-only');
 await new Promise(resolve=>setTimeout(resolve,65));
-assert(Number(feed.style.gridRowStart)>feedAfter,'Restoring Map re-expands only the affected column');
+assert(parseFloat(feed.style.top)>=296+14&&parseFloat(feed.style.top)>feedAfter,'Restoring Map re-expands only the affected column');
+
+/* A drop must not reparent the mounted card (which restarts iframes/media).
+   Drag preview and drop outline must represent the FULL original height. */
+let movedNodes=0;
+const origAppend=masonry.appendChild.bind(masonry);
+masonry.appendChild=child=>{movedNodes++;return origAppend(child)};
+const handleMap=map.querySelector('button');
+const event=(kind,x,y,target=handleMap)=>target.dispatchEvent(new w.MouseEvent(kind,{bubbles:true,button:0,clientX:x,clientY:y}));
+event('pointerdown',443,31);
+const ghost=d.querySelector('.biglwa-spatial-ghost'),target=d.querySelector('.biglwa-spatial-target');
+assert(ghost,'Dragging produces a real-sized card preview');
+assert.equal(ghost.style.height,'296px','Preview shows the FULL widget, never a 70px miniature');
+assert.equal(target.style.height,'296px','Drop target reserves actual full widget height');
+event('pointermove',700,580);
+event('pointerup',700,580);
+assert.equal(movedNodes,0,'No widget DOM nodes were reparented or remounted by dragging');
+assert.equal(map.parentElement,masonry);
+assert.equal(map.querySelector('p')?.textContent,'Map content');
+assert(Number.isFinite(parseFloat(masonry.style.height)),'Parent reserves height of the tallest full content column');
+assert(!d.querySelector('.biglwa-spatial-ghost'),'Full-sized drag ghost is cleaned up');
+
 const css=read('studio-spatial-drag-20261029.css');
-assert(css.includes('grid-auto-rows:4px!important'),'Pinterest sizing uses fine-grained independent row spans');
-assert(!css.includes('grid-auto-rows:minmax(86px,auto)'),'Tall global-row layout cannot return');
+assert(css.includes('position:absolute!important'),'Full-size cards are positioned independently of shared grid rows');
+assert(css.includes('display:block!important'),'Rigid grid-row sizing is disabled');
+assert(!css.includes('grid-auto-rows:4px!important'),'Old overlapping four-pixel track loop is removed');
 
 assert.match(read('ui-coherence.js'),/positions:Object\.fromEntries/,'Canonical account layout persists grid slots');
 assert.match(read('ui-coherence.js'),/const positions=layout\.positions/,'Cloud account rehydrate restores slots');
 const index=read('index.html');
-assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-pinterest-masonry-2'));
+assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-stable-flow-3'));
 assert(index.includes('studio-machine-pages-20261029.css?v=20261029-1'));
 assert(!read('tools-craft.js').includes('<h2>your werkshopeR</h2>'),'Old Lwazi hero is removed');
 assert(read('tools-craft.js').includes('class="craft-folder-front"'),'Lwazi folder face replaces it');
