@@ -417,7 +417,7 @@
     if (target.closest('[data-open="orbit"],[data-open="feed"]')) { window.setTimeout(render, 80); }
   }, true);
 
-  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, configured: function(){return !!loginConfiguration();} };
+  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, refresh: function(){return state.connected ? loadFacebookContent() : Promise.resolve(null);}, configured: function(){return !!loginConfiguration();} };
   /* Registering with the shared mount is what lets these cards survive a feed rebuild and
      pick up the Facebook accent, instead of only appearing on the click that opened the
      page and then being wiped by the next rebuild. */
