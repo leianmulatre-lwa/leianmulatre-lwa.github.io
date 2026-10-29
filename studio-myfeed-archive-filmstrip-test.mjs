@@ -19,8 +19,8 @@ assert(index.includes('module-pages.js?v=20261029-lwazi-merged-header-9'),'Curre
 assert(pages.includes('/module-pages.js?v=20261029-lwazi-merged-header-9')&&route.includes('/module-pages.js?v=20261029-lwazi-merged-header-9'),'Fallback URLs do not request stale builds');
 assert(css.includes('#studioApp #biglwaFeedHero .biglwa-feed-hero-grid'),'Film effect targets Studio preview only');
 assert(css.includes('repeat(4,minmax(0,1fr))'),'Four media slots retain their row');
-assert(css.includes('radial-gradient')&&css.includes('background-repeat:repeat-x'),'Physical sprocket holes along film edges');
-assert(css.includes('aspect-ratio:4 / 5!important'),'Film crops remain compact and uniform');
+assert(css.includes('background:repeating-linear-gradient(90deg,')&&css.includes('.biglwa-feed-hero-grid::before')&&css.includes('.biglwa-feed-hero-grid::after'),'Current rectangular film perforations along both edges');
+assert(css.includes('aspect-ratio:3 / 2!important'),'Four photo apertures retain consistent landscape proportions');
 assert(css.includes('pointer-events:none!important'),'Decorative perforations never block clicks');
 assert(css.includes('.biglwa-feed-hero-preview:focus-visible'),'Keyboard users can see active thumbnails');
 assert(feed.includes("storedPosts.slice(0,HERO_SLOTS)")&&feed.includes('const HERO_SLOTS = 4'),'The data source still picks four latest stored photos');
