@@ -27,6 +27,18 @@
   const readJson=(key,fallback=null)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
   const scopedLayoutKey=()=>LAYOUT_LOCAL_PREFIX+layoutUid();
   const scopedLayout=()=>readJson(scopedLayoutKey(),null);
+  // Keep the small red "removed" indicator scoped to the current account.
+  // A disconnected shortcut stays an available route; this is only its status.
+  let removedShortcutState={uid:'',keys:new Set()};
+  function removedShortcutKeys(){
+    const uid=layoutUid();
+    if(removedShortcutState.uid!==uid){
+      const saved=scopedLayout()?.disconnectedNavigation;
+      removedShortcutState={uid,keys:new Set(Array.isArray(saved)?saved.filter(key=>
+        typeof key==='string'&&/^[a-z0-9_-]{1,48}$/.test(key)):[])};
+    }
+    return removedShortcutState.keys;
+  }
   // A shared browser can host multiple accounts. No unscoped profile is ever trusted.
   const ownUid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
   const ownProfileKey=()=>ownUid()?'biglwaOwnProfileV1:'+ownUid():'';
@@ -152,6 +164,7 @@
       // Yellow keeps a widget in its masonry position with only the header showing.
       collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')].map(el=>el.dataset.widgetId).filter(Boolean),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
+      disconnectedNavigation:[...removedShortcutKeys()].filter(key=>/^[a-z0-9_-]{1,48}$/.test(key)),
       updatedAtMs:now
     };
     try{
@@ -333,6 +346,15 @@
       #studioApp .sidebar-navigation-row.is-shortcut.is-closed::after{background:rgb(var(--aura-rgb,216,95,109))}
       body.sidebar-collapsed #studioApp .sidebar-navigation-row.is-shortcut::after{top:0;right:0}
       #studioApp .sidebar-navigation-row.is-available::after{border:1px solid rgba(var(--aura-rgb,216,95,109),.75);background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:none}
+      /* Shortcut dots are redundant in the yellow row. In the red area,
+         hollow means available and filled means explicitly disconnected. */
+      #studioApp #studioSidebarShortcuts .sidebar-navigation-row::after{content:none!important;display:none!important}
+      #studioApp #studioSidebarRest .sidebar-navigation-row.is-available.is-disconnected::after{
+        content:""!important;display:block!important;
+        background:rgb(var(--aura-rgb,216,95,109))!important;
+        border:1px solid rgb(var(--aura-rgb,216,95,109))!important;
+        box-shadow:none!important
+      }
       #studioApp .sidebar-widget-restore-row.is-minimized::after{background:#d85f6d;box-shadow:0 0 0 2px rgba(216,95,109,.14)}
       #studioApp .sidebar-primary-widgets .sidebar-widget-restore-row.is-minimized::after{background:#5b9e6f;box-shadow:0 0 0 2px rgba(91,158,111,.14)}
       #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.22);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.62)}
@@ -729,6 +751,15 @@
     reconcileNavigationRows(shortcutDock,shortcuts,'shortcut');
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
     reconcileNavigationRows(availableDock,available.map(entry=>entry.key),'available');
+    const removed=removedShortcutKeys();
+    $('[data-sidebar-route-row]',availableDock).forEach(row=>{
+      const disconnected=removed.has(row.dataset.sidebarRouteRow);
+      row.classList.toggle('is-disconnected',disconnected);
+      row.dataset.shortcutState=disconnected?'disconnected':'available';
+      const label=navigationCatalog.get(row.dataset.sidebarRouteRow)?.label||row.dataset.sidebarRouteRow;
+      row.title=disconnected?`${label} · removed from shortcut bar, still available`:
+        `${label} · available to add to shortcut bar`;
+    });
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
     let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
     create.classList.add('studio-veve-launcher');
@@ -752,6 +783,12 @@
       const targetIndex=targetKey===key?Math.min(Math.max(current.indexOf(key),0),without.length):(targetKey?without.indexOf(targetKey):-1);
       without.splice(targetIndex<0?without.length:targetIndex,0,key);
     }
+    // Only a deliberate disconnect fills the corresponding lower red dot.
+    // Re-adding the destination clears that marker. The shortcut remains
+    // available and none of its widget/content data is removed.
+    const removed=removedShortcutKeys();
+    if(connected)removed.delete(key);
+    else if(current.includes(key))removed.add(key);
     writeNavigationShortcuts(without);
     syncSidebarShortcutSystem();
     showShortcutStatus(app,connected?'Connected to shortcut bar.':'Still active in Studio · shortcut disconnected.');
@@ -1418,6 +1455,8 @@
       if(chosen&&typeof chosen==='object'){
         try{
           localStorage.setItem(scopedLayoutKey(),JSON.stringify(chosen));
+          // Remote account layout may change which destinations were removed.
+          removedShortcutState={uid:'',keys:new Set()};
           if(Array.isArray(chosen.docked))localStorage.setItem(DOCKED_WIDGET_KEY,JSON.stringify(chosen.docked));
           if(chosen.order&&typeof chosen.order==='object')localStorage.setItem('biglwaWidgetOrder',JSON.stringify(chosen.order));
           if(Array.isArray(chosen.navigation))localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(chosen.navigation));
