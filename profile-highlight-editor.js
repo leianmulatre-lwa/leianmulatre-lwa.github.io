@@ -551,7 +551,7 @@
   if(footer)footer.before(pane);else panel.append(pane);
  }
  let timer;
- function schedule(){clearTimeout(timer);timer=setTimeout(start,50)}
+ function schedule(){if(timer)return;timer=setTimeout(()=>{timer=null;start()},50)}
  for(const event of ['biglwa:identity-updated','biglwa:session-verified','biglwa:user-directory-ready','biglwa:highlights-imported','biglwa:customization-remote','biglwa:archive-rendered','biglwa:snapchat-showcase-ready'])
   window.addEventListener(event,detail=>{
    if(event==='biglwa:customization-remote'){

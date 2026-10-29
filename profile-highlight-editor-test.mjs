@@ -158,6 +158,13 @@ await w.BIGLWAHighlightEditor.save();
 assert.equal(lastSave.session.highlightEdits.custom[0].title,'My work');
 assert.equal(w.BIGLWAHighlightEditor.current()[0].items[0].mediaUrl,'https://example.com/mywork.jpg');
 assert.equal(imported.highlights[0].title,'Original','Original imported content never modified');
+// A busy live Studio keeps mutating while media/provider widgets hydrate.
+// Debouncing on every mutation used to postpone the Highlights mount forever.
+doc.querySelector('.archive-highlights-button').remove();
+const busy=w.setInterval(()=>{const n=doc.createElement('span');doc.querySelector('#studioApp').append(n);n.remove()},8);
+await new Promise(r=>setTimeout(r,170));
+assert.ok(doc.querySelector('.archive-highlights-button'),'Highlights remounts even while other live widgets continuously update');
+w.clearInterval(busy);
 w.document.documentElement.classList.add('biglwa-preview-mode');
 w.dispatchEvent(new w.CustomEvent('biglwa:public-profile-ready',{detail:{profile:{look:{highlights:{
  version:1,imported:{},custom:[{id:'visitor',title:'Public',cover:'',added:[{kind:'image',mediaUrl:'https://example.com/public.jpg'}]}]
