@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261029-lwazi-merged-header-9';
+        script.src = '/module-pages.js?v=20261029-single-panel-10';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2375,7 +2375,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function renderTools(){
     body.innerHTML=heading('tools')+'<div class="tool-studio" id="toolStudio"></div>';
     /* The intake page is its own module so the file work stays away from the module router. */
-    import('/tools-studio.js?v=20261029-header-merge-5')
+    import('/tools-studio.js?v=20261029-single-header-6')
       .then(mod=>mod.mountToolsStudio($('#toolStudio',body),{downloadBlob}))
       .catch(error=>{
         $('#toolStudio',body).innerHTML='<section class="module-card wide"><h2>lwazi could not start</h2><p>Give the page a refresh and it will load again.</p></section>';
