@@ -46,6 +46,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node toolbar-runtime-regression-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-spatial-machine-test.mjs
           node studio-default-images-test.mjs
+          node studio-myfeed-archive-filmstrip-test.mjs
           node retro-browser-frames-regression-test.mjs
           node --check studio-lwazi-thumbnail-20261026.js
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-lwazi-horizontal-regression-test.mjs
