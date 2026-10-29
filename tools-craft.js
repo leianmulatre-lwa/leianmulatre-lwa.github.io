@@ -39,32 +39,60 @@ function blockArtwork(item){
  return '<img class="craft-block-png" src="/assets/bigapps/icons/'+name+'.png?v=20261026-original-stitch-1" alt="" width="160" height="160" decoding="async" />';
 }
 
+const CRAFT_ALTERNATE={
+ 'image-desk':'sqwibblR',visualizr:'visualizr',
+ photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'
+};
+function blockPair(item,primary){
+ const key=CRAFT_ALTERNATE[item.id]||'sqwibblR';
+ return '<div class="craft-block-pair">'+
+ '<span class="craft-block-main">'+primary+'</span>'+
+ '<img class="craft-block-alt" src="/assets/bigapps/blocks/'+key+'.svg?v=20261029-coded-pair-1" alt="" aria-hidden="true" width="48" height="48" loading="lazy">'+
+ '</div>';
+}
+function weeklyBlock(){
+ const blocks=[
+  {name:'sqwibblR',route:'tools',image:'sqwibblR'},
+  {name:'visualizr',route:'projects',image:'visualizr'},
+  {name:'lightR',route:'tools',image:'lightR'},
+  {name:'paintR',route:'tools',image:'paintR'},
+  {name:'keyframeR',route:'tools',image:'keyframeR'},
+  {name:'fileR',route:'tools',image:'fileR'}
+ ];
+ const today=new Date(),utc=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()));
+ const day=(utc.getUTCDay()+6)%7;utc.setUTCDate(utc.getUTCDate()-day+3);
+ const isoYear=utc.getUTCFullYear(),first=new Date(Date.UTC(isoYear,0,4));
+ first.setUTCDate(first.getUTCDate()-(first.getUTCDay()+6)%7+3);
+ const week=1+Math.round((utc-first)/604800000);
+ return blocks[(isoYear*53+week)%blocks.length];
+}
+
 let stylesReady=false;
 function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261029-real-folder-2';document.head.append(css);
+ css.href='/tools-craft.css?v=20261029-weekly-red-3';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
  return '<article class="craft-tile'+(local?' craft-tile-home':'')+'" data-craft-card="'+item.id+'">'+
    '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
    '<div class="craft-tile-icon craft-arcade-block craft-block-'+escapeHtml(item.id)+'" aria-hidden="true">'+
-     blockArtwork(item)+'</div>'+
+     blockPair(item,blockArtwork(item))+'</div>'+
    '<h3 aria-label="'+escapeHtml(item.name)+'">'+escapeHtml(item.name.slice(0,-1))+'<span class="craft-capital-r" aria-hidden="true">R</span></h3>'+
    '<p>'+escapeHtml(item.description)+'</p>'+
-   '<div class="craft-engine-credits">'+(local?'Made by BIG LWA':'BIG LWA edition · licensed editing engine')+'</div>'+
+   '<div class="craft-engine-credits">'+(local?'Made by BIG LWA':'BIG LWA · R-series advanced editor')+'</div>'+
    '<button type="button" data-craft-open="'+item.id+'"'+(local?'':' disabled')+'>'+
       (local?'Start creating →':'Checking engine…')+'</button>'+
-   (local?'':('<a href="/bigapps/'+encodeURIComponent(PUBLIC_APP_ROUTE[item.id])+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
+   (local?'':('<a href="/bigapps/'+encodeURIComponent(PUBLIC_APP_ROUTE[item.id])+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & notices ↗</a>'))+
   '</article>';
 }
 function webAppCard(item){
  return '<article class="craft-tile craft-tile-home" data-craft-card="'+item.id+'">'+
   '<div class="craft-tile-eyebrow">BIG LWA ORIGINAL · WEB FRIENDLY</div>'+
-  '<div class="craft-tile-icon craft-arcade-block" aria-hidden="true"><img class="craft-block-png" src="'+item.icon+'" width="160" height="160" alt="" decoding="async"></div>'+
-  '<h3>'+escapeHtml(item.name)+'</h3><p>'+escapeHtml(item.description)+'</p>'+
+  '<div class="craft-tile-icon craft-arcade-block" aria-hidden="true">'+blockPair(item,'<img class="craft-block-png" src="'+item.icon+'" width="160" height="160" alt="" decoding="async">')+'</div>'+
+  '<h3 aria-label="'+escapeHtml(item.name)+'">'+escapeHtml(item.name.slice(0,-1))+'<span class="craft-capital-r" aria-hidden="true">R</span></h3><p>'+escapeHtml(item.description)+'</p>'+
   '<div class="craft-engine-credits">Made for BIG LWA · Studio native</div>'+
   '<button type="button" data-craft-route="'+item.route+'">Open '+escapeHtml(item.name)+' →</button>'+
   '</article>';
@@ -78,12 +106,18 @@ export async function mountCraftSuite(root){
    '<div class="craft-folder-back" aria-hidden="true"></div>'+
    '<div class="craft-folder-tab"><span class="craft-folder-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="craft-folder-tab-name">R / LWAZI</span></div>'+
    '<div class="craft-folder-front">'+
-    '<div class="craft-folder-inner">'+
-     '<div class="craft-folder-brand"><img class="craft-folder-logo" src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA stitched letters and colored blocks" width="1200" height="675" decoding="async">'+
-      '<span class="craft-folder-seal">R / LWAZI SERIEZ</span></div>'+
-     '<div class="craft-folder-details"><p>2 BIG LWA originals + 4 advanced open-source R-editors · pick a block to begin.</p>'+
+    '<div class="craft-folder-inner craft-folder-inner--tri">'+
+     '<div class="craft-folder-brand"><img class="craft-folder-logo" src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA stitched letters and colored blocks" width="1200" height="675" decoding="async"></div>'+
+     '<div class="craft-folder-details"><span class="craft-folder-seal">R / LWAZI SERIEZ</span>'+
+      '<p>Make, edit, keep or share. Two BIG LWA originals and four advanced R-editors, all in your werkshop.</p>'+
       '<nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support ↗</a></nav>'+
      '</div>'+
+     '<aside class="craft-folder-weekly" aria-label="Block of the week"><span class="craft-weekly-eyebrow">block of the week</span>'+
+      '<button class="craft-weekly-choice" type="button" data-craft-route="'+weeklyBlock().route+'">'+
+        '<img src="/assets/bigapps/icons/'+weeklyBlock().image+'.png?v=20261026-original-stitch-1" alt="" width="64" height="64">'+
+        '<span><strong>'+weeklyBlock().name+'</strong><small>new block every Monday · open ↗</small></span>'+
+      '</button>'+
+     '</aside>'+
     '</div>'+
    '</div>'+
   '</header>'+
@@ -106,8 +140,9 @@ export async function mountCraftSuite(root){
     '<p class="craft-panel-foot" role="status" id="craftEditorStatus">Your workspace is ready.</p>'+
   '</div>'+
   '<footer class="craft-smallprint">'+
-    '<p><strong>Who made what?</strong> sqwibblR, visualizr and this Lwazi Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
-    '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects still require the editor’s download/export commands. Some advanced builds require WebGPU/WebGL.</p>'+
+    '<p><strong>Made for BIG LWA.</strong> Lwazi is our creative workspace: our design, our identity, and our member-facing workflows. Each block opens its own BIG LWA experience.</p>'+
+    '<p><strong>Your work stays yours.</strong> Editing and exports normally run in your browser. Save an image snapshot privately to your account only when you choose to; layered projects require their own export/download. Some advanced tools need WebGL or WebGPU.</p>'+
+    '<details><summary>Technology, source & copyright notices</summary><p>Some advanced editions contain or derive from separately licensed technology. Required original copyright, license and source notices remain available with each advanced editor. BIG LWA branding and product features do not transfer ownership of underlying third-party code.</p><a href="/TOOLS-WORKSHOP-SOURCES.md" target="_blank" rel="noopener noreferrer">Read workshop source information ↗</a></details>'+
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
  const vaultKey='biglwaWorkshopSnapshotsV1',vaultStatus=root.querySelector('#craftVaultStatus'),vaultFile=root.querySelector('#craftVaultFile');
@@ -242,7 +277,7 @@ export async function mountCraftSuite(root){
   title.append(mark,titleName);
   info.textContent=id===LOCAL.id?
     'Original sqwibblR editor · work with layers and export a project. Choose Save to BIG LWA for a small private preview.':
-    item.name+' · BIG LWA Workshop. Original source and licenses remain available in Source & license notes. Files stay local until you choose to export or save.';
+    item.name+' · BIG LWA Workshop. Source and copyright notices remain available in each app. Files stay local until you choose to export or save.';
   direct.href=getUrl(id,webgl);
   root.querySelector('[data-craft-webgl]').hidden=id===LOCAL.id;
   root.querySelectorAll('[data-craft-card]').forEach(el=>el.classList.toggle('is-selected',el.dataset.craftCard===id));
