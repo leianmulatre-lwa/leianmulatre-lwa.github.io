@@ -152,6 +152,7 @@ jobs:
           node arcade-curtain-folder-regression-test.mjs
           node arcade-approved-asset-test.mjs
           node games-arcade-test.mjs
+          node games-lwazi-windows-regression-test.mjs
           node arcade-input-loop-regression-test.mjs
           node sqwibz-orbit-routing-test.mjs
           node --check external-link-policy-20261018.js
