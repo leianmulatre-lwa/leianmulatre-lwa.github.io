@@ -3857,26 +3857,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       preview.className='archive-photo-preview';
       preview.dataset.open='archive';
       preview.setAttribute('aria-label','Open Archive');
-      preview.innerHTML='<img alt="Polaroid photograph of three friends relaxing together on a bed" width="360" height="638" loading="eager" decoding="sync">';
-      const archiveImg=$('img',preview);
-      const archiveParts=[
-        '/assets/archive-preview-b64-0a.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-0b.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-1.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-2.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-3.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-4.txt?v=20260918-inline-3'
-      ];
-      Promise.all(archiveParts.map(url=>fetch(url,{cache:'no-store'}).then(response=>{
-        if(!response.ok)throw new Error('Archive preview chunk failed: '+response.status);
-        return response.text();
-      }))).then(parts=>{
-        const data=parts.join('').replace(/\\s+/g,'');
-        if(archiveImg)archiveImg.src='data:image/jpeg;base64,'+data;
-      }).catch(error=>{
-        console.error(error);
-        preview.classList.add('archive-preview-load-failed');
-      });
+      // The user's Windows wallpaper is the sole default Archive thumbnail.
+      // Do not rebuild the former inline base64 portrait or race another loader:
+      // it could overwrite the new default after the Studio had already painted.
+      preview.classList.add('biglwa-archive-default-windows');
+      preview.dataset.biglwaDefault20261029='1';
+      preview.innerHTML='<img class="biglwa-windows-archive-photo" src="/assets/studio-defaults/archive-windows-hill.webp?v=20261029-win-default-2" alt="Green hills and a blue sky from the classic Windows desktop wallpaper" width="800" height="600" loading="eager" decoding="async">';
+      preview.querySelector('img')?.addEventListener('error',()=>preview.classList.add('archive-preview-load-failed'));
 
       const cta=document.createElement('button');
       cta.className='card-cta';
