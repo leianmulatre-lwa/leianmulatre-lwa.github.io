@@ -542,7 +542,7 @@
  }
  let timer;
  function schedule(){clearTimeout(timer);timer=setTimeout(start,50)}
- for(const event of ['biglwa:identity-updated','biglwa:session-verified','biglwa:user-directory-ready','biglwa:highlights-imported','biglwa:customization-remote','biglwa:archive-rendered'])
+ for(const event of ['biglwa:identity-updated','biglwa:session-verified','biglwa:user-directory-ready','biglwa:highlights-imported','biglwa:customization-remote','biglwa:archive-rendered','biglwa:snapchat-showcase-ready'])
   window.addEventListener(event,detail=>{
    if(event==='biglwa:customization-remote'){
     const snapshot=detail.detail;
