@@ -7,7 +7,7 @@ const expected={
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
   'pinterest-orbit.js':'20261028-oauth-return-2',
   'orbit-preview-eight-20261016.js':'20261028-canonical-orbit-2',
-  'account-boot.js':'20261027-photo-position-1'
+  'account-boot.js':'20261029-feed-photos-only-2'
 };
 assert.match(entry, /\/module-pages\.js\?v=[\w.-]+/, 'Current module loader must be cache-busted');
 for(const [path,version] of Object.entries(expected)){
