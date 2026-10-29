@@ -226,9 +226,14 @@
         render();
         // Profile login alone is not content permission. Only media actually
         // returned from approved Graph API endpoints becomes private drafts.
+        let saveError='';
         try{await syncFacebookDrafts()}catch(error){
+          saveError=String(error?.message||'Facebook private draft sync unavailable.');
           console.warn('Facebook private draft sync unavailable:',error);
         }
+        return {photos:state.photos.length,videos:state.videos.length,
+          missing:['user_photos','user_videos'].filter(permission=>!hasPermission(permission)),
+          saveError,profileLoaded:!!state.profile};
       });
     });
   }
