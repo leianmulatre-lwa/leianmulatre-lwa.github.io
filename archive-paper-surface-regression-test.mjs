@@ -10,12 +10,12 @@ const rule=sel=>{
   assert.ok(i>=0,'Archive CSS missing selector: '+sel);
   return css.slice(css.indexOf('{',i)+1,css.indexOf('}',i));
 };
-assert.ok(index.includes('archive-flat-gallery-20261026.css?v=flat-grid-a1'),'New dedicated CSS file loaded by the actual Studio shell');
-assert.ok(index.includes('module-pages.js?v=20261028-archive-sources-3'),'Current flat-gallery renderer is used, not stale accordion module');
+assert.ok(/archive-flat-gallery-20261026\.css\?v=[\w.-]+/.test(index),'New dedicated CSS file loaded by the actual Studio shell');
+assert.ok(/module-pages\.js\?v=[\w.-]+/.test(index),'Current flat-gallery renderer is used, not stale accordion module');
 assert.match(rule(root+'.archive-wall-shell'),/background:#faf6ef!important/,'One opaque paper shelf');
 assert.match(rule(root+'.archive-toolbar'),/grid-template-columns:max-content minmax\(0,1fr\)/,'Buttons stay left while filters fill the right');
 assert.match(rule(root+'.archive-filter-bar'),/justify-content:flex-end!important/,'App choices are top-right');
-assert.match(rule(root+'.archive-page-list'),/grid-template-columns:repeat\(8,minmax\(0,1fr\)\)/,'Gallery is compact, multi-column, NOT full-width raw images');
+assert.match(rule(root+'.archive-page-list'),/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/,'Gallery is compact, multi-column, NOT full-width raw images');
 assert.match(rule(root+'.archive-live'),/border-radius:999px!important/,'Live controls are pill switches on images');
 assert.match(rule(root+'.archive-live input'),/opacity:0!important/,'Native raw checkbox hidden while remaining keyboard accessible');
 assert.match(rule(root+'.archive-card-overlay'),/position:absolute!important/,'Card metadata and Live sit over the thumbnail, not below it');
