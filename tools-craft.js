@@ -118,8 +118,8 @@ export async function mountCraftSuite(root){
       '</button>'+
      '</aside>'+
     '</div>'+
+    '<div class="craft-toolbar" aria-label="Workshop stages"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
    '</div>'+
-   '<div class="craft-toolbar" aria-label="Workshop stages"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
   '</header>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
   '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+WEB_FRIENDLY.map(webAppCard).join('')+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
