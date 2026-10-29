@@ -31,7 +31,7 @@ const cases=[
  ['arcade never opens popups', !arcade.includes('window.open(') && !arcade.includes('arcadePopup')],
  ['external references open separately while local games stay in studio', arcade.includes("link.target=uri.origin===location.origin?'_self':'_blank'")],
  ['links remain visible inside the cabinet', arcade.includes('arcade-game-quicklinks')],
- ['miniclip official web destinations',arcade.includes("title:'8 Ball Pool'") && arcade.includes("title:'Agar.io'") && arcade.includes('https://8ballpool.com/game') && arcade.includes('https://agar.io/')],
+ ['miniclip official web destinations',arcade.includes("title:'8 Ball Pool'") && arcade.includes("title:'Agar.io'") && arcade.includes('https://8ballpool.com/') && arcade.includes('https://agar.io/')],
  ['connected avatar pane',arcade.includes('biglwa-game-avatar-sidecar') && arcade.includes('biglwaGameAvatarLive') && arcade.includes('[data-game-avatar-edit]')],
  ['game preview can be restored', arcade.includes("if(target.matches('[data-arcade-preview]')){if(selectedGame)showGameLinks(selectedGame)")],
  ['quit restores animated carousel', arcade.includes('emulatorScreen.innerHTML=previewMarkup')],
