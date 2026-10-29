@@ -111,7 +111,7 @@
   position:relative!important;grid-column:2!important;grid-row:1!important;
   box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
   width:100%!important;min-width:0!important;min-height:510px!important;
-  margin:0!important;padding:0!important;
+  margin:64px 0 0!important;padding:0!important;
   background:#d1d1d1!important;
   border:3px solid #707070!important;border-top-color:#fff!important;border-left-color:#fff!important;
   border-radius:0!important;box-shadow:3px 4px 0 #8c8c8c!important;
@@ -130,16 +130,21 @@
   font:700 12px/1.3 Tahoma,Verdana,sans-serif!important;
 }
 #studioApp #moduleWorkspace[data-module-key="games"] .biglwa-sidecar-window-buttons{
-  font:700 14px/1 monospace!important;color:#141414!important;
-  background:#dcdcdc!important;border:1px solid #666!important;
-  padding:2px 4px!important;letter-spacing:1px!important;
+  display:flex!important;align-items:center!important;gap:4px!important;flex:none!important;
 }
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-sidecar-window-buttons>i{
+  box-sizing:border-box!important;display:grid!important;place-items:center!important;
+  width:22px!important;height:20px!important;padding:0!important;border:2px solid #555!important;
+  border-top-color:#fff!important;border-left-color:#fff!important;border-radius:0!important;
+  box-shadow:1px 1px 0 #242424!important;color:#191919!important;
+  font:900 13px/1 Tahoma,Arial,sans-serif!important;font-style:normal!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-sidecar-window-buttons>.retro-window-min{background:#e7be49!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-sidecar-window-buttons>.retro-window-max{background:#6db98b!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .biglwa-sidecar-window-buttons>.retro-window-close-mark{background:#d75d61!important}
+/* Keep the account avatar data target without a duplicate playing-as banner. */
 #studioApp #moduleWorkspace[data-module-key="games"] .biglwa-game-avatar-sidecar #biglwaArcadePlayer{
-  display:flex!important;align-items:center!important;gap:7px!important;
-  margin:0!important;max-width:none!important;min-height:52px!important;
-  padding:8px 10px!important;background:#f6e4c3!important;color:#352f2c!important;
-  border:0!important;border-bottom:2px solid #a6a6a6!important;border-radius:0!important;
-  font:700 12px/1.35 Georgia,serif!important;
+  display:none!important;
 }
 #studioApp #moduleWorkspace[data-module-key="games"] .biglwa-game-avatar-sidecar .biglwa-arcade-portrait{
   width:35px!important;height:35px!important;flex:0 0 35px!important;
@@ -225,7 +230,7 @@
   }
   #studioApp #moduleWorkspace[data-module-key="games"] .module-games-grid>.biglwa-game-avatar-sidecar{
     grid-column:1!important;grid-row:auto!important;
-    min-height:300px!important;
+    margin-top:10px!important;min-height:300px!important;
   }
   #studioApp #moduleWorkspace[data-module-key="games"] .biglwa-game-aura-stage{min-height:230px!important}
 }
