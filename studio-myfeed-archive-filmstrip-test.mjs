@@ -25,8 +25,8 @@ assert(css.includes('pointer-events:none!important'),'Decorative perforations ne
 assert(css.includes('.biglwa-feed-hero-preview:focus-visible'),'Keyboard users can see active thumbnails');
 assert(feed.includes("const storedPosts=previewPosts.filter(post=>heroPhotoUrl(post))")&&feed.includes('const HERO_SLOTS = 4'),'Four photo-only slots exclude video posters');
 assert(feed.includes('openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)))'),'Filmstrip photo opens at the selected frame in the existing lightbox');
-assert(index.includes('account-boot.js?v=20261029-feed-photos-only-2'),'Fresh account bootstrap on the live site');
-assert(read('account-boot.js').includes('feed-view.js?v=20261029-contact-sheet-photo-only-2'),'Feed module cache version changes');
+assert(index.includes('account-boot.js?v=20261029-film-shuffle-3'),'Fresh account bootstrap on the live site');
+assert(read('account-boot.js').includes('feed-view.js?v=20261029-owned-photo-shuffle-3'),'Feed module cache version changes');
 assert(css.includes('background:#171514!important')&&css.includes('padding:0!important'),'White outer card is removed');
 assert(css.includes("/* Orbit's rainbow signature") && css.includes('.biglwa-feed-hero-head span::after'),
   'Orbit-inspired rainbow is confined to the existing counter, not the member photos');
@@ -65,6 +65,41 @@ assert(pages.includes('src="/assets/studio-defaults/archive-windows-hill.webp?v=
 assert(defaults.includes("archive:base+'archive-windows-hill.webp?v=20261029-win-default-2'"),'Default-image module matches same file revision');
 assert(defaults.includes("Never replace member-provided media"),'Custom media preserved');
 assert(statSync(new URL('./assets/studio-defaults/archive-windows-hill.webp',import.meta.url)).size>2000,'New wallpaper image exists, non-empty');
+
+
+/* Four MyFeed frames must be shuffled from the signed-in or viewed member's
+   approved picture pool, never copied from the public wall or stock samples. */
+assert(feed.includes("const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[])"),
+  'Owner contact strip stays scoped to the signed-in UID, never the public wall');
+assert(feed.includes("post.state==='approved'&&heroPhotoUrl(post)"),
+  'Draft, archived and pending-deletion posts never enter the shuffle');
+assert(feed.includes("anchor.hidden=!storedPosts.length&&!requiresSync"),
+  'A profile with no pictures does not show fixed default photos');
+assert(feed.includes("window.setInterval(shuffleVisibleHero,HERO_SHUFFLE_MS)") &&
+  feed.includes("const HERO_SHUFFLE_MS = 45000"),
+  'Four-photo preview reshuffles periodically without changing post data');
+assert(feed.includes("document.hidden") && feed.includes("anchor.matches(':hover,:focus-within')"),
+  'Shuffling pauses for hidden tabs, hovered film or keyboard interaction');
+const shuffleBegin=feed.indexOf('const heroPostKey = post =>');
+const shuffleEnd=feed.indexOf('\nfunction renderHero(',shuffleBegin);
+assert(shuffleBegin>=0&&shuffleEnd>shuffleBegin,'Shuffle helper is present');
+const shuffleEnv={heroPhotoUrl:post=>post.imageUrl,HERO_SLOTS:4};
+runInNewContext(feed.slice(shuffleBegin,shuffleEnd)+'\nthis.pick=shuffleHeroPosts;',shuffleEnv);
+const pictures=Array.from({length:10},(_,i)=>({id:'member-'+i,imageUrl:'https://example.com/real-'+i+'.jpg'}));
+const beforeOrder=pictures.map(p=>p.id);
+const frameOne=shuffleEnv.pick(pictures);
+const frameTwo=shuffleEnv.pick(pictures,frameOne.map(p=>p.id+':'+p.imageUrl));
+assert.equal(frameOne.length,4,'Exactly four actual photos are selected');
+assert.equal(new Set(frameOne.map(p=>p.id)).size,4,'No duplicate photographs in four slots');
+assert.equal(new Set(frameTwo.map(p=>p.id)).size,4,'Reshuffled frames remain unique');
+assert(frameTwo.every(p=>!frameOne.includes(p)),'When enough photos exist, next shuffle avoids current photos');
+assert.deepEqual(pictures.map(p=>p.id),beforeOrder,'Shuffling never mutates the stored feed order');
+const few=pictures.slice(0,3);
+const fewOne=shuffleEnv.pick(few);
+const fewTwo=shuffleEnv.pick(few,fewOne.map(p=>p.id+':'+p.imageUrl));
+assert.notDeepEqual(fewTwo.map(p=>p.id),fewOne.map(p=>p.id),
+  'Smaller photo collections still change order rather than repeat unchanged');
+assert.deepEqual(shuffleEnv.pick([]),[],'Empty library does not invent default photos');
 
 // Archive preview image becomes grayscale only while hovering the Studio widget;
 // imported/member media, photo dimensions and navigation are not rewritten.
