@@ -1,9 +1,9 @@
-/* BIG LWA Studio — self-contained Lwazi Workshop carousel.
-   Uses the familiar three moving arcade columns, but creates real accessible
-   Workshop app buttons. The HD keyboard PNG is only a transparent frame. */
+/* BIG LWA Studio — horizontal, accessible Lwazi Workshop carousel.
+   One continuous native-scrolling row of six real editor tiles, repeated once
+   for a seamless loop. Browser artwork is decorative; controls stay clickable. */
 (()=>{'use strict';
- if(window.__biglwaLwaziCarouselV3)return;
- window.__biglwaLwaziCarouselV3=true;
+ if(window.__biglwaLwaziCarouselV4)return;
+ window.__biglwaLwaziCarouselV4=true;
  const BLOCKS=[
   {name:'sqwibblR',id:'image-desk',icon:'/assets/bigapps/icons/sqwibblR.png?v=20261026-original-stitch-1'},
   {name:'visualizr',id:'visualizr',icon:'/assets/bigapps/icons/visualizr.png?v=20261026-stitched-v-2'},
@@ -50,7 +50,7 @@
  function mount(){
    const card=$('#studioApp #tools')||$('#studioApp article.card[data-widget="tools"]');
    if(!card)return;
-   if($('.lwazi-cabinet-thumb [data-lwazi-carousel-version="3"]',card))return;
+   if($('.lwazi-cabinet-thumb [data-lwazi-carousel-version="4"]',card))return;
    const existing=$('.lwazi-cabinet-thumb',card);
    if(existing)existing.remove(); // retire only the old thumbnail, not Workshop.
    const frame=document.createElement('div');
@@ -59,22 +59,82 @@
    frame.setAttribute('aria-label','Lwazi Workshop: choose an app from the animated carousel');
    const viewport=document.createElement('div');
    viewport.className='arcade-library-viewport';
-   viewport.dataset.lwaziCarouselVersion='3';
-   viewport.setAttribute('aria-label','Lwazi app carousel');
-   const cols=[
-     [BLOCKS[0],BLOCKS[3],BLOCKS[4]],
-     [BLOCKS[1],BLOCKS[4],BLOCKS[5]],
-     [BLOCKS[2],BLOCKS[5],BLOCKS[0],BLOCKS[3]]
-   ];
-   for(const entries of cols){
-     const track=document.createElement('div');
-     track.className='arcade-track';
-     // Double a finite row set for the same continuous-motion principle as Games.
-     entries.forEach(app=>track.appendChild(tile(app)));
-     entries.forEach(app=>track.appendChild(tile(app,true)));
-     viewport.appendChild(track);
+   viewport.dataset.lwaziCarouselVersion='4';
+   viewport.tabIndex=0;
+   viewport.setAttribute('role','region');
+   viewport.setAttribute('aria-label','Lwazi creative apps — horizontal carousel; use arrow keys or swipe');
+   const track=document.createElement('div');
+   track.className='arcade-track lwazi-horizontal-track';
+   BLOCKS.forEach(app=>track.appendChild(tile(app)));
+   BLOCKS.forEach(app=>track.appendChild(tile(app,true)));
+   viewport.appendChild(track);
+   // Native scrolling keeps swipes, trackpad and keyboard access functional.
+   // A second identical set makes continuous motion seamless.
+   let pausedUntil=0,hovered=false,visible=true,previous=0;
+   const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+   const cycleLength=()=>{
+     const original=track.children[0],repeat=track.children[BLOCKS.length];
+     return original&&repeat?Math.max(0,repeat.offsetLeft-original.offsetLeft):0;
+   };
+   function shift(delta){
+     pausedUntil=performance.now()+4000;
+     const cycle=cycleLength();
+     let next=viewport.scrollLeft+delta;
+     if(cycle>0){if(next>=cycle)next-=cycle;if(next<0)next+=cycle;}
+     viewport.scrollLeft=next;
    }
+   viewport.addEventListener('keydown',event=>{
+     if(event.key!=='ArrowRight'&&event.key!=='ArrowLeft')return;
+     event.preventDefault();event.stopPropagation();
+     shift((event.key==='ArrowRight'?1:-1)*Math.max(75,viewport.clientWidth*.55));
+   });
+   viewport.addEventListener('pointerenter',()=>{hovered=true;});
+   viewport.addEventListener('pointerleave',()=>{hovered=false;});
+   viewport.addEventListener('focusin',()=>{hovered=true;});
+   viewport.addEventListener('focusout',event=>{
+     if(!viewport.contains(event.relatedTarget))hovered=false;
+   });
+   viewport.addEventListener('scroll',()=>{
+     const cycle=cycleLength();
+     if(cycle>0 && viewport.scrollLeft>=cycle)viewport.scrollLeft-=cycle;
+   },{passive:true});
+   if(typeof IntersectionObserver==='function'){
+     const visibility=new IntersectionObserver(entries=>{
+       visible=entries.some(entry=>entry.isIntersecting);
+       if(!viewport.isConnected)visibility.disconnect();
+     },{threshold:.01});
+     visibility.observe(viewport);
+   }
+   function animate(now){
+     if(!viewport.isConnected)return; // Stop on widget re-mount; no orphaned loops.
+     const dt=previous?Math.min(50,now-previous):0;
+     previous=now;
+     if(visible&&!hovered&&!reducedMotion?.matches&&!document.hidden&&now>pausedUntil){
+       const cycle=cycleLength();
+       if(cycle>0){
+         viewport.scrollLeft+=dt*.024; // ~24px/second, intentionally gentle.
+         if(viewport.scrollLeft>=cycle)viewport.scrollLeft-=cycle;
+       }
+     }
+     requestAnimationFrame(animate);
+   }
+   requestAnimationFrame(animate);
    frame.appendChild(viewport);
+   const nav=document.createElement('nav');
+   nav.className='lwazi-carousel-controls';
+   nav.setAttribute('aria-label','Browse creative tools');
+   for(const [direction,label,glyph] of [[-1,'Previous creative tools','‹'],[1,'Next creative tools','›']]){
+     const button=document.createElement('button');
+     button.type='button';button.textContent=glyph;
+     button.setAttribute('aria-label',label);
+     button.addEventListener('click',event=>{
+       event.preventDefault();event.stopPropagation();
+       shift(direction*Math.max(75,viewport.clientWidth*.60));
+     });
+     nav.appendChild(button);
+   }
+   frame.appendChild(nav);
+
    function hitbox(cls,description){
      const el=document.createElement('button');
      el.type='button';el.className=cls;el.setAttribute('aria-label',description);
