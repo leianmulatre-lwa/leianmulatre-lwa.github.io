@@ -106,7 +106,7 @@ w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['snapchat
 w.BIGLWAHighlightEditor.mountArchive();
 assert.ok(!doc.querySelector('.archive-highlights-button').hidden,'Snapchat Highlights action appears only for its connected app');
 doc.querySelector('.archive-highlights-button').click();
-assert.ok(doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Spotlight preview'),'Snapchat shows Spotlight data');
+assert.equal(doc.querySelector('#biglwaHighlightEditorList .highlight-edit-row input[type="text"]')?.value,'Spotlight preview','Snapchat shows Spotlight data');
 assert.ok(!doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Original'),'Snapchat never shows Instagram data');
 w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['facebook'],hideDupes:false}));
 w.BIGLWAHighlightEditor.mountArchive();
@@ -115,7 +115,7 @@ imported.highlights.push({title:'Facebook story',platform:'facebook',items:[{kin
 w.BIGLWAHighlightEditor.mountArchive();
 assert.ok(!doc.querySelector('.archive-highlights-button').hidden,'Facebook shows Highlight button only with real imported groups');
 doc.querySelector('.archive-highlights-button').click();
-assert.ok(doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Facebook story'),'Facebook owns its own story group');
+assert.equal(doc.querySelector('#biglwaHighlightEditorList .highlight-edit-row input[type="text"]')?.value,'Facebook story','Facebook owns its own story group');
 assert.ok(!doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Original'),'Facebook never shows Instagram groups');
 w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['instagram'],hideDupes:false}));
 w.BIGLWAHighlightEditor.mountArchive();
