@@ -752,7 +752,7 @@
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
     reconcileNavigationRows(availableDock,available.map(entry=>entry.key),'available');
     const removed=removedShortcutKeys();
-    $('[data-sidebar-route-row]',availableDock).forEach(row=>{
+    $$('[data-sidebar-route-row]',availableDock).forEach(row=>{
       const disconnected=removed.has(row.dataset.sidebarRouteRow);
       row.classList.toggle('is-disconnected',disconnected);
       row.dataset.shortcutState=disconnected?'disconnected':'available';
