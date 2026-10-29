@@ -121,7 +121,7 @@ await check('new assets load before Diary and updated module is cache-busted',as
 console.log(passed+' Sqwip integration checks passed');
 await check('Journal is optional public read-only; Sqwibzs and screenplays remain private',async()=>{
  assert.ok(pages.includes("diary:'Journal'"));
- assert.ok(pages.includes("notes:'Sqwibz'"));
+ assert.ok(pages.includes("notes:'Sqwidz'"));
  assert.ok(pages.includes("key!=='diary'"),'visitor cannot open private Sqwibz');
  assert.ok(pages.includes("profile?.journalVisibility!=='public'"),'private Journal is never rendered to guests');
  assert.ok(pages.includes("id=\"journalViewButton\""),'Journal has a reading mode');

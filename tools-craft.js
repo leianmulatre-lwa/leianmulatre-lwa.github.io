@@ -20,7 +20,7 @@ const ENGINES=[
 const PUBLIC_APP_ROUTE={photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'};
 const BIGLWA_GITHUB='https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io';
 const BIGLWA_PATREON='https://www.patreon.com/cw/biglwa';
-const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-desk.html?v=20261029-sleek-1',
+const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-desk.html?v=20261029-old-web-1',
  description:'Draw, paint, add text and layers, edit photos, save editable BIG LWA projects.',
  credit:'Original BIG LWA editor · works locally'};
 const WEB_FRIENDLY=[

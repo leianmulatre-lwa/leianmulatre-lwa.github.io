@@ -185,7 +185,8 @@
     try{
       if(window.BigLWASqwibs){
         const pub=await window.BigLWASqwibs.publicSqwibs(70);
-        state.sqwibs=pub;
+        const fresh=await window.BigLWASocial?.veve?.().catch(()=>[])||[];
+        state.sqwibs=pub.concat(fresh);
         const resh=await window.BigLWASqwibs.publicResqwibs().catch(()=>[]);
         state.resqwibs=resh.filter(r=>pub.some(p=>p.id===r.sourceId&&p.allowResqwib===true));
       }else{state.sqwibs=[];state.resqwibs=[]}
@@ -294,6 +295,7 @@
       '</article>';
   }
   function sqwibMarkup(p,reshared=false){
+    if(p.id.startsWith('sz_'))return '<article class="veve-tile veve-note" data-veve-sqwib="'+e(p.id)+'"><div class="veve-note-head"><span>Sqwidz · @'+e(p.username)+'</span></div>'+window.BigLWASocial.mediaMarkup(p)+'<p>'+e(p.text.slice(0,900))+'</p><button type="button" data-veve-open-sqwidz="'+e(p.id)+'">Open Sqwib · reply, float, fish ↗</button></article>';
     const allowed=p.allowResqwib===true,own=state.uid&&p.uid===state.uid;
     const iResqwibbed=!!state.uid&&state.resqwibs.some(r=>r.uid===state.uid&&r.sourceId===p.id);
     return '<article class="veve-tile veve-note" data-veve-sqwib="'+e(p.id)+'">'+
@@ -619,6 +621,7 @@
         if(p)openMedia(p);return;
       }
       const b=ev.target.closest('button');if(!b)return;
+      if(b.hasAttribute('data-veve-open-sqwidz')){window.openBIGLWAModule?.('notes');const pin=b.dataset.veveOpenSqwidz;history.replaceState(history.state,'','/studio/notes?pin='+encodeURIComponent(pin));return}
       if(b.hasAttribute('data-veve-save-board')){
         const p=state.items.find(item=>String(item.id)===String(b.dataset.veveSaveBoard));
         if(p){try{await openBoardSaver(p)}catch(error){say(error.message||'Could not open Boards.')}}

@@ -45,6 +45,7 @@ jobs:
           node --check orbit-posts.js
       - name: Run existing OAuth and session regression checks
         run: |
+          node social-service-test.mjs
           node tiktok-connect-test.mjs
           node orbit-oauth-repair-test.mjs
           node x-oauth-pkce-end-to-end-test.mjs

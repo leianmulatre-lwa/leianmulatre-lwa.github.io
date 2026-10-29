@@ -498,6 +498,11 @@ export default {
         : {error:'Social login and account data are disabled in this isolated preview.'},
         {status:health?200:503,headers:{'Cache-Control':'no-store'}});
     }
+    if (new URL(request.url).pathname.startsWith('/social/')) {
+      const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
+      try{const {socialRoute}=await import('./social-service.js');return await socialRoute(request,config,{user:mediaUser,json,preflight:corsPreflight,allowed:allowedOrigin})}
+      catch(error){return json({error:error.publicMessage||'Social service is unavailable.'},error.status||500,request,config)}
+    }
     if (new URL(request.url).pathname.startsWith('/facebook-personal/')) {
       const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
       try{return await facebookPersonalRoute(request,config)}
