@@ -24,7 +24,7 @@ assert.ok(css.includes('#studioApp #games .arcade-library-viewport>.arcade-track
 assert.ok(css.includes('animation-play-state:paused'),'Carousel pause on hover/focus');
 assert.ok(!css.includes('display:none!important;animation:none'),'No carousel hidden');
 assert.ok(js.includes("className='arcade-library-viewport'"));
-assert.ok(js.includes("track.className='arcade-track'"));
+assert.ok(js.includes("track.className='arcade-track lwazi-horizontal-track'"));
 assert.ok(js.includes("className='arcade-game-tile lwazi-block-tile'"));
 for(const name of ['sqwibblR','visualizr','lightR','paintR','keyframeR','fileR'])
  assert.ok(js.includes(name),name+' Workshop app block exists in carousel');
