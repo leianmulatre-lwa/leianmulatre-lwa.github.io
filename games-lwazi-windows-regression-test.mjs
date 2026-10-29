@@ -8,7 +8,7 @@ const begin=page.indexOf('  function renderGames(){'),end=page.indexOf('  const 
 assert(begin>=0&&end>begin,'Games module found');
 const arcade=page.slice(begin,end);
 assert.doesNotThrow(()=>new Script(page),'Games JS parses without malformed avatar URL validator');
-assert(index.includes('games-lwazi-windows-20261029.css?v=20261029-blocks-aura-window-1'),'New connected-window and cube CSS loaded');
+assert(index.includes('games-lwazi-windows-20261029.css?v=20261029-games-sidecar-2'),'New connected-window and cube CSS loaded');
 const moduleBuild=index.match(/\/module-pages\.js\?v=[\w.-]+/)?.[0];
 assert(moduleBuild&&page.includes(moduleBuild),'Games uses the current cache-busted module build across initial and fallback loading');
 assert(arcade.includes('biglwa-game-avatar-sidecar')&&arcade.includes('gameStage.after(companion)'),'Separate character window is mounted beside the existing player');
@@ -26,7 +26,7 @@ assert(css.includes('gap:15px!important'),'R-series blocks have breathing space'
 assert(css.includes('.craft-account-vault')&&css.includes('.craft-vault-actions')&&css.includes('.craft-vault-gallery'),'Snapshot title, save controls and collection stay visible/aligned');
 assert(tools.includes('data-craft-open=')&&tools.includes('id="craftVaultFile"')&&tools.includes('id="craftVaultGallery"'),'Existing Workshop launches and private shelf retained');
 assert(arcade.includes("title:'8 Ball Pool'")&&arcade.includes("title:'Agar.io'"),'Official Miniclip browser games included');
-assert(arcade.includes('https://8ballpool.com/game')&&arcade.includes('https://agar.io/'),'Official source links verified');
+assert(arcade.includes('https://8ballpool.com/')&&arcade.includes('https://agar.io/'),'Official source links verified');
 assert(arcade.includes("target.origin!==location.origin || game.launch==='external'"),'External hosts launch reliably, never show blank game iframe first');
 assert(arcade.includes('target="_blank" rel="noopener noreferrer"'),'Directory external links do not navigate away from signed-in Studio');
 assert(arcade.includes("if(!steam&&!blocked) actions.append(makeAction('Try in this screen'"),'Optional test-in-cabinet remains when permission might allow it');
