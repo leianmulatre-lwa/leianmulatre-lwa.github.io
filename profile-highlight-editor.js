@@ -20,8 +20,10 @@
  const empty=()=>({version:1,imported:{},custom:[]});
  const safeEntry=(raw={})=>({
   title:String(raw.title||'').trim().slice(0,48),
-  cover:cleanUrl(raw.cover,true),x:Math.max(0,Math.min(100,Number(raw.x)||50)),
-  y:Math.max(0,Math.min(100,Number(raw.y)||50)),hidden:!!raw.hidden,
+  cover:cleanUrl(raw.cover,true),
+  x:raw.x==null||!Number.isFinite(Number(raw.x))?50:Math.max(0,Math.min(100,Number(raw.x))),
+  y:raw.y==null||!Number.isFinite(Number(raw.y))?50:Math.max(0,Math.min(100,Number(raw.y))),
+  hidden:!!raw.hidden,
   order:Array.isArray(raw.order)?[...new Set(raw.order.filter(x=>Number.isInteger(x)&&x>=0&&x<100))].slice(0,50):null,
   added:Array.isArray(raw.added)?raw.added.map(cleanItem).filter(Boolean).slice(0,12):[],
   platform:['snapchat','facebook'].includes(raw.platform)?raw.platform:'instagram'
