@@ -17,6 +17,7 @@ const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp
 const w=dom.window,doc=w.document;
 w.__biglwaIdentity={uid:'u1'};
 w.BigLWAAccountStorage={uid:'u1'};
+w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['instagram'],hideDupes:false}));
 const imported={highlights:[{title:'Original',cover:'/assets/highlights/original.jpg',items:[
  {kind:'image',mediaUrl:'https://example.com/original.jpg'},
  {kind:'video',mediaUrl:'https://example.com/original.mp4'}]}]};
@@ -96,7 +97,27 @@ w.BIGLWAHighlightEditor.mountArchive();
 assert.ok(!doc.querySelector('.archive-highlights-button').hidden,'Highlights stay available on the Instagram shelf');
 w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:[],hideDupes:false}));
 w.BIGLWAHighlightEditor.mountArchive();
-assert.ok(!doc.querySelector('.archive-highlights-button').hidden,'Highlights return on the All shelf');
+assert.ok(doc.querySelector('.archive-highlights-button').hidden,'All cannot show another app’s Highlights');
+w.BigLWASocialShowcase={isConnected:key=>key==='snapchat',
+  highlightsFor:key=>key==='snapchat'?[{platform:'snapchat',title:'Spotlight preview',cover:'',
+   items:[{kind:'video',mediaUrl:'https://example.com/snap.mp4'}],_importKey:'snapchat:0'}]:[]};
+w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['snapchat'],hideDupes:false}));
+w.BIGLWAHighlightEditor.mountArchive();
+assert.ok(!doc.querySelector('.archive-highlights-button').hidden,'Snapchat Highlights action appears only for its connected app');
+doc.querySelector('.archive-highlights-button').click();
+assert.ok(doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Spotlight preview'),'Snapchat shows Spotlight data');
+assert.ok(!doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Original'),'Snapchat never shows Instagram data');
+w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['facebook'],hideDupes:false}));
+w.BIGLWAHighlightEditor.mountArchive();
+assert.ok(doc.querySelector('.archive-highlights-button').hidden,'Facebook has no Highlight button without imported Highlight groups');
+imported.highlights.push({title:'Facebook story',platform:'facebook',items:[{kind:'image',mediaUrl:'https://example.com/fb.jpg'}]});
+w.BIGLWAHighlightEditor.mountArchive();
+assert.ok(!doc.querySelector('.archive-highlights-button').hidden,'Facebook shows Highlight button only with real imported groups');
+doc.querySelector('.archive-highlights-button').click();
+assert.ok(doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Facebook story'),'Facebook owns its own story group');
+assert.ok(!doc.querySelector('#biglwaHighlightEditorList')?.textContent.includes('Original'),'Facebook never shows Instagram groups');
+w.localStorage.setItem('biglwaArchiveFilters',JSON.stringify({sources:['instagram'],hideDupes:false}));
+w.BIGLWAHighlightEditor.mountArchive();
 w.dispatchEvent(new w.CustomEvent('biglwa:archive-rendered',{detail:{sources:[],count:1,owner:true}}));
 await new Promise(r=>setTimeout(r,80));
 assert.ok(doc.querySelector('.archive-highlights-button'),'Archive redraw remounts the Highlights action');
