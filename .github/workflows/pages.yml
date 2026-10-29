@@ -139,6 +139,7 @@ jobs:
           node politc-poster-layout-test.mjs
           node --check writing-collections.js
           node writing-collections-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node journal-editor-column-regression-test.mjs
           node --check feed-view.js
           node --check avatar-studio.js
           node --check avatar-studio-bitmoji-20261017-v3.js
