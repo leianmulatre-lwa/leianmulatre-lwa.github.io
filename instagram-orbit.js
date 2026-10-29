@@ -192,6 +192,25 @@
     }
     return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(async function (responses) {
       state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = '';
+      // Insights are optional: a missing Meta grant or an undeployed endpoint
+      // must never prevent the user's media or Archive from loading.
+      const activeSession=session();
+      api('/instagram/insights').then(report=>{
+        if(!state.connected||session()!==activeSession||!state.profile)return;
+        if(report?.period!=='month_to_date'||report.month!==new Date().toISOString().slice(0,7))return;
+        const measures=report.metrics||{},stats={...(state.profile.stats||{})};
+        if(Number.isFinite(measures.views))stats.monthlyViews=measures.views;
+        if(Number.isFinite(measures.reach))stats.monthlyReach={
+          month:report.month,metric:'reach',value:measures.reach};
+        if(Number.isFinite(measures.total_interactions))stats.monthlyInteractions=measures.total_interactions;
+        state.profile.stats=stats;
+        state.insightsCheckedAt=report.checkedAt||'';
+        state.insightsError=Array.isArray(report.unavailable)?report.unavailable.join(' · '):'';
+        window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
+      }).catch(error=>{
+        state.insightsError=String(error?.message||'Instagram insights unavailable.');
+        window.dispatchEvent(new CustomEvent('biglwa:instagram-insights-unavailable'));
+      });
       // Saved R2 URLs survive device changes. Restore these before refreshing from Instagram.
       try{
         const saved=await window.__biglwaOrbitPosts?.storedOrbitImageUrls?.('instagram');
