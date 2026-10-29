@@ -109,6 +109,7 @@
     rows.push({id,followers:value,likes:receivedLikes,monthlyViews,monthlyStat,monthlyStatLabel,
       lastCheckedAt:observedAt,reach:monthlyReach,
       handle,username,accountKey,sourceUserId,link:record.link||'',metric,
+      displayName:id==='facebook'?String(record.name||record.displayName||'').trim().slice(0,75):'',
       isLastKnown:fresh===null&&fallback!==null,verified:(fresh!==null&&!!checked)||recoveredByProvider,
        externalVerified,source:externalVerified?'External public source':recoveredByProvider?'TikTok OAuth user.info.stats':null});
   };
@@ -120,6 +121,42 @@
   }
   for(const [id,row]of Object.entries(connectionAPI?.connections?.()||{})){
     merged[id]=row;
+  }
+  // Live account identities take precedence over stale saved provider IDs.
+  const linked=window.BigLWAOrbitAccountLinks?.get?.()||{};
+  const tiktok=window.__biglwaTikTokOrbit?.state;
+  const tikProfile=tiktok?.connected&&tiktok.uid===accountUid?tiktok.profile:null;
+  const tikLink=String(linked.tiktok||'');
+  const tikHandle=cleanHandle(tikProfile?.username)||linkHandle(tikProfile?.profile_deep_link,'tiktok.com')||
+    linkHandle(tikProfile?.link,'tiktok.com')||linkHandle(tikLink,'tiktok.com');
+  if(tikHandle){
+    const existing=merged.tiktok||{};
+    merged.tiktok={...existing,...(tikProfile||{}),username:tikHandle,
+      link:String(tikProfile?.profile_deep_link||tikProfile?.link||tikLink||existing.link||''),
+      sourceUserId:String(tikProfile?.open_id||existing.sourceUserId||'')};
+  }
+  // Personal Facebook and Business Login use different authorization paths.
+  const personal=window.BigLWAFacebookPersonal?.get?.();
+  const business=window.__biglwaFacebookOrbit?.state;
+  const fbProfile=personal?.verifiedFromProvider?personal:
+    business?.connected&&business.profile?{...business.profile,verifiedFromProvider:true}:null;
+  if(fbProfile){
+    const prior=merged.facebook||{};
+    const switched=prior.sourceUserId&&fbProfile.sourceUserId&&prior.sourceUserId!==fbProfile.sourceUserId;
+    const base=switched?{}:prior;
+    merged.facebook={...base,...fbProfile,
+      username:cleanHandle(fbProfile.username)||linkHandle(fbProfile.link,'facebook.com')||
+        linkHandle(linked.facebook,'facebook.com')||'',
+      link:fbProfile.link||linked.facebook||base.link||''};
+  }
+  const insta=window.__biglwaInstagramOrbit?.state;
+  if(insta?.connected&&insta.profile){
+    const prev=merged.instagram||{},profile=insta.profile;
+    merged.instagram={...prev,...profile,
+      sourceUserId:String(profile.id||prev.sourceUserId||''),
+      username:cleanHandle(profile.username)||prev.username,
+      stats:{...(prev.stats||{}),...(profile.stats||{}),
+        followers:profile.followers_count??prev.stats?.followers}};
   }
   for(const [id,row]of Object.entries(merged)){
     if(row&&typeof row==='object')
@@ -138,7 +175,6 @@
   // Facebook's separately authenticated profile, can still appear with an
   // honest unavailable count. Never invent followers from connection status.
   const live=[
-    ['facebook',window.BigLWAFacebookPersonal?.get?.()],
     ['snapchat',window.BigLWAOrbitOAuth?.get?.('snapchat')],
     ['tumblr',window.BigLWAOrbitOAuth?.get?.('tumblr')],
     ['x',window.BigLWAOrbitOAuth?.get?.('x')]
@@ -256,7 +292,7 @@
   for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=value==null?'Not supplied':metricFormat(metricKinds[key],value);if(node.textContent!==text)node.textContent=text}
   const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Likes are cumulative provider counts. Reach includes an explicit monthly reach metric, monthly views, and the TikTok monthly tracker statistic; other per-video views and engagement estimates are not treated as monthly reach. Other sources are unavailable, not zero.';
   const list=q('.analytics-sources',host);
-  const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.followers,r.likes,r.monthlyViews,r.monthlyStat,r.monthlyStatLabel,r.reach,r.lastCheckedAt]));
+  const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.displayName,r.followers,r.likes,r.monthlyViews,r.monthlyStat,r.monthlyStatLabel,r.reach,r.lastCheckedAt]));
   if(list.dataset.snapshot!==signature){
     list.dataset.snapshot=signature;list.replaceChildren();
     for(const row of rows){
@@ -266,7 +302,7 @@
         icon.src='/assets/orbit-icons/'+row.id+'.svg';icon.alt='';icon.loading='lazy';icon.width=23;icon.height=23;
       }else{icon.alt='';icon.style.display='none'}
       const copy=document.createElement('div'),title=document.createElement('strong'),meta=document.createElement('small');
-      title.textContent=row.id.charAt(0).toUpperCase()+row.id.slice(1)+(row.handle?' · @'+row.handle:'');
+      title.textContent=row.id.charAt(0).toUpperCase()+row.id.slice(1)+(row.handle?' · @'+row.handle:row.displayName?' · '+row.displayName:'');
       const segments=[metricFormat('followers',row.followers)+' '+(row.metric||'followers')];
       if(row.likes!=null)segments.push(metricFormat('likes',row.likes)+' likes');
       if(number(row.monthlyViews)!=null)segments.push(metricFormat('reach',row.monthlyViews)+' monthly views · reach');
@@ -296,13 +332,13 @@
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
   const month=monthOf(Date.now()),previous=overview.analyticsMonths?.[month]?.sources||[];
-  const snapshot={sources:sources().map(({id,handle,username,accountKey,sourceUserId,followers,likes,monthlyViews,monthlyStat,monthlyStatLabel,lastCheckedAt,reach})=>{
+  const snapshot={sources:sources().map(({id,handle,displayName,username,accountKey,sourceUserId,followers,likes,monthlyViews,monthlyStat,monthlyStatLabel,lastCheckedAt,reach})=>{
     const old=previous.find(item=>item.id===id&&(
       (accountKey&&item.accountKey&&accountKey===item.accountKey)||
       (handle&&item.handle&&String(item.handle).toLowerCase()===handle.toLowerCase())));
     const validReach=value=>value?.month===month&&value.metric==='reach'&&number(value.value)!=null
       ?{month,metric:'reach',value:Number(value.value)}:null;
-    return {id,handle,accountKey,username:username||cleanHandle(old?.username)||handle,followers,
+    return {id,handle,displayName,accountKey,username:username||cleanHandle(old?.username)||handle,followers,
       likes:likes??number(old?.likes),monthlyViews:monthlyViews??number(old?.monthlyViews),
       monthlyStat:monthlyStat??number(old?.monthlyStat),monthlyStatLabel:monthlyStatLabel||old?.monthlyStatLabel||'',lastCheckedAt,
       reach:validReach(reach)||validReach(old?.reach)};
@@ -327,6 +363,7 @@
  // that update through the 120s write throttle once so visitors see the full
  // combined Reach instead of waiting for the next owner visit.
  window.addEventListener('biglwa:external-stats-updated',()=>{publicPublishAt=0});
+ window.addEventListener('biglwa:instagram-restored',refresh);
  for(const event of ['biglwa:identity-updated','biglwa:user-directory-ready','biglwa:session-verified','biglwa:external-stats-updated'])window.addEventListener(event,refresh);
  document.addEventListener('biglwa:module-open',refresh);document.addEventListener('biglwa:new-orbit-status',refresh);document.addEventListener('biglwa:google-state',refresh);document.addEventListener('biglwa:facebook-personal-status',refresh);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
