@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,statSync} from 'node:fs';
 const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const index=read('index.html'),code=read('studio-default-images-20261029.js'),map=read('map-app.html');
-for(const ext of ['js','css'])assert(index.includes('studio-default-images-20261029.'+ext+'?v='+(ext==='js'?'20261029-archive-wallpaper-2':'20261029-archive-bw-hover-2')),'Studio loads defaults '+ext);
+for(const ext of ['js','css'])assert(index.includes('studio-default-images-20261029.'+ext+'?v='+(ext==='js'?'20261029-archive-wallpaper-2':'20261029-archive-bw-hover-3')),'Studio loads defaults '+ext);
 const images={
  'archive-windows-hill.webp':'archive',
  'visualizr-stick-animation.webp':'visualizr',
