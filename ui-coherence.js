@@ -1356,9 +1356,14 @@
     const order=layout.order&&typeof layout.order==='object'?layout.order:{};
     Object.keys(order).forEach(key=>{
       const parent=$('#'+CSS.escape(key),app);if(!parent)return;
-      (Array.isArray(order[key])?order[key]:[]).forEach(id=>{
-        const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);
-        if(widget&&widget.parentNode===parent)parent.appendChild(widget);
+      if(parent.classList.contains('masonry')&&parent.querySelector('[data-biglwa-grid-position]'))return;
+      const desired=Array.isArray(order[key])?order[key]:[];
+      const actual=[...parent.children].filter(el=>el.dataset.widgetId);
+      desired.forEach((id,index)=>{
+        const widget=actual.find(el=>el.dataset.widgetId===id);
+        if(!widget)return;
+        const current=[...parent.children].filter(el=>el.dataset.widgetId)[index];
+        if(current!==widget)parent.insertBefore(widget,current||null);
       });
     });
     syncPrimaryWidgetDock(app);
