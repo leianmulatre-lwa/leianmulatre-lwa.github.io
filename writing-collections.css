@@ -115,3 +115,52 @@ body.night-mode #studioApp #moduleWorkspace .writing-collection-item[aria-curren
 #studioApp #moduleWorkspace[data-module-key="diary"] #diaryWritingSection[hidden]{
   display:none!important;
 }
+
+/* 2026-10-29 Journal composition layout.
+   The visibility card is moved under the editor's private-draft status by
+   renderWriting(), rather than sitting below the entire tall page navigator.
+   Keep the collection sidebar completely independent of Journal publishing. */
+#studioApp #moduleWorkspace[data-module-key="diary"] #diaryWritingSection{
+  align-items:start!important;
+}
+#studioApp #moduleWorkspace[data-module-key="diary"] #moduleWritingForm.writing-collection-form{
+  min-width:0!important;
+  width:100%!important;
+  align-content:start!important;
+}
+#studioApp #moduleWorkspace[data-module-key="diary"] #moduleWritingArea.diary-lined{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:clamp(560px,72vh,780px)!important;
+  resize:vertical!important;
+}
+/* This is a child of the editor, not a full-width footer under the page list. */
+#studioApp #moduleWorkspace[data-module-key="diary"] #moduleWritingForm > #journalShareControls.journal-owner-share{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin:8px 0 0!important;
+  padding:16px 18px!important;
+  align-self:start!important;
+  justify-self:stretch!important;
+}
+#studioApp #moduleWorkspace[data-module-key="diary"] #moduleWritingForm > #journalShareControls .journal-owner-share-actions{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="diary"] #moduleWritingForm > #journalShareControls p{
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:760px){
+  /* On phones the page navigator stacks above the editor, so neither card
+     needs a fake left inset. Preserve a usable lined writing area. */
+  #studioApp #moduleWorkspace[data-module-key="diary"] #moduleWritingArea.diary-lined{
+    min-height:clamp(420px,60vh,640px)!important;
+  }
+  #studioApp #moduleWorkspace[data-module-key="diary"] #moduleWritingForm > #journalShareControls.journal-owner-share{
+    margin-top:8px!important;padding:14px!important;
+  }
+}
