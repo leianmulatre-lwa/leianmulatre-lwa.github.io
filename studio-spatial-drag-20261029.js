@@ -89,6 +89,12 @@
  function layout(){
   const parent=findParent();
   if(!parent||!mayEdit())return;
+  // The module router hides Studio's masonry while other pages are open.
+  // Never measure its 0px hidden box or write stale widths back into widgets.
+  // A route-close event below schedules fresh measurements after Studio returns.
+  const main=parent.closest('.main');
+  if(main?.classList.contains('module-view')||!parent.getClientRects().length||
+     getComputedStyle(parent).display==='none')return;
   watch(parent);
   const enabled=!!parent.querySelector(':scope > [data-widget-id][data-biglwa-grid-position]');
   if(!enabled){if(parent.classList.contains('biglwa-free-layout'))resetLayout(parent);return}
@@ -228,6 +234,12 @@
  window.addEventListener('resize',schedule,{passive:true});
  window.addEventListener('biglwa:studio-collapse-applied',schedule);
  window.addEventListener('biglwa:customization-remote',schedule);
+ // Module navigation changes visibility and available width without a window
+ // resize; always recalculate on return with the same saved card positions.
+ document.addEventListener('biglwa:module-close',schedule);
+ document.addEventListener('biglwa:module-open',schedule);
+ window.addEventListener('pageshow',schedule);
+ window.addEventListener('popstate',schedule);
  // Some media previews resize after loading, without changing their parent.
  document.addEventListener('load',e=>{
   if(e.target.closest?.(APP+' .masonry'))schedule();
