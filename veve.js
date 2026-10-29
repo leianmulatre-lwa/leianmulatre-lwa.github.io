@@ -184,7 +184,7 @@
     loadProgress('Loading public Sqwidz…');
     try{
       if(window.BigLWASqwibs){
-        const pub=await window.BigLWASqwibs.publicSqwibs(70);
+        const pub=await window.BigLWASqwibs.publicSqwibs(70).catch(()=>[]);
         const fresh=await window.BigLWASocial?.veve?.().catch(()=>[])||[];
         state.sqwibs=pub.concat(fresh);
         const resh=await window.BigLWASqwibs.publicResqwibs().catch(()=>[]);

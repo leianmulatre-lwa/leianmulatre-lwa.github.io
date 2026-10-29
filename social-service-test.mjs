@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {socialRoute} from './social-service.js';
-const data=new Map();let version=0,current='alice';
+const data=new Map();let version=0,current='alice',quota=false;
 const bucket={async put(key,value,options={}){const old=data.get(key);if(options.onlyIf?.etagMatches&&old?.etag!==options.onlyIf.etagMatches)return null;if(options.onlyIf?.etagDoesNotMatch==='*'&&old)return null;const record={value,etag:String(++version),httpMetadata:options.httpMetadata};data.set(key,record);return record},async get(key){const o=data.get(key);return o?{etag:o.etag,httpMetadata:o.httpMetadata,size:o.value.byteLength||o.value.length,body:o.value,json:async()=>JSON.parse(o.value)}:null},async delete(key){data.delete(key)},async list({prefix,limit=1000,cursor}){let keys=[...data.keys()].filter(x=>x.startsWith(prefix)).sort();if(cursor)keys=keys.filter(x=>x>cursor);const result=keys.slice(0,limit);return {objects:result.map(key=>({key})),truncated:keys.length>limit,cursor:result.at(-1)}}};
 const oldFetch=globalThis.fetch;
-globalThis.fetch=async url=>{const path=new URL(url).pathname,kind=path.split('/').at(-2),id=decodeURIComponent(path.split('/').at(-1));if(kind==='usernames'){if(!['alice','bob','eve'].includes(id))return Response.json({}, {status:404});return Response.json({fields:{uid:{stringValue:id},username:{stringValue:id},name:{stringValue:id}}})}if(kind==='sqwibs')return Response.json({fields:{uid:{stringValue:'bob'},text:{stringValue:'legacy'},visibility:{stringValue:'public'},allowResqwib:{booleanValue:true}}});return Response.json({fields:{username:{stringValue:id},name:{stringValue:id},peopleConnections:{mapValue:{fields:{bob:{mapValue:{fields:{}}}}}}}})};
+globalThis.fetch=async url=>{if(quota)return Response.json({error:'quota'},{status:429});const path=new URL(url).pathname,kind=path.split('/').at(-2),id=decodeURIComponent(path.split('/').at(-1));if(kind==='usernames'){if(!['alice','bob','eve'].includes(id))return Response.json({}, {status:404});return Response.json({fields:{uid:{stringValue:id},username:{stringValue:id},name:{stringValue:id}}})}if(kind==='sqwibs')return Response.json({fields:{uid:{stringValue:'bob'},text:{stringValue:'legacy'},visibility:{stringValue:'public'},allowResqwib:{booleanValue:true}}});return Response.json({fields:{username:{stringValue:id},name:{stringValue:id},peopleConnections:{mapValue:{fields:{bob:{mapValue:{fields:{username:{stringValue:'bob'},name:{stringValue:'Bob'}}}}}}}}})};
 const helpers={user:async()=>({uid:current}),json:(d,status)=>Response.json(d,{status}),preflight:()=>new Response(null,{status:204}),allowed:r=>r.headers.get('Origin')==='https://biglwa.com'};
 async function call(path,body,origin='https://biglwa.com'){return socialRoute(new Request('https://api.biglwa.com/social/'+path,{method:body===undefined?'GET':'POST',headers:{Origin:origin},...(body===undefined?{}:{body:JSON.stringify(body)})}),{WALLPAPER_BUCKET:bucket},helpers).then(r=>r.json())}
 try{
@@ -18,7 +18,7 @@ try{
  current='alice';await call('post/'+id+'/remove',{});assert.equal((await call('posts')).items.length,0);await assert.rejects(call('post/'+id),/unavailable/);
  current='bob';assert.equal((await call('fish')).items.length,0,'Withdrawn text is excluded from bookmarks');
  await call('post/legacy-id/reply',{text:'Legacy replies work'});assert.equal((await call('post/legacy-id')).replies.length,1);
- await call('presence',{online:true});current='alice';assert.deepEqual((await call('presence',{online:true})).online,['bob']);
+ await call('presence',{online:true});current='alice';const roster=await call('presence',{online:true});assert.deepEqual(roster.online,['bob']);assert.equal(roster.people[0].username,'bob');quota=true;await assert.rejects(call('presence',{online:true}),/quota/);quota=false;
  await assert.rejects(call('posts',{text:'x',kind:'video',media:'javascript:alert(1)'}),/HTTPS/);
  await assert.rejects(call('posts',{text:'x'.repeat(30001),kind:'essay'}),/30,000/);
 

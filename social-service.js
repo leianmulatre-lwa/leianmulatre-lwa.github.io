@@ -20,12 +20,12 @@ async function body(request){const all=await bytes(request);
 async function directory(request,username){
  const name=clean(username,30).replace(/^@/,'').toLowerCase();if(!/^[a-z0-9._-]{1,30}$/.test(name))fail('Choose a BIG LWA username.');
  const r=await fetch('https://firestore.googleapis.com/v1/projects/biglwa/databases/(default)/documents/usernames/'+encodeURIComponent(name),{headers:{Authorization:request.headers.get('Authorization')||''}});
- if(!r.ok)fail('That member could not be found.',404);const d=(await r.json()).fields||{};
+ if(!r.ok)fail(r.status===404?'That member could not be found.':'Member lookup is temporarily unavailable because the account database cannot respond.',r.status===404?404:503);const d=(await r.json()).fields||{};
  const person={uid:d.uid?.stringValue,username:d.username?.stringValue||name,name:d.name?.stringValue||name};if(!person.uid)fail('That member could not be found.',404);return person;
 }
 async function meProfile(request,uid){
  const r=await fetch('https://firestore.googleapis.com/v1/projects/biglwa/databases/(default)/documents/users/'+segment(uid),{headers:{Authorization:request.headers.get('Authorization')||''}});
- if(!r.ok)fail('Your account could not be loaded.',503);return (await r.json()).fields||{};
+ if(!r.ok)fail(r.status===429?'The account database has reached its quota. Friends will return when it resets.':'Your account could not be loaded.',503);return (await r.json()).fields||{};
 }
 function mediaURL(v){if(!v)return '';try{const u=new URL(v);if(u.protocol==='https:'&&!u.username&&!u.password&&u.href.length<1800)return u.href}catch{}fail('Use an HTTPS media link.')}
 async function sourcePost(b,id,request){
@@ -65,7 +65,18 @@ export async function socialRoute(request,env,{user,json,preflight,allowed}){
   requirePost();await put(b,own+'presence.json',{at:Date.now(),online:input.online!==false});
   const profile=await meProfile(request,uid),connections=profile.peopleConnections?.mapValue?.fields||{};
   const ids=Object.keys(connections).slice(0,200),online=[];
-  await Promise.all(ids.map(async id=>{const p=await get(b,'members/'+segment(id)+'/presence.json');if(p?.online&&Date.now()-p.at<100000)online.push(id)}));return reply({online});
+  await Promise.all(ids.map(async id=>{const p=await get(b,'members/'+segment(id)+'/presence.json');if(p?.online&&Date.now()-p.at<100000)online.push(id)}));const people=ids.map(id=>{const fields=connections[id]?.mapValue?.fields||{};return {uid:id,username:fields.username?.stringValue||'',name:fields.name?.stringValue||''}}).filter(p=>p.username);return reply({online,people});
+ }
+ if(path==='find'){
+  const term=clean(url.searchParams.get('q'),30).replace(/^@/,'').toLowerCase();if(!/^[a-z0-9._-]{2,30}$/.test(term))return reply({items:[]});
+  const response=await fetch('https://firestore.googleapis.com/v1/projects/biglwa/databases/(default)/documents:runQuery',{method:'POST',headers:{Authorization:request.headers.get('Authorization')||'','Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'usernames'}],orderBy:[{field:{fieldPath:'usernameLower'},direction:'ASCENDING'}],startAt:{values:[{stringValue:term}],before:true},endAt:{values:[{stringValue:term+'\uf8ff'}],before:false},limit:8}})});
+  if(!response.ok)fail('Member search is temporarily unavailable. The account database cannot respond.',503);const results=await response.json();return reply({items:results.map(x=>x.document?.fields).filter(Boolean).map(f=>({uid:f.uid?.stringValue||'',username:f.username?.stringValue||'',name:f.name?.stringValue||''})).filter(p=>p.username)});
+ }
+ if(path==='friends'){
+  requirePost();const person=await directory(request,input.username);if(person.uid===uid)fail('This is your own account.');const fields={};for(const [key,value]of Object.entries({...person,addedAt:new Date().toISOString()}))fields[key]={stringValue:value};const mask='peopleConnections.`'+person.uid.replace(/\\/g,'\\\\').replace(/`/g,'\\`')+'`';
+  const document={fields:{peopleConnections:{mapValue:{fields:{}}}}};document.fields.peopleConnections.mapValue.fields[person.uid]={mapValue:{fields}};
+  const response=await fetch('https://firestore.googleapis.com/v1/projects/biglwa/databases/(default)/documents/users/'+segment(uid)+'?updateMask.fieldPaths='+encodeURIComponent(mask),{method:'PATCH',headers:{Authorization:request.headers.get('Authorization')||'','Content-Type':'application/json'},body:JSON.stringify(document)});
+  if(!response.ok)fail('Your connection could not be saved. The account database cannot respond.',503);return reply({person});
  }
  if(path==='inbox')return reply(await list(b,own+'inbox/',100));
  if(path==='messages'){
