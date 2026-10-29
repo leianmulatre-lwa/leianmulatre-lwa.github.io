@@ -129,7 +129,7 @@
   const tikProfile=tiktok?.connected&&tiktok.uid===accountUid?tiktok.profile:null;
   const tikLink=String(linked.tiktok||'');
   const publicTiktok=window.BigLWAExternalTiktok?.snapshot?.();
-  const publicHandle=publicTiktok?.uid===accountUid?cleanHandle(publicTiktok.handle):'';
+  const publicHandle=publicTiktok?.uid===accountUid&&(merged.tiktok||tikProfile||tikLink)?cleanHandle(publicTiktok.handle):'';
   const tikHandle=cleanHandle(tikProfile?.username)||linkHandle(tikProfile?.profile_deep_link,'tiktok.com')||
     linkHandle(tikProfile?.link,'tiktok.com')||linkHandle(tikLink,'tiktok.com')||
     linkHandle(merged.tiktok?.link,'tiktok.com')||publicHandle;
