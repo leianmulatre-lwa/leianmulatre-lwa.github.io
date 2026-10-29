@@ -52,12 +52,12 @@ function blockPair(item,primary){
 }
 function weeklyBlock(){
  const blocks=[
-  {name:'sqwibblR',route:'tools',image:'sqwibblR'},
+  {name:'sqwibblR',open:'image-desk',image:'sqwibblR'},
   {name:'visualizr',route:'projects',image:'visualizr'},
-  {name:'lightR',route:'tools',image:'lightR'},
-  {name:'paintR',route:'tools',image:'paintR'},
-  {name:'keyframeR',route:'tools',image:'keyframeR'},
-  {name:'fileR',route:'tools',image:'fileR'}
+  {name:'lightR',open:'photocraft',image:'lightR'},
+  {name:'paintR',open:'vectorcraft',image:'paintR'},
+  {name:'keyframeR',open:'effectcraft',image:'keyframeR'},
+  {name:'fileR',open:'pdfcraft',image:'fileR'}
  ];
  const today=new Date(),utc=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()));
  const day=(utc.getUTCDay()+6)%7;utc.setUTCDate(utc.getUTCDate()-day+3);
@@ -113,7 +113,7 @@ export async function mountCraftSuite(root){
       '<nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support ↗</a></nav>'+
      '</div>'+
      '<aside class="craft-folder-weekly" aria-label="Block of the week"><span class="craft-weekly-eyebrow">block of the week</span>'+
-      '<button class="craft-weekly-choice" type="button" data-craft-route="'+weeklyBlock().route+'">'+
+      '<button class="craft-weekly-choice" type="button" data-craft-weekly="'+(weeklyBlock().open||weeklyBlock().route)+'"'>'+
         '<img src="/assets/bigapps/icons/'+weeklyBlock().image+'.png?v=20261026-original-stitch-1" alt="" width="64" height="64">'+
         '<span><strong>'+weeklyBlock().name+'</strong><small>new block every Monday · open ↗</small></span>'+
       '</button>'+
@@ -287,7 +287,16 @@ export async function mountCraftSuite(root){
  root.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button||!root.contains(button))return;
   const id=button.dataset.craftOpen;
-  const route=button.dataset.craftRoute;
+  const weekly=button.dataset.craftWeekly;
+   if(weekly){
+    const featured=ENGINES.find(x=>x.id===weekly);
+    if(safeId(weekly)){
+      if(!ready.has(weekly)){status.textContent=(featured?.name||'Featured editor')+' is unavailable in this deployment. Choose another block below.';return}
+      open(weekly);return;
+    }
+    if(weekly==='projects'){window.openBIGLWAModule?.('projects');return}
+   }
+   const route=button.dataset.craftRoute;
   if(route&&WEB_FRIENDLY.some(item=>item.route===route)){
     window.openBIGLWAModule?.(route);
     return;
