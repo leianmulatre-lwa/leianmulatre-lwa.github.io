@@ -53,10 +53,44 @@ button:focus-visible,.filebutton:focus-within,input:focus-visible{outline-color:
 .status{background:#145236;color:#fdf5dd}
 #saveCloudSnapshot{background:#078e56;color:#fffef0;border-color:#064f34}
 
+
+/* sqwibblR — quieter native-feeling editor chrome. Stitched identity stays in the title only. */
+:root{--ink:#26312d;--rose:#277653;--paper:#faf9f4;--line:#d7ddd5;color-scheme:light}
+body{background:#e8ede8;color:#26312d;font:500 12px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}
+header{background:#f9fbf7!important;color:#203b2c!important;border-bottom:1px solid #cfded1!important;padding:12px 18px;gap:12px}
+header h1{font:400 clamp(20px,2vw,28px)/1.16 "BIG LWA Stitched",Georgia,serif!important;letter-spacing:.01em}
+header p{font:450 11px/1.4 system-ui!important;color:#607266!important}
+header>span{font:650 10px/1.2 system-ui!important;color:#60856d!important;letter-spacing:.04em}
+.shell{grid-template-columns:minmax(172px,214px) minmax(0,1fr) minmax(176px,230px);gap:9px;padding:9px;min-height:calc(100dvh - 65px)}
+.side{background:#f9faf7!important;border:1px solid #d6dfd7!important;border-radius:9px!important;padding:13px!important;box-shadow:none!important}
+.side h2{font:700 14px/1.3 Inter,system-ui,sans-serif!important;letter-spacing:-.02em;margin:0 0 12px!important;color:#273a2e}
+.side h3{font:750 10px/1.4 Inter,system-ui,sans-serif!important;letter-spacing:.075em!important;text-transform:uppercase;color:#68786a}
+.side .note{color:#637266;font:450 10px/1.5 system-ui}
+.toolbar{background:#f9faf7!important;border:1px solid #d6dfd7!important;border-radius:9px!important;padding:8px!important;gap:5px}
+button,.filebutton{border:1px solid #d1dbd1!important;border-radius:7px!important;background:#fff!important;color:#314537!important;padding:6px 8px!important;box-shadow:none!important;font:650 11px/1.3 Inter,system-ui,sans-serif!important;transition:background .15s,border-color .15s}
+button:hover:not(:disabled),.filebutton:hover{background:#f0f6ef!important;border-color:#a2b8a5!important}
+button.active{background:#266a48!important;color:#fff!important;border-color:#235f41!important}
+button.active:hover{background:#347956!important}
+button:focus-visible,.filebutton:focus-within,input:focus-visible{outline:2px solid #448d68!important;outline-offset:2px}
+#saveCloudSnapshot{background:#26734f!important;color:#fff!important;border-color:#26734f!important}
+#saveCloudSnapshot:hover{background:#1c5c40!important}
+.stagewrap{background:#d3dcd6!important;border:1px solid #bdc8c0!important;border-radius:9px!important;padding:16px}
+.stage{box-shadow:0 8px 22px #344b3e24!important}
+.status{background:#eff5ed!important;color:#355241!important;border:1px solid #d3e1d4!important;border-radius:7px!important;font-size:11px}
+.layerlist{gap:5px}
+.layerrow{border:1px solid #d8e0d8!important;background:#fff!important;border-radius:7px!important;padding:8px}
+.layerrow.selected{background:#edf6ef!important;border-color:#7cab87!important;box-shadow:inset 3px 0 #277653}
+.layername{font:600 11px system-ui!important;color:#314638}
+.field label{font:650 11px system-ui!important;color:#485e50}
+footer{font:450 10px/1.45 system-ui!important;color:#708274!important;padding:8px 14px}
+@media(max-width:850px){.shell{grid-template-columns:minmax(160px,190px) minmax(0,1fr)}}
+@media(max-width:570px){.shell{grid-template-columns:1fr}.side.layers{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){button,.filebutton{transition:none!important}}
+
 </style>
 </head>
 <body>
-<header><div><h1><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>BIG LWA · sqwibblR</h1><p>Your own drawing desk · private account snapshots by choice</p></div><span>✦ handmade studio</span></header>
+<header><div><h1><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>BIG LWA · sqwibblR</h1><p>A calmer space to sketch, layer and export. Save privately when you choose.</p></div><span>made in BIG LWA</span></header>
 <div class="shell">
 <aside class="side">
 <h2>make something</h2>
@@ -90,7 +124,7 @@ button:focus-visible,.filebutton:focus-within,input:focus-visible{outline-color:
 <p class="note">Download editable layers to keep your full project. Choosing Save preview stores only a flattened, reduced image in your private BIG LWA account.</p>
 </aside>
 </div>
-<footer>BIG LWA sqwibblR · an original local canvas workspace. Advanced image, vector, motion and PDF engines are separately credited in Tools to their open-source authors.</footer>
+<footer>sqwibblR · edit locally, export layers, or explicitly save a private preview to BIG LWA.</footer>
 <script>
 (()=>{
 'use strict';
