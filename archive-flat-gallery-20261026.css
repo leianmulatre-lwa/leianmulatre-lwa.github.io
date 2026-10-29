@@ -62,7 +62,7 @@ html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveInstagr
   font:500 10px/1.4 system-ui!important;color:#786d64!important;
 }
 html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{
-  display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
   align-items:start!important;align-content:start!important;justify-content:stretch!important;
   gap:14px!important;min-width:0!important;max-width:100%!important;
   margin:0!important;padding:0 3px 4px 0!important;
@@ -220,13 +220,13 @@ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-empty{
   color:#756a62!important;
 }
 @media(max-width:1600px){
-  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(7,minmax(0,1fr))!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
 @media(max-width:1360px){
-  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
 @media(max-width:1130px){
-  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
 @media(max-width:920px){
   html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar{grid-template-columns:1fr!important}
@@ -249,4 +249,26 @@ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-empty{
 }
 html body.night-mode #studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell{
   background:#302a29!important;color:#f5eee8!important;border-color:#665953!important;
+}
+
+/* App-scoped Archive actions: stable left action group, top-right source picker,
+   no phantom horizontal strip and no oversized empty shell. */
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar{
+ grid-template-columns:minmax(0,max-content) minmax(0,1fr)!important;
+ row-gap:8px!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-bar{
+ overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:thin!important;
+ justify-content:flex-end!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-highlights-button[hidden]{
+ display:none!important;
+}
+@media(max-width:920px){
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar{grid-template-columns:minmax(0,1fr)!important}
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-filter-bar{justify-content:flex-start!important}
+}
+@media(max-width:700px){
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-toolbar-actions{flex-wrap:wrap!important}
 }
