@@ -94,3 +94,87 @@
  #studioApp .lwa-pixel-curtain .lwa-pixel-scene *::before,
  #studioApp .lwa-pixel-curtain .lwa-pixel-scene *::after{animation:none!important;transform:none!important;opacity:1!important}
 }
+
+/* 2026-10-29 — one uninterrupted pixel curtain, no lower shadow panel.
+   The shell retains its existing height, scroller, readiness and header. */
+#studioApp .module-shell.lwa-curtain-loading:has(>.lwa-curtain.lwa-pixel-curtain)::after,
+#studioApp .module-shell.lwa-curtain-loading.lwa-curtain-veve-pending:has(>.lwa-curtain.lwa-pixel-curtain)::after{
+ content:none!important;
+ display:none!important;
+ border:0!important;
+ box-shadow:none!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain{
+ top:var(--lwa-loading-top,0px)!important;
+ bottom:0!important;
+ height:calc(100% - var(--lwa-loading-top,0px))!important;
+ min-height:0!important;
+ max-height:none!important;
+ border-radius:17px!important;
+ box-shadow:none!important;
+ justify-content:flex-start!important;
+ align-items:center!important;
+ gap:clamp(7px,1.25vh,13px)!important;
+ padding:clamp(32px,6vh,62px) 14px 18px!important;
+ background-color:#45080e!important;
+ /* Tiny squared dithering + broad, very low-contrast vertical fabric folds.
+    These gradients tile without introducing a seam or stretching an image. */
+ background-image:
+  repeating-linear-gradient(0deg,rgba(0,0,0,.024) 0px 3px,rgba(168,31,41,.018) 3px 6px),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.025) 0px 3px,rgba(174,28,34,.016) 3px 6px),
+  linear-gradient(90deg,#41080e 0%,#4b0a10 9%,#44080e 17%,#3d070d 25%,#49090f 36%,#4d0b11 45%,#41070d 56%,#4a0a10 68%,#40080e 79%,#49090f 90%,#42080e 100%)!important;
+ background-size:6px 6px,6px 6px,540px 100%!important;
+ background-position:center top!important;
+ background-repeat:repeat!important;
+}
+/* The wordmark stays on the same loading stage, not clipped to its top. */
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain>.lwa-curtain-brand{
+ display:flex!important;
+ position:relative!important;
+ flex:0 0 auto!important;
+ margin:0!important;
+ padding:0!important;
+ height:auto!important;
+ min-height:0!important;
+ line-height:1.05!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain>.lwa-curtain-label{
+ font-size:clamp(16px,1.8vw,21px)!important;
+ line-height:1.25!important;
+ letter-spacing:.055em!important;
+ margin:2px 0 0!important;
+}
+/* Preserve the changing status and aria-live announcements for accessibility;
+   remove only the redundant visible "loading page data..." line. */
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain>.lwa-curtain-progress{
+ position:absolute!important;
+ width:1px!important;
+ height:1px!important;
+ padding:0!important;
+ margin:-1px!important;
+ border:0!important;
+ overflow:hidden!important;
+ white-space:nowrap!important;
+ clip-path:inset(50%)!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain>.lwa-curtain-bypass{
+ position:relative!important;
+ margin:4px 0 0!important;
+ flex:none!important;
+}
+@media(max-width:580px){
+ #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain{
+  padding-top:clamp(20px,4vh,40px)!important;
+  gap:7px!important;
+ }
+}
+@media(max-height:620px){
+ #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain{
+  padding-top:clamp(14px,3vh,28px)!important;
+  gap:5px!important;
+ }
+ #studioApp .lwa-pixel-curtain .lwa-pixel-scene{height:clamp(80px,17vh,112px)!important}
+ #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain>.lwa-curtain-brand{
+  font-size:clamp(35px,5vw,51px)!important;
+ }
+}
