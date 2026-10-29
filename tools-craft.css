@@ -343,3 +343,57 @@
  #craftSuite .craft-folder-details p{font-size:10px!important}
  #craftSuite .craft-folder-seal{font-size:8px}
 }
+
+
+/* Lwazi 2026-10-29: red folder and three-column cover with weekly block. */
+#craftSuite.craft-workshop{--folder-red:#b73450!important;--folder-outline:#401723!important;--folder-paper:#fff1d0!important;background:#ba3853!important;border-color:#401723!important;box-shadow:6px 7px 0 #5f1a2d,0 15px 24px #360c1a40!important}
+#craftSuite.craft-workshop .craft-head.craft-folder-cover{background:linear-gradient(170deg,#ed7888 0%,#cf425e 18%,#ae2a44 100%)!important;border-color:#401723!important;box-shadow:inset 0 3px 0 #fa9da0,inset 0 -4px 0 #7e2139!important}
+#craftSuite .craft-folder-back{background:linear-gradient(180deg,#df6880,#a92d49)!important;border-color:#401723!important}
+#craftSuite .craft-folder-tab{background:linear-gradient(180deg,#f48998 0%,#ce4964 46%,#b73450 100%)!important;border-color:#401723!important}
+#craftSuite .craft-folder-tab::after{background:#b73450!important}
+#craftSuite .craft-folder-front{background:linear-gradient(160deg,#da647a,#b73450)!important;border-color:#481829!important;box-shadow:0 5px 0 #7c1d36,inset 0 2px 0 #fbb9ab!important}
+#craftSuite .craft-folder-inner.craft-folder-inner--tri{
+ display:grid!important;grid-template-columns:minmax(160px,1.12fr) minmax(180px,1.3fr) minmax(170px,.86fr)!important;
+ align-items:center!important;justify-items:stretch!important;gap:clamp(9px,1.7vw,26px)!important;
+ min-height:178px!important;padding:18px clamp(12px,2vw,32px)!important;
+ background:linear-gradient(155deg,#fff7e3,#fff0cc)!important
+}
+#craftSuite .craft-folder-brand{min-width:0;align-items:flex-start!important;justify-content:center!important}
+#craftSuite .craft-folder-logo{width:min(100%,365px)!important;height:138px!important;object-fit:contain!important;object-position:left center!important}
+#craftSuite .craft-folder-details{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:10px!important;min-width:0;margin:0!important}
+#craftSuite .craft-folder-details .craft-folder-seal{align-self:center!important;margin:0!important;font:850 10px/1.2 ui-monospace,monospace!important;letter-spacing:.16em;color:#7c2940}
+#craftSuite .craft-folder-details p{margin:0!important;max-width:39ch!important;font:600 clamp(11px,1vw,13px)/1.55 system-ui!important;color:#633a3b!important;text-align:center!important}
+#craftSuite .craft-folder-details .craft-founder-links{display:flex!important;gap:7px!important;align-items:center!important}
+#craftSuite .craft-folder-weekly{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:9px;min-width:0;margin-left:auto;width:100%;max-width:210px}
+#craftSuite .craft-weekly-eyebrow{font:850 9px/1.2 ui-monospace,monospace;letter-spacing:.12em;color:#812b44;text-transform:uppercase;text-align:center}
+#craftSuite .craft-weekly-choice{display:flex;align-items:center;gap:8px;width:100%;padding:9px!important;min-height:91px!important;text-align:left!important;border:2px solid #9e5363!important;border-radius:11px!important;background:#fff7df!important;color:#4c2534!important;box-shadow:2px 4px 0 #ac6674!important;cursor:pointer}
+#craftSuite .craft-weekly-choice:hover,#craftSuite .craft-weekly-choice:focus-visible{background:#ffe6ca!important;border-color:#6a2538!important;outline-offset:2px}
+#craftSuite .craft-weekly-choice img{display:block;width:61px;height:65px;flex:none;object-fit:contain}
+#craftSuite .craft-weekly-choice span{display:grid;gap:4px;min-width:0}
+#craftSuite .craft-weekly-choice strong{font:800 13px/1.1 system-ui;color:#4c2534;overflow-wrap:anywhere}
+#craftSuite .craft-weekly-choice small{font:600 9px/1.4 system-ui;color:#7b5760}
+#craftSuite .craft-tile-icon.craft-arcade-block{width:112px!important;height:88px!important;transform:none!important;margin:0 0 2px!important}
+#craftSuite .craft-block-pair{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;width:112px;height:88px}
+#craftSuite .craft-block-main{display:block;width:82px;height:82px;flex:none}
+#craftSuite .craft-block-main .craft-block-png{width:100%!important;height:100%!important;object-fit:contain!important}
+#craftSuite .craft-block-alt{display:block;width:34px!important;height:34px!important;flex:none;margin-left:-4px;margin-top:2px;object-fit:contain;opacity:.96}
+#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-tile-icon.craft-arcade-block{width:119px!important;height:95px!important}
+#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-pair{width:119px;height:95px}
+#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-main{width:92px;height:92px}
+#craftSuite .craft-tile[data-craft-card="visualizr"]>button{background:#7b334d!important;color:#fff8ea!important;border:2px solid #572338!important;opacity:1!important;font-weight:850!important;text-shadow:none!important;box-shadow:0 2px 0 #3d1d2c!important}
+#craftSuite .craft-tile[data-craft-card="visualizr"]>button:hover,#craftSuite .craft-tile[data-craft-card="visualizr"]>button:focus-visible{background:#9f4260!important;outline:2px solid #421e2e!important}
+#craftSuite .craft-tile h3 .craft-capital-r{font:800 .86em/1.1 Georgia,serif!important;text-transform:uppercase!important;color:inherit!important;letter-spacing:0!important;margin-left:1px}
+#craftSuite .craft-smallprint{font:500 11px/1.55 system-ui!important;background:#f3e3d8!important}
+#craftSuite .craft-smallprint details{margin-top:10px!important}
+@media(max-width:890px){
+ #craftSuite .craft-folder-inner.craft-folder-inner--tri{grid-template-columns:minmax(120px,1fr) minmax(130px,1.2fr)!important;gap:8px!important}
+ #craftSuite .craft-folder-weekly{grid-column:1/-1;justify-self:end;flex-direction:row;align-items:center;max-width:320px}
+ #craftSuite .craft-weekly-choice{min-height:70px!important}
+}
+@media(max-width:560px){
+ #craftSuite .craft-folder-inner.craft-folder-inner--tri{grid-template-columns:minmax(0,1fr)!important;padding:13px!important;gap:9px!important}
+ #craftSuite .craft-folder-brand{align-items:center!important}
+ #craftSuite .craft-folder-logo{width:min(290px,85%)!important;height:94px!important;object-position:center!important}
+ #craftSuite .craft-folder-weekly{grid-column:1;justify-self:center;max-width:270px}
+ #craftSuite .craft-folder-details p{font-size:11px!important}
+}
