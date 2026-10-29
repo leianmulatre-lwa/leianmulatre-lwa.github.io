@@ -23,13 +23,14 @@
   cover:cleanUrl(raw.cover,true),x:Math.max(0,Math.min(100,Number(raw.x)||50)),
   y:Math.max(0,Math.min(100,Number(raw.y)||50)),hidden:!!raw.hidden,
   order:Array.isArray(raw.order)?[...new Set(raw.order.filter(x=>Number.isInteger(x)&&x>=0&&x<100))].slice(0,50):null,
-  added:Array.isArray(raw.added)?raw.added.map(cleanItem).filter(Boolean).slice(0,12):[]
+  added:Array.isArray(raw.added)?raw.added.map(cleanItem).filter(Boolean).slice(0,12):[],
+  platform:['snapchat','facebook'].includes(raw.platform)?raw.platform:'instagram'
  });
  const normalize=(raw)=>{
   const result=empty();
   if(!raw||typeof raw!=='object')return result;
   for(const [k,v] of Object.entries(raw.imported||{})){
-   if(/^\d{1,2}$/.test(k)&&Number(k)<24&&v&&typeof v==='object')result.imported[k]=safeEntry(v);
+   if((/^\d{1,2}$/.test(k)&&Number(k)<24||/^(?:snapchat|facebook):(?:\d|1\d|2[0-3])$/.test(k))&&v&&typeof v==='object')result.imported[k]=safeEntry(v);
   }
   if(Array.isArray(raw.custom))result.custom=raw.custom.slice(0,8).map(c=>({...safeEntry(c),id:String(c?.id||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,70)||'h'+Math.random().toString(36).slice(2)}));
   return result;
@@ -37,7 +38,22 @@
  let state=empty(),publicState=null,stateOwner='',remoteLoaded=false,saveBusy=false;
  const isPreview=()=>!!window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode');
  const get=()=>{if(isPreview())return publicState||empty();const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
- const source=()=>window.BigLWAImportedHighlights?.source?.()?.highlights||[];
+ const archiveSource=()=>{
+  try{
+   const parsed=JSON.parse(localStorage.getItem('biglwaArchiveFilters')||'null');
+   return Array.isArray(parsed?.sources)&&parsed.sources.length===1
+     ?String(parsed.sources[0]).toLowerCase():'all';
+  }catch{return 'all'}
+ };
+ const platformOf=group=>String(group?.platform||'instagram').toLowerCase();
+ const source=()=>{
+  const platform=archiveSource();
+  if(platform==='snapchat')return window.BigLWASocialShowcase?.highlightsFor?.('snapchat')||[];
+  if(!['instagram','facebook'].includes(platform))return [];
+  const imported=window.BigLWAImportedHighlights?.source?.()?.highlights||[];
+  return imported.map((group,i)=>({...group,_importKey:String(i)}))
+   .filter(group=>platformOf(group)===platform);
+ };
  const status=message=>{const box=el('#biglwaHighlightStatus');if(box)box.textContent=message};
  const pictureStatus=message=>{const box=el('#biglwaProfilePictureStatus');if(box)box.textContent=message};
  function applyCover(img,record){
@@ -58,14 +74,13 @@
   platform:'new',items:x.added,customId:x.id
  }));
  function refresh(){window.dispatchEvent(new Event('biglwa:highlight-config-changed'))}
- /* Highlights belong to Instagram. While the Archive is filtered to another app the
-    panel and its button step out of the way, and All or Instagram brings them back. */
+ // A provider owns its own Highlights. No global or cross-app button.
  function highlightsInScope(){
-  try{
-   const parsed=JSON.parse(localStorage.getItem('biglwaArchiveFilters')||'null');
-   const active=Array.isArray(parsed?.sources)&&parsed.sources.length?String(parsed.sources[0]).toLowerCase():'';
-   return !active||active==='instagram';
-  }catch{return true}
+  const platform=archiveSource();
+  if(platform==='instagram')return true;
+  if(platform==='snapchat')return !!window.BigLWASocialShowcase?.isConnected?.('snapchat')||source().length>0;
+  // Facebook can opt in when genuine imported Highlight groups exist.
+  return platform==='facebook'&&source().length>0;
  }
  function saveHighlightToBoards(imageUrl,caption,sourceUrl){
   let items=[];
@@ -349,9 +364,11 @@
   if(!owner()){container.replaceChildren();return;}
   const oldFocus=document.activeElement?.dataset?.highlightRow;
   container.replaceChildren();
-  const groups=source();groups.slice(0,24).forEach((g,i)=>container.append(row(g,String(i),true,i)));
-  get().custom.forEach((g,i)=>container.append(row(g,g.id,false,i)));
-  if(!groups.length&&!get().custom.length)container.append(make('p','highlight-editor-intro','No imported highlights yet. Add one of your own below.'));
+  const platform=archiveSource(),groups=source();
+  groups.slice(0,24).forEach((g,i)=>container.append(row(g,g._importKey||String(i),true,i)));
+  const custom=get().custom.filter(g=>platformOf(g)===platform);
+  custom.forEach((g,i)=>container.append(row(g,g.id,false,i)));
+  if(!groups.length&&!custom.length)container.append(make('p','highlight-editor-intro','No '+platform+' highlights imported yet. Add one of your own below.'));
   if(oldFocus)el('[data-highlight-row="'+oldFocus+'"]',container)?.focus?.();
  }
  async function save(){
@@ -367,7 +384,7 @@
    status('Highlights saved to your account.');refresh();render();
   }catch(e){status(e.message||'Could not save highlights.')}finally{saveBusy=false}
  }
- let archiveExpanded=false;
+ let archiveExpanded=false,archiveLastSource='';
  function mountArchive(){
   if(!owner()||isPreview())return;
   const shell=el('#studioApp #moduleWorkspace[data-module-key="archive"] .archive-wall-shell');
@@ -375,7 +392,8 @@
   const toolbar=el('.archive-toolbar',shell);
   if(!toolbar)return;
   const actions=el('.archive-toolbar-actions',toolbar);
-  const allowed=highlightsInScope();
+  const platform=archiveSource(),allowed=highlightsInScope();
+  if(archiveLastSource!==platform){archiveExpanded=false;archiveLastSource=platform}
   if(!allowed)archiveExpanded=false;
   // Archive refreshes its action row without necessarily replacing the highlights
   // editor below it. Reconnect the button even when the panel already exists.
@@ -399,12 +417,14 @@
    button.setAttribute('aria-expanded',String(archiveExpanded));
    button.classList.toggle('is-active',archiveExpanded);
    button.hidden=!allowed;
+   button.setAttribute('aria-label',platform==='snapchat'?'Snapchat Highlights':platform==='facebook'?'Facebook Highlights':'Instagram Highlights');
    if(actions&&button.parentElement!==actions)actions.append(button);
    else if(!actions&&button.parentElement!==toolbar)toolbar.prepend(button);
    return button;
   };
   const existing=el('#archiveHighlightsPanel',shell);
   if(existing){
+   const heading=el('h2',existing);if(heading)heading.textContent=platform==='snapchat'?'Snapchat Spotlights':platform==='facebook'?'Facebook Highlights':'Instagram Highlights';
    if(toolbar.nextElementSibling!==existing)toolbar.insertAdjacentElement('afterend',existing);
    existing.hidden=!allowed||!archiveExpanded;
    ensureButton();
@@ -415,14 +435,14 @@
   const pane=make('section','archive-highlights-panel highlight-edit-pane');
   pane.id='archiveHighlightsPanel';
   const header=make('div','archive-highlights-heading');
-  header.append(make('h2','','Highlights'),make('p','highlight-editor-intro','Manage the highlights shown on your profile banner. Imported originals stay untouched.'));
+  header.append(make('h2','',platform==='snapchat'?'Snapchat Spotlights':platform==='facebook'?'Facebook Highlights':'Instagram Highlights'),make('p','highlight-editor-intro','Manage this app’s highlights on your profile banner. Imported originals stay untouched.'));
   pane.append(header);
   const rows=make('div','highlight-edit-list');rows.id='biglwaHighlightEditorList';pane.append(rows);
   const controls=make('div','highlight-edit-actions');
   const create=make('button','','+ New highlight');create.type='button';
   create.addEventListener('click',()=>{
    if(get().custom.length+source().length>=12){status('Maximum 12 highlights.');return}
-   get().custom.push({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),...safeEntry({title:'New highlight'})});
+   get().custom.push({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),...safeEntry({title:'New highlight',platform:archiveSource()})});
    render();
   });
   const saveBtn=make('button','','Save highlights');saveBtn.type='button';saveBtn.dataset.highlightSave='1';
@@ -436,6 +456,11 @@
   if(allowed&&archiveExpanded){get();render();if(!remoteLoaded)remote()}
  }
  function openArchive(){
+  if(!highlightsInScope()){
+   try{const f=JSON.parse(localStorage.getItem('biglwaArchiveFilters')||'{}')||{};
+    localStorage.setItem('biglwaArchiveFilters',JSON.stringify({...f,sources:['instagram']}))}catch{}
+  }
+  archiveLastSource=archiveSource();
   archiveExpanded=highlightsInScope();
   if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('archive');
   else if(typeof window.BigLWAOpenModule==='function')window.BigLWAOpenModule('archive');
