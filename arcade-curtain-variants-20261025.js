@@ -1,4 +1,4 @@
-/* Two real cabinet colorways. The three folder dots are the only switch.
+/* Games Studio browser colorways. Three saved dots switch the actual visible browser frame.
    Existing game catalogue, logo art, screen events and controls are unchanged. */
 (()=>{'use strict';
  if(window.__biglwaArcadeCurtainVariants)return;
@@ -16,9 +16,9 @@
   const button=document.createElement('button');
   button.type='button';button.className='arcade-folder-dots';
   for(let i=0;i<3;i++){const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');button.append(dot)}
-  const label=()=>{const next=version==='1'?'Ruby Stage':'Classic Velvet';
-    button.setAttribute('aria-label','Switch arcade curtain finish to '+next);
-    button.title='Change cabinet curtains · '+next;};
+  const label=()=>{const next=version==='1'?'Plum':'Classic Blue';
+    button.setAttribute('aria-label','Switch Games browser theme to '+next);
+    button.title='Change browser color · '+next;};
   label();
   button.addEventListener('click',event=>{
    event.preventDefault();event.stopPropagation();
