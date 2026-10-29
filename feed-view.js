@@ -720,6 +720,29 @@ function timestampMs(value) {
    rather than shrinking the row, which keeps the row four wide until there is something
    to put in it. */
 const HERO_SLOTS = 4;
+/* Film preview is a contact sheet for PHOTOGRAPHS, not video posters.
+   Other Feed cards remain mixed-media and keep their existing video behavior.
+   Imported Orbit photos must still use their durable managed R2 media URLs. */
+const heroPhotoUrl = post => {
+  if (!post) return "";
+  const valid=pictureUrls(post);
+  if (!valid.length) return "";
+  const items=Array.isArray(post.mediaItems)?post.mediaItems.filter(Boolean):[];
+  if (items.length) {
+    const pictures=items.filter(piece=>piece.isPicture!==false &&
+      !/^video/i.test(String(piece.mediaType||piece.type||piece.kind||"")) &&
+      !looksLikeVideoFile(piece.url));
+    if (!pictures.length) return "";
+    const candidates=pictures.flatMap(piece=>[piece.url,piece.thumbnailUrl,orbitUrlFromKey(piece.key)]);
+    return candidates.find(url=>url&&valid.includes(url)) ||
+      (post.orbitImported?valid.find(managedOrbitUrl)||"":"");
+  }
+  const declaredType=String(post.mediaType||post.type||post.kind||"").toLowerCase();
+  if (post.isVideo===true || /^video|^reel|^clip/.test(declaredType) ||
+      playableVideo(post) || (post.sourceHostedMedia===true&&
+        ['tiktok','youtube'].includes(String(post.source||'').toLowerCase())))return "";
+  return valid[0]||"";
+};
 let heroOn = null;
 let heroSignature = null;
 
@@ -742,20 +765,19 @@ function renderHero(force) {
     heroSignature = null;
     return;
   }
-  const signature = verifiedUid+'|'+(isPublicProfile?'public':'owner')+'|'+previewPosts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "")).join("|");
+  const signature = verifiedUid+'|'+(isPublicProfile?'public':'owner')+'|'+previewPosts.map((p) => p.id + ":" + heroPhotoUrl(p) + ":" + (p.caption || "")).join("|");
   if (!force && anchor === heroOn && signature === heroSignature) return;
   heroOn = anchor;
   heroSignature = signature;
 
-  /* Studio shows ONE compact row of the four latest approved Feed posts. */
-  // Preview the latest images that have a verified R2 URL, not expired Instagram links.
-  const storedPosts=previewPosts.filter(p=>pictureUrls(p).length);
+  /* Studio filmstrip selects four real photographs, skipping video-only
+     posts and their poster frames while leaving Feed playback untouched. */
+  const storedPosts=previewPosts.filter(post=>heroPhotoUrl(post));
   const slots=storedPosts.slice(0,HERO_SLOTS);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
-    const urls = slideUrls(post);
-    const first = urls[0];
+    const first = heroPhotoUrl(post);
     if (!first) {
       return '<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync" style="--accent:' + src.accent + '">' +
         '<span role="img" aria-label="Image waiting for storage">▧</span><small>Image needs sync</small></div>';
@@ -773,7 +795,11 @@ function renderHero(force) {
     "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):Array.from({length:HERO_SLOTS},()=>'<div class="biglwa-feed-hero-empty" aria-label="Add your own published photo">Add your photo</div>').join('')) + "</div>" +
     (requiresSync?'<button type="button" class="biglwa-feed-resync" data-feed-resync>↻ Restore imported photos</button><small class="biglwa-feed-sync-note" role="status">Reconnect Orbit if the original service no longer allows image downloads.</small>':'');
   anchor.querySelectorAll('.biglwa-feed-hero-preview').forEach((button,index)=>{
-    button.addEventListener('click',()=>{if(slots[index])openLightbox(slots[index],0);});
+    button.addEventListener('click',()=>{
+      const post=slots[index];if(!post)return;
+      const selected=heroPhotoUrl(post);
+      openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)));
+    });
   });
   anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
     img.addEventListener('error',()=>{
