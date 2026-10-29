@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261029-journal-column-5';
+        script.src = '/module-pages.js?v=20261029-arcade-links-keys-7';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2397,17 +2397,17 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://poki.com/en/g/sugar-sugar-html5'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
-      {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://www.coolmathgames.com/0-raft-wars'},
+      {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://raft-wars.com/raftwars'},
       {title:'sudoku',image:'/assets/arcade/sudoku.jpg',href:'https://www.coolmathgames.com/0-sudoku'},
       {title:'wordle',image:'/assets/arcade/wordle.png',href:'https://www.nytimes.com/games/wordle/index.html'},
       {title:'worldguessr',image:'/assets/arcade/worldguessr.jpg',href:'https://worldguessr.com/'},
       {title:'cookie clicker',image:'/assets/arcade/cookie-clicker.jpg',href:'https://orteil.dashnet.org/cookieclicker/'},
       {title:'chess',image:'/assets/arcade/chess.jpg',href:'https://www.chess.com/play/online'},
-      {title:'fancy pants',image:'/assets/arcade/fancy-man.webp',href:'https://www.coolmathgames.com/0-fancy-pants-adventures'},
-      {title:'n+',image:'/assets/arcade/nplus.webp',href:'https://www.coolmathgames.com/0-n-game'},
+      {title:'fancy pants',image:'/assets/arcade/fancy-man.webp',href:'https://poki.com/en/g/fancy-pants'},
+      {title:'n (classic)',image:'/assets/arcade/nplus.webp',href:'https://www.silvergames.com/en/n-game'},
       {title:'run 3',image:'/assets/arcade/run-3.png',href:'https://www.coolmathgames.com/0-run-3'},
       {title:'five nights at freddy’s',image:'/assets/arcade/five-nights-at-freddys.jpg',href:'https://store.steampowered.com/app/319510/Five_Nights_at_Freddys/'},
-      {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.coolmathgames.com/0-swords-and-sandals-2'}
+      {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.y8.com/games/swords_and_sandals_2'}
     ];
     const tile=(game,index)=>game.internal==='cultureQuiz'
       ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
