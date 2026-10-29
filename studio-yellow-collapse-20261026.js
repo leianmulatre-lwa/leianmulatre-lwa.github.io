@@ -17,7 +17,26 @@
   const direct=[...widget.children].find(el=>el.matches('.biglwa-card-heading-row,.card-head,.card-header,.biglwa-avatar-head,.aura-head,.music-head,.widget-heading,.studio-widget-heading,.profile-head,.profile-header,.card-title,.card-kicker'));
   if(direct)return direct;
   const h=widget.querySelector('h1,h2,.card-kicker,.profile-name-line');
-  if(!h)return null;
+  if(!h){
+   // Some dynamically hydrated widgets have no direct heading. Yellow must
+   // never fall through to the legacy dock handler just because of markup.
+   let fallback=widget.querySelector(':scope > .studio-collapse-fallback');
+   if(!fallback){
+    fallback=document.createElement('div');
+    fallback.className='studio-collapse-fallback studio-collapse-keep';
+    fallback.setAttribute('role','heading');
+    fallback.setAttribute('aria-level','2');
+    const badge=widget.querySelector('.card-icon,.studio-symbol-mark');
+    const icon=badge?.cloneNode(true);
+    if(icon){icon.removeAttribute('id');icon.setAttribute('aria-hidden','true');fallback.append(icon)}
+    const heading=document.createElement('strong');
+    heading.textContent=label(widget);fallback.append(heading);
+    const controls=widget.querySelector(':scope > .widget-window-controls');
+    if(controls)controls.insertAdjacentElement('afterend',fallback);
+    else widget.prepend(fallback);
+   }
+   return fallback;
+  }
   let ancestor=h;
   while(ancestor.parentElement&&ancestor.parentElement!==widget)ancestor=ancestor.parentElement;
   return ancestor.parentElement===widget?ancestor:null;
@@ -63,7 +82,7 @@
   if(yellow){
    const widget=yellow.closest(widgetSelector);
    if(!widget||!document.querySelector('#studioApp')?.contains(widget))return;
-   if(!findHead(widget))return;
+   findHead(widget);
    event.preventDefault();event.stopImmediatePropagation();
    widget.classList.remove('widget-is-expanded');
    widget.classList.toggle('studio-header-only');
