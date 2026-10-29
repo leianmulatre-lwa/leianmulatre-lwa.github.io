@@ -131,7 +131,8 @@
   const publicTiktok=window.BigLWAExternalTiktok?.snapshot?.();
   const publicHandle=publicTiktok?.uid===accountUid?cleanHandle(publicTiktok.handle):'';
   const tikHandle=cleanHandle(tikProfile?.username)||linkHandle(tikProfile?.profile_deep_link,'tiktok.com')||
-    linkHandle(tikProfile?.link,'tiktok.com')||linkHandle(tikLink,'tiktok.com')||publicHandle;
+    linkHandle(tikProfile?.link,'tiktok.com')||linkHandle(tikLink,'tiktok.com')||
+    linkHandle(merged.tiktok?.link,'tiktok.com')||publicHandle;
   if(tikHandle){
     const existing=merged.tiktok||{};
     merged.tiktok={...existing,...(tikProfile||{}),username:tikHandle,
