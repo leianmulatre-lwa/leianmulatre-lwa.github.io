@@ -137,7 +137,10 @@
    const latest=await entries(f,t);
    if(node.dataset.guestOwner!==version)return;
    rows(node,latest.slice(0,3));
-  }catch{if(node.dataset.guestOwner===version)node.textContent='Open Guest Check to see published entries.'}
+  }catch(error){if(node.dataset.guestOwner===version){
+   rows(node,[]);const status=node.querySelector('.biglwa-guest-v2-empty');
+   if(status)status.textContent=error.code==='resource-exhausted'?'Check-ins temporarily unavailable. Please try again later.':'Could not load check-ins. Open Guest Check to retry.';
+  }}
  }
  // Intercept legacy guestbook buttons before the retired local-only renderer.
  document.addEventListener('click',event=>{

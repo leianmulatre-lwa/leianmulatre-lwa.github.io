@@ -694,7 +694,7 @@
     ['orbit','Orbit','◎'],
     ['connect','Connect','✣'],
     ['veve','veve','✺'],
-    ['camera','boothi','◉'],
+    ['camera','booth','◉'],
     ['stream','Stream','◌'],
     ['rooms','The Lounge','♧'],
     ['closet','Closet','♧']
@@ -1898,15 +1898,15 @@
     const card=$('#studioApp #camera');
     if(card){
       const header=$('.card-head h2,.card-head h3',card);
-      if(header)header.textContent='boothi';
-      card.dataset.widgetLabel='Boothi';
+      if(header)header.textContent='booth';
+      card.dataset.widgetLabel='Booth';
       const sub=$('.sub',card);
       if(sub)sub.textContent='Use our booth to feel yourself or chat with other bookiniz using Big LWA.';
       if(!String(card.dataset.search||'').includes('video booth'))card.dataset.search=(card.dataset.search||'')+' booth photo booth video booth';
     }
     // Rename only the visible caption, never routing/storage keys or icon markup.
     $$('#studioApp [data-sidebar-route="camera"] .sidebar-route-label,#studioApp [data-open="camera"] .shortcut-label').forEach(label=>{
-      if(/^(photo\s*booth|photobooth|booth|bookini)$/i.test(label.textContent?.trim()||''))label.textContent='boothi';
+      if(/^(photo\s*booth|photobooth|booth|bookini)$/i.test(label.textContent?.trim()||''))label.textContent='booth';
     });
   }
 

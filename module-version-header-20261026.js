@@ -5,7 +5,7 @@
  window.__biglwaHeadingVersions20261026=true;
  const $=(s,r=document)=>r?.querySelector(s);
  const config={
-  camera:{title:'boothi',selector:'.booth-tabs',icon:'bookini'},
+  camera:{title:'booth',selector:'.booth-tabs',icon:'bookini'},
   stream:{title:'stream',stream:true},
   notes:{title:'sqwidz',icon:'sqwibblR'},
   projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
@@ -98,13 +98,13 @@
  }
  function renameNavigation(){
   const routes=[
-    ['tools','lwazi'],['projects','visualizr'],['camera','boothi'],['notes','sqwidz']
+    ['tools','lwazi'],['projects','visualizr'],['camera','booth'],['notes','sqwidz']
   ];
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
       const label=link.querySelector('.hero-shortcut-label,.sidebar-route-label,.nav-label');
       if(label&&label.textContent.trim()!==name)label.textContent=name;
-      if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Boothi',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
+      if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Booth',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
     }
     const widget=document.querySelector('#studioApp #'+route+' .card-head h2');
     if(widget&&widget.textContent.trim()!==name)widget.textContent=name;

@@ -132,7 +132,7 @@ window.BigLWAProfileModules={render:renderPublic,placeControls:controls};
 window.addEventListener('biglwa:public-profile-ended',()=>{visitor=null;});
 function controls(){
  const workspace=document.getElementById('moduleWorkspace'),kind=workspace?.dataset.moduleKey;
- const root=workspace.querySelector('.module-body')||workspace.querySelector('#moduleWorkspaceBody');if(!root)return;
+ const root=workspace?.querySelector('.module-body')||workspace?.querySelector('#moduleWorkspaceBody');if(!root)return;
  if(isVisitor()){renderPublic(kind,root);return;}
  if(!sections[kind])return;
  const visualButtons=kind==='projects'?

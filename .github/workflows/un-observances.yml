@@ -1,0 +1,34 @@
+name: Refresh UN observances
+on:
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: un-observances-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Refresh from official UN sources
+        run: python3 scripts/update-un-observances.py
+      - name: Save the validated calendar
+        run: |
+          git config user.name 'BIG LWA calendar'
+          git config user.email 'calendar@users.noreply.github.com'
+          git add assets/un-observances.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh official UN observances"
+            git pull --rebase origin main
+            git push origin main
+          fi
+  publish:
+    needs: refresh
+    uses: ./.github/workflows/pages.yml

@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -35,6 +36,8 @@ jobs:
           node studio-booth-archive-board-selection-test.mjs
       - name: Install DOM test dependency outside public site
         run: npm install --prefix "$RUNNER_TEMP/biglwa-tests" jsdom@26.1.0 --no-audit --no-fund
+      - name: Verify observance dates and city weather
+        run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node observances-weather-test.mjs
       - name: Test BIG LWA native creative Workshop
         run: NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node tools-workshop-native-test.mjs
       - name: Verify Step Inside native login submission and account creation

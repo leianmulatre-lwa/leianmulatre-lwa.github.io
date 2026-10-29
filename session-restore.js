@@ -43,7 +43,7 @@ function setLastView(key){
   try{window.BigLWAUserDirectory?.saveCustomizations?.({session:{lastView:value}})}catch{}
 }
 function requestedRoute(){
-  if(location.pathname!=='/studio')return true;
+  if(location.pathname!=='/studio'||qs().get('preview')==='1'||window.__biglwaEntryPreview===true)return true;
   const params=qs();
   // OAuth return is deliberate, while a stale plain ?view=orbit is not.
   return params.has('panel')||params.has('nav')||params.has('orbit_return')||

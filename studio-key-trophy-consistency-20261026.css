@@ -80,3 +80,16 @@
  #studioApp .module-workspace[data-module-key="trophies"] .trophy-page-grid{grid-template-columns:minmax(0,1fr)!important}
  #studioApp .biglwa-skeleton-hub .skeleton-platform-content .module-shadow-key-item{min-width:100px!important}
 }
+
+/* Reserve distinct rows for window controls and Skeleton Key's own title. */
+#studioApp .manifesto-card.is-skeleton-open{padding-top:34px!important;scroll-margin-top:80px}
+#studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions{top:4px!important;right:12px!important;bottom:auto!important}
+#studioApp .manifesto-card.is-skeleton-open .widget-window-controls{display:none!important}
+#studioApp .biglwa-skeleton-title{grid-template-columns:26px minmax(0,1fr)!important}
+#studioApp .biglwa-skeleton-title h2{font-size:clamp(20px,2vw,29px)!important;overflow-wrap:anywhere}
+#studioApp .biglwa-skeleton-title .skeleton-settings{grid-column:2;justify-self:start}
+#studioApp .tour-symbol-mark{position:relative;display:grid!important;place-items:center;flex:none}
+#studioApp .tour-symbol-mark :is(span,svg,img){position:static!important;inset:auto!important;display:block!important;width:26px!important;height:26px!important;max-width:100%!important;max-height:100%!important;object-fit:contain;transform:none!important;font-size:24px!important}
+#studioApp .tour-symbol-mark svg text{font-size:26px!important}
+#studioApp .biglwa-skeleton-hub .tour-symbol-key{grid-template-columns:1fr!important;max-height:320px;overflow-y:auto}
+body.night-mode #studioApp .biglwa-skeleton-hub{background:linear-gradient(155deg,#523640,#392831)!important}

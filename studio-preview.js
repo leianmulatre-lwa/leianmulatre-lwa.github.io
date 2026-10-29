@@ -882,6 +882,9 @@ function syncPublicWidgets(){
 function enforce(){
   if(!preview.active) return;
   synchronizeOwnerPreview();
+  // A saved full-page route may finish restoring after the public profile.
+  // It must not hide the permitted public widgets beneath a hidden workspace.
+  studioApp()?.querySelector('.main')?.classList.remove('module-view');
   if(!document.getElementById('biglwaPreviewBanner'))buildBanner();
   const app=studioApp();
   if(!app) return;
@@ -932,6 +935,9 @@ function activate(profile){
   window.__biglwaPublicStorageView=true;
   document.documentElement.classList.add("biglwa-preview-mode");
   synchronizeOwnerPreview();
+  // A saved full-page route may finish restoring after the public profile.
+  // It must not hide the permitted public widgets beneath a hidden workspace.
+  studioApp()?.querySelector('.main')?.classList.remove('module-view');
   document.documentElement.classList.toggle("biglwa-preview-private",profile.accountVisibility==='private');
   showStudioScreen();
   applyIdentity(profile);
@@ -943,6 +949,7 @@ function activate(profile){
   syncPublicWidgets();
   buildBanner();
   synchronizeOwnerPreview();
+
   setTimeout(()=>{if(preview.active&&preview.profile===profile){applyLook(profile.look);syncPublicWidgets();}},900);
   bindGate();
   window.addEventListener("pagehide",restoreAppearance,{once:true});

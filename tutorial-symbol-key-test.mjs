@@ -44,8 +44,8 @@ for(const key of ['projects','games','diary','map','orbit','connect','feed','arc
 const root=new El('ul');
 helpers.renderSymbolKey(root);
 assert.equal(root.children.length,helpers.symbolKey.length);
-const first=root.children.find(c=>c.children.at(-1)?.children?.[0]?.textContent==='Projects');
-assert.ok(first,'Projects has a labeled row');
+const first=root.children.find(c=>c.children.at(-1)?.children?.[0]?.textContent==='Visualizr');
+assert.ok(first,'Visualizr has a labeled row');
 const firstMark=first.children[0].children[0];
 assert.equal(firstMark.className,'sidebar-route-icon','clones real project symbol container');
 assert.equal(firstMark.children[0].className,'live-projects-icon','clones real project SVG');

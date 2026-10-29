@@ -10,14 +10,16 @@
   {"title":"Your creative Studio","area":"Studio","body":"Your Studio holds your profile, projects, music and widgets. The left sidebar is your shortcut desk; the header opens full pages."},
   {"title":"Meet L’wazi","area":"Your agent","body":"L’wazi introduces your Studio and starts your Veve with the interests you chose. You stay in control: edit interests and sensitivity anytime in Settings. Optional identity and heritage answers stay private and are never used to infer your interests."},
   {"title":"Skeleton Key","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
-  {"title":"The three colored dots","area":"Widget and post controls","visual":"colored-dots-title","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
+  {"title":"The three colored dots","area":"Widget and post controls","visual":"colored-dots-title","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card. Removing a Studio widget fills its red indicator in the sidebar; its restore control brings it back."},
   {"title":"Your workspace","area":"Studio","body":"Drag widget handles to arrange the Studio, use controls to customize it, and view your own public profile as others see it. Layout preferences are attached to your Big LWA account."},
   {"title":"Connect your world","area":"Orbit","key":"orbit","body":"Orbit links external accounts such as Pinterest and Instagram. Imported media goes first to your account-linked private collection for review. If a provider session expires, reconnect only that provider."},
-  {"title":"Where do imports go?","area":"Orbit → Archive","key":"archive","body":"Imported photos and Pins are saved in your Archive/import library, NOT posted publicly by connection alone. Select media and explicitly publish to Collective Feed. Archiving or switching Live off hides a published post."},
+  {"title":"Where do imports go?","area":"Orbit → Archive","key":"archive","body":"Imported photos and Pins are saved in your Archive/import library, NOT posted publicly by connection alone. Select media and explicitly publish to MyFeed. Archiving or switching Live off hides a published post."},
   {"title":"myfeed vs Veve","area":"Veve","key":"veve","body":"MyFeed is your public publishing page; Veve is the discovery wall for published photos, Sqwibs, games and ideas. Your chosen interests help order eligible public posts in Veve. Only public content is considered, and you can edit your preferences in Settings. Orbit imports never publish automatically."},
   {"title":"Boards and privacy","area":"Boards","key":"boards","body":"Boards gather Pins and collections. Private and locked boards do not automatically publish; choose what to share."},
-  {"title":"Journal, Sqwib and Sqwip","area":"Journal","key":"diary","body":"Journal entries are private until their owner turns on sharing. Sqwib sharing/reposting follows the author’s permissions. Sqwip creates screenplay pages to the right."},
-  {"title":"Creative tools","area":"Tools","key":"tools","body":"Tools converts files and trims video locally. ArtCraft has browser creative editors when the installed versions are available. Export your result to keep a copy."},
+  {"title":"Journal, Sqwidz and Sqwip","area":"Journal","key":"diary","body":"Journal entries are private until their owner turns on sharing. Sqwib sharing/reposting follows the author’s permissions. Sqwip creates screenplay pages to the right."},
+  {"title":"Creative tools","area":"Lwazi","key":"tools","body":"Lwazi brings together sqwibblR, Visualizr, lightR, paintR, keyframeR and fileR. Choose a block in the carousel to open an editor; export your work to keep a copy."},
+  {"title":"Connect and weather","area":"Studio","body":"Find your friends online beside Invite boo·kiniz in Connect. The weather button beside search lets you choose a city and shows emoji conditions; it never asks for your precise location automatically."},
+  {"title":"A world of dates","area":"Calendar","key":"calendar","body":"Calendar combines your dates, connected Google events and UN international days and weeks. The UN list refreshes daily and shows its source and last fetch date. UN observances are read-only; check the source for lunar observances."},
   {"title":"All yours","area":"Studio","body":"The pink tutorial card can be removed with X. Reopen this guide anytime from the Studio sidebar. You control publication, deletion, and public visibility."}
  ];
  // Prefer the user's REAL rendered navigation symbols. Their shortcut bar can
@@ -25,7 +27,7 @@
  // Fallbacks match existing Big LWA assets/glyphs, never generic UI clip art.
  const symbolKey=[
   {label:'Studio',key:'studio',detail:'Return to your Studio home',fallbackAsset:'/assets/studio-tipi-symbol.svg?v=20261026-1'},
-  {label:'Projects',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
+  {label:'Visualizr',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
   {label:'Politic',key:'politc',detail:'Civic life and global context',fallbackAsset:'/assets/politc-nyame-baatanpa.svg?v=20261014-1'},
   {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},
   {label:'Journal',key:'diary',detail:'Entries and writing',fallback:'▱'},
@@ -121,7 +123,14 @@
    const glyph=document.createElement('span');glyph.className='tour-symbol-mark';
    glyph.setAttribute('aria-hidden','true');
    const mark=findRealSymbol(entry);
-   if(mark){glyph.append(mark);}
+   if(mark){
+    // Cloned sidebar marks carry absolute offsets sized for a 16px rail.
+    // Keep the artwork but let this 30px symbol slot own its geometry.
+    for(const node of [mark,...(mark.querySelectorAll?.('*')||[])]){
+     node.removeAttribute?.('style');node.removeAttribute?.('data-heading-layout');
+    }
+    glyph.append(mark);
+   }
    else if(entry.fallbackAsset){
     const img=document.createElement('img');img.src=entry.fallbackAsset;img.alt='';
     img.loading='lazy';glyph.append(img);
