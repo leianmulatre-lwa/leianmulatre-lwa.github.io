@@ -203,17 +203,27 @@
   }
  }
 
+ function adoptViewedProfile(){
+  if(publicProfile)return true;
+  const viewed=window.__biglwaViewedProfile;
+  if(!viewed||typeof viewed!=='object')return false;
+  publicProfile=viewed;boardImages=[];boardOwner='';
+  void boardMedia();
+  return true;
+ }
  function sync(){
+  adoptViewedProfile();
   if(!preview()||!publicProfile)return;
   decorateBoards();decorateJournal();decorateAvatar();decorateGuest();decorateOrbit();decorateMap();
  }
  let pending=false;
  function schedule(){if(pending)return;pending=true;setTimeout(()=>{pending=false;sync()},120)}
  window.addEventListener('biglwa:public-profile-ready',event=>{
-  publicProfile=event.detail?.profile||null;boardImages=[];boardOwner='';
+  publicProfile=event.detail?.profile||window.__biglwaViewedProfile||null;boardImages=[];boardOwner='';
   schedule();void boardMedia();
  });
  window.addEventListener('biglwa:public-mirror-ready',schedule);
+ window.addEventListener('biglwa:session-verified',schedule);
  window.addEventListener('biglwa:public-profile-ended',()=>{
   publicProfile=null;boardImages=[];boardOwner='';
   $('#biglwaPublicGuestSheet')?.remove();
@@ -256,13 +266,13 @@
  style.textContent+=` 
  html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview{
   display:block!important;max-height:180px!important;overflow:hidden!important;
-  padding:8px 12px!important;margin:0 11px 8px!important;background:#fffaf0!important;border-radius:10px!important;
+  padding:8px 12px!important;margin:0 11px 8px!important;border-radius:10px!important;
   font:500 10px/1.35 system-ui;color:#614c50
  }
  html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-head,
  html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-row{
   display:grid!important;grid-template-columns:1fr 2fr 75px 25px!important;gap:4px!important;padding:5px 0!important;
-  border-bottom:1px solid #adc9d9!important
+  border-bottom:1px solid #b4cfe4!important
  }
  html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-row>*{
   font:inherit!important;overflow-wrap:anywhere!important
@@ -276,14 +286,14 @@
  html.biglwa-preview-mode .biglwa-public-guest-dialog .biglwa-public-guest-paper{
   display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr) minmax(68px,.85fr)!important;
   grid-auto-rows:minmax(30px,auto)!important;align-items:center!important;gap:0 7px!important;
-  background:#fffaf0!important;border-radius:10px!important;min-height:170px!important;overflow:auto!important
+  border-radius:10px!important;min-height:170px!important;overflow:auto!important
  }
  html.biglwa-preview-mode .biglwa-public-guest-paper .biglwa-guest-paper-head{
   white-space:normal!important;font:700 9px/1.25 system-ui!important;padding:8px 3px!important;
-  border-bottom:2px solid #d980a2!important;color:#5a3a51!important
+  border-bottom:2px solid #83afce!important;color:#342b2e!important
  }
  html.biglwa-preview-mode .biglwa-public-guest-paper :is(.biglwa-public-guest-who,.biglwa-public-guest-message,.biglwa-public-guest-date){
-  font:500 11px/1.4 system-ui!important;padding:7px 3px!important;border-bottom:1px solid #b8cfdf!important;
+  font:500 11px/1.4 system-ui!important;padding:7px 3px!important;border-bottom:1px solid #b4cfe4!important;
   color:#594851!important;overflow-wrap:anywhere!important
  }
  html.biglwa-preview-mode .biglwa-public-guest-paper .biglwa-public-guest-note{

@@ -55,6 +55,6 @@ assert.ok(external.includes('data?.handle?.toLowerCase()!==account.handle.toLowe
 assert.ok(external.includes('refresh(false)'), 'Try public stats on connect/link sync');
 assert.ok(external.includes('verifiedFromProvider:false,publicSnapshot:true'),
  'Third-party counts must be visibly external');
-assert.ok(home.includes('/tiktok-external-stats.js?v=20261028-tracker-summary-1'));
+assert.ok(home.includes('/tiktok-external-stats.js?v=20261028-monthly-reach-label-2'));
 assert.ok(home.includes('/profile-social-showcase.js?v=20261024-auto-connected-showcase-5'));
 console.log('Public TikTok/Snapchat username-match checks passed.');

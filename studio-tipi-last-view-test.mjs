@@ -20,7 +20,7 @@ assert.doesNotThrow(()=>new vm.Script(route));
 assert.ok(sidebar.includes("['studio','Studio','<img src=\"/assets/studio-tipi-symbol.svg"),'Studio shortcut sources the tipi');
 assert.ok(sidebar.includes("['studio','Studio'"),'Studio is a selectable shortcut without displacing saved shortcuts');
 assert.ok(skeleton.includes("label:'Studio',key:'studio'")&&skeleton.includes('fallbackAsset:\'/assets/studio-tipi-symbol.svg'),'Skeleton symbol key has Studio tipi');
-assert.ok(style.includes(':is(:hover,:focus-visible) .biglwa-module-tipi'),'Pointer and keyboard reveal tipi');
+assert.ok(style.includes('.biglwa-module-tipi')&&!style.includes(':is(:hover,:focus-visible) .biglwa-module-tipi'),'The same tipi stays visible at rest and on focus; no module swap');
 assert.ok(route.includes("if(activeModuleKey)closeModule();")&&!route.includes("else openModule('veve');"),'Logo does not open Veve');
 assert.ok(route.includes('explicitOrbitReturn(params)'),'Stale Orbit deep links are distinguished from OAuth callbacks');
 assert.ok(route.includes('params.has(\'instagram_handoff\')'),'Instagram OAuth handoff preserved');
@@ -33,14 +33,14 @@ let brand=d.querySelector('.biglwa-block-brand'),main=d.querySelector('.main'),w
 main.classList.add('module-view');
 d.dispatchEvent(new w.Event('biglwa:module-open'));
 await Promise.resolve();await Promise.resolve();
-assert.equal(brand.dataset.biglwaActiveModule,'stream','Header follows active Stream');
-assert.ok(brand.querySelector('.biglwa-topbar-current').textContent.includes('◌'),'Header reuses Stream navigation icon');
-assert.ok(brand.querySelector('.biglwa-module-tipi').getAttribute('src').includes('studio-tipi-symbol'),'Same actual tipi displayed on hover');
+assert.ok(brand.querySelector('.biglwa-module-tipi').getAttribute('src').includes('studio-tipi-symbol'),'Header always shows the canonical tipi');
+assert.equal(brand.querySelector('.biglwa-topbar-current'),null,'No active-module glyph replaces the Studio mark');
+assert.ok(brand.querySelector('.biglwa-module-tipi'),'The tipi stays through a module open');
 let closed=0;
 d.querySelector('#moduleBack').addEventListener('click',()=>{closed++;main.classList.remove('module-view');workspace.removeAttribute('data-module-key');d.dispatchEvent(new w.Event('biglwa:module-close'));});
 brand.click();await Promise.resolve();await Promise.resolve();
 assert.equal(closed,1,'Click returns home without reloading');
-assert.equal(brand.dataset.biglwaActiveModule,'','Home uses tipi');
+assert.equal(brand.dataset.biglwaActiveModule,undefined,'No active-module state is published');
 assert.equal(brand.getAttribute('aria-label'),'Studio home','Logo accessible on home');
 dom.window.close();
 function setup(uid,remote,search=''){

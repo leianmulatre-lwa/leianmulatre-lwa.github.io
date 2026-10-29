@@ -13,6 +13,7 @@ const PUBLIC='https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.de
 const TRACKER='/assets/tiktok/tracker-summary.json?v=20261028-1';
 const VALID=/^[a-zA-Z0-9._]{2,40}$/;
 const numeric=v=>v===null||v===undefined||v===''?null:Number.isSafeInteger(Number(v))&&Number(v)>=0?Number(v):null;
+const reachText=v=>typeof window.__biglwaFormatMetric==='function'?window.__biglwaFormatMetric('reach',v):Number(v).toLocaleString();
 let lastMessage='',busy=false,publicSnapshot=null,lastAttempt='',lastAttemptAt=0,lastState='',trackerSummary=null,trackerRequested=false;
 const current=()=>{
  const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'');
@@ -41,7 +42,7 @@ const withTracker=account=>{
  const likes=numeric(data.totalLikes??data.likes);
  const monthlyStat=numeric(data.monthlyStat??data.monthlyViews);
  if(likes!==null)extra.likes=likes;
- if(monthlyStat!==null){extra.monthlyStat=monthlyStat;extra.monthlyStatLabel=String(data.monthlyStatLabel||'Monthly views');}
+ if(monthlyStat!==null){extra.monthlyStat=monthlyStat;extra.monthlyStatLabel=String(data.monthlyStatLabel||(data.monthlyStat!=null?'TikTok avg likes/mo':'Monthly views'));}
  if(data.observedAt)extra.trackerObservedAt=String(data.observedAt);
  if(data.source)extra.trackerSource=String(data.source);
  return extra;
@@ -98,8 +99,12 @@ function paint(){
  if(stats){
   const label=stats.verifiedFromProvider?'TikTok-reported':'Public @'+stats.handle+' · '+stats.source;
   help.textContent=label+' · '+stats.followers.toLocaleString()+' followers';
-  if(stats.likes!==null)help.textContent+=' · '+stats.likes.toLocaleString()+' likes';
-  if(stats.monthlyStat!=null)help.textContent+=' · '+stats.monthlyStat.toLocaleString()+' '+(stats.monthlyStatLabel||'monthly stat')+' toward reach';
+  if(stats.likes!==null)help.textContent+=' · '+reachText(stats.likes)+' likes';
+  if(stats.monthlyStat!=null){
+   const monthlyLabel=/avg\s*likes/i.test(String(stats.monthlyStatLabel||''))?'TikTok avg likes/mo':
+     (String(stats.monthlyStatLabel||'').trim()||'monthly tracker stat');
+   help.textContent+=' · '+reachText(stats.monthlyStat)+' monthly reach ('+monthlyLabel+')';
+  }
   if(!stats.verifiedFromProvider){
    help.textContent+=' · external observation, not ownership verification';
    if(stats.sourceObservedAt)help.textContent+=' · source date '+stats.sourceObservedAt;

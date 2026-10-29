@@ -30,7 +30,8 @@ assert.equal(w.__biglwaProfileMetrics.reachMonth,month);
 assert.equal(w.__biglwaProfileMetrics.followers,101);
 assert.ok(persisted.length,'Month is backed up');
 assert.equal(persisted.at(-1).snapshot.sources[0].likes,654,'Saving observations preserves likes');
-assert.equal(persisted.at(-1).snapshot.sources[0].handle,'tiktok-openid-1','Saved metric is tied to provider account');
+assert.equal(persisted.at(-1).snapshot.sources[0].handle,'maker','Saved metric shows the real handle, not a provider id');
+assert.equal(persisted.at(-1).snapshot.sources[0].accountKey,'tiktok-openid-1','Saved metric keeps a stable account key for matching');
 data={
  uid,peopleConnections:{},orbitConnectedProfiles:{},
  analyticsMonths:{[month]:{sources:[{id:'tiktok',handle:'tiktok-openid-1',likes:333,

@@ -102,10 +102,18 @@ html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-open{
 /* The public Guest Check is the same lined paper, not an opaque blank card.
    Private input rows remain suppressed and only approved notes render. */
 html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview,
-html.biglwa-preview-mode #studioApp .guest-check-card[data-public-guest-sheet="1"] .biglwa-guest-v2-preview{
-background-color:#fffaf2!important;
-background-image:linear-gradient(90deg,transparent 0 71%,rgba(155,91,144,.60) 71%,rgba(155,91,144,.60) 71.5%,transparent 71.5%),repeating-linear-gradient(to bottom,transparent 0 26px,rgba(93,157,198,.37) 27px,transparent 28px)!important;
-background-position:0 0!important;color:#222!important;border:1px solid #c8b6b7!important;
+html.biglwa-preview-mode #studioApp .guest-check-card[data-public-guest-sheet="1"] .biglwa-guest-v2-preview,
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-paper,
+html.biglwa-preview-mode .biglwa-public-guest-dialog .biglwa-public-guest-paper{
+background-color:#fffaf0!important;
+background-image:none!important;
+background-position:0 0!important;color:#372f32!important;border:1px solid #d8c3b7!important;
 box-shadow:inset 0 1px #fff8!important;
 }
-html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview :is(.biglwa-guest-v2-head,.biglwa-guest-v2-row){background:transparent!important}
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview :is(.biglwa-guest-v2-head,.biglwa-guest-v2-row),
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-paper :is(.biglwa-guest-paper-head,.biglwa-public-guest-who,.biglwa-public-guest-message,.biglwa-public-guest-date){background:transparent!important}
+/* Match the owner's ledger rule rhythm: blue row rules, purple column rules. */
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview :is(.biglwa-guest-v2-head,.biglwa-guest-v2-row)>*+*,
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-paper>:is(.biglwa-public-guest-who,.biglwa-public-guest-message,.biglwa-public-guest-date):not(:nth-child(3n+1)){border-left:1px solid #c99abf!important}
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-guest-v2-preview :is(.biglwa-guest-v2-head,.biglwa-guest-v2-row),
+html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-paper>:is(.biglwa-guest-paper-head,.biglwa-public-guest-who,.biglwa-public-guest-message,.biglwa-public-guest-date){border-bottom-color:#b4cfe4!important}

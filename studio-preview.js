@@ -61,6 +61,18 @@ const pathUsername = (path=entryPath())=>isPublicProfilePath(path)?normalizeSegm
    profile address survives showStudio()'s history rewrite. */
 window.__biglwaIsPublicProfilePath=isPublicProfilePath;
 const clean = v=>String(v==null?"":v).trim();
+/* One number grammar shared with the Studio strip and Skeleton Key. */
+const formatMetric=(kind,value)=>{
+  if(typeof window.__biglwaFormatMetric==='function')return window.__biglwaFormatMetric(kind,value);
+  if(value===null||value===undefined||value===''||!Number.isFinite(Number(value))||Number(value)<0)return '—';
+  const amount=Number(value),trim=v=>String(Math.round(v*10)/10).replace(/\.0$/,'');
+  if(kind==='followers')return amount>=1e6?trim(amount/1e6)+'m+':new Intl.NumberFormat().format(amount);
+  if(kind==='reach'||kind==='likes'){
+    if(amount>=1e6)return trim(amount/1e6)+'m+';
+    if(amount>=1000)return trim(amount/1000)+'k+';
+  }
+  return new Intl.NumberFormat().format(amount);
+};
 
 async function waitFor(test,timeout=20000){
   const started=Date.now();
@@ -142,8 +154,6 @@ function applyIdentity(data){
   if(data.auraText!=null) renderAuraCopy(data.auraText);
   // Preserve only the owner's explicitly public aggregate observations.
   const stats=data.publicStats;
-  const format=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0?
-    new Intl.NumberFormat().format(value):'—';
   const cardStats=$(".stats",card);
   if(cardStats){
     // The static shell predates the Likes field. Reuse the shared strip builder
@@ -153,7 +163,7 @@ function applyIdentity(data){
       const field=$('[data-profile-stat="'+kind+'"]',cardStats);
       if(!field)continue;
       const value=stats?.[kind];
-      const displayed=format(value);
+      const displayed=formatMetric(kind,value);
       const primary=field.querySelector('b,strong');
       if(primary)primary.textContent=displayed;
       else{
@@ -894,13 +904,12 @@ function enforce(){
   const aura=$("#studioApp .aura-card p");
   const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
   const metrics=preview.profile?.publicStats;
-  const expected=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0?
-    new Intl.NumberFormat().format(value):'—';
+  const expected=kind=>formatMetric(kind,metrics?.[kind]);
   const statsDrift=['followers','connections','reach','likes'].some(kind=>{
     const field=$('#studioApp [data-profile-stat="'+kind+'"]');
     if(!field)return true;
     const shown=field.querySelector('b');
-    return !!shown&&shown.textContent.trim()!==expected(metrics?.[kind]);
+    return !!shown&&shown.textContent.trim()!==expected(kind);
   });
   if(nameDrift||auraDrift||statsDrift)applyIdentity(preview.profile);
   renderSocials(preview.profile);

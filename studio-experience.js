@@ -16,7 +16,7 @@
 
   const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools']);
   const STUDIO_ICONS={
-    teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    teepee:'<img class="studio-symbol-image biglwa-nav-tipi" src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">',
     hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/closet-symbol.png?v=20260925-closet-restore-2" alt="" width="1254" height="1254" loading="eager" decoding="async"></span>',
     projects:'<span class="studio-symbol-mark studio-projects-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/projects-symbol.png?v=20260914-projects-1" alt="" width="1254" height="1254" loading="eager" decoding="async"></span>',
     feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/feed-symbol-generated.png?v=20260914-feed-1" alt="" width="377" height="280" loading="eager" decoding="async"></span>',
@@ -319,7 +319,7 @@
       body.night-mode #studioApp .profile-card.profile-is-editing #cancelProfileBtn{background:#302c2a!important;border-color:#514a45!important;color:#eee7e0!important}
       #studioApp .profile-update-privacy{display:flex!important;align-items:flex-start!important;gap:8px!important;width:auto!important;min-width:0!important;margin:0!important;font:600 10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--widget-muted,#6f6862)!important}
       #studioApp .profile-update-privacy input{width:15px!important;height:15px!important;margin:0!important;accent-color:rgb(var(--aura-rgb,216,95,109))!important}
-      #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon{display:block;width:22px;height:22px;margin:0 auto 2px}
+      #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon,#studioApp .hero-action-bar a[href="#home"]>.hero-shortcut-icon>.biglwa-nav-tipi{display:block;width:22px;height:22px;margin:0 auto 2px;object-fit:contain}
       #studioApp .studio-symbol-mark{display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
       #studioApp .studio-symbol-source{display:block;width:100%;height:100%;overflow:visible;filter:none}\n      #studioApp .studio-symbol-image{display:block;width:100%;height:100%;object-fit:contain;filter:none}
       #studioApp[data-widget-ink-tone="light"] .studio-symbol-source,#studioApp[data-widget-ink-tone="light"] .studio-symbol-image{filter:invert(1)}
@@ -826,9 +826,10 @@
       icon.classList.add('studio-image-icon',iconClass);icon.innerHTML=markup;
     };
     const studioLink=$('.hero-action-bar a[href="#home"]',app);
-    if(studioLink&&!$('.studio-teepee-icon',studioLink)){
+    if(studioLink&&!$('.biglwa-nav-tipi',studioLink)){
       [...studioLink.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
-      studioLink.insertAdjacentHTML('afterbegin',STUDIO_ICONS.teepee);
+      const slot=$(':scope > .hero-shortcut-icon',studioLink);
+      if(slot)slot.innerHTML=STUDIO_ICONS.teepee;else studioLink.insertAdjacentHTML('afterbegin',STUDIO_ICONS.teepee);
     }
     replaceDirectorySymbol('#feed','studio-feed-symbol',STUDIO_ICONS.feed);
     replaceDirectorySymbol('#diary','studio-diary-symbol',STUDIO_ICONS.diary);

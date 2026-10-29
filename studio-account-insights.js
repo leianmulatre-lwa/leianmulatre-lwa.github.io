@@ -6,6 +6,48 @@
  let overview=null,owner='',selected=monthOf(Date.now()),pending=false,lastSnapshot='',connectionAPI=null;
  const number=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=0?Number(v):null;
  const format=v=>v==null?'Not supplied':new Intl.NumberFormat().format(v);
+ // One number grammar for every audience figure. followers stays exact below
+ // one million; reach and likes abbreviate thousands/millions with k/m.
+ const fallbackMetric=(kind,value)=>{
+   if(value==null||value===''||!Number.isFinite(Number(value))||Number(value)<0)return '—';
+   const amount=Number(value),trim=v=>String(Math.round(v*10)/10).replace(/\.0$/,'');
+   if(String(kind).toLowerCase()==='followers')return amount>=1e6?trim(amount/1e6)+'m+':format(amount);
+   if(['reach','likes'].includes(String(kind).toLowerCase())){
+     if(amount>=1e6)return trim(amount/1e6)+'m+';
+     if(amount>=1000)return trim(amount/1000)+'k+';
+   }
+   return format(amount);
+ };
+ const metricFormat=(kind,value)=>typeof window.__biglwaFormatMetric==='function'
+   ?window.__biglwaFormatMetric(kind,value):fallbackMetric(kind,value);
+ // A provider user ID (numeric Facebook id or TikTok open_id) is identity, not
+ // a public handle. Only real vanity usernames may appear after the "@".
+ const cleanHandle=value=>{
+   const handle=String(value==null?'':value).trim().replace(/^@+/,'');
+   if(!handle||/^-\d/.test(handle)||/^\d{6,}$/.test(handle)||handle.length>40||/\s/.test(handle))return '';
+   return handle;
+ };
+ // A profile URL is only a fallback for the vanity handle itself. Never turn a
+ // route (profile.php, /people/..., /share) into a fake @handle.
+ const RESERVED_HANDLES=/^(?:profile|people|pages|groups|share|watch|photo|photos|video|videos|reel|reels|story|stories|login|home|channel|user|@)$/i;
+ const linkHandle=(link,host)=>{
+   try{
+     const url=new URL(String(link||''));
+     if(host&&url.hostname.replace(/^www\./,'')!==host)return '';
+     const segment=decodeURIComponent(url.pathname).split('/').filter(Boolean).pop()||'';
+     const handle=cleanHandle(segment.replace(/^@/,''));
+     if(!handle||RESERVED_HANDLES.test(handle)||/\.(?:php|html?|aspx?)$/i.test(handle))return '';
+     return handle;
+   }catch{return ''}
+ };
+ const displayHandle=record=>{
+   if(!record||typeof record!=='object')return '';
+   const direct=cleanHandle(record.username);
+   if(direct)return direct;
+   // Providers that only expose a profile URL still have a real vanity handle.
+   // Numeric ids are rejected by cleanHandle, so this never leaks an id.
+   return linkHandle(record.link,'facebook.com')||linkHandle(record.link);
+ };
  // Stable last-known provider observations are user-scoped and only derived
  // from a verified, persisted provider profile. Never share across logins or
  // represent an unavailable field as a provider-verified zero.
@@ -22,13 +64,26 @@
   const last=previousCounts(accountUid),updates={...last},rows=[];
   const ingest=(id,record,count,checkedAt,metric='followers')=>{
     if(!record||!id)return;
-    const handle=String(record.sourceUserId||record.username||'').trim().toLowerCase();
-    const legacyHandle=String(record.username||'').trim().toLowerCase();
+    const handle=displayHandle(record);
+    const username=cleanHandle(record.username);
+    const sourceUserId=String(record.sourceUserId||'').trim();
+    // Identity used to match saved observations survives a handle change.
+    const accountKey=sourceUserId||username;
     const fresh=number(count),prev=last[id];
     const external=id==='tiktok'&&window.BigLWAExternalTiktok?.snapshot?.();
     const externalMine=!!external&&external.uid===accountUid;
     const externalCount=externalMine?number(external.followers):null;
-    const sameAccount=!!prev&&!!handle&&!!prev.handle&&(prev.handle===handle||prev.handle===legacyHandle);
+    const priorKey=prev?.accountKey||prev?.sourceUserId||'';
+    const stableId=sourceUserId||'';
+    // A provider stable id wins over a display name. Replacing the TikTok
+    // account (new open_id) must never inherit the previous account's counts,
+    // even when the visible username is reused.
+    // Caches written before accountKey existed lower-cased the provider id.
+    const legacyKey=String(prev?.handle||'').toLowerCase();
+    const sameStable=!!stableId&&(priorKey===stableId||(!priorKey&&legacyKey===stableId.toLowerCase()));
+    const differsStable=!!stableId&&!!priorKey&&priorKey!==stableId;
+    const sameHandle=!differsStable&&!!handle&&!!prev?.handle&&String(prev.handle).toLowerCase()===handle.toLowerCase();
+    const sameAccount=!!prev&&(sameStable||sameHandle);
     // A basic-profile fetch must not count as a verified follower measurement.
     const checked=String(checkedAt||record.countCheckedAt||'');
     const fallback=sameAccount&&prev?.provenance!=='external'?number(prev.followers):null;
@@ -39,7 +94,7 @@
     const value=fresh??fallback??externalCount;
     const observedAt=recoveredByProvider?new Date().toISOString():externalVerified?String(external.checkedAt||''):
       fresh!==null?(sameAccount&&prev.followers===fresh&&prev.observedAt?prev.observedAt:(checked||new Date().toISOString())):sameAccount?prev.observedAt||'':'';
-    if(fresh!==null)updates[id]={followers:fresh,handle,observedAt,metric,provenance:'provider'};
+    if(fresh!==null)updates[id]={followers:fresh,handle,accountKey,sourceUserId,observedAt,metric,provenance:'provider'};
     // Likes are cumulative provider counts; accept them from any connected app
     // and fall back to the owner-approved external TikTok tracker snapshot.
     const providerLikes=record.verifiedFromProvider===false?null:number(record.stats?.likes??record.likes);
@@ -53,7 +108,7 @@
     const monthlyStatLabel=externalMine?String(external.monthlyStatLabel||''):'';
     rows.push({id,followers:value,likes:receivedLikes,monthlyViews,monthlyStat,monthlyStatLabel,
       lastCheckedAt:observedAt,reach:monthlyReach,
-      handle:String(record.sourceUserId||record.username||''),link:record.link||'',metric,
+      handle,username,accountKey,sourceUserId,link:record.link||'',metric,
       isLastKnown:fresh===null&&fallback!==null,verified:(fresh!==null&&!!checked)||recoveredByProvider,
        externalVerified,source:externalVerified?'External public source':recoveredByProvider?'TikTok OAuth user.info.stats':null});
   };
@@ -123,14 +178,16 @@
   const rows=known?sources():[];
   const current=summarize(rows,currentMonth);
   const saved=overview?.uid===accountUid?overview.analyticsMonths?.[currentMonth]:null;
-  const matchedSaved=(saved?.sources||[]).filter(old=>old.handle&&rows.some(row=>
-    row.id===old.id&&row.handle&&row.handle.toLowerCase()===String(old.handle).toLowerCase()));
+  const matchedSaved=(saved?.sources||[]).filter(old=>old&&rows.some(row=>
+    row.id===old.id&&((row.accountKey&&old.accountKey&&row.accountKey===old.accountKey)||
+      (row.accountKey&&old.handle&&String(old.handle)===row.accountKey)||
+      (row.handle&&old.handle&&row.handle.toLowerCase()===String(old.handle).toLowerCase()))));
   const savedSummary=matchedSaved.length?summarize(matchedSaved,currentMonth):{likes:null,reach:null};
   const followers=current.followers;
   window.__biglwaProfileMetrics={
     uid:accountUid,
     followers,
-    followersDisplay:followers===null?'—':new Intl.NumberFormat().format(followers)+(current.coverage<rows.length?'+':''),
+    followersDisplay:metricFormat('followers',followers),
     likes:current.likes??savedSummary.likes,
     reach:current.reach??savedSummary.reach,
     reachMonth:currentMonth,
@@ -195,7 +252,8 @@
   const rows=current?sources():(saved?.sources||[]),stats=summarize(rows,selected);
   const known=!!overview&&owner===uid();
   const values={accounts:known&&(current||saved)?rows.length:null,followers:stats.followers,likes:stats.likes,reach:stats.reach,people:known?(current?Object.keys(overview.peopleConnections).length:saved?.connections??null):null};
-  for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=format(value);if(node.textContent!==text)node.textContent=text}
+  const metricKinds={accounts:'count',followers:'followers',likes:'likes',reach:'reach',people:'count'};
+  for(const [key,value]of Object.entries(values)){const node=q('[data-metric="'+key+'"]',host);const text=value==null?'Not supplied':metricFormat(metricKinds[key],value);if(node.textContent!==text)node.textContent=text}
   const coverage=q('.analytics-coverage',host);coverage.textContent=stats.coverage+' of '+rows.length+' connected sources have reported audience counts (provider or externally sourced). Likes are cumulative provider counts. Reach includes an explicit monthly reach metric, monthly views, and the TikTok monthly tracker statistic; other per-video views and engagement estimates are not treated as monthly reach. Other sources are unavailable, not zero.';
   const list=q('.analytics-sources',host);
   const signature=JSON.stringify(rows.map(r=>[r.id,r.handle,r.followers,r.likes,r.monthlyViews,r.monthlyStat,r.monthlyStatLabel,r.reach,r.lastCheckedAt]));
@@ -209,11 +267,15 @@
       }else{icon.alt='';icon.style.display='none'}
       const copy=document.createElement('div'),title=document.createElement('strong'),meta=document.createElement('small');
       title.textContent=row.id.charAt(0).toUpperCase()+row.id.slice(1)+(row.handle?' · @'+row.handle:'');
-      const segments=[format(row.followers)+' '+(row.metric||'followers')];
-      if(row.likes!=null)segments.push(format(row.likes)+' likes');
-      if(number(row.monthlyViews)!=null)segments.push(format(row.monthlyViews)+' monthly views · reach');
-      if(number(row.monthlyStat)!=null)segments.push(format(row.monthlyStat)+' '+(row.monthlyStatLabel||'monthly tracker stat')+' · reach');
-      if(row.reach?.month===selected&&row.reach.metric==='reach'&&number(row.reach.value)!=null)segments.push(format(row.reach.value)+' reported reach');
+      const segments=[metricFormat('followers',row.followers)+' '+(row.metric||'followers')];
+      if(row.likes!=null)segments.push(metricFormat('likes',row.likes)+' likes');
+      if(number(row.monthlyViews)!=null)segments.push(metricFormat('reach',row.monthlyViews)+' monthly views · reach');
+      if(number(row.monthlyStat)!=null){
+        const label=/avg\s*likes/i.test(String(row.monthlyStatLabel||''))?'TikTok avg likes/mo':
+          (String(row.monthlyStatLabel||'').trim()||'monthly tracker stat');
+        segments.push(metricFormat('reach',row.monthlyStat)+' monthly reach ('+label+')');
+      }
+      if(row.reach?.month===selected&&row.reach.metric==='reach'&&number(row.reach.value)!=null)segments.push(metricFormat('reach',row.reach.value)+' reported reach');
       meta.textContent=segments.join(' · ')+(row.isLastKnown?' · last known':row.lastCheckedAt?' · checked '+new Date(row.lastCheckedAt).toLocaleDateString():'');
       copy.append(title,meta);entry.append(icon,copy);list.append(entry);
     }
@@ -234,11 +296,14 @@
  async function saveObservation(){
   if(!overview||overview.uid!==uid()||!window.BigLWAUserDirectory?.recordAnalyticsMonth)return;
   const month=monthOf(Date.now()),previous=overview.analyticsMonths?.[month]?.sources||[];
-  const snapshot={sources:sources().map(({id,handle,followers,likes,monthlyViews,monthlyStat,monthlyStatLabel,lastCheckedAt,reach})=>{
-    const old=previous.find(item=>item.id===id&&item.handle&&handle&&String(item.handle).toLowerCase()===handle.toLowerCase());
+  const snapshot={sources:sources().map(({id,handle,username,accountKey,sourceUserId,followers,likes,monthlyViews,monthlyStat,monthlyStatLabel,lastCheckedAt,reach})=>{
+    const old=previous.find(item=>item.id===id&&(
+      (accountKey&&item.accountKey&&accountKey===item.accountKey)||
+      (handle&&item.handle&&String(item.handle).toLowerCase()===handle.toLowerCase())));
     const validReach=value=>value?.month===month&&value.metric==='reach'&&number(value.value)!=null
       ?{month,metric:'reach',value:Number(value.value)}:null;
-    return {id,handle,followers,likes:likes??number(old?.likes),monthlyViews:monthlyViews??number(old?.monthlyViews),
+    return {id,handle,accountKey,username:username||cleanHandle(old?.username)||handle,followers,
+      likes:likes??number(old?.likes),monthlyViews:monthlyViews??number(old?.monthlyViews),
       monthlyStat:monthlyStat??number(old?.monthlyStat),monthlyStatLabel:monthlyStatLabel||old?.monthlyStatLabel||'',lastCheckedAt,
       reach:validReach(reach)||validReach(old?.reach)};
   }),connections:Object.keys(overview.peopleConnections||{}).length};

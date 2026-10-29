@@ -822,6 +822,13 @@
     const studioMarkup='<img class="studio-symbol-image biglwa-nav-tipi" src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">';
     const studioEntry=navigationCatalog.get('studio');
     if(studioEntry)studioEntry.symbolHTML=studioMarkup;
+    // The hero Studio shortcut is routed as "home" but is the same destination.
+    const homeEntry=navigationCatalog.get('home');
+    if(homeEntry)homeEntry.symbolHTML=studioMarkup;
+    $$('.hero-action-bar a[href="#home"],.hero-action-bar [data-shortcut-route="home"]',app).forEach(link=>{
+      const mark=$('.hero-shortcut-icon',link);
+      if(mark&&mark.innerHTML!==studioMarkup)mark.innerHTML=studioMarkup;
+    });
     const studioWidget=$('#studio',app);
     const studioIcon=studioWidget&&$('.card-icon,.studio-symbol-mark',studioWidget);
     if(studioIcon)studioIcon.innerHTML=studioMarkup;
@@ -844,6 +851,8 @@
     }
     applyPreferredStudioSymbols(app);
     navigationCatalog.forEach((entry,key)=>{
+      // Studio/home are the one canonical tipi, never a widget's module glyph.
+      if(key==='studio'||key==='home')return;
       const widget=$('[data-widget-route="'+CSS.escape(key)+'"]',app)||$('#'+CSS.escape(key),app)||(key==='rooms'?$('#room',app):key==='room'?$('#rooms',app):null);
       const icon=widgetIconMarkup(widget);if(icon)entry.symbolHTML=icon;
     });
@@ -1604,9 +1613,20 @@
     const uid=String(window.__biglwaIdentity?.uid||'');
     const source=previewing?(viewed?.publicStats||{}):(window.__biglwaProfileMetrics||{});
     const owned=previewing?!!viewed:!!uid&&source.uid===uid;
+    const formatMetric=(kind,value)=>{
+      if(typeof window.__biglwaFormatMetric==='function')return window.__biglwaFormatMetric(kind,value);
+      if(value==null||value===''||!Number.isFinite(Number(value))||Number(value)<0)return '—';
+      const amount=Number(value),trim=v=>String(Math.round(v*10)/10).replace(/\.0$/,'');
+      if(kind==='followers')return amount>=1e6?trim(amount/1e6)+'m+':new Intl.NumberFormat().format(amount);
+      if(kind==='reach'||kind==='likes'){
+        if(amount>=1e6)return trim(amount/1e6)+'m+';
+        if(amount>=1000)return trim(amount/1000)+'k+';
+      }
+      return new Intl.NumberFormat().format(amount);
+    };
     const number=key=>owned&&source[key]!==null&&source[key]!==undefined&&
-      Number.isFinite(Number(source[key]))?new Intl.NumberFormat().format(Number(source[key])):'—';
-    const followerNumber=owned?String(source.followersDisplay||number('followers')):'—';
+      Number.isFinite(Number(source[key]))?formatMetric(key,Number(source[key])):'—';
+    const followerNumber=owned?(source.followers!=null?formatMetric('followers',Number(source.followers)):String(source.followersDisplay||'—')):'—';
     const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach'],['likes','Likes']];
     const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\s+/g,' ').trim()]);
     const expected=metrics.map(([key,label])=>[key,(key==='followers'?followerNumber:number(key))+' '+label]);

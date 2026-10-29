@@ -40,6 +40,9 @@ for(const query of ['?panel=map','?panel=politc','?view=orbit','?view=tools']){
   assert.deepEqual(invoke(privateStudio,'/studio',query),[],'sign-in must preserve Studio deep link '+query);
 }
 assert.deepEqual(invoke(privateLogin,'/privacy'),['/'],'ordinary login navigation remains canonical');
+assert.deepEqual(invoke(privateLogin,'/imani'),[],'login gate keeps a public profile address instead of erasing it');
+assert.deepEqual(invoke(privateLogin,'/sam.kalina','?preview=1'),[],'login gate keeps dotted usernames and explicit preview');
+assert.deepEqual(invoke(privateLogin,'/theme.css'),['/'],'login gate still rejects file-like paths');
 assert.deepEqual(invoke(privateLogin,'/'),[],'login root stays on root');
 assert.deepEqual(invoke(privateStudio,'/'),['/studio'],'signed-in homepage returns to Studio');
 assert.deepEqual(invoke(privateStudio,'/studio','?route=unknown'),['/studio'],'unrecognized query cleaned');
@@ -66,7 +69,7 @@ assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT p
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
-assert.ok(home.includes('studio-onboarding.js?v=20261028-studio-tipi-guide-2'));
+assert.ok(home.includes('studio-onboarding.js?v=20261028-canonical-tipi-3'));
 assert.ok(home.includes('session-restore.js?v=20261028-initial-logout-fix-1') && session.includes('let lastConfirmedUid=null'),'Initial signed-out auth resolves visibly');
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');

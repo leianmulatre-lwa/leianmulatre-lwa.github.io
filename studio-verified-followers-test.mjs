@@ -34,7 +34,7 @@ w.BigLWAUserDirectory={getAccountOverview:async()=>clone(account),
 w.eval(insights);d.dispatchEvent(new w.Event('DOMContentLoaded'));await new Promise(r=>setTimeout(r,55));
 const stat=()=>w.__biglwaProfileMetrics;
 assert.equal(stat().followers,300,'Sum includes only provider-verified Instagram, TikTok and X');
-assert.equal(stat().followersDisplay,'300+','Incomplete sources use + rather than falsely claiming full audience total');
+assert.equal(stat().followersDisplay,'300','Followers are exact below one million and never add + for coverage');
 assert.equal(stat().sources.find(x=>x.id==='pinterest').followers,null);
 assert.equal(stat().sources.find(x=>x.id==='pinterest').monthlyViews,2154);
 assert.equal(stat().reach,2154,'Monthly views count toward reach');
@@ -46,7 +46,7 @@ assert.ok(block.startsWith('  function syncRealProfileMetrics(){'));
 w.eval('(()=>{const $=(s,r=document)=>r.querySelector(s);'+block+'window.__testProfilePaint=syncRealProfileMetrics})()');
 w.__testProfilePaint();
 const trigger=d.querySelector('[data-profile-stat="followers"]');
-assert.equal(trigger.querySelector('b').textContent,'300+');
+assert.equal(trigger.querySelector('b').textContent,'300');
 let selectedMetric=null;
 w.BigLWASiteGuide={openAnalytics:metric=>{selectedMetric=metric;return true}};
 trigger.click();

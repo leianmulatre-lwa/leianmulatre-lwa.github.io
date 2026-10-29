@@ -42,6 +42,13 @@
  ];
  function findRealSymbol(entry){
   const key=entry.key;
+  // Studio has one canonical mark, independent of whichever shortcut icon a
+  // theme or old saved layout happens to put in the rail.
+  if(key==='studio'||key==='home'){
+   const img=document.createElement('img');
+   img.src='/assets/studio-tipi-symbol.svg?v=20261026-1';img.alt='';
+   return img;
+  }
   const candidates=[
    '#studioApp .sidebar-navigation-row[data-sidebar-route-row="'+key+'"] .sidebar-route-icon',
    '#studioApp .sidebar-widget-restore-row[data-shortcut-row="'+key+'"] .sidebar-route-icon',

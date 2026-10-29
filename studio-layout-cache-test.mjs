@@ -31,11 +31,11 @@ const checks=[
  ['Widget three-dot action controls the dock',layout.includes('data-dock-widget')&&layout.includes('data-restore-widget')],
  ['Original green dock appears only for closed widgets',layout.includes("primary.hidden=!$('[data-shortcut-row]',greenDock)")],
  ['Original sidebar is not hidden before script hydration',!home.includes('#studioApp .sidebar-top>nav{display:none!important}')],
- ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261028-preview-metrics-1')],
+ ['Fresh Studio layout script',home.includes('ui-coherence.js?v=20261028-shared-metric-2')],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
- ['Direct drag latest cache',home.includes('studio-experience.js?v=20261021-heading-stability-8')]
+ ['Direct drag latest cache',home.includes('studio-experience.js?v=20261028-canonical-tipi-1')]
 ];
 for(const [label,ok] of checks){console.log((ok?'PASS':'FAIL')+' · '+label)}
 assert.ok(checks.every(([,ok])=>ok),'Studio layout/cache accessibility regression');
