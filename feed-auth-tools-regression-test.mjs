@@ -28,7 +28,7 @@ const checks=[
  ['Stereo eject opens the existing song picker',studio.includes("eject.addEventListener('click'")&&studio.includes("selector.click()")],
  ['Collective Feed has Boards-style hover but obeys reduced motion',css.includes('translate3d(0,-5px,0) scale(1.008)')&&css.includes('prefers-reduced-motion:reduce')],
  ['Stream waveform separated from title',ui.includes('stream-screen>.stream-wave')&&ui.includes('bottom:12px!important')],
- ['Tools module loads new version',modules.includes('tools-studio.js?v=20261029-header-merge-5')],
+ ['Tools module loads new version',modules.includes('tools-studio.js?v=20261029-single-header-6')],
  ['Homepage loads fresh repaired scripts',/instagram-orbit\.js\?v=[\w.-]+/.test(home)&&home.includes('studio-experience.js?v=20261028-canonical-tipi-1')]
 ];
 for(const [name,ok] of checks)console.log((ok?'PASS':'FAIL')+' · '+name);
