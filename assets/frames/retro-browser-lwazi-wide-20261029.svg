@@ -47,7 +47,7 @@
 <path d="M25 360H975" stroke="#777" stroke-width="2"/>
 <path d="M25 363H975" stroke="#fff" stroke-width="2"/>
 <rect x="30" y="370" width="665" height="23" fill="#c3c3c3" stroke="#8d8d8d"/>
-<text x="39" y="388" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="16.5" fill="#292929">Ready  •  Choose a creative app</text>
+<text x="153" y="388" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="16.5" fill="#292929">Ready  •  Choose a creative app</text>
 <rect x="704" y="370" width="256" height="23" fill="#c3c3c3" stroke="#8d8d8d"/>
 <text x="723" y="388" font-family="Tahoma,Verdana,Arial,sans-serif" font-size="16" fill="#292929">Open Workshop</text>
 <g fill="#777"><path d="M955 391l16-16v4l-12 12z"/><path d="M964 391l7-7v4l-3 3z"/></g>
