@@ -34,7 +34,7 @@
   7:'https://kzsu-streams.stanford.edu/kzsu-1-128.mp3',
   11:'https://floyd.wcbn.org:8443/wcbn-hi.mp3'
  };
- const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03'],['sqwibz','watchable sqwibz','CH 04']];
+ const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03'],['sqwibz','sqwidz','CH 04']];
  // Each destination is an actual publisher/creator channel or a specifically
  // identified release. We do NOT invent YouTube video IDs or live statuses.
  // The same five existing Internet Archive video files used by the login page.
@@ -110,7 +110,7 @@
   const d=new Date(day+'T12:00:00');
   return Number.isFinite(d.valueOf())?d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):day;
  };
- const state={category:'podcast',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true,discoveryMood:'all',sqwibzClips:[]};
+ const state={category:'podcast',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true,discoveryMood:'all'};
  let discoveryCursor=Object.create(null);
  let root=null;
  let mediaPortal=null,mediaTarget=null,studioTarget=null;
@@ -393,7 +393,45 @@
   panel.setAttribute('aria-labelledby','stream-tab-'+state.category);
   const select=root.querySelector('select[name="category"]');
   if(select&&!select.dataset.edited)select.value=state.category;
+  syncSqwidzStage();
  }
+ // Reuse Stream's existing left monitor for the actual Sqwidz timeline.
+ function syncSqwidzStage(){
+  if(!root)return;
+  const active=state.category==='sqwibz';
+  root.classList.toggle('is-sqwidz-channel',active);
+  const monitor=root.querySelector('#streamMonitor');
+  if(!monitor)return;
+  let stage=monitor.querySelector('#streamSqwidzStage');
+  if(active&&!stage){
+   stage=document.createElement('section');stage.id='streamSqwidzStage';
+   stage.className='stream-sqwidz-stage';
+   stage.setAttribute('aria-label','Sqwidz timeline');
+   monitor.append(stage);
+   root.addEventListener('biglwa:sqwidz-rendered',()=>{
+    if(!stage.isConnected)return;
+    const post=stage.querySelector('.sqz-post');
+    const media=post?.querySelector('.sqz-media');
+    monitor.dataset.sqwidzAspect=!media?'text':media.classList.contains('portrait')?'portrait':
+      media.tagName==='AUDIO'?'audio':media.tagName==='IMG'?'photo':'landscape';
+   });
+  }
+  if(stage)stage.hidden=!active;
+  if(!active){if(mediaPortal)mediaPortal.style.display='';return;}
+  // Stop and clear the prior station rather than playing behind the feed.
+  if(mediaPortal){
+   mediaPortal.querySelectorAll('video,audio').forEach(el=>{try{el.pause()}catch{}});
+   mediaPortal.replaceChildren();
+   mediaPortal.style.display='none';
+  }
+  if(stage&&!stage.querySelector('[data-sqz-root]'))
+   Promise.resolve(window.BigLWASocial?.mountSqwidz(stage,{streamMode:true})).catch(error=>{
+    stage.textContent='Sqwidz is unavailable: '+(error?.message||'Try refreshing');
+   });
+ }
+ window.addEventListener('biglwa:social-ready',()=>{
+  if(state.category==='sqwibz')syncSqwidzStage();
+ });
  // Deterministic daily shuffle: same date shows the same ordering after refresh.
  // The Shuffle Again control changes only the user's current view.
  function dailySeed(day,category,offset=0){
@@ -449,9 +487,6 @@
      status:item.provider==='archive-video'?'CARTOONS · WATCH':'▶ WATCH VIDEO'
     }));
    return discoveryPreference(shuffled(videos,day,category,offset),category);
-  }
-  if(category==='sqwibz'){
-   return shuffled(state.sqwibzClips.map((clip,index)=>({kind:'sqwibz',index,id:clip.id,title:clip.title,subtitle:'Video link',status:'▶ PLAY'})),day,category,offset);
   }
   if(category==='live'){
    const youtube=youtubeLive.filter(playableFeature).map(item=>({kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,status:'YOUTUBE · WATCH HERE'}));
@@ -563,7 +598,6 @@
   if(!pick)return;
   state.followGuide=false;
   if(pick.kind==='station')selectStation(pick.index);
-  else if(pick.kind==='sqwibz'&&state.sqwibzClips[pick.index])showSource(state.sqwibzClips[pick.index]);
   else if(pick.kind==='feature')selectFeature(pick.id);
   else if(pick.kind==='twitch')selectTwitch(pick.id);
  }
@@ -622,25 +656,15 @@
  }
  if(typeof document!=='undefined')document.addEventListener('biglwa:google-state',syncYouTubeOrbitButton);
  function onStreamMediaSubmit(event){
-    const form=event.target.closest?.('#streamMediaLinkForm,#streamSqwibzForm');
-    if(!form||!root?.contains(form))return;
-    event.preventDefault();
-    const isSqwibz=form.id==='streamSqwibzForm';
-    const status=root.querySelector(isSqwibz?'#streamSqwibzStatus':'#streamMediaLinkStatus');
-    const source=embeddedStreamLink(form.querySelector('input')?.value);
-    if(!source||(isSqwibz&&source.provider==='spotify')){
-     if(status)status.textContent='Paste an individual public YouTube or TikTok video link.';
-     return;
-    }
-    if(isSqwibz){
-     source.category='sqwibz';source.id='sqwibz-'+Date.now();
-     source.title=source.title||'Watchable Sqwibz';
-     state.sqwibzClips.unshift(source);state.sqwibzClips=state.sqwibzClips.slice(0,24);
-     renderGrid();renderCategory();
-    }
-    if(status&&status.isConnected)status.textContent='Tuning to original '+source.provider+' player.';
-    state.followGuide=false;showSource(source);
-  }
+  const form=event.target.closest?.('#streamMediaLinkForm');
+  if(!form||!root?.contains(form))return;
+  event.preventDefault();
+  const status=root.querySelector('#streamMediaLinkStatus');
+  const source=embeddedStreamLink(form.querySelector('input')?.value);
+  if(!source){if(status)status.textContent='Paste an individual public YouTube, TikTok or Spotify link.';return}
+  if(status)status.textContent='Tuning to original '+source.provider+' player. Playback depends on its provider.';
+  state.followGuide=false;showSource(source);
+ }
 
  function showSource(source,options={}){
   const monitor=root?.querySelector('#streamMonitor');if(!monitor||!source)return;
@@ -772,7 +796,7 @@
   showSource(source,options);
  }
  function tuneCurrent(){
-  if(!root)return;
+  if(!root||state.category==='sqwibz')return;
   const hour=new Date().getHours();
   const selected=state.programs.find(item=>item.category===state.category&&item.scheduledAt&&localDay(new Date(item.scheduledAt))===state.day&&new Date(item.scheduledAt).getHours()===hour);
   if(selected)selectProgram(selected.id,{silent:true});
@@ -782,7 +806,6 @@
    if(pick.kind==='station')selectStation(pick.index,{silent:true});
    else if(pick.kind==='feature')selectFeature(pick.id,{silent:true});
    else if(pick.kind==='twitch')selectTwitch(pick.id,{silent:true});
-   else if(pick.kind==='sqwibz'&&state.sqwibzClips[pick.index])showSource(state.sqwibzClips[pick.index],{silent:true});
   }
   state.followGuide=true;
  }
@@ -797,8 +820,8 @@
     'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
    live:['CH 03 / YOUTUBE + TWITCH','live',
     'Watch YouTube music, ASMR and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
-   sqwibz:['CH 04 / WATCHABLE SQWIBZ','watchable sqwibz',
-    'Watch creator-hosted public video posts without leaving Stream. Add an individual YouTube or TikTok video link to your playlist.'],
+   sqwibz:['CH 04 / THE TIMELINE','sqwidz',
+    'Short thoughts, long reads, photos and clips from the community. Float a post, reply and keep the conversation moving.'],
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
@@ -810,9 +833,8 @@
   }else if(state.category==='lwa-tv'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / READY TO WATCH</span><h3>pick a video, stay here</h3><p>Use the thumbnail and arrows above to browse playable clips and cartoons. Channel-page links without a playable video are not shown as TV programs. Ballroom / CCTV remains within LWA TV.</p></div></div><p class="stream-directory-note">Original publishers control their own embedding permissions; this does not imply a Big LWA partnership.</p>';
   }else if(state.category==='sqwibz'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">WATCHABLE SQWIBZ / ORIGINAL HOSTS</span><h3>watch a video post</h3><p>Watch clips through their original hosts. Adding a link does not publish or import it.</p></div></div>'+
-    '<form id="streamSqwibzForm" class="stream-sqwibz-form"><label>Video link <input type="url" required inputmode="url" placeholder="YouTube or TikTok video URL" aria-label="Watchable Sqwibz video link"></label><button type="submit">▶ Watch</button><small id="streamSqwibzStatus" role="status">Playback depends on the original publisher.</small></form>'+
-    '<div class="stream-sqwibz-list">'+(state.sqwibzClips.length?state.sqwibzClips.map((clip,i)=>'<button type="button" data-sqwibz-play="'+i+'">▶ '+escapeHTML(clip.title)+'</button>').join(''):'<p>No clips tuned yet. Add a video above.</p>')+'</div>';
+   // Sqwidz is mounted in the existing monitor, never in a redundant body section.
+   detail.replaceChildren();
   }else{
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LIVE / YOUTUBE + TWITCH</span><h3>relax, listen & watch</h3><p>Lofi Girl, rain ASMR, frequency-based music and Twitch broadcasts can play inside the monitor. Recorded videos are labeled as recordings; channels may be offline.</p></div></div><p class="stream-directory-note">Original players retain publisher attribution and their own embed restrictions.</p>';
   }
@@ -946,10 +968,6 @@
   if(button.matches('[data-stream-retry]')){if(state.selected)showSource(state.selected,{silent:true});return;}
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
-  if(button.matches('[data-sqwibz-play]')){
-   const clip=state.sqwibzClips[Number(button.dataset.sqwibzPlay)];
-   if(clip){state.followGuide=false;showSource(clip)}return;
-  }
   if(button.matches('[data-discovery-play]')){playDiscovery(Number(button.dataset.discoveryPlay));return;}
   if(button.matches('[data-radio-play]')){state.followGuide=false;saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
   if(button.matches('[data-stream-episode]')){state.followGuide=false;saveLastPlayed(state.selected);changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
