@@ -63,7 +63,24 @@ function render(){
  // full-width toolbar above the canvas. Delegated click handlers remain intact.
  const tools=root.querySelector('.lwa-project-tools');
  const deck=root.querySelector('#lwaProjectBoard');
- if(tools&&deck)deck.append(tools);
+ if(tools&&deck){
+  const shell=document.createElement('div');shell.className='lwa-project-deck-shell';
+  deck.before(shell);shell.append(deck,tools);
+  let pan=null;
+  deck.addEventListener('pointerdown',event=>{
+   if(event.button!==0||event.target.closest('button,a,input,textarea,select,[data-card],.lwa-project-tools'))return;
+   pan={id:event.pointerId,x:event.clientX,y:event.clientY,left:deck.scrollLeft,top:deck.scrollTop};
+   deck.classList.add('is-panning');deck.setPointerCapture?.(event.pointerId);event.preventDefault();
+  });
+  deck.addEventListener('pointermove',event=>{
+   if(!pan||pan.id!==event.pointerId)return;
+   deck.scrollLeft=pan.left-(event.clientX-pan.x);deck.scrollTop=pan.top-(event.clientY-pan.y);
+  });
+  const end=event=>{if(!pan||(event?.pointerId!==undefined&&event.pointerId!==pan.id))return;
+   try{deck.releasePointerCapture?.(pan.id)}catch{}pan=null;deck.classList.remove('is-panning')};
+  deck.addEventListener('pointerup',end);deck.addEventListener('pointercancel',end);
+  deck.addEventListener('lostpointercapture',end);
+ }
  setZoom(zoomLevel);
  document.dispatchEvent(new CustomEvent('biglwa:visualz-render'));
 }
