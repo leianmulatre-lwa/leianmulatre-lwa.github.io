@@ -895,6 +895,7 @@ async function connect(){await run(async()=>{
  const selectedSet=originalView?selectedOriginalPins:selectedBoardPins;
  const activePins=originalView?createdPins:activeSavedBoard?(savedLibrary.boards.find(b=>b.id===activeSavedBoard)?.pins||[]):pins;
  const activeName=originalView?'Original Pins':activeSavedBoard?(savedLibrary.boards.find(b=>b.id===activeSavedBoard)?.title||'Board'):boardNameFor(boardId);
+ const allBoardOptions='<option value="">All boards</option>'+orderedBoards().map(b=>'<option value="p:'+esc(String(b.id))+'"'+(!originalView&&!activeSavedBoard&&String(boardId)===String(b.id)?' selected':'')+'>'+esc(b.name)+'</option>').join('')+savedLibrary.boards.map(b=>'<option value="s:'+esc(String(b.id))+'"'+(!originalView&&activeSavedBoard===b.id?' selected':'')+'>'+esc(b.title)+' · BIG LWA</option>').join('');
  const boardPicker='<h3 id="pnActiveBoardTitle">'+esc(activeName||'Pins')+'</h3>';
  const boardActions=selectionActions(false,selectedSet.size);
  panel.innerHTML='<div class="pn-primary-head"><div class="pn-primary-identity"><h2>board</h2>'+
@@ -917,7 +918,7 @@ async function connect(){await run(async()=>{
      useful before anyone connects, and it is the same six slots either way. */
   (!boards.length&&busy?'<p>Loading boards from Pinterest…</p>':'')+
   boardGrid(disabled)+
-  '<div class="pn-browse-tabs"><button type="button" data-pn-original-view aria-pressed="'+originalView+'">Original Pins</button></div>'+
+  '<div class="pn-browse-tabs"><button type="button" data-pn-original-view aria-pressed="'+originalView+'">Original Pins</button><select id="pinterestAllBoards" aria-label="All boards">'+allBoardOptions+'</select></div>'+
   '<div class="pn-current-board-bar" id="pnActiveBoard">'+boardPicker+(!originalView?boardActions:'')+'</div>'+
   (!boards.length&&connected&&!busy?'<p>No public boards were returned for this account.</p>':'')+
   '<div class="pinterest-pin-grid"'+(originalView?' hidden':'')+'>'+activePins.filter(p=>/^\d+$/.test(String(p.id||''))).map(p=>{
@@ -935,6 +936,13 @@ async function connect(){await run(async()=>{
 }
 document.addEventListener('change',e=>{
  const target=e.target;
+ if(target?.id==='pinterestAllBoards'){
+  originalView=false;selectedBoardPins.clear();selectedOriginalPins.clear();
+  if(!target.value){showAllBoards=true;activeSavedBoard='';boardId='';pins=[];pinsNext='';render();return}
+  const id=target.value.slice(2);
+  if(target.value.startsWith('s:')){activeSavedBoard=id;recentBoardIds=[id,...recentBoardIds.filter(value=>value!==id)];try{localStorage.setItem(recentBoardKey(),JSON.stringify(recentBoardIds))}catch{}scrollBoardAfterRender=true;render()}else choose(id);
+  return;
+ }
  if(target?.matches?.('[data-pn-board-select],[data-pn-original-select]')){
   const original=target.hasAttribute('data-pn-original-select'),id=target.getAttribute(original?'data-pn-original-select':'data-pn-board-select');
   const set=original?selectedOriginalPins:selectedBoardPins;

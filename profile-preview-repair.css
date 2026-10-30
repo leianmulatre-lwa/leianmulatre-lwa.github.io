@@ -1,11 +1,11 @@
 /* One masthead edge and one measured grid: logo | search | load state | weather | account. */
-#studioApp .topbar.profile-header-repaired{grid-template-columns:76px minmax(160px,1fr) minmax(0,110px) max-content max-content!important;gap:12px!important;border:0!important;border-bottom:1px solid #69595035!important;box-shadow:none!important;outline:0!important;background-clip:border-box!important}
+#studioApp .topbar.profile-header-repaired{grid-template-columns:76px minmax(160px,1fr) 22px max-content max-content!important;gap:12px!important;border:0!important;border-bottom:1px solid #69595035!important;box-shadow:none!important;outline:0!important;background-clip:border-box!important}
 #studioApp .topbar.profile-header-repaired::before,#studioApp .topbar.profile-header-repaired::after{display:none!important;content:none!important}
 #studioApp .topbar.profile-header-repaired .search-wrap{grid-column:2!important;min-width:0!important;width:100%!important;max-width:none!important;margin:0!important}
-#studioApp .topbar.profile-header-repaired #lwaProfileLoading{position:static!important;grid-column:3!important;transform:none!important;inset:auto!important;min-width:0!important;width:auto!important;max-width:110px!important;margin:0!important;overflow:hidden!important;white-space:nowrap!important;font-size:10px!important}
+#studioApp .topbar.profile-header-repaired #lwaProfileLoading{position:static!important;grid-column:3!important;transform:none!important;inset:auto!important;min-width:0!important;width:auto!important;max-width:22px!important;margin:0!important;overflow:hidden!important;white-space:nowrap!important;font-size:0!important}
 #studioApp .topbar.profile-header-repaired #studioWeather{grid-column:4!important;justify-self:end!important;margin:0!important;padding:6px 0 6px 12px!important}
 #studioApp .topbar.profile-header-repaired .top-actions{grid-column:5!important;min-width:0!important;width:auto!important;margin:0!important}
-html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired{grid-template-columns:76px minmax(100px,1fr) minmax(0,110px) max-content max-content!important}
+html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired{grid-template-columns:76px minmax(100px,1fr) 22px max-content max-content!important}
 #studioApp .main,#studioApp .hero{border-top:0!important;outline:0!important}
 #studioApp #camera .photobooth-intro,#studioApp #camera .photobooth-reference-preview img{object-position:center 35%!important}
 /* Rainbow stitches around the existing Lwazi face, no extra card or header. */
@@ -57,3 +57,17 @@ html.biglwa-preview-mode #studioApp#studioApp #guestCheckWidget .biglwa-guest-v2
 #studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.rank-under-note{width:auto!important;max-width:none!important;grid-template-columns:max-content minmax(70px,1fr) max-content!important;grid-template-rows:20px!important;height:20px!important;margin:0!important;padding:0!important;gap:12px!important;align-items:center!important}
 #studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.rank-under-note>strong,#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.rank-under-note>.rank-track,#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.rank-under-note>.rank-next{grid-row:1!important;grid-column:auto!important;align-self:center!important}
 #studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-identity-rail>.real-rank-label{position:absolute!important;left:12px!important;bottom:35px!important;top:auto!important;width:150px!important;height:20px!important;margin:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important}
+
+/* Match the wallpaper boundary to the actual header, including viewer notice. */
+#studioApp .page-wallpaper{top:var(--biglwa-dock-top,60px)!important}
+html.biglwa-preview-mode #studioApp .page-wallpaper{top:calc(var(--biglwa-preview-banner-h,0px) + var(--biglwa-dock-top,60px))!important}
+#studioApp .topbar.profile-header-repaired .search-wrap{box-sizing:border-box!important}
+#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.rank-under-note{left:164px!important}
+#studioApp#studioApp#studioApp .profile-card .profile-copy>.real-rank.rank-under-note>strong{font-size:clamp(20.4px,1.8vw,25.2px)!important}
+#biglwaWidgetVisibility{display:grid;gap:7px;padding:0;list-style:none}
+#biglwaWidgetVisibility li{display:flex;align-items:center;justify-content:space-between;gap:10px;font:650 12px/1.4 system-ui}
+#biglwaWidgetVisibility .widget-audience-lock{width:28px!important;height:28px!important;font-size:16px!important}
+@media(max-width:620px){#studioApp#studioApp#studioApp .profile-card .profile-copy>.real-rank.rank-under-note>strong{font-size:20.4px!important}}
+
+#studioApp #pinterestBoards .pn-browse-tabs{gap:8px;align-items:center;flex-wrap:wrap}
+#studioApp #pinterestAllBoards{max-width:100%;min-width:130px;padding:7px 10px;border:1px solid #b58e9c;background:#fff8ef;color:#533549;font:650 12px system-ui;border-radius:7px}

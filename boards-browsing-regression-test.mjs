@@ -30,6 +30,11 @@ const select=s=>{const el=d.querySelector(s);el.checked=true;el.dispatchEvent(ne
 assert.equal(d.querySelectorAll('.pinterest-board-grid .pinterest-board').length,6,'Only six recent boards at entry');
 click('[data-pn-toggle-boards]');assert.equal(d.querySelectorAll('.pinterest-board-grid .pinterest-board').length,10,'Other boards remain accessible on demand');
 click('[data-pn-toggle-boards]');assert.equal(d.querySelectorAll('.pinterest-board-grid .pinterest-board').length,6);
+const chooseDropdown=async value=>{const picker=d.querySelector('#pinterestAllBoards');picker.value=value;picker.dispatchEvent(new w.Event('change',{bubbles:true}));await pause(60)};
+assert.equal(d.querySelector('#pinterestAllBoards').options.length,11,'Dropdown lists every Pinterest and saved board');
+click('[data-pn-original-view]');await chooseDropdown('s:board_aa');assert.equal(d.querySelector('#pnActiveBoardTitle').textContent,'Outfits');
+await chooseDropdown('p:8');assert.equal(d.querySelector('#pnActiveBoardTitle').textContent,'Board 8');
+await chooseDropdown('');assert.equal(d.querySelectorAll('.pinterest-board-grid .pinterest-board').length,10,'All boards expands the entire collection');
 click('[data-pn-board="6"]');await pause(60);assert.equal(d.querySelector('#pnActiveBoardTitle').textContent,'Board 6');assert(scrolls.includes('pnActiveBoard'),'Board choice scrolls to its photos');
 assert(d.querySelector('button.pn-pin-photo[data-pn-preview]'),'Photo is a local preview button');
 assert.equal(d.querySelectorAll('.pinterest-pin a:not([aria-label="Open original Pin on Pinterest"])').length,0,'Only source arrows leave BIG LWA');
