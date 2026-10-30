@@ -32,6 +32,10 @@ function style(){
  const sheet=document.createElement('style');sheet.id='biglwaMusicCloudStyle';
  sheet.textContent=[
  '#studioApp .music-card #profileMusicOpen{position:absolute;top:9px;left:93px;z-index:12;min-height:24px;padding:3px 8px;cursor:pointer;color:#91fda0;background:#19271d;border:1px solid #627467;border-radius:5px;font:750 9px system-ui}',
+ '#studioApp .music-card{min-width:0!important;box-sizing:border-box!important;overflow:hidden!important}',
+ '#studioApp .music-card #profileMusicOpen{top:11px!important;left:auto!important;right:74px!important;max-width:70px!important;min-height:22px!important;white-space:nowrap!important;box-sizing:border-box!important}',
+ '#studioApp .music-card :is(#studioMusicTitle,#studioMusicArtist){max-width:100%!important;min-width:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}',
+ '#studioApp .music-card .widget-window-controls{z-index:18!important}',
  '#profileMusicDialog{width:min(550px,calc(100vw - 24px));max-height:84vh;overflow:auto;border:1px solid #bd9887;border-radius:17px;padding:21px;background:#fff5eb;color:#302625;box-shadow:0 23px 65px #210e1780}',
  '#profileMusicDialog::backdrop{background:#1c141bb0}',
  '#profileMusicDialog .music-head{display:flex;justify-content:space-between;align-items:center;gap:10px}',
