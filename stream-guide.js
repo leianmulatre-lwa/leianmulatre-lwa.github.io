@@ -395,43 +395,107 @@
   if(select&&!select.dataset.edited)select.value=state.category;
   syncSqwidzStage();
  }
- // Reuse Stream's existing left monitor for the actual Sqwidz timeline.
+ // Sqwidz is watched one post at a time on the ORIGINAL Stream screen.
+ let sqPosts=[],sqIndex=0,sqLoading=false,sqDetailId=0;
+ const sqCurrent=()=>sqPosts[sqIndex]||null;
+ const sqEscape=x=>escapeHTML(String(x??''));
+ const sqType=p=>({sqwib:'thought',essay:'long read',photo:'photo',video:'video',audio:'audio',live:'live'})[p?.kind]||'sqwib';
+ const sqDate=p=>{const n=p?.createdAt?.toMillis?.()??p?.createdAt??0;const d=new Date(n&&n<1e11?n*1000:n||Date.now());return Number.isFinite(+d)?d.toLocaleDateString():''};
+ function sqRight(p,info){
+  if(state.category!=='sqwibz')return;
+  const area=root?.querySelector('#streamCategoryCopy');if(!area)return;
+  const text=String(p?.text||'').trim();
+  const caption=text.slice(0,280)+(text.length>280?'…':'');
+  const counts=info?.counts||{};
+  const format=n=>Number.isFinite(n)?Number(n).toLocaleString():'—';
+  const allowed=!!(p?.allowResqwib&&/^[A-Za-z0-9_-]{2,120}$/.test(p.id||''));
+  area.innerHTML='<span class="stream-eyebrow">CH 04 / THE CONVERSATION</span><h2>sqwidz</h2>'+
+    '<p class="stream-sq-intro">A screen for Sqwidz. Thoughts, threads, photos, audio and video from your community.</p>'+
+    '<section class="stream-sq-caption"><small>NOW SHOWING'+(p?' / '+sqEscape(sqType(p)):'')+'</small>'+
+    (p?'<strong>@'+sqEscape(p.username||'member')+'</strong><time>'+sqEscape(sqDate(p))+'</time>':'')+
+    '<p>'+sqEscape(caption||(p?sqType(p)+' shared on Sqwidz':'No public Sqwidz are available yet.'))+'</p></section>'+
+    '<div class="stream-sq-stats"><span><b>'+format(counts.float)+'</b><small>Floats</small></span>'+
+    '<span><b>'+format(counts.resqwib)+'</b><small>Resqwibz</small></span>'+
+    '<span><b>'+format(info?.replies?.length)+'</b><small>Replies</small></span></div>'+
+    '<div class="stream-sq-nav"><button type="button" data-sq-prev aria-label="Previous Sqwib" '+(sqPosts.length<2?'disabled':'')+'>‹</button>'+
+    '<span>'+((sqPosts.length?sqIndex+1:0)+' / '+sqPosts.length)+'</span>'+
+    '<button type="button" data-sq-next aria-label="Next Sqwib" '+(sqPosts.length<2?'disabled':'')+'>›</button>'+
+    '<button type="button" data-sq-refresh>↻ Refresh</button></div>'+
+    '<div class="stream-sq-actions">'+(p?'<button type="button" data-sq-resqwib '+(!allowed?'disabled title="Resqwibs are unavailable for this post"':'')+' aria-pressed="'+String(!!info?.mine?.resqwib)+'">↻ '+(info?.mine?.resqwib?'Undo Resqwib':'Resqwib')+'</button>':'')+
+    '<button type="button" data-sq-open>Open Sqwidz ↗</button></div><small class="stream-sq-status" role="status"></small>';
+ }
+ async function sqDetails(p){
+  const current=++sqDetailId;
+  if(!p||!/^[A-Za-z0-9_-]{2,120}$/.test(p.id||'')||!window.BigLWASocial?.request)return;
+  try{const data=await window.BigLWASocial.request('post/'+encodeURIComponent(p.id));
+   if(current===sqDetailId&&state.category==='sqwibz'&&sqCurrent()?.id===p.id)sqRight(p,data);
+  }catch{const el=root?.querySelector('.stream-sq-status');if(current===sqDetailId&&el)el.textContent='Counts unavailable.'}
+ }
+ function sqDraw(){
+  if(state.category!=='sqwibz')return;
+  const stage=root?.querySelector('#streamSqwidzStage'),monitor=root?.querySelector('#streamMonitor');
+  if(!stage||!monitor)return;
+  const p=sqCurrent();
+  const type=!p?'standby':p.kind==='audio'?'audio':p.portrait&&['photo','video','live'].includes(p.kind)?'portrait':p.kind==='photo'?'square':['video','live'].includes(p.kind)?'landscape':'text';
+  monitor.dataset.sqwidzAspect=type;
+  if(!p){
+   stage.innerHTML='<div class="stream-sq-standby"><small>BIG LWA / SQWIDZ</small><strong>NO SQWIDZ ON AIR</strong><p>Public Sqwidz will appear on this screen.</p></div>';
+   sqRight(null,null);return;
+  }
+  let media='';
+  try{if(p.media&&new URL(p.media,location.href).protocol==='https:')media=window.BigLWASocial?.mediaMarkup?.({...p,text:String(p.text||'')})||''}catch{}
+  const name=String(p.username||'member').replace(/^@/,'');
+  stage.innerHTML='<div class="stream-sq-display"><header><span>BIG LWA / SQWIDZ</span><span>'+sqEscape(sqType(p))+'</span></header>'+
+    '<article><div class="stream-sq-author">@'+sqEscape(name)+' <time>'+sqEscape(sqDate(p))+'</time></div>'+
+    (p.text?'<p class="stream-sq-text">'+sqEscape(p.text)+'</p>':'')+
+    (media?'<div class="stream-sq-media">'+media+'</div>':'')+'</article>'+
+    '<footer><span>PEOPLE · IDEAS · SOUNDS · SELF</span><span>'+String(sqIndex+1).padStart(2,'0')+' / '+String(sqPosts.length).padStart(2,'0')+'</span></footer></div>';
+  stage.scrollTop=0;sqRight(p,null);sqDetails(p);
+ }
+ async function sqLoad(force=false){
+  if(state.category!=='sqwibz'||sqLoading||(!force&&sqPosts.length)||!window.BigLWASocial?.request)return;
+  sqLoading=true;
+  const stage=root?.querySelector('#streamSqwidzStage');
+  if(stage&&!sqPosts.length)stage.innerHTML='<div class="stream-sq-standby"><small>BIG LWA / SQWIDZ</small><strong>TUNING IN…</strong></div>';
+  try{
+   const data=await window.BigLWASocial.request('posts');let legacy=[];
+   try{legacy=await window.BigLWASqwibs?.publicSqwibs?.(50)||[]}catch{}
+   const seen=new Set();
+   sqPosts=[...(Array.isArray(data?.items)?data.items:[]),...legacy].filter(p=>p?.id&&p.visibility!=='private'&&!seen.has(p.id)&&seen.add(p.id))
+    .sort((a,b)=>(b.createdAt?.toMillis?.()||b.createdAt||0)-(a.createdAt?.toMillis?.()||a.createdAt||0));
+   sqIndex=Math.min(sqIndex,Math.max(0,sqPosts.length-1));
+  }catch(error){
+   if(stage&&!sqPosts.length)stage.innerHTML='<div class="stream-sq-standby"><strong>NO SIGNAL</strong><p>'+sqEscape(error?.message||'Try refreshing')+'</p></div>';
+  }finally{sqLoading=false;sqDraw()}
+ }
  function syncSqwidzStage(){
   if(!root)return;
-  const active=state.category==='sqwibz';
-  root.classList.toggle('is-sqwidz-channel',active);
-  const monitor=root.querySelector('#streamMonitor');
-  if(!monitor)return;
+  const active=state.category==='sqwibz';root.classList.toggle('is-sqwidz-channel',active);
+  const monitor=root.querySelector('#streamMonitor');if(!monitor)return;
   let stage=monitor.querySelector('#streamSqwidzStage');
-  if(active&&!stage){
-   stage=document.createElement('section');stage.id='streamSqwidzStage';
-   stage.className='stream-sqwidz-stage';
-   stage.setAttribute('aria-label','Sqwidz timeline');
-   monitor.append(stage);
-   root.addEventListener('biglwa:sqwidz-rendered',()=>{
-    if(!stage.isConnected)return;
-    const post=stage.querySelector('.sqz-post');
-    const media=post?.querySelector('.sqz-media');
-    monitor.dataset.sqwidzAspect=!media?'text':media.classList.contains('portrait')?'portrait':
-      media.tagName==='AUDIO'?'audio':media.tagName==='IMG'?'photo':'landscape';
-   });
-  }
+  if(active&&!stage){stage=document.createElement('section');stage.id='streamSqwidzStage';stage.className='stream-sqwidz-stage';stage.setAttribute('aria-label','Sqwidz viewing screen');monitor.append(stage)}
   if(stage)stage.hidden=!active;
-  if(!active){if(mediaPortal)mediaPortal.style.display='';return;}
-  // Stop and clear the prior station rather than playing behind the feed.
-  if(mediaPortal){
-   mediaPortal.querySelectorAll('video,audio').forEach(el=>{try{el.pause()}catch{}});
-   mediaPortal.replaceChildren();
-   mediaPortal.style.display='none';
-  }
-  if(stage&&!stage.querySelector('[data-sqz-root]'))
-   Promise.resolve(window.BigLWASocial?.mountSqwidz(stage,{streamMode:true})).catch(error=>{
-    stage.textContent='Sqwidz is unavailable: '+(error?.message||'Try refreshing');
+  if(!active){if(mediaPortal)mediaPortal.style.display='';return}
+  if(mediaPortal){mediaPortal.querySelectorAll('video,audio').forEach(el=>{try{el.pause()}catch{}});mediaPortal.replaceChildren();mediaPortal.style.display='none'}
+  sqDraw();sqLoad();
+  if(!root.dataset.sqControls){
+   root.dataset.sqControls='1';
+   root.addEventListener('click',event=>{
+    const b=event.target.closest('button');if(!b||!b.closest('.stream-sq-nav,.stream-sq-actions'))return;
+    if(b.matches('[data-sq-open]')){window.openBIGLWAModule?.('notes');return}
+    if(b.matches('[data-sq-prev],[data-sq-next]')){if(sqPosts.length>1){sqIndex=(sqIndex+(b.matches('[data-sq-next]')?1:-1)+sqPosts.length)%sqPosts.length;sqDraw()}return}
+    if(b.matches('[data-sq-refresh]')){sqLoad(true);return}
+    if(b.matches('[data-sq-resqwib]')){
+     const p=sqCurrent();if(!p?.allowResqwib)return;
+     const pressed=b.getAttribute('aria-pressed')==='true';b.disabled=true;
+     Promise.resolve(window.BigLWASocial?.request('post/'+encodeURIComponent(p.id)+'/resqwib',{enabled:!pressed}))
+       .then(()=>sqDetails(p)).catch(err=>{const e=root.querySelector('.stream-sq-status');if(e)e.textContent=err?.message||'Resqwib unavailable'})
+       .finally(()=>{if(b.isConnected)b.disabled=false});
+    }
    });
+  }
  }
- if(typeof window.addEventListener==='function')window.addEventListener('biglwa:social-ready',()=>{
-  if(state.category==='sqwibz')syncSqwidzStage();
- });
+ if(typeof window.addEventListener==='function')window.addEventListener('biglwa:social-ready',()=>{if(state.category==='sqwibz')sqLoad()});
  // Deterministic daily shuffle: same date shows the same ordering after refresh.
  // The Shuffle Again control changes only the user's current view.
  function dailySeed(day,category,offset=0){
@@ -825,6 +889,7 @@
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
+  if(state.category==='sqwibz')sqRight(sqCurrent(),null);
   if(state.category==='podcast'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / COLLEGE DIAL</span><h3>all 16 campus stations</h3><p>Press Play to listen directly in Big LWA. The complete campus directory is kept below; stations still missing an in-site audio source are marked pending rather than removed.</p></div><label>Find a station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Audio streams remain hosted by their original broadcasters or listed stream relays. No partnership is implied.</p>';
    const filter=detail.querySelector('#streamStationSearch');
