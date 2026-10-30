@@ -109,3 +109,32 @@
 @media(max-width:700px){
  #loginPage #loginCard::before{width:113px!important;height:87px!important;margin-bottom:7px!important}
 }
+
+/* Visual-eyes: drag blank deck to pan; controls fixed in lower-right corner. */
+#studioApp #lwaProjects .lwa-project-deck-shell{position:relative;min-width:0;isolation:isolate}
+#studioApp #lwaProjects .lwa-project-deck-shell>.lwa-project-board{
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ cursor:grab!important;scrollbar-width:none!important;overscroll-behavior:contain!important;
+}
+#studioApp #lwaProjects .lwa-project-deck-shell>.lwa-project-board::-webkit-scrollbar{display:none}
+#studioApp #lwaProjects .lwa-project-deck-shell>.lwa-project-board.is-panning{cursor:grabbing!important}
+#studioApp #lwaProjects .lwa-project-deck-shell>.lwa-project-tools{
+ position:absolute!important;right:8px!important;bottom:8px!important;left:auto!important;
+ margin:0!important;padding:5px!important;z-index:17!important;
+ max-width:calc(100% - 16px)!important;
+ box-shadow:0 2px 9px rgba(25,18,20,.18)!important;
+}
+#studioApp #lwaProjects .lwa-project-deck-shell>.lwa-project-tools button{
+ padding:6px 8px!important;min-height:30px!important;font-size:10px!important;
+}
+#studioApp #lwaVisualSlides .vs-layout{grid-template-columns:minmax(158px,190px) minmax(0,1fr)!important}
+#studioApp #lwaVisualSlides .vs-pages{min-width:0!important;width:100%!important}
+#studioApp #lwaVisualSlides .vs-pages button{
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:76px!important;max-height:76px!important;min-height:76px!important;box-sizing:border-box!important;overflow:hidden!important;
+}
+#studioApp #lwaVisualSlides .vs-pages strong{max-width:100%!important;font:650 13px/1.35 Georgia,serif!important;white-space:normal!important;overflow:hidden!important}
+@media(max-width:640px){
+ #studioApp #lwaVisualSlides .vs-layout{grid-template-columns:minmax(0,1fr)!important}
+ #studioApp #lwaVisualSlides .vs-pages button{flex:0 0 132px!important;min-width:132px!important;max-width:132px!important}
+}
