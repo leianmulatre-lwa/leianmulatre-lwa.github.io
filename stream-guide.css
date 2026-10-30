@@ -535,3 +535,12 @@ body.night-mode .biglwa-stream .stream-media-link-form input{background:#1e1b25;
  .biglwa-stream .stream-nav-actions .stream-media-link-form label{flex-basis:100%}
  .biglwa-stream .stream-nav-actions .stream-media-link-form>div{flex-basis:100%!important}
 }
+
+/* Watchable Sqwibz lives inside Stream's channel section and original player. */
+.biglwa-stream .stream-sqwibz-form{display:flex;flex-wrap:wrap;align-items:end;gap:9px;margin:14px 0;padding:14px;border:1px solid #a78676;border-radius:10px;background:#f4e5d7}
+.biglwa-stream .stream-sqwibz-form label{flex:1 1 260px;display:grid;gap:5px;font:700 11px/1.4 system-ui}
+.biglwa-stream .stream-sqwibz-form input{max-width:100%;box-sizing:border-box;padding:10px;border:1px solid #bca79a;border-radius:6px;background:#fffaf2}
+.biglwa-stream .stream-sqwibz-form button,.biglwa-stream .stream-sqwibz-list button{padding:10px 13px;border:1px solid #893c3a;border-radius:8px;background:#a73933;color:#fff8ec;cursor:pointer;font:700 11px system-ui}
+.biglwa-stream .stream-sqwibz-form small{flex-basis:100%;font:500 11px/1.45 system-ui}
+.biglwa-stream .stream-sqwibz-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.biglwa-stream .stream-sqwibz-list p{margin:0;font-size:12px;opacity:.75}
