@@ -217,3 +217,7 @@
  #studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-right{max-width:min(60vw,280px)!important}
  #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button{min-width:51px!important;padding:5px 7px!important;font-size:10px!important}
 }
+
+/* Four native Stream channel controls remain on the title line. */
+#studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-right{max-width:min(72vw,600px)!important}
+#studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions{max-width:100%!important;overflow-x:auto!important}
