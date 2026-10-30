@@ -43,7 +43,7 @@
   const native=$('.biglwa-stream .stream-channels',ws);
   if(!native)return;
   const options=[...native.querySelectorAll('[data-stream-tab]')];
-  if(options.length!==3)return;
+  if(options.length!==4)return;
   let row=$('.module-heading-versions[data-version-stream]',right);
   if(!row){
    row=document.createElement('div');
