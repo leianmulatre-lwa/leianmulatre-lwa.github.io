@@ -103,7 +103,7 @@ assert(onboarding.includes('skeleton-green-cue'),'The green dot remains decorati
 assert(onboarding.includes('skeleton-window-minimize'),'The yellow Skeleton Key dot can minimize in place');
 assert(onboarding.includes('skeleton-window-close'),'The red Skeleton Key dot can close it');
 assert(onboarding.includes('skeleton-title-copy'),'Settings and heading share their own vertical stack');
-assert(onboarding.includes('rgb(var(--aura-rgb'),'The key uses the owner's Aura color');
+assert(onboarding.includes('rgb(var(--aura-rgb'),'The key uses the account Aura color');
 assert(onboarding.includes('max-height:min(620px,76vh)'),'The key scrolls within a bounded height');
 const css=read('studio-spatial-drag-20261029.css');
 assert(css.includes('position:absolute!important'),'Full-size cards are positioned independently of shared grid rows');
