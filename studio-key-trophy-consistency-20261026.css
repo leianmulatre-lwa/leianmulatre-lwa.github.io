@@ -1,7 +1,7 @@
 /* 2026-10-26 — A single, legible key and compact achievement case. */
 #studioApp .biglwa-skeleton-hub{
  padding:15px!important;gap:8px!important;
- background:linear-gradient(155deg,#f9c9b5,#f3b69f)!important;
+ background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 67%,#fff6ed)!important;
  border-radius:17px!important;box-sizing:border-box!important
 }
 #studioApp .biglwa-skeleton-title{
@@ -92,4 +92,4 @@
 #studioApp .tour-symbol-mark :is(span,svg,img){position:static!important;inset:auto!important;display:block!important;width:26px!important;height:26px!important;max-width:100%!important;max-height:100%!important;object-fit:contain;transform:none!important;font-size:24px!important}
 #studioApp .tour-symbol-mark svg text{font-size:26px!important}
 #studioApp .biglwa-skeleton-hub .tour-symbol-key{grid-template-columns:1fr!important;max-height:320px;overflow-y:auto}
-body.night-mode #studioApp .biglwa-skeleton-hub{background:linear-gradient(155deg,#523640,#392831)!important}
+body.night-mode #studioApp .biglwa-skeleton-hub{background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 47%,#29212b)!important}
