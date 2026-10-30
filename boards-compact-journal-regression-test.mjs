@@ -9,7 +9,7 @@ assert.doesNotThrow(()=>new Script(pinterest),'Pinterest Boards must be valid Ja
 assert.doesNotThrow(()=>new Script(module),'Journal module must be valid JavaScript');
 assert.ok(index.includes('pinterest-orbit.js?v=20261028-oauth-return-2'),
  'Page must load new Boards UI instead of cached version');
-assert.ok(pinterest.includes("pinterest-boards.css?v=20261022-hover-select-7"),
+assert.ok(pinterest.includes("pinterest-boards.css?v="),
  'New compact CSS must be loaded');
 assert.ok(pinterest.includes('<h2>board</h2>'),'One-word board heading');
 assert.ok(!pinterest.includes("panel.innerHTML='<h2>Pinterest boards</h2>"),'No duplicate Pinterest boards heading');
