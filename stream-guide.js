@@ -429,7 +429,7 @@
     stage.textContent='Sqwidz is unavailable: '+(error?.message||'Try refreshing');
    });
  }
- window.addEventListener('biglwa:social-ready',()=>{
+ if(typeof window.addEventListener==='function')window.addEventListener('biglwa:social-ready',()=>{
   if(state.category==='sqwibz')syncSqwidzStage();
  });
  // Deterministic daily shuffle: same date shows the same ordering after refresh.
