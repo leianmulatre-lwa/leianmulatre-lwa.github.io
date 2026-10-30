@@ -1077,7 +1077,7 @@ async function init(){
   if(!document.getElementById('pinterestBoardsStyle')){
    const link=document.createElement('link');
    link.id='pinterestBoardsStyle';link.rel='stylesheet';
-   link.href='/pinterest-boards.css?v=20261022-hover-select-7&browse=20261029-destinations-1';
+   link.href='/pinterest-boards.css?v=20261029-thumb-clipping-3';
    document.head.append(link);
   }
  const url=new URL(location.href),handoff=url.searchParams.get('pinterest_handoff'),error=url.searchParams.get('pinterest_error');
