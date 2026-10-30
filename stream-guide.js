@@ -563,6 +563,7 @@
   if(!pick)return;
   state.followGuide=false;
   if(pick.kind==='station')selectStation(pick.index);
+  else if(pick.kind==='sqwibz'&&state.sqwibzClips[pick.index])showSource(state.sqwibzClips[pick.index]);
   else if(pick.kind==='feature')selectFeature(pick.id);
   else if(pick.kind==='twitch')selectTwitch(pick.id);
  }
@@ -781,6 +782,7 @@
    if(pick.kind==='station')selectStation(pick.index,{silent:true});
    else if(pick.kind==='feature')selectFeature(pick.id,{silent:true});
    else if(pick.kind==='twitch')selectTwitch(pick.id,{silent:true});
+   else if(pick.kind==='sqwibz'&&state.sqwibzClips[pick.index])showSource(state.sqwibzClips[pick.index],{silent:true});
   }
   state.followGuide=true;
  }
