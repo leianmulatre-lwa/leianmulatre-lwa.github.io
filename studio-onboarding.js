@@ -450,6 +450,59 @@
     background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 47%,#29212b)!important;
     border-color:rgba(var(--aura-rgb,216,95,109),.85)!important
    }
+
+   /* Single Aura face, not an inset pink card inside a peach frame. */
+   #studioApp .masonry > .manifesto-card.is-skeleton-open{
+     background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 60%,#f7eee6)!important;
+     background-image:none!important;border:1px solid rgba(var(--aura-rgb,216,95,109),.54)!important;
+     border-radius:17px!important;box-shadow:0 6px 16px rgba(32,20,27,.12)!important;
+     padding:39px 13px 13px!important;
+   }
+   #studioApp .masonry > .manifesto-card.is-skeleton-open > #biglwaSkeletonHub{
+     background:transparent!important;background-image:none!important;
+     border:0!important;box-shadow:none!important;border-radius:0!important;
+     padding:0!important;margin:0!important;width:100%!important;max-width:100%!important;
+   }
+   body.night-mode #studioApp .masonry > .manifesto-card.is-skeleton-open{
+     background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 42%,#231d29)!important;
+     border-color:rgba(var(--aura-rgb,216,95,109),.68)!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions{
+     top:13px!important;right:14px!important;gap:7px!important;
+     height:12px!important;align-items:center!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-minimize,
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-close,
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button[data-tour-dismiss]{
+     appearance:none!important;display:block!important;position:relative!important;
+     width:12px!important;height:12px!important;min-width:12px!important;min-height:12px!important;
+     max-width:12px!important;max-height:12px!important;flex:0 0 12px!important;
+     padding:0!important;margin:0!important;line-height:0!important;font-size:0!important;
+     border-radius:50%!important;border:1px solid rgba(48,33,38,.42)!important;
+     box-shadow:none!important;transform:none!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-minimize{
+     background:#edca43!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-close{
+     background:#e56b6b!important;
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark{
+     position:relative!important;width:26px!important;height:40px!important;
+     align-self:start!important;margin-top:2px!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark img{
+     width:26px!important;height:40px!important;object-fit:contain!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark .skeleton-green-cue{
+     position:absolute!important;left:10px!important;top:7px!important;right:auto!important;
+     width:5px!important;height:5px!important;border:0!important;border-radius:50%!important;
+     background:#52ae71!important;box-shadow:none!important;pointer-events:none!important;
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-copy{gap:5px!important}
+   #studioApp .biglwa-skeleton-title .skeleton-settings{padding:5px 8px!important}
+   #studioApp .manifesto-card.is-skeleton-open.is-skeleton-collapsed{padding:29px 13px 10px!important}
+
 `;
   document.head.append(css);
  }
