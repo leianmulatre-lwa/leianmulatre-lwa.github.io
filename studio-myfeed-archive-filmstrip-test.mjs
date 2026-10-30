@@ -104,7 +104,7 @@ assert.equal(shuffleEnv.pick([]).length,0,'Empty library does not invent default
 // Archive preview image becomes grayscale only while hovering the Studio widget;
 // imported/member media, photo dimensions and navigation are not rewritten.
 const defaultStyle=read('studio-default-images-20261029.css');
-assert(index.includes('studio-default-images-20261029.css?v=20261029-archive-bw-hover-3'),'Current Archive grayscale stylesheet is served');
+assert(index.includes('studio-default-images-20261029.css?v=20261030-archive-night-1'),'Current Archive grayscale stylesheet is served');
 assert(defaultStyle.includes('#studioApp #archive:hover .archive-photo-preview img'),'Entire Studio Archive widget triggers grayscale on hover');
 assert(defaultStyle.includes('#studioApp #archive:hover .archive-photo-preview.biglwa-archive-default-windows img.biglwa-windows-archive-photo'),'Default Windows thumbnail wins specificity over its original filter:none!important');
 assert(defaultStyle.includes('filter:grayscale(1)!important'),'Hover makes preview black-and-white');

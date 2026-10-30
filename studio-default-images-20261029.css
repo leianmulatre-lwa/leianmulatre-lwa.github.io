@@ -94,3 +94,9 @@ html.biglwa-preview-mode #studioApp #socialOnlineFriends{display:none!important}
 #studioWeatherDialog .weather-results{display:grid;gap:6px}
 #studioWeatherDialog p{font:12px/1.5 system-ui}
 @media(max-width:540px){#studioApp .studio-weather{font-size:10px;padding:4px}}
+
+/* Night artwork applies only to the built-in hillside, preserving custom covers.
+   Keep the shared 1100ms grayscale hover transition in both themes. */
+body.night-mode #studioApp #archive .archive-photo-preview.biglwa-archive-default-windows img.biglwa-windows-archive-photo[src^="/assets/studio-defaults/archive-windows-hill.webp"]{
+ content:url('/assets/studio-defaults/archive-windows-hill-night.webp');
+}
