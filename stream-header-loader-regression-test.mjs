@@ -17,6 +17,14 @@ assert.ok(stream.includes('syncSqwidzStage()')&&stream.includes('streamSqwidzSta
 assert.ok(social.includes("mountSqwidz(stage,{streamMode:true})")===false,'Sqwidz mount delegation belongs to Stream, not Social Hub');
 assert.ok(!social.includes("id='streamSqwidz'")&&!social.includes('Sqwidz on Stream'),'No separate social panel is injected above the Stream player');
 assert.ok(streamStyle.includes('data-sqwidz-aspect="portrait"')&&streamStyle.includes('data-sqwidz-aspect="landscape"'),'Sqwidz display adapts to portrait and landscape posts');
+assert.ok(stream.includes('class="stream-sq-display"')&&stream.includes('stream-sq-media'),'Sqwidz uses a viewing screen rather than a composer');
+assert.ok(stream.includes("area.innerHTML='<span class=\"stream-eyebrow\">CH 04 / THE CONVERSATION"),'Right card is explicitly titled Sqwidz rather than preserving LWA Radio');
+assert.ok(stream.includes('stream-sq-caption')&&stream.includes('stream-sq-stats'),'Right card retains the post caption and engagement counts');
+assert.ok(stream.includes('counts.resqwib')&&stream.includes("window.BigLWASocial.request('post/"),'Resqwib count comes from the actual post detail endpoint');
+assert.ok(stream.includes('data-sq-prev')&&stream.includes('data-sq-next'),'Single Sqwib screen can advance through posts');
+assert.ok(!stream.includes('mountSqwidz(stage,{streamMode:true})'),'Full social composer/timeline is not mounted inside Stream');
+assert.ok(streamStyle.includes('.stream-sq-display')&&streamStyle.includes('.stream-sq-caption'),'Both the original viewer screen and right-hand metadata have styles');
+
 assert.ok(/module-version-header-20261026\.js\?v=[\w.-]+/.test(html),'Fresh Stream layout loaded');
 assert.ok(html.includes('studio-loading-consistency-20261026.css?v=20261026-header-isolation-5'),'Fresh header-only loading stage loaded');
 assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'),'Original stitched loading wordmark loaded');
