@@ -120,7 +120,10 @@
    guide.style.setProperty('position','absolute','important');
    guide.style.setProperty('width',columnWidth+'px','important');
    guide.style.setProperty('left','0px','important');guide.style.setProperty('top','0px','important');
-   guideHeight=measured(guide)+GAP;
+   // A scrollable Skeleton Key only reserves its PAINTED height; accordion
+   // scrollHeight includes hidden content and would push widgets far away.
+   guideHeight=Math.max(MIN_HEIGHT,Math.ceil(guide.offsetHeight||0),
+    Math.ceil(guide.getBoundingClientRect().height||0))+GAP;
    if(resize&&!observedCards.has(guide)){observedCards.add(guide);resize.observe(guide)}
   }
   if(drag)return;
@@ -242,6 +245,7 @@
  window.addEventListener('blur',()=>{if(drag){cleanup();schedule()}});
  window.addEventListener('resize',schedule,{passive:true});
  window.addEventListener('biglwa:studio-collapse-applied',schedule);
+ window.addEventListener('biglwa:skeleton-layout-changed',schedule);
  window.addEventListener('biglwa:customization-remote',schedule);
  // Module navigation changes visibility and available width without a window
  // resize; always recalculate on return with the same saved card positions.
