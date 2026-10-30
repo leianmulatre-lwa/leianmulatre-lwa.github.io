@@ -27,6 +27,7 @@ const markup='<main id="studioApp"><div id="moduleWorkspace" data-module-key="st
 '<button data-stream-tab="podcast" aria-selected="true"><b>lwa radio</b></button>'+
 '<button data-stream-tab="lwa-tv" aria-selected="false"><b>lwa tv</b></button>'+
 '<button data-stream-tab="live" aria-selected="false"><b>live</b></button>'+
+'<button data-stream-tab="sqwibz" aria-selected="false"><b>watchable sqwibz</b></button>'+
 '</div></nav></section></div></div></div></main>';
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+markup+'</body></html>',{
  url:'https://biglwa.com/studio/stream',pretendToBeVisual:true,runScripts:'outside-only'
@@ -46,12 +47,15 @@ await new Promise(resolve=>setTimeout(resolve,90));
 const header=d.querySelector('.module-heading');
 const row=header.querySelector('.module-heading-right .stream-heading-versions');
 assert.ok(header.classList.contains('module-heading--with-versions'),'Stream header uses same Sqwibz layout');
-assert.equal(row?.children.length,3,'Exactly three compact top-row Stream choices');
+assert.equal(row?.children.length,4,'Four compact Stream channels including watchable Sqwibz');
 assert.ok(root.querySelector('.stream-nav .stream-channels'),'Original handlers stay inside Stream');
 row.querySelector('[data-stream-heading-tab="lwa-tv"]').click();
 await new Promise(resolve=>setTimeout(resolve,50));
 assert.equal(activated,'lwa-tv','Header switch activates ORIGINAL Stream delegated player logic');
+row.querySelector('[data-stream-heading-tab="sqwibz"]').click();
+await new Promise(resolve=>setTimeout(resolve,50));
+assert.equal(activated,'sqwibz','Sqwibz joins the channel controls rather than appearing beneath the header');
 assert.equal(row.querySelector('[data-stream-heading-tab="lwa-tv"]').getAttribute('aria-selected'),'true','Active channel state reflected in header');
-assert.equal(root.querySelectorAll('[data-stream-tab]').length,3,'No duplicate native Stream controls');
+assert.equal(root.querySelectorAll('[data-stream-tab]').length,4,'No duplicate native Stream controls');
 dom.window.close();
 console.log('PASS Stream options align with title; original tabs work; wordmark-only loader and transparent header above masked content.');
