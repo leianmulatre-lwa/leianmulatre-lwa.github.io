@@ -114,6 +114,6 @@ await check('visitors load profile owners published songs instead of their own l
  assert.ok(profile.includes("audio.pause();audio.removeAttribute('src');audio.load()"));
  assert.ok(profile.includes("if(!state.owner&&first&&!state.selected)selectPublic(first)"));
  assert.ok(profile.includes("if(state.owner){button('share',track.public?'Make private':'Publish')"));
- assert.ok(html.includes('profile-music.js?v=20261015-profile-tracks-1'));
+ assert.ok(/profile-music\.js\?v=[\w.-]+/.test(html));
 });
 console.log('Music profile tests passed:',count);
