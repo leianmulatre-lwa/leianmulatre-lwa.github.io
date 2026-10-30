@@ -8,6 +8,15 @@ const layout=read('lwazi-header-series-20261026.css');
 const loader=read('studio-loading-dots-20261021.js');
 const overlay=read('studio-loading-consistency-20261026.css');
 const html=read('index.html');
+const stream=read('stream-guide.js');
+const social=read('social-hub.js');
+const streamStyle=read('stream-guide.css');
+assert.ok(stream.includes("['sqwibz','sqwidz','CH 04']"),'Stream tab uses only the name Sqwidz');
+assert.ok(!stream.includes('watchable sqwibz'),'No watch-only Sqwidz channel copy remains');
+assert.ok(stream.includes('syncSqwidzStage()')&&stream.includes('streamSqwidzStage'),'Sqwidz mounts inside the existing Stream monitor');
+assert.ok(social.includes("mountSqwidz(stage,{streamMode:true})")===false,'Sqwidz mount delegation belongs to Stream, not Social Hub');
+assert.ok(!social.includes("id='streamSqwidz'")&&!social.includes('Sqwidz on Stream'),'No separate social panel is injected above the Stream player');
+assert.ok(streamStyle.includes('data-sqwidz-aspect="portrait"')&&streamStyle.includes('data-sqwidz-aspect="landscape"'),'Sqwidz display adapts to portrait and landscape posts');
 assert.ok(/module-version-header-20261026\.js\?v=[\w.-]+/.test(html),'Fresh Stream layout loaded');
 assert.ok(html.includes('studio-loading-consistency-20261026.css?v=20261026-header-isolation-5'),'Fresh header-only loading stage loaded');
 assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'),'Original stitched loading wordmark loaded');
@@ -27,7 +36,7 @@ const markup='<main id="studioApp"><div id="moduleWorkspace" data-module-key="st
 '<button data-stream-tab="podcast" aria-selected="true"><b>lwa radio</b></button>'+
 '<button data-stream-tab="lwa-tv" aria-selected="false"><b>lwa tv</b></button>'+
 '<button data-stream-tab="live" aria-selected="false"><b>live</b></button>'+
-'<button data-stream-tab="sqwibz" aria-selected="false"><b>watchable sqwibz</b></button>'+
+'<button data-stream-tab="sqwibz" aria-selected="false"><b>sqwidz</b></button>'+
 '</div></nav></section></div></div></div></main>';
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+markup+'</body></html>',{
  url:'https://biglwa.com/studio/stream',pretendToBeVisual:true,runScripts:'outside-only'
@@ -47,7 +56,7 @@ await new Promise(resolve=>setTimeout(resolve,90));
 const header=d.querySelector('.module-heading');
 const row=header.querySelector('.module-heading-right .stream-heading-versions');
 assert.ok(header.classList.contains('module-heading--with-versions'),'Stream header uses same Sqwibz layout');
-assert.equal(row?.children.length,4,'Four compact Stream channels including watchable Sqwibz');
+assert.equal(row?.children.length,4,'Four compact Stream channels including Sqwidz');
 assert.ok(root.querySelector('.stream-nav .stream-channels'),'Original handlers stay inside Stream');
 row.querySelector('[data-stream-heading-tab="lwa-tv"]').click();
 await new Promise(resolve=>setTimeout(resolve,50));
@@ -56,7 +65,7 @@ assert.equal(row.querySelector('[data-stream-heading-tab="lwa-tv"]').getAttribut
 row.querySelector('[data-stream-heading-tab="sqwibz"]').click();
 await new Promise(resolve=>setTimeout(resolve,50));
 assert.equal(activated,'sqwibz','Sqwibz joins the channel controls rather than appearing beneath the header');
-assert.equal(row.querySelector('[data-stream-heading-tab="sqwibz"]').getAttribute('aria-selected'),'true','Watchable Sqwibz becomes the selected channel');
+assert.equal(row.querySelector('[data-stream-heading-tab="sqwibz"]').getAttribute('aria-selected'),'true','Sqwidz becomes the selected channel');
 assert.equal(root.querySelectorAll('[data-stream-tab]').length,4,'No duplicate native Stream controls');
 dom.window.close();
 console.log('PASS Stream options align with title; original tabs work; wordmark-only loader and transparent header above masked content.');
