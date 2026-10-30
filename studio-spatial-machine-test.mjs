@@ -86,14 +86,25 @@ assert(!d.querySelector('.biglwa-spatial-ghost'),'Full-sized drag ghost is clean
 
 // Skeleton Key is not a movable widget, but still occupies the first column.
 const guide=d.createElement('article');guide.className='card manifesto-card is-skeleton-open';
-guide.getBoundingClientRect=()=>rect(10,10,200,420);masonry.prepend(guide);
+guide.getBoundingClientRect=()=>rect(10,10,200,420);
+Object.defineProperty(guide,'offsetHeight',{configurable:true,get:()=>420});
+Object.defineProperty(guide,'scrollHeight',{configurable:true,get:()=>1400});
+masonry.prepend(guide);
 two.dataset.biglwaGridPosition='1:1';
 await new Promise(resolve=>setTimeout(resolve,65));
-assert(parseFloat(two.style.top)>=434,'Skeleton Key reserves its full height before the first widget');
+assert(parseFloat(two.style.top)>=434,'Skeleton Key reserves its visible height before the first widget');
+assert(parseFloat(two.style.top)<460,'Off-screen accordion scrollHeight cannot push the next widget down');
 assert.equal(two.dataset.biglwaGridPosition,'1:1','Opening the key never changes saved slots');
 guide.classList.remove('is-skeleton-open');guide.style.display='none';
 await new Promise(resolve=>setTimeout(resolve,65));
 assert.equal(parseFloat(two.style.top),0,'Closing the key reclaims the reserved space');
+const onboarding=read('studio-onboarding.js');
+assert(onboarding.includes('skeleton-green-cue'),'The green dot remains decorative on the ankh');
+assert(onboarding.includes('skeleton-window-minimize'),'The yellow Skeleton Key dot can minimize in place');
+assert(onboarding.includes('skeleton-window-close'),'The red Skeleton Key dot can close it');
+assert(onboarding.includes('skeleton-title-copy'),'Settings and heading share their own vertical stack');
+assert(onboarding.includes('rgb(var(--aura-rgb'),'The key uses the owner's Aura color');
+assert(onboarding.includes('max-height:min(620px,76vh)'),'The key scrolls within a bounded height');
 const css=read('studio-spatial-drag-20261029.css');
 assert(css.includes('position:absolute!important'),'Full-size cards are positioned independently of shared grid rows');
 assert(css.includes('display:block!important'),'Rigid grid-row sizing is disabled');
