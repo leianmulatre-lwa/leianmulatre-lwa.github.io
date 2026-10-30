@@ -36,14 +36,33 @@ function previewFaces(profile){if(!visitor()||!profile)return;publicProfile=prof
 }
 function paintLocks(){
  if(visitor())return;
- document.querySelectorAll('.sidebar-navigation-row .widget-audience-lock,#biglwaSkeletonSymbols .widget-audience-lock').forEach(button=>button.remove());
- const list=$('#biglwaWidgetVisibility');if(!list)return;
+ document.querySelectorAll('.sidebar-navigation-row .widget-audience-lock').forEach(button=>button.remove());
+ const list=$('#biglwaSkeletonSymbols');if(!list)return;
  const rows=document.querySelectorAll('#studioApp .sidebar-navigation-row[data-sidebar-route-row]');
  for(const row of rows){
   const key=row.dataset.sidebarRouteRow;if(!key||key==='home')continue;
-  let item=list.querySelector('[data-visibility-key="'+CSS.escape(key)+'"]');
-  if(!item){item=document.createElement('li');item.dataset.visibilityKey=key;const name=document.createElement('span');name.textContent=row.querySelector('.sidebar-route-label')?.textContent||key;const button=document.createElement('button');button.type='button';button.dataset.widgetAudience=key;button.className='widget-audience-lock';button.onclick=e=>{e.stopPropagation();openAudience(key)};item.append(name,button);list.append(item)}
-  const button=$('button',item),level=audience[key]||'everyone';button.textContent=level==='everyone'?'🔓':'🔒';button.title={everyone:'Everyone can see the preview',members:'Members only',private:'Only you'}[level];button.setAttribute('aria-label','Who can see '+key+' widget: '+level);
+  let item=list.querySelector('[data-widget-audience-key="'+CSS.escape(key)+'"]');
+  if(!item){
+   // Keep control of every widget, including those not in the short symbol guide.
+   item=document.createElement('li');item.className='tour-symbol-item';item.dataset.widgetAudienceKey=key;
+   const mark=document.createElement('span');mark.className='tour-symbol-mark';mark.setAttribute('aria-hidden','true');
+   const icon=row.querySelector('.sidebar-route-icon')?.cloneNode(true);
+   if(icon){icon.removeAttribute('id');mark.append(icon)}else mark.textContent='◈';
+   const info=document.createElement('span');info.className='tour-symbol-description';
+   const label=document.createElement('strong');label.textContent=row.querySelector('.sidebar-route-label')?.textContent||key;
+   const help=document.createElement('small');help.textContent='Widget visibility';info.append(label,help);
+   item.append(mark,info);list.append(item);
+  }
+  let button=item.querySelector('.widget-audience-lock');
+  if(!button){
+   button=document.createElement('button');button.type='button';button.dataset.widgetAudience=key;
+   button.className='widget-audience-lock';button.onclick=e=>{e.stopPropagation();openAudience(key)};
+   item.append(button);
+  }
+  const level=audience[key]||'everyone';
+  button.textContent=level==='everyone'?'🔓':'🔒';
+  button.title={everyone:'Everyone can see the preview',members:'Members only',private:'Only you'}[level];
+  button.setAttribute('aria-label','Who can see '+key+' widget: '+level);
  }
 }
 function openAudience(key){let dialog=$('#widgetAudienceDialog');if(dialog)dialog.remove();dialog=document.createElement('dialog');dialog.id='widgetAudienceDialog';const name=document.querySelector('[data-sidebar-route-row="'+CSS.escape(key)+'"] .sidebar-route-label')?.textContent||key;const title=document.createElement('h2');title.textContent=name+' · visibility';const help=document.createElement('p');help.textContent='Choose who sees this widget preview. Private drafts and editing tools remain protected.';const select=document.createElement('select');select.setAttribute('aria-label','Widget audience');for(const [value,label]of [['everyone','Everyone'],['members','Signed-in members'],['private','Only me']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option)}select.value=audience[key]||'everyone';const save=document.createElement('button');save.textContent='Save';const close=document.createElement('button');close.textContent='Close';close.onclick=()=>dialog.close();const status=document.createElement('p');status.setAttribute('role','status');save.onclick=async()=>{save.disabled=true;try{const next={...audience,[key]:select.value},result=await request({widgetAudience:next});audience=result.widgetAudience;paintLocks();status.textContent='Saved to your account.'}catch(e){status.textContent=e.message}finally{save.disabled=false}};dialog.append(title,help,select,save,close,status);document.body.append(dialog);dialog.showModal()}

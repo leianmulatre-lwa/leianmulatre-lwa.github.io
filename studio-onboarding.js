@@ -167,7 +167,7 @@
    #studioApp .biglwa-skeleton-hub .skeleton-rainbow-heading{font:800 11px/1.3 system-ui;letter-spacing:.065em;text-transform:lowercase;margin:5px 0 0}
    #studioApp #biglwaSkeletonKeysToggle:hover,#studioApp #biglwaSkeletonKeysToggle:focus-visible{background:#4e142e!important;outline:2px solid #a65c7f!important;outline-offset:2px}
    #studioApp .manifesto-card.is-skeleton-open{display:block!important;min-height:230px;max-height:none!important;overflow:visible!important}
-   #studioApp .manifesto-card.is-skeleton-open>:not(.biglwa-tour-actions):not(.biglwa-skeleton-hub){display:none!important}
+   #studioApp .manifesto-card.is-skeleton-open>:not(.biglwa-tour-actions):not(.biglwa-skeleton-hub):not(.skeleton-pin-marker){display:none!important}
    #studioApp .manifesto-card .biglwa-skeleton-hub[hidden]{display:none!important}
    #studioApp .manifesto-card .biglwa-skeleton-hub{display:grid;gap:11px;margin:0;padding:16px 12px 8px;color:#4a3344}
    #studioApp .biglwa-skeleton-hub h2{font:400 27px/1.1 "CS Bergamot Stitched",Georgia,serif;margin:0}
@@ -503,6 +503,76 @@
    #studioApp .biglwa-skeleton-title .skeleton-settings{padding:5px 8px!important}
    #studioApp .manifesto-card.is-skeleton-open.is-skeleton-collapsed{padding:29px 13px 10px!important}
 
+
+   /* Compact title remains readable both fully expanded and minimized. */
+   #studioApp .masonry > .manifesto-card.is-skeleton-open{padding:19px 13px 12px!important}
+   #studioApp .manifesto-card.is-skeleton-open > #biglwaSkeletonHub{
+    max-height:calc(min(620px,76vh) - 34px)!important;overflow-y:auto!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-title{
+    margin:0!important;padding:0 0 10px!important;min-height:46px!important;align-items:start!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-title .skeleton-title-mark{
+    align-self:start!important;margin:0!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-title .skeleton-title-copy{
+    margin:0!important;padding:0!important;
+   }
+   #studioApp .masonry > .manifesto-card.is-skeleton-open.is-skeleton-collapsed{
+    padding:14px 13px 9px!important;min-height:70px!important;max-height:none!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed > #biglwaSkeletonHub{
+    overflow:visible!important;max-height:none!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title{
+    padding:0!important;min-height:46px!important;align-items:center!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title .skeleton-title-copy{
+    justify-content:center!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title h2{
+    display:block!important;visibility:visible!important;
+    font-size:clamp(19px,2vw,29px)!important;line-height:1.2!important;
+   }
+   #studioApp .manifesto-card .skeleton-green-cue{display:none!important}
+   #studioApp .manifesto-card.is-skeleton-open .skeleton-pin-marker{
+    display:block!important;position:absolute!important;top:3px!important;left:50%!important;
+    width:22px!important;height:22px!important;z-index:7!important;
+    transform:translateX(-50%)!important;pointer-events:none!important;
+    border:0!important;background:transparent!important;box-shadow:none!important;
+   }
+   #studioApp .manifesto-card .skeleton-pin-marker img{
+    display:block!important;width:22px!important;height:22px!important;object-fit:contain!important;filter:none!important;
+   }
+   #studioApp .biglwa-skeleton-hub .skeleton-visibility-note{
+    margin:3px 9px 5px!important;font:500 11px/1.4 system-ui!important;color:inherit!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols{
+    grid-template-columns:1fr!important;max-height:280px!important;overflow:auto!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .tour-symbol-item{
+    display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important;
+    padding:5px 7px!important;border-bottom:1px solid rgba(80,50,66,.12)!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .tour-symbol-description{
+    flex:1 1 auto!important;min-width:0!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .widget-audience-lock{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    flex:0 0 32px!important;width:32px!important;height:30px!important;min-width:32px!important;
+    padding:1px!important;margin-left:auto!important;background:rgba(255,255,255,.32)!important;
+    border:1px solid rgba(70,45,65,.26)!important;border-radius:8px!important;
+    font-size:17px!important;cursor:pointer!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .widget-audience-lock:focus-visible{
+    outline:2px solid currentColor!important;outline-offset:2px!important;
+   }
+   @media(max-width:480px){
+    #studioApp .manifesto-card.is-skeleton-open .skeleton-pin-marker{
+     left:auto!important;right:57px!important;transform:none!important;
+    }
+   }
+
 `;
   document.head.append(css);
  }
@@ -598,7 +668,7 @@
   if(hub)return hub;
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
   hub.setAttribute('aria-label','Skeleton Key for the individual');
-  hub.innerHTML='<div class="biglwa-skeleton-title"><span class="skeleton-title-mark" aria-hidden="true"><img src="/assets/skeleton-keys-ankh.svg" alt=""><span class="skeleton-green-cue"></span></span><div class="skeleton-title-copy"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div></div>'+
+  hub.innerHTML='<div class="biglwa-skeleton-title"><span class="skeleton-title-mark" aria-hidden="true"><img src="/assets/skeleton-keys-ankh.svg" alt=""></span><div class="skeleton-title-copy"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div></div>'+
    '<details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
    '<details class="skeleton-body-legend"><summary>Body shadow key</summary><div class="skeleton-body-models">'+
    '<figure style="--model-shadow:#d9c6ee"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Individual</figcaption></figure>'+
@@ -609,8 +679,7 @@
    '<p class="skeleton-shadow-explanation">Each tile has one platform-colored shadow. Its ivory face stays consistent across the network.</p>'+
    (window.BigLWAShadowKey?.render?.('skeleton')||'<p class="skeleton-shadow-explanation">Platform preview is loading.</p>')+
    '</div></details>'+
-   '<details class="skeleton-symbol-details"><summary>Symbol key</summary><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools"></ul></details>'+
-   '<details class="skeleton-visibility-details"><summary>🔒 Widget visibility</summary><ul id="biglwaWidgetVisibility" aria-label="Widget visibility"></ul></details>'+
+   '<details class="skeleton-symbol-details skeleton-symbol-visibility-details"><summary>Symbol &amp; visibility key</summary><p class="skeleton-visibility-note">Choose the lock beside a symbol to manage who can see its widget preview.</p><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Studio symbols and widget visibility"></ul></details>'+
    '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>'+
    '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>';
   hub.querySelectorAll(':scope > details').forEach(section=>section.addEventListener('toggle',()=>{if(section.open)hub.querySelectorAll(':scope > details').forEach(other=>{if(other!==section)other.open=false})}));
@@ -625,8 +694,9 @@
       else slot.insertAdjacentHTML('beforeend',markup);
     }
   });
-  $('.skeleton-visibility-details',hub).addEventListener('toggle',event=>{if(event.target.open)window.BigLWAProfileRepair?.paintLocks?.()});
-  $('.skeleton-symbol-details',hub).addEventListener('toggle',event=>{if(event.target.open)renderSymbolKey($('#biglwaSkeletonSymbols',hub))});
+  $('.skeleton-symbol-details',hub).addEventListener('toggle',event=>{
+   if(event.target.open)renderSymbolKey($('#biglwaSkeletonSymbols',hub));
+  });
   const indicators=$('#skeletonBodyIndicators',hub);indicators.checked=window.BigLWAThreeBodies?.enabled?.()!==false;
   indicators.addEventListener('change',()=>window.BigLWAThreeBodies?.setEnabled(indicators.checked));
   const hints=$('#skeletonHideHints',hub);
@@ -684,6 +754,12 @@
   const next=$('#studioApp .manifesto-card');
   if(!next)return false;
   card=next;style();currentUid=uid();
+  if(!card.querySelector('.skeleton-pin-marker')){
+   const marker=document.createElement('span');marker.className='skeleton-pin-marker';
+   marker.setAttribute('aria-hidden','true');
+   const pin=document.createElement('img');pin.src='/assets/skeleton-key-pin-32.png?v=20261029-1';pin.alt='';
+   pin.width=22;pin.height=22;marker.append(pin);card.append(marker);
+  }
   if(!card.classList.contains('is-skeleton-open'))card.classList.toggle('is-tutorial-dismissed',readDismissed());
   const hub=skeletonHub();
   if(!readDismissed()){card.classList.add('is-skeleton-open');hub.hidden=false}
