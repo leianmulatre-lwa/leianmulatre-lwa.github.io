@@ -7,7 +7,7 @@
  const base='/assets/studio-defaults/';
  const images={
   archive:base+'archive-windows-hill.webp?v=20261029-win-default-2',
-  visualizr:base+'visualizr-stick-animation.webp',
+  visualizr:base+'visualizr-dotted-canvas.webp',
   map:base+'map-bikini-bottom-fallback.webp',
   trophy:base+'trophy-achievement-made.webp'
  };
@@ -42,7 +42,7 @@
   const imgs=[...holder.querySelectorAll('img')];
   if(!imgs.length)return;
   if(imgs.some(img=>!/(?:projects-studio|studio-pink|projects-pink)/.test(img.getAttribute('src')||'')))return;
-  imgs.forEach(img=>{img.src=images.visualizr;img.alt='Classic stick-figure animation on an editing timeline';img.classList.add('biglwa-stick-visualizr-photo')});
+  imgs.forEach(img=>{img.src=images.visualizr;img.alt='Visual·eyez dotted paper canvas — eye out projects; create & load presentations';img.classList.add('biglwa-stick-visualizr-photo')});
   holder.dataset.biglwaDefault20261029='1';
   holder.classList.add('biglwa-default-visualizr-image');
  }
