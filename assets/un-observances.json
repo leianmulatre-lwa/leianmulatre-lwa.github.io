@@ -1,7 +1,7 @@
 {
   "source": "https://www.un.org/en/observances/list-days-weeks",
-  "retrievedFrom": "https://indonesia.un.org/en/291543-list-international-days-and-weeks",
-  "updatedAt": "2026-10-29T16:30:31.857237+00:00",
+  "retrievedFrom": "https://www.un.org/en/observances/list-days-weeks",
+  "updatedAt": "2026-10-30T15:59:07.007522+00:00",
   "items": [
     {
       "month": 1,
@@ -11,21 +11,9 @@
     },
     {
       "month": 1,
-      "day": 14,
-      "title": "World Logic Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/world-logic?hub=180536"
-    },
-    {
-      "month": 1,
       "day": 24,
       "title": "International Day of Education",
       "url": "https://www.un.org/en/observances/education-day"
-    },
-    {
-      "month": 1,
-      "day": 25,
-      "title": "International Day of Women in Multilateralism [UNESCO]",
-      "url": "https://www.unesco.org/en/days/women-multilateralism?hub=180536"
     },
     {
       "month": 1,
@@ -44,12 +32,6 @@
       "day": 28,
       "title": "International Day of Peaceful Coexistence",
       "url": "https://www.un.org/en/observances/peaceful-coexistence-day"
-    },
-    {
-      "month": 1,
-      "day": 30,
-      "title": "World Neglected Tropical Diseases Day [WHO]",
-      "url": "https://www.who.int/campaigns/world-ntd-day"
     },
     {
       "month": 2,
@@ -128,13 +110,13 @@
       "month": 3,
       "day": 1,
       "title": "World Seagrass Day",
-      "url": "https://www.un.org/en/observances/world-seagrass-day"
+      "url": "https://www.un.org/en/observances/seagrass-day"
     },
     {
       "month": 3,
       "day": 1,
-      "title": "Zero Discrimination Day",
-      "url": "https://www.un.org/en/observances/zero-discrimination-day"
+      "title": "Zero Discrimination Day [UNAIDS]",
+      "url": "https://www.unaids.org/en/zero-discrimination-day"
     },
     {
       "month": 3,
@@ -144,57 +126,39 @@
     },
     {
       "month": 3,
-      "day": 4,
-      "title": "World Engineering Day for Sustainable Development [UNESCO]",
-      "url": "https://www.unesco.org/en/days/engineering-sustainable-development?hub=180536"
-    },
-    {
-      "month": 3,
       "day": 5,
       "title": "International Day for Disarmament and Non-Proliferation Awareness",
-      "url": "https://www.un.org/en/observances/international-day-for-disarmament-and-non-proliferation-awareness"
+      "url": "https://www.un.org/en/observances/disarmament-non-proliferation-awareness-day"
     },
     {
       "month": 3,
       "day": 8,
       "title": "International Women's Day",
-      "url": "https://www.un.org/en/observances/international-womens-day"
+      "url": "https://www.un.org/en/observances/womens-day"
     },
     {
       "month": 3,
       "day": 10,
       "title": "International Day of Women Judges",
-      "url": "https://www.un.org/en/observances/international-day-of-women-judges"
-    },
-    {
-      "month": 3,
-      "day": 14,
-      "title": "International Day of Mathematics [UNESCO]",
-      "url": "https://www.unesco.org/en/days/mathematics?hub=180536"
+      "url": "https://www.un.org/en/observances/women-judges-day"
     },
     {
       "month": 3,
       "day": 15,
       "title": "International Day to Combat Islamophobia",
-      "url": "https://www.un.org/en/observances/international-day-to-combat-islamophobia"
-    },
-    {
-      "month": 3,
-      "day": 19,
-      "title": "International Day for Digital Learning [UNESCO]",
-      "url": "https://www.unesco.org/en/days/digital-learning?hub=180536"
+      "url": "https://www.un.org/en/observances/anti-islamophobia-day"
     },
     {
       "month": 3,
       "day": 20,
       "title": "French Language Day",
-      "url": "https://www.un.org/en/observances/french-language-day"
+      "url": "https://www.un.org/fr/observances/french-language-day/"
     },
     {
       "month": 3,
       "day": 20,
       "title": "International Day of Happiness",
-      "url": "https://www.un.org/en/observances/international-day-of-happiness"
+      "url": "https://www.un.org/en/observances/happiness-day"
     },
     {
       "month": 3,
@@ -225,7 +189,7 @@
       "month": 3,
       "day": 21,
       "title": "World Day for Glaciers",
-      "url": "https://www.un.org/en/observances/world-day-for-glaciers"
+      "url": "https://www.un.org/en/observances/world-glaciers-day"
     },
     {
       "month": 3,
@@ -332,8 +296,8 @@
     {
       "month": 4,
       "day": 15,
-      "title": "World Art Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/world-art?hub=180536"
+      "title": "International Wellness Day",
+      "url": "https://www.un.org/en/observances/wellness-day"
     },
     {
       "month": 4,
@@ -350,6 +314,12 @@
     {
       "month": 4,
       "day": 22,
+      "title": "International Day of Greening the Planet",
+      "url": "https://docs.un.org/A/RES/80/300"
+    },
+    {
+      "month": 4,
+      "day": 22,
       "title": "International Mother Earth Day",
       "url": "https://www.un.org/en/observances/earth-day"
     },
@@ -358,6 +328,12 @@
       "day": 23,
       "title": "English Language Day",
       "url": "https://www.un.org/en/observances/english-language-day"
+    },
+    {
+      "month": 4,
+      "day": 23,
+      "title": "International Girls in ICT Day [ITU]",
+      "url": "https://www.itu.int/women-and-girls/girls-in-ict/"
     },
     {
       "month": 4,
@@ -376,12 +352,6 @@
       "day": 24,
       "title": "International Day of Multilateralism and Diplomacy for Peace",
       "url": "https://www.un.org/en/observances/Multilateralism-for-Peace-day"
-    },
-    {
-      "month": 4,
-      "day": 24,
-      "title": "International Girls in ICT Day [ITU]",
-      "url": "https://www.itu.int/women-and-girls/girls-in-ict/"
     },
     {
       "month": 4,
@@ -424,7 +394,7 @@
       "month": 4,
       "day": 29,
       "title": "International Day in Memory of the Victims of Earthquakes",
-      "url": "https://www.un.org/en/observances/list-days-weeks"
+      "url": "https://www.un.org/en/observances/earthquake-victims-day"
     },
     {
       "month": 4,
@@ -454,12 +424,6 @@
     {
       "month": 5,
       "day": 5,
-      "title": "African World Heritage Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/african-world-heritage?hub=180536"
-    },
-    {
-      "month": 5,
-      "day": 5,
       "title": "World Portuguese Language Day [UNESCO]",
       "url": "https://www.unesco.org/en/days/portuguese-language"
     },
@@ -471,13 +435,7 @@
     },
     {
       "month": 5,
-      "day": 10,
-      "title": "International Day of Argania",
-      "url": "https://www.un.org/en/observances/argania-day"
-    },
-    {
-      "month": 5,
-      "day": 10,
+      "day": 9,
       "title": "World Migratory Bird Day [UNEP]",
       "url": "https://www.un.org/en/observances/list-days-weeks",
       "weekdayRule": [
@@ -485,6 +443,12 @@
         5,
         2
       ]
+    },
+    {
+      "month": 5,
+      "day": 10,
+      "title": "International Day of Argania",
+      "url": "https://www.un.org/en/observances/argania-day"
     },
     {
       "month": 5,
@@ -527,12 +491,6 @@
       "day": 20,
       "title": "World Bee Day [FAO]",
       "url": "https://www.fao.org/world-bee-day/en"
-    },
-    {
-      "month": 5,
-      "day": 20,
-      "title": "World Metrology Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/metrology?hub=180536"
     },
     {
       "month": 5,
@@ -890,12 +848,6 @@
     },
     {
       "month": 7,
-      "day": 26,
-      "title": "International Day for the Conservation of the Mangrove Ecosystem [UNESCO]",
-      "url": "https://www.unesco.org/en/days/mangrove-ecosystem-conservation?hub=180536"
-    },
-    {
-      "month": 7,
       "day": 28,
       "title": "World Hepatitis Day [WHO]",
       "url": "https://www.who.int/campaigns/world-hepatitis-day"
@@ -992,6 +944,12 @@
       "url": "https://www.un.org/en/observances/african-descent-day"
     },
     {
+      "month": 8,
+      "day": 31,
+      "title": "International Day of Safe, Secure and Trustworthy Artificial Intelligence",
+      "url": "https://docs.un.org/A/RES/80/302"
+    },
+    {
       "month": 9,
       "day": 5,
       "title": "International Day of Charity",
@@ -1001,7 +959,7 @@
       "month": 9,
       "day": 5,
       "title": "International Day of the World’s Indigenous Women and Girls",
-      "url": "https://docs.un.org/en/A/RES/80/10"
+      "url": "https://www.un.org/en/observances/indigenous-women-day"
     },
     {
       "month": 9,
@@ -1078,12 +1036,6 @@
     {
       "month": 9,
       "day": 20,
-      "title": "International Day of University Sport [UNESCO]",
-      "url": "https://www.unesco.org/en/days/university-sport?hub=180536"
-    },
-    {
-      "month": 9,
-      "day": 20,
       "title": "World Cleanup Day",
       "url": "https://www.un.org/en/observances/cleanup-day"
     },
@@ -1101,7 +1053,7 @@
     },
     {
       "month": 9,
-      "day": 25,
+      "day": 24,
       "title": "World Maritime Day",
       "url": "https://www.un.org/en/observances/maritime-day",
       "weekdayRule": [
@@ -1119,8 +1071,8 @@
     {
       "month": 9,
       "day": 27,
-      "title": "World Tourism Day",
-      "url": "https://www.un.org/en/observances/tourism-day"
+      "title": "World Tourism Day [UN Tourism]",
+      "url": "https://www.untourism.int/world-tourism-day-2026"
     },
     {
       "month": 9,
@@ -1131,14 +1083,20 @@
     {
       "month": 9,
       "day": 29,
-      "title": "International Day of Awareness of Food Loss and Waste",
-      "url": "https://www.un.org/en/observances/end-food-waste-day/"
+      "title": "International Day of Awareness of Food Loss and Waste [FAO]",
+      "url": "https://www.fao.org/platform-food-loss-waste/flw-events/international-day-food-loss-and-waste/en"
     },
     {
       "month": 9,
       "day": 30,
       "title": "International Translation Day",
       "url": "https://www.un.org/en/observances/international-translation-day"
+    },
+    {
+      "month": 10,
+      "day": 1,
+      "title": "International Coffee Day",
+      "url": "https://www.un.org/en/observances/coffee-day"
     },
     {
       "month": 10,
@@ -1168,12 +1126,6 @@
     {
       "month": 10,
       "day": 6,
-      "title": "International Geodiversity Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/geodiversity?hub=180536"
-    },
-    {
-      "month": 10,
-      "day": 6,
       "title": "World Habitat Day",
       "url": "https://www.un.org/en/observances/habitat-day",
       "weekdayRule": [
@@ -1187,6 +1139,17 @@
       "day": 7,
       "title": "World Cotton Day",
       "url": "https://www.un.org/en/observances/cotton-day"
+    },
+    {
+      "month": 10,
+      "day": 9,
+      "title": "World Migratory Bird Day [UNEP]",
+      "url": "https://www.un.org/en/observances/list-days-weeks",
+      "weekdayRule": [
+        10,
+        5,
+        2
+      ]
     },
     {
       "month": 10,
@@ -1205,17 +1168,6 @@
       "day": 11,
       "title": "International Day of the Girl Child",
       "url": "https://www.un.org/en/observances/girl-child-day"
-    },
-    {
-      "month": 10,
-      "day": 11,
-      "title": "World Migratory Bird Day [UNEP]",
-      "url": "https://www.un.org/en/observances/list-days-weeks",
-      "weekdayRule": [
-        10,
-        5,
-        2
-      ]
     },
     {
       "month": 10,
@@ -1240,12 +1192,6 @@
       "day": 17,
       "title": "International Day for the Eradication of Poverty",
       "url": "https://www.un.org/en/observances/day-for-eradicating-poverty"
-    },
-    {
-      "month": 10,
-      "day": 17,
-      "title": "International Day of the Intangible Cultural Heritage [UNESCO]",
-      "url": "https://www.unesco.org/en/days/intangible-heritage?hub=180536"
     },
     {
       "month": 10,
@@ -1293,12 +1239,6 @@
     },
     {
       "month": 10,
-      "day": 29,
-      "title": "World Coding Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/coding?hub=180536"
-    },
-    {
-      "month": 10,
       "day": 31,
       "title": "World Cities Day",
       "url": "https://www.un.org/en/observances/cities-day"
@@ -1311,27 +1251,9 @@
     },
     {
       "month": 11,
-      "day": 3,
-      "title": "International Day for Biosphere Reserves [UNESCO]",
-      "url": "https://www.unesco.org/en/days/biosphere-reserves?hub=180536"
-    },
-    {
-      "month": 11,
-      "day": 5,
-      "title": "World Day of Romani Language [UNESCO]",
-      "url": "https://www.unesco.org/en/days/romani-language?hub=180536"
-    },
-    {
-      "month": 11,
       "day": 5,
       "title": "World Tsunami Awareness Day",
       "url": "https://www.un.org/en/observances/tsunami-awareness-day"
-    },
-    {
-      "month": 11,
-      "day": 6,
-      "title": "International Day against Violence and Bullying at School, including Cyberbullying [UNESCO]",
-      "url": "https://www.unesco.org/en/days/against-school-violence-and-bullying?hub=180536"
     },
     {
       "month": 11,
@@ -1355,12 +1277,6 @@
     {
       "month": 11,
       "day": 14,
-      "title": "International Day against Illicit Trafficking in Cultural Property [UNESCO]",
-      "url": "https://www.unesco.org/en/days/against-illicit-trafficking?hub=180536"
-    },
-    {
-      "month": 11,
-      "day": 14,
       "title": "World Diabetes Day",
       "url": "https://www.un.org/en/observances/diabetes-day"
     },
@@ -1372,21 +1288,15 @@
     },
     {
       "month": 11,
-      "day": 15,
-      "title": "World Prematurity Day [WHO]",
-      "url": "https://www.who.int/campaigns/world-prematurity-day"
-    },
-    {
-      "month": 11,
       "day": 16,
       "title": "International Day for Tolerance [UNESCO]",
       "url": "https://www.unesco.org/en/days/tolerance"
     },
     {
       "month": 11,
-      "day": 17,
-      "title": "World Cervical Cancer Elimination Day [WHO]",
-      "url": "https://www.who.int/campaigns/world-cervical-cancer-elimination-day"
+      "day": 16,
+      "title": "International Day of the Mediterranean Diet",
+      "url": "https://docs.un.org/en/A/RES/80/174"
     },
     {
       "month": 11,
@@ -1398,12 +1308,6 @@
         6,
         3
       ]
-    },
-    {
-      "month": 11,
-      "day": 18,
-      "title": "International Day of Islamic Art [UNESCO]",
-      "url": "https://www.unesco.org/en/international-day-islamic-art?hub=180536"
     },
     {
       "month": 11,
@@ -1468,14 +1372,14 @@
     {
       "month": 11,
       "day": 26,
-      "title": "World Olive Tree Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/world-olive-tree?hub=180536"
+      "title": "World Sustainable Transport Day",
+      "url": "https://www.un.org/en/observances/sustainable-transport-day"
     },
     {
       "month": 11,
-      "day": 26,
-      "title": "World Sustainable Transport Day",
-      "url": "https://www.un.org/en/observances/sustainable-transport-day"
+      "day": 27,
+      "title": "International Day for the Elimination of Child, Early and Forced Marriage",
+      "url": "https://docs.un.org/A/RES/80/309"
     },
     {
       "month": 11,
@@ -1500,12 +1404,6 @@
       "day": 2,
       "title": "International Day for the Abolition of Slavery",
       "url": "https://www.un.org/en/observances/slavery-abolition-day"
-    },
-    {
-      "month": 12,
-      "day": 2,
-      "title": "World Futures Day [UNESCO]",
-      "url": "https://www.unesco.org/en/days/world-futures?hub=180536"
     },
     {
       "month": 12,
@@ -1587,6 +1485,12 @@
     },
     {
       "month": 12,
+      "day": 15,
+      "title": "World Turkic Language Family Day [UNESCO]",
+      "url": "https://unesdoc.unesco.org/ark:/48223/pf0000396088"
+    },
+    {
+      "month": 12,
       "day": 18,
       "title": "Arabic Language Day",
       "url": "https://www.un.org/en/observances/arabiclanguageday"
@@ -1596,6 +1500,12 @@
       "day": 18,
       "title": "International Migrants Day",
       "url": "https://www.un.org/en/observances/migrants-day"
+    },
+    {
+      "month": 12,
+      "day": 19,
+      "title": "International Day of Recognition for Women Searchers of Missing Persons",
+      "url": "https://docs.un.org/A/RES/80/301"
     },
     {
       "month": 12,
