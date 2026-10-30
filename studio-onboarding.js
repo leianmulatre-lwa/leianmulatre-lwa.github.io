@@ -379,14 +379,86 @@
    body.night-mode #studioApp .skeleton-quick-actions :is(#skeletonKeyLauncher,#skeletonVeveLauncher):is(:hover,:focus-visible){
     background:rgba(97,184,129,.30)!important;outline-color:#a4d8b6!important;
    }
-  `;
+  
+   /* The Skeleton Key is an independently scrollable non-draggable window. */
+   #studioApp .manifesto-card.is-skeleton-open{
+    min-height:0!important;max-height:min(620px,76vh)!important;
+    height:auto!important;overflow:hidden!important;isolation:isolate!important;
+    padding:38px 13px 12px!important
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-hub{
+    flex:0 1 auto!important;min-height:0!important;
+    max-height:calc(min(620px,76vh) - 56px)!important;
+    overflow-y:auto!important;overflow-x:hidden!important;
+    overscroll-behavior:contain;scrollbar-width:thin
+   }
+   #studioApp .biglwa-skeleton-title{
+    display:grid!important;grid-template-columns:30px minmax(0,1fr)!important;
+    align-items:start!important;gap:10px!important;padding:0 0 12px!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark{
+    position:relative!important;display:block!important;width:30px!important;height:39px!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark img{
+    width:29px!important;height:38px!important;display:block!important;object-fit:contain!important
+   }
+   #studioApp .skeleton-green-cue{
+    position:absolute!important;top:0!important;right:-3px!important;
+    display:block!important;width:10px!important;height:10px!important;
+    border:2px solid #fff5ea!important;border-radius:50%!important;
+    background:#51a96b!important;box-sizing:content-box!important;pointer-events:none!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-copy{
+    display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+    gap:9px!important;min-width:0!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-settings{
+    grid-column:auto!important;justify-self:auto!important;position:static!important;
+    display:inline-flex!important;align-self:flex-start!important;margin:0!important
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions{
+    position:absolute!important;right:12px!important;top:9px!important;
+    display:flex!important;gap:9px!important;align-items:center!important;
+    z-index:8!important;margin:0!important
+   }
+   #studioApp .manifesto-card .biglwa-tour-actions :is(.skeleton-window-minimize,.skeleton-window-close){
+    appearance:none!important;display:block!important;flex:0 0 16px!important;
+    width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;
+    padding:0!important;border:1px solid #49373975!important;border-radius:50%!important;
+    font-size:0!important;line-height:0!important;cursor:pointer!important;
+    box-shadow:0 1px 2px #2d1a263b!important
+   }
+   #studioApp .manifesto-card .biglwa-tour-actions .skeleton-window-minimize{background:#f0d251!important}
+   #studioApp .manifesto-card .biglwa-tour-actions .skeleton-window-close{background:#e86771!important}
+   #studioApp .manifesto-card.is-skeleton-open.is-skeleton-collapsed{
+    min-height:0!important;max-height:none!important;overflow:hidden!important;
+    padding:30px 12px 9px!important
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-hub{
+    overflow:hidden!important;max-height:none!important;gap:0!important
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-hub > :not(.biglwa-skeleton-title){display:none!important}
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title{
+    padding-bottom:0!important;border-bottom:0!important
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .skeleton-settings{display:none!important}
+   #studioApp .biglwa-skeleton-hub{
+    background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 67%,#fff6ed)!important;
+    border:1px solid color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 77%,#ffffff)!important
+   }
+   body.night-mode #studioApp .biglwa-skeleton-hub{
+    background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 47%,#29212b)!important;
+    border-color:rgba(var(--aura-rgb,216,95,109),.85)!important
+   }
+`;
   document.head.append(css);
  }
  async function dismiss(){
   currentUid=uid();
   try{localStorage.setItem(key(),'1')}catch{}
-  card?.classList.remove('is-skeleton-open');
+  card?.classList.remove('is-skeleton-open','is-skeleton-collapsed');
   $('#biglwaSkeletonHub',card)?.setAttribute('hidden','');
+  window.dispatchEvent(new Event('biglwa:skeleton-layout-changed'));
   card?.classList.add('is-tutorial-dismissed');
   dialog?.close();
   // Session customization is private and stored under the account. Do not
@@ -473,7 +545,7 @@
   if(hub)return hub;
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
   hub.setAttribute('aria-label','Skeleton Key for the individual');
-  hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div>'+
+  hub.innerHTML='<div class="biglwa-skeleton-title"><span class="skeleton-title-mark" aria-hidden="true"><img src="/assets/skeleton-keys-ankh.svg" alt=""><span class="skeleton-green-cue"></span></span><div class="skeleton-title-copy"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div></div>'+
    '<details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
    '<details class="skeleton-body-legend"><summary>Body shadow key</summary><div class="skeleton-body-models">'+
    '<figure style="--model-shadow:#d9c6ee"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Individual</figcaption></figure>'+
@@ -520,9 +592,12 @@
   if(!card)return;
   const hub=skeletonHub();
   if(!hub)return;
-  card.classList.remove('is-tutorial-dismissed');
+  card.classList.remove('is-tutorial-dismissed','is-skeleton-collapsed');
   card.classList.add('is-skeleton-open');
   hub.hidden=false;
+  const minimize=card.querySelector('[data-skeleton-minimize]');
+  if(minimize){minimize.setAttribute('aria-expanded','true');minimize.setAttribute('aria-label','Minimize Skeleton Key');minimize.title='Minimize Skeleton Key'}
+  window.dispatchEvent(new Event('biglwa:skeleton-layout-changed'));
   // The visible class overrides the saved dismissal only for this open session.
   card.scrollIntoView?.({behavior:'smooth',block:'nearest'});
  }
@@ -559,13 +634,27 @@
   if(!card.classList.contains('is-skeleton-open'))card.classList.toggle('is-tutorial-dismissed',readDismissed());
   const hub=skeletonHub();
   if(!readDismissed()){card.classList.add('is-skeleton-open');hub.hidden=false}
-  if(!$('.biglwa-tour-actions',card)){
-   const actions=document.createElement('div');actions.className='biglwa-tour-actions';
-
+  let actions=$('.biglwa-tour-actions',card);
+  if(!actions){actions=document.createElement('div');actions.className='biglwa-tour-actions';card.append(actions)}
+  actions.setAttribute('role','group');actions.setAttribute('aria-label','Skeleton Key window controls');
+  if(!actions.querySelector('[data-skeleton-minimize]')){
+   const minimize=document.createElement('button');minimize.type='button';minimize.dataset.skeletonMinimize='';
+   minimize.className='skeleton-window-minimize';minimize.title='Minimize Skeleton Key';
+   minimize.setAttribute('aria-label','Minimize Skeleton Key');minimize.setAttribute('aria-expanded','true');
+   minimize.addEventListener('click',()=>{
+    const collapsed=card.classList.toggle('is-skeleton-collapsed');
+    minimize.setAttribute('aria-expanded',String(!collapsed));
+    minimize.setAttribute('aria-label',collapsed?'Expand Skeleton Key':'Minimize Skeleton Key');
+    minimize.title=collapsed?'Expand Skeleton Key':'Minimize Skeleton Key';
+    window.dispatchEvent(new Event('biglwa:skeleton-layout-changed'));
+   });
+   actions.prepend(minimize);
+  }
+  if(!actions.querySelector('[data-tour-dismiss]')){
    const remove=document.createElement('button');remove.type='button';remove.dataset.tourDismiss='';
-   remove.textContent='×';remove.title='Close Skeleton Key';remove.setAttribute('aria-label','Close Skeleton Key');
-   actions.append(remove);card.append(actions);
-   remove.addEventListener('click',dismiss);
+   remove.className='skeleton-window-close';remove.title='Close Skeleton Key';
+   remove.setAttribute('aria-label','Close Skeleton Key');
+   actions.append(remove);remove.addEventListener('click',dismiss);
   }
   if(new URLSearchParams(location.search).get('tutorial')==='1'){
    history.replaceState(history.state,'',location.pathname+location.hash);
