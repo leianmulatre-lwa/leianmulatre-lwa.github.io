@@ -7,7 +7,7 @@
  const base='/assets/studio-defaults/';
  const images={
   archive:base+'archive-windows-hill.webp?v=20261029-win-default-2',
-  visualizr:base+'visualizr-dotted-canvas.webp',
+  visualizr:base+'visualizr-dotted-canvas.webp?v=20261030-cropped-page-2',
   map:base+'map-bikini-bottom-fallback.webp',
   trophy:base+'trophy-achievement-made.webp'
  };
