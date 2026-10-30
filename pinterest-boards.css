@@ -391,3 +391,11 @@ html body #studioApp #pinterestBoards .pinterest-owned-section>header>p{display:
 .pn-board-destination footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .pn-board-destination .pn-destination-status{color:#573e39}
 @media(max-width:650px){.pn-preview-layout{grid-template-columns:1fr}.pn-preview-image>img{max-height:65dvh}.pn-pin-preview{padding:16px}.pn-preview-layout aside{min-width:0}}
+
+/* Pinterest board cover images remain inside the thumbnail face. */
+#pinterestBoards .pinterest-board{position:relative!important;isolation:isolate!important}
+#pinterestBoards .pinterest-board-media{box-sizing:border-box!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
+#pinterestBoards .pinterest-board-media img.pinterest-board-preview{
+ display:block!important;position:relative!important;inset:auto!important;width:100%!important;height:100%!important;
+ min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;
+}
