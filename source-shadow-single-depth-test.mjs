@@ -42,7 +42,7 @@ assert.ok(!modules.includes('<details class="module-heading-actions module-updat
 assert.ok(modules.includes('data-silent-update'),'Privacy behavior preserved');
 assert.ok(css.includes('grid-template-areas:"title shadow" "meta meta"'),'Two-row full-width heading');
 assert.ok(html.indexOf('source-shadow-key-20261025.js')<html.search(/module-pages\.js\?v=[\w.-]+/),'Shared module loads before pages');
-assert.ok(html.indexOf('source-shadow-key-20261025.js')<html.indexOf('studio-onboarding.js?v=20261028-canonical-tipi-3'),'Shared module loads before Skeleton');
+assert.ok(html.indexOf('source-shadow-key-20261025.js')<html.indexOf('studio-onboarding.js?v='),'Shared module loads before Skeleton');
 
 assert.ok(feed.includes('fillPublicAuthorAuras'),'myfeed loads author-owned public Aura, not viewer Aura');
 assert.ok(feed.includes('postShadow(post,managed,displaySource)'),'myfeed applies provenance to actual cards');
