@@ -50,3 +50,13 @@
 #studioApp .topbar{border:0!important;border-bottom:1px solid rgba(78,59,54,.23)!important;box-shadow:none!important;outline:0!important;background-clip:padding-box!important}
 #studioApp .topbar::after{content:none!important;display:none!important}
 #studioApp .main{border-top:0!important}
+
+/* Consistent search input length on owner and preview mastheads. */
+#studioApp .topbar.profile-header-repaired .search-wrap,
+html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired .search-wrap{
+ max-width:min(100%,760px)!important;width:100%!important;justify-self:start!important;
+}
+@media(max-width:900px){
+ #studioApp .topbar.profile-header-repaired .search-wrap,
+ html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired .search-wrap{max-width:100%!important}
+}
