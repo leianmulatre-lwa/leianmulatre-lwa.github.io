@@ -126,7 +126,7 @@ await check('submissions are disabled by default until the programming feature l
  assert.match((await disabled.json()).error,/future release/i);
  env.STREAM_REQUESTS_ENABLED='true'; // Existing editorial workflow remains regression-tested.
 });
-await check('LWA Radio keeps three channels with Ballroom under TV without a request form',async()=>{
+await check('Stream keeps Radio, TV and Live plus Sqwidz, with Ballroom under TV',async()=>{
  assert.ok(stream.includes("['podcast','lwa radio'"));
  assert.ok(stream.includes("['lwa-tv','lwa tv'"));
  assert.ok(stream.includes("['live','live'"));
@@ -178,7 +178,7 @@ await check('date-based shuffle is deterministic, changes by date, and manual sh
  assert.equal(serial(a),serial(same),'same date must have stable rotation');
  assert.notEqual(serial(a),serial(b),'the next date should rearrange channels');
  assert.notEqual(serial(a),serial(again),'manual shuffle should change selection order');
- assert.equal(a.length,3);
+ assert.equal(a.length,4,'Radio, TV, Live and Sqwidz each have their own channel');
  assert.ok(a.every(x=>x.slots.length===24));
  assert.ok(stream.includes("state.shuffleOffset++;renderGrid();renderFeaturedSlots()"));
 });
@@ -296,7 +296,7 @@ await check('Stream shares the same Studio header and page width as other widget
  assert.ok(style.includes('.biglwa-stream{width:100%;min-width:0;max-width:none}'));
  const mount=stream.slice(stream.indexOf(' function mount(host){'),stream.indexOf(' function jumpNow()'));
  assert.ok(mount.includes('class="stream-nav"'),'Stream retains a compact channel selector');
- assert.ok(mount.includes('class="stream-channels" role="tablist"'),'three channels remain navigable');
+ assert.ok(mount.includes('class="stream-channels" role="tablist"'),'all Stream channels remain navigable');
  assert.ok(!mount.includes('class="stream-mast"'),'duplicate hero header must be removed');
  assert.ok(!mount.includes('class="stream-testcard"'),'extra testcard masthead must be removed');
  assert.ok(!mount.includes('<h1>stream'),'Stream should use the shared H1 from heading()');
