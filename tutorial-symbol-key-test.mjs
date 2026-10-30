@@ -6,7 +6,7 @@ const src=read('studio-onboarding.js'),home=read('index.html');
 assert.doesNotThrow(()=>new vm.Script(src));
 assert.ok(home.includes('studio-onboarding.js?v='),
   'new visual tutorial version loads instead of cached text-only guide');
-assert.ok(src.includes('"visual":"symbols"')&&src.includes('Symbol key</summary>'),'Skeleton Keys shows visual symbols both in the tutorial and inline hub');
+assert.ok(src.includes('"visual":"symbols"')&&src.includes('Symbol &amp; visibility key</summary>'),'Skeleton Keys shows visual symbols both in the tutorial and inline hub');
 assert.ok(!src.includes('Hanger = Projects, chess piece = Arcade'),
   'old word-only dictionary is not displayed');
 assert.ok(src.includes('id="biglwaTourSymbolLegend"')&&src.includes('renderSymbolKey(legend)'));
