@@ -52,10 +52,11 @@ assert.ok(root.querySelector('.stream-nav .stream-channels'),'Original handlers 
 row.querySelector('[data-stream-heading-tab="lwa-tv"]').click();
 await new Promise(resolve=>setTimeout(resolve,50));
 assert.equal(activated,'lwa-tv','Header switch activates ORIGINAL Stream delegated player logic');
+assert.equal(row.querySelector('[data-stream-heading-tab="lwa-tv"]').getAttribute('aria-selected'),'true','Active channel state reflected in header');
 row.querySelector('[data-stream-heading-tab="sqwibz"]').click();
 await new Promise(resolve=>setTimeout(resolve,50));
 assert.equal(activated,'sqwibz','Sqwibz joins the channel controls rather than appearing beneath the header');
-assert.equal(row.querySelector('[data-stream-heading-tab="lwa-tv"]').getAttribute('aria-selected'),'true','Active channel state reflected in header');
+assert.equal(row.querySelector('[data-stream-heading-tab="sqwibz"]').getAttribute('aria-selected'),'true','Watchable Sqwibz becomes the selected channel');
 assert.equal(root.querySelectorAll('[data-stream-tab]').length,4,'No duplicate native Stream controls');
 dom.window.close();
 console.log('PASS Stream options align with title; original tabs work; wordmark-only loader and transparent header above masked content.');
