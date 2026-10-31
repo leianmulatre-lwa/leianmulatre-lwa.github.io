@@ -55,6 +55,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-lwazi-horizontal-regression-test.mjs
           node --check studio-tipi-navigation-20261026.js
           node studio-header-gutters-regression-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-board-search-visual-regression-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-nav-gutters-optical-regression-test.mjs
           node --check retro-browser-pages-20261029.js
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node retro-browser-pages-regression-test.mjs
