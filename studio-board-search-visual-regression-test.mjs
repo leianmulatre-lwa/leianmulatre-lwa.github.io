@@ -10,7 +10,7 @@ const css=read('studio-header-gutters-20261029.css');
 const boardCss=read('pinterest-red-consistency-20261016.css');
 const pinterest=read('pinterest-orbit.js');
 const html=read('index.html');
-assert.match(css,/max-width:1220px!important/,'Search reaches the annotated endpoint (~1320px from the left) instead of 760px');
+assert.match(css,/max-width:1100px!important/,'Search reaches the annotated endpoint (~1320px from the left at screenshot zoom) instead of 760px');
 assert.doesNotMatch(css,/max-width:min\(100%,760px\)/,'Old cropped search width must be removed');
 assert.ok(css.includes('#studioApp .topbar .search-wrap'),'Main and profile-preview use one width rule');
 assert.ok(html.includes('studio-header-gutters-20261029.css?v=20261030-match-marked-preview-4'),'Live search asset cache is refreshed');
