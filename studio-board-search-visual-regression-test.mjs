@@ -29,6 +29,10 @@ const fixture='<!doctype html><html><body>'+
  '</body></html>';
 const dom=new JSDOM(fixture,{url:'https://biglwa.com/studio',pretendToBeVisual:true,runScripts:'outside-only'});
 const w=dom.window,d=w.document;
+// Make the test deterministic and prevent a pending jsdom animation-frame
+// callback from firing after its document is closed.
+w.requestAnimationFrame=callback=>{callback(0);return 1};
+w.cancelAnimationFrame=()=>{};
 let photos=[
  {id:'1',url:'https://i.pinimg.com/photo-1.jpg'},
  {id:'2',url:'https://i.pinimg.com/photo-2.jpg'},
