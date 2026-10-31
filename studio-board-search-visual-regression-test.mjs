@@ -46,7 +46,7 @@ assert(gallery,'Studio gets one full-size preview gallery');
 assert.equal(gallery.dataset.count,'4','Real Pinterest covers and previously displayed photo are retained');
 assert.equal(gallery.querySelectorAll('.biglwa-studio-board-tile').length,4,'Mosaic uses available genuine photos');
 assert.equal(card.querySelectorAll('.biglwa-studio-board-gallery').length,1,'Only one gallery is rendered');
-assert(card.querySelector('.original-board-cover').classList.contains('biglwa-studio-board-legacy-thumb'),'Tiny old tile is hidden rather than duplicated');
+assert(card.querySelector('.old-board-preview').classList.contains('biglwa-studio-board-legacy-thumb'),'Tiny old tile is hidden rather than duplicated');
 assert.equal(card.querySelector('.card-cta').textContent,'My Inspiration','Existing Boards CTA is preserved');
 assert.equal(gallery.querySelector('.biglwa-studio-board-tile').dataset.open,'boards','Click opens actual Boards module');
 photos=[{id:'1',url:'https://i.pinimg.com/photo-1.jpg'}];
@@ -56,6 +56,6 @@ assert.equal(card.querySelectorAll('.biglwa-studio-board-gallery').length,1,'Upd
 d.documentElement.classList.add('biglwa-preview-mode');
 w.eval('paintStudioBoardGallery()');
 assert.equal(card.querySelector('.biglwa-studio-board-gallery'),null,'Owner cover gallery is removed when switching to public preview');
-assert(!card.querySelector('.original-board-cover').classList.contains('biglwa-studio-board-legacy-thumb'),'Public preview can use its own content');
+assert(!card.querySelector('.old-board-preview').classList.contains('biglwa-studio-board-legacy-thumb'),'Public preview can use its own content');
 dom.window.close();
 console.log('PASS: marked search width, full-size real Studio Boards thumbnail, responsive mosaic, public-preview isolation.');
