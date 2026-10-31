@@ -1187,8 +1187,16 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  // the space available rather than a 190px photo marooned in a tall card.
  function paintStudioBoardGallery(){
   const card=document.querySelector('#studioApp #boards');
-  if(!card||document.documentElement.classList.contains('biglwa-preview-mode')||
-     window.__biglwaPublicStorageView)return;
+  if(!card)return;
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||
+     window.__biglwaPublicStorageView){
+   // Public previews use the viewed owner's saved public boards, never
+   // an already-mounted gallery from the signed-in Studio owner.
+   card.querySelector('.biglwa-studio-board-gallery')?.remove();
+   card.querySelectorAll('.biglwa-studio-board-legacy-thumb').forEach(el=>el.classList.remove('biglwa-studio-board-legacy-thumb'));
+   card.classList.remove('biglwa-studio-boards-full-preview');
+   return;
+  }
   const action=card.querySelector('.card-cta[data-open="boards"],.card-cta');
   if(!action)return;
   let gallery=card.querySelector('.biglwa-studio-board-gallery');
@@ -1252,6 +1260,10 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  document.addEventListener('biglwa:pinterest-preview-updated',scheduleStudioBoardPreview);
  document.addEventListener('biglwa:pinterest-status',scheduleStudioBoardPreview);
  document.addEventListener('biglwa:studio-layout-changed',scheduleStudioBoardPreview);
+ if(typeof MutationObserver==='function'){
+  const modeObserver=new MutationObserver(scheduleStudioBoardPreview);
+  modeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleStudioBoardPreview,{once:true});
  else scheduleStudioBoardPreview();
 window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVevePin,createVeveBoard,veveSavedBoards,loadSaved,
