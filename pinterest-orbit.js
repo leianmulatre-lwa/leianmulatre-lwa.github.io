@@ -1182,6 +1182,78 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
    }finally{savedBusy=false;render()}
  }
  const veveSavedBoards=()=>authUid?savedLibrary.boards.map(b=>({id:b.id,title:b.title,count:b.pins.length})):[];
+
+ // The Studio thumbnail is NOT the Boards module. Show actual board covers in
+ // the space available rather than a 190px photo marooned in a tall card.
+ function paintStudioBoardGallery(){
+  const card=document.querySelector('#studioApp #boards');
+  if(!card||document.documentElement.classList.contains('biglwa-preview-mode')||
+     window.__biglwaPublicStorageView)return;
+  const action=card.querySelector('.card-cta[data-open="boards"],.card-cta');
+  if(!action)return;
+  let gallery=card.querySelector('.biglwa-studio-board-gallery');
+  const originals=[...card.querySelectorAll('img')].filter(img=>
+   !img.closest('.biglwa-studio-board-gallery')&&img.getAttribute('src')&&
+   !img.closest('.card-head')&&!img.closest('.window-lights'));
+  const previews=window.__biglwaPinterest?.getPreview?.()||[];
+  const unique=new Set(),photos=[];
+  const add=url=>{
+   if(!url||photos.length>=5||unique.has(url))return;
+   try{const u=new URL(url,location.href);
+    if(u.protocol!=='https:'&&!(u.origin===location.origin&&u.protocol==='https:'))return;
+   }catch{return}
+   unique.add(url);photos.push(url);
+  };
+  previews.forEach(item=>add(item.url));
+  // A legacy Studio card may already show a saved photo before Orbit hydrates.
+  originals.forEach(img=>add(img.currentSrc||img.src));
+  if(!photos.length)return;
+  const signature=photos.join('|');
+  if(gallery?.dataset.signature===signature)return;
+  if(!gallery){
+   gallery=document.createElement('div');
+   gallery.className='biglwa-studio-board-gallery';
+   gallery.setAttribute('aria-label','Boards photo preview');
+   action.before(gallery);
+  }
+  gallery.dataset.signature=signature;
+  gallery.dataset.count=String(photos.length);
+  gallery.replaceChildren();
+  for(const [i,src]of photos.entries()){
+   const tile=document.createElement('button');
+   tile.type='button';tile.className='biglwa-studio-board-tile';
+   tile.setAttribute('data-open','boards');
+   tile.setAttribute('aria-label','Open Boards, photo '+(i+1));
+   if(photos.length===1){
+    const ambience=document.createElement('img');ambience.src=src;ambience.alt='';
+    ambience.className='biglwa-studio-board-ambient';ambience.setAttribute('aria-hidden','true');
+    ambience.loading='lazy';tile.append(ambience);
+   }
+   const img=document.createElement('img');img.src=src;
+   img.className='biglwa-studio-board-photo';
+   img.alt='Pinterest board inspiration '+(i+1);
+   img.loading='lazy';img.decoding='async';tile.append(img);
+   gallery.append(tile);
+  }
+  // Preserve the source image data, while removing its duplicate tiny tile
+  // from the visible Studio card. The Boards module itself is untouched.
+  originals.forEach(img=>{
+   const host=img.closest('button,a')||img;
+   if(host!==action&&!gallery.contains(host))host.classList.add('biglwa-studio-board-legacy-thumb');
+  });
+  card.classList.add('biglwa-studio-boards-full-preview');
+ }
+ let studioBoardPreviewScheduled=false;
+ function scheduleStudioBoardPreview(){
+  if(studioBoardPreviewScheduled)return;
+  studioBoardPreviewScheduled=true;
+  requestAnimationFrame(()=>{studioBoardPreviewScheduled=false;paintStudioBoardGallery()});
+ }
+ document.addEventListener('biglwa:pinterest-preview-updated',scheduleStudioBoardPreview);
+ document.addEventListener('biglwa:pinterest-status',scheduleStudioBoardPreview);
+ document.addEventListener('biglwa:studio-layout-changed',scheduleStudioBoardPreview);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleStudioBoardPreview,{once:true});
+ else scheduleStudioBoardPreview();
 window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVevePin,createVeveBoard,veveSavedBoards,loadSaved,
   getPreview(){
    const seen=new Set(),out=[];
@@ -1190,13 +1262,13 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVe
     try{const parsed=new URL(url);if(parsed.protocol!=='https:')return;}catch{return}
     seen.add(url);out.push({id:String(id||''),url});
    };
-   pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||''));
+   pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin)||pin.image||''));
    orderedBoards().forEach(board=>{
     const cover=covers[board.id];
     const urls=Array.isArray(cover?.images)?cover.images:[cover?.url||cover];
     urls.filter(Boolean).forEach(url=>include(board.id,url));
    });
-   savedLibrary.boards.forEach(board=>board.pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||'')));
+   savedLibrary.boards.forEach(board=>board.pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||pin.image||'')));
    return out;
   },
   get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,originalPins:createdPins.length,hasMoreOriginals:Boolean(createdNext),selectedBoard:boardId,recentBoardIds:[...recentBoardIds],hasSession:Boolean(session()),busy,importError,diagnostic})};
