@@ -51,12 +51,28 @@
 #studioApp .topbar::after{content:none!important;display:none!important}
 #studioApp .main{border-top:0!important}
 
-/* Consistent search input length on owner and preview mastheads. */
+/* Both owner and read-only preview share one search width. At a 2048px
+   screenshot the user-marked endpoint is ~1320px from the left edge,
+   about 1210px of search field after its 106px start. Reserve the
+   topbar's right grid column for weather/avatar/actions, never overlap. */
+#studioApp .topbar .search-wrap,
 #studioApp .topbar.profile-header-repaired .search-wrap,
-html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired .search-wrap{
- max-width:min(100%,760px)!important;width:100%!important;justify-self:start!important;
+html.biglwa-preview-mode #studioApp .topbar .search-wrap{
+ box-sizing:border-box!important;
+ width:100%!important;
+ max-width:1220px!important;
+ min-width:0!important;
+ justify-self:start!important;
+}
+#studioApp .topbar .search-wrap input{
+ display:block!important;
+ width:100%!important;
+ min-width:0!important;
 }
 @media(max-width:900px){
+ #studioApp .topbar .search-wrap,
  #studioApp .topbar.profile-header-repaired .search-wrap,
- html.biglwa-preview-mode #studioApp .topbar.profile-header-repaired .search-wrap{max-width:100%!important}
+ html.biglwa-preview-mode #studioApp .topbar .search-wrap{
+  max-width:100%!important;
+ }
 }
