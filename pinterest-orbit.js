@@ -1246,8 +1246,17 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
   // Preserve the source image data, while removing its duplicate tiny tile
   // from the visible Studio card. The Boards module itself is untouched.
   originals.forEach(img=>{
-   const host=img.closest('button,a')||img;
-   if(host!==action&&!gallery.contains(host))host.classList.add('biglwa-studio-board-legacy-thumb');
+   let host=img.closest('button,a')||img;
+   if(host===action||gallery.contains(host))return;
+   // Hide the enclosing empty old thumbnail grid, too. Merely hiding its
+   // 190px image left a blank wrapper taking up most of the Studio card.
+   while(host.parentElement&&host.parentElement!==card){
+    const outer=host.parentElement;
+    if(outer.querySelector('.card-head,.card-cta')||
+       String(outer.textContent||'').trim())break;
+    host=outer;
+   }
+   host.classList.add('biglwa-studio-board-legacy-thumb');
   });
   card.classList.add('biglwa-studio-boards-full-preview');
  }
