@@ -67,3 +67,66 @@
 #studioApp #boards .studio-pinterest-board-preview button {
   box-shadow:2px 2px 0 #e60023!important;
 }
+
+/* Full-size Pinterest-inspired Studio widget; not the full Boards module. */
+#studioApp #boards.biglwa-studio-boards-full-preview{
+ display:flex!important;flex-direction:column!important;min-width:0!important;
+}
+#studioApp #boards .biglwa-studio-board-legacy-thumb{display:none!important}
+#studioApp #boards .biglwa-studio-board-gallery{
+ display:grid!important;grid-template-columns:1.45fr 1fr 1fr!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ flex:1 1 auto!important;align-self:stretch!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ min-height:170px!important;height:auto!important;max-height:none!important;
+ gap:7px!important;box-sizing:border-box!important;
+ padding:0!important;margin:10px 0 14px!important;
+ overflow:hidden!important;border-radius:12px!important;background:#d7b6b1!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="1"]{
+ display:block!important;position:relative!important;min-height:215px!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="2"]{
+ grid-template-columns:1fr 1fr!important;grid-template-rows:1fr!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="3"]{
+ grid-template-columns:1.45fr 1fr!important;grid-template-rows:1fr 1fr!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="3"] .biglwa-studio-board-tile:first-child,
+#studioApp #boards .biglwa-studio-board-gallery[data-count="4"] .biglwa-studio-board-tile:first-child,
+#studioApp #boards .biglwa-studio-board-gallery[data-count="5"] .biglwa-studio-board-tile:first-child{
+ grid-row:1 / -1!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="3"] .biglwa-studio-board-tile:nth-child(2),
+#studioApp #boards .biglwa-studio-board-gallery[data-count="4"] .biglwa-studio-board-tile:nth-child(2){
+ grid-column:2 / -1!important;
+}
+#studioApp #boards .biglwa-studio-board-tile{
+ display:block!important;position:relative!important;
+ border:0!important;border-radius:8px!important;overflow:hidden!important;
+ margin:0!important;padding:0!important;min-height:0!important;min-width:0!important;
+ height:100%!important;width:100%!important;background:#e8d6c9!important;
+ box-shadow:none!important;cursor:pointer!important;
+}
+#studioApp #boards .biglwa-studio-board-tile>.biglwa-studio-board-photo{
+ position:absolute!important;inset:0!important;display:block!important;
+ width:100%!important;height:100%!important;
+ min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
+ object-fit:cover!important;object-position:center center!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="1"] .biglwa-studio-board-tile>.biglwa-studio-board-photo{
+ object-fit:contain!important;z-index:1!important;filter:drop-shadow(0 3px 10px #24121e70);
+}
+#studioApp #boards .biglwa-studio-board-tile>.biglwa-studio-board-ambient{
+ position:absolute!important;display:block!important;inset:-12px!important;
+ width:calc(100% + 24px)!important;height:calc(100% + 24px)!important;
+ max-width:none!important;max-height:none!important;
+ object-fit:cover!important;filter:blur(16px) brightness(.8)!important;
+}
+#studioApp #boards.biglwa-studio-boards-full-preview>.card-cta{
+ margin-top:auto!important;align-self:flex-start!important;flex:0 0 auto!important;
+}
+@media(max-width:640px){
+ #studioApp #boards .biglwa-studio-board-gallery{min-height:140px!important;gap:5px!important;margin:6px 0 9px!important}
+}
