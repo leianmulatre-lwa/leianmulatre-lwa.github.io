@@ -14,7 +14,7 @@ assert.match(css,/max-width:1100px!important/,'Search reaches the annotated endp
 assert.doesNotMatch(css,/max-width:min\(100%,760px\)/,'Old cropped search width must be removed');
 assert.ok(css.includes('#studioApp .topbar .search-wrap'),'Main and profile-preview use one width rule');
 assert.ok(html.includes('studio-header-gutters-20261029.css?v=20261030-match-marked-preview-5'),'Live search asset cache is refreshed');
-assert.ok(html.includes('studio-mosaic=20261030-1'),'Studio board runtime and styles are cache-refreshed');
+assert.ok(html.includes('studio-mosaic=20261030-2'),'Studio board runtime is cache-refreshed');
 assert.ok(boardCss.includes('#studioApp #boards .biglwa-studio-board-gallery'),'Widget rules target #boards rather than only #pinterestBoards');
 assert.ok(boardCss.includes('flex:1 1 auto!important')&&boardCss.includes('object-fit:contain!important'),'One real photo can fill the widget without hard cropping');
 
