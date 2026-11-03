@@ -494,3 +494,99 @@ html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
 .biglwa-avatar-media{display:grid!important;visibility:visible!important;opacity:1!important}
 #studioApp #studioAvatarCard.studio-header-only.studio-upper-square:not([hidden]) >
 .biglwa-avatar-actions{display:grid!important;visibility:visible!important;opacity:1!important}
+
+
+/* 2026-11-03 collision fix: upper rail previously used grid-auto-rows:206px
+   while the player and Aura/Avatar could be 470–530px tall. The shortcut
+   bar was therefore laid out INSIDE the cards. The track must take its
+   content height, and its parent Studio row must consume that height. */
+#studioApp .hero:has(#biglwaAuraAvatarPair).hero{
+  grid-template-rows:max-content max-content max-content!important;
+  align-content:start!important;
+  overflow:visible!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
+  grid-column:1!important;
+  grid-row:2!important;
+  grid-auto-rows:max-content!important;
+  grid-template-rows:max-content!important;
+  align-items:start!important;
+  align-content:start!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding-block-end:2px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+:is(.music-card,.guest-check-card,#biglwaAuraAvatarPair){
+  grid-row:1!important;
+  align-self:start!important;
+  min-width:0!important;
+  margin-bottom:0!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar.hero-action-bar{
+  grid-column:1!important;
+  grid-row:3!important;
+  position:relative!important;
+  inset:auto!important;
+  margin:18px 0 0!important;
+  z-index:1!important;
+  align-self:start!important;
+  clear:both!important;
+}
+/* The music box reserves its full content height even when another legacy
+   rule fixes the default top widgets to 184 / 206px. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget:not(.widget-is-minimized):not(.studio-upper-square){
+  height:auto!important;
+  min-height:267px!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  align-self:start!important;
+}
+/* Square remains the user-chosen 242px version, not an ever-growing card.
+   The grid row responds to whichever of Music, Aura, Avatar or Check is
+   tallest and moves the shortcut row below it. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square:not(.widget-is-minimized){
+  width:min(242px,100%)!important;
+  height:242px!important;
+  min-height:242px!important;
+  max-height:242px!important;
+  aspect-ratio:1/1!important;
+}
+/* Normalize the compact Skeleton Key symbol's real SVG/IMG geometry.
+   Do not let old stored fallbacks expand the row or paint a false red LED. */
+#studioApp #minimizedWidgetDock>.sidebar-upper-compact-row .sidebar-route-icon{
+  display:grid!important;
+  place-items:center!important;
+  width:24px!important;
+  min-width:24px!important;
+  height:24px!important;
+  min-height:24px!important;
+  overflow:hidden!important;
+  line-height:1!important;
+}
+#studioApp #minimizedWidgetDock>.sidebar-upper-compact-row .sidebar-route-icon img,
+#studioApp #minimizedWidgetDock>.sidebar-upper-compact-row .sidebar-route-icon svg{
+  display:block!important;
+  box-sizing:border-box!important;
+  width:21px!important;
+  height:21px!important;
+  max-width:21px!important;
+  max-height:21px!important;
+  object-fit:contain!important;
+  background:transparent!important;
+  margin:0!important;
+  border:0!important;
+}
+#studioApp #minimizedWidgetDock>.sidebar-upper-compact-row::after{
+  content:none!important;
+  display:none!important;
+}
+#studioApp #minimizedWidgetDock>.sidebar-upper-compact-row .sidebar-upper-yellow-indicator{
+  background:transparent!important;
+  border-color:#d5a437!important;
+  box-shadow:none!important;
+}
