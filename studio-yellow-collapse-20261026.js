@@ -168,8 +168,11 @@
    // The previous implementation showed this message AFTER applying a second
    // square layout, which caused the cards to trespass into the shortcut bar.
    widget.dataset.upperWidgetView='square';
+   widget.dataset.yellowCollapseTouched='1';
+   widget.dataset.yellowCollapseOwner=uid()||'';
+   // A remembered header-only state must not be replayed after this no-op.
+   sync(widget);persist();syncUpperPanel();
    announce(upperLabel[id]+' is already minimized.');
-   sync(widget);syncUpperPanel();
    return true;
   }
   widget.classList.remove('widget-is-expanded');
