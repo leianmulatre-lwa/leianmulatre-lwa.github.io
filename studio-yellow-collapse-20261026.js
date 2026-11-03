@@ -13,11 +13,11 @@
   }catch{return new Set()}};
 
  // These are the two real account assets committed to BIG LWA, not letter fallbacks.
- // Sunsum = Avatar; Sesa Wo Suban = Aura. Reapply only after a real DOM re-render.
+ // Sesa Wo Suban = Avatar; Sunsum = Aura. Reapply only after a real DOM re-render.
  function applyIdentitySymbols(){
   const targets=[
-   ['#studioApp #studioAvatarCard .biglwa-avatar-head .card-kicker','/Sunsum.webp','avatar'],
-   ['#studioApp .aura-card .card-kicker','/sesa-wo-suban-medium.png','aura']
+   ['#studioApp #studioAvatarCard .biglwa-avatar-head .card-kicker','/sesa-wo-suban-medium.png','avatar'],
+   ['#studioApp .aura-card .card-kicker','/Sunsum.webp','aura']
   ];
   for(const [selector,src,key] of targets){
    const heading=document.querySelector(selector);if(!heading)continue;
