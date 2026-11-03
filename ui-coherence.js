@@ -850,8 +850,16 @@
     const spacer=document.createElement('span');spacer.setAttribute('aria-hidden','true');
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
-    const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
-    restore.append(mark);state.textContent='+';state.title='Removed from Studio';row.title=label+' · removed from Studio, press symbol to restore';row.append(spacer,restore,state);return row;
+    // The visible + must itself RESTORE the widget. Previously it was an
+    // inert <span>, which left an incorrect symbol/status affordance in Skeleton Key.
+    const state=document.createElement('button');
+    state.type='button';state.className='sidebar-minimized-state sidebar-widget-plus';
+    state.dataset.restoreWidget=id;state.textContent='+';
+    state.title='Restore '+label+' to Studio';
+    state.setAttribute('aria-label','Restore '+label+' to Studio');
+    restore.append(mark);
+    row.title=label+' · removed from Studio, press + to restore';
+    row.append(spacer,restore,state);return row;
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
