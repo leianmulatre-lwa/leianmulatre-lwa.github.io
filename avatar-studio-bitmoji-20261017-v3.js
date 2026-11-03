@@ -555,7 +555,7 @@
     // button deliberately uses data-avatar-restore so the Avatar handler owns it.
     const greenDock=one('#studioApp #minimizedWidgetDock');
     let sidebarRestore=one('#biglwaAvatarSidebarRestore',app);
-    if(avatarHidden&&greenDock){
+    if(avatarHidden&&state.visibility==='removed'&&greenDock){
       if(!sidebarRestore){
         sidebarRestore=document.createElement('div');
         sidebarRestore.id='biglwaAvatarSidebarRestore';
@@ -563,7 +563,7 @@
         sidebarRestore.dataset.shortcutRow='avatar';
         sidebarRestore.innerHTML='<span aria-hidden="true"></span>'+
           '<button type="button" class="sidebar-shortcut-open" data-avatar-restore aria-label="Restore Avatar to Studio" title="Avatar removed · restore Avatar"><span class="sidebar-route-icon" aria-hidden="true"><img src="/sesa-wo-suban-medium.png" alt=""></span></button>'+
-          '<span class="sidebar-minimized-state" aria-hidden="true">↥</span>';
+          '<button type="button" class="sidebar-minimized-state sidebar-widget-plus" data-avatar-restore title="Restore Avatar to Studio" aria-label="Restore Avatar to Studio">+</button>';
       }
       if(sidebarRestore.parentElement!==greenDock)greenDock.append(sidebarRestore);
       sidebarRestore.classList.toggle('is-widget-removed',state.visibility==='removed');
