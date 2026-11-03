@@ -65,14 +65,14 @@
   if(!document.getElementById('studioWidgetVisibilityMusicFix')){
    const link=document.createElement('link');
    link.id='studioWidgetVisibilityMusicFix';link.rel='stylesheet';
-   link.href='/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-3';
+   link.href='/studio-widget-visibility-music-20261102.css?v=20261103-height-cascade-4';
    document.head.append(link);
   }
   // Last loaded: one authoritative layout, not another fixed-height stereo.
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-capacity-1';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-stable-slots-2';
    document.head.append(link);
   }
  }
@@ -149,7 +149,7 @@
    document.querySelector('#studioApp .hero-widget-rail');
   if(!rail)return;
   const pair=rail.querySelector('#biglwaAuraAvatarPair');
-  const units=Math.min(UPPER_CAPACITY,Math.max(5,upperTotal()));
+  const units=UPPER_CAPACITY;
   if(rail.style.getPropertyValue('--studio-upper-cols')!==String(units))
    rail.style.setProperty('--studio-upper-cols',String(units));
   for(const id of Object.keys(upperWidgets)){
@@ -297,6 +297,25 @@
  // Its handler previously moved yellow-minimized widgets into the toolbar.
  window.addEventListener('click',event=>{
   if(isVisitor()||!(event.target instanceof Element))return;
+  // Red restore keeps the saved size when it fits. It may return as the
+  // square minimum, but never displaces another visible widget or adds slot 7.
+  const redRestore=event.target.closest('[data-restore-widget],[data-avatar-restore]');
+  if(redRestore){
+   const id=redRestore.hasAttribute('data-avatar-restore')?'avatar':redRestore.dataset.restoreWidget;
+   const widget=upperElement(id);
+   if(widget&&upperRemoved(id,widget)){
+    const free=UPPER_CAPACITY-upperTotal();
+    if(free<1){
+     event.preventDefault();event.stopImmediatePropagation();
+     announce('This row is full. Minimize or close a widget to restore '+upperLabel[id]+'.');return;
+    }
+    if(free===1)applyUpperView(id,widget,'square');
+    widget.dataset.yellowCollapseTouched='1';
+    widget.dataset.yellowCollapseOwner=uid()||'';
+    // Let the established red restore handler own visibility and persistence.
+    requestAnimationFrame(()=>{syncUpperRail();syncUpperPanel();persist()});
+   }
+  }
   const upperRestore=event.target.closest('[data-upper-restore]');
   if(upperRestore){
    event.preventDefault();event.stopImmediatePropagation();

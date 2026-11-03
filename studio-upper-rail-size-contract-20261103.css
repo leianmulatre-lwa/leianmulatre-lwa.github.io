@@ -1,4 +1,4 @@
-/* BIG LWA — upper rail geometry v4
+/* BIG LWA — upper rail geometry v5
    One slot = the Aura/Avatar square shown in Studio.
    Long = two slots across, never taller. Square = one slot across.
    The six-slot limit is enforced in studio-yellow-collapse-20261026.js. */
@@ -11,7 +11,7 @@
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
   --studio-upper-card-height:206px;
   display:grid!important;
-  grid-template-columns:repeat(var(--studio-upper-cols,5),minmax(0,1fr))!important;
+  grid-template-columns:repeat(var(--studio-upper-cols,6),minmax(0,1fr))!important;
   grid-auto-rows:var(--studio-upper-card-height)!important;
   grid-template-rows:var(--studio-upper-card-height)!important;
   grid-auto-flow:row!important;
@@ -62,21 +62,21 @@
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
 #biglwaAuraAvatarPair.biglwa-aura-avatar-pair{
   display:grid!important;
-  grid-template-columns:minmax(0,var(--studio-aura-cols,1fr)) minmax(0,var(--studio-avatar-cols,1fr))!important;
+  grid-template-columns:subgrid!important;
   grid-template-rows:var(--studio-upper-card-height)!important;
   grid-auto-rows:var(--studio-upper-card-height)!important;
   width:100%!important;
   height:var(--studio-upper-card-height)!important;
   min-height:var(--studio-upper-card-height)!important;
   max-height:var(--studio-upper-card-height)!important;
-  gap:8px!important;
+  gap:14px!important;
   align-items:start!important;
   overflow:visible!important;
   box-sizing:border-box!important;
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
 #biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
-  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-columns:subgrid!important;
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
 #biglwaAuraAvatarPair>.aura-card,
@@ -94,6 +94,25 @@
   overflow:hidden!important;
   align-self:start!important;
   box-sizing:border-box!important;
+}
+/* Share the outer tracks, including their gutter, instead of splitting a
+   three-slot group into approximate 2fr/1fr widths. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard)[data-upper-span="1"]{
+  grid-column:span 1!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard)[data-upper-span="2"]{
+  grid-column:span 2!important;
+}
+/* Size styles must never override the red-close visibility state. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+:is(.music-card,.guest-check-card):is([hidden],.widget-is-minimized,.widget-is-docked),
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard):is([hidden],.widget-is-minimized,.widget-is-docked),
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair.are-both-hidden{
+  display:none!important;
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
 #biglwaAuraAvatarPair>.aura-card.studio-upper-square{
@@ -284,38 +303,30 @@
   overflow:hidden!important;text-overflow:ellipsis!important;
   font-size:clamp(8px,.9vw,13px)!important;
 }
-/* Condensed viewports keep the same two-slot vs one-slot contract.
-   Wrap cards into the next auto-height row instead of overlapping content. */
+/* Narrow screens wrap real cards without shrinking their shared height. */
 @media(max-width:1180px){
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    grid-template-rows:none!important;
-  }
-}
-@media(max-width:760px){
-  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    grid-auto-rows:206px!important;
+    grid-template-rows:none!important;
+    grid-auto-rows:max-content!important;
   }
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
-  #biglwaAuraAvatarPair[data-upper-span="3"],
-  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
-  #biglwaAuraAvatarPair[data-upper-span="4"]{
+  #biglwaAuraAvatarPair:is([data-upper-span="2"],[data-upper-span="3"],[data-upper-span="4"]){
     grid-column:span 2!important;
+    grid-template-columns:subgrid!important;
+    height:auto!important;max-height:none!important;
   }
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  #biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard){grid-row:auto!important}
 }
 @media(max-width:500px){
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
     grid-template-columns:minmax(0,1fr)!important;
-    grid-auto-rows:max-content!important;
   }
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
-  :is(.music-card,#biglwaAuraAvatarPair,.guest-check-card){
+  :is(.music-card,#biglwaAuraAvatarPair,.guest-check-card)[data-upper-span]{
     grid-column:1!important;
   }
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
-  #biglwaAuraAvatarPair{
-    height:auto!important;max-height:none!important;
-    grid-auto-rows:206px!important;
-  }
+  #biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard)[data-upper-span]{grid-column:1!important}
 }

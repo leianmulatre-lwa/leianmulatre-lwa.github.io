@@ -69,7 +69,7 @@ assert.equal(saveCount,3,'Explicit yellow click writes; startup does not');
 assert.equal(legacyYellow,0);
 assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]"),'Canonical account snapshot saves collapsed IDs');
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
-assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-six-slot-1'),'Script included in actual Studio');
+assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-stable-slots-2'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
 
 /* Verify the two NEW cabinet widgets specifically. Their live content is
@@ -165,7 +165,7 @@ assert.equal(status().used,5,'Long music + three square widgets uses five of six
 assert.equal(status().entries.music.view,'long');
 for(const id of ['aura','avatar','guest-check'])
  assert.equal(status().entries[id].view,'square',id+' starts at the Aura-sized square minimum');
-assert.equal(rail.style.getPropertyValue('--studio-upper-cols'),'5');
+assert.equal(rail.style.getPropertyValue('--studio-upper-cols'),'6');
 assert.equal(music.dataset.upperSpan,'2','Long music uses two square widths');
 assert.equal(pair.dataset.upperSpan,'2','Aura/Avatar together use two square widths');
 assert.equal(guest.dataset.upperSpan,'1');
@@ -218,6 +218,31 @@ assert(read('ui-coherence.js').includes('const upperVariants=layout.upperVariant
 assert.equal(doc.querySelectorAll('[data-upper-compact-row]').length,0,
  'Only red-closing a widget should ever create a Skeleton Key restore entry');
 
+// Red restoration must not sneak a seventh slot into the row. Closing a
+// square lets the other three become long; its restore stays available.
+let redRestores=0;
+const restoreMusic=doc.createElement('button');restoreMusic.dataset.restoreWidget='music';
+doc.querySelector('#studioApp').append(restoreMusic);
+doc.addEventListener('click',e=>{
+ if(e.target===restoreMusic){redRestores++;music.classList.remove('widget-is-minimized','widget-is-docked')}
+},true);
+music.classList.add('widget-is-minimized','widget-is-docked');
+for(const id of ['aura','avatar','guest-check'])w.BigLWAUpperWidgets.restore(id);
+assert.equal(status().used,6,'Three full widgets fill the row with Music closed');
+restoreMusic.click();
+assert.equal(redRestores,0,'Full row blocks red restoration without deleting its button');
+assert(music.classList.contains('widget-is-docked'));
+auraYellow.click();
+assert.equal(status().used,5);
+restoreMusic.click();
+assert.equal(redRestores,1,'Restore works as soon as one square slot is available');
+assert.equal(status().entries.music.view,'square','Red restore fits the available square slot');
+assert.equal(status().used,6);
+assert.equal(rail.style.getPropertyValue('--studio-upper-cols'),'6','Track widths do not change as cards close or resize');
+// Restore original fixture state for the remaining checks.
+for(const id of ['avatar','guest-check'])w.BigLWAUpperWidgets.minimize(id);
+musicYellow.click();
+
 w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
 await new Promise(resolve=>setTimeout(resolve,70));
 assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')?.getAttribute('src'),'/sesa-wo-suban-medium.png','Avatar has the circular star symbol beside the heading');
@@ -261,11 +286,15 @@ assert(musicStyle.includes('filter:url("#biglwaStudioWhiteToAlpha") invert(1)')&
 
 assert(musicStyle.includes('.stereo-tuner')&&musicStyle.includes('padding:43px 12px 13px!important'),'Long stereo reserves header clearance');
 assert(musicStyle.includes('.widget-window-controls')&&musicStyle.includes('#profileMusicOpen'),'Three dots and songs control are layered above radio');
-assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-3');
+assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261103-height-cascade-4');
 assert.equal(doc.querySelector('#studioUpperRailSizeContract')?.getAttribute('href'),
- '/studio-upper-rail-size-contract-20261103.css?v=20261103-capacity-1');
+ '/studio-upper-rail-size-contract-20261103.css?v=20261103-stable-slots-2');
+const fullMusicRule=musicStyle.match(/\.music-card\.stereo-music-widget:not\(\.widget-is-minimized\):not\(\.studio-upper-square\)\{([^}]+)\}/)[1];
+assert(!fullMusicRule.includes('267px'),'The higher-specificity legacy rule cannot force Music below the shared row');
+for(const property of ['height','min-height','max-height'])
+ assert(fullMusicRule.includes(property+':var(--studio-upper-card-height,206px)!important'),property+' follows the actual shared card height');
 const contract=read('studio-upper-rail-size-contract-20261103.css');
-assert(contract.includes('grid-template-columns:repeat(var(--studio-upper-cols,5),minmax(0,1fr))'),
+assert(contract.includes('grid-template-columns:repeat(var(--studio-upper-cols,6),minmax(0,1fr))'),
  'Upper rail uses one variable-size track per square-width unit');
 assert(contract.includes('grid-auto-rows:var(--studio-upper-card-height)'),
  'Row is capped to shared square card height rather than tallest long music');

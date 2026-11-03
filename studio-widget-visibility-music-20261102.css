@@ -535,13 +535,13 @@ html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
   align-self:start!important;
   clear:both!important;
 }
-/* The music box reserves its full content height even when another legacy
-   rule fixes the default top widgets to 184 / 206px. */
+/* Full Music shares the Aura/Avatar height. This selector is more specific
+   than the rail contract, so it must never impose the retired 267px floor. */
 #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
 .music-card.stereo-music-widget:not(.widget-is-minimized):not(.studio-upper-square){
-  height:auto!important;
-  min-height:267px!important;
-  max-height:none!important;
+  height:var(--studio-upper-card-height,206px)!important;
+  min-height:var(--studio-upper-card-height,206px)!important;
+  max-height:var(--studio-upper-card-height,206px)!important;
   aspect-ratio:auto!important;
   align-self:start!important;
 }
