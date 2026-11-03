@@ -965,7 +965,9 @@
   function syncMinimizedShortcutRows(app){
     $$('[data-sidebar-route-row].is-shortcut',app).forEach(row=>{
       const widget=shortcutWidget(app,row.dataset.sidebarRouteRow);
-      const minimized=!!widget?.classList.contains('widget-is-docked');
+      // Legacy yellow tray may still show + for an in-place minimize; the red
+      // status LIGHT below remains exclusively tied to widget-is-docked.
+      const minimized=!!widget?.classList.contains('widget-is-minimized');
       const action=$('[data-remove-shortcut]',row);
       row.classList.toggle('is-minimized',minimized);
       row.dataset.widgetMinimized=minimized?'true':'false';
