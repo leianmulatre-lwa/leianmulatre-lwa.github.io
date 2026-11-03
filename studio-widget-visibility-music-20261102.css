@@ -117,3 +117,15 @@
 @media(max-width:430px){
  #studioApp .music-card.studio-music-square{max-width:min(242px,100%)!important}
 }
+
+/* Outrank the generic yellow header-only rule (which hides every child).
+   Music is the deliberate exception: its tuner/display/buttons stay rendered
+   inside the square without destroying audio or reopening a profile editor. */
+#studioApp .music-card.studio-header-only.studio-music-square:not(.widget-is-minimized)
+  > .stereo-shell.stereo-shell{
+  display:grid!important;visibility:visible!important;opacity:1!important
+}
+#studioApp .music-card.studio-header-only.studio-music-square:not(.widget-is-minimized)
+  > #profileMusicOpen#profileMusicOpen{
+  display:block!important;visibility:visible!important;opacity:1!important
+}
