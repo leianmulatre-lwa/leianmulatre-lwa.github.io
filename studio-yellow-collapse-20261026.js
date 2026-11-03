@@ -72,7 +72,7 @@
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-preserve-squares-4';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-tines-5';
    document.head.append(link);
   }
  }
@@ -158,15 +158,14 @@
    const unitsValue=String(size||1);
    if(widget.dataset.upperSpan!==unitsValue)widget.dataset.upperSpan=unitsValue;
   }
-  // Keep the original five-track square width as the minimum footprint.
-  // Expanded cards share the remaining width; six is the STATE capacity,
-  // not permission to shrink every square when a second card expands.
+  // Fill the row with a true 2:1 expanded/minimized width ratio.
+  // Count only visible widgets so closing/minimizing never reserves a hole.
   const railWidth=rail.getBoundingClientRect().width;
   const visible=Object.keys(upperWidgets).filter(id=>!upperRemoved(id,upperElement(id)));
   const squareCount=visible.filter(id=>upperView(id,upperElement(id))==='square').length;
   const longCount=visible.length-squareCount;
-  const squareWidth=Math.max(0,(railWidth-56)/5);
-  const longWidth=longCount?Math.max(squareWidth,(railWidth-14*Math.max(0,visible.length-1)-squareCount*squareWidth)/longCount):squareWidth;
+  const squareWidth=Math.max(0,(railWidth-14*Math.max(0,visible.length-1))/Math.max(1,squareCount+2*longCount));
+  const longWidth=2*squareWidth;
   const cardWidth=id=>upperRemoved(id,upperElement(id))?0:upperView(id,upperElement(id))==='long'?longWidth:squareWidth;
   if(railWidth>0){
    const tracks=[...rail.children].filter(el=>el===pair?visible.includes('aura')||visible.includes('avatar'):visible.includes(upperId(el))).map(el=>{
