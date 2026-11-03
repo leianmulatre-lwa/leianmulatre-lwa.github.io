@@ -65,7 +65,7 @@
   if(document.getElementById('studioWidgetVisibilityMusicFix'))return;
   const link=document.createElement('link');
   link.id='studioWidgetVisibilityMusicFix';link.rel='stylesheet';
-  link.href='/studio-widget-visibility-music-20261102.css?v=20261103-upper-layout-1';
+  link.href='/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-2';
   document.head.append(link);
  }
 
@@ -131,6 +131,11 @@
     restore.setAttribute('aria-label','Restore '+upperLabel[id]+' to full rectangle');
     row.append(icon,text,light,restore);dock.append(row);
    }
+   // Reconcile the saved sidebar mark, never append another copy of the same symbol.
+   const icon=row.querySelector('.sidebar-route-icon');
+   if(icon&&icon.innerHTML!==compactIcon[id])icon.innerHTML=compactIcon[id];
+   row.dataset.widgetView='square';
+   row.dataset.widgetRemoved='false';
    row.title=upperLabel[id]+' · square in Studio · + restores rectangle';
   }
   const primary=app.querySelector('#studioSidebarPrimary');
@@ -156,14 +161,24 @@
   }
   // Detect a genuinely square custom layout; never shrink it a second time.
   const rect=widget.getBoundingClientRect();
-  const wasSquare=rect.width>55&&rect.height>55&&Math.abs(rect.width-rect.height)<=12;
+  const wasSquare=rect.width>55&&rect.height>55&&
+   Math.abs(rect.width-rect.height)<=Math.max(12,Math.min(rect.width,rect.height)*.065);
+  if(wasSquare){
+   // Never change classes or layout when the natural card is already square.
+   // The previous implementation showed this message AFTER applying a second
+   // square layout, which caused the cards to trespass into the shortcut bar.
+   widget.dataset.upperWidgetView='square';
+   announce(upperLabel[id]+' is already minimized.');
+   sync(widget);syncUpperPanel();
+   return true;
+  }
   widget.classList.remove('widget-is-expanded');
   widget.classList.add('studio-upper-square','studio-header-only');
   widget.dataset.upperWidgetView='square';
   widget.dataset.yellowCollapseTouched='1';widget.dataset.yellowCollapseOwner=uid()||'';
   sync(widget);persist();syncUpperPanel();
   window.dispatchEvent(new CustomEvent('biglwa:studio-upper-state',{detail:{id,view:'square'}}));
-  announce(wasSquare?upperLabel[id]+' is already square.':'Minimized '+upperLabel[id]+' to square. Restore with + in Skeleton Key.');
+  announce('Minimized '+upperLabel[id]+' to square. Restore with + in Skeleton Key.');
   return true;
  }
  window.BigLWAUpperWidgets={minimize:minimizeUpper,restore:restoreUpper,refresh:syncUpperPanel};
