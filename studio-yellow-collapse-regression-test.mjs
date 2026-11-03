@@ -62,7 +62,7 @@ assert.equal(saveCount,3,'Explicit yellow click writes; startup does not');
 assert.equal(legacyYellow,0);
 assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]"),'Canonical account snapshot saves collapsed IDs');
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
-assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-rail-clearance-2'),'Script included in actual Studio');
+assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-rail-clearance-3'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
 
 /* Verify the two NEW cabinet widgets specifically. Their live content is
@@ -233,7 +233,7 @@ assert(musicStyle.includes('filter:url("#biglwaStudioWhiteToAlpha") invert(1)')&
 
 assert(musicStyle.includes('.stereo-tuner')&&musicStyle.includes('padding:43px 12px 13px!important'),'Long stereo reserves header clearance');
 assert(musicStyle.includes('.widget-window-controls')&&musicStyle.includes('#profileMusicOpen'),'Three dots and songs control are layered above radio');
-assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-2');
+assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-3');
 
 await new Promise(resolve=>setTimeout(resolve,120));
 dom.window.close();
