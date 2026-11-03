@@ -943,7 +943,7 @@
   // This reflects the underlying red close state, not shortcut membership.
   function refreshWidgetRemovalIndicators(app){
     if(!app)return;
-    $('[data-sidebar-route-row].is-available',app).forEach(row=>{
+    $$('[data-sidebar-route-row].is-available',app).forEach(row=>{
       const key=row.dataset.sidebarRouteRow,widget=shortcutWidget(app,key);
       let removed=!!widget?.classList.contains('widget-is-docked');
       if(key==='avatar'&&!removed){
