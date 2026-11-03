@@ -639,8 +639,8 @@
     const nowPlaying=document.createElement('div');nowPlaying.className='stereo-now-playing';nowPlaying.textContent='now playing';
     const eq=document.createElement('div');eq.className='stereo-eq';eq.setAttribute('aria-hidden','true');eq.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
     const deck=document.createElement('div');deck.className='stereo-control-deck';
-    const rewind=document.createElement('span');rewind.className='stereo-faux-button';rewind.setAttribute('aria-hidden','true');rewind.textContent='◀◀';
-    const forward=document.createElement('span');forward.className='stereo-faux-button';forward.setAttribute('aria-hidden','true');forward.textContent='▶▶';
+    const rewind=document.createElement('button');rewind.type='button';rewind.className='stereo-skip-button stereo-rewind';rewind.textContent='◀◀';rewind.title='Back 10 seconds';rewind.setAttribute('aria-label','Rewind 10 seconds');
+    const forward=document.createElement('button');forward.type='button';forward.className='stereo-skip-button stereo-forward';forward.textContent='▶▶';forward.title='Forward 10 seconds';forward.setAttribute('aria-label','Forward 10 seconds');
     const eject=document.createElement('button');eject.type='button';eject.className='stereo-eject';eject.id='studioMusicEject';
     eject.textContent='⏏';eject.setAttribute('aria-label','Eject current track and choose a different song');eject.title='Replace track';
     const kicker=$('.card-kicker',card);
@@ -659,6 +659,18 @@
     audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});
+    // The rewind / forward keys were decorative spans. They now seek inside
+    // the existing audio element, including in the compact stereo layout.
+    for(const [button,seconds] of [[rewind,-10],[forward,10]]){
+      button.addEventListener('click',event=>{
+        event.preventDefault();event.stopPropagation();
+        if(!Number.isFinite(audio.duration)||audio.duration<=0){
+          setMusicStatus('Choose a track to use the stereo controls.');return;
+        }
+        audio.currentTime=Math.max(0,Math.min(audio.duration,(audio.currentTime||0)+seconds));
+        sync();
+      });
+    }
     eject.addEventListener('click',event=>{
       event.preventDefault();event.stopPropagation();
       const selector=$('#studioTrackInput');
