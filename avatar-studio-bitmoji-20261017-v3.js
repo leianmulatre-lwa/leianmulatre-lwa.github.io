@@ -168,10 +168,11 @@
   }
   function render(){
     const card=one('#studioAvatarCard');if(!card)return;
+    card.dataset.widgetId='avatar';card.dataset.widgetLabel='Avatar';card.dataset.widgetRoute='avatar';
     card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
       '<div class="widget-window-controls avatar-window-controls" role="group" aria-label="Avatar widget controls">'+
       '<button type="button" class="window-light red" data-avatar-widget-action="remove" aria-label="Remove Avatar widget" title="Remove widget"></button>'+
-      '<button type="button" class="window-light yellow" data-avatar-widget-action="archive" aria-label="Archive Avatar widget" title="Archive widget"></button>'+
+      '<button type="button" class="window-light yellow" data-avatar-widget-action="minimize" aria-label="Minimize Avatar to square" title="Minimize Avatar to square"></button>'+
       '<button type="button" class="window-light green" data-avatar-widget-action="enlarge" aria-label="Enlarge interactive Avatar" title="Enlarge interactive avatar"></button></div></div>'+
       '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Reorder Aura and Avatar widgets" title="Drag to move the Aura and Avatar widgets">'+
       '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
@@ -561,10 +562,12 @@
         sidebarRestore.className='sidebar-shortcut-row sidebar-avatar-restore-row is-minimized';
         sidebarRestore.dataset.shortcutRow='avatar';
         sidebarRestore.innerHTML='<span aria-hidden="true"></span>'+
-          '<button type="button" class="sidebar-shortcut-open" data-avatar-restore aria-label="Restore Avatar to Studio" title="Avatar removed · restore Avatar"><span class="sidebar-route-icon" aria-hidden="true">A<sup>+</sup></span></button>'+
+          '<button type="button" class="sidebar-shortcut-open" data-avatar-restore aria-label="Restore Avatar to Studio" title="Avatar removed · restore Avatar"><span class="sidebar-route-icon" aria-hidden="true"><img src="/sesa-wo-suban-medium.png" alt=""></span></button>'+
           '<span class="sidebar-minimized-state" aria-hidden="true">↥</span>';
       }
       if(sidebarRestore.parentElement!==greenDock)greenDock.append(sidebarRestore);
+      sidebarRestore.classList.toggle('is-widget-removed',state.visibility==='removed');
+      sidebarRestore.dataset.avatarVisibility=state.visibility;
       const primary=one('#studioSidebarPrimary',app);
       if(primary)primary.hidden=false;
     }else if(sidebarRestore){sidebarRestore.remove();}
@@ -687,7 +690,7 @@
       e.preventDefault();e.stopPropagation();
       if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge();
       else if(control.dataset.avatarWidgetAction==='edit')openEditor();
-      else if(control.dataset.avatarWidgetAction==='archive')setVisibility('archived');
+      else if(control.dataset.avatarWidgetAction==='minimize')window.BigLWAUpperWidgets?.minimize?.('avatar');
       else if(window.confirm('Remove Avatar from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
       return;
     }
