@@ -1003,8 +1003,15 @@
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
-    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
-      const linked=shortcutWidget(app,row.dataset.shortcutRow||'');
+    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+      const id=row.dataset.shortcutRow||'';
+      const linked=shortcutWidget(app,id);
+      // The top four never produce Skeleton Key restore entries for yellow.
+      // Purge old yellow-only rows from earlier clients, preserving red close.
+      if(['music','aura','avatar','guest-check'].includes(id)&&
+        linked&&!linked.classList.contains('widget-is-docked')){
+        row.remove();return;
+      }
       // Purge any outdated duplicate restore tile from an earlier session.
       if(linked&&shortcutForWidget(app,linked)&&linked.classList.contains('widget-is-minimized')&&!linked.classList.contains('widget-is-docked')){
         row.remove();return;
