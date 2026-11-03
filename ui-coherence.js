@@ -815,7 +815,7 @@
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
   const greenSidebarWidgetIds=new Set(['music','aura','guest-check','music-card','aura-card']);
-  const widgetFallbackIcons={music:'♫',aura:'<img src="/sesa-wo-suban-medium.png" alt="">',avatar:'<img src="/Sunsum.webp" alt="">','guest-check':'✓'};
+  const widgetFallbackIcons={music:'♫',aura:'<img src="/Sunsum.webp" alt="">',avatar:'<img src="/sesa-wo-suban-medium.png" alt="">','guest-check':'✓'};
   function ensureRedWidgetDock(app){
     const rest=$('#studioSidebarRest',app);if(!rest)return null;
     let dock=$('#studioSidebarDockedWidgetDock',rest);
@@ -830,8 +830,8 @@
     const id=widget.dataset.widgetId||widget.id||'',label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');
     // Do not derive a closed music widget's symbol from the word Now Playing.
     if(id==='music'||widget.classList.contains('music-card'))return '♫';
-    if(id==='avatar'||widget.id==='studioAvatarCard')return '<img src="/Sunsum.webp" alt="" aria-hidden="true">';
-    if(id==='aura'||widget.classList.contains('aura-card'))return '<img src="/sesa-wo-suban-medium.png" alt="" aria-hidden="true">';
+    if(id==='avatar'||widget.id==='studioAvatarCard')return '<img src="/sesa-wo-suban-medium.png" alt="" aria-hidden="true">';
+    if(id==='aura'||widget.classList.contains('aura-card'))return '<img src="/Sunsum.webp" alt="" aria-hidden="true">';
     const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget);
     if(source){
       // Header optical geometry belongs to its header, never to copied sidebar icons.
