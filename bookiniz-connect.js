@@ -104,6 +104,6 @@ function schedule(){setTimeout(mount,0);setTimeout(mount,350)}
 window.BigLWABookiniz={mount,loadBookiniz};
 document.addEventListener('biglwa:module-open',e=>{if(e.detail?.key==='connect')schedule()});
 window.addEventListener('biglwa:social-ready',schedule);
-window.addEventListener('biglwa:identity-updated',()=>{members=[];const root=$('#socialConnect');if(root){delete root.dataset.bookinizReady;root.remove();schedule()}});
+window.addEventListener('biglwa:identity-updated',()=>{members=[];const root=$('#socialConnect');if(root){renderBookiniz(root);loadBookiniz(root)}else schedule()});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
 })();
