@@ -134,7 +134,7 @@
    row.title=upperLabel[id]+' · square in Studio · + restores rectangle';
   }
   const primary=app.querySelector('#studioSidebarPrimary');
-  if(primary&&dock.querySelector('.sidebar-upper-compact-row'))primary.hidden=false;
+  if(primary)primary.hidden=!dock.querySelector('[data-shortcut-row],.sidebar-upper-compact-row');
  }
  function restoreUpper(id){
   const widget=document.querySelector(upperWidgets[id]||'__missing_upper_widget__');
@@ -271,6 +271,9 @@
    if(widget?.classList.contains('studio-header-only')){
     widget.classList.remove('studio-header-only','studio-upper-square');widget.dataset.yellowCollapseTouched='1';sync(widget);
     widget.dataset.upperWidgetView='removed';
+    // Avatar's own red action stores its visibility outside canonical layout;
+    // persist the cleared square state before that red removal proceeds.
+    if(upperId(widget)==='avatar')persist();
     syncUpperPanel();
     // Existing red handler continues unchanged and will persist dock state.
     // No extra save yet: red's own operation is the final transaction.
