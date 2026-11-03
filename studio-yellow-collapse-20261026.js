@@ -65,7 +65,7 @@
   if(document.getElementById('studioWidgetVisibilityMusicFix'))return;
   const link=document.createElement('link');
   link.id='studioWidgetVisibilityMusicFix';link.rel='stylesheet';
-  link.href='/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-2';
+  link.href='/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-3';
   document.head.append(link);
  }
 
