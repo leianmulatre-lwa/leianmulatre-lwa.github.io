@@ -992,9 +992,18 @@
       const target=greenSidebarWidgetIds.has(row.dataset.shortcutRow||'')?greenDock:redDock;
       if(target&&row.parentElement!==target)target.appendChild(row);
     });
+    // Distinguish yellow square (still in Studio) from red close (removed).
+    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+      const widget=shortcutWidget(app,row.dataset.shortcutRow||'');
+      const removed=!!widget?.classList.contains('widget-is-docked');
+      row.classList.toggle('is-red-docked',removed);
+      row.dataset.widgetRemoved=removed?'true':'false';
+      row.title=removed?(widget?.dataset.widgetLabel||row.dataset.shortcutRow)+' · removed from Studio · + to restore':
+        (widget?.dataset.widgetLabel||row.dataset.shortcutRow)+' · minimized';
+    });
     refreshMinimizedWidgetIcons(app);
     syncMinimizedShortcutRows(app);
-    primary.hidden=!$('[data-shortcut-row]',greenDock);
+    primary.hidden=!$('[data-shortcut-row],.sidebar-upper-compact-row',greenDock);
     if(rest)rest.hidden=!$('[data-sidebar-route-row]',rest)&&!$('[data-shortcut-row]',redDock);
   }
   function setSidebarCurrent(app,key=''){
