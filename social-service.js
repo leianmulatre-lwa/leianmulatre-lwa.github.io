@@ -98,6 +98,13 @@ export async function socialRoute(request,env,{user,json,preflight,allowed}){
   if(!/^[A-Za-z0-9_-]{1,128}$/.test(owner))fail('Choose a valid profile.');
   return reply(await permitted(owner));
  }
+ if(path==='kin-sqwibs/remove'){
+  requirePost();const id=clean(input.id,130);
+  if(!/^kin_[A-Za-z0-9_-]{10,120}$/.test(id))fail('Invalid Kin Sqwib.');
+  const key=own+'kin-sqwibs/'+id+'.json',post=await get(b,key);
+  if(!post||post.uid!==uid)fail('You can only remove your own Kin Sqwibs.',404);
+  await b.delete(ROOT+key);return reply({});
+ }
  if(path==='kin-sqwibs'){
   if(request.method==='POST'){
    const raw=String(input.text||'').trim(),audience=input.audience;
