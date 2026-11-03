@@ -29,13 +29,13 @@ const checks=[
  ['Original shortcut lane and save restored',layout.includes('reconcileNavigationRows(shortcutDock,shortcuts')&&layout.includes('saveSidebarShortcuts')],
  ['Dock recovers after hydration',layout.includes('function rescueSidebar()')&&layout.includes('syncPrimaryWidgetDock(app)')],
  ['Widget three-dot action controls the dock',layout.includes('data-dock-widget')&&layout.includes('data-restore-widget')],
- ['Original green dock appears only for closed widgets',layout.includes("primary.hidden=!$('[data-shortcut-row]',greenDock)")],
+ ['Green Skeleton Key displays only compact squares or closed widgets',layout.includes("primary.hidden=!$('[data-shortcut-row],.sidebar-upper-compact-row',greenDock)")],
  ['Original sidebar is not hidden before script hydration',!home.includes('#studioApp .sidebar-top>nav{display:none!important}')],
  ['Fresh Studio layout script',/ui-coherence\.js\?v=[\w.-]+/.test(home)],
  ['Direct drag saves canonical account layout',directDrag.includes('window.BigLWAStudioLayout.save()')],
  ['Direct drag ignores retired V2 restore',directDrag.includes('if(window.BigLWAStudioLayout)return')],
  ['Aura/Avatar honors scoped order',avatar.includes('window.BigLWAStudioLayout?.snapshot?.()?.order?.[rail.id]')&&!avatar.includes("localStorage.getItem('biglwaWidgetOrderV2')")],
- ['Direct drag latest cache',home.includes('studio-experience.js?v=20261028-canonical-tipi-1')]
+ ['Direct drag latest cache',home.includes('studio-experience.js?v=20261103-stereo-buttons-1')]
 ];
 for(const [label,ok] of checks){console.log((ok?'PASS':'FAIL')+' · '+label)}
 assert.ok(checks.every(([,ok])=>ok),'Studio layout/cache accessibility regression');
