@@ -14,6 +14,33 @@
 
  // These are the two real account assets committed to BIG LWA, not letter fallbacks.
  // Sesa Wo Suban = Avatar; Sunsum = Aura. Reapply only after a real DOM re-render.
+ // Both original emblem files contain opaque white pixels. This SVG
+ // luminance-to-alpha filter knocks out the white *inside* the image.
+ // Unlike a CSS white background, it also works on tinted Aura wallpapers.
+ function installSymbolKnockout(){
+  if(document.getElementById('biglwaStudioSymbolWhiteKnockout'))return;
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg');
+  svg.id='biglwaStudioSymbolWhiteKnockout';
+  svg.setAttribute('width','0');svg.setAttribute('height','0');
+  svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+  svg.style.cssText='position:absolute;overflow:hidden;pointer-events:none;width:0;height:0';
+  const defs=document.createElementNS(ns,'defs');
+  const filter=document.createElementNS(ns,'filter');
+  filter.id='biglwaStudioWhiteToAlpha';
+  filter.setAttribute('x','0');filter.setAttribute('y','0');
+  filter.setAttribute('width','100%');filter.setAttribute('height','100%');
+  filter.setAttribute('color-interpolation-filters','sRGB');
+  const matrix=document.createElementNS(ns,'feColorMatrix');
+  matrix.setAttribute('in','SourceGraphic');
+  matrix.setAttribute('type','matrix');
+  // Output RGB=black; opacity = 1 - perceived white luminance.
+  // Pure white vanishes; antialiased gray edges retain smooth opacity.
+  matrix.setAttribute('values',
+   '0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.2126 -0.7152 -0.0722 0 1');
+  filter.append(matrix);defs.append(filter);svg.append(defs);
+  (document.body||document.documentElement).append(svg);
+ }
  function applyIdentitySymbols(){
   const targets=[
    ['#studioApp #studioAvatarCard .biglwa-avatar-head .card-kicker','/sesa-wo-suban-medium.png','avatar'],
@@ -89,7 +116,7 @@
   });
  }
  function updateAll(){
-  installFixStyles();applyIdentitySymbols();
+  installFixStyles();installSymbolKnockout();applyIdentitySymbols();
   if(isVisitor())return;
   const saved=getSaved();
   document.querySelectorAll(widgetSelector).forEach(widget=>{
