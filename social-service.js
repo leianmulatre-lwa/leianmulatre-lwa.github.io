@@ -64,9 +64,55 @@ export async function socialRoute(request,env,{user,json,preflight,allowed}){
  if(path==='presence'){
   requirePost();await put(b,own+'presence.json',{at:Date.now(),online:input.online!==false});
   const profile=await meProfile(request,uid),connections=profile.peopleConnections?.mapValue?.fields||{};
-  const ids=Object.keys(connections).slice(0,200),online=[];
+  const ids=Object.keys(connections).slice(0,200),online=[];await put(b,own+'boos.json',{uids:ids,updatedAt:Date.now()});
   await Promise.all(ids.map(async id=>{const p=await get(b,'members/'+segment(id)+'/presence.json');if(p?.online&&Date.now()-p.at<100000)online.push(id)}));const people=ids.map(id=>{const fields=connections[id]?.mapValue?.fields||{};return {uid:id,username:fields.username?.stringValue||'',name:fields.name?.stringValue||''}}).filter(p=>p.username);return reply({online,people});
  }
+
+ // Bookiniz: account-owned private membership, chosen only from existing Boos.
+ if(path==='bookiniz'){
+  const profile=await meProfile(request,uid),friends=profile.peopleConnections?.mapValue?.fields||{},eligible=Object.keys(friends);
+  const key=own+'bookiniz.json',existing=await get(b,key)||{uids:[]};
+  if(request.method==='GET')return reply({uids:(existing.uids||[]).filter(id=>eligible.includes(id))});
+  requirePost();const target=clean(input.uid,128);
+  if(!/^[A-Za-z0-9_-]{1,128}$/.test(target)||!Object.hasOwn(friends,target))fail('Add this member to Boos first.',403);
+  if(typeof input.enabled!=='boolean')fail('Choose Bookini on or off.');
+  for(let attempt=0;attempt<4;attempt++){
+   const prior=await b.get(ROOT+key),savedList=prior?await prior.json():{uids:[]};
+   const ids=new Set((savedList.uids||[]).filter(id=>eligible.includes(id)));
+   if(input.enabled)ids.add(target);else ids.delete(target);
+   const next={uids:[...ids].slice(0,200),updatedAt:Date.now()};
+   const saved=await b.put(ROOT+key,JSON.stringify(next),{httpMetadata:{contentType:'application/json',cacheControl:'private, no-store'},onlyIf:prior?{etagMatches:prior.etag}:{etagDoesNotMatch:'*'}});
+   if(saved)return reply(next);
+  }
+  fail('Bookiniz changed on another device. Try again.',409);
+ }
+ // Audience checks are derived from authenticated UIDs, never client claims.
+ const permitted=async owner=>{
+  if(owner===uid)return {boo:true,bookini:true};
+  const [roster,kin]=await Promise.all([get(b,'members/'+segment(owner)+'/boos.json'),get(b,'members/'+segment(owner)+'/bookiniz.json')]);
+  const boo=Array.isArray(roster?.uids)&&roster.uids.includes(uid);
+  return {boo,bookini:boo&&Array.isArray(kin?.uids)&&kin.uids.includes(uid)};
+ };
+ if(path==='audience'){
+  const owner=clean(url.searchParams.get('owner'),128);
+  if(!/^[A-Za-z0-9_-]{1,128}$/.test(owner))fail('Choose a valid profile.');
+  return reply(await permitted(owner));
+ }
+ if(path==='kin-sqwibs'){
+  if(request.method==='POST'){
+   const raw=String(input.text||'').trim(),audience=input.audience;
+   if(!raw||raw.length>3500)fail('Write a Kin Sqwib up to 3,500 characters.');
+   if(!['boos','bookiniz'].includes(audience))fail('Choose Boos or Bookiniz.');
+   const post={id:'kin_'+reverse(),uid,text:raw,audience,createdAt:Date.now()};
+   await put(b,own+'kin-sqwibs/'+post.id+'.json',post);return reply({post});
+  }
+  const owner=clean(url.searchParams.get('owner'),128)||uid;
+  if(!/^[A-Za-z0-9_-]{1,128}$/.test(owner))fail('Choose a valid profile.');
+  const grant=await permitted(owner);if(!grant.boo)return reply({items:[]});
+  const page=await list(b,'members/'+segment(owner)+'/kin-sqwibs/',60);
+  return reply({items:page.items.filter(p=>p.uid===owner&&(p.audience==='boos'||(p.audience==='bookiniz'&&grant.bookini))).sort((a,z)=>z.createdAt-a.createdAt),cursor:page.cursor});
+ }
+
  if(path==='find'){
   const term=clean(url.searchParams.get('q'),30).replace(/^@/,'').toLowerCase();if(!/^[a-z0-9._-]{2,30}$/.test(term))return reply({items:[]});
   const response=await fetch('https://firestore.googleapis.com/v1/projects/biglwa/databases/(default)/documents:runQuery',{method:'POST',headers:{Authorization:request.headers.get('Authorization')||'','Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'usernames'}],orderBy:[{field:{fieldPath:'usernameLower'},direction:'ASCENDING'}],startAt:{values:[{stringValue:term}],before:true},endAt:{values:[{stringValue:term+'\uf8ff'}],before:false},limit:8}})});
@@ -76,7 +122,7 @@ export async function socialRoute(request,env,{user,json,preflight,allowed}){
   requirePost();const person=await directory(request,input.username);if(person.uid===uid)fail('This is your own account.');const fields={};for(const [key,value]of Object.entries({...person,addedAt:new Date().toISOString()}))fields[key]={stringValue:value};const mask='peopleConnections.`'+person.uid.replace(/\\/g,'\\\\').replace(/`/g,'\\`')+'`';
   const document={fields:{peopleConnections:{mapValue:{fields:{}}}}};document.fields.peopleConnections.mapValue.fields[person.uid]={mapValue:{fields}};
   const response=await fetch('https://firestore.googleapis.com/v1/projects/biglwa/databases/(default)/documents/users/'+segment(uid)+'?updateMask.fieldPaths='+encodeURIComponent(mask),{method:'PATCH',headers:{Authorization:request.headers.get('Authorization')||'','Content-Type':'application/json'},body:JSON.stringify(document)});
-  if(!response.ok)fail('Your connection could not be saved. The account database cannot respond.',503);return reply({person});
+  if(!response.ok)fail('Your connection could not be saved. The account database cannot respond.',503);const ids=(await get(b,own+'boos.json'))?.uids||[];await put(b,own+'boos.json',{uids:[...new Set([...ids,person.uid])].slice(0,200),updatedAt:Date.now()});return reply({person});
  }
  if(path==='inbox')return reply(await list(b,own+'inbox/',100));
  if(path==='messages'){
