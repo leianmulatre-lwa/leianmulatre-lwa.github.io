@@ -1108,7 +1108,10 @@
       const id=widget.dataset.widgetId;if(!id)return;
       const {dock:greenDock}=ensureDock(app),dock=restoreDockForWidget(app,widget,greenDock);
       if(!dock||$('[data-shortcut-row="'+CSS.escape(id)+'"]',app))return true;
-      dock.appendChild(shortcutButtonMarkup(widget));saveMinimized(app);syncPrimaryWidgetDock(app);return true;
+      // Do not reconcile before the caller applies widget-is-docked.
+      // A pending RED close looked like a visible yellow widget and its
+      // restore row was incorrectly purged before the red state existed.
+      dock.appendChild(shortcutButtonMarkup(widget));saveMinimized(app);return true;
     };
     const restoreWidget=(app,id,row)=>{
       const widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null;
