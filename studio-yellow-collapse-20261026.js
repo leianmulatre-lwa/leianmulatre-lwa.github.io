@@ -62,11 +62,19 @@
   }
  }
  function installFixStyles(){
-  if(document.getElementById('studioWidgetVisibilityMusicFix'))return;
-  const link=document.createElement('link');
-  link.id='studioWidgetVisibilityMusicFix';link.rel='stylesheet';
-  link.href='/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-3';
-  document.head.append(link);
+  if(!document.getElementById('studioWidgetVisibilityMusicFix')){
+   const link=document.createElement('link');
+   link.id='studioWidgetVisibilityMusicFix';link.rel='stylesheet';
+   link.href='/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-3';
+   document.head.append(link);
+  }
+  // Last loaded: one authoritative layout, not another fixed-height stereo.
+  if(!document.getElementById('studioUpperRailSizeContract')){
+   const link=document.createElement('link');
+   link.id='studioUpperRailSizeContract';link.rel='stylesheet';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-capacity-1';
+   document.head.append(link);
+  }
  }
 
  // The upper row has SIX square-width units. Full cards span two,
@@ -246,7 +254,7 @@
   }
   widget.querySelectorAll('.widget-window-controls .window-light.yellow').forEach(button=>{
    const name=upper?upperLabel[upper]:label(widget);
-   const title=upper?(compact?(upperTotal()+1<=UPPER_CAPACITY?'Restore '+name+' to full size':'Already minimized · row full'):'Minimize '+name+' to square'):(collapsed?'Restore '+name:'Minimize '+name);
+   const title=upper?(compact?(upperTotal()+1<=UPPER_CAPACITY?name+' minimized · restore to full width':name+' already minimized · row full'):'Minimize '+name+' to square'):(collapsed?'Restore '+name:'Minimize '+name);
    button.title=title;button.setAttribute('aria-label',title);
    button.setAttribute('aria-expanded',String(!collapsed));
    button.setAttribute('aria-pressed',String(collapsed));
@@ -313,15 +321,15 @@
   const red=event.target.closest('.widget-window-controls [data-dock-widget],.avatar-window-controls [data-avatar-widget-action="remove"]');
   if(red){
    const widget=red.closest(widgetSelector);
-   if(widget?.classList.contains('studio-header-only')){
-    // Red changes visibility, not size. Retain the member's long/square
-    // preference so the restored widget comes back with the same geometry.
-    widget.dataset.upperWidgetBeforeRemoval=upperId(widget)?upperView(upperId(widget),widget):'';
-    widget.classList.remove('studio-header-only');
+   if(widget){
+    // Red removes the widget; remember its width without changing size.
+    if(upperId(widget))widget.dataset.upperWidgetBeforeRemoval=
+      upperView(upperId(widget),widget);
+    if(widget.classList.contains('studio-header-only'))
+      widget.classList.remove('studio-header-only');
     widget.dataset.yellowCollapseTouched='1';
     sync(widget);syncUpperPanel();
-    // Existing red handler continues unchanged and will persist dock state.
-    // No extra save yet: red's own operation is the final transaction.
+    // The existing red handler still performs the actual remove/save.
    }
   }
  },true);
