@@ -50,3 +50,6 @@ document.addEventListener('biglwa:module-open',e=>{const body=document.getElemen
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});document.addEventListener('biglwa:account-ready',refresh);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',header,{once:true});else header();setTimeout(header,1000);setTimeout(header,3500);setTimeout(()=>{const key=/\/studio\/(notes|stream|connect)/.exec(location.pathname)?.[1];if(key)document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}))},1200);
 })();
+
+/* Late-mounted Connect extension. Keep existing DMs/Sqwidz intact. */
+(()=>{if(document.querySelector('script[data-bookiniz-connect]'))return;const css=document.createElement('link');css.rel='stylesheet';css.href='/bookiniz-connect.css?v=20261102-1';document.head.append(css);const script=document.createElement('script');script.src='/bookiniz-connect.js?v=20261102-1';script.defer=true;script.dataset.bookinizConnect='1';document.head.append(script)})();
