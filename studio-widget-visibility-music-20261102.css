@@ -1,0 +1,119 @@
+/* BIG LWA Studio: widget state, stereo clearance and native symbols.
+ * Only red-docked widgets light the Skeleton Key's lower status indicator. */
+#studioApp #studioSidebarRest .sidebar-navigation-row.is-available.is-widget-removed::after{
+  content:""!important;display:block!important;
+  background:rgb(var(--aura-rgb,216,95,109))!important;
+  border:1px solid rgb(var(--aura-rgb,216,95,109))!important;
+  box-shadow:0 0 0 2px rgba(var(--aura-rgb,216,95,109),.15)!important
+}
+#studioApp #studioSidebarRest .sidebar-navigation-row.is-available:not(.is-widget-removed)::after{
+  background:transparent!important;box-shadow:none!important
+}
+#studioApp #studioSidebarRest .sidebar-navigation-row.is-widget-removed [data-add-shortcut]{
+  color:rgb(var(--aura-rgb,216,95,109))!important;font-weight:900!important
+}
+#studioApp .studio-heading-image-symbol{
+  display:inline-block!important;vertical-align:-.16em!important;
+  width:24px!important;height:24px!important;object-fit:contain!important;
+  flex:none!important;margin:0 7px 0 0!important;
+  border:0!important;background:transparent!important
+}
+#studioApp #studioAvatarCard .biglwa-avatar-head>.card-kicker,
+#studioApp #studioAvatarCard .biglwa-avatar-head>h2,
+#studioApp .aura-card>.card-kicker{display:flex!important;align-items:center!important;gap:0!important}
+#studioApp #studioAvatarCard .biglwa-avatar-head .studio-heading-image-symbol{width:23px!important;height:23px!important}
+#studioApp .sidebar-route-icon img[src="/Sunsum.webp"],
+#studioApp .sidebar-route-icon img[src="/sesa-wo-suban-medium.png"],
+#studioApp .sidebar-shortcut-open img[src="/Sunsum.webp"],
+#studioApp .sidebar-shortcut-open img[src="/sesa-wo-suban-medium.png"]{
+  width:22px!important;height:22px!important;object-fit:contain!important
+}
+/* Full stereo: reserve a real header shelf, rather than allowing the tuner
+ * frequency line to pass behind NOW PLAYING, SONGS or RGB controls. */
+#studioApp .music-card.stereo-music-widget:not(.studio-header-only){
+  position:relative!important;box-sizing:border-box!important;
+  padding:43px 12px 13px!important;
+  min-height:256px!important;height:auto!important;max-height:none!important;
+  overflow:hidden!important
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>.music-card.stereo-music-widget:not(.studio-header-only){
+  height:auto!important;min-height:256px!important;max-height:none!important
+}
+#studioApp .music-card.stereo-music-widget>.card-kicker{
+  position:absolute!important;top:14px!important;left:13px!important;
+  z-index:26!important;margin:0!important;max-width:calc(100% - 182px)!important;
+  white-space:nowrap!important;pointer-events:none!important
+}
+#studioApp .music-card.stereo-music-widget>.widget-window-controls{
+  position:absolute!important;top:12px!important;right:10px!important;
+  z-index:40!important;overflow:visible!important
+}
+#studioApp .music-card.stereo-music-widget>.widget-drag-handle{
+  top:12px!important;z-index:39!important
+}
+#studioApp .music-card.stereo-music-widget #profileMusicOpen{
+  position:absolute!important;top:13px!important;right:94px!important;left:auto!important;
+  min-height:22px!important;height:22px!important;max-width:78px!important;
+  z-index:38!important;margin:0!important;white-space:nowrap!important
+}
+#studioApp .music-card.stereo-music-widget .stereo-shell{
+  position:relative!important;z-index:2!important;display:grid!important;
+  min-width:0!important;margin:0!important;gap:9px!important
+}
+#studioApp .music-card.stereo-music-widget .stereo-tuner{
+  z-index:1!important;margin-top:0!important;transform:none!important
+}
+#studioApp .music-card.stereo-music-widget .stereo-face,
+#studioApp .music-card.stereo-music-widget .stereo-display,
+#studioApp .music-card.stereo-music-widget .stereo-control-deck{
+  position:relative!important;z-index:2!important;min-width:0!important
+}
+#studioApp .music-card.stereo-music-widget .music-row{min-width:0!important}
+#studioApp .music-card.stereo-music-widget :is(#studioMusicTitle,#studioMusicArtist){
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important
+}
+/* Yellow minimize now presents an actual square stereo. The default Studio
+ * collapsed-card CSS is bypassed ONLY for the player content and controls. */
+#studioApp .music-card.studio-header-only.studio-music-square,
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>.music-card.studio-header-only.studio-music-square{
+  display:block!important;position:relative!important;grid-column:auto!important;
+  width:min(242px,100%)!important;max-width:242px!important;min-width:0!important;
+  aspect-ratio:1 / 1!important;height:242px!important;min-height:242px!important;
+  max-height:242px!important;padding:42px 11px 10px!important;
+  box-sizing:border-box!important;overflow:hidden!important;align-self:start!important
+}
+#studioApp .music-card.studio-music-square>.stereo-shell{
+  display:grid!important;gap:8px!important;position:relative!important;
+  max-width:100%!important;visibility:visible!important;opacity:1!important
+}
+#studioApp .music-card.studio-music-square>.stereo-shell :is(
+ .stereo-tuner,.stereo-face,.stereo-speaker,.stereo-display,
+ .stereo-control-deck,.stereo-faux-button,#playBtn,.music-row,
+ .stereo-eq,.progress){visibility:visible!important}
+#studioApp .music-card.studio-music-square .stereo-face{
+  display:grid!important;grid-template-columns:38px minmax(0,1fr) 38px!important;
+  gap:4px!important;align-items:center!important
+}
+#studioApp .music-card.studio-music-square .stereo-display{
+  height:82px!important;min-width:0!important;padding:5px!important
+}
+#studioApp .music-card.studio-music-square .stereo-control-deck{
+  display:grid!important;gap:4px!important;padding:0 1px!important
+}
+#studioApp .music-card.studio-music-square .stereo-control-deck :is(button,.stereo-faux-button,#playBtn){
+  min-height:21px!important;height:21px!important;padding:2px 4px!important
+}
+#studioApp .music-card.studio-music-square .stereo-tuner{height:23px!important;min-height:23px!important}
+#studioApp .music-card.studio-music-square .stereo-shell>.music-file-actions,
+#studioApp .music-card.studio-music-square .music-file-actions,
+#studioApp .music-card.studio-music-square .music-meta-editor,
+#studioApp .music-card.studio-music-square .music-status{
+  display:none!important
+}
+#studioApp .music-card.studio-music-square>.card-kicker{top:13px!important;max-width:calc(100% - 171px)!important}
+#studioApp .music-card.studio-music-square #profileMusicOpen{right:78px!important;max-width:65px!important;font-size:8px!important}
+#studioApp .music-card.studio-music-square>.widget-window-controls{right:7px!important;top:10px!important}
+#studioApp .music-card.studio-music-square>.widget-drag-handle{top:11px!important}
+@media(max-width:430px){
+ #studioApp .music-card.studio-music-square{max-width:min(242px,100%)!important}
+}
