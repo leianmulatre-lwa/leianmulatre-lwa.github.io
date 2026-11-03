@@ -815,7 +815,7 @@
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
   const greenSidebarWidgetIds=new Set(['music','aura','guest-check','music-card','aura-card']);
-  const widgetFallbackIcons={music:'♫',aura:'◌','guest-check':'✓'};
+  const widgetFallbackIcons={music:'♫',aura:'<img src="/sesa-wo-suban-medium.png" alt="">',avatar:'<img src="/Sunsum.webp" alt="">','guest-check':'✓'};
   function ensureRedWidgetDock(app){
     const rest=$('#studioSidebarRest',app);if(!rest)return null;
     let dock=$('#studioSidebarDockedWidgetDock',rest);
@@ -828,6 +828,10 @@
   function widgetIconMarkup(widget){
     if(!widget)return '';
     const id=widget.dataset.widgetId||widget.id||'',label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');
+    // Do not derive a closed music widget's symbol from the word Now Playing.
+    if(id==='music'||widget.classList.contains('music-card'))return '♫';
+    if(id==='avatar'||widget.id==='studioAvatarCard')return '<img src="/Sunsum.webp" alt="" aria-hidden="true">';
+    if(id==='aura'||widget.classList.contains('aura-card'))return '<img src="/sesa-wo-suban-medium.png" alt="" aria-hidden="true">';
     const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget);
     if(source){
       // Header optical geometry belongs to its header, never to copied sidebar icons.
@@ -941,7 +945,10 @@
     if(!app)return;
     $('[data-sidebar-route-row].is-available',app).forEach(row=>{
       const key=row.dataset.sidebarRouteRow,widget=shortcutWidget(app,key);
-      const removed=!!widget?.classList.contains('widget-is-docked');
+      let removed=!!widget?.classList.contains('widget-is-docked');
+      if(key==='avatar'&&!removed){
+        try{removed=localStorage.getItem('biglwaAvatarWidgetVisibility:v2:'+layoutUid())==='removed'}catch{}
+      }
       const label=navigationCatalog.get(key)?.label||key;
       row.classList.toggle('is-widget-removed',removed);
       row.classList.remove('is-disconnected');
@@ -1111,6 +1118,11 @@
       if(addShortcut){
         event.preventDefault();event.stopImmediatePropagation();
         const widget=shortcutWidget(app,addShortcut.dataset.addShortcut);
+        if(addShortcut.dataset.addShortcut==='avatar'){
+          const restoreAvatar=$('[data-avatar-restore]',app);
+          let state='';try{state=localStorage.getItem('biglwaAvatarWidgetVisibility:v2:'+layoutUid())||''}catch{}
+          if(state==='removed'&&restoreAvatar){restoreAvatar.click();refreshWidgetRemovalIndicators(app);return;}
+        }
         if(widget?.classList.contains('widget-is-docked')){
           restoreWidget(app,widget.dataset.widgetId,$('[data-shortcut-row="'+CSS.escape(widget.dataset.widgetId)+'"]',app));
           showShortcutStatus(app,(widget.dataset.widgetLabel||'Widget')+' restored to Studio.');
