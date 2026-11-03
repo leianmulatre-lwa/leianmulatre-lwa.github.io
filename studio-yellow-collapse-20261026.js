@@ -72,7 +72,7 @@
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-stable-slots-2';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-preserve-squares-3';
    document.head.append(link);
   }
  }
@@ -157,6 +157,24 @@
    const size=upperUnits(id,widget);
    const unitsValue=String(size||1);
    if(widget.dataset.upperSpan!==unitsValue)widget.dataset.upperSpan=unitsValue;
+  }
+  // Keep the original five-track square width as the minimum footprint.
+  // Expanded cards share the remaining width; six is the STATE capacity,
+  // not permission to shrink every square when a second card expands.
+  const railWidth=rail.getBoundingClientRect().width;
+  const visible=Object.keys(upperWidgets).filter(id=>!upperRemoved(id,upperElement(id)));
+  const squareCount=visible.filter(id=>upperView(id,upperElement(id))==='square').length;
+  const longCount=visible.length-squareCount;
+  const squareWidth=Math.max(0,(railWidth-56)/5);
+  const longWidth=longCount?Math.max(squareWidth,(railWidth-14*Math.max(0,visible.length-1)-squareCount*squareWidth)/longCount):squareWidth;
+  const cardWidth=id=>upperRemoved(id,upperElement(id))?0:upperView(id,upperElement(id))==='long'?longWidth:squareWidth;
+  if(railWidth>0){
+   const tracks=[...rail.children].filter(el=>el===pair?visible.includes('aura')||visible.includes('avatar'):visible.includes(upperId(el))).map(el=>{
+    const size=el===pair?cardWidth('aura')+cardWidth('avatar')+(visible.includes('aura')&&visible.includes('avatar')?14:0):cardWidth(upperId(el));
+    return size+'px';
+   }).join(' ');
+   rail.style.setProperty('--studio-upper-tracks',tracks||'1fr');
+   if(pair)pair.style.setProperty('--studio-pair-tracks',['aura','avatar'].filter(id=>visible.includes(id)).map(id=>cardWidth(id)+'px').join(' ')||'1fr');
   }
   if(pair){
    const aura=upperElement('aura'),avatar=upperElement('avatar');
@@ -357,6 +375,14 @@
  const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;updateAll()})};
  function start(){
   updateAll();
+  const rail=document.querySelector('#studioApp #heroWidgetRail');
+  if(rail&&typeof ResizeObserver==='function'){
+   let lastWidth=0;
+   new ResizeObserver(entries=>{
+    const width=entries[0]?.contentRect.width;
+    if(width!==lastWidth){lastWidth=width;schedule()}
+   }).observe(rail);
+  }
   const app=document.querySelector('#studioApp');
   if(app)new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
   else new MutationObserver((observer)=>{const root=document.querySelector('#studioApp');if(!root)return;observer.disconnect();start()}).observe(document.documentElement,{childList:true,subtree:true});

@@ -330,3 +330,19 @@
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
   #biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard)[data-upper-span]{grid-column:1!important}
 }
+
+/* Logical capacity stays six. Preserve the reference square width while
+   full widgets share the available space, including when one is closed. */
+@media(min-width:1181px){
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
+    grid-template-columns:var(--studio-upper-tracks,2fr 2fr 1fr)!important;
+  }
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  :is(.music-card,#biglwaAuraAvatarPair,.guest-check-card)[data-upper-span]{grid-column:span 1!important}
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  #biglwaAuraAvatarPair.biglwa-aura-avatar-pair{
+    grid-template-columns:var(--studio-pair-tracks,1fr 1fr)!important;
+  }
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  #biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard)[data-upper-span]{grid-column:span 1!important}
+}

@@ -69,7 +69,7 @@ assert.equal(saveCount,3,'Explicit yellow click writes; startup does not');
 assert.equal(legacyYellow,0);
 assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]"),'Canonical account snapshot saves collapsed IDs');
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
-assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-stable-slots-2'),'Script included in actual Studio');
+assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-preserve-squares-3'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
 
 /* Verify the two NEW cabinet widgets specifically. Their live content is
@@ -158,6 +158,9 @@ miniDock.innerHTML='<div id="minimizedWidgetDock"><div data-upper-compact-row="a
 doc.querySelector('#studioApp').append(miniDock);
 w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
 await new Promise(resolve=>setTimeout(resolve,90));
+rail.getBoundingClientRect=()=>({width:1200});
+w.BigLWAUpperWidgets.refresh();
+assert.equal(rail.style.getPropertyValue('--studio-upper-tracks'),'471.5999999999999px 471.6px 228.8px','Original square footprint and full rail retained');
 const status=()=>w.BigLWAUpperWidgets.status();
 const shell=music.querySelector('.stereo-shell'),musicYellow=music.querySelector('[data-minimize-widget]');
 assert.equal(status().capacity,6);
@@ -188,6 +191,7 @@ const guestYellow=guest.querySelector('.window-light.yellow');
 auraYellow.click();
 assert.equal(status().entries.aura.view,'long','Aura can grow to long using sixth slot');
 assert.equal(status().used,6);
+assert.equal(pair.style.getPropertyValue('--studio-pair-tracks'),'350.2px 228.8px','Expanding Aura preserves Avatar square width');
 assert.equal(pair.dataset.upperSpan,'3','Pair consumes long Aura plus square Avatar');
 assert.equal(pair.style.getPropertyValue('--studio-aura-cols'),'2fr');
 avatarYellow.click();
@@ -288,7 +292,7 @@ assert(musicStyle.includes('.stereo-tuner')&&musicStyle.includes('padding:43px 1
 assert(musicStyle.includes('.widget-window-controls')&&musicStyle.includes('#profileMusicOpen'),'Three dots and songs control are layered above radio');
 assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261103-height-cascade-4');
 assert.equal(doc.querySelector('#studioUpperRailSizeContract')?.getAttribute('href'),
- '/studio-upper-rail-size-contract-20261103.css?v=20261103-stable-slots-2');
+ '/studio-upper-rail-size-contract-20261103.css?v=20261103-preserve-squares-3');
 const fullMusicRule=musicStyle.match(/\.music-card\.stereo-music-widget:not\(\.widget-is-minimized\):not\(\.studio-upper-square\)\{([^}]+)\}/)[1];
 assert(!fullMusicRule.includes('267px'),'The higher-specificity legacy rule cannot force Music below the shared row');
 for(const property of ['height','min-height','max-height'])
