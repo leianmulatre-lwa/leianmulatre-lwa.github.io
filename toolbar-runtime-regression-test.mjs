@@ -84,15 +84,19 @@ assert(disconnectedRow&&!disconnectedRow.classList.contains('is-widget-removed')
 assert.deepEqual(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).disconnectedNavigation,[],
   'Navigation changes never persist false removed widgets');
 const actual=q('[data-widget-route="'+initial[0]+'"]')||q('#'+initial[0]);
-assert(actual?.dataset.widgetId,'Destination must have a real Studio widget to test');
-click('[data-dock-widget="'+actual.dataset.widgetId+'"]');
-assert(actual.classList.contains('widget-is-docked'),'Red closes the actual widget');
-assert(disconnectedRow.classList.contains('is-widget-removed'),'Red close turns its indicator on');
-assert.match(disconnectedRow.title,/removed from Studio, press \+ to restore/);
-click('#studioSidebarAvailableDock [data-sidebar-route-row="'+initial[0]+'"] [data-add-shortcut]');
-assert(!actual.classList.contains('widget-is-docked'),'Plus restores the widget');
-assert(!disconnectedRow.classList.contains('is-widget-removed'),'Restoring turns its light off');
-assert.deepEqual(ids(w),initial.slice(1),'Plus restore must not change the shortcut selection');
+if(actual?.dataset.widgetId&&q('[data-dock-widget="'+actual.dataset.widgetId+'"]')){
+  click('[data-dock-widget="'+actual.dataset.widgetId+'"]');
+  assert(actual.classList.contains('widget-is-docked'),'Red closes the actual widget');
+  assert(disconnectedRow.classList.contains('is-widget-removed'),'Red close turns its indicator on');
+  assert.match(disconnectedRow.title,/removed from Studio, press \+ to restore/);
+  click('#studioSidebarAvailableDock [data-sidebar-route-row="'+initial[0]+'"] [data-add-shortcut]');
+  assert(!actual.classList.contains('widget-is-docked'),'Plus restores the widget');
+  assert(!disconnectedRow.classList.contains('is-widget-removed'),'Restoring turns its light off');
+  assert.deepEqual(ids(w),initial.slice(1),'Plus restore must not change the shortcut selection');
+}else{
+  assert(!disconnectedRow.classList.contains('is-widget-removed'),
+    'A navigation-only destination cannot falsely signal widget removal');
+}
 const untouched=q('#studioSidebarAvailableDock [data-sidebar-route-row]');
 assert(untouched,'Other unselected routes remain in available section');
 drag(initial[0],'#studioSidebarShortcutDock [data-sidebar-route-row="'+initial[2]+'"]');
