@@ -58,7 +58,7 @@ function ensure(){
  style();
  if(!$('#profileMusicOpen')){
   const button=document.createElement('button');button.type='button';button.id='profileMusicOpen';
-  button.textContent='♫ tines';button.setAttribute('aria-label','Choose a profile song');
+  button.textContent='♫ tunes';button.setAttribute('aria-label','Choose a profile song');
   button.addEventListener('click',()=>open());card.append(button);
  }
  if(!state.dialog){

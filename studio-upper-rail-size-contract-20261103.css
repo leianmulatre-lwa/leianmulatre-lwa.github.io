@@ -351,7 +351,7 @@
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
 #biglwaAuraAvatarPair>#studioAvatarCard[hidden]{display:none!important}
 
-/* Tines: one header row, circular speakers, inset mechanical window keys. */
+/* Tunes: one header row, circular speakers, inset mechanical window keys. */
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
 .music-card.stereo-music-widget:not(.widget-is-minimized)>.card-kicker{display:none!important}
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
@@ -368,7 +368,7 @@
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
 .music-card.stereo-music-widget .stereo-shell>.stereo-face{
-  grid-template-columns:44px minmax(0,1fr) 44px!important;
+  grid-template-columns:56px minmax(0,1fr) 56px!important;
   height:98px!important;max-height:98px!important;
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
@@ -377,18 +377,18 @@
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
 .music-card.stereo-music-widget .stereo-shell .stereo-speaker{
-  width:44px!important;height:44px!important;min-width:44px!important;
-  max-width:44px!important;max-height:44px!important;
+  width:56px!important;height:56px!important;min-width:56px!important;
+  max-width:56px!important;max-height:56px!important;
   aspect-ratio:1!important;border-radius:50%!important;justify-self:center!important;
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
 .music-card.stereo-music-widget.studio-upper-square .stereo-shell>.stereo-face{
-  grid-template-columns:24px minmax(0,1fr) 24px!important;
+  grid-template-columns:32px minmax(0,1fr) 32px!important;
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
 .music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-speaker{
-  width:24px!important;height:24px!important;min-width:24px!important;
-  max-width:24px!important;max-height:24px!important;
+  width:32px!important;height:32px!important;min-width:32px!important;
+  max-width:32px!important;max-height:32px!important;
 }
 #studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
 .music-card.stereo-music-widget>.widget-window-controls{
@@ -416,4 +416,47 @@
 }
 body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*="/Sunsum.webp"],[src*="/sesa-wo-suban-medium.png"]){
   filter:url("#biglwaStudioWhiteToAlpha") invert(1)!important;mix-blend-mode:normal!important;
+}
+
+/* Keep the Aura header separate from its orb and current status. */
+#studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card:not([hidden]){
+  display:grid!important;grid-template-columns:70px minmax(0,1fr)!important;
+  grid-template-rows:1fr!important;align-items:center!important;
+  padding:48px 12px 12px!important;
+}
+#studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card>.card-kicker{
+  position:absolute!important;top:10px!important;left:11px!important;
+  display:flex!important;align-items:center!important;gap:6px!important;
+  width:auto!important;max-width:calc(100% - 100px)!important;
+  margin:0!important;padding:0!important;line-height:28px!important;
+  overflow:visible!important;white-space:nowrap!important;
+}
+#studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card>.card-kicker img{
+  width:24px!important;height:24px!important;flex:0 0 24px!important;
+  object-fit:contain!important;margin:0!important;
+}
+#studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card>p{
+  position:static!important;grid-column:2!important;grid-row:1!important;
+  margin:0!important;min-width:0!important;
+}
+#studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card>.aura-orb{
+  grid-column:1!important;grid-row:1!important;
+}
+/* Let the preview fill the remaining card height in both width states. */
+#studioApp #heroWidgetRail #biglwaAuraAvatarPair>#studioAvatarCard .biglwa-avatar-media{
+  flex:1 1 0!important;height:auto!important;min-height:0!important;
+  max-height:none!important;margin:0!important;align-self:stretch!important;
+}
+#studioApp #heroWidgetRail #biglwaAuraAvatarPair>#studioAvatarCard .biglwa-sona-frame{
+  width:100%!important;height:100%!important;max-height:none!important;
+}
+/* Center the transport deck below the display, with room around its keys. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell .stereo-control-deck{
+  width:78%!important;margin:0 auto!important;
+  grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) 30px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-control-deck{
+  width:94%!important;grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr) 25px!important;
 }

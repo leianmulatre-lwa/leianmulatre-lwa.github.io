@@ -72,7 +72,7 @@
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-tines-5';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261103-tunes-layout-6';
    document.head.append(link);
   }
  }
