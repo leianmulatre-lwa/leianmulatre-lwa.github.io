@@ -454,3 +454,43 @@ html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
  }
  #studioApp #minimizedWidgetDock .sidebar-upper-compact-row{gap:3px!important}
 }
+
+
+/* Highest-specificity overrides for the existing Aura/Avatar pair variant.
+   Its legacy :has(#biglwaAuraAvatarPair) selectors otherwise overrode the
+   header shelf on BOTH the long and square stereo. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>
+.music-card.stereo-music-widget:not(.studio-header-only):not(.widget-is-minimized){
+  padding:72px 12px 14px!important;height:auto!important;
+  min-height:267px!important;max-height:none!important;overflow:hidden!important
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>
+.music-card.stereo-music-widget.studio-header-only.studio-music-square.studio-upper-square:not(.widget-is-minimized){
+  padding:70px 9px 9px!important;
+  min-height:0!important;height:242px!important;max-height:242px!important;
+  width:min(242px,100%)!important;max-width:242px!important;
+  aspect-ratio:1/1!important;overflow:hidden!important
+}
+/* Overrule the old NOW PLAYING relative-position rule and generic yellow
+   header min-height, rather than stacking radio frequencies behind it. */
+#studioApp .music-card.stereo-music-widget:not(.widget-is-minimized)>
+.card-kicker.studio-collapse-keep{
+  position:absolute!important;top:14px!important;left:12px!important;
+  width:max-content!important;min-height:0!important;max-height:23px!important;
+  height:auto!important;padding:4px 7px!important;margin:0!important;
+  display:inline-flex!important;align-items:center!important;z-index:42!important
+}
+#studioApp .music-card.stereo-music-widget:not(.widget-is-minimized)>
+.widget-window-controls.widget-window-controls{
+  top:12px!important;right:10px!important;z-index:55!important
+}
+#studioApp .music-card.stereo-music-widget:not(.widget-is-minimized)>
+.widget-drag-handle.widget-drag-handle{
+  top:12px!important;z-index:52!important
+}
+/* Generic yellow collapse hid Avatar's media and interaction controls.
+   The preview stays alive while only explanatory/editor blocks are tucked. */
+#studioApp #studioAvatarCard.studio-header-only.studio-upper-square:not([hidden]) >
+.biglwa-avatar-media{display:grid!important;visibility:visible!important;opacity:1!important}
+#studioApp #studioAvatarCard.studio-header-only.studio-upper-square:not([hidden]) >
+.biglwa-avatar-actions{display:grid!important;visibility:visible!important;opacity:1!important}
