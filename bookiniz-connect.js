@@ -11,7 +11,7 @@ function activate(root,key){
  root.querySelectorAll('[data-connect-tab]').forEach(b=>{const on=b.dataset.connectTab===key;b.setAttribute('aria-selected',String(on));b.setAttribute('aria-pressed',String(on))});
  root.querySelectorAll('[data-connect-pane]').forEach(p=>p.hidden=p.dataset.connectPane!==key);
  if(key==='bookiniz')loadBookiniz(root);
- if(key==='share')loadPosts(root);
+ if(key==='share'){loadPosts(root);loadIncoming(root)}
 }
 function notice(msg,node){if(node)status(node,msg)}
 function makeSwitch(person,selected,root){
@@ -60,6 +60,33 @@ async function loadPosts(root){
  try{const result=await social().request('kin-sqwibs');if(root.isConnected)renderPosts(root,result.items||[])}
  catch(error){notice('Could not load Kin Sqwibs: '+error.message,root)}
 }
+function renderIncoming(root,posts){
+ const list=$('[data-kin-incoming]',root);if(!list)return;list.replaceChildren();
+ if(!posts.length){const p=document.createElement('p');p.className='bookiniz-empty';p.textContent='No Kin Sqwibs have been shared with you yet.';list.append(p);return}
+ for(const post of posts){
+  const card=document.createElement('article');card.className='bookiniz-post';
+  const top=document.createElement('div');top.className='bookiniz-post-top';
+  const by=document.createElement('strong');by.textContent='@'+(post.sender||'member');
+  const scope=document.createElement('small');scope.textContent=post.audience==='bookiniz'?'Bookiniz':'Boos';
+  const time=document.createElement('time');time.textContent=new Date(post.createdAt).toLocaleString();
+  const body=document.createElement('p');body.textContent=post.text;
+  top.append(by,scope,time);card.append(top,body);list.append(card);
+ }
+}
+async function loadIncoming(root){
+ const friends=(social()?.people||[]).slice(0,25),list=$('[data-kin-incoming]',root);
+ if(!list)return;
+ if(!friends.length){renderIncoming(root,[]);return}
+ list.textContent='Checking your circles…';
+ const reads=await Promise.allSettled(friends.map(async person=>{
+  const response=await social().request('kin-sqwibs?owner='+encodeURIComponent(person.uid));
+  return (response.items||[]).map(post=>({...post,sender:person.username}));
+ }));
+ if(!root.isConnected)return;
+ const posts=reads.filter(x=>x.status==='fulfilled').flatMap(x=>x.value).sort((a,b)=>b.createdAt-a.createdAt).slice(0,60);
+ renderIncoming(root,posts);
+ if(reads.every(x=>x.status==='rejected'))notice('Could not load shared Kin Sqwibs.',root);
+}
 function mount(){
  const root=$('#socialConnect');if(!root||root.dataset.bookinizReady)return;
  root.dataset.bookinizReady='1';root.classList.add('bookiniz-connect');
@@ -93,7 +120,7 @@ function mount(){
   catch(err){notice(err.message,root)}finally{send.disabled=false}
  };
  const listHeading=document.createElement('h3');listHeading.textContent='Kin Sqwibs';const posts=document.createElement('div');posts.dataset.kinPosts='';posts.className='bookiniz-posts';
- share.append(heading,shareIntro,form,listHeading,posts);
+ const incomingTitle=document.createElement('h3');incomingTitle.textContent='Shared with you';const incomingList=document.createElement('div');incomingList.dataset.kinIncoming='';incomingList.className='bookiniz-posts';share.append(heading,shareIntro,form,listHeading,posts,incomingTitle,incomingList);
  const live=document.createElement('p');live.className='bookiniz-status';live.dataset.kinStatus='';live.setAttribute('role','status');
  root.append(nav,boos,kin,share,live);
  const subtitle=document.createElement('p');subtitle.className='bookiniz-boos-copy';subtitle.textContent='Your boos are your friends. Bookiniz are the family you choose from them.';
