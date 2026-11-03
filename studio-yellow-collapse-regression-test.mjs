@@ -132,15 +132,53 @@ assert(music.classList.contains('studio-header-only'),'Yellow keeps the music wi
 assert(music.classList.contains('studio-music-square'),'Yellow selects compact square stereo layout');
 assert.equal(music.dataset.musicVariant,'square');
 assert.equal(music.querySelector('.stereo-shell'),shell,'Music player survives minimization intact');
+const miniDock=doc.createElement('section');miniDock.id='studioSidebarPrimary';
+miniDock.innerHTML='<div id="minimizedWidgetDock"></div>';
+doc.querySelector('#studioApp').append(miniDock);
+w.BigLWAUpperWidgets.refresh();
+assert(doc.querySelector('[data-upper-compact-row="music"] [data-upper-restore="music"]'),'Skeleton Key offers + to restore square music');
 musicYellow.click();
-assert(!music.classList.contains('studio-music-square'),'Restoring selects full-length stereo');
+assert(music.classList.contains('studio-music-square'),'Yellow already minimized is a no-op for square music');
+assert.match(musicYellow.title,/Already minimized/);
+assert.match(doc.querySelector('#studioUpperWidgetStatus').textContent,/already minimized/);
+doc.querySelector('[data-upper-restore="music"]').click();
+assert(!music.classList.contains('studio-music-square'),'Skeleton Key + restores full-length stereo');
+assert(!music.classList.contains('studio-header-only'),'Restoration removes square state');
 assert.equal(music.dataset.musicVariant,'long');
 assert.equal(music.querySelector('#studioMusicTitle').textContent,'Almeda');
+assert.equal(music.querySelector('.stereo-shell'),shell,'Restoring preserves stereo player and audio handlers');
 const aura=doc.createElement('section');aura.className='customizable-widget aura-card';
 aura.dataset.widgetId='aura';aura.innerHTML='<h2 class="card-kicker">Aura</h2>';
 const avatar=doc.createElement('section');avatar.id='studioAvatarCard';
 avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2></div>';
 doc.querySelector('#studioApp').append(aura,avatar);
+// Each upper widget turns YELLOW into a square, never a red-docked/hidden card.
+aura.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="aura"></button></div>'+
+ '<h2 class="card-kicker">Aura</h2><div class="aura-orb"></div>';
+avatar.dataset.widgetId='avatar';avatar.dataset.widgetLabel='Avatar';
+avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
+ '<div class="widget-window-controls avatar-window-controls"><button class="window-light yellow" data-avatar-widget-action="minimize"></button></div></div>'+
+ '<div class="biglwa-avatar-media">Character preview</div><div class="biglwa-avatar-actions"><button>Customize</button></div>';
+const guest=doc.createElement('section');guest.className='customizable-widget guest-check-card';
+guest.dataset.widgetId='guest-check';guest.dataset.widgetLabel='Guest Check';
+guest.innerHTML='<h2 class="card-kicker">Guest Check</h2>'+
+ '<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="guest-check"></button></div>'+
+ '<div class="guest-check-sheet"><div class="guest-check-lines">Guest entries</div></div>';
+doc.querySelector('#studioApp').append(guest);
+for(const [id,widget] of [['aura',aura],['avatar',avatar],['guest-check',guest]]){
+ const yellow=widget.querySelector('.window-light.yellow');
+ yellow.click();
+ assert(widget.classList.contains('studio-upper-square'),id+' becomes a genuine square in Studio');
+ assert(!widget.classList.contains('widget-is-docked')&&!widget.classList.contains('widget-is-minimized'),id+' yellow is not red removal');
+ assert(doc.querySelector('[data-upper-compact-row="'+id+'"] [data-upper-restore="'+id+'"]'),id+' gets a Skeleton Key + restore button');
+ yellow.click();
+ assert.match(yellow.title,/Already minimized/,id+' second yellow click explains square state');
+ assert(widget.classList.contains('studio-upper-square'),id+' stays square after repeated yellow');
+ doc.querySelector('[data-upper-restore="'+id+'"]').click();
+ assert(!widget.classList.contains('studio-upper-square'),id+' + restores rectangle');
+ assert(!doc.querySelector('[data-upper-compact-row="'+id+'"]'),id+' restored panel state clears');
+}
+
 w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
 await new Promise(resolve=>setTimeout(resolve,70));
 assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')?.getAttribute('src'),'/sesa-wo-suban-medium.png','Avatar has the circular star symbol beside the heading');
@@ -156,6 +194,14 @@ assert(Math.abs(matrix[15]+.2126)<1e-8&&Math.abs(matrix[16]+.7152)<1e-8&&Math.ab
  'White source pixels become transparent while dark pixels retain their edges');
 const musicStyle=read('studio-widget-visibility-music-20261102.css');
 assert(musicStyle.includes('.studio-header-only.studio-music-square'),'Square stereo has explicit visible layout');
+assert(musicStyle.includes('Stereo rebuild v3: TWO true header rows'),'New stereo reserves an independent header shelf');
+assert(musicStyle.includes('.stereo-skip-button')&&musicStyle.includes('grid-template-columns:repeat(3,minmax(0,1fr)) 25px'),
+ 'Rewind, play, forward and eject have a compact four-button deck');
+assert(musicStyle.includes('.guest-check-card.studio-upper-square')&&musicStyle.includes('#studioAvatarCard.studio-upper-square'),
+ 'Check and Avatar square layouts have explicit CSS');
+assert(musicStyle.includes('.sidebar-upper-yellow-indicator')&&musicStyle.includes('.sidebar-widget-restore-row.is-red-docked'),
+ 'Skeleton Key distinguishes yellow compact from red removed lights');
+
 assert(musicStyle.includes('img[src*="/Sunsum.webp"]')&&musicStyle.includes('img[src*="/sesa-wo-suban-medium.png"]'),
  'Aura and Avatar image layers both use the white-to-transparency mask');
 assert(musicStyle.includes('filter:url("#biglwaStudioWhiteToAlpha")')&&musicStyle.includes('mix-blend-mode:multiply'),
@@ -169,4 +215,4 @@ assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute(
 
 await new Promise(resolve=>setTimeout(resolve,120));
 dom.window.close();
-console.log('PASS: yellow header-only toggle and account save; green/red/drag/image unaffected');
+console.log('PASS: ordinary yellow collapse, all four upper square widgets, Skeleton Key + restoration, stereo integrity, symbol mask');
