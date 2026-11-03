@@ -4,13 +4,43 @@
  if(window.__biglwaYellowHeaderOnlyV1)return;
  window.__biglwaYellowHeaderOnlyV1=true;
 
- const widgetSelector='#studioApp .masonry .card:not(.manifesto-card),#studioApp .customizable-widget,#studioApp .profile-card,#studioApp #studioAvatarCard';
+ const widgetSelector='#studioApp .masonry .card:not(.manifesto-card),#studioApp .customizable-widget,#studioApp .profile-card,#studioApp #studioAvatarCard,#studioApp .music-card,#studioApp .aura-card';
  const isVisitor=()=>window.__biglwaPublicStorageView===true||document.documentElement.classList.contains('biglwa-preview-mode');
  const uid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
  const getSaved=()=>{const id=uid();if(!id)return null;try{
    const layout=window.BigLWAStudioLayout?.snapshot?.()||JSON.parse(localStorage.getItem('biglwaStudioLayoutV4:'+id)||'null');
    return Array.isArray(layout?.collapsed)?new Set(layout.collapsed.map(String)):new Set();
   }catch{return new Set()}};
+
+ // These are the two real account assets committed to BIG LWA, not letter fallbacks.
+ // Sunsum = Avatar; Sesa Wo Suban = Aura. Reapply only after a real DOM re-render.
+ function applyIdentitySymbols(){
+  const targets=[
+   ['#studioApp #studioAvatarCard .biglwa-avatar-head .card-kicker','/Sunsum.webp','avatar'],
+   ['#studioApp .aura-card .card-kicker','/sesa-wo-suban-medium.png','aura']
+  ];
+  for(const [selector,src,key] of targets){
+   const heading=document.querySelector(selector);if(!heading)continue;
+   let mark=heading.querySelector(':scope > .studio-heading-image-symbol');
+   if(!mark){
+    mark=document.createElement('img');mark.className='studio-heading-image-symbol';
+    mark.src=src;mark.alt='';mark.setAttribute('aria-hidden','true');
+    mark.dataset.widgetSymbol=key;heading.prepend(mark);
+   }else if(mark.getAttribute('src')!==src){mark.src=src}
+  }
+  const music=document.querySelector('#studioApp .music-card');
+  if(music){
+   const kicker=music.querySelector(':scope > .card-kicker');
+   if(kicker&&/^n$/i.test(kicker.textContent.trim()))kicker.textContent='♫';
+  }
+ }
+ function installFixStyles(){
+  if(document.getElementById('studioWidgetVisibilityMusicFix'))return;
+  const link=document.createElement('link');
+  link.id='studioWidgetVisibilityMusicFix';link.rel='stylesheet';
+  link.href='/studio-widget-visibility-music-20261102.css?v=20261102-1';
+  document.head.append(link);
+ }
  const key=widget=>widget.dataset.widgetId||widget.id||'';
  const label=widget=>widget.dataset.widgetLabel||widget.querySelector('h1,h2,.card-kicker')?.textContent?.trim()||key(widget)||'widget';
  const findHead=widget=>{
@@ -46,6 +76,10 @@
   const head=findHead(widget);
   if(head&&!head.classList.contains('studio-collapse-keep'))head.classList.add('studio-collapse-keep');
   const collapsed=widget.classList.contains('studio-header-only');
+  if(widget.classList.contains('music-card')){
+   widget.classList.toggle('studio-music-square',collapsed);
+   widget.dataset.musicVariant=collapsed?'square':'long';
+  }
   widget.querySelectorAll('.widget-window-controls .window-light.yellow').forEach(button=>{
    const action=collapsed?'Restore':'Minimize',name=label(widget);
    button.title=action+' '+name;
@@ -55,6 +89,7 @@
   });
  }
  function updateAll(){
+  installFixStyles();applyIdentitySymbols();
   if(isVisitor())return;
   const saved=getSaved();
   document.querySelectorAll(widgetSelector).forEach(widget=>{
