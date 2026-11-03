@@ -126,6 +126,7 @@ jobs:
           node media-visual-reliability-test.mjs
           node studio-layout-cache-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-yellow-collapse-regression-test.mjs
+          NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node studio-music-stereo-interaction-test.mjs
           node dock-scroll-stability-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node veve-curtain-regression-test.mjs
           NODE_PATH="$RUNNER_TEMP/biglwa-tests/node_modules" node stream-dock-no-signal-test.mjs
