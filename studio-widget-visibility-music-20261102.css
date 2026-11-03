@@ -150,3 +150,307 @@ html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
   filter:url("#biglwaStudioWhiteToAlpha") invert(1)!important;
   mix-blend-mode:screen!important;
 }
+
+
+/* Stereo rebuild v3: TWO true header rows above the FM dial.
+   Avoid the earlier absolute horizontal fight between NOW PLAYING, SONGS,
+   drag handle, dots and the tuner strip on small columns. */
+#studioApp .hero-widget-rail>.music-card.stereo-music-widget:not(.widget-is-minimized),
+#studioApp .music-card.stereo-music-widget:not(.widget-is-minimized) {
+  box-sizing:border-box!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  position:relative!important;
+  padding:72px 12px 14px!important;
+  height:auto!important;
+  max-height:none!important;
+  min-height:267px!important;
+}
+#studioApp .music-card.stereo-music-widget>.card-kicker,
+#studioApp .music-card.stereo-music-widget.studio-upper-square>.card-kicker{
+  position:absolute!important;top:14px!important;left:12px!important;
+  width:max-content!important;max-width:calc(100% - 118px)!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  padding:4px 7px!important;margin:0!important;
+  z-index:33!important;pointer-events:none!important;
+}
+#studioApp .music-card.stereo-music-widget>#profileMusicOpen,
+#studioApp .music-card.stereo-music-widget.studio-upper-square>#profileMusicOpen{
+  display:block!important;visibility:visible!important;
+  position:absolute!important;top:38px!important;left:12px!important;right:auto!important;
+  width:auto!important;max-width:110px!important;min-height:25px!important;
+  height:25px!important;padding:4px 8px!important;line-height:1.15!important;
+  margin:0!important;box-sizing:border-box!important;z-index:34!important;
+}
+#studioApp .music-card.stereo-music-widget>.widget-window-controls,
+#studioApp .music-card.stereo-music-widget.studio-upper-square>.widget-window-controls{
+  position:absolute!important;top:13px!important;right:12px!important;z-index:45!important;
+  display:flex!important;gap:4px!important;flex-wrap:nowrap!important;
+  overflow:visible!important;
+}
+#studioApp .music-card.stereo-music-widget>.widget-drag-handle,
+#studioApp .music-card.stereo-music-widget.studio-upper-square>.widget-drag-handle{
+  position:absolute!important;top:12px!important;left:50%!important;
+  z-index:40!important;transform:translateX(-50%)!important;
+}
+#studioApp .music-card.stereo-music-widget>.stereo-shell{
+  position:relative!important;z-index:2!important;display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:9px!important;min-width:0!important;max-width:100%!important;
+  overflow:visible!important;margin:0!important;padding:0!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-tuner{
+  box-sizing:border-box!important;z-index:1!important;
+  min-width:0!important;width:100%!important;
+  height:29px!important;min-height:29px!important;
+  margin:0!important;padding:3px 11px!important;
+  overflow:hidden!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-tuner-label{
+  box-sizing:border-box!important;
+  max-width:100%!important;overflow:hidden!important;
+  text-overflow:clip!important;white-space:nowrap!important;
+  font-size:clamp(6px,.8vw,8px)!important;letter-spacing:.01em!important;
+  transform:none!important;position:relative!important;z-index:2!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-tuner::before{
+  left:12px!important;right:12px!important;bottom:3px!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-tuner::after{
+  top:3px!important;bottom:3px!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-face{
+  display:grid!important;
+  grid-template-columns:minmax(28px,43px) minmax(0,1fr) minmax(28px,43px)!important;
+  gap:8px!important;align-items:center!important;min-width:0!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-display{
+  box-sizing:border-box!important;
+  width:100%!important;height:88px!important;min-width:0!important;
+  padding:7px!important;overflow:hidden!important;
+}
+#studioApp .music-card.stereo-music-widget .music-row{
+  display:flex!important;align-items:center!important;min-width:0!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-control-deck{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr) 30px!important;
+  gap:6px!important;padding:0!important;
+  align-items:center!important;min-width:0!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-control-deck :is(
+  .stereo-skip-button,#playBtn,.stereo-eject){
+  position:relative!important;box-sizing:border-box!important;
+  display:grid!important;place-items:center!important;
+  min-width:0!important;width:100%!important;height:27px!important;
+  min-height:27px!important;max-height:27px!important;
+  margin:0!important;padding:0 4px!important;
+  border-radius:5px!important;cursor:pointer!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-control-deck .stereo-skip-button{
+  border:1px solid #090909!important;
+  background:linear-gradient(#484b4b,#202222)!important;
+  color:#cbd0ca!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.13),0 2px 0 #090909!important;
+  font:800 10px/1 system-ui!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-control-deck :is(
+  .stereo-skip-button,#playBtn,.stereo-eject):focus-visible{
+  outline:2px solid #b3ffb8!important;outline-offset:2px!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-control-deck .stereo-skip-button:active{
+  transform:translateY(1px);box-shadow:inset 0 2px 3px #090909!important;
+}
+/* Yellow changes the shape, NOT playback. All controls remain in the DOM and visible. */
+#studioApp .hero-widget-rail>.music-card.studio-header-only.studio-upper-square,
+#studioApp .music-card.stereo-music-widget.studio-header-only.studio-upper-square:not(.widget-is-minimized){
+  display:block!important;box-sizing:border-box!important;position:relative!important;
+  width:min(242px,100%)!important;max-width:242px!important;min-width:0!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  aspect-ratio:1 / 1!important;overflow:hidden!important;
+  padding:70px 9px 9px!important;margin:0!important;align-self:start!important;
+}
+#studioApp .music-card.studio-header-only.studio-upper-square:not(.widget-is-minimized) > .stereo-shell.stereo-shell{
+  display:grid!important;visibility:visible!important;opacity:1!important;
+  grid-template-columns:minmax(0,1fr)!important;gap:6px!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-face{
+  grid-template-columns:27px minmax(0,1fr) 27px!important;gap:4px!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-tuner{
+  height:25px!important;min-height:25px!important;padding:2px 4px!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-display{
+  height:77px!important;padding:5px!important;
+}
+#studioApp .music-card.studio-upper-square .music-row{gap:4px!important}
+#studioApp .music-card.studio-upper-square .album-art{
+  flex-basis:22px!important;width:22px!important;height:22px!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-now-playing{
+  font-size:6px!important;margin-bottom:2px!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-eq{
+  height:9px!important;margin-top:4px!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-control-deck{
+  grid-template-columns:repeat(3,minmax(0,1fr)) 25px!important;gap:4px!important;
+  padding:0!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-control-deck :is(
+ .stereo-skip-button,#playBtn,.stereo-eject){
+  height:23px!important;min-height:23px!important;max-height:23px!important;
+  padding:0 2px!important;
+}
+#studioApp .music-card.studio-upper-square .stereo-shell .stereo-display .progress{
+  margin:3px 1px 0!important;
+}
+#studioApp .music-card.studio-upper-square>.card-kicker{
+  max-width:calc(100% - 95px)!important;
+}
+#studioApp .music-card.studio-upper-square #profileMusicOpen{
+  top:38px!important;left:10px!important;right:auto!important;
+  width:auto!important;max-width:110px!important;font-size:8px!important;
+}
+#studioApp .music-card.studio-upper-square>.widget-window-controls{
+  top:12px!important;right:8px!important;
+}
+
+/* Shared upper-widget square model. No widget is docked/removed by yellow. */
+#studioApp .hero-widget-rail>.guest-check-card.studio-upper-square.studio-header-only:not(.widget-is-minimized),
+#studioApp #biglwaAuraAvatarPair>.aura-card.studio-upper-square.studio-header-only:not(.widget-is-minimized),
+#studioApp #studioAvatarCard.studio-upper-square.studio-header-only{
+  box-sizing:border-box!important;position:relative!important;display:block!important;
+  width:min(240px,100%)!important;max-width:240px!important;min-width:0!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  aspect-ratio:1 / 1!important;overflow:hidden!important;align-self:start!important;
+  margin:0!important;
+}
+#studioApp .hero-widget-rail>.guest-check-card.studio-upper-square.studio-header-only{
+  padding:0!important;
+}
+#studioApp .guest-check-card.studio-upper-square>.guest-check-sheet{
+  display:block!important;visibility:visible!important;opacity:1!important;
+  width:100%!important;height:100%!important;min-height:0!important;
+  box-sizing:border-box!important;z-index:1!important;
+  padding:36px 9px 8px!important;
+}
+#studioApp .guest-check-card.studio-upper-square>.widget-window-controls{
+  top:12px!important;right:9px!important;z-index:30!important;
+}
+#studioApp .guest-check-card.studio-upper-square>.widget-drag-handle{
+  top:11px!important;z-index:31!important;
+}
+#studioApp .guest-check-card.studio-upper-square .guest-check-lines{
+  max-height:108px!important;overflow:hidden!important;
+}
+#studioApp #biglwaAuraAvatarPair>.aura-card.studio-upper-square{
+  padding:36px 10px 10px!important;
+}
+#studioApp .aura-card.studio-header-only.studio-upper-square:not(.widget-is-minimized)
+ > :not(.widget-window-controls):not(.widget-drag-handle):not([data-studio-drag-handle]){
+  display:block!important;visibility:visible!important;
+}
+#studioApp .aura-card.studio-upper-square>.card-kicker{
+  position:absolute!important;top:10px!important;left:11px!important;
+  margin:0!important;padding:0 68px 0 0!important;max-width:100%!important;
+  white-space:nowrap!important;text-overflow:ellipsis!important;overflow:hidden!important;
+}
+#studioApp .aura-card.studio-upper-square .aura-orb{
+  max-width:100%!important;max-height:110px!important;
+  margin:0 auto 8px!important;
+}
+#studioApp #studioAvatarCard.studio-upper-square{
+  padding:10px!important;
+}
+#studioApp #studioAvatarCard.studio-upper-square .biglwa-avatar-head{
+  min-height:27px!important;margin:0 0 7px!important;
+}
+#studioApp #studioAvatarCard.studio-upper-square .biglwa-avatar-media{
+  min-height:0!important;height:min(94px,38%)!important;
+  max-height:94px!important;flex:0 1 auto!important;margin-bottom:6px!important;
+}
+#studioApp #studioAvatarCard.studio-upper-square .biglwa-avatar-actions{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:3px!important;
+}
+#studioApp #studioAvatarCard.studio-upper-square .biglwa-avatar-actions button{
+  min-height:27px!important;padding:3px 2px!important;font-size:9px!important;
+}
+#studioApp #studioAvatarCard.studio-upper-square .biglwa-avatar-source,
+#studioApp #studioAvatarCard.studio-upper-square #biglwaAvatarStatus{
+  display:none!important;
+}
+#studioApp #biglwaAuraAvatarPair:has(> .studio-upper-square){
+  align-items:start!important;
+}
+
+/* Skeleton Key: yellow compact is a ring and PLUS restores rectangle.
+   Filled red remains exclusively for red-removed widgets. */
+#studioApp #minimizedWidgetDock .sidebar-upper-compact-row{
+  display:grid!important;
+  grid-template-columns:25px minmax(0,1fr) 12px 25px!important;
+  align-items:center!important;gap:5px!important;
+  padding:7px 8px!important;border-radius:10px!important;
+  background:rgba(255,249,233,.56)!important;
+  border:1px solid rgba(192,148,63,.38)!important;
+  min-width:0!important;
+}
+#studioApp #minimizedWidgetDock .sidebar-upper-compact-row .sidebar-route-icon{
+  width:23px!important;height:23px!important;display:grid!important;
+  place-items:center!important;font-size:17px!important;
+}
+#studioApp #minimizedWidgetDock .sidebar-upper-compact-row .sidebar-route-icon img{
+  width:22px!important;height:22px!important;object-fit:contain!important;
+}
+#studioApp #minimizedWidgetDock .sidebar-upper-compact-row .sidebar-upper-compact-text{
+  font:700 11px/1.2 system-ui!important;overflow:hidden;text-overflow:ellipsis;
+}
+#studioApp #minimizedWidgetDock .sidebar-upper-yellow-indicator{
+  display:block!important;width:9px!important;height:9px!important;
+  border:2px solid #dfb148!important;border-radius:50%!important;
+  background:transparent!important;box-sizing:border-box!important;
+  box-shadow:none!important;
+}
+#studioApp #minimizedWidgetDock .sidebar-upper-restore{
+  display:grid!important;place-items:center!important;
+  width:24px!important;height:25px!important;min-width:0!important;
+  padding:0!important;border:0!important;background:transparent!important;
+  color:inherit!important;font:800 19px/1 system-ui!important;cursor:pointer!important;
+}
+#studioApp #minimizedWidgetDock .sidebar-upper-restore:focus-visible{
+  outline:2px solid #dcab38!important;outline-offset:2px!important;
+}
+#studioApp #minimizedWidgetDock .sidebar-widget-restore-row.is-red-docked::after,
+#studioApp #biglwaAvatarSidebarRestore.is-widget-removed::after{
+  content:""!important;display:block!important;position:absolute!important;
+  right:20px!important;top:4px!important;width:7px!important;height:7px!important;
+  border-radius:50%!important;
+  background:rgb(var(--aura-rgb,216,95,109))!important;
+  border:1px solid rgb(var(--aura-rgb,216,95,109))!important;
+  box-shadow:0 0 0 2px rgba(var(--aura-rgb,216,95,109),.15)!important;
+}
+#studioApp #biglwaAvatarSidebarRestore:not(.is-widget-removed)::after{
+  background:transparent!important;box-shadow:none!important;
+}
+#studioApp .studio-upper-widget-status{
+  position:fixed!important;left:50%!important;bottom:24px!important;
+  z-index:9990!important;transform:translateX(-50%) translateY(12px);
+  opacity:0!important;pointer-events:none!important;transition:opacity .18s,transform .18s;
+  max-width:min(420px,calc(100vw - 36px));
+  padding:10px 13px!important;margin:0!important;border-radius:9px!important;
+  color:#fff!important;background:#352c34ee!important;
+  box-shadow:0 3px 16px #2512192d;
+  font:600 12px/1.35 system-ui!important;text-align:center;
+}
+#studioApp .studio-upper-widget-status.is-active{
+  opacity:1!important;transform:translateX(-50%) translateY(0);
+}
+@media(max-width:540px){
+ #studioApp .music-card.stereo-music-widget .stereo-tuner-label{font-size:6px!important}
+ #studioApp .music-card.stereo-music-widget .stereo-face{
+  grid-template-columns:26px minmax(0,1fr) 26px!important;gap:4px!important;
+ }
+ #studioApp #minimizedWidgetDock .sidebar-upper-compact-row{gap:3px!important}
+}
