@@ -1003,7 +1003,7 @@
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
-    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const id=row.dataset.shortcutRow||'';
       const linked=shortcutWidget(app,id);
       // The top four never produce Skeleton Key restore entries for yellow.
