@@ -1,7 +1,7 @@
 /* Profile presentation, account media repair and per-widget preview audiences. */
 (()=>{'use strict';
 const BASE='https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-state';
-let authPromise,mediaOwner='',audience={},syncing=false,publicProfile=null;
+let authPromise,mediaOwner='',audience={},syncing=false,publicProfile=null,viewerGrant={owner:'',boo:false,bookini:false},loadingGrant='';
 const $=(s,r=document)=>r?.querySelector(s);
 const visitor=()=>document.documentElement.classList.contains('biglwa-preview-mode');
 async function auth(){if(!authPromise)authPromise=Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')]).then(([a,f])=>f.getAuth(a.getApps()[0])).catch(e=>{authPromise=null;throw e});const a=await authPromise;await a.authStateReady();return a.currentUser}
@@ -15,19 +15,31 @@ async function restoreMedia(){if(syncing||visitor())return;syncing=true;try{cons
  if(!Object.hasOwn(saved,'profilePhotoUrl')&&selected.includes('/media/profile-photo/'+me.uid+'/')){const recovered=await request({profilePhotoUrl:selected});photo=recovered.profilePhotoUrl}
  if(!visitor()){if(photo)photoPaint(photo,saved.profilePhotoPosition);if(saved.wallpaperMedia?.url)window.BIGLWAStudioAppearance?.apply?.({media:saved.wallpaperMedia});paintLocks()}
 }catch(error){console.warn('[BIGLWA] Account media repair:',error.message)}finally{syncing=false}}
-function previewFaces(profile){if(!visitor()||!profile)return;publicProfile=profile;const grid=$('#studioApp .masonry');if(!grid)return;const personalized=new Set(['boards','orbit','diary','archive','projects','library','closet','trophies','notes','calendar','map','camera','stream']);
+async function resolveGrant(owner,profile){
+ loadingGrant=owner;
+ try{
+  const member=await auth();
+  if(!member){viewerGrant={owner,boo:false,bookini:false};return}
+  const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/social/audience?owner='+encodeURIComponent(owner),{headers:{Authorization:'Bearer '+await member.getIdToken()},cache:'no-store'});
+  if(!response.ok)throw Error('Audience lookup unavailable');
+  const data=await response.json();
+  viewerGrant={owner,boo:data.boo===true,bookini:data.bookini===true};
+ }catch{viewerGrant={owner,boo:false,bookini:false}}
+ finally{loadingGrant='';if(visitor()&&publicProfile?.uid===owner)previewFaces(publicProfile)}
+}
+function previewFaces(profile){if(!visitor()||!profile)return;publicProfile=profile;const viewedUid=String(profile.uid||'');if(viewedUid&&viewerGrant.owner!==viewedUid&&loadingGrant!==viewedUid)resolveGrant(viewedUid,profile);const grid=$('#studioApp .masonry');if(!grid)return;const personalized=new Set(['boards','orbit','diary','archive','projects','library','closet','trophies','notes','calendar','map','camera','stream']);
  for(const card of grid.querySelectorAll(':scope > .card,:scope > article,:scope > [data-widget-id]')){
   const key=String(card.dataset.widgetId||card.id||'');if(!key)continue;
   card.dataset.biglwaPublicVisible='1';card.classList.add('public-widget-face');
   const access=profile.widgetAudience?.[key]||'everyone';card.dataset.widgetAudience=access;
-  const restricted=access==='private'||(access==='members'&&!document.documentElement.classList.contains('biglwa-profile-viewer-member'));
+  const restricted=access==='private'||(access==='members'&&!document.documentElement.classList.contains('biglwa-profile-viewer-member'))||(access==='boos'&&!(viewerGrant.owner===viewedUid&&viewerGrant.boo))||(access==='bookiniz'&&!(viewerGrant.owner===viewedUid&&viewerGrant.bookini));
   card.classList.toggle('public-widget-locked',restricted);
-  if((personalized.has(key)&&card.dataset.publicFaceSanitized!=='1')||restricted){
+  if((personalized.has(key)&&card.dataset.publicFaceSanitized!=='1')||restricted||$('.public-widget-safe-face',card)?.textContent.startsWith('🔒')){
    const head=$('.card-head',card);if(!head)continue;
    if(!['boards','orbit','diary'].includes(key)||restricted){
     for(const child of [...card.children]){if(child===head||child.matches('.widget-window-controls,[data-studio-drag-handle]'))continue;child.hidden=true;child.dataset.privatePreviewHidden='1'}
     let face=$('.public-widget-safe-face',card);if(!face){face=document.createElement('div');face.className='public-widget-safe-face';card.append(face)}face.hidden=false;
-    face.textContent=restricted?'🔒 '+(access==='members'?'Members only':'Private widget'):({notes:'Sqwidz · thoughts, stories & conversations',calendar:'Calendar',projects:'Visualeyez · Visualslidez',archive:'Archive',library:'Library',closet:'Closet',trophies:'Achievements',map:'Shared places'}[key]||'Read-only preview');
+    face.textContent=restricted?'🔒 '+({members:'Members only',boos:'Boos only',bookiniz:'Bookiniz only'}[access]||'Private widget'):({notes:'Sqwidz · thoughts, stories & conversations',calendar:'Calendar',projects:'Visualeyez · Visualslidez',archive:'Archive',library:'Library',closet:'Closet',trophies:'Achievements',map:'Shared places'}[key]||'Read-only preview');
    }
    if(key==='camera'&&!restricted){const face=$('.public-widget-safe-face',card);if(face){face.textContent='';const image=document.createElement('img');image.className='public-booth-image';image.src='/assets/booth-light-20261029.webp';image.alt='Booth curtains';face.append(image)}}
    card.dataset.publicFaceSanitized='1';
@@ -61,14 +73,14 @@ function paintLocks(){
   }
   const level=audience[key]||'everyone';
   button.textContent=level==='everyone'?'🔓':'🔒';
-  button.title={everyone:'Everyone can see the preview',members:'Members only',private:'Only you'}[level];
+  button.title={everyone:'Everyone can see the preview',members:'Members only',boos:'Only your Boos',bookiniz:'Only your Bookiniz',private:'Only you'}[level];
   button.setAttribute('aria-label','Who can see '+key+' widget: '+level);
  }
 }
-function openAudience(key){let dialog=$('#widgetAudienceDialog');if(dialog)dialog.remove();dialog=document.createElement('dialog');dialog.id='widgetAudienceDialog';const name=document.querySelector('[data-sidebar-route-row="'+CSS.escape(key)+'"] .sidebar-route-label')?.textContent||key;const title=document.createElement('h2');title.textContent=name+' · visibility';const help=document.createElement('p');help.textContent='Choose who sees this widget preview. Private drafts and editing tools remain protected.';const select=document.createElement('select');select.setAttribute('aria-label','Widget audience');for(const [value,label]of [['everyone','Everyone'],['members','Signed-in members'],['private','Only me']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option)}select.value=audience[key]||'everyone';const save=document.createElement('button');save.textContent='Save';const close=document.createElement('button');close.textContent='Close';close.onclick=()=>dialog.close();const status=document.createElement('p');status.setAttribute('role','status');save.onclick=async()=>{save.disabled=true;try{const next={...audience,[key]:select.value},result=await request({widgetAudience:next});audience=result.widgetAudience;paintLocks();status.textContent='Saved to your account.'}catch(e){status.textContent=e.message}finally{save.disabled=false}};dialog.append(title,help,select,save,close,status);document.body.append(dialog);dialog.showModal()}
+function openAudience(key){let dialog=$('#widgetAudienceDialog');if(dialog)dialog.remove();dialog=document.createElement('dialog');dialog.id='widgetAudienceDialog';const name=document.querySelector('[data-sidebar-route-row="'+CSS.escape(key)+'"] .sidebar-route-label')?.textContent||key;const title=document.createElement('h2');title.textContent=name+' · visibility';const help=document.createElement('p');help.textContent='Choose who sees this widget preview. Private drafts and editing tools remain protected.';const select=document.createElement('select');select.setAttribute('aria-label','Widget audience');for(const [value,label]of [['everyone','Everyone'],['members','Signed-in members'],['boos','Boos · friends'],['bookiniz','Bookiniz · family'],['private','Only me']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option)}select.value=audience[key]||'everyone';const save=document.createElement('button');save.textContent='Save';const close=document.createElement('button');close.textContent='Close';close.onclick=()=>dialog.close();const status=document.createElement('p');status.setAttribute('role','status');save.onclick=async()=>{save.disabled=true;try{const next={...audience,[key]:select.value},result=await request({widgetAudience:next});audience=result.widgetAudience;paintLocks();status.textContent='Saved to your account.'}catch(e){status.textContent=e.message}finally{save.disabled=false}};dialog.append(title,help,select,save,close,status);document.body.append(dialog);dialog.showModal()}
 function run(){moveHeader();profileGeometry();paintLocks();if(visitor())previewFaces(publicProfile||window.__biglwaViewedProfile)}
 window.BigLWAProfileRepair={restoreMedia,request,previewFaces,paintLocks};
-window.addEventListener('biglwa:public-profile-ended',()=>{publicProfile=null;for(const el of document.querySelectorAll('[data-private-preview-hidden]')){delete el.dataset.privatePreviewHidden;el.hidden=false}document.querySelectorAll('.public-widget-safe-face').forEach(el=>el.remove());document.querySelectorAll('.public-widget-face').forEach(el=>{el.classList.remove('public-widget-face','public-widget-locked');delete el.dataset.publicFaceSanitized})});
+window.addEventListener('biglwa:public-profile-ended',()=>{publicProfile=null;viewerGrant={owner:'',boo:false,bookini:false};for(const el of document.querySelectorAll('[data-private-preview-hidden]')){delete el.dataset.privatePreviewHidden;el.hidden=false}document.querySelectorAll('.public-widget-safe-face').forEach(el=>el.remove());document.querySelectorAll('.public-widget-face').forEach(el=>{el.classList.remove('public-widget-face','public-widget-locked');delete el.dataset.publicFaceSanitized})});
 window.addEventListener('biglwa:public-mirror-ready',e=>{previewFaces(e.detail?.profile);run()});
 window.addEventListener('biglwa:identity-updated',()=>{restoreMedia();run()});
 window.addEventListener('biglwa:user-directory-ready',restoreMedia);window.addEventListener('biglwa:profile-metrics',profileGeometry);
