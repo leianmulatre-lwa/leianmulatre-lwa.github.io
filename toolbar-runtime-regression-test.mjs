@@ -70,6 +70,14 @@ click('[data-restore-widget="music"]');
 assert(q('#studioSidebarPrimary').hidden);
 click('[data-dock-widget="notes"]');
 assert(q('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));
+const notesPlus=q('#studioSidebarDockedWidgetDock [data-shortcut-row="notes"] .sidebar-widget-plus');
+assert(notesPlus?.tagName==='BUTTON','Visible red-zone + is a real clickable button');
+assert.equal(notesPlus.dataset.restoreWidget,'notes','Plus restores the matching widget, not just a shortcut');
+notesPlus.click();
+assert(!q('#notes').classList.contains('widget-is-docked'),'Red-zone + restores the widget');
+click('[data-dock-widget="notes"]');
+assert(q('#studioSidebarDockedWidgetDock [data-shortcut-row="notes"] .sidebar-widget-plus'),
+ 'Red light and + return after the widget is removed again');
 const drag=(key,target)=>{
  const handle=q('[data-shortcut-drag-handle="'+key+'"]');
  w.document.elementFromPoint=()=>q(target);
