@@ -8,10 +8,15 @@ const status=(node,msg)=>{const x=$('[data-kin-status]',node);if(x)x.textContent
 function button(label,cls){const b=document.createElement('button');b.type='button';b.textContent=label;if(cls)b.className=cls;return b}
 function pane(){const p=document.createElement('section');p.className='bookiniz-pane';p.hidden=true;return p}
 function activate(root,key){
- root.querySelectorAll('[data-connect-tab]').forEach(b=>{const on=b.dataset.connectTab===key;b.setAttribute('aria-selected',String(on));b.setAttribute('aria-pressed',String(on))});
+ if(!['boos','bookiniz'].includes(key))key='boos';
+ const workspace=root.closest('#moduleWorkspaceBody')||root.parentElement;
+ workspace?.querySelectorAll('.bookiniz-tabs [data-connect-tab]').forEach(b=>{
+  const on=b.dataset.connectTab===key;b.setAttribute('aria-selected',String(on));b.setAttribute('aria-pressed',String(on));b.tabIndex=on?0:-1;
+ });
  root.querySelectorAll('[data-connect-pane]').forEach(p=>p.hidden=p.dataset.connectPane!==key);
- if(key==='bookiniz')loadBookiniz(root);
- if(key==='share'){loadPosts(root);loadIncoming(root)}
+ const slot=root.querySelector('[data-connect-pane="'+key+'"] [data-connect-invite-slot]');
+ if(slot)for(const node of root._bookinizInviteParts||[])if(node)slot.append(node);
+ if(key==='bookiniz'){loadBookiniz(root);loadPosts(root);loadIncoming(root)}
 }
 function notice(msg,node){if(node)status(node,msg)}
 function makeSwitch(person,selected,root){
@@ -87,44 +92,112 @@ async function loadIncoming(root){
  renderIncoming(root,posts);
  if(reads.every(x=>x.status==='rejected'))notice('Could not load shared Kin Sqwibs.',root);
 }
+function makeBookiniFind(root){
+ const section=document.createElement('section');section.className='bookiniz-find';
+ const heading=document.createElement('h2');heading.textContent='Find user';
+ const form=document.createElement('form');form.className='social-find bookiniz-find-form';
+ form.setAttribute('role','search');
+ const search=document.createElement('input');search.type='search';search.name='username';search.placeholder='Find user · @username';search.setAttribute('aria-label','Find user to add to Bookiniz');search.required=true;search.minLength=2;search.maxLength=30;
+ const go=document.createElement('button');go.type='submit';go.textContent='Find';
+ const results=document.createElement('div');results.className='connect-user-results bookiniz-find-results';results.setAttribute('aria-live','polite');
+ form.append(search,go);section.append(heading,form,results);
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();const term=search.value.trim().replace(/^@/,'');if(term.length<2)return;
+  results.textContent='Finding members…';go.disabled=true;
+  try{
+   const answer=await social().request('find?q='+encodeURIComponent(term));
+   if(!section.isConnected||search.value.trim().replace(/^@/,'')!==term)return;
+   results.replaceChildren();
+   const people=(answer.items||[]).filter(p=>p?.username&&p.uid);
+   if(!people.length){results.textContent='No matching members.';return}
+   for(const person of people){
+    const row=document.createElement('div');row.className='social-result bookiniz-search-result';
+    const label=document.createElement('span');label.textContent=(person.name||person.username)+' · @'+person.username;
+    const add=button(members.includes(person.uid)?'Bookini ✓':'Add to Bookiniz','bookiniz-add-result');
+    add.disabled=members.includes(person.uid);
+    add.onclick=async()=>{
+     if(busy)return;busy=true;add.disabled=true;notice('Adding @'+person.username+' to Bookiniz…',root);
+     try{
+      if(!(social().people||[]).some(p=>p.uid===person.uid))await social().request('friends',{username:person.username});
+      await social().request('bookiniz',{uid:person.uid,enabled:true});
+      await social().refresh();await loadBookiniz(root);
+      add.textContent='Bookini ✓';notice('@'+person.username+' is now Bookini.',root);
+     }catch(error){add.disabled=false;notice(error.message,root)}
+     finally{busy=false}
+    };
+    const link=document.createElement('a');link.href='/'+encodeURIComponent(person.username);link.textContent='Profile';link.setAttribute('aria-label','View @'+person.username+' profile');
+    row.append(label,add,link);results.append(row);
+   }
+  }catch(error){results.textContent=error.message}
+  finally{go.disabled=false}
+ });
+ return section;
+}
 function mount(){
- const root=$('#socialConnect');if(!root||root.dataset.bookinizReady)return;
+ const root=$('#socialConnect');
+ if(!root||root.dataset.bookinizReady)return;
+ const workspace=root.closest('#moduleWorkspaceBody')||root.parentElement;
+ const heading=workspace?.querySelector('.module-heading');
+ if(!heading)return;
  root.dataset.bookinizReady='1';root.classList.add('bookiniz-connect');
- const original=[...root.childNodes],nav=document.createElement('nav'),boos=pane(),kin=pane(),share=pane();
- nav.className='bookiniz-tabs';nav.setAttribute('aria-label','Connect sections');
- for(const [key,label] of [['boos','Boos'],['bookiniz','Bookiniz'],['share','Share']]){
-  const b=button(label);b.dataset.connectTab=key;b.setAttribute('role','tab');b.onclick=()=>activate(root,key);nav.append(b);
+ const original=[...root.childNodes],nav=document.createElement('nav'),boos=pane(),kin=pane();
+ nav.className='bookiniz-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Connect sections');
+ for(const [key,label] of [['boos','Boos'],['bookiniz','Bookiniz']]){
+  const control=button(label);control.dataset.connectTab=key;
+  control.setAttribute('role','tab');control.setAttribute('aria-controls','connectPanel-'+key);
+  control.onclick=()=>activate(root,key);nav.append(control);
  }
- for(const [node,key] of [[boos,'boos'],[kin,'bookiniz'],[share,'share']])node.dataset.connectPane=key;
- boos.append(...original);
- const title=document.createElement('h2');title.textContent='bookiniz';
- const intro=document.createElement('p');intro.className='bookiniz-intro';intro.textContent='First there’s your boos (your friends), then there’s bookiniz (your family). Choose your closest people from your boos.';
- const meta=document.createElement('div');meta.className='bookiniz-meta';meta.textContent='Your Bookiniz circle is private. Switch a Boo on to make them Bookini.';
+ heading.querySelector('.module-heading-copy')?.after(nav);
+ for(const [node,key] of [[boos,'boos'],[kin,'bookiniz']]){
+  node.dataset.connectPane=key;node.id='connectPanel-'+key;node.setAttribute('role','tabpanel');
+ }
+ const copy='Your boos are your friends. Bookiniz are the family you choose from them.';
+ const introBoo=document.createElement('p');introBoo.className='bookiniz-boos-copy';introBoo.textContent=copy;
+ boos.append(introBoo,...original);
+ const booInvite=document.createElement('div');booInvite.className='bookiniz-invite-slot';booInvite.dataset.connectInviteSlot='';boos.append(booInvite);
+
+ const kinCopy=document.createElement('p');kinCopy.className='bookiniz-intro';kinCopy.textContent=copy;
+ const find=makeBookiniFind(root);
+ const title=document.createElement('h2');title.className='bookiniz-roster-title';title.textContent='Your bookiniz';
+ const meta=document.createElement('p');meta.className='bookiniz-meta';meta.textContent='Switch a Boo on to make them Bookini. Switch off to remove them from your close circle.';
  const count=document.createElement('strong');count.dataset.kinCount='';count.textContent='0 bookiniz';
  const roster=document.createElement('div');roster.className='bookiniz-members';roster.dataset.kinMembers='';
- kin.append(title,intro,meta,count,roster);
- const heading=document.createElement('h2');heading.textContent='leave a kin sqwib';
- const shareIntro=document.createElement('p');shareIntro.textContent='A private note or link for your people. Only the circle you choose can read it.';
+ const kinInvite=document.createElement('div');kinInvite.className='bookiniz-invite-slot';kinInvite.dataset.connectInviteSlot='';
+ kin.append(kinCopy,find,title,meta,count,roster,kinInvite);
+
+ const headingShare=document.createElement('h2');headingShare.textContent='share with your people';
+ headingShare.className='bookiniz-share-heading';
+ const shareIntro=document.createElement('p');shareIntro.textContent='Leave a private Sqwib, recommendation or link for your boos or bookiniz.';
  const form=document.createElement('form');form.className='bookiniz-share-form';
- const label=document.createElement('label');label.htmlFor='kinSqwibText';label.textContent='Your Kin Sqwib';
+ const label=document.createElement('label');label.htmlFor='kinSqwibText';label.textContent='Leave a Sqwib';
  const textarea=document.createElement('textarea');textarea.id='kinSqwibText';textarea.required=true;textarea.maxLength=3500;textarea.rows=4;textarea.placeholder='A note, invite, recommendation or link for your people…';
- const audience=document.createElement('div');audience.className='bookiniz-audience-switch';audience.setAttribute('role','group');audience.setAttribute('aria-label','Who can see this Kin Sqwib');
+ const audience=document.createElement('div');audience.className='bookiniz-audience-switch';audience.setAttribute('role','group');audience.setAttribute('aria-label','Who can see your share');
  for(const [key,labelText] of [['boos','Boos'],['bookiniz','Bookiniz']]){
-  const b=button(labelText);b.dataset.kinAudience=key;b.setAttribute('aria-pressed',String(key==='bookiniz'));b.onclick=()=>audience.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));audience.append(b);
+  const b=button(labelText);b.dataset.kinAudience=key;b.setAttribute('aria-pressed',String(key==='bookiniz'));
+  b.onclick=()=>audience.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));audience.append(b);
  }
  const caution=document.createElement('small');caution.className='bookiniz-caution';caution.textContent='Do not share account passwords or private access tokens. Use authorized sharing links instead.';
- const send=document.createElement('button');send.type='submit';send.textContent='Share Kin Sqwib';
+ const send=document.createElement('button');send.type='submit';send.textContent='Share privately';
  form.append(label,textarea,audience,caution,send);
  form.onsubmit=async e=>{e.preventDefault();send.disabled=true;notice('Sharing privately…',root);
-  try{const selected=$('[data-kin-audience][aria-pressed="true"]',form)?.dataset.kinAudience||'bookiniz';await social().request('kin-sqwibs',{text:textarea.value,audience:selected});textarea.value='';notice('Shared with '+(selected==='bookiniz'?'Bookiniz':'Boos')+'.',root);await loadPosts(root)}
-  catch(err){notice(err.message,root)}finally{send.disabled=false}
+  try{const selected=$('[data-kin-audience][aria-pressed="true"]',form)?.dataset.kinAudience||'bookiniz';
+   await social().request('kin-sqwibs',{text:textarea.value,audience:selected});textarea.value='';
+   notice('Shared with '+(selected==='bookiniz'?'Bookiniz':'Boos')+'.',root);await loadPosts(root);
+  }catch(error){notice(error.message,root)}finally{send.disabled=false}
  };
- const listHeading=document.createElement('h3');listHeading.textContent='Kin Sqwibs';const posts=document.createElement('div');posts.dataset.kinPosts='';posts.className='bookiniz-posts';
- const incomingTitle=document.createElement('h3');incomingTitle.textContent='Shared with you';const incomingList=document.createElement('div');incomingList.dataset.kinIncoming='';incomingList.className='bookiniz-posts';share.append(heading,shareIntro,form,listHeading,posts,incomingTitle,incomingList);
+ const mineTitle=document.createElement('h3');mineTitle.textContent='Your shares';
+ const posts=document.createElement('div');posts.dataset.kinPosts='';posts.className='bookiniz-posts';
+ const incomingTitle=document.createElement('h3');incomingTitle.textContent='Shared with you';
+ const incomingList=document.createElement('div');incomingList.dataset.kinIncoming='';incomingList.className='bookiniz-posts';
+ const sharing=document.createElement('section');sharing.className='bookiniz-share-section';
+ sharing.append(headingShare,shareIntro,form,mineTitle,posts,incomingTitle,incomingList);kin.append(sharing);
  const live=document.createElement('p');live.className='bookiniz-status';live.dataset.kinStatus='';live.setAttribute('role','status');
- root.append(nav,boos,kin,share,live);
- const subtitle=document.createElement('p');subtitle.className='bookiniz-boos-copy';subtitle.textContent='Your boos are your friends. Bookiniz are the family you choose from them.';
- boos.prepend(subtitle);
+ root.append(boos,kin,live);
+ // Keep the real invitation form (and its existing copy/email/CSV handlers).
+ // Reparent it to the selected section instead of cloning dead controls.
+ const inviteCard=workspace.querySelector('#copyBiglwaInvite')?.closest('section.module-card');
+ const contactCard=[...workspace.querySelectorAll('section.module-card')].find(s=>s.querySelector('input[type="file"][accept*="csv"]'));
+ root._bookinizInviteParts=[inviteCard,contactCard].filter(Boolean);
  activate(root,'boos');loadBookiniz(root);
 }
 function schedule(){setTimeout(mount,0);setTimeout(mount,350)}
@@ -132,5 +205,6 @@ window.BigLWABookiniz={mount,loadBookiniz};
 document.addEventListener('biglwa:module-open',e=>{if(e.detail?.key==='connect')schedule()});
 window.addEventListener('biglwa:social-ready',schedule);
 window.addEventListener('biglwa:identity-updated',()=>{members=[];const root=$('#socialConnect');if(root){renderBookiniz(root);loadBookiniz(root)}else schedule()});
+window.addEventListener('biglwa:social-roster-updated',()=>{const root=$('#socialConnect');if(root?.dataset.bookinizReady)renderBookiniz(root)});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
 })();
