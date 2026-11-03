@@ -76,7 +76,7 @@ html.biglwa-preview-mode #studioApp .page-wallpaper{top:calc(var(--biglwa-previe
 @media(min-width:951px){
 html #studioApp .topbar.topbar.profile-header-repaired{grid-template-columns:76px minmax(160px,1fr) 22px max-content max-content!important;gap:12px!important}
 }
-#studioApp#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{margin-top:18px!important}
+#studioApp#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{margin-top:24px!important}
 #studioApp#studioApp .profile-card .profile-identity-rail>.weekly-mood-card{margin-top:8px!important}
 #studioApp#studioApp #boards.boards-card{box-shadow:4px 5px 0 #e60023!important}
 #studioApp#studioApp #notes .note-paper{background-color:#e5f1da!important;background-image:repeating-linear-gradient(transparent 0 23px,#31835640 23px 24px)!important;color:#234a31!important}
