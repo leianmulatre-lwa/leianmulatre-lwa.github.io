@@ -143,8 +143,8 @@ avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar
 doc.querySelector('#studioApp').append(aura,avatar);
 w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
 await new Promise(resolve=>setTimeout(resolve,70));
-assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')?.getAttribute('src'),'/Sunsum.webp','Avatar has native Sunsum art beside the heading');
-assert.equal(doc.querySelector('.aura-card .studio-heading-image-symbol')?.getAttribute('src'),'/sesa-wo-suban-medium.png','Aura has native symbol beside its heading');
+assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')?.getAttribute('src'),'/sesa-wo-suban-medium.png','Avatar has native Sunsum art beside the heading');
+assert.equal(doc.querySelector('.aura-card .studio-heading-image-symbol')?.getAttribute('src'),'/Sunsum.webp','Aura has native symbol beside its heading');
 assert.equal(doc.querySelectorAll('#studioAvatarCard .studio-heading-image-symbol').length,1,'Avatar symbols never double on refresh');
 assert.equal(doc.querySelectorAll('.aura-card .studio-heading-image-symbol').length,1,'Aura symbols never double on refresh');
 const musicStyle=read('studio-widget-visibility-music-20261102.css');
