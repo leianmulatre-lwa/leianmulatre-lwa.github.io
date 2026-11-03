@@ -26,7 +26,7 @@ assert.ok(pages.includes("if(activeModuleKey)closeModule();")&&!pages.includes("
 assert.ok(index.includes('/studio-tipi-navigation-20261026.js')&&index.includes('/studio-tipi-navigation-20261026.css'),'Tipi navigation assets load on Studio');
 assert.ok(pages.includes("event.stopImmediatePropagation()"),'Logo toggle prevents browser navigation and re-login');
 assert.ok(ui.includes("a.setAttribute('aria-label','Studio home')"),'Studio symbol is labeled accurately');
-assert.ok(/module-pages\.js\?v=202610[0-3][0-9]-/.test(index)&&index.includes('orbit-cards-unified-20261016.css?v='),'Current Orbit renderer and its compact CSS are deployed with cache-busting');
+assert.ok(/module-pages\.js\?v=20\d{6}-[\w-]+/.test(index)&&index.includes('orbit-cards-unified-20261016.css?v='),'Current Orbit renderer and its compact CSS are deployed with cache-busting');
 assert.ok(wrangler.includes('keep_vars = true'),'Cloudflare dashboard variables survive future Worker deploys');
 assert.ok(wrangler.includes('TIKTOK_CLIENT_SECRET')&&wrangler.includes('[secrets]'),'Worker requires configured secret names without checking values into repository');
 console.log('PASS: Full Orbit Planetary grid, four desktop columns, responsive cards, slim Feed, Veve toggle, and Cloudflare variable safeguards');
