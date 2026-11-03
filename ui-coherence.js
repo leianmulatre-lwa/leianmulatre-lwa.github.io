@@ -151,8 +151,20 @@
       // Yellow-minimized shortcuts stay in their original row; red-docked
       // widgets retain their independent restore tiles after sign-in.
       redDocked:[...app.querySelectorAll('[data-widget-id].widget-is-minimized.widget-is-docked')].map(el=>el.dataset.widgetId).filter(Boolean),
-      // Yellow keeps a widget in its masonry position with only the header showing.
-      collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')].map(el=>el.dataset.widgetId).filter(Boolean),
+      // Legacy header-only remains available to lower/masonry widgets.
+      // The four upper widgets use a separately saved long/square geometry.
+      collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]
+        .filter(el=>!['music','aura','avatar','guest-check'].includes(el.dataset.widgetId))
+        .map(el=>el.dataset.widgetId).filter(Boolean),
+      upperVariants:Object.fromEntries([
+        ['music','.music-card'],['aura','.aura-card'],
+        ['avatar','#studioAvatarCard'],['guest-check','.guest-check-card']
+      ].map(([id,selector])=>{
+        const widget=app.querySelector(selector);
+        const value=widget?.dataset.upperWidgetBeforeRemoval||
+          widget?.dataset.upperWidgetView|| (id==='music'?'long':'square');
+        return [id,value==='long'?'long':'square'];
+      })),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
       disconnectedNavigation:[], // retired shortcut disconnect marker
       updatedAtMs:now
@@ -1231,9 +1243,19 @@
         if(!alreadyMinimized)widget.classList.toggle('widget-is-docked',redDocked.has(widget.dataset.widgetId)||!inShortcut);
         if(widget.classList.contains('widget-is-docked')||!inShortcut)addRestore(widget);
       }else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
-      widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
+      if(['music','aura','avatar','guest-check'].includes(widget.dataset.widgetId)){
+        const views=scoped?.upperVariants||{};
+        const id=widget.dataset.widgetId;
+        const view=views[id]==='long'?'long':views[id]==='square'?
+          'square':collapsed.has(id)?'square':id==='music'?'long':'square';
+        widget.dataset.upperWidgetView=view;
+        widget.classList.toggle('studio-upper-square',view==='square');
+        widget.classList.remove('studio-header-only');
+      }else{
+        widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
+      }
     });
-    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
+    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
     // Never save during startup or on periodic run(): restoring the local
     // state is not a user edit and must not overwrite account settings.
     syncDock();syncPrimaryWidgetDock(app);
@@ -1422,8 +1444,18 @@
         if(row)row.remove();
       }
     });
+    const upperVariants=layout.upperVariants&&typeof layout.upperVariants==='object'?layout.upperVariants:{};
     [...app.querySelectorAll('[data-widget-id]')].forEach(widget=>{
-      widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
+      const id=widget.dataset.widgetId;
+      if(['music','aura','avatar','guest-check'].includes(id)){
+        const view=upperVariants[id]==='long'?'long':upperVariants[id]==='square'?
+          'square':collapsed.has(id)?'square':id==='music'?'long':'square';
+        widget.dataset.upperWidgetView=view;
+        widget.classList.toggle('studio-upper-square',view==='square');
+        widget.classList.remove('studio-header-only');
+        return;
+      }
+      widget.classList.toggle('studio-header-only',collapsed.has(id)&&!widget.classList.contains('widget-is-minimized'));
     });
     window.dispatchEvent(new Event('biglwa:studio-collapse-applied'));
     const positions=layout.positions&&typeof layout.positions==='object'?layout.positions:{};
