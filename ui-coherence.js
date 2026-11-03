@@ -875,7 +875,7 @@
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
-    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const id=row.dataset.shortcutRow||'',widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null,mark=$('.sidebar-route-icon',row);if(!widget||!mark)return;
       const icon=widgetIconMarkup(widget);if(icon&&mark.innerHTML!==icon)mark.innerHTML=icon;
     });
@@ -1003,7 +1003,7 @@
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
-    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const id=row.dataset.shortcutRow||'';
       const linked=shortcutWidget(app,id);
       // The top four never produce Skeleton Key restore entries for yellow.
@@ -1020,7 +1020,7 @@
       if(target&&row.parentElement!==target)target.appendChild(row);
     });
     // Distinguish yellow square (still in Studio) from red close (removed).
-    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const widget=shortcutWidget(app,row.dataset.shortcutRow||'');
       const removed=!!widget?.classList.contains('widget-is-docked');
       row.classList.toggle('is-red-docked',removed);
