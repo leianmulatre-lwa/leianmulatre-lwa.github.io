@@ -1,0 +1,321 @@
+/* BIG LWA — upper rail geometry v4
+   One slot = the Aura/Avatar square shown in Studio.
+   Long = two slots across, never taller. Square = one slot across.
+   The six-slot limit is enforced in studio-yellow-collapse-20261026.js. */
+#studioApp .hero:has(#biglwaAuraAvatarPair).hero{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:max-content max-content max-content!important;
+  align-content:start!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
+  --studio-upper-card-height:206px;
+  display:grid!important;
+  grid-template-columns:repeat(var(--studio-upper-cols,5),minmax(0,1fr))!important;
+  grid-auto-rows:var(--studio-upper-card-height)!important;
+  grid-template-rows:var(--studio-upper-card-height)!important;
+  grid-auto-flow:row!important;
+  gap:14px!important;
+  align-items:start!important;
+  align-content:start!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  box-sizing:border-box!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+:is(.music-card,#biglwaAuraAvatarPair,.guest-check-card)[data-upper-span="1"]{
+  grid-column:span 1!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+:is(.music-card,#biglwaAuraAvatarPair,.guest-check-card)[data-upper-span="2"]{
+  grid-column:span 2!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+:is(.music-card,#biglwaAuraAvatarPair,.guest-check-card)[data-upper-span="3"]{
+  grid-column:span 3!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+:is(.music-card,#biglwaAuraAvatarPair,.guest-check-card)[data-upper-span="4"]{
+  grid-column:span 4!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+:is(.music-card,#biglwaAuraAvatarPair,.guest-check-card){
+  grid-row:auto!important;
+  align-self:start!important;
+  justify-self:stretch!important;
+  min-width:0!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar.hero-action-bar{
+  grid-column:1!important;
+  grid-row:3!important;
+  margin:10px 0 0!important;
+  z-index:1!important;
+  position:relative!important;
+  inset:auto!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair.biglwa-aura-avatar-pair{
+  display:grid!important;
+  grid-template-columns:minmax(0,var(--studio-aura-cols,1fr)) minmax(0,var(--studio-avatar-cols,1fr))!important;
+  grid-template-rows:var(--studio-upper-card-height)!important;
+  grid-auto-rows:var(--studio-upper-card-height)!important;
+  width:100%!important;
+  height:var(--studio-upper-card-height)!important;
+  min-height:var(--studio-upper-card-height)!important;
+  max-height:var(--studio-upper-card-height)!important;
+  gap:8px!important;
+  align-items:start!important;
+  overflow:visible!important;
+  box-sizing:border-box!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
+  grid-template-columns:minmax(0,1fr)!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair>.aura-card,
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair>#studioAvatarCard{
+  grid-column:auto!important;
+  grid-row:1!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:var(--studio-upper-card-height)!important;
+  min-height:var(--studio-upper-card-height)!important;
+  max-height:var(--studio-upper-card-height)!important;
+  aspect-ratio:auto!important;
+  overflow:hidden!important;
+  align-self:start!important;
+  box-sizing:border-box!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair>.aura-card.studio-upper-square{
+  display:grid!important;
+  grid-template-columns:70px minmax(0,1fr)!important;
+  gap:8px!important;
+  padding:14px 12px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+#biglwaAuraAvatarPair>#studioAvatarCard.studio-upper-square{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:6px!important;
+  padding:10px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.guest-check-card:not(.widget-is-minimized){
+  width:100%!important;
+  height:var(--studio-upper-card-height)!important;
+  min-height:var(--studio-upper-card-height)!important;
+  max-height:var(--studio-upper-card-height)!important;
+  aspect-ratio:auto!important;
+  overflow:hidden!important;
+  padding:0!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.guest-check-card .guest-check-sheet{
+  box-sizing:border-box!important;
+  min-height:0!important;
+  height:100%!important;
+  padding:34px 10px 8px!important;
+  overflow:hidden!important;
+}
+/* FULL MUSIC: twice the width of a square card, exactly the same HEIGHT.
+   The tuner begins after its dedicated two-line title/Songs header.
+   All four playback controls remain accessible; none is only decoration. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget:not(.widget-is-minimized){
+  display:block!important;
+  position:relative!important;
+  box-sizing:border-box!important;
+  grid-row:auto!important;
+  height:var(--studio-upper-card-height)!important;
+  min-height:var(--studio-upper-card-height)!important;
+  max-height:var(--studio-upper-card-height)!important;
+  aspect-ratio:auto!important;
+  overflow:hidden!important;
+  padding:54px 10px 8px!important;
+  margin:0!important;
+  min-width:0!important;
+  align-self:start!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget:not(.widget-is-minimized)>.card-kicker.studio-collapse-keep{
+  position:absolute!important;left:11px!important;top:9px!important;
+  min-height:0!important;height:22px!important;max-height:22px!important;
+  margin:0!important;padding:4px 7px!important;
+  width:max-content!important;max-width:calc(100% - 116px)!important;
+  z-index:35!important;pointer-events:none!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget:not(.widget-is-minimized)>#profileMusicOpen{
+  display:grid!important;place-items:center!important;
+  position:absolute!important;top:31px!important;left:11px!important;right:auto!important;
+  box-sizing:border-box!important;width:auto!important;min-width:0!important;max-width:105px!important;
+  height:20px!important;min-height:20px!important;
+  padding:2px 7px!important;margin:0!important;
+  z-index:36!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget:not(.widget-is-minimized)>.widget-window-controls{
+  top:9px!important;right:10px!important;
+  z-index:48!important;display:flex!important;
+  overflow:visible!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget:not(.widget-is-minimized)>.widget-drag-handle{
+  top:9px!important;z-index:46!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget:not(.widget-is-minimized)>.stereo-shell{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:23px 79px 25px!important;
+  gap:5px!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:137px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  position:relative!important;z-index:2!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell>.stereo-tuner{
+  width:100%!important;box-sizing:border-box!important;
+  height:23px!important;min-height:23px!important;max-height:23px!important;
+  margin:0!important;padding:2px 9px!important;
+  overflow:hidden!important;position:relative!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell>.stereo-face{
+  display:grid!important;
+  grid-template-columns:29px minmax(0,1fr) 29px!important;
+  align-items:center!important;gap:6px!important;
+  box-sizing:border-box!important;width:100%!important;
+  height:79px!important;max-height:79px!important;
+  padding:0!important;margin:0!important;overflow:hidden!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell .stereo-speaker{
+  box-sizing:border-box!important;
+  width:29px!important;height:44px!important;
+  min-width:0!important;min-height:0!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell .stereo-display{
+  width:100%!important;
+  height:78px!important;
+  min-height:78px!important;
+  max-height:78px!important;
+  min-width:0!important;
+  margin:0!important;padding:5px!important;
+  overflow:hidden!important;box-sizing:border-box!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell .stereo-now-playing{
+  font-size:6px!important;line-height:1!important;margin:0 0 3px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell .stereo-eq{
+  height:9px!important;margin:3px 0 2px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell .album-art{
+  flex:0 0 26px!important;
+  width:26px!important;height:26px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-shell .stereo-control-deck{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr) 25px!important;
+  align-items:center!important;gap:4px!important;
+  box-sizing:border-box!important;
+  height:25px!important;min-height:25px!important;
+  width:100%!important;
+  margin:0!important;padding:0!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget .stereo-control-deck :is(.stereo-skip-button,#playBtn,.stereo-eject){
+  width:100%!important;min-width:0!important;
+  height:25px!important;min-height:25px!important;max-height:25px!important;
+  padding:0 3px!important;
+}
+/* SQUARE MUSIC: same single-slot footprint as Aura/Avatar (NOT a 242px
+   card in a double-width empty column). The tuner / display / transport
+   adapt to the narrower panel without changing the actual audio element. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square:not(.widget-is-minimized){
+  width:100%!important;
+  height:var(--studio-upper-card-height)!important;
+  min-height:var(--studio-upper-card-height)!important;
+  max-height:var(--studio-upper-card-height)!important;
+  aspect-ratio:auto!important;
+  padding:54px 8px 8px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square .stereo-shell>.stereo-face{
+  grid-template-columns:20px minmax(0,1fr) 20px!important;
+  gap:4px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-speaker{
+  width:20px!important;height:34px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-display{
+  padding:4px!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square .stereo-shell .music-copy{
+  min-width:0!important;overflow:hidden!important;
+}
+#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+.music-card.stereo-music-widget.studio-upper-square .stereo-shell :is(#studioMusicTitle,#studioMusicArtist){
+  max-width:100%!important;white-space:nowrap!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+  font-size:clamp(8px,.9vw,13px)!important;
+}
+/* Condensed viewports keep the same two-slot vs one-slot contract.
+   Wrap cards into the next auto-height row instead of overlapping content. */
+@media(max-width:1180px){
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-template-rows:none!important;
+  }
+}
+@media(max-width:760px){
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-rows:206px!important;
+  }
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  #biglwaAuraAvatarPair[data-upper-span="3"],
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  #biglwaAuraAvatarPair[data-upper-span="4"]{
+    grid-column:span 2!important;
+  }
+}
+@media(max-width:500px){
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-auto-rows:max-content!important;
+  }
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  :is(.music-card,#biglwaAuraAvatarPair,.guest-check-card){
+    grid-column:1!important;
+  }
+  #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
+  #biglwaAuraAvatarPair{
+    height:auto!important;max-height:none!important;
+    grid-auto-rows:206px!important;
+  }
+}
