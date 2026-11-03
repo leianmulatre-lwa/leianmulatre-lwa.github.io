@@ -30,5 +30,24 @@ try{
  const publicImage=await socialRoute(new Request('https://api.biglwa.com/social/post/'+photo.id+'/media'),{WALLPAPER_BUCKET:bucket},{...helpers,user:()=>{throw Error('No auth needed for published binary')}});
  assert.equal(publicImage.status,200);assert.equal(publicImage.headers.get('Content-Type'),'image/png');
  await call('post/'+photo.id+'/remove',{});await assert.rejects(socialRoute(new Request('https://api.biglwa.com/social/post/'+photo.id+'/media'),{WALLPAPER_BUCKET:bucket},helpers),/unavailable/);
+ // Bookiniz is a subset of existing Boos; Kin Sqwibs never enter the public feed.
+ current='alice';await call('presence',{online:true});
+ assert.deepEqual((await call('bookiniz')).uids,[]);
+ await assert.rejects(call('bookiniz',{uid:'eve',enabled:true}),/Boos first/);
+ await call('bookiniz',{uid:'bob',enabled:true});
+ assert.deepEqual((await call('bookiniz')).uids,['bob']);
+ const privateKin=(await call('kin-sqwibs',{text:'Family-only update',audience:'bookiniz'})).post;
+ const friendsKin=(await call('kin-sqwibs',{text:'For every boo',audience:'boos'})).post;
+ assert.equal((await call('posts')).items.some(p=>p.id===privateKin.id),false);
+ current='bob';assert.deepEqual(await call('audience?owner=alice'),{ok:true,boo:true,bookini:true});
+ assert.equal((await call('kin-sqwibs?owner=alice')).items.length,2);
+ await assert.rejects(call('kin-sqwibs/remove',{id:privateKin.id}),/own Kin Sqwibs/);
+ current='eve';assert.equal((await call('kin-sqwibs?owner=alice')).items.length,0);
+ assert.equal((await call('audience?owner=alice')).bookini,false);
+ current='alice';await call('bookiniz',{uid:'bob',enabled:false});
+ current='bob';assert.equal((await call('kin-sqwibs?owner=alice')).items.length,1);
+ assert.equal((await call('kin-sqwibs?owner=alice')).items[0].id,friendsKin.id);
+ current='alice';await call('kin-sqwibs/remove',{id:privateKin.id});await call('kin-sqwibs/remove',{id:friendsKin.id});
+ assert.equal((await call('kin-sqwibs')).items.length,0);
  console.log('PASS social backend: private DMs and bookmarks, verified authors, votes, legacy replies, withdrawals, presence and input limits');
 }finally{globalThis.fetch=oldFetch}
