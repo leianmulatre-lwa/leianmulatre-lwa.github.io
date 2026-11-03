@@ -62,7 +62,7 @@ assert.equal(saveCount,3,'Explicit yellow click writes; startup does not');
 assert.equal(legacyYellow,0);
 assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]"),'Canonical account snapshot saves collapsed IDs');
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
-assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-rail-clearance-3'),'Script included in actual Studio');
+assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261103-six-slot-1'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
 
 /* Verify the two NEW cabinet widgets specifically. Their live content is
@@ -117,78 +117,93 @@ assert.equal(headerless.parentElement,masonry);
 assert(read('index.html').includes('studio-spatial-drag-20261029.js?v=20261029-route-inset-4'),'Free-position drag handler loads on Studio');
 
 
-// Music's yellow button must present a REAL square player, not header-only text.
-// No stereo elements are re-created, so song state and controls survive the toggle.
+// Upper row is six logical square slots, not four independently growing cards.
+// Music starts LONG (two slots); Aura, Avatar and Check start SQUARE (one each).
+const hero=doc.createElement('section');hero.className='hero';
+const rail=doc.createElement('div');rail.className='hero-widget-rail';rail.id='heroWidgetRail';
+const pair=doc.createElement('div');pair.id='biglwaAuraAvatarPair';pair.className='biglwa-aura-avatar-pair';
+const actionBar=doc.createElement('nav');actionBar.className='hero-action-bar';
+hero.append(rail,actionBar);doc.querySelector('#studioApp').append(hero);
 const music=doc.createElement('section');music.className='customizable-widget music-card stereo-music-widget';
 music.dataset.widgetId='music';music.dataset.widgetLabel='Now Playing';
-music.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="music">Yellow</button></div>'+
+music.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="music">Yellow</button><button class="window-light red" data-dock-widget="music">Red</button></div>'+
  '<h2 class="card-kicker">NOW PLAYING</h2><div class="stereo-shell"><div class="stereo-tuner"></div>'+
  '<div class="stereo-face"><div class="stereo-speaker"></div><div class="stereo-display"><strong id="studioMusicTitle">Almeda</strong><span id="studioMusicArtist">Solange</span></div></div>'+
  '<div class="stereo-control-deck"><button id="playBtn">Play</button></div></div>';
-doc.querySelector('#studioApp').append(music);
-const shell=music.querySelector('.stereo-shell'),musicYellow=music.querySelector('[data-minimize-widget]');
-musicYellow.click();
-assert(music.classList.contains('studio-header-only'),'Yellow keeps the music widget in Studio');
-assert(music.classList.contains('studio-music-square'),'Yellow selects compact square stereo layout');
-assert.equal(music.dataset.musicVariant,'square');
-assert.equal(music.querySelector('.stereo-shell'),shell,'Music player survives minimization intact');
-const miniDock=doc.createElement('section');miniDock.id='studioSidebarPrimary';
-miniDock.innerHTML='<div id="minimizedWidgetDock"></div>';
-doc.querySelector('#studioApp').append(miniDock);
-w.BigLWAUpperWidgets.refresh();
-assert(doc.querySelector('[data-upper-compact-row="music"] [data-upper-restore="music"]'),'Skeleton Key offers + to restore square music');
-musicYellow.click();
-assert(music.classList.contains('studio-music-square'),'Yellow already minimized is a no-op for square music');
-assert.match(musicYellow.title,/Already minimized/);
-assert.match(doc.querySelector('#studioUpperWidgetStatus').textContent,/already minimized/);
-doc.querySelector('[data-upper-restore="music"]').click();
-assert(!music.classList.contains('studio-music-square'),'Skeleton Key + restores full-length stereo');
-assert(!music.classList.contains('studio-header-only'),'Restoration removes square state');
-assert.equal(music.dataset.musicVariant,'long');
-assert.equal(music.querySelector('#studioMusicTitle').textContent,'Almeda');
-assert.equal(music.querySelector('.stereo-shell'),shell,'Restoring preserves stereo player and audio handlers');
+rail.append(music);
 const aura=doc.createElement('section');aura.className='customizable-widget aura-card';
-aura.dataset.widgetId='aura';aura.innerHTML='<h2 class="card-kicker">Aura</h2>';
-const avatar=doc.createElement('section');avatar.id='studioAvatarCard';
-avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2></div>';
-doc.querySelector('#studioApp').append(aura,avatar);
-// Each upper widget turns YELLOW into a square, never a red-docked/hidden card.
-aura.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="aura"></button></div>'+
- '<h2 class="card-kicker">Aura</h2><div class="aura-orb"></div>';
-avatar.dataset.widgetId='avatar';avatar.dataset.widgetLabel='Avatar';
+aura.dataset.widgetId='aura';aura.dataset.widgetLabel='Aura';
+aura.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="aura">Yellow</button></div>'+
+ '<h2 class="card-kicker">Aura</h2><div class="aura-orb">Focused</div>';
+const avatar=doc.createElement('section');avatar.id='studioAvatarCard';avatar.dataset.widgetId='avatar';avatar.dataset.widgetLabel='Avatar';
 avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
- '<div class="widget-window-controls avatar-window-controls"><button class="window-light yellow" data-avatar-widget-action="minimize"></button></div></div>'+
- '<div class="biglwa-avatar-media">Character preview</div><div class="biglwa-avatar-actions"><button>Customize</button></div>';
-// Already-square top cards must NOT acquire another square modifier.
-aura.getBoundingClientRect=()=>({width:240,height:238,top:0,left:0,right:240,bottom:238});
-const nativeSquareYellow=aura.querySelector('.window-light.yellow');
-nativeSquareYellow.click();
-assert(!aura.classList.contains('studio-upper-square'),'Already-square Aura never resizes again');
-assert(!aura.classList.contains('studio-header-only'),'Already-square Aura stays visibly intact');
-assert.match(doc.querySelector('#studioUpperWidgetStatus')?.textContent||'',/already minimized/i,
- 'Already-square Aura announces the correct status');
-assert(!doc.querySelector('[data-upper-compact-row="aura"]'),'Natural square Aura creates no duplicate Skeleton Key tile');
-aura.getBoundingClientRect=()=>({width:0,height:0,top:0,left:0,right:0,bottom:0});
-
+ '<div class="widget-window-controls avatar-window-controls"><button class="window-light yellow" data-avatar-widget-action="minimize">Yellow</button><button class="window-light red" data-avatar-widget-action="remove">Red</button></div></div>'+
+ '<div class="biglwa-avatar-media">360sona preview</div>';
+pair.append(aura,avatar);rail.append(pair);
 const guest=doc.createElement('section');guest.className='customizable-widget guest-check-card';
 guest.dataset.widgetId='guest-check';guest.dataset.widgetLabel='Guest Check';
 guest.innerHTML='<h2 class="card-kicker">Guest Check</h2>'+
- '<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="guest-check"></button></div>'+
+ '<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="guest-check">Yellow</button></div>'+
  '<div class="guest-check-sheet"><div class="guest-check-lines">Guest entries</div></div>';
-doc.querySelector('#studioApp').append(guest);
-for(const [id,widget] of [['aura',aura],['avatar',avatar],['guest-check',guest]]){
- const yellow=widget.querySelector('.window-light.yellow');
- yellow.click();
- assert(widget.classList.contains('studio-upper-square'),id+' becomes a genuine square in Studio');
- assert(!widget.classList.contains('widget-is-docked')&&!widget.classList.contains('widget-is-minimized'),id+' yellow is not red removal');
- assert(doc.querySelector('[data-upper-compact-row="'+id+'"] [data-upper-restore="'+id+'"]'),id+' gets a Skeleton Key + restore button');
- yellow.click();
- assert.match(yellow.title,/Already minimized/,id+' second yellow click explains square state');
- assert(widget.classList.contains('studio-upper-square'),id+' stays square after repeated yellow');
- doc.querySelector('[data-upper-restore="'+id+'"]').click();
- assert(!widget.classList.contains('studio-upper-square'),id+' + restores rectangle');
- assert(!doc.querySelector('[data-upper-compact-row="'+id+'"]'),id+' restored panel state clears');
-}
+rail.append(guest);
+const miniDock=doc.createElement('section');miniDock.id='studioSidebarPrimary';
+miniDock.innerHTML='<div id="minimizedWidgetDock"><div data-upper-compact-row="aura">Stale yellow row</div></div>';
+doc.querySelector('#studioApp').append(miniDock);
+w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
+await new Promise(resolve=>setTimeout(resolve,90));
+const status=()=>w.BigLWAUpperWidgets.status();
+const shell=music.querySelector('.stereo-shell'),musicYellow=music.querySelector('[data-minimize-widget]');
+assert.equal(status().capacity,6);
+assert.equal(status().used,5,'Long music + three square widgets uses five of six slots');
+assert.equal(status().entries.music.view,'long');
+for(const id of ['aura','avatar','guest-check'])
+ assert.equal(status().entries[id].view,'square',id+' starts at the Aura-sized square minimum');
+assert.equal(rail.style.getPropertyValue('--studio-upper-cols'),'5');
+assert.equal(music.dataset.upperSpan,'2','Long music uses two square widths');
+assert.equal(pair.dataset.upperSpan,'2','Aura/Avatar together use two square widths');
+assert.equal(guest.dataset.upperSpan,'1');
+assert.equal(doc.querySelectorAll('[data-upper-compact-row]').length,0,
+ 'No yellow-sized widget has a Skeleton Key tile, including migrated stale rows');
+musicYellow.click();
+assert.equal(status().entries.music.view,'square','Yellow minimizes music to one square width');
+assert.equal(music.dataset.musicVariant,'square');
+assert.equal(music.dataset.upperSpan,'1');
+assert(!music.classList.contains('studio-header-only')&&!music.classList.contains('widget-is-docked'),
+ 'Square keeps music visible and is not a red removal');
+assert.strictEqual(music.querySelector('.stereo-shell'),shell,'Audio DOM survives resizing');
+musicYellow.click();
+assert.equal(status().entries.music.view,'long','Yellow again restores Music to full double-width');
+assert.equal(music.dataset.upperSpan,'2');
+assert.strictEqual(music.querySelector('.stereo-shell'),shell,'Restoration never remounts the player');
+const auraYellow=aura.querySelector('.window-light.yellow');
+const avatarYellow=avatar.querySelector('.window-light.yellow');
+const guestYellow=guest.querySelector('.window-light.yellow');
+auraYellow.click();
+assert.equal(status().entries.aura.view,'long','Aura can grow to long using sixth slot');
+assert.equal(status().used,6);
+assert.equal(pair.dataset.upperSpan,'3','Pair consumes long Aura plus square Avatar');
+assert.equal(pair.style.getPropertyValue('--studio-aura-cols'),'2fr');
+avatarYellow.click();
+assert.equal(status().entries.avatar.view,'square','Full row refuses a seventh slot');
+assert.match(doc.querySelector('#studioUpperWidgetStatus').textContent,/already minimized.*row is full/i);
+assert.equal(doc.querySelectorAll('[data-upper-compact-row]').length,0,'Full row never creates yellow Skeleton Key tiles');
+auraYellow.click();
+assert.equal(status().entries.aura.view,'square','Yellow restores long Aura to its square size');
+avatarYellow.click();
+assert.equal(status().entries.avatar.view,'long','Avatar can grow when Aura is square');
+assert.equal(status().used,6);
+guestYellow.click();
+assert.equal(status().entries['guest-check'].view,'square','Check cannot expand beyond six occupied units');
+avatarYellow.click();
+assert.equal(status().entries.avatar.view,'square');
+guestYellow.click();
+assert.equal(status().entries['guest-check'].view,'long','Guest Check can take last free double-width slot');
+assert.equal(status().used,6);
+guestYellow.click();
+assert.equal(status().entries['guest-check'].view,'square');
+assert.equal(status().used,5);
+assert.equal(doc.querySelectorAll('[data-upper-compact-row]').length,0,
+ 'Only red-closing a widget should ever create a Skeleton Key restore entry');
 
 w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
 await new Promise(resolve=>setTimeout(resolve,70));
@@ -234,7 +249,19 @@ assert(musicStyle.includes('filter:url("#biglwaStudioWhiteToAlpha") invert(1)')&
 assert(musicStyle.includes('.stereo-tuner')&&musicStyle.includes('padding:43px 12px 13px!important'),'Long stereo reserves header clearance');
 assert(musicStyle.includes('.widget-window-controls')&&musicStyle.includes('#profileMusicOpen'),'Three dots and songs control are layered above radio');
 assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261103-rail-clearance-3');
+assert.equal(doc.querySelector('#studioUpperRailSizeContract')?.getAttribute('href'),
+ '/studio-upper-rail-size-contract-20261103.css?v=20261103-capacity-1');
+const contract=read('studio-upper-rail-size-contract-20261103.css');
+assert(contract.includes('grid-template-columns:repeat(var(--studio-upper-cols,5),minmax(0,1fr))'),
+ 'Upper rail uses one variable-size track per square-width unit');
+assert(contract.includes('grid-auto-rows:var(--studio-upper-card-height)'),
+ 'Row is capped to shared square card height rather than tallest long music');
+assert(contract.includes('height:var(--studio-upper-card-height)!important')&&contract.includes('grid-template-rows:23px 79px 25px!important'),
+ 'Long music has the same card height as Aura, and a compressed but functional stereo face');
+assert(contract.includes('[data-upper-span="2"]')&&contract.includes('[data-upper-span="4"]'),
+ 'Full variants use two slots; both long Aura and Avatar can fill four');
+
 
 await new Promise(resolve=>setTimeout(resolve,120));
 dom.window.close();
-console.log('PASS: ordinary yellow collapse, all four upper square widgets, Skeleton Key + restoration, stereo integrity, symbol mask');
+console.log('PASS: lower widgets unchanged, upper six-slot sizing, yellow two-way size toggle, full-row guard, no yellow Skeleton Key entries, symbol masking');
