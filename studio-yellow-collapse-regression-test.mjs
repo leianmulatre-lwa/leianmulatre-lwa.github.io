@@ -159,6 +159,17 @@ avatar.dataset.widgetId='avatar';avatar.dataset.widgetLabel='Avatar';
 avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
  '<div class="widget-window-controls avatar-window-controls"><button class="window-light yellow" data-avatar-widget-action="minimize"></button></div></div>'+
  '<div class="biglwa-avatar-media">Character preview</div><div class="biglwa-avatar-actions"><button>Customize</button></div>';
+// Already-square top cards must NOT acquire another square modifier.
+aura.getBoundingClientRect=()=>({width:240,height:238,top:0,left:0,right:240,bottom:238});
+const nativeSquareYellow=aura.querySelector('.window-light.yellow');
+nativeSquareYellow.click();
+assert(!aura.classList.contains('studio-upper-square'),'Already-square Aura never resizes again');
+assert(!aura.classList.contains('studio-header-only'),'Already-square Aura stays visibly intact');
+assert.match(doc.querySelector('#studioUpperWidgetStatus')?.textContent||'',/already minimized/i,
+ 'Already-square Aura announces the correct status');
+assert(!doc.querySelector('[data-upper-compact-row="aura"]'),'Natural square Aura creates no duplicate Skeleton Key tile');
+aura.getBoundingClientRect=()=>({width:0,height:0,top:0,left:0,right:0,bottom:0});
+
 const guest=doc.createElement('section');guest.className='customizable-widget guest-check-card';
 guest.dataset.widgetId='guest-check';guest.dataset.widgetLabel='Guest Check';
 guest.innerHTML='<h2 class="card-kicker">Guest Check</h2>'+
@@ -195,6 +206,17 @@ assert(Math.abs(matrix[15]+.2126)<1e-8&&Math.abs(matrix[16]+.7152)<1e-8&&Math.ab
 const musicStyle=read('studio-widget-visibility-music-20261102.css');
 assert(musicStyle.includes('.studio-header-only.studio-music-square'),'Square stereo has explicit visible layout');
 assert(musicStyle.includes('Stereo rebuild v3: TWO true header rows'),'New stereo reserves an independent header shelf');
+assert(musicStyle.includes('grid-auto-rows:max-content!important')&&
+ musicStyle.includes('grid-template-rows:max-content!important'),
+ 'Upper rail now uses the tallest real widget instead of a fixed 206px row');
+assert(musicStyle.includes('hero-action-bar.hero-action-bar')&&
+ musicStyle.includes('grid-row:3!important')&&
+ musicStyle.includes('margin:18px 0 0!important'),
+ 'Shortcut bar follows the full-height upper widget row with separation');
+assert(musicStyle.includes('sidebar-upper-compact-row .sidebar-route-icon')&&
+ musicStyle.includes('sidebar-upper-compact-row::after'),
+ 'Skeleton Key square icon geometry stays contained with no false red light');
+
 assert(musicStyle.includes('.stereo-skip-button')&&musicStyle.includes('grid-template-columns:repeat(3,minmax(0,1fr)) 25px'),
  'Rewind, play, forward and eject have a compact four-button deck');
 assert(musicStyle.includes('.guest-check-card.studio-upper-square')&&musicStyle.includes('#studioAvatarCard.studio-upper-square'),
