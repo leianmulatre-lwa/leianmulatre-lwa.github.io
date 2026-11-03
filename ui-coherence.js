@@ -27,18 +27,8 @@
   const readJson=(key,fallback=null)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
   const scopedLayoutKey=()=>LAYOUT_LOCAL_PREFIX+layoutUid();
   const scopedLayout=()=>readJson(scopedLayoutKey(),null);
-  // Keep the small red "removed" indicator scoped to the current account.
-  // A disconnected shortcut stays an available route; this is only its status.
-  let removedShortcutState={uid:'',keys:new Set()};
-  function removedShortcutKeys(){
-    const uid=layoutUid();
-    if(removedShortcutState.uid!==uid){
-      const saved=scopedLayout()?.disconnectedNavigation;
-      removedShortcutState={uid,keys:new Set(Array.isArray(saved)?saved.filter(key=>
-        typeof key==='string'&&/^[a-z0-9_-]{1,48}$/.test(key)):[])};
-    }
-    return removedShortcutState.keys;
-  }
+  // The Skeleton Key light is derived from the RED-D0CKED widget state.
+  // Shortcut ordering and navigation never control that indicator.
   // A shared browser can host multiple accounts. No unscoped profile is ever trusted.
   const ownUid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
   const ownProfileKey=()=>ownUid()?'biglwaOwnProfileV1:'+ownUid():'';
@@ -164,7 +154,7 @@
       // Yellow keeps a widget in its masonry position with only the header showing.
       collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')].map(el=>el.dataset.widgetId).filter(Boolean),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
-      disconnectedNavigation:[...removedShortcutKeys()].filter(key=>/^[a-z0-9_-]{1,48}$/.test(key)),
+      disconnectedNavigation:[], // retired shortcut disconnect marker
       updatedAtMs:now
     };
     try{
@@ -346,10 +336,9 @@
       #studioApp .sidebar-navigation-row.is-shortcut.is-closed::after{background:rgb(var(--aura-rgb,216,95,109))}
       body.sidebar-collapsed #studioApp .sidebar-navigation-row.is-shortcut::after{top:0;right:0}
       #studioApp .sidebar-navigation-row.is-available::after{border:1px solid rgba(var(--aura-rgb,216,95,109),.75);background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:none}
-      /* Shortcut dots are redundant in the yellow row. In the red area,
-         hollow means available and filled means explicitly disconnected. */
+      /* Lower-row light = widget removed via RED close, not shortcut state. */
       #studioApp #studioSidebarShortcuts .sidebar-navigation-row::after{content:none!important;display:none!important}
-      #studioApp #studioSidebarRest .sidebar-navigation-row.is-available.is-disconnected::after{
+      #studioApp #studioSidebarRest .sidebar-navigation-row.is-available.is-widget-removed::after{
         content:""!important;display:block!important;
         background:rgb(var(--aura-rgb,216,95,109))!important;
         border:1px solid rgb(var(--aura-rgb,216,95,109))!important;
@@ -751,15 +740,7 @@
     reconcileNavigationRows(shortcutDock,shortcuts,'shortcut');
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
     reconcileNavigationRows(availableDock,available.map(entry=>entry.key),'available');
-    const removed=removedShortcutKeys();
-    $$('[data-sidebar-route-row]',availableDock).forEach(row=>{
-      const disconnected=removed.has(row.dataset.sidebarRouteRow);
-      row.classList.toggle('is-disconnected',disconnected);
-      row.dataset.shortcutState=disconnected?'disconnected':'available';
-      const label=navigationCatalog.get(row.dataset.sidebarRouteRow)?.label||row.dataset.sidebarRouteRow;
-      row.title=disconnected?`${label} · removed from shortcut bar, still available`:
-        `${label} · available to add to shortcut bar`;
-    });
+    refreshWidgetRemovalIndicators(app);
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
     let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
     create.classList.add('studio-veve-launcher');
@@ -783,15 +764,10 @@
       const targetIndex=targetKey===key?Math.min(Math.max(current.indexOf(key),0),without.length):(targetKey?without.indexOf(targetKey):-1);
       without.splice(targetIndex<0?without.length:targetIndex,0,key);
     }
-    // Only a deliberate disconnect fills the corresponding lower red dot.
-    // Re-adding the destination clears that marker. The shortcut remains
-    // available and none of its widget/content data is removed.
-    const removed=removedShortcutKeys();
-    if(connected)removed.delete(key);
-    else if(current.includes(key))removed.add(key);
+    // Moving a shortcut never changes whether a widget is removed from Studio.
     writeNavigationShortcuts(without);
     syncSidebarShortcutSystem();
-    showShortcutStatus(app,connected?'Connected to shortcut bar.':'Still active in Studio · shortcut disconnected.');
+    showShortcutStatus(app,connected?'Connected to shortcut bar.':'Shortcut removed; widget state unchanged.');
     return true;
   }
 
@@ -871,7 +847,7 @@
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
     const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
-    restore.append(mark);row.append(spacer,restore,state);return row;
+    restore.append(mark);state.textContent='+';state.title='Removed from Studio';row.title=label+' · removed from Studio, press symbol to restore';row.append(spacer,restore,state);return row;
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
@@ -960,10 +936,29 @@
     return $$('[data-sidebar-route-row].is-shortcut',app).find(row=>
       row.dataset.sidebarRouteRow===route||row.dataset.sidebarRouteRow===id)||null;
   }
+  // This reflects the underlying red close state, not shortcut membership.
+  function refreshWidgetRemovalIndicators(app){
+    if(!app)return;
+    $('[data-sidebar-route-row].is-available',app).forEach(row=>{
+      const key=row.dataset.sidebarRouteRow,widget=shortcutWidget(app,key);
+      const removed=!!widget?.classList.contains('widget-is-docked');
+      const label=navigationCatalog.get(key)?.label||key;
+      row.classList.toggle('is-widget-removed',removed);
+      row.classList.remove('is-disconnected');
+      row.dataset.widgetRemoved=removed?'true':'false';
+      const action=$('[data-add-shortcut]',row);
+      if(action){
+        const message=removed?'Restore '+label+' to Studio':'Add '+label+' to shortcut bar';
+        action.title=message;action.setAttribute('aria-label',message);
+      }
+      row.title=removed?label+' · removed from Studio, press + to restore':
+        label+' · widget in Studio; + adds a shortcut';
+    });
+  }
   function syncMinimizedShortcutRows(app){
     $$('[data-sidebar-route-row].is-shortcut',app).forEach(row=>{
       const widget=shortcutWidget(app,row.dataset.sidebarRouteRow);
-      const minimized=!!widget?.classList.contains('widget-is-minimized');
+      const minimized=!!widget?.classList.contains('widget-is-docked');
       const action=$('[data-remove-shortcut]',row);
       row.classList.toggle('is-minimized',minimized);
       row.dataset.widgetMinimized=minimized?'true':'false';
@@ -1075,6 +1070,7 @@
       if(widget){widget.classList.remove('widget-is-minimized','widget-is-docked');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false')}
       if(row)row.remove();
       const {section,dock}=ensureDock(app);syncDock(dock,section);saveMinimized(app);syncPrimaryWidgetDock(app);
+      refreshWidgetRemovalIndicators(app);
     };
     const setTheme=mode=>{
       const isDark=mode==='dark';document.body.classList.toggle('night-mode',isDark);
@@ -1112,7 +1108,16 @@
         moveNavigationShortcut(app,removeShortcut.dataset.removeShortcut,false);return
       }
       const addShortcut=target.closest('[data-add-shortcut]');
-      if(addShortcut){event.preventDefault();event.stopImmediatePropagation();moveNavigationShortcut(app,addShortcut.dataset.addShortcut,true);return}
+      if(addShortcut){
+        event.preventDefault();event.stopImmediatePropagation();
+        const widget=shortcutWidget(app,addShortcut.dataset.addShortcut);
+        if(widget?.classList.contains('widget-is-docked')){
+          restoreWidget(app,widget.dataset.widgetId,$('[data-shortcut-row="'+CSS.escape(widget.dataset.widgetId)+'"]',app));
+          showShortcutStatus(app,(widget.dataset.widgetLabel||'Widget')+' restored to Studio.');
+          return;
+        }
+        moveNavigationShortcut(app,addShortcut.dataset.addShortcut,true);return;
+      }
       const shortcut=target.closest('[data-widget-shortcut]');
       if(shortcut){event.preventDefault();event.stopImmediatePropagation();openWidgetDestination(app,shortcut.dataset.widgetShortcut,shortcut.dataset.widgetRoute);return}
       if(target.id==='editProfileBtn'){
@@ -1151,6 +1156,7 @@
       const added=addRestore(app,widget);if(!added)return;
       widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized','widget-is-docked');
       syncDock(dock,section);saveMinimized(app);syncPrimaryWidgetDock(app);
+      refreshWidgetRemovalIndicators(app);
     },true);
     try{setTheme(localStorage.getItem('biglwaTheme')==='dark'?'dark':'light')}catch{setTheme('light')}
     document.addEventListener('biglwa:module-open',event=>{const app=getApp();if(app)setSidebarCurrent(app,event.detail?.key||'')});
