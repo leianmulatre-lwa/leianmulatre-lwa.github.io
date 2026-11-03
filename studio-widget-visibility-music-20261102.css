@@ -129,3 +129,24 @@
   > #profileMusicOpen#profileMusicOpen{
   display:block!important;visibility:visible!important;opacity:1!important
 }
+
+
+/* Truly mask the WHITE INSIDE these two source images. The zero-size inline
+   SVG filter maps pixel luminance to alpha, leaving the black emblem clean
+   on tinted wallpapers and non-white widget backgrounds. This targets the
+   image in Avatar/Aura headings AND the Skeleton Key restore/nav icons. */
+#studioApp img[src*="/Sunsum.webp"],
+#studioApp img[src*="/sesa-wo-suban-medium.png"]{
+  filter:url("#biglwaStudioWhiteToAlpha")!important;
+  mix-blend-mode:multiply!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+body.night-mode #studioApp img[src*="/Sunsum.webp"],
+body.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"],
+html.night-mode #studioApp img[src*="/Sunsum.webp"],
+html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
+  filter:url("#biglwaStudioWhiteToAlpha") invert(1)!important;
+  mix-blend-mode:screen!important;
+}
