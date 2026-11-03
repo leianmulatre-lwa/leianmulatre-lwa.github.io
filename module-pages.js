@@ -1312,6 +1312,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Connect by adding your profile link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-edit-link="${k}">${links[k]?'Edit link':'Connect link'}</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open</button>${orbitBadge(g,t)}</div>`+orbitLinkEditor(k,n,links[k]||'')+'</div>';
      }).join('')}</div></section></div>`;
     enforceOrbitCardGeometry();
+    renderOrbitAccountManagement();
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
@@ -1827,6 +1828,86 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     };
   }
 
+  // Profile links and authorized provider identities are managed in Orbit, never Connect.
+  function renderOrbitAccountManagement(){
+    // Multiple public profiles live on the member's account, but are never
+    // mislabeled as multiple authenticated OAuth sessions.
+    const profilesPanel=document.createElement('section');
+    profilesPanel.className='module-card wide';
+    profilesPanel.style.marginTop='10px';
+    profilesPanel.innerHTML='<h2>Additional social profiles</h2>'+
+      '<p>Manage additional public links for your Orbit apps. These are account-saved links, not verified OAuth connections.</p>'+
+      '<div class="module-actions" style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
+      '<input id="extraProfileUrl" class="module-input" style="flex:1 1 240px" type="url" placeholder="https://www.tiktok.com/@username">'+
+      '<button class="module-action" type="button" id="saveExtraProfile">Add profile</button></div>'+
+      '<div id="extraProfileList" class="module-list"></div><p id="extraProfileStatus" class="module-status" role="status"></p>';
+    body.append(profilesPanel);
+    const api=()=>window.BigLWAOrbitAccountLinks;
+    const extraStatus=profilesPanel.querySelector('#extraProfileStatus');
+    function showExtra(){
+      const destination=profilesPanel.querySelector('#extraProfileList');
+      destination.replaceChildren();
+      for(const item of api()?.getExtra?.()||[]){
+        const row=document.createElement('div');row.className='module-list-item';
+        const info=document.createElement('div');
+        const title=document.createElement('b');title.textContent=item.provider;
+        const link=document.createElement('a');link.textContent=item.url;
+        link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
+        info.append(title,link);
+        const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';
+        remove.onclick=async()=>{try{await api().removeExtra(item.id);showExtra()}catch(e){extraStatus.textContent=e.message}};
+        row.append(info,remove);destination.append(row);
+      }
+      if(!destination.childElementCount)destination.textContent='No additional profiles saved yet.';
+    }
+    profilesPanel.querySelector('#saveExtraProfile').onclick=async()=>{
+      try{
+        const provider=profilesPanel.querySelector('#extraProfileProvider').value;
+        const input=profilesPanel.querySelector('#extraProfileUrl');
+        await api()?.addExtra(provider,input.value);
+        input.value='';extraStatus.textContent='Additional profile saved privately to your BIG LWA account.';
+        showExtra();
+      }catch(e){extraStatus.textContent=e.message||'Could not save profile.'}
+    };
+    // OAuth identities are kept separate from manually added public links.
+    const authorized=document.createElement('section');
+    authorized.className='module-card wide';
+    authorized.style.marginTop='10px';
+    const authorizedHeading=document.createElement('h2');authorizedHeading.textContent='Authorized accounts';
+    const intro=document.createElement('p');intro.textContent='Connect additional X, Snapchat or Tumblr accounts; choose which authorized account is active in Orbit. Tokens stay with BIG LWA server.';
+    const list=document.createElement('div');list.className='module-list';
+    authorized.append(authorizedHeading,intro,list);body.append(authorized);
+    async function showAuthorized(){
+      list.replaceChildren();
+      const oauth=window.BigLWAOrbitOAuth;
+      if(!oauth){list.textContent='Orbit account connections are not ready.';return}
+      try{await oauth.load()}catch{}
+      for(const provider of ['x','snapchat','tumblr']){
+        const active=oauth.get(provider);
+        const accounts=Array.isArray(active?.accounts)?active.accounts:[];
+        for(const account of accounts){
+          const row=document.createElement('div');row.className='module-list-item';
+          const label=document.createElement('span');
+          label.textContent=(provider==='x'?'X':provider==='snapchat'?'Snapchat':'Tumblr')+' · '+(account.username||account.name||'Account');
+          const button=document.createElement('button');button.type='button';
+          const selected=account.sourceUserId===active?.activeSourceUserId;
+          button.textContent=selected?'Active':'Use account';
+          button.disabled=selected;
+          button.onclick=async()=>{
+            button.disabled=true;
+            try{await oauth.selectAccount(provider,account.sourceUserId);await showAuthorized()}
+            catch(e){button.disabled=false;list.setAttribute('aria-label','Could not switch account: '+(e.message||'Unknown error'))}
+          };
+          row.append(label,button);list.append(row);
+        }
+      }
+      if(!list.childElementCount)list.textContent='No multi-account OAuth profiles yet. Connect another account through Orbit.';
+    }
+    void showAuthorized();
+    showExtra();
+  }
+
   function renderConnect(){
     const invite='https://biglwa.com/login';
     body.innerHTML=heading('connect')+'<section class="module-card wide" style="margin-top:20px"><h2>Invite boo·kiniz.</h2><p>Send a friend this link to join BIGLWA. They can choose Create account on the welcome page.</p><label for="biglwaInvite">Join BIGLWA link</label><input class="module-input" id="biglwaInvite" readonly value="'+invite+'"><div class="module-actions"><button type="button" class="module-action" id="copyBiglwaInvite">Copy invite link</button><button type="button" class="module-action ghost" id="shareBiglwaInvite">Share invitation</button></div><p class="module-status" id="inviteStatus" role="status"></p></section>';
@@ -1878,85 +1959,6 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         }
       }catch{localResults.textContent='This contacts file could not be read locally.'}
     });
-    // Multiple public profiles live on the member's account, but are never
-    // mislabeled as multiple authenticated OAuth sessions.
-    const profilesPanel=document.createElement('section');
-    profilesPanel.className='module-card wide';
-    profilesPanel.style.marginTop='10px';
-    profilesPanel.innerHTML='<h2>Additional social profiles</h2>'+
-      '<p>Add more than one public profile per app. These are account-saved links, not verified OAuth connections.</p>'+
-      '<div class="module-actions" style="display:flex;gap:8px;flex-wrap:wrap">'+
-      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
-      '<input id="extraProfileUrl" class="module-input" style="flex:1 1 240px" type="url" placeholder="https://www.tiktok.com/@username">'+
-      '<button class="module-action" type="button" id="saveExtraProfile">Add profile</button></div>'+
-      '<div id="extraProfileList" class="module-list"></div><p id="extraProfileStatus" class="module-status" role="status"></p>';
-    body.append(profilesPanel);
-    const api=()=>window.BigLWAOrbitAccountLinks;
-    const extraStatus=profilesPanel.querySelector('#extraProfileStatus');
-    function showExtra(){
-      const destination=profilesPanel.querySelector('#extraProfileList');
-      destination.replaceChildren();
-      for(const item of api()?.getExtra?.()||[]){
-        const row=document.createElement('div');row.className='module-list-item';
-        const info=document.createElement('div');
-        const title=document.createElement('b');title.textContent=item.provider;
-        const link=document.createElement('a');link.textContent=item.url;
-        link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
-        info.append(title,link);
-        const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';
-        remove.onclick=async()=>{try{await api().removeExtra(item.id);showExtra()}catch(e){extraStatus.textContent=e.message}};
-        row.append(info,remove);destination.append(row);
-      }
-      if(!destination.childElementCount)destination.textContent='No additional profiles saved yet.';
-    }
-    profilesPanel.querySelector('#saveExtraProfile').onclick=async()=>{
-      try{
-        const provider=profilesPanel.querySelector('#extraProfileProvider').value;
-        const input=profilesPanel.querySelector('#extraProfileUrl');
-        await api()?.addExtra(provider,input.value);
-        input.value='';extraStatus.textContent='Additional profile saved privately to your BIG LWA account.';
-        showExtra();
-      }catch(e){extraStatus.textContent=e.message||'Could not save profile.'}
-    };
-    // OAuth identities are kept separate from manually added public links.
-    const authorized=document.createElement('section');
-    authorized.className='module-card wide';
-    authorized.style.marginTop='10px';
-    const authorizedHeading=document.createElement('h2');authorizedHeading.textContent='Authorized accounts';
-    const intro=document.createElement('p');intro.textContent='Connect additional X, Snapchat or Tumblr accounts in Orbit; choose which one is active here. Tokens stay with BIG LWA server, not on this page.';
-    const list=document.createElement('div');list.className='module-list';
-    authorized.append(authorizedHeading,intro,list);body.append(authorized);
-    async function showAuthorized(){
-      list.replaceChildren();
-      const oauth=window.BigLWAOrbitOAuth;
-      if(!oauth){list.textContent='Orbit account connections are not ready.';return}
-      try{await oauth.load()}catch{}
-      for(const provider of ['x','snapchat','tumblr']){
-        const active=oauth.get(provider);
-        const accounts=Array.isArray(active?.accounts)?active.accounts:[];
-        for(const account of accounts){
-          const row=document.createElement('div');row.className='module-list-item';
-          const label=document.createElement('span');
-          label.textContent=(provider==='x'?'X':provider==='snapchat'?'Snapchat':'Tumblr')+' · '+(account.username||account.name||'Account');
-          const button=document.createElement('button');button.type='button';
-          const selected=account.sourceUserId===active?.activeSourceUserId;
-          button.textContent=selected?'Active':'Use account';
-          button.disabled=selected;
-          button.onclick=async()=>{
-            button.disabled=true;
-            try{await oauth.selectAccount(provider,account.sourceUserId);await showAuthorized()}
-            catch(e){button.disabled=false;list.setAttribute('aria-label','Could not switch account: '+(e.message||'Unknown error'))}
-          };
-          row.append(label,button);list.append(row);
-        }
-      }
-      if(!list.childElementCount)list.textContent='No multi-account OAuth profiles yet. Connect another account through Orbit.';
-    }
-    void showAuthorized();
-    showExtra();
-    document.addEventListener('biglwa:orbit-links-synced',()=>{
-      if(profilesPanel.isConnected)showExtra();
-    },{once:true});
     $('#copyBiglwaInvite',body).onclick=copy;
     $('#shareBiglwaInvite',body).onclick=async()=>{if(!navigator.share){await copy();return}try{await navigator.share({title:'Join BIGLWA',text:'Join me on BIGLWA — a space for creativity, culture, and connection.',url:invite});status.textContent='Invitation shared.'}catch(e){if(e.name!=='AbortError')await copy()}};
   }
