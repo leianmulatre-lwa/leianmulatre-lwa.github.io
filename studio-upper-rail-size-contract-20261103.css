@@ -346,3 +346,7 @@
   #studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail>
   #biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard)[data-upper-span]{grid-column:span 1!important}
 }
+
+/* Avatar's injected flex rule must not expose a red-closed card. */
+#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>
+#biglwaAuraAvatarPair>#studioAvatarCard[hidden]{display:none!important}
