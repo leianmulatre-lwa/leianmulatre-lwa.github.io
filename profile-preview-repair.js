@@ -91,3 +91,16 @@ import('/account-identity.js').then(m=>m.onIdentityChange(()=>{run();restoreMedi
 auth().then(member=>document.documentElement.classList.toggle('biglwa-profile-viewer-member',!!member)).catch(()=>{});
 for(const delay of [500,1500,4000,9000])setTimeout(()=>{run();restoreMedia()},delay);
 })();
+
+// Show acknowledged save state without claiming unrelated editors are synced.
+(()=>{
+ const states=new Map();
+ function paint(source,state){states.set(source,state);const host=document.querySelector('#lwaProfileLoading');if(!host)return;
+ const values=[...states.values()],pending=values.includes('saving'),retry=values.includes('retry');
+ host.dataset.accountSaveState=pending?'saving':retry?'retry':'saved';
+ host.title=pending?'Saving account changes…':retry?'Account save needs retry':'Account changes saved';
+ host.setAttribute('aria-label',host.title);
+ }
+ window.addEventListener('biglwa:save-status',e=>paint(e.detail.source,e.detail.state));
+ window.addEventListener('biglwa:account-storage-status',()=>{const s=window.BigLWAAccountStorage?.status||'';paint('collections',/Saving/.test(s)?'saving':/retry|conflict|device;/i.test(s)?'retry':'saved')});
+})();

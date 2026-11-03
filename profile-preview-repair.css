@@ -71,3 +71,17 @@ html.biglwa-preview-mode #studioApp .page-wallpaper{top:calc(var(--biglwa-previe
 
 #studioApp #pinterestBoards .pn-browse-tabs{gap:8px;align-items:center;flex-wrap:wrap}
 #studioApp #pinterestAllBoards{max-width:100%;min-width:130px;padding:7px 10px;border:1px solid #b58e9c;background:#fff8ef;color:#533549;font:650 12px system-ui;border-radius:7px}
+
+/* Shared toolbar tracks: weather must not inherit the old 350px action track. */
+@media(min-width:951px){
+html #studioApp .topbar.topbar.profile-header-repaired{grid-template-columns:76px minmax(160px,1fr) 22px max-content max-content!important;gap:12px!important}
+}
+#studioApp#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{margin-top:18px!important}
+#studioApp#studioApp .profile-card .profile-identity-rail>.weekly-mood-card{margin-top:8px!important}
+#studioApp#studioApp #boards.boards-card{box-shadow:4px 5px 0 #e60023!important}
+#studioApp#studioApp #notes .note-paper{background-color:#e5f1da!important;background-image:repeating-linear-gradient(transparent 0 23px,#31835640 23px 24px)!important;color:#234a31!important}
+
+#studioApp .topbar #lwaProfileLoading[data-account-save-state="saving"],#studioApp .topbar #lwaProfileLoading[data-account-save-state="retry"]{display:block!important;font-size:0!important;width:22px!important;min-width:22px!important}
+#lwaProfileLoading[data-account-save-state="saving"]::after{content:'•••';font-size:12px;animation:account-save-pulse 1s infinite alternate}
+#lwaProfileLoading[data-account-save-state="retry"]::after{content:'!';font-size:14px;color:#b43c3c}
+@keyframes account-save-pulse{to{opacity:.3}}

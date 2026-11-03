@@ -11,6 +11,7 @@
   const readOwned=base=>{const k=ownedKey(base);if(!k)return null;try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
   const WALLPAPER_SETTINGS_KEY='biglwaWallpaperSettings';
   const WIDGET_SELECTOR='#studioApp .profile-card,#studioApp .music-card,#studioApp .aura-card,#studioApp .guest-check-card,#studioApp .mobile-dock.hero-action-bar,#studioApp .masonry .card:not(.manifesto-card),#studioApp .module-workspace .module-card,#studioApp .module-workspace .calendar-board,#studioApp .module-workspace .module-launcher';
+  let appearanceDraft=null;
   let activeObjectUrl='',activeWallpaperSource='',activeWallpaperKind='image';
 
   function ensureStyles(){
@@ -148,7 +149,7 @@
     Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
     const live=$('#widgetLiveConnection');
     if(live){const count=$$(WIDGET_SELECTOR).filter(widget=>!widget.classList.contains('widget-is-minimized')).length;const detail=$('span',live);if(detail)detail.textContent=`Connected to ${count} visible Studio widgets · changes apply instantly`}
-    if(save)saveOwned(APPEARANCE_KEY,values)
+    if(save&&!appearanceDraft)saveOwned(APPEARANCE_KEY,values)
   }
 
   function restoreAppearance(){
@@ -333,7 +334,7 @@
     if(preview){preview.style.backgroundSize=settings.fit;preview.style.backgroundPosition=settings.position}
     [video,previewVideo].forEach(media=>{media.style.objectFit=settings.fit;media.style.objectPosition=settings.position});
     const labels={blurValue:`${settings.blur}%`,overlayValue:`${settings.overlay}%`};Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
-    if(save)saveOwned(WALLPAPER_SETTINGS_KEY,settings)
+    if(save&&!appearanceDraft)saveOwned(WALLPAPER_SETTINGS_KEY,settings)
   }
 
   function removeWallpaperAuraControl(){
@@ -494,7 +495,7 @@
             const fit=$('#fitSelect');if(fit)fit.value=changes.fit;
             setWallpaperPosition(changes.position);applyWallpaperSettings(true);
             // Keep the authenticated account and approved public preview aligned, not just this device.
-            if(window.BigLWAUserDirectory?.saveCustomizations){
+            if(!appearanceDraft&&window.BigLWAUserDirectory?.saveCustomizations){
               const ok=await window.BigLWAUserDirectory.saveCustomizations({wallpaper:currentWallpaperSettings()});
               if(ok===false)throw Error('Your wallpaper position could not sync. Try Save changes.');
             }
@@ -538,7 +539,17 @@
   }
 
   window.BIGLWAStudioAppearance={
-    save(){applyAppearance(true);applyWallpaperSettings(true);return true},
+    beginEdit(){appearanceDraft={appearance:readAppearance(),wallpaper:currentWallpaperSettings()};},
+    cancelEdit(){
+      const draft=appearanceDraft;if(!draft)return;appearanceDraft=null;
+      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura'};
+      Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.appearance[key]});
+      const mappingWallpaper={fitSelect:'fit',blurRange:'blur',overlayRange:'overlay'};
+      Object.entries(mappingWallpaper).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.wallpaper[key]});
+      setWallpaperPosition(draft.wallpaper.position);applyAppearance(false);applyWallpaperSettings(false);
+      syncColorChoices('widgetColor');syncColorChoices('auraColor');
+    },
+    save(){appearanceDraft=null;applyAppearance(true);applyWallpaperSettings(true);return true},
     apply(values={}){
       if($('#studioApp .profile-card.profile-is-editing'))return;
       try{
