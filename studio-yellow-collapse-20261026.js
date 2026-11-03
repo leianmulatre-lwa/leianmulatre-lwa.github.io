@@ -69,12 +69,16 @@
   document.head.append(link);
  }
 
- // Compact is a real in-place SQUARE, not a removed/minimized-hidden widget.
- // The separate red action still docks and lights the Skeleton Key removal LED.
+ // The upper row has SIX square-width units. Full cards span two,
+ // square cards span one; no resizing can exceed that capacity.
+ // Yellow is a local size toggle, NEVER a Skeleton Key removal.
  const upperWidgets={
   music:'#studioApp .music-card',aura:'#studioApp .aura-card',
   avatar:'#studioApp #studioAvatarCard','guest-check':'#studioApp .guest-check-card'
  };
+ const upperDefaults={music:'long',aura:'square',avatar:'square','guest-check':'square'};
+ const upperLabel={music:'Music',aura:'Aura',avatar:'Avatar','guest-check':'Guest Check'};
+ const UPPER_CAPACITY=6;
  const upperId=widget=>{
   if(!widget)return '';
   if(widget.id==='studioAvatarCard')return 'avatar';
@@ -83,12 +87,22 @@
   if(widget.classList.contains('guest-check-card'))return 'guest-check';
   return '';
  };
- const upperLabel={music:'Music',aura:'Aura',avatar:'Avatar','guest-check':'Guest Check'};
- const compactIcon={
-  music:'♫',aura:'<img src="/Sunsum.webp" alt="" aria-hidden="true">',
-  avatar:'<img src="/sesa-wo-suban-medium.png" alt="" aria-hidden="true">',
-  'guest-check':'✉'
+ const upperElement=id=>document.querySelector(upperWidgets[id]||'__no_upper_widget__');
+ const upperRemoved=(id,widget)=>{
+  if(!widget||widget.hidden||widget.classList.contains('widget-is-minimized')||
+    widget.classList.contains('widget-is-docked'))return true;
+  const pair=widget.closest('#biglwaAuraAvatarPair');
+  if(pair?.classList.contains(id==='avatar'?'is-avatar-hidden':'is-aura-hidden'))return true;
+  return false;
  };
+ const upperView=(id,widget)=>{
+  const value=widget?.dataset.upperWidgetView;
+  if(value==='long'||value==='square')return value;
+  if(widget?.classList.contains('studio-upper-square'))return 'square';
+  return upperDefaults[id]||'square';
+ };
+ const upperUnits=(id,widget)=>upperRemoved(id,widget)?0:upperView(id,widget)==='long'?2:1;
+ const upperTotal=()=>Object.keys(upperWidgets).reduce((sum,id)=>sum+upperUnits(id,upperElement(id)),0);
  let announceTimer=0;
  function announce(message){
   const app=document.querySelector('#studioApp');if(!app)return;
@@ -100,91 +114,93 @@
   }
   status.textContent=message;status.classList.add('is-active');
   clearTimeout(announceTimer);
-  announceTimer=setTimeout(()=>status.classList.remove('is-active'),2400);
+  announceTimer=setTimeout(()=>status.classList.remove('is-active'),2200);
  }
- function compactPanel(){
-  const app=document.querySelector('#studioApp');
-  if(!app)return null;
-  return app.querySelector('#minimizedWidgetDock');
+ function applyUpperView(id,widget,view){
+  if(!widget)return;
+  const square=view==='square';
+  widget.dataset.upperWidgetView=square?'square':'long';
+  widget.classList.toggle('studio-upper-square',square);
+  // A square card still shows its contents. Header-only is an obsolete
+  // lower-widget collapse mode and must not be set for upper widgets.
+  widget.classList.remove('studio-header-only');
+  if(id==='music'){
+   widget.classList.toggle('studio-music-square',square);
+   widget.dataset.musicVariant=square?'square':'long';
+  }
  }
  function syncUpperPanel(){
-  const dock=compactPanel();
-  const app=document.querySelector('#studioApp');
-  if(!app||!dock)return;
-  for(const [id,selector] of Object.entries(upperWidgets)){
-   const widget=app.querySelector(selector);
-   let row=dock.querySelector('[data-upper-compact-row="'+id+'"]');
-   const compact=!!widget?.classList.contains('studio-upper-square')&&
-    !widget.classList.contains('widget-is-minimized')&&
-    !widget.classList.contains('widget-is-docked')&&!widget.hidden;
-   if(!compact){if(row)row.remove();continue}
-   if(!row){
-    row=document.createElement('div');row.className='sidebar-shortcut-row sidebar-upper-compact-row';
-    row.dataset.upperCompactRow=id;
-    const icon=document.createElement('span');icon.className='sidebar-route-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML=compactIcon[id];
-    const text=document.createElement('span');text.className='sidebar-upper-compact-text';text.textContent=upperLabel[id];
-    const light=document.createElement('span');light.className='sidebar-upper-yellow-indicator';
-    light.title='Square in Studio · not removed';light.setAttribute('aria-hidden','true');
-    const restore=document.createElement('button');restore.type='button';
-    restore.className='sidebar-upper-restore';restore.dataset.upperRestore=id;
-    restore.textContent='+';restore.title='Restore '+upperLabel[id]+' to rectangle';
-    restore.setAttribute('aria-label','Restore '+upperLabel[id]+' to full rectangle');
-    row.append(icon,text,light,restore);dock.append(row);
-   }
-   // Reconcile the saved sidebar mark, never append another copy of the same symbol.
-   const icon=row.querySelector('.sidebar-route-icon');
-   if(icon&&icon.innerHTML!==compactIcon[id])icon.innerHTML=compactIcon[id];
-   row.dataset.widgetView='square';
-   row.dataset.widgetRemoved='false';
-   row.title=upperLabel[id]+' · square in Studio · + restores rectangle';
+  const app=document.querySelector('#studioApp'),dock=app?.querySelector('#minimizedWidgetDock');
+  // Existing yellow restore tiles were the bug: the member never removed
+  // those widgets. Remove old tiles including stale session duplicates.
+  dock?.querySelectorAll('[data-upper-compact-row]').forEach(row=>row.remove());
+  // Nothing about yellow size changes may light the red Skeleton Key LED.
+ }
+ function syncUpperRail(){
+  const rail=document.querySelector('#studioApp #heroWidgetRail')||
+   document.querySelector('#studioApp .hero-widget-rail');
+  if(!rail)return;
+  const pair=rail.querySelector('#biglwaAuraAvatarPair');
+  const units=Math.min(UPPER_CAPACITY,Math.max(5,upperTotal()));
+  if(rail.style.getPropertyValue('--studio-upper-cols')!==String(units))
+   rail.style.setProperty('--studio-upper-cols',String(units));
+  for(const id of Object.keys(upperWidgets)){
+   const widget=upperElement(id);if(!widget)continue;
+   const size=upperUnits(id,widget);
+   const unitsValue=String(size||1);
+   if(widget.dataset.upperSpan!==unitsValue)widget.dataset.upperSpan=unitsValue;
   }
-  const primary=app.querySelector('#studioSidebarPrimary');
-  if(primary)primary.hidden=!dock.querySelector('[data-shortcut-row],.sidebar-upper-compact-row');
+  if(pair){
+   const aura=upperElement('aura'),avatar=upperElement('avatar');
+   const a=upperUnits('aura',aura),b=upperUnits('avatar',avatar);
+   pair.dataset.upperSpan=String(Math.max(1,a+b));
+   const aFlex=(a||1)+'fr',bFlex=(b||1)+'fr';
+   if(pair.style.getPropertyValue('--studio-aura-cols')!==aFlex)
+    pair.style.setProperty('--studio-aura-cols',aFlex);
+   if(pair.style.getPropertyValue('--studio-avatar-cols')!==bFlex)
+    pair.style.setProperty('--studio-avatar-cols',bFlex);
+  }
+ }
+ function setUpperView(id,view,{save=true}={}){
+  const widget=upperElement(id);if(!widget)return false;
+  applyUpperView(id,widget,view);
+  widget.dataset.yellowCollapseTouched='1';
+  widget.dataset.yellowCollapseOwner=uid()||'';
+  sync(widget);syncUpperRail();syncUpperPanel();
+  if(save)persist();
+  window.dispatchEvent(new CustomEvent('biglwa:studio-upper-state',{
+   detail:{id,view,units:upperTotal()}
+  }));
+  return true;
  }
  function restoreUpper(id){
-  const widget=document.querySelector(upperWidgets[id]||'__missing_upper_widget__');
-  if(!widget)return false;
-  widget.classList.remove('studio-upper-square','studio-header-only');
-  widget.dataset.upperWidgetView='rectangle';widget.dataset.yellowCollapseTouched='1';
-  widget.dataset.yellowCollapseOwner=uid()||'';
-  sync(widget);persist();syncUpperPanel();
-  window.dispatchEvent(new CustomEvent('biglwa:studio-upper-state',{detail:{id,view:'rectangle'}}));
-  announce(upperLabel[id]+' restored to rectangle.');
+  if(!upperElement(id))return false;
+  if(upperView(id,upperElement(id))==='long'){
+   announce(upperLabel[id]+' is already full size.');return true;
+  }
+  if(upperTotal()+1>UPPER_CAPACITY){
+   announce(upperLabel[id]+' is already minimized. This row is full.');return true;
+  }
+  setUpperView(id,'long');announce(upperLabel[id]+' restored to full size.');
   return true;
  }
  function minimizeUpper(id){
-  const widget=document.querySelector(upperWidgets[id]||'__missing_upper_widget__');
-  if(!widget||widget.hidden||widget.classList.contains('widget-is-docked'))return false;
-  if(widget.classList.contains('studio-upper-square')){
-   announce(upperLabel[id]+' is already minimized. Use + in Skeleton Key to restore.');
-   return true;
-  }
-  // Detect a genuinely square custom layout; never shrink it a second time.
-  const rect=widget.getBoundingClientRect();
-  const wasSquare=rect.width>55&&rect.height>55&&
-   Math.abs(rect.width-rect.height)<=Math.max(12,Math.min(rect.width,rect.height)*.065);
-  if(wasSquare){
-   // Never change classes or layout when the natural card is already square.
-   // The previous implementation showed this message AFTER applying a second
-   // square layout, which caused the cards to trespass into the shortcut bar.
-   widget.dataset.upperWidgetView='square';
-   widget.dataset.yellowCollapseTouched='1';
-   widget.dataset.yellowCollapseOwner=uid()||'';
-   // A remembered header-only state must not be replayed after this no-op.
-   sync(widget);persist();syncUpperPanel();
-   announce(upperLabel[id]+' is already minimized.');
-   return true;
-  }
-  widget.classList.remove('widget-is-expanded');
-  widget.classList.add('studio-upper-square','studio-header-only');
-  widget.dataset.upperWidgetView='square';
-  widget.dataset.yellowCollapseTouched='1';widget.dataset.yellowCollapseOwner=uid()||'';
-  sync(widget);persist();syncUpperPanel();
-  window.dispatchEvent(new CustomEvent('biglwa:studio-upper-state',{detail:{id,view:'square'}}));
-  announce('Minimized '+upperLabel[id]+' to square. Restore with + in Skeleton Key.');
+  const widget=upperElement(id);
+  if(!widget||upperRemoved(id,widget))return false;
+  if(upperView(id,widget)==='square')return restoreUpper(id);
+  setUpperView(id,'square');
+  announce(upperLabel[id]+' minimized to square.');
   return true;
  }
- window.BigLWAUpperWidgets={minimize:minimizeUpper,restore:restoreUpper,refresh:syncUpperPanel};
+ window.BigLWAUpperWidgets={
+  minimize:minimizeUpper,restore:restoreUpper,refresh:()=>{
+   syncUpperRail();syncUpperPanel();
+  },status:()=>{
+   const entries={};for(const id of Object.keys(upperWidgets))
+    entries[id]={view:upperView(id,upperElement(id)),units:upperUnits(id,upperElement(id))};
+   return {capacity:UPPER_CAPACITY,used:upperTotal(),entries};
+  }
+ };
 
  const key=widget=>widget.dataset.widgetId||widget.id||'';
  const label=widget=>widget.dataset.widgetLabel||widget.querySelector('h1,h2,.card-kicker')?.textContent?.trim()||key(widget)||'widget';
@@ -220,16 +236,17 @@
   if(!widget||!widget.isConnected)return;
   const head=findHead(widget);
   if(head&&!head.classList.contains('studio-collapse-keep'))head.classList.add('studio-collapse-keep');
-  const compact=widget.classList.contains('studio-upper-square');
-  const collapsed=widget.classList.contains('studio-header-only');
   const upper=upperId(widget);
+  const compact=upper?upperView(upper,widget)==='square':
+   widget.classList.contains('studio-upper-square');
+  const collapsed=upper?compact:widget.classList.contains('studio-header-only');
   if(widget.classList.contains('music-card')){
    widget.classList.toggle('studio-music-square',compact);
    widget.dataset.musicVariant=compact?'square':'long';
   }
   widget.querySelectorAll('.widget-window-controls .window-light.yellow').forEach(button=>{
    const name=upper?upperLabel[upper]:label(widget);
-   const title=upper?(compact?'Already minimized · restore with + in Skeleton Key':'Minimize '+name+' to square'):(collapsed?'Restore '+name:'Minimize '+name);
+   const title=upper?(compact?(upperTotal()+1<=UPPER_CAPACITY?'Restore '+name+' to full size':'Already minimized · row full'):'Minimize '+name+' to square'):(collapsed?'Restore '+name:'Minimize '+name);
    button.title=title;button.setAttribute('aria-label',title);
    button.setAttribute('aria-expanded',String(!collapsed));
    button.setAttribute('aria-pressed',String(collapsed));
@@ -238,20 +255,30 @@
  function updateAll(){
   installFixStyles();installSymbolKnockout();applyIdentitySymbols();
   if(isVisitor())return;
-  const saved=getSaved();
+  const snapshot=window.BigLWAStudioLayout?.snapshot?.()||{};
+  const variants=snapshot.upperVariants||{};
+  const legacy=getSaved();
   document.querySelectorAll(widgetSelector).forEach(widget=>{
+   const id=key(widget),upper=upperId(widget);
    if(widget.dataset.yellowCollapseOwner!==(uid()||'')){
     delete widget.dataset.yellowCollapseTouched;
     widget.dataset.yellowCollapseOwner=uid()||'';
    }
-   const id=key(widget);
-   if(saved&&id&&widget.dataset.yellowCollapseTouched!=='1'&&!widget.classList.contains('widget-is-minimized')){
-    widget.classList.toggle('studio-header-only',saved.has(id));
-    if(upperId(widget))widget.classList.toggle('studio-upper-square',saved.has(id));
+   if(upper){
+    if(upperRemoved(upper,widget)){sync(widget);return}
+    if(widget.dataset.yellowCollapseTouched!=='1'){
+     const accountValue=variants[upper];
+     const selected=accountValue==='square'||accountValue==='long'?
+      accountValue:legacy?.has(id)?'square':upperDefaults[upper];
+     applyUpperView(upper,widget,selected);
+    }
+   }else if(legacy&&id&&widget.dataset.yellowCollapseTouched!=='1'&&
+     !widget.classList.contains('widget-is-minimized')){
+    widget.classList.toggle('studio-header-only',legacy.has(id));
    }
    sync(widget);
   });
-  syncUpperPanel();
+  syncUpperRail();syncUpperPanel();
  }
  function persist(){
   if(isVisitor()||!uid())return;
@@ -287,12 +314,12 @@
   if(red){
    const widget=red.closest(widgetSelector);
    if(widget?.classList.contains('studio-header-only')){
-    widget.classList.remove('studio-header-only','studio-upper-square');widget.dataset.yellowCollapseTouched='1';sync(widget);
-    widget.dataset.upperWidgetView='removed';
-    // Avatar's own red action stores its visibility outside canonical layout;
-    // persist the cleared square state before that red removal proceeds.
-    if(upperId(widget)==='avatar')persist();
-    syncUpperPanel();
+    // Red changes visibility, not size. Retain the member's long/square
+    // preference so the restored widget comes back with the same geometry.
+    widget.dataset.upperWidgetBeforeRemoval=upperId(widget)?upperView(upperId(widget),widget):'';
+    widget.classList.remove('studio-header-only');
+    widget.dataset.yellowCollapseTouched='1';
+    sync(widget);syncUpperPanel();
     // Existing red handler continues unchanged and will persist dock state.
     // No extra save yet: red's own operation is the final transaction.
    }
