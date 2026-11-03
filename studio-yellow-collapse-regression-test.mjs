@@ -116,6 +116,43 @@ assert(headerless.querySelector('.studio-collapse-fallback'),'A compact accessib
 assert.equal(headerless.parentElement,masonry);
 assert(read('index.html').includes('studio-spatial-drag-20261029.js?v=20261029-route-inset-4'),'Free-position drag handler loads on Studio');
 
+
+// Music's yellow button must present a REAL square player, not header-only text.
+// No stereo elements are re-created, so song state and controls survive the toggle.
+const music=doc.createElement('section');music.className='customizable-widget music-card stereo-music-widget';
+music.dataset.widgetId='music';music.dataset.widgetLabel='Now Playing';
+music.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="music">Yellow</button></div>'+
+ '<h2 class="card-kicker">NOW PLAYING</h2><div class="stereo-shell"><div class="stereo-tuner"></div>'+
+ '<div class="stereo-face"><div class="stereo-speaker"></div><div class="stereo-display"><strong id="studioMusicTitle">Almeda</strong><span id="studioMusicArtist">Solange</span></div></div>'+
+ '<div class="stereo-control-deck"><button id="playBtn">Play</button></div></div>';
+doc.querySelector('#studioApp').append(music);
+const shell=music.querySelector('.stereo-shell'),musicYellow=music.querySelector('[data-minimize-widget]');
+musicYellow.click();
+assert(music.classList.contains('studio-header-only'),'Yellow keeps the music widget in Studio');
+assert(music.classList.contains('studio-music-square'),'Yellow selects compact square stereo layout');
+assert.equal(music.dataset.musicVariant,'square');
+assert.equal(music.querySelector('.stereo-shell'),shell,'Music player survives minimization intact');
+musicYellow.click();
+assert(!music.classList.contains('studio-music-square'),'Restoring selects full-length stereo');
+assert.equal(music.dataset.musicVariant,'long');
+assert.equal(music.querySelector('#studioMusicTitle').textContent,'Almeda');
+const aura=doc.createElement('section');aura.className='customizable-widget aura-card';
+aura.dataset.widgetId='aura';aura.innerHTML='<h2 class="card-kicker">Aura</h2>';
+const avatar=doc.createElement('section');avatar.id='studioAvatarCard';
+avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2></div>';
+doc.querySelector('#studioApp').append(aura,avatar);
+w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
+await new Promise(resolve=>setTimeout(resolve,70));
+assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')?.getAttribute('src'),'/Sunsum.webp','Avatar has native Sunsum art beside the heading');
+assert.equal(doc.querySelector('.aura-card .studio-heading-image-symbol')?.getAttribute('src'),'/sesa-wo-suban-medium.png','Aura has native symbol beside its heading');
+assert.equal(doc.querySelectorAll('#studioAvatarCard .studio-heading-image-symbol').length,1,'Avatar symbols never double on refresh');
+assert.equal(doc.querySelectorAll('.aura-card .studio-heading-image-symbol').length,1,'Aura symbols never double on refresh');
+const musicStyle=read('studio-widget-visibility-music-20261102.css');
+assert(musicStyle.includes('.studio-header-only.studio-music-square'),'Square stereo has explicit visible layout');
+assert(musicStyle.includes('.stereo-tuner')&&musicStyle.includes('padding:43px 12px 13px!important'),'Long stereo reserves header clearance');
+assert(musicStyle.includes('.widget-window-controls')&&musicStyle.includes('#profileMusicOpen'),'Three dots and songs control are layered above radio');
+assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261102-1');
+
 await new Promise(resolve=>setTimeout(resolve,120));
 dom.window.close();
 console.log('PASS: yellow header-only toggle and account save; green/red/drag/image unaffected');
