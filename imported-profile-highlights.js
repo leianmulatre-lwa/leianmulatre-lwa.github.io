@@ -41,7 +41,36 @@
   const close=document.createElement('button');close.className='highlight-phone-close';close.textContent='×';close.setAttribute('aria-label','Close');close.onclick=()=>dialog.close();top.append(title,close);
   const stage=document.createElement('div');stage.className='highlight-phone-stage';
   const prev=document.createElement('button'),next=document.createElement('button'),count=document.createElement('span');prev.className=next.className='highlight-phone-arrow';count.className='highlight-phone-count';count.setAttribute('aria-live','polite');prev.textContent='‹';next.textContent='›';prev.setAttribute('aria-label','Previous');next.setAttribute('aria-label','Next');phone.append(top,stage,count);layout.append(prev,phone,next);
-  let index=0;function draw(){stage.replaceChildren();const item=group.items[index];const media=document.createElement(item.kind==='video'?'video':'img');media.src=item.mediaUrl||item.thumbnail;media.referrerPolicy='no-referrer';if(item.kind==='video'){media.controls=true;media.playsInline=true;media.preload='metadata'}else media.alt=group.title+' '+(index+1);media.onerror=()=>{stage.replaceChildren();const msg=document.createElement('p');msg.textContent='This highlight is temporarily unavailable. Try the next one.';msg.style.padding='20px';msg.style.color='white';stage.append(msg)};stage.append(media);count.textContent=(index+1)+' / '+group.items.length;prev.disabled=index===0;next.disabled=index===group.items.length-1}
+  let index=0;
+  function draw(){
+   stage.replaceChildren();const item=group.items[index];
+   const link=String(item.mediaUrl||item.thumbnail||'');
+   const media=document.createElement(item.kind==='video'?'video':'img');
+   if(item.kind==='video'){media.controls=true;media.playsInline=true;media.preload='metadata'}
+   else media.alt=group.title+' '+(index+1);
+   media.referrerPolicy='no-referrer';
+   // External highlight media is often signed and expires. A cover is a
+   // fallback preview, not a replacement for the original missing story.
+   function unavailable(){
+    if(!stage.contains(media))return;
+    stage.replaceChildren();
+    const note=document.createElement('p');note.className='highlight-media-status';
+    note.textContent='The original Highlight link expired or could not load. This import needs to be refreshed.';
+    note.style.cssText='color:white;padding:14px 12px;font:12px/1.5 system-ui;text-align:center';
+    const options=[item.thumbnail,group.cover].filter(v=>typeof v==='string'&&v&&v!==link);
+    function nextPreview(){
+     const url=options.shift();
+     if(!url){stage.append(note);return}
+     const img=document.createElement('img');img.className='highlight-fallback-cover';img.alt='Highlight cover preview, not the original story';img.referrerPolicy='no-referrer';
+     img.onload=()=>{if(!dialog.isConnected)return;stage.replaceChildren();stage.append(img,note)};
+     img.onerror=nextPreview;img.src=url;
+    }
+    nextPreview();
+   }
+   if(!link){stage.append(document.createTextNode('Highlight source unavailable. Refresh this import.'))}
+   else{media.onerror=unavailable;media.src=link;stage.append(media)}
+   count.textContent=(index+1)+' / '+group.items.length;prev.disabled=index===0;next.disabled=index===group.items.length-1;
+  }
   prev.onclick=()=>{index--;draw()};next.onclick=()=>{index++;draw()};dialog.onclose=()=>dialog.remove();dialog.addEventListener('keydown',e=>{if(e.key==='ArrowRight'&&!next.disabled)next.click();if(e.key==='ArrowLeft'&&!prev.disabled)prev.click()});dialog.append(layout);document.body.append(dialog);draw();dialog.showModal();close.focus();
  }
  function bubble(group){const a=document.createElement('button');a.type='button';a.className='biglwa-story-bubble';a.dataset.source=group.platform||'instagram';a.dataset.importedHighlight='1';a.title='Open '+group.title;a.setAttribute('aria-label',a.title);const ring=document.createElement('span');ring.className='biglwa-story-ring';const inner=document.createElement('span');inner.className='biglwa-story-inner';const img=document.createElement('img');img.src=group.cover||'/assets/tv-no-signal.svg';img.alt='';img.style.cssText='width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:'+(group.coverX??50)+'% '+(group.coverY??50)+'%';inner.append(img);ring.append(inner);const name=document.createElement('span');name.className='biglwa-story-name';name.textContent=group.title;a.append(ring,name);a.onclick=()=>open(group);return a}
