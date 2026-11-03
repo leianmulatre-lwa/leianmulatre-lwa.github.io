@@ -62,7 +62,7 @@ assert.equal(saveCount,3,'Explicit yellow click writes; startup does not');
 assert.equal(legacyYellow,0);
 assert(read('ui-coherence.js').includes("collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]"),'Canonical account snapshot saves collapsed IDs');
 assert(read('ui-coherence.js').includes("window.dispatchEvent(new Event('biglwa:studio-collapse-applied'))"),'Remote customizations reapply collapsed state');
-assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261029-universal-1'),'Script included in actual Studio');
+assert(read('index.html').includes('studio-yellow-collapse-20261026.js?v=20261102-avatar-aura-symbols-1'),'Script included in actual Studio');
 assert(read('index.html').includes('studio-yellow-collapse-20261026.css?v=20261026-1'),'Styles included in actual Studio');
 
 /* Verify the two NEW cabinet widgets specifically. Their live content is
@@ -143,8 +143,8 @@ avatar.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar
 doc.querySelector('#studioApp').append(aura,avatar);
 w.dispatchEvent(new w.Event('biglwa:studio-collapse-applied'));
 await new Promise(resolve=>setTimeout(resolve,70));
-assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')?.getAttribute('src'),'/sesa-wo-suban-medium.png','Avatar has native Sunsum art beside the heading');
-assert.equal(doc.querySelector('.aura-card .studio-heading-image-symbol')?.getAttribute('src'),'/Sunsum.webp','Aura has native symbol beside its heading');
+assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')?.getAttribute('src'),'/sesa-wo-suban-medium.png','Avatar has the circular star symbol beside the heading');
+assert.equal(doc.querySelector('.aura-card .studio-heading-image-symbol')?.getAttribute('src'),'/Sunsum.webp','Aura has native Sunsum art beside the heading');
 assert.equal(doc.querySelectorAll('#studioAvatarCard .studio-heading-image-symbol').length,1,'Avatar symbols never double on refresh');
 assert.equal(doc.querySelectorAll('.aura-card .studio-heading-image-symbol').length,1,'Aura symbols never double on refresh');
 const musicStyle=read('studio-widget-visibility-music-20261102.css');
