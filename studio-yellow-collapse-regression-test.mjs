@@ -25,7 +25,14 @@ let saved={collapsed:[],order:{masonry:['archive']},docked:[]};
 let saveCount=0,legacyYellow=0,legacyRed=0,green=0;
 w.BigLWAStudioLayout={
  snapshot:()=>saved,
- save:()=>{saveCount++; saved={...saved,collapsed:[...doc.querySelectorAll('.studio-header-only[data-widget-id]')].map(x=>x.dataset.widgetId)}}
+ save:()=>{saveCount++; saved={...saved,
+  collapsed:[...doc.querySelectorAll('.studio-header-only[data-widget-id]')].map(x=>x.dataset.widgetId),
+  upperVariants:Object.fromEntries(['music','aura','avatar','guest-check'].map(id=>{
+   const widget=id==='avatar'?doc.querySelector('#studioAvatarCard'):doc.querySelector(
+    '.music-card[data-widget-id="'+id+'"],.aura-card[data-widget-id="'+id+'"],.guest-check-card[data-widget-id="'+id+'"]');
+   return [id,widget?.dataset.upperWidgetView|| (id==='music'?'long':'square')];
+  }))
+ }} }
 };
 doc.addEventListener('click',e=>{
  if(e.target.matches('[data-minimize-widget]')){legacyYellow++;doc.querySelector('#archive').classList.add('widget-is-minimized')}
@@ -202,6 +209,12 @@ assert.equal(status().used,6);
 guestYellow.click();
 assert.equal(status().entries['guest-check'].view,'square');
 assert.equal(status().used,5);
+assert.equal(saved.upperVariants.music,'long','Music full variant saves in account layout');
+assert.equal(saved.upperVariants.aura,'square','Aura square variant saves in account layout');
+assert(read('ui-coherence.js').includes('upperVariants:Object.fromEntries('),
+ 'Studio account snapshot stores upper variants independently of shortcut and red-dock state');
+assert(read('ui-coherence.js').includes('const upperVariants=layout.upperVariants'),
+ 'Remote account hydration restores upper widths separately from collapsed widgets');
 assert.equal(doc.querySelectorAll('[data-upper-compact-row]').length,0,
  'Only red-closing a widget should ever create a Skeleton Key restore entry');
 
