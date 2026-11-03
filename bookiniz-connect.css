@@ -1,9 +1,27 @@
-/* Boos / Bookiniz / Share: contained within the existing Connect module. */
+/* Two Connect versions. Audience sharing lives inside Bookiniz, not a third tab. */
 #socialConnect.bookiniz-connect{display:block;max-width:none}
 #socialConnect.bookiniz-connect [data-connect-pane][hidden]{display:none!important}
-#socialConnect .bookiniz-tabs{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 20px;padding:4px;border:1px solid rgba(87,42,49,.17);border-radius:14px;background:rgba(255,251,245,.42);max-width:520px}
-#socialConnect .bookiniz-tabs button{flex:1;min-width:90px;border:0;border-radius:11px;background:transparent;color:inherit;padding:10px 16px;font:700 13px/1.3 system-ui;cursor:pointer}
-#socialConnect .bookiniz-tabs button[aria-selected="true"]{background:#d9556c;color:#fff;box-shadow:0 2px 7px #69263724}
+#moduleWorkspace[data-module-key="connect"] .module-heading:not(.module-heading--with-shadow){
+ grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;column-gap:20px!important;row-gap:9px!important
+}
+#moduleWorkspace[data-module-key="connect"] .module-heading-copy{grid-column:1;grid-row:1;min-width:0}
+#moduleWorkspace[data-module-key="connect"] .module-heading-bottom{grid-column:1 / -1;grid-row:2}
+#moduleWorkspace[data-module-key="connect"] .bookiniz-tabs{
+ display:flex;align-items:center;justify-self:end;grid-column:2;grid-row:1;gap:4px;
+ width:min(100%,300px);max-width:300px;box-sizing:border-box;padding:4px;
+ border:1px solid rgba(87,42,49,.2);border-radius:14px;
+ background:rgba(255,251,245,.48)
+}
+#moduleWorkspace[data-module-key="connect"] .bookiniz-tabs button{
+ flex:1 1 50%;min-width:105px;border:0;border-radius:10px;background:transparent;
+ color:inherit;padding:10px 17px;font:700 12px/1.3 system-ui;cursor:pointer
+}
+#moduleWorkspace[data-module-key="connect"] .bookiniz-tabs button[aria-selected="true"]{
+ background:#d9556c;color:#fff;box-shadow:0 2px 7px #69263724
+}
+#moduleWorkspace[data-module-key="connect"] .bookiniz-tabs button:focus-visible{
+ outline:2px solid #8d324b;outline-offset:3px
+}
 #socialConnect .bookiniz-pane{padding:8px 0 14px;max-width:100%}
 #socialConnect .bookiniz-pane h2{font-family:"CS Bergamot Stitched",Georgia,serif;font-size:clamp(23px,2vw,30px);margin:5px 0 8px;text-transform:lowercase}
 #socialConnect .bookiniz-intro,#socialConnect .bookiniz-boos-copy{font-size:13px;line-height:1.6;color:#5c454b;margin:2px 0 16px}
@@ -33,3 +51,40 @@
 #socialConnect .bookiniz-remove{margin-left:auto;background:transparent;color:#874953;border:0;font:600 11px system-ui;text-decoration:underline;cursor:pointer}
 #socialConnect .bookiniz-status{font-size:12px;min-height:1em;margin:12px 0 0}
 @media(max-width:560px){#socialConnect .bookiniz-tabs button{min-width:72px;padding:9px 7px}#socialConnect .bookiniz-pane{padding:4px 0}}
+/* The invitation card is the same live form in each view; never copy form IDs. */
+#socialConnect .bookiniz-invite-slot{margin-top:24px}
+#socialConnect .bookiniz-invite-slot>section.module-card{
+ border:0;border-top:1px solid rgba(104,77,79,.2);border-radius:0;
+ padding:18px 0 0;box-shadow:none;background:transparent;
+ margin:0!important;max-width:none;width:100%;box-sizing:border-box
+}
+#socialConnect .bookiniz-invite-slot>section.module-card+section.module-card{margin-top:16px!important}
+#socialConnect .bookiniz-pane{max-width:none}
+#socialConnect .bookiniz-pane .bookiniz-boos-copy,
+#socialConnect .bookiniz-pane .bookiniz-intro{
+ margin:0 0 21px;font-size:13px;line-height:1.5;color:#5d4149
+}
+#socialConnect .bookiniz-find{margin:0 0 20px}
+#socialConnect .bookiniz-find-form{display:flex;align-items:center;gap:8px;max-width:none}
+#socialConnect .bookiniz-find-form input{flex:1;min-width:0;box-sizing:border-box}
+#socialConnect .bookiniz-find-results{display:grid;gap:7px;margin-top:9px}
+#socialConnect .bookiniz-search-result{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#socialConnect .bookiniz-search-result span{flex:1 1 230px;min-width:120px;font-size:12px}
+#socialConnect .bookiniz-search-result a{font-size:12px}
+#socialConnect .bookiniz-roster-title{margin:24px 0 6px}
+#socialConnect .bookiniz-meta{font-size:12px}
+#socialConnect .bookiniz-share-section{
+ border-top:1px solid rgba(104,77,79,.2);margin-top:28px;padding-top:23px
+}
+#socialConnect .bookiniz-share-section>p{font-size:12px;line-height:1.6;margin:4px 0 16px}
+#socialConnect .bookiniz-share-section>h3{margin-top:24px}
+#socialConnect .bookiniz-share-heading{margin:0 0 7px}
+#socialConnect .bookiniz-share-section .bookiniz-share-form{max-width:850px}
+#socialConnect .bookiniz-pane .social-connect{margin:0}
+@media(max-width:650px){
+ #moduleWorkspace[data-module-key="connect"] .module-heading:not(.module-heading--with-shadow){grid-template-columns:minmax(0,1fr)!important}
+ #moduleWorkspace[data-module-key="connect"] .bookiniz-tabs{grid-column:1;grid-row:2;justify-self:stretch;width:100%;max-width:100%}
+ #moduleWorkspace[data-module-key="connect"] .module-heading-bottom{grid-column:1;grid-row:3}
+ #moduleWorkspace[data-module-key="connect"] .bookiniz-tabs button{min-width:0}
+ #socialConnect .bookiniz-search-result{align-items:flex-start}
+}
