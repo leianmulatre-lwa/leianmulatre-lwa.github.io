@@ -590,3 +590,31 @@ html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
   border-color:#d5a437!important;
   box-shadow:none!important;
 }
+
+
+/* The Skeleton Key + is an actual restore button, not an inert text symbol.
+   Red removal is ON only while widget-is-docked; yellow square has its own
+   hollow yellow ring. These states cannot masquerade as one another. */
+#studioApp .sidebar-widget-restore-row .sidebar-widget-plus{
+  display:grid!important;place-items:center!important;box-sizing:border-box!important;
+  width:21px!important;min-width:21px!important;height:28px!important;min-height:28px!important;
+  padding:0!important;margin:0!important;border:0!important;border-radius:5px!important;
+  background:transparent!important;color:inherit!important;
+  font:850 18px/1 system-ui!important;cursor:pointer!important;pointer-events:auto!important;
+}
+#studioApp .sidebar-widget-restore-row .sidebar-widget-plus:hover{
+  background:rgba(var(--aura-rgb,216,95,109),.13)!important;
+}
+#studioApp .sidebar-widget-restore-row .sidebar-widget-plus:focus-visible{
+  outline:2px solid rgb(var(--aura-rgb,216,95,109))!important;outline-offset:1px!important;
+}
+#studioApp #minimizedWidgetDock>.sidebar-widget-restore-row.is-red-docked::after{
+  background:rgb(var(--aura-rgb,216,95,109))!important;
+  border:1px solid rgb(var(--aura-rgb,216,95,109))!important;
+  box-shadow:0 0 0 2px rgba(var(--aura-rgb,216,95,109),.16)!important;
+}
+#studioApp #minimizedWidgetDock>.sidebar-widget-restore-row:not(.is-red-docked)::after{
+  background:transparent!important;
+  border:1px solid #d5a437!important;
+  box-shadow:none!important;
+}
