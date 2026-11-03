@@ -993,7 +993,7 @@
       if(target&&row.parentElement!==target)target.appendChild(row);
     });
     // Distinguish yellow square (still in Studio) from red close (removed).
-    $('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
       const widget=shortcutWidget(app,row.dataset.shortcutRow||'');
       const removed=!!widget?.classList.contains('widget-is-docked');
       row.classList.toggle('is-red-docked',removed);
