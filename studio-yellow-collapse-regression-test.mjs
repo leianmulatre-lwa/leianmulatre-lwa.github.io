@@ -32,7 +32,7 @@ w.BigLWAStudioLayout={
     '.music-card[data-widget-id="'+id+'"],.aura-card[data-widget-id="'+id+'"],.guest-check-card[data-widget-id="'+id+'"]');
    return [id,widget?.dataset.upperWidgetView|| (id==='music'?'long':'square')];
   }))
- }} }
+ }}
 };
 doc.addEventListener('click',e=>{
  if(e.target.matches('[data-minimize-widget]')){legacyYellow++;doc.querySelector('#archive').classList.add('widget-is-minimized')}
