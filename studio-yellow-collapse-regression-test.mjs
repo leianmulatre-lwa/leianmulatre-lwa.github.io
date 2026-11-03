@@ -147,8 +147,22 @@ assert.equal(doc.querySelector('#studioAvatarCard .studio-heading-image-symbol')
 assert.equal(doc.querySelector('.aura-card .studio-heading-image-symbol')?.getAttribute('src'),'/Sunsum.webp','Aura has native Sunsum art beside the heading');
 assert.equal(doc.querySelectorAll('#studioAvatarCard .studio-heading-image-symbol').length,1,'Avatar symbols never double on refresh');
 assert.equal(doc.querySelectorAll('.aura-card .studio-heading-image-symbol').length,1,'Aura symbols never double on refresh');
+const whiteMask=doc.querySelector('#biglwaStudioSymbolWhiteKnockout filter#biglwaStudioWhiteToAlpha feColorMatrix');
+assert(whiteMask,'An inline SVG knock-out filter exists for both Studio symbols');
+const matrix=whiteMask.getAttribute('values').trim().split(/\s+/).map(Number);
+assert.equal(matrix.length,20,'The luminance-to-alpha transformation has all 20 coefficients');
+assert.deepEqual(matrix.slice(0,15),Array(15).fill(0),'White/black inputs become the same neutral black ink');
+assert(Math.abs(matrix[15]+.2126)<1e-8&&Math.abs(matrix[16]+.7152)<1e-8&&Math.abs(matrix[17]+.0722)<1e-8&&matrix[18]===0&&matrix[19]===1,
+ 'White source pixels become transparent while dark pixels retain their edges');
 const musicStyle=read('studio-widget-visibility-music-20261102.css');
 assert(musicStyle.includes('.studio-header-only.studio-music-square'),'Square stereo has explicit visible layout');
+assert(musicStyle.includes('img[src*="/Sunsum.webp"]')&&musicStyle.includes('img[src*="/sesa-wo-suban-medium.png"]'),
+ 'Aura and Avatar image layers both use the white-to-transparency mask');
+assert(musicStyle.includes('filter:url("#biglwaStudioWhiteToAlpha")')&&musicStyle.includes('mix-blend-mode:multiply'),
+ 'Light mode neutralizes source image white pixels');
+assert(musicStyle.includes('filter:url("#biglwaStudioWhiteToAlpha") invert(1)')&&musicStyle.includes('mix-blend-mode:screen'),
+ 'Dark mode uses inverted, screened-out white backgrounds');
+
 assert(musicStyle.includes('.stereo-tuner')&&musicStyle.includes('padding:43px 12px 13px!important'),'Long stereo reserves header clearance');
 assert(musicStyle.includes('.widget-window-controls')&&musicStyle.includes('#profileMusicOpen'),'Three dots and songs control are layered above radio');
 assert.equal(doc.querySelector('#studioWidgetVisibilityMusicFix')?.getAttribute('href'),'/studio-widget-visibility-music-20261102.css?v=20261102-white-mask-2');
