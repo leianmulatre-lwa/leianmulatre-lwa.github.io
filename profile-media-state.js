@@ -42,6 +42,6 @@ export async function mediaStateRoute(request,env,{user,json,preflight,allowed})
  if(Object.hasOwn(input,'profilePhotoUrl')){const photo=await ownedMedia(bucket,uid,input.profilePhotoUrl,'profile-photo');next.profilePhotoUrl=photo?.url||''}
  if(input.profilePhotoPosition)next.profilePhotoPosition={x:axis(input.profilePhotoPosition.x),y:axis(input.profilePhotoPosition.y)};
  if(Object.hasOwn(input,'wallpaperMedia'))next.wallpaperMedia=input.wallpaperMedia===null?null:await ownedMedia(bucket,uid,input.wallpaperMedia.url,'wallpaper');
- if(input.widgetAudience){next.widgetAudience={};for(const [key,value]of Object.entries(input.widgetAudience).slice(0,36)){if(/^[a-z][a-z0-9-]{0,35}$/.test(key)&&['everyone','members','private'].includes(value))next.widgetAudience[key]=value}}
+ if(input.widgetAudience){next.widgetAudience={};for(const [key,value]of Object.entries(input.widgetAudience).slice(0,36)){if(/^[a-z][a-z0-9-]{0,35}$/.test(key)&&['everyone','members','boos','bookiniz','private'].includes(value))next.widgetAudience[key]=value}}
  return json({ok:true,...await updateMediaState(bucket,uid,next)},200,request,env);
 }
