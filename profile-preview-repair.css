@@ -78,7 +78,7 @@ html #studioApp .topbar.topbar.profile-header-repaired{grid-template-columns:76p
 }
 #studioApp#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{margin-top:24px!important}
 #studioApp#studioApp .profile-card .profile-identity-rail>.weekly-mood-card{margin-top:8px!important}
-#studioApp#studioApp #boards.boards-card{box-shadow:4px 5px 0 #e60023!important}
+#studioApp#studioApp #boards.boards-card{box-shadow:0 3px 10px #e600231f!important}
 #studioApp#studioApp #notes .note-paper{background-color:#e5f1da!important;background-image:repeating-linear-gradient(transparent 0 23px,#31835640 23px 24px)!important;color:#234a31!important}
 
 #studioApp .topbar #lwaProfileLoading[data-account-save-state="saving"],#studioApp .topbar #lwaProfileLoading[data-account-save-state="retry"]{display:block!important;font-size:0!important;width:22px!important;min-width:22px!important}
@@ -95,16 +95,13 @@ html #studioApp .topbar.topbar.profile-header-repaired{grid-template-columns:76p
 #studioApp#studioApp .weekly-mood-card[data-mood-style="qwiky-note"]::after{background:linear-gradient(135deg,transparent 49%,#a6c39c 50%)!important}
 #studioApp .sqz-compose>.sqz-title{padding:0 0 10px;margin:0;border-bottom:1px solid #31835640}
 
-/* Orbit rainbow shadow and Pinterest red on the preview, not only its card. */
-#studioApp#studioApp #orbit.card{isolation:isolate;overflow:visible!important}
-#studioApp#studioApp #orbit.card::after{
- content:"";position:absolute;inset:-3px;transform:translate(3px,4px);
- border-radius:inherit;padding:5px;pointer-events:none;z-index:-1;
- background:linear-gradient(125deg,#ef5360 0%,#f5a94b 18%,#e8d853 34%,#51b77b 50%,#4e9bd8 67%,#9470d7 83%,#d66ca8 100%);
- -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
- -webkit-mask-composite:xor;mask-composite:exclude;filter:blur(3px);opacity:.85;
+/* Blended exterior shadows avoid the masked negative-z layer that disappeared. */
+#studioApp#studioApp #orbit.card{
+ box-shadow:-7px -4px 15px -6px #ef5360a6,0 -7px 15px -6px #f5bc49a6,
+ 7px -4px 15px -6px #63b97aa6,8px 5px 16px -6px #4e9bd8b3,
+ 0 9px 17px -6px #9470d7b3,-7px 5px 16px -6px #db6da6a6!important;
 }
 #studioApp#studioApp #boards .biglwa-studio-board-gallery,
 #studioApp#studioApp #boards .studio-pinterest-board-preview{
- box-shadow:4px 5px 0 #e60023,0 7px 12px #e6002326!important;
+ box-shadow:0 4px 11px -3px #e6002366,0 1px 4px #e6002326!important;
 }
