@@ -18,3 +18,12 @@ body.night-mode .sqz-compose{background:#223e2d55}body.night-mode .sqz-root inpu
 @media(max-width:620px){#studioApp .topbar.topbar{grid-template-columns:54px minmax(100px,1fr) auto!important;gap:7px!important}.social-mail{grid-template-columns:130px minmax(0,1fr)}.social-mail>aside{padding:8px}.social-mail .social-person{gap:5px;font-size:11px!important}.social-mail .social-avatar{width:25px;height:25px}.social-mail .social-find{flex-wrap:wrap}.social-mail .social-find input{width:100%}.social-conversation{padding:10px}.sqz-layout{grid-template-columns:1fr}.sqz-layout>aside{grid-row:1}.sqz-layout [data-sqz-topics]{display:flex;gap:12px;flex-wrap:wrap}.sqz-layout aside small{display:none}.sqz-title>span{display:none}.sqz-title h2{flex:1}.sqz-compose{padding:11px}}
 .sqz-private-drafts{margin:24px 0;padding:12px 0;border-top:1px dashed #639675}.sqz-private-drafts>summary{cursor:pointer;font:650 13px system-ui;padding:10px 0;color:#28734c}
 .sqz-long-read{font:12px system-ui;margin:8px 0 15px}.sqz-long-read summary{cursor:pointer;color:#26734f}.sqz-long-read[open] .sqz-writing{max-height:none;overflow:visible}.sqz-compose [data-sqz-file] input{display:block;width:100%;padding:7px;margin-top:4px;font-size:11px}
+
+/* One account-backed notebook and composer, with its existing note list. */
+#studioApp #moduleWorkspace[data-module-key="notes"] .sqz-unified-writing{grid-template-columns:minmax(180px,230px) minmax(0,1fr);align-items:start}
+#studioApp .sqz-compose :is(textarea,input:not([type="checkbox"]),select){background-color:#f1f8e9!important;background-image:repeating-linear-gradient(to bottom,transparent 0 25px,#39835138 25px 26px)!important;color:#234a31!important;line-height:26px!important}
+#studioApp .sqz-compose textarea{min-height:190px!important;max-width:100%;box-sizing:border-box}
+#studioApp .sqz-compose .module-actions{flex-wrap:wrap}
+#studioApp .sqz-compose .sqwib-publish-inline{border:0;background:none;padding:0}
+#studioApp .sqz-unified-writing[hidden]{display:none!important}
+@media(max-width:650px){#studioApp #moduleWorkspace[data-module-key="notes"] .sqz-unified-writing{grid-template-columns:1fr}}
