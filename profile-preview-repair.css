@@ -94,3 +94,17 @@ html #studioApp .topbar.topbar.profile-header-repaired{grid-template-columns:76p
 #studioApp#studioApp .weekly-mood-card[data-mood-style="qwiky-note"]>span{color:#316b45!important}
 #studioApp#studioApp .weekly-mood-card[data-mood-style="qwiky-note"]::after{background:linear-gradient(135deg,transparent 49%,#a6c39c 50%)!important}
 #studioApp .sqz-compose>.sqz-title{padding:0 0 10px;margin:0;border-bottom:1px solid #31835640}
+
+/* Orbit rainbow shadow and Pinterest red on the preview, not only its card. */
+#studioApp#studioApp #orbit.card{isolation:isolate;overflow:visible!important}
+#studioApp#studioApp #orbit.card::after{
+ content:"";position:absolute;inset:-3px;transform:translate(3px,4px);
+ border-radius:inherit;padding:5px;pointer-events:none;z-index:-1;
+ background:linear-gradient(125deg,#ef5360 0%,#f5a94b 18%,#e8d853 34%,#51b77b 50%,#4e9bd8 67%,#9470d7 83%,#d66ca8 100%);
+ -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+ -webkit-mask-composite:xor;mask-composite:exclude;filter:blur(3px);opacity:.85;
+}
+#studioApp#studioApp #boards .biglwa-studio-board-gallery,
+#studioApp#studioApp #boards .studio-pinterest-board-preview{
+ box-shadow:4px 5px 0 #e60023,0 7px 12px #e6002326!important;
+}
