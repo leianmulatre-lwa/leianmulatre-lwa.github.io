@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {createRequire} from 'node:module';
+const {JSDOM}=createRequire(import.meta.url)('jsdom');
+const data=JSON.parse(fs.readFileSync('assets/un-observances.json'));
+const ctx={window:{},fetch:async()=>({ok:true,json:async()=>data}),document:{dispatchEvent(){}},CustomEvent:class{}};
+vm.runInNewContext(fs.readFileSync('un-observances.js','utf8'),ctx);
+const un=ctx.window.BigLWAObservances;await un.load();
+assert(un.onDay('2026-10-29').some(x=>x.title==='International Day of Care and Support'));
+assert(un.onDay('2026-10-30').some(x=>x.title.startsWith('Disarmament Week')));
+assert(!un.onDay('2026-10-31').some(x=>x.title.startsWith('Disarmament Week')));
+assert(un.onDay('2026-10-05').some(x=>x.title==='World Habitat Day'));
+assert(!un.onDay('2026-10-06').some(x=>x.title==='World Habitat Day'));
+assert(un.onDay('2027-10-04').some(x=>x.title==='World Habitat Day'));
+assert.equal(new Set(data.items.map(x=>x.month)).size,12);
+const dom=new JSDOM('<body><main id="studioApp"><header class="topbar"><div class="search-wrap"></div></header></main>',{url:'https://biglwa.com/studio',runScripts:'outside-only'});
+const w=dom.window;w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false};w.AbortSignal.timeout=()=>undefined;
+w.fetch=async url=>({ok:true,json:async()=>String(url).includes('geocoding')?{results:[{name:'Los Angeles',admin1:'California',country:'US',latitude:34,longitude:-118}]}:{current:{temperature_2m:72,weather_code:0,is_day:1}}});
+w.eval(fs.readFileSync('studio-weather.js','utf8'));w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+const b=w.document.querySelector('#studioWeather');assert(b);b.click();const form=w.document.querySelector('#studioWeatherDialog form');form.elements.city.value='Los Angeles';form.dispatchEvent(new w.Event('submit',{cancelable:true}));
+await new Promise(r=>setTimeout(r,20));w.document.querySelector('.weather-results button').click();await new Promise(r=>setTimeout(r,20));
+// JSDOM starts hidden: refresh intentionally avoids fetching until visible.
+Object.defineProperty(w.document,'hidden',{value:false});w.document.dispatchEvent(new w.Event('visibilitychange'));await new Promise(r=>setTimeout(r,20));assert.match(b.textContent,/72°F/);assert.match(b.getAttribute('aria-label'),/Los Angeles/);dom.window.close();
+console.log('PASS observance recurrence, week boundaries, all months and weather city selection');

@@ -1,0 +1,673 @@
+/* Big LWA Stream — midcentury broadcast guide / CRT programming.
+   Standalone stylesheet, scoped to the Stream module to protect other Studio pages. */
+/* Stream inherits the global .module-shell max-width:1720px; no narrower cap. */
+.module-workspace[data-module-key="stream"] #moduleWorkspaceBody{max-width:100%;min-width:0}
+.biglwa-stream{width:100%;min-width:0;max-width:none}
+.biglwa-stream{--stream-ink:#251b1a;--stream-paper:#f5ecd7;--stream-border:#4e3028;--stream-red:#bc342c;--stream-light:#f7dd9b;--stream-gray:#b4a999;color:var(--stream-ink);font:500 13px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.biglwa-stream *{box-sizing:border-box}
+.biglwa-stream button,.biglwa-stream input,.biglwa-stream textarea,.biglwa-stream select{font:inherit}
+.biglwa-stream button{cursor:pointer}
+.biglwa-stream a{color:inherit}
+.biglwa-stream .stream-eyebrow,.biglwa-stream .stream-overline{font:800 10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase}
+
+/* Keep the shared Studio heading above Stream; channel switching is inside
+   the widget content, not a competing second page masthead. */
+.biglwa-stream .stream-nav{margin:18px 0 22px;width:100%;min-width:0;border:1px solid #d5c5b4;border-radius:9px;overflow:hidden;background:rgba(247,240,230,.7)}
+.biglwa-stream .stream-nav-meta{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 13px;color:#745a48;border-bottom:1px solid #d9cbbb}
+.biglwa-stream .stream-nav-clock{font:700 10px/1.4 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.075em}
+.biglwa-stream .stream-nav .stream-channels{border-top:0;background:#e6d9c7;gap:1px;padding:1px}
+.biglwa-stream .stream-nav .stream-tab{min-height:54px;box-shadow:none;border-radius:0}
+.biglwa-stream .stream-nav .stream-tab.is-active{box-shadow:inset 0 -4px #742017}
+@media(max-width:580px){
+ .biglwa-stream .stream-nav-meta{gap:5px;padding:8px 10px}
+ .biglwa-stream .stream-nav-clock{font-size:9px}
+ .biglwa-stream .stream-nav .stream-tab{min-height:60px}
+}
+.biglwa-stream .stream-top{border:2px solid #39271e;border-radius:17px 17px 7px 7px;background:#f7e9c6;overflow:hidden;box-shadow:6px 7px 0 rgba(48,32,25,.2);margin:8px 0 22px}
+.biglwa-stream .stream-fine{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:7px 15px;background:#31241e;color:#eed5a2;font:700 9px/1.5 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.13em}
+.biglwa-stream .stream-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e44e39;box-shadow:0 0 9px rgba(228,78,57,.8);vertical-align:middle;margin-right:7px}
+.biglwa-stream .stream-mast{display:flex;align-items:stretch;justify-content:space-between;gap:22px;padding:22px 23px;background:radial-gradient(circle at 75% 20%,rgba(255,238,193,.88),transparent 40%),repeating-linear-gradient(0deg,rgba(79,42,29,.034) 0 1px,transparent 1px 5px),#f8eedb}
+.biglwa-stream .stream-mast h1{font:400 clamp(60px,10vw,118px)/.85 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase;letter-spacing:-.035em;color:#33241e;margin:7px 0 18px}
+.biglwa-stream .stream-mast h1 .stream-mast-spark{color:#b6382b;font:400 .35em/1 system-ui;vertical-align:top;margin-left:10px;letter-spacing:0}
+.biglwa-stream .stream-mast p{margin:0;font:600 clamp(12px,1.8vw,17px)/1.4 Georgia,serif;font-style:italic;color:#6d4937}
+.biglwa-stream .stream-overline{color:#a33025}
+.biglwa-stream .stream-testcard{min-width:180px;max-width:240px;width:24%;align-self:center;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#201a16;border:8px solid #3c2c24;outline:2px solid #b9905b;color:white;aspect-ratio:4/3;box-shadow:5px 7px 0 #c4ad91,inset 0 0 0 2px #040505;overflow:hidden}
+.biglwa-stream .stream-testcard:before{content:"";pointer-events:none;position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.24) 0 2px,transparent 2px 5px);z-index:2}
+.biglwa-stream .stream-bars{position:absolute;inset:0;display:flex;filter:saturate(.88)}
+.biglwa-stream .stream-bars span{flex:1}
+.biglwa-stream .stream-bars span:nth-child(1){background:#d5b42b}
+.biglwa-stream .stream-bars span:nth-child(2){background:#3c9f9f}
+.biglwa-stream .stream-bars span:nth-child(3){background:#ce558f}
+.biglwa-stream .stream-bars span:nth-child(4){background:#473f8b}
+.biglwa-stream .stream-bars span:nth-child(5){background:#a9322d}
+.biglwa-stream .stream-testcard b{position:relative;z-index:3;padding:7px 13px;background:#1d1918;font:900 clamp(17px,2vw,25px)/1 Georgia,serif;letter-spacing:.09em;text-shadow:1px 1px #8f362e;box-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.biglwa-stream .stream-testcard small{position:relative;z-index:3;margin-top:6px;background:#171411;color:#eed5a2;font:800 8px/1.3 monospace;letter-spacing:.12em;padding:4px}
+.biglwa-stream .stream-channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid #39271e;background:#291f1b;gap:2px;padding:2px}
+.biglwa-stream .stream-tab{border:0;background:#dbc8a6;color:#35251f;display:flex;align-items:baseline;gap:13px;padding:14px 16px;text-align:left;transition:background .18s ease,box-shadow .18s ease}
+.biglwa-stream .stream-tab small{font:800 9px/1 monospace;color:#8e493c}
+.biglwa-stream .stream-tab b{font:400 clamp(14px,1.7vw,22px)/1.12 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase;overflow-wrap:anywhere}
+.biglwa-stream .stream-tab:hover,.biglwa-stream .stream-tab:focus-visible{background:#f2dca8}
+.biglwa-stream .stream-tab.is-active{background:#b7372b;color:#fff6db;box-shadow:inset 0 -5px #742017}
+.biglwa-stream .stream-tab.is-active small{color:#ffcea4}
+.biglwa-stream .stream-guide{margin:18px 0 24px;border:2px solid #422a25;background:#ebdfcb;border-radius:6px;box-shadow:6px 6px 0 rgba(62,40,33,.17);overflow:hidden}
+.biglwa-stream .stream-guide-head{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:18px 20px;background:#f2e5cf}
+.biglwa-stream .stream-guide-head h2{font:400 clamp(27px,4.5vw,41px)/1 "CS Bergamot Stitched",Georgia,serif;margin:4px 0 7px;text-transform:lowercase}
+.biglwa-stream .stream-guide-head p{font-size:11px;line-height:1.5;margin:0;color:#79594c;max-width:610px}
+.biglwa-stream .stream-guide-head label{display:grid;gap:5px;font:700 10px/1.3 ui-monospace,monospace;text-transform:uppercase;color:#624333;white-space:nowrap}
+.biglwa-stream .stream-guide-head input{width:175px;min-height:40px;padding:7px 10px;background:#fff9ed;border:1px solid #77584c;border-radius:5px;color:#30221c}
+.biglwa-stream .stream-grid-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#a8694b #ddd0b6;background:#39251f}
+.biglwa-stream .stream-grid-scroll:focus-visible{outline:3px solid #b6382b;outline-offset:-3px}
+.biglwa-stream .stream-grid{display:grid;grid-template-columns:156px repeat(24,128px);gap:2px;background:#3c2b22;padding:2px;width:max-content;min-width:100%}
+.biglwa-stream .stream-grid-corner,.biglwa-stream .stream-hour{background:#2f2421;color:#eacb98;min-height:55px;padding:9px 12px}
+.biglwa-stream .stream-grid-corner{position:sticky;left:0;z-index:3;font:800 12px/1.25 ui-monospace,monospace;letter-spacing:.15em;color:#ffebc7}
+.biglwa-stream .stream-hour{display:flex;flex-direction:column;justify-content:center;gap:3px;text-align:left;font:800 12px/1.2 ui-monospace,monospace}
+.biglwa-stream .stream-hour small{color:#c9a98b;font:600 10px/1.3 monospace}
+.biglwa-stream .stream-row-label{position:sticky;left:0;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:5px;min-height:110px;padding:10px 11px;background:#4d3b32;color:#f4e0b6;border:0;text-align:left;box-shadow:2px 0 0 #301d17}
+.biglwa-stream .stream-row-label small{font:800 9px/1.25 ui-monospace,monospace;color:#f5b88b}
+.biglwa-stream .stream-row-label b{font:400 22px/1.15 "CS Bergamot Stitched",Georgia,serif}
+.biglwa-stream .stream-row-label span{font:800 9px/1.4 ui-monospace,monospace;color:#cab2a3;letter-spacing:.1em}
+.biglwa-stream .stream-row-label.is-current{background:#a62c29;color:#fff6db}
+.biglwa-stream .stream-row-label.is-current span,.biglwa-stream .stream-row-label.is-current small{color:#ffd4b4}
+.biglwa-stream .stream-slot{min-height:110px;border:0;text-align:left;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:11px 10px;background:#d4c6ae;color:#483931;position:relative;overflow:hidden}
+.biglwa-stream .stream-slot strong{font:700 14px/1.25 Georgia,serif;overflow-wrap:anywhere}
+.biglwa-stream .stream-slot small{font:700 9px/1.3 ui-monospace,monospace;letter-spacing:.035em}
+.biglwa-stream .stream-slot.is-open strong{font-size:26px;opacity:.5}
+.biglwa-stream .stream-slot.is-open small{color:#6d5f51}
+.biglwa-stream .stream-slot.is-selected{background:#e8d8ba}
+.biglwa-stream .stream-slot.is-booked{background:#64877a;color:#fff8ea}
+.biglwa-stream .stream-slot.is-booked.is-selected{background:#4a7165}
+.biglwa-stream .stream-slot.is-booked small{color:#e5f0da}
+/* Hourly showcase cells are populated with real source names, not fake airtime.
+   Only approved programs use the booked/green treatment. */
+.biglwa-stream .stream-slot{min-height:138px;gap:7px}
+.biglwa-stream .stream-row-label{min-height:138px}
+.biglwa-stream .stream-slot .stream-slot-status{
+ display:block;max-width:calc(100% - 2px);font:800 8px/1.3 ui-monospace,SFMono-Regular,monospace;
+ text-transform:uppercase;letter-spacing:.04em;overflow-wrap:anywhere
+}
+.biglwa-stream .stream-slot strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden;max-width:100%;font:700 13px/1.3 Georgia,serif}
+.biglwa-stream .stream-slot small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;max-width:100%;font:600 9px/1.4 ui-monospace,monospace}
+.biglwa-stream .stream-slot.is-curated{background:#f0d8ad;color:#442d20;border-bottom:4px solid #b98245}
+.biglwa-stream .stream-slot.is-curated[data-stream-slot="lwa-tv"]{background:#cbc3d4;color:#392b46;border-bottom-color:#8b709e}
+.biglwa-stream .stream-slot.is-curated.is-selected[data-stream-slot="podcast"]{background:#ffe3b6}
+.biglwa-stream .stream-slot.is-curated.is-selected[data-stream-slot="lwa-tv"]{background:#dcd0e6}
+.biglwa-stream .stream-slot.is-concept{background:#ccaaa4;color:#42232d;border-bottom:4px solid #a45b60}
+.biglwa-stream .stream-slot.is-concept.is-selected{background:#ebc1b7}
+.biglwa-stream .stream-slot.is-curated .stream-slot-status,.biglwa-stream .stream-slot.is-concept .stream-slot-status{opacity:.84}
+.biglwa-stream .stream-slot.is-booked .stream-slot-status{color:#eef7e3}
+.biglwa-stream .stream-slot.is-now:not(.is-booked):before{content:"THIS HOUR"}
+.biglwa-stream .stream-guide-key.open{background:#ccaaa4}
+.biglwa-stream .stream-guide-key.source{background:#f0d8ad}
+@media(max-width:580px){.biglwa-stream .stream-slot,.biglwa-stream .stream-row-label{min-height:132px}.biglwa-stream .stream-slot strong{font-size:12px}}
+
+.biglwa-stream .stream-slot.is-now:before{content:"NOW";position:absolute;top:0;right:0;background:#ae3428;color:white;padding:3px 5px;font:800 8px/1 monospace}
+.biglwa-stream .stream-slot:hover,.biglwa-stream .stream-slot:focus-visible{outline:3px solid #a7372e;outline-offset:-4px;z-index:1;filter:brightness(1.06)}
+/* Channel-selector slots are discovery links, separated from the timed EPG.
+   No station or third-party video is made to look like a confirmed broadcast. */
+.biglwa-stream .stream-featured-band{padding:18px 16px 16px;background:linear-gradient(180deg,#e8d5b7,#eadcc7);border-top:3px double #775343}
+.biglwa-stream .stream-band-heading{display:flex;justify-content:space-between;align-items:end;gap:14px;margin:0 0 12px}
+.biglwa-stream .stream-band-heading>div{display:grid;gap:5px}
+.biglwa-stream .stream-band-heading small{font:800 10px/1.3 ui-monospace,monospace;color:#a74132;letter-spacing:.1em}
+.biglwa-stream .stream-band-heading b{font:400 clamp(18px,3vw,26px)/1.1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+.biglwa-stream .stream-band-heading>span,.biglwa-stream .stream-band-heading>small{font:800 9px/1.45 ui-monospace,monospace;color:#80634f;text-align:right}
+.biglwa-stream .stream-source-slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.biglwa-stream .stream-source-slot{position:relative;min-width:0;min-height:88px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;align-items:flex-start;text-align:left;border:1px solid #866b54;border-radius:4px;box-shadow:2px 2px 0 #cab498;background:#efe5d3;color:#372720;transition:transform .16s ease,filter .16s ease;cursor:pointer}
+.biglwa-stream .stream-source-slot.is-radio:nth-child(even){background:#e5d8c2}
+.biglwa-stream .stream-source-slot small{font:800 9px/1.2 ui-monospace,monospace;letter-spacing:.055em;color:#9b3d2f}
+.biglwa-stream .stream-source-slot b{font:700 clamp(12px,1.3vw,16px)/1.3 Georgia,serif;overflow-wrap:anywhere}
+.biglwa-stream .stream-source-slot>span{font:600 10px/1.35 system-ui;color:#7a5e4d}
+.biglwa-stream .stream-source-slot:hover:not(:disabled),.biglwa-stream .stream-source-slot:focus-visible:not(:disabled){transform:translate(-1px,-2px);outline:2px solid #a43027;outline-offset:1px;filter:brightness(1.035)}
+.biglwa-stream .stream-source-slot.is-creator{min-height:182px;background:#382820;border-color:#765546;color:#fff4dc;overflow:hidden;box-shadow:2px 3px 0 #bd977b}
+.biglwa-stream .stream-source-slot.is-creator small{color:#f2c889}
+.biglwa-stream .stream-source-slot.is-creator b{font-size:17px;color:#fff6e4}
+.biglwa-stream .stream-source-slot.is-creator>span{color:#e2cbb5}
+.biglwa-stream .stream-source-slot.is-creator>img{width:100%;height:clamp(70px,10vw,130px);display:block;object-fit:cover;object-position:center;border:1px solid #9a7e68;background:#17100c;border-radius:3px}
+.biglwa-stream .stream-source-slot.is-creator:disabled{cursor:default;opacity:.73;filter:grayscale(.27)}
+.biglwa-stream .stream-source-slots.is-video{grid-template-columns:repeat(3,minmax(0,1fr))}
+.biglwa-stream .stream-band-subtitle{font:800 10px/1.5 ui-monospace,monospace;letter-spacing:.12em;color:#7e4c36;text-transform:uppercase;border-top:1px solid #af9985;padding-top:14px;margin:18px 0 9px}
+.biglwa-stream .stream-band-note{color:#786455;font:600 10px/1.55 system-ui;margin:13px 0 0}
+.biglwa-stream .stream-guide-key.source{background:#e5d8c2}
+.biglwa-stream .stream-monitor-open{display:inline-flex;align-self:center;text-decoration:none;border:1px solid #f0ddb5;background:#f0d6a6;color:#221915;border-radius:4px;padding:10px 16px;font:800 11px/1.3 ui-monospace,monospace;margin-top:5px}
+.biglwa-stream .stream-monitor-open:hover,.biglwa-stream .stream-monitor-open:focus-visible{background:#fff2d3;outline:2px solid #e5b56a}
+.biglwa-stream .stream-screen.is-external .stream-screen-center{max-width:80%;padding:0 10px}
+.biglwa-stream .stream-screen.is-external .stream-screen-center small{max-width:440px}
+@media(max-width:980px){.biglwa-stream .stream-source-slots{grid-template-columns:repeat(3,minmax(0,1fr))}.biglwa-stream .stream-source-slots.is-video{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.biglwa-stream .stream-featured-band{padding:15px 9px}.biglwa-stream .stream-source-slots{grid-template-columns:repeat(2,minmax(0,1fr))}.biglwa-stream .stream-source-slot{padding:10px;min-height:96px}.biglwa-stream .stream-source-slot b{font-size:13px}.biglwa-stream .stream-source-slots.is-video{grid-template-columns:1fr 1fr}.biglwa-stream .stream-source-slot.is-creator{min-height:170px}.biglwa-stream .stream-source-slot.is-creator>img{height:80px}.biglwa-stream .stream-band-heading{align-items:flex-start;flex-direction:column}.biglwa-stream .stream-band-heading>span{text-align:left}
+/* Real daily rotation: source discovery remains distinct from verified airtime. */
+.biglwa-stream .stream-date-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:end}
+.biglwa-stream .stream-shuffle-button{min-height:40px;white-space:nowrap;padding:9px 13px;background:#b7382d;color:#fff6df;border:1px solid #622a25;border-radius:5px;font:800 11px/1.4 ui-monospace,monospace;box-shadow:2px 2px 0 #c6a487}
+.biglwa-stream .stream-shuffle-button:hover,.biglwa-stream .stream-shuffle-button:focus-visible{background:#7c2622;outline:2px solid #e6b668;outline-offset:2px}
+.biglwa-stream .stream-source-slot .stream-source-emblem{height:clamp(70px,10vw,130px);min-height:70px;width:100%;display:flex;align-items:center;justify-content:center;border-radius:3px;border:1px solid #9a7e68;background:radial-gradient(circle,#886c61,#191516);font:800 47px/1 Georgia,serif;color:#f0d7b1}
+.biglwa-stream .stream-source-slot.is-twitch{background:#362344;border-color:#80629c}
+.biglwa-stream .stream-source-slot.is-twitch .stream-source-emblem{background:radial-gradient(circle,#784ca8,#22162c);color:#fff0dd}
+.biglwa-stream .stream-slot.is-twitch{background:#cdb5e2;color:#39243f;border-bottom:4px solid #8052a1}
+.biglwa-stream .stream-slot.is-twitch.is-selected{background:#e0c7f6}
+.biglwa-stream .stream-slot.is-twitch .stream-slot-status{color:#5d377e}
+.biglwa-stream .stream-guide-key.open{background:#cdb5e2}
+.biglwa-stream .stream-source-slots.is-twitch{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* CCTV is curated ballroom footage, not a real security or surveillance camera. */
+.biglwa-stream .stream-source-slot.is-ballroom{background:#20363a;border-color:#678288;color:#f5e4c4}
+.biglwa-stream .stream-source-slot.is-ballroom .stream-source-emblem{background:radial-gradient(circle,#568283,#13272d);color:#fff1c8}
+.biglwa-stream .stream-slot.is-ballroom{background:#b8d4d0;color:#193b3d;border-bottom:4px solid #447f80}
+.biglwa-stream .stream-slot.is-ballroom.is-selected{background:#cee7e2}
+.biglwa-stream .stream-slot.is-ballroom .stream-slot-status{color:#305e60}
+.biglwa-stream .stream-source-slots.is-ballroom{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:850px){.biglwa-stream .stream-source-slots.is-ballroom{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){
+ .biglwa-stream .stream-source-slots.is-ballroom{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .biglwa-stream .stream-spotlight{margin:10px 0 16px}
+ .biglwa-stream .stream-nav .stream-tab{padding:10px 4px;gap:3px}
+ .biglwa-stream .stream-nav .stream-tab small{font-size:8px}
+}
+.biglwa-stream .stream-player-footer{padding:9px 12px;background:#201923;color:#f8e5ff;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font:800 10px/1.45 monospace}
+.biglwa-stream .stream-player-footer a{color:#efc8ff;margin-left:auto}
+.biglwa-stream .stream-screen.is-twitch-player{min-height:380px}
+.biglwa-stream .stream-screen.is-twitch-player iframe{min-height:300px}
+.biglwa-stream .stream-discovery-label{font:800 10px/1.4 ui-monospace,monospace;color:#7b4b38;text-transform:uppercase}
+.biglwa-stream .stream-future{margin:27px 0 22px;border:1px dashed #a18a78;border-radius:7px;background:#e6dac4;padding:15px 19px;display:grid;gap:4px}
+.biglwa-stream .stream-future span{color:#a43a32;font:800 10px/1.5 ui-monospace,monospace;letter-spacing:.07em}
+.biglwa-stream .stream-future strong{font:400 23px/1.1 "CS Bergamot Stitched",Georgia,serif}
+.biglwa-stream .stream-future p{margin:0;color:#685649;font:600 11px/1.55 system-ui}
+@media(max-width:850px){.biglwa-stream .stream-source-slots.is-twitch{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){
+ .biglwa-stream .stream-guide-head .stream-date-actions{width:100%}
+ .biglwa-stream .stream-guide-head .stream-date-actions label{flex:1}
+ .biglwa-stream .stream-guide-head .stream-date-actions input{width:100%}
+ .biglwa-stream .stream-shuffle-button{align-self:end}
+ .biglwa-stream .stream-source-slots.is-twitch{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .biglwa-stream .stream-screen.is-twitch-player iframe{display:none}
+ .biglwa-stream .stream-screen.is-twitch-player .stream-player-footer{min-height:250px;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+ .biglwa-stream .stream-player-footer a{margin:0}
+}
+
+.biglwa-stream .stream-guide-foot{gap:10px}}
+
+.biglwa-stream .stream-guide-foot{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 15px;background:#efe3ce;color:#705346;font:700 10px/1.4 ui-monospace,monospace}
+.biglwa-stream .stream-guide-foot span{display:inline-flex;gap:7px;align-items:center}
+.biglwa-stream .stream-guide-key{display:inline-block;width:10px;height:10px;background:#e8d8ba;border:1px solid #8d7160}
+.biglwa-stream .stream-guide-key.scheduled{background:#64877a}
+.biglwa-stream .stream-guide-key.open{background:#d4c6ae}
+.biglwa-stream .stream-guide-foot button{margin-left:auto;border:1px solid #af8d74;border-radius:3px;padding:5px 8px;background:#fff7e7;color:#6c4336;font:800 10px/1.2 monospace}
+.biglwa-stream .stream-body{margin:25px 0;padding:0}
+.biglwa-stream .stream-spotlight{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:18px;align-items:stretch;margin:16px 0 22px;min-width:0}
+.biglwa-stream .stream-monitor{min-width:0;border:13px solid #29201d;border-radius:22px;min-height:250px;background:#100d0d;box-shadow:inset 0 0 0 2px #755a49,6px 7px 0 #b9a68f;overflow:hidden}
+.biglwa-stream .stream-screen{width:100%;height:100%;min-height:250px;aspect-ratio:16/9;position:relative;display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(circle at 51% 50%,#6c3e3a 0%,#201b21 63%,#0c0b0d 100%);color:#ffedcb;overflow:hidden}
+.biglwa-stream .stream-screen:before{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 2px,transparent 2px 5px)}
+.biglwa-stream .stream-monitor-kicker,.biglwa-stream .stream-screen-bottom{position:relative;z-index:2;padding:15px 18px;font:800 10px/1.3 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.12em}
+.biglwa-stream .stream-screen-center{position:relative;z-index:2;align-self:center;display:flex;flex-direction:column;gap:8px;text-align:center;align-items:center}
+.biglwa-stream .stream-screen-center>span{font:900 80px/1 Georgia,serif;color:#f2dba7}
+.biglwa-stream .stream-screen-center strong{font:400 clamp(20px,3.5vw,38px)/1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+.biglwa-stream .stream-screen-center small{font:600 12px/1.5 ui-monospace,monospace}
+.biglwa-stream .stream-screen.is-program{aspect-ratio:16/9;background:#101010;min-height:0}
+.biglwa-stream .stream-screen.is-program:before{display:none}
+.biglwa-stream .stream-player-label{z-index:2;position:relative;display:flex;justify-content:space-between;gap:10px;align-items:center;background:#1c1818;padding:7px 12px;font:700 11px/1.3 ui-monospace,monospace}
+.biglwa-stream .stream-player-label a{color:#f4c36e;text-decoration:underline;white-space:nowrap}
+.biglwa-stream .stream-screen iframe{display:block;flex:1;min-height:200px;width:100%;border:0}
+.biglwa-stream .stream-channel-copy{padding:26px 24px;border:2px solid #4e392e;border-radius:5px;background:#e7d7b8;display:flex;flex-direction:column;justify-content:center;box-shadow:4px 5px 0 #cbb99c}
+.biglwa-stream .stream-channel-copy .stream-eyebrow{color:#a83429}
+.biglwa-stream .stream-channel-copy h2{font:400 clamp(33px,4.8vw,61px)/.98 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase;margin:11px 0 14px}
+.biglwa-stream .stream-channel-copy p{max-width:470px;font:500 14px/1.6 Georgia,serif}
+.biglwa-stream .stream-channel-actions button{padding:11px 15px;border:1px solid #622c24;border-radius:5px;background:#a83129;color:#fff6df;font:800 11px/1.2 ui-monospace,monospace;letter-spacing:.02em}
+.biglwa-stream .stream-section-detail{margin:24px 0 6px}
+.biglwa-stream .stream-section-head{display:flex;justify-content:space-between;align-items:end;gap:22px;padding:4px 0 15px;border-bottom:2px solid #7d6551}
+.biglwa-stream .stream-section-head h3{font:400 clamp(27px,4vw,43px)/1 "CS Bergamot Stitched",Georgia,serif;margin:5px 0 8px}
+.biglwa-stream .stream-section-head p{margin:0;color:#6d5a49;max-width:690px}
+.biglwa-stream .stream-section-head label{min-width:220px;font:800 10px/1.5 ui-monospace,monospace;text-transform:uppercase}
+.biglwa-stream .stream-section-head input{display:block;width:100%;min-height:42px;padding:10px 12px;border:1px solid #98765e;border-radius:5px;background:#fff9f0;color:#33251b}
+.biglwa-stream .stream-stations{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.biglwa-stream .stream-station{display:flex;gap:10px;min-height:93px;padding:14px 12px;align-items:flex-start;border:1px solid #a38f79;border-radius:5px;background:#f0e6d3;text-decoration:none;color:#38251e;box-shadow:3px 3px 0 #d4c5ae;transition:transform .15s,background .15s}
+.biglwa-stream .stream-station:hover,.biglwa-stream .stream-station:focus-visible{transform:translate(-2px,-2px);background:#fff4de;outline:2px solid #ab3b32}
+.biglwa-stream .stream-station-no{font:800 11px/1.5 monospace;color:#ac402f}
+.biglwa-stream .stream-station div{display:flex;flex:1;flex-direction:column;min-width:0}
+.biglwa-stream .stream-station b{font:700 13px/1.3 Georgia,serif}
+.biglwa-stream .stream-station small{font:600 10px/1.4 system-ui;margin-top:4px;color:#715a4e}
+.biglwa-stream .stream-station-go{font:800 9px/1.4 monospace;color:#a43a2f;white-space:nowrap;margin-left:auto}
+.biglwa-stream .stream-station-empty{grid-column:1/-1;padding:20px;border:1px dashed #997965}
+.biglwa-stream .stream-directory-note{margin:10px 0 23px;color:#786657;font-size:11px}
+.biglwa-stream .stream-directory-note a{color:#8f2929;font-weight:700;text-decoration:underline}
+.biglwa-stream .stream-ideas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:19px 0}
+.biglwa-stream .stream-ideas article{min-height:164px;padding:19px;background:#c6b59f;border:1px solid #8e715d;border-radius:6px;display:flex;flex-direction:column}
+.biglwa-stream .stream-ideas article:nth-child(2){background:#e1c89b}
+.biglwa-stream .stream-ideas article:nth-child(3){background:#d0c5ac}
+.biglwa-stream .stream-ideas span{font:800 10px/1.5 monospace;color:#96332e}
+.biglwa-stream .stream-ideas b{margin:13px 0 5px;font:400 24px/1.1 "CS Bergamot Stitched",Georgia,serif}
+.biglwa-stream .stream-ideas p{font:500 12px/1.55 Georgia,serif}
+.biglwa-stream .stream-live-wait{display:flex;align-items:center;gap:16px;padding:22px;margin-top:16px;background:#392823;color:#fff1d8;border-radius:6px;border:1px solid #221513}
+.biglwa-stream .stream-live-lamp{width:26px;height:26px;border-radius:50%;background:#7d6d63;box-shadow:inset 0 0 0 4px #4e4036;border:2px solid #af9c81;flex:none}
+.biglwa-stream .stream-live-wait div{flex:1}
+.biglwa-stream .stream-live-wait strong{font:700 17px/1.2 Georgia,serif}
+.biglwa-stream .stream-live-wait p{font-size:11px;opacity:.86;margin:7px 0 0}
+.biglwa-stream .stream-live-wait button{border:1px solid #dfc6a0;border-radius:5px;background:#b83b2f;color:#fff;padding:10px 13px;font:700 11px/1.25 monospace}
+.biglwa-stream .stream-request{background:#f6ecdb;border:2px solid #5a3b2f;border-radius:9px;padding:clamp(18px,3vw,32px);margin:30px 0 24px;box-shadow:6px 6px 0 rgba(56,39,28,.17)}
+.biglwa-stream .stream-request-head{max-width:780px}
+.biglwa-stream .stream-request-head .stream-eyebrow{color:#ac3728}
+.biglwa-stream .stream-request-head h2{font:400 clamp(32px,5vw,54px)/1 "CS Bergamot Stitched",Georgia,serif;margin:7px 0 12px}
+.biglwa-stream .stream-request-head p{color:#665045;font-size:13px;line-height:1.65}
+.biglwa-stream .stream-request-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:25px}
+.biglwa-stream .stream-request-form>label{display:grid;gap:6px;font:700 11px/1.3 ui-monospace,monospace;color:#4f392f}
+.biglwa-stream .stream-request-form input:not([type=radio]),.biglwa-stream .stream-request-form select,.biglwa-stream .stream-request-form textarea{border:1px solid #b2997f;border-radius:5px;background:#fffbf4;color:#2d211e;width:100%;padding:11px 12px;min-height:43px;font:500 13px/1.5 system-ui}
+.biglwa-stream .stream-request-form textarea{resize:vertical;min-height:96px}
+.biglwa-stream .stream-wide{grid-column:1/-1}
+.biglwa-stream .stream-rights{display:flex;gap:16px;flex-wrap:wrap;border:1px dashed #bca28c;border-radius:6px;padding:14px 15px}
+.biglwa-stream .stream-rights legend{font:800 11px/1.5 monospace;padding:0 5px}
+.biglwa-stream .stream-rights label{display:inline-flex;gap:7px;align-items:center;font:600 12px/1.5 system-ui;cursor:pointer}
+.biglwa-stream .stream-rights input{accent-color:#a9352d}
+.biglwa-stream .stream-request-action{display:flex;gap:15px;align-items:center;flex-wrap:wrap}
+.biglwa-stream .stream-submit-btn{border:1px solid #772c29;background:#ab3026;color:#fff7e4;padding:13px 17px;border-radius:5px;font:800 11px/1.4 monospace;letter-spacing:.04em}
+.biglwa-stream .stream-submit-btn:disabled{opacity:.5;cursor:wait}
+.biglwa-stream #streamRequestStatus{font:700 11px/1.5 system-ui;color:#875b35;max-width:590px}
+.biglwa-stream .stream-my-requests h3{font:400 22px/1.2 "CS Bergamot Stitched",Georgia,serif;margin:25px 0 12px}
+.biglwa-stream .stream-request-hint{color:#856e5d;font:600 11px/1.6 system-ui;margin:16px 0 0}
+.biglwa-stream .stream-request-list{display:grid;gap:5px}
+.biglwa-stream .stream-request-list>div{display:flex;gap:13px;align-items:center;justify-content:space-between;padding:10px 12px;background:#ecdfca;border:1px solid #ccbca7;font-size:12px}
+.biglwa-stream .stream-request-list>div b{margin-right:auto}
+.biglwa-stream .stream-request-badge{border-radius:3px;background:#715b4e;color:white;padding:4px 6px;font:700 10px/1 monospace;text-transform:uppercase}
+.biglwa-stream .stream-editorial{margin:24px 0;padding:24px;background:#30251e;color:#fff1d5;border-radius:8px}
+.biglwa-stream .stream-editorial[hidden]{display:none}
+.biglwa-stream .stream-editorial h2{font:400 32px/1.1 "CS Bergamot Stitched",Georgia,serif}
+.biglwa-stream .stream-editorial-list{display:grid;gap:12px}
+.biglwa-stream .stream-editorial-list article{display:grid;grid-template-columns:1fr 190px auto;gap:12px;align-items:center;padding:14px;background:#f4e4c6;color:#33221a;border-radius:4px}
+.biglwa-stream .stream-editorial-list article p{margin:4px 0;color:#745e4e}
+.biglwa-stream .stream-editorial-list article label{font:700 11px/1.4 system-ui}
+.biglwa-stream .stream-editorial-list article input{display:block;width:100%;padding:8px;background:white}
+.biglwa-stream .stream-editorial-list article button{display:block;width:100%;background:#8e332d;color:#fff;padding:7px 9px;border:0;border-radius:3px;margin:3px 0;font:700 10px/1.25 system-ui}
+.biglwa-stream .stream-disclaimer{color:#826e5b;font:500 11px/1.6 system-ui;margin:16px 2px 35px}
+body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .stream-guide-head,body.night-mode .biglwa-stream .stream-top{filter:brightness(.9)}
+@media(max-width:1060px){.biglwa-stream .stream-stations{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:850px){.biglwa-stream .stream-spotlight{grid-template-columns:1fr}.biglwa-stream .stream-stations{grid-template-columns:repeat(2,minmax(0,1fr))}.biglwa-stream .stream-editorial-list article{grid-template-columns:1fr 1fr}.biglwa-stream .stream-editorial-list article>div:last-child{grid-column:1/-1;display:flex;gap:8px}}
+@media(max-width:580px){.biglwa-stream .stream-mast{padding:20px 15px;gap:6px}.biglwa-stream .stream-testcard{min-width:100px;width:32%;border-width:5px}.biglwa-stream .stream-testcard b{font-size:13px;padding:5px}.biglwa-stream .stream-testcard small{font-size:6px}.biglwa-stream .stream-mast h1{font-size:61px}.biglwa-stream .stream-channels{grid-template-columns:repeat(4,minmax(0,1fr))}.biglwa-stream .stream-tab{padding:13px 6px;gap:4px;flex-direction:column;align-items:center;text-align:center}.biglwa-stream .stream-tab b{font-size:clamp(11px,2.6vw,15px);line-height:1.2}.biglwa-stream .stream-guide-head{padding:15px;align-items:start;flex-direction:column}.biglwa-stream .stream-guide-head label{width:100%}.biglwa-stream .stream-guide-head input{width:100%}.biglwa-stream .stream-grid{grid-template-columns:110px repeat(24,113px)}.biglwa-stream .stream-grid-corner{font-size:10px}.biglwa-stream .stream-row-label{padding:8px}.biglwa-stream .stream-row-label b{font-size:17px}.biglwa-stream .stream-guide-foot{gap:8px}.biglwa-stream .stream-guide-foot button{margin-left:0}.biglwa-stream .stream-stations,.biglwa-stream .stream-ideas{grid-template-columns:1fr}.biglwa-stream .stream-section-head{flex-direction:column;align-items:stretch}.biglwa-stream .stream-section-head label{min-width:0}.biglwa-stream .stream-request-form{grid-template-columns:1fr}.biglwa-stream .stream-wide{grid-column:1}.biglwa-stream .stream-rights{display:grid;gap:12px}.biglwa-stream .stream-live-wait{align-items:start;flex-direction:column}.biglwa-stream .stream-editorial-list article{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.biglwa-stream *, .biglwa-stream *:before{transition:none!important;scroll-behavior:auto!important}}
+
+/* Big LWA single-click radio control: always above the CRT treatment. */
+.biglwa-stream .stream-radio-play{display:inline-flex!important;position:relative;z-index:10;align-items:center;justify-content:center;min-width:162px;min-height:53px;padding:12px 24px;margin:13px auto;border:2px solid #f5d5a0;border-radius:9px;background:#ffe7ae;color:#241816!important;box-shadow:3px 4px 0 #a8573b;font:900 17px/1.2 system-ui,sans-serif!important;cursor:pointer;pointer-events:auto}
+.biglwa-stream .stream-radio-play:hover,.biglwa-stream .stream-radio-play:focus-visible{outline:3px solid #f7e6c4;outline-offset:2px;background:#fff2cb}
+.biglwa-stream .stream-radio-play:disabled{opacity:.72;cursor:progress}
+.biglwa-stream #streamRadioStatus{display:block;max-width:440px;font-size:12px;letter-spacing:0;text-transform:none;color:#f8e3bf}
+.biglwa-stream .stream-source-slot.is-radio em{margin-top:auto;font:800 10px/1.3 ui-monospace,monospace;color:#963521;font-style:normal}
+.biglwa-stream .stream-source-slot.is-radio{touch-action:manipulation}
+.biglwa-stream .stream-screen.is-program iframe{min-height:260px;display:block}
+
+/* Betty Boop classics: episode selection stays inside the TV monitor. */
+.biglwa-stream .stream-screen.is-archive-player{aspect-ratio:auto;min-height:0;background:#171219}
+.biglwa-stream .stream-screen.is-archive-player video{display:block;width:100%;height:auto;max-height:min(57vh,570px);aspect-ratio:16/9;object-fit:contain;background:#070607;flex:auto}
+.biglwa-stream .stream-archive-episode-now{padding:10px 13px 3px;font:800 11px/1.4 ui-monospace,monospace;color:#ffe3b0}
+.biglwa-stream .stream-episode-list{display:flex;gap:7px;flex-wrap:wrap;max-height:150px;overflow-y:auto;padding:10px 13px 13px}
+.biglwa-stream .stream-episode-choice{flex:1 1 145px;padding:9px 10px;border:1px solid #9c7c6a;border-radius:6px;background:#332626;color:#fbe8cc!important;font:700 11px/1.3 system-ui,sans-serif!important;text-align:left}
+.biglwa-stream .stream-episode-choice.is-active{border-color:#ffd69a;background:#7b2d28;color:#fff0d3!important}
+.biglwa-stream .stream-episode-choice:focus-visible{outline:2px solid #ffda9a;outline-offset:2px}
+
+/* One media instance follows the listener between Stream and the Studio card.
+   Fixed portal positioning keeps YouTube/Twitch iframes and audio elements mounted. */
+.biglwa-persistent-stream-player{margin:0!important;padding:0!important;max-width:none!important;border-radius:12px;background:#120f11;color:#ffedcb;box-shadow:none!important}
+.biglwa-persistent-stream-player>.stream-screen{width:100%;height:100%;min-height:0!important;aspect-ratio:auto!important;border:0!important;border-radius:9px!important;box-shadow:none!important}
+.biglwa-persistent-stream-player>.stream-screen iframe{flex:1;min-height:0!important;width:100%;height:100%;border:0}
+.biglwa-persistent-stream-player>.stream-screen.is-twitch-player iframe{min-height:0!important}
+.biglwa-persistent-stream-player.is-studio-preview .stream-player-label{padding:5px 7px;font-size:10px;gap:3px;flex-wrap:wrap}
+.biglwa-persistent-stream-player.is-studio-preview .stream-player-label a{font-size:9px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-screen-bottom{display:none}
+.biglwa-persistent-stream-player.is-studio-preview .stream-screen-center>span{font-size:32px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-screen-center strong{font-size:clamp(15px,2vw,22px)}
+.biglwa-persistent-stream-player.is-studio-preview .stream-radio-play{min-height:42px;min-width:110px;padding:8px 14px;margin:4px auto;font-size:13px!important}
+.biglwa-persistent-stream-player.is-studio-preview .stream-monitor-kicker{padding:7px;font-size:8px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-screen.is-external .stream-screen-center{max-width:100%;gap:3px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-screen.is-archive-player video{max-height:100%;flex:1;min-height:0}
+.biglwa-persistent-stream-player.is-studio-preview .stream-episode-list{max-height:60px;padding:4px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-episode-choice{padding:4px 6px;font-size:9px!important}
+.biglwa-persistent-stream-player.is-studio-preview .stream-archive-episode-now{padding:3px 6px;font-size:9px}
+.biglwa-persistent-stream-player .stream-preview-return{display:none;position:absolute;right:6px;top:6px;z-index:20;border:1px solid #ffe1aa;border-radius:6px;background:#2b1719;color:#fff2da;padding:6px 10px;font:800 10px/1.1 ui-monospace,monospace;box-shadow:0 3px 12px #000a}
+.biglwa-persistent-stream-player.is-studio-preview .stream-preview-return{display:inline-flex}
+#studioApp #stream .stream-screen.stream-preview-active{min-height:238px;padding:0!important;box-shadow:inset 0 0 0 1px #8f6143;isolation:isolate}
+#studioApp #stream .stream-screen.stream-preview-active .stream-station-photo{display:none!important}
+
+/* Daily Discovery is in the RIGHT channel panel, not over the TV image. */
+.biglwa-stream .stream-channel-copy{min-width:0;justify-content:flex-start;overflow:hidden;gap:8px}
+.biglwa-stream .stream-channel-copy h2{margin:2px 0 4px}
+.biglwa-stream .stream-channel-copy>p{margin:0 0 12px}
+.biglwa-stream .stream-channel-copy .stream-discovery-picker{display:flex;flex-direction:column;min-width:0;gap:12px;border-top:1px solid #baa288;padding-top:12px}
+.biglwa-stream .stream-channel-copy .stream-discovery-picker[hidden]{display:none!important}
+.biglwa-stream .stream-discovery-eyebrow{display:flex;justify-content:space-between;align-items:center;gap:10px;font:850 10px/1.2 ui-monospace,monospace;letter-spacing:.09em;color:#7d342c}
+.biglwa-stream .stream-discovery-gallery{display:grid;grid-template-columns:1fr;gap:8px;min-width:0}
+.biglwa-stream .stream-discovery-select{display:grid;grid-template-columns:98px minmax(0,1fr);align-items:center;gap:11px;min-width:0;width:100%;text-align:left;min-height:76px;padding:7px;border:1px solid #a89174;border-radius:8px;background:#f7ebd8;color:#281e1d;box-shadow:1px 2px 0 #cfb89a}
+.biglwa-stream .stream-discovery-select:hover,.biglwa-stream .stream-discovery-select:focus-visible{border-color:#a52f2a;background:#fff4e1;outline:2px solid #a52f2a;outline-offset:1px}
+.biglwa-stream .stream-discovery-select img{display:block;width:98px;height:62px;object-fit:cover;object-position:center;background:#44302a;border-radius:5px;border:1px solid #bba48e}
+.biglwa-stream .stream-discovery-info{min-width:0;display:flex;flex-direction:column;gap:5px}
+.biglwa-stream .stream-discovery-info b{font:700 13px/1.25 Georgia,serif;color:#2f2420;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.biglwa-stream .stream-discovery-info small{font:850 9px/1.25 ui-monospace,monospace;color:#a53a30;letter-spacing:.04em}
+.biglwa-stream .stream-discovery-pagination{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.biglwa-stream .stream-discovery-pagination>span{font:800 9px/1.4 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.07em;color:#78574e}
+.biglwa-stream .stream-discovery-arrow{display:grid;place-items:center;min-width:44px;min-height:39px;border:1px solid #7f4b3c;border-radius:7px;background:#63342b;color:#fff8e7;font:900 26px/1 Georgia,serif}
+.biglwa-stream .stream-discovery-arrow:hover,.biglwa-stream .stream-discovery-arrow:focus-visible{outline:2px solid #a33329;background:#a33329}
+.biglwa-persistent-stream-player .stream-discovery-picker{display:none!important}
+/* The Studio preview is a viewport projection of the SAME player. Prevent
+   iframe reinitialization and CRT artwork shimmer when scrolling/resizing. */
+.biglwa-persistent-stream-player{transform:translate3d(0,0,0);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;isolation:isolate;contain:layout style;transition:none!important}
+.biglwa-persistent-stream-player>.stream-screen{overflow:hidden!important;backface-visibility:hidden}
+#studioApp #stream .stream-screen.stream-preview-active{contain:layout paint;border-radius:14px!important;overflow:hidden!important}
+#studioApp #stream .stream-screen.stream-preview-active::before,
+#studioApp #stream .stream-screen.stream-preview-active::after{opacity:0!important}
+@media(min-width:1400px){
+ .biglwa-stream .stream-discovery-gallery{gap:10px}
+ .biglwa-stream .stream-discovery-select{min-height:86px;grid-template-columns:112px minmax(0,1fr)}
+ .biglwa-stream .stream-discovery-select img{width:112px;height:70px}
+}
+@media(max-width:1050px){
+ .biglwa-stream .stream-channel-copy{padding:17px 14px}
+ .biglwa-stream .stream-channel-copy h2{font-size:clamp(27px,4vw,43px)}
+}
+@media(max-width:580px){
+ .biglwa-stream .stream-discovery-select{grid-template-columns:90px minmax(0,1fr)}
+ .biglwa-stream .stream-discovery-select img{width:90px;height:57px}
+ .biglwa-stream .stream-discovery-gallery{gap:7px}
+}
+
+/* Studio Stream containment fix: the same surface is positioned inside its
+   own player frame, never as a viewport-fixed sheet above the search bar. */
+.biglwa-stream .stream-monitor{position:relative!important;isolation:isolate;overflow:hidden!important}
+#studioApp #stream .stream-screen.stream-preview-active{position:relative!important;isolation:isolate!important;overflow:hidden!important;clip-path:inset(0 round 13px)}
+.biglwa-persistent-stream-player,
+.biglwa-persistent-stream-player.is-studio-preview{
+ position:absolute!important;inset:0!important;
+ left:0!important;right:0!important;top:0!important;bottom:0!important;
+ width:100%!important;height:100%!important;
+ transform:none!important;will-change:auto!important;transition:none!important;
+ overflow:hidden!important;z-index:2!important;
+ contain:layout style paint;isolation:isolate;pointer-events:auto;
+}
+#studioApp #stream .stream-screen.stream-preview-active>.biglwa-persistent-stream-player{
+ border-radius:9px!important;max-width:100%;max-height:100%;
+}
+.biglwa-persistent-stream-player>.stream-screen{height:100%!important;min-height:0!important;overflow:hidden!important}
+
+/* Keep the entire original college-radio directory visible. Only stations
+   with a configured direct audio endpoint get a Play button. */
+.biglwa-stream .stream-station{box-sizing:border-box;min-width:0}
+.biglwa-stream .stream-station-details{display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+.biglwa-stream .stream-station-details b{overflow-wrap:anywhere}
+.biglwa-stream .stream-station.is-ready{cursor:pointer;border-color:#a57850;background:#fff0d2}
+.biglwa-stream .stream-station.is-ready .stream-station-go{color:#6e311d;background:#ffdb93;border-radius:5px;padding:5px 6px}
+.biglwa-stream .stream-station.is-pending{opacity:.89;background:#e6dfd4;border-style:dashed;cursor:default}
+.biglwa-stream .stream-station.is-pending:hover{background:#e6dfd4;transform:none;outline:none}
+.biglwa-stream .stream-station-pending{display:flex;flex-direction:column;gap:7px;margin-left:auto;align-items:flex-end;min-width:0;text-align:right}
+.biglwa-stream .stream-station-pending small{font-size:9px;color:#736356}
+.biglwa-stream .stream-station-pending a{font:700 9px/1.3 ui-monospace,monospace;color:#854235;text-decoration:underline;text-underline-offset:2px}
+.biglwa-stream .stream-station-pending a:focus-visible{outline:2px solid #a43a2f;outline-offset:2px}
+@media(max-width:980px){
+ .biglwa-stream .stream-stations{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+ .biglwa-stream .stream-stations{grid-template-columns:1fr}
+}
+
+/* 2026-10-20: Keep the Betty Boop program strip readable in the wide TV screen.
+   Scroll horizontally rather than collapsing episode titles into clipped narrow cells. */
+.biglwa-stream .stream-screen.is-archive-player{min-width:0;overflow:hidden}
+.biglwa-stream .stream-episode-list{display:flex;flex-wrap:nowrap;gap:7px;min-width:0;max-width:100%;max-height:none;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:9px 12px 12px;box-sizing:border-box}
+.biglwa-stream .stream-episode-choice{flex:0 0 auto;min-width:145px;max-width:210px;white-space:normal;overflow-wrap:break-word;line-height:1.4;min-height:42px}
+.biglwa-persistent-stream-player.is-studio-preview .stream-episode-list{max-height:70px;overflow-x:auto;overflow-y:hidden}
+.biglwa-persistent-stream-player.is-studio-preview .stream-episode-choice{min-width:115px;min-height:35px;max-width:160px}
+
+/* Studio is a compact TV preview, not the full episode browser. Keep the video
+   visually centered and remove the episode strip only inside Studio. */
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-screen.is-archive-player{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-screen.is-archive-player video{display:block;width:100%;height:100%;min-height:0;max-height:100%;flex:1 1 auto;object-fit:contain;aspect-ratio:auto;background:#09070b}
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-episode-list,
+#studioApp .biglwa-persistent-stream-player.is-studio-preview .stream-archive-episode-now{display:none!important}
+
+/* Explicit, session-only LWA TV discovery preferences (not inferred viewing history). */
+#studioApp .stream-date-actions label:has(#streamDiscoveryMood){display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap}
+#studioApp #streamDiscoveryMood{max-width:100%;min-height:32px;padding:5px 9px;border:1px solid rgba(91,59,48,.35);border-radius:9px;background:#fff9eb;color:#362c27;font:600 12px/1.4 system-ui;cursor:pointer}
+#studioApp #streamDiscoveryMood:focus-visible{outline:2px solid #8c5260;outline-offset:2px}
+
+/* 2026-10-22: draggable single-instance Stream picture-in-picture dock. */
+.biglwa-stream .stream-dock-options{display:flex;align-items:center;justify-content:flex-start;gap:12px;
+  flex-wrap:wrap;padding:12px 2px 4px}
+.biglwa-stream .stream-dock-options small{font:500 11px/1.5 system-ui;color:#7e6860}
+.biglwa-stream .stream-dock-open{cursor:pointer;border:1px solid rgba(78,53,48,.35);
+  border-radius:8px;padding:9px 14px;background:#f8e5d8;color:#332622;font:750 12px/1.3 system-ui}
+.biglwa-stream .stream-dock-open:hover,.biglwa-stream .stream-dock-open:focus-visible{background:#ffeccc;outline:2px solid #bc7a6c}
+#biglwaStreamDock{position:fixed!important;right:18px;bottom:18px;left:auto;top:auto;
+  z-index:1200;width:min(380px,calc(100vw - 30px));height:clamp(220px,34dvh,290px);
+  border:2px solid #986354;border-radius:14px;background:#120b0e;
+  box-shadow:0 0 0 3px #282023,0 12px 40px #050303ac;overflow:hidden;
+  display:flex;flex-direction:column;contain:layout style}
+#biglwaStreamDock[hidden]{display:none!important}
+#biglwaStreamDock .stream-dock-title{display:flex;align-items:center;gap:7px;flex:0 0 36px;
+  min-height:36px;padding:5px 8px;background:#2a1720;color:#ffe1d6;user-select:none;
+  cursor:grab;touch-action:none}
+#biglwaStreamDock .stream-dock-title:active{cursor:grabbing}
+#biglwaStreamDock .stream-dock-title strong{font:700 11px/1.2 system-ui;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+#biglwaStreamDock .stream-dock-title button{flex:none;border:1px solid #bc8d8b;
+  border-radius:6px;padding:5px 8px;background:#fce7dc;color:#311c1a;cursor:pointer;
+  font:700 10px/1.2 system-ui}
+#biglwaStreamDock .stream-dock-stage{position:relative;flex:1;min-height:0;overflow:hidden;
+  background:#09070a url("/assets/tv-no-signal.svg") center center/contain no-repeat}
+#biglwaStreamDock .biglwa-persistent-stream-player{position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important}
+#biglwaStreamDock .stream-screen{position:relative!important;height:100%!important;min-height:0!important;
+  box-sizing:border-box!important;display:flex!important;flex-direction:column!important;padding:0!important}
+#biglwaStreamDock iframe,#biglwaStreamDock video{display:block!important;min-height:0!important;
+  height:100%!important;flex:1 1 auto!important;width:100%!important}
+#biglwaStreamDock .stream-player-label,#biglwaStreamDock .stream-player-footer,
+#biglwaStreamDock .stream-monitor-kicker,#biglwaStreamDock .stream-screen-bottom{font-size:9px!important;
+  padding:3px 6px!important;line-height:1.2!important}
+@media(max-width:600px){#biglwaStreamDock{width:min(300px,calc(100vw - 22px));height:220px;
+  right:10px;bottom:12px}}
+@media(prefers-reduced-motion:reduce){#biglwaStreamDock{transition:none!important}}
+
+/* Modern Mux Media Elements on the unchanged BIG LWA television stage. */
+.biglwa-stream .stream-screen.is-program :is(youtube-video,tiktok-video,spotify-audio){
+ display:block!important;position:relative;flex:1 1 auto;align-self:stretch;
+ min-width:0!important;width:100%!important;max-width:100%!important;
+ min-height:230px;height:100%;max-height:100%;background:#101014;
+}
+.biglwa-stream .stream-screen.is-program.is-spotify{min-height:210px}
+.biglwa-stream .stream-screen.is-program.is-spotify spotify-audio,
+.biglwa-stream .stream-screen.is-program.is-spotify iframe{min-height:155px!important}
+.biglwa-stream .stream-screen.is-program.is-tiktok tiktok-video{min-height:320px}
+.biglwa-persistent-stream-player.is-studio-preview :is(youtube-video,tiktok-video,spotify-audio){min-height:0!important;height:100%!important}
+.biglwa-stream .stream-media-link-form{display:grid;gap:7px;min-width:0;width:100%;box-sizing:border-box;
+ margin:8px 0 12px;padding:11px 13px;background:#f4e8db;border:1px solid #aa8d86;border-radius:10px;color:#432e37}
+.biglwa-stream .stream-media-link-form label{font:750 12px/1.4 system-ui}
+.biglwa-stream .stream-media-link-form>div{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.biglwa-stream .stream-media-link-form input{flex:1 1 230px;min-width:0;padding:9px;border:1px solid #9b7b82;border-radius:6px;background:#fffaf5;color:#332529}
+.biglwa-stream .stream-media-link-form button{flex:0 0 auto;padding:9px 12px;border-radius:7px;border:1px solid #725267;background:#392832;color:#fff6ec;cursor:pointer}
+.biglwa-stream .stream-media-link-form small{color:inherit;opacity:.75}
+body.night-mode .biglwa-stream .stream-media-link-form{background:#2b2530;color:#f7eee9;border-color:#736173}
+body.night-mode .biglwa-stream .stream-media-link-form input{background:#1e1b25;color:#fff4ec;border-color:#877988}
+
+/* Stream header quick tools: Tune a link and YouTube Orbit connect now occupy
+   the top channel bar, not an extra block below the player. */
+.biglwa-stream .stream-nav-meta{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ align-items:center!important;gap:8px 14px!important;overflow:visible!important
+}
+.biglwa-stream .stream-nav-meta>.stream-eyebrow{grid-column:1;grid-row:1}
+.biglwa-stream .stream-nav-meta>.stream-nav-clock{grid-column:2;grid-row:1}
+.biglwa-stream .stream-nav-actions{
+ grid-column:1/-1;grid-row:2;display:flex;align-items:end;justify-content:flex-end;
+ gap:8px;min-width:0;max-width:100%;padding-top:5px;border-top:1px solid #d9cbbb
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+ flex:1 1 440px!important;width:auto!important;max-width:720px!important;
+ margin:0!important;padding:0!important;gap:6px 9px!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent!important;color:#34252b!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form label{
+ font:750 11px/1.2 system-ui!important;white-space:nowrap
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form>div{
+ display:flex!important;flex:1 1 270px;min-width:0;flex-wrap:nowrap!important;gap:5px!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form input{
+ flex:1 1 auto!important;min-width:80px!important;max-width:none!important;
+ height:33px!important;padding:6px 9px!important;font:500 11px system-ui!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form button{
+ height:33px!important;white-space:nowrap;font:750 11px system-ui!important;padding:5px 10px!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form small{
+ flex:0 0 100%;font:500 10px/1.2 system-ui!important;color:#755c57!important;
+ min-height:12px;margin-left:76px!important
+}
+.biglwa-stream .stream-youtube-orbit{
+ display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+ gap:6px;min-height:33px;padding:6px 10px;border:1px solid #b56b77;
+ border-radius:6px;background:#fff0ed;color:#572c37;cursor:pointer;
+ font:700 11px/1.3 system-ui;white-space:nowrap
+}
+.biglwa-stream .stream-youtube-orbit img{width:19px;height:19px;object-fit:contain}
+.biglwa-stream .stream-youtube-orbit[data-connected="1"]{
+ border-color:#4c936d;background:#e9f8e7;color:#23553c
+}
+.biglwa-stream .stream-youtube-orbit:hover,.biglwa-stream .stream-youtube-orbit:focus-visible{
+ outline:2px solid #bd7888;outline-offset:2px
+}
+@media(max-width:780px){
+ .biglwa-stream .stream-nav-actions{flex-wrap:wrap;justify-content:stretch}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form{flex-basis:100%!important}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form small{margin-left:0!important}
+ .biglwa-stream .stream-youtube-orbit{margin-left:auto}
+}
+@media(max-width:430px){
+ .biglwa-stream .stream-nav-actions .stream-media-link-form label{flex-basis:100%}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form>div{flex-basis:100%!important}
+}
+
+/* Watchable Sqwibz lives inside Stream's channel section and original player. */
+.biglwa-stream .stream-sqwibz-form{display:flex;flex-wrap:wrap;align-items:end;gap:9px;margin:14px 0;padding:14px;border:1px solid #a78676;border-radius:10px;background:#f4e5d7}
+.biglwa-stream .stream-sqwibz-form label{flex:1 1 260px;display:grid;gap:5px;font:700 11px/1.4 system-ui}
+.biglwa-stream .stream-sqwibz-form input{max-width:100%;box-sizing:border-box;padding:10px;border:1px solid #bca79a;border-radius:6px;background:#fffaf2}
+.biglwa-stream .stream-sqwibz-form button,.biglwa-stream .stream-sqwibz-list button{padding:10px 13px;border:1px solid #893c3a;border-radius:8px;background:#a73933;color:#fff8ec;cursor:pointer;font:700 11px system-ui}
+.biglwa-stream .stream-sqwibz-form small{flex-basis:100%;font:500 11px/1.45 system-ui}
+.biglwa-stream .stream-sqwibz-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.biglwa-stream .stream-sqwibz-list p{margin:0;font-size:12px;opacity:.75}
+
+
+/* Sqwidz / Stream: original TV screen on left, channel information on right. */
+.biglwa-stream.is-sqwidz-channel .stream-spotlight{
+ display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(270px,.85fr)!important;
+ align-items:start!important;gap:18px!important;
+}
+.biglwa-stream.is-sqwidz-channel .stream-monitor{
+ position:relative!important;min-width:0!important;min-height:290px!important;
+ height:auto!important;overflow:hidden!important;
+ background:#151417!important;border:13px solid #29201d!important;
+ border-radius:22px!important;box-shadow:inset 0 0 0 2px #755a49,6px 7px 0 #b9a68f!important;
+}
+.biglwa-stream.is-sqwidz-channel .stream-monitor>.stream-screen,
+.biglwa-stream.is-sqwidz-channel .stream-monitor>#biglwaPersistentStreamPlayer{display:none!important}
+.biglwa-stream.is-sqwidz-channel .stream-sqwidz-stage{
+ display:block;position:relative;box-sizing:border-box;width:100%;
+ min-height:290px;max-height:min(74vh,700px);aspect-ratio:16/10;
+ overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+ scrollbar-width:thin;background:#12151b;color:#f4eade;
+}
+.biglwa-stream .stream-sqwidz-stage[hidden]{display:none!important}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="text"] .stream-sqwidz-stage{aspect-ratio:4/3}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="square"] .stream-sqwidz-stage{aspect-ratio:1/1}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="landscape"] .stream-sqwidz-stage{aspect-ratio:16/9}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="portrait"] .stream-sqwidz-stage{
+ aspect-ratio:9/16;width:min(100%,390px);margin-inline:auto;max-height:min(78vh,750px)
+}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="audio"] .stream-sqwidz-stage{aspect-ratio:5/3}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display{
+ box-sizing:border-box;min-height:100%;display:flex;flex-direction:column;gap:0;
+ background:radial-gradient(circle at 50% 18%,#2c2934,#15141c 66%,#0e0f15);
+ color:#f6eee0;font-family:system-ui,sans-serif;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>header,
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>footer{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ font:700 9px/1.4 ui-monospace,monospace;letter-spacing:.11em;color:#d8bc9c;
+ text-transform:uppercase;padding:15px 18px;border-bottom:1px solid #a6937950;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>footer{border-bottom:0;border-top:1px solid #a6937950}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>article{
+ flex:1;min-height:0;padding:22px clamp(17px,4%,32px);
+ display:flex;flex-direction:column;justify-content:center;gap:16px;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-author{
+ display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+ font:700 13px/1.5 system-ui;color:#e5d0bc;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-author time{
+ font:500 10px/1.5 system-ui;color:#aa9e9d;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-text{
+ font:500 clamp(16px,2vw,24px)/1.52 system-ui;white-space:pre-wrap;
+ overflow-wrap:anywhere;margin:0;max-height:450px;overflow:auto;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media{
+ display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:0;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media .sqz-media{
+ display:block;width:100%;max-width:100%;max-height:min(57vh,530px);
+ margin:0!important;border:0;border-radius:7px;object-fit:contain;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media .sqz-media.portrait{
+ aspect-ratio:9/16;width:min(100%,320px);max-height:min(57vh,530px);
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media iframe,
+.biglwa-stream.is-sqwidz-channel .stream-sq-media video:not(.portrait){aspect-ratio:16/9}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media audio{max-height:60px}
+.biglwa-stream.is-sqwidz-channel .stream-sq-standby{
+ min-height:300px;padding:40px 20px;box-sizing:border-box;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px;
+ background:repeating-linear-gradient(0deg,#17161d 0px,#17161d 3px,#201f26 4px,#201f26 5px);color:#efddc3;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-standby small{
+ letter-spacing:.14em;font:700 10px/1.4 monospace;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-standby strong{
+ font:400 clamp(21px,3vw,36px)/1.2 "CS Bergamot Stitched",Georgia,serif;
+}
+.biglwa-stream.is-sqwidz-channel .stream-channel-copy{
+ display:flex!important;flex-direction:column;align-items:stretch;justify-content:flex-start;
+ gap:10px!important;padding:24px!important;background:#e7d7b8!important;
+}
+.biglwa-stream.is-sqwidz-channel .stream-channel-copy h2{margin:3px 0!important}
+.biglwa-stream.is-sqwidz-channel .stream-sq-intro{font:500 13px/1.55 Georgia,serif!important;margin:0!important}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption{
+ display:flex;flex-direction:column;gap:7px;margin:5px 0;padding:13px 0;
+ border-block:1px solid #92776155;min-width:0;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption small{
+ font:700 10px/1.5 ui-monospace,monospace;letter-spacing:.07em;color:#a83429;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption strong{font:700 15px/1.3 system-ui;overflow-wrap:anywhere}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption time{font:500 10px/1.4 system-ui;opacity:.7}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption p{
+ font:500 13px/1.6 system-ui!important;margin:0!important;white-space:pre-wrap;overflow-wrap:anywhere;
+ max-height:140px;overflow:auto;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;min-width:0;
+ padding:7px 0 13px;border-bottom:1px solid #92776155;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats b{font:750 16px system-ui}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats small{font:600 10px system-ui;opacity:.75}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav,
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav span{font:700 11px monospace;margin-inline:4px}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav button,
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button{
+ padding:8px 11px;border:1px solid #876b60;background:#fff2dc;color:#392726;
+ border-radius:5px;font:700 11px system-ui;cursor:pointer;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav button:disabled,
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button:disabled{opacity:.4;cursor:not-allowed}
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button[data-sq-resqwib]{background:#e0e7d5}
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button[data-sq-resqwib][aria-pressed="true"]{background:#5e8265;color:#fff}
+.biglwa-stream.is-sqwidz-channel .stream-sq-status{font:500 10px system-ui;min-height:11px}
+.biglwa-stream.is-sqwidz-channel .stream-guide,
+.biglwa-stream.is-sqwidz-channel .stream-body,
+.biglwa-stream.is-sqwidz-channel .stream-dock-options,
+.biglwa-stream.is-sqwidz-channel #streamDiscoveryPicker{display:none!important}
+@media(max-width:850px){
+ .biglwa-stream.is-sqwidz-channel .stream-spotlight{grid-template-columns:minmax(0,1fr)!important}
+ .biglwa-stream.is-sqwidz-channel .stream-sqwidz-stage{max-height:min(65vh,650px)}
+}

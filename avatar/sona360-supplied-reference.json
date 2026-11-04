@@ -1,0 +1,116 @@
+{
+  "v": 1,
+  "mode": "full",
+  "slot": 0,
+  "size": {
+    "w": 320,
+    "h": 500,
+    "fit": "fixed"
+  },
+  "frame": {
+    "skin": "sona",
+    "radius": 8,
+    "shadow": true,
+    "palette": "own",
+    "tint": 0.5,
+    "tintHex": "#76B900",
+    "bgMode": "skin",
+    "bg1": "#20242A",
+    "bg2": "#0B0D10",
+    "bgAngle": 165,
+    "edgeW": 0,
+    "edgeC": "#FFFFFF"
+  },
+  "brand": {
+    "wordmark": true,
+    "bar": true,
+    "links": []
+  },
+  "plate": {
+    "on": true,
+    "link": 1,
+    "ownName": false,
+    "name": "brozache",
+    "tag": "leian",
+    "score": 123035,
+    "rep": 5,
+    "note": null,
+    "zone": null,
+    "align": "left",
+    "pic": {
+      "kind": "stock",
+      "id": "20002"
+    }
+  },
+  "stage": {
+    "shot": "full",
+    "life": "idle",
+    "clip": "GenericWave",
+    "fidget": 0.2,
+    "turntable": 0,
+    "face": null,
+    "drag": true,
+    "propOnLoad": true,
+    "zoom": 100,
+    "lift": 0
+  },
+  "quality": {
+    "supersample": 2,
+    "face": 512,
+    "smooth": true,
+    "shadow": false,
+    "occlusion": false
+  },
+  "motion": {
+    "pauseOffscreen": true,
+    "reducedMotion": "respect"
+  },
+  "domains": [],
+  "pet": {
+    "on": false,
+    "speed": "chill",
+    "who": "all",
+    "chip": true,
+    "pets": false,
+    "foods": [
+      {
+        "id": "00001000-586f-b203-c92e-b90f58580845",
+        "name": "Pizza"
+      },
+      {
+        "id": "00001000-fd10-b283-c022-517158580845",
+        "name": "Burger"
+      },
+      {
+        "id": "00001000-4067-02c3-c945-973f58580845",
+        "name": "Ice Cream"
+      },
+      {
+        "id": "00001000-447a-c2e3-ce31-549e58580845",
+        "name": "Soda Pop"
+      },
+      {
+        "id": "00001000-a2a6-a2c3-cc92-52465858081c",
+        "name": "Popcorn"
+      }
+    ],
+    "toys": [
+      {
+        "id": "00001000-0764-e2b3-ca72-f03558580851",
+        "name": "Bunch of Balloons"
+      },
+      {
+        "id": "00001000-27c1-72c3-c1e9-058c5858081c",
+        "name": "Basketball"
+      },
+      {
+        "id": "00001000-4c34-3243-cf2e-52ae58580871",
+        "name": "Kite"
+      },
+      {
+        "id": "00001000-3d29-8203-cb4c-c3395858081c",
+        "name": "Guitar"
+      }
+    ]
+  }
+}

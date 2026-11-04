@@ -1,0 +1,7 @@
+<defaults>
+	<baseUrl>http://www.miieditor.com/</baseUrl>
+	<onlineValidationScript>scripts/connected.php</onlineValidationScript>
+	<uploadScript>scripts/uploadfile.php</uploadScript>
+	<downloadScript>scripts/downloadfile.php</downloadScript>
+	<downloadTarget>_blank</downloadTarget>
+</defaults>

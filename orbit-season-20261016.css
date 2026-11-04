@@ -1,0 +1,8 @@
+/* Orbit page controls only. Uniform planetary card layout is managed by
+   orbit-cards-unified-20261016.css to avoid provider-specific height drift. */
+#studioApp #orbit #orbitPlanetaryToggle{
+  border-radius:11px!important;
+}
+#studioApp #orbit #orbitPlanetaryShelf{
+  display:none!important;
+}

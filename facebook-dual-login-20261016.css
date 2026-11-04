@@ -1,0 +1,43 @@
+/* Preserve both Facebook Orbit login choices on one aligned action row. */
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="facebook"] > .module-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px!important;
+  column-gap:6px!important;
+  row-gap:7px!important;
+  align-items:center!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="facebook"] > .module-actions >
+.module-action[data-orbit-connect="facebook"]{
+  grid-column:1!important;grid-row:1!important;
+  width:100%!important;max-width:none!important;
+  min-width:0!important;margin:0!important;
+  padding:8px 5px!important;white-space:normal!important;
+  font-size:10px!important;line-height:1.2!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="facebook"] > .module-actions >
+.module-action[data-facebook-legacy-connect]{
+  grid-column:2!important;grid-row:1!important;
+  width:100%!important;max-width:none!important;
+  min-width:0!important;margin:0!important;
+  padding:8px 5px!important;white-space:normal!important;
+  font-size:10px!important;line-height:1.2!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="facebook"] > .module-actions >
+.orbit-platform-badge{
+  grid-column:3!important;grid-row:1!important;
+  order:0!important;margin:0 0 0 auto!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="facebook"] > .module-actions >
+.module-action[data-orbit-unlink="facebook"],
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="facebook"] > .module-actions >
+.module-action[data-facebook-orbit-media]{
+  grid-column:1/3!important;
+  width:100%!important;max-width:none!important;
+  margin:0!important;
+}

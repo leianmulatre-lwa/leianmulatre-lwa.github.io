@@ -1,0 +1,24 @@
+name: Feed and Archive card checks
+on:
+  push:
+    paths:
+      - 'feed-view.js'
+      - 'orbit-feed.js'
+      - 'instagram-orbit.js'
+      - 'module-pages.js'
+      - 'feed-wall-test.mjs'
+      - 'cards-archive-test.mjs'
+      - '.github/workflows/feed-checks.yml'
+  workflow_dispatch:
+jobs:
+  feed-styles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Feed card regression
+        run: node feed-wall-test.mjs
+      - name: Archive card regression
+        run: node cards-archive-test.mjs

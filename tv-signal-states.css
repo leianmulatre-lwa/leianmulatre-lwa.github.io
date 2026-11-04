@@ -1,0 +1,23 @@
+/* Shared faithful TV no-signal fallback, from the supplied 336×208 colour-bars PNG. */
+#studioApp .mini-avatar.lwa-default-tv-avatar,
+#studioApp .profile-avatar.lwa-default-tv-avatar,
+#studioApp .profile-card .profile-avatar.lwa-default-tv-avatar,
+#studioApp .profile-mini .mini-avatar.lwa-default-tv-avatar{
+  color:#fffdf5!important;
+  text-shadow:0 2px 5px #10000c,0 0 6px #0d0711!important;
+  font-family:"CS Bergamot Stitched",Georgia,serif!important;
+  font-weight:400!important;text-transform:uppercase!important;
+  background-color:#10070f!important;background-size:cover!important;background-position:center!important;
+  background-repeat:no-repeat!important;
+  isolation:isolate;display:grid!important;place-items:center!important}
+#studioApp .mini-avatar.lwa-default-tv-avatar{font-size:clamp(16px,2.2vw,24px)!important}
+#studioApp .profile-avatar.lwa-default-tv-avatar{font-size:clamp(44px,6vw,84px)!important}
+img.lwa-tv-no-signal-fallback{object-fit:contain!important;background-color:#090609!important}
+video.lwa-tv-no-signal-fallback{background:#0d0710 url("/assets/tv-no-signal.svg") center center/contain no-repeat!important}
+.biglwa-stream .stream-signal-failed{
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+  background:#0b080c!important;color:#fff5e7!important;text-align:center;padding:18px;
+  min-height:160px;box-sizing:border-box}
+.biglwa-stream .stream-signal-failed img{display:block;max-width:100%;max-height:58%;object-fit:contain}
+.biglwa-stream .stream-signal-failed strong{font:400 clamp(18px,2.4vw,28px)/1.2 "CS Bergamot Stitched",Georgia,serif}
+.biglwa-stream .stream-signal-failed a{color:#ffe2a5;text-decoration:underline}
