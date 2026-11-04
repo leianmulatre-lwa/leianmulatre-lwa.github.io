@@ -121,7 +121,7 @@ assert(headerless.classList.contains('studio-header-only'),'Missing headings use
 assert(!headerless.classList.contains('widget-is-minimized'),'Missing headings never fall through to red dock');
 assert(headerless.querySelector('.studio-collapse-fallback'),'A compact accessible header is created without removing content');
 assert.equal(headerless.parentElement,masonry);
-assert(read('index.html').includes('studio-spatial-drag-20261029.js?v=20261029-route-inset-4'),'Free-position drag handler loads on Studio');
+assert(read('index.html').includes('studio-spatial-drag-20261029.js?v=20261104-fast-drag-dock-1'),'Free-position drag handler loads on Studio');
 
 
 // Upper row is six logical square slots, not four independently growing cards.

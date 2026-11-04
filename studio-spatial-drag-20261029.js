@@ -170,13 +170,19 @@
   // The target is ALWAYS as tall as the real moving widget.
   a.target.style.height=a.height+'px';
  };
+ const paintDrag=a=>{
+  if(drag!==a)return;
+  a.framePending=false;
+  a.ghost.style.setProperty('transform','translate3d('+(a.x-a.dx)+'px,'+(a.y-a.dy)+'px,0)','important');
+  a.selection=selection(a.parent,a.x,a.y,a.widget);
+  setDropPreview(a);
+ };
  const move=e=>{
   const a=drag;if(!a||a.pointerId!==e.pointerId)return;
   e.preventDefault();
-  a.ghost.style.left=e.clientX-a.dx+'px';
-  a.ghost.style.top=e.clientY-a.dy+'px';
-  a.selection=selection(a.parent,e.clientX,e.clientY,a.widget);
-  setDropPreview(a);
+  const samples=e.getCoalescedEvents?.();const latest=samples?.length?samples[samples.length-1]:e;
+  a.x=latest.clientX;a.y=latest.clientY;
+  if(!a.framePending){a.framePending=true;raf(()=>paintDrag(a))}
  };
  const down=e=>{
   if(!mayEdit()||e.button!==0||drag)return;
@@ -195,7 +201,7 @@
   // Prevent duplicate embedded players from executing in the preview.
   ghost.querySelectorAll('iframe,video,audio').forEach(el=>el.replaceWith(document.createElement('div')));
   ghost.setAttribute('aria-hidden','true');
-  ghost.style.cssText='position:fixed!important;display:block!important;z-index:100000!important;pointer-events:none!important;opacity:.89!important;box-sizing:border-box!important;width:'+r.width+'px!important;height:'+height+'px!important;max-height:none!important;left:'+r.left+'px;top:'+r.top+'px;transform:none!important;overflow:hidden!important;';
+  ghost.style.cssText='position:fixed!important;display:block!important;z-index:100000!important;pointer-events:none!important;opacity:.89!important;box-sizing:border-box!important;width:'+r.width+'px!important;height:'+height+'px!important;max-height:none!important;left:0;top:0;transition:none!important;will-change:transform;transform:translate3d('+r.left+'px,'+r.top+'px,0)!important;overflow:hidden!important;';
   document.body.appendChild(ghost);
   const target=document.createElement('div');
   target.className='biglwa-spatial-target';target.setAttribute('aria-hidden','true');
@@ -205,7 +211,7 @@
   drag={handle,widget,parent,ghost,target,height,pointerId:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top,
    selection:selection(parent,e.clientX,e.clientY,widget)};
   try{handle.setPointerCapture?.(e.pointerId)}catch{}
-  move(e);
+  drag.x=e.clientX;drag.y=e.clientY;paintDrag(drag);
  };
  const cleanup=()=>{
   const a=drag;drag=null;if(!a)return null;
@@ -232,6 +238,7 @@
  const up=(e,cancel=false)=>{
   if(!drag||drag.pointerId!==e.pointerId)return;
   e.preventDefault();e.stopImmediatePropagation();
+  if(!cancel){drag.x=e.clientX;drag.y=e.clientY;paintDrag(drag)}
   const a=cleanup();
   const box=a.parent.getBoundingClientRect();
   if(!cancel&&e.clientX>=box.left-28&&e.clientX<=box.right+28&&e.clientY>=box.top-25&&e.clientY<=box.bottom+200)

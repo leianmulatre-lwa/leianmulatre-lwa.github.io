@@ -76,8 +76,9 @@ const ghost=d.querySelector('.biglwa-spatial-ghost'),target=d.querySelector('.bi
 assert(ghost,'Dragging produces a real-sized card preview');
 assert.equal(ghost.style.height,'296px','Preview shows the FULL widget, never a 70px miniature');
 assert.equal(target.style.height,'296px','Drop target reserves actual full widget height');
-event('pointermove',700,580);
+for(let x=450;x<650;x+=5)event('pointermove',x,120);
 event('pointerup',700,580);
+assert.equal(map.dataset.biglwaGridPosition.split(':')[1],'4','Fast release uses final pointer coordinates rather than the last queued move');
 assert.equal(movedNodes,0,'No widget DOM nodes were reparented or remounted by dragging');
 assert.equal(map.parentElement,masonry);
 assert.equal(map.querySelector('p')?.textContent,'Map content');
@@ -117,7 +118,7 @@ assert.match(read('ui-coherence.js'),/positions:Object\.fromEntries/,'Canonical 
 assert.match(read('ui-coherence.js'),/const positions=layout\.positions/,'Cloud account rehydrate restores slots');
 assert.match(read('ui-coherence.js'),/parent\.classList\.contains\('masonry'\).*data-biglwa-grid-position/,'Saved masonry slots prevent account hydration from remounting widgets');
 const index=read('index.html');
-assert(index.includes('studio-spatial-drag-20261029.js?v=20261029-route-inset-4'));
+assert(index.includes('studio-spatial-drag-20261029.js?v=20261104-fast-drag-dock-1'));
 assert(index.includes('studio-machine-pages-20261029.css?v=20261029-1'));
 assert(!read('tools-craft.js').includes('<h2>your werkshopeR</h2>'),'Old Lwazi hero is removed');
 assert(read('tools-craft.js').includes('class="craft-folder-front"'),'Lwazi folder face replaces it');

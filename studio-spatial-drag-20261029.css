@@ -53,7 +53,7 @@
 .biglwa-spatial-ghost{
  position:fixed!important;
  z-index:100000!important;pointer-events:none!important;
- transform:none!important;max-height:none!important;
+ transition:none!important;will-change:transform;max-height:none!important;
  contain:paint!important;filter:none!important;
 }
 .biglwa-spatial-ghost *{pointer-events:none!important}
@@ -62,3 +62,5 @@
 #studioApp .studio-collapse-fallback:not(.studio-collapse-keep){display:none!important}
 #studioApp [data-widget-id]:not(.studio-header-only) > .studio-collapse-fallback{display:none!important}
 @media(prefers-reduced-motion:reduce){.biglwa-spatial-ghost{transition:none!important}}
+
+body:has(.biglwa-spatial-ghost) iframe{pointer-events:none!important}

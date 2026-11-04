@@ -1052,7 +1052,14 @@
     }catch{}finally{reviewsWidgetBusy=false}
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureDiaryCover();ensureArcadeCabinet();bindProfileVisualSync();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify();ensureReviewsWidget()}
+  function ensureStreamDockButton(){
+    const widget=$('#studioApp #stream');if(!widget||widget.querySelector('.studio-stream-dock-button'))return;
+    const button=document.createElement('button');button.type='button';button.className='secondary-btn studio-stream-dock-button';
+    button.textContent='▣ Dock player';button.setAttribute('aria-label','Dock Stream player');
+    button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();if(!window.BigLWAStreamGuide?.dock?.())window.openBIGLWAModule?.('stream')});
+    const screen=widget.querySelector('.stream-screen');if(screen)screen.after(button);else widget.append(button);
+  }
+  function run(){ensureStyles();ensureStreamDockButton();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureDiaryCover();ensureArcadeCabinet();bindProfileVisualSync();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify();ensureReviewsWidget()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});
