@@ -474,6 +474,16 @@
   const monitor=root.querySelector('#streamMonitor');if(!monitor)return;
   let stage=monitor.querySelector('#streamSqwidzStage');
   if(active&&!stage){stage=document.createElement('section');stage.id='streamSqwidzStage';stage.className='stream-sqwidz-stage';stage.setAttribute('aria-label','Sqwidz viewing screen');monitor.append(stage)}
+  if(stage&&!stage.dataset.verticalNavigation){
+   stage.dataset.verticalNavigation='1';stage.tabIndex=0;
+   stage.setAttribute('aria-label','Sqwidz viewing screen · swipe up or down for another post');
+   let lastAdvance=0,touchY=null;
+   const advance=direction=>{if(state.category!=='sqwibz'||sqPosts.length<2||Date.now()-lastAdvance<500)return;lastAdvance=Date.now();sqIndex=(sqIndex+direction+sqPosts.length)%sqPosts.length;sqDraw()};
+   stage.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)<20||e.target.closest('video,audio,input,button'))return;e.preventDefault();advance(e.deltaY>0?1:-1)},{passive:false});
+   stage.addEventListener('touchstart',e=>{touchY=e.touches[0]?.clientY},{passive:true});
+   stage.addEventListener('touchend',e=>{const y=e.changedTouches[0]?.clientY;if(touchY!==null&&Math.abs(touchY-y)>50)advance(touchY>y?1:-1);touchY=null},{passive:true});
+   stage.addEventListener('keydown',e=>{if(e.target!==stage||!['ArrowDown','ArrowUp'].includes(e.key))return;e.preventDefault();advance(e.key==='ArrowDown'?1:-1)});
+  }
   if(stage)stage.hidden=!active;
   if(!active){if(mediaPortal)mediaPortal.style.display='';return}
   if(mediaPortal){mediaPortal.querySelectorAll('video,audio').forEach(el=>{try{el.pause()}catch{}});mediaPortal.replaceChildren();mediaPortal.style.display='none'}

@@ -7,7 +7,7 @@
  const config={
   camera:{title:'booth',selector:'.booth-tabs',icon:'bookini'},
   stream:{title:'stream',stream:true},
-  notes:{title:'sqwidz',icon:'sqwibblR'},
+  notes:{title:'sqwidz',selector:'.diary-section-nav',icon:'sqwibblR'},
   projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
   tools:{title:'lwazi',icon:'r-editor'}

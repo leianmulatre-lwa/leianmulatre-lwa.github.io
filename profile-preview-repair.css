@@ -85,3 +85,12 @@ html #studioApp .topbar.topbar.profile-header-repaired{grid-template-columns:76p
 #lwaProfileLoading[data-account-save-state="saving"]::after{content:'•••';font-size:12px;animation:account-save-pulse 1s infinite alternate}
 #lwaProfileLoading[data-account-save-state="retry"]::after{content:'!';font-size:14px;color:#b43c3c}
 @keyframes account-save-pulse{to{opacity:.3}}
+
+/* Sqwib paper uses the same green ruling in the banner, tile and writer. */
+#studioApp#studioApp .profile-card .profile-identity-rail>.weekly-mood-card[data-mood-style="qwiky-note"],
+#studioApp#studioApp #moduleWritingArea.qwiky-note-input{
+ background-color:#e5f1da!important;background-image:repeating-linear-gradient(transparent 0 23px,#31835640 23px 24px)!important;color:#234a31!important;
+}
+#studioApp#studioApp .weekly-mood-card[data-mood-style="qwiky-note"]>span{color:#316b45!important}
+#studioApp#studioApp .weekly-mood-card[data-mood-style="qwiky-note"]::after{background:linear-gradient(135deg,transparent 49%,#a6c39c 50%)!important}
+#studioApp .sqz-compose>.sqz-title{padding:0 0 10px;margin:0;border-bottom:1px solid #31835640}
