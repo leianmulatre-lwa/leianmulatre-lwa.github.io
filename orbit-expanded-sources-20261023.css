@@ -1,0 +1,48 @@
+/* BIG LWA 2026: distinct new Orbit planets and compact provider markers.
+ * Styling only: these services are public-link connections until official APIs are configured. */
+#studioApp .orbit-grid button[data-orbit-app="instagram"] .orbit-glyph,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="instagram"] .orbit-platform-badge{
+ --planet:radial-gradient(circle at 27% 24%,#fff1cc 0 6%,transparent 7%),linear-gradient(145deg,#ffe1a0,#ffad65 48%,#f27e52 100%)!important;
+ background:var(--planet)!important;color:#633529!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="instagram"]{box-shadow:3px 3px 0 #ffad65!important}
+#studioApp .orbit-grid button[data-orbit-app="drive"] .orbit-glyph,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="drive"] .orbit-platform-badge{
+ --planet:radial-gradient(circle at 28% 25%,#fff9d1 0 7%,transparent 8%),linear-gradient(135deg,#fff1a9,#e7be31 50%,#b89120)!important;
+ background:var(--planet)!important;color:#4c3508!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="drive"] .orbit-glyph::after{
+ border-color:#d1a92d!important;border-left-color:#fff0a4!important;border-right-color:#af8223!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="drive"]{box-shadow:3px 3px 0 #e7be31!important}
+#studioApp .orbit-grid button[data-orbit-app="xbox"] .orbit-glyph,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="xbox"] .orbit-platform-badge{
+ --planet:radial-gradient(circle at 29% 25%,#ecffd0 0 8%,transparent 9%),linear-gradient(135deg,#d4f8a6,#a3d65e 50%,#579138)!important;
+ background:var(--planet)!important;color:#1f4b16!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="vsco"] .orbit-glyph,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="vsco"] .orbit-platform-badge{
+ --planet:radial-gradient(circle at 28% 25%,#fce1f2 0 7%,transparent 8%),linear-gradient(135deg,#ed68ab,#b51668 52%,#790a47)!important;
+ background:var(--planet)!important;color:#fff!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="bereal"] .orbit-glyph,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="bereal"] .orbit-platform-badge{
+ --planet:radial-gradient(circle at 27% 23%,#f8f9ff 0 7%,transparent 8%),linear-gradient(135deg,#a3a8b0,#777b83 52%,#464953)!important;
+ background:var(--planet)!important;color:#fff!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="substack"] .orbit-glyph,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="substack"] .orbit-platform-badge{
+ --planet:radial-gradient(circle at 28% 25%,#ffd6b5 0 7%,transparent 8%),linear-gradient(135deg,#ee9864,#da521b 52%,#8e310d)!important;
+ background:var(--planet)!important;color:#fff!important;
+}
+#studioApp .orbit-grid button[data-orbit-app="vsco"]{box-shadow:3px 3px 0 #b51668!important}
+#studioApp .orbit-grid button[data-orbit-app="bereal"]{box-shadow:3px 3px 0 #777b83!important}
+#studioApp .orbit-grid button[data-orbit-app="substack"]{box-shadow:3px 3px 0 #da521b!important}
+#studioApp .orbit-grid button[data-orbit-app="xbox"]{box-shadow:3px 3px 0 #a3d65e!important}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="vsco"]{--orbit-platform:#b51668}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="bereal"]{--orbit-platform:#777b83}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="substack"]{--orbit-platform:#da521b}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="xbox"]{--orbit-platform:#a3d65e}
+.biglwa-satellite-link{display:inline-flex;align-items:center;gap:6px;border:1px solid #c8b3a7;border-radius:8px;background:#fff7ed;color:#4b3040!important;text-decoration:none;padding:6px 9px;font:650 11px/1.3 system-ui}
+.biglwa-satellite-link:hover{background:#f7e6d3}
+.biglwa-satellite-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:7px 0 10px}

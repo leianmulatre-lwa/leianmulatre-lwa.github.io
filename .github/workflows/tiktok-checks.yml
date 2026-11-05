@@ -1,0 +1,26 @@
+name: TikTok OAuth integration checks
+on:
+  push:
+    paths:
+      - 'tiktok-orbit.js'
+      - 'cloudflare-worker-instagram.js'
+      - 'orbit-connections.js'
+      - 'module-pages.js'
+      - 'index.html'
+      - 'tiktok-connect-test.mjs'
+      - '.github/workflows/tiktok-checks.yml'
+  workflow_dispatch:
+jobs:
+  tiktok:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate frontend and test syntax
+        run: |
+          node --check tiktok-orbit.js
+          node --check tiktok-connect-test.mjs
+      - name: Run TikTok sign-in integration regression
+        run: node tiktok-connect-test.mjs

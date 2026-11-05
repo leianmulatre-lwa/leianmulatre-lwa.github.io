@@ -1,0 +1,123 @@
+/* Three-body Studio navigation. Does not move cards or touch account layout data. */
+(()=>{
+ 'use strict';
+ if(window.BigLWAThreeBodies)return;
+ const models={
+  individual:{label:'Individual',color:'#d9c6ee',about:'Expression · identity · creative practice'},
+  social:{label:'Social',color:'#f7cddd',about:'People · exchange · community'},
+  political:{label:'Political',color:'#f8d4b0',about:'Civic life · culture · collective action'}
+ };
+ const assignments={
+  diary:'individual',notes:'individual',projects:'individual',camera:'individual',music:'individual',
+  aura:'individual',avatar:'individual',closet:'individual',library:'individual',tools:'individual',
+  calendar:'individual',archive:'individual',trophies:'individual',
+  orbit:'social',connect:'social',feed:'social',veve:'social',stream:'political',rooms:'social',
+  room:'social',boards:'social','guest-check':'social',games:'social',
+  politc:'political',politic:'political',map:'political',learn:'political',didyouknow:'political'
+ };
+ const $=(s,r=document)=>r.querySelector(s);
+ const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+ let focus='all',pending=false;
+ const preferenceKey=()=> 'biglwaBodyIndicators:'+(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'local');
+ function enabled(){try{return localStorage.getItem(preferenceKey())!=='off'}catch{return true}}
+ function setEnabled(value){try{localStorage.setItem(preferenceKey(),value?'on':'off')}catch{}if(!value)focus='all';refresh()}
+
+ function style(){
+  if($('#biglwaThreeBodiesCSS'))return;
+  const node=document.createElement('style');node.id='biglwaThreeBodiesCSS';
+  node.textContent=[
+   // The hero used to leave 40px beneath the shortcut cards; reclaim that dead space.
+   '#studioApp .hero{padding-bottom:5px!important;row-gap:12px!important;margin-bottom:0!important}',
+   '#studioApp .hero .mobile-dock.hero-action-bar{margin-top:0!important;margin-bottom:0!important}',
+   // A compact, intrinsic-size selector, not another full-width Studio section.
+   '#studioApp .biglwa-body-guide{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;align-self:flex-start!important;justify-self:start!important;width:max-content!important;max-width:calc(100% - 16px)!important;min-height:0!important;gap:9px!important;flex-wrap:wrap;margin:0 0 8px var(--body-guide-offset,16px)!important;padding:5px 8px!important;border:1px solid rgba(103,30,55,.28);border-radius:9px!important;background:linear-gradient(110deg,rgba(107,30,59,.17),rgba(126,45,77,.10))!important;color:#5a1c34!important}',
+   '#studioApp .biglwa-body-guide-label{display:flex!important;align-items:center!important;gap:6px!important;white-space:nowrap}',
+   '#studioApp .biglwa-body-guide-label strong{font:800 10px/1.15 Georgia,serif;letter-spacing:.02em;color:#63213c!important;opacity:1!important}',
+   '#studioApp .biglwa-body-guide-label small{font:600 9px/1.15 system-ui;color:#5d283d!important;opacity:1!important}',
+   '#studioApp .biglwa-body-keys{display:inline-flex!important;align-items:center!important;flex-wrap:wrap;gap:4px!important;width:auto!important;margin:0!important}',
+   '#studioApp .biglwa-body-keys button{box-sizing:border-box!important;position:relative!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;height:25px!important;min-height:25px!important;min-width:0!important;gap:4px!important;padding:3px 8px!important;border:1px solid #a78b9b!important;border-radius:6px!important;background:var(--body-key-color,#f4e7f2)!important;color:#34282e!important;font:700 10px/1.1 system-ui!important;cursor:pointer!important;transform:none!important;outline:0;box-shadow:none!important;vertical-align:middle!important}',
+   '#studioApp .biglwa-body-keys button:is(:hover,:focus-visible,[aria-pressed="true"]){box-shadow:inset 0 0 0 2px rgba(75,48,66,.38)!important;transform:none!important;outline-offset:0!important}',
+   '#studioApp .biglwa-body-keys button:focus-visible{outline:2px solid #805a83!important;outline-offset:2px!important}',
+   // Rings follow the card outline evenly on all four sides; no offset drop shadow.
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded){box-shadow:0 0 0 3px var(--three-body-color,#dfd4e7)!important;transition:box-shadow .18s ease,outline-color .18s ease!important}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within){box-shadow:0 0 0 5px var(--three-body-color,#dfd4e7)!important}',
+   '#studioApp .masonry{margin-top:0!important;padding-top:0!important}',
+   '#studioApp [data-body-model="individual"]{--three-body-color:#d9c6ee!important}',
+   '#studioApp [data-body-model="social"]{--three-body-color:#f7cddd!important}',
+   '#studioApp [data-body-model="political"]{--three-body-color:#f8d4b0!important}',
+   '#studioApp .masonry>.card .biglwa-body-tag{position:relative;display:inline-flex;align-items:center;margin:4px 7px 2px 0;padding:3px 7px;border-radius:6px;background:var(--three-body-color,#eee);color:#433a40;font:650 9px/1.25 system-ui;letter-spacing:.02em}',
+   '#studioApp[data-body-focus]:not([data-body-focus="all"]) .masonry>.card[data-body-model]:not([data-body-model-focus="true"]){opacity:.4;filter:saturate(.64)}',
+   '#studioApp .masonry>.card[data-body-model-focus="true"]{opacity:1!important;filter:none!important}',
+   '@media(max-width:600px){#studioApp .biglwa-body-guide{max-width:calc(100% - 12px)!important;gap:5px!important;margin-left:var(--body-guide-offset,10px)!important}#studioApp .biglwa-body-guide-label small{display:none}#studioApp .hero{padding-bottom:6px!important}}',
+   '@media(prefers-reduced-motion:reduce){#studioApp [data-body-model]{transition:none!important}}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded):not(:hover):not(:focus-within),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded):not(:hover):not(:focus-within){box-shadow:0 4px 12px rgba(44,31,34,.08)!important}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within){box-shadow:0 0 0 3px var(--three-body-color,#dfd4e7)!important}',
+   '#studioApp .hero-widget-rail>#biglwaAuraAvatarPair{column-gap:14px!important}',
+   '#studioApp .biglwa-body-guide{margin:1px 0 3px var(--body-guide-offset,16px)!important}',
+   '#studioApp .hero .mobile-dock.hero-action-bar{margin-bottom:0!important}',
+   // Consistent spacing and hover-only category rings (the final overrides).
+   '#studioApp .hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}',
+   '#studioApp:not(.profile-editor-wallpaper) .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail>#biglwaAuraAvatarPair{gap:14px!important}',
+   '#studioApp .hero{padding-bottom:0!important;margin-bottom:-5px!important}',
+   '#studioApp .mobile-dock.hero-action-bar{margin-bottom:0!important}',
+   '#studioApp .biglwa-body-guide{margin:-3px 0 3px 4px!important;padding:4px 6px!important;gap:6px!important}',
+   '#studioApp .masonry{margin-top:0!important;padding-top:0!important}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded){box-shadow:0 4px 12px rgba(44,31,34,.08)!important}',
+   '#studioApp .masonry>.card[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within),#studioApp .hero-widget-rail .customizable-widget[data-body-model]:not(.widget-is-expanded):is(:hover,:focus-within){box-shadow:0 0 0 3px var(--three-body-color,#dfd4e7),0 6px 16px rgba(44,31,34,.1)!important}',
+   '#studioApp .biglwa-body-keys button:not(:hover):not(:focus-visible){box-shadow:none!important}',
+   '#studioApp .biglwa-body-keys button:is(:hover,:focus-visible){box-shadow:0 0 0 2px var(--body-key-color,#e4cbe9)!important;transform:none!important}',
+   '#studioApp .music-card #profileMusicOpen{position:absolute!important;top:4px!important;left:auto!important;right:76px!important;z-index:5!important;max-width:66px!important;min-height:18px!important;height:18px!important;padding:2px 4px!important;font:800 8px/1 system-ui!important;letter-spacing:0!important;white-space:nowrap!important;box-sizing:border-box!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair){grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.profile-card{grid-column:1/-1!important;grid-row:1!important;width:100%!important;max-width:100%!important;min-width:0!important;position:relative!important;margin:0!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail{grid-column:1/-1!important;grid-row:2!important;width:100%!important;margin-top:12px!important}',
+   '#studioApp.profile-editor-wallpaper .hero:has(#biglwaAuraAvatarPair)>.hero-action-bar{grid-column:1/-1!important;grid-row:3!important;margin-top:8px!important}',
+   '#studioApp .profile-editor-tabs{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important;padding:8px 0!important}',
+   '#studioApp .profile-editor-tabs button{opacity:1!important;visibility:visible!important;min-height:32px!important;border:1px solid #826770!important;border-radius:8px!important;background:#f8edf0!important;color:#503744!important;font:800 11px/1.25 system-ui!important;padding:6px 12px!important;box-shadow:0 2px 5px rgba(40,24,32,.12)!important}',
+   '#studioApp .profile-editor-tabs button[aria-selected="true"]{background:#d95b70!important;color:#fff!important;border-color:#b33c55!important;box-shadow:0 0 0 2px rgba(217,91,112,.18)!important}',
+   '#studioApp .profile-editor-actions .profile-editor-save{background:#d95b70!important;color:#fff!important}',
+   '#studioApp #profileMediaEditor .biglwa-media-aura-color{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0!important;max-width:330px;padding:9px 12px;border:1px solid rgba(101,75,78,.24);border-radius:10px;background:rgba(255,255,255,.2);font:750 12px system-ui}',
+   '#studioApp #profileMediaEditor .biglwa-media-aura-color input{width:44px;min-width:44px;height:34px;border:0;background:transparent;cursor:pointer}'
+  ].join('\n');
+  document.head.append(node);
+ }
+ function modelOf(card){
+  const key=String(card.dataset.widgetRoute||card.id||card.dataset.widgetId||'').toLowerCase();
+  return assignments[key]||'individual';
+ }
+ function applyFocus(app){
+  if(!app)return;app.dataset.bodyFocus=focus;
+  $$('.masonry>.card[data-body-model]',app).forEach(card=>{
+   const selected=focus==='all'||card.dataset.bodyModel===focus;
+   if(card.dataset.bodyModelFocus!==String(selected))card.dataset.bodyModelFocus=String(selected);
+  });
+  $$('#biglwaBodyFilters button[data-body-filter]').forEach(button=>{
+   const selected=button.dataset.bodyFilter===focus;
+   if(button.getAttribute('aria-pressed')!==String(selected))button.setAttribute('aria-pressed',String(selected));
+  });
+ }
+ function refresh(){
+  style();
+  const app=$('#studioApp'),masonry=app?.querySelector('.masonry');if(!masonry)return;
+  $('#biglwaBodyGuide')?.remove();
+  app.dataset.bodyIndicators=enabled()?'on':'off';
+  const toggle=$('#skeletonBodyIndicators');if(toggle)toggle.checked=enabled();
+  for(const card of [...masonry.children]){
+   if(!card.classList.contains('card'))continue;
+   const model=modelOf(card);
+   if(card.dataset.bodyModel!==model)card.dataset.bodyModel=model;
+   card.querySelectorAll('.biglwa-body-tag').forEach(badge=>badge.remove());
+  }
+  $$('#studioApp .hero-widget-rail .customizable-widget').forEach(card=>{
+   const model=modelOf(card);if(card.dataset.bodyModel!==model)card.dataset.bodyModel=model;
+  });
+  applyFocus(app);
+ }
+ function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;refresh()});}
+ window.BigLWAThreeBodies=Object.freeze({models,assignments,refresh,enabled,setEnabled,focusModel:model=>{
+  if(model==='all'||models[model])focus=model;refresh();
+ }});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
+ new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true});
+ document.addEventListener('biglwa:module-close',schedule);
+ window.addEventListener('biglwa:identity-updated',()=>{focus='all';schedule()});
+})();

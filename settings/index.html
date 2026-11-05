@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settings — Big LWA</title>
+<meta name="description" content="Manage your Big LWA account email and password, find support, and read your rights.">
+<link rel="canonical" href="https://biglwa.com/settings/">
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="/stitched-crest.css?v=20260918-mask-fix-3">
+<style>
+:root{color-scheme:light;--paper:#f8f4ed;--ink:#221f1d;--muted:#605750;--red:#a53332;--line:#d9cfc1;--ok:#3f7d52}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,-apple-system,sans-serif}
+a{color:inherit;text-underline-offset:5px}a:hover{color:var(--red)}a:focus-visible{outline:3px solid var(--red);outline-offset:5px}
+.skip{position:absolute;left:16px;top:-80px;z-index:10;background:white;color:#221f1d;padding:8px}.skip:focus{top:8px}
+header,main,footer{width:min(1240px,calc(100% - 32px));margin:auto;padding-left:28px;padding-right:28px}
+header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:20px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.brand{display:inline-flex;align-items:center;justify-content:flex-start;width:128px;height:64px;color:var(--ink);text-decoration:none}.brand .biglwa-stitched-crest{width:120px;height:58px;color:var(--ink)}nav{display:flex;flex-wrap:wrap;gap:12px 24px;font-size:14px}
+.hero{padding:50px 0 44px}.eyebrow{font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--red);margin:0 0 18px}
+h1,h2,h3{font-family:Georgia,'Times New Roman',serif;line-height:1.1;font-weight:700;margin:0}
+h1{font-size:clamp(34px,4.2vw,54px);letter-spacing:-1.5px;max-width:720px}h2{font-size:clamp(27px,3.4vw,38px);letter-spacing:-.8px}h3{font-size:23px}
+p{margin:16px 0}.intro{font-size:18px;max-width:680px}
+section{padding:42px 0;border-top:1px solid var(--line)}.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:20px;margin-bottom:26px}.number{font-size:14px;color:var(--red)}
+.lights{display:flex;gap:6px;margin-bottom:22px}.lights i{display:block;width:9px;height:9px;border-radius:50%;background:#ba4843}.lights i:nth-child(2){background:#d7ad36}.lights i:nth-child(3){background:#558763}
+.card{padding:26px;border:1px solid var(--line);border-radius:16px;background:#fffdf9}.card p{color:var(--muted);margin-bottom:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.identity{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:6px 0 20px}
+.identity .email{font:600 18px/1.3 Inter,system-ui,sans-serif;word-break:break-all}
+.badge{display:inline-block;padding:4px 11px;border-radius:30px;font:650 13px/1.2 Inter,system-ui,sans-serif}
+.badge.ok{background:rgba(63,125,82,.12);border:1px solid var(--ok);color:var(--ok)}
+.badge.warn{background:rgba(165,51,50,.1);border:1px solid var(--red);color:var(--red)}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+label.field{display:block;margin:18px 0 0;font:650 14px/1.3 Inter,system-ui,sans-serif}
+input[type=email]{width:min(420px,100%);margin-top:7px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;font:inherit}
+input[type=email]:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+button,.button{display:inline-block;cursor:pointer;border-radius:999px;padding:12px 22px;font:650 15px/1.2 Inter,system-ui,sans-serif;text-decoration:none;background:var(--ink);color:#fff;border:1px solid var(--ink)}
+button:hover,.button:hover{background:var(--red);border-color:var(--red);color:#fff}
+button.secondary,.button.secondary{background:transparent;color:var(--ink);border-color:var(--line)}
+button.secondary:hover,.button.secondary:hover{background:#eee5d9;border-color:var(--red);color:var(--red)}
+button:disabled{opacity:.45;cursor:default}
+.status{min-height:24px;margin:16px 0 0;font:500 15px/1.5 Inter,system-ui,sans-serif;color:var(--muted)}
+.status.good{color:var(--ok)}.status.bad{color:var(--red)}
+.note{margin-top:30px;border-left:3px solid var(--red);padding-left:22px;color:var(--muted)}.note p:first-child{margin-top:0}
+.policy-links{display:flex;flex-wrap:wrap;gap:12px 22px;margin-top:6px;font:600 15px/1.4 Inter,system-ui,sans-serif}
+footer{padding-top:30px;padding-bottom:40px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}footer p{margin:15px 0 0}
+.signed-out{background:#eee5d9;border-radius:16px;padding:26px}
+@media(max-width:760px){header,main,footer{width:min(100% - 20px,1240px);padding-left:20px;padding-right:20px}.grid{grid-template-columns:1fr}.hero{padding:34px 0}.section-head{align-items:flex-start;flex-direction:column;gap:8px}nav{gap:10px 16px}h1{letter-spacing:-1px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+<link rel="stylesheet" href="/brand-policy.css?v=20261023-login-widget-ribbon-1">
+<script src="/account-storage-policy.js?v=20261023-private-shelf-2"></script><script src="/account-storage.js?v=20261023-private-shelf-2"></script></head>
+<body class="about-site">
+<a class="skip" href="#main">Skip to content</a>
+<header>
+  <a class="brand" href="/" aria-label="Big LWA home"><span class="biglwa-stitched-crest" aria-hidden="true"></span></a>
+  <nav aria-label="Main navigation"><a href="#account">Account</a><a href="#privacyControls">Privacy &amp; deletion</a><a href="#cache">Cache &amp; layout</a><a href="#support">Support</a><a href="#rights">Rights</a><a href="/studio">Back to Studio</a></nav>
+</header>
+<main id="main">
+  <div class="hero">
+    <p class="eyebrow">Settings</p>
+    <h1>Your account, your keys, your rights.</h1>
+    <p class="intro">Confirm or change the email on your account, reset your password, reach a human, and read exactly what Big LWA promises you. Account changes take effect immediately.</p>
+  </div>
+
+  <section id="account">
+    <div class="section-head"><h2>Account</h2><span class="number">01 / Account</span></div>
+    <div class="card">
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Sign-in and email</h3>
+      <p id="accountIntro">Your email is how Big LWA reaches you about sign-ins, rights requests, and moderation decisions. It is never shown on your public profile.</p>
+
+      <div id="signedOut" class="signed-out" hidden>
+        <h3>You are signed out</h3>
+        <p>Sign in to confirm your email, change it, or send yourself a password reset link.</p>
+        <div class="row"><a class="button" href="/">Sign in</a></div>
+      </div>
+
+      <div id="signedIn" hidden>
+        <div class="identity">
+          <span class="email" id="accountEmail">&nbsp;</span>
+          <span class="badge" id="accountBadge">&nbsp;</span>
+        </div>
+        <p id="accountProvider" class="status" style="min-height:0"></p>
+
+        <div class="row">
+          <button type="button" id="verifyEmail" class="secondary">Send confirmation email</button>
+          <button type="button" id="resetPassword" class="secondary">Email me a password reset</button>
+        </div>
+
+        <label class="field" for="newEmail">Change your email address
+          <input type="email" id="newEmail" autocomplete="email" placeholder="new-address@example.com" spellcheck="false">
+        </label>
+        <div class="row"><button type="button" id="changeEmail" class="secondary">Change email</button></div>
+
+        <p class="status" id="accountStatus" role="status" aria-live="polite"></p>
+        <div class="row"><button type="button" id="signOut" class="secondary">Sign out</button></div>
+      </div>
+
+      <p class="status" id="accountStatusSignedOut" role="status" aria-live="polite" hidden></p>
+    </div>
+
+    <div class="card" id="connectionsCard" style="margin-top:22px" hidden>
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Connected accounts</h3>
+      <p id="connectionsIntro">Accounts you link to Orbit appear here. They stay linked on this device; unlinking asks you to connect again next time.</p>
+      <div id="connectionsList" class="identity-list"></div>
+    </div>
+
+    <div class="card" id="photoCard" style="margin-top:22px" hidden>
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Profile photo</h3>
+      <p id="photoIntro">Your picture is stored with your account and shown on your studio, on the small avatar in the top right, and on your public profile. It is never posted anywhere else.</p>
+
+      <div class="identity">
+        <span class="biglwa-photo-preview" id="photoPreview" aria-hidden="true"
+              style="width:84px;height:84px;border-radius:50%;background-size:cover;background-position:center;background-image:none;background:linear-gradient(145deg,#2c2523,#d18d6b)"></span>
+        <span>
+          <span class="email" id="photoName">&nbsp;</span><br>
+          <span class="status" id="photoStatus" role="status" aria-live="polite"></span>
+        </span>
+      </div>
+
+      <div class="row">
+        <label class="button secondary" for="photoInput" style="cursor:pointer">Choose a photo</label>
+        <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        <button type="button" id="photoRemove" class="secondary">Remove photo</button>
+      </div>
+    </div>
+
+    <div class="note">
+      <p><strong>Changing your email is verified, not assumed.</strong> Big LWA sends a confirmation to the new address and only swaps it once you click that link, so nobody can take over your account by typing your name into a form.</p>
+      <p>Password reset links are single-use and expire. If you signed in with Google, Apple, or another provider, your password lives with that provider and there is nothing here to reset.</p>
+    </div>
+  </section>
+
+  <section id="discoveryPreferences" aria-labelledby="discoveryPreferencesTitle">
+    <div class="section-head"><h2 id="discoveryPreferencesTitle">L’wazi · discovery & identity</h2><span class="number">Your choices</span></div>
+    <div class="card">
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>What Veve learns from you</h3>
+      <p>Revisit interests and content sensitivity whenever you like. Gender, pronouns, cultural roots and lineage are entirely optional and kept private. We do not use them to infer your interests or rank Veve posts.</p>
+      <div class="row"><button class="button secondary" id="lwaEditPreferences" type="button">Edit interests & sensitivity</button></div>
+      <p class="status" id="lwaSettingsStatus" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section id="privacyControls">
+    <div class="section-head"><h2>Privacy & account deletion</h2><span class="number">02 / Control</span></div>
+    <div class="card">
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Who can view your Studio?</h3>
+      <p>Private profile mode shows visitors only your profile's banner, avatar, Aura, music and Guest Check. Your full Studio remains yours. Any content you've already published separately may require additional unpublishing.</p>
+      <label class="row" for="privateAccountToggle" style="align-items:center;gap:12px;cursor:pointer">
+        <input id="privateAccountToggle" type="checkbox" style="width:20px;height:20px;accent-color:var(--red)" disabled>
+        <strong>Private account</strong>
+      </label>
+      <p class="status" id="privateAccountStatus" role="status" aria-live="polite">Sign in to load your profile privacy setting.</p>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>Delete your Big LWA account</h3>
+      <p>Request removal of your profile, posts, Orbit links, private writing, and stored media. We will verify your request and complete deletion across connected storage. This request does not immediately erase your login or content.</p>
+      <label class="field" for="accountDeletionConfirm">Type <strong>DELETE</strong> to request permanent account deletion
+        <input id="accountDeletionConfirm" type="text" autocomplete="off" spellcheck="false" placeholder="DELETE">
+      </label>
+      <div class="row"><button type="button" id="requestAccountDeletion" class="secondary" disabled>Request account deletion</button></div>
+      <p class="status" id="accountDeletionStatus" role="status" aria-live="polite">Sign in to submit a verified deletion request.</p>
+    </div>
+  </section>
+
+  <section id="cache">
+    <div class="section-head"><h2>Cache &amp; layout</h2><span class="number">02 / Your workspace</span></div>
+    <div class="grid">
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Clear temporary cache</h3>
+        <p>Remove downloaded offline files and temporary site caches if images or widgets look outdated. Your saved layout, posts, projects, Orbit connections, account settings, and sign-in are not deleted.</p>
+        <div class="row"><button type="button" id="clearTemporaryCache" class="secondary">Clear cached site files</button></div>
+        <p class="status" id="clearCacheStatus" role="status" aria-live="polite">Only temporary cache files will be removed.</p>
+        <p style="font-size:12px;color:var(--muted)">Note: browsers also keep their own HTTP cache; this button clears Big LWA's accessible Cache Storage, not all browser history.</p>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Stable Studio layout</h3>
+        <p>Politc, Tools, Calendar, and other essentials appear early by default. When you move a widget or change your shortcut bar, BIG LWA saves its position to your account. Nothing should shuffle just because you reload or change devices.</p>
+        <div class="row"><a class="button secondary" href="/studio">Open your Studio</a><a class="button secondary" href="/studio?tutorial=1">Replay the Big LWA tutorial</a></div>
+        <p class="status" id="layoutSaveStatus" role="status" aria-live="polite">Your saved arrangement is separate from temporary caches. To move a widget using a keyboard, focus its drag handle and hold Alt while pressing an arrow key.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="support">
+    <div class="section-head"><h2>Support</h2><span class="number">03 / Support</span></div>
+    <div class="grid">
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Email a human</h3>
+        <p>Account trouble, moderation questions, bug reports, or a rights request that needs a real reply. Expect a response from Leian.</p>
+        <div class="row"><a class="button secondary" href="mailto:leian@biglwa.com">leian@biglwa.com</a></div>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Instagram</h3>
+        <p>Quick questions, updates, and anything that does not need your account details. Never send a password or a reset link over DM.</p>
+        <div class="row"><a class="button secondary" href="https://www.instagram.com/leianstanley/" target="_blank" rel="noopener noreferrer">Message Leian</a></div>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Support the work</h3>
+        <p>Big LWA is independently built and in active development. Patreon keeps the archive, the research, and the hosting paid for.</p>
+        <div class="row"><a class="button secondary" href="https://www.patreon.com/cw/biglwa" target="_blank" rel="noopener noreferrer">Support on Patreon</a></div>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Something urgent</h3>
+        <p>If your likeness or work is being misused, do not wait on a support queue. Use the rights process below so the report is recorded with dates and evidence attached.</p>
+        <div class="row"><a class="button secondary" href="/rights">Rights &amp; Likeness</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="rights">
+    <div class="section-head"><h2>Rights and data</h2><span class="number">04 / Rights</span></div>
+    <p>Big LWA is still being built, so here is plainly what you can hold us to and where the promises are written down.</p>
+    <div class="grid">
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>You keep authorship</h3>
+        <p>Posting here does not transfer ownership of your work to Big LWA. Read the full promise, including what happens when a matter reaches court.</p>
+        <div class="row"><a class="button secondary" href="/rights">Read the promise</a></div>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Your data, plainly</h3>
+        <p>Your account document is private. Your approved wallpaper is stored in Cloudflare object storage and shown to visitors through Big LWA, never through a third-party media host. Uncertain media is held for review and is not public.</p>
+        <div class="row"><a class="button secondary" href="/privacy">Read the Privacy Policy</a></div>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>The rules of the room</h3>
+        <p>What participating on Big LWA asks of you, what it asks of us, and what happens when someone breaks those terms.</p>
+        <div class="row"><a class="button secondary" href="/terms">Read the Terms</a></div>
+      </article>
+      <article class="card">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Good faith, in writing</h3>
+        <p>The affidavit describing the educational, cultural, and community purposes this project is built around, signed by the founder.</p>
+        <div class="row"><a class="button secondary" href="/affidavit">Read the affidavit</a></div>
+      </article>
+    </div>
+    <nav class="policy-links" aria-label="Policy pages"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/affidavit">Good Faith</a><a href="/rights">Rights &amp; Likeness</a><a href="/about/">About</a></nav>
+    <p class="status" id="rightsNote">To correct or delete your account data, email <a href="mailto:leian@biglwa.com">leian@biglwa.com</a> from your account address so the request can be tied to the right person.</p>
+  </section>
+</main>
+<footer class="public-page-footer"><nav aria-label="Footer navigation"><a href="/about/">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/affidavit">Good Faith</a><a href="/rights">Rights &amp; Likeness</a></nav><p>Big LWA · Founded by Leian Stanley · All rights reserved.</p></footer>
+<script src="/supporter-logos.js?v=20260913-public-supporters-2"></script>
+<script src="/policy-card-cohesion.js?v=20260913-public-supporters-4"></script>
+<script src="/lwa-welcome.js?v=20261027-first-lwazi-1"></script>
+<script src="/settings-account.js?v=20261022-tv-signout-3"></script>
+<script src="/settings-cache.js?v=20261014-safe-cache-1"></script>
+<script type="module" src="/settings-photo.js?v=20261027-photo-position-1"></script>
+<script defer src="/section-scroll-assistant-20261020.js?v=20261020-global-smooth-assistant-3"></script></body>
+</html>

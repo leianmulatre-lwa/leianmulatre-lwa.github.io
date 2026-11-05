@@ -1,0 +1,51 @@
+/* 2026-10-29: Trophies versions + consistent masthead optical bounds.
+   One invisible fixed image box constrains every route mark. Real Rank and
+   Trophy Case are separate page versions, not two panels crammed side by side. */
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-version-pane[hidden]{display:none!important}
+#studioApp .module-workspace[data-module-key="trophies"] .module-heading{
+ grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .module-heading .module-heading-right{
+ display:flex!important;justify-content:flex-end!important;align-items:center!important;
+ min-width:0!important;grid-column:2!important;grid-row:1!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-heading-versions{
+ display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:nowrap!important;
+ margin:0!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-heading-versions button{
+ white-space:nowrap!important;min-width:0!important;
+ padding:8px 12px!important;transition:background .15s ease!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-heading-versions button[aria-pressed="true"]{
+ background:#602839!important;color:#fff5ed!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-rank-panel{
+ min-width:0!important;max-width:100%!important;
+ padding:clamp(15px,2.6vw,30px)!important;overflow:hidden!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-rank-panel>h2{
+ margin:0 0 6px!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-case-version{
+ display:grid!important;grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr)!important;
+ gap:18px!important;align-items:start!important;
+}
+#studioApp .module-workspace[data-module-key="trophies"] .trophy-display-case{
+ min-width:0!important;align-self:start!important;
+}
+#studioApp #trophyPreview>.biglwa-default-trophy-image{
+ display:block!important;width:100%!important;height:auto!important;
+ margin:0!important;object-fit:contain!important;
+}
+#studioApp #trophies .trophy-preview:has(>.biglwa-default-trophy-image){
+ min-height:0!important;align-content:start!important;
+}
+/* Masthead rules live in the shared masthead stylesheet, not page styles. */
+@media(max-width:850px){
+ #studioApp .module-workspace[data-module-key="trophies"] .trophy-case-version{grid-template-columns:1fr!important}
+}
+@media(max-width:720px){
+ #studioApp .module-workspace[data-module-key="trophies"] .module-heading{grid-template-columns:1fr!important}
+ #studioApp .module-workspace[data-module-key="trophies"] .module-heading .module-heading-right{grid-column:1!important;grid-row:auto!important;justify-content:flex-start!important}
+}
