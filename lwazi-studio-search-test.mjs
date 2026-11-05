@@ -72,6 +72,10 @@ assert.match(panel().textContent,/Songs on Bandcamp/);
 assert.equal(calls.filter(([type])=>type==='external').length,2);
 
 const entry = read('index.html');
+const entryDocument = new JSDOM(entry).window.document;
+for (const script of entryDocument.scripts) {
+  if (!script.type && !script.src) assert.doesNotThrow(()=>new window.Function(script.textContent));
+}
 assert.match(entry,/user-search-results\.js\?v=20261104-studio-search-2/);
 assert.match(entry,/lwazi-studio-search\.css\?v=20261104-studio-search-2/);
 assert.doesNotMatch(entry,/__biglwaSearchBound/);
