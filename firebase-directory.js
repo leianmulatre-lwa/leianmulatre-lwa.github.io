@@ -451,6 +451,27 @@ export async function searchUsers(rawQuery){
   }
 }
 
+// Search previews use the public Feed collection, never the owner's Archive.
+async function searchPublishedPosts(rawUsername){
+  const username=normalize(rawUsername);
+  if(!validUsername(username))return [];
+  const {db}=await getFirebase();
+  const {doc,getDocFromServer,collection,query,where,limit,getDocsFromServer}=
+    await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+  const profile=(await getDocFromServer(doc(db,"usernames",username))).data();
+  if(!profile?.uid||profile.accountVisibility==='private')return [];
+  const snap=await getDocsFromServer(query(collection(db,"posts"),
+    where("uid","==",profile.uid),where("state","==","approved"),limit(30)));
+  const time=post=>Number(post.sourceCreatedAtMs)||post.createdAt?.toMillis?.()||Date.parse(post.sourceCreatedAt)||0;
+  return snap.docs.map(item=>item.data())
+    .filter(post=>{
+      const label=String(post.contentRating||post.sensitivity||post.contentWarning||'').toLowerCase();
+      return !post.ageRestricted&&!post.adultOnly&&!post.isSensitive&&!post.isMature&&
+        !['adult','explicit','nsfw','18+','mature','sensitive','violence','strong-themes'].includes(label);
+    })
+    .sort((a,b)=>time(b)-time(a)).slice(0,4);
+}
+
 async function autoSyncSignedInAccount(){
   try{
     const {auth}=await getFirebase();
@@ -533,7 +554,7 @@ async function recordAnalyticsMonth(month,snapshot){
  return data;
 }
 
-window.BigLWAUserDirectory={getAccountOverview,addPerson,recordAnalyticsMonth,saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
+window.BigLWAUserDirectory={getAccountOverview,addPerson,recordAnalyticsMonth,saveProfile,searchUsers,searchPublishedPosts,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
 
 (async()=>{
   try{
