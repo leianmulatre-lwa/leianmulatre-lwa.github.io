@@ -156,7 +156,8 @@
     const query = String(raw??'').trim().replace(/^ask\s+l[’']?wazi\b\s*[:,]?\s*/i,'');
     const studio = trigger?.closest('#studioApp') || document.getElementById('studioApp');
     const bar = studio?.querySelector('.topbar');
-    if (!bar) return;
+    const workspace = studio?.querySelector('.main');
+    if (!bar || !workspace) return;
     const route = routeFor(query);
     if (route && typeof window.openBIGLWAModule==='function') {
       close({restoreFocus:false});
@@ -177,7 +178,7 @@
       '</h2></div><button type="button" class="bl-search-close">Close results</button></div>'+
       '<div class="bl-search-local"></div><div class="bl-search-discovery"></div><p class="bl-search-status" role="status"></p>';
     panel = results;
-    bar.after(results);
+    workspace.prepend(results);
     origin?.setAttribute('aria-expanded','true');
     results.querySelector('.bl-search-close').onclick = () => close();
     const heading = results.querySelector('h2');

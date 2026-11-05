@@ -96,3 +96,9 @@ body.night-mode #studioApp .bl-search-panel {
   cursor: pointer;
 }
 #studioApp .bl-lwazi-button img { width: 24px; height: 24px; object-fit: contain; }
+/* Studio keeps its fixed Skeleton Key visible where the main column loses its offset. */
+@media (max-width: 900px) {
+  #studioApp .bl-search-panel { margin-left: calc(116px + clamp(12px, 2vw, 32px)); }
+  body.sidebar-collapsed #studioApp .bl-search-panel { margin-left: calc(58px + clamp(12px, 2vw, 32px)); }
+  .bl-search-head { flex-wrap: wrap; }
+}

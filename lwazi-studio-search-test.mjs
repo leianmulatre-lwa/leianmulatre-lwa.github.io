@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const {JSDOM} = createRequire(import.meta.url)('jsdom');
 const read = name => readFileSync(new URL(name,import.meta.url),'utf8');
-const dom = new JSDOM('<main id="studioApp"><header class="topbar"><div class="search-wrap"><input id="globalSearch"></div></header><section class="hero">Studio widgets</section></main>', {
+const dom = new JSDOM('<div id="studioApp"><header class="topbar"><div class="search-wrap"><input id="globalSearch"></div></header><main class="main"><section class="hero">Studio widgets</section></main></div>', {
   runScripts:'outside-only', url:'https://biglwa.com/studio'
 });
 const {window} = dom;
@@ -35,7 +35,7 @@ enter('archive');
 assert.deepEqual(calls,[['route','archive']]);
 assert.equal(panel(),null);
 enter('How can I find a hairstyle?');
-assert.equal(document.querySelector('.topbar').nextElementSibling,panel());
+assert.equal(document.querySelector('.main').firstElementChild,panel());
 assert.equal(panel().nextElementSibling.className,'hero');
 assert.equal(document.querySelector('[role=dialog]'),null);
 panel().querySelector('[data-hair-texture=coily]').click();
