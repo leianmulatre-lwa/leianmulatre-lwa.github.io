@@ -1,88 +1,301 @@
-/* BIGLWA discovery search and Lwazi command assistant. */
-(function(){
-  try{
-    function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-    function hueFor(name){var h=0,s=String(name||'u');for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h%360}
-    function avatarText(name,u){var p=String(name||u||'?').trim().split(/\s+/);var a=p[0]?p[0][0]:'?';var b=p.length>1?p[p.length-1][0]:'';return esc((a+b).toUpperCase()||'?')}
-    function localUsers(q){var out=[];try{var v=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');if(Array.isArray(v))out=out.concat(v)}catch(e){}if(Array.isArray(window.__biglwaUsers))out=out.concat(window.__biglwaUsers);var seen={};return out.filter(function(u){var key=String(u&&u.username||'').toLowerCase();if(seen[key])return false;if(!key)return false;if(String(u.username||u.name||'').toLowerCase().indexOf(q)==-1)return false;seen[key]=1;return true}).slice(0,8)}
-    async function searchUsers(q){var hits=[];try{if(window.BigLWAUserDirectory&&window.BigLWAUserDirectory.searchUsers)hits=await window.BigLWAUserDirectory.searchUsers(q)}catch(e){}if(!hits.length)hits=localUsers(q);return hits.slice(0,8)}
-    function userCard(u){var h=hueFor(u.username||u.uid),h2=(h+48)%360;return '<article class="bl-search-card bl-user-card"><div class="bl-user-card-avatar" style="background:linear-gradient(145deg,hsl('+h+',72%,80%),hsl('+h2+',60%,90%));color:hsl('+h+',42%,26%)">'+avatarText(u.name,u.username)+'</div><div class="bl-search-card-body"><span class="bl-search-kicker">BigLWA user</span><h3>'+esc(u.name||u.username)+'</h3><p class="bl-search-muted">@'+esc(u.username)+'</p>'+ (u.bio?'<p>'+esc(u.bio)+'</p>':'')+'<a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(u.username)))+'">View profile &#8594;</a></div></article>'}
-    async function fetchJSON(url){var response=await fetch(url,{headers:{Accept:'application/json'}});if(!response.ok)throw Error('Search source unavailable');return response.json()}
-    async function searchWikipedia(q){var url='https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch='+encodeURIComponent(q+'& ((history) OR (politics) OR (culture) OR (film) OR (music))')+'&format=json&origin=*';var data=await fetchJSON(url);return (data.query&&data.query.search||[]).slice(0,5)}
-    async function searchBooks(q){var data=await fetchJSON('https://openlibrary.org/search.json?q='+encodeURIComponent(q)+'&limit=6');return (data.docs||[]).slice(0,5)}
+/* L’wazi search shares the Studio’s page flow and module router. */
+(() => {
+  const widgetRoutes = {
+    journal:'diary', diary:'diary', notes:'notes', sqwidz:'notes', calendar:'calendar',
+    orbit:'orbit', feed:'feed', 'my feed':'feed', myfeed:'feed', veve:'veve',
+    connect:'connect', camera:'camera', 'photo booth':'camera', booth:'camera',
+    archive:'archive', library:'library', games:'games', arcade:'games', closet:'closet',
+    trophies:'trophies', rooms:'rooms', room:'rooms', boards:'boards', projects:'projects',
+    map:'map', learn:'learn', politics:'politc', politc:'politc', 'did you know':'learn',
+    tools:'tools', 'lwazi workshop':'tools', stream:'stream', 'lwa tv':'stream'
+  };
 
-    var widgetRoutes={
-      journal:'diary',diary:'diary',calendar:'calendar',orbit:'orbit',feed:'feed','my feed':'feed','myfeed':'feed',
-      connect:'connect',camera:'camera','photo booth':'camera',booth:'camera',archive:'archive',library:'library',
-      books:'library',bookiniz:'library',games:'games','arcade':'games',closet:'closet',clothes:'closet',
-      trophies:'trophies',rooms:'rooms',room:'room',boards:'boards',projects:'projects',notes:'notes',
-      map:'map',learn:'learn',politics:'politic','did you know':'didyouknow',lwazi:'games',tools:'tools','lwazi games':'games'
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  })[char]);
+  const routeFor = value => {
+    if (value.startsWith('@')) return null;
+    const command = value.toLowerCase().replace(/[.!]$/, '').replace(/\s+/g, ' ')
+      .replace(/^(?:(?:can you|please) )?(?:open|go to|take me to|show(?: me)?) (?:the )?/, '')
+      .replace(/ (?:widget|open)$/, '');
+    return Object.hasOwn(widgetRoutes, command) ? widgetRoutes[command] : null;
+  };
+  const link = (text, url) => '<a class="bl-search-go" href="'+escape(url)+'" target="_blank" rel="noopener noreferrer">'+escape(text)+' ↗</a>';
+  const profilePath = username => '/'+encodeURIComponent(username);
+  const section = (title, content) => content ? '<section class="bl-search-section"><h3>'+escape(title)+'</h3>'+content+'</section>' : '';
+  const grid = cards => cards.length ? '<div class="bl-search-grid">'+cards.join('')+'</div>' : '';
+  const card = (title, body, action, image = '') => '<article class="bl-search-card">'+image+
+    '<h4>'+escape(title)+'</h4>'+(body?'<p>'+escape(body)+'</p>':'')+action+'</article>';
+  const guide = (title, steps, sources) => section(title,
+    '<ol>'+steps.map(step=>'<li>'+escape(step)+'</li>').join('')+'</ol>'+
+    '<div class="bl-search-sources">'+sources.map(([label,url])=>link(label,url)).join('')+'</div>');
+
+  const aidSources = [
+    ['Federal Student Aid · FAFSA checklist','https://studentaid.gov/articles/things-you-need-for-fafsa/'],
+    ['Federal Student Aid · filling out the form','https://studentaid.gov/articles/fafsa-student-steps/'],
+    ['Immigrants Rising · California college access','https://immigrantsrising.org/resource/quick-guide-to-college-access/']
+  ];
+  const hairSources = [
+    ['American Academy of Dermatology · styles that pull','https://www.aad.org/public/diseases/hair-loss/causes/hairstyles'],
+    ['American Academy of Dermatology · Black hair care','https://www.aad.org/public/everyday-care/hair-scalp-care/hair/care-african-american'],
+    ['Alessandra Haskin and Crystal Aguh · research abstract','https://pubmed.ncbi.nlm.nih.gov/27114262/']
+  ];
+  const hairChoices = {
+    coily:'Try loose two-strand twists, a low loose puff, or a wash-and-go.',
+    curly:'Try a wash-and-go, loose twists, or a loose low ponytail with a soft tie.',
+    wavy:'Try a loose braid, a loose low ponytail, or wearing your waves down.',
+    straight:'Try wearing your hair down, a loose low ponytail, or a loose braid.'
+  };
+
+  function assistance(query) {
+    if (/\b(fafsa|financial aid|pay(?:ing)? for college)\b/i.test(query)) {
+      return guide('Get ready for U.S. college financial aid', [
+        'Start with the year you’ll attend. Check the deadlines for your school and state, then open that year’s FAFSA on StudentAid.gov. The form is free.',
+        'Make your own StudentAid.gov account. If the form asks you to invite a parent or spouse, each contributor uses their own account.',
+        'Gather the tax and financial records requested for that year and make a list of the schools you’re considering. Enter personal information on the official form.',
+        'If you can’t safely contact a parent or your financial situation changed, ask your school’s financial aid office which process applies and what documentation it accepts.',
+        'After submitting, check your FAFSA Submission Summary for corrections or follow-up. Ask your school about state aid, grants and campus scholarships. If FAFSA isn’t available to you, ask about state and campus alternatives.'
+      ], aidSources);
+    }
+    if (/\b(?:gender|body)[ -]affirm(?:ing|ation)\b|\b(?:trans|transition) (?:health|care)\b/i.test(query)) {
+      return guide('Find gender-affirming support and care', [
+        'Start with what you want help with. You can ask about presentation, voice support, finding a clinician or understanding costs. You can explore each at your own pace.',
+        'When contacting a clinic, ask what it offers, how it handles privacy and what it charges before you book. Ask about sliding-scale or self-pay options if cost is a barrier.',
+        'If you use insurance, check the policy for your specific plan. Ask what is covered, which providers are in network and whether you need a referral or prior authorization. Request the policy in writing.',
+        'For medical options, take your questions to a qualified gender-affirming clinician who can explain benefits, risks and follow-up for your situation.'
+      ], [
+        ['Trans Health Project · understand your insurance plan','https://transhealthproject.org/trans-health-insurance-tutorial/understanding-your-plan/'],
+        ['Trans Health Project · apply for coverage','https://transhealthproject.org/trans-health-insurance-tutorial/applying-for-coverage/']
+      ]);
+    }
+    if (/\b(hair|hairstyles?|braids?|protective styles?)\b/i.test(query)) {
+      return section('Find a hairstyle that feels like you',
+        '<p>How does your hair naturally sit? Pick the closest description, or skip straight to the general tips.</p>'+
+        '<div class="bl-search-sources">'+Object.keys(hairChoices).map(type=>
+          '<button type="button" data-hair-texture="'+type+'" aria-pressed="false">'+type[0].toUpperCase()+type.slice(1)+'</button>'
+        ).join('')+'</div><p class="bl-search-hair-choice" role="status"></p>'+
+        guide('Start with low-tension styling',[
+          'Choose a style that feels comfortable around your hairline. Ask for a looser style if braids, extensions or a ponytail pull.',
+          'Switch up where you part or tie your hair. If a style hurts, loosen it.',
+          'If you see thinning or broken hairs around your hairline, ask a dermatologist about the cause.'
+        ],hairSources));
+    }
+    return '';
+  }
+
+  let panel;
+  let origin;
+  let request;
+  function close({restoreFocus = true} = {}) {
+    if (!panel) return;
+    request?.abort();
+    panel.remove();
+    panel = null;
+    origin?.setAttribute('aria-expanded','false');
+    if (restoreFocus && origin?.isConnected) origin.focus({preventScroll:true});
+  }
+
+  async function externalResults(query, signal) {
+    const term = encodeURIComponent(query);
+    const get = async url => {
+      const response = await fetch(url, {signal:AbortSignal.any([signal,AbortSignal.timeout(4500)]),headers:{Accept:'application/json'}});
+      if (!response.ok) throw Error('Source unavailable');
+      return response.json();
     };
-    function normalizeCommand(raw){return String(raw||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()}
-    function routeCommand(raw){var text=normalizeCommand(raw);var match=null;Object.keys(widgetRoutes).forEach(function(alias){if(!match&&(text==='take me to '+alias||text==='open '+alias||text==='go to '+alias||text===alias+' open'||text==='show me '+alias))match=widgetRoutes[alias]});if(match)return match;if(/(^|\s)(journal|diary)(\s|$)/.test(text))return 'diary';return null}
-    function goRoute(route){
-      close();
-      var control=document.querySelector('[data-open="'+route+'"],button[data-widget-route="'+route+'"]');
-      if(control){
-        control.click();
-        return;
+    const [books,wiki] = await Promise.allSettled([
+      get('https://openlibrary.org/search.json?q='+term+'&limit=5&fields=key,title,author_name,first_publish_year'),
+      get('https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=5&srsearch='+term+'&format=json&origin=*')
+    ]);
+    const booksFound = (books.value?.docs || []).filter(book=>/^\/works\/OL\d+W$/.test(book.key));
+    const articles = (wiki.value?.query?.search || []).filter(article=>Number.isSafeInteger(article.pageid));
+    return section('Books',grid(booksFound.map(book=>card(book.title,
+      [...(book.author_name||[]).slice(0,2),book.first_publish_year].filter(Boolean).join(' · '),
+      link('Open Library','https://openlibrary.org'+book.key)))))+
+      section('Background reading',grid(articles.map(article=>card(article.title,'',
+        link('Wikipedia','https://en.wikipedia.org/?curid='+article.pageid)))))+
+      section('Explore more','<div class="bl-search-sources">'+
+        link('Songs on Bandcamp','https://bandcamp.com/search?q='+term+'&item_type=t')+
+        link('Films on Internet Archive','https://archive.org/search?query='+encodeURIComponent(query+' mediatype:movies'))+
+        link('Posts on Tumblr','https://www.tumblr.com/search/'+term)+'</div>')+
+      ([books,wiki].some(result=>result.status==='rejected')?'<p>Some outside sources couldn’t load.</p>':'');
+  }
+
+  async function localResults(query, target, signal) {
+    const username = query.replace(/^@/,'').toLowerCase();
+    if (!/^[a-z0-9._-]{1,24}$/.test(username)) return false;
+    const directory = window.BigLWAUserDirectory;
+    const users = await directory?.searchUsers(username) || [];
+    if (signal.aborted) return false;
+    const exact = users.find(user=>user.username?.toLowerCase()===username);
+    if (users.length) {
+      const ordered = exact ? [exact,...users.filter(user=>user!==exact)] : users;
+      target.innerHTML = section('People on BIG LWA',grid(ordered.map(user=>card(user.name||user.username,
+        '@'+user.username+(user.bio?' · '+user.bio:''),
+        '<a class="bl-search-go" href="'+escape(profilePath(user.username))+'">View profile →</a>'))));
+    }
+    if (exact && typeof directory.searchPublishedPosts==='function') {
+      try {
+        const posts = await directory.searchPublishedPosts(exact.username);
+        if (signal.aborted) return true;
+        const cards = posts.map(post=>{
+          const image = post.thumbnailUrl || post.imageUrl || post.imageUrls?.[0];
+          const preview = /^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/(?:feed-image|orbit-image)\//i.test(image||'')
+            ? '<img class="bl-search-post-image" loading="lazy" referrerpolicy="no-referrer" src="'+escape(image)+'" alt="">' : '';
+          return card(post.linkTitle||'Published post',String(post.caption||'').slice(0,260),
+            '<a class="bl-search-go" href="'+escape(profilePath(exact.username))+'">See on @'+escape(exact.username)+'’s Studio →</a>',preview);
+        });
+        target.insertAdjacentHTML('beforeend',section('Published by @'+exact.username,grid(cards)));
+      } catch {
+        if (!signal.aborted) target.insertAdjacentHTML('beforeend','<p>Published posts couldn’t load.</p>');
       }
-      window.location.hash=route;
-      setTimeout(function(){
-        var el=document.getElementById(route)||document.querySelector('[data-widget-route="'+route+'"]');
-        if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'});
-      },80);
+    }
+    return Boolean(exact);
+  }
+
+  async function search(raw, trigger = document.getElementById('globalSearch')) {
+    const query = String(raw??'').trim().replace(/^ask\s+l[’']?wazi\b\s*[:,]?\s*/i,'');
+    const studio = trigger?.closest('#studioApp') || document.getElementById('studioApp');
+    const bar = studio?.querySelector('.topbar');
+    const workspace = studio?.querySelector('.main');
+    if (!bar || !workspace) return;
+    const route = routeFor(query);
+    if (route && typeof window.openBIGLWAModule==='function') {
+      close({restoreFocus:false});
+      window.openBIGLWAModule(route);
+      return;
     }
 
-    var overlay=null;
-    function close(){if(overlay){var o=overlay;overlay=null;document.removeEventListener('keydown',onKey,true);document.removeEventListener('mousedown',outside,true);o.remove()}}
-    function onKey(e){if(e.key==='Escape')close()}
-    function outside(e){if(overlay&&!overlay.querySelector('.bl-search-panel').contains(e.target))close()}
-    function resultCard(type,title,meta,body,url){return '<article class="bl-search-card"><div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(type)+'</span><h3>'+esc(title)+'</h3>'+ (meta?'<p class="bl-search-muted">'+esc(meta)+'</p>':'')+(body?'<p>'+esc(body.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim())+'</p>':'')+'<a class="bl-search-go" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open &#8594;</a></div></article>'}
-    function section(title,id,cards){if(!cards)return '';var items=Array.isArray(cards)?cards:[cards];return '<section class="bl-search-section"><h2>'+esc(title)+'</h2><div class="bl-search-grid">'+items.join('')+'</div></section>'}
-    async function openPanel(raw,assistantOnly){var q=String(raw==null?'':raw).trim();if(!q)return;if(!assistantOnly)assistantOnly=false;var route=routeCommand(q);if(route){goRoute(route);return}
-    close();overlay=document.createElement('div');overlay.className='bl-search-overlay';overlay.setAttribute('role','presentation');
-    overlay.innerHTML='<div class="bl-search-panel" role="dialog" aria-modal="true" aria-label="Lwazi discovery search"><div class="bl-search-head"><div><span class="bl-search-assistant">Lwazi</span><h1>Search beyond the surface</h1></div><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><div class="bl-search-query"><input type="search" value="'+esc(q.replace(/^ask lwazi\s*/i,''))+'" aria-label="Ask Lwazi or search BigLWA"><button type="button" class="bl-search-submit">Search</button></div><div class="bl-search-loading">Searching people, books, cinema, history, politics, and BigLWA notes...</div></div>';
-    document.body.appendChild(overlay);overlay.querySelector('.bl-search-close').addEventListener('click',close);
-    var input=overlay.querySelector('.bl-search-query input');var submit=overlay.querySelector('.bl-search-submit');
-    submit.onclick=function(){var next=input.value.trim();if(next)openPanel(next,false)};input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submit.click()}});
-    document.addEventListener('keydown',onKey,true);setTimeout(function(){document.addEventListener('mousedown',outside,true)},0);var loading=overlay.querySelector('.bl-search-loading');
+    close({restoreFocus:false});
+    origin = trigger;
+    request = new AbortController();
+    const {signal} = request;
+    const results = document.createElement('section');
+    results.id = 'lwaziStudioSearch';
+    results.className = 'bl-search-panel';
+    results.setAttribute('aria-labelledby','lwaziSearchHeading');
+    results.innerHTML = '<div class="bl-search-head"><div><span>L’wazi</span><h2 id="lwaziSearchHeading" tabindex="-1">'+
+      (query?'Results for '+escape(query):'What can I help you find?')+
+      '</h2></div><button type="button" class="bl-search-close">Close results</button></div>'+
+      '<div class="bl-search-local"></div><div class="bl-search-discovery"></div><p class="bl-search-status" role="status"></p>';
+    panel = results;
+    workspace.prepend(results);
+    origin?.setAttribute('aria-expanded','true');
+    results.querySelector('.bl-search-close').onclick = () => close();
+    const heading = results.querySelector('h2');
+    heading.focus({preventScroll:true});
+    const top = heading.getBoundingClientRect().top;
+    if (top < bar.getBoundingClientRect().bottom || top > window.innerHeight) {
+      results.scrollIntoView?.({block:'start'});
+    }
 
-    var clean=q.replace(/^@/,'').replace(/^ask lwazi\s*/i,'').trim(),lc=clean.toLowerCase();
-    var userPromise=searchUsers(lc).then(function(hits){return hits.map(userCard).join('')}).catch(function(){return ''});
-    var bookPromise=searchBooks(clean).then(function(items){return items.map(function(b){return resultCard('Book',b.title||(b.title_suggest||'Untitled'),(b.author_name||[]).slice(0,2).join(', ')||'',String((b.first_publish_year||b.publish_year||[]).join ? ((b.first_publish_year||'')) : ''),'https://openlibrary.org'+(b.key||''))}).join('')}).catch(function(){return ''});
-    var wikiPromise=searchWikipedia(clean).then(function(items){return items.map(function(w){return resultCard(/film|movie|cinema/i.test(clean)?'Film & history':'Public figure, history & politics',w.title,'','', 'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title).replace(/ /g,'_')))}) .join('')}).catch(function(){return ''});
+    const local = results.querySelector('.bl-search-local');
+    const discovery = results.querySelector('.bl-search-discovery');
+    const status = results.querySelector('.bl-search-status');
+    if (route) {
+      status.textContent = 'Studio widgets are still loading. Try again in a moment.';
+      return;
+    }
+    if (!query) {
+      local.innerHTML = '<p>Try a widget name, a BIG LWA @username, or a question.</p><div class="bl-search-sources">'+
+        ['Open Journal','College financial aid','Find a hairstyle','Gender-affirming care'].map(example=>
+          '<button type="button" data-lwazi-example="'+example+'">'+example+'</button>').join('')+'</div>';
+      local.onclick = event => {
+        const example = event.target.closest('[data-lwazi-example]')?.dataset.lwaziExample;
+        if (example) {
+          const input = studio.querySelector('#globalSearch');
+          if (input) input.value = example;
+          search(example,trigger);
+        }
+      };
+      return;
+    }
+    const help = query.startsWith('@') ? '' : assistance(query);
+    if (help) {
+      local.innerHTML = help;
+      local.onclick = event => {
+        const option = event.target.closest('[data-hair-texture]');
+        if (!option) return;
+        for (const choice of local.querySelectorAll('[data-hair-texture]')) {
+          choice.setAttribute('aria-pressed',String(choice===option));
+        }
+        local.querySelector('.bl-search-hair-choice').textContent = hairChoices[option.dataset.hairTexture];
+      };
+      return;
+    }
+    status.textContent = 'Searching BIG LWA…';
+    const exact = await localResults(query,local,signal).catch(()=>{
+      if (!signal.aborted) local.textContent = 'BIG LWA profiles couldn’t load.';
+      return false;
+    });
+    if (signal.aborted) return;
+    status.textContent = '';
+    if (query.startsWith('@')) {
+      if (!local.textContent) status.textContent = 'No matching BIG LWA profiles found.';
+      return;
+    }
+    if (exact) return;
 
-    var socialCards=[
-      resultCard('Social notes','Tumblr results for '+clean,'Tumblr','Notes and communities beyond mainstream publishing','https://www.tumblr.com/search/'+encodeURIComponent(clean)),
-      resultCard('Social notes','X / Bluesky search for '+clean,'Public posts','Short-form political, cultural, and creative posts','https://bsky.app/search?q='+encodeURIComponent(clean))
-    ].join('');
-    var motion=[
-      resultCard('Movies','Film discovery for '+clean,'Cinema, moving-image history & archives','Explore filmmakers, cinema history, and marginalized film archives','https://www.google.com/search?tbm=isch&q='+encodeURIComponent(clean+' film cinema archive')),
-      resultCard('Movies','Internet Archive films for '+clean,'Moving-image archive','Search historical and independent film collections','https://archive.org/search?query='+encodeURIComponent(clean+' mediatype:movies')),
-      resultCard('Movies','Wikipedia cinema search for '+clean,'Public film history','Search cinema, directors, movements, and film history','https://en.wikipedia.org/w/index.php?search='+encodeURIComponent(clean+' film movie cinema'))
-    ].join('');
-    var lwaziCards=[
-      '<article class="bl-search-card bl-lwazi-card"><div class="bl-search-card-body"><span class="bl-search-kicker">Ask Lwazi</span><h3>'+esc(clean)+'</h3><p>Try a command: “take me to journal,” “open archive,” “go to orbit,” or “show politics.”</p><button type="button" class="bl-search-command">Run as a Lwazi command</button></div></article>'
-    ].join('');
-
-    Promise.all([userPromise,bookPromise,wikiPromise]).then(function(values){
-      var html=section('BigLWA users','users',values[0]?values[0]:[]);
-      html+=section('Books','books',values[1]?values[1]:[]);
-      html+=section('Cinema, public figures, politics & history','research',values[2]?values[2]:[]);
-      if(motion)html+=section('Movies & moving images','movies',motion);
-      html+=section('Tweets, Tumblr notes & social search','social',socialCards);
-      html+=section('Lwazi assistant','assistant',lwaziCards);
-      if(!html.trim())html='<p class="bl-search-empty">Lwazi could not reach the research sources. Try a broader search.</p>';
-      loading.outerHTML=html;var cmd=overlay&&overlay.querySelector('.bl-search-command');if(cmd)cmd.onclick=function(){openPanel(clean,true)};
-      input.focus();
-    }).catch(function(){if(loading)loading.textContent='Search results could not be completed.'});
+    // Outside searches are opt-in so questions and personal details stay in Studio by default.
+    if (query.includes('?') || /^(?:how|what|why|when|where|can|do|is|should|help)\b/i.test(query)) {
+      discovery.innerHTML = '<p>L’wazi’s current guides cover college aid, hair and gender-affirming care. You can also explore public sources using a topic or title.</p>';
+    }
+    const outside = document.createElement('button');
+    outside.type = 'button';
+    outside.textContent = 'Search public sources for books, music & more';
+    discovery.append(outside);
+    outside.onclick = async () => {
+      outside.disabled = true;
+      status.textContent = 'Searching public sources…';
+      try {
+        const found = await externalResults(query,signal);
+        if (!signal.aborted) {
+          discovery.innerHTML = found;
+          status.textContent = 'Public search complete.';
+        }
+      } catch {
+        if (!signal.aborted) {
+          outside.disabled = false;
+          status.textContent = 'Public search couldn’t finish. Try again.';
+        }
+      }
+    };
   }
-    window.__biglwaUserCards=openPanel;window.__biglwaUserCardsClose=close;
-    function installLwaziButton(){var search=document.getElementById('globalSearch');if(!search)return;var wrap=search.closest('.search-wrap')||search.parentNode;if(!wrap)return;if(wrap.querySelector('.bl-lwazi-button'))return;var button=document.createElement('button');button.type='button';button.className='bl-lwazi-button';button.setAttribute('aria-label','Ask Lwazi assistant');button.title='Ask Lwazi';button.innerHTML='<img src="/assets/lwazi-rainbow-stitch.svg" alt="" aria-hidden="true">';button.onclick=function(){var q=search.value.trim();openPanel(q||'What can Lwazi help me explore?',true)};wrap.insertBefore(button,search.nextSibling);search.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();openPanel(search.value.trim(),false)}})}
-    function bindFallback(){installLwaziButton();setTimeout(installLwaziButton,500)}
-    bindFallback();window.addEventListener('load',bindFallback);new MutationObserver(bindFallback).observe(document.documentElement,{childList:true,subtree:true});
-    var style=document.createElement('style');style.textContent='.bl-search-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-start;justify-content:center;padding:72px 16px 32px;box-sizing:border-box;background:rgba(26,16,14,.48);backdrop-filter:blur(5px);overflow:auto}.bl-search-panel{width:min(980px,100%);max-height:calc(100vh - 104px);overflow-y:auto;padding:22px;border:1px solid #ddd4ca;border-radius:20px;background:#fffaf3;color:#272321;box-shadow:0 30px 70px rgba(30,18,14,.38)}.bl-search-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.bl-search-assistant{font:800 11px/1 system-ui;text-transform:uppercase;letter-spacing:.16em;color:#a84a5d}.bl-search-head h1{margin:5px 0 14px;font:400 27px/1.05 Georgia,serif}.bl-search-close,.bl-search-submit,.bl-search-command{border:1px solid #d9d0c6;border-radius:10px;background:#fff;color:#342d29;cursor:pointer}.bl-search-close{width:34px;height:34px}.bl-search-query{display:flex;gap:8px;margin-bottom:18px}.bl-search-query input{flex:1;min-width:0;border:1px solid #d9d0c6;border-radius:11px;padding:11px 13px;background:white;color:inherit;font:14px system-ui}.bl-search-submit{padding:0 16px;font-weight:700}.bl-search-loading,.bl-search-empty{padding:28px;text-align:center;color:#81766e}.bl-search-section{margin-top:18px}.bl-search-section h2{margin:0 0 10px;font:700 13px/1 system-ui;text-transform:uppercase;letter-spacing:.08em;color:#756a62}.bl-search-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}.bl-search-card{display:flex;box-sizing:border-box;min-height:120px;border:1px solid #e4dbd0;border-radius:14px;background:rgba(255,255,255,.78);overflow:hidden}.bl-user-card-avatar{display:grid;place-items:center;flex:0 0 52px;height:52px;margin:12px 0 12px 12px;border-radius:15px;font:800 17px/1 Georgia}.bl-search-card-body{display:flex;flex-direction:column;gap:4px;padding:12px 14px;min-width:0}.bl-search-card h3{margin:0;font-size:14px;line-height:1.25}.bl-search-card p{margin:2px 0;font-size:12px;line-height:1.42;color:#574f49}.bl-search-kicker{font:800 9px/1 system-ui;text-transform:uppercase;letter-spacing:.12em;color:#9a5c68}.bl-search-muted{color:#81766e!important}.bl-search-go{margin-top:auto;padding-top:8px;font-weight:700;font-size:12px;color:#8b4051;text-decoration:none}.bl-lwazi-card{border-color:#d8a9b4;background:linear-gradient(135deg,#fff8fb,#fffaf3)}.bl-search-command{margin-top:8px;padding:8px 10px;font-size:12px;font-weight:700}.bl-lwazi-button{position:absolute;right:-42px;top:50%;width:32px;height:32px;transform:translateY(-50%);display:grid;place-items:center;border:0;border-radius:50%;background:transparent;cursor:pointer}.bl-lwazi-button img{width:30px;height:30px;object-fit:contain}.search-wrap{position:relative}@media(max-width:700px){.bl-search-overlay{padding:12px}.bl-search-panel{max-height:calc(100vh - 24px);padding:16px}.bl-search-head h1{font-size:21px}.bl-search-grid{grid-template-columns:1fr}.bl-lwazi-button{position:absolute;right:-38px}}body.night-mode .bl-search-panel{background:#241f1d;border-color:#4a423c;color:#f2ece6}body.night-mode .bl-search-card{background:#322c29;border-color:#514a45}body.night-mode .bl-search-card p{color:#d9cfc5}body.night-mode .bl-search-query input,body.night-mode .bl-search-close,body.night-mode .bl-search-submit,body.night-mode .bl-search-command{background:#37302d;border-color:#514a45;color:#f1ebe5}';
-    document.head.appendChild(style);
-  }catch(e){console.warn('[BIGLWA] discovery search unavailable:',e)}
+
+  function install() {
+    const input = document.querySelector('#studioApp .topbar #globalSearch');
+    if (!input || input.dataset.lwaziBound) return;
+    const wrap = input.closest('.search-wrap') || input.parentElement;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'bl-lwazi-button';
+    button.setAttribute('aria-label','Search with L’wazi');
+    button.title = 'Search with L’wazi';
+    button.innerHTML = '<img src="/assets/lwazi-rainbow-stitch.svg" alt="">';
+    for (const control of [input,button]) {
+      control.setAttribute('aria-controls','lwaziStudioSearch');
+      control.setAttribute('aria-expanded','false');
+    }
+    button.onclick = () => search(input.value,button);
+    input.addEventListener('keydown',event=>{
+      if (event.key==='Enter' && !event.isComposing) {
+        event.preventDefault();
+        if (input.value.trim()) search(input.value,input);
+      }
+    });
+    input.dataset.lwaziBound = 'true';
+    wrap.append(button);
+  }
+
+  window.__biglwaUserCards = search;
+  window.__biglwaUserCardsClose = () => close();
+  document.addEventListener('keydown',event=>{
+    if (event.key==='Escape' && panel && (panel.contains(event.target)||origin===event.target)) {
+      event.preventDefault();
+      close();
+    }
+  });
+  document.addEventListener('biglwa:module-open',()=>close({restoreFocus:false}));
+  window.addEventListener('popstate',()=>close({restoreFocus:false}));
+  install();
+  new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true});
 })();
