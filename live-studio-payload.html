@@ -1,0 +1,1954 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BIGLWA — Creative Collective</title>
+  <style>
+:root{
+  --bg:#f4f0e8;--paper:#fbf8f2;--ink:#171717;--muted:#6e6962;--line:#ddd6cc;--pink:#f18b9b;--rose:#ef5f78;--peach:#e8a078;--shadow:0 18px 45px rgba(38,27,22,.10);--radius:18px;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 20% 0,#fff 0,#f5f0e8 42%,#ece6dc 100%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}button,input,select{font:inherit;color:inherit}button{cursor:pointer}.app-shell{min-height:100vh}.topbar{position:sticky;top:0;z-index:50;height:76px;display:grid;grid-template-columns:280px minmax(260px,1fr) 430px;gap:18px;align-items:center;padding:0 24px;background:rgba(249,246,240,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.brand{font-family:Georgia,"Times New Roman",serif;font-size:42px;letter-spacing:-3px;color:#111;text-decoration:none}.search-wrap{height:46px;border-radius:999px;background:#ece9e3;display:flex;align-items:center;gap:10px;padding:0 18px;max-width:620px}.search-wrap input{width:100%;background:none;border:0;outline:0}.search-icon{font-size:24px}.top-actions{display:flex;justify-content:flex-end;align-items:center;gap:15px}.icon-btn{position:relative;border:0;background:none;font-size:25px}.notif-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--rose);right:3px;top:1px}.profile-mini{border:0;background:none;display:flex;align-items:center;gap:10px;text-align:left}.mini-avatar,.profile-avatar{display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#2c2523,#d18d6b);color:white;font-family:Georgia,serif}.mini-avatar{width:42px;height:42px}.welcome{font-size:12px;color:var(--muted)}.welcome strong{display:block;color:var(--ink);font-size:14px}.sidebar{position:fixed;left:0;top:76px;bottom:0;width:116px;padding:18px 10px 24px;background:#f8f5ee;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;z-index:30}.sidebar nav{display:flex;flex-direction:column;gap:6px}.nav-item{display:flex;align-items:center;gap:9px;padding:12px 10px;border-radius:12px;color:#34312e;text-decoration:none;font-size:13px}.nav-item span{font-size:19px;width:22px}.nav-item.active,.nav-item:hover{background:#ebe7df}.nav-item.active:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--rose);position:absolute;margin-left:-7px}.sidebar-manifesto{font-family:Georgia,serif;font-size:14px;line-height:1.35;color:#555;transform:rotate(-2deg);padding:8px}.sidebar-manifesto em{font-size:12px}.main{margin-left:116px;padding-bottom:90px;position:relative;isolation:isolate}.page-wallpaper{position:fixed;left:116px;right:0;top:76px;bottom:0;z-index:0;background-image:linear-gradient(120deg,#573c40 0%,#bd7468 34%,#efaa88 64%,#413b3a 100%);background-size:var(--page-size,cover);background-position:var(--page-position,center);background-repeat:no-repeat;filter:blur(var(--page-blur,0px)) saturate(.92);transform:scale(1.035);transform-origin:center;opacity:var(--wallpaper-scroll-opacity,1);transition:opacity .18s linear;pointer-events:none}.page-wallpaper.custom-image{background-image:var(--page-image)}.page-wallpaper:after{content:"";position:absolute;inset:-4%;background:linear-gradient(to bottom,rgba(248,231,220,calc(var(--page-overlay,.16) * .45)) 0%,rgba(248,231,220,var(--page-overlay,.16)) 58%,rgba(248,241,233,calc(var(--page-overlay,.16) + .10)) 100%);pointer-events:none}.hero,.masonry{position:relative;z-index:1}.hero{min-height:clamp(625px,42vw,680px);overflow:visible;background:transparent;border-bottom:0}.hero-art{position:absolute;inset:0;background:transparent;overflow:hidden}.hero-art.custom-image{background:transparent}.sun,.palm,.portrait-shape{display:none}.scribble{position:absolute;font-family:"Bradley Hand","Segoe Print",cursive;font-size:27px;font-style:italic;color:#171717;line-height:1.06;transform:rotate(-9deg)}.scribble-left{left:34px;top:98px}.scribble-right{right:22%;top:72px;transform:rotate(-4deg)}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,235,227,.10) 0%,rgba(255,235,227,.05) 55%,rgba(255,235,227,0) 100%);pointer-events:none}.glass{background:rgba(250,247,241,.82);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.55);box-shadow:var(--shadow);z-index:3}.profile-card{position:absolute;left:4.25%;top:96px;width:min(575px,calc(100% - 340px));min-height:190px;border-radius:18px;padding:24px;display:grid;grid-template-columns:110px 1fr auto;gap:18px;align-items:center}.profile-avatar{width:96px;height:96px;font-size:42px;background:linear-gradient(145deg,#d86777,#222)}.profile-name-line{display:flex;align-items:center;gap:7px}.profile-name-line h1{margin:0;font-size:31px;letter-spacing:-1px}.verified{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#111;color:white;font-size:12px}.eyebrow{font-size:10px;letter-spacing:2px;color:#6d625a;margin:4px 0 8px}.bio{margin:0 0 9px;line-height:1.35}.meta-row,.stats{display:flex;gap:18px;font-size:13px;flex-wrap:wrap}.meta-row a{color:#d74663;text-decoration:none}.stats{margin-top:11px}.primary-btn,.secondary-btn,.card-cta{border:0;border-radius:999px;background:#1e1e1e;color:white;padding:11px 18px}.primary-btn{align-self:end;min-width:130px}.small-card{position:absolute;top:378px;border-radius:16px;padding:14px}.aura-card{left:calc(4.25% + 350px);right:auto;width:145px}.music-card{left:4.25%;right:auto;width:330px}.card-kicker{font-family:Georgia,serif;font-size:15px;margin-bottom:8px}.aura-orb{width:70px;height:70px;border-radius:50%;margin:4px auto 8px;background:radial-gradient(circle at 55% 48%,#bd5459 0 14%,#f2a58a 32%,rgba(245,183,178,.35) 58%,transparent 72%);filter:blur(calc((100 - var(--aura-strength,30)) * .02px));box-shadow:0 0 calc(var(--aura-strength,30) * .6px) rgba(238,100,120,.52)}.aura-card p{font-family:Georgia,serif;margin:0;font-size:14px}.music-row{display:grid;grid-template-columns:44px 1fr 34px;gap:9px;align-items:center}.album-art{height:44px;border-radius:7px;background:#1f1b1c;color:#f2a1aa;display:grid;place-items:center}.music-row div span{display:block;font-size:11px;color:#777}.round-btn{width:32px;height:32px;border-radius:50%;border:0;background:#242424;color:white}.progress{height:3px;background:#d7d1ca;margin-top:10px}.progress i{display:block;width:35%;height:100%;background:#222}.wallpaper-panel{position:absolute;right:18px;top:18px;width:220px;border-radius:16px;padding:14px 14px 16px}.panel-title{display:flex;justify-content:space-between;align-items:center}.panel-title button{border:0;background:none;font-size:20px}.wallpaper-panel p{font-size:10px;color:#6e665f;margin:4px 0 10px}.wallpaper-preview{height:54px;border-radius:8px;background:linear-gradient(120deg,#493b40,#d88d77 45%,#efb193 70%,#292627);margin-bottom:8px}.secondary-btn{width:100%;padding:9px 12px;margin-bottom:8px}.wallpaper-panel label{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:center;font-size:11px;margin:8px 0}.wallpaper-panel select{border:1px solid #d1c9c1;border-radius:7px;padding:5px;background:#f8f4ee}.wallpaper-panel input[type=range]{grid-column:1/-1;width:100%}.masonry{padding:16px;display:grid;margin-top:-1px;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-flow:dense;align-items:start;gap:14px;background:transparent}.card{background:rgba(251,248,242,.89);backdrop-filter:blur(15px);border:1px solid #dfd8cf;border-radius:16px;padding:16px;box-shadow:0 5px 16px rgba(36,27,20,.035);overflow:hidden}.card h2{font-family:Georgia,"Times New Roman",serif;font-size:27px;letter-spacing:-.8px;margin:0}.card-head{display:flex;align-items:center;justify-content:space-between}.card-head>div{display:flex;align-items:center;gap:10px}.card-icon{font-size:24px}.arrow-btn{border:0;background:none;font-size:20px}.sub{font-size:12px;color:#6f6861;margin:5px 0 14px}.archive-card{grid-column:span 4}.projects-card{grid-column:span 5}.fact-card{grid-column:span 3}.closet-card{grid-column:span 4}.games-card{grid-column:span 4}.room-card{grid-column:span 4}.boards-card{grid-column:span 5}.notes-card{grid-column:span 4}.manifesto-card{grid-column:span 3;background:linear-gradient(#f7c9b6,#efaa8f);min-height:220px}.archive-collage{position:relative;min-height:260px;background:#e7dfd3;border-radius:12px;overflow:hidden}.paper,.photo-tile,.record{position:absolute;box-shadow:0 8px 12px rgba(22,18,17,.12)}.paper{background:#efd5cb;padding:12px;font-family:Georgia,serif}.p1{left:28%;top:34px;transform:rotate(-4deg)}.p2{left:18%;bottom:16px;background:#f6f0e6;transform:rotate(2deg)}.p3{right:5%;bottom:24px;background:#efe6dc;transform:rotate(-6deg)}.photo-tile{background:linear-gradient(145deg,#232323,#73706c);border:6px solid #ece6dc}.face-tile{left:4%;top:45px;width:39%;height:135px;transform:rotate(-7deg)}.crowd-tile{left:7%;bottom:42px;width:45%;height:82px;transform:rotate(5deg)}.record{right:4%;top:88px;width:110px;height:110px;border-radius:50%;background:repeating-radial-gradient(circle,#24201f 0 5px,#413b38 6px 8px)}.card-cta{margin-top:12px;padding:10px 15px}.project-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.project-tile{border:1px solid #ded7cf;background:#f7f3ed;border-radius:12px;padding:8px;text-align:left}.project-image{height:108px;border-radius:8px;margin-bottom:7px}.mural{background:linear-gradient(140deg,#d39a70,#6b5146 65%,#222)}.coast{background:linear-gradient(#d6a487,#6f7b84 55%,#263136)}.pill{display:inline-block;padding:4px 7px;border-radius:99px;background:white;font-size:10px}.project-tile h3{font-family:Georgia,serif;margin:8px 0 2px}.project-tile p{font-size:11px;margin:0 0 8px}.fact-layout{display:grid;grid-template-columns:40% 1fr;gap:14px;align-items:end}.fact-portrait{min-height:220px;background:linear-gradient(145deg,#1d1b1b 0 50%,#946654 50% 62%,#d78c6f 62%);clip-path:polygon(20% 0,80% 6%,100% 35%,82% 100%,12% 100%,0 36%)}blockquote{font-family:"Segoe Print",cursive;font-size:18px;transform:rotate(-4deg);margin:10px 0 20px}.fact-layout h3{font-family:Georgia,serif;font-size:24px;margin:0}.fact-layout p{font-size:11px}.closet-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.item{border:0;background:none;padding:0;text-align:left;font-size:10px}.item span,.item b{display:block;margin-top:4px}.garment{height:110px;border-radius:10px;display:grid;place-items:center;font-weight:700;letter-spacing:1px;color:#f6eee6}.jacket{background:linear-gradient(90deg,#1f2729 0 45%,#5a332f 46% 54%,#222 55%)}.tee{background:#d6a28f;color:#4b3430}.tote{background:#d9c4a6;color:#3b322c}.pants{background:#6a6750}.quiz{background:#f7f1ea;border:1px solid #e3d9cf;border-radius:12px;padding:14px}.quiz h3{font-family:Georgia,serif;margin:0}.quiz button{display:block;width:100%;border:1px solid #ddd1c7;border-radius:999px;padding:7px 10px;text-align:left;background:#fff;margin:6px 0}.quiz button.correct{background:#cfe9d5;border-color:#96c5a2}.quiz button.wrong{background:#f5c9cf;border-color:#e49aa7}.quiz-feedback{min-height:18px;font-size:11px}.room-scene{position:relative;height:190px;border-radius:12px;overflow:hidden;background:linear-gradient(#4b342d 0 58%,#342724 58%);}.window{position:absolute;right:12px;top:14px;width:44%;height:52%;background:linear-gradient(#c37d6d,#efb083 55%,#3b4245);border:7px solid #2b2422}.sofa{position:absolute;left:10%;bottom:28px;width:62%;height:54px;border-radius:20px 20px 8px 8px;background:#7a5b4f;box-shadow:0 -18px 0 #876858}.lamp{position:absolute;left:8%;top:22px;width:5px;height:130px;background:#2a2422}.lamp:before{content:"";position:absolute;top:0;left:-18px;width:42px;height:28px;background:#e8c692;clip-path:polygon(20% 0,80% 0,100% 100%,0 100%)}.room-scene p{position:absolute;right:7%;top:32px;color:#f4a6ae;font-family:"Segoe Print",cursive;font-size:20px;transform:rotate(-5deg)}.room-footer{display:flex;align-items:center;justify-content:space-between}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5dcc70;margin-right:5px}.board-collage{display:grid;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:90px 90px;gap:7px}.board-collage>div{border-radius:8px}.b1{background:linear-gradient(#d99379,#342b30)}.b2{background:#f1cfbe;padding:11px;font-family:Georgia,serif}.b3{background:repeating-radial-gradient(circle,#181818 0 8px,#453d39 9px 12px)}.b4{background:linear-gradient(145deg,#d8cfbd,#6b6f64)}.b5{background:radial-gradient(circle at 45% 45%,#dc7691 0 15%,#f0a7b4 16% 34%,#a04d63 35% 45%,#573f46 46%)}.b6{background:linear-gradient(145deg,#251f20 0 55%,#a16f59 56%)}.note-paper{width:100%;min-height:180px;border:0;border-radius:10px;background:#f2e7d8;padding:26px;text-align:center;font-family:"Segoe Print",cursive;font-size:22px;line-height:1.35;box-shadow:inset 0 0 40px rgba(110,84,60,.06)}.note-paper span{display:block;font-family:Inter,sans-serif;font-size:10px;text-align:right;margin-top:24px}.manifesto-card h2{font-family:Georgia,serif;font-size:37px}.manifesto-card p{font-family:Georgia,serif;font-size:19px}.manifesto-card hr{border:0;border-top:1px solid rgba(0,0,0,.35)}.manifesto-copy{font-size:13px!important;line-height:1.35}.hidden-by-search{display:none!important}.mobile-dock{display:none}.modal{border:0;border-radius:20px;padding:0;width:min(560px,90vw);box-shadow:0 30px 90px rgba(0,0,0,.25);background:#fbf7ef}.modal::backdrop{background:rgba(20,18,17,.42);backdrop-filter:blur(4px)}.modal-close{position:absolute;right:12px;top:10px;border:0;background:none;font-size:28px}.modal #modalBody{padding:34px}.modal h2{font-family:Georgia,serif;font-size:34px;margin:0 0 10px}.modal p{line-height:1.5;color:#59534e}
+
+.celestial-toggle{width:62px;height:34px;border:1px solid #d8d0c6;border-radius:999px;background:rgba(255,255,255,.58);display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:3px;gap:2px}.celestial-toggle span{height:26px;display:grid;place-items:center;border-radius:50%;font-family:Georgia,serif;font-size:16px;transition:.2s ease}.celestial-toggle .sun-symbol{background:#fff;color:#1a1a1a}.celestial-toggle .moon-symbol{color:#777}.symbol-dock{display:grid;grid-template-columns:repeat(3,28px);gap:6px;align-content:start;justify-content:center;margin:8px 0 10px;flex:0 0 auto}.veve-btn{position:relative;width:28px;height:28px;border:1px solid #ded6cc;border-radius:9px;background:rgba(255,255,255,.68);padding:3px;display:grid;place-items:center;overflow:hidden;transition:transform .16s ease,background .16s ease}.veve-fallback{display:grid;place-items:center;width:100%;height:100%;font-family:Georgia,serif;font-size:13px;color:#3f3934}.veve-btn img{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:contain;filter:grayscale(1) contrast(1.35);mix-blend-mode:multiply}.veve-btn:hover{transform:translateY(-1px);background:#fff}.sidebar-manifesto{margin-top:0;padding:4px 8px 6px;font-size:12px;line-height:1.25;flex:0 0 auto}.sidebar-manifesto small{display:none}.symbol-modal-mark{width:110px;height:110px;object-fit:contain;filter:grayscale(1) contrast(1.25);display:block;margin:0 auto 16px}.symbol-modal-note{font-size:12px;color:#777}.night-mode{--ink:#f4efe8;--muted:#b8afa6;--line:#4b4540}.night-mode body{background:#151413}.night-mode .topbar,.night-mode .sidebar{background:rgba(24,22,21,.95);border-color:#413b37}.night-mode .brand,.night-mode .nav-item,.night-mode .profile-mini,.night-mode .icon-btn{color:#f6f0e8}.night-mode .search-wrap{background:#2b2927}.night-mode .search-wrap input{color:#f6f0e8}.night-mode .glass,.night-mode .card{background:rgba(31,29,27,.84);border-color:rgba(255,255,255,.12);color:#f4efe8}.night-mode .sub,.night-mode .welcome,.night-mode .meta-row,.night-mode .music-row div span{color:#bbb1a8}.night-mode .celestial-toggle{background:#252321;border-color:#4f4944}.night-mode .celestial-toggle .sun-symbol{background:transparent;color:#8b8279}.night-mode .celestial-toggle .moon-symbol{background:#f3eee7;color:#171717}.night-mode .veve-btn{background:#f3eee7;border-color:#8f857c}.night-mode .sidebar-manifesto{color:#d1c8bf}
+@media(max-height:820px) and (min-width:901px){.sidebar{padding-top:10px;padding-bottom:10px}.sidebar nav{gap:2px}.nav-item{padding:8px 9px}.symbol-dock{grid-template-columns:repeat(5,18px);gap:3px;margin:4px 0}.veve-btn{width:18px;height:18px;border-radius:6px;padding:2px}.veve-fallback{font-size:10px}.veve-btn img{inset:2px;width:calc(100% - 4px);height:calc(100% - 4px)}.sidebar-manifesto{font-size:10px;line-height:1.15;padding:2px 6px}}
+@media(max-width:1200px){.topbar{grid-template-columns:220px 1fr 280px}.welcome{display:none}.hero{min-height:650px}.profile-card{left:4%;width:min(560px,calc(100% - 300px))}.music-card{left:4%;right:auto;top:385px;width:300px}.aura-card{left:calc(4% + 315px);right:auto;top:385px}.archive-card,.projects-card,.fact-card{grid-column:span 6}.closet-card,.games-card,.room-card{grid-column:span 4}.boards-card,.notes-card{grid-column:span 6}.manifesto-card{grid-column:span 4}}
+@media(max-width:900px){.page-wallpaper{left:0;top:66px}.topbar{height:66px;grid-template-columns:150px 1fr 90px;padding:0 12px}.brand{font-size:32px}.sidebar{display:none}.main{margin-left:0}.hero{min-height:700px}.profile-card{left:14px;right:14px;top:112px;width:auto;grid-template-columns:80px 1fr}.profile-avatar{width:72px;height:72px}.primary-btn{grid-column:1/-1;width:100%}.wallpaper-panel{right:14px;top:390px;width:260px}.aura-card{left:14px;right:auto;top:405px;width:135px}.music-card{display:block;left:14px;right:14px;top:555px;width:auto}.masonry{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.card{grid-column:span 1!important}.archive-card,.fact-card,.closet-card{grid-row:span 1}.manifesto-card{min-height:240px}.mobile-dock{position:fixed;display:grid;grid-template-columns:repeat(5,1fr);left:12px;right:12px;bottom:10px;z-index:80;background:rgba(252,249,244,.94);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:20px;padding:8px;box-shadow:0 10px 30px rgba(0,0,0,.12)}.mobile-dock a,.mobile-dock button{border:0;background:none;text-decoration:none;color:#222;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:18px}.mobile-dock span{font-size:9px}.mobile-dock button{background:var(--rose);color:white;border-radius:16px}}
+@media(max-width:620px){.page-wallpaper{left:0;top:66px}.topbar{grid-template-columns:120px 1fr 46px}.brand{font-size:28px}.search-wrap{height:40px;padding:0 10px}.profile-mini .mini-avatar{width:34px;height:34px}.profile-mini span:not(.mini-avatar){display:none}.hero{min-height:790px}.scribble{font-size:20px}.profile-card{top:100px;grid-template-columns:68px 1fr;padding:16px}.profile-avatar{width:62px;height:62px}.profile-name-line h1{font-size:25px}.bio,.meta-row{font-size:11px}.stats{font-size:11px}.wallpaper-panel{top:425px;left:160px;right:10px;width:auto}.aura-card{top:430px}.music-card{top:630px}.masonry{display:block}.card{margin-bottom:12px}.project-grid{grid-template-columns:1fr}.fact-layout{grid-template-columns:1fr}.fact-portrait{min-height:180px}.manifesto-card{display:none}}
+
+
+/* Pinterest-style packed board: equal column widths, naturally varied heights, no row gaps. */
+.sidebar nav{min-height:0;overflow-y:auto;scrollbar-width:none;padding-right:2px}.sidebar nav::-webkit-scrollbar{display:none}.nav-item{padding:8px 9px;font-size:12px}.nav-divider{height:1px;background:var(--line);margin:5px 8px}.sidebar-manifesto{display:none}.symbol-dock{margin-top:8px}
+.masonry{display:block!important;columns:4 270px;column-gap:14px;padding:16px;background:transparent}.card{display:inline-block!important;width:100%!important;margin:0 0 14px!important;break-inside:avoid;page-break-inside:avoid;vertical-align:top;grid-column:auto!important;grid-row:auto!important}.archive-card,.projects-card,.fact-card,.closet-card,.games-card,.room-card,.boards-card,.notes-card,.manifesto-card{grid-column:auto!important}.manifesto-card{min-height:0}
+/* New collective modules */
+.desk-stack{position:relative;height:180px;margin:4px 0 2px}.desk-sheet{position:absolute;inset:8px 18px 24px 0;border:1px solid #d8d0c6;border-radius:12px;background:#f8f1e7;padding:18px;text-align:left;box-shadow:0 8px 18px rgba(50,35,26,.07);transform:rotate(-1.5deg)}.desk-sheet.offset{inset:28px 0 2px 42px;background:#efd5cb;transform:rotate(2deg)}.desk-sheet small,.desk-sheet span{display:block;color:var(--muted);font-size:10px;letter-spacing:.08em}.desk-sheet b{display:block;font-family:Georgia,serif;font-size:20px;margin:8px 0 16px}
+.feed-list{display:grid;gap:8px}.feed-list button{display:grid;grid-template-columns:38px 1fr;gap:9px;align-items:center;border:1px solid #ded6cc;border-radius:12px;background:rgba(255,255,255,.48);padding:10px;text-align:left}.feed-list small{display:block;color:var(--muted);margin-top:2px}.feed-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#e5b59f;font-family:Georgia,serif}.feed-avatar.warm{background:#d8c397}.feed-avatar.dark{background:#35302f;color:white}
+.connect-people{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.connect-people button{border:0;background:#eee7dd;border-radius:12px;padding:10px 6px}.connect-people button>span{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;margin:0 auto 7px;background:linear-gradient(145deg,#d88977,#302728);color:white;font-family:Georgia,serif}.connect-people b,.connect-people small{display:block}.connect-people small{color:var(--muted);font-size:9px}.skill-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.skill-chips span{padding:5px 8px;border-radius:999px;background:#eee6dc;font-size:10px}
+.contact-sheet{display:grid;grid-template-columns:1fr 1.18fr 1fr;grid-auto-rows:78px;gap:6px;padding:6px;background:#211f1e;border-radius:12px}.contact-sheet div{border-radius:5px;background:linear-gradient(145deg,#e2b297,#65514a)}.contact-sheet div:nth-child(2){grid-row:span 2;background:linear-gradient(180deg,#c99a82,#e1d0b9 42%,#3b3534)}.contact-sheet div:nth-child(3){background:linear-gradient(145deg,#758387,#dfab8c)}.contact-sheet div:nth-child(4){background:radial-gradient(circle at 40% 45%,#df9e88 0 18%,#413638 19% 48%,#d4c4ae 49%)}.contact-sheet div:nth-child(5){background:linear-gradient(135deg,#1f1f1f 0 47%,#ca9275 48%)}.contact-sheet div:nth-child(6){background:linear-gradient(#e7b59d,#6f8391)}
+.diary-page{width:100%;border:0;border-radius:10px;background:#f2e7d8;padding:24px;text-align:left;box-shadow:inset 0 0 40px rgba(110,84,60,.06)}.diary-page span{font-size:10px;letter-spacing:.16em;color:#766d65}.diary-page strong{display:block;font:italic 22px/1.35 Georgia,serif;margin:18px 0 26px}.diary-page em{display:block;text-align:right;font:12px Georgia,serif}
+.stream-screen{border-radius:12px;background:#1e1b1c;color:#f5ede7;padding:18px;min-height:205px;display:flex;flex-direction:column;justify-content:flex-end}.on-air{align-self:flex-start;font-size:10px;letter-spacing:.15em;margin-bottom:auto}.on-air i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ef5f78;margin-right:5px}.stream-wave{height:55px;display:flex;align-items:center;gap:5px;margin:20px 0}.stream-wave i{display:block;width:4px;border-radius:10px;background:#e8a078;height:18px}.stream-wave i:nth-child(2n){height:36px}.stream-wave i:nth-child(3n){height:50px}.stream-screen strong{font-family:Georgia,serif;font-size:20px}.stream-screen span{font-size:10px;color:#c9beb7;margin-top:5px}
+.library-shelf{display:grid;gap:8px}.library-shelf button{border:1px solid #ddd5cc;border-radius:11px;background:#f8f3ec;padding:9px;display:grid;grid-template-columns:16px 1fr;gap:10px;text-align:left;align-items:stretch}.book-spine{display:block;min-height:54px;border-radius:3px;background:#6c4944}.book-spine.s2{background:#ba856b}.book-spine.s3{background:#3f4444}.library-shelf b,.library-shelf small{display:block}.library-shelf small{color:var(--muted);margin-top:4px;font-size:10px}
+@media(max-width:1280px){.masonry{columns:3 260px}.sidebar-manifesto{display:none}}
+@media(max-width:900px){.masonry{columns:2 250px!important}.sidebar nav{overflow:visible}.card{margin-bottom:12px!important}.mobile-dock{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:620px){.masonry{columns:1!important;display:block!important}.card{display:block!important;width:100%!important}.connect-people{grid-template-columns:repeat(3,1fr)}}
+
+
+/* Create rail + user-supplied symbol artwork */
+.create-rail{position:absolute;left:4.25%;top:302px;width:min(575px,calc(100% - 340px));min-height:56px;border-radius:18px;padding:7px 9px;display:flex;align-items:center;gap:8px;z-index:4;overflow:hidden}
+.create-main{height:42px;border:0;border-radius:13px;background:#1d1d1d;color:#fff;padding:0 16px;display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap}
+.create-main .plus{font-size:22px;font-weight:400;line-height:1}.create-quick{display:flex;align-items:center;gap:5px;min-width:0;overflow-x:auto;scrollbar-width:none}.create-quick::-webkit-scrollbar{display:none}.create-quick button{height:38px;border:0;background:transparent;border-radius:11px;padding:0 11px;white-space:nowrap;color:#4f4943;font-size:12px}.create-quick button:hover{background:rgba(255,255,255,.62);color:#111}.create-quick button:focus-visible,.create-main:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.symbol-dock{grid-template-columns:repeat(2,34px)!important;gap:7px!important}.veve-btn{width:34px!important;height:34px!important;padding:4px!important;background:rgba(255,255,255,.72)!important}.veve-btn img{position:static!important;inset:auto!important;width:100%!important;height:100%!important;object-fit:contain!important;filter:none!important;mix-blend-mode:multiply}.night-mode .veve-btn img{filter:invert(1) grayscale(1) contrast(1.1)!important;mix-blend-mode:normal}.veve-fallback{display:none!important}
+@media(max-height:820px) and (min-width:901px){.symbol-dock{grid-template-columns:repeat(2,26px)!important;gap:5px!important}.veve-btn{width:26px!important;height:26px!important;padding:3px!important}}
+@media(max-width:1200px){.create-rail{left:4%;width:min(560px,calc(100% - 300px));top:302px}.music-card,.aura-card{top:382px}}
+@media(max-width:900px){.hero{min-height:770px}.create-rail{left:14px;right:14px;top:350px;width:auto}.wallpaper-panel{top:420px}.aura-card{top:585px}.music-card{top:585px;left:164px;right:14px;width:auto}}
+@media(max-width:620px){.hero{min-height:900px}.create-rail{top:355px}.create-quick button{padding:0 9px}.wallpaper-panel{top:425px}.aura-card{top:625px;left:14px}.music-card{top:625px;left:162px;right:10px;width:auto}}
+
+/* The existing Home / Feed / Create / Library / Diary bar sits BELOW the Aura / Now Playing widgets,
+   in the long horizontal gap before the Pinterest-style card wall. */
+.create-rail{display:none!important}
+.mobile-dock.hero-action-bar{
+  position:absolute!important;
+  display:grid!important;
+  grid-template-columns:repeat(9,minmax(84px,1fr))!important;
+  left:4.25%!important;
+  right:24px!important;
+  top:540px!important;
+  bottom:auto!important;
+  width:auto!important;
+  min-height:64px;
+  padding:8px 10px!important;
+  margin:0!important;
+  border-radius:20px!important;
+  z-index:4!important;
+  background:rgba(250,247,241,.88)!important;
+  backdrop-filter:blur(18px)!important;
+  box-shadow:var(--shadow)!important;
+}
+.mobile-dock.hero-action-bar a,.mobile-dock.hero-action-bar button{
+  min-width:0; min-height:46px; border:0; background:transparent; color:#222;
+  text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; border-radius:14px; font-size:18px; padding:4px 8px;
+}
+.mobile-dock.hero-action-bar span{font-size:10px}
+.mobile-dock.hero-action-bar button{background:var(--rose);color:#fff}
+.mobile-dock.hero-action-bar a:hover{background:rgba(255,255,255,.58)}
+
+/* Keep the small widgets above the shortcut bar. */
+.small-card{top:332px!important}
+.music-card{left:4.25%!important;width:355px!important}
+.aura-card{left:calc(4.25% + 370px)!important;top:332px!important;width:165px!important}
+.hero{min-height:680px!important}
+
+@media(max-width:1200px){
+  .small-card{top:340px!important}
+  .music-card{left:4%!important;width:340px!important}
+  .aura-card{left:calc(4% + 355px)!important;top:340px!important;width:160px!important}
+  .mobile-dock.hero-action-bar{left:4%!important;right:20px!important;top:548px!important;width:auto!important}
+  .hero{min-height:692px!important}
+}
+@media(max-width:900px){
+  .hero{min-height:900px!important}
+  .profile-card{top:100px!important}
+  .aura-card{top:430px!important;left:14px!important;right:auto!important;width:145px!important}
+  .music-card{top:430px!important;left:170px!important;right:14px!important;width:auto!important}
+  .mobile-dock.hero-action-bar{left:14px!important;right:14px!important;top:640px!important;width:auto!important}
+  .wallpaper-panel{top:520px!important}
+}
+@media(max-width:620px){
+  .hero{min-height:1010px!important}
+  .aura-card{top:455px!important;left:14px!important;width:138px!important}
+  .music-card{top:455px!important;left:158px!important;right:10px!important;width:auto!important}
+  .mobile-dock.hero-action-bar{top:670px!important;left:10px!important;right:10px!important;padding:6px!important}
+  .mobile-dock.hero-action-bar a,.mobile-dock.hero-action-bar button{font-size:17px;padding:3px 4px}
+  .wallpaper-panel{top:545px!important}
+}
+
+
+/* 2026-09-05 navigation cleanup: primary directories live in the horizontal shelf; the left rail is secondary + collapsible. */
+.theme-controls{display:flex;align-items:center;border:1px solid #d8d0c6;border-radius:999px;padding:3px;background:rgba(255,255,255,.58);gap:2px}
+.theme-btn{width:34px;height:34px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center;padding:4px;color:#777;line-height:1;transition:background .16s ease,color .16s ease,transform .16s ease}.theme-btn img{width:100%;height:100%;object-fit:contain;filter:grayscale(1) contrast(1.2) brightness(.2)}
+.theme-btn:hover{transform:translateY(-1px)}
+.theme-btn[aria-pressed="true"]{background:#fff;color:#171717;box-shadow:0 1px 5px rgba(0,0,0,.08)}
+body.night-mode .theme-controls{background:#252321;border-color:#4f4944}
+body.night-mode .theme-btn{color:#8f877f}body.night-mode .theme-btn img{filter:invert(.75) grayscale(1) contrast(1.15)}body.night-mode .theme-btn[aria-pressed="true"] img{filter:grayscale(1) contrast(1.2) brightness(.15)}
+body.night-mode .theme-btn[aria-pressed="true"]{background:#f3eee7;color:#171717}
+body.night-mode{background:#151413}
+body.night-mode .brand{color:#f6f0e8}
+
+.sidebar{transition:width .2s ease,padding .2s ease}
+.sidebar-top,.sidebar-bottom{min-width:0}
+.sidebar-top{display:flex;flex-direction:column;gap:8px;min-height:0}
+.sidebar-bottom{display:flex;flex-direction:column;align-items:stretch}
+.sidebar-collapse{height:34px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;gap:6px;color:#5c554f;font-size:11px;flex:0 0 auto}
+.sidebar-collapse span{font-size:20px;line-height:1}
+.sidebar-collapse:hover{background:#fff}
+body.night-mode .sidebar-collapse{background:#2a2725;border-color:#4b4540;color:#ded5cc}
+body.sidebar-collapsed .sidebar{width:58px;padding-left:6px;padding-right:6px}
+body.sidebar-collapsed .main{margin-left:58px}
+body.sidebar-collapsed .page-wallpaper{left:58px}
+body.sidebar-collapsed .nav-item{justify-content:center;padding-left:6px;padding-right:6px}
+body.sidebar-collapsed .nav-item span{width:auto}
+body.sidebar-collapsed .nav-item b,body.sidebar-collapsed .sidebar-collapse b,body.sidebar-collapsed .sidebar-manifesto{display:none}
+body.sidebar-collapsed .sidebar-collapse{width:100%;padding:0}
+body.sidebar-collapsed .symbol-dock{grid-template-columns:1fr!important;justify-items:center}
+
+.mobile-dock.hero-action-bar{grid-template-columns:repeat(9,minmax(70px,1fr))!important;overflow-x:auto!important;overscroll-behavior-inline:contain;scrollbar-width:none}
+.mobile-dock.hero-action-bar::-webkit-scrollbar{display:none}
+.mobile-dock.hero-action-bar a,.mobile-dock.hero-action-bar button{white-space:nowrap}
+.mobile-dock.hero-action-bar button{background:var(--rose)!important;color:#fff!important}
+body.night-mode .mobile-dock.hero-action-bar{background:rgba(31,29,27,.9)!important;border-color:rgba(255,255,255,.12)!important}
+body.night-mode .mobile-dock.hero-action-bar a{color:#f4efe8!important}
+
+@media(max-width:1200px){.mobile-dock.hero-action-bar{grid-template-columns:repeat(9,minmax(76px,1fr))!important}}
+@media(max-width:900px){body.sidebar-collapsed .main{margin-left:0}body.sidebar-collapsed .page-wallpaper{left:0}.mobile-dock.hero-action-bar{grid-template-columns:repeat(9,78px)!important;justify-content:start!important}}
+
+
+
+/* 2026-09-05 profile/widget rebalance + Real Rank */
+.profile-card{
+  left:4.25%!important;top:68px!important;width:min(640px,calc(100% - 315px))!important;
+  min-height:172px!important;padding:20px 22px!important;
+  grid-template-columns:88px minmax(0,1fr) 146px!important;gap:16px!important;align-items:center!important
+}
+.profile-avatar{width:82px!important;height:82px!important;font-size:37px!important}
+.profile-copy{min-width:0}
+.profile-name-line h1{font-size:29px!important}
+.eyebrow{margin:3px 0 6px!important}.bio{font-size:14px!important;margin-bottom:7px!important;max-width:390px}
+.meta-row,.stats{font-size:12px!important}.stats{margin-top:7px!important;gap:15px!important}
+.primary-btn{align-self:center!important;min-width:138px!important;padding:11px 16px!important}
+.real-rank{margin-top:10px;display:grid;grid-template-columns:auto auto minmax(70px,1fr) auto;align-items:center;gap:8px;max-width:410px;font-size:10px;color:#655e58}
+.rank-label{font-size:9px;letter-spacing:1.35px;color:#766e67}.real-rank strong{font-family:Georgia,"Times New Roman",serif;font-size:13px;color:var(--ink);font-weight:600}
+.rank-track{height:5px;border-radius:99px;background:rgba(67,59,54,.14);overflow:hidden;min-width:70px}.rank-track i{display:block;width:62%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#262220,#d06f7c)}
+.rank-next{font-size:9px;color:#8b837b}
+.small-card{top:282px!important;min-height:128px!important}
+.music-card{left:4.25%!important;width:390px!important;height:128px!important;padding:14px 16px!important}
+.aura-card{left:calc(4.25% + 404px)!important;width:236px!important;height:128px!important;padding:14px 16px!important;display:grid!important;grid-template-columns:82px minmax(0,1fr)!important;grid-template-rows:auto 1fr!important;column-gap:12px!important;align-items:center!important}
+.aura-card .card-kicker{grid-column:1/-1!important;margin-bottom:1px!important}.aura-card .aura-orb{width:72px!important;height:72px!important;margin:0!important}.aura-card p{font-size:15px!important;line-height:1.02!important;margin:0!important}
+.music-row{grid-template-columns:52px minmax(0,1fr) 38px!important;gap:12px!important}.album-art{height:52px!important}.round-btn{width:38px!important;height:38px!important}.progress{margin-top:12px!important}
+.mobile-dock.hero-action-bar{left:4.25%!important;right:22px!important;top:452px!important;min-height:64px!important;grid-template-columns:repeat(9,minmax(86px,1fr))!important}
+.hero{min-height:548px!important}
+body.night-mode .rank-track{background:rgba(255,255,255,.16)}body.night-mode .rank-next,body.night-mode .rank-label{color:#afa59c}
+@media(max-width:1200px){
+  .profile-card{left:4%!important;width:min(610px,calc(100% - 280px))!important}
+  .music-card{left:4%!important;width:365px!important}
+  .aura-card{left:calc(4% + 379px)!important;width:220px!important}
+  .mobile-dock.hero-action-bar{left:4%!important;right:18px!important;top:456px!important}
+  .hero{min-height:552px!important}
+}
+@media(max-width:900px){
+  .hero{min-height:760px!important}
+  .profile-card{left:14px!important;right:14px!important;top:92px!important;width:auto!important;min-height:228px!important;grid-template-columns:74px 1fr!important;padding:17px!important}
+  .profile-avatar{width:68px!important;height:68px!important}.primary-btn{grid-column:1/-1!important;width:100%!important;margin-top:2px}.real-rank{grid-template-columns:auto auto minmax(60px,1fr) auto!important;max-width:none!important}
+  .music-card{top:340px!important;left:14px!important;width:calc(100% - 205px)!important;right:auto!important;height:130px!important}
+  .aura-card{top:340px!important;left:auto!important;right:14px!important;width:176px!important;height:130px!important;grid-template-columns:68px 1fr!important;padding:12px!important}
+  .aura-card .aura-orb{width:62px!important;height:62px!important}
+  .mobile-dock.hero-action-bar{top:508px!important;left:14px!important;right:14px!important}
+  .wallpaper-panel{top:586px!important}
+}
+@media(max-width:620px){
+  .hero{min-height:890px!important}
+  .profile-card{top:86px!important;min-height:240px!important;grid-template-columns:62px 1fr!important;padding:14px!important}
+  .profile-avatar{width:58px!important;height:58px!important}.profile-name-line h1{font-size:24px!important}.real-rank{grid-template-columns:auto auto 1fr!important}.rank-next{display:none}
+  .music-card{top:350px!important;left:10px!important;right:10px!important;width:auto!important;height:122px!important}
+  .aura-card{top:484px!important;left:10px!important;right:10px!important;width:auto!important;height:112px!important;grid-template-columns:74px 1fr!important}.aura-card .card-kicker{grid-column:2!important;align-self:end}.aura-card .aura-orb{grid-row:1/3!important;width:68px!important;height:68px!important}.aura-card p{grid-column:2!important;align-self:start}
+  .mobile-dock.hero-action-bar{top:614px!important;left:10px!important;right:10px!important}
+  .wallpaper-panel{top:690px!important}
+}
+
+
+/* 2026-09-07 profile editor + slimmer, longer widgets */
+.profile-avatar{
+  border-radius:12px!important;
+  width:84px!important;
+  height:84px!important;
+}
+.primary-btn{
+  min-width:190px!important;
+  padding-left:28px!important;
+  padding-right:28px!important;
+}
+.customizable-widget{
+  background:var(--widget-bg,rgba(250,247,241,.84))!important;
+  color:var(--widget-ink,#171717)!important;
+  border-radius:var(--widget-radius,16px)!important;
+  backdrop-filter:blur(var(--widget-blur,18px))!important;
+  -webkit-backdrop-filter:blur(var(--widget-blur,18px))!important;
+}
+.customizable-widget .music-row div span{color:var(--widget-muted,#77716b)!important}
+.customizable-widget .progress{background:color-mix(in srgb,var(--widget-ink,#171717) 15%,transparent)!important}
+.aura-orb{
+  background:radial-gradient(circle at 55% 48%,rgba(var(--aura-rgb,216,95,109),1) 0 15%,rgba(var(--aura-rgb,216,95,109),.58) 31%,rgba(var(--aura-rgb,216,95,109),.20) 56%,transparent 73%)!important;
+}
+.small-card{top:286px!important;min-height:96px!important}
+.music-card{
+  left:4.25%!important;
+  width:485px!important;
+  height:96px!important;
+  padding:10px 14px!important;
+}
+.aura-card{
+  left:calc(4.25% + 500px)!important;
+  width:390px!important;
+  height:96px!important;
+  padding:10px 14px!important;
+  grid-template-columns:66px minmax(0,1fr)!important;
+  grid-template-rows:20px 1fr!important;
+  column-gap:12px!important;
+}
+.aura-card .card-kicker{grid-column:1/-1!important;margin:0!important;font-size:14px!important}
+.aura-card .aura-orb{width:60px!important;height:60px!important;margin:0!important;grid-row:2!important}
+.aura-card p{font-size:15px!important;line-height:1.05!important;align-self:center!important}
+.music-card .card-kicker{font-size:14px!important;margin-bottom:5px!important}
+.music-row{grid-template-columns:42px minmax(0,1fr) 34px!important;gap:10px!important}
+.album-art{height:42px!important}.round-btn{width:34px!important;height:34px!important}.progress{margin-top:7px!important}
+.mobile-dock.hero-action-bar{
+  top:440px!important;
+  left:3.5%!important;
+  right:3.5%!important;
+  min-height:64px!important;
+}
+.hero{min-height:548px!important}
+
+/* Edit Profile owns the customization UI; hidden at rest. */
+.wallpaper-panel{
+  top:82px!important;
+  right:18px!important;
+  width:270px!important;
+  max-height:calc(100% - 98px);
+  overflow:auto;
+  overscroll-behavior:contain;
+  z-index:12!important;
+  transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+}
+.wallpaper-panel.panel-hidden{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transform:translateY(-8px) scale(.985)!important;
+}
+.wallpaper-panel:not(.panel-hidden){opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important}
+.customize-section{padding-top:12px;margin-top:12px;border-top:1px solid rgba(80,70,64,.14)}
+.customize-section:first-of-type{padding-top:8px;margin-top:4px;border-top:0}
+.customize-section h3{font-family:Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 5px}
+.customize-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.customize-heading button{border:1px solid #d6cec5;background:rgba(255,255,255,.54);border-radius:999px;padding:4px 9px;font-size:10px}
+.color-control input[type=color]{width:34px;height:26px;padding:2px;border:1px solid #d1c9c1;border-radius:7px;background:#fff}
+body.night-mode .customize-heading button{background:#2a2725;border-color:#514a44;color:#eee6de}
+
+@media(max-width:1200px){
+  .music-card{left:4%!important;width:430px!important}
+  .aura-card{left:calc(4% + 445px)!important;width:330px!important}
+  .mobile-dock.hero-action-bar{top:442px!important;left:3%!important;right:3%!important}
+}
+@media(max-width:900px){
+  .profile-avatar{border-radius:10px!important}
+  .primary-btn{min-width:0!important;width:100%!important}
+  .hero{min-height:790px!important}
+  .music-card{top:340px!important;left:14px!important;right:14px!important;width:auto!important;height:96px!important}
+  .aura-card{top:448px!important;left:14px!important;right:14px!important;width:auto!important;height:96px!important}
+  .mobile-dock.hero-action-bar{top:572px!important;left:14px!important;right:14px!important}
+  .wallpaper-panel{top:92px!important;right:14px!important;width:min(290px,calc(100% - 28px))!important;max-height:620px}
+}
+@media(max-width:620px){
+  .hero{min-height:900px!important}
+  .profile-avatar{border-radius:9px!important}
+  .music-card{top:350px!important;left:10px!important;right:10px!important;height:94px!important}
+  .aura-card{top:456px!important;left:10px!important;right:10px!important;height:94px!important;grid-template-columns:64px 1fr!important}
+  .mobile-dock.hero-action-bar{top:580px!important;left:10px!important;right:10px!important}
+  .wallpaper-panel{top:86px!important;left:10px!important;right:10px!important;width:auto!important;max-height:700px}
+}
+
+
+
+/* 2026-09-07 cleanup pass: cleaner top cluster */
+.profile-card{
+  left:4.5%!important;
+  top:92px!important;
+  width:min(760px,calc(100% - 330px))!important;
+  min-height:206px!important;
+  padding:22px 24px 18px!important;
+  grid-template-columns:92px minmax(0,1fr) 176px!important;
+  gap:20px!important;
+  align-items:start!important;
+}
+.profile-copy{min-width:0!important;padding-right:2px!important}
+.profile-avatar{
+  width:84px!important;
+  height:84px!important;
+  border-radius:14px!important;
+  align-self:start!important;
+}
+.profile-name-line h1{font-size:30px!important}
+.bio{max-width:440px!important;margin-bottom:8px!important}
+.meta-row,.stats{gap:16px!important}
+.primary-btn{
+  position:static!important;
+  width:176px!important;
+  min-width:176px!important;
+  justify-self:end!important;
+  align-self:start!important;
+  margin-top:18px!important;
+  padding:12px 20px!important;
+}
+.real-rank{
+  max-width:455px!important;
+  margin-top:12px!important;
+}
+.small-card{
+  top:330px!important;
+  min-height:92px!important;
+  z-index:3!important;
+}
+.music-card{
+  left:4.5%!important;
+  width:442px!important;
+  height:92px!important;
+  padding:11px 14px!important;
+}
+.aura-card{
+  left:calc(4.5% + 456px)!important;
+  width:294px!important;
+  height:92px!important;
+  padding:11px 14px!important;
+  grid-template-columns:60px 1fr!important;
+}
+.aura-card .aura-orb{width:56px!important;height:56px!important}
+.aura-card p{font-size:14px!important;line-height:1.02!important}
+.music-row{grid-template-columns:40px minmax(0,1fr) 32px!important;gap:10px!important}
+.album-art{height:40px!important}
+.round-btn{width:32px!important;height:32px!important}
+.progress{margin-top:8px!important}
+.mobile-dock.hero-action-bar{
+  top:452px!important;
+  left:4.5%!important;
+  right:3.5%!important;
+  min-height:60px!important;
+}
+.hero{min-height:546px!important}
+
+@media(max-width:1200px){
+  .profile-card{left:4%!important;width:min(700px,calc(100% - 250px))!important}
+  .music-card{left:4%!important;width:416px!important}
+  .aura-card{left:calc(4% + 430px)!important;width:274px!important}
+  .mobile-dock.hero-action-bar{top:450px!important;left:4%!important;right:3%!important}
+}
+@media(max-width:900px){
+  .hero{min-height:806px!important}
+  .profile-card{top:92px!important;min-height:260px!important;grid-template-columns:74px 1fr!important;padding:18px!important}
+  .profile-avatar{width:68px!important;height:68px!important;border-radius:12px!important}
+  .primary-btn{grid-column:1/-1!important;width:100%!important;min-width:0!important;justify-self:stretch!important;align-self:start!important;margin-top:6px!important}
+  .music-card{top:356px!important;left:14px!important;right:14px!important;width:auto!important;height:94px!important}
+  .aura-card{top:464px!important;left:14px!important;right:14px!important;width:auto!important;height:94px!important;grid-template-columns:58px 1fr!important}
+  .aura-card .aura-orb{width:54px!important;height:54px!important}
+  .mobile-dock.hero-action-bar{top:588px!important;left:14px!important;right:14px!important}
+}
+@media(max-width:620px){
+  .hero{min-height:910px!important}
+  .profile-card{top:84px!important;min-height:252px!important;padding:14px!important}
+  .profile-avatar{width:58px!important;height:58px!important;border-radius:10px!important}
+  .music-card{top:360px!important;left:10px!important;right:10px!important;height:92px!important}
+  .aura-card{top:468px!important;left:10px!important;right:10px!important;height:92px!important;grid-template-columns:56px 1fr!important}
+  .mobile-dock.hero-action-bar{top:592px!important;left:10px!important;right:10px!important}
+}
+
+
+
+/* Widget UI now styles the whole modular card system, not just Music + Aura. */
+.masonry .card:not(.manifesto-card),
+.mobile-dock.hero-action-bar,
+.customizable-widget{
+  background:var(--widget-bg,rgba(250,247,241,.84))!important;
+  color:var(--widget-ink,#171717)!important;
+  border-radius:var(--widget-radius,16px)!important;
+  backdrop-filter:blur(var(--widget-blur,18px))!important;
+  -webkit-backdrop-filter:blur(var(--widget-blur,18px))!important;
+}
+.masonry .card:not(.manifesto-card) .sub,
+.masonry .card:not(.manifesto-card) small,
+.masonry .card:not(.manifesto-card) .library-shelf small,
+.masonry .card:not(.manifesto-card) .feed-list small{
+  color:var(--widget-muted,#77716b)!important;
+}
+.mobile-dock.hero-action-bar a{
+  color:var(--widget-ink,#171717)!important;
+}
+body.night-mode .mobile-dock.hero-action-bar a{color:var(--widget-ink,#f4efe8)!important}
+
+
+
+/* Aura color is the primary action accent across the interface. */
+#editProfileBtn,
+#mobileCreate,
+.card-cta{
+  background:rgb(var(--aura-rgb,216,95,109))!important;
+  color:var(--aura-button-ink,#fff)!important;
+  box-shadow:0 6px 18px rgba(var(--aura-rgb,216,95,109),.20)!important;
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease!important;
+}
+#editProfileBtn:hover,
+#mobileCreate:hover,
+.card-cta:hover{
+  transform:translateY(-1px);
+  box-shadow:0 9px 24px rgba(var(--aura-rgb,216,95,109),.30)!important;
+  filter:saturate(1.06);
+}
+#editProfileBtn:focus-visible,
+#mobileCreate:focus-visible,
+.card-cta:focus-visible{
+  outline:2px solid rgba(var(--aura-rgb,216,95,109),.62);
+  outline-offset:3px;
+}
+
+
+
+/* 2026-09-07 theme-panel + vertical-profile cleanup */
+.topbar{grid-template-columns:280px minmax(260px,1fr) 300px!important}
+.sidebar-theme-controls{
+  display:grid;
+  grid-template-columns:repeat(2,36px);
+  gap:8px;
+  justify-content:center;
+  padding:8px 0 4px;
+}
+.sidebar-theme-btn{
+  width:36px;height:36px;border:1px solid #d9d1c8;border-radius:10px;
+  background:rgba(255,255,255,.68);padding:5px;display:grid;place-items:center;
+  transition:transform .16s ease,background .16s ease,border-color .16s ease;
+}
+.sidebar-theme-btn img{width:100%;height:100%;object-fit:contain;filter:grayscale(1) contrast(1.18)}
+.sidebar-theme-btn:hover{transform:translateY(-1px);background:#fff}
+.sidebar-theme-btn[aria-pressed="true"]{background:#fff;border-color:#8d8177;box-shadow:0 1px 5px rgba(0,0,0,.08)}
+body.night-mode .sidebar-theme-btn{background:#2a2725;border-color:#514a44}
+body.night-mode .sidebar-theme-btn img{filter:invert(1) grayscale(1) contrast(1.1)}
+body.night-mode .sidebar-theme-btn[aria-pressed="true"]{background:#f1ece4;border-color:#f1ece4}
+body.night-mode .sidebar-theme-btn[aria-pressed="true"] img{filter:grayscale(1) contrast(1.25)}
+body.sidebar-collapsed .sidebar-theme-controls{grid-template-columns:36px;justify-items:center}
+
+/* Dark mode no longer owns the primary directory bar; Widget UI styling does. */
+body.night-mode .mobile-dock.hero-action-bar{
+  background:var(--widget-bg,rgba(250,247,241,.84))!important;
+  border-color:rgba(255,255,255,.16)!important;
+  color:var(--widget-ink,#171717)!important;
+}
+body.night-mode .mobile-dock.hero-action-bar a{color:var(--widget-ink,#171717)!important}
+
+/* A more vertical profile card, while keeping the hero cluster separated. */
+.profile-card{
+  left:4.5%!important;
+  top:90px!important;
+  width:min(620px,calc(100% - 330px))!important;
+  min-height:260px!important;
+  padding:22px 24px!important;
+  grid-template-columns:90px minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;
+  column-gap:20px!important;
+  row-gap:14px!important;
+  align-items:start!important;
+}
+.profile-avatar{
+  grid-column:1!important;grid-row:1 / span 2!important;
+  width:86px!important;height:86px!important;border-radius:14px!important;
+  align-self:start!important;
+}
+.profile-copy{grid-column:2!important;grid-row:1!important;min-width:0!important}
+.profile-copy .bio{max-width:430px!important}
+.primary-btn{
+  grid-column:2!important;grid-row:2!important;
+  position:static!important;
+  width:250px!important;min-width:250px!important;
+  justify-self:start!important;align-self:start!important;
+  margin:0!important;padding:12px 24px!important;
+}
+.real-rank{max-width:440px!important;margin-top:12px!important}
+.small-card{top:382px!important}
+.music-card{left:4.5%!important;width:400px!important;height:92px!important}
+.aura-card{left:calc(4.5% + 414px)!important;width:290px!important;height:92px!important}
+.mobile-dock.hero-action-bar{top:506px!important;left:4.5%!important;right:3.5%!important}
+.hero{min-height:606px!important}
+
+@media(max-width:1200px){
+  .topbar{grid-template-columns:220px minmax(240px,1fr) 220px!important}
+  .profile-card{left:4%!important;width:min(590px,calc(100% - 250px))!important}
+  .music-card{left:4%!important;width:380px!important}
+  .aura-card{left:calc(4% + 394px)!important;width:270px!important}
+  .mobile-dock.hero-action-bar{top:508px!important;left:4%!important;right:3%!important}
+}
+@media(max-width:900px){
+  .topbar{grid-template-columns:150px 1fr 90px!important}
+  .hero{min-height:840px!important}
+  .profile-card{left:14px!important;right:14px!important;top:92px!important;width:auto!important;min-height:270px!important;grid-template-columns:74px 1fr!important;padding:18px!important}
+  .profile-avatar{width:68px!important;height:68px!important;border-radius:12px!important}
+  .primary-btn{grid-column:1/-1!important;width:100%!important;min-width:0!important;justify-self:stretch!important;margin-top:2px!important}
+  .small-card{top:380px!important}
+  .music-card{left:14px!important;right:14px!important;width:auto!important;height:94px!important}
+  .aura-card{top:488px!important;left:14px!important;right:14px!important;width:auto!important;height:94px!important}
+  .mobile-dock.hero-action-bar{top:612px!important;left:14px!important;right:14px!important}
+}
+@media(max-width:620px){
+  .hero{min-height:930px!important}
+  .profile-card{top:84px!important;min-height:278px!important;padding:14px!important}
+  .profile-avatar{width:58px!important;height:58px!important;border-radius:10px!important}
+  .small-card{top:386px!important}
+  .music-card{left:10px!important;right:10px!important;height:92px!important}
+  .aura-card{top:492px!important;left:10px!important;right:10px!important;height:92px!important}
+  .mobile-dock.hero-action-bar{top:614px!important;left:10px!important;right:10px!important}
+}
+
+
+
+/* 2026-09-07 vertical profile card + editor clearance */
+.profile-card{
+  left:4.5%!important;
+  top:68px!important;
+  width:min(585px,calc(100% - 430px))!important;
+  min-height:248px!important;
+  padding:20px 24px 22px!important;
+  grid-template-columns:84px minmax(0,1fr)!important;
+  gap:16px 20px!important;
+  align-items:start!important;
+}
+.profile-avatar{
+  width:82px!important;
+  height:82px!important;
+  border-radius:14px!important;
+  grid-row:1 / span 5!important;
+}
+.profile-copy{
+  min-width:0!important;
+}
+.primary-btn{
+  grid-column:2!important;
+  justify-self:start!important;
+  align-self:start!important;
+  width:220px!important;
+  min-width:220px!important;
+  margin-top:8px!important;
+}
+.real-rank{
+  max-width:430px!important;
+}
+.small-card{
+  top:344px!important;
+}
+.music-card{
+  left:4.5%!important;
+  width:430px!important;
+  height:92px!important;
+}
+.aura-card{
+  left:calc(4.5% + 444px)!important;
+  width:250px!important;
+  height:92px!important;
+}
+.mobile-dock.hero-action-bar{
+  top:482px!important;
+  left:4.5%!important;
+  right:3.5%!important;
+}
+.hero{
+  min-height:586px!important;
+}
+.wallpaper-panel{
+  max-height:420px!important;
+  overflow:auto!important;
+}
+
+@media(max-width:1200px){
+  .profile-card{left:4%!important;top:72px!important;width:min(560px,calc(100% - 320px))!important}
+  .music-card{left:4%!important;width:405px!important}
+  .aura-card{left:calc(4% + 419px)!important;width:236px!important}
+  .mobile-dock.hero-action-bar{top:486px!important;left:4%!important;right:3%!important}
+  .hero{min-height:596px!important}
+  .wallpaper-panel{max-height:405px!important}
+}
+@media(max-width:900px){
+  .hero{min-height:826px!important}
+  .profile-card{top:78px!important;min-height:274px!important;grid-template-columns:74px 1fr!important;padding:18px!important}
+  .profile-avatar{width:68px!important;height:68px!important;border-radius:12px!important;grid-row:auto!important}
+  .primary-btn{grid-column:1/-1!important;width:100%!important;min-width:0!important;justify-self:stretch!important;margin-top:10px!important}
+  .music-card{top:360px!important;left:14px!important;right:14px!important;width:auto!important;height:94px!important}
+  .aura-card{top:470px!important;left:14px!important;right:14px!important;width:auto!important;height:94px!important}
+  .mobile-dock.hero-action-bar{top:596px!important;left:14px!important;right:14px!important}
+  .wallpaper-panel{top:82px!important;right:14px!important;max-height:470px!important}
+}
+@media(max-width:620px){
+  .hero{min-height:930px!important}
+  .profile-card{top:74px!important;min-height:268px!important;padding:14px!important}
+  .profile-avatar{width:58px!important;height:58px!important;border-radius:10px!important}
+  .music-card{top:366px!important;left:10px!important;right:10px!important;height:92px!important}
+  .aura-card{top:474px!important;left:10px!important;right:10px!important;height:92px!important}
+  .mobile-dock.hero-action-bar{top:602px!important;left:10px!important;right:10px!important}
+  .wallpaper-panel{top:78px!important;left:10px!important;right:10px!important;max-height:520px!important;width:auto!important}
+}
+
+
+
+/* 2026-09-07 layout cleanup pass: remove clipping / even out top cluster */
+.profile-card{
+  left:4.8%!important;
+  top:58px!important;
+  width:min(560px,calc(100% - 440px))!important;
+  min-height:252px!important;
+  padding:22px 22px 24px!important;
+  grid-template-columns:84px minmax(0,1fr)!important;
+  gap:16px 18px!important;
+  align-items:start!important;
+  z-index:4!important;
+}
+.profile-avatar{
+  width:82px!important;
+  height:82px!important;
+  border-radius:14px!important;
+  grid-row:1 / span 5!important;
+}
+.profile-copy{min-width:0!important}
+.bio{max-width:410px!important}
+.primary-btn{
+  grid-column:2!important;
+  justify-self:start!important;
+  align-self:start!important;
+  width:228px!important;
+  min-width:228px!important;
+  margin-top:12px!important;
+}
+.real-rank{max-width:400px!important;margin-top:12px!important}
+
+.small-card{
+  top:350px!important;
+  min-height:96px!important;
+  z-index:3!important;
+}
+.music-card{
+  left:4.8%!important;
+  width:420px!important;
+  height:96px!important;
+  padding:11px 14px!important;
+}
+.aura-card{
+  left:calc(4.8% + 434px)!important;
+  width:260px!important;
+  height:96px!important;
+  padding:11px 14px!important;
+  grid-template-columns:60px 1fr!important;
+}
+.aura-card .aura-orb{width:56px!important;height:56px!important}
+.aura-card p{font-size:14px!important;line-height:1.03!important}
+.music-row{grid-template-columns:40px minmax(0,1fr) 32px!important;gap:10px!important}
+.album-art{height:40px!important}
+.round-btn{width:32px!important;height:32px!important}
+.progress{margin-top:8px!important}
+
+.mobile-dock.hero-action-bar{
+  top:506px!important;
+  left:4.8%!important;
+  right:3.5%!important;
+  min-height:60px!important;
+  z-index:3!important;
+}
+.hero{min-height:618px!important}
+
+.wallpaper-panel{
+  top:84px!important;
+  right:18px!important;
+  width:272px!important;
+  max-height:390px!important;
+  overflow:auto!important;
+  z-index:12!important;
+}
+
+@media(max-width:1200px){
+  .profile-card{left:4.2%!important;top:62px!important;width:min(540px,calc(100% - 360px))!important}
+  .music-card{left:4.2%!important;width:398px!important}
+  .aura-card{left:calc(4.2% + 412px)!important;width:244px!important}
+  .mobile-dock.hero-action-bar{top:508px!important;left:4.2%!important;right:3%!important}
+  .hero{min-height:624px!important}
+  .wallpaper-panel{max-height:382px!important}
+}
+@media(max-width:900px){
+  .hero{min-height:834px!important}
+  .profile-card{top:72px!important;left:14px!important;right:14px!important;width:auto!important;min-height:270px!important;grid-template-columns:74px 1fr!important;padding:18px!important}
+  .profile-avatar{width:68px!important;height:68px!important;border-radius:12px!important;grid-row:auto!important}
+  .primary-btn{grid-column:1/-1!important;width:100%!important;min-width:0!important;justify-self:stretch!important;margin-top:10px!important}
+  .small-card{top:auto!important}
+  .music-card{top:366px!important;left:14px!important;right:14px!important;width:auto!important;height:96px!important}
+  .aura-card{top:476px!important;left:14px!important;right:14px!important;width:auto!important;height:96px!important;grid-template-columns:58px 1fr!important}
+  .mobile-dock.hero-action-bar{top:606px!important;left:14px!important;right:14px!important}
+  .wallpaper-panel{top:82px!important;right:14px!important;width:min(290px,calc(100% - 28px))!important;max-height:418px!important}
+}
+@media(max-width:620px){
+  .hero{min-height:938px!important}
+  .profile-card{top:68px!important;min-height:266px!important;padding:14px!important}
+  .profile-avatar{width:58px!important;height:58px!important;border-radius:10px!important}
+  .music-card{top:372px!important;left:10px!important;right:10px!important;height:94px!important}
+  .aura-card{top:480px!important;left:10px!important;right:10px!important;height:94px!important;grid-template-columns:56px 1fr!important}
+  .mobile-dock.hero-action-bar{top:610px!important;left:10px!important;right:10px!important}
+  .wallpaper-panel{top:78px!important;left:10px!important;right:10px!important;width:auto!important;max-height:440px!important}
+}
+
+
+
+/* 2026-09-07 structural hero flow fix: no card/widget overlap */
+.hero{
+  display:grid!important;
+  grid-template-columns:420px 260px minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;
+  column-gap:14px!important;
+  row-gap:24px!important;
+  align-items:start!important;
+  padding:54px 3.5% 42px 4.8%!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+.hero-art{position:absolute!important;inset:0!important}
+.profile-card{
+  position:relative!important;
+  grid-column:1 / 3!important;
+  grid-row:1!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  width:560px!important;
+  min-height:252px!important;
+  margin:0!important;
+  align-self:start!important;
+  z-index:4!important;
+}
+.music-card,
+.aura-card{
+  position:relative!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  margin:0!important;
+  z-index:3!important;
+}
+.music-card{
+  grid-column:1!important;
+  grid-row:2!important;
+  width:420px!important;
+  height:96px!important;
+}
+.aura-card{
+  grid-column:2!important;
+  grid-row:2!important;
+  width:260px!important;
+  height:96px!important;
+}
+.mobile-dock.hero-action-bar{
+  position:relative!important;
+  grid-column:1 / -1!important;
+  grid-row:3!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  margin:0!important;
+  z-index:3!important;
+}
+.wallpaper-panel{
+  top:84px!important;
+  right:18px!important;
+  max-height:370px!important;
+}
+
+@media(max-width:1200px){
+  .hero{
+    grid-template-columns:390px 244px minmax(0,1fr)!important;
+    padding:56px 3% 40px 4.2%!important;
+  }
+  .profile-card{width:540px!important}
+  .music-card{width:390px!important}
+  .aura-card{width:244px!important}
+  .wallpaper-panel{max-height:360px!important}
+}
+@media(max-width:900px){
+  .hero{
+    grid-template-columns:minmax(0,1fr) 220px!important;
+    grid-template-rows:auto auto auto!important;
+    padding:72px 14px 44px!important;
+    row-gap:18px!important;
+  }
+  .profile-card{
+    grid-column:1 / -1!important;
+    grid-row:1!important;
+    width:100%!important;
+    min-height:270px!important;
+  }
+  .music-card{
+    grid-column:1!important;
+    grid-row:2!important;
+    width:100%!important;
+    height:96px!important;
+  }
+  .aura-card{
+    grid-column:2!important;
+    grid-row:2!important;
+    width:220px!important;
+    height:96px!important;
+  }
+  .mobile-dock.hero-action-bar{
+    grid-column:1 / -1!important;
+    grid-row:3!important;
+  }
+  .wallpaper-panel{top:82px!important;right:14px!important;max-height:390px!important}
+}
+@media(max-width:620px){
+  .hero{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto auto auto auto!important;
+    padding:68px 10px 42px!important;
+    row-gap:14px!important;
+  }
+  .profile-card{grid-column:1!important;grid-row:1!important;width:100%!important;min-height:266px!important}
+  .music-card{grid-column:1!important;grid-row:2!important;width:100%!important;height:94px!important}
+  .aura-card{grid-column:1!important;grid-row:3!important;width:100%!important;height:94px!important}
+  .mobile-dock.hero-action-bar{grid-column:1!important;grid-row:4!important;width:100%!important}
+  .wallpaper-panel{top:78px!important;left:10px!important;right:10px!important;width:auto!important;max-height:410px!important}
+}
+
+
+
+/* 2026-09-07 larger profile picture */
+.profile-card{
+  grid-template-columns:112px minmax(0,1fr)!important;
+}
+.profile-avatar{
+  width:108px!important;
+  height:108px!important;
+  font-size:46px!important;
+  border-radius:16px!important;
+}
+@media(max-width:1200px){
+  .profile-card{grid-template-columns:104px minmax(0,1fr)!important}
+  .profile-avatar{width:100px!important;height:100px!important;font-size:43px!important}
+}
+@media(max-width:900px){
+  .profile-card{grid-template-columns:88px minmax(0,1fr)!important}
+  .profile-avatar{width:82px!important;height:82px!important;font-size:37px!important}
+}
+@media(max-width:620px){
+  .profile-card{grid-template-columns:74px minmax(0,1fr)!important}
+  .profile-avatar{width:68px!important;height:68px!important;font-size:32px!important;border-radius:12px!important}
+}
+
+
+
+/* BIGLWA login + Studio routing */
+.route-screen{display:none}
+.route-screen.is-active{display:block}
+.login-page{
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 18% 18%,rgba(255,236,224,.96),transparent 28%),
+    radial-gradient(circle at 78% 28%,rgba(213,116,116,.38),transparent 34%),
+    linear-gradient(135deg,#f3d8c9 0%,#c87473 42%,#5c4547 76%,#252222 100%);
+  color:#171515;
+}
+.login-page::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.2;
+  pointer-events:none;
+  background-image:radial-gradient(circle at 30% 30%,rgba(255,255,255,.65) 0 1px,transparent 1.5px);
+  background-size:18px 18px;
+  mix-blend-mode:soft-light;
+}
+.login-shell{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(390px,.75fr);
+  position:relative;
+  z-index:1;
+}
+.login-stage{
+  padding:34px 7vw 54px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  min-height:100vh;
+}
+
+.login-brand-row,.studio-brand-row{display:flex;align-items:center;gap:14px;min-width:max-content}
+.window-lights{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.window-light{width:11px;height:11px;border-radius:50%;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.12)}
+.window-light.red{background:#df5b55}
+.window-light.yellow{background:#e1bf4f}
+.window-light.green{background:#559a61}
+.studio-brand-row{height:100%}
+.studio-brand-row .window-lights{margin-right:2px}
+.login-username-help{display:block;margin:-4px 0 12px;font-size:10px;line-height:1.45;color:#81766f}
+.login-username-help strong{font-weight:700;color:#6d625c}
+.login-brand{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:48px;
+  line-height:.9;
+  letter-spacing:-4px;
+  text-decoration:none;
+  color:#171515;
+  width:max-content;
+}
+.login-copy{max-width:690px;margin:13vh 0 10vh}
+.login-overline{font-size:11px;letter-spacing:2.8px;text-transform:uppercase;margin:0 0 16px;color:#514543}
+.login-copy h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(58px,7.2vw,112px);line-height:.82;letter-spacing:-5px;margin:0;max-width:760px;font-weight:500}
+.login-copy h1 em{font-weight:400;color:#fff7ef;text-shadow:0 3px 20px rgba(46,27,26,.15)}
+.login-copy p{max-width:510px;font-family:Georgia,"Times New Roman",serif;font-size:20px;line-height:1.35;margin:28px 0 0;color:#332b2b}
+.login-foot{display:flex;gap:18px;align-items:center;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#554b48}
+.login-foot i{width:52px;height:1px;background:currentColor;display:block}
+.login-panel-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:34px 5vw 34px 2vw;
+  min-height:100vh;
+}
+.login-card{
+  width:min(450px,100%);
+  padding:28px 28px 24px;
+  border-radius:22px;
+  background:rgba(250,247,241,.88);
+  border:1px solid rgba(255,255,255,.62);
+  box-shadow:0 26px 80px rgba(29,18,18,.24);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+}
+.login-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:24px}
+.login-card-head h2{font-family:Georgia,"Times New Roman",serif;font-size:32px;letter-spacing:-1.2px;margin:0}
+.login-card-head p{font-size:11px;line-height:1.35;color:#756b65;margin:4px 0 0}
+.login-status-dot{width:10px;height:10px;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109));box-shadow:0 0 18px rgba(var(--aura-rgb,216,95,109),.7);margin-top:8px;flex:0 0 auto}
+.login-tabs{display:grid;grid-template-columns:1fr 1fr;background:#ebe6df;border-radius:999px;padding:3px;margin-bottom:20px}
+.login-tab{border:0;border-radius:999px;background:transparent;padding:9px 12px;font-size:12px;color:#6d655f}
+.login-tab.active{background:#fff;color:#171515;box-shadow:0 1px 7px rgba(0,0,0,.07)}
+.login-field{display:block;margin:13px 0}
+.login-field span{display:block;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#6e655f;margin:0 0 7px}
+.login-field input{width:100%;height:45px;border:1px solid #d8d0c8;border-radius:12px;background:rgba(255,255,255,.78);outline:0;padding:0 13px;transition:border-color .15s ease,box-shadow .15s ease}
+.login-field input:focus{border-color:#a9918d;box-shadow:0 0 0 3px rgba(216,95,109,.10)}
+.login-name-field{display:none}
+.login-card[data-mode="create"] .login-name-field{display:block}
+.login-submit{width:100%;border:0;border-radius:999px;padding:12px 18px;margin-top:7px;background:rgb(var(--aura-rgb,216,95,109));color:var(--aura-button-ink,#fff);font-weight:700;box-shadow:0 8px 24px rgba(var(--aura-rgb,216,95,109),.22)}
+.login-submit:disabled{opacity:.62;cursor:wait}
+.login-under{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px}
+.login-link{border:0;background:none;padding:0;font-size:11px;color:#675e58;text-decoration:underline;text-underline-offset:3px}
+.login-message{min-height:18px;font-size:11px;margin:13px 0 0;color:#8a3f49}
+.login-message.ok{color:#47664e}
+.login-privacy{font-size:9px;line-height:1.45;color:#8b8179;border-top:1px solid #ded7cf;margin:18px 0 0;padding-top:13px}
+.studio-exit{font-size:20px!important}
+
+@media(max-width:900px){
+  .login-shell{grid-template-columns:1fr}
+  .login-stage{min-height:auto;padding:25px 22px 20px}
+  .login-copy{margin:11vh 0 4vh}
+  .login-copy h1{font-size:clamp(56px,15vw,92px);letter-spacing:-4px}
+  .login-copy p{font-size:17px}
+  .login-foot{display:none}
+  .login-panel-wrap{min-height:auto;padding:18px 18px 48px}
+  .login-card{width:min(560px,100%)}
+}
+@media(max-width:520px){
+  .window-light{width:10px;height:10px}
+  .login-brand-row{gap:11px}
+  .login-brand{font-size:38px}
+  .login-copy{margin:8vh 0 2vh}
+  .login-copy h1{font-size:54px;line-height:.86;letter-spacing:-3px}
+  .login-copy p{font-size:15px;margin-top:20px}
+  .login-card{padding:22px 18px 20px;border-radius:18px}
+  .login-card-head h2{font-size:28px}
+}
+
+
+/* 2026-09-07 window controls, minimized-widget dock, and rights/privacy pages */
+.login-card{position:relative;padding-top:52px}
+.login-card-lights{position:absolute;left:22px;top:20px}
+.login-card-head{margin-bottom:18px}
+.login-privacy a{color:inherit;font-weight:700;text-decoration-thickness:1px;text-underline-offset:2px}
+.studio-brand-row .window-lights,.login-brand-row .window-lights{display:none!important}
+
+.widget-window-controls{display:flex;align-items:center;gap:6px;height:12px;margin:0 0 10px;position:relative;z-index:5}
+.widget-window-controls .window-light{width:10px;height:10px}
+.widget-window-controls button.window-light{border:0;padding:0;appearance:none;cursor:pointer}
+.widget-window-controls button.window-light.yellow:hover{transform:scale(1.18)}
+.widget-window-controls button.window-light.yellow:focus-visible{outline:2px solid #171515;outline-offset:2px}
+.customizable-widget>.widget-window-controls{position:absolute;right:13px;top:10px;margin:0}
+.masonry .card>.widget-window-controls{margin:-2px 0 10px}
+.widget-is-minimized{display:none!important}
+
+.minimized-widgets{border-top:1px solid var(--line);margin-top:9px;padding-top:9px}
+.minimized-label{font-size:8px;letter-spacing:1.4px;color:#8b8179;margin:0 8px 6px}
+.minimized-widget-dock{display:flex;flex-direction:column;gap:5px}
+.minimized-widget-btn{border:1px solid var(--line);background:rgba(255,255,255,.5);border-radius:10px;padding:7px 8px;display:flex;align-items:center;gap:7px;text-align:left;font-size:10px;color:#514b46;min-width:0}
+.minimized-widget-btn:hover{background:#fff}
+.minimized-widget-btn .restore-dot{width:8px;height:8px;border-radius:50%;background:#e1bf4f;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);flex:0 0 auto}
+.minimized-widget-btn b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.sidebar-collapsed .minimized-label,body.sidebar-collapsed .minimized-widget-btn b{display:none}
+body.sidebar-collapsed .minimized-widget-btn{justify-content:center;padding:8px}
+.sidebar-policy-links{display:flex;justify-content:center;gap:7px;margin:8px 0 4px;font-size:8px;text-transform:uppercase;letter-spacing:.08em}
+.sidebar-policy-links a{color:#81776f;text-decoration:none}
+body.sidebar-collapsed .sidebar-policy-links{display:none}
+
+.policy-page{min-height:100vh;background:radial-gradient(circle at 20% 0,#fff7ef 0,#f0e7dc 48%,#dfc8bd 100%);padding:34px 22px 70px}
+.policy-shell{width:min(920px,100%);margin:0 auto}
+.policy-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:34px}
+.policy-back{font-size:12px;color:#4d4540;text-decoration:none;border:1px solid rgba(60,45,40,.18);padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.45)}
+.policy-card{position:relative;background:rgba(250,247,241,.92);border:1px solid rgba(255,255,255,.66);box-shadow:0 24px 70px rgba(53,35,30,.14);border-radius:24px;padding:64px clamp(24px,6vw,70px) 50px;backdrop-filter:blur(22px)}
+.policy-lights{position:absolute;left:24px;top:22px}
+.policy-kicker{text-transform:uppercase;letter-spacing:2px;font-size:9px;color:#8a7a72;margin:0 0 13px}
+.policy-card h1{font-family:Georgia,serif;font-size:clamp(42px,7vw,74px);line-height:.94;letter-spacing:-3px;margin:0 0 22px;font-weight:500}
+.policy-lede{font-family:Georgia,serif;font-size:21px;line-height:1.43;color:#3e3532;margin:0 0 34px;max-width:730px}
+.policy-card h2{font-family:Georgia,serif;font-size:25px;margin:30px 0 8px}
+.policy-card p{font-size:14px;line-height:1.72;color:#514843}
+.policy-note{margin-top:34px!important;padding:18px 20px;border-radius:14px;background:#eee6de;color:#554c47!important}
+.policy-links{display:flex;gap:12px;margin-top:28px;padding-top:22px;border-top:1px solid #ddd3ca}
+.policy-links a{color:#3f3733;font-size:12px;font-weight:700;text-decoration:none;border:1px solid #d7ccc3;border-radius:999px;padding:9px 13px}
+.rights-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0}
+.rights-grid>div{background:#f1e9e1;border:1px solid #dfd4ca;border-radius:16px;padding:16px}
+.rights-grid b{font-family:Georgia,serif;font-size:17px}
+.rights-grid p{font-size:12px;line-height:1.5;margin:8px 0 0}
+@media(max-width:650px){.policy-page{padding:22px 12px 50px}.policy-top{margin-bottom:20px}.policy-card{padding:58px 20px 34px;border-radius:18px}.policy-card h1{letter-spacing:-2px}.policy-lede{font-size:18px}.rights-grid{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+  <section class="login-page route-screen is-active" id="loginPage" aria-label="BIGLWA login">
+    <div class="login-shell">
+      <div class="login-stage">
+        <div class="login-brand-row">
+          <a class="login-brand" href="/" aria-label="BIGLWA">BIGLWA</a>
+        </div>
+        <div class="login-copy">
+          <p class="login-overline">People · Ideas · Sounds · Self</p>
+          <h1>A bigger you.<br><em>Brighter worlds.</em></h1>
+          <p>Step inside a creative collective for making, learning, archiving, sharing, and finding your people.</p>
+        </div>
+        <div class="login-foot"><i></i><span>Culture · Creativity · Community</span></div>
+      </div>
+      <div class="login-panel-wrap">
+        <form class="login-card" id="loginCard" data-mode="signin">
+          <div class="window-lights login-card-lights" aria-label="BIGLWA colors">
+            <span class="window-light red" aria-hidden="true"></span>
+            <span class="window-light yellow" aria-hidden="true"></span>
+            <span class="window-light green" aria-hidden="true"></span>
+          </div>
+          <div class="login-card-head">
+            <div><h2 id="loginTitle">Step Inside</h2><p id="loginSubtitle">Enter your studio.</p></div>
+          </div>
+          <div class="login-tabs" role="tablist" aria-label="Account access">
+            <button class="login-tab active" id="signInTab" type="button" role="tab" aria-selected="true">Sign in</button>
+            <button class="login-tab" id="createTab" type="button" role="tab" aria-selected="false">Create account</button>
+          </div>
+          <label class="login-field login-name-field"><span>Username</span><input id="loginUsername" type="text" autocomplete="username" minlength="5" maxlength="24" spellcheck="false" placeholder="Choose a username"></label>
+          <small class="login-username-help login-name-field"><strong>5–24 characters.</strong> 3–4 character usernames are reserved for special request.</small>
+          <label class="login-field"><span>Email</span><input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+          <label class="login-field"><span>Password</span><input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="••••••••"></label>
+          <button class="login-submit" id="loginSubmit" type="submit">Step Inside</button>
+          <div class="login-under">
+            <button class="login-link" id="forgotPassword" type="button">Forgot password?</button>
+            <span style="font-size:10px;color:#8d837c">BIGLWA Studio</span>
+          </div>
+          <p class="login-message" id="loginMessage" aria-live="polite"></p>
+          <p class="login-privacy"><strong>Your likeness stays yours. Your work stays yours.</strong> BIGLWA is built to protect creative identity, not extract from it. By continuing, you agree to our <a href="/terms" data-policy-route="terms">Terms</a>, <a href="/privacy" data-policy-route="privacy">Privacy Policy</a>, and <a href="/rights" data-policy-route="rights">Rights &amp; Likeness Promise</a>.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="policy-page route-screen" id="privacyPage" aria-label="BIGLWA Privacy Policy">
+    <div class="policy-shell">
+      <header class="policy-top"><a class="login-brand" href="/" data-return-home>BIGLWA</a><a class="policy-back" href="/studio" data-return-app>Back</a></header>
+      <article class="policy-card">
+        <div class="window-lights policy-lights" aria-hidden="true"><span class="window-light red"></span><span class="window-light yellow"></span><span class="window-light green"></span></div>
+        <p class="policy-kicker">Privacy Policy · September 7, 2026</p>
+        <h1>Privacy should feel like shelter.</h1>
+        <p class="policy-lede">BIGLWA is designed around the idea that your identity, likeness, relationships, and creative work are not raw material for someone else to exploit.</p>
+        <h2>What we collect right now</h2>
+        <p>For account access, BIGLWA uses Firebase Authentication and may process your email address, username, authentication identifiers, and basic account status. Studio appearance choices such as wallpaper and widget styling are currently stored in your browser unless a cloud-sync feature explicitly tells you otherwise.</p>
+        <h2>Your content and likeness</h2>
+        <p>You keep ownership of content you create or upload, including your name, image, voice, persona, and other elements of your likeness. BIGLWA does not claim ownership merely because something is posted here. Any license you grant us is limited to what is reasonably necessary to host, display, deliver, moderate, back up, and operate the service.</p>
+        <h2>What BIGLWA does not do</h2>
+        <p>BIGLWA does not sell your personal information or creative work. BIGLWA does not intentionally use private user content or likenesses to train generative models without a separate, affirmative opt-in. Service providers may process data only as needed to provide their services and under their own terms and privacy obligations.</p>
+        <h2>Safety, evidence, and rights requests</h2>
+        <p>If you report impersonation, nonconsensual use of your likeness, stolen creative work, doxxing, deepfake abuse, or another serious violation of your social body, BIGLWA may preserve relevant records, help organize evidence, assist with platform takedown requests, and escalate the matter under our Rights &amp; Likeness process.</p>
+        <h2>Your choices</h2>
+        <p>You may request access, correction, or deletion of information BIGLWA controls, subject to security, fraud-prevention, legal, and backup-retention requirements. When publishing and cloud storage features expand, this policy should be updated before those new practices take effect.</p>
+        <p class="policy-note"><strong>Current-build note:</strong> this privacy policy describes the live BIGLWA prototype as it exists today. New messaging, posting, payments, cloud storage, analytics, or moderation systems will require corresponding updates.</p>
+        <nav class="policy-links"><a href="/terms" data-policy-route="terms">Terms</a><a href="/rights" data-policy-route="rights">Rights &amp; Likeness</a></nav>
+      </article>
+    </div>
+  </section>
+
+  <section class="policy-page route-screen" id="termsPage" aria-label="BIGLWA Terms">
+    <div class="policy-shell">
+      <header class="policy-top"><a class="login-brand" href="/" data-return-home>BIGLWA</a><a class="policy-back" href="/studio" data-return-app>Back</a></header>
+      <article class="policy-card">
+        <div class="window-lights policy-lights" aria-hidden="true"><span class="window-light red"></span><span class="window-light yellow"></span><span class="window-light green"></span></div>
+        <p class="policy-kicker">Terms · September 7, 2026</p>
+        <h1>You are not the product.</h1>
+        <p class="policy-lede">BIGLWA is a creative collective. Participation does not transfer ownership of your identity or your work to us.</p>
+        <h2>Accounts and usernames</h2>
+        <p>Public account creation currently requires a 5–24 character username. Three- and four-character usernames are reserved and may be assigned only through a special-request process. You are responsible for keeping your account credentials secure and for using an identity you have the right to use.</p>
+        <h2>You own what you make</h2>
+        <p>As between you and BIGLWA, you retain your rights in original content you create and post. You grant BIGLWA a limited, non-exclusive license only to operate the service: hosting, reproducing, displaying, transmitting, formatting, moderating, and backing up that content as reasonably necessary. This does not give BIGLWA permission to sell your work or independently commercialize your likeness.</p>
+        <h2>No exploitation of another person’s social body</h2>
+        <p>Do not impersonate people, scrape profiles for identity exploitation, publish nonconsensual intimate material, create deceptive or abusive synthetic likenesses, dox users, falsely claim authorship, or commercially exploit another person’s name, image, voice, persona, or work without a lawful basis.</p>
+        <h2>Original work posted here</h2>
+        <p>Where BIGLWA records publication metadata, that information may help document when a work appeared on the service. It is not a substitute for copyright registration, trademark registration, a contract, or other formal legal protection.</p>
+        <h2>Enforcement and legal support</h2>
+        <p>BIGLWA may remove violating content or accounts, preserve evidence, assist with takedown requests, and—where appropriate—support cease-and-desist correspondence. Matters that require legal representation or litigation must be handled by a licensed attorney under a separate written engagement. BIGLWA does not guarantee that every report will result in a cease-and-desist, lawsuit, recovery, or other legal remedy.</p>
+        <h2>No automatic attorney-client relationship</h2>
+        <p>Using BIGLWA, submitting a report, or receiving general support does not by itself create an attorney-client relationship. If BIGLWA later offers legal services through licensed counsel, the scope, jurisdiction, conflicts checks, fees if any, and representation terms must be set out separately.</p>
+        <p class="policy-note">These terms are a strong product-policy draft, not a substitute for review by counsel before a public commercial launch.</p>
+        <nav class="policy-links"><a href="/privacy" data-policy-route="privacy">Privacy</a><a href="/rights" data-policy-route="rights">Rights &amp; Likeness</a></nav>
+      </article>
+    </div>
+  </section>
+
+  <section class="policy-page route-screen" id="rightsPage" aria-label="BIGLWA Rights and Likeness Promise">
+    <div class="policy-shell">
+      <header class="policy-top"><a class="login-brand" href="/" data-return-home>BIGLWA</a><a class="policy-back" href="/studio" data-return-app>Back</a></header>
+      <article class="policy-card rights-card">
+        <div class="window-lights policy-lights" aria-hidden="true"><span class="window-light red"></span><span class="window-light yellow"></span><span class="window-light green"></span></div>
+        <p class="policy-kicker">Rights &amp; Likeness Promise</p>
+        <h1>Your social body is part of your body.</h1>
+        <p class="policy-lede">Your face, voice, name, persona, archive, creative labor, and the context around them deserve meaningful protection. BIGLWA’s goal is to make that protection part of the product—not something you have to beg a platform for after harm is already done.</p>
+        <div class="rights-grid">
+          <div><b>01 · You keep authorship</b><p>Posting here does not make BIGLWA the owner of your work.</p></div>
+          <div><b>02 · Likeness is not a free asset</b><p>Impersonation, abusive deepfakes, nonconsensual sexualization, and identity extraction are treated as serious violations.</p></div>
+          <div><b>03 · We help build the paper trail</b><p>When possible, we can help preserve evidence and organize the chronology of a reported violation.</p></div>
+          <div><b>04 · Escalation can be real</b><p>Depending on the facts, BIGLWA may support takedowns or cease-and-desist correspondence and may coordinate referral to licensed counsel.</p></div>
+        </div>
+        <h2>When court becomes necessary</h2>
+        <p>If a matter warrants litigation, representation must be accepted by a licensed attorney under a separate engagement. That protects you too: it ensures someone legally authorized, conflict-checked, and accountable is actually responsible for the case. BIGLWA can build toward that infrastructure without pretending every report automatically becomes a lawsuit.</p>
+        <p class="policy-note"><strong>Design principle:</strong> protection should be visible. As reporting and provenance tools are built, BIGLWA should show users what was preserved, what action was requested, and what stage a rights matter is in.</p>
+        <nav class="policy-links"><a href="/terms" data-policy-route="terms">Terms</a><a href="/privacy" data-policy-route="privacy">Privacy</a></nav>
+      </article>
+    </div>
+  </section>
+
+  <div class="app-shell route-screen" id="studioApp">
+    <header class="topbar">
+      <div class="studio-brand-row">
+        <a class="brand" href="/studio" aria-label="BIGLWA Studio">BIGLWA</a>
+      </div>
+      <label class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input id="globalSearch" type="search" placeholder="Search people, ideas, projects, archives…" autocomplete="off" />
+      </label>
+      <div class="top-actions">
+        <button class="icon-btn studio-exit" id="studioSignOut" type="button" aria-label="Sign out" title="Sign out">↗</button>
+        <button class="icon-btn" aria-label="Notifications">◌<span class="notif-dot"></span></button>
+        <button class="profile-mini" id="profileMenuBtn" aria-expanded="false">
+          <span class="mini-avatar">L</span>
+          <span class="welcome">Good to see you,<strong>Leian</strong></span>
+          <span>⌄</span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="sidebar" aria-label="Secondary navigation">
+      <div class="sidebar-top">
+        <button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-expanded="true" aria-label="Collapse side navigation" title="Collapse side navigation"><span aria-hidden="true">‹</span><b>Hide</b></button>
+        <nav aria-label="Collections and community">
+          <a class="nav-item" href="#archive"><span>▤</span><b>Archive</b></a>
+          <a class="nav-item" href="#projects"><span>✣</span><b>Projects</b></a>
+          <a class="nav-item" href="#closet"><span>♢</span><b>Closet</b></a>
+          <a class="nav-item" href="#games"><span>♟</span><b>Games</b></a>
+          <a class="nav-item" href="#rooms"><span>⌂</span><b>Rooms</b></a>
+          <a class="nav-item" href="#boards"><span>⊞</span><b>Boards</b></a>
+          <a class="nav-item" href="#notes"><span>▱</span><b>Notes</b></a>
+          <a class="nav-item rights-nav" href="/rights" data-policy-route="rights"><span>◇</span><b>Rights</b></a>
+        </nav>
+        <section class="minimized-widgets" id="minimizedWidgets" aria-label="Minimized widgets" hidden>
+          <div class="minimized-label">MINIMIZED</div>
+          <div class="minimized-widget-dock" id="minimizedWidgetDock"></div>
+        </section>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-theme-controls" role="group" aria-label="Appearance">
+          <button class="sidebar-theme-btn" id="lightModeBtn" data-theme="light" type="button" aria-label="Light mode" title="Light mode" aria-pressed="true"><img src="assets/login-sun-mask.png" alt="" aria-hidden="true"></button>
+          <button class="sidebar-theme-btn" id="darkModeBtn" data-theme="dark" type="button" aria-label="Dark mode" title="Dark mode" aria-pressed="false"><img src="assets/login-moon-mask.png" alt="" aria-hidden="true"></button>
+        </div>
+        <div class="sidebar-policy-links"><a href="/privacy" data-policy-route="privacy">Privacy</a><a href="/terms" data-policy-route="terms">Terms</a></div>
+        <div class="sidebar-manifesto">People.<br>Ideas.<br>Sounds.<br>Self.<br><em>A kinder, brighter tomorrow.</em></div>
+      </div>
+    </aside>
+
+    <main class="main" id="home">
+      <div class="page-wallpaper" id="pageWallpaper" aria-hidden="true"></div>
+      <section class="hero" id="hero">
+        <div class="hero-art" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="palm palm-a"></div>
+          <div class="palm palm-b"></div>
+          <div class="portrait-shape"></div>
+          <p class="scribble scribble-left">Different people.<br>Brighter worlds.</p>
+          <p class="scribble scribble-right">Culture.<br>Creativity.<br>Community.</p>
+        </div>
+
+        <section class="profile-card glass">
+          <div class="profile-avatar">L</div>
+          <div class="profile-copy">
+            <div class="profile-name-line"><h1>@leian</h1><span class="verified">✓</span></div>
+            <p class="eyebrow">CREATIVE · EDUCATION · CULTURE</p>
+            <p class="bio">Researcher, creator, community builder. Building a more accessible creative internet.</p>
+            <div class="meta-row"><span>⌖ Los Angeles, CA</span><a href="#">biglwa.com/leian</a></div>
+            <div class="stats"><span data-profile-stat="followers"><b>0</b> Followers</span><span data-profile-stat="following"><b>0</b> Following</span><span data-profile-stat="connections"><b>0</b> Connections</span><span data-profile-stat="reach"><b>0</b> Reach</span></div>
+            <div class="real-rank" aria-label="Real Rank: Statement, progressing toward Legend">
+              <span class="rank-label">REAL RANK</span>
+              <strong>Statement</strong>
+              <span class="rank-track" aria-hidden="true"><i></i></span>
+              <span class="rank-next">Legend</span>
+            </div>
+          </div>
+          <button class="primary-btn" id="editProfileBtn" aria-expanded="false" aria-controls="wallpaperPanel">Edit Profile</button>
+        </section>
+
+        <nav class="mobile-dock hero-action-bar glass" aria-label="Primary directories">
+          <a href="#home">⌂<span>Studio</span></a>
+          <a href="#desk">⌗<span>Desk</span></a>
+          <a href="#feed">≋<span>Feed</span></a>
+          <a href="#connect">⌘<span>Connect</span></a>
+          <button id="mobileCreate" type="button">＋<span>Create</span></button>
+          <a href="#camera">◉<span>Camera</span></a>
+          <a href="#diary">▱<span>Diary</span></a>
+          <a href="#stream">◌<span>Stream</span></a>
+          <a href="#library">▥<span>Library</span></a>
+        </nav>
+
+        <section class="aura-card glass small-card customizable-widget">
+          <div class="card-kicker">Aura</div>
+          <div class="aura-orb" id="auraOrb"></div>
+          <p><strong>Focused</strong><br>but dreaming.</p>
+        </section>
+
+        <section class="music-card glass small-card customizable-widget">
+          <div class="card-kicker">Now Playing</div>
+          <div class="music-row">
+            <div class="album-art">♪</div>
+            <div><strong>Almeda</strong><span>Solange</span></div>
+            <button class="round-btn" id="playBtn" aria-label="Play or pause">▶</button>
+          </div>
+          <div class="progress"><i id="musicProgress"></i></div>
+        </section>
+
+        <section class="wallpaper-panel glass panel-hidden" id="wallpaperPanel" aria-label="Profile customization">
+          <div class="panel-title"><strong>Customize Profile</strong><button id="closePanel" aria-label="Close customization">×</button></div>
+
+          <div class="customize-section">
+            <h3>Wallpaper</h3>
+            <p>One continuous wallpaper, fading softly as you move down the page.</p>
+            <div class="wallpaper-preview" id="wallpaperPreview"></div>
+            <input id="wallpaperInput" type="file" accept="image/*" hidden />
+            <button class="secondary-btn" id="changeWallpaper">Change Wallpaper</button>
+            <label>Fit<select id="fitSelect"><option value="cover">Cover</option><option value="contain">Contain</option></select></label>
+            <label>Position<select id="positionSelect"><option value="center">Center</option><option value="top">Top</option><option value="bottom">Bottom</option><option value="left">Left</option><option value="right">Right</option></select></label>
+            <label>Blur <span id="blurValue">0%</span><input id="blurRange" type="range" min="0" max="18" value="0"></label>
+            <label>Aura <span id="auraValue">30%</span><input id="auraRange" type="range" min="0" max="100" value="30"></label>
+            <label>Overlay <span id="overlayValue">18%</span><input id="overlayRange" type="range" min="0" max="70" value="18"></label>
+          </div>
+
+          <div class="customize-section widget-style-section">
+            <div class="customize-heading"><h3>Widgets &amp; Cards</h3><button type="button" id="resetWidgets">Reset</button></div>
+            <p>Style the music, Aura, directory bar, and all of the Pinterest-style content cards together.</p>
+            <label class="color-control">Widget color <input id="widgetColor" type="color" value="#faf7f1" aria-label="Widget color"></label>
+            <label>Roundness <span id="widgetRadiusValue">16px</span><input id="widgetRadius" type="range" min="0" max="36" value="16"></label>
+            <label>Opacity <span id="widgetOpacityValue">84%</span><input id="widgetOpacity" type="range" min="35" max="100" value="84"></label>
+            <label>Glass blur <span id="widgetBlurValue">18px</span><input id="widgetBlur" type="range" min="0" max="32" value="18"></label>
+            <label class="color-control">Aura color <input id="auraColor" type="color" value="#d85f6d" aria-label="Aura color"></label>
+          </div>
+        </section>
+      </section>
+
+      <section class="masonry" id="contentGrid">
+        <article class="card desk-card" id="desk" data-search="desk workspace drafts tasks projects private creative workspace">
+          <div class="card-head"><div><span class="card-icon">⌗</span><h2>Desk</h2></div><button class="arrow-btn" data-open="desk">→</button></div>
+          <p class="sub">Your working table — drafts, loose ends, things becoming.</p>
+          <div class="desk-stack">
+            <button class="desk-sheet" data-open="desk"><small>DRAFT 04</small><b>UC archive essay</b><span>Last touched 11:42 PM</span></button>
+            <button class="desk-sheet offset" data-open="desk"><small>TO DO</small><b>Finish project call</b><span>3 notes attached</span></button>
+          </div>
+          <button class="card-cta" data-open="desk">Go to Desk →</button>
+        </article>
+
+        <article class="card feed-card" id="feed" data-search="feed collective updates people projects posts activity community">
+          <div class="card-head"><div><span class="card-icon">≋</span><h2>Feed</h2></div><button class="arrow-btn" data-open="feed">→</button></div>
+          <p class="sub">A collective feed, not an attention trap.</p>
+          <div class="feed-list">
+            <button data-open="feed"><span class="feed-avatar">M</span><div><b>Maya added to Diaspora Docs</b><small>project update · 14m</small></div></button>
+            <button data-open="feed"><span class="feed-avatar warm">J</span><div><b>Jules published a closet drop</b><small>4 pieces · 48m</small></div></button>
+            <button data-open="feed"><span class="feed-avatar dark">A</span><div><b>Ari saved 6 items to Black Cinema</b><small>library · 1h</small></div></button>
+          </div>
+        </article>
+
+        <article class="card connect-card" id="connect" data-search="connect people collaborators skills mentorship network opportunities community">
+          <div class="card-head"><div><span class="card-icon">⌘</span><h2>Connect</h2></div><button class="arrow-btn" data-open="connect">→</button></div>
+          <p class="sub">Find people by what they know, make, need, or can share.</p>
+          <div class="connect-people">
+            <button data-open="connect"><span>SA</span><b>Sam</b><small>film · LA</small></button>
+            <button data-open="connect"><span>NO</span><b>Noor</b><small>law · NYC</small></button>
+            <button data-open="connect"><span>TY</span><b>Ty</b><small>design · ATL</small></button>
+          </div>
+          <div class="skill-chips"><span>mentorship</span><span>collaborators</span><span>mutual aid</span></div>
+        </article>
+
+        <article class="card camera-card" id="camera" data-search="camera photos visual journal upload capture contact sheet image media">
+          <div class="card-head"><div><span class="card-icon">◉</span><h2>Camera</h2></div><button class="arrow-btn" data-open="camera">→</button></div>
+          <p class="sub">Capture now. Add context later.</p>
+          <div class="contact-sheet" aria-label="Camera contact sheet preview">
+            <div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+          <button class="card-cta" data-open="camera">Open Camera Roll →</button>
+        </article>
+
+        <article class="card diary-card" id="diary" data-search="diary journal reflection writing private thoughts notes memory">
+          <div class="card-head"><div><span class="card-icon">▱</span><h2>Diary</h2></div><button class="arrow-btn" data-open="diary">→</button></div>
+          <p class="sub">Private first. Share only when you mean to.</p>
+          <button class="diary-page" data-open="diary"><span>SEP 05</span><strong>I keep thinking about what access feels like when it is designed in from the beginning.</strong><em>continue writing →</em></button>
+        </article>
+
+        <article class="card stream-card" id="stream" data-search="stream live broadcast video radio audio talks screenings media channel">
+          <div class="card-head"><div><span class="card-icon">◌</span><h2>Stream</h2></div><button class="arrow-btn" data-open="stream">→</button></div>
+          <p class="sub">Live rooms, screenings, talks, radio, movement.</p>
+          <div class="stream-screen">
+            <div class="on-air"><i></i> ON AIR</div>
+            <div class="stream-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <strong>After Hours: u up?</strong>
+            <span>0 watching</span>
+          </div>
+          <button class="card-cta" data-open="stream">Enter Stream →</button>
+        </article>
+
+        <article class="card library-card" id="library" data-search="library books pdf readings research saved resources syllabus articles references education">
+          <div class="card-head"><div><span class="card-icon">▥</span><h2>Library</h2></div><button class="arrow-btn" data-open="library">→</button></div>
+          <p class="sub">Readings, PDFs, syllabi, references, and things worth returning to.</p>
+          <div class="library-shelf">
+            <button data-open="library"><span class="book-spine s1"></span><div><b>Black Visual Culture</b><small>12 saved texts</small></div></button>
+            <button data-open="library"><span class="book-spine s2"></span><div><b>Haiti / Vodou / Archive</b><small>8 readings · 3 scans</small></div></button>
+            <button data-open="library"><span class="book-spine s3"></span><div><b>Law + Creative Rights</b><small>6 guides · 2 cases</small></div></button>
+          </div>
+          <button class="card-cta" data-open="library">Open Library →</button>
+        </article>
+
+        <article class="card archive-card" id="archive" data-search="archive zines photos artifacts sounds people movements history">
+          <div class="card-head"><div><span class="card-icon">◈</span><h2>Archive</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">Zines, photos, artifacts, sounds, people, movements.</p>
+          <div class="archive-collage">
+            <div class="paper p1">GOOD PEOPLE<br>BETTER CULTURE</div>
+            <div class="photo-tile mono face-tile"></div>
+            <div class="paper p2">A LARGER STORY<br>TOGETHER.</div>
+            <div class="record"></div>
+            <div class="photo-tile mono crowd-tile"></div>
+            <div class="paper p3">Preserve.<br>Share.<br>Build.<br>Belong.</div>
+          </div>
+          <button class="card-cta" data-open="archive">Open Archive →</button>
+        </article>
+
+        <article class="card projects-card" id="projects" data-search="projects collaborative opportunities calls community video art">
+          <div class="card-head"><div><span class="card-icon">▰</span><h2>Projects</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">Collaborative projects, opportunities and creative calls.</p>
+          <div class="project-grid">
+            <button class="project-tile" data-open="City Screens"><div class="project-image mural"></div><span class="pill">Community</span><h3>City Screens</h3><p>A public art project amplifying local voices.</p><small>12 collaborators</small></button>
+            <button class="project-tile" data-open="Diaspora Docs"><div class="project-image coast"></div><span class="pill">Video</span><h3>Diaspora Docs</h3><p>Short films. Real stories. Global perspectives.</p><small>8 collaborators</small></button>
+          </div>
+        </article>
+
+        <article class="card fact-card" id="learn" data-search="did you know learn education history fact nina simone black culture">
+          <div class="card-head"><div><span class="card-icon">▭</span><h2>Did You Know?</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">Real history. Deeper context. A more connected world.</p>
+          <div class="fact-layout"><div class="fact-portrait"></div><div><blockquote>“An artist’s duty is to reflect the times.”</blockquote><h3>Nina Simone</h3><p>Musician, civil-rights activist, and one of the most singular voices of the 20th century.</p></div></div>
+          <button class="card-cta" data-open="didyouknow">Learn More →</button>
+        </article>
+
+        <article class="card closet-card" id="closet" data-search="closet clothing resale preloved fashion sustainable sell clothes">
+          <div class="card-head"><div><span class="card-icon">♢</span><h2>Closet</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">Preloved fashion. Sustainable style. A circular community.</p>
+          <div class="closet-grid">
+            <button class="item" data-open="Denim Jacket"><div class="garment jacket">JACKET</div><span>Vintage Denim Jacket</span><b>$68</b></button>
+            <button class="item" data-open="Archive Tee"><div class="garment tee">TEE</div><span>Archive Tee</span><b>$32</b></button>
+            <button class="item" data-open="Vintage Tote"><div class="garment tote">TOTE</div><span>Vintage Tote</span><b>$45</b></button>
+            <button class="item" data-open="Cargo Pants"><div class="garment pants">CARGO</div><span>Cargo Pants</span><b>$58</b></button>
+          </div>
+          <button class="card-cta" data-open="closet">Shop All →</button>
+        </article>
+
+        <article class="card games-card" id="games" data-search="games quiz learning culture trivia educational play">
+          <div class="card-head"><div><span class="card-icon">♟</span><h2>Games</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">Play, learn, and explore culture together.</p>
+          <div class="quiz" id="quiz"><h3>Culture Quiz</h3><small>Question 1 of 5</small><p>Which city is known as the birthplace of hip-hop?</p><button data-answer="wrong">Los Angeles</button><button data-answer="correct">New York</button><button data-answer="wrong">Atlanta</button><button data-answer="wrong">Chicago</button><div class="quiz-feedback" id="quizFeedback"></div></div>
+        </article>
+
+        <article class="card room-card" id="rooms" data-search="rooms lounge community conversations support study">
+          <div class="card-head"><div><span class="card-icon">♣</span><h2>Room</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">Community lounges for real conversations.</p>
+          <div class="room-scene"><div class="lamp"></div><div class="sofa"></div><div class="window"></div><p>Good people.<br>Brighter conversations.</p></div>
+          <div class="room-footer"><span><i class="live-dot"></i>1.4K online</span><button class="card-cta" data-open="room">Join Room</button></div>
+        </article>
+
+        <article class="card boards-card" id="boards" data-search="boards moodboard pins inspiration collection curate">
+          <div class="card-head"><div><span class="card-icon">⊞</span><h2>Boards</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">Collect. Curate. Be inspired.</p>
+          <div class="board-collage"><div class="b1"></div><div class="b2">IDEAS<br>PEOPLE<br>PLACES</div><div class="b3"></div><div class="b4"></div><div class="b5"></div><div class="b6"></div></div>
+          <button class="card-cta" data-open="boards">My Inspiration · 24 pins</button>
+        </article>
+
+        <article class="card notes-card" id="notes" data-search="notes quick writing reflection thoughts drafts dreams">
+          <div class="card-head"><div><span class="card-icon">▱</span><h2>Quick Notes</h2></div><button class="arrow-btn">→</button></div>
+          <p class="sub">A space for your thoughts, drafts and dreams.</p>
+          <button class="note-paper" data-open="notes">Still becoming.<br>And that’s enough<br>for today.<span>Apr 22, 2025</span></button>
+        </article>
+
+        <article class="card manifesto-card" data-search="biglwa people ideas sounds self manifesto">
+          <h2>BIGLWA</h2><p>People.<br>Ideas.<br>Sounds.<br>Self.</p><hr><p class="manifesto-copy">A more creative, compassionate world is possible. And it’s better together.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="modal" class="modal"><button class="modal-close" id="modalClose">×</button><div id="modalBody"></div></dialog>
+  <script>
+const $ = (s, root=document) => root.querySelector(s);
+const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+const heroArt = $('.hero-art');
+const pageWallpaper = $('#pageWallpaper');
+const wallpaperInput = $('#wallpaperInput');
+const preview = $('#wallpaperPreview');
+
+// Keep the wallpaper feeling like one continuous page instead of a header banner.
+// It stays strongest near the top and slowly recedes as the user scrolls.
+function updateWallpaperFade(){
+  const maxFadeDistance = Math.max(900, window.innerHeight * 1.45);
+  const progress = Math.min(window.scrollY / maxFadeDistance, 1);
+  const eased = progress * progress * (3 - 2 * progress);
+  const opacity = 1 - (eased * 0.68);
+  document.documentElement.style.setProperty('--wallpaper-scroll-opacity', opacity.toFixed(3));
+}
+updateWallpaperFade();
+window.addEventListener('scroll', updateWallpaperFade, {passive:true});
+window.addEventListener('resize', updateWallpaperFade);
+
+function setWallpaper(dataUrl){
+  if(!dataUrl) return;
+  heroArt.classList.add('custom-image');
+  pageWallpaper.classList.add('custom-image');
+  pageWallpaper.style.setProperty('--page-image', `url("${dataUrl}")`);
+  preview.style.backgroundImage = `url("${dataUrl}")`;
+  preview.style.backgroundSize = 'cover';
+  preview.style.backgroundPosition = 'center';
+  localStorage.setItem('biglwaWallpaper', dataUrl);
+}
+
+$('#changeWallpaper').addEventListener('click', () => wallpaperInput.click());
+wallpaperInput.addEventListener('change', e => {
+  const file = e.target.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => setWallpaper(reader.result);
+  reader.readAsDataURL(file);
+});
+
+const storedWallpaper = localStorage.getItem('biglwaWallpaper');
+if(storedWallpaper) setWallpaper(storedWallpaper);
+
+$('#fitSelect').addEventListener('change', e => {
+  pageWallpaper.style.setProperty('--page-size', e.target.value);
+  pageWallpaper.style.backgroundSize = e.target.value;
+});
+$('#positionSelect').addEventListener('change', e => {
+  pageWallpaper.style.setProperty('--page-position', e.target.value);
+  pageWallpaper.style.backgroundPosition = e.target.value;
+});
+$('#blurRange').addEventListener('input', e => {
+  pageWallpaper.style.setProperty('--page-blur', `${e.target.value}px`);
+  $('#blurValue').textContent = `${e.target.value}%`;
+});
+$('#auraRange').addEventListener('input', e => {
+  document.documentElement.style.setProperty('--aura-strength', e.target.value);
+  $('#auraValue').textContent = `${e.target.value}%`;
+});
+$('#overlayRange').addEventListener('input', e => {
+  const val = e.target.value / 100;
+  pageWallpaper.style.setProperty('--page-overlay', val);
+  $('#overlayValue').textContent = `${e.target.value}%`;
+});
+$('#closePanel').addEventListener('click', () => { $('#wallpaperPanel').classList.add('panel-hidden'); $('#editProfileBtn').setAttribute('aria-expanded','false'); });
+
+const widgetColor = $('#widgetColor');
+const widgetRadius = $('#widgetRadius');
+const widgetOpacity = $('#widgetOpacity');
+const widgetBlur = $('#widgetBlur');
+const auraColor = $('#auraColor');
+
+function parseHex(hex){
+  const h = hex.replace('#','');
+  const v = h.length === 3 ? h.split('').map(x=>x+x).join('') : h;
+  return [parseInt(v.slice(0,2),16), parseInt(v.slice(2,4),16), parseInt(v.slice(4,6),16)];
+}
+function applyWidgetStyle(save=true){
+  const [r,g,b] = parseHex(widgetColor.value);
+  const alpha = Number(widgetOpacity.value) / 100;
+  const lum = (0.2126*r + 0.7152*g + 0.0722*b) / 255;
+  const ink = lum < .48 ? '#f8f4ee' : '#171717';
+  const muted = lum < .48 ? '#c9c0b8' : '#77716b';
+  document.documentElement.style.setProperty('--widget-bg', `rgba(${r},${g},${b},${alpha})`);
+  document.documentElement.style.setProperty('--widget-radius', `${widgetRadius.value}px`);
+  document.documentElement.style.setProperty('--widget-blur', `${widgetBlur.value}px`);
+  document.documentElement.style.setProperty('--widget-ink', ink);
+  document.documentElement.style.setProperty('--widget-muted', muted);
+  const [ar,ag,ab] = parseHex(auraColor.value);
+  document.documentElement.style.setProperty('--aura-rgb', `${ar},${ag},${ab}`);
+  const auraLum = (0.2126*ar + 0.7152*ag + 0.0722*ab) / 255;
+  document.documentElement.style.setProperty('--aura-button-ink', auraLum > .62 ? '#171717' : '#ffffff');
+  $('#widgetRadiusValue').textContent = `${widgetRadius.value}px`;
+  $('#widgetOpacityValue').textContent = `${widgetOpacity.value}%`;
+  $('#widgetBlurValue').textContent = `${widgetBlur.value}px`;
+  if(save){
+    localStorage.setItem('biglwaWidgetStyle', JSON.stringify({color:widgetColor.value,radius:widgetRadius.value,opacity:widgetOpacity.value,blur:widgetBlur.value,aura:auraColor.value}));
+  }
+}
+[widgetColor,widgetRadius,widgetOpacity,widgetBlur,auraColor].forEach(el => el?.addEventListener('input', () => applyWidgetStyle(true)));
+const savedWidgetStyle = JSON.parse(localStorage.getItem('biglwaWidgetStyle') || 'null');
+if(savedWidgetStyle){
+  if(savedWidgetStyle.color) widgetColor.value = savedWidgetStyle.color;
+  if(savedWidgetStyle.radius != null) widgetRadius.value = savedWidgetStyle.radius;
+  if(savedWidgetStyle.opacity != null) widgetOpacity.value = savedWidgetStyle.opacity;
+  if(savedWidgetStyle.blur != null) widgetBlur.value = savedWidgetStyle.blur;
+  if(savedWidgetStyle.aura) auraColor.value = savedWidgetStyle.aura;
+}
+applyWidgetStyle(false);
+$('#resetWidgets')?.addEventListener('click', () => {
+  widgetColor.value='#faf7f1'; widgetRadius.value='16'; widgetOpacity.value='84'; widgetBlur.value='18'; auraColor.value='#d85f6d';
+  applyWidgetStyle(true);
+});
+
+let playing = false;
+let progress = 35;
+let timer;
+$('#playBtn').addEventListener('click', e => {
+  playing = !playing;
+  e.currentTarget.textContent = playing ? '❚❚' : '▶';
+  clearInterval(timer);
+  if(playing){
+    timer = setInterval(() => {
+      progress = (progress + 1) % 101;
+      $('#musicProgress').style.width = `${progress}%`;
+    }, 450);
+  }
+});
+
+$('#globalSearch').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  $$('.card[data-search]').forEach(card => {
+    card.classList.toggle('hidden-by-search', q && !card.dataset.search.includes(q) && !card.textContent.toLowerCase().includes(q));
+  });
+});
+
+$$('#quiz button[data-answer]').forEach(btn => btn.addEventListener('click', () => {
+  $$('#quiz button[data-answer]').forEach(b => b.classList.remove('correct','wrong'));
+  const good = btn.dataset.answer === 'correct';
+  btn.classList.add(good ? 'correct':'wrong');
+  $('#quizFeedback').textContent = good ? 'Correct — hip-hop emerged in the Bronx in the 1970s.' : 'Not quite. Try again.';
+}));
+
+const modal = $('#modal');
+const modalBody = $('#modalBody');
+const content = {
+  create:['Create','Start something without leaving your page: a camera entry, project, diary page, closet listing, stream, board, archive entry, or feed post.'],
+  project:['Project','Start a new collaborative project, call for collaborators, resource collection, or community initiative.'],
+  desk:['Desk','Your personal workspace for drafts, tasks, project fragments, and anything that is still in progress.'],
+  feed:['Feed','A calmer collective feed organized around people, projects, learning, and useful updates instead of engagement bait.'],
+  connect:['Connect','Find collaborators, mentors, peers, and opportunities by skills, needs, location, and what people are willing to share.'],
+  camera:['Camera','A visual journal and capture space for photos, scans, contact sheets, and field notes before they become posts, projects, or archive entries.'],
+  diary:['Diary','A private writing space first. Entries can stay private, become shared notes, or move into the public archive only when you choose.'],
+  stream:['Stream','BIGLWA live: screenings, talks, radio, movement videos, workshops, and community broadcasts.'],
+  library:['Library','A returnable shelf for readings, PDFs, articles, syllabi, guides, references, and research collections. Archive preserves culture; Library helps you study and use it.'],
+  archive:['Archive','A living cultural archive for zines, photos, sound, movement, oral histories, and materials worth keeping accessible.'],
+  closet:['Closet','A community resale space for clothing, styling pieces, and creative exchange. The next build can add listing creation, seller profiles, saved items, and checkout.'],
+  room:['The Lounge','A shared room for conversation, study, support, and creative work.'],
+  boards:['Boards','Collect references, build visual worlds, and share the context behind what inspires you.'],
+  notes:['Notes / Diary','A quieter place for drafts, reflection, private notes, or writing you eventually choose to publish.'],
+  didyouknow:['Did You Know?','Short, sourced educational cards can turn browsing into learning without making the platform feel like school.']
+};
+function openModal(title, body){
+  modalBody.innerHTML = `<h2>${title}</h2><p>${body}</p>`;
+  modal.showModal();
+}
+$$('[data-open]').forEach(el => el.addEventListener('click', () => {
+  const key = el.dataset.open;
+  const val = content[key] || [key, `This is a working prototype entry for ${key}.`];
+  openModal(val[0], val[1]);
+}));
+$('#editProfileBtn').addEventListener('click', () => {
+  const panel = $('#wallpaperPanel');
+  panel.classList.toggle('panel-hidden');
+  $('#editProfileBtn').setAttribute('aria-expanded', panel.classList.contains('panel-hidden') ? 'false' : 'true');
+});
+$('#mobileCreate').addEventListener('click', () => openModal('Create','Choose what you want to make: a feed post, project, camera entry, diary page, board, closet listing, archive entry, stream, or room.'));
+$('#modalClose').addEventListener('click', () => modal.close());
+modal.addEventListener('click', e => { if(e.target === modal) modal.close(); });
+
+
+
+const lightModeBtn = $('#lightModeBtn');
+const darkModeBtn = $('#darkModeBtn');
+function setTheme(mode){
+  const dark = mode === 'dark';
+  document.body.classList.toggle('night-mode', dark);
+  if(lightModeBtn) lightModeBtn.setAttribute('aria-pressed', dark ? 'false' : 'true');
+  if(darkModeBtn) darkModeBtn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+}
+if(lightModeBtn) lightModeBtn.addEventListener('click', () => setTheme('light'));
+if(darkModeBtn) darkModeBtn.addEventListener('click', () => setTheme('dark'));
+
+const sidebarCollapse = $('#sidebarCollapse');
+if(sidebarCollapse){
+  sidebarCollapse.addEventListener('click', () => {
+    const collapsed = document.body.classList.toggle('sidebar-collapsed');
+    sidebarCollapse.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    sidebarCollapse.setAttribute('aria-label', collapsed ? 'Expand side navigation' : 'Collapse side navigation');
+    sidebarCollapse.setAttribute('title', collapsed ? 'Expand side navigation' : 'Collapse side navigation');
+    const mark = sidebarCollapse.querySelector('span');
+    const label = sidebarCollapse.querySelector('b');
+    if(mark) mark.textContent = collapsed ? '›' : '‹';
+    if(label) label.textContent = collapsed ? 'More' : 'Hide';
+  });
+}
+
+
+// Window-style widget controls. The yellow light minimizes; minimized widgets move into the left toolbar.
+const minimizedWidgetDock = $('#minimizedWidgetDock');
+const minimizedWidgetsSection = $('#minimizedWidgets');
+const minimizedStorageKey = 'biglwaMinimizedWidgets';
+const widgetRegistry = new Map();
+
+function widgetLabel(el){
+  return el.dataset.widgetLabel || el.querySelector('h2')?.textContent?.trim() || el.querySelector('.card-kicker')?.textContent?.trim() || (el.classList.contains('profile-card') ? 'Profile' : 'Widget');
+}
+function widgetId(el, index){
+  return el.dataset.widgetId || el.id || [...el.classList].find(c=>c.endsWith('-card')) || `widget-${index}`;
+}
+function getMinimizedIds(){
+  try{return new Set(JSON.parse(localStorage.getItem(minimizedStorageKey) || '[]'))}catch{return new Set()}
+}
+function saveMinimizedIds(ids){localStorage.setItem(minimizedStorageKey, JSON.stringify([...ids]))}
+function renderMinimizedDock(){
+  if(!minimizedWidgetDock || !minimizedWidgetsSection) return;
+  minimizedWidgetDock.innerHTML='';
+  const ids=getMinimizedIds();
+  ids.forEach(id=>{
+    const el=widgetRegistry.get(id);
+    if(!el) return;
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='minimized-widget-btn';
+    btn.dataset.restoreWidget=id;
+    btn.title=`Restore ${widgetLabel(el)}`;
+    btn.innerHTML=`<span class="restore-dot" aria-hidden="true"></span><b>${widgetLabel(el)}</b>`;
+    minimizedWidgetDock.appendChild(btn);
+  });
+  minimizedWidgetsSection.hidden = minimizedWidgetDock.children.length===0;
+}
+function setWidgetMinimized(id, minimized){
+  const el=widgetRegistry.get(id);
+  if(!el) return;
+  const ids=getMinimizedIds();
+  if(minimized){ids.add(id);el.classList.add('widget-is-minimized')}
+  else{ids.delete(id);el.classList.remove('widget-is-minimized')}
+  saveMinimizedIds(ids);
+  renderMinimizedDock();
+}
+function decorateStudioWidgets(){
+  const widgets=[...document.querySelectorAll('.customizable-widget,.masonry .card:not(.manifesto-card)')];
+  const minimized=getMinimizedIds();
+  widgets.forEach((el,index)=>{
+    const id=widgetId(el,index);
+    const label=widgetLabel(el);
+    el.dataset.widgetId=id;
+    el.dataset.widgetLabel=label;
+    widgetRegistry.set(id,el);
+    if(!el.querySelector(':scope > .widget-window-controls')){
+      const controls=document.createElement('div');
+      controls.className='widget-window-controls';
+      controls.setAttribute('aria-label',`${label} window controls`);
+      controls.innerHTML=`<span class="window-light red" aria-hidden="true"></span><button class="window-light yellow" type="button" data-minimize-widget="${id}" aria-label="Minimize ${label}" title="Minimize ${label}"></button><span class="window-light green" aria-hidden="true"></span>`;
+      el.prepend(controls);
+    }
+    if(minimized.has(id)) el.classList.add('widget-is-minimized');
+  });
+  renderMinimizedDock();
+}
+decorateStudioWidgets();
+document.addEventListener('click',event=>{
+  const min=event.target.closest('[data-minimize-widget]');
+  if(min){event.preventDefault();event.stopPropagation();setWidgetMinimized(min.dataset.minimizeWidget,true);return}
+  const restore=event.target.closest('[data-restore-widget]');
+  if(restore){event.preventDefault();setWidgetMinimized(restore.dataset.restoreWidget,false)}
+});
+
+$$('.nav-item').forEach(item => item.addEventListener('click', () => {
+  if(item.matches('[data-policy-route]')) return;
+  $$('.nav-item').forEach(i => i.classList.remove('active'));
+  item.classList.add('active');
+}));
+
+</script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
+import {
+  browserLocalPersistence,
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  setPersistence,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile
+} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+  authDomain: 'biglwa.firebaseapp.com',
+  projectId: 'biglwa',
+  storageBucket: 'biglwa.firebasestorage.app',
+  messagingSenderId: '83232670555',
+  appId: '1:83232670555:web:e04927b20458390b3b507e'
+};
+
+const loginPage = document.getElementById('loginPage');
+const studioApp = document.getElementById('studioApp');
+const privacyPage = document.getElementById('privacyPage');
+const termsPage = document.getElementById('termsPage');
+const rightsPage = document.getElementById('rightsPage');
+const loginCard = document.getElementById('loginCard');
+const signInTab = document.getElementById('signInTab');
+const createTab = document.getElementById('createTab');
+const loginTitle = document.getElementById('loginTitle');
+const loginSubtitle = document.getElementById('loginSubtitle');
+const loginUsername = document.getElementById('loginUsername');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginSubmit = document.getElementById('loginSubmit');
+const loginMessage = document.getElementById('loginMessage');
+const forgotPassword = document.getElementById('forgotPassword');
+const studioSignOut = document.getElementById('studioSignOut');
+
+let mode = 'signin';
+let activeUser = null;
+let requestedRoute = new URLSearchParams(location.search).get('route') || location.pathname.replace(/^\/+|\/+$/g,'') || 'login';
+
+function hideAllRoutes(){
+  [loginPage,studioApp,privacyPage,termsPage,rightsPage].forEach(el=>el?.classList.remove('is-active'));
+}
+function currentRoute(){
+  return new URLSearchParams(location.search).get('route') || location.pathname.replace(/^\/+|\/+$/g,'') || 'login';
+}
+function showLogin(){
+  hideAllRoutes();
+  loginPage.classList.add('is-active');
+  document.title = 'BIGLWA — Step Inside';
+  if(location.pathname !== '/' || location.search) history.replaceState({},'', '/');
+}
+function showPolicy(kind, push=false){
+  const pages={privacy:privacyPage,terms:termsPage,rights:rightsPage};
+  const page=pages[kind] || privacyPage;
+  hideAllRoutes();
+  page.classList.add('is-active');
+  document.title = `BIGLWA — ${kind==='rights'?'Rights & Likeness':kind.charAt(0).toUpperCase()+kind.slice(1)}`;
+  if(location.pathname !== `/${kind}` || location.search){
+    const method=push?'pushState':'replaceState';
+    history[method]({},'',`/${kind}`);
+  }
+  window.scrollTo(0,0);
+}
+function showStudio(user){
+  hideAllRoutes();
+  studioApp.classList.add('is-active');
+  document.title = 'BIGLWA Studio';
+  if(location.pathname !== '/studio' || location.search) history.replaceState({},'', '/studio');
+  const welcomeName = document.querySelector('.welcome strong');
+  if(welcomeName && user){
+    const name = user.displayName || (user.email ? user.email.split('@')[0] : 'you');
+    welcomeName.textContent = name.charAt(0).toUpperCase()+name.slice(1);
+    const miniAvatar = document.querySelector('.mini-avatar');
+    if(miniAvatar) miniAvatar.textContent = name.charAt(0).toUpperCase() || 'B';
+  }
+}
+function setMode(next){
+  mode = next;
+  const creating = next === 'create';
+  loginCard.dataset.mode = next;
+  signInTab.classList.toggle('active', !creating);
+  createTab.classList.toggle('active', creating);
+  signInTab.setAttribute('aria-selected', creating ? 'false':'true');
+  createTab.setAttribute('aria-selected', creating ? 'true':'false');
+  loginTitle.textContent = creating ? 'Make Your Room' : 'Step Inside';
+  loginSubtitle.textContent = creating ? 'Create your BIGLWA account.' : 'Enter your studio.';
+  loginSubmit.textContent = creating ? 'Create Account' : 'Step Inside';
+  loginPassword.autocomplete = creating ? 'new-password' : 'current-password';
+  loginUsername.required = creating;
+  forgotPassword.style.visibility = creating ? 'hidden' : 'visible';
+  loginMessage.textContent = '';
+  loginMessage.classList.remove('ok');
+}
+function friendlyError(error){
+  const code = error?.code || '';
+  if(code.includes('invalid-credential')) return 'That email or password does not match.';
+  if(code.includes('email-already-in-use')) return 'That email already has an account. Try signing in.';
+  if(code.includes('weak-password')) return 'Use at least 6 characters for your password.';
+  if(code.includes('invalid-email')) return 'Enter a valid email address.';
+  if(code.includes('too-many-requests')) return 'Too many attempts. Try again in a little while.';
+  if(code.includes('unauthorized-domain')) return 'This domain still needs to be authorized in Firebase.';
+  return error?.message ? error.message.replace(/^Firebase:\s*/,'') : 'Something went wrong. Try again.';
+}
+
+signInTab.addEventListener('click',()=>setMode('signin'));
+createTab.addEventListener('click',()=>setMode('create'));
+
+try{
+  const auth = getAuth(initializeApp(firebaseConfig));
+  await setPersistence(auth, browserLocalPersistence);
+
+  const routeWithAuth = (user, push=false) => {
+    activeUser = user || null;
+    const route=currentRoute();
+    if(['privacy','terms','rights'].includes(route)) showPolicy(route,push);
+    else if(user) showStudio(user);
+    else showLogin();
+  };
+
+  onAuthStateChanged(auth, user => routeWithAuth(user));
+
+  document.addEventListener('click',event=>{
+    const policyLink=event.target.closest('[data-policy-route]');
+    if(policyLink){
+      event.preventDefault();
+      const kind=policyLink.dataset.policyRoute;
+      history.pushState({},'',`/${kind}`);
+      showPolicy(kind,false);
+      return;
+    }
+    const back=event.target.closest('[data-return-app]');
+    if(back){
+      event.preventDefault();
+      if(activeUser) showStudio(activeUser); else showLogin();
+      return;
+    }
+    const home=event.target.closest('[data-return-home]');
+    if(home){event.preventDefault();if(activeUser) showStudio(activeUser);else showLogin()}
+  });
+
+  loginCard.addEventListener('submit', async (event)=>{
+    event.preventDefault();
+    loginMessage.textContent = '';
+    loginMessage.classList.remove('ok');
+    loginSubmit.disabled = true;
+    try{
+      if(mode === 'create'){
+        const username = loginUsername.value.trim();
+        if(username.length < 5){
+          loginMessage.textContent = 'Usernames need at least 5 characters. 3–4 character usernames are reserved for special request.';
+          loginUsername.focus();
+          return;
+        }
+        if(username.length > 24){
+          loginMessage.textContent = 'Keep your username to 24 characters or fewer.';
+          loginUsername.focus();
+          return;
+        }
+        if(!/^[A-Za-z0-9._-]+$/.test(username)){
+          loginMessage.textContent = 'Use letters, numbers, periods, underscores, or hyphens in your username.';
+          loginUsername.focus();
+          return;
+        }
+        const cred = await createUserWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+        await updateProfile(cred.user,{displayName:username});
+      } else {
+        await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+      }
+    }catch(error){
+      loginMessage.textContent = friendlyError(error);
+    }finally{
+      loginSubmit.disabled = false;
+    }
+  });
+
+  forgotPassword.addEventListener('click', async ()=>{
+    const email = loginEmail.value.trim();
+    if(!email){
+      loginMessage.textContent = 'Enter your email first, then press Forgot password.';
+      return;
+    }
+    try{
+      await sendPasswordResetEmail(auth,email);
+      loginMessage.textContent = 'Password reset sent. Check your inbox.';
+      loginMessage.classList.add('ok');
+    }catch(error){
+      loginMessage.classList.remove('ok');
+      loginMessage.textContent = friendlyError(error);
+    }
+  });
+
+  studioSignOut?.addEventListener('click', async ()=>{
+    await signOut(auth);
+    showLogin();
+  });
+}catch(error){
+  loginMessage.textContent = 'Login service could not start. Refresh and try again.';
+  console.error(error);
+}
+
+window.addEventListener('popstate',()=>{
+  requestedRoute = currentRoute();
+  if(['privacy','terms','rights'].includes(requestedRoute)) showPolicy(requestedRoute,false);
+  else if(activeUser) showStudio(activeUser);
+  else showLogin();
+});
+</script>
+
+</body>
+</html>
