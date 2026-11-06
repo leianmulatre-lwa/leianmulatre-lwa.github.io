@@ -23,9 +23,10 @@ function save(items){
 }
 function cardDestination(card){
   const link=card.querySelector('a.bl-search-primary-action[href],a.bl-search-go[href],a[href]');
-  if(!link)return '';
+  const target=card.dataset.blDestination||(link&&link.href)||'';
+  if(!target)return '';
   try{
-    const url=new URL(link.href,location.origin);
+    const url=new URL(target,location.origin);
     return ['https:','http:'].includes(url.protocol)?url.href:'';
   }catch{return ''}
 }
@@ -64,10 +65,9 @@ function applyRules(panel){
 }
 function openDestination(card){
   const url=cardDestination(card);
+  if(url){window.open(url,'_blank','noopener,noreferrer');return;}
   const primary=card.querySelector('a.bl-search-primary-action[href],a.bl-search-go[href]');
-  if(url&&primary){
-    primary.click();return;
-  }
+  if(primary){primary.click();return;}
   const route=card.querySelector('[data-lwazi-route]');if(route)route.click();
 }
 function dialog(){
