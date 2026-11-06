@@ -12,11 +12,13 @@ const baseEnv={LWAZI_ALLOWED_UIDS:'pilot-member',DEEPSEEK_API_KEY:'a-test-value'
 function req(body, token, origin='https://biglwa.com'){
   return new Request('https://pilot.example/api/lwazi',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body)});
 }
+let nextKid=0;
 async function tokenFixture(){
+  const kid='test-key-'+(++nextKid);
   const pair=await newKey();const jwk=await crypto.subtle.exportKey('jwk',pair.publicKey);
-  jwk.kid='test-key';
+  jwk.kid=kid;
   const make=async(overrides={})=>{
-    const header=asUrl(JSON.stringify({typ:'JWT',alg:'RS256',kid:'test-key'}));
+    const header=asUrl(JSON.stringify({typ:'JWT',alg:'RS256',kid}));
     const payload=asUrl(JSON.stringify({aud:'biglwa',iss:'https://securetoken.google.com/biglwa',sub:'pilot-member',iat:now()-30,exp:now()+300,...overrides}));
     const toSign=header+'.'+payload;
     const sig=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',pair.privateKey,new TextEncoder().encode(toSign));
@@ -104,7 +106,7 @@ test('free-only mode never invokes paid providers even when keys exist',async()=
    assert.equal(payload.chat_template_kwargs.enable_thinking,false);
    const input=JSON.stringify(payload.messages);assert.match(input,/L’wazi/);
    return new ReadableStream({start(c){
-     c.enqueue(new TextEncoder().encode('data: {"response":"A helpful answer."}\\n\\n'));
+     c.enqueue(new TextEncoder().encode('data: {"response":"A helpful answer."}\n\n'));
      c.close();
    }});
  }},FREE_INFERENCE_ENABLED:'true'};
