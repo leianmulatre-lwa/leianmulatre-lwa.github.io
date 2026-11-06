@@ -8,22 +8,23 @@ const request=(method,auth,body)=>new Request('https://staging.example/api/lwazi
  ...(method==='POST'?{body}: {})
 });
 test('same-origin pilot health forwards only to fixed Worker',async()=>{
- const original=globalThis.fetch;let called='';
- globalThis.fetch=async url=>{called=String(url);return Response.json({service:'lwazi',identity:'lwazi-identity-1.0.0',ready:true})};
- try{
-  const response=await onRequestGet();
+ let called='';
+ const env={LWAZI_PILOT:{fetch:async url=>{called=String(url);return Response.json({service:'lwazi',identity:'lwazi-identity-1.0.0',ready:true})}}};
+ {
+  const response=await onRequestGet({env});
   assert.equal(response.status,200);
   assert.match(called,/^https:\/\/biglwa-lwazi-pilot\.leianmulatre-284\.workers\.dev\/health$/);
   assert.deepEqual(await response.json(),{service:'lwazi',identity:'lwazi-identity-1.0.0',ready:true});
- }finally{globalThis.fetch=original}
+ }
 });
 test('relay requires bearer and does not accept oversized requests',async()=>{
- assert.equal((await onRequestPost({request:request('POST',null,'{}')})).status,401);
- assert.equal((await onRequestPost({request:request('POST','Bearer abc','x'.repeat(12001))})).status,413);
+ const env={LWAZI_PILOT:{fetch:async()=>Response.json({})}};
+ assert.equal((await onRequestPost({request:request('POST',null,'{}'),env})).status,401);
+ assert.equal((await onRequestPost({request:request('POST','Bearer abc','x'.repeat(12001)),env})).status,413);
 });
 test('relay passes authenticated payload and streams response without storing credentials',async()=>{
- const original=globalThis.fetch;let target='',opts;
- globalThis.fetch=async(url,options)=>{
+ let target='',opts;
+ const env={LWAZI_PILOT:{fetch:async(url,options)=>{
   target=String(url);opts=options;
   return new Response('data: {"type":"delta","text":"hi"}\n\n',{headers:{'Content-Type':'text/event-stream'}});
  };
@@ -34,16 +35,15 @@ test('relay passes authenticated payload and streams response without storing cr
   assert.equal(target,'https://biglwa-lwazi-pilot.leianmulatre-284.workers.dev/api/lwazi');
   assert.equal(opts.headers.Authorization,'Bearer signed.payload.signature');
   assert.match(await response.text(),/"text":"hi"/);
- }finally{globalThis.fetch=original}
+ }
 });
 test('upstream errors become opaque error codes',async()=>{
- const original=globalThis.fetch;
- globalThis.fetch=async()=>{throw Error('do not leak upstream secrets')};
- try{
-  const response=await onRequestPost({request:request('POST','Bearer test','{}')});
+ const env={LWAZI_PILOT:{fetch:async()=>{throw Error('do not leak upstream secrets')}}};
+ {
+  const response=await onRequestPost({request:request('POST','Bearer test','{}'),env});
   assert.equal(response.status,502);
   const txt=await response.text();
   assert.match(txt,/lwazi_pilot_unavailable/);
   assert.doesNotMatch(txt,/secret/);
- }finally{globalThis.fetch=original}
+ }
 });
