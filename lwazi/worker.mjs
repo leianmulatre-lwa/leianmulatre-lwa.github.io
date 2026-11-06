@@ -6,6 +6,16 @@ const JWT_KEYS='https://www.googleapis.com/service_accounts/v1/jwk/securetoken@s
 const encoder=new TextEncoder();
 const JSON_HEADERS={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'};
 const MAX_BODY=12000;
+let jwksCache=null,jwksCacheUntil=0;
+async function googleKeys(fetcher,force=false){
+  if(!force&&jwksCache&&Date.now()<jwksCacheUntil)return jwksCache;
+  const response=await fetcher(JWT_KEYS,{signal:AbortSignal.timeout(5000)});
+  if(!response.ok)throw Error('Firebase verification keys unavailable');
+  const data=await response.json();
+  if(!Array.isArray(data.keys))throw Error('Invalid Firebase verification keys');
+  jwksCache=data;jwksCacheUntil=Date.now()+5*60*1000;
+  return data;
+}
 
 function origins(env){return new Set(String(env.ALLOWED_ORIGINS||'https://biglwa.com,https://www.biglwa.com').split(',').map(x=>x.trim()).filter(Boolean))}
 function cors(origin,env){
@@ -31,10 +41,10 @@ export async function verifyFirebaseToken(jwt,fetcher=fetch){
      !Number.isFinite(payload.exp)||payload.exp<=now||
      !Number.isFinite(payload.iat)||payload.iat>now+30||payload.iat<now-14*24*3600) return null;
   try {
-    const resp=await fetcher(JWT_KEYS,{signal:AbortSignal.timeout(5000)});
-    if(!resp.ok)return null;
-    const keys=await resp.json();
-    const jwk=(keys.keys||[]).find(k=>k.kid===header.kid&&k.kty==='RSA'&&(!k.alg||k.alg==='RS256'));
+    let keys=await googleKeys(fetcher);
+    let jwk=keys.keys.find(k=>k.kid===header.kid&&k.kty==='RSA'&&(!k.alg||k.alg==='RS256'));
+    // A newly rotated Google signing key may not be in our short-lived cache.
+    if(!jwk){keys=await googleKeys(fetcher,true);jwk=keys.keys.find(k=>k.kid===header.kid&&k.kty==='RSA'&&(!k.alg||k.alg==='RS256'))}
     if(!jwk)return null;
     const publicKey=await crypto.subtle.importKey('jwk',jwk,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
     const valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',publicKey,b64u(parts[2]),encoder.encode(parts[0]+'.'+parts[1]));
