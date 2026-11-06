@@ -43,3 +43,13 @@ assert.match(search, /SpeechRecognition/, 'Microphone dictation remains availabl
 assert.match(search, /bl-search-clear/, 'Search clear control remains available');
 assert.match(search, /fastLwaziResponse/, 'Simple and social questions must answer through the instant local path');
 assert.match(search, /__biglwaLwaziConfig/, 'Lwazi must support a secure server-side provider adapter configuration');
+
+assert.match(search, /querySelectorAll\('\.search-icon'\)\.forEach/, 'Lwazi replaces the old magnifier instead of sitting next to it');
+assert.match(search, /boothSearchSymbol\(\)/, 'Image-search control uses the existing Booth symbol');
+assert.match(search, /#studioApp #camera \.card-head \.card-icon/, 'Booth symbol is sourced from the actual Studio widget');
+assert.doesNotMatch(search, /camera\.innerHTML='<svg viewBox=/, 'Generic camera glyph must not return');
+assert.match(search, /\.bl-lwazi-button\{left:9px!important;right:auto!important/, 'Lwazi belongs at far left inside search');
+assert.match(search, /\.bl-voice-button\{left:auto!important;right:84px!important/, 'Voice control stays on right between search text and Booth');
+assert.match(search, /\.bl-camera-button\{position:absolute!important;left:auto!important;right:45px!important/, 'Booth image-search control is next to the mic');
+assert.match(search, /\.bl-camera-button\{[^}]*border:0!important[^}]*box-shadow:none!important[^}]*background:transparent!important/, 'Booth icon stays unboxed');
+assert.match(search, /\.bl-search-clear\{left:auto!important;right:7px!important/, 'Clear X remains at the far right');
