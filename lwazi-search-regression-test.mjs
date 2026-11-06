@@ -34,7 +34,7 @@ assert.match(search, /\.bl-search-panel>\.bl-search-category-nav\{order:-3!impor
 assert.match(search, /bl-search-tab-symbol/, 'Every search category uses a consistent icon slot');
 assert.match(search, /feed-symbol-generated\.png/, 'Images uses the actual MyFeed symbol');
 assert.match(search, /sectionSymbol\('All'\)/, 'All tab uses the Veve discovery symbol');
-assert.match(search, /sectionSymbol\('Images'\)/, 'Images tab resolves the MyFeed symbol');
+assert.match(search, /\['images','Images'\]/, 'Images tab resolves the MyFeed symbol through canonical category mapping');
 assert.match(search, /data-bl-match="all"/, 'All discovery tab is available');
 assert.match(search, /bl-herstory-symbol/, 'Herstory books icon gets horizontal treatment');
 assert.doesNotMatch(search, /Explore BIG LWA and beyond/, 'Do not restore the duplicate assistant heading');
