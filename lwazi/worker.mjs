@@ -70,9 +70,10 @@ export function extractText(provider,data){
   return typeof data.choices?.[0]?.delta?.content==='string'?data.choices[0].delta.content:'';
 }
 function writeEvent(controller,event){controller.enqueue(encoder.encode('data: '+JSON.stringify(event)+'\n\n'))}
-export function normalizeStream(upstream,provider,mode){
+export function normalizeStream(upstream,provider,mode,model){
   const decoder=new TextDecoder();let buffer='',outputChars=0,hasError=false;
   const transform=new TransformStream({
+    start(controller){writeEvent(controller,{type:'meta',provider,model:model||null,mode})},
     transform(chunk,controller){
       buffer+=decoder.decode(chunk,{stream:true});
       buffer=buffer.replace(/\r\n/g,'\n');
@@ -99,9 +100,9 @@ export function normalizeStream(upstream,provider,mode){
   });
   return upstream.pipeThrough(transform);
 }
-export async function queryProvider(mode,question,context,env,fetcher=fetch){
-  const preferred=mode==='fast'?['deepseek','anthropic']:['anthropic','deepseek'];
-  let attempted=false;
+export async function queryProvider(mode,question,context,env,fetcher=fetch,requiredProvider=null){
+  const preferred=requiredProvider?[requiredProvider]:(mode==='fast'?['deepseek','anthropic']:['anthropic','deepseek']);
+  let attempted=false,lastCode='providers_unavailable';
   for(const name of preferred){
     if(name==='deepseek'&&!env.DEEPSEEK_API_KEY)continue;
     if(name==='anthropic'&&!env.ANTHROPIC_API_KEY)continue;
@@ -110,11 +111,12 @@ export async function queryProvider(mode,question,context,env,fetcher=fetch){
     try{
       // Per-provider deadline includes streamed output and cannot hang indefinitely.
       const response=await fetcher(spec.url,{method:'POST',headers:spec.headers,body:JSON.stringify(spec.body),signal:AbortSignal.timeout(30000)});
-      if(!response.ok||!response.body)continue;
-      return {provider:name,model:spec.body.model,body:normalizeStream(response.body,name,mode)};
+      if(!response.ok){lastCode='provider_http_'+response.status;continue}
+      if(!response.body){lastCode='empty_provider_stream';continue}
+      return {provider:name,model:spec.body.model,body:normalizeStream(response.body,name,mode,spec.body.model)};
     }catch{/* Try the other configured provider once; no client secrets or prompts logged. */}
   }
-  return {error:attempted?'providers_unavailable':'no_model_configured'};
+  return {error:attempted?lastCode:'no_model_configured'};
 }
 export default {
   async fetch(request,env){
@@ -144,7 +146,8 @@ export default {
     if(!body||typeof body.question!=='string'||!body.question.trim()||body.question.length>1500) return json({error:'invalid_question'},400,headers);
     const mode=routeMode(body.question,body.mode);
     const context=publicContext(body.context);
-    const result=await queryProvider(mode,body.question.trim(),context,env);
+    if(body.provider!=null&&!['deepseek','anthropic'].includes(body.provider))return json({error:'invalid_provider'},400,headers);
+    const result=await queryProvider(mode,body.question.trim(),context,env,fetch,body.provider||null);
     if(result.error)return json({error:result.error},503,headers);
     return new Response(result.body,{status:200,headers:{...headers,'Content-Type':'text/event-stream; charset=utf-8','X-Accel-Buffering':'no'}});
   }
