@@ -61,7 +61,7 @@ function buildProvider(provider, mode, question, context, env){
   }
   return {url:'https://api.anthropic.com/v1/messages',
     headers:{'x-api-key':env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','Content-Type':'application/json'},
-    body:{model:mode==='code'?(env.CLAUDE_CODE_MODEL||'claude-opus-5-5'):(env.CLAUDE_RESEARCH_MODEL||'claude-sonnet-5-5'),
+    body:{model:mode==='code'?(env.CLAUDE_CODE_MODEL||'claude-opus-5'):(env.CLAUDE_RESEARCH_MODEL||'claude-sonnet-5'),
       max_tokens:1600,system:SYSTEM_POLICY,messages:[{role:'user',content:full}],stream:true}};
 }
 export function extractText(provider,data){
