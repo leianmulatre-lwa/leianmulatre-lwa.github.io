@@ -6,6 +6,9 @@ const JWT_KEYS='https://www.googleapis.com/service_accounts/v1/jwk/securetoken@s
 const encoder=new TextEncoder();
 const JSON_HEADERS={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'};
 const MAX_BODY=12000;
+const FREE_MODEL='@cf/google/gemma-4-26b-a4b-it';
+const freeEnabled=env=>env.FREE_INFERENCE_ENABLED==='true' && !!env.AI?.run;
+const paidEnabled=env=>env.ALLOW_PAID_PROVIDERS==='true';
 let jwksCache=null,jwksCacheUntil=0;
 async function googleKeys(fetcher,force=false){
   if(!force&&jwksCache&&Date.now()<jwksCacheUntil)return jwksCache;
@@ -77,6 +80,7 @@ function buildProvider(provider, mode, question, context, env){
 export function extractText(provider,data){
   if(!data||typeof data!=='object')return '';
   if(provider==='anthropic')return data.type==='content_block_delta'&&data.delta?.type==='text_delta'?String(data.delta.text||''):'';
+  if(provider==='cloudflare')return typeof data.response==='string'?data.response:(typeof data.choices?.[0]?.delta?.content==='string'?data.choices[0].delta.content:'');
   return typeof data.choices?.[0]?.delta?.content==='string'?data.choices[0].delta.content:'';
 }
 function writeEvent(controller,event){controller.enqueue(encoder.encode('data: '+JSON.stringify(event)+'\n\n'))}
@@ -132,6 +136,23 @@ export async function queryProvider(mode,question,context,env,fetcher=fetch,requ
   }
   return {error:attempted?lastCode:'no_model_configured',provider:lastProvider,upstream_status:lastUpstreamStatus};
 }
+export async function queryFreeModel(mode,question,context,env){
+  if(!env.FREE_INFERENCE_ENABLED || env.FREE_INFERENCE_ENABLED!=='true')return {error:'free_inference_not_enabled'};
+  if(!env.AI?.run)return {error:'free_ai_binding_missing'};
+  try{
+    const response=await env.AI.run(FREE_MODEL,{
+      messages:[{role:'system',content:SYSTEM_POLICY},{role:'user',content:buildQuestion(question,context)}],
+      stream:true,
+      max_tokens:700,
+      chat_template_kwargs:{enable_thinking:false}
+    });
+    if(!response?.pipeThrough)return {error:'free_model_stream_unavailable'};
+    return {provider:'cloudflare',model:FREE_MODEL,body:normalizeStream(response,'cloudflare',mode,FREE_MODEL)};
+  }catch{
+    return {error:'free_model_unavailable'};
+  }
+}
+
 export default {
   async fetch(request,env){
     const origin=request.headers.get('Origin');
@@ -141,7 +162,7 @@ export default {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
     const path=new URL(request.url).pathname;
     if(request.method==='GET'&&path==='/health'){
-      return json({service:'lwazi',identity:IDENTITY_VERSION,ready:!!(env.DEEPSEEK_API_KEY||env.ANTHROPIC_API_KEY)},200,headers);
+      return json({service:'lwazi',identity:IDENTITY_VERSION,ready:freeEnabled(env)||paidEnabled(env)&&!!(env.DEEPSEEK_API_KEY||env.ANTHROPIC_API_KEY),free_model:FREE_MODEL,free_enabled:freeEnabled(env),paid_enabled:paidEnabled(env)},200,headers);
     }
     if(request.method!=='POST'||path!=='/api/lwazi')return json({error:'not_found'},404,headers);
     // Private pilot only. No production public inference until quotas/rate-limits exist.
@@ -160,8 +181,13 @@ export default {
     if(!body||typeof body.question!=='string'||!body.question.trim()||body.question.length>1500) return json({error:'invalid_question'},400,headers);
     const mode=routeMode(body.question,body.mode);
     const context=publicContext(body.context);
-    if(body.provider!=null&&!['deepseek','anthropic'].includes(body.provider))return json({error:'invalid_provider'},400,headers);
-    const result=await queryProvider(mode,body.question.trim(),context,env,fetch,body.provider||null);
+    if(body.provider!=null&&!['deepseek','anthropic','cloudflare'].includes(body.provider))return json({error:'invalid_provider'},400,headers);
+    // Cost-first routing: never invoke a paid provider unless explicitly allowed
+    // by a separate Worker environment setting. API keys alone cannot enable billing.
+    if(body.provider&&body.provider!=='cloudflare'&&!paidEnabled(env))return json({error:'paid_providers_disabled',provider:body.provider},403,headers);
+    const result=(body.provider==='cloudflare'||!paidEnabled(env))?
+      await queryFreeModel(mode,body.question.trim(),context,env):
+      await queryProvider(mode,body.question.trim(),context,env,fetch,body.provider||null);
     if(result.error)return json({error:result.error,provider:result.provider||null,upstream_status:result.upstream_status||null},result.upstream_status===402?402:503,headers);
     return new Response(result.body,{status:200,headers:{...headers,'Content-Type':'text/event-stream; charset=utf-8','X-Accel-Buffering':'no'}});
   }
