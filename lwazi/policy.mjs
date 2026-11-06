@@ -16,7 +16,7 @@ export const SYSTEM_POLICY = [
 ].join('\n');
 
 export function routeMode(question, requestedMode='auto'){
-  if(['fast','research','code'].includes(requestedMode)) return requestedMode;
+  if(['fast','research','code','deep'].includes(requestedMode)) return requestedMode;
   const q=String(question||'').toLowerCase();
   if(/\b(code|coding|javascript|typescript|css|html|debug|commit|deployment|github|programming|software|repository|function|api endpoint|refactor|unit test)\b/.test(q)) return 'code';
   if(/\b(research|citations?|sources?|why|history|historical|politics|policy|law|rights|evidence|compare|critique|analysis|analyze|theory|explain|intersectional|feminism|feminist|studies)\b/.test(q)) return 'research';
