@@ -671,3 +671,37 @@ body.night-mode .biglwa-stream .stream-media-link-form input{background:#1e1b25;
  .biglwa-stream.is-sqwidz-channel .stream-spotlight{grid-template-columns:minmax(0,1fr)!important}
  .biglwa-stream.is-sqwidz-channel .stream-sqwidz-stage{max-height:min(65vh,650px)}
 }
+
+/* The Studio preview owns one bottom-right Dock Stream control. Keep the
+   existing card CTA for opening Stream and preserve the single live player. */
+#studioApp #stream .stream-screen{
+  position:relative!important;
+  box-sizing:border-box!important;
+  isolation:isolate!important;overflow:hidden!important;
+  background-clip:padding-box!important;
+}
+#studioApp #stream .stream-screen .stream-studio-dock{
+  position:absolute!important;right:9px!important;bottom:9px!important;top:auto!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:auto!important;min-width:0!important;height:28px!important;
+  max-width:calc(100% - 18px)!important;
+  margin:0!important;padding:5px 10px!important;
+  border:1px solid rgba(248,232,213,.65)!important;border-radius:4px!important;
+  color:#fff4e4!important;background:rgba(40,13,24,.9)!important;
+  box-shadow:0 2px 6px rgba(0,0,0,.35)!important;
+  font:700 10px/1.1 system-ui,sans-serif!important;
+  cursor:pointer!important;white-space:nowrap!important;z-index:40!important;
+}
+#studioApp #stream .stream-screen .stream-studio-dock:hover,
+#studioApp #stream .stream-screen .stream-studio-dock:focus-visible{
+  background:#75354b!important;outline:2px solid #e4b57c!important;outline-offset:1px!important;
+}
+#studioApp #stream .stream-screen.stream-preview-active>.biglwa-persistent-stream-player{
+  inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;
+  border:0!important;border-radius:0!important;
+}
+#studioApp #stream .stream-screen.stream-preview-active{
+  padding:0!important;border:0!important;
+  background:#151217!important;box-shadow:none!important;
+}
+.biglwa-persistent-stream-player.is-studio-preview .stream-preview-return{display:none!important}
