@@ -23,10 +23,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Protect current Lwazi search experience
+      - name: Protect Studio loading, thumbnails and search
         run: |
           node --check user-search-results.js
+          node --check module-pages.js
+          node --check pinterest-orbit.js
+          node --check stream-guide.js
           node lwazi-search-regression-test.mjs
+          node studio-first-paint-rgb-regression-test.mjs
+          node studio-myfeed-archive-filmstrip-test.mjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
