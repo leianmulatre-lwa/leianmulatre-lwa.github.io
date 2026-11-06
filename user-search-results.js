@@ -31,18 +31,18 @@
     // Search is part of the Studio layout: outside interactions never dismiss it.
     close=function(){if(!panel)return;if(layoutObserver)layoutObserver.disconnect();if(layoutRailObserver)layoutRailObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
     function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
-    function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8594;</button>'}
+    function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route'+(label==='Open in Library'?' bl-search-primary-action':'')+'" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8599;</button>'}
     function bookCover(b){if(b.cover_i)return 'https://covers.openlibrary.org/b/id/'+encodeURIComponent(b.cover_i)+'-M.jpg';if(b.isbn&&b.isbn[0])return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg';return ''}
     function userCard(u){var h=Math.abs(String(u.username||u.name||'u').split('').reduce(function(n,c){return n+c.charCodeAt(0)},0)*7)%360;return '<article class="bl-search-card bl-user-card"><div class="bl-search-card-media bl-avatar"> '+esc(String(u.name||u.username||'?').split(/\s+/).map(function(p){return p[0]}).join('').slice(0,2).toUpperCase())+'</div><div class="bl-search-card-body"><span class="bl-search-kicker">BigLWA user</span><h3>'+esc(u.name||u.username)+'</h3><p class="bl-search-muted">@'+esc(u.username)+'</p>'+ (u.bio?'<p>'+esc(u.bio)+'</p>':'')+'<a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(u.username)))+'">View profile &#8594;</a></div></article>'}
     function bookCard(b){
       var cover=bookCover(b),meta=(b.author_name||[]).slice(0,2).join(', ')+(b.first_publish_year?' · '+b.first_publish_year:'');
       var path=String(b.key||'');
       var libraryUrl=/^\/(?:works|books)\/[a-zA-Z0-9_-]+$/.test(path)?'https://openlibrary.org'+path:'';
-      return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'">'+
+      return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'"'+(libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
         (cover?'<img class="bl-search-card-media" src="'+esc(cover)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy">':'')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Book</span><h3>'+esc(b.title||'Untitled')+'</h3>'+
         '<p class="bl-search-muted">'+esc(meta)+'</p>'+
-        (libraryUrl?'<a class="bl-search-go bl-search-primary-action" href="'+esc(libraryUrl)+'" target="_blank" rel="noopener noreferrer" title="Open this book in Open Library">Open in Library ↗</a>':internalButton('Open in Library','library'))+
+        internalButton('Open in Library','library')+
         '</div></article>';
     }
     function songCard(s){
