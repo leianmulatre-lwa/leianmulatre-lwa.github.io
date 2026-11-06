@@ -1,6 +1,6 @@
 # L’wazi private engine pilot (November 2026)
 
-This is a **separate, non-production** model router. No provider credentials, private writing, or member data are committed. The main branch and the existing Orbit Worker are not changed by the pilot branch.
+This is a **separate, non-production** model router. On November 6, 2026, the isolated Cloudflare Worker `biglwa-lwazi-pilot` was uploaded and its `workers.dev` route was enabled. No model credentials or tester allowlist are configured, so inference stays disabled. An external HTTP health request has not been independently verified. No private writing or member data are committed. The main branch and existing Orbit Worker remain unchanged.
 
 ## Implemented
 
@@ -17,17 +17,19 @@ This is a **separate, non-production** model router. No provider credentials, pr
 
 1. In the DeepSeek developer console, create an API key with a low usage cap; optionally do the same for Anthropic. The pilot needs **at least one**. Both let the router specialize and fall back.
 2. In Firebase Console > Authentication > Users, locate **your own account UID**. Do not paste it publicly. Set a Cloudflare secret LWAZI_ALLOWED_UIDS to that exact UID (comma-separated to allow additional explicitly trusted testers).
-3. Deploy a new, isolated Worker using the repo root config: npx wrangler deploy --config wrangler-lwazi.toml. Do not replace biglwa-instagram-api.
+3. The separate `biglwa-lwazi-pilot` Worker has already been uploaded with the Cloudflare API. Its configured address is https://biglwa-lwazi-pilot.leianmulatre-284.workers.dev . Do **not** deploy over `biglwa-instagram-api`. Later deployments may use npx wrangler deploy --config wrangler-lwazi.toml with the repo sources.
 4. Set Worker secrets via Wrangler or Cloudflare dashboard:
    - npx wrangler secret put DEEPSEEK_API_KEY --config wrangler-lwazi.toml
    - npx wrangler secret put ANTHROPIC_API_KEY --config wrangler-lwazi.toml
    - npx wrangler secret put LWAZI_ALLOWED_UIDS --config wrangler-lwazi.toml
    Missing provider keys are fine if using only one provider.
-5. Preview Worker: https://PILOT-WORKER-SUBDOMAIN.workers.dev/health should respond with service "lwazi" and ready true. A browser POST without a valid Firebase ID token should return 401 when access is configured. This health check does not invoke a billable model.
+5. Pilot health URL: https://biglwa-lwazi-pilot.leianmulatre-284.workers.dev/health should respond with service "lwazi" and ready true after adding at least one model key. A browser POST without a valid Firebase ID token should return 401 when access is configured. This health check does not invoke a billable model.
 6. In a **staging branch only**, place an inline assignment **before** the L’wazi client script:
-   window.__biglwaLwaziEndpoint = "https://PILOT-WORKER-SUBDOMAIN.workers.dev/api/lwazi";
+   window.__biglwaLwaziEndpoint = "https://biglwa-lwazi-pilot.leianmulatre-284.workers.dev/api/lwazi";
    Keep the endpoint public URL (not a secret) separate from provider keys. Test while signed into BIG LWA.
 7. Verify search tabs, voice and Booth buttons, direct navigation commands, non-AI fallback, source links, answer streaming, response citations, and sign-out access denial before merging anything.
+
+**Pilot consent:** The optional browser bridge asks for explicit session-only consent before any external API request. A full user-facing settings control remains to be built.
 
 **Privacy:** Both models receive the user's question and at most six public source metadata entries. They do not receive journals, direct messages, imported media, social connection tokens or the founder's private essays. They may retain data according to their own API terms. Before non-founder access, add an explicit opt-in and a prominent provider disclosure.
 
