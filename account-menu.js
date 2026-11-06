@@ -158,7 +158,7 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
      is on, say so on the chip instead of letting it look like a dead menu button. */
   function syncAffordance(trigger) {
     if (!trigger) return;
-    if (previewing()) {
+    if (previewing() || !document.body.classList.contains('biglwa-session-signed-in')) {
       trigger.setAttribute('aria-disabled', 'true');
       trigger.setAttribute('title', SIGNED_OUT_HINT);
     } else {
@@ -254,10 +254,12 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
        signed-in owner, which is the moment the menu starts working. */
     new MutationObserver(() => {
       syncAffordance(trigger);
-      if (previewing()) close(menu, trigger);
+      if (previewing() || !document.body.classList.contains('biglwa-session-signed-in')) close(menu, trigger);
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
+    document.addEventListener('biglwa:auth-state', () => { syncAffordance(trigger); if (!document.body.classList.contains('biglwa-session-signed-in')) close(menu,trigger); });
     const toggle = (open) => {
+      if (previewing() || !document.body.classList.contains('biglwa-session-signed-in')) return close(menu, trigger);
       menu.querySelector('#biglwaMenuPreview')?.dispatchEvent(new Event('pointerdown',{bubbles:true}));
       if (previewing()) return close(menu, trigger);
       menu.hidden = !open;
@@ -266,12 +268,12 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
 
     trigger.addEventListener('click', (event) => {
       event.stopPropagation();
-      if (previewing()) return close(menu, trigger);
+      if (previewing() || !document.body.classList.contains('biglwa-session-signed-in')) return close(menu, trigger);
       toggle(menu.hidden);
     });
 
     trigger.addEventListener('keydown', (event) => {
-      if (event.key !== 'ArrowDown' || previewing()) return;
+      if (event.key !== 'ArrowDown' || previewing() || !document.body.classList.contains('biglwa-session-signed-in')) return;
       event.preventDefault();
       toggle(true);
       menu.querySelector('a')?.focus();
@@ -297,6 +299,9 @@ html.biglwa-preview-mode:not(.biglwa-owner-self-preview) #${MENU_ID}{display:non
     window.addEventListener('resize', () => close(menu, trigger));
   }
 
+  /* Account settings are private controls, never a public login-footer destination. */
+  function addFooterLinks() {
+    document.querySelectorAll('.login-public-footer a[href="/settings"]').forEach(link => link.remove());
   /* Settings is an account action, not a link on the public login screen.
      Keep it in the signed-in account menu and Studio footer only. */
   function addFooterLink(nav) {

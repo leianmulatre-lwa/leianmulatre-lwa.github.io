@@ -63,6 +63,23 @@ function sourcePostIdFor(item, fallbackUrl) {
 }
 
 function pinterestImageUrl(item) {
+  // Pinterest endpoints have returned both media.images sizes and flat image_url fields.
+  const images = item?.media?.images || item?.media?.items?.[0]?.images || item?.images || {};
+  const entries = [images["600x"], images["400x300"], images["237x"], images.originals,
+    images.original, ...Object.values(images),
+    item?.image_url, item?.imageUrl, item?.image?.url,
+    item?.media?.cover_image_url, item?.media?.image_url,
+    item?.thumbnail_url, item?.media_url];
+  for (const entry of entries) {
+    const candidate = clean(typeof entry === "string" ? entry : entry?.url || entry?.src);
+    try {
+      const url = new URL(candidate);
+      if (url.protocol === "https:" && (url.hostname === "i.pinimg.com" || url.hostname.endsWith(".pinimg.com"))) return url.href;
+    } catch {}
+  }
+  return "";
+}
+function mediaPieces(item, source) {
   const images = item?.media?.images || item?.media?.items?.[0]?.images || item?.images || {};
   const candidates = [
     images["600x"], images["400x300"], images["237x"], images.originals,

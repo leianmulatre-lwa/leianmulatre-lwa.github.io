@@ -18,6 +18,9 @@ async function getAuth(){
     ]);
     const app=getApps()[0]||initializeApp(FIREBASE_CONFIG);
     return getAuth(app);
+  })();
+  try { return await authPromise; }
+  catch(error) { authPromise = null; throw error; }
   })().catch(error=>{authPromise=null;throw error});
   return authPromise;
 }
@@ -88,6 +91,7 @@ function finishAuth(user){
   document.body.classList.add("biglwa-auth-resolved");
   if(user) document.body.classList.add("biglwa-session-signed-in");
   else document.body.classList.remove("biglwa-session-signed-in");
+  document.dispatchEvent(new CustomEvent("biglwa:auth-state",{detail:{signedIn:!!user}}));
   if(user){
     try{
       const remote=window.__biglwaRemoteCustomization;
@@ -104,6 +108,28 @@ async function repairLateLoginPaint(){
   try{
     const auth=await getAuth();
     await auth.authStateReady();
+    finishAuth(auth.currentUser);
+    auth.onAuthStateChanged(user=>{
+      finishAuth(user);
+      if(user) setTimeout(()=>restoreLastView(window.__biglwaRemoteCustomization),250);
+    });
+  }catch(error){
+    console.warn("[BIGLWA] Session restore unavailable:",error);
+    // A temporary SDK failure does not mean Firebase signed the user out.
+    // Retry before switching to the signed-out screen.
+    let recovered=false;
+    for(const delay of [350,1000,2400]){
+      await new Promise(resolve=>setTimeout(resolve,delay));
+      try{
+        const auth=await getAuth();
+        await auth.authStateReady();
+        finishAuth(auth.currentUser);
+        auth.onAuthStateChanged(finishAuth);
+        recovered=true;break;
+      }catch(e){console.warn("[BIGLWA] Session restore retry:",e)}
+    }
+    if(!recovered) finishAuth(null);
+  }
     // Only Firebase can establish sign-in. A Pinterest status/401 is never
     // enough to open or close the Big LWA login screen.
     if(auth.currentUser?.uid===lastConfirmedUid &&

@@ -4,6 +4,10 @@
  * account. Registered after the studio markup exists.
  */
 import { startIdentity, refreshIdentity, identity } from "./account-identity.js";
+import { startChrome, renderIdentityChrome } from "./account-chrome.js";
+import { loadProfilePhoto } from "./account-photo.js";
+import { startConnections } from "./orbit-connections.js";
+import { startFeed } from "./feed-view.js?v=20261013-pinterest-card-1";
 import { startChrome, renderIdentityChrome } from "./account-chrome.js?v=20261026-journal-cover-init-1";
 import { loadProfilePhoto } from "./account-photo.js?v=20261027-adjust-position-1&preview=20261029-durable-1";
 import { startConnections } from "./orbit-connections.js?v=20261022-verified-followers-3&fix=public-youtube-1";

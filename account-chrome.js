@@ -65,6 +65,16 @@ function installJournalCoverStyle(){
 
 export function renderIdentityChrome(profile) {
   const who = profile || identity() || {};
+  if (!profile && !identity()) {
+    avatarTargets().forEach(el => renderAvatar(el, '', ''));
+    const welcome = document.querySelector('.profile-mini .welcome strong') || document.querySelector('.welcome strong');
+    if (welcome) welcome.textContent = '';
+    const handle = document.querySelector('.profile-rail-username, .profile-name-line h1');
+    if (handle) handle.textContent = '';
+    return;
+  }
+  const name = clean(who.name) || clean(who.username) || "there";
+  avatarTargets().forEach((el) => renderAvatar(el, who.avatarUrl, name));
   const realName=clean(who.name);
   const username=clean(who.username).replace(/^@/,"");
   const name=realName && realName.toLowerCase()!==username.toLowerCase() ? realName : "";

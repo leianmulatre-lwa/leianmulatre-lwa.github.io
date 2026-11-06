@@ -128,6 +128,8 @@ export async function refreshIdentity() {
     const snap = await Promise.race([getDoc(doc(db, "users", user.uid)),new Promise((_,reject)=>setTimeout(()=>reject(Error("Account read timed out")),8000))]);
     if (snap.exists()) account = snap.data() || {};
   } catch {}
+  // An account switch or sign-out can happen while Firestore is resolving.
+  if (auth.currentUser?.uid !== user.uid) return null;
   const username = normalize(account.usernameLower || record.username || "");
   current = {
     uid: user.uid,
@@ -195,7 +197,11 @@ export function startIdentity() {
     const { auth } = await firebase();
     try { await auth.authStateReady(); } catch {}
     await refreshIdentity();
-    auth.onAuthStateChanged(() => { refreshIdentity(); });
+    auth.onAuthStateChanged(user => {
+      // Clear the previous member synchronously before any asynchronous profile read.
+      if (!user || current?.uid !== user.uid) { current = null; emit(); }
+      refreshIdentity();
+    });
   })();
 }
 

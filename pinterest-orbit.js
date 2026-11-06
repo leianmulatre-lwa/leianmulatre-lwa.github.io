@@ -681,6 +681,11 @@ async function connect(){await run(async()=>{
   await api('disconnect',body);save('');resetView();await window.__biglwaConnections?.forget?.('pinterest');
  })}
  function image(pin){
+  const images=pin?.media?.images||pin?.media?.items?.[0]?.images||pin?.images||{};
+  const candidates=[images['600x'],images['400x300'],images['237x'],images.originals,images.original,...Object.values(images),pin?.image_url,pin?.imageUrl,pin?.image?.url,pin?.media?.cover_image_url,pin?.media?.image_url,pin?.thumbnail_url,pin?.media_url];
+  for(const entry of candidates){
+   const candidate=typeof entry==='string'?entry:entry?.url||entry?.src;
+   try{const u=new URL(candidate);if(u.protocol==='https:'&&(u.hostname==='i.pinimg.com'||u.hostname.endsWith('.pinimg.com')))return u.href}catch{}
   if(!pin)return '';
   const imgs=pin.media?.images||pin.media?.items?.[0]?.images||pin.images||{};
   const candidates=[imgs['600x'],imgs['400x300'],imgs['237x'],imgs.originals,imgs.original,...Object.values(imgs),pin.image_url,pin.imageUrl,pin.image?.url,typeof pin.image==='string'?pin.image:'',pin.media?.cover_image_url,pin.media?.image_url,pin.thumbnail_url,pin.media_url];
@@ -703,6 +708,19 @@ async function connect(){await run(async()=>{
   return source.filter(p=>/^\d+$/.test(String(p.id||''))).slice(0,24);
  }
  function renderFeedList(list){
+  list=list||document.getElementById('feedPageList');if(!list)return;
+  const durable=list.querySelectorAll('.biglwa-pin-post.pinterest-feed-item');
+  list.querySelectorAll('.pinterest-feed-item:not(.biglwa-pin-post)').forEach(el=>el.remove());
+  if(durable.length)return;
+  const cards=feedPins().map(p=>{
+   const src=image(p);
+   const label=p.boardName||boardNameFor(p.board_id);
+   return '<article class="module-list-item pinterest-feed-item" data-post-id="pinterest_'+esc(p.id)+'"><div style="width:100%"><small>Pinterest'+(label?' · '+esc(label):'')+'</small><b style="display:block;margin:4px 0 8px">'+esc(p.title||p.description||p.alt_text||'Pinterest Pin')+'</b>'+
+   (src?'<img loading="lazy" src="'+esc(src)+'" alt="'+esc(p.alt_text||p.title||'Pinterest Pin')+'" style="display:block;width:100%;max-height:520px;object-fit:cover;border-radius:12px">':'<span>Image unavailable</span>')+
+   '<a class="module-action ghost" href="https://www.pinterest.com/pin/'+esc(p.id)+'/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Pinterest</a></div></article>';
+  });
+  if(!cards.length)return;
+  list.insertAdjacentHTML('afterbegin',cards.join(''));
   // The Feed renders only published account posts. Never inject board saves.
   list=list||document.getElementById('feedPageList');
   if(list)list.querySelectorAll('.pinterest-feed-item:not(.biglwa-pin-post)').forEach(card=>card.remove());
@@ -827,6 +845,19 @@ async function connect(){await run(async()=>{
    const tile='<button type="button" class="pinterest-board is-empty" data-pn-connect'+(disabled||'')+'><span>Connect Pinterest</span></button>';
    return '<div class="pinterest-board-grid">'+Array.from({length:6},()=>tile).join('')+'</div>';
   }
+  if(!boards.length)return'';
+  const tiles=boards.slice(0,6).map(b=>{
+   const coverEntry=covers[b.id];
+   const cover=typeof coverEntry==='string'?coverEntry:coverEntry?.url||coverEntry?.image_url||image(coverEntry||{});
+   /* Boards are addressed by owner, so a profile with no username yet would otherwise
+      produce a link with a hole in it. Falling back to the account root still opens
+      Pinterest rather than a broken address. */
+   const owner=profile.username||profile.business_name;
+   const href=owner?'https://www.pinterest.com/'+encodeURIComponent(owner)+'/'+encodeURIComponent(b.id)+'/':'https://www.pinterest.com/';
+   return '<a class="pinterest-board'+(cover?'':' is-empty')+'" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+
+    (cover?'<img loading="lazy" src="'+esc(cover)+'" alt="">':'<span>No cover yet</span>')+
+    '<strong>'+esc(b.name)+'</strong>'+
+    (b.pin_count!=null?'<small>'+b.pin_count+' Pins</small>':'')+'</a>';
   if(!boards.length&&!savedLibrary.boards.length)return'<p role="status">No boards yet. Create a board above.</p>';
   const entries=[...orderedBoards().map(b=>({...b,local:false})),...savedLibrary.boards.map(b=>({...b,name:b.title,pin_count:b.pins.length,local:true}))];
   entries.sort((a,b)=>{const ai=recentBoardIds.indexOf(String(a.id)),bi=recentBoardIds.indexOf(String(b.id));return (ai<0?1e6:ai)-(bi<0?1e6:bi)});

@@ -47,6 +47,22 @@ assert.ok(menu.includes("document.querySelectorAll('.login-public-footer nav a[h
 assert.ok(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post))")&&feed.includes("const withImage=storedPosts;"),'Studio Feed preview count uses the filtered picture list');
 console.log('Pinterest masonry, Saved, Studio and login footer regressions passed');
 
+console.log("\n=== THE ROUND TRIP LANDS BACK ON BOARDS ===");
+check("returning from Pinterest reopens the Boards module", pinterest.includes("window.openBIGLWAModule('boards')") && pinterest.includes("if(returning&&typeof window.openBIGLWAModule==='function')"));
+check("only a real handoff is treated as returning", pinterest.includes("let returning=false") && pinterest.includes("if(handoff){returning=true;"));
+
+console.log("\n=== THE IMPORT STILL CARRIES IDENTITY ===");
+check("Pins import with the Big LWA identity", pinterest.includes('importer("pinterest",items,profile, window.__biglwaIdentity || {})'));
+
+console.log("\n=== CONNECTING SENDS A REAL PKCE CHALLENGE ===");
+check("connect guards the secure context it needs for PKCE", pinterest.includes("if(!crypto.subtle)throw new Error('Connect Pinterest from a secure page"));
+check("the unsigned-in blocking gate is gone", !pinterest.includes("if(!session())throw new Error('Sign in to Big LWA first"));
+check("the worker knock is still checked first", pinterest.includes("await api('health');"));
+check("the oauth start is reached with a base64url challenge", pinterest.includes("location.assign(API+'start?challenge='+encodeURIComponent(challenge))"));
+check("the old account-session cache-buster is gone", index.includes("pinterest-orbit.js?v=20261013-pin-images-1"));
+
+console.log(`\n${pass} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);
 assert.ok(pages.includes("tiles.slice(0,6).map("),'Studio Boards shows six Pins only');
 assert.ok(pages.includes("const signature=tiles.slice(0,6).map"),'Studio Boards renders exactly two rows');
 assert.ok(pages.includes("grid-template-rows:repeat(2,91px)"),'Studio Boards CSS sets two rows, not three');
