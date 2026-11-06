@@ -83,7 +83,7 @@ async function testMode(mode){
  btns.forEach(x=>x.disabled=true);
  $('output').textContent='Connecting…';
  $('metrics').textContent='Connecting to '+mode+' model…';
- const began=performance.now();let firstToken=null,count=0,buffer='',result='';
+ const began=performance.now();let firstToken=null,count=0,buffer='',result='',provider='',model='';
  try{
   const u=await user();if(!u)throw Error('not_signed_in');
   if(!sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')){
@@ -92,7 +92,7 @@ async function testMode(mode){
    sessionStorage.setItem('biglwaLwaziExternalPilotConsentV1','yes');
   }
   const token=await u.getIdToken();
-  const response=await fetch(BASE,{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({question:questions[mode],mode})});
+  const response=await fetch(BASE,{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({question:questions[mode],mode,provider:mode==='fast'?'deepseek':'anthropic'})});
   if(!response.ok){const data=await response.json().catch(()=>({}));throw Error('HTTP '+response.status+' · '+(data.error||'unknown_provider_error'))}
   if(!response.body)throw Error('stream_unavailable');
   const reader=response.body.getReader(),decoder=new TextDecoder();let done=false;
@@ -104,12 +104,15 @@ async function testMode(mode){
     const line=block.split('\n').find(x=>x.startsWith('data:'));if(!line)continue;
     let msg;try{msg=JSON.parse(line.slice(5).trim())}catch{continue}
     if(msg.type==='error')throw Error(msg.code||'upstream_stream_failed');
+    if(msg.type==='meta'){provider=msg.provider||'';model=msg.model||'';}
     if(msg.type==='delta'){if(firstToken===null)firstToken=performance.now();count++;result+=msg.text||'';$('output').textContent=result}
     if(msg.type==='done'){done=true;break}
    }
   }
   if(!result)throw Error('empty_model_response');
-  $('metrics').textContent='Success · '+mode+' · first text '+(firstToken===null?'n/a':Math.round(firstToken-began)+'ms')+' · total '+Math.round(performance.now()-began)+'ms · streamed chunks: '+count;
+  const expected=mode==='fast'?'deepseek':'anthropic';
+  if(provider!==expected)throw Error('provider_mismatch_'+String(provider||'unknown'));
+  $('metrics').textContent='Verified · '+provider+' / '+model+' · first text '+(firstToken===null?'n/a':Math.round(firstToken-began)+'ms')+' · total '+Math.round(performance.now()-began)+'ms · streamed chunks: '+count;
  }catch(e){
   $('output').textContent='Test not complete: '+e.message;
   $('metrics').textContent='No model success verified. Please report only the error code/message above.';
