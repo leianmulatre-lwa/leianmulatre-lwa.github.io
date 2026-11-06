@@ -44,7 +44,7 @@
     function sectionSymbol(title){
       var key=/song/i.test(title)?'music':/book/i.test(title)?'library':/politic/i.test(title)?'politc':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':'archive';
       var el=document.querySelector('#studioApp #'+key+' .card-head .card-icon')||document.querySelector('#studioApp #'+key+' .card-icon')||document.querySelector('#studioApp [data-sidebar-route-row="'+key+'"] .sidebar-route-icon')||document.querySelector('#studioApp [data-shortcut-row="'+key+'"] .sidebar-route-icon');
-      return el?el.innerHTML:'';
+      return el?el.innerHTML:(key==='music'?'♪':'');
     }
     var layoutObserver=null;
     function fitSearchPanel(){
