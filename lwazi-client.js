@@ -26,7 +26,7 @@
     if(!auth.currentUser)throw Error('Sign in to BIG LWA first.');
     return auth.currentUser.getIdToken();
   }
-  async function ask(question,sources,_charter,onDelta){
+  async function ask(question,sources,_charter,onDelta,options){
     // Founder-only pilot: explicit session opt-in to external provider processing.
     let consented=false;
     try{consented=sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')==='yes'}catch{}
@@ -47,7 +47,7 @@
       const response=await fetch(endpoint.href,{
         method:'POST',signal:controller.signal,cache:'no-store',
         headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'text/event-stream'},
-        body:JSON.stringify({question:String(question||''),mode:'auto',context:publicSources})
+        body:JSON.stringify({question:String(question||''),mode:options?.mode==='deep'?'deep':'auto',context:publicSources})
       });
       if(!response.ok){
         const info=await response.json().catch(()=>({}));
