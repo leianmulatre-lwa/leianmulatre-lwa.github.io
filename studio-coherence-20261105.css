@@ -1,0 +1,144 @@
+/* 2026-11-05 · Studio cohesion — fixes scoped to existing interface. */
+#studioApp .topbar .search-wrap.bl-search-ready{position:relative!important;isolation:isolate;min-width:0!important}
+#studioApp .topbar .search-wrap.bl-search-ready::before,
+#studioApp .topbar .search-wrap.bl-search-ready::after{content:none!important;display:none!important}
+#studioApp .search-wrap.bl-search-ready #globalSearch{
+ box-sizing:border-box!important;width:100%!important;min-width:0!important;
+ padding-left:49px!important;padding-right:140px!important;
+}
+#studioApp .search-wrap.bl-search-ready :is(.bl-lwazi-button,.bl-voice-button,.bl-camera-button,.bl-search-clear){
+ appearance:none;position:absolute!important;top:50%!important;display:grid!important;place-items:center!important;
+ width:31px!important;height:31px!important;padding:0!important;margin:0!important;
+ transform:translateY(-50%)!important;background:transparent!important;border:0!important;
+ color:#26211f!important;cursor:pointer!important;z-index:10!important;border-radius:50%!important;
+ box-shadow:none!important;
+}
+#studioApp .search-wrap.bl-search-ready .bl-lwazi-button{left:9px!important;right:auto!important;border:1px solid #d8c9c5!important;background:#fffaf2!important}
+#studioApp .search-wrap.bl-search-ready .bl-lwazi-button img{width:27px!important;height:27px!important;object-fit:contain!important;border-radius:50%!important}
+#studioApp .search-wrap.bl-search-ready .bl-voice-button{left:auto!important;right:82px!important}
+#studioApp .search-wrap.bl-search-ready .bl-camera-button{left:auto!important;right:47px!important}
+#studioApp .search-wrap.bl-search-ready .bl-search-clear{left:auto!important;right:9px!important;font:400 25px/1 Arial,sans-serif!important}
+#studioApp .search-wrap.bl-search-ready :is(.bl-lwazi-button,.bl-voice-button,.bl-camera-button,.bl-search-clear):focus-visible{outline:2px solid #a04358!important;outline-offset:1px!important}
+#studioApp .search-wrap.bl-search-ready .bl-voice-button.is-listening{background:#fadce1!important;color:#a42547!important}
+#studioApp .search-wrap.bl-search-ready .bl-voice-button:disabled{opacity:.4!important;cursor:not-allowed!important}
+
+/* Search is a main-content band, not a drawer behind Skeleton Key. */
+#studioApp .bl-search-panel,#bl-studio-search-results{
+ position:relative!important;z-index:3!important;box-sizing:border-box!important;
+ width:calc(100% - 72px)!important;max-width:none!important;
+ margin:0 12px 13px 60px!important;padding:15px clamp(14px,2.8vw,26px) 25px!important;
+ border:0!important;border-bottom:1px solid rgba(72,50,54,.18)!important;
+ border-radius:0!important;box-shadow:none!important;background:#fffaf3!important;
+ overflow:visible!important;clear:both!important;
+}
+#studioApp .bl-search-panel .bl-search-head{display:flex!important;align-items:center!important;justify-content:space-between!important}
+#studioApp .bl-search-panel .bl-search-head h1{margin:2px 0 5px!important;font-size:clamp(19px,2.3vw,27px)!important}
+.bl-search-question{margin:2px 0 0!important;color:#625750!important;font:500 13px/1.4 system-ui!important}
+#studioApp .bl-search-panel .bl-search-query{display:none!important}
+.bl-search-category-nav{display:flex;flex-wrap:wrap;gap:7px;padding:12px 0 10px;border-bottom:1px solid #e2d7cc;align-items:center}
+.bl-search-category-nav button{display:inline-flex;align-items:center;gap:7px;min-height:33px;padding:5px 11px;border:1px solid #d5c7bc;background:#fffdf9;border-radius:16px;color:#473b35;cursor:pointer;font:600 12px/1.2 system-ui}
+.bl-search-category-nav button:hover,.bl-search-category-nav button:focus-visible{border-color:#a4495b;background:#fcecf0;outline:none}
+.bl-search-category-nav button span{font-size:17px;display:grid;place-items:center;min-width:18px}
+.bl-search-section{scroll-margin-top:88px}
+.bl-search-section h2{display:flex!important;align-items:center!important;gap:8px!important}
+.bl-search-section-icon{display:inline-grid;place-items:center;min-width:25px;min-height:25px;font-size:19px;color:#7c384a}
+.bl-search-section-icon img,.bl-search-section-icon svg{width:24px;height:24px;object-fit:contain}
+.bl-search-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,215px),1fr))!important;max-width:none!important}
+.bl-lwazi-answer-body p{margin:.38em 0;overflow-wrap:anywhere}
+.bl-lwazi-answer-body strong{font-weight:760}.bl-lwazi-answer-body em{font-style:italic}
+.bl-image-search-preview{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px;background:#fff0ef;border:1px solid #e4c4c6;border-radius:10px;margin:8px 0}
+.bl-image-search-preview img{width:94px;height:76px;object-fit:contain;background:white;border-radius:6px}
+.bl-image-search-preview p{flex:1;min-width:180px;font:500 12px/1.4 system-ui;color:#60494d}
+.bl-search-image-run{background:#8e4050;color:#fff;border:0;border-radius:7px;padding:10px 12px;cursor:pointer}
+.bl-search-image-run:disabled{opacity:.55}
+body.night-mode #studioApp .bl-search-panel{background:#241f1d!important}
+@media(max-width:680px){
+ #studioApp .bl-search-panel,#bl-studio-search-results{width:calc(100% - 56px)!important;margin-left:52px!important;margin-right:4px!important;padding:12px!important}
+ #studioApp .search-wrap.bl-search-ready #globalSearch{padding-left:42px!important;padding-right:119px!important}
+ #studioApp .search-wrap.bl-search-ready .bl-voice-button{right:72px!important}
+ #studioApp .search-wrap.bl-search-ready .bl-camera-button{right:39px!important}
+ #studioApp .search-wrap.bl-search-ready .bl-search-clear{right:4px!important}
+ #studioApp .search-wrap.bl-search-ready .bl-lwazi-button{left:5px!important}
+}
+
+/* Five-piece Board collage. The tall cover owns the red source-shadow. */
+#studioApp #boards .studio-pinterest-board-preview{
+ display:grid!important;grid-template-columns:minmax(0,1.04fr) repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;gap:8px!important;
+ min-height:0!important;height:clamp(150px,21vw,226px)!important;max-height:none!important;
+ margin:10px 0 15px!important;padding:0 6px 7px 0!important;overflow:visible!important;border-radius:11px!important;
+}
+#studioApp #boards .studio-pinterest-board-preview button{
+ position:relative!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ padding:0!important;border:0!important;overflow:hidden!important;border-radius:10px!important;
+ box-shadow:none!important;background:#38292e!important;
+}
+#studioApp #boards .studio-pinterest-board-preview button:first-child{
+ grid-row:1 / span 2!important;grid-column:1!important;
+ box-shadow:5px 6px 0 #d42245!important;
+}
+#studioApp #boards .studio-pinterest-board-preview button:nth-child(n+6){display:none!important}
+#studioApp #boards .studio-pinterest-board-preview img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;aspect-ratio:auto!important}
+#studioApp #boards .studio-pinterest-board-preview .studio-pinterest-empty{grid-column:1 / -1!important;grid-row:1 / -1!important;box-shadow:none!important;background:#dfcbc6!important}
+#studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview{
+ grid-template-columns:minmax(0,1.04fr) repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;min-height:0!important;height:clamp(150px,21vw,226px)!important;max-height:none!important;
+}
+#studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview button{height:100%!important}
+#studioApp #boards.has-live-pinterest-preview .studio-pinterest-board-preview button:nth-child(n+6){display:none!important}
+
+/* MyFeed: a distinctly different pixel-red film header above continuous black negative. */
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head{
+ position:relative!important;align-items:center!important;
+ padding:13px 15px 12px!important;border-bottom:2px solid #3d171e!important;
+ background-color:#680e1c!important;
+ background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 3px,transparent 3px 7px),
+ repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,235,223,.045) 5px 6px),
+ linear-gradient(90deg,#4c0b14,#7b1926 34%,#550c17 68%,#74202b)!important;
+ background-size:7px 7px,100% 6px,100% 100%!important;
+}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head h3{color:#fff0e0!important;text-shadow:1px 2px #19050b!important}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head span{color:#fff2e4!important}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid{background-color:#161413!important;background-image:linear-gradient(180deg,#24201e 0%,#151313 18%,#171514 100%)!important}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::before{top:7px!important}
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::after{bottom:7px!important}
+
+/* Stream: one CTA below, a quiet dock action at the bottom of the actual player. */
+#studioApp #stream .stream-screen,#studioApp #stream .stream-monitor{
+ box-sizing:border-box!important;position:relative!important;padding:0!important;
+ overflow:hidden!important;background:#0f0b0c!important;min-width:0!important;
+}
+#studioApp #stream .stream-monitor{border:0!important;box-shadow:none!important;border-radius:14px!important}
+#studioApp #stream .stream-screen{border:0!important;width:100%!important;min-height:0!important;aspect-ratio:16/9!important;border-radius:12px!important}
+#studioApp #stream .stream-screen :is(iframe,video){display:block;max-width:100%!important;width:100%!important;object-fit:cover!important}
+#studioApp #stream .stream-screen .bl-studio-dock-stream{
+ position:absolute!important;left:50%!important;bottom:8px!important;top:auto!important;right:auto!important;
+ transform:translateX(-50%)!important;display:inline-flex!important;justify-content:center;align-items:center!important;
+ width:auto!important;height:auto!important;min-height:33px!important;max-width:calc(100% - 24px)!important;
+ padding:7px 14px!important;border:1px solid rgba(255,231,209,.85)!important;border-radius:8px!important;
+ background:rgba(30,17,20,.88)!important;color:#fff3e5!important;
+ font:700 12px/1.1 system-ui!important;letter-spacing:.025em!important;z-index:32!important;cursor:pointer!important;
+}
+#studioApp #stream .stream-preview-return{display:none!important}
+#studioApp #stream .stream-dock-options{display:none!important}
+#studioApp #stream .stream-screen .bl-studio-dock-stream:hover{background:#4a1c2a!important}
+
+/* Trophy card: respect the achievement image's intrinsic aspect ratio; remove tall blank spacer. */
+#studioApp #trophies #trophyPreview,
+#studioApp #trophies .trophy-preview{
+ min-height:0!important;height:auto!important;max-height:none!important;
+ padding:0!important;margin:8px 0 10px!important;align-content:start!important;gap:0!important;
+}
+#studioApp #trophies #trophyPreview>.biglwa-default-trophy-image{
+ display:block!important;width:100%!important;height:auto!important;max-height:200px!important;
+ margin:0!important;object-fit:contain!important;
+}
+#studioApp #trophies:has(#trophyPreview>.biglwa-default-trophy-image) .card-cta{margin-top:13px!important}
+
+/* Enforce the latest red pixel-globe curtain for Studio module transitions only. */
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain{
+ display:flex!important;z-index:1502!important;
+}
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"]:not(.lwa-pixel-curtain) .lwa-dot,
+#studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-brand{display:none!important}
+@media(prefers-reduced-motion:reduce){.bl-search-panel *{scroll-behavior:auto!important}}
