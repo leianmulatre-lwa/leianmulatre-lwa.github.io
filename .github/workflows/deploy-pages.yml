@@ -26,10 +26,12 @@ jobs:
       - name: Protect Studio loading, thumbnails and search
         run: |
           node --check user-search-results.js
+          node --check lwazi-search-ui.js
           node --check module-pages.js
           node --check pinterest-orbit.js
           node --check stream-guide.js
           node lwazi-search-regression-test.mjs
+          node --test lwazi/search-experience.test.mjs
           node studio-first-paint-rgb-regression-test.mjs
           node studio-myfeed-archive-filmstrip-test.mjs
       - name: Setup Pages
