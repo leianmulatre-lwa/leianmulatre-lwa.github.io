@@ -47,10 +47,11 @@ assert.ok(menu.includes("document.querySelectorAll('.login-public-footer nav a[h
 assert.ok(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post))")&&feed.includes("const withImage=storedPosts;"),'Studio Feed preview count uses the filtered picture list');
 console.log('Pinterest masonry, Saved, Studio and login footer regressions passed');
 
-assert.ok(pages.includes("tiles.slice(0,6).map("),'Studio Boards shows six Pins only');
-assert.ok(pages.includes("const signature=tiles.slice(0,6).map"),'Studio Boards renders exactly two rows');
-assert.ok(pages.includes("grid-template-rows:repeat(2,91px)"),'Studio Boards CSS sets two rows, not three');
-assert.ok(pages.includes("state?.connected&&(!viewer||state.uid===viewer)"),'static board placeholders are removed after connecting');
+assert.ok(pages.includes("tiles.slice(0,5).map("),'Studio Boards shows five real Pins with one tall and four square frames');
+assert.ok(pages.includes('studioBoardsSamples.slice(0,5)'),'Disconnected Boards uses temporary sample images');
+assert.ok(pages.includes("const signature=(connected?'connected:':'demo:')"),'Pinterest activation invalidates temporary image cache');
+assert.ok(index.includes('studio-coherence-20261105.css'),'Layout comes from the new cohesive Studio CSS');
+assert.ok(pages.includes("const connected=Boolean(state?.connected&&(!viewer||state.uid===viewer))"),'Sample images are replaced by public connected pins only');
 assert.ok(pages.includes("studio-mini-map-open"),'the Studio map has an open-full-map action');
 assert.ok(pages.includes("mini.loading='eager'"),'real mini-map loads on Studio without scrolling to it');
-console.log('Studio Boards two-row preview and interactive Map checks passed');
+console.log('Studio Boards five-image preview and interactive Map checks passed');
