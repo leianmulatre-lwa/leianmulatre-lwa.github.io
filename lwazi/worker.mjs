@@ -112,21 +112,25 @@ export function normalizeStream(upstream,provider,mode,model){
 }
 export async function queryProvider(mode,question,context,env,fetcher=fetch,requiredProvider=null){
   const preferred=requiredProvider?[requiredProvider]:(mode==='fast'?['deepseek','anthropic']:['anthropic','deepseek']);
-  let attempted=false,lastCode='providers_unavailable';
+  let attempted=false,lastCode='providers_unavailable',lastProvider=null,lastUpstreamStatus=null;
   for(const name of preferred){
     if(name==='deepseek'&&!env.DEEPSEEK_API_KEY)continue;
     if(name==='anthropic'&&!env.ANTHROPIC_API_KEY)continue;
-    attempted=true;
+    attempted=true;lastProvider=name;
     const spec=buildProvider(name,mode,question,context,env);
     try{
       // Per-provider deadline includes streamed output and cannot hang indefinitely.
       const response=await fetcher(spec.url,{method:'POST',headers:spec.headers,body:JSON.stringify(spec.body),signal:AbortSignal.timeout(30000)});
-      if(!response.ok){lastCode='provider_http_'+response.status;continue}
+      if(!response.ok){
+        lastUpstreamStatus=response.status;
+        lastCode=response.status===402?'provider_billing_required':'provider_http_'+response.status;
+        continue;
+      }
       if(!response.body){lastCode='empty_provider_stream';continue}
       return {provider:name,model:spec.body.model,body:normalizeStream(response.body,name,mode,spec.body.model)};
     }catch{/* Try the other configured provider once; no client secrets or prompts logged. */}
   }
-  return {error:attempted?lastCode:'no_model_configured'};
+  return {error:attempted?lastCode:'no_model_configured',provider:lastProvider,upstream_status:lastUpstreamStatus};
 }
 export default {
   async fetch(request,env){
@@ -158,7 +162,7 @@ export default {
     const context=publicContext(body.context);
     if(body.provider!=null&&!['deepseek','anthropic'].includes(body.provider))return json({error:'invalid_provider'},400,headers);
     const result=await queryProvider(mode,body.question.trim(),context,env,fetch,body.provider||null);
-    if(result.error)return json({error:result.error},503,headers);
+    if(result.error)return json({error:result.error,provider:result.provider||null,upstream_status:result.upstream_status||null},result.upstream_status===402?402:503,headers);
     return new Response(result.body,{status:200,headers:{...headers,'Content-Type':'text/event-stream; charset=utf-8','X-Accel-Buffering':'no'}});
   }
 };
