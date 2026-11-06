@@ -103,7 +103,8 @@
       var hooks=[window.__biglwaAskLwazi,window.BigLWA&&window.BigLWA.askLwazi].filter(function(fn){return typeof fn==='function'});
       if(hooks.length){
         try{
-          var libraryForHook=await sourceLibraryPromise;
+          // Keep a cold source-library download from blocking the answer.
+          var libraryForHook=await Promise.race([sourceLibraryPromise,new Promise(function(resolve){setTimeout(function(){resolve(null)},120)})]);
           var hookStop,hookTimeout=new Promise(function(_,reject){hookStop=setTimeout(function(){reject(Error('Lwazi provider timed out'))},33000)});
           var external;
           try{external=await Promise.race([Promise.resolve().then(function(){return hooks[0](q,sources,libraryForHook&&libraryForHook.critical_reasoning,onPartial)}),hookTimeout])}
