@@ -37,3 +37,20 @@ assert.ok(dots.includes('lwa-curtain-brand-b')&&dots.includes('lwa-curtain-brand
 assert.ok(!dots.includes('biglwa-stitched-cubes-loader.avif'),'No stitched block image on module loader');
 assert.ok(!html.includes('<img class="biglwa-startup-logo"'),'No block image on initial loading screen');
 console.log('PASS one lowercase dot-floating startup, restored stitched wordmark, no competing pseudo-curtains, laptop preload and delayed playback');
+
+// The startup curtain must survive auth and the first stable paint; never
+// vanish as soon as a Studio or login node is merely mounted.
+assert(html.includes('biglwa:initial-route-ready'),'Initial auth routing participates in loader readiness');
+assert(html.includes('document.readyState!==\\'complete\\''),'Loader waits for the browser to finish initial assets');
+assert(html.includes('Date.now()-quietSince<280'),'Loader waits for layout mutations to settle');
+assert(html.includes('biglwa:startup-revealed'),'Startup publishes a single reveal event');
+assert(!html.includes('window.setTimeout(finish,8000)'),'Old eight-second premature dismissal is removed');
+assert(!html.includes('id="biglwa-startup-reveal"'),'Old stylesheet can no longer forcibly hide the startup curtain');
+assert(html.includes('still connecting your studio…')&&html.includes('Reload Studio'),'A stalled startup exposes an explicit retry rather than prematurely displaying broken widgets');
+const studio=readFileSync(new URL('./studio/index.html',import.meta.url),'utf8');
+const deployedAssets=['module-pages.js','pinterest-orbit.js','pinterest-red-consistency-20261016.css','stream-guide.js','stream-guide.css','studio-myfeed-filmstrip-20261029.css','studio-trophy-versions-symbol-bounds-20261029.css'];
+for(const asset of deployedAssets){
+ const pat=new RegExp(asset.replace(/[.*+?^\\$\\{\\}()|[\\]\\]/g,'\\$&')+'\\?v=([^\\x27\\x22\\s]+)');
+ const one=html.match(pat)?.[1],two=studio.match(pat)?.[1];
+ assert(one&&two&&one===two,'Root and /studio must use the exact same '+asset+' build');
+}
