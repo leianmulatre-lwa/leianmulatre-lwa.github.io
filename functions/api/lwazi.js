@@ -4,7 +4,7 @@
 const TARGET='https://biglwa-lwazi-pilot.leianmulatre-284.workers.dev/api/lwazi';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 export async function onRequestPost({request,env}){
-  if(!env?.LWAZI_PILOT?.fetch)return Response.json({error:'pilot_binding_missing'},{status:503,headers});
+  if(!env?.LWAZI_PILOT?.fetch)return Response.json({error:'pilot_binding_missing',binding_present:Boolean(env&&Object.prototype.hasOwnProperty.call(env,'LWAZI_PILOT')),binding_type:typeof env?.LWAZI_PILOT,staging_relay_version:'20261106-binding-debug-2'},{status:503,headers});
   const auth=request.headers.get('Authorization')||'';
   if(!/^Bearer [A-Za-z0-9._-]+$/.test(auth))return new Response('Authentication required',{status:401,headers});
   const contentLength=Number(request.headers.get('Content-Length')||0);
@@ -28,7 +28,7 @@ export async function onRequestPost({request,env}){
   }
 }
 export async function onRequestGet({env}={}){
-  if(!env?.LWAZI_PILOT?.fetch)return Response.json({error:'pilot_binding_missing'},{status:503,headers});
+  if(!env?.LWAZI_PILOT?.fetch)return Response.json({error:'pilot_binding_missing',binding_present:Boolean(env&&Object.prototype.hasOwnProperty.call(env,'LWAZI_PILOT')),binding_type:typeof env?.LWAZI_PILOT,staging_relay_version:'20261106-binding-debug-2'},{status:503,headers});
   try{
     const url=new URL(TARGET);url.pathname='/health';
     const response=await env.LWAZI_PILOT.fetch(url.href,{method:'GET',signal:AbortSignal.timeout(8000),redirect:'error'});
