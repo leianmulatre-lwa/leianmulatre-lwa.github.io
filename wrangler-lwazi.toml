@@ -5,12 +5,12 @@ compatibility_date = "2026-11-06"
 workers_dev = true
 
 # Deploy a Workers AI binding only on the isolated pilot Worker.
-# Do not enable FREE_INFERENCE_ENABLED until Workers Free plan is confirmed.
+# Founder confirmed Workers Free plan on 2026-11-06; do not enable paid providers.
 [ai]
 binding = "AI"
 
 [vars]
-FREE_INFERENCE_ENABLED = "false"
+FREE_INFERENCE_ENABLED = "true"
 ALLOW_PAID_PROVIDERS = "false"
 ALLOWED_ORIGINS = "https://biglwa.com,https://www.biglwa.com"
 # Never commit secrets: DEEPSEEK_API_KEY, ANTHROPIC_API_KEY,
