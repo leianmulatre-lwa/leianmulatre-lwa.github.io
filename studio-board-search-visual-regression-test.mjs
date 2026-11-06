@@ -14,9 +14,9 @@ assert.match(css,/max-width:1100px!important/,'Search reaches the annotated endp
 assert.doesNotMatch(css,/max-width:min\(100%,760px\)/,'Old cropped search width must be removed');
 assert.ok(css.includes('#studioApp .topbar .search-wrap'),'Main and profile-preview use one width rule');
 assert.ok(html.includes('studio-header-gutters-20261029.css?v=20261030-match-marked-preview-5'),'Live search asset cache is refreshed');
-assert.ok(html.includes('studio-mosaic=20261030-2'),'Studio board runtime is cache-refreshed');
+assert.ok(html.includes('pinterest-orbit.js?v=20261106-board-photo-v3'),'Studio board runtime is cache-refreshed');
 assert.ok(boardCss.includes('#studioApp #boards .biglwa-studio-board-gallery'),'Widget rules target #boards rather than only #pinterestBoards');
-assert.ok(boardCss.includes('flex:1 1 auto!important')&&boardCss.includes('object-fit:contain!important'),'One real photo can fill the widget without hard cropping');
+assert.ok(boardCss.includes('grid-template-columns:minmax(0,1.24fr) repeat(2,minmax(0,1fr))')&&boardCss.includes('box-shadow:3px 3px 0 #cf2843!important'),'Thumbnail uses one portrait with four squares and a red shadow on the portrait');
 
 const start=pinterest.indexOf(' // The Studio thumbnail is NOT the Boards module.');
 const end=pinterest.indexOf('window.__biglwaPinterest={',start);
@@ -43,15 +43,15 @@ w.eval(pinterest.slice(start,end)+'\npaintStudioBoardGallery();');
 const card=d.querySelector('#boards');
 const gallery=card.querySelector('.biglwa-studio-board-gallery');
 assert(gallery,'Studio gets one full-size preview gallery');
-assert.equal(gallery.dataset.count,'4','Real Pinterest covers and previously displayed photo are retained');
-assert.equal(gallery.querySelectorAll('.biglwa-studio-board-tile').length,4,'Mosaic uses available genuine photos');
+assert.equal(gallery.dataset.count,'3','Connected photos are not mixed with the legacy static tile');
+assert.equal(gallery.querySelectorAll('.biglwa-studio-board-tile').length,3,'Mosaic uses available genuine photos');
 assert.equal(card.querySelectorAll('.biglwa-studio-board-gallery').length,1,'Only one gallery is rendered');
 assert(card.querySelector('.old-board-preview').classList.contains('biglwa-studio-board-legacy-thumb'),'Tiny old tile is hidden rather than duplicated');
 assert.equal(card.querySelector('.card-cta').textContent,'My Inspiration','Existing Boards CTA is preserved');
 assert.equal(gallery.querySelector('.biglwa-studio-board-tile').dataset.open,'boards','Click opens actual Boards module');
 photos=[{id:'1',url:'https://i.pinimg.com/photo-1.jpg'}];
 w.eval('paintStudioBoardGallery()');
-assert.equal(gallery.dataset.count,'2','Preview adapts to the number of available photos');
+assert.equal(gallery.dataset.count,'1','Preview adapts to the number of available photos');
 assert.equal(card.querySelectorAll('.biglwa-studio-board-gallery').length,1,'Updates do not duplicate the gallery');
 d.documentElement.classList.add('biglwa-preview-mode');
 w.eval('paintStudioBoardGallery()');
@@ -59,3 +59,8 @@ assert.equal(card.querySelector('.biglwa-studio-board-gallery'),null,'Owner cove
 assert(!card.querySelector('.old-board-preview').classList.contains('biglwa-studio-board-legacy-thumb'),'Public preview can use its own content');
 dom.window.close();
 console.log('PASS: marked search width, full-size real Studio Boards thumbnail, responsive mosaic, public-preview isolation.');
+
+assert(pinterest.includes('window.__biglwaRefreshBoardsThumbnail=paintStudioBoardGallery'),'Module-page handoff can refresh the canonical thumbnail');
+const modulePages=read('module-pages.js');
+assert(modulePages.includes('window.__biglwaRefreshBoardsThumbnail?.()'),'Old module renderer delegates to the canonical gallery');
+assert(!modulePages.includes("tiles.slice(0,6).map((item,i)=>"),'Old six-tile Studio renderer is removed');
