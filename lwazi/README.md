@@ -59,3 +59,7 @@ After confirming Workers Free, add the `AI` binding to `biglwa-lwazi-pilot` and 
 The model is Cloudflare-hosted: this avoids buying an **external provider's** API credits, but it still processes prompts on Cloudflare infrastructure. Local WebGPU/Ollama inference is a possible next option for avoiding per-request cloud charges. There is no legitimate general-purpose way to unlock proprietary paid APIs at no cost.
 
 For current official limits: https://developers.cloudflare.com/workers-ai/platform/pricing/ and the Gemma model page: https://developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/.
+
+### Activation — 2026-11-06
+
+Founder confirmed **Workers Free**. The isolated L'wazi pilot enables `FREE_INFERENCE_ENABLED=true`, while `ALLOW_PAID_PROVIDERS=false`. Paid provider calls return `paid_providers_disabled`, even with DeepSeek/Anthropic API keys present. Free inference is subject to Cloudflare's daily Workers AI allowance. Paid model providers remain disabled. Production `biglwa.com` is not affected. If this account changes to Workers Paid, reassess usage and billing before continuing.
