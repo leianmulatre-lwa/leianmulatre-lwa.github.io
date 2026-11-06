@@ -1,0 +1,43 @@
+name: Stream programming integration
+
+on:
+  pull_request:
+    paths:
+      - 'stream-guide.js'
+      - 'stream-guide.css'
+      - 'stream-guide-test.mjs'
+      - 'cloudflare-worker-instagram.js'
+      - 'module-pages.js'
+      - 'index.html'
+      - '.github/workflows/stream-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'stream-guide.js'
+      - 'stream-guide.css'
+      - 'stream-guide-test.mjs'
+      - 'cloudflare-worker-instagram.js'
+      - 'module-pages.js'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check Stream and Worker JavaScript syntax
+        run: |
+          node --check stream-guide.js
+          node --check module-pages.js
+          node --input-type=module --check < cloudflare-worker-instagram.js
+      - name: Exercise programming submissions and moderation
+        run: node stream-guide-test.mjs
+      - name: Verify locally hosted Spotify TikTok and YouTube custom players
+        run: |
+          node stream-media-elements-test.mjs
+          for file in assets/media-elements/*-element.js assets/media-elements/media-played-ranges-mixin.js assets/media-elements/loader.js; do node --input-type=module --check < "$file"; done

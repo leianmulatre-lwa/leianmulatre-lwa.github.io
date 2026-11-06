@@ -1,0 +1,35 @@
+/* Media placeholders use exactly the same media-frame width and reserved ratio
+ * as the final photo. Failure keeps the frame rather than painting TV test bars.
+ */
+:is(.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,.pn-pin-photo,.pinterest-pin).lwa-image-loading,
+:is(.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,.pn-pin-photo,.pinterest-pin).lwa-image-failed{
+ position:relative!important;
+ aspect-ratio:var(--lwa-image-aspect,4/5);
+ min-height:0!important;
+ overflow:hidden!important;
+ background:#ddd3c9!important;
+}
+:is(.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,.pn-pin-photo,.pinterest-pin).lwa-image-loading>img{
+ opacity:0!important;
+}
+:is(.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,.pn-pin-photo,.pinterest-pin).lwa-image-loading:before{
+ content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ background:linear-gradient(110deg,#d5cac1 20%,#e9e0d8 40%,#d5cac1 60%);
+ background-size:220% 100%;animation:lwa-photo-loading 1.9s ease-in-out infinite;
+}
+:is(.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,.pn-pin-photo,.pinterest-pin).lwa-image-failed>img{
+ opacity:0!important;pointer-events:none!important;
+}
+.lwa-image-status{position:absolute;inset:0;z-index:5;display:flex;gap:9px;
+ flex-direction:column;align-items:center;justify-content:center;
+ padding:12px;text-align:center;background:#d8d0c8;color:#564e49;
+ font:650 10px/1.35 system-ui}
+.lwa-image-status button{position:relative;z-index:2;min-height:28px;padding:5px 12px;
+ border:1px solid #887a73;border-radius:8px;background:#f9f3eb;
+ color:#463d39;font:700 10px system-ui;cursor:pointer}
+.lwa-image-status button:focus-visible{outline:2px solid #6e5265;outline-offset:2px}
+@keyframes lwa-photo-loading{to{background-position-x:-220%}}
+@media(prefers-reduced-motion:reduce){
+ :is(.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,.pn-pin-photo,.pinterest-pin).lwa-image-loading:before{
+  animation:none;background:#e3d8cf}
+}
