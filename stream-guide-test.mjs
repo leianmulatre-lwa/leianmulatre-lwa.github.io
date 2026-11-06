@@ -8,6 +8,13 @@ const stream=readFileSync(new URL('./stream-guide.js',import.meta.url),'utf8');
 const style=readFileSync(new URL('./stream-guide.css',import.meta.url),'utf8');
 const pages=readFileSync(new URL('./module-pages.js',import.meta.url),'utf8');
 const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const streamVmContext=win=>({window:win,console,URL,Date,document:{readyState:'loading',addEventListener(){}}});
+
+assert.ok(stream.indexOf('id="streamMediaLinkForm"')<stream.indexOf('class="stream-channels"'),'Tune input belongs to top Stream navigation');
+assert.equal((stream.match(/id="streamMediaLinkForm"/g)||[]).length,1,'Only one tuner form is mounted');
+assert.ok(stream.includes('data-google-orbit-connect')&&stream.includes('data-stream-youtube-status'),'YouTube Orbit connect sits beside tuner');
+assert.ok(stream.includes('syncYouTubeOrbitButton'),'YouTube button tracks actual Google Orbit connection');
+assert.ok(style.includes('.stream-nav-actions .stream-media-link-form'),'Top tuner has responsive styles');
 const bucketRecords=new Map();
 const fakeR2={
  async put(key,text){bucketRecords.set(key,String(text))},
@@ -121,7 +128,7 @@ await check('submissions are disabled by default until the programming feature l
  assert.match((await disabled.json()).error,/future release/i);
  env.STREAM_REQUESTS_ENABLED='true'; // Existing editorial workflow remains regression-tested.
 });
-await check('LWA Radio keeps three channels with Ballroom under TV without a request form',async()=>{
+await check('Stream keeps Radio, TV and Live plus Sqwidz, with Ballroom under TV',async()=>{
  assert.ok(stream.includes("['podcast','lwa radio'"));
  assert.ok(stream.includes("['lwa-tv','lwa tv'"));
  assert.ok(stream.includes("['live','live'"));
@@ -145,7 +152,7 @@ await check('only the active channel is rendered, and standby stage sits above r
  assert.ok(style.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
 });
 await check('Ballroom sources remain credited but channel-only URLs never masquerade as playable TV',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const api=win.BigLWAStreamGuide;
  const archive=api.ballroom;
  assert.ok(archive.length>=5);
@@ -163,7 +170,7 @@ await check('Ballroom sources remain credited but channel-only URLs never masque
  assert.ok(style.includes('.stream-source-slot.is-ballroom'));
 });
 await check('date-based shuffle is deterministic, changes by date, and manual shuffle works',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const app=win.BigLWAStreamGuide;
  const a=app.getDailyGuide('2026-10-13');
  const same=app.getDailyGuide('2026-10-13');
@@ -173,12 +180,12 @@ await check('date-based shuffle is deterministic, changes by date, and manual sh
  assert.equal(serial(a),serial(same),'same date must have stable rotation');
  assert.notEqual(serial(a),serial(b),'the next date should rearrange channels');
  assert.notEqual(serial(a),serial(again),'manual shuffle should change selection order');
- assert.equal(a.length,3);
+ assert.equal(a.length,4,'Radio, TV, Live and Sqwidz each have their own channel');
  assert.ok(a.every(x=>x.slots.length===24));
  assert.ok(stream.includes("state.shuffleOffset++;renderGrid();renderFeaturedSlots()"));
 });
 await check('LWA Radio offers only direct in-site audio stations',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const guide=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(x=>x.category==='podcast').slots;
  const radio=guide.filter(x=>x.kind==='station');
  const audio=guide.filter(x=>x.kind==='feature');
@@ -188,7 +195,7 @@ await check('LWA Radio offers only direct in-site audio stations',async()=>{
  assert.ok(guide.every(x=>x.title&&x.subtitle&&x.status==='▶ PLAY IN BIG LWA'));
 });
 await check('UCLA Radio restored with official HTTPS MP3 and all sixteen schools remain searchable',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const guide=win.BigLWAStreamGuide.getDailyGuide('2026-10-13').find(row=>row.category==='podcast').slots;
  assert.ok(guide.some(item=>item.title==='UCLA Radio'),'UCLA Radio must be scheduled');
  assert.ok(stream.includes("0:'https://live.uclaradio.com/listen/ucla_radio/radio.mp3'"),'UCLA source is direct MP3 audio');
@@ -201,7 +208,7 @@ await check('UCLA Radio restored with official HTTPS MP3 and all sixteen schools
  assert.ok(stream.includes("all 16 campus stations"),'radio directory remains complete');
 });
 await check('creator rotation uses authentic channel URLs and no hypothetical placeholders',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const catalog=win.BigLWAStreamGuide.featured;
  const names=['Tea Spill','Life With Olan','Larray','Quenlin Blackwell','Jacksepticeye',
   'Dream','iHasCupquake','Alissa Violet','Steyuh','Markiplier','CoryxKenshin','Cartoon Network'];
@@ -225,14 +232,14 @@ await check('creator rotation uses authentic channel URLs and no hypothetical pl
   assert.ok(!allIds.has(source.id),'Channel link shown as a video: '+source.title);
 });
 await check('radio mixtapes link to actual Soulection releases',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const catalog=win.BigLWAStreamGuide.featured;
  const links=['https://soulection.lnk.to/RadioMixtape001','https://soulection.lnk.to/UNTITLED',
   'https://soulection.lnk.to/NeptunesTribute','https://radio.soulection.com/'];
  for(const link of links)assert.ok(catalog.some(x=>x.url===link),'missing real mixtape or radio page '+link);
 });
 await check('Live guide mixes embeddable YouTube sources and real Twitch channels',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const catalog=win.BigLWAStreamGuide.twitch;
  for(const name of ['hasanabi','pokimane','qtcinderella','kaicenat','fuslie'])
   assert.ok(catalog.some(x=>x.twitchChannel===name),'Missing Twitch channel '+name);
@@ -262,7 +269,7 @@ await check('curated Stream remains distinct from genuine approved programs',asy
  assert.ok(style.includes('.stream-slot.is-booked'));
 });
 await check('every discovery link leads directly to a secure original provider',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const a=win.BigLWAStreamGuide;
  const links=[
   ...a.stations.map(x=>x.url),
@@ -291,7 +298,7 @@ await check('Stream shares the same Studio header and page width as other widget
  assert.ok(style.includes('.biglwa-stream{width:100%;min-width:0;max-width:none}'));
  const mount=stream.slice(stream.indexOf(' function mount(host){'),stream.indexOf(' function jumpNow()'));
  assert.ok(mount.includes('class="stream-nav"'),'Stream retains a compact channel selector');
- assert.ok(mount.includes('class="stream-channels" role="tablist"'),'three channels remain navigable');
+ assert.ok(mount.includes('class="stream-channels" role="tablist"'),'all Stream channels remain navigable');
  assert.ok(!mount.includes('class="stream-mast"'),'duplicate hero header must be removed');
  assert.ok(!mount.includes('class="stream-testcard"'),'extra testcard masthead must be removed');
  assert.ok(!mount.includes('<h1>stream'),'Stream should use the shared H1 from heading()');
@@ -322,7 +329,7 @@ await check('in-site playback uses source streams and YouTube embeds',async()=>{
 });
 
 await check('TV includes the existing five Betty Boop episodes, without FOX, and opens current guide pick',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const betty=win.BigLWAStreamGuide.featured.find(x=>x.id==='betty-boop-classics');
  assert.ok(betty&&betty.provider==='archive-video');
  assert.equal(betty.episodes.length,5);
@@ -349,7 +356,7 @@ await check('Studio preview preserves a single mounted Stream media instance',as
 });
 
 await check('Daily Discovery thumbnails and arrows live inside the monitor, never a large directory',async()=>{
- const win={};vm.runInNewContext(stream,{window:win,console,URL,Date});
+ const win={};vm.runInNewContext(stream,streamVmContext(win));
  const guide=win.BigLWAStreamGuide.getDailyGuide('2026-10-14');
  const tv=guide.find(row=>row.category==='lwa-tv').slots;
  assert.ok(tv.every(slot=>slot.kind==='feature'));

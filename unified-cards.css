@@ -491,3 +491,11 @@
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-tumblr{--feed-card-rim:#1b304b!important;--feed-card-shadow:3px 3px 0 #1b304b,6px 6px 0 -2px #5a7897!important}
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-x,
 #studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-twitter{--feed-card-rim:#0e0e0e!important;--feed-card-shadow:3px 3px 0 #0e0e0e,6px 6px 0 -2px #666!important}
+
+#studioApp :is(.biglwa-feed-lights,.archive-browser-actions,.pinterest-browser-actions){
+ background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;padding:3px!important;gap:4px!important;
+}
+#studioApp :is(.biglwa-feed-lights,.archive-browser-actions,.pinterest-browser-actions) button{
+ width:10px!important;height:10px!important;min-width:10px!important;max-width:10px!important;
+ min-height:10px!important;max-height:10px!important;flex-basis:10px!important;
+}

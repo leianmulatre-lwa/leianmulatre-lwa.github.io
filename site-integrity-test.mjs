@@ -53,15 +53,15 @@ assert.match(modules, /--feed-heading-offset:calc/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] :is\(\.module-top,\.module-heading\)/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-heading h1\{\s*transform:none/);
 assert.match(projectCanvas, /module-heading lwa-project-heading/);
-assert.match(projectCanvas, /<h1>visualz<\/h1>/);
+assert.match(projectCanvas, /<h1>visualizr<\/h1>/);
 assert.match(projectCanvas, /visualslidez\.js\?v=/);
-assert.match(modules, /visualz:'visualz'/);
+assert.match(modules, /visualz:'visualizr'/);
 assert.match(projectCanvas, /\.lwa-project-toolbar\{display:flex/);
 assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not legacy purple.
 assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(index, /project-canvas\.js\?v=/);
-assert.match(index, /tiktok-orbit\.js\?v=20261023-collective-autosync-6/);
+assert.match(index, /tiktok-orbit\.js\?v=20261028-oauth-return-2/);
 assert.match(feedPolish, /biglwa-feed-lights/);
 assert.match(feedPolish, /data-feed-light/);
 assert.match(feedPolish, /data-post-/);
@@ -135,7 +135,7 @@ assert.match(tiktokOrbit, /CALLBACK_HANDOFF/);
 assert.match(tiktokOrbit, /lastError/);
 assert.match(modules, /orbit-main/); // Provider diagnostics are no longer injected into planet previews.
 assert.match(modules, /orbitPageStatus/); // Detailed OAuth errors belong in the page status area.
-assert.match(tiktokOrbit, /location\.origin \+ '\/studio\?view=orbit'/);
+assert.ok(tiktokOrbit.includes("location.origin + '/studio?view=orbit&orbit_return=1'"),'TikTok OAuth opens Orbit only on explicit connection return');
 
 assert.match(feedView, /instagram: \{ rim:"#f36b21"/);
 
@@ -163,7 +163,7 @@ assert.match(instagramOrbit, /hostedById/);
 assert.match(pinterestOrbit, /hostedPinUrls/);
 assert.match(index, /orbit-posts\.js\?v=/);
 assert.match(modules, /\['map','politc'\]\.includes\(params\.get\('panel'\)\)/);
-assert.match(sessionRestore, /\['map','politc'\]\.includes\(panel\)/);
+assert.ok(sessionRestore.includes("params.has('panel')")&&sessionRestore.includes('requestedRoute()'),'Explicit Studio panel and OAuth navigation take precedence over remembered view');
 assert.match(recovery, /data-open="politc"/);
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(feedPolish, /data-publish-connected/);
@@ -185,7 +185,7 @@ console.log('PASS source integrity: politc route, two-week calendar, public SEO 
 // Visualz has one shared heading on both tabs; navigation replaces the
 // former duplicate giant cards and preserves the existing editor.
 const slides=read('visualslidez.js'),sharing=read('profile-module-sharing.js');
-assert.match(projectCanvas, /root.innerHTML=pageHeading\+'<section id="lwaVisualSlides"/);
+assert.match(projectCanvas, /root.innerHTML=pageHeading\+tabBar\+'<section id="lwaVisualSlides"/);
 assert.match(projectCanvas, /root.innerHTML=pageHeading\+'<div class="visualz-top-row"/);
 assert.match(projectCanvas, /<div class="lwa-project-toolbar"/);
 assert.match(projectCanvas, /visual·eyez/);
@@ -199,4 +199,4 @@ assert.doesNotMatch(tiktokOrbit, /row\.append\(panel\)/);
 assert.match(tiktokOrbit, /\[data-tiktok-public-import\]'\)\.forEach\(node=>node\.remove\(\)\)/);
 assert.match(tiktokOrbit, /notified:false/);
 assert.match(tiktokOrbit, /biglwa:studio-update/);
-assert.match(tiktokOrbit, /<\/div><\/details>/);
+assert.match(tiktokOrbit, /function renderTikTokFeedImporter/);

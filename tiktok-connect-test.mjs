@@ -15,7 +15,7 @@ function check(name, cond, extra = "") {
 console.log("=== TIKTOK CONNECT DOES NOT DIE SILENTLY ===");
 check("connect guards the secure context it needs for PKCE", tiktok.includes("if (!crypto.subtle) throw new Error('TikTok needs a secure page"));
 check("health is still checked first", tiktok.includes("const health = await api('health');"));
-check("the oauth start uses the stable Studio Orbit return route", tiktok.includes("location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit'))"));
+check("the oauth start uses the stable Studio Orbit return route", tiktok.includes("location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit&orbit_return=1'))"));
 check("the verifier is remembered for the handoff", tiktok.includes("sessionStorage.setItem('tt_verifier', verifier)"));
 
 console.log("\n=== THE NEW SCRIPT IS SERVED ===");
@@ -57,7 +57,7 @@ check("Orbit updates from verified TikTok session",
 check("connection hub can recover TikTok session by Firebase UID",
  connections.includes("async function recoverTikTokSession(uid)")&&connections.includes('source.id === "tiktok"'));
 
-check("TikTok importer is directly in myfeed",tiktok.includes("function renderTikTokFeedImporter()")&&tiktok.includes("Save to myfeed drafts"));
+check("TikTok-only myfeed panel is retired",tiktok.includes("function renderTikTokFeedImporter()")&&!tiktok.includes("Save to myfeed drafts")&&tiktok.includes("forEach(node=>node.remove())"));
 check("TikTok inline videos use the official embedded player",tiktok.includes("data-tiktok-play-video")&&tiktok.includes("https://www.tiktok.com/player/v1/"));
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

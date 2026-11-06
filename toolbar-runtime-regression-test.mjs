@@ -17,6 +17,10 @@ const q=s=>w.document.querySelector(s);
 const click=s=>{assert(q(s),'Missing '+s);q(s).click()};
 assert.equal(q('#mobileCreate').textContent,'✺veve');
 assert(!q('#studioSidebarAvailableDock [data-sidebar-route-row="veve"]')&&!q('#studioSidebarShortcutDock [data-sidebar-route-row="veve"]'),'Veve stays in permanent top/hero shortcut only');
+assert(source.includes('#studioApp #studioSidebarShortcuts .sidebar-navigation-row::after{content:none!important;display:none!important}'),
+  'Yellow shortcut destinations have no decorative red dots');
+assert(source.includes('#studioApp #studioSidebarRest .sidebar-navigation-row.is-available.is-widget-removed::after'),
+  'Only red-closed Studio widgets fill the lower light');
 assert(q('[data-dock-widget="projects"]'));
 click('[data-dock-widget="projects"]');
 assert(q('#projects').classList.contains('widget-is-minimized'));
@@ -66,6 +70,14 @@ click('[data-restore-widget="music"]');
 assert(q('#studioSidebarPrimary').hidden);
 click('[data-dock-widget="notes"]');
 assert(q('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));
+const notesPlus=q('#studioSidebarDockedWidgetDock [data-shortcut-row="notes"] .sidebar-widget-plus');
+assert(notesPlus?.tagName==='BUTTON','Visible red-zone + is a real clickable button');
+assert.equal(notesPlus.dataset.restoreWidget,'notes','Plus restores the matching widget, not just a shortcut');
+notesPlus.click();
+assert(!q('#notes').classList.contains('widget-is-docked'),'Red-zone + restores the widget');
+click('[data-dock-widget="notes"]');
+assert(q('#studioSidebarDockedWidgetDock [data-shortcut-row="notes"] .sidebar-widget-plus'),
+ 'Red light and + return after the widget is removed again');
 const drag=(key,target)=>{
  const handle=q('[data-shortcut-drag-handle="'+key+'"]');
  w.document.elementFromPoint=()=>q(target);
@@ -74,9 +86,34 @@ const drag=(key,target)=>{
 };
 drag(initial[0],'#studioSidebarRest');
 assert.deepEqual(ids(w),initial.slice(1),'Dragging yellow to red disconnects shortcut');
+const disconnectedRow=q('#studioSidebarAvailableDock [data-sidebar-route-row="'+initial[0]+'"]');
+assert(disconnectedRow&&!disconnectedRow.classList.contains('is-widget-removed'),
+  'Removing a navigation shortcut does not turn on the widget-removal light');
+assert.deepEqual(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).disconnectedNavigation,[],
+  'Navigation changes never persist false removed widgets');
+const actual=q('[data-widget-route="'+initial[0]+'"]')||q('#'+initial[0]);
+if(actual?.dataset.widgetId&&q('[data-dock-widget="'+actual.dataset.widgetId+'"]')){
+  click('[data-dock-widget="'+actual.dataset.widgetId+'"]');
+  assert(actual.classList.contains('widget-is-docked'),'Red closes the actual widget');
+  assert(disconnectedRow.classList.contains('is-widget-removed'),'Red close turns its indicator on');
+  assert.match(disconnectedRow.title,/removed from Studio, press \+ to restore/);
+  click('#studioSidebarAvailableDock [data-sidebar-route-row="'+initial[0]+'"] [data-add-shortcut]');
+  assert(!actual.classList.contains('widget-is-docked'),'Plus restores the widget');
+  assert(!disconnectedRow.classList.contains('is-widget-removed'),'Restoring turns its light off');
+  assert.deepEqual(ids(w),initial.slice(1),'Plus restore must not change the shortcut selection');
+}else{
+  assert(!disconnectedRow.classList.contains('is-widget-removed'),
+    'A navigation-only destination cannot falsely signal widget removal');
+}
+const untouched=q('#studioSidebarAvailableDock [data-sidebar-route-row]');
+assert(untouched,'Other unselected routes remain in available section');
 drag(initial[0],'#studioSidebarShortcutDock [data-sidebar-route-row="'+initial[2]+'"]');
 const expected=[initial[1],initial[0],...initial.slice(2)];
 assert.deepEqual(ids(w),expected,'Dragging back restores shortcut at chosen position');
+assert(!q('#studioSidebarShortcutDock [data-sidebar-route-row="'+initial[0]+'"]').classList.contains('is-widget-removed'),
+  'Reconnecting navigation does not signal removal');
+assert.deepEqual(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).disconnectedNavigation,[],
+  'No disconnected-navigation bit is saved');
 click('#saveSidebarShortcuts');
 assert.deepEqual(JSON.parse(w.localStorage.getItem('biglwaStudioLayoutV4:test-owner')).navigation,expected);
 assert.equal(q('.hero-action-bar').querySelectorAll('a').length,8,'Banner stays connected to shortcut lane');
@@ -98,7 +135,25 @@ fresh.eval(source);fresh.document.dispatchEvent(new fresh.Event('DOMContentLoade
 assert.deepEqual(ids(fresh),expected,'Fresh page restores account navigation without legacy global storage');
 assert(fresh.document.querySelector('#studioSidebarDockedWidgetDock [data-restore-widget="notes"]'));
 assert.equal(fresh.document.querySelector('#mobileCreate').textContent,'✺veve');
-await new Promise(resolve=>setImmediate(resolve));reloaded.window.close();
+const lastKey=expected[expected.length-1];
+const redAtRest=fresh.document.querySelector('#studioSidebarAvailableDock [data-sidebar-route-row]');
+if(redAtRest&&!redAtRest.classList.contains('is-widget-removed'))
+  assert.notEqual(redAtRest.dataset.widgetRemoved,'true','Visible widgets retain hollow lights');
+fresh.document.querySelector('#studioSidebarShortcutDock [data-sidebar-route-row="'+lastKey+'"] [data-remove-shortcut]').click();
+assert(!fresh.document.querySelector('#studioSidebarAvailableDock [data-sidebar-route-row="'+lastKey+'"]').classList.contains('is-widget-removed'),
+  'Minus removes a shortcut, not the Studio widget');
+const reloadRemoved=new JSDOM(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,''),{
+  url:'https://biglwa.com/studio',runScripts:'outside-only',pretendToBeVisual:true});
+const reread=reloadRemoved.window;
+reread.CSS=fresh.CSS;reread.matchMedia=fresh.matchMedia;
+reread.__biglwaIdentity={uid:'test-owner'};
+reread.HTMLElement.prototype.scrollIntoView=function(){};
+reread.localStorage.setItem('biglwaStudioLayoutV4:test-owner',
+  fresh.localStorage.getItem('biglwaStudioLayoutV4:test-owner'));
+reread.eval(source);reread.document.dispatchEvent(new reread.Event('DOMContentLoaded'));
+assert(!reread.document.querySelector('#studioSidebarAvailableDock [data-sidebar-route-row="'+lastKey+'"]').classList.contains('is-widget-removed'),
+  'Shortcut removal never becomes a widget light after an account-scoped reload');
+await new Promise(resolve=>setImmediate(resolve));reloadRemoved.window.close();reloaded.window.close();
 // Use the real shared-heading implementation on every widget, including old inline headers.
 const headingCode=experience.slice(experience.indexOf('  function ensureCardHeadingRows(){'),experience.indexOf('  function ensureThemeAndMailboxIcons(){'));
 w.eval(`(()=>{const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];${headingCode}ensureCardHeadingRows()})()`);
@@ -125,8 +180,8 @@ const card=q('.manifesto-card'),hub=q('#biglwaSkeletonHub');
 assert(card.classList.contains('is-skeleton-open')&&!hub.hidden);
 assert(!q('[data-tour-start]'),'No site-tour button');
 assert.equal(hub.querySelectorAll('.skeleton-model-widget').length,3);
-assert(q('#skeletonRankMount .real-rank'),'Real Rank moves to Skeleton Key');
-assert(!q('.profile-card .real-rank'));
+assert(q('.profile-card .real-rank'),'Real Rank remains on the profile banner');
+assert(!q('#skeletonRankMount .real-rank'),'Opening Skeleton Key must not remove rank from banner');
 assert(q('.skeleton-legal a[href="/rights"]'));
 assert(!q('.sidebar [data-sidebar-route="rights"]'));
 assert(q('[data-sidebar-route="tools"] img[src="/assets/tools-hand-eye.svg"]'));
@@ -150,6 +205,14 @@ w.BIGLWAStudioAppearance.apply({appearance:{color:'#abcdef'}});
 assert.equal(color.value,'#123456','Delayed account values cannot overwrite color draft');
 assert.equal(q('#widgetColor'),color,'Native color input stays connected');
 assert(q('#studioApp').style.getPropertyValue('--widget-bg').includes('18,52,86'),'Live preview retains chosen color');
+const opacity=q('#widgetOpacity');
+assert(opacity&&opacity.min==='20','Widget opacity now allows 20% transparency without changing default');
+opacity.getBoundingClientRect=()=>({left:10,top:0,width:200,height:24,right:210,bottom:24});
+opacity.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,clientX:90,clientY:12,button:0}));
+w.document.dispatchEvent(new w.MouseEvent('pointermove',{bubbles:true,clientX:10,clientY:12}));
+w.document.dispatchEvent(new w.MouseEvent('pointerup',{bubbles:true}));
+assert.equal(opacity.value,'20','Widget opacity bar supports pointer dragging down to 20%');
+assert(q('#studioApp').style.getPropertyValue('--widget-bg').includes(',0.2)'), '20% opacity truly renders 0.20 alpha, not an internal 72% floor');
 if(process.env.UPDATE_NAV_SPECIMEN==='1'){
  const original=fs.readFileSync(root+'qa/widget-headers.html','utf8');
  const sidebar='<aside class="sidebar" aria-label="Skeleton Key"><div class="sidebar-top">'+q('#skeletonKeyLauncher').outerHTML+q('#studioSidebarShortcuts').outerHTML+'</div></aside>';

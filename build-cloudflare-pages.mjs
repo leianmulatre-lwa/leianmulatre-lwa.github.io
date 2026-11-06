@@ -7,13 +7,14 @@
 import {readdirSync,statSync,cpSync,mkdirSync,rmSync,existsSync,writeFileSync} from 'node:fs';
 import {join,extname,resolve,relative,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {generateOgImage} from './build-og-image.mjs';
 
 const root=resolve(fileURLToPath(new URL('.',import.meta.url)));
 const dest=join(root,'dist');
 const publishDirs=new Set([
-  'MiiEditor','about','arcade','archive','assets','avatar',
+  'MiiEditor','about','affidavit','arcade','archive','assets','avatar','leian-mulatre',
   'cedarville-pnkfun1-cursive-font','cuteness-font','data-deletion',
-  'licenses','logout','privacy','settings','stars-and-stripes-font',
+  'licenses','logout','privacy','rights','terms','settings','stars-and-stripes-font',
   'third-party','tools','wiimii'
 ]);
 const topPublic=new Set(['404.html','index.html','robots.txt','sitemap.xml',
@@ -72,13 +73,15 @@ for(const dirent of readdirSync(root,{withFileTypes:true})){
   cpSync(join(root,name),join(dest,name));
   count++;total+=sz;
 }
-for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp']){
+for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html','affidavit/index.html']){
   if(!existsSync(join(dest,required)))throw Error('Missing required public asset: '+required);
 }
 for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','public-tiktok-snapshot-worker.js','wrangler.toml','firestore.rules','.github']){
   if(existsSync(join(dest,hidden)))throw Error('Restricted development file reached public output: '+hidden);
 }
 if(count>19000)throw Error('Public file count exceeds Cloudflare Pages deployment safety limit.');
+generateOgImage(join(dest,'assets/brand/og-biglwa.png'));
+if(!existsSync(join(dest,'assets/brand/og-biglwa.png')))throw Error('Missing BIG LWA OG image');
 // These are app routes; legal/about/settings pages keep their real HTML.
 writeFileSync(join(dest,'_redirects'),
   '/studio /index.html 200\n/orbit /index.html 200\n');

@@ -1069,6 +1069,14 @@ body.about-site {
   font-weight:400!important;
   font-variant-ligatures:normal!important;
 }
+/* Once an account photo exists, an asynchronously repainted initial must never
+   overlay that photo. Keep the letter only on genuine no-photo placeholders. */
+#studioApp .mini-avatar.has-photo,
+#studioApp .profile-avatar.has-photo{
+  font-size:0!important;
+  color:transparent!important;
+  text-shadow:none!important;
+}
 
 /* Show the default red curtain in the Wallpaper tab as well. Uploaded media
    sets an inline background image; the selector intentionally excludes it. */

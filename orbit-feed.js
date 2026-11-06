@@ -35,12 +35,8 @@
   };
   var FALLBACK = { accent: '#8a7a6c', rim:'#a52a0c', glow:'#d95f6d', label: 'Source' };
   function shadowFor(look) {
-    if (look.label === 'YouTube') return '0 0 0 2px '+look.rim+',3px 3px 0 '+look.glow+',0 13px 28px -16px '+look.rim;
-    if (look.label === 'Instagram') return '3px 3px 0 '+look.rim+',7px 7px 0 -2px '+look.glow+',0 14px 28px -13px '+look.hot;
-    if (look.label === 'Pinterest') return '3px 3px 0 '+look.rim+',6px 6px 0 -2px '+look.glow+',0 14px 26px -14px '+look.hot;
-    if (look.label === 'TikTok') return '3px 3px 0 '+look.rim+',-2px 8px 20px -14px '+look.glow+',8px 13px 24px -16px '+look.hot;
-    if (look.hot) return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow+',0 0 18px -12px '+look.hot;
-    return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow;
+    // A single tinted source shadow, consistent with the shared Skeleton Key.
+    return '3px 3px 0 '+(look.rim||look.accent||'#eee7db');
   }
 
   var STYLE = [

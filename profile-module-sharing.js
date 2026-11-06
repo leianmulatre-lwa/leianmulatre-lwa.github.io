@@ -30,9 +30,55 @@ async function paintVisitor(kind,root){
  if(!rows.length)root.append(node('p','This shared collection is empty.'));
  }catch{if(root.isConnected)root.replaceChildren(node('h2',kind),node('p','This collection is private or unavailable.'));}
 }
+function publicOrbit(root){
+ root.replaceChildren(node('h2','Orbit connections'));
+ const info=node('p','Public profile links · connections belong to this member and open separately.');root.append(info);
+ const links=Array.isArray(visitor?.profile?.socials)?visitor.profile.socials:[];
+ if(!links.length){root.append(node('p','No public Orbit links shared yet.'));return;}
+ const list=node('div','');list.className='biglwa-public-orbit-links';
+ for(const item of links){
+  const url=safeImage(item.url);if(!url)continue;
+  const link=node('a',item.label+(item.handle?' · '+item.handle:''));
+  link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+  link.dataset.source=item.id||'';
+  link.className='biglwa-public-orbit-link';
+  list.append(link);
+ }root.append(list);
+}
+async function publicBoards(root){
+ root.replaceChildren(node('h2','Boards'));
+ const subtitle=node('p','A peek at this member’s publicly shared Pins and collections.');root.append(subtitle);
+ const grid=node('div','');grid.className='biglwa-public-board-grid';root.append(grid);
+ const cards=[];
+ if(visitor?.profile?.accountVisibility!=='private'&&visitor?.uid){
+  try{
+   const {f,db}=await sdk();
+   const snap=await f.getDocs(f.query(f.collection(db,'users',visitor.uid,'posts'),f.where('state','==','approved'),f.limit(100)));
+   for(const d of snap.docs){
+    const item=d.data(),source=String(item.source||'').toLowerCase();
+    const link=String(item.sourceUrl||'');
+    if(source!=='pinterest'&&!/^https:\/\/(?:www\.)?pinterest\./i.test(link))continue;
+    const photo=safeImage(item.thumbnailUrl||item.imageUrl||item.photo||item.media?.[0]?.url||item.images?.[0]?.url||item.images?.[0]);
+    if(photo)cards.push({image:photo,title:String(item.title||item.caption||'Shared Pin').slice(0,80)});
+    if(cards.length===6)break;
+   }
+  }catch{}
+ }
+ if(!root.isConnected)return;
+ for(let i=0;i<6;i++){
+  const card=node('div','');card.className='biglwa-public-board-tile';
+  if(cards[i]){
+   const img=document.createElement('img');img.src=cards[i].image;img.alt=cards[i].title;img.loading='lazy';card.append(img);
+  }else{card.classList.add('is-placeholder');card.setAttribute('aria-label','Board preview placeholder');}
+  grid.append(card);
+ }
+ root.append(node('p',cards.length?'Showing '+cards.length+' published Pinterest media preview'+(cards.length===1?'':'s')+'. Private Pins are never shown.':'Only public Pins appear here. Connect and curate your own Boards after joining.'));
+}
 async function paintPublicContent(kind,root){
  root.replaceChildren(node('h2',kind==='feed'?'Published posts':kind),node('p','Loading shared content…'));
  if(!visitor){root.replaceChildren(node('p','Loading this member’s profile…'));return;}
+ if(kind==='orbit'){publicOrbit(root);return;}
+ if(kind==='boards'){await publicBoards(root);return;}
  const owner=visitor.uid,profile=visitor.profile||{};
  if(profile.accountVisibility==='private'){root.replaceChildren(node('p','This member’s Studio is private.'));return;}
  try{
@@ -46,6 +92,24 @@ async function paintPublicContent(kind,root){
   }else{root.replaceChildren(node('h2',kind),node('p','This module contains private account data. Open your own Studio to use it.'));return;}
   if(visitor?.uid!==owner||!root.isConnected)return;
   root.replaceChildren(node('h2',kind==='feed'?'Published posts':kind));
+  if(kind==='map'){
+    const count=rows.length;
+    root.append(node('p',count?'Read-only map · '+count+' place'+(count===1?'':'s')+' shared by this member. No editing or saving.':'No public map locations are shared yet.'));
+    const first=rows.find(item=>Number.isFinite(Number(item.lat))&&Number.isFinite(Number(item.lng??item.long)));
+    if(first){
+      // Coarse rounding protects against accidentally implying house-level precision.
+      const lat=Math.round(Number(first.lat)*1000)/1000,lng=Math.round(Number(first.lng??first.long)*1000)/1000;
+      if(Math.abs(lat)<=85&&Math.abs(lng)<=180){
+        const frame=document.createElement('iframe');
+        frame.title='Read-only public location preview';
+        frame.loading='lazy';frame.referrerPolicy='no-referrer';
+        const bbox=[lng-.075,lat-.05,lng+.075,lat+.05];
+        frame.src='https://www.openstreetmap.org/export/embed.html?bbox='+bbox.map(encodeURIComponent).join('%2C')+'&layer=mapnik&marker='+lat+'%2C'+lng;
+        frame.style.cssText='display:block;border:1px solid #e0c7ba;border-radius:14px;width:100%;max-width:740px;height:315px;background:#e9e2d6;margin:8px 0 14px';
+        frame.setAttribute('sandbox','allow-scripts allow-same-origin');root.append(frame);
+      }
+    }
+  }
   for(const item of rows){const card=node('article','');card.className='module-card';card.append(node('h3',item.title||item.caption||item.linkTitle||item.source||'Shared item'),node('p',item.detail||item.city||''));
    const src=safeImage(item.thumbnailUrl||item.imageUrl||item.photo||item.media?.[0]?.url||item.images?.[0]?.url||item.images?.[0]);if(src){const img=document.createElement('img');img.src=src;img.alt='';img.loading='lazy';img.style.maxWidth='100%';card.append(img)}
    const url=safeImage(item.sourceUrl);if(url){const a=node('a','Original post ↗');a.href=url;a.target='_blank';a.rel='noopener noreferrer';card.append(a)}root.append(card);
@@ -59,11 +123,16 @@ function renderPublic(kind,root){
  if(sections[kind])paintVisitor(kind,root);else paintPublicContent(kind,root);
  return true;
 }
+
+/* Visitor Orbit and Boards: six read-only slots; no connection prompts. */
+const publicStyle=document.createElement('style');publicStyle.id='biglwa-public-modules-style';
+publicStyle.textContent='.biglwa-public-orbit-links{display:flex;gap:9px;flex-wrap:wrap}.biglwa-public-orbit-link{display:inline-flex;padding:10px 14px;border-radius:12px;background:#fff8ef;color:#392934;text-decoration:none;box-shadow:2px 3px 0 #d7c1bd;font:700 12px system-ui;border-left:4px solid #d65c70}.biglwa-public-orbit-link[data-source="pinterest"]{border-color:#e60023}.biglwa-public-orbit-link[data-source="tiktok"]{border-color:#7e32a9}.biglwa-public-orbit-link[data-source="instagram"]{border-color:#f36b21}.biglwa-public-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 7px;max-width:520px}.biglwa-public-board-tile{aspect-ratio:1;overflow:hidden;border-radius:12px;background:linear-gradient(155deg,#dcb4a5,#584451);box-shadow:0 3px 0 #392c3333}.biglwa-public-board-tile img{width:100%;height:100%;object-fit:cover}.biglwa-public-board-tile.is-placeholder:nth-child(3n + 2){background:linear-gradient(145deg,#edd1c1,#bdaeb2)}.biglwa-public-board-tile.is-placeholder:nth-child(3n){background:repeating-radial-gradient(circle,#382f31 0 9px,#6b5552 10px 15px)}';
+document.head.append(publicStyle);
 window.BigLWAProfileModules={render:renderPublic,placeControls:controls};
 window.addEventListener('biglwa:public-profile-ended',()=>{visitor=null;});
 function controls(){
  const workspace=document.getElementById('moduleWorkspace'),kind=workspace?.dataset.moduleKey;
- const root=workspace.querySelector('.module-body')||workspace.querySelector('#moduleWorkspaceBody');if(!root)return;
+ const root=workspace?.querySelector('.module-body')||workspace?.querySelector('#moduleWorkspaceBody');if(!root)return;
  if(isVisitor()){renderPublic(kind,root);return;}
  if(!sections[kind])return;
  const visualButtons=kind==='projects'?

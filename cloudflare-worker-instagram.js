@@ -1,7 +1,7 @@
 const INSTAGRAM_AUTHORIZE_URL = 'https://www.instagram.com/oauth/authorize';
 const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
-const OAUTH_SCOPES = 'instagram_business_basic,instagram_business_manage_messages';
+const OAUTH_SCOPES = 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_insights';
 const SESSION_TTL = 60 * 60 * 24 * 60; // align storage with valid long-lived Instagram access tokens
 const FIREBASE_WEB_API_KEY = 'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY';
 
@@ -28,6 +28,7 @@ async function route(request, env) {
   if (url.pathname === '/session/exchange' && request.method === 'POST') return exchangeHandoff(request, env);
   if (url.pathname === '/session/account' && request.method === 'GET') return accountSession(request, env);
   if (url.pathname === '/instagram/profile' && request.method === 'GET') return proxyProfile(request, env);
+  if (url.pathname === '/instagram/insights' && request.method === 'GET') return proxyInsights(request, env);
   if (url.pathname === '/instagram/media' && request.method === 'GET') return proxyMedia(request, env);
   if (url.pathname === '/instagram/disconnect' && request.method === 'POST') return disconnect(request, env);
   if (url.pathname === '/meta/webhook') return webhook(request, env, url);
@@ -271,6 +272,34 @@ async function proxyProfile(request, env) {
   return json(profile, 200, request, env);
 }
 
+// Member-only Instagram professional account insights. Never export access tokens
+// or mistake an unavailable Meta metric for a zero.
+async function proxyInsights(request, env) {
+  requireOrigin(request,env);
+  const session=await sessionFromRequest(request,env);
+  if(!session)return json({error:'Instagram session expired.'},401,request,env);
+  const now=new Date(),month=now.toISOString().slice(0,7);
+  const since=Math.floor(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),1)/1000);
+  const until=Math.floor(now.getTime()/1000);
+  const results={},errors=[];
+  // Separate requests isolate a currently unsupported metric from available ones.
+  for(const metric of ['reach','views','total_interactions']){
+    try{
+      const args=new URLSearchParams({metric,period:'day',
+        metric_type:'total_value',since:String(since),until:String(until)});
+      const data=await graph('/me/insights?'+args.toString(),session);
+      const item=(Array.isArray(data.data)?data.data:[]).find(row=>row.name===metric);
+      const value=item?.total_value?.value;
+      if(value!==null&&value!==undefined&&Number.isFinite(Number(value))&&Number(value)>=0)
+        results[metric]=Number(value);
+    }catch(error){
+      errors.push(metric+': '+String(error.message||'unavailable').slice(0,180));
+    }
+  }
+  return json({month,period:'month_to_date',checkedAt:now.toISOString(),
+    metrics:results,unavailable:errors,permission:'instagram_business_manage_insights'},200,request,env);
+}
+
 async function proxyMedia(request, env) {
   requireOrigin(request, env);
   const session = await sessionFromRequest(request, env);
@@ -469,6 +498,11 @@ export default {
         : {error:'Social login and account data are disabled in this isolated preview.'},
         {status:health?200:503,headers:{'Cache-Control':'no-store'}});
     }
+    if (new URL(request.url).pathname.startsWith('/social/')) {
+      const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
+      try{const {socialRoute}=await import('./social-service.js');return await socialRoute(request,config,{user:mediaUser,json,preflight:corsPreflight,allowed:allowedOrigin})}
+      catch(error){return json({error:error.publicMessage||'Social service is unavailable.'},error.status||500,request,config)}
+    }
     if (new URL(request.url).pathname.startsWith('/facebook-personal/')) {
       const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
       try{return await facebookPersonalRoute(request,config)}
@@ -487,6 +521,11 @@ export default {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
       try { return await streamRoute(request, config); }
       catch (error) { return json({ error: error.publicMessage || 'Stream service is unavailable. Please try again.' }, error.status || 500, request, config); }
+    }
+    if (new URL(request.url).pathname.startsWith('/media/profile-state')) {
+      const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
+      try{const {mediaStateRoute}=await import('./profile-media-state.js');return await mediaStateRoute(request,config,{user:mediaUser,json,preflight:corsPreflight,allowed:allowedOrigin})}
+      catch(error){return json({error:error.publicMessage||'Profile media could not be loaded.'},error.status||500,request,config)}
     }
     if (new URL(request.url).pathname.startsWith('/media/')) {
       const config = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
@@ -1892,6 +1931,10 @@ async function mediaUpload(request, env, url, segment = 'wallpaper') {
     httpMetadata: { contentType, cacheControl: (photo ? 'public, ' : 'private, ') + 'max-age=31536000, immutable' },
     customMetadata: { uid: user.uid, kind, state, name: String(url.searchParams.get('name') || '').slice(0, 120), createdAt: String(createdAt) }
   });
+  if(state==='approved'&&['profile-photo','wallpaper'].includes(segment)){
+    const {updateMediaState}=await import('./profile-media-state.js');
+    await updateMediaState(bucket,user.uid,segment==='profile-photo'?{profilePhotoUrl:url.origin+'/media/profile-photo/'+user.uid+'/'+name,profilePhotoPosition:{x:50,y:50}}:{wallpaperMedia:{url:url.origin+'/media/wallpaper/'+user.uid+'/'+name,kind,state:'approved'}});
+  }
   return json({
     ok: true,
     key: user.uid + '/' + name,
@@ -2116,9 +2159,27 @@ async function oaProfile(provider,token){
  const me=data.data?.me||data.data?.user||data.me||{};
  if(!me.externalId)oaError('Snapchat did not provide the requested Login Kit account identity.',502);
  const avatar=me.bitmoji?.avatar||me.bitmoji?.selfie||me.bitmojiAvatar||'';
+ // Some Snapchat accounts are allowed to expose a public profileLink.
+ // This is an OPTIONAL second request: restricted GraphQL fields must never
+ // make a valid Login Kit identity fail or masquerade displayName as username.
+ let publicLink='',publicHandle='';
+ try{
+  const optional=await fetch('https://kit.snapchat.com/v1/me',{
+   method:'POST',headers:{...headers,'Content-Type':'application/json'},
+   body:JSON.stringify({query:'query { me { profileLink } }'})
+  });
+  if(optional.ok){
+   const payload=await optional.json().catch(()=>({}));
+   const uri=new URL(String(payload.data?.me?.profileLink||''));
+   const host=uri.hostname.toLowerCase().replace(/^www\./,'');
+   const match=uri.pathname.match(/^\/(?:add\/@?|@)([A-Za-z0-9._]{2,40})\/?$/);
+   if(uri.protocol==='https:'&&['snapchat.com','story.snapchat.com'].includes(host)&&match){
+    publicHandle=match[1];publicLink='https://www.snapchat.com/add/'+publicHandle;
+   }
+  }
+ }catch{} // Ordinary accounts may not have profileLink access.
  return {id:'snapchat',sourceUserId:String(me.externalId),name:String(me.displayName||'Snapchat account').slice(0,100),
-  username:'',avatarUrl:oaPhoto(avatar),
-  link:''};
+  username:publicHandle,avatarUrl:oaPhoto(avatar),link:publicLink};
 }
  
 // Read-only import preview: API tokens stay in the Worker KV store.

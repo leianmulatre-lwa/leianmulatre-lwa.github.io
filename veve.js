@@ -13,7 +13,29 @@
   const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
   const order=arr=>[...new Set(arr.filter(x=>groups.includes(x)))].concat(groups.filter(x=>!arr.includes(x)));
   const defaults={sections:groups,enabled:groups.filter(x=>x!=='ads'),sort:'latest'};
-  const state={items:[],sqwibs:[],resqwibs:[],loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
+  const INTEREST_TERMS={
+    'Style & fashion':['fashion','style','outfit','designer','runway','model','wardrobe','streetwear','couture'],
+    'Music':['music','song','album','artist','record','sound','concert','rap','r&b','dj'],
+    'Visual art':['art','artwork','drawing','illustration','painting','gallery','artist'],
+    'Photography':['photo','camera','portrait','film photo','photography'],
+    'Film & television':['film','movie','cinema','series','television','tv','animation'],
+    'Games':['game','gaming','arcade','puzzle','playthrough'],
+    'Books & literature':['book','literature','author','novel','read','poetry'],
+    'Writing & poetry':['writing','poem','poetry','writing prompt','story','journal','sqwib'],
+    'Politics & civic life':['politics','election','civic','candidate','policy','organizing'],
+    'History':['history','historical','archive','heritage'],
+    'Education':['education','school','learning','study','university'],
+    'Culture & heritage':['culture','heritage','community','tradition','diaspora'],
+    'Technology':['technology','tech','ai','computer','software','coding'],
+    'Design':['design','graphic','interface','architecture','typography'],
+    'Beauty':['beauty','makeup','skin','nails','hair'],
+    'Sports':['sports','basketball','football','soccer','athlete','nba'],
+    'Food':['food','recipe','cooking','restaurant','baking'],
+    'DIY & making':['diy','craft','maker','tutorial','handmade','build'],
+    'Comedy':['comedy','joke','funny','humor','meme'],
+    'Nature':['nature','outdoors','plants','environment','animal']
+  };
+  const state={items:[],sqwibs:[],resqwibs:[],interests:[],sensitivity:'general',loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
   let firebasePromise=null;
   async function fb(){
     if(!firebasePromise)firebasePromise=Promise.all([
@@ -30,7 +52,7 @@
     return {
       sections:order(Array.isArray(settings.sections)?settings.sections:defaults.sections),
       enabled:[...new Set(Array.isArray(settings.enabled)?settings.enabled.filter(x=>groups.includes(x)):defaults.enabled)],
-      sort:['latest','popular','daily'].includes(settings.sort)?settings.sort:'latest'
+      sort:['latest','popular','daily','for-you'].includes(settings.sort)?settings.sort:'latest'
     };
   }
   async function restorePrefs(){
@@ -40,9 +62,16 @@
     if(state.uid){
       try{
         const f=await fb(),snap=await f.getDoc(f.doc(f.db,'users',state.uid));
-        if(snap.exists()&&snap.data().vevePrefs){
-          state.prefs=validPrefs(snap.data().vevePrefs);
-          localStorage.setItem(localKey(),JSON.stringify(state.prefs));
+        if(snap.exists()){
+          const owned=snap.data(),intro=owned.lwaOnboarding||{};
+          state.interests=Array.isArray(intro.interests)?intro.interests.filter(v=>INTEREST_TERMS[v]).slice(0,12):[];
+          state.sensitivity=['general','mature','permitted'].includes(intro.sensitivity)?intro.sensitivity:'general';
+          if(owned.vevePrefs){
+            state.prefs=validPrefs(owned.vevePrefs);
+            localStorage.setItem(localKey(),JSON.stringify(state.prefs));
+          }else if(state.interests.length&&(!local||!local.sort)){
+            state.prefs.sort='for-you'; // Explicit choices seed the first discovery sort.
+          }
         }
       }catch{/* Local choices remain usable while account preferences are unavailable. */}
     }
@@ -62,9 +91,29 @@
     const keys=['likeCount','likes','saves','saveCount','resqwibCount','commentCount','views'];
     return keys.reduce((n,key)=>n+Math.max(0,Number(p[key])||0),0);
   }
+  const sensitivityRank={general:0,mature:1,permitted:2};
+  function allowedPost(p){
+    const label=String(p?.contentRating||p?.sensitivity||p?.contentWarning||'').toLowerCase();
+    const risk=p?.isSensitive===true||p?.isMature===true||['mature','sensitive','violence','strong-themes'].includes(label)?1:0;
+    // Explicit/age-gated content is not made eligible just by selecting a preference.
+    if(p?.ageRestricted===true||p?.adultOnly===true||['adult','explicit','nsfw','18+'].includes(label))return false;
+    return risk<=sensitivityRank[state.sensitivity||'general'];
+  }
+  function affinity(p){
+    if(!state.interests.length)return 0;
+    const tags=Array.isArray(p?.tags)?p.tags.join(' '):String(p?.tags||'');
+    const topics=Array.isArray(p?.topics)?p.topics.join(' '):String(p?.topics||'');
+    const words=[p?.title,p?.caption,p?.description,p?.category,tags,topics,p?.hashtags].filter(Boolean).join(' ').toLowerCase();
+    return state.interests.reduce((total,interest)=>{
+      const terms=INTEREST_TERMS[interest]||[];
+      return total+(terms.some(term=>new RegExp('(?:^|[^a-z])'+term.replace(/[.*+?^{}()|[\]\\]/g,'\\$&')+'(?:$|[^a-z])','i').test(words))?1:0);
+    },0);
+  }
   function rank(list){
     const sort=state.prefs?.sort||'latest';
-    return [...list].sort((a,b)=>{
+    return [...list].filter(allowedPost).sort((a,b)=>{
+      if(sort==='for-you'&&state.interests.length){const delta=affinity(b)-affinity(a);if(delta)return delta;}
+
       if(sort==='popular'){const delta=score(b)-score(a);if(delta)return delta;}
       if(sort==='daily'){
         const day=new Date().toISOString().slice(0,10);
@@ -74,6 +123,34 @@
       const dateDiff=time(b.createdAt||b.sourceCreatedAt)-time(a.createdAt||a.sourceCreatedAt);
       return dateDiff||String(a.id||'').localeCompare(String(b.id||''));
     });
+  }
+  // Collapse repeat imports only when owner, source media and provenance agree.
+  // Two accounts repinning the same image are independent contributions.
+  // Distinct Board and original Pin records are kept if the source confirms both.
+  function uniquePublicPhotos(rows){
+    const seen=new Set(),output=[];
+    const pinId=post=>{
+      const id=String(post.sourcePostId||'').trim();
+      if(/^\d{6,25}$/.test(id))return id;
+      try{
+        const u=new URL(post.sourceUrl||'');
+        if(!/(^|\.)pinterest\./.test(u.hostname))return '';
+        return u.pathname.match(/^\/pin\/(\d{6,25})(?:\/|$)/)?.[1]||'';
+      }catch{return ''}
+    };
+    for(const post of rows){
+      if(String(post.source||'').toLowerCase()!=='pinterest'){output.push(post);continue}
+      const owner=String(post.uid||'').trim(),pid=pinId(post);
+      const fingerprint=String(post.sourceImageFingerprint||'');
+      const origin=post.pinterestOriginVerified===true&&['created','board'].includes(post.pinterestOrigin)?
+        post.pinterestOrigin:'unknown';
+      const media=/^pinimg:[a-f0-9]{16,64}$/.test(fingerprint)?fingerprint:'';
+      const key=owner&&(pid||media)?owner+'|'+origin+'|'+(media||'pin:'+pid):'';
+      if(key&&seen.has(key))continue;
+      if(key)seen.add(key);
+      output.push(post);
+    }
+    return output;
   }
   function loadProgress(stage){
     state.loadStage=stage;
@@ -92,7 +169,7 @@
       const f=await fb();
       const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(160)));
       // Query public posts only. Do not load private board data into discovery.
-      state.items=rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true);
+      state.items=uniquePublicPhotos(rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true));
       state.sourceCounts=new Map();
       for(const p of state.items){
         if(String(p.source||'').toLowerCase()!=='pinterest')continue;
@@ -107,8 +184,9 @@
     loadProgress('Loading public Sqwidz…');
     try{
       if(window.BigLWASqwibs){
-        const pub=await window.BigLWASqwibs.publicSqwibs(70);
-        state.sqwibs=pub;
+        const pub=await window.BigLWASqwibs.publicSqwibs(70).catch(()=>[]);
+        const fresh=await window.BigLWASocial?.veve?.().catch(()=>[])||[];
+        state.sqwibs=pub.concat(fresh);
         const resh=await window.BigLWASqwibs.publicResqwibs().catch(()=>[]);
         state.resqwibs=resh.filter(r=>pub.some(p=>p.id===r.sourceId&&p.allowResqwib===true));
       }else{state.sqwibs=[];state.resqwibs=[]}
@@ -191,12 +269,19 @@
     const clip=Boolean(direct||embed),single=(Array.isArray(post.mediaItems)?post.mediaItems.length<=1:true);
     const ratio=Number(post.aspectRatio||post.videoAspectRatio||0);
     const match=single&&(!ratio||ratio>.15&&ratio<5);
+    // Resolve media dimensions before interpolating them into the card markup.
+    // Accessing a later const here used to abort the entire public media wall.
+    const displayRatio=Number(post.aspectRatio||post.imageAspectRatio||
+      (Number(post.imageWidth)>0&&Number(post.imageHeight)>0?Number(post.imageWidth)/Number(post.imageHeight):0));
+    const validRatio=Number.isFinite(displayRatio)&&displayRatio>=.35&&displayRatio<=3;
     const videoMarkup=direct&&match
       ?'<video class="veve-inline-video" src="'+e(direct)+'" '+(url?'poster="'+e(url)+'" ':'')+'autoplay muted loop playsinline controls preload="metadata"></video>'
-      :url?'<img src="'+e(url)+'" loading="lazy" decoding="async" alt="'+e(caption||'Published collective media')+'">':
+      :url?'<img src="'+e(url)+'"'+(validRatio?' data-media-aspect="'+displayRatio+'"':'')+' loading="lazy" decoding="async" alt="'+e(caption||'Published collective media')+'">':
          '<div class="veve-video-fallback">Video preview</div>';
-    return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-post="'+e(post.id)+'">'+
-      '<div class="veve-photo-frame">'+videoMarkup+
+    const sourceKind=src==='pinterest'&&post.pinterestOriginVerified===true&&
+      ['created','board'].includes(post.pinterestOrigin)?post.pinterestOrigin:'unknown';
+    return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-pin-kind="'+e(sourceKind)+'" data-veve-post="'+e(post.id)+'">'+
+      '<div class="veve-photo-frame"'+(validRatio?' style="--lwa-image-aspect:'+displayRatio+'"':'')+'>'+videoMarkup+
       '<span class="veve-provider">'+e(label)+'</span>'+
       (src==='pinterest'&&/^(?:[0-9]{6,25})$/.test(String(post.sourcePostId||''))&&link?
        '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save Pinterest Pin to a BIG LWA board" title="Save to board">+ board</button>':'')+
@@ -205,10 +290,12 @@
       ((usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
         (usage(post)?'<span class="veve-usage">'+e(usage(post))+' using this Pin</span>':'')+
         (src==='pinterest'&&link?'<a class="veve-source-credit" href="'+e(link)+'" target="_blank" rel="noopener noreferrer">Original Pinterest Pin ↗</a>':'')+
+        (src==='pinterest'&&post.pinterestOriginVerified===true?'<small class="veve-pin-provenance">'+(sourceKind==='board'?'Board Pin':'Original Pin')+'</small>':'')+
         '</div>':'')+
       '</article>';
   }
   function sqwibMarkup(p,reshared=false){
+    if(p.id.startsWith('sz_'))return '<article class="veve-tile veve-note" data-veve-sqwib="'+e(p.id)+'"><div class="veve-note-head"><span>Sqwidz · @'+e(p.username)+'</span></div>'+window.BigLWASocial.mediaMarkup(p)+'<p>'+e(p.text.slice(0,900))+'</p><button type="button" data-veve-open-sqwidz="'+e(p.id)+'">Open Sqwib · reply, float, fish ↗</button></article>';
     const allowed=p.allowResqwib===true,own=state.uid&&p.uid===state.uid;
     const iResqwibbed=!!state.uid&&state.resqwibs.some(r=>r.uid===state.uid&&r.sourceId===p.id);
     return '<article class="veve-tile veve-note" data-veve-sqwib="'+e(p.id)+'">'+
@@ -250,7 +337,7 @@
     if(key==='sqwibs'){
       const allowed=new Map(state.sqwibs.map(p=>[p.id,p]));
       const notes=rank(state.sqwibs).slice(0,16).map(p=>sqwibMarkup(p));
-      const reshares=state.resqwibs.slice(0,8).map(r=>allowed.get(r.sourceId)).filter(p=>p?.allowResqwib).map(p=>sqwibMarkup(p,true));
+      const reshares=state.resqwibs.slice(0,8).map(r=>allowed.get(r.sourceId)).filter(p=>p?.allowResqwib&&allowedPost(p)).map(p=>sqwibMarkup(p,true));
       return notes.concat(reshares).join('')||quickCard('sqwib','No public Sqwibs yet','Write a private Sqwib, then explicitly publish it and decide whether resqwibing is allowed.','notes');
     }
     if(key==='rooms')return quickCard('lounge','the lounge','Browse the room list and join a conversation. Current room messages are local prototypes, not verified live streams.','rooms','Live status will appear only when real room synchronization is available.');
@@ -346,11 +433,14 @@
     }
     const sectionHtml='<section class="veve-section"><div class="veve-masonry">'+
       mixed.join('')+'</div></section>';
-    const select=['latest','popular','daily'].map(k=>'<option value="'+k+'" '+(state.prefs.sort===k?'selected':'')+'>'+
-       ({latest:'most recent',popular:'most activity',daily:'daily mix'}[k])+'</option>').join('');
+    const select=['for-you','latest','popular','daily'].map(k=>'<option value="'+k+'" '+(state.prefs.sort===k?'selected':'')+'>'+ 
+       ({'for-you':'for you · chosen interests',latest:'most recent',popular:'most activity',daily:'daily mix'}[k])+'</option>').join('');
     const scope=['all',...state.prefs.sections.filter(k=>state.prefs.enabled.includes(k))];
-    root.innerHTML='<div class="veve-top"><div class="veve-intro"><span>BIG LWA · DISCOVERY</span><h1>veve</h1>'+
-      '<p>A collective of public ideas, photos, culture and communities. You choose the way it flows.</p></div>'+
+    // The Studio route already owns the accessible Veve heading and subtitle.
+    // Render only the feed controls below it; retain the intro for standalone mounts.
+    const hasRouteHeading=!!root.closest('.module-workspace[data-module-key="veve"]')?.querySelector('.module-heading');
+    root.innerHTML='<div class="veve-top">'+(hasRouteHeading?'':'<div class="veve-intro"><span>BIG LWA · DISCOVERY</span><h1>veve</h1>'+
+      '<p>A collective of public ideas, photos, culture and communities. You choose the way it flows.</p></div>')+
       '<div class="veve-toolbar"><label>Sort<select id="veveSort">'+select+'</select></label>'+
       '<label>Show<select id="veveScope">'+scope.map(k=>'<option value="'+e(k)+'" '+(state.active===k?'selected':'')+'>'+e(k==='all'?'everything':names[k])+'</option>').join('')+'</select></label>'+
       '<button type="button" data-veve-settings aria-expanded="'+state.showSettings+'">⚙ customize</button>'+
@@ -476,6 +566,12 @@
     document.addEventListener('biglwa:sqwib-published',()=>{if(state.mounted?.isConnected)refresh()});
     document.addEventListener('biglwa:sqwib-reshared',()=>{if(state.mounted?.isConnected)refresh()});
     document.addEventListener('biglwa:feed-ready',()=>{if(state.mounted?.isConnected)refresh()});
+    window.addEventListener('biglwa:discovery-preferences-updated',event=>{
+      state.interests=Array.isArray(event.detail?.interests)?event.detail.interests.filter(v=>INTEREST_TERMS[v]):[];
+      state.sensitivity=['general','mature','permitted'].includes(event.detail?.sensitivity)?event.detail.sensitivity:'general';
+      if(state.interests.length&&state.prefs?.sort==='latest')state.prefs.sort='for-you';
+      if(state.mounted?.isConnected){draw();savePrefs()}
+    });
   }
   async function refresh(){
     const generation=++state.renderGen;
@@ -525,6 +621,7 @@
         if(p)openMedia(p);return;
       }
       const b=ev.target.closest('button');if(!b)return;
+      if(b.hasAttribute('data-veve-open-sqwidz')){window.openBIGLWAModule?.('notes');const pin=b.dataset.veveOpenSqwidz;history.replaceState(history.state,'','/studio/notes?pin='+encodeURIComponent(pin));return}
       if(b.hasAttribute('data-veve-save-board')){
         const p=state.items.find(item=>String(item.id)===String(b.dataset.veveSaveBoard));
         if(p){try{await openBoardSaver(p)}catch(error){say(error.message||'Could not open Boards.')}}

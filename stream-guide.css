@@ -475,3 +475,233 @@ body.night-mode .biglwa-stream .stream-request,body.night-mode .biglwa-stream .s
 .biglwa-stream .stream-media-link-form small{color:inherit;opacity:.75}
 body.night-mode .biglwa-stream .stream-media-link-form{background:#2b2530;color:#f7eee9;border-color:#736173}
 body.night-mode .biglwa-stream .stream-media-link-form input{background:#1e1b25;color:#fff4ec;border-color:#877988}
+
+/* Stream header quick tools: Tune a link and YouTube Orbit connect now occupy
+   the top channel bar, not an extra block below the player. */
+.biglwa-stream .stream-nav-meta{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ align-items:center!important;gap:8px 14px!important;overflow:visible!important
+}
+.biglwa-stream .stream-nav-meta>.stream-eyebrow{grid-column:1;grid-row:1}
+.biglwa-stream .stream-nav-meta>.stream-nav-clock{grid-column:2;grid-row:1}
+.biglwa-stream .stream-nav-actions{
+ grid-column:1/-1;grid-row:2;display:flex;align-items:end;justify-content:flex-end;
+ gap:8px;min-width:0;max-width:100%;padding-top:5px;border-top:1px solid #d9cbbb
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+ flex:1 1 440px!important;width:auto!important;max-width:720px!important;
+ margin:0!important;padding:0!important;gap:6px 9px!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent!important;color:#34252b!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form label{
+ font:750 11px/1.2 system-ui!important;white-space:nowrap
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form>div{
+ display:flex!important;flex:1 1 270px;min-width:0;flex-wrap:nowrap!important;gap:5px!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form input{
+ flex:1 1 auto!important;min-width:80px!important;max-width:none!important;
+ height:33px!important;padding:6px 9px!important;font:500 11px system-ui!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form button{
+ height:33px!important;white-space:nowrap;font:750 11px system-ui!important;padding:5px 10px!important
+}
+.biglwa-stream .stream-nav-actions .stream-media-link-form small{
+ flex:0 0 100%;font:500 10px/1.2 system-ui!important;color:#755c57!important;
+ min-height:12px;margin-left:76px!important
+}
+.biglwa-stream .stream-youtube-orbit{
+ display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+ gap:6px;min-height:33px;padding:6px 10px;border:1px solid #b56b77;
+ border-radius:6px;background:#fff0ed;color:#572c37;cursor:pointer;
+ font:700 11px/1.3 system-ui;white-space:nowrap
+}
+.biglwa-stream .stream-youtube-orbit img{width:19px;height:19px;object-fit:contain}
+.biglwa-stream .stream-youtube-orbit[data-connected="1"]{
+ border-color:#4c936d;background:#e9f8e7;color:#23553c
+}
+.biglwa-stream .stream-youtube-orbit:hover,.biglwa-stream .stream-youtube-orbit:focus-visible{
+ outline:2px solid #bd7888;outline-offset:2px
+}
+@media(max-width:780px){
+ .biglwa-stream .stream-nav-actions{flex-wrap:wrap;justify-content:stretch}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form{flex-basis:100%!important}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form small{margin-left:0!important}
+ .biglwa-stream .stream-youtube-orbit{margin-left:auto}
+}
+@media(max-width:430px){
+ .biglwa-stream .stream-nav-actions .stream-media-link-form label{flex-basis:100%}
+ .biglwa-stream .stream-nav-actions .stream-media-link-form>div{flex-basis:100%!important}
+}
+
+/* Watchable Sqwibz lives inside Stream's channel section and original player. */
+.biglwa-stream .stream-sqwibz-form{display:flex;flex-wrap:wrap;align-items:end;gap:9px;margin:14px 0;padding:14px;border:1px solid #a78676;border-radius:10px;background:#f4e5d7}
+.biglwa-stream .stream-sqwibz-form label{flex:1 1 260px;display:grid;gap:5px;font:700 11px/1.4 system-ui}
+.biglwa-stream .stream-sqwibz-form input{max-width:100%;box-sizing:border-box;padding:10px;border:1px solid #bca79a;border-radius:6px;background:#fffaf2}
+.biglwa-stream .stream-sqwibz-form button,.biglwa-stream .stream-sqwibz-list button{padding:10px 13px;border:1px solid #893c3a;border-radius:8px;background:#a73933;color:#fff8ec;cursor:pointer;font:700 11px system-ui}
+.biglwa-stream .stream-sqwibz-form small{flex-basis:100%;font:500 11px/1.45 system-ui}
+.biglwa-stream .stream-sqwibz-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.biglwa-stream .stream-sqwibz-list p{margin:0;font-size:12px;opacity:.75}
+
+
+/* Sqwidz / Stream: original TV screen on left, channel information on right. */
+.biglwa-stream.is-sqwidz-channel .stream-spotlight{
+ display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(270px,.85fr)!important;
+ align-items:start!important;gap:18px!important;
+}
+.biglwa-stream.is-sqwidz-channel .stream-monitor{
+ position:relative!important;min-width:0!important;min-height:290px!important;
+ height:auto!important;overflow:hidden!important;
+ background:#151417!important;border:13px solid #29201d!important;
+ border-radius:22px!important;box-shadow:inset 0 0 0 2px #755a49,6px 7px 0 #b9a68f!important;
+}
+.biglwa-stream.is-sqwidz-channel .stream-monitor>.stream-screen,
+.biglwa-stream.is-sqwidz-channel .stream-monitor>#biglwaPersistentStreamPlayer{display:none!important}
+.biglwa-stream.is-sqwidz-channel .stream-sqwidz-stage{
+ display:block;position:relative;box-sizing:border-box;width:100%;
+ min-height:290px;max-height:min(74vh,700px);aspect-ratio:16/10;
+ overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+ scrollbar-width:thin;background:#12151b;color:#f4eade;
+}
+.biglwa-stream .stream-sqwidz-stage[hidden]{display:none!important}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="text"] .stream-sqwidz-stage{aspect-ratio:4/3}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="square"] .stream-sqwidz-stage{aspect-ratio:1/1}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="landscape"] .stream-sqwidz-stage{aspect-ratio:16/9}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="portrait"] .stream-sqwidz-stage{
+ aspect-ratio:9/16;width:min(100%,390px);margin-inline:auto;max-height:min(78vh,750px)
+}
+.biglwa-stream.is-sqwidz-channel .stream-monitor[data-sqwidz-aspect="audio"] .stream-sqwidz-stage{aspect-ratio:5/3}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display{
+ box-sizing:border-box;min-height:100%;display:flex;flex-direction:column;gap:0;
+ background:radial-gradient(circle at 50% 18%,#2c2934,#15141c 66%,#0e0f15);
+ color:#f6eee0;font-family:system-ui,sans-serif;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>header,
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>footer{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ font:700 9px/1.4 ui-monospace,monospace;letter-spacing:.11em;color:#d8bc9c;
+ text-transform:uppercase;padding:15px 18px;border-bottom:1px solid #a6937950;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>footer{border-bottom:0;border-top:1px solid #a6937950}
+.biglwa-stream.is-sqwidz-channel .stream-sq-display>article{
+ flex:1;min-height:0;padding:22px clamp(17px,4%,32px);
+ display:flex;flex-direction:column;justify-content:center;gap:16px;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-author{
+ display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+ font:700 13px/1.5 system-ui;color:#e5d0bc;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-author time{
+ font:500 10px/1.5 system-ui;color:#aa9e9d;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-text{
+ font:500 clamp(16px,2vw,24px)/1.52 system-ui;white-space:pre-wrap;
+ overflow-wrap:anywhere;margin:0;max-height:450px;overflow:auto;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media{
+ display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:0;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media .sqz-media{
+ display:block;width:100%;max-width:100%;max-height:min(57vh,530px);
+ margin:0!important;border:0;border-radius:7px;object-fit:contain;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media .sqz-media.portrait{
+ aspect-ratio:9/16;width:min(100%,320px);max-height:min(57vh,530px);
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media iframe,
+.biglwa-stream.is-sqwidz-channel .stream-sq-media video:not(.portrait){aspect-ratio:16/9}
+.biglwa-stream.is-sqwidz-channel .stream-sq-media audio{max-height:60px}
+.biglwa-stream.is-sqwidz-channel .stream-sq-standby{
+ min-height:300px;padding:40px 20px;box-sizing:border-box;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px;
+ background:repeating-linear-gradient(0deg,#17161d 0px,#17161d 3px,#201f26 4px,#201f26 5px);color:#efddc3;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-standby small{
+ letter-spacing:.14em;font:700 10px/1.4 monospace;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-standby strong{
+ font:400 clamp(21px,3vw,36px)/1.2 "CS Bergamot Stitched",Georgia,serif;
+}
+.biglwa-stream.is-sqwidz-channel .stream-channel-copy{
+ display:flex!important;flex-direction:column;align-items:stretch;justify-content:flex-start;
+ gap:10px!important;padding:24px!important;background:#e7d7b8!important;
+}
+.biglwa-stream.is-sqwidz-channel .stream-channel-copy h2{margin:3px 0!important}
+.biglwa-stream.is-sqwidz-channel .stream-sq-intro{font:500 13px/1.55 Georgia,serif!important;margin:0!important}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption{
+ display:flex;flex-direction:column;gap:7px;margin:5px 0;padding:13px 0;
+ border-block:1px solid #92776155;min-width:0;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption small{
+ font:700 10px/1.5 ui-monospace,monospace;letter-spacing:.07em;color:#a83429;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption strong{font:700 15px/1.3 system-ui;overflow-wrap:anywhere}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption time{font:500 10px/1.4 system-ui;opacity:.7}
+.biglwa-stream.is-sqwidz-channel .stream-sq-caption p{
+ font:500 13px/1.6 system-ui!important;margin:0!important;white-space:pre-wrap;overflow-wrap:anywhere;
+ max-height:140px;overflow:auto;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;min-width:0;
+ padding:7px 0 13px;border-bottom:1px solid #92776155;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats b{font:750 16px system-ui}
+.biglwa-stream.is-sqwidz-channel .stream-sq-stats small{font:600 10px system-ui;opacity:.75}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav,
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav span{font:700 11px monospace;margin-inline:4px}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav button,
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button{
+ padding:8px 11px;border:1px solid #876b60;background:#fff2dc;color:#392726;
+ border-radius:5px;font:700 11px system-ui;cursor:pointer;
+}
+.biglwa-stream.is-sqwidz-channel .stream-sq-nav button:disabled,
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button:disabled{opacity:.4;cursor:not-allowed}
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button[data-sq-resqwib]{background:#e0e7d5}
+.biglwa-stream.is-sqwidz-channel .stream-sq-actions button[data-sq-resqwib][aria-pressed="true"]{background:#5e8265;color:#fff}
+.biglwa-stream.is-sqwidz-channel .stream-sq-status{font:500 10px system-ui;min-height:11px}
+.biglwa-stream.is-sqwidz-channel .stream-guide,
+.biglwa-stream.is-sqwidz-channel .stream-body,
+.biglwa-stream.is-sqwidz-channel .stream-dock-options,
+.biglwa-stream.is-sqwidz-channel #streamDiscoveryPicker{display:none!important}
+@media(max-width:850px){
+ .biglwa-stream.is-sqwidz-channel .stream-spotlight{grid-template-columns:minmax(0,1fr)!important}
+ .biglwa-stream.is-sqwidz-channel .stream-sqwidz-stage{max-height:min(65vh,650px)}
+}
+
+/* The Studio preview owns one bottom-right Dock Stream control. Keep the
+   existing card CTA for opening Stream and preserve the single live player. */
+#studioApp #stream .stream-screen{
+  position:relative!important;
+  box-sizing:border-box!important;
+  isolation:isolate!important;overflow:hidden!important;
+  background-clip:padding-box!important;
+}
+#studioApp #stream .stream-screen .stream-studio-dock{
+  position:absolute!important;right:9px!important;bottom:9px!important;top:auto!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:auto!important;min-width:0!important;height:28px!important;
+  max-width:calc(100% - 18px)!important;
+  margin:0!important;padding:5px 10px!important;
+  border:1px solid rgba(248,232,213,.65)!important;border-radius:4px!important;
+  color:#fff4e4!important;background:rgba(40,13,24,.9)!important;
+  box-shadow:0 2px 6px rgba(0,0,0,.35)!important;
+  font:700 10px/1.1 system-ui,sans-serif!important;
+  cursor:pointer!important;white-space:nowrap!important;z-index:40!important;
+}
+#studioApp #stream .stream-screen .stream-studio-dock:hover,
+#studioApp #stream .stream-screen .stream-studio-dock:focus-visible{
+  background:#75354b!important;outline:2px solid #e4b57c!important;outline-offset:1px!important;
+}
+#studioApp #stream .stream-screen.stream-preview-active>.biglwa-persistent-stream-player{
+  inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;
+  border:0!important;border-radius:0!important;
+}
+#studioApp #stream .stream-screen.stream-preview-active{
+  padding:0!important;border:0!important;
+  background:#151217!important;box-shadow:none!important;
+}
+.biglwa-persistent-stream-player.is-studio-preview .stream-preview-return{display:none!important}

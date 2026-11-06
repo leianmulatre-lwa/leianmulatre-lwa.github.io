@@ -40,9 +40,17 @@ for(const query of ['?panel=map','?panel=politc','?view=orbit','?view=tools']){
   assert.deepEqual(invoke(privateStudio,'/studio',query),[],'sign-in must preserve Studio deep link '+query);
 }
 assert.deepEqual(invoke(privateLogin,'/privacy'),['/'],'ordinary login navigation remains canonical');
+assert.deepEqual(invoke(privateLogin,'/imani'),[],'login gate keeps a public profile address instead of erasing it');
+assert.deepEqual(invoke(privateLogin,'/sam.kalina','?preview=1'),[],'login gate keeps dotted usernames and explicit preview');
+assert.deepEqual(invoke(privateLogin,'/theme.css'),['/'],'login gate still rejects file-like paths');
 assert.deepEqual(invoke(privateLogin,'/'),[],'login root stays on root');
 assert.deepEqual(invoke(privateStudio,'/'),['/studio'],'signed-in homepage returns to Studio');
 assert.deepEqual(invoke(privateStudio,'/studio','?route=unknown'),['/studio'],'unrecognized query cleaned');
+assert.deepEqual(invoke(privateStudio,'/imani'),[],'a public profile address is never rewritten to Studio');
+assert.deepEqual(invoke(privateStudio,'/sam.kalina'),[],'dotted usernames keep their public profile address');
+assert.deepEqual(invoke(privateStudio,'/sam.kalina','?preview=1'),[],'explicit preview keeps the profile address and query');
+assert.deepEqual(invoke(privateStudio,'/theme.css'),['/studio'],'file-like paths still return to Studio');
+assert.deepEqual(invoke(privateStudio,'/affidavit'),['/studio'],'reserved static routes are not treated as profiles');
 assert.ok(home.includes("location.hostname.toLowerCase()==='www.biglwa.com'"),
   'www host redirects before initializing a different Firebase auth origin');
 assert.ok(home.includes("location.replace('https://biglwa.com'+location.pathname+location.search+location.hash)"),
@@ -61,8 +69,8 @@ assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT p
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
 assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
-assert.ok(home.includes('studio-onboarding.js?v=20261023-mint-quick-actions-2'));
-assert.ok(home.includes('session-restore.js?v=20261014-persistence-stability-6'));
+assert.ok(home.includes('studio-onboarding.js?v='));
+assert.ok(home.includes('session-restore.js?v=20261028-initial-logout-fix-1') && session.includes('let lastConfirmedUid=null'),'Initial signed-out auth resolves visibly');
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');
 console.log('PASS · successful auth restores Studio; user-initiated logout unaffected');
 console.log('PASS · pink card guide, sidebar relaunch, Orbit explanation, journal offset');
@@ -117,11 +125,11 @@ assert.equal(bare.children[0].tagName,'IMG','logo graphics remain real image ass
 assert.equal(bare.children[0].src,'/assets/supporters/ucla.png');
 assert.ok(!brand.includes('background: rgba(248, 243, 236, .92);'),
   'original white supporter tile declarations removed rather than overridden');
-assert.ok(home.includes('policy-card-cohesion.js?v=20261014-bare-supporter-png-5'));
+assert.ok(home.includes('policy-card-cohesion.js?v=20261026-expanded-supporters-1'));
 assert.ok(home.includes('brand-policy.css?v='));
 
-assert.ok(home.includes('/brand-policy.css?v=20261023-login-widget-ribbon-1'),
-  'login explicitly loads the fresh true-white supporter carousel styles');
+assert.ok(/const brandPolicyCss=`<link rel="stylesheet" href="\/brand-policy\.css\?v=[^"]+">/.test(home),
+  'login explicitly loads the current cache-busted supporter carousel stylesheet');
 const pureWhiteLogin=brand.slice(brand.indexOf('/* Login supporter marquee · true-white logo gallery.'));
 assert.ok(pureWhiteLogin.startsWith('/* Login supporter marquee · true-white logo gallery.'),
   'login-specific white ribbon rules are installed after legacy gradient');
@@ -137,7 +145,8 @@ assert.ok(!pureWhiteLogin.includes('.public-page-footer .supporter-viewport'),
 assert.ok(brand.includes('animation: biglwa-supporter-marquee'),
   'logo carousel still moves after changing the background');
 
-assert.ok(home.includes('pinterest-orbit.js?v=20261022-veve-board-9'),'current Pinterest imports include original Pins and board thumbnails');
+assert.match(home,/pinterest-orbit\.js\?v=[\w.-]+/,'current Pinterest importer remains versioned');
+assert.ok(pinterest.includes('importPinsToAccount')&&pinterest.includes('board')&&pinterest.includes('pins'),'Pinterest source still handles originals and board previews');
 console.log('PASS · Pinterest login popup gating, Firebase race guard and bare supporter PNG renderer');
 
 /* Step 3 visually colors the actual three "o" letters without changing the

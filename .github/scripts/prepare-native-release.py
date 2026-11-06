@@ -15,6 +15,7 @@ import sys
 import tarfile
 import urllib.error
 import urllib.request
+import urllib.parse
 import zipfile
 
 REPO = os.environ["GITHUB_REPOSITORY"]
@@ -34,13 +35,29 @@ MAX_ZIP = 170 * 1024 * 1024
 MAX_FILE = 80 * 1024 * 1024
 MAX_TOTAL = 360 * 1024 * 1024
 
+class DropAuthOnCrossHostRedirect(urllib.request.HTTPRedirectHandler):
+    """Artifact downloads redirect from api.github.com to signed external storage.
+    The GitHub GITHUB_TOKEN must never be forwarded to that other host."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        new_host = urllib.parse.urlsplit(newurl).hostname
+        old_host = urllib.parse.urlsplit(req.full_url).hostname
+        if urllib.parse.urlsplit(newurl).scheme != "https":
+            raise RuntimeError("Non-HTTPS artifact redirect refused")
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is not None and new_host != old_host:
+            for header in ("Authorization", "Accept", "X-GitHub-Api-Version"):
+                redirected.remove_header(header)
+        return redirected
+
+_OPENER = urllib.request.build_opener(DropAuthOnCrossHostRedirect())
+
 def get(url):
     req = urllib.request.Request(
         url if url.startswith("https://") else BASE + url,
         headers={"Authorization": f"Bearer {TOKEN}", "Accept": "application/vnd.github+json",
                  "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "BIG-LWA-provenance-gate"},
     )
-    with urllib.request.urlopen(req, timeout=120) as response:
+    with _OPENER.open(req, timeout=120) as response:
         if response.headers.get("Content-Length") and int(response.headers["Content-Length"]) > MAX_ZIP:
             raise RuntimeError("GitHub artifact exceeds compressed size limit")
         blob = response.read(MAX_ZIP + 1)

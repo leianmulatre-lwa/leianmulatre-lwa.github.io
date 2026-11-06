@@ -40,3 +40,50 @@
 #studioApp .profile-card .stats[data-biglwa-metric-source] span[data-profile-stat="likes"]{white-space:nowrap}
 
 .biglwa-provider-check.is-external{background:#7b647e;color:#fff}
+
+/* Profile counters: solid readable black on any wallpaper, including
+   translucent red stage curtains. Labels are never low-opacity placeholders. */
+#studioApp#studioApp .profile-card .stats,
+#studioApp#studioApp .profile-card .stats [data-profile-stat],
+#studioApp#studioApp .profile-card .stats [data-profile-stat] b{
+ color:#090909!important;opacity:1!important;text-shadow:none!important;
+}
+#studioApp#studioApp .profile-card .stats [data-profile-stat]{
+ font:600 12px/1.25 system-ui,sans-serif!important;
+ min-width:0!important;letter-spacing:.01em!important;
+}
+#studioApp#studioApp .profile-card .stats [data-profile-stat] b{
+ display:block!important;font:800 clamp(16px,1.5vw,21px)/1.2 system-ui,sans-serif!important;
+ margin-bottom:3px!important;
+}
+#studioApp#studioApp .profile-card .stats .biglwa-followers-trigger{
+ cursor:pointer!important;min-height:0!important;
+ padding:3px 5px!important;position:relative!important;
+}
+#studioApp#studioApp .profile-card .stats .biglwa-followers-trigger::after{
+ content:none!important;display:none!important
+}
+#studioApp#studioApp .profile-card .stats .biglwa-followers-trigger:focus-visible{
+ outline:2px solid #111!important;outline-offset:2px!important
+}
+#studioApp #skeletonAnalytics .skeleton-provider-breakdown{
+ border-top:1px solid #bda8a9;margin-top:12px;padding-top:8px;
+}
+#studioApp #skeletonAnalytics .skeleton-provider-breakdown h3{
+ margin:0 0 8px!important;font:750 12px/1.35 system-ui!important;color:#251c23!important
+}
+#studioApp #skeletonAnalytics .analytics-sources{
+ display:grid;gap:7px;min-width:0
+}
+#studioApp #skeletonAnalytics .skeleton-provider-stat{
+ display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;
+ background:rgba(255,250,241,.7);color:#23171f;border:1px solid #d4bcb8;border-radius:8px;
+ padding:7px 6px;min-width:0;overflow-wrap:anywhere
+}
+#studioApp #skeletonAnalytics .skeleton-provider-stat img{width:23px;height:23px;object-fit:contain}
+#studioApp #skeletonAnalytics .skeleton-provider-stat strong{
+ display:block!important;font:700 11px/1.4 system-ui!important;color:#161116!important;
+}
+#studioApp #skeletonAnalytics .skeleton-provider-stat small{
+ display:block!important;font:500 10px/1.45 system-ui!important;color:#373039!important
+}

@@ -65,3 +65,48 @@ html[data-biglwa-editor] .biglwa-editor-glyph{border:0!important;box-shadow:none
 html[data-biglwa-editor] .biglwa-editor-glyph img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 3px 2px rgba(29,13,17,.3))}
 html[data-biglwa-editor] .biglwa-editor-name strong{font-family:"BIG LWA Stitched","CS Bergamot Stitched",Georgia,serif!important;font-weight:400!important;letter-spacing:.01em}
 
+
+/* 2026 BIG LWA R-suite: editor color is its own stitched letter block. The
+   native Rust/WASM canvas remains usable; these rules skin only the host. */
+html[data-biglwa-editor] .biglwa-editor-glyph{width:42px;height:42px;background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important}
+html[data-biglwa-editor] .biglwa-editor-glyph img{width:42px;height:42px;display:block;object-fit:contain}
+html[data-biglwa-editor] .biglwa-editor-chrome{
+ border-color:var(--editor-dark)!important;
+ background:linear-gradient(125deg,#fffaed,color-mix(in srgb,var(--editor-bright),white 70%))!important;
+ box-shadow:4px 5px 0 var(--editor-rim),0 14px 22px #0003!important
+}
+html[data-biglwa-editor] .biglwa-editor-reopen{
+ position:fixed!important;right:12px!important;top:12px!important;bottom:auto!important;
+ z-index:2147481999!important;display:inline-flex!important;align-items:center!important;
+ gap:7px!important;padding:5px 12px 5px 5px!important;
+ background:color-mix(in srgb,var(--editor-bright),#fff7ec 67%)!important;
+ color:#27181e!important;border:2px solid var(--editor-dark)!important;
+ border-radius:13px!important;box-shadow:3px 4px 0 var(--editor-rim)!important;
+ font:400 19px/1.05 "BIG LWA Stitched",Georgia,serif!important;
+ cursor:pointer
+}
+html[data-biglwa-editor] .biglwa-editor-reopen[hidden]{display:none!important}
+html[data-biglwa-editor] .biglwa-editor-reopen img{width:31px!important;height:31px!important;object-fit:contain!important}
+html[data-biglwa-editor] .biglwa-editor-name strong{color:var(--editor-dark);font:400 23px/1.1 "BIG LWA Stitched",Georgia,serif!important}
+html[data-biglwa-editor] .biglwa-editor-links [data-craft-theme]{
+ min-width:30px;justify-content:center;font:700 17px/1.1 Georgia,serif
+}
+html[data-biglwa-editor] .biglwa-editor-links [data-craft-theme][aria-pressed=true]{
+ background:var(--editor-rim);color:#fff;border-color:var(--editor-dark)
+}
+html[data-biglwa-editor].biglwa-editor-night{
+ color-scheme:dark;background-color:#211e26!important
+}
+html[data-biglwa-editor].biglwa-editor-night .biglwa-editor-chrome{
+ color:#fff6ea!important;
+ background:linear-gradient(130deg,#272229,color-mix(in srgb,var(--editor-dark),#211c24 40%))!important;
+ border-color:var(--editor-bright)!important
+}
+html[data-biglwa-editor].biglwa-editor-night .biglwa-editor-name strong{color:var(--editor-bright)}
+html[data-biglwa-editor].biglwa-editor-night .biglwa-editor-links :is(button,a,label){background:#342d35;color:#fff7e9;border-color:var(--editor-rim)}
+html[data-biglwa-editor] :is(h1,h2,h3,[role="heading"]):not(.cm-content *){
+ font-family:"BIG LWA Stitched",Georgia,serif!important;
+ color:var(--editor-dark)
+}
+html[data-biglwa-editor].biglwa-editor-night :is(h1,h2,h3,[role="heading"]){color:var(--editor-bright)}
+@media(max-width:560px){html[data-biglwa-editor] .biglwa-editor-reopen{top:7px!important;right:7px!important;font-size:15px!important}}

@@ -248,7 +248,7 @@
     if(planetaryToggle){
       event.preventDefault();event.stopImmediatePropagation();
       if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('orbit');
-      else window.location.assign('/studio?view=orbit');
+      else window.location.assign('/studio/orbit');
       return;
     }
     var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');

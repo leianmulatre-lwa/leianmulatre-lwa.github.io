@@ -117,6 +117,8 @@ function mount(){
  host.prepend(panel);paint();
 }
 const api={ready:initialize(),flush,importLegacy,exportLocal,get uid(){return uid},get status(){return notice},get isReady(){return ready}};window.BigLWAAccountStorage=api;
+setInterval(()=>{if(Object.keys(pending).length)flush()},15000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush()});
 window.addEventListener('online',flush);window.addEventListener('pagehide',()=>{if(uid)saveQueue()});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();

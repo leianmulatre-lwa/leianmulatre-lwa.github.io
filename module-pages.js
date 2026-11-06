@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261023-x-scope-diagnostic-2';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3';
         document.head.appendChild(script);
       }, 250);
     }
@@ -128,8 +128,55 @@
     .module-heading p{max-width:700px;margin:12px 0 0;font-size:13px;line-height:1.6;color:#6e655f}
     .module-badge{align-self:start;border:1px solid #d8cec5;border-radius:999px;padding:8px 11px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.56);color:#746a64}
     .module-heading-actions{align-self:start;display:grid;justify-items:end;gap:9px;max-width:310px}
+    /* Shared heading row: compact swatches inherit Archive's dimensional shadows. */
+    .module-workspace:is([data-module-key="orbit"],[data-module-key="archive"],[data-module-key="feed"],[data-module-key="veve"]) .module-heading{
+      grid-template-columns:minmax(180px,.76fr) minmax(0,2.5fr);gap:14px;align-items:center
+    }
+    .module-heading-right{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0}
+    .module-heading-right>.module-update-preferences{flex:0 0 auto;max-width:148px}
+    .module-heading-right .module-shadow-key{display:flex;flex:1 1 auto;min-width:0;max-width:100%;align-items:center;
+      justify-content:flex-end;align-content:center;flex-wrap:wrap;gap:5px 10px;padding:8px 10px;
+      border:1px solid rgba(105,75,82,.16);border-radius:11px;
+      background:var(--widget-bg,rgba(255,250,242,.66));color:var(--widget-ink,#42363b);
+      font:650 10px/1.3 system-ui}
+    .module-heading-right .module-shadow-key>b{font:850 10px/1.2 ui-monospace,monospace;
+      letter-spacing:.06em;white-space:nowrap;margin-right:3px}
+    .module-heading-right .module-shadow-key-item{display:inline-flex;align-items:center;gap:5px;
+      white-space:nowrap;font:650 10px/1.3 system-ui}
+    .module-heading-right .module-shadow-key-item>i{display:inline-block;flex:none;width:11px;height:11px;
+      border-radius:3px;border:1px solid rgba(92,70,76,.25);background:var(--key-color,#8f756e);
+      box-shadow:3px 3px 0 var(--key-shadow,var(--key-color,#8f756e));margin-right:3px}
+    .module-workspace[data-module-key="orbit"] .module-shadow-key{gap:4px 8px;padding:7px 9px}
+    .module-workspace[data-module-key="orbit"] .module-shadow-key-item{font-size:9px;gap:4px}
+    .module-workspace[data-module-key="orbit"] .module-shadow-key-item>i{width:9px;height:9px}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-title{display:flex;align-items:center;gap:10px}
+    .module-workspace[data-module-key="feed"] .biglwa-feed-compose-title h2{margin:0!important}
+    .module-workspace[data-module-key="feed"] #feedComposerToggle{display:inline-grid;place-items:center;
+      width:25px;height:25px;min-width:25px;border:1px solid rgba(101,69,80,.3);border-radius:50%;
+      background:#fff9f2;color:#6e4050;font:750 18px/1 system-ui;cursor:pointer}
+    .module-workspace[data-module-key="feed"] #feedComposerToggle:focus-visible{outline:2px solid #8c4862;outline-offset:3px}
+    .module-workspace[data-module-key="feed"] #feedComposer[hidden]{display:none!important}
+    .module-workspace[data-module-key="archive"] .archive-toolbar{justify-content:flex-end}
+    @media(max-width:980px){
+      .module-workspace:is([data-module-key="orbit"],[data-module-key="archive"],[data-module-key="feed"],[data-module-key="veve"]) .module-heading{grid-template-columns:minmax(0,1fr);align-items:start}
+      .module-heading-right{justify-content:flex-start;flex-wrap:wrap}
+      .module-heading-right .module-shadow-key{justify-content:flex-start}
+    }
+
     .module-update-privacy{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border:1px solid #d8cec5;border-radius:12px;background:rgba(255,255,255,.48);font:600 11px/1.35 system-ui;color:#625a55;cursor:pointer}
     .module-update-privacy input{flex:0 0 auto;width:15px;height:15px;margin:0;accent-color:rgb(var(--aura-rgb,216,95,109))}
+    .module-heading:not(.module-heading--with-shadow){grid-template-columns:minmax(0,1fr)!important;gap:6px!important}
+    .module-heading:not(.module-heading--with-shadow) .module-heading-bottom{
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 20px;min-width:0
+    }
+    .module-heading:not(.module-heading--with-shadow) .module-heading-bottom p{
+      flex:1 1 380px;max-width:none;margin:0;min-width:0
+    }
+    .module-heading:not(.module-heading--with-shadow) .module-update-privacy{
+      display:inline-flex;align-items:center;flex:0 0 auto;gap:6px;white-space:nowrap;
+      padding:2px 0;background:transparent;border:0;box-shadow:none
+    }
+
     .module-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(250px,.75fr);gap:14px;margin-top:20px}
     .module-card{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(55,42,34,.05)}
     .module-card.wide{grid-column:1/-1}.module-card h2{font:600 18px/1.1 Georgia,serif;margin:0 0 6px}.module-card>p{margin:0 0 14px;font-size:11px;line-height:1.55;color:#766c66}
@@ -269,7 +316,9 @@
     body.night-mode .video-booth-tile{background:linear-gradient(160deg,#2b2724,#1d1a19);border-color:#4a423c;color:#a2968c}
     .video-booth-tile{padding:12px;min-width:0;box-sizing:border-box;gap:6px;text-align:center}
     .video-booth-profile-photo{display:grid;place-items:center;width:clamp(64px,14vw,104px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(var(--aura-rgb,216,95,109),.35);background:radial-gradient(circle at 45% 40%,rgba(var(--aura-rgb,216,95,109),.35),transparent 75%);font:700 28px Georgia,serif}
-    .video-booth-tile b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;font:700 17px/1.2 Georgia,serif;letter-spacing:normal;text-transform:none;color:inherit}
+     .video-booth-profile-photo{overflow:hidden}
+     .video-booth-profile-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+     .video-booth-tile b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;font:700 17px/1.2 Georgia,serif;letter-spacing:normal;text-transform:none;color:inherit}
     .video-booth-tile small,.video-booth-card-note{display:block;font:700 10px/1.35 system-ui;text-transform:none;letter-spacing:normal;color:inherit;opacity:.8}
     .video-booth-card-note{font-size:9px;opacity:.66}
     @media(max-width:520px){.video-booth-preview{grid-template-columns:1fr 1fr;gap:6px}.video-booth-tile{padding:8px}}
@@ -361,6 +410,29 @@
     @media(max-width:1180px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
     @media(max-width:820px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:520px){.module-workspace[data-module-key="archive"] .instagram-archive-grid{grid-template-columns:1fr}}
+    /* Boards-density Archive: fixed columns instead of auto-fit. Two stored
+       photos should remain two small tiles, not stretch into two huge panels. */
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{
+      display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;
+      gap:10px!important;align-items:start!important;justify-content:stretch!important
+    }
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid>.instagram-archive-card{
+      width:100%!important;min-width:0!important;max-width:none!important
+    }
+    @media(max-width:1600px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(7,minmax(0,1fr))!important}}
+    @media(max-width:1360px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}}
+    @media(max-width:1130px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+    @media(max-width:920px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+    @media(max-width:700px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}}
+    @media(max-width:465px){#studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment>.instagram-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}}
+    /* Preserve one-card/one-post interaction, and shrink overlays with the tiles. */
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment .archive-media-meta{padding:5px 6px!important}
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment .archive-media-meta small{
+      max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+    }
+    #studioApp #moduleWorkspace[data-module-key="archive"] .archive-app-compartment .archive-live{
+      gap:4px!important;padding:5px 6px!important
+    }
     .module-workspace[data-module-key="archive"] .instagram-archive-card{
       --feed-card-rim:#a52a0c;position:relative;min-width:0;overflow:hidden;
       border:1px solid rgba(var(--aura-rgb,216,95,109),.2);border-radius:11px;background:rgba(var(--aura-rgb,216,95,109),.09);
@@ -517,6 +589,27 @@
     .module-workspace[data-module-key="veve"] .veve-origin-legend>b{font-size:9px;letter-spacing:.07em}
     .module-workspace[data-module-key="veve"] .veve-origin-key-item{display:inline-flex;align-items:center;gap:5px}
     .module-workspace[data-module-key="veve"] .veve-origin-key-item>i{width:10px;height:10px;border:1px solid rgba(87,61,68,.4);border-radius:3px;box-shadow:1px 2px 0 rgba(88,62,68,.28)}
+    /* Orbit starts the shared compact SHADOW KEY used by Veve: matching
+       colors, labels and square color chips. No large second legend panel. */
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-legend{
+      display:flex;align-items:center;flex-wrap:wrap;gap:7px 10px;
+      padding:8px 11px;margin:3px 0 10px;
+      background:var(--widget-bg,#faf5f0);
+      border:1px solid rgba(105,75,82,.16);border-radius:11px;
+      color:var(--widget-ink,#42363b);font:650 10px/1.45 system-ui;
+    }
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-legend>b{
+      font-size:9px;letter-spacing:.07em
+    }
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-key-item{
+      display:inline-flex;align-items:center;gap:5px;white-space:nowrap
+    }
+    .module-workspace[data-module-key="orbit"] .orbit-shadow-key-item>i{
+      display:inline-block;flex:0 0 10px;width:10px;height:10px;
+      border:1px solid rgba(87,61,68,.4);border-radius:3px;
+      box-shadow:1px 2px 0 rgba(88,62,68,.28)
+    }
+
     .module-workspace[data-module-key="archive"] .archive-key-other{
       background:#8f756e!important;box-shadow:2px 3px 0 #96736c!important
     }
@@ -843,14 +936,52 @@
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','visualz','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'Booth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwidz',projects:'visualz',project:'visualz',visualz:'visualz',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'Tools',reviews:'Wallpaper Reviews',politc:'politc'};
-  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite friends to join BIGLWA.',camera:'You already have a photobooth, but ours has Omegle ;) Switch between Photo Booth and the upcoming Video Booth.',diary:'A private writing page that autosaves in this browser.',stream:'LWA Radio, TV, live channels and independent broadcasts.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Your wardrobe, resale links and preloved listings.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'A fast private sticky note that autosaves.',projects:'A creative home for visualeyez boards and visualslidez presentations.',visualz:'A creative home for visualeyez boards and visualslidez presentations.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Create, edit, convert and keep your files.',politc:'Politics, elections, the pendulum, public records and reporting.'};
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'booth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwidz',projects:'visualizr',project:'visualizr',visualz:'visualizr',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'lwazi',reviews:'Wallpaper Reviews',politc:'politc'};
+  const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite boo·kiniz to join Big LWA.',camera:'Use our booth to feel yourself or chat with other bookiniz using Big LWA.',diary:'A private writing page that autosaves in this browser.',stream:'LWA Radio, TV, live channels and independent broadcasts.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Your wardrobe, resale links and preloved listings.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'Sqwibs, conversations, long reads and streams. Your private writing stays below.',projects:'A creative home for visualeyez boards and visualslidez presentations.',visualz:'A creative home for visualeyez boards and visualslidez presentations.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Meet the blocks of the R/Lwazi seriez · create, edit, save and share.',politc:'Politics, elections, the pendulum, public records and reporting.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const readJSON = (k, fallback=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
   const writeJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
   const quietUpdateKey = key => `biglwaQuietUpdate_${key}`;
-  const heading = (key, extra='') => `<div class="module-heading"><div><h1>${esc(labels[key] || key)}</h1><p>${esc(desc[key] || 'A working BIGLWA space.')}${extra ? ` <strong>${esc(extra)}</strong>` : ''}</p></div><details class="module-heading-actions module-update-preferences"><summary aria-label="Publishing preferences">Publishing preferences</summary><label class="module-update-privacy"><input type="checkbox" data-silent-update="${esc(key)}" ${localStorage.getItem(quietUpdateKey(key))==='1'?'checked':''}><span>Keep this update private</span></label></details></div>`;
+  // Source-specific one-shadow face preview: shared with Skeleton Key.
+  const shadowPalette=[
+    ["instagram","Instagram","#f36b21","#ffad52"],
+    ["tiktok","TikTok","#772dcc","#b77cff"],
+    ["pinterest","Pinterest","#e60023","#ae0026"],
+    ["facebook","Facebook","#1658be","#528ee7"],
+    ["youtube","YouTube","#fff1ec","#e66e7e"],
+    ["snapchat","Snapchat","#ffda00","#dfb800"],
+    ["tumblr","Tumblr","#1b304b","#445c7b"],
+    ["x","X","#0e0e0e","#535353"],
+    ["soundcloud","SoundCloud","#ff7700","#ffc47b"],
+    ["spotify","Spotify","#1db954","#72d99c"],
+    ["drive","Google Drive","#e7be31","#4285f4"],
+    ["calendar","Calendar","#4285f4","#6dbf9b"],
+    ["goodreads","Goodreads","#7a5c3e","#bb9b6b"],
+    ["letterboxd","Letterboxd","#2c3440","#f5b951"],
+    ["imdb","IMDb","#e6a800","#f6d87c"],
+    ["vsco","VSCO","#b51668","#da81af"],
+    ["bereal","BeReal","#777b83","#b2b4b7"],
+    ["substack","Substack","#da521b","#f6a372"],
+    ["xbox","Xbox","#a3d65e","#479941"],
+    ["other","Other source","#8f756e","#b7a19b"]
+  ];
+  function shadowKey(key){
+    if(!['orbit','archive','feed','veve'].includes(key))return '';
+    if(window.BigLWAShadowKey?.render)return window.BigLWAShadowKey.render(key);
+    const ids=key==='orbit'?shadowPalette.filter(row=>row[0]!=='other'):
+      shadowPalette.filter(row=>['instagram','tiktok','pinterest','facebook','youtube','snapchat','tumblr','x','other'].includes(row[0]));
+    const face=key==='archive'?'#d9c6ee':'#f7cddd';
+    return '<div class="module-shadow-key" data-shadow-key="'+key+'" role="group" aria-label="Platform shadow key: widget face and one source shadow"><b>SHADOW KEY</b>'+
+      ids.map(([id,label,color])=>'<span class="module-shadow-key-item" data-key-source="'+id+'"><i class="shadow-preview" aria-hidden="true" style="--key-face:'+face+';--key-shadow:'+color+'"></i>'+label+'</span>').join('')+'</div>';
+  }
+  // H1 title row + accessible key, followed by FULL-WIDTH description and a
+  // directly clickable privacy checkbox. No hidden dropdown; preserve semantics
+  // and readable, indexable text for SEO and assistive technology.
+  const heading = (key, extra='') => {
+    const hasKey=['orbit','archive','feed','veve'].includes(key);
+    return `<div class="module-heading${hasKey?' module-heading--with-shadow':''}"><div class="module-heading-copy"><h1>${esc(labels[key] || key)}</h1></div>${hasKey?'<div class="module-heading-right">'+shadowKey(key)+'</div>':''}<div class="module-heading-bottom"><p>${esc(desc[key] || 'A working BIGLWA space.')}${extra?` <strong>${esc(extra)}</strong>`:''}</p><label class="module-update-privacy" title="Publishing preferences: whether Studio updates stay private"><input type="checkbox" data-silent-update="${esc(key)}" ${localStorage.getItem(quietUpdateKey(key))==='1'?'checked':''}><span>Keep this update private</span></label></div></div>`;
+  };
   const recordStudioUpdate = (key, title, detail='') => {
     const silent=$(`[data-silent-update="${CSS.escape(key)}"]`,body)?.checked||false;
     window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title,source:labels[key]||key,detail,notified:!silent}}));
@@ -886,7 +1017,14 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function syncTrophyCard(){
     const preview=$('#trophyPreview'),card=$('#trophies');if(!preview||!card)return;
     const items=readTrophies();
-    preview.innerHTML=items.length?`<div class="trophy-preview-count">${items.length} ${items.length===1?'entry':'entries'} saved</div>${items.slice(0,3).map(item=>{const kind=trophyKindValue(item.kind);return `<div class="trophy-preview-item kind-${kind}"><span class="trophy-preview-dot" aria-hidden="true"></span><b>${esc(item.title)}</b><small>${esc(trophyKinds[kind])}</small></div>`}).join('')}`:`<div class="trophy-preview-empty"><span class="trophy-preview-mark" aria-hidden="true">★</span><b>No trophies yet</b><small>Add your first award, finish, record, or milestone.</small></div>`;
+    // Preserve the Minecraft achievement thumbnail: only redraw optional saved entries.
+    // Empty account state intentionally has no "No trophies yet" box under the image.
+    preview.querySelectorAll('.trophy-preview-count,.trophy-preview-item,.trophy-preview-empty').forEach(el=>el.remove());
+    if(items.length){
+      const holder=document.createElement('div');
+      holder.innerHTML=`<div class="trophy-preview-count">${items.length} ${items.length===1?'entry':'entries'} saved</div>${items.slice(0,3).map(item=>{const kind=trophyKindValue(item.kind);return `<div class="trophy-preview-item kind-${kind}"><span class="trophy-preview-dot" aria-hidden="true"></span><b>${esc(item.title)}</b><small>${esc(trophyKinds[kind])}</small></div>`}).join('')}`;
+      preview.append(...holder.children);
+    }
   }
 
   function renderCollection(key, fields, sample=[]){
@@ -925,10 +1063,12 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const onDay=(e,key)=>{if(e.start?.date)return key>=e.start.date&&key<(e.end?.date||e.start.date+'x');const s=new Date(e.start?.dateTime),end=new Date(e.end?.dateTime||e.start?.dateTime),day=new Date(key+'T00:00:00'),next=new Date(day);next.setDate(next.getDate()+1);return s<next&&end>=day&&(end>day||s.getTime()===end.getTime())};
     const googleRows=key=>remote.filter(e=>onDay(e,key)).map(e=>({title:e.summary||'Untitled Google event',meta:'Google · '+(e.start?.date?'All day':new Date(e.start.dateTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})),google:true,url:e.htmlLink||''}));
     const draw=()=>{
-      const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;
-      const days=Array.from({length:42},(_,i)=>{const d=calendarGridDate(view.year,view.month,i),key=dayKey(d),items=[...all.filter(x=>x.date===key),...googleRows(key)];return '<button class="calendar-day '+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"><span class="calendar-day-num">'+d.getDate()+'</span>'+items.slice(0,3).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.title)+'</span>').join('')+(items.length>3?'<small>+'+(items.length-3)+' more</small>':'')+'</button>'}).join('');
-      const local=all.filter(x=>x.date===selected),google=googleRows(selected);
-      body.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events are read-only. New events below are saved in this browser.</p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+listHtml(local,'event')+google.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;const unRows=key=>window.BigLWAObservances?.onDay(key)||[];
+      const days=Array.from({length:42},(_,i)=>{const d=calendarGridDate(view.year,view.month,i),key=dayKey(d),items=[...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];return '<button class="calendar-day '+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"><span class="calendar-day-num">'+d.getDate()+'</span>'+items.slice(0,3).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+(items.length>3?'<small>+'+(items.length-3)+' more</small>':'')+'</button>'}).join('');
+      const local=all.filter(x=>x.date===selected),google=[...googleRows(selected),...unRows(selected)];
+      body.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+listHtml(local,'event')+google.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const unStatus=$('#unCalendarStatus',body),unData=window.BigLWAObservances?.data;
+      if(unStatus&&unData)unStatus.textContent='Auto-updated daily · last fetched '+new Date(unData.updatedAt).toLocaleDateString()+(unData.retrievedFrom.includes('indonesia.un.org')?' · UN Indonesia mirror':'')+'. Lunar dates require checking the source.';
       const change=n=>{const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};writeJSON('biglwaCalendarView',view);remote=[];draw();load()};
       $('#calPrev',body).onclick=()=>change(-1);$('#calNext',body).onclick=()=>change(1);
       $('#calToday',body).onclick=()=>{const n=new Date();view={year:n.getFullYear(),month:n.getMonth()};selected=dayKey(n);writeJSON('biglwaCalendarView',view);localStorage.setItem('biglwaCalendarSelected',selected);remote=[];loaded='';draw();load()};
@@ -947,6 +1087,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       if(active())draw();
     }
     draw();load();
+    window.BigLWAObservances?.load().then(()=>{if(active())draw()}).catch(()=>{if(active()){const status=$('#unCalendarStatus',body);if(status)status.textContent='Unavailable; use the source link.'}});
   }
 
   /* Primary Orbit contains API-backed accounts. Link-only destinations live in Planetary. */
@@ -962,7 +1103,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     ['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],
     ['imdb','IMDb','IMDb','#e6a800'],
      ['vsco','VS','VSCO','#b51668'],['bereal','BR','BeReal','#777b83'],
-     ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e']
+     ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e'],
+    ['website','WWW','My website','rgb(var(--aura-rgb,216,95,109))']
   ];
   const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
   const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
@@ -1170,6 +1312,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Connect by adding your profile link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-edit-link="${k}">${links[k]?'Edit link':'Connect link'}</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open</button>${orbitBadge(g,t)}</div>`+orbitLinkEditor(k,n,links[k]||'')+'</div>';
      }).join('')}</div></section></div>`;
     enforceOrbitCardGeometry();
+    renderOrbitAccountManagement();
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
     const status=$('#orbitPageStatus',body);
@@ -1376,6 +1519,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         kind:key,form,area,status,
         onSelection:()=>{clearTimeout(t)},
       });
+    }
+    if(key==='diary'){
+      // Journal's page list may be taller than the writing form. Keep the
+      // visibility controls INSIDE the writing column, immediately after
+      // "Private draft", so they never wait for the sidebar's full height.
+      // Moving the existing node preserves its buttons, IDs and permissions.
+      const visibility=$('#journalShareControls',body);
+      if(visibility)form.append(visibility);
     }
     if(key==='notes'){
       const publisher=$('#diaryWritingSection',body);
@@ -1641,7 +1792,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     body.innerHTML=heading('feed')+`<div class="module-grid biglwa-feed-module-grid">
        <section class="module-card wide biglwa-feed-compose-card" aria-labelledby="biglwaFeedComposeHeading">
         <div class="biglwa-feed-compose-head">
-         <div><h2 id="biglwaFeedComposeHeading">post to the feed</h2><p>Share a link or photo, with an optional caption. Your caption is saved with your post.</p></div>
+         <div class="biglwa-feed-compose-title"><h2 id="biglwaFeedComposeHeading">post to the feed</h2><button id="feedComposerToggle" type="button" aria-expanded="true" aria-controls="feedComposer" aria-label="Collapse post to the feed form" title="Collapse form">−</button></div>
          <div class="biglwa-feed-heading-tools">
           <button class="module-action ghost" type="button" id="feedStreamExplore">Explore Veve ↗</button>
           <button class="module-action ghost" type="button" id="feedOrbitDraftToggle" aria-controls="biglwaOrbitDrafts" aria-expanded="false">View imports ready to post</button>
@@ -1652,8 +1803,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         <div id="biglwaOrbitDrafts" hidden></div>
         <form class="module-form biglwa-feed-compose-form" id="feedComposer">
          <div class="biglwa-feed-compose-fields">
-          <label class="biglwa-feed-field" for="feedComposerUrl">Link <span>(optional)</span><input class="module-input" id="feedComposerUrl" name="url" type="url" inputmode="url" placeholder="Paste a link to share"></label>
-          <label class="biglwa-feed-field" for="feedComposerCaption">Caption <span>(optional · 500 characters)</span><textarea class="module-input" id="feedComposerCaption" name="caption" maxlength="500" rows="2" placeholder="Add a caption or context…"></textarea></label>
+          <label class="biglwa-feed-field" for="feedComposerUrl">Link<input class="module-input" id="feedComposerUrl" name="url" type="url" inputmode="url" placeholder="Paste any Instagram, TikTok, Snapchat or other site link"></label>
+          <label class="biglwa-feed-field" for="feedComposerCaption">Caption<textarea class="module-input" id="feedComposerCaption" name="caption" maxlength="500" rows="2" placeholder="Add a caption or context…"></textarea></label>
          </div>
          <div class="biglwa-feed-compose-actions">
           <label class="biglwa-pick biglwa-feed-photo-picker"><input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">＋ Add photo <span>(optional)</span></label>
@@ -1666,11 +1817,100 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       </div>`;
     const streamExplore=$('#feedStreamExplore',body);
     if(streamExplore)streamExplore.onclick=()=>window.BigLWAOpenModule?.('veve');
+    const feedToggle=$('#feedComposerToggle',body),feedForm=$('#feedComposer',body);
+    if(feedToggle&&feedForm)feedToggle.onclick=()=>{
+      const open=feedToggle.getAttribute('aria-expanded')!=='true';
+      feedToggle.setAttribute('aria-expanded',String(open));
+      feedToggle.setAttribute('aria-label',open?'Collapse post to the feed form':'Expand post to the feed form');
+      feedToggle.title=open?'Collapse form':'Expand form';
+      feedToggle.textContent=open?'−':'+';
+      feedForm.hidden=!open;
+    };
+  }
+
+  // Profile links and authorized provider identities are managed in Orbit, never Connect.
+  function renderOrbitAccountManagement(){
+    // Multiple public profiles live on the member's account, but are never
+    // mislabeled as multiple authenticated OAuth sessions.
+    const profilesPanel=document.createElement('section');
+    profilesPanel.className='module-card wide';
+    profilesPanel.style.marginTop='10px';
+    profilesPanel.innerHTML='<h2>Additional social profiles</h2>'+
+      '<p>Manage additional public links for your Orbit apps. These are account-saved links, not verified OAuth connections.</p>'+
+      '<div class="module-actions" style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
+      '<input id="extraProfileUrl" class="module-input" style="flex:1 1 240px" type="url" placeholder="https://www.tiktok.com/@username">'+
+      '<button class="module-action" type="button" id="saveExtraProfile">Add profile</button></div>'+
+      '<div id="extraProfileList" class="module-list"></div><p id="extraProfileStatus" class="module-status" role="status"></p>';
+    body.append(profilesPanel);
+    const api=()=>window.BigLWAOrbitAccountLinks;
+    const extraStatus=profilesPanel.querySelector('#extraProfileStatus');
+    function showExtra(){
+      const destination=profilesPanel.querySelector('#extraProfileList');
+      destination.replaceChildren();
+      for(const item of api()?.getExtra?.()||[]){
+        const row=document.createElement('div');row.className='module-list-item';
+        const info=document.createElement('div');
+        const title=document.createElement('b');title.textContent=item.provider;
+        const link=document.createElement('a');link.textContent=item.url;
+        link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
+        info.append(title,link);
+        const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';
+        remove.onclick=async()=>{try{await api().removeExtra(item.id);showExtra()}catch(e){extraStatus.textContent=e.message}};
+        row.append(info,remove);destination.append(row);
+      }
+      if(!destination.childElementCount)destination.textContent='No additional profiles saved yet.';
+    }
+    profilesPanel.querySelector('#saveExtraProfile').onclick=async()=>{
+      try{
+        const provider=profilesPanel.querySelector('#extraProfileProvider').value;
+        const input=profilesPanel.querySelector('#extraProfileUrl');
+        await api()?.addExtra(provider,input.value);
+        input.value='';extraStatus.textContent='Additional profile saved privately to your BIG LWA account.';
+        showExtra();
+      }catch(e){extraStatus.textContent=e.message||'Could not save profile.'}
+    };
+    // OAuth identities are kept separate from manually added public links.
+    const authorized=document.createElement('section');
+    authorized.className='module-card wide';
+    authorized.style.marginTop='10px';
+    const authorizedHeading=document.createElement('h2');authorizedHeading.textContent='Authorized accounts';
+    const intro=document.createElement('p');intro.textContent='Connect additional X, Snapchat or Tumblr accounts; choose which authorized account is active in Orbit. Tokens stay with BIG LWA server.';
+    const list=document.createElement('div');list.className='module-list';
+    authorized.append(authorizedHeading,intro,list);body.append(authorized);
+    async function showAuthorized(){
+      list.replaceChildren();
+      const oauth=window.BigLWAOrbitOAuth;
+      if(!oauth){list.textContent='Orbit account connections are not ready.';return}
+      try{await oauth.load()}catch{}
+      for(const provider of ['x','snapchat','tumblr']){
+        const active=oauth.get(provider);
+        const accounts=Array.isArray(active?.accounts)?active.accounts:[];
+        for(const account of accounts){
+          const row=document.createElement('div');row.className='module-list-item';
+          const label=document.createElement('span');
+          label.textContent=(provider==='x'?'X':provider==='snapchat'?'Snapchat':'Tumblr')+' · '+(account.username||account.name||'Account');
+          const button=document.createElement('button');button.type='button';
+          const selected=account.sourceUserId===active?.activeSourceUserId;
+          button.textContent=selected?'Active':'Use account';
+          button.disabled=selected;
+          button.onclick=async()=>{
+            button.disabled=true;
+            try{await oauth.selectAccount(provider,account.sourceUserId);await showAuthorized()}
+            catch(e){button.disabled=false;list.setAttribute('aria-label','Could not switch account: '+(e.message||'Unknown error'))}
+          };
+          row.append(label,button);list.append(row);
+        }
+      }
+      if(!list.childElementCount)list.textContent='No multi-account OAuth profiles yet. Connect another account through Orbit.';
+    }
+    void showAuthorized();
+    showExtra();
   }
 
   function renderConnect(){
     const invite='https://biglwa.com/login';
-    body.innerHTML=heading('connect')+'<section class="module-card wide" style="margin-top:20px"><h2>Invite your people.</h2><p>Send a friend this link to join BIGLWA. They can choose Create account on the welcome page.</p><label for="biglwaInvite">Join BIGLWA link</label><input class="module-input" id="biglwaInvite" readonly value="'+invite+'"><div class="module-actions"><button type="button" class="module-action" id="copyBiglwaInvite">Copy invite link</button><button type="button" class="module-action ghost" id="shareBiglwaInvite">Share invitation</button></div><p class="module-status" id="inviteStatus" role="status"></p></section>';
+    body.innerHTML=heading('connect')+'<section class="module-card wide" style="margin-top:20px"><h2>Invite boo·kiniz.</h2><p>Send a friend this link to join BIGLWA. They can choose Create account on the welcome page.</p><label for="biglwaInvite">Join BIGLWA link</label><input class="module-input" id="biglwaInvite" readonly value="'+invite+'"><div class="module-actions"><button type="button" class="module-action" id="copyBiglwaInvite">Copy invite link</button><button type="button" class="module-action ghost" id="shareBiglwaInvite">Share invitation</button></div><p class="module-status" id="inviteStatus" role="status"></p></section>';
     const status=$('#inviteStatus',body);
     async function copy(){try{await navigator.clipboard.writeText(invite);status.textContent='Invite link copied.'}catch{const input=$('#biglwaInvite',body);input.focus();input.select();status.textContent='Select and copy the link above to share it.'}}
     // User-controlled invitations: contacts are never bulk-uploaded, harvested,
@@ -1719,85 +1959,6 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         }
       }catch{localResults.textContent='This contacts file could not be read locally.'}
     });
-    // Multiple public profiles live on the member's account, but are never
-    // mislabeled as multiple authenticated OAuth sessions.
-    const profilesPanel=document.createElement('section');
-    profilesPanel.className='module-card wide';
-    profilesPanel.style.marginTop='10px';
-    profilesPanel.innerHTML='<h2>Additional social profiles</h2>'+
-      '<p>Add more than one public profile per app. These are account-saved links, not verified OAuth connections.</p>'+
-      '<div class="module-actions" style="display:flex;gap:8px;flex-wrap:wrap">'+
-      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
-      '<input id="extraProfileUrl" class="module-input" style="flex:1 1 240px" type="url" placeholder="https://www.tiktok.com/@username">'+
-      '<button class="module-action" type="button" id="saveExtraProfile">Add profile</button></div>'+
-      '<div id="extraProfileList" class="module-list"></div><p id="extraProfileStatus" class="module-status" role="status"></p>';
-    body.append(profilesPanel);
-    const api=()=>window.BigLWAOrbitAccountLinks;
-    const extraStatus=profilesPanel.querySelector('#extraProfileStatus');
-    function showExtra(){
-      const destination=profilesPanel.querySelector('#extraProfileList');
-      destination.replaceChildren();
-      for(const item of api()?.getExtra?.()||[]){
-        const row=document.createElement('div');row.className='module-list-item';
-        const info=document.createElement('div');
-        const title=document.createElement('b');title.textContent=item.provider;
-        const link=document.createElement('a');link.textContent=item.url;
-        link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
-        info.append(title,link);
-        const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';
-        remove.onclick=async()=>{try{await api().removeExtra(item.id);showExtra()}catch(e){extraStatus.textContent=e.message}};
-        row.append(info,remove);destination.append(row);
-      }
-      if(!destination.childElementCount)destination.textContent='No additional profiles saved yet.';
-    }
-    profilesPanel.querySelector('#saveExtraProfile').onclick=async()=>{
-      try{
-        const provider=profilesPanel.querySelector('#extraProfileProvider').value;
-        const input=profilesPanel.querySelector('#extraProfileUrl');
-        await api()?.addExtra(provider,input.value);
-        input.value='';extraStatus.textContent='Additional profile saved privately to your BIG LWA account.';
-        showExtra();
-      }catch(e){extraStatus.textContent=e.message||'Could not save profile.'}
-    };
-    // OAuth identities are kept separate from manually added public links.
-    const authorized=document.createElement('section');
-    authorized.className='module-card wide';
-    authorized.style.marginTop='10px';
-    const authorizedHeading=document.createElement('h2');authorizedHeading.textContent='Authorized accounts';
-    const intro=document.createElement('p');intro.textContent='Connect additional X, Snapchat or Tumblr accounts in Orbit; choose which one is active here. Tokens stay with BIG LWA server, not on this page.';
-    const list=document.createElement('div');list.className='module-list';
-    authorized.append(authorizedHeading,intro,list);body.append(authorized);
-    async function showAuthorized(){
-      list.replaceChildren();
-      const oauth=window.BigLWAOrbitOAuth;
-      if(!oauth){list.textContent='Orbit account connections are not ready.';return}
-      try{await oauth.load()}catch{}
-      for(const provider of ['x','snapchat','tumblr']){
-        const active=oauth.get(provider);
-        const accounts=Array.isArray(active?.accounts)?active.accounts:[];
-        for(const account of accounts){
-          const row=document.createElement('div');row.className='module-list-item';
-          const label=document.createElement('span');
-          label.textContent=(provider==='x'?'X':provider==='snapchat'?'Snapchat':'Tumblr')+' · '+(account.username||account.name||'Account');
-          const button=document.createElement('button');button.type='button';
-          const selected=account.sourceUserId===active?.activeSourceUserId;
-          button.textContent=selected?'Active':'Use account';
-          button.disabled=selected;
-          button.onclick=async()=>{
-            button.disabled=true;
-            try{await oauth.selectAccount(provider,account.sourceUserId);await showAuthorized()}
-            catch(e){button.disabled=false;list.setAttribute('aria-label','Could not switch account: '+(e.message||'Unknown error'))}
-          };
-          row.append(label,button);list.append(row);
-        }
-      }
-      if(!list.childElementCount)list.textContent='No multi-account OAuth profiles yet. Connect another account through Orbit.';
-    }
-    void showAuthorized();
-    showExtra();
-    document.addEventListener('biglwa:orbit-links-synced',()=>{
-      if(profilesPanel.isConnected)showExtra();
-    },{once:true});
     $('#copyBiglwaInvite',body).onclick=copy;
     $('#shareBiglwaInvite',body).onclick=async()=>{if(!navigator.share){await copy();return}try{await navigator.share({title:'Join BIGLWA',text:'Join me on BIGLWA — a space for creativity, culture, and connection.',url:invite});status.textContent='Invitation shared.'}catch(e){if(e.name!=='AbortError')await copy()}};
   }
@@ -1806,7 +1967,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose a Booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">Photo Booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">Video Booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>Photo Booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
+    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/booth-light-20261029.webp" alt="Red curtain for photo booth" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
     const photoTab=$('#boothPhotoTab',body),videoTab=$('#boothVideoTab',body);
     const photoPanel=$('#boothPhotoPanel',body),videoPanel=$('#boothVideoPanel',body);
     const selectBooth=mode=>{
@@ -1820,7 +1981,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const cameraStage=$('#photoStage',body);
         if(cameraStage?.querySelector('#boothVideo')){
           cameraStage.classList.add('has-intro');
-          cameraStage.innerHTML='<img class="photobooth-intro" src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Photo Booth preview" width="800" height="533">';
+          cameraStage.innerHTML='<img class="photobooth-intro" src="/assets/booth-light-20261029.webp" alt="Red photo booth curtain" width="800" height="533">';
           $('#photoCapture',body).disabled=true;$('#photoFlip',body).disabled=true;
           $('#photoStatus',body).textContent='Camera stopped when switching to Video Booth. Start camera again to take photos.';
         }
@@ -1849,7 +2010,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function renderVideoBooth(){
     return `<section class="module-card wide video-booth-soon booth-panel" id="boothVideoPanel" role="tabpanel" aria-labelledby="boothVideoTab" hidden>
       <div class="video-booth-head">
-        <h2 id="videoBoothTitle">Video Booth</h2>
+        <h2 id="videoBoothTitle">video·booth</h2>
         <span class="coming-soon-badge">Coming soon</span>
       </div>
       <p>Meet the person before the call. You'll see their profile picture, display name and BIG LWA rank — never their @handle. Connect only when you both agree.</p>
@@ -1859,7 +2020,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           <b>Your profile</b><small>Your rank appears here</small>
         </div>
         <div class="video-booth-tile them" id="videoBoothCandidateCard" aria-label="Candidate's public preview before a video connection">
-          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto" aria-hidden="true">?</span>
+          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto"><img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Video Booth sample portrait" loading="lazy"></span>
           <b id="videoBoothCandidateName">Display name</b>
           <small class="video-booth-profile-rank" id="videoBoothCandidateRank">BIG LWA rank</small>
           <span class="video-booth-card-note">No @handle shown</span>
@@ -2062,7 +2223,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         project.innerHTML='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><strong style="font:600 28px Georgia,serif">'+number(weighted)+'%</strong><small>'+number(p.total)+' tracked objectives</small></div>'+
           '<div class="politc-live-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+weighted+'" aria-label="Project 2025 Tracker weighted progress"><span style="width:'+weighted+'%"></span></div>'+
           '<p style="font:600 12px/1.6 system-ui">'+number(p.done)+' completed · '+number(p.inProgress)+' in progress · '+number(p.notStarted)+' remaining</p>'+
-          '<p class="politc-note">Tracker method: completed counts fully; in progress counts half. Not a percentage of laws passed or effects on people.</p>'+checked;
+          '<p class="politc-note">Tracker method: completed counts fully; in progress counts half. Not a percentage of laws passed or effects on people. <a href="https://www.project2025.observer/en" target="_blank" rel="noopener noreferrer">Verify source ↗</a></p>'+checked;
       }else{
         project.innerHTML='<p class="politc-note">Live tracker data unavailable. Open the source to see its latest published statuses.</p>';
       }
@@ -2219,10 +2380,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function renderTools(){
     body.innerHTML=heading('tools')+'<div class="tool-studio" id="toolStudio"></div>';
     /* The intake page is its own module so the file work stays away from the module router. */
-    import('/tools-studio.js?v=20261023-workshop-native-8')
+    import('/tools-studio.js?v=20261029-single-header-6&social=20261029-old-web-1&preview=20261029-combined-1')
       .then(mod=>mod.mountToolsStudio($('#toolStudio',body),{downloadBlob}))
       .catch(error=>{
-        $('#toolStudio',body).innerHTML='<section class="module-card wide"><h2>Tools could not start</h2><p>Give the page a refresh and it will load again.</p></section>';
+        $('#toolStudio',body).innerHTML='<section class="module-card wide"><h2>lwazi could not start</h2><p>Give the page a refresh and it will load again.</p></section>';
         console.error('BIGLWA Tools:',error);
       });
   }
@@ -2236,24 +2397,26 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
       {title:'2048',image:'/assets/arcade/2048.svg',href:location.origin+'/arcade-puzzles.html?game=2048'},
       {title:'mini crossword',image:'/assets/arcade/crossword.svg',href:location.origin+'/arcade-puzzles.html?game=crossword'},
-      {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-and-watergirl-5-elements'},
-      {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://www.coolmathgames.com/0-sugar-sugar'},
+      {title:'8 Ball Pool',image:'/assets/arcade/miniclip-pool-20261029.svg',href:'https://8ballpool.com/',launch:'external',provider:'Miniclip'},
+      {title:'Agar.io',image:'/assets/arcade/miniclip-agar-20261029.svg',href:'https://agar.io/',launch:'external',provider:'Miniclip'},
+      {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-watergirl-5-elements'},
+      {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://poki.com/en/g/sugar-sugar-html5'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
-      {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://www.coolmathgames.com/0-raft-wars'},
+      {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://raft-wars.com/raftwars'},
       {title:'sudoku',image:'/assets/arcade/sudoku.jpg',href:'https://www.coolmathgames.com/0-sudoku'},
       {title:'wordle',image:'/assets/arcade/wordle.png',href:'https://www.nytimes.com/games/wordle/index.html'},
       {title:'worldguessr',image:'/assets/arcade/worldguessr.jpg',href:'https://worldguessr.com/'},
       {title:'cookie clicker',image:'/assets/arcade/cookie-clicker.jpg',href:'https://orteil.dashnet.org/cookieclicker/'},
       {title:'chess',image:'/assets/arcade/chess.jpg',href:'https://www.chess.com/play/online'},
-      {title:'fancy pants',image:'/assets/arcade/fancy-man.webp',href:'https://www.coolmathgames.com/0-fancy-pants-adventures'},
-      {title:'n+',image:'/assets/arcade/nplus.webp',href:'https://www.coolmathgames.com/0-n-game'},
+      {title:'fancy pants',image:'/assets/arcade/fancy-man.webp',href:'https://poki.com/en/g/fancy-pants'},
+      {title:'n (classic)',image:'/assets/arcade/nplus.webp',href:'https://www.silvergames.com/en/n-game'},
       {title:'run 3',image:'/assets/arcade/run-3.png',href:'https://www.coolmathgames.com/0-run-3'},
       {title:'five nights at freddy’s',image:'/assets/arcade/five-nights-at-freddys.jpg',href:'https://store.steampowered.com/app/319510/Five_Nights_at_Freddys/'},
-      {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.coolmathgames.com/0-swords-and-sandals-2'}
+      {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.y8.com/games/swords_and_sandals_2'}
     ];
     const tile=(game,index)=>game.internal==='cultureQuiz'
       ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
-      :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="Play '+esc(game.title)+' in the arcade"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play in cabinet ▶</small></button>';
+      :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="'+(game.launch==='external'?'Open ':'Play ')+esc(game.title)+'"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>'+(game.launch==='external'?'official site ↗':'play in cabinet ▶')+'</small></button>';
     const track=items=>{
       // The visible frame can exceed five cards in height. Repeat the source
       // playlist until a full cycle is taller than the viewport; THEN clone
@@ -2262,10 +2425,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const complete=cycle.slice(0,Math.max(9,cycle.length));
       return complete.concat(complete).map(game=>tile(game,gameLibrary.indexOf(game))).join('');
     };
-    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>Play in screen</button><a class="module-action ghost" href="'+href+'">Original site →</a>')+'</div></div>'};
+    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>'+(game.launch==='external'?'Official game →':'Play in screen')+'</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Original site ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><div class="module-arcade-folder-depth"><span class="module-arcade-wordmark" aria-hidden="true">ARCADE</span><div class="module-game-stage-head"><div class="module-arcade-marquee" aria-label="BIG LWA Arcade"><img src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA" width="1200" height="675"></div><span id="arcadeEmulatorTitle">choose a game</span></div></div><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Play local games or load a saved Flash file inside this cabinet. Original-site entries may restrict embedding; in-site alternatives are always available.</div></section>'+
+        '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><span id="arcadeEmulatorTitle" hidden>choose a game</span><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Play local games or load a saved Flash file inside this cabinet. Original-site entries may restrict embedding; in-site alternatives are always available.</div></section>'+
         '<section class="module-card module-game-directory wide"><details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle"><span>all games</span><small>'+gameLibrary.length+' titles · expand or collapse</small><span class="arcade-directory-chevron" aria-hidden="true">⌄</span></summary><p>Local games and the Flash player run here. Every game is first tried inside the cabinet. Some providers refuse embedded browsing; the original then opens in a separate tab.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></details></section>'+
         '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
         '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
@@ -2276,6 +2439,34 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         '</form></section>'+
       '</div>';
 
+    // The avatar belongs to a second connected Windows-style pane beside
+    // the playable cabinet, not a thin banner that hides the character.
+    const gameStage=$('.module-game-stage',body);
+    if(gameStage){
+      const companion=document.createElement('aside');
+      companion.className='biglwa-game-avatar-sidecar';
+      companion.setAttribute('aria-label','Your interactive Arcade character and Aura');
+      companion.innerHTML='<div class="biglwa-game-avatar-titlebar"><span>Your character</span><span class="biglwa-sidecar-window-buttons" aria-hidden="true"><i class="retro-window-min">_</i><i class="retro-window-max">□</i><i class="retro-window-close-mark">×</i></span></div>'+
+        '<div class="biglwa-game-aura-stage"><div class="biglwa-game-aura-wiggle" aria-hidden="true"></div><div class="biglwa-game-avatar-live" id="biglwaGameAvatarLive" aria-label="Your Arcade avatar preview"><span class="biglwa-game-avatar-placeholder" aria-hidden="true">◉</span></div></div>'+
+        '<div class="biglwa-game-avatar-actions"><button type="button" data-game-avatar-edit>Edit in Studio Avatar ↗</button><button type="button" data-game-avatar-rotate aria-label="Rotate avatar preview">↻ rotate</button></div>';
+      const identity=$('#biglwaArcadePlayer',gameStage);
+      if(identity)companion.insertBefore(identity,companion.querySelector('.biglwa-game-aura-stage'));
+      gameStage.after(companion);
+      companion.querySelector('[data-game-avatar-edit]')?.addEventListener('click',()=>{
+        $('#moduleBack')?.click();
+        const avatarWidget=$('#studioAvatarCard');
+        const enlarge=avatarWidget?.querySelector('[data-avatar-widget-action="enlarge"]');
+        if(enlarge)enlarge.click();
+        else $('#editProfileBtn')?.click();
+      });
+      companion.querySelector('[data-game-avatar-rotate]')?.addEventListener('click',()=>{
+        const live=$('#biglwaGameAvatarLive',companion);
+        if(!live)return;
+        live.classList.toggle('is-reversed');
+        const frame=live.querySelector('iframe');
+        if(frame)frame.focus({preventScroll:true});
+      });
+    }
     const showArcadeIdentity=async()=>{
       const badge=$('#biglwaArcadePlayer',body);
       if(!badge)return;
@@ -2293,14 +2484,33 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const trusted='https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-photo/';
         const raw=String(record?.url||'');
         const url=raw.startsWith(trusted)?raw:'';
-        const label=record?.type==='mii'?String(record?.preset?.name||'your Mii').slice(0,32):record?.type==='minecraft'?'minecraft character':'your character';
+        let sona='';
+        if(record?.type==='sona360'){
+          try{
+            const u=new URL(raw);
+            if(u.protocol==='https:'&&['360sona.com','www.360sona.com'].includes(u.hostname)&&
+               new RegExp('^/w/[A-Za-z0-9_-]{8,96}/?$').test(u.pathname)&&!u.search&&!u.hash)
+              sona=u.origin+u.pathname;
+          }catch{}
+        }
+        const label=record?.type==='mii'?String(record?.preset?.name||'your Mii').slice(0,32):
+          record?.type==='minecraft'?'minecraft character':record?.type==='sona360'?'360sona':'your character';
         badge.querySelector('strong').textContent='playing as '+(record?.type?label:'yourself');
-        badge.querySelector('small').textContent=url?'account character synced · ready to play':'set a character in Studio Avatar';
+        badge.querySelector('small').textContent=url||sona?'account character synced · ready to play':'set a character in Studio Avatar';
         const holder=badge.querySelector('.biglwa-arcade-portrait');
+        const live=$('#biglwaGameAvatarLive',body);
         if(url){
           const img=document.createElement('img');img.src=url;img.alt='';
           img.onerror=()=>img.replaceWith(document.createTextNode('◉'));
           holder.replaceChildren(img);
+          if(live){const art=document.createElement('img');art.src=url;art.alt='Your saved avatar';
+            art.className='biglwa-game-avatar-photo';art.onerror=()=>art.replaceWith(document.createTextNode('◉'));
+            live.replaceChildren(art);}
+        }else if(sona&&live){
+          const frame=document.createElement('iframe');frame.src=sona;frame.title='Interactive 360sona avatar';
+          frame.loading='lazy';frame.referrerPolicy='no-referrer';
+          frame.setAttribute('allow','fullscreen');frame.setAttribute('allowfullscreen','');
+          frame.className='biglwa-game-sona-frame';live.replaceChildren(frame);
         }
       }catch(error){console.warn('[BIGLWA Arcade] Avatar preview unavailable:',error)}
     };
@@ -2351,7 +2561,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // the initial attempt. Providers' CSP/X-Frame-Options remain respected.
     const providerName=uri=>{
       const host=uri.hostname.replace(/^www\./,'');
+      if(host==='8ballpool.com'||host.endsWith('.8ballpool.com')||host==='agar.io')return 'Miniclip';
       if(host.endsWith('coolmathgames.com'))return 'Coolmath Games';
+      if(host==='poki.com'||host.endsWith('.poki.com'))return 'Poki';
       if(host.endsWith('nytimes.com'))return 'The New York Times Games';
       if(host.endsWith('chess.com'))return 'Chess.com';
       if(host.endsWith('steampowered.com'))return 'Steam';
@@ -2408,22 +2620,25 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       heading.textContent=game.title;
       const description=document.createElement('p');
       const steam=uri.hostname==='store.steampowered.com';
-      const blocked=restrictsEmbed(uri);
+      const officialExternal=game.launch==='external';
+      const blocked=restrictsEmbed(uri)||officialExternal;
       description.textContent=steam
         ? 'This entry is a PC-game reference, not a browser-playable copy. Choose a local game below to stay in the arcade.'
-        : blocked
-          ? 'This provider restricts embedded play. Choose a local alternative, or load your saved Flash file in the preservation player.'
-          : 'Try this original provider in the cabinet. If it does not load, choose a local alternative or the Flash player below.';
+        : officialExternal
+          ? 'This official Miniclip game is available in your browser on the original website. Use Play on Miniclip for its full-sized game window; BIG LWA does not rehost or bypass their frame restrictions.'
+          : blocked
+            ? 'The provider may block embedded play. Open its original game page to play there, or choose a local BIG LWA game.'
+            : 'Try the original provider in the cabinet. If it refuses to display, open its own game page or choose a local game.';
       const actions=document.createElement('div');
       actions.className='arcade-game-launch-actions';
       actions.append(makeAction('Local games','arcadeLocal',''),makeAction('Load Flash file','arcadeFlash','ghost'));
-      actions.append(createOpenLink(uri,steam?'Steam listing (leave arcade) →':'Original site (leave arcade) →','ghost'));
+      actions.append(createOpenLink(uri,steam?'Steam listing ↗':officialExternal?'Play on Miniclip ↗':'Play on original site ↗','ghost'));
       if(!steam&&!blocked) actions.append(makeAction('Try in this screen','arcadeTryEmbed','ghost'));
       actions.append(makeAction('Copy game link','arcadeCopy','ghost'));
       const note=document.createElement('small');
       note.className='arcade-game-notice';
       note.setAttribute('role','status');
-      note.textContent=blocked?'This is an archive reference until a playable, hostable game file is available.':'External games remain hosted by their original providers.';
+      note.textContent=officialExternal?'The game opens at its official website; fullscreen controls belong to that game.':blocked?'This provider controls whether it can run inside other websites.':'External games remain hosted by their original providers.';
       details.append(label,heading,description,actions,note);
       const feature=document.createElement('div');
       feature.className='arcade-game-feature';
@@ -2472,7 +2687,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(framed.origin===location.origin){
         if(['/arcade-puzzles.html','/arcade/local.html'].includes(framed.pathname))
           framed.searchParams.set('embed','1');
-        framed.searchParams.set('release','20261018-arcade-input-3');
+        framed.searchParams.set('release','20261029-arcade-selector-5');
       }
       frame.src=framed.href;
       frame.tabIndex=0;
@@ -2543,10 +2758,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // If the Arcade cabinet has focus while its frame is not focused, arrow
     // keys must still reach 2048/Snake instead of scrolling the page.
     // No key forwarding to third-party frames or while typing elsewhere.
-    document.addEventListener('keydown',ev=>{
+    window.addEventListener('keydown',ev=>{
       if(!emulatorScreen.isConnected||!emulatorScreen.classList.contains('is-embed')
          ||workspace.dataset.moduleKey!=='games'
          ||ev.target?.closest?.('input,textarea,[contenteditable="true"]'))return;
+      if(ev.ctrlKey||ev.altKey||ev.metaKey)return;
       const key=ev.key,playing=emulatorScreen.querySelector('iframe');
       if(!playing||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d','W','A','S','D'].includes(key))return;
       let origin;
@@ -2562,6 +2778,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       selectedGame=game;
       try{
         const target=new URL(game.href,location.href);
+        if(target.origin!==location.origin || game.launch==='external'){
+          showGameLinks(game); // Third-party websites use the honest original-site launcher, not a blank iframe.
+          return;
+        }
         if(target.protocol==='https:'||target.origin===location.origin){
           tryEmbedded();
           return;
@@ -2756,6 +2976,45 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       soundcloud:{rim:"#ff5500",glow:"#ffb13b",hot:"#c93f00"}
     })[String(source||"").toLowerCase()]||{rim:"#a52a0c",glow:"#d95f6d"};
   }
+  /* A saved card should sit under the app it actually came from. Orbit imports already
+     carry a source, but links pasted into Studio, older records, and hand-added embeds can
+     arrive with a blank or generic source. The link itself still names the app, so the host
+     is the fallback that keeps an Instagram embed in Instagram instead of leaving it on the
+     All shelf only. */
+  const ARCHIVE_GENERIC_SOURCES=new Set(['','unknown','other','link','links','import','imported']);
+  const ARCHIVE_SOURCE_LABELS={instagram:'Instagram',tiktok:'TikTok',snapchat:'Snapchat',
+    pinterest:'Pinterest',facebook:'Facebook',youtube:'YouTube',tumblr:'Tumblr',x:'X',
+    twitter:'X',soundcloud:'SoundCloud',google:'Google',biglwa:'Big LWA',studio:'Studio'};
+  function archiveSourceFromHost(value){
+    let host='';
+    try{host=new URL(String(value||''),location.origin).hostname.replace(/^www\./i,'').toLowerCase()}catch{return ''}
+    if(/^(?:[a-z0-9-]+\.)*instagram\.com$/.test(host))return 'instagram';
+    if(/^(?:[a-z0-9-]+\.)*tiktok\.com$/.test(host))return 'tiktok';
+    if(host==='pin.it'||/^(?:[a-z0-9-]+\.)*pinterest\.[a-z.]+$/.test(host))return 'pinterest';
+    if(/^(?:[a-z0-9-]+\.)*snapchat\.com$/.test(host))return 'snapchat';
+    if(/^(?:[a-z0-9-]+\.)*facebook\.com$/.test(host)||host==='fb.com'||host==='fb.watch')return 'facebook';
+    if(/^(?:[a-z0-9-]+\.)*youtube\.com$/.test(host)||host==='youtu.be')return 'youtube';
+    if(/^(?:[a-z0-9-]+\.)*tumblr\.com$/.test(host))return 'tumblr';
+    if(/^(?:[a-z0-9-]+\.)*(?:x|twitter)\.com$/.test(host))return 'x';
+    if(/^(?:[a-z0-9-]+\.)*soundcloud\.com$/.test(host))return 'soundcloud';
+    if(/^(?:[a-z0-9-]+\.)*google\.[a-z.]+$/.test(host))return 'google';
+    return '';
+  }
+  function archiveItemSource(item){
+    const raw=String(item?.source||'').trim().toLowerCase();
+    const value=raw==='twitter'?'x':raw;
+    if(value&&!ARCHIVE_GENERIC_SOURCES.has(value))return value;
+    const links=[item?.sourceUrl,item?.url,item?.permalink,item?.link,item?.originalUrl,item?.postUrl];
+    for(const link of links){
+      const detected=archiveSourceFromHost(link);
+      if(detected)return detected;
+    }
+    return 'instagram';
+  }
+  function archiveSourceLabel(source){
+    const key=String(source||'').toLowerCase();
+    return ARCHIVE_SOURCE_LABELS[key]||key;
+  }
   function archiveSourceRim(source){return archiveSourceTheme(source).rim}
   function archiveSourceShadow(source){
     const key=String(source||"").toLowerCase(),t=archiveSourceTheme(key);
@@ -2825,7 +3084,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const groups=new Map();
     /* Sorted by source so the wall reads as source blocks rather than a mixed shelf. */
     [...items.keys()].sort((a,b)=>{
-      const sa=String(items[a].source||'').toLowerCase(), sb=String(items[b].source||'').toLowerCase();
+      const sa=archiveItemSource(items[a]), sb=archiveItemSource(items[b]);
       if(sa!==sb)return sa<sb?-1:1;
       return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);
     }).forEach(index=>{
@@ -2836,39 +3095,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     return {order,groups,sorted:order.flatMap(key=>groups.get(key))};
   }
     function groupCards(cardList,items,grouped,hideDupes){
-    const names={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'};
-    // Fingerprints identify duplicates, not layout rows. All posts from a
-    // source belong in ONE full-width grid; otherwise unique photos create
-    // an endless series of single-card horizontal rows.
-    const sourceGroups=new Map();
-    grouped.order.forEach(fingerprint=>{
+    // Platform chips already filter the wall; a second layer of collapsible
+    // source groups hides cards and wastes horizontal space. Keep the original
+    // source-aware sorting and fingerprint-based duplicate control, but render
+    // one flat, responsive gallery with each card's own platform rim.
+    const visible=grouped.order.flatMap(fingerprint=>{
       const indexes=grouped.groups.get(fingerprint)||[];
-      const visible=hideDupes?indexes.slice(0,1):indexes;
-      for(const index of visible){
-        const source=String(items[index]?.source||'instagram').toLowerCase();
-        if(!sourceGroups.has(source))sourceGroups.set(source,[]);
-        sourceGroups.get(source).push(index);
-      }
+      return hideDupes?indexes.slice(0,1):indexes;
     });
-    const repeatCount=source=>{
-      let count=0;
-      grouped.order.forEach(key=>{
-        const indices=grouped.groups.get(key)||[];
-        if(indices.length>1&&String(items[indices[0]]?.source||'instagram').toLowerCase()===source)
-          count+=indices.length-1;
-      });
-      return count;
-    };
-    return [...sourceGroups].map(([source,indexes],groupIndex)=>
-      '<section class="archive-source-group" data-archive-source="'+esc(source)+'">'+
-      '<details class="archive-app-compartment" data-archive-app="'+esc(source)+'"'+(groupIndex===0?' open':'')+'>'+
-      '<summary class="archive-group-head"><span class="archive-app-icon" aria-hidden="true">◉</span><strong>'+esc(names[source]||source)+'</strong>'+
-      '<em class="archive-group-count">'+indexes.length+' stored'+(hideDupes?' (unique)':'')+'</em>'+
-      (repeatCount(source)?'<em class="archive-group-repeats">'+repeatCount(source)+' additional copies</em>':'')+
-      '<span class="archive-app-expand" aria-hidden="true">⌄</span></summary>'+
-      '<div class="instagram-archive-grid" data-archive-group="'+esc(source)+'">'+
-      indexes.map(index=>cardList[index]).join('')+'</div></details></section>'
-    ).join('');
+    return visible.map(index=>cardList[index]).join('');
   }
 
   function renderArchive(){
@@ -2882,8 +3117,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     let archiveInitialized=false;
     let archiveLoading=false;
     const FILTER_KEY='biglwaArchiveFilters';
-    const sourceNameOf=item=>String(item.source||'instagram').toLowerCase();
-    const readFilters=()=>{let f={sources:[],hideDupes:false};try{f={sources:[],hideDupes:false,...JSON.parse(localStorage.getItem(FILTER_KEY)||'null')}}catch{}if(!Array.isArray(f.sources))f.sources=[];return f};
+    const sourceNameOf=item=>archiveItemSource(item);
+    const readFilters=()=>{let f={sources:[],hideDupes:false};try{f={sources:[],hideDupes:false,...JSON.parse(localStorage.getItem(FILTER_KEY)||'null')}}catch{}if(!Array.isArray(f.sources))f.sources=[];if(f.sources.length>1)f.sources=[];f.sources=f.sources.filter(k=>k&&k!=='all');return f};
     const saveFilters=f=>{try{localStorage.setItem(FILTER_KEY,JSON.stringify(f))}catch{}};
 
     const loadInitial=async()=>{
@@ -2946,7 +3181,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const username=profile.username||profile.name||previewUsername||'BIGLWA member';
       const filters=readFilters();
       const seenSources=[...new Set(media.map(sourceNameOf))];
-      const union=[...new Set([...seenSources,...filters.sources])];
+      /* Snapchat is a first-class source even before the first Spotlight lands, so the row
+         always offers it next to All. Every other app appears on its own as soon as a card
+         from that app is saved. */
+      const pinnedSources=['instagram','tiktok','snapchat'];
+      const union=[...new Set([...pinnedSources,...seenSources,...filters.sources])].sort((a,b)=>{
+        const order=['instagram','tiktok','snapchat','pinterest','facebook','youtube','tumblr','x','soundcloud','google','biglwa','studio'];
+        const ai=order.indexOf(a),bi=order.indexOf(b);
+        return (ai<0?999:ai)-(bi<0?999:bi)||a.localeCompare(b);
+      });
       const allowed=new Set(filters.sources);
       const filtering=filters.sources.length>0;
       const mediaShown=filtering?media.filter(item=>allowed.has(sourceNameOf(item))):media;
@@ -2964,7 +3207,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
            card or a Facebook card can be told from an Instagram one at a glance. A card that
            is live keeps its colour and appears on the Collective Feed; one switched off greys
            its picture and stays here only. */
-        const source=String(item.source||'instagram').toLowerCase();
+        const source=sourceNameOf(item);
         const themes={
           instagram:{rim:'#f36b21',shadow:'3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b'},
           pinterest:{rim:'#e60023',shadow:'3px 3px 0 #e60023,6px 6px 0 -2px #ff5269,0 14px 26px -14px #ae0026'},
@@ -2995,8 +3238,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
             ? '<label class="archive-live" data-archive-live="'+esc(item.id)+'">'
               +'<input type="checkbox" data-archive-live-input="'+esc(item.id)+'"'+(posted?' checked':'')+'>'
               +'<span class="archive-live-track" aria-hidden="true"><i></i></span>'
-              +'<b>'+(posted?'Live':'Not live')+'</b>'
-              +'<em>'+(posted?'Showing on the Collective Feed':'Only kept here')+'</em>'
+              +'<b>'+(posted?'Live':'Off')+'</b>'
+              
               +'</label>'
             : '<div class="archive-live is-locked"><span class="archive-live-track" aria-hidden="true"><i></i></span><b>'+(posted?'Live':'Not live')+'</b></div>';
         const statusLine=posted
@@ -3044,27 +3287,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       body.innerHTML=heading('archive',count?count+' card'+(count===1?'':'s')+' stored':'')+
         '<div class="module-grid">'+
         '<section class="module-card wide archive-wall-shell">'+
-          '<div class="archive-toolbar"><div class="archive-toolbar-copy"><h2>Archive by app</h2><p>Expand each connected source to browse its saved posts. Live controls whether a post appears in Collective Feed.</p></div>'+
+          '<div class="archive-toolbar" role="group" aria-label="Archive management and platform filters">'+
     (owner?'<div class="archive-toolbar-actions"><button class="module-action ghost" id="archiveConnections" type="button">Manage connections</button><button class="module-action" id="archiveRefreshInstagram" type="button">Import / refresh</button></div>'+
-          (union.length?'<div class="archive-filter-bar" id="archiveFilterBar">'+
-            union.map(k=>'<button type="button" class="archive-filter-chip '+((filtering?allowed.has(k):true)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'">'+esc({instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',pinterest:'Pinterest',google:'Google',soundcloud:'SoundCloud',youtube:'YouTube',biglwa:'Big LWA',studio:'Studio'}[k]||k)+'</button>').join('')+
-            '<label class="archive-dupes"><input type="checkbox" id="archiveHideDupes"'+(hideDupes?' checked':'')+'><span>Hide duplicates</span></label></div>':'')+
+          '<div class="archive-filter-bar" id="archiveFilterBar" role="group" aria-label="Choose platform">'+
+            '<button type="button" class="archive-filter-chip '+(!filtering?'is-on':'')+'" data-archive-source-filter="all" aria-pressed="'+(!filtering?'true':'false')+'">All</button>'+
+            union.map(k=>'<button type="button" class="archive-filter-chip '+(allowed.has(k)?'is-on':'')+'" data-archive-source-filter="'+esc(k)+'" aria-pressed="'+(allowed.has(k)?'true':'false')+'">'+esc(archiveSourceLabel(k))+'</button>').join('')+
+            '<label class="archive-dupes"><input type="checkbox" id="archiveHideDupes"'+(hideDupes?' checked':'')+'><span>Hide duplicates</span></label></div>'+
           '':'')+
           '</div>'+
           '<div class="module-status" id="archiveInstagramStatus">'+esc(status||(owner?(media.length?'Imported cards are saved to your account.':'Connect Instagram or Pinterest in Orbit, then refresh imports.'):'Shared with friends.'))+'</div>'+
-          '<div class="archive-color-guide" aria-label="Card shadow color key">'+
-  '<b>SHADOW KEY</b>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-instagram" aria-hidden="true"></i>Instagram · blood orange</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-pinterest" aria-hidden="true"></i>Pinterest · red</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-facebook" aria-hidden="true"></i>Facebook · blue</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-tiktok" aria-hidden="true"></i>TikTok · purple</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-youtube" aria-hidden="true"></i>YouTube · white/pink</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-snapchat" aria-hidden="true"></i>Snapchat · yellow</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-tumblr" aria-hidden="true"></i>Tumblr · navy</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-x" aria-hidden="true"></i>X · black</span>'+
-  '<span class="archive-color-guide-item"><i class="archive-key-other" aria-hidden="true"></i>Other source</span>'+
-  '<small>Card shadow = origin · Live = on Collective Feed · Grey photo = not live</small>'+
- '</div>'+
           (cards?'<div class="archive-page-list">'+cards+'</div>':'<div class="archive-empty">'+(media.length&&!mediaShown.length?'No cards match the filters you chose.':'No media has been imported yet.')+'</div>')+
           (owner&&archiveHasMore?'<div class="module-actions" style="justify-content:center;margin-top:18px"><button class="module-action ghost" id="archiveLoadMore" type="button">Load older photos</button></div>':'')+
         '</section>'+visibility+'</div>';
@@ -3126,8 +3357,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           if(!chip)return;
           const k=chip.dataset.archiveSourceFilter;
           const f=readFilters();
-          if(!f.sources.length)f.sources=Array.from(filterBar.querySelectorAll('[data-archive-source-filter]')).map(n=>n.dataset.archiveSourceFilter);
-          if(f.sources.includes(k))f.sources=f.sources.filter(x=>x!==k);else f.sources.push(k);
+          f.sources=k==='all'?[]:[k];
           saveFilters(f);await draw();
         });
         $('#archiveHideDupes',body)?.addEventListener('change',async(event)=>{
@@ -3135,15 +3365,62 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         });
         $('#archiveRefreshInstagram',body)?.addEventListener('click',async()=>{
           const button=$('#archiveRefreshInstagram',body),st=$('#archiveInstagramStatus',body);
-          button.disabled=true;if(st)st.textContent='Syncing connected Orbit sources, including Pinterest…';
+          const selection=readFilters().sources[0]||'all';
+          const wants=platform=>selection==='all'||selection===platform;
+          button.disabled=true;
+          if(st)st.textContent='Refreshing '+(selection==='all'?'connected Orbit sources':archiveSourceLabel(selection))+'…';
           try{
-            // Do not let a disconnected Instagram account block Pinterest sync.
-            const sources=[orbit?.restore?.bind(orbit),window.__biglwaPinterest?.restore?.bind(window.__biglwaPinterest)].filter(Boolean);
-            await Promise.allSettled(sources.map(fn=>fn()));
-            if(window.__biglwaPinterest?.syncAllBoards)await window.__biglwaPinterest.syncAllBoards();
+            const jobs=[];
+            const add=(label,fn)=>{if(typeof fn==='function')jobs.push({label,run:fn})};
+            if(wants('instagram'))add('Instagram',orbit?.restore?.bind(orbit));
+            if(wants('pinterest')){
+              const pins=window.__biglwaPinterest;
+              if(pins) add('Pinterest',async()=>{
+                await pins.restore?.();
+                await pins.syncAllBoards?.();
+              });
+            }
+            if(wants('tiktok'))add('TikTok',window.__biglwaTikTokOrbit?.restore?.bind(window.__biglwaTikTokOrbit));
+            if(wants('facebook')){
+              const personal=window.BigLWAFacebookPersonal;
+              if(personal) add('Facebook Personal',async()=>{
+                const session=await personal.load();
+                if(!session?.connected)return 'not connected';
+                if(session.needsReauth)throw Error('Reconnect Facebook Personal to refresh your permissions.');
+                await personal.sync();
+                return personal.state?.syncMessage||'Import attempted';
+              });
+              const business=window.__biglwaFacebookOrbit;
+              if(business?.state?.connected)add('Facebook Business',business.refresh?.bind(business));
+            }
+            const results=await Promise.allSettled(jobs.map(async job=>({label:job.label,result:await job.run()})));
+            const failed=results.flatMap((result,i)=>result.status==='rejected'
+              ?[jobs[i].label+': '+String(result.reason?.message||'could not refresh')]:[]);
+            const facebookPersonalResult=results.find((result,i)=>jobs[i].label==='Facebook Personal'&&result.status==='fulfilled');
+            const fbNote=facebookPersonalResult?.value?.result;
+            const fbBusinessResult=results.find((result,i)=>
+              jobs[i].label==='Facebook Business'&&result.status==='fulfilled');
+            const fbBusiness=fbBusinessResult?.value?.result;
             archiveInitialized=false;archiveMedia=[];archiveCursor=null;archiveHasMore=false;
             await draw();
-          }catch(error){if(st)st.textContent=error?.message||'The Archive could not refresh its connected Orbit imports.'}finally{button.disabled=false}
+            const nextStatus=$('#archiveInstagramStatus',body);
+            if(nextStatus){
+              const refreshed=results.filter(result=>result.status==='fulfilled').length;
+              const notices=[refreshed?refreshed+' source refresh(es) completed.':'No active source refresh was available.'];
+              if(typeof fbNote==='string')notices.push('Facebook: '+fbNote);
+              if(fbBusiness&&typeof fbBusiness==='object'){
+                notices.push('Facebook Business: '+fbBusiness.photos+' photos, '+fbBusiness.videos+' videos returned.');
+                if(fbBusiness.missing?.length)notices.push('Grant '+fbBusiness.missing.join(' and ')+' in Meta and reconnect Facebook.');
+                if(fbBusiness.saveError)notices.push(fbBusiness.saveError);
+              }
+              if(failed.length)notices.push(failed.join(' · '));
+              if(selection==='facebook'&&!jobs.length)notices.push('Connect Facebook in Orbit, then try again.');
+              nextStatus.textContent=notices.join(' ');
+            }
+          }catch(error){
+            const latest=$('#archiveInstagramStatus',body);
+            if(latest)latest.textContent=error?.message||'The Archive could not refresh its connected Orbit imports.';
+          }finally{const latest=$('#archiveRefreshInstagram',body);if(latest)latest.disabled=false}
         });
         $('#archiveLoadMore',body)?.addEventListener('click',loadMore);
         $('#archiveVisibility',body)?.addEventListener('change',async(event)=>{
@@ -3212,6 +3489,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           }
         });
       }
+      /* The Highlights panel lives above the wall and is rebuilt with it. Tell the profile
+         editor the draw is finished so it can mount the panel on the new toolbar instead of
+         waiting for a mutation that may already have happened. */
+      try{
+        window.dispatchEvent(new CustomEvent('biglwa:archive-rendered',{detail:{
+          sources:filters.sources.slice(),count:mediaShown.length,owner
+        }}));
+      }catch{}
 };
     draw();
   }
@@ -3260,9 +3545,43 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   }
 
   function renderTrophies(){
-    body.innerHTML=heading('trophies')+`<div class="module-grid trophy-page-grid"><section class="module-card"><h2 id="trophyFormTitle">Add to your trophy case</h2><p>Everything is optional except the title. Add an Athletic.net page or another public result link when you want proof attached.</p><form class="module-form" id="trophyForm"><input type="hidden" name="editIndex" id="trophyEditIndex"><div class="trophy-form-grid"><label class="trophy-field full"><span>Title</span><input class="module-input" name="title" placeholder="Award, credential, race, achievement, or milestone" required></label><label class="trophy-field"><span>Type</span><select class="module-select" name="kind"><optgroup label="Recognition"><option value="award">Award</option><option value="honor">Honor / distinction</option><option value="scholarship">Scholarship / fellowship</option></optgroup><optgroup label="Education &amp; credentials"><option value="license">License</option><option value="certification">Certification</option><option value="diploma">Diploma</option><option value="degree">Degree</option><option value="ged">GED / equivalency</option></optgroup><optgroup label="Milestones &amp; athletics"><option value="achievement">Achievement</option><option value="milestone">Personal milestone</option><option value="record">Record / personal best</option><option value="race">Race / marathon</option><option value="athletic-result">Athletic result</option></optgroup></select></label><label class="trophy-field"><span>Month &amp; year</span><input class="module-input" name="date" type="month" placeholder="YYYY-MM"></label><label class="trophy-field full"><span>Organization or event</span><input class="module-input" name="organization" placeholder="School, licensing body, race, league, workplace, or presenter"></label><label class="trophy-field full"><span>Result or details</span><input class="module-input" name="result" placeholder="Credential, finish time, placement, distinction, or note"></label><label class="trophy-field full"><span>Result or proof link</span><input class="module-input" name="url" inputmode="url" placeholder="https://www.athletic.net/… or another public page"></label></div><div class="module-actions"><button class="module-action" id="trophySave" type="submit">Save trophy</button><button class="module-action ghost" id="trophyCancel" type="button" hidden>Cancel edit</button></div><div class="module-status" id="trophyStatus" role="status" aria-live="polite"></div></form></section><section class="module-card"><h2>Trophy case</h2><p>No placeholders—only the awards, credentials, finishes, results, and milestones you choose to save.</p><div class="trophy-list" id="trophyList">${trophyEntriesMarkup(readTrophies())}</div></section></div>`;
+    body.innerHTML=heading('trophies')+`<section class="trophy-version-pane" id="trophyRankVersion" data-trophy-version-pane="rank" role="tabpanel" aria-labelledby="trophyRankVersionButton"><section class="module-card trophy-rank-panel"><h2>Real Rank</h2><p>Explore your BIG LWA rank journey. Locked ranks are shown as goals, not earned achievements.</p><div id="trophyAchievementMap"></div></section></section><div class="module-grid trophy-page-grid trophy-case-version trophy-version-pane" id="trophyCaseVersion" data-trophy-version-pane="case" role="tabpanel" aria-labelledby="trophyCaseVersionButton" hidden><section class="module-card"><h2 id="trophyFormTitle">Add to your trophy case</h2><p>Everything is optional except the title. Add an Athletic.net page or another public result link when you want proof attached.</p><form class="module-form" id="trophyForm"><input type="hidden" name="editIndex" id="trophyEditIndex"><div class="trophy-form-grid"><label class="trophy-field full"><span>Title</span><input class="module-input" name="title" placeholder="Award, credential, race, achievement, or milestone" required></label><label class="trophy-field"><span>Type</span><select class="module-select" name="kind"><optgroup label="Recognition"><option value="award">Award</option><option value="honor">Honor / distinction</option><option value="scholarship">Scholarship / fellowship</option></optgroup><optgroup label="Education &amp; credentials"><option value="license">License</option><option value="certification">Certification</option><option value="diploma">Diploma</option><option value="degree">Degree</option><option value="ged">GED / equivalency</option></optgroup><optgroup label="Milestones &amp; athletics"><option value="achievement">Achievement</option><option value="milestone">Personal milestone</option><option value="record">Record / personal best</option><option value="race">Race / marathon</option><option value="athletic-result">Athletic result</option></optgroup></select></label><label class="trophy-field"><span>Month &amp; year</span><input class="module-input" name="date" type="month" placeholder="YYYY-MM"></label><label class="trophy-field full"><span>Organization or event</span><input class="module-input" name="organization" placeholder="School, licensing body, race, league, workplace, or presenter"></label><label class="trophy-field full"><span>Result or details</span><input class="module-input" name="result" placeholder="Credential, finish time, placement, distinction, or note"></label><label class="trophy-field full"><span>Result or proof link</span><input class="module-input" name="url" inputmode="url" placeholder="https://www.athletic.net/… or another public page"></label></div><div class="module-actions"><button class="module-action" id="trophySave" type="submit">Save trophy</button><button class="module-action ghost" id="trophyCancel" type="button" hidden>Cancel edit</button></div><div class="module-status" id="trophyStatus" role="status" aria-live="polite"></div></form></section><section class="module-card trophy-display-case"><h2>Trophy Case</h2><p>Keep your awards, finishes, and milestones here. Saved trophies remain separate from your Real Rank.</p><div class="trophy-list" id="trophyList">${trophyEntriesMarkup(readTrophies())}</div></section></div>`;
     const form=$('#trophyForm',body),list=$('#trophyList',body),status=$('#trophyStatus',body),editField=$('#trophyEditIndex',body),saveButton=$('#trophySave',body),cancelButton=$('#trophyCancel',body),formTitle=$('#trophyFormTitle',body);
-    const draw=()=>{list.innerHTML=trophyEntriesMarkup(readTrophies())};
+    const rankPane=$('#trophyRankVersion',body),casePane=$('#trophyCaseVersion',body),headingRoot=$('.module-heading',body);
+    let versionRight=$('.module-heading-right',headingRoot);
+    if(!versionRight){
+      versionRight=document.createElement('div');versionRight.className='module-heading-right module-version-right';
+      const bottom=$('.module-heading-bottom',headingRoot);
+      if(bottom)headingRoot.insertBefore(versionRight,bottom);else headingRoot.append(versionRight);
+    }
+    const versionTabs=document.createElement('nav');
+    versionTabs.className='module-heading-versions trophy-heading-versions';
+    versionTabs.setAttribute('aria-label','Trophies page versions');
+    const tabs=[['rank','Real Rank','trophyRankVersionButton'],['case','Trophy Case','trophyCaseVersionButton']];
+    for(const [mode,label,id] of tabs){
+      const button=document.createElement('button');button.id=id;button.type='button';button.textContent=label;
+      button.dataset.trophyVersion=mode;button.setAttribute('aria-controls',mode==='rank'?'trophyRankVersion':'trophyCaseVersion');
+      versionTabs.append(button);
+    }
+    versionRight.prepend(versionTabs);
+    headingRoot.classList.add('module-heading--with-versions','module-heading--single-line');
+    const draw=()=>{
+      const items=readTrophies();list.innerHTML=trophyEntriesMarkup(items);
+      if(!rankPane.hidden)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),items,{mode:'rank'});
+    };
+    const setVersion=mode=>{
+      const rank=mode==='rank';
+      rankPane.hidden=!rank;casePane.hidden=rank;
+      versionTabs.querySelectorAll('[data-trophy-version]').forEach(button=>{
+        const active=button.dataset.trophyVersion===mode;
+        button.setAttribute('aria-pressed',String(active));button.classList.toggle('is-active',active);
+      });
+      if(rank)window.BigLWATrophyMap?.mount($('#trophyAchievementMap',body),readTrophies(),{mode:'rank'});
+    };
+    versionTabs.addEventListener('click',event=>{
+      const button=event.target.closest('[data-trophy-version]');if(button)setVersion(button.dataset.trophyVersion);
+    });
+    draw();setVersion('rank');
     const leaveEdit=()=>{form.reset();editField.value='';saveButton.textContent='Save trophy';cancelButton.hidden=true;formTitle.textContent='Add to your trophy case'};
     form.addEventListener('submit',event=>{
       event.preventDefault();const fd=new FormData(form),title=String(fd.get('title')||'').trim();
@@ -3288,7 +3607,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     body.innerHTML=heading('map')+`<style>#biglwaMapApp{width:100%;height:820px;border:0;border-radius:16px;background:#f6f0e9;display:block}#biglwaMapStatus{margin:0 0 10px;font:600 12px/1.45 system-ui;color:#6b5448}@media(max-width:760px){#biglwaMapApp{height:1050px}}</style>
       <section aria-label="BIG LWA map">
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
-      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261014-studio-real-map-controls-4" loading="eager" referrerpolicy="same-origin"
+      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261029-island-signal-1" loading="eager" referrerpolicy="same-origin"
        title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
@@ -3312,7 +3631,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(retry)retry.onclick=()=>{
       ready=false;
       status.textContent='Retrying the map without reloading Studio…';
-      frame.src='/map-app.html?embed=1&v=20261014-studio-real-map-controls-4';
+      frame.src='/map-app.html?embed=1&v=20261029-island-signal-1';
     };
   }
 
@@ -3348,12 +3667,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   }
 
   function renderVeve(){
-    // Same origin legend as Archive, anchored to the Orbit planet shadow colors.
-    const sources=[['Instagram','#f36b21'],['TikTok','#772dcc'],['Pinterest','#e60023'],
-      ['Facebook','#1658be'],['YouTube','#fff1ec'],['Snapchat','#ffda00'],['Tumblr','#1b304b'],['X','#0e0e0e']];
-    const legend='<div class="veve-origin-legend" aria-label="App shadow color key"><b>SHADOW KEY</b>'+
-      sources.map(([name,color])=>'<span class="veve-origin-key-item"><i style="background:'+color+'"></i>'+name+'</span>').join('')+'</div>';
-    body.innerHTML=heading('veve')+legend+'<div id="biglwaVeve" class="veve-root"><p role="status">Loading public discovery…</p></div>';
+    body.innerHTML=heading('veve')+'<div id="biglwaVeve" class="veve-root"><p role="status">Loading public discovery…</p></div>';
     const root=$('#biglwaVeve',body);
     if(window.BigLWAVeve?.mount)window.BigLWAVeve.mount(root);
     else root.innerHTML='<p role="alert">Veve is loading. Please refresh and try again.</p>';
@@ -3363,9 +3677,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
     stopCamera();let key=(rawKey||'').toLowerCase();if(key==='politic'||key==='politics')key='politc';
-    if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project'||key==='visualz')key='projects';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
+    if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project'||key==='visualz'||key==='visualizr')key='projects';if(key==='lwazi')key='tools';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
     if(window.BigLWAProfileModules?.render(key,body))return;
-    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='veve')renderVeve();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')renderCollection('boards',[{name:'title',placeholder:'Board name'},{name:'detail',placeholder:'What belongs here?'}],[{title:'My Inspiration',meta:'visual references'}]);else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));
+    if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='veve')renderVeve();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')body.innerHTML=heading('boards');else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));
     // The banner remains above, but entering a widget lands at the actual page
     // heading rather than resetting users to the top of the Studio.
     const openedKey=key;
@@ -3396,20 +3710,20 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   const syncVeveLogoLabel=()=>{
     const logo=document.querySelector('#studioApp .studio-brand-row > a.brand.biglwa-block-brand');
     if(!logo)return;
-    const title=activeModuleKey==='veve'?'Return to Studio':'Open Veve';
+    const title=activeModuleKey?'Return to Studio':'Studio home';
     logo.setAttribute('aria-label',title);
     logo.setAttribute('title',title);
   };
   document.addEventListener('biglwa:module-open',syncVeveLogoLabel);
   document.addEventListener('biglwa:module-close',syncVeveLogoLabel);
-  // The BIGLWA crest toggles between Studio and Veve without reloading the
-  // signed-in session or interrupting any other modules or their stored data.
+  // The Studio mark is always a return-home control. Veve has its own
+  // permanent button; clicking the Studio symbol must never force Veve.
   document.addEventListener('click',event=>{
     const logo=event.target?.closest?.('#studioApp .studio-brand-row > a.brand.biglwa-block-brand');
     if(!logo||document.documentElement.classList.contains('biglwa-preview-mode'))return;
     event.preventDefault();event.stopImmediatePropagation();
-    if(activeModuleKey==='veve')closeModule();
-    else openModule('veve');
+    if(activeModuleKey)closeModule();
+    // Already on Studio home: stay here. This intentionally does not open Orbit or Veve.
   },true);
   function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
@@ -3455,23 +3769,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         note.innerHTML='<span class="studio-private-writing">🔒 Sqwib · private</span>';
         note.setAttribute('aria-label','Sqwib is private');
       }
+      // The public-profile presenter owns the immutable composition-book cover.
+      // Do not replace this tile with asynchronous text on focus/module close:
+      // that destroys the owner's cover and races the visitor's profile data.
+      // Only the explicitly published Journal snapshot is read on its full page.
       const page=$('#studioApp #diary .diary-page');
-      if(page){
-        const username=(()=>{try{return decodeURIComponent(location.pathname.split('/').filter(Boolean)[0]||'')}catch{return ''}})();
-        if(page.dataset.publicJournalUsername!==username){
-          page.dataset.publicJournalUsername=username;
-          page.innerHTML='<span class="studio-private-writing">Journal · checking visibility…</span>';
-          Promise.resolve(window.BigLWAUserDirectory?.loadPublicProfile?.(username)).then(profile=>{
-            if(!page.isConnected||page.dataset.publicJournalUsername!==username)return;
-            if(profile?.journalVisibility==='public'&&profile.publicJournal){
-              page.innerHTML='<span class="studio-public-journal-heading">Journal · viewable</span><p class="studio-public-journal-excerpt"></p>';
-              page.querySelector('p').textContent=String(profile.publicJournal).slice(0,165);
-            }else{
-              page.innerHTML='<span class="studio-private-writing">🔒 Journal · private</span>';
-            }
-          }).catch(()=>{if(page.isConnected)page.innerHTML='<span class="studio-private-writing">Journal unavailable</span>'});
-        }
-      }
+      if(page)page.dataset.publicJournalViewer='1';
       return;
     }
     const journalInitial=()=>{
@@ -3547,7 +3850,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       mini.id='biglwaStudioMiniMap';
       mini.className='studio-mini-map';
       mini.title='Interactive mini map — pan, zoom, and see saved locations';
-      mini.src='/map-app.html?embed=1&preview=1&v=20261014-studio-real-map-controls-2';
+      mini.src='/map-app.html?embed=1&preview=1&v=20261029-island-signal-1';
       mini.loading='eager';
       mini.referrerPolicy='same-origin';
       mini.setAttribute('allow','geolocation \'self\'');
@@ -3584,8 +3887,24 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(!leaf.length&&!control.children.length)leaf.push(control);
       leaf.forEach(node=>{if(/^(qwiky|quick|sqwib)\s*note$/i.test(node.textContent.trim()))node.textContent='Sqwib'});
     });
-    const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
-    if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Black-and-white photobooth preview');cameraPreview.innerHTML='<img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Three friends posing together in a black-and-white photobooth portrait" width="800" height="533" loading="lazy">'}
+    const toolsCard=$('#tools');
+     if(toolsCard){
+       const sub=$('.sub',toolsCard);
+       if(sub&&sub.textContent!=="every tool you'll ever need is here. we promise.")sub.textContent="every tool you'll ever need is here. we promise.";
+       const cta=$('.card-cta',toolsCard);
+       if(cta){cta.textContent='open tools';cta.dataset.open='tools';cta.setAttribute('aria-label','Open tools')}
+     }
+     const connectCard=$('#connect');
+     if(connectCard){
+       connectCard.querySelectorAll('button,a').forEach(control=>{
+         for(const leaf of [control,...control.querySelectorAll('span,small,b,strong')]){
+           if(leaf.children.length)continue;
+           if(/^invite friends$/i.test(leaf.textContent.trim()))leaf.textContent='invite boo·kiniz';
+         }
+       });
+     }
+     const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
+    if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Photo booth curtain preview');cameraPreview.innerHTML='<img src="/assets/booth-light-20261029.webp" alt="Red curtain for photo booth" width="800" height="533" loading="lazy">'}
     const archiveCard=$('#archive');
     if(archiveCard){
       archiveCard.dataset.widgetRoute='archive';
@@ -3610,26 +3929,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       preview.className='archive-photo-preview';
       preview.dataset.open='archive';
       preview.setAttribute('aria-label','Open Archive');
-      preview.innerHTML='<img alt="Polaroid photograph of three friends relaxing together on a bed" width="360" height="638" loading="eager" decoding="sync">';
-      const archiveImg=$('img',preview);
-      const archiveParts=[
-        '/assets/archive-preview-b64-0a.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-0b.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-1.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-2.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-3.txt?v=20260918-inline-3',
-        '/assets/archive-preview-b64-4.txt?v=20260918-inline-3'
-      ];
-      Promise.all(archiveParts.map(url=>fetch(url,{cache:'no-store'}).then(response=>{
-        if(!response.ok)throw new Error('Archive preview chunk failed: '+response.status);
-        return response.text();
-      }))).then(parts=>{
-        const data=parts.join('').replace(/\\s+/g,'');
-        if(archiveImg)archiveImg.src='data:image/jpeg;base64,'+data;
-      }).catch(error=>{
-        console.error(error);
-        preview.classList.add('archive-preview-load-failed');
-      });
+      // The user's Windows wallpaper is the sole default Archive thumbnail.
+      // Do not rebuild the former inline base64 portrait or race another loader:
+      // it could overwrite the new default after the Studio had already painted.
+      preview.classList.add('biglwa-archive-default-windows');
+      preview.dataset.biglwaDefault20261029='1';
+      preview.innerHTML='<img class="biglwa-windows-archive-photo" src="/assets/studio-defaults/archive-windows-hill.webp?v=20261029-win-default-2" alt="Green hills and a blue sky from the classic Windows desktop wallpaper" width="800" height="600" loading="eager" decoding="async">';
+      preview.querySelector('img')?.addEventListener('error',()=>preview.classList.add('archive-preview-load-failed'));
 
       const cta=document.createElement('button');
       cta.className='card-cta';
@@ -3658,42 +3964,35 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         feed.renderHero(true);
       }
     }
+    // One thumbnail renderer owns Boards. Do not recreate the legacy six-tile
+    // grid over Pinterest's one-portrait + four-squares gallery.
     function syncStudioBoardsPreview(){
       const card=$('#boards');if(!card)return;
       card.dataset.widgetRoute='boards';
-      let slot=$('#biglwaStudioBoardsPreview',card);
-      if(!slot){
-        slot=document.createElement('div');
-        slot.id='biglwaStudioBoardsPreview';
-        slot.className='studio-pinterest-board-preview';
-        slot.setAttribute('aria-label','Your connected Pinterest Pins');
-        const cta=$('.card-cta',card);
-        if(cta)cta.before(slot);else card.appendChild(slot);
-      }
-      const state=window.__biglwaPinterest?.state;
-      const viewer=String(window.__biglwaIdentity?.uid||'');
-      const tiles=(state?.connected&&(!viewer||state.uid===viewer))
-        ?(window.__biglwaPinterest?.getPreview?.()||[]):[];
-      const signature=tiles.slice(0,6).map(item=>item.url).join('|');
-      if(state?.connected&&(!viewer||state.uid===viewer)){
-        // After Pinterest connects, don't allow static placeholder art
-        // to remain behind the live pin grid, even while Pins are loading.
-        [...card.children].forEach(child=>{
-          if(child===slot||child.matches('.card-head,.sub,.card-cta,.widget-window-controls,.window-controls,.widget-drag-handle'))return;
-          child.remove();
-        });
-        card.classList.add('has-live-pinterest-preview');
-      }else{
-        // Do not falsely display the generic collage as a Pinterest account.
+      const publicView=document.documentElement.classList.contains('biglwa-preview-mode')||
+        Boolean(window.__biglwaPublicStorageView);
+      if(publicView)return; // Never substitute this member's photos into a guest view.
+      const photos=window.__biglwaPinterest?.getPreview?.()||[];
+      const old=card.querySelector('#biglwaStudioBoardsPreview');
+      if(photos.length){
+        old?.remove();
         card.classList.remove('has-live-pinterest-preview');
+        window.__biglwaRefreshBoardsThumbnail?.();
+        return;
       }
-      if(slot.dataset.signature===signature)return;
-      slot.dataset.signature=signature;
-      slot.innerHTML=tiles.length
-        ?tiles.slice(0,6).map((item,i)=>
-          '<button type="button" data-open="boards" aria-label="Open Pinterest Boards">'+
-          '<img src="'+esc(item.url)+'" loading="lazy" decoding="async" alt="Pinterest Pin '+(i+1)+'"></button>').join('')
-        :'<button type="button" class="studio-pinterest-empty" data-open="boards">'+(state?.connected?'Open Boards to load your Pins':'Connect Pinterest to preview your Pins')+'</button>';
+      // No Pinterest pictures have arrived: keep the one honest Connect/Open
+      // prompt, not blank dummy frames or a fabricated stock-photo gallery.
+      if(card.querySelector('.biglwa-studio-board-gallery'))return;
+      let slot=old;
+      if(!slot){
+        slot=document.createElement('div');slot.id='biglwaStudioBoardsPreview';
+        slot.className='studio-pinterest-board-preview';
+        card.querySelector('.card-cta')?.before(slot);
+      }
+      const linked=Boolean(window.__biglwaPinterest?.state?.connected);
+      slot.classList.add('studio-pinterest-awaiting');
+      slot.innerHTML='<button type="button" class="studio-pinterest-empty" data-open="boards">'+
+        (linked?'Open Boards to load your Pins':'Connect Pinterest to preview your Pins')+'</button>';
     }
     const feedCard=$('#feed');
     if(feedCard){
@@ -3774,7 +4073,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         toolsCard.className='card studio-tools-card';
         toolsCard.dataset.search='tools pdf compression youtube mp3 mp4 download converter file image audio video convert';
         toolsCard.dataset.widgetRoute='tools';
-        toolsCard.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">🛠</span><h2>Tools</h2></div><button class="arrow-btn" type="button" data-open="tools" aria-label="Open Tools">→</button></div><p class="sub">Drop any file and it is sorted out automatically — convert video or audio, compress a PDF or image, or send it to a converter online.</p><button class="card-cta" type="button" data-open="tools">Open Tools →</button>';
+        toolsCard.innerHTML='<div class="card-head"><div><span class="card-icon" aria-hidden="true">🛠</span><h2>lwazi</h2></div><button class="arrow-btn" type="button" data-open="tools" aria-label="Open lwazi">→</button></div><p class="sub">every tool you\'ll ever need is here. we promise.</p><button class="card-cta" type="button" data-open="tools">open tools</button>';
         const mapRef=$('#map');
         if(mapRef&&mapRef.parentElement===masonry)mapRef.insertAdjacentElement('afterend',toolsCard);else masonry.appendChild(toolsCard);
       }
@@ -3788,8 +4087,29 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
 
   document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const directory=e.target.closest('.hero-action-bar a[href^="#"]');const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!directory&&!mobile&&!trigger)return;let key=mobile?'veve':directory?(directory.getAttribute('href')||'').replace(/^#/,''):trigger.dataset.open;if(key==='home'){e.preventDefault();e.stopImmediatePropagation();closeModule();window.scrollTo({top:0,behavior:'smooth'});return}if(key==='desk')key='create';const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key||!known.has(String(key).toLowerCase()))return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
   const cleanStudioModulePath=()=>{try{const parts=location.pathname.replace(/^\/+|\/+$/g,'').split('/').filter(Boolean).map(x=>decodeURIComponent(x).toLowerCase());if(parts[0]!=='studio'||parts.length!==2)return '';return known.has(parts[1])?parts[1]:''}catch{return ''}};
-  const routeViewFromUrl=()=>{const params=new URLSearchParams(location.search);if(location.pathname.replace(/\/+$/,'')==='/studio'&&['map','politc'].includes(params.get('panel')))return params.get('panel');const legacy=params.get('view');return legacy&&known.has(legacy.toLowerCase())?legacy.toLowerCase():cleanStudioModulePath()};
-  const canonicalizeLegacyView=()=>{const legacy=new URLSearchParams(location.search).get('view');if(!legacy||!known.has(legacy.toLowerCase())||legacy.toLowerCase()==='orbit')return;try{history.replaceState({biglwaModule:legacy.toLowerCase()},'',['map','politc'].includes(legacy.toLowerCase())?`/studio?panel=${encodeURIComponent(legacy.toLowerCase())}`:`/studio/${encodeURIComponent(legacy.toLowerCase())}`)}catch{}};
+  const explicitOrbitReturn=params=>params.get('orbit_return')==='1'||
+    params.get('nav')==='1'||params.has('instagram_handoff')||
+    params.has('instagram_error')||params.has('pinterest_handoff')||params.has('tiktok_handoff');
+  const routeViewFromUrl=()=>{
+    const params=new URLSearchParams(location.search);
+    if(location.pathname.replace(/\/+$/,'')==='/studio'&&['map','politc'].includes(params.get('panel')))return params.get('panel');
+    const legacy=(params.get('view')||'').toLowerCase();
+    if(legacy==='orbit'&&!explicitOrbitReturn(params))return cleanStudioModulePath();
+    return legacy&&known.has(legacy)?legacy:cleanStudioModulePath();
+  };
+  const canonicalizeLegacyView=()=>{
+    const params=new URLSearchParams(location.search),legacy=(params.get('view')||'').toLowerCase();
+    if(!legacy||!known.has(legacy))return;
+    if(legacy==='orbit'){
+      // A stale ?view=orbit from a previous tab is not an OAuth request.
+      // Keep authentic handoff parameters intact until the provider reads them.
+      if(!explicitOrbitReturn(params))try{history.replaceState({},'','/studio')}catch{}
+      return;
+    }
+    try{history.replaceState({biglwaModule:legacy},'',
+      ['map','politc'].includes(legacy)?`/studio?panel=${encodeURIComponent(legacy)}`:
+       `/studio/${encodeURIComponent(legacy)}`)}catch{}
+  };
   window.addEventListener('popstate',()=>{const v=routeViewFromUrl();if(v)openModule(v,'',false);else closeModule(false)});
   // Map stays on the authenticated Studio route, even when an older deep link is opened.
   const deepPanel=location.pathname.match(/^\/studio\/(map|politc)\/?$/i);

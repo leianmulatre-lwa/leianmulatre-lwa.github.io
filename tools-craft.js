@@ -20,20 +20,51 @@ const ENGINES=[
 const PUBLIC_APP_ROUTE={photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'};
 const BIGLWA_GITHUB='https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io';
 const BIGLWA_PATREON='https://www.patreon.com/cw/biglwa';
-const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-desk.html',
+const LOCAL={id:'image-desk',name:'sqwibblR',letter:'𝖘',url:'/tools/image-desk.html?v=20261029-old-web-1',
  description:'Draw, paint, add text and layers, edit photos, save editable BIG LWA projects.',
  credit:'Original BIG LWA editor · works locally'};
+const WEB_FRIENDLY=[
+ {id:'visualizr',name:'visualizr',route:'projects',icon:'/assets/bigapps/icons/visualizr.png?v=20261026-stitched-v-2',
+  description:'Build visualeyez boards and visualslidez presentations inside your BIG LWA Studio.'}
+];
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeId=id=>id===LOCAL.id||ENGINES.some(item=>item.id===id);
-/* Original BIG LWA cube art: cushioned piping, textile panels and thread stitching.
-   SVG stays inline so every icon is crisp at phone and desktop sizes. */
-/* Transparent, matched embroidered blocks for all five creative apps. */
+/* Use the ORIGINAL embroidered block art produced for the Workshop.
+   The alternate generated SVG interpretations are not these app icons. */
 const CRAFT_ICON_NAME={
  'image-desk':'sqwibblR',photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'
 };
 function blockArtwork(item){
  const name=CRAFT_ICON_NAME[item.id]||'sqwibblR';
- return '<img class="craft-block-png" src="/assets/bigapps/icons/'+name+'.png?v=20261023-stitch-png-1" alt="" width="160" height="160" decoding="async" />';
+ return '<img class="craft-block-png" src="/assets/bigapps/icons/'+name+'.png?v=20261026-original-stitch-1" alt="" width="160" height="160" decoding="async" />';
+}
+
+const CRAFT_ALTERNATE={
+ 'image-desk':'sqwibblR',visualizr:'visualizr',
+ photocraft:'lightR',vectorcraft:'paintR',effectcraft:'keyframeR',pdfcraft:'fileR'
+};
+function blockPair(item,primary){
+ const key=CRAFT_ALTERNATE[item.id]||'sqwibblR';
+ return '<div class="craft-block-pair">'+
+ '<span class="craft-block-main">'+primary+'</span>'+
+ '<img class="craft-block-alt" src="/assets/bigapps/blocks/'+key+'.svg?v=20261029-coded-pair-1" alt="" aria-hidden="true" width="48" height="48" loading="lazy">'+
+ '</div>';
+}
+function weeklyBlock(){
+ const blocks=[
+  {name:'sqwibblR',open:'image-desk',image:'sqwibblR'},
+  {name:'visualizr',route:'projects',image:'visualizr'},
+  {name:'lightR',open:'photocraft',image:'lightR'},
+  {name:'paintR',open:'vectorcraft',image:'paintR'},
+  {name:'keyframeR',open:'effectcraft',image:'keyframeR'},
+  {name:'fileR',open:'pdfcraft',image:'fileR'}
+ ];
+ const today=new Date(),utc=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()));
+ const day=(utc.getUTCDay()+6)%7;utc.setUTCDate(utc.getUTCDate()-day+3);
+ const isoYear=utc.getUTCFullYear(),first=new Date(Date.UTC(isoYear,0,4));
+ first.setUTCDate(first.getUTCDate()-(first.getUTCDay()+6)%7+3);
+ const week=1+Math.round((utc-first)/604800000);
+ return blocks[(isoYear*53+week)%blocks.length];
 }
 
 let stylesReady=false;
@@ -41,20 +72,29 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261023-color-coded-native-1';document.head.append(css);
+ css.href='/tools-craft.css?v=20261029-folder-seam-4';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
  return '<article class="craft-tile'+(local?' craft-tile-home':'')+'" data-craft-card="'+item.id+'">'+
    '<div class="craft-tile-eyebrow">'+escapeHtml(title)+'</div>'+
    '<div class="craft-tile-icon craft-arcade-block craft-block-'+escapeHtml(item.id)+'" aria-hidden="true">'+
-     blockArtwork(item)+'</div>'+
+     blockPair(item,blockArtwork(item))+'</div>'+
    '<h3 aria-label="'+escapeHtml(item.name)+'">'+escapeHtml(item.name.slice(0,-1))+'<span class="craft-capital-r" aria-hidden="true">R</span></h3>'+
    '<p>'+escapeHtml(item.description)+'</p>'+
-   '<div class="craft-engine-credits">'+(local?'Made by BIG LWA':'BIG LWA edition · licensed editing engine')+'</div>'+
+   '<div class="craft-engine-credits">'+(local?'Made by BIG LWA':'BIG LWA · R-series advanced editor')+'</div>'+
    '<button type="button" data-craft-open="'+item.id+'"'+(local?'':' disabled')+'>'+
       (local?'Start creating →':'Checking engine…')+'</button>'+
-   (local?'':('<a href="/bigapps/'+encodeURIComponent(PUBLIC_APP_ROUTE[item.id])+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & license notes ↗</a>'))+
+   (local?'':('<a href="/bigapps/'+encodeURIComponent(PUBLIC_APP_ROUTE[item.id])+'/upstream-licenses/SOURCE.txt" target="_blank" rel="noopener noreferrer">Source & notices ↗</a>'))+
+  '</article>';
+}
+function webAppCard(item){
+ return '<article class="craft-tile craft-tile-home" data-craft-card="'+item.id+'">'+
+  '<div class="craft-tile-eyebrow">BIG LWA ORIGINAL · WEB FRIENDLY</div>'+
+  '<div class="craft-tile-icon craft-arcade-block" aria-hidden="true">'+blockPair(item,'<img class="craft-block-png" src="'+item.icon+'" width="160" height="160" alt="" decoding="async">')+'</div>'+
+  '<h3 aria-label="'+escapeHtml(item.name)+'">'+escapeHtml(item.name.slice(0,-1))+'<span class="craft-capital-r" aria-hidden="true">R</span></h3><p>'+escapeHtml(item.description)+'</p>'+
+  '<div class="craft-engine-credits">Made for BIG LWA · Studio native</div>'+
+  '<button type="button" data-craft-route="'+item.route+'">Open '+escapeHtml(item.name)+' →</button>'+
   '</article>';
 }
 export async function mountCraftSuite(root){
@@ -62,12 +102,27 @@ export async function mountCraftSuite(root){
  installStyle();
  root.classList.add('craft-suite','craft-workshop');
  root.innerHTML=
-  '<header class="craft-head">'+
-   '<div class="craft-head-copy"><span class="craft-label">BIG LWA · maker\'s workspace</span>'+
-   '<h2>the workshop</h2>'+
-   '<p>A creative operating room that belongs to this community: make your own work, keep drafts to yourself, export what you choose.</p><nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">BIG LWA GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support on Patreon ↗</a></nav></div>'+
-   '<div class="craft-head-ornament" aria-hidden="true"><i></i><i></i><i></i><strong>✦</strong></div></header>'+
-  '<div class="craft-toolbar"><span>01 / MAKE</span><span>02 / EDIT</span><span>03 / KEEP OR SHARE</span></div>'+
+  '<header class="craft-head craft-folder-cover" aria-label="BIG LWA Lwazi folder">'+
+   '<div class="craft-folder-tab"><span class="craft-folder-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="craft-folder-tab-name">R / LWAZI</span></div>'+
+   '<div class="craft-folder-front">'+
+    '<div class="craft-folder-inner craft-folder-inner--tri">'+
+     '<div class="craft-folder-brand"><img class="craft-folder-logo" src="/assets/games-lwa-blocks-exact.webp" alt="BIG LWA stitched letters and colored blocks" width="1200" height="675" decoding="async"></div>'+
+     '<div class="craft-folder-details"><span class="craft-folder-seal">R / LWAZI SERIEZ · YOUR SNAPSHOTS</span>'+
+      '<p>Make, edit, keep or share. Two BIG LWA originals and four advanced R-editors, all in your werkshop.</p>'+
+      '<nav class="craft-founder-links" aria-label="BIG LWA development and support"><a href="'+BIGLWA_GITHUB+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+BIGLWA_PATREON+'" target="_blank" rel="noopener noreferrer">Support ↗</a></nav>'+
+     '</div>'+
+     '<aside class="craft-folder-weekly" aria-label="Block of the week"><span class="craft-weekly-eyebrow">block of the week</span>'+
+      '<button class="craft-weekly-choice" type="button" data-craft-weekly="'+(weeklyBlock().open||weeklyBlock().route)+'">'+
+        '<img src="/assets/bigapps/icons/'+weeklyBlock().image+'.png?v=20261026-original-stitch-1" alt="" width="64" height="64">'+
+        '<span><strong>'+weeklyBlock().name+'</strong><small>new block every Monday · open ↗</small></span>'+
+      '</button>'+
+     '</aside>'+
+    '</div>'+
+    '<section class="craft-account-vault craft-vault-inline" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
+     '<div class="craft-vault-actions"><label class="craft-vault-file">Save a snapshot<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
+     '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
+   '</div>'+
+  '</header>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
   '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
   '<section class="craft-account-vault" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
@@ -76,6 +131,7 @@ export async function mountCraftSuite(root){
    '<div class="craft-vault-actions"><label class="craft-vault-file">Save an exported image<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
    '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
   '<section class="craft-project-vault" id="craftProjectVault" aria-label="Private editable Workshop projects"></section>'+
+  '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+WEB_FRIENDLY.map(webAppCard).join('')+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
   '<div class="craft-panel" id="craftPanel" hidden>'+
     '<div class="craft-panel-head"><div class="craft-panel-identity"><span class="craft-panel-lights" aria-hidden="true"><i></i><i></i><i></i></span><strong id="craftPanelTitle">BIG LWA editor</strong></div><div class="craft-panel-actions">'+
        '<label class="craft-panel-save" title="Save a flattened exported image to your BIG LWA snapshot shelf">Save preview<input id="craftPanelSaveFile" type="file" accept="image/png,image/jpeg,image/webp"></label>'+ 
@@ -89,6 +145,9 @@ export async function mountCraftSuite(root){
   '<footer class="craft-smallprint">'+
     '<p><strong>Who made what?</strong> sqwibblR and this Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
     '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects can be exported inside the editor, then saved as original files to your private account shelf once the project-storage API is deployed. Some advanced builds require WebGPU/WebGL.</p>'+
+    '<p><strong>Made for BIG LWA.</strong> Lwazi is our creative workspace: our design, our identity, and our member-facing workflows. Each block opens its own BIG LWA experience.</p>'+
+    '<p><strong>Your work stays yours.</strong> Editing and exports normally run in your browser. Save an image snapshot privately to your account only when you choose to; layered projects require their own export/download. Some advanced tools need WebGL or WebGPU.</p>'+
+    '<details><summary>Technology, source & copyright notices</summary><p>Some advanced editions contain or derive from separately licensed technology. Required original copyright, license and source notices remain available with each advanced editor. BIG LWA branding and product features do not transfer ownership of underlying third-party code.</p><a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/blob/main/TOOLS-WORKSHOP-SOURCES.md" target="_blank" rel="noopener noreferrer">Read workshop source information ↗</a></details>'+
   '</footer>';
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
  const vaultKey='biglwaWorkshopSnapshotsV1',vaultStatus=root.querySelector('#craftVaultStatus'),vaultFile=root.querySelector('#craftVaultFile');
@@ -223,7 +282,7 @@ export async function mountCraftSuite(root){
   title.append(mark,titleName);
   info.textContent=id===LOCAL.id?
     'Original sqwibblR editor · work with layers and export a project. Choose Save to BIG LWA for a small private preview.':
-    item.name+' · BIG LWA Workshop. Original source and licenses remain available in Source & license notes. Files stay local until you choose to export or save.';
+    item.name+' · BIG LWA Workshop. Source and copyright notices remain available in each app. Files stay local until you choose to export or save.';
   direct.href=getUrl(id,webgl);
   root.querySelector('[data-craft-webgl]').hidden=id===LOCAL.id;
   root.querySelectorAll('[data-craft-card]').forEach(el=>el.classList.toggle('is-selected',el.dataset.craftCard===id));
@@ -233,6 +292,20 @@ export async function mountCraftSuite(root){
  root.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button||!root.contains(button))return;
   const id=button.dataset.craftOpen;
+  const weekly=button.dataset.craftWeekly;
+   if(weekly){
+    const featured=ENGINES.find(x=>x.id===weekly);
+    if(safeId(weekly)){
+      if(!ready.has(weekly)){status.textContent=(featured?.name||'Featured editor')+' is unavailable in this deployment. Choose another block below.';return}
+      open(weekly);return;
+    }
+    if(weekly==='projects'){window.openBIGLWAModule?.('projects');return}
+   }
+   const route=button.dataset.craftRoute;
+  if(route&&WEB_FRIENDLY.some(item=>item.route===route)){
+    window.openBIGLWAModule?.(route);
+    return;
+  }
   if(id&&safeId(id)){open(id);return}
   if(button.hasAttribute('data-craft-close'))close();
   else if(button.hasAttribute('data-craft-webgl')&&current&&current!==LOCAL.id)open(current,true);

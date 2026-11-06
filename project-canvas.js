@@ -41,24 +41,51 @@ function card(item){
  if(item.type==='image')content='<img src="'+esc(item.url||'')+'" alt="'+esc(item.text||'Project reference')+'" loading="lazy"><textarea placeholder="Image caption" data-field="text">'+esc(item.text)+'</textarea>';
  else if(item.type==='link')content='<input aria-label="Link URL" data-field="url" placeholder="https://…" value="'+esc(item.url)+'"><textarea data-field="text" placeholder="Reference name">'+esc(item.text)+'</textarea><a href="'+esc(/^https?:\/\//i.test(item.url||'')?item.url:'#')+'" target="_blank" rel="noopener noreferrer">Open reference ↗</a>';
  else if(item.type==='tasks')content='<textarea data-field="text" placeholder="One task per line; prefix completed tasks with [x]">'+esc(item.text)+'</textarea><small>Use [x] for finished tasks</small>';
+ else if(item.type==='note'){
+  const kind=String(item.textKind||'Normal');
+  const kinds=['Normal','Title','Scene heading','Action','Character','Dialogue','Parenthetical','Transition','Shot'];
+  content='<label class="lwa-note-text-kind">Text format <select data-field="textKind" aria-label="Note text formatting">'+kinds.map(v=>'<option'+(kind===v?' selected':'')+'>'+v+'</option>').join('')+'</select></label><textarea data-field="text" placeholder="Write an idea…">'+esc(item.text)+'</textarea>';
+ }
  else content='<textarea data-field="text" placeholder="Write an idea…">'+esc(item.text)+'</textarea>';
- return '<article class="lwa-project-item '+esc(item.type)+'" data-card="'+esc(item.id)+'" style="left:'+Number(item.x||0)+'px;top:'+Number(item.y||0)+'px"><header data-drag><span>⠿ '+esc(item.type)+'</span><button data-delete="'+esc(item.id)+'" aria-label="Delete card" title="Delete card">×</button></header>'+content+'</article>';
+ return '<article class="lwa-project-item '+esc(item.type)+(item.type==='note'?' lwa-note-'+esc(String(item.textKind||'Normal').toLowerCase().replace(/[^a-z]+/g,'-')):'')+'" data-card="'+esc(item.id)+'" style="left:'+Number(item.x||0)+'px;top:'+Number(item.y||0)+'px"><header data-drag><span>⠿ '+esc(item.type)+'</span><button data-delete="'+esc(item.id)+'" aria-label="Delete card" title="Delete card">×</button></header>'+content+'</article>';
 }
 function render(){
  const root=$('#lwaProjects');if(!root)return;
- const pageHeading='<div class="module-heading lwa-project-heading"><div><h1>visualz</h1><p>Your boards and presentations in one workspace.</p></div></div>';
+ const pageHeading='<div class="module-heading lwa-project-heading"><div class="module-heading-copy"><h1>visualizr</h1></div><div class="module-heading-bottom"><p>Your visualeyez boards and visualslidez presentations, in one workspace.</p></div></div>';
  const tabBar='<nav class="visualz-tabs" aria-label="Visualz workspaces"><button type="button" data-visualz-mode="visualeyez" aria-pressed="'+(canvasMode==='visualeyez')+'" class="'+(canvasMode==='visualeyez'?'active':'')+'">visual·eyez</button><button type="button" data-visualz-mode="visualslidez" aria-pressed="'+(canvasMode==='visualslidez')+'" class="'+(canvasMode==='visualslidez'?'active':'')+'">visual·slidez</button></nav>';
  if(canvasMode==='visualslidez'){
-  root.innerHTML=pageHeading+'<section id="lwaVisualSlides" aria-label="Slide canvas"><p>Loading visual·slidez…</p></section>';
+  root.innerHTML=pageHeading+tabBar+'<section id="lwaVisualSlides" aria-label="Slide canvas"><p>Loading visual·slidez…</p></section>';
   document.dispatchEvent(new CustomEvent('biglwa:visualz-render'));
-  import('/visualslidez.js?v=20261023-integrated-toolbar-2').then(()=>window.BigLWAVisualSlidez?.mount(root.querySelector('#lwaVisualSlides'))).catch(()=>{const stage=root.querySelector('#lwaVisualSlides');if(stage)stage.textContent='Slides could not start; the existing boards are safe.'});return;
+  import('/visualslidez.js?v=20261029-readable-thumbs-1').then(()=>window.BigLWAVisualSlidez?.mount(root.querySelector('#lwaVisualSlides'))).catch(()=>{const stage=root.querySelector('#lwaVisualSlides');if(stage)stage.textContent='Slides could not start; the existing boards are safe.'});return;
  }
  root.innerHTML=pageHeading+'<div class="visualz-top-row">'+tabBar+'<span id="lwaProjectStatus" role="status">Private account backup · sync status in Settings</span></div><div class="lwa-project-toolbar"><div class="lwa-project-controls"><button data-new-board>+ New project</button><select aria-label="Choose project" id="lwaProjectChoice">'+boards.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===current?' selected':'')+'>'+esc(b.title)+'</option>').join('')+'</select><button data-rename>Rename</button><button data-remove-board>Delete project</button></div><div class="lwa-project-zoom" role="group" aria-label="Zoom project canvas"><button type="button" id="lwaProjectZoomOut" data-project-zoom="-1" aria-label="Zoom out">−</button><output id="lwaProjectZoomLabel" aria-live="polite">100%</output><button type="button" id="lwaProjectZoomIn" data-project-zoom="1" aria-label="Zoom in">+</button><button type="button" data-project-zoom="fit">Fit</button><button type="button" data-project-zoom="reset">100%</button></div></div><div class="lwa-project-tools"><button data-add="note">+ Note</button><button data-open-project-picker>+ Image</button><button data-add="link">+ Link</button><button data-add="tasks">+ Tasks</button></div><div class="lwa-project-board" id="lwaProjectBoard"><div class="lwa-project-space" id="lwaProjectSpace"><div class="lwa-project-plane" id="lwaProjectPlane"><div class="lwa-project-guide">Drag cards to arrange your workspace · edit cards in place</div>'+(board()?.items||[]).map(card).join('')+'</div></div></div><dialog id="lwaProjectImagePicker" aria-label="Add an image to Projects"><div class="lwa-project-picker-head"><h3>Add an image</h3><button type="button" data-close-project-picker aria-label="Close image picker">×</button></div><p>Choose an image from your connected Orbit library, or drop an image directly into this project.</p><div class="lwa-project-picker-actions"><button type="button" data-choose-orbit>Choose from Orbit</button><label class="lwa-project-file-label">Upload an image<input type="file" id="lwaProjectFileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label></div><div class="lwa-project-drop" id="lwaProjectDrop" tabindex="0" role="button" aria-label="Drop or select an image">Drop image here, or click to browse your files</div><div id="lwaProjectOrbitGallery" class="lwa-project-orbit-gallery" hidden></div><p class="lwa-project-picker-status" id="lwaProjectPickerStatus" role="status"></p></dialog><p class="lwa-project-foot">Project layouts sync privately to your account. Uploaded image files are copied into your account’s BIGLWA R2 media bucket.</p>';
+ // Keep add actions inside the deck's lower corner, not as a separate
+ // full-width toolbar above the canvas. Delegated click handlers remain intact.
+ const tools=root.querySelector('.lwa-project-tools');
+ const deck=root.querySelector('#lwaProjectBoard');
+ if(tools&&deck){
+  const shell=document.createElement('div');shell.className='lwa-project-deck-shell';
+  deck.before(shell);shell.append(deck,tools);
+  let pan=null;
+  deck.addEventListener('pointerdown',event=>{
+   if(event.button!==0||event.target.closest('button,a,input,textarea,select,[data-card],.lwa-project-tools'))return;
+   pan={id:event.pointerId,x:event.clientX,y:event.clientY,left:deck.scrollLeft,top:deck.scrollTop};
+   deck.classList.add('is-panning');deck.setPointerCapture?.(event.pointerId);event.preventDefault();
+  });
+  deck.addEventListener('pointermove',event=>{
+   if(!pan||pan.id!==event.pointerId)return;
+   deck.scrollLeft=pan.left-(event.clientX-pan.x);deck.scrollTop=pan.top-(event.clientY-pan.y);
+  });
+  const end=event=>{if(!pan||(event?.pointerId!==undefined&&event.pointerId!==pan.id))return;
+   try{deck.releasePointerCapture?.(pan.id)}catch{}pan=null;deck.classList.remove('is-panning')};
+  deck.addEventListener('pointerup',end);deck.addEventListener('pointercancel',end);
+  deck.addEventListener('lostpointercapture',end);
+ }
  setZoom(zoomLevel);
  document.dispatchEvent(new CustomEvent('biglwa:visualz-render'));
 }
 function mount(){
- const body=$('#moduleWorkspaceBody');if(!body||$('#moduleRouteName')?.textContent!=='visualz')return;
+ const body=$('#moduleWorkspaceBody');if(!body||!['visualz','visualizr'].includes($('#moduleRouteName')?.textContent))return;
  load();
  try{zoomLevel=Math.max(.4,Math.min(1.5,Number(localStorage.getItem(zoomKey()))||1))}catch{zoomLevel=1}
  body.innerHTML='<section id="lwaProjects"></section>';
@@ -191,7 +218,13 @@ document.addEventListener('change',e=>{
  if(canvasMode!=='visualeyez')return;
  if(e.target.id==='lwaProjectChoice'){current=e.target.value;render();return}
  const itemEl=e.target.closest('#lwaProjects [data-card]');if(!itemEl||!board())return;
- const item=board().items.find(i=>i.id===itemEl.dataset.card);if(item&&e.target.dataset.field){item[e.target.dataset.field]=e.target.value;save()}
+ const item=board().items.find(i=>i.id===itemEl.dataset.card);if(item&&e.target.dataset.field){
+  item[e.target.dataset.field]=e.target.value;save();
+  if(e.target.dataset.field==='textKind'){
+    [...itemEl.classList].filter(k=>k.startsWith('lwa-note-')).forEach(k=>itemEl.classList.remove(k));
+    itemEl.classList.add('lwa-note-'+String(item.textKind||'Normal').toLowerCase().replace(/[^a-z]+/g,'-'));
+  }
+}
 });
 document.addEventListener('input',e=>{
  const itemEl=e.target.closest('#lwaProjects [data-card]');if(!itemEl||!board()||!e.target.dataset.field)return;
@@ -308,5 +341,12 @@ const css=document.createElement('style');css.textContent=`
 .lwa-project-orbit-gallery img{width:100%;height:100%;object-fit:cover}
 .lwa-project-picker-status{font:600 11px/1.5 system-ui;color:#79675c}
 
-`;document.head.append(css);
+`;css.textContent+=`
+ #lwaProjects .lwa-project-item.note .lwa-note-text-kind{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 7px;font:600 10px/1.3 system-ui;color:#684a54}
+ #lwaProjects .lwa-project-item.note .lwa-note-text-kind select{max-width:140px;min-width:90px;border:1px solid #cbb7ad;border-radius:5px;background:#fff8f0;font:600 10px system-ui;color:#372a35}
+ #lwaProjects .lwa-project-item.lwa-note-scene-heading textarea,#lwaProjects .lwa-project-item.lwa-note-transition textarea,#lwaProjects .lwa-project-item.lwa-note-character textarea{text-transform:uppercase;font-family:ui-monospace,monospace;letter-spacing:.02em}
+ #lwaProjects .lwa-project-item.lwa-note-dialogue textarea,#lwaProjects .lwa-project-item.lwa-note-parenthetical textarea{font-family:ui-monospace,monospace;text-align:center;padding-left:14%;padding-right:14%}
+ #lwaProjects .lwa-project-item.lwa-note-action textarea,#lwaProjects .lwa-project-item.lwa-note-shot textarea{font-family:ui-monospace,monospace}
+`;
+document.head.append(css);
 })();

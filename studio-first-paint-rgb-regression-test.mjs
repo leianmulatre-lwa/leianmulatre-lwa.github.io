@@ -32,5 +32,26 @@ assert.ok(player.includes('const INTRO_MS = 2600;')&&player.includes('1800')&&pl
 assert.ok(player.includes("video.addEventListener('playing', revealWhenReady)"),'Programming reveal waits for playable content');
 assert.ok(!dots.includes('decorateLegacyStudioLoading();'),'Widget module cannot inject a second startup animation');
 assert.ok(html.includes('login-archive-player.js?v=20261022-floating-laptop-2'),'Fresh login player asset loaded');
-assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261023-document-teardown-1'),'Fresh nonduplicating widget-loader asset loaded');
-console.log('PASS one lowercase dot-floating startup, no competing pseudo-curtains, laptop preload and delayed playback');
+assert.ok(html.includes('studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'),'Fresh nonduplicating widget-loader asset loaded');
+assert.ok(dots.includes('lwa-curtain-brand-b')&&dots.includes('lwa-curtain-brand-w'),'Loading modules restore the original stitched text wordmark');
+assert.ok(!dots.includes('biglwa-stitched-cubes-loader.avif'),'No stitched block image on module loader');
+assert.ok(!html.includes('<img class="biglwa-startup-logo"'),'No block image on initial loading screen');
+console.log('PASS one lowercase dot-floating startup, restored stitched wordmark, no competing pseudo-curtains, laptop preload and delayed playback');
+
+// The startup curtain must survive auth and the first stable paint; never
+// vanish as soon as a Studio or login node is merely mounted.
+assert(html.includes('biglwa:initial-route-ready'),'Initial auth routing participates in loader readiness');
+assert(html.includes("document.readyState!=='complete'"),'Loader waits for the browser to finish initial assets');
+assert(html.includes('Date.now()-quietSince<280'),'Loader waits for layout mutations to settle');
+assert(html.includes('biglwa:startup-revealed'),'Startup publishes a single reveal event');
+assert(!html.includes('window.setTimeout(finish,8000)'),'Old eight-second premature dismissal is removed');
+assert(!html.includes('id="biglwa-startup-reveal"'),'Old stylesheet can no longer forcibly hide the startup curtain');
+assert(html.includes('still connecting your studio…')&&html.includes('Reload Studio'),'A stalled startup exposes an explicit retry rather than prematurely displaying broken widgets');
+const studio=readFileSync(new URL('./studio/index.html',import.meta.url),'utf8');
+const deployedAssets=['module-pages.js','pinterest-orbit.js','pinterest-red-consistency-20261016.css','stream-guide.js','stream-guide.css','studio-myfeed-filmstrip-20261029.css','studio-trophy-versions-symbol-bounds-20261029.css'];
+for(const asset of deployedAssets){
+ const prefix=asset+'?v=';
+ const version=text=>{const start=text.indexOf(prefix);return start<0?'':text.slice(start+prefix.length).split("'")[0]};
+ const one=version(html),two=version(studio);
+ assert(one&&two&&one===two,'Root and /studio must use the exact same '+asset+' build');
+}

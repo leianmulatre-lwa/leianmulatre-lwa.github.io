@@ -8,22 +8,26 @@
  const DISMISSED='biglwaStudioTutorialDismissed:v1:';
  const steps=[
   {"title":"Your creative Studio","area":"Studio","body":"Your Studio holds your profile, projects, music and widgets. The left sidebar is your shortcut desk; the header opens full pages."},
+  {"title":"Meet L’wazi","area":"Your agent","body":"L’wazi introduces your Studio and starts your Veve with the interests you chose. You stay in control: edit interests and sensitivity anytime in Settings. Optional identity and heritage answers stay private and are never used to infer your interests."},
   {"title":"Skeleton Key","area":"Studio icons","visual":"symbols","body":"These are the same symbols used across your Studio. Find the matching icon in the sidebar or shortcut bar."},
-  {"title":"The three colored dots","area":"Widget and post controls","visual":"colored-dots-title","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card."},
+  {"title":"The three colored dots","area":"Widget and post controls","visual":"colored-dots-title","body":"Red removes or deletes (read the confirmation and any 30-day countdown). Yellow minimizes a window or archives a post. Green enlarges or opens the full workspace. Their action depends on the card. Removing a Studio widget fills its red indicator in the sidebar; its restore control brings it back."},
   {"title":"Your workspace","area":"Studio","body":"Drag widget handles to arrange the Studio, use controls to customize it, and view your own public profile as others see it. Layout preferences are attached to your Big LWA account."},
   {"title":"Connect your world","area":"Orbit","key":"orbit","body":"Orbit links external accounts such as Pinterest and Instagram. Imported media goes first to your account-linked private collection for review. If a provider session expires, reconnect only that provider."},
-  {"title":"Where do imports go?","area":"Orbit → Archive","key":"archive","body":"Imported photos and Pins are saved in your Archive/import library, NOT posted publicly by connection alone. Select media and explicitly publish to Collective Feed. Archiving or switching Live off hides a published post."},
-  {"title":"myfeed vs Veve","area":"Veve","key":"veve","body":"MyFeed is your personal publishing page for content you deliberately share to the Collective Feed. Veve is the wider discovery wall for public photos, Sqwibs, games, and ideas. Importing through Orbit does not automatically publish to Veve."},
+  {"title":"Where do imports go?","area":"Orbit → Archive","key":"archive","body":"Imported photos and Pins are saved in your Archive/import library, NOT posted publicly by connection alone. Select media and explicitly publish to MyFeed. Archiving or switching Live off hides a published post."},
+  {"title":"myfeed vs Veve","area":"Veve","key":"veve","body":"MyFeed is your public publishing page; Veve is the discovery wall for published photos, Sqwibs, games and ideas. Your chosen interests help order eligible public posts in Veve. Only public content is considered, and you can edit your preferences in Settings. Orbit imports never publish automatically."},
   {"title":"Boards and privacy","area":"Boards","key":"boards","body":"Boards gather Pins and collections. Private and locked boards do not automatically publish; choose what to share."},
-  {"title":"Journal, Sqwib and Sqwip","area":"Journal","key":"diary","body":"Journal entries are private until their owner turns on sharing. Sqwib sharing/reposting follows the author’s permissions. Sqwip creates screenplay pages to the right."},
-  {"title":"Creative tools","area":"Tools","key":"tools","body":"Tools converts files and trims video locally. ArtCraft has browser creative editors when the installed versions are available. Export your result to keep a copy."},
+  {"title":"Journal, Sqwidz and Sqwip","area":"Journal","key":"diary","body":"Journal entries are private until their owner turns on sharing. Sqwib sharing/reposting follows the author’s permissions. Sqwip creates screenplay pages to the right."},
+  {"title":"Creative tools","area":"Lwazi","key":"tools","body":"Lwazi brings together sqwibblR, Visualizr, lightR, paintR, keyframeR and fileR. Choose a block in the carousel to open an editor; export your work to keep a copy."},
+  {"title":"Connect and weather","area":"Studio","body":"Find your friends online beside Invite boo·kiniz in Connect. The weather button beside search lets you choose a city and shows emoji conditions; it never asks for your precise location automatically."},
+  {"title":"A world of dates","area":"Calendar","key":"calendar","body":"Calendar combines your dates, connected Google events and UN international days and weeks. The UN list refreshes daily and shows its source and last fetch date. UN observances are read-only; check the source for lunar observances."},
   {"title":"All yours","area":"Studio","body":"The pink tutorial card can be removed with X. Reopen this guide anytime from the Studio sidebar. You control publication, deletion, and public visibility."}
  ];
  // Prefer the user's REAL rendered navigation symbols. Their shortcut bar can
  // be customized, so the guide also searches the Sidebar and Studio widgets.
  // Fallbacks match existing Big LWA assets/glyphs, never generic UI clip art.
  const symbolKey=[
-  {label:'Projects',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
+  {label:'Studio',key:'studio',detail:'Return to your Studio home',fallbackAsset:'/assets/studio-tipi-symbol.svg?v=20261026-1'},
+  {label:'Visualizr',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
   {label:'Politic',key:'politc',detail:'Civic life and global context',fallbackAsset:'/assets/politc-nyame-baatanpa.svg?v=20261014-1'},
   {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},
   {label:'Journal',key:'diary',detail:'Entries and writing',fallback:'▱'},
@@ -40,6 +44,13 @@
  ];
  function findRealSymbol(entry){
   const key=entry.key;
+  // Studio has one canonical mark, independent of whichever shortcut icon a
+  // theme or old saved layout happens to put in the rail.
+  if(key==='studio'||key==='home'){
+   const img=document.createElement('img');
+   img.src='/assets/studio-tipi-symbol.svg?v=20261026-1';img.alt='';
+   return img;
+  }
   const candidates=[
    '#studioApp .sidebar-navigation-row[data-sidebar-route-row="'+key+'"] .sidebar-route-icon',
    '#studioApp .sidebar-widget-restore-row[data-shortcut-row="'+key+'"] .sidebar-route-icon',
@@ -108,11 +119,18 @@
  function renderSymbolKey(root){
   root.replaceChildren();
   for(const entry of symbolKey){
-   const row=document.createElement('li');row.className='tour-symbol-item';
+   const row=document.createElement('li');row.className='tour-symbol-item';row.setAttribute('data-widget-audience-key',entry.key);
    const glyph=document.createElement('span');glyph.className='tour-symbol-mark';
    glyph.setAttribute('aria-hidden','true');
    const mark=findRealSymbol(entry);
-   if(mark){glyph.append(mark);}
+   if(mark){
+    // Cloned sidebar marks carry absolute offsets sized for a 16px rail.
+    // Keep the artwork but let this 30px symbol slot own its geometry.
+    for(const node of [mark,...(mark.querySelectorAll?.('*')||[])]){
+     node.removeAttribute?.('style');node.removeAttribute?.('data-heading-layout');
+    }
+    glyph.append(mark);
+   }
    else if(entry.fallbackAsset){
     const img=document.createElement('img');img.src=entry.fallbackAsset;img.alt='';
     img.loading='lazy';glyph.append(img);
@@ -124,6 +142,7 @@
    const detail=document.createElement('small');detail.textContent=entry.detail;
    description.append(name,detail);row.append(glyph,description);root.append(row);
   }
+  if(root.id==='biglwaSkeletonSymbols')window.BigLWAProfileRepair?.paintLocks?.();
  }
  let index=0,card=null,dialog=null,currentUid='guest';
  const $=(q,root=document)=>root.querySelector(q);
@@ -134,6 +153,7 @@
  };
  function style(){
   if($('#biglwaTourStyles'))return;
+  if(!document.getElementById('biglwaDialogSystemCss')){const shared=document.createElement('link');shared.id='biglwaDialogSystemCss';shared.rel='stylesheet';shared.href='/assets/biglwa-dialog.css?v=20261025-shared-popups-1';document.head.append(shared)}
   const css=document.createElement('style');css.id='biglwaTourStyles';
   css.textContent=`
    #studioApp .manifesto-card.is-tutorial-dismissed{display:none!important}
@@ -147,7 +167,7 @@
    #studioApp .biglwa-skeleton-hub .skeleton-rainbow-heading{font:800 11px/1.3 system-ui;letter-spacing:.065em;text-transform:lowercase;margin:5px 0 0}
    #studioApp #biglwaSkeletonKeysToggle:hover,#studioApp #biglwaSkeletonKeysToggle:focus-visible{background:#4e142e!important;outline:2px solid #a65c7f!important;outline-offset:2px}
    #studioApp .manifesto-card.is-skeleton-open{display:block!important;min-height:230px;max-height:none!important;overflow:visible!important}
-   #studioApp .manifesto-card.is-skeleton-open>:not(.biglwa-tour-actions):not(.biglwa-skeleton-hub){display:none!important}
+   #studioApp .manifesto-card.is-skeleton-open>:not(.biglwa-tour-actions):not(.biglwa-skeleton-hub):not(.skeleton-pin-marker){display:none!important}
    #studioApp .manifesto-card .biglwa-skeleton-hub[hidden]{display:none!important}
    #studioApp .manifesto-card .biglwa-skeleton-hub{display:grid;gap:11px;margin:0;padding:16px 12px 8px;color:#4a3344}
    #studioApp .biglwa-skeleton-hub h2{font:400 27px/1.1 "CS Bergamot Stitched",Georgia,serif;margin:0}
@@ -165,6 +185,10 @@
    #studioApp .biglwa-skeleton-hub .tour-symbol-description{display:grid;min-width:0;font:650 10px/1.2 system-ui}
    #studioApp .biglwa-skeleton-hub .tour-symbol-description small{font:450 9px/1.25 system-ui;color:#806776}
    #studioApp .biglwa-skeleton-hub .skeleton-key-note{font:500 10px/1.35 Georgia,serif;color:#80667c;margin:0}
+   #studioApp .biglwa-skeleton-hub .skeleton-platform-key{min-width:0}
+   #studioApp .biglwa-skeleton-hub .skeleton-platform-key>summary{cursor:pointer;min-height:29px;display:flex;align-items:center}
+   #studioApp .biglwa-skeleton-hub .skeleton-platform-key summary:focus-visible{outline:2px solid #96576e;outline-offset:2px}
+
 
    @media(max-width:680px){#studioApp .biglwa-skeleton-hub .tour-symbol-key{grid-template-columns:1fr}}
 
@@ -355,14 +379,209 @@
    body.night-mode #studioApp .skeleton-quick-actions :is(#skeletonKeyLauncher,#skeletonVeveLauncher):is(:hover,:focus-visible){
     background:rgba(97,184,129,.30)!important;outline-color:#a4d8b6!important;
    }
-  `;
+  
+   /* The Skeleton Key is an independently scrollable non-draggable window. */
+   #studioApp .manifesto-card.is-skeleton-open{
+    min-height:0!important;max-height:min(620px,76vh)!important;
+    height:auto!important;overflow:hidden!important;isolation:isolate!important;
+    padding:38px 13px 12px!important
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-hub{
+    flex:0 1 auto!important;min-height:0!important;
+    max-height:calc(min(620px,76vh) - 56px)!important;
+    overflow-y:auto!important;overflow-x:hidden!important;
+    overscroll-behavior:contain;scrollbar-width:thin
+   }
+   #studioApp .biglwa-skeleton-title{
+    display:grid!important;grid-template-columns:30px minmax(0,1fr)!important;
+    align-items:start!important;gap:10px!important;padding:0 0 12px!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark{
+    position:relative!important;display:block!important;width:30px!important;height:39px!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark img{
+    width:29px!important;height:38px!important;display:block!important;object-fit:contain!important
+   }
+   #studioApp .skeleton-green-cue{
+    position:absolute!important;top:0!important;right:-3px!important;
+    display:block!important;width:10px!important;height:10px!important;
+    border:2px solid #fff5ea!important;border-radius:50%!important;
+    background:#51a96b!important;box-sizing:content-box!important;pointer-events:none!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-copy{
+    display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+    gap:9px!important;min-width:0!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-settings{
+    grid-column:auto!important;justify-self:auto!important;position:static!important;
+    display:inline-flex!important;align-self:flex-start!important;margin:0!important
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions{
+    position:absolute!important;right:12px!important;top:9px!important;
+    display:flex!important;gap:9px!important;align-items:center!important;
+    z-index:8!important;margin:0!important
+   }
+   #studioApp .manifesto-card .biglwa-tour-actions :is(.skeleton-window-minimize,.skeleton-window-close){
+    appearance:none!important;display:block!important;flex:0 0 16px!important;
+    width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;
+    padding:0!important;border:1px solid #49373975!important;border-radius:50%!important;
+    font-size:0!important;line-height:0!important;cursor:pointer!important;
+    box-shadow:0 1px 2px #2d1a263b!important
+   }
+   #studioApp .manifesto-card .biglwa-tour-actions .skeleton-window-minimize{background:#f0d251!important}
+   #studioApp .manifesto-card .biglwa-tour-actions .skeleton-window-close{background:#e86771!important}
+   #studioApp .manifesto-card.is-skeleton-open.is-skeleton-collapsed{
+    min-height:0!important;max-height:none!important;overflow:hidden!important;
+    padding:30px 12px 9px!important
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-hub{
+    overflow:hidden!important;max-height:none!important;gap:0!important
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-hub > :not(.biglwa-skeleton-title){display:none!important}
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title{
+    padding-bottom:0!important;border-bottom:0!important
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .skeleton-settings{display:none!important}
+   #studioApp .biglwa-skeleton-hub{
+    background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 67%,#fff6ed)!important;
+    border:1px solid color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 77%,#ffffff)!important
+   }
+   body.night-mode #studioApp .biglwa-skeleton-hub{
+    background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 47%,#29212b)!important;
+    border-color:rgba(var(--aura-rgb,216,95,109),.85)!important
+   }
+
+   /* Single Aura face, not an inset pink card inside a peach frame. */
+   #studioApp .masonry > .manifesto-card.is-skeleton-open{
+     background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 60%,#f7eee6)!important;
+     background-image:none!important;border:1px solid rgba(var(--aura-rgb,216,95,109),.54)!important;
+     border-radius:17px!important;box-shadow:0 6px 16px rgba(32,20,27,.12)!important;
+     padding:39px 13px 13px!important;
+   }
+   #studioApp .masonry > .manifesto-card.is-skeleton-open > #biglwaSkeletonHub{
+     background:transparent!important;background-image:none!important;
+     border:0!important;box-shadow:none!important;border-radius:0!important;
+     padding:0!important;margin:0!important;width:100%!important;max-width:100%!important;
+   }
+   body.night-mode #studioApp .masonry > .manifesto-card.is-skeleton-open{
+     background:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 42%,#231d29)!important;
+     border-color:rgba(var(--aura-rgb,216,95,109),.68)!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions{
+     top:13px!important;right:14px!important;gap:7px!important;
+     height:12px!important;align-items:center!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-minimize,
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-close,
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button[data-tour-dismiss]{
+     appearance:none!important;display:block!important;position:relative!important;
+     width:12px!important;height:12px!important;min-width:12px!important;min-height:12px!important;
+     max-width:12px!important;max-height:12px!important;flex:0 0 12px!important;
+     padding:0!important;margin:0!important;line-height:0!important;font-size:0!important;
+     border-radius:50%!important;border:1px solid rgba(48,33,38,.42)!important;
+     box-shadow:none!important;transform:none!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-minimize{
+     background:#edca43!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-tour-actions button.skeleton-window-close{
+     background:#e56b6b!important;
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark{
+     position:relative!important;width:26px!important;height:40px!important;
+     align-self:start!important;margin-top:2px!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark img{
+     width:26px!important;height:40px!important;object-fit:contain!important
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-mark .skeleton-green-cue{
+     position:absolute!important;left:10px!important;top:7px!important;right:auto!important;
+     width:5px!important;height:5px!important;border:0!important;border-radius:50%!important;
+     background:#52ae71!important;box-shadow:none!important;pointer-events:none!important;
+   }
+   #studioApp .biglwa-skeleton-title .skeleton-title-copy{gap:5px!important}
+   #studioApp .biglwa-skeleton-title .skeleton-settings{padding:5px 8px!important}
+   #studioApp .manifesto-card.is-skeleton-open.is-skeleton-collapsed{padding:29px 13px 10px!important}
+
+
+   /* Compact title remains readable both fully expanded and minimized. */
+   #studioApp .masonry > .manifesto-card.is-skeleton-open{padding:19px 13px 12px!important}
+   #studioApp .manifesto-card.is-skeleton-open > #biglwaSkeletonHub{
+    max-height:calc(min(620px,76vh) - 34px)!important;overflow-y:auto!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-title{
+    margin:0!important;padding:0 0 10px!important;min-height:46px!important;align-items:start!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-title .skeleton-title-mark{
+    align-self:start!important;margin:0!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-open .biglwa-skeleton-title .skeleton-title-copy{
+    margin:0!important;padding:0!important;
+   }
+   #studioApp .masonry > .manifesto-card.is-skeleton-open.is-skeleton-collapsed{
+    padding:14px 13px 9px!important;min-height:70px!important;max-height:none!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed > #biglwaSkeletonHub{
+    overflow:visible!important;max-height:none!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title{
+    padding:0!important;min-height:46px!important;align-items:center!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title .skeleton-title-copy{
+    justify-content:center!important;
+   }
+   #studioApp .manifesto-card.is-skeleton-collapsed .biglwa-skeleton-title h2{
+    display:block!important;visibility:visible!important;
+    font-size:clamp(19px,2vw,29px)!important;line-height:1.2!important;
+   }
+   #studioApp .manifesto-card .skeleton-green-cue{display:none!important}
+   #studioApp .manifesto-card.is-skeleton-open .skeleton-pin-marker{
+    display:block!important;position:absolute!important;top:3px!important;left:50%!important;
+    width:22px!important;height:22px!important;z-index:7!important;
+    transform:translateX(-50%)!important;pointer-events:none!important;
+    border:0!important;background:transparent!important;box-shadow:none!important;
+   }
+   #studioApp .manifesto-card .skeleton-pin-marker img{
+    display:block!important;width:22px!important;height:22px!important;object-fit:contain!important;filter:none!important;
+   }
+   #studioApp .biglwa-skeleton-hub .skeleton-visibility-note{
+    margin:3px 9px 5px!important;font:500 11px/1.4 system-ui!important;color:inherit!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols{
+    grid-template-columns:1fr!important;max-height:280px!important;overflow:auto!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .tour-symbol-item{
+    display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important;
+    padding:5px 7px!important;border-bottom:1px solid rgba(80,50,66,.12)!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .tour-symbol-description{
+    flex:1 1 auto!important;min-width:0!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .widget-audience-lock{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    flex:0 0 32px!important;width:32px!important;height:30px!important;min-width:32px!important;
+    padding:1px!important;margin-left:auto!important;background:rgba(255,255,255,.32)!important;
+    border:1px solid rgba(70,45,65,.26)!important;border-radius:8px!important;
+    font-size:17px!important;cursor:pointer!important;
+   }
+   #studioApp .biglwa-skeleton-hub #biglwaSkeletonSymbols .widget-audience-lock:focus-visible{
+    outline:2px solid currentColor!important;outline-offset:2px!important;
+   }
+   @media(max-width:480px){
+    #studioApp .manifesto-card.is-skeleton-open .skeleton-pin-marker{
+     left:auto!important;right:57px!important;transform:none!important;
+    }
+   }
+
+`;
   document.head.append(css);
  }
  async function dismiss(){
   currentUid=uid();
   try{localStorage.setItem(key(),'1')}catch{}
-  card?.classList.remove('is-skeleton-open');
+  card?.classList.remove('is-skeleton-open','is-skeleton-collapsed');
   $('#biglwaSkeletonHub',card)?.setAttribute('hidden','');
+  window.dispatchEvent(new Event('biglwa:skeleton-layout-changed'));
   card?.classList.add('is-tutorial-dismissed');
   dialog?.close();
   // Session customization is private and stored under the account. Do not
@@ -386,8 +605,8 @@
  }
  function ensureDialog(){
   if(dialog)return dialog;
-  dialog=document.createElement('dialog');dialog.id='biglwaTutorialDialog';dialog.setAttribute('aria-labelledby','biglwaTourTitle');
-  dialog.innerHTML='<div class="tutorial-head"><span id="biglwaTourPosition" class="tour-step"></span>'+
+  dialog=document.createElement('dialog');dialog.id='biglwaTutorialDialog';dialog.className='biglwa-dialog';dialog.setAttribute('aria-labelledby','biglwaTourTitle');
+  dialog.innerHTML='<div class="tutorial-head"><span class="biglwa-dialog-lights" aria-hidden="true"><i></i><i></i><i></i></span><span id="biglwaTourPosition" class="tour-step"></span>'+
    '<button type="button" data-tour-close aria-label="Close tutorial">×</button></div>'+
    '<h2 id="biglwaTourTitle"></h2><p id="biglwaTourBody"></p>'+
    '<ul id="biglwaTourSymbolLegend" class="tour-symbol-key" aria-label="Big LWA symbols and their destinations" hidden></ul>'+
@@ -449,19 +668,35 @@
   if(hub)return hub;
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
   hub.setAttribute('aria-label','Skeleton Key for the individual');
-  hub.innerHTML='<div class="biglwa-skeleton-title"><img src="/assets/skeleton-keys-ankh.svg" alt="" aria-hidden="true"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div>'+
-   '<div id="skeletonRankMount"></div><details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
+  hub.innerHTML='<div class="biglwa-skeleton-title"><span class="skeleton-title-mark" aria-hidden="true"><img src="/assets/skeleton-keys-ankh.svg" alt=""></span><div class="skeleton-title-copy"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div></div>'+
+   '<details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
    '<details class="skeleton-body-legend"><summary>Body shadow key</summary><div class="skeleton-body-models">'+
    '<figure style="--model-shadow:#d9c6ee"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Individual</figcaption></figure>'+
    '<figure style="--model-shadow:#f7cddd"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Social</figcaption></figure>'+
    '<figure style="--model-shadow:#f8d4b0"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Political</figcaption></figure></div>'+
    '<label class="skeleton-body-setting"><input type="checkbox" id="skeletonBodyIndicators" checked> Show body shadows on hover</label></details>'+ 
-   '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>'+
-   '<details class="skeleton-symbol-details"><summary>Symbol key</summary><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Visual key images for Studio tools"></ul></details>'+
-   '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>';
+   '<details class="skeleton-platform-key"><summary>Platform shadow key</summary><div class="skeleton-platform-content">'+
+   '<p class="skeleton-shadow-explanation">Each tile has one platform-colored shadow. Its ivory face stays consistent across the network.</p>'+
+   (window.BigLWAShadowKey?.render?.('skeleton')||'<p class="skeleton-shadow-explanation">Platform preview is loading.</p>')+
+   '</div></details>'+
+   '<details class="skeleton-symbol-details skeleton-symbol-visibility-details"><summary>Symbol &amp; visibility key</summary><p class="skeleton-visibility-note">Choose the lock beside a symbol to manage who can see its widget preview.</p><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Studio symbols and widget visibility"></ul></details>'+
+   '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>'+
+   '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>';
   hub.querySelectorAll(':scope > details').forEach(section=>section.addEventListener('toggle',()=>{if(section.open)hub.querySelectorAll(':scope > details').forEach(other=>{if(other!==section)other.open=false})}));
   $('.skeleton-analytics-details',hub).addEventListener('toggle',event=>{if(event.target.open)window.BigLWAAccountInsights?.refresh?.()});
-  $('.skeleton-symbol-details',hub).addEventListener('toggle',event=>{if(event.target.open)renderSymbolKey($('#biglwaSkeletonSymbols',hub))});
+  $('.skeleton-platform-key',hub).addEventListener('toggle',event=>{
+    if(!event.target.open)return;
+    const slot=$('.skeleton-platform-content',hub);
+    const markup=window.BigLWAShadowKey?.render?.('skeleton');
+    if(markup&&slot){
+      const obsolete=slot.querySelector('.module-shadow-key,.skeleton-shadow-explanation:last-child');
+      if(obsolete)obsolete.outerHTML=markup;
+      else slot.insertAdjacentHTML('beforeend',markup);
+    }
+  });
+  $('.skeleton-symbol-details',hub).addEventListener('toggle',event=>{
+   if(event.target.open)renderSymbolKey($('#biglwaSkeletonSymbols',hub));
+  });
   const indicators=$('#skeletonBodyIndicators',hub);indicators.checked=window.BigLWAThreeBodies?.enabled?.()!==false;
   indicators.addEventListener('change',()=>window.BigLWAThreeBodies?.setEnabled(indicators.checked));
   const hints=$('#skeletonHideHints',hub);
@@ -471,7 +706,7 @@
    if(hints.isConnected)hints.checked=!!event.detail?.hidden;
   });
   card.appendChild(hub);
-  const rank=$('#studioApp .profile-card .real-rank');if(rank){const value=$('strong',rank);if(value)value.textContent='Chopped';const track=$('.rank-track i',rank);if(track)track.style.width='0%';const next=$('.rank-next',rank);if(next)next.textContent='next: 007';$('#skeletonRankMount',hub).append(rank)}
+  // Keep the original Real Rank bar and status on the profile banner.
   window.BigLWAAccountInsights?.refresh?.();
   return hub;
  }
@@ -480,27 +715,75 @@
   if(!card)return;
   const hub=skeletonHub();
   if(!hub)return;
-  card.classList.remove('is-tutorial-dismissed');
+  card.classList.remove('is-tutorial-dismissed','is-skeleton-collapsed');
   card.classList.add('is-skeleton-open');
   hub.hidden=false;
+  const minimize=card.querySelector('[data-skeleton-minimize]');
+  if(minimize){minimize.setAttribute('aria-expanded','true');minimize.setAttribute('aria-label','Minimize Skeleton Key');minimize.title='Minimize Skeleton Key'}
+  window.dispatchEvent(new Event('biglwa:skeleton-layout-changed'));
   // The visible class overrides the saved dismissal only for this open session.
   card.scrollIntoView?.({behavior:'smooth',block:'nearest'});
+ }
+
+ function openAnalytics(metric='followers'){
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return false;
+  const workspace=$('#moduleWorkspace');
+  if(workspace&&!workspace.hidden){
+    const back=$('#moduleBack');
+    if(back)back.click();
+  }
+  if(!card?.isConnected)attach();
+  openSkeleton();
+  const hub=$('#biglwaSkeletonHub',card||document);
+  const details=hub?.querySelector('.skeleton-analytics-details');
+  if(!details)return false;
+  details.open=true;
+  window.BigLWAAccountInsights?.refresh?.();
+  requestAnimationFrame(()=>{
+    const target=hub.querySelector('[data-metric="'+String(metric).replace(/[^a-z]/g,'')+'"]')||details.querySelector('summary');
+    details.scrollIntoView?.({behavior:'smooth',block:'center'});
+    // Move focus without interfering with the input the person was using.
+    const summary=details.querySelector('summary');
+    summary?.setAttribute('tabindex','-1');
+    summary?.focus?.({preventScroll:true});
+  });
+  return true;
  }
  function attach(){
   style();ensureSkeletonToolbar();
   const next=$('#studioApp .manifesto-card');
   if(!next)return false;
   card=next;style();currentUid=uid();
+  if(!card.querySelector('.skeleton-pin-marker')){
+   const marker=document.createElement('span');marker.className='skeleton-pin-marker';
+   marker.setAttribute('aria-hidden','true');
+   const pin=document.createElement('img');pin.src='/assets/skeleton-key-pin-32.png?v=20261029-1';pin.alt='';
+   pin.width=22;pin.height=22;marker.append(pin);card.append(marker);
+  }
   if(!card.classList.contains('is-skeleton-open'))card.classList.toggle('is-tutorial-dismissed',readDismissed());
   const hub=skeletonHub();
   if(!readDismissed()){card.classList.add('is-skeleton-open');hub.hidden=false}
-  if(!$('.biglwa-tour-actions',card)){
-   const actions=document.createElement('div');actions.className='biglwa-tour-actions';
-
+  let actions=$('.biglwa-tour-actions',card);
+  if(!actions){actions=document.createElement('div');actions.className='biglwa-tour-actions';card.append(actions)}
+  actions.setAttribute('role','group');actions.setAttribute('aria-label','Skeleton Key window controls');
+  if(!actions.querySelector('[data-skeleton-minimize]')){
+   const minimize=document.createElement('button');minimize.type='button';minimize.dataset.skeletonMinimize='';
+   minimize.className='skeleton-window-minimize';minimize.title='Minimize Skeleton Key';
+   minimize.setAttribute('aria-label','Minimize Skeleton Key');minimize.setAttribute('aria-expanded','true');
+   minimize.addEventListener('click',()=>{
+    const collapsed=card.classList.toggle('is-skeleton-collapsed');
+    minimize.setAttribute('aria-expanded',String(!collapsed));
+    minimize.setAttribute('aria-label',collapsed?'Expand Skeleton Key':'Minimize Skeleton Key');
+    minimize.title=collapsed?'Expand Skeleton Key':'Minimize Skeleton Key';
+    window.dispatchEvent(new Event('biglwa:skeleton-layout-changed'));
+   });
+   actions.prepend(minimize);
+  }
+  if(!actions.querySelector('[data-tour-dismiss]')){
    const remove=document.createElement('button');remove.type='button';remove.dataset.tourDismiss='';
-   remove.textContent='×';remove.title='Close Skeleton Key';remove.setAttribute('aria-label','Close Skeleton Key');
-   actions.append(remove);card.append(actions);
-   remove.addEventListener('click',dismiss);
+   remove.className='skeleton-window-close';remove.title='Close Skeleton Key';
+   remove.setAttribute('aria-label','Close Skeleton Key');
+   actions.append(remove);remove.addEventListener('click',dismiss);
   }
   if(new URLSearchParams(location.search).get('tutorial')==='1'){
    history.replaceState(history.state,'',location.pathname+location.hash);
@@ -519,7 +802,7 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});
  // Reapply the guide when delayed Studio layout restoration replaces its
  // card. Keep the sidebar launcher available after dismissing the card.
- window.BigLWASiteGuide={open:openTour,openKeys:openSkeleton};
+ window.BigLWASiteGuide={open:openTour,openKeys:openSkeleton,openAnalytics};
  let pending=false;
  const observer=new MutationObserver(()=>{
   if(card?.isConnected && $('.biglwa-tour-actions',card) &&

@@ -1,0 +1,96 @@
+/* BIG LWA | Windows 95 browser frames: keep original live game/app carousels.
+   The screen apertures are fully transparent SVG, not fake screenshots.
+   Studio's existing red/yellow/green widget controls remain real. */
+#studioApp #games .games-library.games-library,
+#studioApp #tools .lwazi-cabinet-thumb.lwazi-cabinet-thumb{
+ position:relative!important;display:block!important;width:100%!important;max-width:100%!important;
+ aspect-ratio:1000/720!important;height:auto!important;min-height:0!important;max-height:none!important;
+ margin:8px auto 0!important;padding:0!important;box-sizing:border-box!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ box-shadow:none!important;overflow:visible!important;isolation:isolate!important;
+}
+#studioApp #games .games-library.games-library::before{
+ content:""!important;display:block!important;position:absolute!important;inset:0!important;
+ z-index:3!important;background:url('/assets/frames/retro-browser-games-20261029.svg') center/100% 100% no-repeat!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ filter:none!important;clip-path:none!important;opacity:1!important;pointer-events:none!important;
+}
+#studioApp #games[data-arcade-version="2"] .games-library.games-library::before{
+ filter:hue-rotate(68deg) saturate(.82)!important;
+}
+#studioApp #games .games-library.games-library::after{content:none!important;display:none!important}
+#studioApp #tools .lwazi-cabinet-thumb.lwazi-cabinet-thumb::before{
+ content:""!important;display:block!important;position:absolute!important;inset:0!important;z-index:1!important;
+ background:url('/assets/frames/retro-browser-lwazi-20261029.svg') center/100% 100% no-repeat!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ filter:none!important;opacity:1!important;pointer-events:none!important;
+}
+/* Match the live hitboxes to the alpha window panes: x34..946, y137..651. */
+#studioApp #games .arcade-library-viewport.arcade-library-viewport,
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport{
+ position:absolute!important;left:3.4%!important;top:19.03%!important;
+ width:91.2%!important;height:71.39%!important;min-width:0!important;min-height:0!important;max-height:none!important;
+ box-sizing:border-box!important;margin:0!important;border:0!important;
+ border-radius:0!important;outline:0!important;overflow:hidden!important;
+ clip-path:none!important;mask-image:none!important;-webkit-mask-image:none!important;
+ box-shadow:none!important;pointer-events:auto!important;
+}
+#studioApp #games .arcade-library-viewport.arcade-library-viewport{
+ z-index:4!important;background:#10182a!important;
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:6px!important;padding:7px!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport{
+ z-index:2!important;background:#e9dedd!important;
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:7px!important;padding:8px!important;
+}
+/* Strip cabinet-only art without removing the working carousel or opening modules. */
+#studioApp #games .games-arcade-brand.games-arcade-brand,
+#studioApp #games .arcade-folder-depth.arcade-folder-depth{
+ border:0!important;background:transparent!important;box-shadow:none!important;pointer-events:none!important;
+}
+#studioApp #games .games-arcade-brand.games-arcade-brand::before,
+#studioApp #games .games-arcade-brand.games-arcade-brand::after,
+#studioApp #games .games-arcade-brand.games-arcade-brand>img{
+ content:none!important;display:none!important;
+}
+/* Preserve arcade's actual theme version button in the browser status strip. */
+#studioApp #games .games-arcade-brand .arcade-folder-dots.arcade-folder-dots{
+ position:absolute!important;display:flex!important;z-index:7!important;
+ left:71.3%!important;top:92.9%!important;width:24.5%!important;height:4%!important;
+ min-width:0!important;min-height:0!important;margin:0!important;padding:0 4px!important;
+ align-items:center!important;justify-content:flex-end!important;gap:3px!important;box-sizing:border-box!important;
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+ pointer-events:auto!important;cursor:pointer!important;
+}
+#studioApp #games .games-arcade-brand .arcade-folder-dots.arcade-folder-dots>i{
+ display:block!important;visibility:visible!important;
+ width:3px!important;height:3px!important;flex:0 0 3px!important;margin:0!important;
+ border:0!important;border-radius:0!important;background:#373737!important;
+}
+/* Title + bottom status open Workshop. Do not cover any live Workshop tiles. */
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-marquee{
+ left:7%!important;top:2.8%!important;width:70%!important;height:5.1%!important;z-index:4!important;
+}
+#studioApp #tools .lwazi-cabinet-thumb .lwazi-cabinet-open{
+ left:71%!important;top:92.9%!important;bottom:auto!important;
+ width:24.5%!important;height:4%!important;z-index:4!important;
+}
+/* Yellow-dot header-only minimize leaves no invisible tall frame in masonry. */
+#studioApp #games.studio-header-only .games-library,
+#studioApp #tools.studio-header-only .lwazi-cabinet-thumb{
+ display:none!important;height:0!important;min-height:0!important;
+}
+@media(max-width:650px){
+ #studioApp #games .arcade-library-viewport.arcade-library-viewport,
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-library-viewport{padding:3px!important;gap:4px!important;}
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-track{gap:5px!important;}
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-game-tile{height:76px!important;padding:4px 3px 15px!important;}
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp #games .arcade-library-viewport>.arcade-track,
+ #studioApp #tools .lwazi-cabinet-thumb .arcade-track{
+ animation:none!important;transform:none!important;will-change:auto!important;
+ }
+}

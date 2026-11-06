@@ -62,12 +62,69 @@ function parsePublicSnapchat(html,handle){
   sourceUrl:'https://o.storyclone.com/u/'+encodeURIComponent(handle)+'/'};
 }
 
+
+/* First-party public source discovery. No calls to a third-party viewer's
+ * protected /api.php, no cookies, private account data or bot challenges.
+ * TikTok may withhold the public hydration payload; fail visibly then.
+ */
+function parseTikTokPublicPosts(html,handle){
+ const posts=[],seen=new Set(),target=handle.toLowerCase(),limit=30;
+ const scripts=[...String(html).matchAll(/<script\b[^>]*\bid=["'](?:SIGI_STATE|__UNIVERSAL_DATA_FOR_REHYDRATION__|__NEXT_DATA__)["'][^>]*>([\s\S]*?)<\/script>/gi)].slice(0,4);
+ let traversed=0;
+ const inspect=root=>{
+  const stack=[root],visited=new Set();
+  while(stack.length&&traversed++<12000&&posts.length<limit){
+   const node=stack.pop();
+   if(!node||typeof node!=='object'||visited.has(node))continue;visited.add(node);
+   if(Array.isArray(node)){for(const row of node.slice(0,220))stack.push(row);continue}
+   const id=String(node.id||node.video_id||'');
+   const author=String(node.author?.uniqueId||node.author?.unique_id||
+     node.authorInfo?.user?.uniqueId||node.authorInfo?.uniqueId||
+     node.authorUniqueId||'').replace(/^@/,'');
+   if(/^\d{12,25}$/.test(id)&&author.toLowerCase()===target&&!seen.has(id)){
+    seen.add(id);
+    const title=String(node.desc||node.title||'').slice(0,480);
+    const cover=String(node.video?.cover||node.video?.dynamicCover||node.cover||'');
+    let coverImageUrl='';
+    try{const u=new URL(cover);if(u.protocol==='https:'&&!u.username&&!u.password)coverImageUrl=u.href}catch{}
+    posts.push({id,handle,sourceUrl:'https://www.tiktok.com/@'+handle+'/video/'+id,
+      title,coverImageUrl,source:'TikTok public profile'});
+   }
+   for(const [k,value] of Object.entries(node)){
+    if(value&&typeof value==='object'&&k!=='video'&&k!=='stats'&&k!=='music'&&k!=='challenges')stack.push(value);
+   }
+  }
+ };
+ for(const [,serialized] of scripts){
+  if(serialized.length>2500000)continue;
+  try{inspect(JSON.parse(serialized.replace(/&quot;/g,'"').replace(/&amp;/g,'&')))}catch{}
+ }
+ return posts;
+}
 export {parsePublicProfile,parsePublicSnapchat};
 export default {async fetch(request,env,ctx){
  const url=new URL(request.url),origin=request.headers.get('Origin')||'';
  if(request.method==='OPTIONS')return answer({ok:true},204,origin,0);
  if(request.method!=='GET')return answer({error:'GET only'},405,origin,0);
  if(url.pathname==='/health')return answer({ok:true,adapter:'public-tiktok-snapshot-v1'},200,origin,120);
+ const publicPosts=url.pathname.match(/^\/tiktok\/([a-zA-Z0-9._]{2,40})\/posts\/?$/);
+ if(publicPosts){
+  const handle=publicPosts[1],sourceUrl='https://www.tiktok.com/@'+handle;
+  try{
+   const response=await fetch(sourceUrl,{headers:{Accept:'text/html'},
+    method:'GET',redirect:'error',cf:{cacheTtl:900,cacheEverything:true}});
+   const type=String(response.headers.get('Content-Type')||'');
+   if(!response.ok||!type.includes('text/html'))throw Error('Public source unavailable');
+   if(Number(response.headers.get('Content-Length')||0)>3000000)throw Error('Response too large');
+   const html=(await response.text()).slice(0,3000000);
+   const posts=parseTikTokPublicPosts(html,handle);
+   return answer({available:posts.length>0,handle,matchedHandle:posts.length>0,
+    items:posts,sourceUrl,checkedAt:new Date().toISOString(),
+    message:posts.length?'Public TikTok posts found for @'+handle:
+     'No verifiable public video records returned by TikTok.'},200,origin,posts.length?900:300);
+  }catch{return answer({available:false,handle,items:[],sourceUrl,
+   message:'TikTok did not return public profile data accessible to the importer.'},200,origin,300)}
+ }
  const snapMatch=url.pathname.match(/^\/snapchat\/([a-zA-Z0-9._]{2,40})\/?$/);
  if(snapMatch){
   const handle=snapMatch[1],source='https://o.storyclone.com/u/'+encodeURIComponent(handle)+'/';

@@ -30,7 +30,8 @@ assert.equal(w.__biglwaProfileMetrics.reachMonth,month);
 assert.equal(w.__biglwaProfileMetrics.followers,101);
 assert.ok(persisted.length,'Month is backed up');
 assert.equal(persisted.at(-1).snapshot.sources[0].likes,654,'Saving observations preserves likes');
-assert.equal(persisted.at(-1).snapshot.sources[0].handle,'tiktok-openid-1','Saved metric is tied to provider account');
+assert.equal(persisted.at(-1).snapshot.sources[0].handle,'maker','Saved metric shows the real handle, not a provider id');
+assert.equal(persisted.at(-1).snapshot.sources[0].accountKey,'tiktok-openid-1','Saved metric keeps a stable account key for matching');
 data={
  uid,peopleConnections:{},orbitConnectedProfiles:{},
  analyticsMonths:{[month]:{sources:[{id:'tiktok',handle:'tiktok-openid-1',likes:333,
@@ -44,6 +45,46 @@ data.connections.tiktok.sourceUserId='changed-tiktok-open-id';
 await w.BigLWAAccountInsights.refresh();
 assert.equal(w.__biglwaProfileMetrics.likes,null,'Replaced TikTok account never inherits old likes');
 assert.equal(w.__biglwaProfileMetrics.reach,null,'Replaced TikTok account never inherits old reach');
+// Monthly views are reach: Pinterest's monthly_views contributes to the aggregate.
+data.connections.pinterest={username:'owner-pins',sourceUserId:'pinterest-9',stats:{followers:19,monthlyViews:4242}};
+await w.BigLWAAccountInsights.refresh();
+assert.equal(w.__biglwaProfileMetrics.sources.find(s=>s.id==='pinterest').monthlyViews,4242,'Pinterest views live in owner analytics');
+assert.equal(w.__biglwaProfileMetrics.reach,4242,'Pinterest monthly views count as reach');
+assert.equal(persisted.at(-1).snapshot.sources.find(s=>s.id==='pinterest').monthlyViews,4242,'Pinterest views saved to monthly history');
+// The public TikTok tracker supplies cumulative likes and the monthly stat that
+// counts toward reach, without being mistaken for provider authorization.
+w.BigLWAExternalTiktok={snapshot:()=>({uid,handle:'maker',followers:35230,likes:1400000,
+ monthlyStat:19700,monthlyStatLabel:'Avg Likes / Month',verifiedFromProvider:false})};
+data.connections.tiktok={username:'maker',sourceUserId:'tiktok-openid-1',stats:{followers:35230}};
+await w.BigLWAAccountInsights.refresh();
+assert.equal(w.__biglwaProfileMetrics.likes,1400000,'TikTok tracker likes reach the profile banner');
+assert.equal(w.__biglwaProfileMetrics.reach,4242+19700,'TikTok monthly tracker stat counts toward reach');
+assert.equal(persisted.at(-1).snapshot.sources.find(s=>s.id==='tiktok').monthlyStat,19700,'TikTok monthly stat saved to monthly history');
+// A provider user id is identity, never a public @handle. The real vanity name
+// is recovered from the profile link, and a numeric Facebook id stays blank.
+data.connections.tiktok={username:'-000Iv8CvtWteaNYasp6RBtPJSuqVD1ZEwwC',sourceUserId:'tiktok-openid-1',
+ link:'https://www.tiktok.com/@leianstanley',stats:{followers:35230}};
+data.connections.facebook={username:'7737741593164989',sourceUserId:'7737741593164989',
+ link:'https://www.facebook.com/profile.php?id=7737741593164989',stats:{followers:8}};
+await w.BigLWAAccountInsights.refresh();
+const row=id=>w.__biglwaProfileMetrics.sources.find(s=>s.id===id);
+assert.equal(row('tiktok').handle,'leianstanley','TikTok open_id is replaced by the real vanity handle');
+assert.equal(row('tiktok').accountKey,'tiktok-openid-1','TikTok stable id remains the account key');
+assert.equal(row('facebook').handle,'','A numeric Facebook id never becomes a fake @handle');
+assert.ok(!w.__biglwaProfileMetrics.sources.some(s=>/^-?\d{6,}$/.test(String(s.handle||''))||String(s.handle||'').startsWith('-000')),
+ 'No provider id appears in the handle column');
+// Mount the Skeleton Key panel to check the visible provider rows and grid.
+const host=w.document.createElement('section');host.id='skeletonAnalytics';w.document.body.append(host);
+await w.BigLWAAccountInsights.refresh();
+const panel=host.textContent.replace(/\s+/g,' ');
+const grid=Object.fromEntries([...host.querySelectorAll('[data-metric]')].map(n=>[n.dataset.metric,n.textContent]));
+assert.ok(panel.includes('Tiktok · @leianstanley'),'Provider row shows the real vanity @handle');
+assert.ok(panel.includes('19.7k+ monthly reach (TikTok avg likes/mo)'),'TikTok tracker is labelled monthly reach, not monthly views');
+assert.ok(panel.includes('1.4m+ likes'),'Provider rows use the shared m+ grammar for likes');
+assert.equal(grid.reach,'23.9k+','Skeleton grid abbreviates reach with k+');
+assert.equal(grid.followers,'35,257','Skeleton grid keeps followers exact');
+assert.equal(grid.likes,'1.4m+','Skeleton grid abbreviates likes with m+');
+assert.ok(!panel.includes('7737741593164989')&&!panel.includes('-000Iv'),'Provider ids never appear in the visible panel');
 uid='metric-owner-b';w.__biglwaIdentity={uid};
 data={uid,analyticsMonths:{},connections:{},peopleConnections:{},orbitConnectedProfiles:{}};
 await w.BigLWAAccountInsights.refresh();

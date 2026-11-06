@@ -1,28 +1,32 @@
-# BIG LWA Workshop — code lineage and licensing
+# BIG LWA · Lwazi Workshop / R-seriez
 
-## Built and controlled by BIG LWA
+Lwazi Workshop is the BIG LWA-designed creative workspace. BIG LWA authors and maintains its visual language, stitched blocks, navigation, account-linked snapshot workflow, in-browser sqwibblR editor, and integration surfaces for visualizr and the R-series tools.
 
-- **BIG LWA Workshop** (`tools-craft.js`, `tools-craft.css`): BIG LWA-authored design and launch layer.
-- **BIG LWA sqwibblR** (`tools/image-desk.html`): BIG LWA's original in-browser canvas editor. Layers, drawing, text, transforms, local photo import, local editable `.lwa.json` projects, PNG/JPEG export, and undo/redo. sqwibblR does **not** incorporate PhotoCraft source code, make external requests, or automatically upload a person's files.
-- The original Workshop is part of BIG LWA Tools alongside its independently implemented file conversion utilities.
+## The BIG LWA product experience
 
-## Open-source Storytold engines used as optional advanced tools
+- **sqwibblR** is BIG LWA's original layered in-browser image editor (`tools/image-desk.html`), with local edit/export and explicit optional account snapshot saves.
+- **visualizr** is part of BIG LWA Studio, offering BIG LWA-designed creative boards and slides.
+- **lightR, paintR, keyframeR and fileR** have BIG LWA identities, self-hosted browser interfaces, and customized Rust/WebAssembly editions when the provenance-verified native build is activated. Otherwise, the deployment gate may stage licensed, checksum-verified third-party releases. The manifest at `/bigapps/manifest.json` is the source of truth for availability and build type.
 
-| BIG LWA entry label | Engine | Repository | Installed release | License |
-|---|---|---|---|---|
-| lightR | PhotoCraft | https://github.com/storytold/photocraft | 0.7.0 | MIT OR Apache-2.0 |
-| paintR | VectorCraft | https://github.com/storytold/vectorcraft | 0.9.0 | MIT OR Apache-2.0 |
-| keyframeR | EffectCraft | https://github.com/storytold/effectcraft | 0.8.0 | MIT OR Apache-2.0 |
-| fileR | PdfCraft | https://github.com/storytold/pdfcraft | 0.6.0 | MIT OR Apache-2.0 |
+BIG LWA's original product design, new code, and branding belong to their respective rightsholder(s). That does not reassign ownership of pre-existing third-party code merely because it has been customized, compiled, or incorporated into a BIG LWA edition.
 
-The **licensed editors are not BIG LWA-owned engines**. BIG LWA's build script `.github/scripts/stage-craft-apps.py` stages original, version-pinned WebAssembly releases from GitHub only when available and SHA-256 verified. Source terms from each original repository are copied to each staged engine under `/bigapps/<engine>/upstream-licenses/`. Availability is defined by `/bigapps/manifest.json`; a missing build must not be shown as working.
+## Technical source lineage and required notices
 
-The following are being researched for future independent BIG LWA integrations and are **not claimed to be deployed**: FilmCraft, LightCraft, DesignCraft, FigCraft and SoundCraft.
+The four advanced editions retain historical source identifiers in their package and manifest metadata for compatibility. Their source lineage is recorded here (not displayed as a competing product identity in the main Workshop UI):
 
-### Attribution and trademark rules
+| Current BIG LWA name | Underlying upstream project | Version tracked | License |
+|---|---|---|---|
+| lightR | [PhotoCraft](https://github.com/storytold/photocraft) | 0.7.0 | MIT OR Apache-2.0 |
+| paintR | [VectorCraft](https://github.com/storytold/vectorcraft) | 0.9.0 | MIT OR Apache-2.0 |
+| keyframeR | [EffectCraft](https://github.com/storytold/effectcraft) | 0.8.0 | MIT OR Apache-2.0 |
+| fileR | [PdfCraft](https://github.com/storytold/pdfcraft) | 0.6.0 | MIT OR Apache-2.0 |
 
-The upstream teams retain their copyrights. Their `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and third-party `ATTRIBUTION.md` must be honored when building modified editions, as appropriate to the actual files redistributed. ArtCraft names, original trademarks, logo and protected branding are **not** part of the permissive license. Do not reuse or rebrand those assets in BIG LWA's own product.
+Copyright remains with the applicable original authors and with BIG LWA for its new contributions. The licenses and notices distributed with an advanced editor remain available under its `upstream-licenses/` directory, including `SOURCE.txt`, `LICENSE-MIT`, `LICENSE-APACHE`, and `NOTICE` as applicable. These required documents must not be deleted or misrepresented.
 
-This is a first-party Workshop with original native editing plus attributed hosted upstream engines, **not** a claim that BIG LWA has produced new clean-room forks of all of their Rust applications. To make a true independent Rust fork: pin a reviewed upstream commit, remove protected marks, apply BIG LWA's own new UI resources, build signed/static WASM artifacts in CI, retain licenses and third-party notices, and test file round trips, undo/redo and exports before deployment.
+Verified native releases use source branch `biglwa-native-editors` and the explicit build/provenance checks defined in `.github/scripts/prepare-native-release.py` and `.github/scripts/stage-craft-apps.py`. No change to labels is a claim of full independent authorship of all underlying engine code.
 
-No affiliation with Adobe Inc. or the ArtCraft Team is implied. User media belongs to its respective rights holders; importing it locally does not change copyright.
+## Privacy and saving
+
+Editing is performed in the user's browser in supported tools. BIG LWA account snapshots require an explicit save action; snapshots are flattened previews, while editable/native project formats are separately exported or downloaded. Third-party links and optional graphics/WebGL/WebGPU capabilities may have additional requirements.
+
+For other source-specific legal notices, use each advanced editor's **Source & notices** link. This document remains public for transparency, separate from the member-facing Lwazi introduction.

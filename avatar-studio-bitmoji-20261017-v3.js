@@ -168,10 +168,11 @@
   }
   function render(){
     const card=one('#studioAvatarCard');if(!card)return;
+    card.dataset.widgetId='avatar';card.dataset.widgetLabel='Avatar';card.dataset.widgetRoute='avatar';
     card.innerHTML='<div class="biglwa-avatar-head"><h2 class="card-kicker">Avatar</h2>'+
       '<div class="widget-window-controls avatar-window-controls" role="group" aria-label="Avatar widget controls">'+
       '<button type="button" class="window-light red" data-avatar-widget-action="remove" aria-label="Remove Avatar widget" title="Remove widget"></button>'+
-      '<button type="button" class="window-light yellow" data-avatar-widget-action="archive" aria-label="Archive Avatar widget" title="Archive widget"></button>'+
+      '<button type="button" class="window-light yellow" data-avatar-widget-action="minimize" aria-label="Minimize Avatar to square" title="Minimize Avatar to square"></button>'+
       '<button type="button" class="window-light green" data-avatar-widget-action="enlarge" aria-label="Enlarge interactive Avatar" title="Enlarge interactive avatar"></button></div></div>'+
       '<button type="button" class="widget-drag-handle avatar-drag-handle" data-studio-drag-handle aria-label="Reorder Aura and Avatar widgets" title="Drag to move the Aura and Avatar widgets">'+
       '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg></button>'+
@@ -376,6 +377,27 @@
           throw Error('Use a Minecraft skin PNG (64×64, 64×32, or a proportional HD skin).');
     }finally{URL.revokeObjectURL(url)}
   }
+  /* The public Studio must use the owner's saved character, never their name initial
+     or another person's private browser avatar. Only an explicitly saved
+     character with an approved source and matching username/UID is published. */
+  async function publishStudioAvatar(f,uid,avatar,knownOwner){
+    const url=String(avatar?.url||''),type=String(avatar?.type||'');
+    const workerMedia=url.startsWith(API+'/media/profile-photo/')||url.startsWith(API+'/media/feed-image/');
+    const publicSona=type==='sona360'&&!!sonaUrl(url);
+    if(!uid||!(workerMedia||publicSona)||!['minecraft','mii','imvu','bitmoji','sona360'].includes(type))return false;
+    if(f.auth.currentUser?.uid!==uid)return false;
+    const owner=knownOwner||await f.getDoc(f.doc(f.db,'users',uid));
+    const name=String(owner.data()?.usernameLower||owner.data()?.username||window.__biglwaIdentity?.username||'').toLowerCase().trim().replace(/^@/,'');
+    if(!/^[a-z0-9._-]{5,24}$/.test(name))return false;
+    const profileRef=f.doc(f.db,'usernames',name);
+    const profile=await f.getDoc(profileRef);
+    if(!profile.exists()||profile.data()?.uid!==uid||f.auth.currentUser?.uid!==uid)return false;
+    const published={type,url,...(type==='minecraft'?{slim:avatar.slim===true}:{})};
+    const old=profile.data()?.studioAvatarPublic;
+    if(old?.url===published.url&&old?.type===published.type&&old?.slim===published.slim)return true;
+    await f.setDoc(profileRef,{studioAvatarPublic:published,updatedAt:f.serverTimestamp()},{merge:true});
+    return true;
+  }
   async function save(file,kind,preset=null){
     if(state.busy)return;
     if(!['minecraft','bitmoji'].includes(kind))throw Error('Choose an avatar source first.');
@@ -399,6 +421,7 @@
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched before avatar was saved.');
       state.avatar={type:kind,url:result.url,...(kind==='minecraft'?{slim:state.minecraftSlim}:{})};
+      try{await publishStudioAvatar(f,uid,state.avatar)}catch(error){console.warn('[BIG LWA] Public Avatar sync will retry on account reload:',error)}
       showAvatar();setStatus(kind==='minecraft'?'Minecraft skin saved to your 3D avatar.':'Avatar saved to your BIG LWA account.');
       try{
         const channel=new BroadcastChannel('biglwa-avatar');
@@ -441,6 +464,7 @@
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched. Reload your avatar.');
       state.avatar={type:'sona360',url};state.loadedUid=uid;
+      try{await publishStudioAvatar(f,uid,state.avatar)}catch(error){console.warn('[BIG LWA] Public 360sona sync will retry:',error)}
       showAvatar();
       renderSonaFrame(one('#biglwaSonaLivePreview'),url);
       try{const channel=new BroadcastChannel('biglwa-avatar');channel.postMessage({type:'saved',uid});channel.close()}catch{}
@@ -467,6 +491,10 @@
         state.avatar={type:avatar.type,url,...(avatar.type==='minecraft'?{slim:avatar.slim===true}:{})};
         if(avatar.type==='minecraft')state.minecraftSlim=avatar.slim===true;
         showAvatar();setStatus('Saved Avatar restored from your account.');
+        // Backfill avatars saved before the public projection was introduced.
+        if(!document.documentElement.classList.contains('biglwa-preview-mode')){
+          void publishStudioAvatar(f,user.uid,state.avatar,snap).catch(error=>console.warn('[BIG LWA] Public Avatar backfill deferred:',error));
+        }
       }
     }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
   }
@@ -527,17 +555,19 @@
     // button deliberately uses data-avatar-restore so the Avatar handler owns it.
     const greenDock=one('#studioApp #minimizedWidgetDock');
     let sidebarRestore=one('#biglwaAvatarSidebarRestore',app);
-    if(avatarHidden&&greenDock){
+    if(avatarHidden&&state.visibility==='removed'&&greenDock){
       if(!sidebarRestore){
         sidebarRestore=document.createElement('div');
         sidebarRestore.id='biglwaAvatarSidebarRestore';
         sidebarRestore.className='sidebar-shortcut-row sidebar-avatar-restore-row is-minimized';
         sidebarRestore.dataset.shortcutRow='avatar';
         sidebarRestore.innerHTML='<span aria-hidden="true"></span>'+
-          '<button type="button" class="sidebar-shortcut-open" data-avatar-restore aria-label="Restore Avatar to Studio" title="Avatar removed · restore Avatar"><span class="sidebar-route-icon" aria-hidden="true">A<sup>+</sup></span></button>'+
-          '<span class="sidebar-minimized-state" aria-hidden="true">↥</span>';
+          '<button type="button" class="sidebar-shortcut-open" data-avatar-restore aria-label="Restore Avatar to Studio" title="Avatar removed · restore Avatar"><span class="sidebar-route-icon" aria-hidden="true"><img src="/sesa-wo-suban-medium.png" alt=""></span></button>'+
+          '<button type="button" class="sidebar-minimized-state sidebar-widget-plus" data-avatar-restore title="Restore Avatar to Studio" aria-label="Restore Avatar to Studio">+</button>';
       }
       if(sidebarRestore.parentElement!==greenDock)greenDock.append(sidebarRestore);
+      sidebarRestore.classList.toggle('is-widget-removed',state.visibility==='removed');
+      sidebarRestore.dataset.avatarVisibility=state.visibility;
       const primary=one('#studioSidebarPrimary',app);
       if(primary)primary.hidden=false;
     }else if(sidebarRestore){sidebarRestore.remove();}
@@ -660,7 +690,7 @@
       e.preventDefault();e.stopPropagation();
       if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge();
       else if(control.dataset.avatarWidgetAction==='edit')openEditor();
-      else if(control.dataset.avatarWidgetAction==='archive')setVisibility('archived');
+      else if(control.dataset.avatarWidgetAction==='minimize')window.BigLWAUpperWidgets?.minimize?.('avatar');
       else if(window.confirm('Remove Avatar from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
       return;
     }

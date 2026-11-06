@@ -114,6 +114,15 @@ function isStoredOrbitUrl(url) {
       /^\/media\/orbit\/[A-Za-z0-9_-]+\//.test(parsed.pathname);
   } catch { return false; }
 }
+function pinterestImageFingerprint(url) {
+  try{
+    const parsed=new URL(clean(url));
+    if(parsed.protocol!=='https:'||!(parsed.hostname==='i.pinimg.com'||parsed.hostname.endsWith('.pinimg.com')))return '';
+    const filename=parsed.pathname.split('/').pop()||'';
+    const match=filename.match(/^([a-f0-9]{16,64})\.(?:jpg|jpeg|png|webp|gif)$/i);
+    return match?'pinimg:'+match[1].toLowerCase():'';
+  }catch{return ''}
+}
 function mediaFromItem(source, item, hostedMedia) {
   const normalizedSource = String(source || "").toLowerCase();
   const caption = clean(item.caption || item.title || item.description || item.alt_text || "Shared from " + source);
@@ -533,6 +542,13 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       item.imageUrlKey=existing.imageUrlKey||null;
       item.mediaItems=Array.isArray(existing.mediaItems)?existing.mediaItems:item.mediaItems;
     }
+    const pinRawOrigin=['created','board'].includes(raw?.biglwaPinterestOrigin)?raw.biglwaPinterestOrigin:'';
+    const priorPinOrigin=(existing?.pinterestOriginVerified===true?existing?.pinterestOrigin:
+      existingArchive?.pinterestOriginVerified===true?existingArchive?.pinterestOrigin:'');
+    const pinOrigin=pinRawOrigin||priorPinOrigin||'unknown';
+    const pinOriginVerified=Boolean(pinRawOrigin||priorPinOrigin);
+    const sourcePinFingerprint=pinterestImageFingerprint(pinterestImageUrl(raw))||
+      clean(existing?.sourceImageFingerprint||existingArchive?.sourceImageFingerprint);
     const data = {
       uid: owner.uid,
       username: owner.username,
@@ -555,7 +571,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       mediaType: item.mediaType,
       orbitImported: true,
       // Distinguish a Pinterest original from a saved board reference.
-      ...(item.source === 'pinterest' ? {pinterestOrigin: raw?.biglwaPinterestOrigin === 'created' ? 'created' : 'board', pinterestBoardId: clean(raw?.board_id || raw?.boardId)} : {}),
+      ...(item.source === 'pinterest' ? {pinterestOrigin:pinOrigin, pinterestOriginVerified:pinOriginVerified, pinterestBoardId:clean(raw?.biglwaPinterestBoardId||raw?.board_id||raw?.boardId||existing?.pinterestBoardId||existingArchive?.pinterestBoardId),sourceImageFingerprint:sourcePinFingerprint} : {}),
       state,
       archiveState,
       deletionAt: preservedDeleteAt,
@@ -879,11 +895,11 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   if(prior.exists()){
     const present=prior.data()||{};
     // Personal sync explicitly publishes drafts; respect removals and archived cards.
-    // Auto-publish only posts returned by the connected TikTok account's
-    // authorized video.list API. A pasted link or an SSSTik response alone is
-    // not proof that the video belongs to this member.
+    // Autopublish only provider-authorized video.list records or public-profile
+    // records whose author was verified against TikTok's OAuth username by
+    // the caller. Pasted links remain private drafts.
     const mayPublish=publishToCollective&&(provider==='facebook'||
-      (provider==='tiktok'&&item.authorizedFromTikTokVideoList===true));
+      (provider==='tiktok'&&(item.authorizedFromTikTokVideoList===true||item.matchedAuthorizedTikTokPublicProfile===true)));
     if(mayPublish&&present.state==='draft'&&
        !['archived','pending_delete'].includes(present.archiveState)){
       if(store.auth.currentUser?.uid!==user.uid)throw Error('Account changed during import.');
@@ -904,7 +920,7 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   const owner=await resolveOwner(user,{},null);
   const created=store.serverTimestamp();
   const publish=publishToCollective&&(provider==='facebook'||
-    (provider==='tiktok'&&item.authorizedFromTikTokVideoList===true));
+    (provider==='tiktok'&&(item.authorizedFromTikTokVideoList===true||item.matchedAuthorizedTikTokPublicProfile===true)));
   const state=publish?'approved':'draft',archiveState=publish?'collective':'saved';
   const data={
     uid:user.uid,username:owner.username,usernameLower:owner.usernameLower,
@@ -944,6 +960,66 @@ export async function savePostRecords(ownerUid, postId, data, archiveExtra = {})
   return payload;
 }
 
+
+/* Owner-session verification of REAL, persisted TikTok media records.
+ * This is a database check, not a simulation or a public-source lookup.
+ * It checks three Firestore locations and records R2 URL references separately.
+ * URL references alone do not prove storage bytes are available.
+ */
+export async function verifyTikTokMigration(){
+  const store=await firebase();
+  const {auth,db,collection,where,query,limit,getDocs,getDoc}=store;
+  await auth.authStateReady();
+  const user=auth.currentUser;
+  if(!user)throw Error('Sign in to BIG LWA to verify your TikTok migration.');
+  const uid=user.uid;
+  const results=await getDocs(query(collection(db,'users',uid,'posts'),where('source','==','tiktok'),limit(50)));
+  if(auth.currentUser?.uid!==uid)throw Error('Account changed during verification.');
+  const posts=results.docs.filter(x=>x.data()?.uid===uid);
+  const state={
+    checkedAt:new Date().toISOString(),ownerAuthenticated:true,records:posts.length,
+    scannedLimit:50,limitReached:results.size===50,approved:0,drafts:0,
+    ownerRecords:posts.length,rootRecords:0,archiveRecords:0,sourceLinks:0,
+    r2UrlReferences:0,metadataOnly:0,unreadable:0,providerIdentityMatches:0
+  };
+  const actualProvider=window.__biglwaTikTokOrbit?.state;
+  const oauthName=actualProvider?.connected&&actualProvider?.uid===uid?
+    String(actualProvider.profile?.username||'').replace(/^@/,'').toLowerCase():'';
+  for(const post of posts){
+    if(auth.currentUser?.uid!==uid)throw Error('Account changed during verification.');
+    const data=post.data()||{};
+    if(data.state==='approved')state.approved++;
+    else state.drafts++;
+    const sourceUrl=String(data.sourceUrl||'');
+    if(/^https:\/\/(?:www\.)?tiktok\.com\/@[\w.-]+\/video\/\d+/.test(sourceUrl))state.sourceLinks++;
+    const urls=[data.videoUrl,data.videoStorageUrl,data.imageUrl,...(Array.isArray(data.imageUrls)?data.imageUrls:[])];
+    const stored=urls.some(v=>{try{const u=new URL(v);return u.protocol==='https:'&&
+      ['api.biglwa.com','biglwa-instagram-api.leianmulatre-284.workers.dev'].includes(u.hostname)&&
+      /^\/media\/orbit\//.test(u.pathname)}catch{return false}});
+    if(stored)state.r2UrlReferences++;else state.metadataOnly++;
+    const author=String(data.sourceUsername||'').replace(/^@/,'').toLowerCase();
+    if(oauthName&&author===oauthName)state.providerIdentityMatches++;
+  }
+  // Sample actual records in each other location. All results are owner-scoped;
+  // denied reads are recorded as unreadable rather than interpreted as missing.
+  for(const post of posts.slice(0,10)){
+    if(auth.currentUser?.uid!==uid)throw Error('Account changed during verification.');
+    const refs=postRefs(store,uid,post.id);
+    for(const [key,ref] of [['rootRecords',refs.root],['archiveRecords',refs.archive]]){
+      try{
+        const snapshot=await getDoc(ref);
+        if(snapshot.exists()&&snapshot.data()?.uid===uid)state[key]++;
+      }catch{state.unreadable++}
+    }
+  }
+  state.sampleChecked=Math.min(posts.length,10);
+  state.provenPersistent=state.sampleChecked>0&&state.rootRecords>0&&state.archiveRecords>0;
+  // A matching URL is not proof that the R2 object exists. Verify storage bytes
+  // separately with an owner-authenticated storage HEAD check before claiming backup.
+  state.provenMediaBackedUp=false;
+  return state;
+}
+
 window.__biglwaOrbitPosts = {
   importOrbitMedia,
   storedOrbitImageUrls,
@@ -958,5 +1034,6 @@ window.__biglwaOrbitPosts = {
   removeArchiveFriend,
   savePostRecords,
   saveExternalOrbitDraft,
+  verifyTikTokMigration,
   sourceTimeMs
 };

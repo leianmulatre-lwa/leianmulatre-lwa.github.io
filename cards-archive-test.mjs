@@ -17,30 +17,30 @@ check("TikTok is purple", feed.includes('tiktok: { rim:"#772dcc"'));
 check("Facebook is blue", feed.includes('facebook: { rim:"#1658be"'));
 check("Instagram is orange", feed.includes('instagram: { rim:"#f36b21", glow:"#ffad52"'));
 check("anything without a rim of its own falls back to blood orange", feed.includes('{ rim:FEED_RIM }'));
-check("a card takes the rim of its source", feed.includes("--feed-card-rim:' + rimOf(displaySource)"));
+check("a card takes the rim of its source", feed.includes("const shadow=postShadow(post,managed,displaySource)") && feed.includes("shadow.rim"));
 check("TikTok cards are marked", feed.includes("biglwa-tiktok-card"));
 check("Facebook cards are marked", feed.includes("biglwa-facebook-card"));
 
 console.log("\n=== THE ARCHIVE HOLDS EVERY SOURCE, COLOUR KEPT, GREY ONLY WHEN OFF ===");
-check("a card is read for its own source", pages.includes("const source=String(item.source||'instagram').toLowerCase();"));
+check("a card is read for its own source", pages.includes("const source=sourceNameOf(item);") && pages.includes("function archiveItemSource(item)"), "Cards use the detected app source, not a default shelf");
 check("the rim comes from the source palette", pages.includes("const visualTheme=themes[source]") && pages.includes("instagram:{rim:'#f36b21'"));
 check("the card is marked with its source and shadow", pages.includes("' archive-src-'+esc(source)+'\" style=\"--feed-card-rim:'+rim+';--feed-card-shadow:'+visualTheme.shadow"));
 check("both stored states are grouped colour-first", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-archived{"));
 check("the colour keeps the source rim, not a blanket grey", pages.includes(".module-workspace[data-module-key=\"archive\"] .instagram-archive-card.is-collective,") && pages.includes("box-shadow:3px 3px 0 var(--feed-card-rim,#a52a0c)!important;filter:none;opacity:1}") && !pages.includes("filter:grayscale(1)!important;opacity:.86}"));
 check("only the picture of an off card goes grey", pages.includes(".instagram-archive-card.is-off .instagram-archive-media,") && pages.includes(".instagram-archive-card.is-archived .instagram-archive-media{filter:grayscale(1);opacity:.7}"));
 check("each card carries a Live switch", pages.includes("data-archive-live-input=\"'+esc(item.id)+'\""));
-check("the switch label is interactive", pages.includes("(posted?'Live':'Not live')+'</b>'"));
+check("the switch label is interactive", pages.includes('<label class="archive-live" data-archive-live="') && pages.includes("(posted?'Live':'Off')+'</b>'"));
 check("the switch is wired to publish or archive", pages.includes("postsApi?.publishOrbitPost?.(id)") && pages.includes("postsApi?.setOrbitState?.(id,'archived')"));
-check("a card on the Collective Feed is coloured here", pages.includes("Card shadow = origin · Live = on Collective Feed"));
+check("a card on the Collective Feed is coloured here", pages.includes('aria-label="Platform shadow key: widget face and one source shadow"'));
 check("the Archive no longer claims to be Instagram-only", !pages.includes("Instagram archive</h2>") && !pages.includes("Instagram posts imported"));
 
 console.log("\n=== GROUPED, WITH REPEATS SPOTTED ===");
 check("a card is fingerprinted", pages.includes("function archiveFingerprint(item)"));
 check("cards are bucketed by that fingerprint", pages.includes("const groups=new Map();"));
-check("cards are sorted into source blocks", pages.includes("const sa=String(items[a].source||'').toLowerCase(), sb=String(items[b].source||'').toLowerCase();"));
+check("cards are sorted into source blocks", pages.includes("const sa=archiveItemSource(items[a]), sb=archiveItemSource(items[b]);"));
 check("newest first inside a source", pages.includes("return (items[b].sourceCreatedAtMs||0)-(items[a].sourceCreatedAtMs||0);"));
-check("a repeat is counted, not hidden", pages.includes("additional copies"));
-check("each group is drawn under a source heading", pages.includes('class="archive-source-group"'));
+check("a repeat stays under fingerprint control", pages.includes("const key=archiveFingerprint(items[index]);") && pages.includes("hideDupes?indexes.slice(0,1):indexes"));
+check("source order is kept without hiding cards", pages.includes("const sa=archiveItemSource(items[a]), sb=archiveItemSource(items[b]);") && pages.includes("const visible=grouped.order.flatMap(fingerprint=>{"));
 check("the groups are styled as blocks", pages.includes(".archive-source-group{margin:0 0 26px}") && pages.includes(".archive-group-head{"));
 check("a repeat group is called out", pages.includes(".archive-group-head .archive-group-repeats{"));
 check("the card list is built first, then grouped", pages.includes("const cardList=mediaShown.map(") && pages.includes("const cards=groupCards(cardList,mediaShown,grouped,hideDupes);"));
@@ -53,11 +53,11 @@ check("Archive derives each photo ratio, bounded against very wide images", page
 check("images fill their frames without grey letterboxing",pages.includes("object-fit:cover!important") && pages.includes("background:transparent!important"));
 check("carousel media stays one card instead of showing a 2x2 tile wall", pages.includes("archive-carousel-actions") && pages.includes("function archivePieceMarkup(piece,index,total,cardIndex)"));
 check("the card renders one media frame with navigation", pages.includes("const visualPieces=pieces.length?archivePieceMarkup(pieces[0]") && pages.includes("data-archive-step") && pages.includes("archive-carousel-actions"));
-check("duplicate photos can hide repeated copies without breaking the source grid",pages.includes("const visible=hideDupes?indexes.slice(0,1):indexes;")&&pages.includes("if(!sourceGroups.has(source))sourceGroups.set(source,[]);"));
+check("duplicate photos can hide repeated copies without breaking the source order",pages.includes("return hideDupes?indexes.slice(0,1):indexes;")&&pages.includes("if(!groups.has(key)){groups.set(key,[]);order.push(key)}"));
 
 check("first load uses the updated Archive media array", pages.indexOf("const media=archiveMedia;")>pages.indexOf("if(!archiveInitialized) await loadInitial();"));
 check("Pinterest images can fall back to known thumbnails", pages.includes("data-archive-fallback"));
-check("Archive refresh includes Pinterest", pages.includes("window.__biglwaPinterest.syncAllBoards()"));
+check("Archive refresh includes Pinterest", pages.includes("await pins.syncAllBoards?.()"));
 console.log("\n=== MANAGE POPUP FOR EVERY ORBIT CONNECTION ===");
 check("the toolbar opens a connections popup", pages.includes('id="archiveConnections"') && pages.includes("()=>openConnectionsPopup()"));
 check("the popup covers every Orbit source", pages.includes("[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{") && pages.includes("root.className='biglwa-popup-backdrop'"));
@@ -88,14 +88,14 @@ check("Archive places its colored light controls within the image frame rather t
  pages.includes("archive-card-overlay") &&
  !pages.includes("const strip='<div class=\"instagram-archive-strip\">"));
 check("Archive has one source color key above the grid",
- pages.includes('class="archive-color-guide"') &&
- pages.includes('archive-key-instagram') && pages.includes('archive-key-pinterest'));
-check("Archive grid groups by source not every photo",
- pages.includes('const sourceGroups=new Map()') && pages.includes('data-archive-group="\'+esc(source)'));
+ pages.includes('class="module-shadow-key"') &&
+ pages.includes('"instagram","Instagram","#f36b21"') && pages.includes('"pinterest","Pinterest","#e60023"'));
+check("Archive keeps one flat source-aware gallery",
+ pages.includes("return visible.map(index=>cardList[index]).join('');") && pages.includes("archiveGroups(mediaShown)"));
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 
-check("Pinterest legend is red, matching imported cards", pages.includes("Pinterest · red</span>") && pages.includes("background:#e60023!important;box-shadow:2px 3px 0 #e60023"));
+check("Pinterest legend is red, matching imported cards", pages.includes('"pinterest","Pinterest","#e60023"') && pages.includes("box-shadow:3px 3px 0 var(--key-shadow"));
 check("archive control buttons are icons, not colored fake browser dots", pages.includes('data-archive-delete aria-label="Delete this post" title="Delete">×</button>') && pages.includes('data-archive-enlarge aria-label="Open this photo" title="Open this photo">↗</button>'));
 
 
@@ -107,9 +107,9 @@ const palette=[['instagram','#f36b21'],['tiktok','#772dcc'],['pinterest','#e6002
 for(const [source,color]of palette){
   assert.ok(orbitColors.includes('0 '+color+'!important')||orbitColors.includes(color),'Orbit recognizes '+source+' '+color);
   assert.ok(veveColors.includes('data-veve-origin="'+source+'"]{--veve-rim:'+color),'Veve uses Orbit palette for '+source);
-  assert.ok(pages.includes('archive-key-'+source),'Archive color key names '+source);
+  assert.ok(pages.includes('"'+source+'"'),'Archive color key names '+source);
 }
-assert.ok(pages.includes('Instagram · blood orange')&&!pages.includes('Instagram · purple'),'Archive does not revert Instagram to purple');
-assert.ok(pages.includes('TikTok · purple')&&!pages.includes('TikTok · black'),'Archive agrees on TikTok purple');
+assert.ok(pages.includes('"instagram","Instagram","#f36b21"')&&!pages.includes('"instagram","Instagram","#772dcc"'),'Archive does not revert Instagram to purple');
+assert.ok(pages.includes('"tiktok","TikTok","#772dcc"')&&!pages.includes('"tiktok","TikTok","#0e0e0e"'),'Archive agrees on TikTok purple');
 assert.ok(viewColors.includes('Instagram", accent: "#f36b21"'),'myfeed metadata agrees on Instagram orange');
-assert.ok(pages.includes('veve-origin-legend'),'Veve also presents an origin color key');
+assert.ok(pages.includes("['orbit','archive','feed','veve'].includes(key)"),'Veve also presents an origin color key');

@@ -117,10 +117,15 @@ export async function refreshIdentity() {
     return null;
   }
   const record = cached(user.uid);
+  // Paint only this verified UID's cached identity while the account read runs.
+  // A quota/network delay must not erase an already selected cloud photo.
+  const cachedName=clean(record.name||(clean(user.displayName).toLowerCase()!==normalize(record.username)?user.displayName:''));
+  current={uid:user.uid,username:validUsername(normalize(record.username))?normalize(record.username):'',name:cachedName,avatarUrl:clean(record.avatarUrl),email:clean(user.email),emailVerified:user.emailVerified===true};
+  emit();
   let account = {};
   try {
     const { doc, getDoc } = await import(FIRESTORE);
-    const snap = await getDoc(doc(db, "users", user.uid));
+    const snap = await Promise.race([getDoc(doc(db, "users", user.uid)),new Promise((_,reject)=>setTimeout(()=>reject(Error("Account read timed out")),8000))]);
     if (snap.exists()) account = snap.data() || {};
   } catch {}
   const username = normalize(account.usernameLower || record.username || "");

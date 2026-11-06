@@ -18,8 +18,14 @@
  .lwa-dot-falling::before{animation:lwaFall 1.05s ease-in-out -.22s infinite}
  .lwa-dot-falling::after{animation:lwaFall 1.05s ease-in-out .22s infinite}
  @keyframes lwaFall{0%{transform:translateY(-7px);opacity:0}55%{transform:translateY(2px);opacity:1}100%{transform:translateY(7px);opacity:0}}
- #lwaProfileLoading{display:inline-flex;align-items:center;gap:15px;font:600 10px system-ui;color:inherit;white-space:nowrap;margin-left:12px}
+ #lwaProfileLoading{display:inline-flex!important;align-items:center;justify-content:center;gap:10px;
+   flex:0 0 31px;min-width:31px;width:31px;height:20px;
+   font:600 10px system-ui;color:inherit;white-space:nowrap;
+   margin-left:4px;vertical-align:middle;overflow:visible;position:relative;z-index:2}
  #lwaProfileLoading[hidden]{display:none!important}
+ #lwaProfileLoading>.lwa-dot{display:inline-block;flex:none}
+ #lwaProfileLoading>.lwa-profile-loading-label[hidden]{display:none!important}
+ @media(max-width:720px){#lwaProfileLoading{flex-basis:24px;min-width:24px;width:24px;margin-left:0;transform:scale(.82);transform-origin:left center}}
  /* Old login owns the only Studio-opening screen. No duplicate overlay. */
  #lwaStudioTransition{display:none!important}
  #lwaStudioTransition[hidden]{display:none!important}
@@ -86,18 +92,75 @@
  `;
  const style=document.createElement('style');style.id='lwaLoadingDotsStyles';style.textContent=css;document.head.append(style);
  const make=(type)=>{const el=document.createElement('i');el.className='lwa-dot lwa-dot-'+type;el.setAttribute('aria-hidden','true');return el};
- let profile=null,transition=null,transitionTimer=null,transitionShownAt=0;
+ let profile=null,profileLoading=false,moduleLoading=false,transition=null,transitionTimer=null,transitionShownAt=0;
  function ensure(){
   if(!document.getElementById('studioApp'))return;
-  if(!profile){
-   const mark=document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
-   if(mark){profile=document.createElement('span');profile.id='lwaProfileLoading';profile.setAttribute('role','status');profile.setAttribute('aria-label','Loading your profile');profile.append(make('falling'));const label=document.createElement('span');label.textContent='loading profile';profile.append(label);mark.append(profile);profile.hidden=true}
+  const mark=document.querySelector('#studioApp .topbar.profile-header-repaired')||document.querySelector('#studioApp .studio-brand-row')||document.querySelector('#studioApp .topbar');
+  if(!mark)return;
+  // This top-left indicator mirrors BOTH profile hydration and the active
+  // module's own curtain; it disappears whenever the actual work finishes.
+  // The signed-in toolbar can be remounted after hydration; reattach the
+  // existing node rather than producing a duplicate or leaving it detached.
+  if(!profile||!profile.isConnected){
+   profile=document.getElementById('lwaProfileLoading')||document.createElement('span');
+   profile.id='lwaProfileLoading';
+   if(!profile.querySelector('.lwa-dot'))profile.append(make('falling'));
+   let label=profile.querySelector('.lwa-profile-loading-label');
+   if(!label){
+    label=document.createElement('span');
+    label.className='lwa-profile-loading-label';
+    label.textContent='loading profile';
+    profile.append(label);
+   }
+   label.hidden=true;
   }
-  // Studio's startup and login-laptop intro have one authoritative
-  // dot-floating animation in index.html. Don't decorate a second loading
-  // element from this module; this module only handles widgets/profile.
+  if(profile.parentElement!==mark){const search=mark.querySelector('.search-wrap');if(search)search.after(profile);else mark.append(profile);}
+  if(!profile.hasAttribute('role'))profile.setAttribute('aria-hidden','true');
+  profile.hidden=!(profileLoading||moduleLoading);
+  // Startup and login-laptop loaders remain separate; this is solely the
+  // already-existing top-left three-dot element.
  }
- function setProfile(loading){ensure();if(profile)profile.hidden=!loading}
+ let ownerProfileTimer=0;
+ function syncTopLeftDots(){
+  ensure();
+  if(!profile)return;
+  const active=profileLoading||moduleLoading;
+  profile.hidden=!active;
+  const label=profile.querySelector('.lwa-profile-loading-label');
+  if(label)label.hidden=!profileLoading||moduleLoading;
+  if(active){
+   profile.setAttribute('role','status');
+   profile.setAttribute('aria-label',moduleLoading?'Loading current widget':'Loading your profile');
+   profile.removeAttribute('aria-hidden');
+  }else{
+   profile.removeAttribute('role');
+   profile.removeAttribute('aria-label');
+   profile.setAttribute('aria-hidden','true');
+  }
+ }
+ function setProfile(loading){
+  profileLoading=Boolean(loading);
+  syncTopLeftDots();
+  if(!loading&&ownerProfileTimer){clearTimeout(ownerProfileTimer);ownerProfileTimer=0}
+ }
+ function setModuleLoading(loading){
+  const next=Boolean(loading);
+  if(next===moduleLoading)return;
+  moduleLoading=next;
+  syncTopLeftDots();
+ }
+ function pendingOwnerProfile(){
+  if(document.documentElement.classList.contains('biglwa-preview-mode')||!studioVisible())return;
+  setProfile(true);
+  if(ownerProfileTimer)clearTimeout(ownerProfileTimer);
+  ownerProfileTimer=setTimeout(()=>setProfile(false),7000);
+ }
+ for(const event of ['biglwa:identity-updated','biglwa:session-verified']){
+  window.addEventListener(event,pendingOwnerProfile);
+ }
+ for(const event of ['biglwa:profile-metrics','biglwa:user-directory-ready']){
+  window.addEventListener(event,()=>{if(!document.documentElement.classList.contains('biglwa-preview-mode'))setProfile(false)});
+ }
  function hideTransition(){if(transitionTimer)clearTimeout(transitionTimer);if(transition)transition.hidden=true}
  function studioVisible(){return !!document.querySelector('#studioApp.is-active')}
  // Image pulse is only drawn while an image actually has network work outstanding.
@@ -117,6 +180,10 @@
   const el=document.createElement('div');el.className='lwa-curtain';el.dataset.lwaCurtain=kind;
   label=String(label||'loading').toLowerCase();
   el.setAttribute('role','status');el.setAttribute('aria-label',label);
+  const mark=document.createElement('div');mark.className='lwa-curtain-brand';
+  mark.setAttribute('aria-hidden','true');
+  mark.innerHTML='<span class="lwa-curtain-brand-b">big</span><span class="lwa-curtain-brand-w">lwa</span>';
+  el.append(mark);
   el.append(make(kind==='avatar'?'pulse':'floating'));
   const t=document.createElement('span');t.className='lwa-curtain-label';t.textContent=label;el.append(t);
   if(kind==='module'){
@@ -126,7 +193,7 @@
    skip.textContent='Who’s you? →';skip.setAttribute('aria-label','View anyway before loading finishes');
    skip.title='View anyway';skip.addEventListener('click',event=>{
      event.preventDefault();event.stopPropagation();
-     viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending');
+     viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');setModuleLoading(false);
    });el.append(skip);
   }
   container.append(el);return el
@@ -141,13 +208,13 @@
   const app=document.getElementById('studioApp');if(!app)return;
   const space=app.querySelector('.main.module-view>.module-workspace');const shell=space?.querySelector('.module-shell');
   const key=space?.dataset.moduleKey||'';
-  if(key&&key!==moduleKey){moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
-  if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending');moduleCurtain?.remove();moduleCurtain=null}
+  if(key&&key!==moduleKey){moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
+  if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setModuleLoading(false)}
   if(shell&&key){
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
    moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
    const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
-   moduleCurtain.style.top=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+12)+'px';
+   const curtainOffset=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+16);shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
    const busy=space.querySelector('[aria-busy="true"]:not(.lwa-curtain)');
    const veve=key==='veve';
    const feed=veve?window.BigLWAVeve?.status?.():null;
@@ -157,7 +224,11 @@
      (Date.now()-moduleStarted>=320 && !unresolvedImages(shell) && !busy);
    const visible=!ready&&viewAnywayFor!==key;
    moduleCurtain.hidden=!visible;
+   // Drive the top-left dots from the very same boolean as the module curtain.
+   setModuleLoading(visible);
+   if(visible)moduleCurtain.style.zIndex='1502';
    shell.classList.toggle('lwa-curtain-veve-pending',veve&&visible);
+   shell.classList.toggle('lwa-curtain-loading',visible);
    const progress=moduleCurtain.querySelector('.lwa-curtain-progress');
    if(progress)progress.textContent=(veve
      ?String(feed?.stage||'Connecting to public collections…')

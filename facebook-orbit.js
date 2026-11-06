@@ -226,9 +226,14 @@
         render();
         // Profile login alone is not content permission. Only media actually
         // returned from approved Graph API endpoints becomes private drafts.
+        let saveError='';
         try{await syncFacebookDrafts()}catch(error){
+          saveError=String(error?.message||'Facebook private draft sync unavailable.');
           console.warn('Facebook private draft sync unavailable:',error);
         }
+        return {photos:state.photos.length,videos:state.videos.length,
+          missing:['user_photos','user_videos'].filter(permission=>!hasPermission(permission)),
+          saveError,profileLoaded:!!state.profile};
       });
     });
   }
@@ -417,7 +422,7 @@
     if (target.closest('[data-open="orbit"],[data-open="feed"]')) { window.setTimeout(render, 80); }
   }, true);
 
-  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, configured: function(){return !!loginConfiguration();} };
+  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, refresh: function(){return state.connected ? loadFacebookContent() : Promise.resolve(null);}, configured: function(){return !!loginConfiguration();} };
   /* Registering with the shared mount is what lets these cards survive a feed rebuild and
      pick up the Facebook accent, instead of only appearing on the click that opened the
      page and then being wiped by the next rebuild. */

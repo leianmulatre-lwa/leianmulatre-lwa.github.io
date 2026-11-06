@@ -146,16 +146,23 @@ const SOURCE_THEMES = {
   calendar: { rim:"#4285f4", glow:"#fbbc04", hot:"#ea4335" }
 };
 const rimOf = (source) => (SOURCE_THEMES[String(source || "").toLowerCase()] || { rim:FEED_RIM }).rim;
-const shadowOf = (source) => {
-  const key = String(source || "").toLowerCase();
-  const theme = SOURCE_THEMES[key] || { rim:FEED_RIM, glow:"#d95f6d" };
-  if (key === "youtube") return "0 0 0 2px " + theme.rim + ",3px 3px 0 " + theme.glow + ",0 13px 28px -16px " + theme.rim;
-  if (key === "instagram") return "3px 3px 0 " + theme.rim + ",7px 7px 0 -2px " + theme.glow + ",0 14px 28px -13px " + theme.hot;
-  if (key === "pinterest") return "3px 3px 0 " + theme.rim + ",6px 6px 0 -2px " + theme.glow + ",0 14px 26px -14px " + theme.hot;
-  if (key === "tiktok") return "3px 3px 0 " + theme.rim + ",-2px 8px 20px -14px " + theme.glow + ",8px 13px 24px -16px " + theme.hot;
-  if (theme.hot) return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow + ",0 0 18px -12px " + theme.hot;
-  return "3px 3px 0 " + theme.rim + ",0 12px 25px -16px " + theme.glow;
-};
+// Exactly one visible offset shadow; source glows are not a second key.
+const shadowOf = (source) => '3px 3px 0 ' + rimOf(source);
+const safeAura = value => /^#[0-9a-fA-F]{6}$/.test(String(value||''))?String(value):'';
+function postShadow(post,managed,source){
+  if(post?.isAd===true||post?.sponsored===true||post?.advertisement===true)
+    return {kind:'ad',rim:'#ffffff',shadow:'3px 3px 0 #ffffff'};
+  // These are author-owned imported links, not anonymous platform advertisements.
+  // Never substitute the current viewer's Aura for a different author's Aura.
+  if(post?.orbitImported===true||(source==='biglwa'&&Boolean(post?.sourceUrl))){
+    const aura=safeAura(post?.authorAuraColor||post?.auraColor)||
+      (managed?'rgb(var(--aura-rgb,216,95,109))':'#eee7db');
+    return {kind:'aura',rim:aura,shadow:'3px 3px 0 '+aura};
+  }
+  if(source==='biglwa'||source==='lwa')return {kind:'lwa',rim:'#eee7db',shadow:'none'};
+  return {kind:'platform',rim:rimOf(source),shadow:shadowOf(source)};
+}
+
 const accentOf = (id) => (SOURCES[id] || SOURCES.biglwa);
 
 const STYLE = `
@@ -175,6 +182,15 @@ const STYLE = `
 .biglwa-pin{--feed-card-rim:#a52a0c;--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px 25px -16px rgba(216,95,109,.35);position:relative;min-width:0;overflow:hidden;border:1px solid #dfd4ca;border-radius:14px;background:#f1e9e1;display:block;width:100%;
   box-shadow:var(--feed-card-shadow)}
 .biglwa-pin::before{content:none}
+/* Native BIG LWA cards wear one rainbow L-shaped shadow, not multiple colored glows. */
+.biglwa-pin-post[data-shadow-kind="lwa"]{overflow:visible!important;box-shadow:none!important;isolation:isolate}
+.biglwa-pin-post[data-shadow-kind="lwa"]::before{
+ content:""!important;display:block!important;position:absolute;inset:0;
+ transform:translate(3px,3px);border-radius:14px;
+ background:conic-gradient(#f36b79,#f2cd39,#58aa70,#4530bb,#f36b79);
+ clip-path:polygon(100% 0,100% 100%,0 100%,0 calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 0);
+ z-index:-1;pointer-events:none
+}
 #biglwaFeedHero .biglwa-feed-needs-sync{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-height:76px;border-radius:8px;background:#ede7e1;color:#61564c!important;font:700 10px/1.4 system-ui;text-decoration:none!important}
 #biglwaFeedHero .biglwa-feed-needs-sync span{font:24px/1 Georgia,serif}
 #biglwaFeedHero .biglwa-feed-resync{display:block;margin:8px 0 0;padding:7px 10px;border:1px solid #b9a499;border-radius:9px;background:#f6e9e1;color:#513d38;font:700 10px/1.2 system-ui;cursor:pointer}
@@ -554,6 +570,34 @@ function postTimeMs(post) {
   return timestampMs(post.createdAt || post.sourceCreatedAt);
 }
 
+// Published Aura is read only from the author's public directory look, not another
+// account's private customization record or the viewer's chosen color.
+const publicAuraCache=new Map();
+async function fillPublicAuthorAuras(store,records){
+  const origins=new Set();
+  for(const post of records){
+    if(!(post?.orbitImported===true||(post?.source==='biglwa'&&post?.sourceUrl)))continue;
+    if(safeAura(post.authorAuraColor||post.auraColor))continue;
+    const name=String(post.usernameLower||post.username||'').replace(/^@/,'').toLowerCase();
+    if(/^[a-z0-9._-]{5,24}$/.test(name))origins.add(name);
+  }
+  const names=[...origins].slice(0,24);
+  await Promise.allSettled(names.map(async name=>{
+    const cached=publicAuraCache.get(name);
+    if(cached&&Date.now()-cached.at<120000)return;
+    try{
+      const doc=await store.getDoc(store.doc(store.db,'usernames',name));
+      publicAuraCache.set(name,{color:safeAura(doc.data()?.look?.auraColor),at:Date.now()});
+    }catch{publicAuraCache.set(name,{color:'',at:Date.now()})}
+  }));
+  for(const post of records){
+    if(safeAura(post.authorAuraColor||post.auraColor))continue;
+    const name=String(post.usernameLower||post.username||'').replace(/^@/,'').toLowerCase();
+    const aura=publicAuraCache.get(name)?.color;
+    if(aura)post.authorAuraColor=aura;
+  }
+}
+
 async function loadPosts() {
   if (loading) return posts;
   loading = true;
@@ -566,6 +610,7 @@ async function loadPosts() {
       if(owner?.uid&&owner.accountVisibility!=='private'){
         const snap=await getDocs(query(collection(db,'users',owner.uid,'posts'),where('state','==','approved'),limit(FEED_SIZE)));
         posts=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>postTimeMs(b)-postTimeMs(a));
+        await fillPublicAuthorAuras({db,doc:(await firebase()).doc,getDoc:(await firebase()).getDoc},posts);
       }
       renderPosts(true);renderDraftPanel();renderHero(true);return posts;
     }
@@ -630,6 +675,9 @@ async function loadPosts() {
     studioOwnerUid=user?.uid||'';
     studioOwnPosts=user?profilePosts.filter(p=>p.uid===user.uid&&p.state==='approved')
       .sort((a,b)=>postTimeMs(b)-postTimeMs(a)).slice(0,FEED_SIZE):[];
+    // Resolve member Aura provenance from publicly shared author looks, keeping
+    // the card's own author color rather than borrowing the current viewer's.
+    await fillPublicAuthorAuras({db,doc:(await firebase()).doc,getDoc:(await firebase()).getDoc},rootPosts);
     posts = rootPosts
       .filter((p) => p.state === "approved")
       .sort((a, b) => postTimeMs(b) - postTimeMs(a))
@@ -665,49 +713,98 @@ function timestampMs(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-/* The preview strip sits above the board. It shows the four newest pictures in a single
-   row, so a visitor sees colour and activity before they start reading. It is decoration
-   over the same data the list already holds, never a second query, so the two can never
-   disagree about what the feed contains. Slots with no picture are left as dashed gaps
-   rather than shrinking the row, which keeps the row four wide until there is something
-   to put in it. */
+/* Studio's picture reel shuffles real published photographs; it never uses
+   defaults or edits the underlying feed order and account data. */
 const HERO_SLOTS = 4;
+/* Film preview is a contact sheet for PHOTOGRAPHS, not video posters.
+   Other Feed cards remain mixed-media and keep their existing video behavior.
+   Imported Orbit photos must still use their durable managed R2 media URLs. */
+const heroPhotoUrl = post => {
+  if (!post) return "";
+  const valid=pictureUrls(post);
+  if (!valid.length) return "";
+  const items=Array.isArray(post.mediaItems)?post.mediaItems.filter(Boolean):[];
+  if (items.length) {
+    const pictures=items.filter(piece=>piece.isPicture!==false &&
+      !/^video/i.test(String(piece.mediaType||piece.type||piece.kind||"")) &&
+      !looksLikeVideoFile(piece.url));
+    if (!pictures.length) return "";
+    const candidates=pictures.flatMap(piece=>[piece.url,piece.thumbnailUrl,orbitUrlFromKey(piece.key)]);
+    return candidates.find(url=>url&&valid.includes(url)) ||
+      (post.orbitImported?valid.find(managedOrbitUrl)||"":"");
+  }
+  const declaredType=String(post.mediaType||post.type||post.kind||"").toLowerCase();
+  if (post.isVideo===true || /^video|^reel|^clip/.test(declaredType) ||
+      playableVideo(post) || (post.sourceHostedMedia===true&&
+        ['tiktok','youtube'].includes(String(post.source||'').toLowerCase())))return "";
+  return valid[0]||"";
+};
 let heroOn = null;
 let heroSignature = null;
+let heroSelectedKeys = [];
+let heroPoolSize = 0;
+const HERO_SHUFFLE_MS = 45000;
+const heroPostKey = post => String(post.id||'')+':'+heroPhotoUrl(post);
 
-function renderHero(force) {
+/* Shuffle a copy of approved photo posts; prefer unseen pictures between
+   rotations when a member has enough, with no fixed four-photo default. */
+function shuffleHeroPosts(pool, previous=[]) {
+  const unique=[...new Map(pool.map(post=>[heroPostKey(post),post])).values()];
+  for(let i=unique.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [unique[i],unique[j]]=[unique[j],unique[i]];
+  }
+  if(previous.length&&unique.length>HERO_SLOTS){
+    const old=new Set(previous);
+    const unseen=unique.filter(post=>!old.has(heroPostKey(post)));
+    const seen=unique.filter(post=>old.has(heroPostKey(post)));
+    unique.splice(0,unique.length,...unseen,...seen);
+  }
+  let selected=unique.slice(0,HERO_SLOTS);
+  if(previous.length&&selected.length>1&&
+    selected.every((post,index)=>heroPostKey(post)===previous[index])){
+    selected=[...selected.slice(1),selected[0]];
+  }
+  return selected;
+}
+function renderHero(force,reshuffle=false) {
   const anchor = document.getElementById("biglwaFeedHero");
   if (!anchor) return;
   /* The class lives on the markup in the module page, but it is asserted here as well so
      the strip is still a panel if that markup is ever built without it. */
   anchor.classList.add("biglwa-feed-hero");
-  /* A feed with nothing in it at all stays clean: the strip is a preview of pictures, so
-     showing four empty slots over an empty board would only add noise. Once a single post
-     exists the strip appears and holds its width, gaps included. */
+  /* Owner Studio uses only that signed-in member's approved account posts.
+     Visitor previews use only the viewed profile's approved posts. */
   const isPublicProfile=Boolean(window.__biglwaPublicStorageView);
   const verifiedUid=String(window.BigLWAAccountStorage?.uid||identity()?.uid||'');
   const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
-  // A new Studio shows its own neutral photo placeholders, never another member's wall.
-  anchor.hidden = isPublicProfile&&!previewPosts.length;
-  if (anchor.hidden) {
-    heroOn = null;
-    heroSignature = null;
+  const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post));
+  const requiresSync=previewPosts.some(post=>post.orbitImported&&
+    ['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
+  // No member-published pictures? Never display fixed sample photographs.
+  // Keep the restoration prompt if the account's Orbit photos need syncing.
+  anchor.hidden=!storedPosts.length&&!requiresSync;
+  if(anchor.hidden){
+    heroOn=null;heroSignature=null;heroSelectedKeys=[];heroPoolSize=0;
     return;
   }
-  const signature = verifiedUid+'|'+(isPublicProfile?'public':'owner')+'|'+previewPosts.map((p) => p.id + ":" + slideUrls(p).join(",") + ":" + (p.caption || "")).join("|");
-  if (!force && anchor === heroOn && signature === heroSignature) return;
-  heroOn = anchor;
-  heroSignature = signature;
+  const viewedUid=isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid;
+  const signature=viewedUid+'|'+(isPublicProfile?'public':'owner')+'|'+
+    previewPosts.map(p=>p.id+':'+p.state+':'+heroPhotoUrl(p)+':'+(p.caption||'')).join('|');
+  const sameContent=anchor===heroOn&&signature===heroSignature;
+  if(sameContent&&!reshuffle)return;
+  if(!sameContent)heroSelectedKeys=[];
+  heroOn=anchor;
+  heroSignature=signature;
+  heroPoolSize=storedPosts.length;
 
-  /* Studio shows ONE compact row of the four latest approved Feed posts. */
-  // Preview the latest images that have a verified R2 URL, not expired Instagram links.
-  const storedPosts=previewPosts.filter(p=>pictureUrls(p).length);
-  const slots=storedPosts.slice(0,HERO_SLOTS);
+  // Film previews change without reordering posts in MyFeed or altering storage.
+  const slots=shuffleHeroPosts(storedPosts,heroSelectedKeys);
+  heroSelectedKeys=slots.map(heroPostKey);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
-    const urls = slideUrls(post);
-    const first = urls[0];
+    const first = heroPhotoUrl(post);
     if (!first) {
       return '<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync" style="--accent:' + src.accent + '">' +
         '<span role="img" aria-label="Image waiting for storage">▧</span><small>Image needs sync</small></div>';
@@ -719,14 +816,18 @@ function renderHero(force) {
 
   const withImage=storedPosts;
   const rest=Math.max(0,withImage.length-slots.length);
-  const requiresSync=previewPosts.some(post=>post.orbitImported&&['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
   anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>'+(isPublicProfile?'Published pictures':'Your published pictures')+'</h3><span>' +
     (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
     "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):Array.from({length:HERO_SLOTS},()=>'<div class="biglwa-feed-hero-empty" aria-label="Add your own published photo">Add your photo</div>').join('')) + "</div>" +
     (requiresSync?'<button type="button" class="biglwa-feed-resync" data-feed-resync>↻ Restore imported photos</button><small class="biglwa-feed-sync-note" role="status">Reconnect Orbit if the original service no longer allows image downloads.</small>':'');
   anchor.querySelectorAll('.biglwa-feed-hero-preview').forEach((button,index)=>{
-    button.addEventListener('click',()=>{if(slots[index])openLightbox(slots[index],0);});
+    button.addEventListener('click',()=>{
+      const post=slots[index];if(!post)return;
+      const selected=heroPhotoUrl(post);
+      openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)));
+    });
   });
+  anchor.querySelector('.biglwa-feed-hero-grid')?.setAttribute('aria-label','Shuffle of published photographs');
   anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
     img.addEventListener('error',()=>{
       const slot=img.closest('a,button');
@@ -741,6 +842,16 @@ function renderHero(force) {
 
 }
 
+/* Only rotate when the film is visible. Hover, focus or a background tab
+   pauses the shuffle, preserving an active user's target and accessibility. */
+function shuffleVisibleHero(){
+  const anchor=document.getElementById('biglwaFeedHero');
+  if(!anchor||anchor!==heroOn||anchor.hidden||heroPoolSize<2||document.hidden||
+     anchor.matches(':hover,:focus-within')||!anchor.getClientRects().length)return;
+  const bounds=anchor.getBoundingClientRect();
+  if(bounds.bottom<=0||bounds.top>=window.innerHeight)return;
+  renderHero(false,true);
+}
 let repairingFeedImages=false;
 document.addEventListener('click',async event=>{
   const trigger=event.target.closest('[data-feed-resync]');
@@ -1016,7 +1127,7 @@ function renderPosts(force) {
   drawnSignature = signature;
 
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
-  stopSlideshows();
+  stopSlideshows(true);
   if (!posts.length) return;
   const scoped=posts.filter(usablePost).filter(post=>{
     if(feedAppFilter==='all')return true;
@@ -1047,11 +1158,11 @@ function renderPosts(force) {
     const sourceVideoId=String(post.sourcePostId||"");
     const tiktokEmbed=post.sourceHostedMedia===true&&providerSafeTikTok(post)&&/^\d{6,25}$/.test(sourceVideoId)
       ? 'https://www.tiktok.com/embed/v2/'+sourceVideoId : '';
-    const externalVideo=tiktokEmbed
+    const externalVideo=tiktokEmbed && !playable
       ? '<div class="biglwa-source-video"><iframe title="TikTok video from '+esc(post.sourceUsername||'connected account')+'" src="'+esc(tiktokEmbed)+'" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
       : '';
     const image = externalVideo || (soleVideo
-      ? '<video class="biglwa-pin-img" data-feed-video src="'+esc(playable)+'"'+(shown[0]||fallbackSrc?' poster="'+esc(shown[0]||fallbackSrc)+'"':'')+' muted playsinline preload="metadata" controls autoplay loop></video>'
+      ? '<video class="biglwa-pin-img" data-feed-video src="'+esc(playable)+'"'+(shown[0]||fallbackSrc?' poster="'+esc(shown[0]||fallbackSrc)+'"':'')+' muted playsinline preload="none" controls data-viewport-autoplay loop></video>'
       : !shown.length
       ? '<div class="biglwa-pin-empty"><small>Media</small></div>'
       : shown.length === 1
@@ -1066,7 +1177,7 @@ function renderPosts(force) {
     // Pinterest-imported media is a normal visual card. Even historical records
     // mislabeled as Instagram must not show a bulky "Shared link" footer.
     const pinSource=/^https?:\/\/(?:www\.)?pinterest\.[^/]+\/pin\//i.test(String(post.sourceUrl||''))||String(post.source||'').toLowerCase()==='pinterest';
-    const link = !pinSource && !isInstagram && !["facebook","pinterest"].includes(String(post.source||"").toLowerCase()) && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
+    const link = !pinSource && !isInstagram && !["facebook","pinterest"].includes(String(post.source||"").toLowerCase()) && !playable && !shown.length && !externalVideo && post.sourceUrl ? '<a class="biglwa-pin-link" data-post-link href="' + esc(post.sourceUrl) + '" target="_blank" rel="noopener noreferrer"><span><b>' + esc(post.linkTitle || "Shared link") + '</b><small>' + esc(post.sourceUrl) + '</small></span><span>open</span></a>' : "";
     // Carousels are controlled directly on their photo: dots below, arrows on hover.
     // Numbered browser tabs belong to the retired feed header and are not rendered.
     // Use the same card header for every source; slideshow arrow controls
@@ -1074,7 +1185,8 @@ function renderPosts(force) {
     const browserStrip = '';
     const provider=displaySource;
     const sourceLabel=provider==='instagram'?'Instagram':provider==='pinterest'?'Pinterest':provider.charAt(0).toUpperCase()+provider.slice(1);
-    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (displaySource === "tiktok" ? ' biglwa-tiktok-card' : '') + (displaySource === "facebook" ? ' biglwa-facebook-card' : '') + (displaySource === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" style="--feed-card-rim:' + rimOf(displaySource) + ';--feed-card-shadow:' + shadowOf(displaySource) + '" data-post-id="' + esc(post.id) + '" data-feed-owned="' + (managed?'1':'0') + '">' +
+    const shadow=postShadow(post,managed,displaySource);
+    return '<article class="biglwa-pin biglwa-pin-post' + (isInstagram ? ' biglwa-instagram-card' : '') + (displaySource === "tiktok" ? ' biglwa-tiktok-card' : '') + (displaySource === "facebook" ? ' biglwa-facebook-card' : '') + (displaySource === "pinterest" ? ' pinterest-feed-item biglwa-pinterest-card' : '') + '" data-shadow-kind="' + shadow.kind + '" style="--feed-card-rim:' + shadow.rim + ';--feed-card-shadow:' + shadow.shadow + '" data-post-id="' + esc(post.id) + '" data-feed-owned="' + (managed?'1':'0') + '">' +
       '<div class="biglwa-unified-media">' + browserStrip + image + "</div>" + link +
       '<span class="biglwa-unified-source" aria-label="Source: '+esc(sourceLabel)+'">'+esc(sourceLabel)+'</span>' +
       sendBar(post, managed) +
@@ -1120,11 +1232,14 @@ const calmMotion = () => {
   catch { return false; }
 };
 
-function stopSlideshows() {
+function stopSlideshows(dispose = false) {
   // Hold using each controller so its own timer pointer is reset too.
   // Clearing raw interval IDs left stale pointers and caused duplicate
   // slideshow listeners every time the browser tab became visible.
-  document.querySelectorAll('[data-biglwa-slideshow]').forEach(frame=>frame._biglwaSlideController?.hold());
+  document.querySelectorAll('[data-biglwa-slideshow]').forEach(frame=>{
+    frame._biglwaSlideController?.hold();
+    if(dispose){frame._biglwaSlideController?.disconnect?.();delete frame._biglwaSlideController;}
+  });
   for(const timer of running)clearInterval(timer);
   running.clear();
 }
@@ -1182,11 +1297,12 @@ function startSlideshows(root) {
       timer = null;
     };
     const play = () => {
-      if (timer || document.hidden || calmMotion() || !frame.isConnected) return;
+      if (timer || !inView || document.hidden || calmMotion() || !frame.isConnected) return;
       timer = setInterval(() => show(at + 1), SLIDE_MS);
       running.add(timer);
     };
     let timer = null;
+    let inView = typeof IntersectionObserver !== "function";
     frame._biglwaSlideController={hold,play};
 
     frame.addEventListener("click", (event) => {
@@ -1214,9 +1330,10 @@ function startSlideshows(root) {
        timers for pictures nobody is looking at. */
     if (typeof IntersectionObserver === "function") {
       const seen = new IntersectionObserver((entries) => {
-        for (const entry of entries) entry.isIntersecting ? play() : hold();
+        for (const entry of entries) { inView=entry.isIntersecting; inView ? play() : hold(); }
       }, { rootMargin: "120px" });
       seen.observe(frame);
+      frame._biglwaSlideController.disconnect=()=>seen.disconnect();
     }
   }
 }
@@ -1677,6 +1794,7 @@ export async function startFeed() {
      two sets of listeners fighting over the same list. */
   if (booted) return window.__biglwaFeed;
   booted = true;
+  window.setInterval(shuffleVisibleHero,HERO_SHUFFLE_MS);
   startIdentity();
   onIdentityChange((who) => {
     watch();
@@ -1688,6 +1806,7 @@ export async function startFeed() {
       posts = [];
       draftPosts = [];
       renderPosts(true);
+      renderHero(true);
     }
   });
   watch();

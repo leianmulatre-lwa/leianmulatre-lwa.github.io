@@ -14,7 +14,7 @@ async function device(owner,legacy={}){
  const window={addEventListener:()=>{},dispatchEvent:()=>{},parent:null};window.parent=window;
  const context=vm.createContext({window,Storage,localStorage:new Storage(),TextEncoder,URLSearchParams,crypto:webcrypto,console,Blob,URL,
  document:{readyState:'loading',addEventListener:()=>{},getElementById:()=>null,documentElement:{classList:{contains:()=>false}}},
- location:{pathname:'/studio',search:'',reload:()=>{}},CustomEvent:class{},setTimeout:()=>1,clearTimeout:()=>{},
+ location:{pathname:'/studio',search:'',reload:()=>{}},CustomEvent:class{},setInterval:()=>1,setTimeout:()=>1,clearTimeout:()=>{},
  modules:{app:{getApps:()=>[{}],initializeApp:()=>({})},auth:{getAuth:()=>auth,onAuthStateChanged:()=>{}},firestore:f}});
  vm.runInContext(policy,context);
  vm.runInContext(source.replace(/import\('https:\/\/www.gstatic.com\/firebasejs\/12.18.0\/firebase-(app|auth|firestore).js'\)/g,(_,name)=>`Promise.resolve(modules.${name})`),context);

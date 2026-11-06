@@ -5,11 +5,11 @@ const require=createRequire(import.meta.url);
 const {JSDOM}=require('jsdom');
 const code=readFileSync(new URL('./profile-social-showcase.js',import.meta.url),'utf8');
 const index=readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.ok(index.includes('/profile-social-showcase.js?v=20261023-banner-story-rings-2'));
+assert.ok(/\/profile-social-showcase\.js\?v=[\w.-]+/.test(index));
 
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+
 '<main id="studioApp"><article class="profile-card">'+
-'<div class="profile-copy"><div class="profile-name-line"><h1>@founder</h1></div>'+
+'<div class="profile-copy"><div class="profile-name-line"><h1>@founder</h1></div><p class="bio">Original member bio</p>'+
 '<div class="stats"><span data-profile-stat="followers">100 Followers</span>'+
 '<span data-profile-stat="following">20 Following</span>'+
 '<span data-profile-stat="connections">2 Connections</span>'+
@@ -36,12 +36,15 @@ doc.dispatchEvent(new w.Event('DOMContentLoaded'));
 await new Promise(resolve=>setTimeout(resolve,360));
 const card=doc.querySelector('#studioApp .profile-card');
 const stats=card.querySelector('.stats'), likes=stats.querySelector('[data-profile-stat="likes"]');
-const row=card.querySelector('.biglwa-stories-by-likes');
+const row=card;
 const rail=card.querySelector('[data-biglwa-public-showcase]');
-assert.ok(row,'Story rail must mount beside live profile metrics');
-assert.equal(stats.parentElement,row,'Metrics must not be duplicated');
-assert.equal(rail.parentElement,row,'Story rail must be next to metrics');
+assert.ok(row,'Profile banner exists');
+assert.equal(card.querySelector('[data-biglwa-bio-highlights]'),null,'Viewer link belongs on circle, not beside bio');
+assert.equal(stats.parentElement,card.querySelector('.profile-copy'),'Metrics must remain in original profile copy');
+assert.equal(rail.parentElement,card.querySelector('.profile-copy'),'Highlights belong in the profile content, away from Mood');
+assert.equal(rail.previousElementSibling,stats,'Highlights sit directly below all five stats');
 assert.ok(likes,'Likes remains intact');
+assert.equal(rail.querySelector('.biglwa-stories-track').lastElementChild.dataset.source,'new','Add highlight moves after other highlights');
 assert.ok(rail.querySelectorAll('.biglwa-story-bubble[data-source="snapchat"]').length>=2,'Public Snapchat stories become circles');
 assert.equal(rail.querySelectorAll('.biglwa-story-bubble[data-source="instagram"]').length,1,'Saved Instagram Highlight gets its own ring');
 assert.equal(rail.querySelectorAll('.biglwa-story-bubble[data-source="new"]').length,1,'Add ring present');
@@ -58,4 +61,58 @@ assert.ok(doc.querySelector('[data-biglwa-public-showcase-editor][open]'),'New b
 doc.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 assert.equal(doc.querySelector('[data-biglwa-public-showcase-editor]').open,false);
 dom.window.close();
-console.log('Profile banner Instagram Highlight + Snapchat Spotlight story rings passed.');
+
+// A fresh member with only authorized account identity + one stored public
+// Snapchat URL receives their original Highlight and Spotlight automatically.
+// No platform-specific paste widget or second account login is required.
+const autoDom=new JSDOM('<!doctype html><html><head></head><body>'+
+ '<main id="studioApp"><article class="profile-card"><div class="profile-copy">'+
+ '<div class="stats"><span data-profile-stat="likes">Likes</span></div>'+
+ '</div></article></main></body></html>',{
+ url:'https://biglwa.com/studio',pretendToBeVisual:true,runScripts:'outside-only'
+});
+const aw=autoDom.window,ad=aw.document;
+aw.__biglwaIdentity={uid:'owner-two'};
+aw.__biglwaInstagramOrbit={state:{connected:true,
+ profile:{username:'owner.ig',profile_picture_url:'https://example.org/owned-avatar.jpg'},
+ media:[{id:'highlight-1',username:'owner.ig',
+ permalink:'https://www.instagram.com/stories/highlights/1234567890123456/'}]}};
+aw.__biglwaConnections={connections:()=>({instagram:{username:'owner.ig'}})};
+aw.BigLWAOrbitOAuth={get:id=>id==='snapchat'?{verifiedFromProvider:true,username:''}:null};
+const urls={snapchat:'https://www.snapchat.com/add/snapowner'};
+aw.BigLWAOrbitAccountLinks={ready:()=>true,owner:()=> 'owner-two',get:()=>({...urls}),
+ save:async(provider,url)=>{urls[provider]=url;return true}};
+aw.fetch=async()=>({ok:true,json:async()=>({available:true,matchedHandle:true,handle:'snapowner',
+ items:[{kind:'Spotlight',mediaUrl:'https://cf-st.sc-cdn.net/d/auto-spotlight'}]})});
+aw.eval(code);
+ad.dispatchEvent(new aw.Event('DOMContentLoaded'));
+await new Promise(resolve=>setTimeout(resolve,400));
+const banner=ad.querySelector('#studioApp .profile-card');
+const autoIg=banner.querySelectorAll('.biglwa-story-bubble[data-source="instagram"]');
+const autoSnap=banner.querySelectorAll('.biglwa-story-bubble[data-source="snapchat"]');
+assert.equal(autoIg.length,1,'A genuine Highlight permalink returned by the connected IG account auto-populates');
+assert.equal(autoSnap.length,1,'Snapchat public username sourced from a saved profile URL fetches Spotlight automatically');
+assert.equal(urls.instagram,'https://www.instagram.com/owner.ig/','IG OAuth public URL saved to account without paste');
+assert.ok(autoIg[0].querySelector('.biglwa-story-inner img'),'Use authenticated IG profile avatar, no IG logo');
+assert.equal(banner.querySelector('.biglwa-stories-track').lastElementChild.dataset.source,'new','Plus stays last');
+assert.equal(ad.querySelector('[data-biglwa-public-showcase-editor] form').parentElement.open,false,
+ 'Manual link fallback is collapsed by default');
+autoSnap[0].click();
+assert.equal(ad.querySelector('.biglwa-story-popup video')?.getAttribute('src'),
+ 'https://cf-st.sc-cdn.net/d/auto-spotlight');
+ad.querySelector('.biglwa-story-close').click();
+// No Highlight records: the circle opens the supplied viewer directly.
+aw.__biglwaInstagramOrbit.state.media=[];
+aw.dispatchEvent(new aw.Event('biglwa:instagram-restored'));
+aw.dispatchEvent(new aw.Event('biglwa:orbit-links-synced'));
+await new Promise(resolve=>setTimeout(resolve,450));
+const fallback=ad.querySelector('.biglwa-story-bubble[data-source="instagram"]');
+assert.ok(fallback,'Connected Instagram still appears when Highlight metadata is absent');
+assert.match(fallback.textContent||'',/Highlights/,'Viewer fallback is labelled Highlights');
+assert.equal(fallback.tagName,'A','Viewer circle is a real hyperlink');
+assert.equal(fallback.href,'https://igexport.com/en/instagram-highlights-viewer/?username=owner.ig');
+assert.equal(fallback.target,'_blank');
+assert.equal(ad.querySelector('.biglwa-story-popup'),null,'No empty preview dialog');
+autoDom.window.close();
+console.log('Profile banner linked identity + automatic source Highlight and Spotlight passed.');
+

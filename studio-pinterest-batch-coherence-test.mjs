@@ -13,9 +13,9 @@ assert.ok(studio.includes('.biglwa-body-guide{margin:1px 0 3px var(--body-guide-
 assert.ok(studio.includes(':not(:hover):not(:focus-within){box-shadow:0 4px 12px'),'Widget pastel ring hidden without hover');
 assert.ok(studio.includes('box-shadow:0 0 0 3px var(--three-body-color'),'Pastel ring appears on hover');
 assert.ok(index.includes('studio-three-bodies-20261019.js?v=20261021-skeleton-compact-1'),'Studio script cache refreshed');
-assert.ok(index.includes('pinterest-orbit.js?v=20261022-veve-board-9'),'Pinterest code cache refreshed');
-assert.ok(index.includes('account-boot.js?v=20261023-tiktok-collective-14'),'Feed boot cache refreshed');
-assert.ok(boot.includes('feed-view.js?v=20261023-tiktok-collective-refresh-9'),'Feed code cache refreshed');
+assert.ok(index.includes('pinterest-orbit.js?v=20261028-oauth-return-2'),'Pinterest code cache refreshed');
+assert.ok(index.includes('account-boot.js?v=20261029-film-shuffle-3'),'Feed boot cache refreshed');
+assert.ok(boot.includes('feed-view.js?v=20261029-owned-photo-shuffle-3'),'Feed code cache refreshed');
 assert.ok(pins.includes('workQueue.push({fn,silent,uid:authUid})'),'Queued Pinterest actions stay isolated to account');
 assert.ok(pins.includes('role="status" aria-live="polite"'),'Pinterest progress is announced without blocking controls');
 assert.ok(pins.includes('if(!saved&&!requested)')&&pins.includes('while(next&&page<100)'),'Full board pagination continues over fetched batches');
@@ -25,9 +25,9 @@ assert.ok(!pins.includes('>Post to Collective</button>')&&!pins.includes('>Load 
 assert.ok(pins.includes('privateSaveUnavailable')&&pins.includes('disabled aria-disabled="true"'),'Already imported selected originals cannot be redundantly imported');
 assert.ok(pins.includes('importPinsToAccount(originals)'),'Original creations auto-import to account privately');
 assert.ok(pins.includes('20 actions are already queued (not a 20-Pin import limit)'),'Queue cap distinguished from Pin count');
-assert.ok(pins.includes('● Private in BIG LWA'),'Original status makes private-import state clear');
+assert.ok(pins.includes('Private in Archive'),'Original status makes private-import state clear');
 assert.ok(feed.includes('const pinOrigin=/^https?:'),'Old Pinterest links fix card attribution');
 assert.ok(feed.includes('const displaySource=pinOrigin?'),'Correct label/color based on true source');
 assert.ok(feed.includes('const link = !pinSource'),'No bottom Shared link block on Pinterest-origin cards');
-assert.ok(archive.includes('function groupCards(cardList,items,grouped,hideDupes)')&&archive.includes('class="archive-app-compartment"'),'Archive is compartmentalized by app without flattening media');
-console.log('PASS aligned Studio, hover-only rings, Pinterest queue/pagination/select, true source labels and Archive app compartments');
+assert.ok(archive.includes('function groupCards(cardList,items,grouped,hideDupes)')&&archive.includes('return visible.map(index=>cardList[index]).join(\'\')'),'Archive uses flat card gallery; source identity preserved on individual cards');
+console.log('PASS aligned Studio, hover-only rings, Pinterest queue/pagination/select, true source labels and Archive flat responsive gallery');

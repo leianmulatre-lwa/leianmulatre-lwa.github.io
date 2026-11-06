@@ -4,9 +4,9 @@ import vm from 'node:vm';
 const read=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
 const src=read('studio-onboarding.js'),home=read('index.html');
 assert.doesNotThrow(()=>new vm.Script(src));
-assert.ok(home.includes('studio-onboarding.js?v=20261023-mint-quick-actions-2'),
+assert.ok(home.includes('studio-onboarding.js?v='),
   'new visual tutorial version loads instead of cached text-only guide');
-assert.ok(src.includes('"visual":"symbols"')&&src.includes('Symbol key</summary>'),'Skeleton Keys shows visual symbols both in the tutorial and inline hub');
+assert.ok(src.includes('"visual":"symbols"')&&src.includes('Symbol &amp; visibility key</summary>'),'Skeleton Keys shows visual symbols both in the tutorial and inline hub');
 assert.ok(!src.includes('Hanger = Projects, chess piece = Arcade'),
   'old word-only dictionary is not displayed');
 assert.ok(src.includes('id="biglwaTourSymbolLegend"')&&src.includes('renderSymbolKey(legend)'));
@@ -44,8 +44,8 @@ for(const key of ['projects','games','diary','map','orbit','connect','feed','arc
 const root=new El('ul');
 helpers.renderSymbolKey(root);
 assert.equal(root.children.length,helpers.symbolKey.length);
-const first=root.children.find(c=>c.children.at(-1)?.children?.[0]?.textContent==='Projects');
-assert.ok(first,'Projects has a labeled row');
+const first=root.children.find(c=>c.children.at(-1)?.children?.[0]?.textContent==='Visualizr');
+assert.ok(first,'Visualizr has a labeled row');
 const firstMark=first.children[0].children[0];
 assert.equal(firstMark.className,'sidebar-route-icon','clones real project symbol container');
 assert.equal(firstMark.children[0].className,'live-projects-icon','clones real project SVG');

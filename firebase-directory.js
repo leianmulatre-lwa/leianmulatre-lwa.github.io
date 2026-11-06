@@ -30,6 +30,10 @@ const normalize=v=>String(v||"").trim().replace(/^@/,"").toLowerCase();
 const clean=v=>String(v||"").trim();
 const safeNumber=(v,fallback=0)=>{const n=Number(v);return Number.isFinite(n)?n:fallback};
 const safeText=(v,max=64)=>clean(v).slice(0,max);
+const safePhotoPosition=value=>{
+  const axis=v=>Math.min(100,Math.max(0,safeNumber(v,50)));
+  return {x:axis(value?.x),y:axis(value?.y)};
+};
 
 /* Which hosts a public social link is allowed to point at. A visitor clicking a link on
    someone else's profile is leaving the site, so the address has to be one we recognise
@@ -38,6 +42,7 @@ const SOCIAL_HOSTS={
   instagram:["instagram.com","www.instagram.com"],
   tiktok:["tiktok.com","www.tiktok.com"],
   pinterest:["pinterest.com","www.pinterest.com"],
+  youtube:["youtube.com","www.youtube.com","m.youtube.com"],
   x:["x.com","www.x.com","twitter.com","www.twitter.com"],
   snapchat:["snapchat.com","www.snapchat.com"],
   tumblr:["tumblr.com","www.tumblr.com"]
@@ -168,6 +173,39 @@ function sanitizeLayout(raw){
  for(const key of ['heroWidgetRail','biglwaStudioMasonry'])if(value.order?.[key])order[key]=cleanIds(value.order[key]);
  return {order,docked:cleanIds(value.docked)};
 }
+/* The small, explicitly edited Highlight presentation may be mirrored publicly.
+   Never publish authentication state, full source archives, or private drafts. */
+function sanitizeHighlightEdits(raw){
+  if(!raw||typeof raw!=="object")return {version:1,imported:{},custom:[]};
+  const cover=value=>{
+    const u=String(value||"").trim();
+    if(/^data:image\/jpeg;base64,[A-Za-z0-9+/=]{1,36000}$/.test(u))return u;
+    if(/^\/assets\/highlights\/[\w.-]{1,180}$/.test(u))return u;
+    try{const x=new URL(u);return x.protocol==="https:"&&!x.username&&!x.password&&x.href.length<1300?x.href:""}catch{return ""}
+  };
+  const media=value=>{
+    const u=cover(value);
+    return u.startsWith("https://")?u:"";
+  };
+  const keep=entry=>({
+    title:safeText(entry?.title,48),cover:cover(entry?.cover),
+    x:Math.max(0,Math.min(100,Number(entry?.x)||50)),y:Math.max(0,Math.min(100,Number(entry?.y)||50)),
+    hidden:!!entry?.hidden,
+    order:Array.isArray(entry?.order)?[...new Set(entry.order.filter(i=>Number.isInteger(i)&&i>=0&&i<100))].slice(0,50):null,
+    added:Array.isArray(entry?.added)?entry.added.slice(0,12).flatMap(item=>{
+      const url=media(item?.mediaUrl);
+      return url?[{kind:item.kind==="video"?"video":"image",mediaUrl:url}]:[];
+    }):[]
+  });
+  const imported={};
+  for(const [key,value] of Object.entries(raw.imported||{})){
+    if(/^\d{1,2}$/.test(key)&&Number(key)<24)imported[key]=keep(value);
+  }
+  const custom=Array.isArray(raw.custom)?raw.custom.slice(0,8).map(value=>({
+    ...keep(value),id:safeText(value?.id,70).replace(/[^\w-]/g,"")
+  })):[];
+  return {version:1,imported,custom};
+}
 async function savePublicLook(custom={}){
   try{
     const {db,auth}=await getFirebase();
@@ -187,8 +225,10 @@ async function savePublicLook(custom={}){
       widgetBlur:safeNumber(appearance.blur,0),
       auraColor:safeText(appearance.aura,32),
       layout:account.accountVisibility==='private'?{}:sanitizeLayout(custom.layout),
+      highlights:account.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(custom.session?.highlightEdits),
       wallpaper:{
         fit:safeText(wallpaper.fit,16),
+        position:safeText(wallpaper.position,32),
         blur:safeNumber(wallpaper.blur,0),
         overlay:safeNumber(wallpaper.overlay,0)
       }
@@ -219,7 +259,8 @@ function readSocials(raw){
     if(parsed.protocol!=="https:")return [];
     const host=parsed.hostname.toLowerCase();
     if(!SOCIAL_HOSTS[id].includes(host)&&!((id==='tumblr'&&host.endsWith('.tumblr.com'))||(id==='snapchat'&&host.endsWith('.snapchat.com'))))return [];
-    if(['x','snapchat','tumblr'].includes(id)&&(!parsed.pathname||parsed.pathname==='/'))return [];
+    const tumblrRoot=id==='tumblr'&&host.endsWith('.tumblr.com')&&host!=='www.tumblr.com';
+    if((!parsed.pathname||parsed.pathname==='/')&&!tumblrRoot)return [];
     return [{
       id,
       label:safeText(entry.label,32)||id,
@@ -262,10 +303,12 @@ async function loadPublicProfile(rawUsername){
     const {doc,getDoc}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
     const snap=await getDoc(doc(db,"usernames",username));
     if(!snap.exists())return null;
-    const data=snap.data()||{};
+    const data={...(snap.data()||{})};
+    if(data.uid){try{const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-state/'+encodeURIComponent(data.uid),{cache:'no-store',signal:AbortSignal.timeout(6000)});if(response.ok){const media=await response.json();if(media.uid===data.uid){if(media.photoKnown)data.profilePhotoUrl=media.profilePhotoUrl;if(media.profilePhotoPosition)data.profilePhotoPosition=media.profilePhotoPosition;if(media.wallpaperKnown)data.look={...(data.look||{}),wallpaperMedia:media.wallpaperMedia};data.widgetAudience=media.widgetAudience||{}}}}catch{}}
     const look=data.look&&typeof data.look==="object"?data.look:null;
     return {
       uid:clean(data.uid),
+      widgetAudience:data.widgetAudience||{},
       accountVisibility:data.accountVisibility==='private'?'private':'public',
       username:clean(data.username)||username,
       name:clean(data.name),
@@ -275,6 +318,23 @@ async function loadPublicProfile(rawUsername){
       mood:clean(data.mood),
       moodStyle:clean(data.moodStyle),
       auraText:clean(data.auraText),
+      profilePhotoUrl:/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/profile-photo\//.test(String(data.profilePhotoUrl||''))?String(data.profilePhotoUrl):'',
+      profilePhotoPosition:safePhotoPosition(data.profilePhotoPosition),
+      studioAvatarPublic:(()=>{
+       const avatar=data.studioAvatarPublic,url=String(avatar?.url||'');
+       const owned= /^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/(?:profile-photo|feed-image)\//.test(url);
+       const sona=avatar?.type==='sona360' && /^https:\/\/(?:www\.)?360sona\.com\/w\/[a-zA-Z0-9_-]+\/?(?:[?#].*)?$/.test(url);
+       if(!avatar||!['minecraft','mii','imvu','bitmoji','sona360'].includes(avatar.type)||!(owned||sona))return null;
+       return {type:avatar.type,url,...(avatar.type==='minecraft'?{slim:avatar.slim===true}:{})};
+      })(),
+      publicStats:data.accountVisibility==='private'?null:(data.publicStats&&typeof data.publicStats==='object'?{
+        followers:Number.isFinite(data.publicStats.followers)&&data.publicStats.followers>=0?data.publicStats.followers:null,
+        likes:Number.isFinite(data.publicStats.likes)&&data.publicStats.likes>=0?data.publicStats.likes:null,
+        reach:Number.isFinite(data.publicStats.reach)&&data.publicStats.reach>=0?data.publicStats.reach:null,
+        connections:Number.isFinite(data.publicStats.connections)&&data.publicStats.connections>=0?data.publicStats.connections:null,
+        realRank:safeText(data.publicStats.realRank,48)||'Chopped',
+        observedAt:safeText(data.publicStats.observedAt,40)
+      }:null),
       url:clean(data.url)||("/"+encodeURIComponent(username)),
       socials:readSocials(data.socials),
       archiveVisibility:data.archiveVisibility==='friends'?'friends':'private',
@@ -282,6 +342,7 @@ async function loadPublicProfile(rawUsername){
       publicJournal:data.journalVisibility==='public'?String(data.publicJournal||'').slice(0,12000):'',
       look:look?{
         layout:data.accountVisibility==='private'?{}:sanitizeLayout(look.layout),
+        highlights:data.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(look.highlights),
         appearance:{
           widgetColor:clean(look.widgetColor),
           widgetRadius:safeNumber(look.widgetRadius,0),
@@ -291,6 +352,7 @@ async function loadPublicProfile(rawUsername){
         },
         wallpaper:{
           fit:clean(look.wallpaper&&look.wallpaper.fit),
+          position:clean(look.wallpaper&&look.wallpaper.position),
           blur:safeNumber(look.wallpaper&&look.wallpaper.blur,0),
           overlay:safeNumber(look.wallpaper&&look.wallpaper.overlay,0)
         },
@@ -465,7 +527,7 @@ async function addPerson(username){
 async function recordAnalyticsMonth(month,snapshot){
  if(!/^\d{4}-\d{2}$/.test(month))throw Error('Invalid analytics month.');
  const c=await ownAccountContext();
- const sources=(snapshot.sources||[]).slice(0,12).map(s=>({id:String(s.id).slice(0,24),handle:String(s.handle||'').slice(0,80),followers:Number.isFinite(s.followers)&&s.followers>=0?s.followers:null,likes:Number.isFinite(s.likes)&&s.likes>=0?s.likes:null,lastCheckedAt:String(s.lastCheckedAt||'').slice(0,40),reach:s.reach?.month===month&&s.reach?.metric==='reach'&&Number.isFinite(s.reach.value)&&s.reach.value>=0?{month,metric:'reach',value:s.reach.value}:null}));
+ const sources=(snapshot.sources||[]).slice(0,12).map(s=>({id:String(s.id).slice(0,24),handle:String(s.handle||'').slice(0,80),accountKey:String(s.accountKey||s.sourceUserId||'').slice(0,80),followers:Number.isFinite(s.followers)&&s.followers>=0?s.followers:null,likes:Number.isFinite(s.likes)&&s.likes>=0?s.likes:null,monthlyViews:Number.isFinite(s.monthlyViews)&&s.monthlyViews>=0?s.monthlyViews:null,monthlyStat:Number.isFinite(s.monthlyStat)&&s.monthlyStat>=0?s.monthlyStat:null,monthlyStatLabel:String(s.monthlyStatLabel||'').slice(0,60),lastCheckedAt:String(s.lastCheckedAt||'').slice(0,40),reach:s.reach?.month===month&&s.reach?.metric==='reach'&&Number.isFinite(s.reach.value)&&s.reach.value>=0?{month,metric:'reach',value:s.reach.value}:null}));
  const data={sources,connections:Math.max(0,Number(snapshot.connections)||0),observedAt:new Date().toISOString()};
  await c.fire.setDoc(c.ref,{analyticsMonths:{[month]:data}},{merge:true});
  return data;
