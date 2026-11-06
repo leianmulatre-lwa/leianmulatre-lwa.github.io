@@ -39,7 +39,7 @@ assert.doesNotMatch(search, /Tumblr notes about|Bluesky.*Public posts about/, 'N
 for(const pathname of ['./index.html','./studio/index.html','./404.html']){
   const page=readFileSync(new URL(pathname,import.meta.url),'utf8');
   assert.match(page, /const searchScript='';/, pathname+' must remove legacy floating suggestion script');
-  assert.match(page, /user-search-results\.js\?v=20261105-studio-search-voice-v05/, pathname+' must load fresh source');
+  assert.match(page, /user-search-results\.js\?v=20261105-studio-search-voice-v06/, pathname+' must load fresh source');
   assert.doesNotMatch(page, /var box=null;var localFallback/, pathname+' must not create detached popup');
 }
 console.log('Lwazi search layout, discovery, voice, privacy and loader regressions passed');

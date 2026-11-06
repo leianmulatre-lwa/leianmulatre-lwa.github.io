@@ -25,8 +25,8 @@
 /* Search is a main-content band, not a drawer behind Skeleton Key. */
 #studioApp .bl-search-panel,#bl-studio-search-results{
  position:relative!important;z-index:3!important;box-sizing:border-box!important;
- width:calc(100% - 72px)!important;max-width:none!important;
- margin:0 12px 13px 60px!important;padding:15px clamp(14px,2.8vw,26px) 25px!important;
+ width:calc(100% - var(--bl-search-left, 260px) - 12px)!important;max-width:none!important;
+ margin:0 12px 13px var(--bl-search-left, 260px)!important;padding:15px clamp(14px,2.8vw,26px) 25px!important;
  border:0!important;border-bottom:1px solid rgba(72,50,54,.18)!important;
  border-radius:0!important;box-shadow:none!important;background:#fffaf3!important;
  overflow:visible!important;clear:both!important;
@@ -53,7 +53,7 @@
 .bl-search-image-run:disabled{opacity:.55}
 body.night-mode #studioApp .bl-search-panel{background:#241f1d!important}
 @media(max-width:680px){
- #studioApp .bl-search-panel,#bl-studio-search-results{width:calc(100% - 56px)!important;margin-left:52px!important;margin-right:4px!important;padding:12px!important}
+ #studioApp .bl-search-panel,#bl-studio-search-results{width:calc(100% - var(--bl-search-left, 60px) - 12px)!important;margin-left:var(--bl-search-left, 60px)!important;margin-right:12px!important;padding:12px!important}
  #studioApp .search-wrap.bl-search-ready #globalSearch{padding-left:42px!important;padding-right:119px!important}
  #studioApp .search-wrap.bl-search-ready .bl-voice-button{right:72px!important}
  #studioApp .search-wrap.bl-search-ready .bl-camera-button{right:39px!important}
@@ -147,3 +147,6 @@ body.night-mode #studioApp .bl-search-panel{background:#241f1d!important}
 #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"]:not(.lwa-pixel-curtain) .lwa-dot,
 #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"] .lwa-curtain-brand{display:none!important}
 @media(prefers-reduced-motion:reduce){.bl-search-panel *{scroll-behavior:auto!important}}
+
+#studioApp .search-wrap input.bl-search-file-input{display:none!important}
+.bl-search-category-nav button span :is(img,svg){width:24px!important;height:24px!important;object-fit:contain}
