@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
-import worker,{verifyFirebaseToken,extractText,normalizeStream,queryProvider} from './worker.mjs';
+import worker,{verifyFirebaseToken,extractText,normalizeStream,queryProvider,queryFreeModel} from './worker.mjs';
 import {routeMode,publicContext,buildQuestion,SYSTEM_POLICY} from './policy.mjs';
 
 globalThis.crypto ||= webcrypto;
@@ -96,6 +96,41 @@ test('staging origins receive CORS but arbitrary origins are denied',async()=>{
  const evil=await worker.fetch(new Request('https://pilot.example/health',{headers:{Origin:'https://evilbiglwa-web-staging.pages.dev.attacker.com'}}),baseEnv);
  assert.equal(evil.status,403);
 });
+test('free-only mode never invokes paid providers even when keys exist',async()=>{
+ const env={...baseEnv};
+ let called=0;
+ const cloud={AI:{run:async(model,payload)=>{
+   called++;assert.equal(model,'@cf/google/gemma-4-26b-a4b-it');
+   assert.equal(payload.chat_template_kwargs.enable_thinking,false);
+   const input=JSON.stringify(payload.messages);assert.match(input,/L’wazi/);
+   return new ReadableStream({start(c){
+     c.enqueue(new TextEncoder().encode('data: {"response":"A helpful answer."}\\n\\n'));
+     c.close();
+   }});
+ }},FREE_INFERENCE_ENABLED:'true'};
+ const res=await queryFreeModel('fast','Hi',[],cloud);
+ assert.equal(called,1);
+ assert.equal(res.provider,'cloudflare');
+ const data=await new Response(res.body).text();
+ assert.match(data,/A helpful answer/);
+ assert.match(data,/"type":"meta"/);
+ assert.match(data,/"type":"done"/);
+ assert.equal((await queryFreeModel('fast','Hi',[],env)).error,'free_inference_not_enabled');
+});
+test('paid providers are blocked by default even with stored API keys',async()=>{
+ const fixture=await tokenFixture(),valid=await fixture.make();
+ const original=globalThis.fetch;let paidCalled=false;
+ globalThis.fetch=async(url)=>{
+  if(String(url).includes('googleapis.com'))return Response.json({keys:[fixture.jwk]});
+  paidCalled=true;throw Error('paid request should never occur');
+ };
+ try{
+   const res=await worker.fetch(req({question:'Hi',provider:'deepseek'},valid),baseEnv);
+   assert.equal(res.status,403);
+   assert.equal((await res.json()).error,'paid_providers_disabled');
+   assert.equal(paidCalled,false);
+ }finally{globalThis.fetch=original}
+});
 test('auth and isolated pilot are enforced, end-to-end response streams',async()=>{
   const fixture=await tokenFixture(),valid=await fixture.make();
   const original=globalThis.fetch;
@@ -117,7 +152,7 @@ test('auth and isolated pilot are enforced, end-to-end response streams',async()
     assert.equal(wrongOrigin.status,403);
     const long=await worker.fetch(req({question:'x'.repeat(1600)},valid),baseEnv);
     assert.equal(long.status,400);
-    const ok=await worker.fetch(req({question:'hi'},valid),baseEnv);
+    const ok=await worker.fetch(req({question:'hi',provider:'deepseek'},valid),{...baseEnv,ALLOW_PAID_PROVIDERS:'true'});
     assert.equal(ok.status,200);
     assert.equal(ok.headers.get('Access-Control-Allow-Origin'),'https://biglwa.com');
     const output=await ok.text();
@@ -126,6 +161,6 @@ test('auth and isolated pilot are enforced, end-to-end response streams',async()
     assert.equal(requests.some(x=>x.includes('api.deepseek.com')),true);
     const health=await worker.fetch(new Request('https://pilot.example/health'),baseEnv);
     assert.equal(health.status,200);
-    assert.equal((await health.json()).ready,true);
+    assert.equal((await health.json()).ready,false);
   }finally{globalThis.fetch=original}
 });
