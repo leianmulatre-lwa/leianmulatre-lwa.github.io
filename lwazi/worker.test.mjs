@@ -74,6 +74,15 @@ test('provider calls are streamed and routed without leaking secrets in the mode
   assert.doesNotMatch(JSON.stringify(seen[0].body),/a-test-value/);
   assert.match(await new Response(result.body).text(),/Yes/);
 });
+test('DeepSeek 402 is reported as an actionable billing condition, without charging retry loops',async()=>{
+  let calls=0;
+  const fake=async()=>{calls++;return new Response(JSON.stringify({error:{message:'insufficient balance'}}),{status:402,headers:{'content-type':'application/json'}})};
+  const result=await queryProvider('fast','hello',[],baseEnv,fake,'deepseek');
+  assert.equal(result.error,'provider_billing_required');
+  assert.equal(result.provider,'deepseek');
+  assert.equal(result.upstream_status,402);
+  assert.equal(calls,1);
+});
 test('staging origins receive CORS but arbitrary origins are denied',async()=>{
  const origins=['https://biglwa-web-staging.pages.dev','https://34bd76dd.biglwa-web-staging.pages.dev'];
  for(const origin of origins){
