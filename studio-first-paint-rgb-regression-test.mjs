@@ -51,7 +51,7 @@ const studio=readFileSync(new URL('./studio/index.html',import.meta.url),'utf8')
 const deployedAssets=['module-pages.js','pinterest-orbit.js','pinterest-red-consistency-20261016.css','stream-guide.js','stream-guide.css','studio-myfeed-filmstrip-20261029.css','studio-trophy-versions-symbol-bounds-20261029.css'];
 for(const asset of deployedAssets){
  const prefix=asset+'?v=';
- const version=text=>{const start=text.indexOf(prefix);return start<0?'':text.slice(start+prefix.length).split(/[\\x27\\x22\\s<>]/)[0]};
+ const version=text=>{const start=text.indexOf(prefix);return start<0?'':text.slice(start+prefix.length).split("'")[0]};
  const one=version(html),two=version(studio);
  assert(one&&two&&one===two,'Root and /studio must use the exact same '+asset+' build');
 }
