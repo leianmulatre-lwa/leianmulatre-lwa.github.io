@@ -45,11 +45,11 @@ code{color:#ffcdde}a{color:#ffc2d2}#status{font-weight:600}#output{white-space:p
 </section>
 <section class="panel">
 <h2>3. Real provider streaming test</h2>
-<p>Run these one at a time. These are tiny, public example prompts. <b>Code uses the more expensive Claude Opus model.</b> The backend enforces your UID allowlist on every request.</p>
+<p><strong>Free-first L’wazi pilot.</strong> All three checks use Cloudflare-hosted Gemma 4 instead of DeepSeek or Claude. No provider API key is needed. Tests stay unavailable until the Cloudflare Workers plan and usage guard are confirmed; if you have a Paid plan, using Workers AI above its free daily allowance can still incur charges.</p>
 <div class="buttons">
-<button data-mode="fast">Test fast · DeepSeek</button>
-<button data-mode="research">Test research · Claude Sonnet</button>
-<button data-mode="code">Test code · Claude Opus</button>
+<button data-mode="fast" disabled>Test conversation · Gemma 4</button>
+<button data-mode="research" disabled>Test research · Gemma 4</button>
+<button data-mode="code" disabled>Test code · Gemma 4</button>
 </div>
 <h3>Live result</h3>
 <small id="metrics">No request made yet.</small>
@@ -78,7 +78,8 @@ async function user(){
 async function health(){
  $('health').textContent='Checking…';
  try{const r=await fetch(BASE.replace('/api/lwazi','/health'),{cache:'no-store'});const data=await r.json();
- $('health').textContent=r.ok?'Worker '+data.service+' · '+data.identity+' · provider keys configured: '+(data.ready?'yes':'no'):'Worker HTTP '+r.status+' · '+(data.error||'unknown');
+ $('health').textContent=r.ok?'Worker '+data.service+' · '+data.identity+' · Free inference: '+(data.free_enabled?'enabled':'disabled pending plan verification')+' · Paid providers: '+(data.paid_enabled?'enabled':'disabled'):'Worker HTTP '+r.status+' · '+(data.error||'unknown');
+ btns.forEach(b=>b.disabled=!data.free_enabled);
  }catch{$('health').textContent='Could not reach the isolated pilot Worker.'}
 }
 async function authStatus(){
@@ -99,14 +100,15 @@ async function testMode(mode){
  try{
   const u=await user();if(!u)throw Error('Not signed in on this staging address. Open the staging Studio, sign in, then return to diagnostics on the same domain.');
   if(!sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')){
-   const ok=confirm('This founder-only pilot sends an example question to DeepSeek or Anthropic. It does not include your private Studio data. Run a billable test?');
+   const ok=confirm('This private L’wazi pilot sends an example question to Cloudflare Workers AI (Gemma 4). No DeepSeek or Claude API credits are used. Cloudflare usage is still subject to your plan and limits. Continue?');
    if(!ok)throw Error('test_cancelled');
    sessionStorage.setItem('biglwaLwaziExternalPilotConsentV1','yes');
   }
   const token=await u.getIdToken();
-  const response=await fetch(BASE,{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({question:questions[mode],mode,provider:mode==='fast'?'deepseek':'anthropic'})});
+  const response=await fetch(BASE,{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({question:questions[mode],mode,provider:'cloudflare'})});
   if(!response.ok){
    const data=await response.json().catch(()=>({}));
+   if(data.error==='free_inference_not_enabled'||data.error==='free_ai_binding_missing')throw Error('Free model not activated. Confirm Cloudflare Workers Free plan before enabling to avoid charges.');
    if(response.status===402||data.error==='provider_billing_required'){
     const named=data.provider==='anthropic'?'Anthropic':data.provider==='deepseek'?'DeepSeek':mode==='fast'?'DeepSeek':'Anthropic';
     throw Error(named+' API billing needs attention (provider HTTP 402). The account may need credits or updated payment details. This is not a Firebase or Cloudflare connection problem. Check the '+named+' developer-console billing page, then retry once.');
@@ -129,7 +131,7 @@ async function testMode(mode){
    }
   }
   if(!result)throw Error('empty_model_response');
-  const expected=mode==='fast'?'deepseek':'anthropic';
+  const expected='cloudflare';
   if(provider!==expected)throw Error('provider_mismatch_'+String(provider||'unknown'));
   $('metrics').textContent='Verified · '+provider+' / '+model+' · first text '+(firstToken===null?'n/a':Math.round(firstToken-began)+'ms')+' · total '+Math.round(performance.now()-began)+'ms · streamed chunks: '+count;
  }catch(e){
