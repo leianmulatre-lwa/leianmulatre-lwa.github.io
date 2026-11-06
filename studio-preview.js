@@ -3,14 +3,19 @@
  * that member's studio. Browsing stays open, profile music keeps playing, and
  * anything that would change or personalise the space asks for an account first.
  */
-import { showPreviewIdentity, clearPreviewIdentity } from "./account-chrome.js";
-import { identity } from "./account-identity.js";
+import { showPreviewIdentity, clearPreviewIdentity } from "./account-chrome.js?v=20261026-journal-cover-init-1";
+import { identity, onIdentityChange } from "./account-identity.js";
 const PREVIEW_RESERVED = new Set([
   "studio","login","privacy","terms","rights","photo-booth","map-app",
-  "bootstrap-v2","base-v1","index","404","favicon","assets"
+  "bootstrap-v2","base-v1","index","404","favicon","assets",
+  "about","affidavit","data-deletion","settings","logout","arcade","archive","tools"
 ]);
 const PREVIEW_PATH = /^\/([a-z0-9._-]{5,24})\/?$/;
+/* A dotted username (sam.kalina) is a valid member address. Only file-like paths
+   are rejected so /theme.css or /app.js never open a profile preview. */
+const PREVIEW_FILE = /\.(?:html?|js|mjs|css|json|map|txt|xml|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|mp4|webm|pdf|webmanifest)$/i;
 const APPEARANCE_KEYS = ["biglwaWidgetStyle","biglwaWallpaperSettings","biglwaDockedWidgetsV3","biglwaWidgetOrder"];
+const ownerAppearanceKey=key=>{const uid=window.BigLWAAccountStorage?.uid||identity()?.uid;return uid && ["biglwaWidgetStyle","biglwaWallpaperSettings"].includes(key)?key+":"+uid:key};
 
 const preview = {
   username:"",
@@ -33,6 +38,7 @@ const $ = (sel,root=document)=>root.querySelector(sel);
 /* GitHub Pages uses 404.html as the SPA fallback. It now loads the root shell
    without changing the requested URL, so this value captures the real entry path
    before deferred scripts run. */
+const PREVIEW_REQUESTED=new URLSearchParams(location.search).get('preview')==='1'||window.__biglwaEntryPreview===true;
 const ENTRY_PATH=(()=>{
   if(window.__biglwaEntryPath) return window.__biglwaEntryPath;
   try{
@@ -42,13 +48,31 @@ const ENTRY_PATH=(()=>{
   return location.pathname;
 })();
 const entryPath = ()=>ENTRY_PATH;
-const pathUsername = (path=entryPath())=>{
-  let segment="";
-  try{segment=decodeURIComponent(String(path||"")).replace(/^\/+|\/+$/g,"").toLowerCase()}catch{}
-  if(!segment || PREVIEW_RESERVED.has(segment) || segment.includes(".")) return "";
-  return PREVIEW_PATH.test("/"+segment) ? segment : "";
+const normalizeSegment = path=>{
+  try{return decodeURIComponent(String(path||"")).replace(/^\/+|\/+$/g,"").toLowerCase()}catch{return ""}
 };
+function isPublicProfilePath(path){
+  const segment=normalizeSegment(path);
+  if(!segment || PREVIEW_RESERVED.has(segment) || PREVIEW_FILE.test(segment)) return false;
+  return PREVIEW_PATH.test("/"+segment);
+}
+const pathUsername = (path=entryPath())=>isPublicProfilePath(path)?normalizeSegment(path):"";
+/* The signed-in shell evaluates this before its own auth callbacks so a public
+   profile address survives showStudio()'s history rewrite. */
+window.__biglwaIsPublicProfilePath=isPublicProfilePath;
 const clean = v=>String(v==null?"":v).trim();
+/* One number grammar shared with the Studio strip and Skeleton Key. */
+const formatMetric=(kind,value)=>{
+  if(typeof window.__biglwaFormatMetric==='function')return window.__biglwaFormatMetric(kind,value);
+  if(value===null||value===undefined||value===''||!Number.isFinite(Number(value))||Number(value)<0)return '—';
+  const amount=Number(value),trim=v=>String(Math.round(v*10)/10).replace(/\.0$/,'');
+  if(kind==='followers')return amount>=1e6?trim(amount/1e6)+'m+':new Intl.NumberFormat().format(amount);
+  if(kind==='reach'||kind==='likes'){
+    if(amount>=1e6)return trim(amount/1e6)+'m+';
+    if(amount>=1000)return trim(amount/1000)+'k+';
+  }
+  return new Intl.NumberFormat().format(amount);
+};
 
 async function waitFor(test,timeout=20000){
   const started=Date.now();
@@ -123,14 +147,54 @@ function applyIdentity(data){
   const moodCard=$("#weeklyMoodCard",card);
   if(moodCard && data.mood!=null){
     const value=$(".weekly-mood-value",moodCard);
-    if(value) value.textContent=clean(data.mood)||"add this week's #mood";
+    if(value) value.textContent=clean(data.mood)||"#keepitcute";
+    moodCard.dataset.moodPreview=clean(data.mood)?"0":"1";
     if(clean(data.moodStyle)) moodCard.dataset.moodStyle=clean(data.moodStyle);
   }
   if(data.auraText!=null) renderAuraCopy(data.auraText);
+  // Preserve only the owner's explicitly public aggregate observations.
+  const stats=data.publicStats;
+  const cardStats=$(".stats",card);
+  if(cardStats){
+    // The static shell predates the Likes field. Reuse the shared strip builder
+    // so public profiles keep the same rows (and preview-aware values) as Studio.
+    try{window.__biglwaSyncProfileMetrics?.()}catch{}
+    for(const kind of ['followers','connections','reach','likes']){
+      const field=$('[data-profile-stat="'+kind+'"]',cardStats);
+      if(!field)continue;
+      const value=stats?.[kind];
+      const displayed=formatMetric(kind,value);
+      const primary=field.querySelector('b,strong');
+      if(primary)primary.textContent=displayed;
+      else{
+        const text=field.firstChild;
+        if(text?.nodeType===3)text.textContent=displayed+' ';
+      }
+      field.dataset.publicAggregate=displayed;
+      field.title=stats?.observedAt?'Last published account observation '+stats.observedAt.slice(0,10):'Unavailable until this member publishes verified counts';
+    }
+  }
+  const rank=$(".real-rank strong",card);
+  if(rank)rank.textContent=stats?.realRank||'Chopped';
+  const photo=data.profilePhotoUrl||'';
+  const profileAvatar=$(".profile-avatar",card);
+  if(profileAvatar&&/^https:\/\/biglwa-instagram-api\./.test(photo)){
+    profileAvatar.style.backgroundImage='url("'+photo+'")';
+    profileAvatar.style.backgroundSize='cover';
+    const placement=data.profilePhotoPosition||{x:50,y:50};
+    const axis=v=>Math.min(100,Math.max(0,Number.isFinite(Number(v))?Number(v):50));
+    profileAvatar.style.backgroundPosition=axis(placement.x)+'% '+axis(placement.y)+'%';
+  }
   const welcome=$("#studioApp .welcome strong");
   if(welcome && name) welcome.textContent=name.charAt(0).toUpperCase()+name.slice(1);
   const avatar=$("#studioApp .mini-avatar");
-  if(avatar && name) avatar.textContent=name.charAt(0).toUpperCase();
+  const avatarPhoto=data.avatarUrl||data.profilePhotoUrl||data.profilePhoto?.url||"";
+  if(avatar && name){
+    // The fallback initial belongs only to a profile without a photo.
+    // A late public-profile hydration must not paint a letter over an image.
+    if(avatarPhoto)avatar.textContent="";
+    else if(!avatar.classList.contains("has-photo"))avatar.textContent=name.charAt(0).toUpperCase();
+  }
   /* The top-right chip repeats the viewer's own name, so a previewing visitor sees their
      own account labelled on somebody else's studio. Paint the profile being looked at. */
   showPreviewIdentity({
@@ -153,16 +217,23 @@ function applyIdentity(data){
  * The links leave the site, so unlike everything else on a preview they are allowed to open
  * somewhere new. They say so on the label rather than surprising someone with a tab. */
 const SOCIAL_ACCENT={
-  instagram:"#c13584",
-  tiktok:"#0f8f95",
-  pinterest:"#cf4632"
+  instagram:"#f36b21",
+  tiktok:"#772dcc",
+  pinterest:"#e60023",
+  x:"#151515",
+  snapchat:"#e8c600",
+  tumblr:"#213752"
 };
 
 function renderSocials(data){
   const card=$("#studioApp .profile-card");
   if(!card||!data) return false;
-  let row=$(".biglwa-social-row",card);
+  // Public Orbit owns the external connection list, not the banner's identity row.
+  const old=$(".biglwa-social-row",card);if(old)old.remove();
   const links=Array.isArray(data.socials)?data.socials:[];
+  window.__biglwaPublicOrbitLinks=links;
+  return !!links.length;
+  let row=$(".biglwa-social-row",card);
   /* An empty set clears the row rather than leaving a stale one behind: the same card is
      reused if the viewer navigates from one profile to another. */
   if(!links.length){
@@ -202,18 +273,20 @@ function renderSocials(data){
 }
 
 function localProfile(){
-  try{saved=JSON.parse(localStorage.getItem("biglwaProfileDetails")||"null")}catch{}
+  let saved=null;
+  try{const uid=window.BigLWAAccountStorage?.uid||identity()?.uid; if(uid)saved=JSON.parse(localStorage.getItem("biglwaOwnProfileV1:"+uid)||"null")}catch{}
   saved=saved&&typeof saved==="object"?saved:{};
   /* The signed-in account wins over the device-wide slot, otherwise signing in as one
      member and then another leaves the first member's name on the studio. */
   const live=identity();
-  if(live) return { ...saved, username:live.username||saved.username, name:live.name||saved.name, avatarUrl:live.avatarUrl||saved.avatarUrl };
+  if(live) return { ...saved, username:live.username||"", name:live.name||"", avatarUrl:live.avatarUrl||"" };
   return saved;
 }
 
 function snapshotAppearance(){
+  if(preview.snapshot)return; // Do not overwrite the owner's original snapshot on late repaint.
   const snap={};
-  APPEARANCE_KEYS.forEach(key=>{ try{snap[key]=localStorage.getItem(key)}catch{} });
+  APPEARANCE_KEYS.forEach(key=>{ try{snap[key]=localStorage.getItem(ownerAppearanceKey(key))}catch{} });
   preview.snapshot=snap;
 }
 
@@ -222,8 +295,8 @@ function restoreAppearance(){
   if(!snap) return;
   APPEARANCE_KEYS.forEach(key=>{
     try{
-      if(snap[key]==null) localStorage.removeItem(key);
-      else localStorage.setItem(key,snap[key]);
+      if(snap[key]==null) localStorage.removeItem(ownerAppearanceKey(key));
+      else localStorage.setItem(ownerAppearanceKey(key),snap[key]);
     }catch{}
   });
   preview.snapshot=null;
@@ -234,20 +307,47 @@ function restoreAppearance(){
 }
 
 function applyLook(look){
-  if(!look || typeof look!=="object") return;
-  const mirror=look.appearance||{},wallpaper=look.wallpaper||{},media=look.wallpaperMedia||null;
-  const appearance={};
-  if(mirror.widgetColor) appearance.color=mirror.widgetColor;
-  if(mirror.widgetRadius!=null) appearance.radius=mirror.widgetRadius;
-  if(mirror.widgetOpacity!=null) appearance.opacity=mirror.widgetOpacity;
-  if(mirror.widgetBlur!=null) appearance.blur=mirror.widgetBlur;
-  if(mirror.auraColor) appearance.aura=mirror.auraColor;
-  const hasAppearance=Object.keys(appearance).length>0;
-  const hasWallpaper=Object.keys(wallpaper).some(key=>wallpaper[key]!==""&&wallpaper[key]!=null);
-  if(!hasAppearance && !hasWallpaper && !media?.url) return;
+  // A visitor sees only the published palette. Never inherit the device's
+  // signed-in owner theme when a public profile has no customized appearance.
+  const published=look&&typeof look==='object'?look:{};
+  const mirror=published.appearance||{},settings=published.wallpaper||{},media=published.wallpaperMedia||null;
+  const appearance={
+    color:mirror.widgetColor||'#faf7f1',
+    radius:mirror.widgetRadius||16,
+    opacity:mirror.widgetOpacity==null?84:mirror.widgetOpacity,
+    blur:mirror.widgetBlur==null?18:mirror.widgetBlur,
+    aura:mirror.auraColor||'#d85f6d'
+  };
+  const wallpaper={
+    fit:settings.fit||'cover',
+    position:settings.position||'center',
+    blur:settings.blur==null?0:settings.blur,
+    overlay:settings.overlay==null?0:settings.overlay
+  };
   snapshotAppearance();
+  // Remove the last browser's media before using the owner's published image.
+  if(!media?.url)window.BIGLWAStudioAppearance?.clearMedia?.();
   window.BIGLWAStudioAppearance?.apply?.({appearance,wallpaper,media});
 }
+
+/* Owner preview is authorized by the UID on the published profile, not by
+   whichever username string happened to hydrate first on this browser. */
+function isOwnerPreview(){
+  const mine=identity()||window.__biglwaIdentity;
+  return PREVIEW_REQUESTED && !!mine?.uid && !!preview.profile?.uid &&
+    mine.uid===preview.profile.uid;
+}
+function synchronizeOwnerPreview(){
+  if(!preview.active)return;
+  const self=isOwnerPreview();
+  const old=document.documentElement.classList.contains('biglwa-owner-self-preview');
+  document.documentElement.classList.toggle('biglwa-owner-self-preview',self);
+  if(old!==self){
+    window.dispatchEvent(new CustomEvent('biglwa:preview-owner-state',{detail:{active:true,owner:self}}));
+  }
+}
+onIdentityChange(()=>synchronizeOwnerPreview());
+window.addEventListener('biglwa:session-verified',synchronizeOwnerPreview);
 
 /* ---------- banner ---------- */
 const PREVIEW_CSS = `
@@ -264,15 +364,63 @@ const PREVIEW_CSS = `
 .biglwa-preview-actions .biglwa-preview-close{border:0;font-size:15px;line-height:1;padding:4px 8px;text-transform:none;letter-spacing:0}
 /* The banner is in normal flow, so everything below it already sits lower. Only the
    sticky chrome needs the measured height. */
-html.biglwa-preview-mode .topbar{top:var(--biglwa-preview-banner-h,0px)!important}
-html.biglwa-preview-mode .page-wallpaper{top:calc(66px + var(--biglwa-preview-banner-h,0px))!important}
+/* Account for the real sticky header's stronger #studioApp selector.
+   The announcement occupies document flow ONCE, rather than sitting over the
+   nav or generating an additional artificial padding band. */
+/* Real owner chrome is position:fixed and #studioApp reserves its height.
+   The banner is in normal flow ABOVE the app; do not change the bar to sticky,
+   or both its fixed-header padding and its sticky flow create a blank strip. */
+html.biglwa-preview-mode #studioApp{
+ padding-top:var(--biglwa-dock-top,64px)!important;
+ margin-top:0!important;
+}
+html.biglwa-preview-mode #studioApp .topbar{
+ position:fixed!important;top:var(--biglwa-preview-banner-h,0px)!important;
+ left:0!important;right:0!important;margin:0!important;padding-top:0!important;
+ box-sizing:border-box!important;overflow:visible!important;
+ z-index:160!important
+}
+html.biglwa-preview-mode #studioApp .page-wallpaper{
+ top:0!important;left:0!important;
+ min-height:100%!important;
+}
+html.biglwa-preview-mode #studioApp .main{margin-left:0!important;width:100%!important;min-width:0!important}
+@media(max-width:900px){
+ html.biglwa-preview-mode #studioApp .page-wallpaper{
+  top:calc(var(--biglwa-preview-banner-h,0px) + 66px)!important
+ }
+}
 html.biglwa-preview-mode .policy-top{top:var(--biglwa-preview-banner-h,0px)!important}
+/* An explicitly private member shows only identity/banner, avatar, Aura, music and Guest Check.
+   These restrictions complement owner-only Firestore rules; styling alone is not a
+   substitute for protecting privately stored documents. */
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .masonry,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .sidebar,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero-action-bar,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .studio-primary-actions,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .module-workspace,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card .bio,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card .meta-row,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card .biglwa-social-row,
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .profile-card #weeklyMoodCard{
+  display:none!important;
+}
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero-widget-rail>.hero-widget:not(.aura-card):not(.music-card):not(.guest-check-card){
+  display:none!important;
+}
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero-widget-rail{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+}
+html.biglwa-preview-mode.biglwa-preview-private #studioApp .hero{
+  min-height:0!important;
+}
 /* Visitor view: nothing that implies the visitor owns this studio. */
 html.biglwa-preview-mode #studioApp .widget-window-controls,
 html.biglwa-preview-mode #studioApp .widget-drag-handle,
 html.biglwa-preview-mode #studioApp .minimized-widget-dock,
 html.biglwa-preview-mode #studioApp [data-studio-drag-handle],
 html.biglwa-preview-mode #studioApp #editProfileBtn,
+html.biglwa-preview-mode #studioApp #biglwaOwnerPreviewButton,
 html.biglwa-preview-mode #studioApp [data-open-widget-settings],
 html.biglwa-preview-mode #studioApp [data-expand-widget],
 html.biglwa-preview-mode #studioApp [data-minimize-widget],
@@ -282,10 +430,62 @@ html.biglwa-preview-mode #studioApp [data-restore-widget],
 html.biglwa-preview-mode #studioApp [data-add-shortcut],
 html.biglwa-preview-mode #studioApp [data-remove-shortcut],
 html.biglwa-preview-mode #studioApp [data-open-guest],
-html.biglwa-preview-mode #studioApp .module-launcher,
-html.biglwa-preview-mode #studioApp [data-module],
-html.biglwa-preview-mode #studioApp .customize-heading button,
-html.biglwa-preview-mode #studioApp .sidebar [data-module]{display:none!important}
+html.biglwa-preview-mode #studioApp .customize-heading button{display:none!important}
+/* Public viewing is a read-only portfolio, not the visitor's editable workspace. */
+html.biglwa-preview-mode #studioApp .sidebar,
+html.biglwa-preview-mode #studioApp .hero-action-bar,
+html.biglwa-preview-mode #studioApp #saveSidebarShortcuts,
+html.biglwa-preview-mode #studioApp .sidebar-shortcut-save,
+html.biglwa-preview-mode #studioApp .sidebar-shortcuts,
+html.biglwa-preview-mode #studioApp [data-public-owner-only]{display:none!important}
+/* Keep useful visitor shortcuts, not the owner's private editing controls. */
+html.biglwa-preview-mode:not(.biglwa-preview-private) #studioApp .hero .mobile-dock.hero-action-bar{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ gap:7px!important;min-height:48px!important;padding:8px 10px!important;
+ box-sizing:border-box!important
+}
+html.biglwa-preview-mode #studioApp .hero .mobile-dock.hero-action-bar > :not(.biglwa-visitor-shortcuts){display:none!important}
+html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts{
+ display:flex!important;gap:0!important;align-items:center;justify-content:center!important;
+ width:100%;min-width:0
+}
+html.biglwa-preview-mode #studioApp .hero .mobile-dock.hero-action-bar{
+ display:flex!important;justify-content:center!important;align-items:center!important;
+ min-height:60px!important;height:60px!important;
+ padding:5px 9px!important
+}
+html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts button{
+ flex:0 0 auto!important;min-width:125px;min-height:43px;cursor:pointer;
+ border:1px solid #aa8b8d;border-radius:9px;
+ background:#fff8f0;color:#553b46;
+ font:700 11px/1.2 system-ui;white-space:nowrap
+}
+html.biglwa-preview-mode #studioApp .biglwa-visitor-shortcuts button:is(:hover,:focus-visible){
+ background:#f4d7cc;outline:2px solid #ce6b80;outline-offset:1px
+}
+html.biglwa-preview-mode #studioApp #connect{display:none!important}
+html.biglwa-preview-mode #studioApp .profile-card .biglwa-social-row{display:none!important}
+html.biglwa-preview-mode #studioApp .profile-card{overflow:visible!important}
+html.biglwa-preview-mode #studioApp .profile-card .profile-copy{min-width:0!important}
+html.biglwa-preview-mode #studioApp .real-rank{z-index:1!important}
+/* Keep the page heading and avatar away from the preview notice and topbar. */
+html.biglwa-preview-mode #studioApp .hero{scroll-margin-top:calc(var(--biglwa-preview-banner-h,54px) + 70px)}
+html.biglwa-preview-mode #studioApp .studio-brand-row,
+html.biglwa-preview-mode #studioApp .topbar{overflow:visible!important}
+html.biglwa-preview-mode #studioApp [data-profile-stat] [data-public-hidden]{display:none!important}
+html.biglwa-preview-mode #studioApp #diary .diary-page{position:relative!important;min-height:135px!important}
+html.biglwa-preview-mode #studioApp #diary .diary-page img{display:block!important;opacity:1!important;visibility:visible!important}
+html.biglwa-preview-mode #studioApp #diary .biglwa-public-journal-initial{
+ position:absolute!important;
+ left:37%!important;top:36%!important;
+ width:27%!important;height:31%!important;inset:auto!important;
+ display:grid!important;place-items:center!important;
+ font:400 clamp(34px,4.4vw,60px)/1 "CS Bergamot Stitched",Georgia,serif;
+ color:#171018;text-shadow:0 1px #fff8ef;pointer-events:none
+}
+html.biglwa-preview-mode #studioApp #boards .pinterest-board-grid,
+html.biglwa-preview-mode #studioApp #boards [data-pn-connect],
+html.biglwa-preview-mode #studioApp #boards .pn-orbit-connect{display:none!important}
 .biglwa-prompt-backdrop{position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:20px;background:rgba(28,20,18,.52);backdrop-filter:blur(3px)}
 .biglwa-prompt-card{width:min(430px,100%);border-radius:20px;background:#fbf8f2;color:#171717;padding:24px 22px 18px;box-shadow:0 26px 70px rgba(20,14,12,.34);border:1px solid rgba(23,23,23,.08)}
 .biglwa-prompt-card h3{margin:0 0 8px;font:700 19px/1.2 "CS Bergamot Stitched",Georgia,serif}
@@ -307,6 +507,9 @@ html.biglwa-preview-mode #studioApp .sidebar [data-module]{display:none!importan
 .biglwa-social-label{font:600 12px/1.3 system-ui;color:#2f2a27}
 .biglwa-social small{font:500 11px/1.3 system-ui;color:#8a7a6c;max-width:180px;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
+html.biglwa-preview-mode #studioApp .masonry > :is(.card,article,[data-widget-id]):not([data-biglwa-public-visible="1"]){display:none!important}
+html.biglwa-preview-mode #studioApp :is(#moduleWorkspace,.module-workspace){display:none!important}
+html.biglwa-preview-mode #studioApp .real-rank :is(.rank-label,strong,.rank-next){color:#000!important;opacity:1!important}
 `;
 
 function ensureStyles(){
@@ -347,9 +550,16 @@ function buildBanner(){
     preview.bannerObserver=new ResizeObserver(measureBanner);
     preview.bannerObserver.observe(banner);
   }
+  if(new URLSearchParams(location.search).has('preview')){
+    const close=banner.querySelector('[data-preview-leave]');
+    close?.setAttribute('title','Exit owner preview');
+  }
   banner.addEventListener("click",event=>{
     const button=event.target.closest("button");
     if(!button) return;
+    if(button.hasAttribute("data-preview-leave")&&new URLSearchParams(location.search).has('preview')){
+      location.assign('/studio');return;
+    }
     if(button.hasAttribute("data-preview-join")){ leaveToAuth("create"); return; }
     if(button.hasAttribute("data-preview-signin")){ leaveToAuth("signin"); return; }
     if(button.hasAttribute("data-preview-leave")){ standDown(); history.replaceState({},"","/"); showLoginScreen(); }
@@ -419,13 +629,18 @@ function gateReason(target,kind){
   /* Profile music stays free for guests. Its file pickers are rendered inside the
      profile editor, and the card's play button opens them programmatically. */
   if(target.closest(".music-card,.music-file-actions,#studioTrackInput,#studioCoverInput")) return "";
-  /* Orbit is the member's live connection settings. A guest may look at the list of
-     networks, but saving, opening or editing any of them stays with the owner. */
+  /* Published Orbit planets are outbound profile links. Never intercept them
+     with a Connect/signup prompt or launch the visitor's own OAuth. */
+  if(target.closest('#orbitGrid [data-public-orbit-href]'))return "";
   if(target.closest("[data-orbit-save],[data-orbit-open],[data-orbit-path],[data-orbit-auth],[data-orbit-app],#calOrbit,.module-orbit")) return "connect accounts";
   const app=studioApp();
   if(!app || !app.contains(target)) return "";
+  if(target.closest('[data-open],[data-sidebar-route],[data-module-launch],[data-open-module],.hero-action-bar a[href^="#"]'))return 'open this read-only widget';
   const widgetControl=target.closest("[data-expand-widget],[data-open-widget-settings],[data-minimize-widget],[data-dock-widget],[data-rearrange-widget],[data-restore-widget],[data-add-shortcut],[data-remove-shortcut],[data-studio-drag-handle]");
   if(widgetControl) return "enlarge and arrange widgets";
+  // The new public Guest Check is read-only for anonymous visitors; its own
+  // dialog independently enforces Firebase authentication before adding notes.
+  if(target.closest('#studioApp .guest-check-card [data-open-guest],#studioApp .guest-check-card .guest-check-sheet,#studioApp .guest-check-card .biglwa-public-guest-open'))return "";
   if(target.closest("[data-open-guest]")) return "leave a message";
   if(target.closest("#editProfileBtn,[data-profile-editor-tab],[data-profile-editor-pane],.profile-editor")) return "edit profiles";
   const form=target.closest("form");
@@ -446,7 +661,7 @@ function stopEvent(event){
 
 function gateEvent(kind){
   return event=>{
-    if(!preview.active || preview.signedIn || preview.promptOpen) return;
+    if(!preview.active || preview.promptOpen) return;
     const reason=gateReason(event.target,kind);
     if(!reason) return;
     stopEvent(event);
@@ -456,7 +671,7 @@ function gateEvent(kind){
 
 /* Typing into member-only fields, and shortcuts on widget controls, both need an account. */
 function gateKeydown(event){
-  if(!preview.active || preview.signedIn) return;
+  if(!preview.active) return;
   if(event.key==="Escape"){
     if(preview.promptOpen){ stopEvent(event); closePrompt(); }
     return;
@@ -492,9 +707,10 @@ function guardOrbit(){
   preview.openModule=open;
   const wrapped=function(key,...rest){
     const name=String(key||"").toLowerCase();
-    if(preview.active && !preview.signedIn && ORBIT_KEYS.has(name)){
-      openPrompt("connect accounts");
-      return;
+    // Opening another member's Orbit is allowed; profile-module-sharing supplies
+    // a read-only list. OAuth, editing and connecting remain blocked by the gate.
+    if(preview.active && ORBIT_KEYS.has(name)){
+      return open.call(this,key,...rest);
     }
     if(preview.active && !preview.signedIn && ARCHIVE_KEYS.has(name)){
       openPrompt("view this Archive");
@@ -519,12 +735,17 @@ function unbindGate(){
 function standDown(){
   if(!preview.active) return;
   preview.active=false;
+  window.__biglwaPublicStorageView=false;
+  window.__biglwaViewedProfile=null;
+  window.dispatchEvent(new CustomEvent('biglwa:public-profile-ended'));
   clearInterval(preview.timer);
   preview.timer=0;
   unbindGate();
   closePrompt(true);
   removeBanner();
-  document.documentElement.classList.remove("biglwa-preview-mode");
+  $('#studioApp .biglwa-visitor-shortcuts')?.remove();
+  studioApp()?.querySelectorAll('[data-biglwa-public-visible]').forEach(x=>delete x.dataset.biglwaPublicVisible);
+  document.documentElement.classList.remove("biglwa-preview-mode","biglwa-preview-private","biglwa-owner-self-preview");
   restoreAppearance();
   clearPreviewIdentity();
   const me=localProfile();
@@ -541,11 +762,31 @@ function standDown(){
 }
 
 function leaveToAuth(mode){
+  // Return to the same public profile after signup/sign-in; never persist a
+  // new visitor's identity, full map, or someone else's profile content.
+  try{
+    if(preview.username)sessionStorage.setItem('biglwaPublicProfileReturnV1',JSON.stringify({
+      path:'/'+preview.username,createdAt:Date.now()
+    }));
+  }catch{}
   standDown();
   preview.nextMode=mode;
   history.replaceState({},"","/");
   showLoginScreen();
 }
+window.addEventListener('biglwa:session-verified',()=>{
+  try{
+    const raw=sessionStorage.getItem('biglwaPublicProfileReturnV1');if(!raw)return;
+    const next=JSON.parse(raw),dest=String(next.path||'');
+    if(Date.now()-Number(next.createdAt)>45*60*1000||!/^\/[a-z0-9._-]{5,24}$/.test(dest)){
+      sessionStorage.removeItem('biglwaPublicProfileReturnV1');return;
+    }
+    const current=String(window.__biglwaIdentity?.username||'').toLowerCase();
+    if(!window.__biglwaIdentity?.uid||!current)return;
+    sessionStorage.removeItem('biglwaPublicProfileReturnV1');
+    if(dest.slice(1)!==current&&location.pathname!==dest)location.assign(dest);
+  }catch{try{sessionStorage.removeItem('biglwaPublicProfileReturnV1')}catch{}}
+});
 
 async function checkSignedIn(){
   if(!preview.active || preview.signedIn || preview.checking) return;
@@ -557,7 +798,7 @@ async function checkSignedIn(){
     if(profile){
       const sameProfile=clean(profile.profile?.username||profile.username).toLowerCase()===clean(preview.username).toLowerCase();
       preview.signedIn=true;
-      if(sameProfile) standDown();
+      if(sameProfile&&!PREVIEW_REQUESTED) standDown();
     }
   }catch{}
   preview.checking=false;
@@ -565,10 +806,45 @@ async function checkSignedIn(){
 
 /* The live router treats every /name route as the signed-in owner, so label the guest
    affordance correctly while the account gate keeps the action itself closed. */
+/* Public shortcut desk: the same rail becomes read-only profile navigation,
+   and never leaves a useless translucent empty panel behind. */
+function installOwnerPreviewEntry(){
+  if(preview.active)return;
+  // Preview now belongs in the account dropdown, not beneath Edit Profile.
+  const button=null;
+  if(!button||$('#biglwaOwnerPreviewButton'))return;
+  const mine=clean(identity()?.username||localProfile()?.username).toLowerCase().replace(/^@/,'');
+  if(!/^[a-z0-9._-]{5,24}$/.test(mine))return;
+  const link=document.createElement('a');
+  link.id='biglwaOwnerPreviewButton';
+  link.textContent='Preview profile';
+  link.href='/'+encodeURIComponent(mine)+'?preview=1';
+  link.title='See the read-only public Studio exactly as a visitor sees it';
+  link.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:28px;margin:6px 0 0;padding:5px 12px;border:1px solid #ac7781;border-radius:14px;background:#fff8ef;color:#583444;font:700 11px system-ui;text-decoration:none';
+  button.insertAdjacentElement('afterend',link);
+}
+function decorateVisitorShortcuts(){
+  const rail=$('#studioApp .hero .mobile-dock.hero-action-bar');
+  if(!rail||preview.profile?.accountVisibility==='private')return;
+  let nav=$('.biglwa-visitor-shortcuts',rail);
+  if(nav)return;
+  nav=document.createElement('nav');
+  nav.className='biglwa-visitor-shortcuts';
+  nav.setAttribute('aria-label','Explore this member’s public BIG LWA Studio');
+  const button=document.createElement('button');
+  button.type='button';button.textContent='Veve';
+  button.setAttribute('aria-label','Explore this member’s public Veve');
+  button.addEventListener('click',event=>{
+    event.preventDefault();event.stopPropagation();
+    window.openBIGLWAModule?.('veve');
+  });
+  nav.append(button);
+  rail.append(nav);
+}
 function decorateArchiveAccess(){
   const app=studioApp();
   if(!app)return;
-  const allowed=preview.signedIn && preview.profile?.archiveVisibility==='friends';
+  const allowed=preview.profile?.accountVisibility!=='private';
   const nodes=app.querySelectorAll('[data-module-launch="archive"],[data-open-module="archive"],[data-widget-route="archive"],#archive');
   nodes.forEach(node=>{
     if(!node.dataset.archiveOriginalDisplay) node.dataset.archiveOriginalDisplay=node.style.display||'';
@@ -588,23 +864,42 @@ function decorateGuestCard(){
   action.setAttribute("title","Leave a Guest Check entry on this profile");
 }
 
+// Only explicitly shared Studio modules appear on another member's profile.
+function syncPublicWidgets(){
+  const app=studioApp(),profile=preview.profile;
+  if(!preview.active||!app||!profile)return;
+  const visible=new Set();
+  if(profile.accountVisibility!=='private'){
+    if(profile.journalVisibility==='public')visible.add('diary');
+    if((profile.socials||[]).some(x=>x?.id==='pinterest'))visible.add('boards');
+    if((profile.socials||[]).length)visible.add('orbit');
+    if(profile.archiveVisibility==='public')visible.add('archive');
+  }
+  app.querySelectorAll('.masonry > .card,.masonry > article,.masonry > [data-widget-id]').forEach(node=>{
+    const key=String(node.id||node.dataset.widgetId||'').toLowerCase();
+    node.dataset.biglwaPublicVisible=visible.has(key)?'1':'0';
+  });
+}
 function enforce(){
   if(!preview.active) return;
+  synchronizeOwnerPreview();
+  // A saved full-page route may finish restoring after the public profile.
+  // It must not hide the permitted public widgets beneath a hidden workspace.
+  studioApp()?.querySelector('.main')?.classList.remove('module-view');
+  if(!document.getElementById('biglwaPreviewBanner'))buildBanner();
   const app=studioApp();
   if(!app) return;
   const live=pathUsername(location.pathname);
-  if(live!==preview.username){
-    if(location.pathname==="/studio"){
-      preview.lastCheck=0;
-      checkSignedIn();
-      if(preview.signedIn){ standDown(); return; }
-    }else if(live){
-      standDown();
-      return;
-    }
+  if(live && live!==preview.username){ standDown(); return; }
+  if(!live && location.pathname==="/studio"){
+    // The signed-in shell can rewrite the address bar to /studio while this
+    // preview is still hydrating. That is not a visitor navigation, so keep the
+    // profile (and its preview banner) and restore the public address below.
+    preview.lastCheck=0;
+    checkSignedIn();
   }
   if(!app.classList.contains("is-active") || loginPage()?.classList.contains("is-active")) showStudioScreen();
-  if(location.pathname!==preview.path) history.replaceState({},"",preview.path);
+  if(location.pathname+location.search!==preview.path) history.replaceState({},"",preview.path);
   if(preview.title && document.title!==preview.title) document.title=preview.title;
   const name=clean(preview.profile?.name)||clean(preview.profile?.username);
   const shown=$("#studioApp .profile-display-name");
@@ -612,26 +907,53 @@ function enforce(){
   const lead=clean(preview.profile?.auraText).split(/\n+/)[0]||"Focused";
   const aura=$("#studioApp .aura-card p");
   const auraDrift=!!(aura && clean(aura.textContent).indexOf(lead)!==0);
-  if(nameDrift || auraDrift) applyIdentity(preview.profile);
+  const metrics=preview.profile?.publicStats;
+  const expected=kind=>formatMetric(kind,metrics?.[kind]);
+  const statsDrift=['followers','connections','reach','likes'].some(kind=>{
+    const field=$('#studioApp [data-profile-stat="'+kind+'"]');
+    if(!field)return true;
+    const shown=field.querySelector('b');
+    return !!shown&&shown.textContent.trim()!==expected(kind);
+  });
+  if(nameDrift||auraDrift||statsDrift)applyIdentity(preview.profile);
   renderSocials(preview.profile);
   decorateArchiveAccess();
   decorateGuestCard();
+  decorateVisitorShortcuts();
+  syncPublicWidgets();
+  window.BigLWAProfileRepair?.previewFaces?.(preview.profile);
+  window.dispatchEvent(new CustomEvent('biglwa:public-mirror-ready',{detail:{profile:preview.profile}}));
   guardOrbit();
   checkSignedIn();
 }
 
 function activate(profile){
   preview.profile=profile;
+  window.__biglwaViewedProfile=profile;
   preview.username=profile.username||preview.username;
-  preview.path="/"+preview.username;
+  preview.path="/"+preview.username+(PREVIEW_REQUESTED?'?preview=1':'');
   preview.title="@"+preview.username+"'s Studio - BIGLWA";
   preview.active=true;
+  window.__biglwaPublicStorageView=true;
   document.documentElement.classList.add("biglwa-preview-mode");
+  synchronizeOwnerPreview();
+  // A saved full-page route may finish restoring after the public profile.
+  // It must not hide the permitted public widgets beneath a hidden workspace.
+  studioApp()?.querySelector('.main')?.classList.remove('module-view');
+  document.documentElement.classList.toggle("biglwa-preview-private",profile.accountVisibility==='private');
   showStudioScreen();
   applyIdentity(profile);
+  // Announce the public profile owner, never the viewer's own Firebase UID.
+  window.dispatchEvent(new CustomEvent('biglwa:public-profile-ready',{detail:{uid:profile.uid,username:profile.username,profile}}));
   renderSocials(profile);
   applyLook(profile.look);
+  window.BigLWAStudioLayout?.applyPublic?.(profile.look?.layout);
+  syncPublicWidgets();
+  window.BigLWAProfileRepair?.previewFaces?.(preview.profile);
   buildBanner();
+  synchronizeOwnerPreview();
+
+  setTimeout(()=>{if(preview.active&&preview.profile===profile){applyLook(profile.look);syncPublicWidgets();}},900);
   bindGate();
   window.addEventListener("pagehide",restoreAppearance,{once:true});
   document.title=preview.title;
@@ -649,25 +971,42 @@ function noticeMissing(username){
   }
 }
 
+document.addEventListener('biglwa:session-verified',()=>setTimeout(installOwnerPreviewEntry,300));
+document.addEventListener('biglwa:studio-opened',()=>setTimeout(installOwnerPreviewEntry,150));
+document.addEventListener('DOMContentLoaded',()=>setTimeout(installOwnerPreviewEntry,500));
 async function boot(){
   const username=pathUsername();
   if(!username) return;
   preview.username=username;
+  // A deliberately requested preview gets its top notice immediately, even
+  // while the directory and authenticated identity are still initializing.
+  if(PREVIEW_REQUESTED)buildBanner();
   const moved=()=>{const live=pathUsername(location.pathname);return !!live && live!==username;};
   const dir=await waitFor(()=>window.BigLWAUserDirectory?.loadPublicProfile?window.BigLWAUserDirectory:null);
   if(!dir || moved()) return;
-  let mine=null;
-  try{ mine=await dir.loadProfile(); }catch{}
+  let mine=identity()||window.__biglwaIdentity||null;
+  if(!mine)try{mine=await Promise.race([dir.loadProfile(),new Promise(resolve=>setTimeout(()=>resolve(null),1500))])}catch{}
   if(mine){
     const mineUsername=clean(mine.profile?.username||mine.username).toLowerCase();
-    if(mineUsername===username.toLowerCase()) return;
+    // The account owner may explicitly request the visitor view. Only ordinary
+    // self-navigation bypasses preview; ?preview=1 must activate read-only mode.
+    if(mineUsername===username.toLowerCase()&&!PREVIEW_REQUESTED) return;
     /* A signed-in member can still preview a friend's profile. Only the matching
        username is treated as the owner; otherwise keep preview mode active. */
     preview.signedIn=true;
   }
-  const profile=await dir.loadPublicProfile(username);
+  const profile=await Promise.race([dir.loadPublicProfile(username),new Promise(resolve=>setTimeout(()=>resolve(null),10000))]);
   if(moved()) return;
-  if(!profile){ noticeMissing(username); return; }
+  if(!profile){
+    noticeMissing(username);
+    if(PREVIEW_REQUESTED){
+      const banner=$('#biglwaPreviewBanner');
+      const heading=banner?.querySelector('p strong'),caption=banner?.querySelector('p span');
+      if(heading)heading.textContent='Preview unavailable for @'+username;
+      if(caption)caption.textContent='The account directory is temporarily unavailable. Your saved cloud media has not been deleted.';
+    }
+    return;
+  }
   const app=await waitFor(()=>studioApp()&&$("#studioApp .profile-card")?studioApp():null);
   if(!app || moved()) return;
   activate(profile);

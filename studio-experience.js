@@ -8,9 +8,15 @@
   const ACTIVITY_READ_KEY='biglwaStudioActivityReadAt';
   const MEDIA_DB='biglwa-studio-experience-v1';
   const MEDIA_STORE='records';
+  // Legacy browser media/guest records are shared-device unsafe. Never read them by default.
+  const verifiedOwner=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
+  const privateKey=(key)=>{const uid=verifiedOwner();return uid?key+':'+uid:''};
+  const guestKey=()=>{const target=String(window.__biglwaViewedProfile?.uid||verifiedOwner()).trim();return target?'biglwaGuestChecksLocalV2:'+target:''};
+  const musicKey=()=>{const uid=verifiedOwner();if(!uid)throw Error('Sign in before using local Studio media.');return 'music:'+uid};
+
   const FULL_WIDGET_ROUTES=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools']);
   const STUDIO_ICONS={
-    teepee:'<svg class="studio-teepee-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 27h26M6 27 17.5 7M26 27 14.5 7M12.5 27 16 21l3.5 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    teepee:'<img class="studio-symbol-image biglwa-nav-tipi" src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">',
     hanger:'<span class="studio-symbol-mark studio-hanger-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/closet-symbol.png?v=20260925-closet-restore-2" alt="" width="1254" height="1254" loading="eager" decoding="async"></span>',
     projects:'<span class="studio-symbol-mark studio-projects-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/projects-symbol.png?v=20260914-projects-1" alt="" width="1254" height="1254" loading="eager" decoding="async"></span>',
     feed:'<span class="studio-symbol-mark studio-feed-symbol" aria-hidden="true"><img class="studio-symbol-image" src="/assets/feed-symbol-generated.png?v=20260914-feed-1" alt="" width="377" height="280" loading="eager" decoding="async"></span>',
@@ -114,6 +120,19 @@
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(3n){animation-duration:.9s;animation-delay:.12s}
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(4n){animation-delay:.24s}
       @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.32)}50%{transform:scaleY(1)}}
+      #studioApp .music-card.stereo-music-widget .stereo-eject{
+        width:30px!important;height:27px!important;min-width:30px!important;
+        display:inline-grid!important;place-items:center!important;padding:0!important;
+        border:1px solid #4c5652!important;border-radius:5px!important;
+        background:linear-gradient(#454e4b,#212726)!important;color:#a7efae!important;
+        font:700 18px/1 system-ui!important;cursor:pointer!important;box-shadow:inset 0 1px 0 #ffffff1e!important;
+      }
+      #studioApp .music-card.stereo-music-widget .stereo-eject:focus-visible{
+        outline:2px solid #baffc0!important;outline-offset:2px!important;
+      }
+      #studioApp .music-card.stereo-music-widget .stereo-control-deck{
+        grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto!important;
+      }
       #studioApp .music-card .stereo-control-deck{display:grid;grid-template-columns:1fr auto 1fr;gap:7px;align-items:center;padding:0 58px}
       #studioApp .music-card .stereo-faux-button,#studioApp .music-card #playBtn{height:25px!important;min-width:36px!important;padding:0 9px!important;border:1px solid #090909!important;border-radius:4px!important;background:linear-gradient(#484b4b,#202222)!important;color:#cbd0ca!important;box-shadow:inset 0 1px rgba(255,255,255,.13),0 2px 0 #090909!important;font:800 10px/1 system-ui!important}
       #studioApp .music-card #playBtn{min-width:46px!important;color:#8fff93!important;text-shadow:0 0 6px rgba(100,255,110,.65)!important}
@@ -300,7 +319,7 @@
       body.night-mode #studioApp .profile-card.profile-is-editing #cancelProfileBtn{background:#302c2a!important;border-color:#514a45!important;color:#eee7e0!important}
       #studioApp .profile-update-privacy{display:flex!important;align-items:flex-start!important;gap:8px!important;width:auto!important;min-width:0!important;margin:0!important;font:600 10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--widget-muted,#6f6862)!important}
       #studioApp .profile-update-privacy input{width:15px!important;height:15px!important;margin:0!important;accent-color:rgb(var(--aura-rgb,216,95,109))!important}
-      #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon{display:block;width:22px;height:22px;margin:0 auto 2px}
+      #studioApp .hero-action-bar a[href="#home"]>.studio-teepee-icon,#studioApp .hero-action-bar a[href="#home"]>.hero-shortcut-icon>.biglwa-nav-tipi{display:block;width:22px;height:22px;margin:0 auto 2px;object-fit:contain}
       #studioApp .studio-symbol-mark{display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
       #studioApp .studio-symbol-source{display:block;width:100%;height:100%;overflow:visible;filter:none}\n      #studioApp .studio-symbol-image{display:block;width:100%;height:100%;object-fit:contain;filter:none}
       #studioApp[data-widget-ink-tone="light"] .studio-symbol-source,#studioApp[data-widget-ink-tone="light"] .studio-symbol-image{filter:invert(1)}
@@ -531,11 +550,20 @@
   function readOrders(){try{return JSON.parse(localStorage.getItem(ORDER_KEY)||'{}')}catch{return{}}}
   function saveOrder(parent){
     if(!parent?.id)return;
-    const order=readOrders();order[parent.id]=[...parent.children].filter(child=>child.dataset?.widgetId).map(child=>child.dataset.widgetId);
+    // One authoritative layout writer. The old V2 key never synced to the
+    // account and fought with ui-coherence restoring a different saved order.
+    if(window.BigLWAStudioLayout?.save){
+      window.BigLWAStudioLayout.save();return;
+    }
+    const order=readOrders();
+    order[parent.id]=[...parent.children].filter(child=>child.dataset?.widgetId).map(child=>child.dataset.widgetId);
     try{localStorage.setItem(ORDER_KEY,JSON.stringify(order))}catch{}
   }
   function restoreOrder(parent){
     if(!parent?.id)return;
+    // ui-coherence runs before Studio Experience and restores the account's
+    // v4 snapshot. Never reapply an unrelated v2 order during a later reload.
+    if(window.BigLWAStudioLayout)return;
     const ids=readOrders()[parent.id];if(!Array.isArray(ids))return;
     ids.forEach(id=>{const child=[...parent.children].find(item=>item.dataset?.widgetId===id);if(child)parent.appendChild(child)});
   }
@@ -562,7 +590,7 @@
     app.addEventListener('pointerup',event=>{if(!state||event.pointerId!==state.pointerId)return;saveOrder(state.parent);clear()});
     app.addEventListener('pointercancel',clear);
     app.addEventListener('keydown',event=>{
-      const handle=event.target.closest('[data-studio-drag-handle]');if(!handle||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
+      const handle=event.target.closest('[data-studio-drag-handle]');if(event.altKey||!handle||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
       const widget=handle.closest('[data-widget-id]'),parent=widget?.parentElement;if(!widget||!parent)return;
       const previous=['ArrowUp','ArrowLeft'].includes(event.key),sibling=previous?widget.previousElementSibling:widget.nextElementSibling;if(!sibling?.dataset?.widgetId)return;
       event.preventDefault();parent.insertBefore(widget,previous?sibling:sibling.nextSibling);saveOrder(parent);handle.focus();
@@ -575,7 +603,7 @@
 
   function applyMusicRecord(record){
     const audio=$('#studioAudio'),art=$('#studioAlbumArt'),image=$('img',art),title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');if(!audio||!record)return;
-    revokeMusicUrls();
+    audio.pause();revokeMusicUrls();
     if(record.audioBlob){musicUrl=URL.createObjectURL(record.audioBlob);audio.src=musicUrl}
     if(record.coverBlob&&image){coverUrl=URL.createObjectURL(record.coverBlob);image.src=coverUrl;image.hidden=false;art.classList.add('has-cover')}
     else if(image){image.hidden=true;image.removeAttribute('src');art.classList.remove('has-cover')}
@@ -587,12 +615,15 @@
 
   async function restoreMusic(){
     if(musicRestored)return;musicRestored=true;
-    try{const record=await dbGet('music');if(record)applyMusicRecord(record);else setMusicStatus('Choose a track or replace the cover.')}
+    if(document.documentElement.classList.contains('biglwa-preview-mode')||!viewingOwnProfile())return;
+    try{const record=await dbGet(musicKey());if(record)applyMusicRecord(record);else setMusicStatus('Choose a track or replace the cover.')}
     catch{setMusicStatus('Music storage is unavailable in this browser.')}
   }
 
   async function updateMusic(patch){
-    const current=await dbGet('music')||{id:'music'};const next={...current,...patch,id:'music',updatedAt:Date.now()};await dbPut(next);applyMusicRecord(next);return next;
+    const id=musicKey();const current=await dbGet(id)||{id};const next={...current,...patch,id,updatedAt:Date.now()};await dbPut(next);applyMusicRecord(next);
+    if(patch.audioBlob)window.dispatchEvent(new CustomEvent('biglwa:music-local-upload',{detail:{file:patch.audioBlob,title:next.title||'Your track',artist:next.artist||'Unknown artist'}}));
+    return next;
   }
 
   function upgradeMusic(){
@@ -608,15 +639,17 @@
     const nowPlaying=document.createElement('div');nowPlaying.className='stereo-now-playing';nowPlaying.textContent='now playing';
     const eq=document.createElement('div');eq.className='stereo-eq';eq.setAttribute('aria-hidden','true');eq.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
     const deck=document.createElement('div');deck.className='stereo-control-deck';
-    const rewind=document.createElement('span');rewind.className='stereo-faux-button';rewind.setAttribute('aria-hidden','true');rewind.textContent='◀◀';
-    const forward=document.createElement('span');forward.className='stereo-faux-button';forward.setAttribute('aria-hidden','true');forward.textContent='▶▶';
+    const rewind=document.createElement('button');rewind.type='button';rewind.className='stereo-skip-button stereo-rewind';rewind.textContent='◀◀';rewind.title='Back 10 seconds';rewind.setAttribute('aria-label','Rewind 10 seconds');
+    const forward=document.createElement('button');forward.type='button';forward.className='stereo-skip-button stereo-forward';forward.textContent='▶▶';forward.title='Forward 10 seconds';forward.setAttribute('aria-label','Forward 10 seconds');
+    const eject=document.createElement('button');eject.type='button';eject.className='stereo-eject';eject.id='studioMusicEject';
+    eject.textContent='⏏';eject.setAttribute('aria-label','Eject current track and choose a different song');eject.title='Replace track';
     const kicker=$('.card-kicker',card);
     if(kicker)kicker.insertAdjacentElement('afterend',shell);else card.prepend(shell);
-    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,progress);deck.append(rewind,play,forward);
+    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,progress);deck.append(rewind,play,forward,eject);
     art.id='studioAlbumArt';art.innerHTML='<span aria-hidden="true">♪</span><img alt="Album cover" hidden>';
     copy.classList.add('music-copy');const title=$('strong',copy),artist=$('span',copy);if(title)title.id='studioMusicTitle';if(artist)artist.id='studioMusicArtist';
     const audio=document.createElement('audio');audio.id='studioAudio';audio.preload='metadata';card.appendChild(audio);
-    const actions=document.createElement('div');actions.className='music-file-actions';actions.innerHTML='<button type="button" id="chooseStudioTrack">Track file</button><button type="button" id="chooseStudioCover">Cover</button><button type="button" id="editStudioMusicMeta">Details</button><input id="studioTrackInput" type="file" accept="audio/mpeg,audio/mp4,audio/aac,audio/ogg,audio/wav,audio/webm,.mp3,.m4a,.aac,.ogg,.wav,.webm" hidden><input id="studioCoverInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>';
+    const actions=document.createElement('div');actions.className='music-file-actions';actions.innerHTML='<button type="button" id="chooseStudioTrack">Track file</button><button type="button" id="chooseStudioCover">Cover</button><button type="button" id="editStudioMusicMeta">Details</button><input id="studioTrackInput" type="file" accept="audio/mpeg,audio/mp4,audio/aac,audio/ogg,audio/wav,audio/webm,audio/flac,.mp3,.m4a,.aac,.ogg,.wav,.webm,.flac" hidden><input id="studioCoverInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>';
     const editor=document.createElement('div');editor.className='music-meta-editor';editor.id='studioMusicMetaEditor';editor.innerHTML='<label>Title<input id="studioTrackTitle" maxlength="100"></label><label>Artist<input id="studioTrackArtist" maxlength="100"></label><button type="button" id="saveStudioMusicMeta">Save details</button>';
     const status=document.createElement('p');status.className='music-status';status.id='studioMusicStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     progress.insertAdjacentElement('afterend',actions);actions.insertAdjacentElement('afterend',editor);editor.insertAdjacentElement('afterend',status);
@@ -626,21 +659,53 @@
     audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});
-    $('#chooseStudioTrack',card).addEventListener('click',()=>$('#studioTrackInput',card).click());$('#chooseStudioCover',card).addEventListener('click',()=>$('#studioCoverInput',card).click());
+    // The rewind / forward keys were decorative spans. They now seek inside
+    // the existing audio element, including in the compact stereo layout.
+    for(const [button,seconds] of [[rewind,-10],[forward,10]]){
+      button.addEventListener('click',event=>{
+        event.preventDefault();event.stopPropagation();
+        if(!Number.isFinite(audio.duration)||audio.duration<=0){
+          setMusicStatus('Choose a track to use the stereo controls.');return;
+        }
+        audio.currentTime=Math.max(0,Math.min(audio.duration,(audio.currentTime||0)+seconds));
+        sync();
+      });
+    }
+    eject.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      const selector=$('#studioTrackInput');
+      if(!selector)return;
+      selector.value='';
+      setMusicStatus('Choose a new song. Your current track remains until you confirm a replacement.');
+      selector.click();
+    });
+    $('#chooseStudioTrack',card).addEventListener('click',()=>$('#studioTrackInput')?.click());$('#chooseStudioCover',card).addEventListener('click',()=>$('#studioCoverInput')?.click());
     $('#editStudioMusicMeta',card).addEventListener('click',()=>{editor.classList.toggle('is-open');$('#studioTrackTitle',editor).value=$('#studioMusicTitle',card).textContent;$('#studioTrackArtist',editor).value=$('#studioMusicArtist',card).textContent});
     $('#saveStudioMusicMeta',editor).addEventListener('click',async()=>{try{await updateMusic({title:$('#studioTrackTitle',editor).value.trim()||'Your track',artist:$('#studioTrackArtist',editor).value.trim()||'Add artist'});editor.classList.remove('is-open')}catch{setMusicStatus('The track details could not be saved.')}});
-    $('#studioTrackInput',card).addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!file.type.startsWith('audio/')||file.size>75*1024*1024){setMusicStatus('Choose an audio file under 75 MB.');return}setMusicStatus('Saving track…');try{await updateMusic({audioBlob:file,fileName:String(file.name).slice(0,180),title:file.name.replace(/\.[^.]+$/,'').slice(0,100)})}catch{setMusicStatus('This browser could not save the track.')}});
-    $('#studioCoverInput',card).addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)||file.size>15*1024*1024){setMusicStatus('Choose a JPG, PNG, WebP, or GIF cover under 15 MB.');return}setMusicStatus('Reviewing cover on this device…');try{const result=await window.BIGLWAWallpaperSafety?.scan(file,{context:'mixed'});if(result&&['invalid','block','age-restricted'].includes(result.status)){setMusicStatus(result.status==='block'?'That cover cannot be used.':'That cover needs review before it can display.');return}await updateMusic({coverBlob:file,coverReview:result?.status==='local-only'?'pending':'complete'});if(result?.status==='local-only')setMusicStatus('Cover preview active locally · review pending.')}catch{setMusicStatus('The cover could not be saved.')}});
+    $('#studioTrackInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!file.type.startsWith('audio/')||file.size>75*1024*1024){setMusicStatus('Choose an audio file under 75 MB.');return}setMusicStatus('Saving track…');try{await updateMusic({audioBlob:file,fileName:String(file.name).slice(0,180),title:file.name.replace(/\.[^.]+$/,'').slice(0,100)})}catch{setMusicStatus('This browser could not save the track.')}});
+    $('#studioCoverInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)||file.size>15*1024*1024){setMusicStatus('Choose a JPG, PNG, WebP, or GIF cover under 15 MB.');return}setMusicStatus('Reviewing cover on this device…');try{const result=await window.BIGLWAWallpaperSafety?.scan(file,{context:'mixed'});if(result&&['invalid','block','age-restricted'].includes(result.status)){setMusicStatus(result.status==='block'?'That cover cannot be used.':'That cover needs review before it can display.');return}await updateMusic({coverBlob:file,coverReview:result?.status==='local-only'?'pending':'complete'});if(result?.status==='local-only')setMusicStatus('Cover preview active locally · review pending.')}catch{setMusicStatus('The cover could not be saved.')}});
     $('#studioTrackTitle',editor).value=title?.textContent||'Your track';$('#studioTrackArtist',editor).value=artist?.textContent||'Add artist';
     const profileMount=$('#profileSongEditorMount');if(profileMount)profileMount.append(actions,editor,status);
     restoreMusic();
   }
+  // Use the same audio element for tracks stored on the account or device.
+  window.BigLWAStudioMusic={getLocalRecord:()=>dbGet(musicKey()),playCloudTrack:async function(track,loadPrivate){
+    const audio=$('#studioAudio');if(!audio)return;
+    audio.pause();revokeMusicUrls();audio.removeAttribute('src');audio.load();
+    const result=loadPrivate?await loadPrivate():track.url;
+    if(typeof result==='string')audio.src=result;
+    else{musicUrl=URL.createObjectURL(result);audio.src=musicUrl}
+    const title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');
+    if(title)title.textContent=track.title||'Your track';
+    if(artist)artist.textContent=track.artist||'Unknown artist';
+    await audio.play().catch(()=>setMusicStatus('Tap play to start the selected song.'));
+  }};
 
   function readGuestChecks(){
     try{
-      const saved=JSON.parse(localStorage.getItem(GUEST_KEY)||'null');
+      const key=guestKey();const saved=key?JSON.parse(localStorage.getItem(key)||'null'):null;
       if(Array.isArray(saved))return saved;
-      const legacy=JSON.parse(localStorage.getItem(LEGACY_NOTE_KEY)||'[]');
+      const legacy=[]; // Never merge another member's unscoped legacy guest notes.
       return Array.isArray(legacy)?legacy.map(note=>({name:note.name||'',affirmation:note.message||'',gift:'💐',createdAt:note.createdAt||Date.now(),visibility:'device-preview'})):[];
     }catch{return[]}
   }
@@ -695,7 +760,7 @@
     document.body.appendChild(dialog);
     const showTab=key=>{$$('[data-visitor-tab]',dialog).forEach(tab=>tab.setAttribute('aria-selected',tab.dataset.visitorTab===key?'true':'false'));$$('[data-visitor-pane]',dialog).forEach(pane=>pane.hidden=pane.dataset.visitorPane!==key)};
     dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-visitor-tab]');if(tab)showTab(tab.dataset.visitorTab);if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});
-    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncGuestPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot sign Guest Check on your own profile.';return}const affirmation=$('#visitorNoteText',dialog).value.trim();if(!affirmation)return;const gift=$('#guestGiftSelect',dialog)?.value||'💐',checks=readGuestChecks();checks.push({name:$('#visitorNoteName',dialog).value.trim(),affirmation,gift,createdAt:Date.now(),visibility:'device-preview'});try{localStorage.setItem(GUEST_KEY,JSON.stringify(checks.slice(-50)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Saved.';renderGuestChecks();updateGuestCount()});
+    $('#visitorPublicForm',dialog).addEventListener('submit',event=>{event.preventDefault();if(viewingOwnProfile()){syncGuestPermissions();$('#visitorPublicStatus',dialog).textContent='You cannot sign Guest Check on your own profile.';return}const affirmation=$('#visitorNoteText',dialog).value.trim();if(!affirmation)return;const gift=$('#guestGiftSelect',dialog)?.value||'💐',checks=readGuestChecks();checks.push({name:$('#visitorNoteName',dialog).value.trim(),affirmation,gift,createdAt:Date.now(),visibility:'device-preview'});try{guestKey()&&localStorage.setItem(guestKey(),JSON.stringify(checks.slice(-50)))}catch{}$('#visitorNoteText',dialog).value='';$('#visitorPublicStatus',dialog).textContent='Saved.';renderGuestChecks();updateGuestCount()});
     dialog._showVisitorTab=showTab;syncGuestPermissions();showTab('public');renderGuestChecks();return dialog;
   }
 
@@ -709,16 +774,16 @@
     app.addEventListener('keydown',event=>{const button=event.target.closest('[data-open-guest][role="button"]');if(!button||!['Enter',' '].includes(event.key))return;event.preventDefault();openGuestDialog()});
   }
 
-  function readActivity(){try{const items=JSON.parse(localStorage.getItem(ACTIVITY_KEY)||'[]');return Array.isArray(items)?items:[]}catch{return[]}}
+  function readActivity(){try{const items=JSON.parse(localStorage.getItem(privateKey(ACTIVITY_KEY)||'biglwaNoOwnerActivity')||'[]');return Array.isArray(items)?items:[]}catch{return[]}}
   function updateLogsDot(){
     const button=$('#studioNotificationsBtn');if(!button)return;const dot=$('.notif-dot',button);if(!dot)return;
-    let readAt=0;try{readAt=Number(localStorage.getItem(ACTIVITY_READ_KEY)||0)}catch{}
+    let readAt=0;try{readAt=Number(localStorage.getItem(privateKey(ACTIVITY_READ_KEY)||'biglwaNoOwnerRead')||0)}catch{}
     dot.hidden=!readActivity().some(item=>Number(item.createdAt)>readAt);
   }
   function recordActivity(detail={}){
     const title=String(detail.title||detail.label||'Studio updated').trim()||'Studio updated';
     const item={title,source:String(detail.source||'Studio'),detail:String(detail.detail||''),notified:detail.notified!==false,createdAt:Number(detail.createdAt)||Date.now()};
-    const items=readActivity();items.push(item);try{localStorage.setItem(ACTIVITY_KEY,JSON.stringify(items.slice(-100)))}catch{}
+    const items=readActivity();items.push(item);try{privateKey(ACTIVITY_KEY)&&localStorage.setItem(privateKey(ACTIVITY_KEY),JSON.stringify(items.slice(-100)))}catch{}
     updateLogsDot();return item;
   }
   function renderLogs(){
@@ -728,15 +793,16 @@
   }
   function ensureLogsDialog(){
     let dialog=$('#studioLogsDialog');if(dialog)return dialog;
-    dialog=document.createElement('dialog');dialog.id='studioLogsDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Logs</h2><p>Studio updates and private messages share this mail path.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close Logs">×</button></div><div class="studio-mail-tabs" role="tablist"><button type="button" role="tab" data-studio-mail-tab="updates">Updates</button><button type="button" role="tab" data-studio-mail-tab="messages">Messages</button></div><section class="studio-mail-pane" data-studio-mail-pane="updates"><div class="studio-log-list" id="studioLogList"></div></section><section class="studio-mail-pane studio-message-pane" data-studio-mail-pane="messages" hidden><form id="studioMessageForm"><label>To<input id="studioMessageTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="studioMessageText" rows="5" maxlength="2000" required></textarea></label><button type="submit">Save encrypted draft</button><p class="studio-message-status" id="studioMessageStatus" role="status" aria-live="polite"></p></form></section>';
+    dialog=document.createElement('dialog');dialog.id='studioLogsDialog';dialog.innerHTML='<div class="visitor-dialog-head"><div><h2>Logs</h2><p>DMs, friends and account notices.</p></div><button class="visitor-dialog-close" type="button" aria-label="Close Logs">×</button></div><div class="studio-mail-tabs" role="tablist"><button type="button" role="tab" data-studio-mail-tab="updates">Account notices</button><button type="button" role="tab" data-studio-mail-tab="messages">Messages</button></div><section class="studio-mail-pane" data-studio-mail-pane="updates"><div class="studio-log-list" id="studioLogList"></div></section><section class="studio-mail-pane studio-message-pane" data-studio-mail-pane="messages" hidden><form id="studioMessageForm"><label>To<input id="studioMessageTo" maxlength="60" placeholder="@username" required></label><label>Message<textarea id="studioMessageText" rows="5" maxlength="2000" required></textarea></label><button type="submit">Save encrypted draft</button><p class="studio-message-status" id="studioMessageStatus" role="status" aria-live="polite"></p></form></section>';
     document.body.appendChild(dialog);
     const showTab=key=>{$$('[data-studio-mail-tab]',dialog).forEach(tab=>tab.setAttribute('aria-selected',tab.dataset.studioMailTab===key?'true':'false'));$$('[data-studio-mail-pane]',dialog).forEach(pane=>{pane.hidden=pane.dataset.studioMailPane!==key})};
     dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-studio-mail-tab]');if(tab)showTab(tab.dataset.studioMailTab);if(event.target===dialog||event.target.closest('.visitor-dialog-close'))dialog.close()});
     $('#studioMessageForm',dialog)?.addEventListener('submit',async event=>{event.preventDefault();const to=$('#studioMessageTo',dialog).value.trim(),message=$('#studioMessageText',dialog).value.trim(),status=$('#studioMessageStatus',dialog);if(!to||!message)return;status.textContent='Encrypting draft on this device…';try{await saveEncryptedDraft(to,message);$('#studioMessageText',dialog).value='';status.textContent='Encrypted draft saved on this device. It has not been sent.'}catch{status.textContent='Encrypted draft storage is unavailable in this browser.'}});
+    window.BigLWASocial?.mountMessages(dialog.querySelector('[data-studio-mail-pane="messages"]'));
     dialog._showStudioMailTab=showTab;showTab('updates');return dialog;
   }
   function openLogs(){
-    const dialog=ensureLogsDialog();dialog._showStudioMailTab?.('updates');renderLogs();try{localStorage.setItem(ACTIVITY_READ_KEY,String(Date.now()))}catch{}updateLogsDot();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
+    const dialog=ensureLogsDialog();dialog._showStudioMailTab?.('messages');renderLogs();try{privateKey(ACTIVITY_READ_KEY)&&localStorage.setItem(privateKey(ACTIVITY_READ_KEY),String(Date.now()))}catch{}updateLogsDot();if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute('open','');
   }
   function bindActivity(){
     if(document.body.dataset.biglwaActivityBound==='1')return;document.body.dataset.biglwaActivityBound='1';
@@ -762,7 +828,8 @@
       if(current&&currentImage?.getAttribute('src')===nextSrc)return;
       if(current){current.outerHTML=markup;return}
       [...link.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
-      link.insertAdjacentHTML('afterbegin',markup);
+      const slot=$(':scope > .hero-shortcut-icon',link);
+      if(slot)slot.innerHTML=markup;else link.insertAdjacentHTML('afterbegin',markup);
     };
     const replaceCardSymbol=(selector,iconClass,markup)=>{
       const icon=$(selector,app);if(!icon)return;
@@ -772,9 +839,10 @@
       icon.classList.add('studio-image-icon',iconClass);icon.innerHTML=markup;
     };
     const studioLink=$('.hero-action-bar a[href="#home"]',app);
-    if(studioLink&&!$('.studio-teepee-icon',studioLink)){
+    if(studioLink&&!$('.biglwa-nav-tipi',studioLink)){
       [...studioLink.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).forEach(node=>node.remove());
-      studioLink.insertAdjacentHTML('afterbegin',STUDIO_ICONS.teepee);
+      const slot=$(':scope > .hero-shortcut-icon',studioLink);
+      if(slot)slot.innerHTML=STUDIO_ICONS.teepee;else studioLink.insertAdjacentHTML('afterbegin',STUDIO_ICONS.teepee);
     }
     replaceDirectorySymbol('#feed','studio-feed-symbol',STUDIO_ICONS.feed);
     replaceDirectorySymbol('#diary','studio-diary-symbol',STUDIO_ICONS.diary);
@@ -787,7 +855,7 @@
     const projects=$('#projects .card-icon',app);
     if(projects&&!projects.classList.contains('studio-projects-mark')){projects.classList.add('studio-projects-mark');projects.innerHTML=STUDIO_ICONS.projects}
     const archive=$('#archive .card-icon',app);
-    if(archive){archive.classList.add('archive-horizontal-mark');archive.textContent='▤'}
+    if(archive){archive.classList.add('archive-horizontal-mark');if(!archive.querySelector('.heading-normalized-glyph,.biglwa-archive-horizontal-symbol')&&archive.textContent!=='▤')archive.textContent='▤'}
     const games=$('#games .card-icon',app);
     if(games&&!games.classList.contains('games-chess-only-mark')){games.classList.add('games-chess-only-mark');games.innerHTML='<span class="games-chess-mark" aria-hidden="true">♟</span>'}
     const quiz=$('#games .quiz',app);
@@ -798,7 +866,7 @@
   }
 
   function currentProfileUsername(){
-    try{const saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null');if(saved?.username)return '@'+String(saved.username).replace(/^@/,'')}catch{}
+    try{const uid=verifiedOwner();const saved=uid?JSON.parse(localStorage.getItem('biglwaOwnProfileV1:'+uid)||'null'):null;if(saved?.username)return '@'+String(saved.username).replace(/^@/,'')}catch{}
     const handle=$('#studioApp .profile-name-line h1')?.textContent?.trim();return handle||'@username';
   }
 
@@ -913,17 +981,21 @@
 
   function ensureCardHeadingRows(){
     const app=$('#studioApp');if(!app)return;
-    [['#closet','#closet .card-icon','#closet h2'],['#diary','#diary .card-icon','#diary h2'],['#projects','#projects .card-icon','#projects h2'],['#games','#games .card-icon','#games h2']].forEach(([cardSel,iconSel,titleSel])=>{
-      const card=$(cardSel,app),icon=$(iconSel,app),title=$(titleSel,app);if(!card||!icon||!title||icon.contains(title)||title.contains(icon))return;
-      let row=$('.biglwa-card-heading-row',card);
+    $$('.card-icon',app).forEach(icon=>{
+      const parent=icon.parentElement;
+      if(!parent||icon.closest('.sidebar,.hero-action-bar,.module-page'))return;
+      const title=[...parent.children].find(node=>node.matches('h2,h3'));
+      if(!title||icon.contains(title)||title.contains(icon))return;
+      let row=parent.classList.contains('biglwa-card-heading-row')?parent:null;
       if(!row){
-        if(icon.parentElement!==title.parentElement)return;
-        row=document.createElement('div');row.className='biglwa-card-heading-row';icon.parentElement.insertBefore(row,icon);
+        row=document.createElement('div');row.className='biglwa-card-heading-row';parent.insertBefore(row,icon);
+        row.append(icon,title);
       }
-      if(icon.parentElement!==row)row.appendChild(icon);
-      if(title.parentElement!==row)row.appendChild(title);
     });
   }
+
+  document.addEventListener('biglwa:widget-symbols-ready',ensureCardHeadingRows);
+  document.addEventListener('biglwa:module-close',ensureCardHeadingRows);
 
   function ensureThemeAndMailboxIcons(){
     const light=$('#lightModeBtn'),dark=$('#darkModeBtn');
@@ -980,7 +1052,14 @@
     }catch{}finally{reviewsWidgetBusy=false}
   }
 
-  function run(){ensureStyles();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureDiaryCover();ensureArcadeCabinet();bindProfileVisualSync();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify();ensureReviewsWidget()}
+  function ensureStreamDockButton(){
+    const widget=$('#studioApp #stream');if(!widget||widget.querySelector('.studio-stream-dock-button'))return;
+    const button=document.createElement('button');button.type='button';button.className='secondary-btn studio-stream-dock-button';
+    button.textContent='▣ Dock player';button.setAttribute('aria-label','Dock Stream player');
+    button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();if(!window.BigLWAStreamGuide?.dock?.())window.openBIGLWAModule?.('stream')});
+    const screen=widget.querySelector('.stream-screen');if(screen)screen.after(button);else widget.append(button);
+  }
+  function run(){ensureStyles();ensureStreamDockButton();ensureHeroRail();ensureControls();bindDragging();upgradeMusic();dockMusicControlsInProfile();bindGuestActions();bindActivity();ensureDirectoryIcons();ensureDiaryCover();ensureArcadeCabinet();bindProfileVisualSync();ensureCardHeadingRows();ensureGamesPreviewPicker();bindWidgetSettingsActions();ensureThemeAndMailboxIcons();removeSpotify();ensureReviewsWidget()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
   window.addEventListener('pagehide',revokeMusicUrls,{once:true});

@@ -2,10 +2,26 @@
   'use strict';
   if (window.__biglwaFacebookOrbit) { return; }
 
-  var APP_ID = '3959002817740866';
+  var APP_ID = '1370423431874443';
   var API_VERSION = 'v25.0';
+  // Facebook Login for Business selects scopes from a Meta Login configuration,
+  // not from a hardcoded 'public_profile' scope.
+  // Public Meta Login for Business Configuration ID (General / User Access Token).
+  // This is not the private Facebook App Secret.
+  var BUSINESS_LOGIN_CONFIG_ID = '1086972974237376';
+  function loginConfiguration() {
+    var configured = String(BUSINESS_LOGIN_CONFIG_ID || '').trim();
+    return /^\d{8,30}$/.test(configured) ? configured : '';
+  }
+  function requireBusinessConfiguration() {
+    if (loginConfiguration()) return true;
+    state.error = 'Facebook Login for Business needs its Configuration ID. In Meta App ' +
+      APP_ID + ', open Facebook Login for Business → Configurations, create a General / User Access Token configuration with supported permissions, and provide the Configuration ID to enable Connect.';
+    showStatus(state.error);
+    return false;
+  }
   var sdkPromise = null;
-  var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '' };
+  var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '', noMediaNotified:false };
 
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
@@ -75,6 +91,9 @@
   function render() {
     try {
       all('[data-orbit-app="facebook"]').forEach(function (tile) {
+        // The featured Studio Facebook tile is reserved for personal OAuth.
+        // An existing Meta Business session must never mark it connected.
+        if (tile.closest('#orbitGrid')) return;
         tile.setAttribute('aria-label', state.connected ? 'View connected Facebook account' : 'Connect Facebook');
         tile.classList.toggle('orbit-connected', state.connected);
         var small = one('small', tile);
@@ -83,6 +102,9 @@
 
       all('[data-orbit-path="facebook"]').forEach(function (input) {
         var row = input.closest('.module-orbit-row');
+        // OAuth cards have a Connect button already; do not place a second one
+        // next to the public Facebook profile URL editor's Save button.
+        if (row && row.classList.contains('is-oauth')) return;
         var actions = row ? one('.module-actions', row) : null;
         if (!actions) { return; }
         var button = one('[data-facebook-orbit-connect]', actions);
@@ -93,8 +115,33 @@
           button.setAttribute('data-facebook-orbit-connect', '1');
           actions.insertBefore(button, actions.firstChild);
         }
-        button.textContent = state.connected ? 'Connected' : 'Connect Facebook';
+        button.textContent = state.connected ? 'Connected' : (loginConfiguration() ? 'Connect Facebook' : 'Set up Facebook');
         button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
+      });
+
+      // Advanced photo/video permissions are optional and must never block basic Facebook login.
+      // Request them through a separate, explicit user click after Meta grants access.
+      all('[data-facebook-legacy-connect]').forEach(function (button) {
+        var card = button.closest('.module-orbit-row');
+        var utility = card && one('.orbit-link-dialog-actions', card);
+        var actions = button.closest('.module-actions');
+        if (!actions) return;
+        var mediaButton = card && one('[data-facebook-orbit-media]', card);
+        // Put additional permissions in the compact lower utility area,
+        // never in the planet action row or the account preview.
+        var needsMedia = state.connected && !state.permissions.some(function (p) {
+          return p === 'user_photos' || p === 'user_videos';
+        });
+        if (needsMedia && !mediaButton) {
+          mediaButton = document.createElement('button');
+          mediaButton.type = 'button';
+          mediaButton.className = 'module-action ghost orbit-media-action';
+          mediaButton.setAttribute('data-facebook-orbit-media','1');
+          mediaButton.textContent = 'Media access';
+          (utility || actions).appendChild(mediaButton);
+        } else if (!needsMedia && mediaButton) {
+          mediaButton.remove();
+        }
       });
 
       document.body.classList.toggle('facebook-orbit-connected', state.connected);
@@ -102,8 +149,8 @@
       /* The Orbit page's own Facebook row now uses the shared connect button
          (data-orbit-connect) so it hands the click to this client. It is labelled from the
          same state so a page left open shows Connected the moment login finishes. */
-      all('[data-orbit-connect="facebook"]').forEach(function (button) {
-        button.textContent = state.connected ? 'Reconnect Facebook' : 'Connect Facebook';
+      all('[data-facebook-legacy-connect]').forEach(function (button) {
+        button.textContent = loginConfiguration() ? 'Meta Business' : 'Set up Meta Business';
         button.setAttribute('aria-pressed', state.connected ? 'true' : 'false');
       });
 
@@ -131,21 +178,62 @@
 
   function hasPermission(name) { return state.permissions.indexOf(name) !== -1; }
 
+  async function syncFacebookDrafts(){
+    const writer=window.__biglwaOrbitPosts?.saveExternalOrbitDraft;
+    if(typeof writer!=='function')return;
+    const entries=[
+      ...state.photos.slice(0,12).map(item=>({item,kind:'photo'})),
+      ...state.videos.slice(0,8).map(item=>({item,kind:'video'}))
+    ];
+    let imported=0;
+    // Small batches protect Firestore and do not interfere with the login callback.
+    for(let i=0;i<entries.length;i+=3){
+      const group=entries.slice(i,i+3);
+      const results=await Promise.allSettled(group.map(({item,kind})=>{
+        const id=String(item.id||'');
+        const fallback=id&&/^[0-9_]+$/.test(id)
+          ?kind==='video'?'https://www.facebook.com/watch/?v='+encodeURIComponent(id.split('_').pop())
+            :'https://www.facebook.com/photo/?fbid='+encodeURIComponent(id.split('_').pop())
+          :'';
+        return writer('facebook',{
+          id,sourcePostId:id,
+          sourceUrl:(kind==='video'?item.permalink_url:item.link)||fallback,
+          caption:item.name||item.title||item.description||'Facebook '+kind,
+          thumbnailUrl:kind==='video'?item.picture:photoUrl(item),
+          sourceUsername:state.profile?.name||'',kind,mediaType:kind.toUpperCase()
+        });
+      }));
+      imported+=results.filter(x=>x.status==='fulfilled'&&x.value?.created).length;
+    }
+    if(imported)showStatus(imported+' Facebook item(s) saved to your private Feed drafts. Nothing was posted publicly.');
+  }
+
   function loadFacebookContent() {
     return readGrantedPermissions().then(function () {
       var requests = [
-        facebookApi('/me', { fields: 'id,name,email,link,picture.width(200).height(200)' }),
+        facebookApi('/me', { fields: 'id,name,picture.width(200).height(200)' + (hasPermission('user_link') ? ',link' : '') }),
         hasPermission('user_photos') ? facebookApi('/me/photos', { type: 'uploaded', fields: 'id,name,images,created_time,link', limit: 12 }) : Promise.resolve(null),
         hasPermission('user_videos') ? facebookApi('/me/videos', { fields: 'id,title,description,source,picture,created_time,permalink_url', limit: 8 }) : Promise.resolve(null)
       ];
-      return Promise.allSettled(requests).then(function (results) {
+      return Promise.allSettled(requests).then(async function (results) {
         var profile = results[0].status === 'fulfilled' ? results[0].value : null;
         var photos = results[1].status === 'fulfilled' ? results[1].value : null;
         var videos = results[2].status === 'fulfilled' ? results[2].value : null;
         if (profile) { state.profile = profile; }
         state.photos = photos && photos.data ? photos.data : [];
         state.videos = videos && videos.data ? videos.data : [];
+        state.noMediaNotified=false;
         render();
+        // Profile login alone is not content permission. Only media actually
+        // returned from approved Graph API endpoints becomes private drafts.
+        let saveError='';
+        try{await syncFacebookDrafts()}catch(error){
+          saveError=String(error?.message||'Facebook private draft sync unavailable.');
+          console.warn('Facebook private draft sync unavailable:',error);
+        }
+        return {photos:state.photos.length,videos:state.videos.length,
+          missing:['user_photos','user_videos'].filter(permission=>!hasPermission(permission)),
+          saveError,profileLoaded:!!state.profile};
       });
     });
   }
@@ -154,36 +242,71 @@
     return photo && photo.images && photo.images.length ? photo.images[0].source : '';
   }
 
+  // Connected Facebook media is a preview, not a published Big LWA post.
+  // Use the same image-first shell, blue shadow, and compact in-image actions.
+  function safeLink(value) {
+    try { var url=new URL(String(value||''));return url.protocol==='https:'?url.href:''; }
+    catch (_) { return ''; }
+  }
+  function facebookCard(item,kind) {
+    var title=String(item.name||item.title||item.description||'Shared from Facebook').slice(0,180);
+    var src=safeLink(kind==='video'?(item.picture||''):photoUrl(item));
+    var clip=kind==='video'?safeLink(item.source):'';
+    var url=safeLink(kind==='video'?item.permalink_url:item.link);
+    if(!src&&!clip)return '';
+    var id=String(item.id||'').replace(/[^a-zA-Z0-9_-]/g,'');
+    var poster=src?'<img src="'+escapeText(src)+'" loading="lazy" decoding="async" alt="'+escapeText(title)+'">':'';
+    var visual=kind==='video'&&clip
+      ? '<video src="'+escapeText(clip)+'" '+(src?'poster="'+escapeText(src)+'" ':'')+' muted playsinline controls autoplay loop preload="metadata"></video>'
+      : poster;
+    var record=JSON.stringify({id:'facebook-'+id,source:'facebook',sourcePostId:id,caption:title,
+      sourceUrl:url,imageUrls:src?[src]:[],videoUrl:clip}).replace(/"/g,'&quot;');
+    return '<article class="module-list-item facebook-feed-item biglwa-unified-card" data-facebook-media="'+kind+
+      '" data-post-id="facebook-'+escapeText(id)+'" data-source-id="'+escapeText(id)+'" data-send-record="'+record+
+      '" style="--feed-card-rim:#1877f2;--feed-card-shadow:3px 3px 0 #1877f2,0 12px 25px -16px #5aa0ff">'+
+      '<div class="biglwa-unified-media facebook-card-media">'+visual+
+        '<div class="facebook-card-overlay"><span>'+escapeText(title)+'</span></div>'+
+      '</div><span class="biglwa-unified-source">Facebook</span>'+
+      (url?'<a class="facebook-card-source" href="'+escapeText(url)+'" target="_blank" rel="noopener noreferrer" aria-label="View original on Facebook">Original ↗</a>':'')+
+      (url?'<button type="button" class="module-action" data-facebook-save-media="'+escapeText(id)+'" data-facebook-kind="'+escapeText(kind)+'">Save private Feed draft</button>':'')+
+      '</article>';
+  }
   function renderFeedImports() {
-    var list = one('#feedPageList');
-    if (!list) { return; }
-    all('.facebook-feed-item', list).forEach(function (item) { item.remove(); });
-    if (!state.connected) { return; }
-
-    var items = [];
-    state.photos.forEach(function (photo) {
-      var source = photoUrl(photo);
-      if (!source) { return; }
-      items.push('<article class="module-list-item facebook-feed-item" data-facebook-media="photo"><div style="width:100%"><small>Facebook · photo</small><b style="display:block;margin:4px 0 8px">' + escapeText(photo.name || 'Shared from Facebook') + '</b><img src="' + escapeText(source) + '" alt="' + escapeText(photo.name || 'Facebook photo') + '" loading="lazy" style="display:block;width:100%;max-height:460px;object-fit:cover;border-radius:12px">' + (photo.link ? '<a class="module-action ghost" href="' + escapeText(photo.link) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Facebook</a>' : '') + '</div></article>');
-    });
-    state.videos.forEach(function (video) {
-      var title = video.title || video.description || 'Shared from Facebook';
-      var media = video.source ? '<video controls preload="metadata" poster="' + escapeText(video.picture || '') + '" style="display:block;width:100%;max-height:460px;border-radius:12px;background:#171414"><source src="' + escapeText(video.source) + '"></video>' : (video.picture ? '<img src="' + escapeText(video.picture) + '" alt="' + escapeText(title) + '" loading="lazy" style="display:block;width:100%;max-height:460px;object-fit:cover;border-radius:12px">' : '');
-      items.push('<article class="module-list-item facebook-feed-item" data-facebook-media="video"><div style="width:100%"><small>Facebook · video</small><b style="display:block;margin:4px 0 8px">' + escapeText(title) + '</b>' + media + (video.permalink_url ? '<a class="module-action ghost" href="' + escapeText(video.permalink_url) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px">View on Facebook</a>' : '') + '</div></article>');
-    });
-
-    if (!items.length) {
-      items.push('<article class="module-list-item facebook-feed-item"><div><b>Facebook is connected</b><small>No approved photos or videos were returned. Meta may still require testing access or App Review for those permissions.</small></div></article>');
+    var list=one('#feedPageList');
+    if(!list)return;
+    all('.facebook-feed-item',list).forEach(function(card){card.remove();});
+    if(!state.connected)return;
+    var items=[];
+    state.photos.forEach(function(photo){var html=facebookCard(photo,'photo');if(html)items.push(html);});
+    state.videos.forEach(function(video){var html=facebookCard(video,'video');if(html)items.push(html);});
+    if(!items.length) {
+      // A status belongs to the page/status rail, never inside the masonry as a fake picture.
+      if(!state.noMediaNotified){
+        state.noMediaNotified=true;
+        showStatus(state.permissions.some(function(p){return p==='user_photos'||p==='user_videos';})
+          ? 'Facebook connected, but Meta returned no accessible photos or videos.'
+          : 'Facebook connected, but Meta has not granted photo/video access. Check permissions in your Business Login configuration.');
+      }
+      return;
     }
-    list.insertAdjacentHTML('afterbegin', items.join(''));
+    list.insertAdjacentHTML('afterbegin',items.join(''));
+    if(window.__biglwaFeed?.registerSendCard){
+      all('.facebook-feed-item[data-send-record]',list).forEach(function(card){
+        try{window.__biglwaFeed.registerSendCard(card);}catch(error){console.warn('Facebook Feed action:',error);}
+      });
+    }
   }
 
   function connect() {
+    if (!requireBusinessConfiguration()) return;
     loadSDK().then(function () {
+      // Do not request App-Review-only permissions on the initial sign-in.
       window.FB.login(function (response) {
         if (!response || !response.authResponse) {
           state.connected = false;
-          state.error = 'Facebook authorization was cancelled or unavailable.';
+          state.error = (response && (response.error_message || response.error))
+            ? String(response.error_message || response.error)
+            : 'Facebook authorization was cancelled or unavailable. Check Meta app roles and publish status.';
           showStatus(state.error);
           render();
           return;
@@ -191,16 +314,42 @@
         state.connected = true;
         state.error = '';
         loadFacebookContent().then(function () {
-          showStatus('Facebook is connected. Approved media is ready in Collective Feed.');
+          var mediaGranted = hasPermission('user_photos') || hasPermission('user_videos');
+          showStatus(mediaGranted
+            ? 'Facebook connected. Loading available media into Collective Feed previews.'
+            : 'Facebook connected. Photo/video imports require additional permissions in your Meta Business Login configuration.');
+          render();
+        }).catch(function (error) {
+          state.error = error.message || 'Facebook profile could not load.';
+          showStatus(state.error);
           render();
         });
-      }, { scope: 'public_profile,email,user_photos,user_videos,user_link', return_scopes: true });
+      }, { config_id: loginConfiguration(), return_scopes: true });
     }).catch(function (error) {
       state.connected = false;
       state.error = error.message || 'Facebook Login could not start.';
       showStatus(state.error);
       render();
     });
+  }
+
+  function requestMediaAccess() {
+    if (!requireBusinessConfiguration()) return;
+    if (!state.connected || !window.FB || !window.FB.login) {
+      showStatus('Connect Facebook before requesting photos and videos.');
+      return;
+    }
+    window.FB.login(function (response) {
+      if (!response || !response.authResponse) {
+        showStatus('Facebook media access was not granted. Check user_photos and user_videos approval in Meta.');
+        return;
+      }
+      loadFacebookContent().then(function () {
+        showStatus(hasPermission('user_photos') || hasPermission('user_videos')
+          ? 'Facebook media permissions updated.'
+          : 'Facebook is connected, but Meta has not granted photo or video access.');
+      }).catch(function () { showStatus('Facebook media could not be loaded. Try again later.'); });
+    }, {config_id:loginConfiguration(),auth_type:'rerequest',return_scopes:true});
   }
 
   function disconnect() {
@@ -221,7 +370,44 @@
   document.addEventListener('click', function (event) {
     var target = event.target && event.target.closest ? event.target : null;
     if (!target) { return; }
-    var connectTarget = target.closest('[data-orbit-app="facebook"],[data-facebook-orbit-connect]');
+    var draftButton=target.closest('[data-facebook-save-media]');
+    if(draftButton){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(draftButton.disabled)return;
+      var itemId=draftButton.getAttribute('data-facebook-save-media');
+      var kind=draftButton.getAttribute('data-facebook-kind');
+      var item=(kind==='video'?state.videos:state.photos).find(function(p){return String(p.id)===itemId});
+      if(!item){showStatus('Facebook media is not loaded. Reconnect and retry.');return}
+      var permalink=kind==='video'?item.permalink_url:item.link;
+      if(!permalink && /^[0-9_]+$/.test(itemId)){
+        permalink=kind==='video'?'https://www.facebook.com/watch/?v='+encodeURIComponent(itemId.split('_').pop())
+          :'https://www.facebook.com/photo/?fbid='+encodeURIComponent(itemId.split('_').pop());
+      }
+      var saver=window.__biglwaOrbitPosts?.saveExternalOrbitDraft;
+      if(typeof saver!=='function'){showStatus('The Feed importer is still loading. Try again.');return}
+      draftButton.disabled=true;
+      draftButton.textContent='Saving…';
+      Promise.resolve(saver('facebook',{
+        id:itemId,sourcePostId:itemId,sourceUrl:permalink,
+        caption:item.name||item.title||item.description||'Facebook '+kind,
+        thumbnailUrl:kind==='video'?item.picture:photoUrl(item),
+        kind:kind,sourceUsername:state.profile?.name||''
+      })).then(function(result){
+        draftButton.textContent=result.created?'Saved as private draft':'Already saved to Feed';
+        showStatus('Saved to your Big LWA Feed drafts. Publish it there whenever you choose.');
+      }).catch(function(error){
+        draftButton.disabled=false;draftButton.textContent='Save private Feed draft';
+        showStatus(error?.message||'Could not save this Facebook item.');
+      });
+      return;
+    }
+    if (target.closest('[data-facebook-orbit-media]')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      requestMediaAccess();
+      return;
+    }
+    var connectTarget = target.closest('[data-facebook-orbit-connect],[data-facebook-legacy-connect]');
     if (connectTarget) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -236,11 +422,29 @@
     if (target.closest('[data-open="orbit"],[data-open="feed"]')) { window.setTimeout(render, 80); }
   }, true);
 
-  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render };
+  window.__biglwaFacebookOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, refresh: function(){return state.connected ? loadFacebookContent() : Promise.resolve(null);}, configured: function(){return !!loginConfiguration();} };
   /* Registering with the shared mount is what lets these cards survive a feed rebuild and
      pick up the Facebook accent, instead of only appearing on the click that opened the
      page and then being wiped by the next rebuild. */
   if (window.BIGLWAFeedMount) { window.BIGLWAFeedMount('Facebook', 'facebook-feed-item', renderFeedImports); }
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', render, { once: true }); }
-  else { render(); }
+  function restoreFacebookLogin() {
+    // A login-status check is not a new authorization request.
+    // Restore an existing valid Meta session when Orbit is reloaded.
+    loadSDK().then(function () {
+      window.FB.getLoginStatus(function (response) {
+        if (!response || response.status !== 'connected' || !response.authResponse) {
+          render();
+          return;
+        }
+        state.connected = true;
+        loadFacebookContent().catch(function(error){
+          state.error=String(error?.message||'Facebook media refresh unavailable.');
+          render();
+        });
+      });
+    }).catch(function(){ render(); });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restoreFacebookLogin, { once:true });
+  } else restoreFacebookLogin();
 }());

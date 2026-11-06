@@ -1,0 +1,228 @@
+/* Archive and Highlights spatial system — 2026-10-29.
+   No media migrations, no imports overwritten, no changes to Live switches.
+   Fill available space with a Pinterest-style column flow instead of equal-
+   height CSS grid rows. The layout is scoped to Archive only. */
+
+/* A Highlight's editor is now a compact, content-height card. Shorter
+   highlights do not leave blanks beside taller imported collections. */
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-list{
+  display:block!important;
+  columns:2!important;
+  column-gap:14px!important;
+  max-height:none!important;
+  height:auto!important;
+  overflow:visible!important;
+  padding:2px!important;
+  margin:0!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-list>.highlight-edit-row{
+  box-sizing:border-box!important;
+  display:grid!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:max-content!important;
+  break-inside:avoid!important;
+  -webkit-column-break-inside:avoid!important;
+  margin:0 0 14px!important;
+  padding:14px!important;
+  gap:10px!important;
+  border-radius:12px!important;
+  vertical-align:top!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-list[data-highlight-layout="single"]{
+  columns:1!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-row-head{
+  display:grid!important;
+  grid-template-columns:80px minmax(0,1fr)!important;
+  justify-content:start!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-cover{
+  width:78px!important;height:78px!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  cursor:default!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-cover.is-adjusting{
+  cursor:grab!important;
+  outline:3px solid #9b4964!important;
+  outline-offset:3px!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-cover.is-adjusting:active{
+  cursor:grabbing!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-cover img{
+  pointer-events:none!important;
+  width:100%!important;height:100%!important;
+  object-fit:cover!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-row-head-actions{
+  display:flex!important;
+  flex-flow:row wrap!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  column-gap:12px!important;
+  row-gap:8px!important;
+  min-width:0!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-row-head-actions strong{
+  font:750 clamp(13px,1.1vw,16px)/1.3 system-ui,sans-serif!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-adjust-button{
+  min-width:76px!important;
+  padding:8px 11px!important;
+  margin-left:auto!important;
+  white-space:nowrap!important;
+  border-color:#a24b67!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-adjust-button[aria-pressed="true"]{
+  background:#864053!important;color:#fff!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-fields{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  align-items:start!important;
+  gap:10px!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-fields>label{
+  min-width:0!important;margin:0!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-controls{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:9px!important;
+  padding:0!important;
+  margin:0!important;
+  grid-template-columns:none!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-adjust-hint{
+  flex:1 1 190px!important;
+  max-width:none!important;
+  min-width:0!important;
+  font:500 11px/1.35 system-ui,sans-serif!important;
+  color:#765d5e!important;margin:0!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-controls>.highlight-upload-label{
+  order:1!important;
+  flex:0 0 auto!important;
+  min-height:33px!important;
+  padding:8px 12px!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-advanced{
+  order:2!important;
+  flex:1 1 100%!important;
+  border:0!important;
+  min-width:0!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-advanced summary{
+  width:max-content!important;cursor:pointer!important;
+  padding:4px 0!important;
+  font:600 10px/1.3 system-ui!important;
+  color:#704d58!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-cover-advanced>label{
+  max-width:100%!important;margin-top:6px!important;
+}
+/* Real media cards: the browser width dictates how many photos fit, not a
+   hard-coded three cards plus empty white space. At wide sizes 5–8 per row. */
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-item-gallery{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(clamp(96px,9.5vw,135px),1fr))!important;
+  gap:8px!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:8px 0 5px!important;
+  align-items:start!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-item-card{
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:visible!important;
+  padding:4px!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-item-media{
+  aspect-ratio:4/5!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-item-kind{
+  top:8px!important;left:8px!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-item-send{
+  min-width:0!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-items{
+  min-width:0!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-row-actions{
+  justify-content:flex-start!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-list>.highlight-editor-intro{
+  column-span:all!important;
+}
+
+/* The same gap-filling behavior applies to every Archive category, not only
+   Instagram. Source colors, Live buttons and media aspect ratios are unchanged. */
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list,
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){
+  display:block!important;
+  columns:8!important;
+  column-gap:12px!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  padding:0 3px 4px 0!important;
+  margin:0!important;
+  overflow:visible!important;
+}
+html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list>.instagram-archive-card{
+  display:block!important;
+  break-inside:avoid!important;
+  -webkit-column-break-inside:avoid!important;
+  margin:0 0 12px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+@media(max-width:1600px){
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list,
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){
+  columns:7!important;
+ }
+}
+@media(max-width:1200px){
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list,
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){
+  columns:5!important;
+ }
+}
+@media(max-width:850px){
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list,
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){
+  columns:3!important;
+ }
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-list{
+  columns:1!important;
+ }
+}
+@media(max-width:520px){
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list,
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] .archive-page-list:not(:has(.archive-source-group)){
+  columns:2!important;column-gap:9px!important;
+ }
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-item-gallery{
+  grid-template-columns:repeat(auto-fit,minmax(94px,1fr))!important;
+ }
+ html body #studioApp #moduleWorkspace[data-module-key="archive"] #archiveHighlightsPanel .highlight-edit-row{
+  padding:10px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp #archiveHighlightsPanel .highlight-cover-adjust-button{transition:none!important}
+}

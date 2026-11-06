@@ -80,6 +80,27 @@ function pinterestImageUrl(item) {
   return "";
 }
 function mediaPieces(item, source) {
+  const images = item?.media?.images || item?.media?.items?.[0]?.images || item?.images || {};
+  const candidates = [
+    images["600x"], images["400x300"], images["237x"], images.originals,
+    images.original, ...Object.values(images),
+    item?.image_url, item?.imageUrl, item?.image?.url,
+    item?.media?.cover_image_url, item?.media?.image_url,
+    item?.thumbnail_url, item?.media_url
+  ];
+  for (const entry of candidates) {
+    const value = clean(typeof entry === "string" ? entry : entry?.url || entry?.src);
+    try {
+      const image = new URL(value);
+      if (image.protocol === "https:" &&
+          (image.hostname === "i.pinimg.com" || image.hostname.endsWith(".pinimg.com"))) {
+        return image.href;
+      }
+    } catch { /* An invalid candidate is not a preview image. */ }
+  }
+  return "";
+}
+function mediaPieces(item, source = '') {
   const children = Array.isArray(item?.children?.data)
     ? item.children.data.filter(child => child && (child.media_url || child.thumbnail_url))
     : [];
@@ -102,6 +123,23 @@ function isPicturePiece(piece, parent) {
   const url = clean(piece?.media_url || piece?.thumbnail_url || "");
   return !/\.(mp4|mov|m4v|webm)(\?|$)/i.test(url);
 }
+function isStoredOrbitUrl(url) {
+  try {
+    const parsed = new URL(String(url||''));
+    return parsed.protocol==='https:' &&
+      parsed.hostname==='biglwa-instagram-api.leianmulatre-284.workers.dev' &&
+      /^\/media\/orbit\/[A-Za-z0-9_-]+\//.test(parsed.pathname);
+  } catch { return false; }
+}
+function pinterestImageFingerprint(url) {
+  try{
+    const parsed=new URL(clean(url));
+    if(parsed.protocol!=='https:'||!(parsed.hostname==='i.pinimg.com'||parsed.hostname.endsWith('.pinimg.com')))return '';
+    const filename=parsed.pathname.split('/').pop()||'';
+    const match=filename.match(/^([a-f0-9]{16,64})\.(?:jpg|jpeg|png|webp|gif)$/i);
+    return match?'pinimg:'+match[1].toLowerCase():'';
+  }catch{return ''}
+}
 function mediaFromItem(source, item, hostedMedia) {
   const normalizedSource = String(source || "").toLowerCase();
   const caption = clean(item.caption || item.title || item.description || item.alt_text || "Shared from " + source);
@@ -110,14 +148,19 @@ function mediaFromItem(source, item, hostedMedia) {
   const sourcePostId = sourcePostIdFor(item, fallbackUrl);
   const pieces = mediaPieces(item, normalizedSource);
   const mediaItems = pieces.map((piece, index) => {
-    const originalUrl = clean(piece.media_url || piece.thumbnail_url);
-    const slot = sourcePostId + ":" + index;
-    const hosted = hostedMedia?.urls?.get(slot);
     const picture = isPicturePiece(piece, item);
+    const originalUrl = clean(picture ? (piece.media_url || piece.thumbnail_url) : (piece.thumbnail_url || piece.media_url));
+    const slot = sourcePostId + ":" + index;
+    const hosted = clean(hostedMedia?.urls?.get(slot));
+    // Never store an expiring social CDN URL as a permanent Orbit image.
+    // An uncopied item stays in the provider list for a future retry, but not
+    // as a broken card in Collective Feed/Archive/Studio.
+    const durable = ['instagram','pinterest'].includes(normalizedSource);
+    if (durable && !hosted) return null;
     const poster = clean(hosted || piece.thumbnail_url || "");
     return {
       index,
-      isPicture: picture,
+      isPicture: picture || (!picture && !!piece.thumbnail_url && !!hosted),
       url: hosted || originalUrl,
       /* The Worker already stores Orbit media under orbit/<uid>/<name> and returns that
          owner-scoped key. It used to be discarded here, which left Firestore holding only
@@ -128,7 +171,7 @@ function mediaFromItem(source, item, hostedMedia) {
       thumbnailUrl: poster || (picture ? hosted || originalUrl : ""),
       mediaType: clean(piece.media_type || item.media_type || "IMAGE").toUpperCase()
     };
-  }).filter(piece => piece.url);
+  }).filter(piece => piece && piece.url);
   /* imageUrls is pictures only, so a feed card, the preview and the Archive never point an
      <img> at a video file. */
   const imageUrls = mediaItems.filter(piece => piece.isPicture && piece.thumbnailUrl)
@@ -272,7 +315,9 @@ async function bumpOwnerIndex(store, uid, owner, incoming) {
     const current = snap.exists() ? snap.data() || {} : {};
     const counts = { ...(current.counts || {}) };
     const incomingKey = String(incoming || "").toLowerCase();
-    if (incomingCount) counts[incomingKey] = (counts[incomingKey] || 0) + 1;
+    // Count new records from the source only if not already represented.
+    // This is informational; the Archive collection is the authoritative source.
+    if (incomingKey) counts[incomingKey] = Math.max(Number(counts[incomingKey])||0,1);
     await store.setDoc(ref, {
       uid,
       username: owner.username,
@@ -292,23 +337,31 @@ async function bumpOwnerIndex(store, uid, owner, incoming) {
    throwing. Throwing here aborted the whole import before a single Firestore write, which
    left the Collective Feed, the member profile, and the Archive empty and left other
    devices with nothing to load. */
-async function importInstagramMediaToR2(items, user) {
-  const firebaseIdToken = await user.getIdToken();
-  if (!firebaseIdToken) throw new Error("Your BIGLWA login expired. Sign in again and reconnect Instagram.");
+async function importInstagramMediaToR2(items, user, source = 'instagram') {
+  // The Firebase account and the linked external service have different
+  // lifetimes. Token retrieval/network failures must not imply the member
+  // signed out just because a Pinterest grant expired.
+  let firebaseIdToken = '';
+  try { firebaseIdToken = await user.getIdToken(); }
+  catch (error) { console.warn('BIG LWA media token retrieval delayed:', error); }
+  if (!firebaseIdToken) throw new Error("BIG LWA media authorization is temporarily unavailable. Your session was not signed out.");
 
   const requestItems = [];
   for (const raw of items) {
-    const pieces = mediaPieces(raw);
-    const fallbackUrl = clean(raw.media_url || raw.thumbnail_url || raw.url);
+    const pieces = mediaPieces(raw, source);
+    const fallbackUrl = source === 'pinterest' ? (pinterestImageUrl(raw) || clean(raw.url)) : clean(raw.media_url || raw.thumbnail_url || raw.url);
     const sourcePostId = sourcePostIdFor(raw, fallbackUrl);
     pieces.forEach((piece, index) => {
-      const url = clean(piece.media_url || piece.thumbnail_url);
+      // Video thumbnails belong in the image cache; copying the full MP4 wastes
+      // the import request and cannot be displayed in an <img> preview.
+      const video = !isPicturePiece(piece, raw);
+      const url = clean(video ? piece.thumbnail_url : (piece.media_url || piece.thumbnail_url));
       if (url) {
         requestItems.push({
           sourcePostId,
           index,
           url,
-          mediaType: clean(piece.media_type || raw.media_type || "IMAGE").toUpperCase()
+          mediaType: video ? "IMAGE" : clean(piece.media_type || raw.media_type || "IMAGE").toUpperCase()
         });
       }
     });
@@ -316,8 +369,10 @@ async function importInstagramMediaToR2(items, user) {
 
   const imported = [];
   let failedBatches = 0;
-  for (let start = 0; start < requestItems.length; start += 100) {
-    const batch = requestItems.slice(start, start + 100);
+  // Small requests avoid Worker request timeouts: copying 100 remote CDN images
+  // sequentially used to abort the batch and leave the feed with expiring URLs.
+  for (let start = 0; start < requestItems.length; start += 10) {
+    const batch = requestItems.slice(start, start + 10);
     let response;
     try {
       response = await fetch(MEDIA_ENDPOINT + "/media/orbit-import", {
@@ -325,7 +380,22 @@ async function importInstagramMediaToR2(items, user) {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + firebaseIdToken,
-          "X-Instagram-Session": (() => { try { return localStorage.getItem('biglwaInstagramSession') || ''; } catch { return ''; } })()
+          "X-Orbit-Provider": source === 'pinterest' ? 'pinterest' : 'instagram',
+          ...(source === 'pinterest'
+            ? { "X-Pinterest-Session": (() => {
+                const key='biglwaPinterestSession:'+user.uid;
+                for(const store of [localStorage,sessionStorage]){try{const value=store.getItem(key);if(value)return value;}catch{}}
+                return '';
+              })() }
+            : { "X-Instagram-Session": (() => {
+                // The credential belongs to the signed-in Firebase member, never
+                // to the last person who happened to use this browser.
+                const key='biglwaInstagramSession:'+user.uid;
+                for(const store of [localStorage,sessionStorage]){
+                  try{const value=store.getItem(key);if(value)return value}catch{}
+                }
+                return '';
+              })() })
         },
         body: JSON.stringify({ items: batch })
       });
@@ -362,11 +432,58 @@ async function importInstagramMediaToR2(items, user) {
   return map;
 }
 
+export async function storedOrbitImageUrls(source = '') {
+  const store=await firebase();
+  await store.auth.authStateReady();
+  const uid=store.auth.currentUser?.uid;
+  if(!uid)return {};
+  const expected=clean(source).toLowerCase();
+  const result={};
+  // Read only the account owner's existing post indexes, not other users' data.
+  // R2 URLs are reconstructed from durable keys as well as saved media URLs.
+  try{
+    // Saved R2 copies may exist in Archive even when a post has never been
+    // published to Collective Feed. Reading only /posts hid those pictures.
+    const paths=['posts','archive'];
+    for(const path of paths){
+      const snap=await store.getDocs(store.query(store.collection(store.db,'users',uid,path),store.limit(500)));
+      for(const doc of snap.docs){
+      const post=doc.data()||{};
+      if(expected&&clean(post.source).toLowerCase()!==expected)continue;
+      const id=clean(post.sourcePostId);
+      if(!id)continue;
+      const urls=[];
+      const add=value=>{
+        const url=clean(value);
+        if(isStoredOrbitUrl(url)&&!urls.includes(url))urls.push(url);
+      };
+      const fromKey=key=>{
+        const value=clean(key).replace(/^orbit\//,'');
+        if(!/^[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(value))return;
+        add(MEDIA_ENDPOINT+'/media/orbit/'+value);
+      };
+      for(const piece of (Array.isArray(post.mediaItems)?post.mediaItems:[])){
+        if(!piece||piece.isPicture===false)continue;
+        add(piece.url);add(piece.thumbnailUrl);fromKey(piece.key);
+      }
+      for(const url of (Array.isArray(post.imageUrls)?post.imageUrls:[]))add(url);
+      for(const key of (Array.isArray(post.imageKeys)?post.imageKeys:[]))fromKey(key);
+      add(post.imageUrl);fromKey(post.imageUrlKey);
+      if(urls.length)result[id]=[...new Set([...(result[id]||[]),...urls])];
+      }
+    }
+  }catch(error){console.warn('BIGLWA stored media restore:',error)}
+  return result;
+}
+
 export async function importOrbitMedia(source, items, profile, identityRecord) {
   const store = await firebase();
   const { db, auth, getDoc, serverTimestamp } = store;
+  // A slow Firebase restore is not a sign-out. Wait for the authoritative
+  // account state, independently of the Pinterest token/connection status.
+  await auth.authStateReady();
   const user = auth.currentUser;
-  if (!user) throw new Error("Sign in to save Orbit imports to your account.");
+  if (!user) throw new Error("Sign in to Big LWA to save account media. Connecting Pinterest is not required.");
   if (!Array.isArray(items) || !items.length) return { imported: 0, skipped: 0, partial: 0, warning: "" };
 
   /* Resolved once per import rather than per card, and it falls back to the account doc so
@@ -376,19 +493,23 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
   let imported = 0;
   let skipped = 0;
   let partial = 0;
+  let copyFailures = 0;
 
   let hostedMedia = null;
   let warning = "";
-  if (source.toLowerCase() === "instagram") {
-    hostedMedia = await importInstagramMediaToR2(items, user);
-    /* A partial copy is the normal case when one video among many pictures fails, and it
-       used to pass completely silently. Naming the leftovers keeps the difference between
-       "saved" and "saved but still pointing at Instagram" visible to the person saving. */
-    const notCopied = hostedMedia ? (hostedMedia.missing || 0) : 0;
+  if (['instagram','pinterest'].includes(source.toLowerCase())) {
+    try {
+      hostedMedia = await importInstagramMediaToR2(items, user, source.toLowerCase());
+    } catch (error) {
+      console.warn('BIGLWA Orbit image copy:',error);
+      hostedMedia = null;
+    }
+    const notCopied = hostedMedia ? (hostedMedia.missing || 0) : items.length;
+    copyFailures = notCopied;
     if (!hostedMedia || !hostedMedia.urls.size) {
-      warning = "Orbit media is linked from Instagram instead of copied into BIGLWA storage, so some pictures can stop loading when Instagram retires the link.";
+      warning = source + ' images could not be stored in BIGLWA. They were not republished with temporary links; reconnect Orbit and retry syncing once permissions are available.';
     } else if (notCopied > 0) {
-      warning = notCopied + " image" + (notCopied === 1 ? "" : "s") + " could not be copied into BIGLWA storage and still load straight from Instagram. Use Save again in a moment to finish them.";
+      warning = notCopied + ' ' + source + ' image' + (notCopied === 1 ? '' : 's') + ' could not be copied into BIGLWA storage. Only successfully hosted images were saved; reconnect to retry the rest.';
     }
   }
 
@@ -409,7 +530,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       if (snap.exists()) existingArchive = snap.data() || {};
     } catch {}
 
-    /* First import is live in Collective Feed. Once the owner has changed that card's
+    /* Pinterest imports are private drafts until explicitly published; Instagram retains its existing behavior. Once the owner has changed that card's
        state, a reconnect must respect the saved lifecycle rather than silently undoing it. */
     const priorArchiveState = clean(existingArchive?.archiveState);
     const priorState = clean(existing?.state || existingArchive?.state);
@@ -418,7 +539,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       ? "archived"
       : priorArchiveState === "archived" || priorState === "archived"
         ? "archived"
-        : (item.source === "instagram" || item.source === "pinterest")
+        : item.source === "instagram"
           ? "approved"
           : (existing?.state || "draft");
     const archiveState = priorArchiveState === "pending_delete"
@@ -428,6 +549,23 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
         : state === "approved"
           ? "collective"
           : "saved";
+    // A healthy existing R2 copy must never be replaced by a failed/partial
+    // refresh (which previously reintroduced expired third-party URLs).
+    const managedExisting = Array.isArray(existing?.imageUrls) ? existing.imageUrls.filter(url=>isStoredOrbitUrl(url)) : [];
+    if(managedExisting.length && managedExisting.length >= item.imageUrls.length) {
+      item.imageUrls=managedExisting;
+      item.imageUrl=managedExisting[0];
+      item.imageKeys=Array.isArray(existing.imageKeys)?existing.imageKeys:[];
+      item.imageUrlKey=existing.imageUrlKey||null;
+      item.mediaItems=Array.isArray(existing.mediaItems)?existing.mediaItems:item.mediaItems;
+    }
+    const pinRawOrigin=['created','board'].includes(raw?.biglwaPinterestOrigin)?raw.biglwaPinterestOrigin:'';
+    const priorPinOrigin=(existing?.pinterestOriginVerified===true?existing?.pinterestOrigin:
+      existingArchive?.pinterestOriginVerified===true?existingArchive?.pinterestOrigin:'');
+    const pinOrigin=pinRawOrigin||priorPinOrigin||'unknown';
+    const pinOriginVerified=Boolean(pinRawOrigin||priorPinOrigin);
+    const sourcePinFingerprint=pinterestImageFingerprint(pinterestImageUrl(raw))||
+      clean(existing?.sourceImageFingerprint||existingArchive?.sourceImageFingerprint);
     const data = {
       uid: owner.uid,
       username: owner.username,
@@ -449,6 +587,8 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
       sourceCreatedAtMs: item.sourceCreatedAtMs || 0,
       mediaType: item.mediaType,
       orbitImported: true,
+      // Distinguish a Pinterest original from a saved board reference.
+      ...(item.source === 'pinterest' ? {pinterestOrigin:pinOrigin, pinterestOriginVerified:pinOriginVerified, pinterestBoardId:clean(raw?.biglwaPinterestBoardId||raw?.board_id||raw?.boardId||existing?.pinterestBoardId||existingArchive?.pinterestBoardId),sourceImageFingerprint:sourcePinFingerprint} : {}),
       state,
       archiveState,
       deletionAt: preservedDeleteAt,
@@ -456,6 +596,7 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     };
     if (!existing) data.createdAt = serverTimestamp();
 
+    if (auth.currentUser?.uid !== user.uid) throw new Error('Account changed during Orbit import. Sign in to the correct account and retry.');
     const written = await writePostRecords(store, user.uid, postId, data, {
       archiveState,
       archivedAt: archiveState === "collective" ? null : (existingArchive?.archivedAt || serverTimestamp()),
@@ -488,13 +629,26 @@ export async function importOrbitMedia(source, items, profile, identityRecord) {
     }, { merge: true });
   } catch {}
 
+  if (skipped && ['instagram','pinterest'].includes(source.toLowerCase())) {
+    warning += (warning ? ' ' : '')+skipped+' item'+(skipped===1?'':'s')+
+      ' skipped until their media can be safely copied. Existing saved copies were kept.';
+  }
   if (partial) {
-    warning = (warning ? warning + " " : "")
-      + partial + " card" + (partial === 1 ? "" : "s")
-      + " could not be written to every list. Your BIGLWA security rules still need publishing.";
+    warning += (warning ? ' ' : '')+partial+' card'+(partial===1?'':'s')+
+      ' could not be written to every account list. Check your storage permissions.';
   }
 
-  return { imported, skipped, partial, warning };
+  // The connected-source wall can immediately paint the same durable URLs as
+  // the persisted account/Archive/Collective records, without borrowing a CDN link.
+  const hostedById = await storedOrbitImageUrls(source);
+  if(hostedMedia?.urls instanceof Map) {
+    for(const raw of items){
+      const sourceId = sourcePostIdFor(raw, source.toLowerCase()==='pinterest' ? pinterestImageUrl(raw) : clean(raw.media_url||raw.thumbnail_url||raw.url));
+      const urls=mediaPieces(raw,source.toLowerCase()).map((_,index)=>hostedMedia.urls.get(sourceId+':'+index)||'');
+      if(urls.some(Boolean))hostedById[sourceId]=[...new Set([...urls.filter(Boolean),...(hostedById[sourceId]||[])])];
+    }
+  }
+  return { imported, skipped, partial, copyFailures, warning, hostedById };
 }
 
 export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
@@ -514,8 +668,10 @@ export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
       const existingArchive = await getDocs(query(collection(db, "users", uid, "archive"), limit(1)));
       if (existingArchive.empty) {
         const oldSnap = await getDocs(collection(db, "users", uid, "posts"));
-        const instagram = oldSnap.docs.filter(d => String(d.data()?.source || "").toLowerCase() === "instagram");
-        for (const old of instagram) {
+        // The bridge must include Pinterest, Facebook and other Orbit sources too;
+        // previously it only restored Instagram into Archive.
+        const imported = oldSnap.docs.filter(d => Boolean(d.data()?.orbitImported || d.data()?.source));
+        for (const old of imported) {
           const data = old.data() || {};
           const archiveRef = doc(db, "users", uid, "archive", old.id);
           const archiveSnap = await getDoc(archiveRef);
@@ -533,24 +689,14 @@ export async function loadArchive(ownerUid, pageSize = 48, cursor = null) {
     }
   }
 
-  let snap;
-  try {
-    const base = query(
-      collection(db, "users", uid, "archive"),
-      orderBy("sourceCreatedAtMs", "desc")
-    );
-    snap = cursor
-      ? await getDocs(query(base, startAfter(cursor), limit(size)))
-      : await getDocs(query(base, limit(size)));
-  } catch (error) {
-    console.warn("BIGLWA Archive ordered read:", error);
-    /* Keep the same page size on the fallback path so a missing index cannot suddenly
-       dump the whole Archive into the browser. */
-    const base = cursor
-      ? query(collection(db, "users", uid, "archive"), startAfter(cursor))
-      : query(collection(db, "users", uid, "archive"));
-    snap = await getDocs(query(base, limit(size)));
-  }
+  // Firestore orderBy(sourceCreatedAtMs) silently EXCLUDES older Archive docs
+  // with no such field. Read all cards in stable document-ID pages, then sort
+  // each page client-side. The nextCursor remains a Firestore document snapshot.
+  // This preserves older Pinterest/Instagram cards without creating an index.
+  const base = collection(db, "users", uid, "archive");
+  const snap = cursor
+    ? await getDocs(query(base, startAfter(cursor), limit(size)))
+    : await getDocs(query(base, limit(size)));
 
   const now = Date.now();
   const rows = [];
@@ -728,6 +874,92 @@ export async function removeOrbitPost(postId) {
    had their own partial copy of this write, which is how a card could end up in the
    Collective Feed but missing from the Archive, or carry no owner at all. They now call
    this, so there is exactly one definition of what a post write means. */
+/* Persist a user-selected Facebook photo/video or TikTok video as an account-owned,
+ * private Orbit draft. Provider media remains at its source unless a durable R2 copy
+ * exists; we save a working original-post link for those source-hosted previews.
+ * Stable ids ensure reconnecting never duplicates a post or resets its visibility. */
+export async function saveExternalOrbitDraft(source, raw, {publishToCollective=false} = {}) {
+  const provider=clean(source).toLowerCase();
+  if(!['facebook','tiktok'].includes(provider))throw Error('This source is not enabled for Orbit drafts.');
+  const store=await firebase();
+  await store.auth.authStateReady();
+  const user=store.auth.currentUser;
+  if(!user)throw Error('Sign in to Big LWA before importing account content.');
+  const item=raw&&typeof raw==='object'?raw:{};
+  if(item.expectedUid&&user.uid!==item.expectedUid)throw Error('Account changed during import.');
+  const https=value=>{
+    try{const u=new URL(clean(value));return u.protocol==='https:'?u.href:''}
+    catch{return ''}
+  };
+  const original=https(item.sourceUrl||item.share_url||item.permalink_url||item.link);
+  if(!original)throw Error('This '+provider+' item needs a public source link before it can be saved.');
+  const host=new URL(original).hostname.toLowerCase();
+  if(provider==='tiktok'&&!['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(host))
+    throw Error('Use the original TikTok video URL.');
+  if(provider==='facebook'&&!['facebook.com','www.facebook.com','m.facebook.com','web.facebook.com','fb.watch'].includes(host))
+    throw Error('Use a Facebook-owned original post URL.');
+  const externalId=clean(item.sourcePostId||item.id||item.video_id||original);
+  const postId=await idFor(provider+':'+user.uid,externalId);
+  const refs=postRefs(store,user.uid,postId);
+  let prior;
+  try{prior=await store.getDoc(refs.root)}
+  catch(error){
+    // Missing root documents cannot satisfy resource-based read rules. The
+    // owner-scoped mirror can be read even before the first import exists.
+    if(!['permission-denied','firestore/permission-denied'].includes(error.code))throw error;
+    prior=await store.getDoc(refs.profile);
+  }
+  if(prior.exists()){
+    const present=prior.data()||{};
+    // Personal sync explicitly publishes drafts; respect removals and archived cards.
+    // Autopublish only provider-authorized video.list records or public-profile
+    // records whose author was verified against TikTok's OAuth username by
+    // the caller. Pasted links remain private drafts.
+    const mayPublish=publishToCollective&&(provider==='facebook'||
+      (provider==='tiktok'&&(item.authorizedFromTikTokVideoList===true||item.matchedAuthorizedTikTokPublicProfile===true)));
+    if(mayPublish&&present.state==='draft'&&
+       !['archived','pending_delete'].includes(present.archiveState)){
+      if(store.auth.currentUser?.uid!==user.uid)throw Error('Account changed during import.');
+      const written=await writePostRecords(store,user.uid,postId,{...present,state:'approved',archiveState:'collective',updatedAt:store.serverTimestamp()},{archiveState:'collective'});
+      if(written.denied.includes('root'))throw Error('Could not publish '+provider+' item to Collective Feed.');
+      window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:provider,postId,state:'approved'}}));
+      return {id:postId,created:false,published:true,state:'approved',source:provider};
+    }
+    return {id:postId,created:false,state:present.state||'draft',source:provider};
+  }
+  const name=clean(item.caption||item.title||item.video_description||provider+' media').slice(0,500);
+  const thumbnail=https(item.thumbnailUrl||item.cover_image_url||item.picture||item.imageUrl);
+  const mediaType=clean(item.mediaType||item.kind||(provider==='tiktok'?'video':'image')).toUpperCase();
+  // Persist TikTok's supported public player address, not a transient media
+  // CDN URL or unreviewed embed HTML supplied by another site.
+  const videoId=provider==='tiktok'?String(externalId).match(/^\d{10,30}$/)?.[0]:'';
+  const embedUrl=videoId?'https://www.tiktok.com/player/v1/'+videoId:null;
+  const owner=await resolveOwner(user,{},null);
+  const created=store.serverTimestamp();
+  const publish=publishToCollective&&(provider==='facebook'||
+    (provider==='tiktok'&&(item.authorizedFromTikTokVideoList===true||item.matchedAuthorizedTikTokPublicProfile===true)));
+  const state=publish?'approved':'draft',archiveState=publish?'collective':'saved';
+  const data={
+    uid:user.uid,username:owner.username,usernameLower:owner.usernameLower,
+    authorName:owner.authorName,
+    source:provider,sourcePostId:externalId,sourceUrl:original,
+    sourceUsername:clean(item.sourceUsername||item.username),
+    ...(embedUrl?{embedUrl}:{}),
+    sourceCreatedAtMs:Number(item.sourceCreatedAtMs)||Date.now(),
+    caption:name,linkTitle:name,mediaType,
+    thumbnailUrl:thumbnail||null,
+    imageUrl:thumbnail||null,imageUrls:thumbnail?[thumbnail]:[],
+    mediaItems:thumbnail?[{index:0,isPicture:true,url:thumbnail,thumbnailUrl:thumbnail,mediaType:'IMAGE'}]:[],
+    orbitImported:true,sourceHostedMedia:true,
+    state,archiveState,createdAt:created,updatedAt:created
+  };
+  if(store.auth.currentUser?.uid!==user.uid)throw Error('Account changed during import.');
+  const result=await writePostRecords(store,user.uid,postId,data,{archiveState});
+  if(result.denied.includes('root'))throw Error('Orbit draft could not reach the main Feed database. Try again.');
+  window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:provider,postId,state}}));
+  return {id:postId,created:true,published:publish,state,source:provider};
+}
+
 export async function savePostRecords(ownerUid, postId, data, archiveExtra = {}) {
   const store = await firebase();
   const uid = ownerUid || store.auth.currentUser?.uid;
@@ -745,8 +977,69 @@ export async function savePostRecords(ownerUid, postId, data, archiveExtra = {})
   return payload;
 }
 
+
+/* Owner-session verification of REAL, persisted TikTok media records.
+ * This is a database check, not a simulation or a public-source lookup.
+ * It checks three Firestore locations and records R2 URL references separately.
+ * URL references alone do not prove storage bytes are available.
+ */
+export async function verifyTikTokMigration(){
+  const store=await firebase();
+  const {auth,db,collection,where,query,limit,getDocs,getDoc}=store;
+  await auth.authStateReady();
+  const user=auth.currentUser;
+  if(!user)throw Error('Sign in to BIG LWA to verify your TikTok migration.');
+  const uid=user.uid;
+  const results=await getDocs(query(collection(db,'users',uid,'posts'),where('source','==','tiktok'),limit(50)));
+  if(auth.currentUser?.uid!==uid)throw Error('Account changed during verification.');
+  const posts=results.docs.filter(x=>x.data()?.uid===uid);
+  const state={
+    checkedAt:new Date().toISOString(),ownerAuthenticated:true,records:posts.length,
+    scannedLimit:50,limitReached:results.size===50,approved:0,drafts:0,
+    ownerRecords:posts.length,rootRecords:0,archiveRecords:0,sourceLinks:0,
+    r2UrlReferences:0,metadataOnly:0,unreadable:0,providerIdentityMatches:0
+  };
+  const actualProvider=window.__biglwaTikTokOrbit?.state;
+  const oauthName=actualProvider?.connected&&actualProvider?.uid===uid?
+    String(actualProvider.profile?.username||'').replace(/^@/,'').toLowerCase():'';
+  for(const post of posts){
+    if(auth.currentUser?.uid!==uid)throw Error('Account changed during verification.');
+    const data=post.data()||{};
+    if(data.state==='approved')state.approved++;
+    else state.drafts++;
+    const sourceUrl=String(data.sourceUrl||'');
+    if(/^https:\/\/(?:www\.)?tiktok\.com\/@[\w.-]+\/video\/\d+/.test(sourceUrl))state.sourceLinks++;
+    const urls=[data.videoUrl,data.videoStorageUrl,data.imageUrl,...(Array.isArray(data.imageUrls)?data.imageUrls:[])];
+    const stored=urls.some(v=>{try{const u=new URL(v);return u.protocol==='https:'&&
+      ['api.biglwa.com','biglwa-instagram-api.leianmulatre-284.workers.dev'].includes(u.hostname)&&
+      /^\/media\/orbit\//.test(u.pathname)}catch{return false}});
+    if(stored)state.r2UrlReferences++;else state.metadataOnly++;
+    const author=String(data.sourceUsername||'').replace(/^@/,'').toLowerCase();
+    if(oauthName&&author===oauthName)state.providerIdentityMatches++;
+  }
+  // Sample actual records in each other location. All results are owner-scoped;
+  // denied reads are recorded as unreadable rather than interpreted as missing.
+  for(const post of posts.slice(0,10)){
+    if(auth.currentUser?.uid!==uid)throw Error('Account changed during verification.');
+    const refs=postRefs(store,uid,post.id);
+    for(const [key,ref] of [['rootRecords',refs.root],['archiveRecords',refs.archive]]){
+      try{
+        const snapshot=await getDoc(ref);
+        if(snapshot.exists()&&snapshot.data()?.uid===uid)state[key]++;
+      }catch{state.unreadable++}
+    }
+  }
+  state.sampleChecked=Math.min(posts.length,10);
+  state.provenPersistent=state.sampleChecked>0&&state.rootRecords>0&&state.archiveRecords>0;
+  // A matching URL is not proof that the R2 object exists. Verify storage bytes
+  // separately with an owner-authenticated storage HEAD check before claiming backup.
+  state.provenMediaBackedUp=false;
+  return state;
+}
+
 window.__biglwaOrbitPosts = {
   importOrbitMedia,
+  storedOrbitImageUrls,
   publishOrbitPost,
   archiveOrbitPost,
   setOrbitState,
@@ -757,5 +1050,7 @@ window.__biglwaOrbitPosts = {
   addArchiveFriend,
   removeArchiveFriend,
   savePostRecords,
+  saveExternalOrbitDraft,
+  verifyTikTokMigration,
   sourceTimeMs
 };

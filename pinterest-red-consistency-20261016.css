@@ -1,0 +1,174 @@
+/* BIG LWA Pinterest color consistency, Oct 2026.
+   Source identity is RED throughout. Preserve sphere embossing, hover motion,
+   all media, and the red/yellow/green window-control dots. */
+:root {
+  --lwa-pinterest-red:#e60023;
+  --lwa-pinterest-light:#ff5165;
+  --lwa-pinterest-dark:#970019;
+}
+/* The featured Studio planet must not fall back to the old amber/orange
+   Pinterest gradient from the original Studio shell. */
+#studioApp #orbit #orbitGrid > button[data-orbit-app="pinterest"],
+#studioApp .orbit-grid button[data-orbit-app="pinterest"] {
+  --orbit-source-color:var(--lwa-pinterest-red);
+  border-color:#eab0b9!important;
+  box-shadow:3px 3px 0 var(--lwa-pinterest-red)!important;
+}
+#studioApp #orbit #orbitGrid > button[data-orbit-app="pinterest"] > .orbit-glyph,
+#studioApp .orbit-grid button[data-orbit-app="pinterest"] .orbit-glyph {
+  --planet:
+    radial-gradient(circle at 27% 22%,rgba(255,255,255,.78) 0 4%,transparent 16%),
+    radial-gradient(circle at 70% 72%,#8c0018 0 13%,transparent 24%),
+    radial-gradient(circle at 24% 66%,#ed0030 0 10%,transparent 20%),
+    linear-gradient(145deg,#ff4b60 0%,#e60023 42%,#b0001d 76%,#710013 100%)!important;
+  background:var(--planet)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  box-shadow:inset -9px -7px 12px rgba(52,0,10,.44),
+    inset 6px 5px 9px rgba(255,255,255,.27),
+    0 5px 10px rgba(110,0,20,.3)!important;
+}
+#studioApp #orbit #orbitGrid > button[data-orbit-app="pinterest"]:is(:hover,:focus-visible) {
+  box-shadow:3px 4px 0 #cb0020!important;
+}
+/* Full Orbit card, spherical marker, and saved Pinterest quick-link. */
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="pinterest"] {
+  --orbit-source-color:var(--lwa-pinterest-red);
+  box-shadow:3px 3px 0 var(--lwa-pinterest-red)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"]
+.module-orbit-row[data-orbit-row="pinterest"] .orbit-platform-badge {
+  background:radial-gradient(circle at 27% 21%,#ff8290 0%,#f62242 23%,#e60023 54%,#960018 85%)!important;
+  border-color:#d62844!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  box-shadow:inset -6px -7px 10px rgba(65,0,13,.5),
+    inset 4px 4px 8px rgba(255,255,255,.3),
+    0 3px 6px rgba(83,0,17,.24)!important;
+}
+#studioApp .orbit-quick-link.is-pinterest,
+#studioApp .orbit-quick-link[data-orbit-source="pinterest"],
+#studioApp .orbit-quick-link[data-source="pinterest"] {
+  --accent:var(--lwa-pinterest-red)!important;
+}
+/* Pinterest media uses the same red shadows across boards/feed/archive/Veve.
+   Never recolor actual uploaded Pins or common window light controls. */
+#studioApp #feedPageList > :is(.pinterest-feed-item,.biglwa-pinterest-card,.biglwa-pin-post[data-source="pinterest"]),
+#studioApp #moduleWorkspace[data-module-key="archive"] .instagram-archive-card.archive-src-pinterest,
+#pinterestBoards :is(.pinterest-pin,.pn-saved-pin,.pinterest-board) {
+  --feed-card-rim:#e60023!important;
+  --feed-card-shadow:3px 3px 0 #e60023,6px 6px 0 -2px #ff5165,
+    0 14px 26px -14px #970019!important;
+  box-shadow:var(--feed-card-shadow)!important;
+}
+#studioApp .veve-photo[data-veve-origin="pinterest"] {
+  --veve-rim:#e60023!important;
+}
+#studioApp #boards .studio-pinterest-board-preview button {
+  box-shadow:2px 2px 0 #e60023!important;
+}
+
+/* Full-size Pinterest-inspired Studio widget; not the full Boards module. */
+#studioApp #boards.biglwa-studio-boards-full-preview{
+ display:flex!important;flex-direction:column!important;min-width:0!important;
+}
+#studioApp #boards .biglwa-studio-board-legacy-thumb{display:none!important}
+#studioApp #boards .biglwa-studio-board-gallery{
+ display:grid!important;grid-template-columns:1.45fr 1fr 1fr!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ flex:1 1 auto!important;align-self:stretch!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ min-height:170px!important;height:auto!important;max-height:none!important;
+ gap:7px!important;box-sizing:border-box!important;
+ padding:0!important;margin:10px 0 14px!important;
+ overflow:hidden!important;border-radius:12px!important;background:#d7b6b1!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="1"]{
+ display:block!important;position:relative!important;min-height:215px!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="2"]{
+ grid-template-columns:1fr 1fr!important;grid-template-rows:1fr!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="3"]{
+ grid-template-columns:1.45fr 1fr!important;grid-template-rows:1fr 1fr!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="3"] .biglwa-studio-board-tile:first-child,
+#studioApp #boards .biglwa-studio-board-gallery[data-count="4"] .biglwa-studio-board-tile:first-child,
+#studioApp #boards .biglwa-studio-board-gallery[data-count="5"] .biglwa-studio-board-tile:first-child{
+ grid-row:1 / -1!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="3"] .biglwa-studio-board-tile:nth-child(2),
+#studioApp #boards .biglwa-studio-board-gallery[data-count="4"] .biglwa-studio-board-tile:nth-child(2){
+ grid-column:2 / -1!important;
+}
+#studioApp #boards .biglwa-studio-board-tile{
+ display:block!important;position:relative!important;
+ border:0!important;border-radius:8px!important;overflow:hidden!important;
+ margin:0!important;padding:0!important;min-height:0!important;min-width:0!important;
+ height:100%!important;width:100%!important;background:#e8d6c9!important;
+ box-shadow:none!important;cursor:pointer!important;
+}
+#studioApp #boards .biglwa-studio-board-tile>.biglwa-studio-board-photo{
+ position:absolute!important;inset:0!important;display:block!important;
+ width:100%!important;height:100%!important;
+ min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
+ object-fit:cover!important;object-position:center center!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="1"] .biglwa-studio-board-tile>.biglwa-studio-board-photo{
+ object-fit:contain!important;z-index:1!important;filter:drop-shadow(0 3px 10px #24121e70);
+}
+#studioApp #boards .biglwa-studio-board-tile>.biglwa-studio-board-ambient{
+ position:absolute!important;display:block!important;inset:-12px!important;
+ width:calc(100% + 24px)!important;height:calc(100% + 24px)!important;
+ max-width:none!important;max-height:none!important;
+ object-fit:cover!important;filter:blur(16px) brightness(.8)!important;
+}
+#studioApp #boards.biglwa-studio-boards-full-preview>.card-cta{
+ margin-top:auto!important;align-self:flex-start!important;flex:0 0 auto!important;
+}
+@media(max-width:640px){
+ #studioApp #boards .biglwa-studio-board-gallery{min-height:140px!important;gap:5px!important;margin:6px 0 9px!important}
+}
+
+/* Studio Boards: one portrait with exactly four companion squares. This
+   governs the thumbnail only; the full Boards page and member pins are safe. */
+#studioApp #boards.biglwa-studio-boards-full-preview #biglwaStudioBoardsPreview,
+#studioApp #boards.biglwa-studio-boards-full-preview .studio-pinterest-board-preview{display:none!important}
+#studioApp #boards.biglwa-studio-boards-full-preview .biglwa-studio-board-gallery{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.24fr) repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+  width:100%!important;min-height:0!important;
+  height:auto!important;max-height:none!important;
+  aspect-ratio:2.65 / 1.36!important;
+  flex:0 0 auto!important;
+  padding:3px 5px 5px 3px!important;margin:8px 0 12px!important;
+  overflow:visible!important;background:transparent!important;
+  border-radius:0!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="5"] .biglwa-studio-board-tile:first-child{
+  grid-column:1!important;grid-row:1 / 3!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="5"] .biglwa-studio-board-tile:nth-child(2){grid-column:2!important;grid-row:1!important}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="5"] .biglwa-studio-board-tile:nth-child(3){grid-column:3!important;grid-row:1!important}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="5"] .biglwa-studio-board-tile:nth-child(4){grid-column:2!important;grid-row:2!important}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="5"] .biglwa-studio-board-tile:nth-child(5){grid-column:3!important;grid-row:2!important}
+#studioApp #boards .biglwa-studio-board-gallery .biglwa-studio-board-tile{
+  box-sizing:border-box!important;
+  border:0!important;border-radius:4px!important;
+  overflow:hidden!important;box-shadow:none!important;
+  background:#c7b4ac!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery .biglwa-studio-board-tile:first-child{
+  box-shadow:3px 3px 0 #cf2843!important;
+}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="4"] .biglwa-studio-board-tile:last-child{grid-column:2 / -1!important}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="1"]{aspect-ratio:16/9!important}
+#studioApp #boards .biglwa-studio-board-gallery[data-count="1"] .biglwa-studio-board-tile{width:100%!important}
+@media(max-width:640px){
+ #studioApp #boards.biglwa-studio-boards-full-preview .biglwa-studio-board-gallery{
+  aspect-ratio:2.3 / 1.6!important;gap:5px!important;padding:2px 4px 4px 2px!important
+ }
+}

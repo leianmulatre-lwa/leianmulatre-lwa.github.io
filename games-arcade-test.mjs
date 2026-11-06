@@ -1,38 +1,47 @@
-// Covers the Arcade running its games in an in-page emulator screen instead of
-// sending the reader to a whole new site, and the Tools-page-style directory that
-// keeps each game as a normal link on the side.
-import { readFileSync } from "node:fs";
+// Arcade regression checks: an embedded website can refuse frames.
+// Every game opens inside the cabinet first; an original site can still forbid framing.
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
 
-const pages = readFileSync(new URL("./module-pages.js", import.meta.url), "utf8");
+const pages = readFileSync(new URL('./module-pages.js', import.meta.url), 'utf8');
+const shell = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+const start = pages.indexOf('  function renderGames(){');
+const end = pages.indexOf('  const dykQuestions=[',start);
+assert.ok(start > 0 && end > start, 'renderGames exists');
+const arcade = pages.slice(start,end);
 
-let pass = 0, fail = 0;
-function check(name, cond, extra = "") {
-  if (cond) { pass++; console.log(`  PASS  ${name}`); }
-  else { fail++; console.log(`  FAIL  ${name}  ${extra}`); }
+const cases=[
+ ['one shared cabinet screen', (arcade.match(/id="arcadeScreen"/g)||[]).length===1],
+ ['no second game cabinet', !arcade.includes('id="arcadeEmulator"')],
+ ['no ARCADE wordmark image reappears', !arcade.includes('arcade-wordmark-transparent.png')],
+ ['culture quiz available inside screen', arcade.includes('emulatorScreen.append(culturePanel)')],
+ ['game tiles attempt in-screen game', arcade.includes('data-play-external') && arcade.includes('playGame(gameLibrary[Number(target.dataset.playExternal)])')],
+ ['third-party game opens link launcher', arcade.includes('const showGameLinks=game=>')],
+ ['thumbnail and provider are displayed', arcade.includes('arcade-game-cover') && arcade.includes('providerName(uri)')],
+ ['restricted third-party games show honest in-cabinet launchers instead of blank iframes', arcade.includes('restrictsEmbed=uri=>') && arcade.includes('coolmathgames') && arcade.includes('nytimes') && arcade.includes('showGameLinks(game); // Third-party websites use the honest original-site launcher')],
+ ['restricted hosts retain a fallback menu', arcade.includes("makeAction('Local games','arcadeLocal'") && arcade.includes("if(!steam&&!blocked) actions.append") && arcade.includes("showGameLinks=game=>")],
+ ['local games open in cabinet, external ones in launcher', arcade.includes('const playGame=game=>') && arcade.includes('target.origin!==location.origin') && arcade.includes('tryEmbedded();') && arcade.includes('showGameLinks(game)')],
+ ['iframe uses original game URL with a compact mode for own puzzles', arcade.includes('frame.src=framed.href') && arcade.includes("framed.searchParams.set('embed','1')") && !arcade.includes('frame.src=proxy')],
+ ['provider restrictions are not bypassed', !arcade.includes("uri.protocol!=='https:' || restrictsEmbed(uri)") && arcade.includes('providerName(uri)')],
+ ['in-cabinet web view offers browser controls', arcade.includes("makeAction('Reload view','arcadeReload'") && arcade.includes("createOpenLink(uri,'Open original ↗'") && arcade.includes("if(target.matches('[data-arcade-reload]'))")],
+ ['full directory uses keyboard-accessible details and summary', arcade.includes('<details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle">') && arcade.includes('</div></details></section>')],
+ ['full directory begins collapsed by default', !arcade.includes('<details id="arcadeDirectoryDetails" open') && !arcade.includes('<details open id="arcadeDirectoryDetails"')],
+ ['directory game buttons route to native or provider launcher', arcade.includes('data-directory-play>') && arcade.includes('()=>playGame(gameLibrary[Number(button.closest(')],
+
+ ['arcade never opens popups', !arcade.includes('window.open(') && !arcade.includes('arcadePopup')],
+ ['external references open separately while local games stay in studio', arcade.includes("link.target=uri.origin===location.origin?'_self':'_blank'")],
+ ['links remain visible inside the cabinet', arcade.includes('arcade-game-quicklinks')],
+ ['miniclip official web destinations',arcade.includes("title:'8 Ball Pool'") && arcade.includes("title:'Agar.io'") && arcade.includes('https://8ballpool.com/') && arcade.includes('https://agar.io/')],
+ ['connected avatar pane',arcade.includes('biglwa-game-avatar-sidecar') && arcade.includes('biglwaGameAvatarLive') && arcade.includes('[data-game-avatar-edit]')],
+ ['game preview can be restored', arcade.includes("if(target.matches('[data-arcade-preview]')){if(selectedGame)showGameLinks(selectedGame)")],
+ ['quit restores animated carousel', arcade.includes('emulatorScreen.innerHTML=previewMarkup')],
+ ['media loads from same site', arcade.includes("cover.src=game.image")],
+ ['updated script version used', shell.includes('module-pages.js?v=')]
+];
+let failed=0;
+for (const [name,ok] of cases){
+ console.log((ok?'PASS':'FAIL')+' '+name);
+ if(!ok)failed++;
 }
-
-console.log("=== GAMES OPEN IN THE ARCADE, NOT A NEW SITE ===");
-check("external game tiles are play buttons, not anchors", pages.includes('data-play-external="\'+index+\'"') && pages.includes('module-game-tile module-game-action" type="button"'));
-check("the small print says play, not open", pages.includes('<small>play ▶</small>'));
-check("no tile links straight out to the game site", !pages.includes('<small>open ↗</small>'));
-check("the tile reaches its game by index", pages.includes('gameLibrary[Number(button.dataset.playExternal)]'));
-check("the status line explains games run here", pages.includes("Games run right here in the arcade window below"));
-
-console.log("\n=== THE EMULATOR SCREEN ===");
-check("a hidden player stage exists", pages.includes('id="arcadeEmulator"') && pages.includes('id="arcadeScreen"'));
-check("playing drops a same-page iframe into the screen", pages.includes("emulatorScreen.replaceChildren(frame)") && pages.includes('frame.src=game.href'));
-check("a chosen game is named on the marquee", pages.includes("emulatorTitle.textContent='now playing · '+game.title"));
-check("fullscreen is offered on the screen, not the site", pages.includes("await emulatorScreen.requestFullscreen()") && pages.includes("await document.exitFullscreen()"));
-check("closing unloads the game", pages.includes("emulatorScreen.replaceChildren();emulatorOpen.removeAttribute('href')"));
-check("the fallback reminder is honest about embedding blockers", pages.includes("won't load") || pages.includes("won\u2019t load") || /won['\u2019]t load/.test(pages) || /won[^\s]*t load/.test(pages));
-
-console.log("\n=== A DIRECTORY, STYLED LIKE THE CONVERTERS PAGE ===");
-check("every game is listed under a Tools-page-style directory", pages.includes('class="module-card module-game-directory wide"') && pages.includes('id="arcadeDirectory"') && pages.includes('all games'));
-check("the directory is built from the library", pages.includes("gameLibrary.map(seeAlso)"));
-check("external rows pair in-arcade play with a regular Open link", pages.includes("data-directory-play") && pages.includes('<a class="module-action ghost" href="\'+href+\'" target="_blank" rel="noopener noreferrer">Open ↗</a>'));
-check("culture quiz keeps its own in-arcade play from the directory", pages.includes("data-directory-culture"));
-check("the copy says Open ↗ is a normal link, like the converters page", pages.includes("A simple directory, like the converters page") && pages.includes("Play runs the game in the arcade"));
-check("the old new-tab-only wording is gone", !pages.includes("External games open in a new tab."));
-
-console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
+assert.equal(failed,0,failed+' arcade regressions');
+console.log(cases.length+' checks passed');

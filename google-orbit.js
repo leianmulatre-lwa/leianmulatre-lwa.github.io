@@ -75,6 +75,9 @@
       if (results[1].status === 'fulfilled') { state.calendar = results[1].value.items || []; }
       if (results[2].status === 'fulfilled') { state.youtube = (results[2].value.items || [])[0] || null; }
       render();
+      // YouTube subscriberCount can arrive after the initial OAuth event.
+      // Refresh audience observations only after channel stats actually load.
+      document.dispatchEvent(new CustomEvent('biglwa:google-state'));
     });
   }
 
@@ -172,9 +175,38 @@
     grid.appendChild(tile);
   }
 
+  // Planetary is an alternate entrance to the full Orbit layout, not a
+  // disclosure control that removes planets and changes the widget's geometry.
+  function ensurePlanetary(){
+    var grid=one('#orbitGrid');
+    if(!grid)return;
+    var card=grid.closest('#orbit');if(!card)return;
+    var obsolete=one('#orbitPlanetaryShelf',card);
+    if(obsolete){
+      // Earlier versions moved real planets under an invisible shelf.
+      // Return them to their home before dropping the old layout.
+      all('[data-orbit-app]',obsolete).forEach(function(tile){grid.appendChild(tile)});
+      obsolete.remove();
+    }
+    all('[data-orbit-oauth-pending]',grid).forEach(function(tile){tile.remove()});
+    var pill=one('#orbitPlanetaryToggle',card);
+    if(!pill){
+      pill=document.createElement('button');
+      pill.type='button';pill.id='orbitPlanetaryToggle';
+      grid.after(pill);
+    }
+    pill.textContent='View planetary ↗';
+    pill.removeAttribute('aria-expanded');
+    pill.removeAttribute('aria-controls');
+    pill.setAttribute('aria-label','View all Orbit planets and connected accounts');
+    pill.title='Open the full Orbit page';
+  }
+
   function render() {
     try {
-      ensureFacebook();
+      // The Studio preview has a fixed, owner-selected set of eight planets.
+      // Do not automatically append the old Facebook tile from the Google helper.
+      ensurePlanetary();
       ['youtube', 'drive', 'calendar'].forEach(function (kind) {
         all('[data-orbit-app="' + kind + '"]').forEach(function (tile) {
           tile.setAttribute('aria-label', (state.connected ? 'View connected ' : 'Connect ') + kind);
@@ -184,6 +216,9 @@
         });
         all('[data-orbit-path="' + kind + '"]').forEach(function (input) {
           var row = input.closest('.module-orbit-row');
+          // The full Orbit OAuth card already has its provider Connect button.
+          // A saved public YouTube link must not add a duplicate Google button.
+          if(row && row.classList.contains('is-oauth'))return;
           var actions = row ? one('.module-actions', row) : null;
           if (!actions) { return; }
           var button = one('[data-google-orbit-connect="' + kind + '"]', actions);
@@ -209,6 +244,13 @@
   document.addEventListener('click', function (event) {
     var target = event.target && event.target.closest ? event.target : null;
     if (!target) { return; }
+    var planetaryToggle=target.closest('#orbitPlanetaryToggle');
+    if(planetaryToggle){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('orbit');
+      else window.location.assign('/studio/orbit');
+      return;
+    }
     var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
     if (tile) {
       event.preventDefault();

@@ -8,7 +8,7 @@
 
   function readWidgetShortcuts(){
     try{
-      const saved=JSON.parse(localStorage.getItem(DOCKED_WIDGET_KEY)||'null');
+      const saved=scopedLayout()?.docked??JSON.parse(localStorage.getItem(DOCKED_WIDGET_KEY)||'null');
       if(Array.isArray(saved))return [...new Set(saved.map(String).filter(Boolean))];
       return [];
     }catch{return[]}
@@ -19,44 +19,208 @@
     syncLayoutToAccount();
     return next;
   }
-  function syncLayoutToAccount(){
-    if(window.__biglwaAccountHydrated!==true)return;
-    try{
-      const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
-      const docked=readJson(DOCKED_WIDGET_KEY);
-      const order=readJson('biglwaWidgetOrder');
-      const shortcuts=readJson(NAV_SHORTCUT_KEY);
-      window.BigLWAUserDirectory?.saveCustomizations?.({layout:{
-        docked:Array.isArray(docked)?docked:[],
-        order:order&&typeof order==='object'?order:{},
-        navigation:Array.isArray(shortcuts)?shortcuts:[]
-      }});
-    }catch{}
+  // Layout is account-scoped. Browser boot may restore it, but ONLY an
+  // intentional user interaction is allowed to write back to the account.
+  const LAYOUT_LOCAL_PREFIX='biglwaStudioLayoutV4:';
+  const IMPORTANT_FIRST=['politc','politic','tools','calendar','map','projects','notes','diary','stream','feed','archive','boards','library','games','music','aura'];
+  const layoutUid=()=>String(window.__biglwaIdentity?.uid||'guest');
+  const readJson=(key,fallback=null)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
+  const scopedLayoutKey=()=>LAYOUT_LOCAL_PREFIX+layoutUid();
+  const scopedLayout=()=>readJson(scopedLayoutKey(),null);
+  // The Skeleton Key light is derived from the RED-D0CKED widget state.
+  // Shortcut ordering and navigation never control that indicator.
+  // A shared browser can host multiple accounts. No unscoped profile is ever trusted.
+  const ownUid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
+  const ownProfileKey=()=>ownUid()?'biglwaOwnProfileV1:'+ownUid():'';
+  const readOwnProfile=()=>ownProfileKey()?readJson(ownProfileKey(),{}):{};
+  const writeOwnProfile=data=>{const key=ownProfileKey();if(!key)return false;try{localStorage.setItem(key,JSON.stringify(data));return true}catch{return false}};
+  let cloudLayoutTimer=0,pendingLayout=null;
+  async function flushLayout(){
+    if(!pendingLayout||window.__biglwaAccountHydrated!==true||window.__biglwaPublicStorageView)return;
+    const item=pendingLayout,snapshot=item.snapshot;if(item.uid!==layoutUid()){pendingLayout=null;return}
+    window.dispatchEvent(new CustomEvent('biglwa:save-status',{detail:{source:'layout',state:'saving'}}));
+    const saved=await window.BigLWAUserDirectory?.saveCustomizations?.({layout:snapshot});
+    window.dispatchEvent(new CustomEvent('biglwa:save-status',{detail:{source:'layout',state:saved?'saved':'retry'}}));
+    if(saved&&pendingLayout===item)pendingLayout=null;
+    else if(!saved)console.warn('Studio layout remains cached; cloud sync will retry.');
   }
+  window.addEventListener('online',flushLayout);
+  setInterval(flushLayout,15000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushLayout()});
+  window.addEventListener('biglwa:customization-remote',()=>setTimeout(flushLayout,50));
+  function defaultPriority(key){
+    const i=IMPORTANT_FIRST.indexOf(String(key||'').toLowerCase());
+    return i<0?IMPORTANT_FIRST.length:i;
+  }
+  function sortPreferred(items,identify){
+    return items.map((item,i)=>({item,i,key:identify(item)}))
+      .sort((a,b)=>defaultPriority(a.key)-defaultPriority(b.key)||a.i-b.i)
+      .map(x=>x.item);
+  }
+  function studioParents(app){
+    // Several old layouts have an unnamed masonry parent, so their order was
+    // never persisted. Give each movable region one permanent, stable key.
+    const masonry=$('.masonry',app);
+    if(masonry&&!masonry.id)masonry.id='biglwaStudioMasonry';
+    const rail=$('.hero-widget-rail',app);
+    if(rail&&!rail.id)rail.id='heroWidgetRail';
+    return [rail,masonry].filter(Boolean);
+  }
+  function realDomOrder(app){
+    const order={};
+    for(const parent of studioParents(app)){
+      const children=[...parent.children].filter(el=>el.dataset.widgetId);
+      if(children.length)order[parent.id]=children.map(el=>el.dataset.widgetId);
+    }
+    return order;
+  }
+  function applyStudioOrder(app,order){
+    if(!app)return;
+    for(const parent of studioParents(app)){
+      const saved=Array.isArray(order?.[parent.id])?order[parent.id]:null;
+      const elements=[...parent.children].filter(el=>el.dataset.widgetId);
+      if(!elements.length)continue;
+      const rank=new Map((saved||[]).map((id,i)=>[String(id),i]));
+      const ordered=saved
+        ? elements.map((el,i)=>({el,i})).sort((a,b)=>{
+            const ra=rank.has(a.el.dataset.widgetId)?rank.get(a.el.dataset.widgetId):10000+defaultPriority(a.el.dataset.widgetRoute||a.el.dataset.widgetId);
+            const rb=rank.has(b.el.dataset.widgetId)?rank.get(b.el.dataset.widgetId):10000+defaultPriority(b.el.dataset.widgetRoute||b.el.dataset.widgetId);
+            return ra-rb||a.i-b.i;
+          }).map(x=>x.el)
+        : sortPreferred(elements,el=>el.dataset.widgetRoute||el.dataset.widgetId);
+      // Free-position layouts use saved slots as their visual order. Moving
+      // already-mounted widgets here restarts iframes, map previews and players.
+      if(parent.classList.contains('masonry')&&elements.some(el=>el.dataset.biglwaGridPosition))continue;
+      // Preserve DOM when the saved order already matches the current order.
+      if(ordered.every((el,index)=>el===elements[index]))continue;
+      ordered.forEach((el,index)=>{
+        const at=[...parent.children].filter(node=>node.dataset.widgetId)[index];
+        if(at!==el)parent.insertBefore(el,at||null);
+      });
+    }
+  }
+  function restoreLocalStudioOrder(app){
+    if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
+    if(!app)return;
+    const uid=layoutUid();
+    if(uid==='guest')return;
+    const saved=scopedLayout();
+    const legacyOwner='biglwaLegacyLayoutOwnerV4';
+    let owner='';try{owner=localStorage.getItem(legacyOwner)||''}catch{}
+    let legacy={};
+    // The old unscoped key may belong to a different login on a shared device.
+    // Migrate it only to the original account (or the first known account).
+    if(owner&&owner===uid){
+      legacy=readJson('biglwaWidgetOrder',{});
+    }
+    const order=saved?.order&&typeof saved.order==='object'?saved.order:legacy;
+    const signature=studioParents(app).map(parent=>parent.id+':'+[...parent.children]
+      .map(x=>x.dataset.widgetId||'').filter(Boolean).sort().join('|')).join(';');
+    // Late-loaded cards may appear after initial Studio creation. Restore only
+    // when the account or membership changed, never on a timer alone.
+    if(app.dataset.biglwaLayoutAppliedUid!==uid||app.dataset.biglwaLayoutMembership!==signature){
+      applyStudioOrder(app,order&&Object.keys(order).length?order:null);
+      // Restore saved free-grid coordinates, if the member has placed cards.
+      const slots=saved?.positions&&typeof saved.positions==='object'?saved.positions:{};
+      $$('.masonry [data-widget-id]',app).forEach(el=>{
+        const pos=String(slots[el.dataset.widgetId]||'');
+        if(/^\d+:\d+$/.test(pos)){
+          const [row,col]=pos.split(':').map(Number);
+          if(row>=1&&row<=60&&col>=1&&col<=6){
+            el.dataset.biglwaGridPosition=pos;
+            el.style.gridRowStart=String(row);el.style.gridColumnStart=String(col);
+            return;
+          }
+        }
+        delete el.dataset.biglwaGridPosition;
+        el.style.removeProperty('grid-row-start');el.style.removeProperty('grid-column-start');
+      });
+      app.dataset.biglwaLayoutAppliedUid=uid;
+      app.dataset.biglwaLayoutMembership=signature;
+    }
+  }
+  function syncLayoutToAccount(){
+    if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
+    // Call only after manual reorder, minimize/restore or shortcut modification.
+    const app=$('#studioApp');
+    if(!app)return;
+    const now=Date.now();
+    const snapshot={
+      order:realDomOrder(app),
+      // Actual grid slots allow a card to occupy an empty column or new row.
+      positions:Object.fromEntries($$('[data-widget-id][data-biglwa-grid-position]',app)
+        .map(el=>[el.dataset.widgetId,el.dataset.biglwaGridPosition])
+        .filter(([id,pos])=>id&&/^\d+:\d+$/.test(pos))),
+      docked:readJson(DOCKED_WIDGET_KEY,[]),
+      // Yellow-minimized shortcuts stay in their original row; red-docked
+      // widgets retain their independent restore tiles after sign-in.
+      redDocked:[...app.querySelectorAll('[data-widget-id].widget-is-minimized.widget-is-docked')].map(el=>el.dataset.widgetId).filter(Boolean),
+      // Legacy header-only remains available to lower/masonry widgets.
+      // The four upper widgets use a separately saved long/square geometry.
+      collapsed:[...app.querySelectorAll('[data-widget-id].studio-header-only')]
+        .filter(el=>!['music','aura','avatar','guest-check'].includes(el.dataset.widgetId))
+        .map(el=>el.dataset.widgetId).filter(Boolean),
+      upperVariants:Object.fromEntries([
+        ['music','.music-card'],['aura','.aura-card'],
+        ['avatar','#studioAvatarCard'],['guest-check','.guest-check-card']
+      ].map(([id,selector])=>{
+        const widget=app.querySelector(selector);
+        const value=widget?.dataset.upperWidgetBeforeRemoval||
+          widget?.dataset.upperWidgetView|| (id==='music'?'long':'square');
+        return [id,value==='long'?'long':'square'];
+      })),
+      navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
+      disconnectedNavigation:[], // retired shortcut disconnect marker
+      updatedAtMs:now
+    };
+    try{
+      localStorage.setItem('biglwaWidgetOrder',JSON.stringify(snapshot.order));
+      localStorage.setItem(scopedLayoutKey(),JSON.stringify(snapshot));
+    }catch{}
+    pendingLayout={uid:layoutUid(),snapshot};
+    clearTimeout(cloudLayoutTimer);
+    cloudLayoutTimer=setTimeout(async()=>{
+      if(window.__biglwaAccountHydrated!==true||!window.BigLWAUserDirectory?.saveCustomizations)return;
+      const latest=scopedLayout();
+      if(!latest||latest.updatedAtMs!==snapshot.updatedAtMs)return;
+      await flushLayout();
+    },650);
+  }
+  window.BigLWAStudioLayout={
+    snapshot:()=>scopedLayout(),
+    save:()=>syncLayoutToAccount(),
+    applyPublic:layout=>{applyRemoteLayout(layout||{});applyStudioOrder($('#studioApp'),layout?.order||{});},
+    apply:()=>{const app=$('#studioApp');if(app)applyStudioOrder(app,scopedLayout()?.order)}
+  };
 
   function readNavigationShortcuts(fallback=[]){
     try{
-      const saved=JSON.parse(localStorage.getItem(NAV_SHORTCUT_KEY)||'null');
+      const saved=scopedLayout()?.navigation??JSON.parse(localStorage.getItem(NAV_SHORTCUT_KEY)||'null');
       if(Array.isArray(saved))return [...new Set(saved.map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
     }catch{}
     return [...new Set(fallback.map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
   }
-  function writeNavigationShortcuts(items){
+  function writeNavigationShortcuts(items,persist=true){
     const next=[...new Set((items||[]).map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
     try{localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(next))}catch{}
-    syncLayoutToAccount();
+    if(persist)syncLayoutToAccount();
     return next;
   }
 
   function ensureStyles(){
     let style=$('#biglwa-ui-coherence-style');
+    if(style)return;
     if(!style){style=document.createElement('style');style.id='biglwa-ui-coherence-style';document.head.appendChild(style)}
     style.textContent=`
       #studioApp .widget-drag-handle{position:absolute!important;top:13px!important;left:50%!important;z-index:20!important;display:grid!important;place-items:center!important;width:23px!important;height:18px!important;margin:0!important;padding:0!important;border:0!important;border-radius:6px!important;background:rgba(55,47,43,.10)!important;color:var(--widget-muted,#746e68)!important;cursor:grab!important;touch-action:none!important;line-height:1!important;transform:translateX(-50%)!important}
       #studioApp .widget-drag-handle:active{cursor:grabbing!important}
       #studioApp .widget-drag-handle svg{width:12px!important;height:12px!important;display:block!important}
+      #studioApp .biglwa-order-sr-status{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}
+      #studioApp [data-studio-drag-handle]:focus-visible{outline:3px solid #427d5f!important;outline-offset:3px!important}
+      @media(prefers-reduced-motion:reduce){#studioApp .biglwa-drop-slot{transition:none!important;transform:none!important}}
+
       #studioApp .widget-drag-handle:focus-visible{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:2px}
-      #studioApp .topbar{grid-template-columns:minmax(150px,180px) minmax(360px,1fr) minmax(250px,350px)!important;gap:14px!important;align-items:center!important}
+      #studioApp .topbar{grid-template-columns:76px minmax(0,1fr) minmax(250px,350px)!important;gap:14px!important;align-items:center!important}
       #studioApp .topbar::before{content:none!important;display:none!important}
       #studioApp .studio-brand-row{display:flex!important;grid-column:1!important;align-items:center!important;justify-content:flex-start!important;min-width:0!important;width:100%!important;height:100%!important}
       #studioApp .studio-brand-row>a.brand.biglwa-block-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:124px!important;height:70px!important;min-width:124px!important;margin-left:-22px!important;font-size:0!important;color:#171514!important;text-shadow:none!important;overflow:visible!important;text-decoration:none!important}
@@ -184,11 +348,22 @@
       #studioApp .sidebar-shortcut-drag svg{display:block;width:10px;height:14px}
       #studioApp .sidebar-shortcut-drag:hover,#studioApp .sidebar-shortcut-action:hover{background:rgba(255,255,255,.58);color:inherit}
       #studioApp .sidebar-navigation-row.is-available::after,#studioApp .sidebar-widget-restore-row.is-minimized::after{content:"";position:absolute;right:20px;top:4px;width:6px;height:6px;border-radius:50%;pointer-events:none}
-      #studioApp .sidebar-navigation-row.is-available::after{border:1px solid #d85f6d;background:rgba(216,95,109,.14);box-shadow:0 0 0 2px rgba(216,95,109,.08)}
+      #studioApp .sidebar-navigation-row.is-shortcut::after{content:"";position:absolute;top:2px;right:2px;width:8px;height:8px;border:1.5px solid rgb(var(--aura-rgb,216,95,109));border-radius:50%;box-sizing:border-box;background:transparent;pointer-events:none}
+      #studioApp .sidebar-navigation-row.is-shortcut.is-closed::after{background:rgb(var(--aura-rgb,216,95,109))}
+      body.sidebar-collapsed #studioApp .sidebar-navigation-row.is-shortcut::after{top:0;right:0}
+      #studioApp .sidebar-navigation-row.is-available::after{border:1px solid rgba(var(--aura-rgb,216,95,109),.75);background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:none}
+      /* Lower-row light = widget removed via RED close, not shortcut state. */
+      #studioApp #studioSidebarShortcuts .sidebar-navigation-row::after{content:none!important;display:none!important}
+      #studioApp #studioSidebarRest .sidebar-navigation-row.is-available.is-widget-removed::after{
+        content:""!important;display:block!important;
+        background:rgb(var(--aura-rgb,216,95,109))!important;
+        border:1px solid rgb(var(--aura-rgb,216,95,109))!important;
+        box-shadow:none!important
+      }
       #studioApp .sidebar-widget-restore-row.is-minimized::after{background:#d85f6d;box-shadow:0 0 0 2px rgba(216,95,109,.14)}
       #studioApp .sidebar-primary-widgets .sidebar-widget-restore-row.is-minimized::after{background:#5b9e6f;box-shadow:0 0 0 2px rgba(91,158,111,.14)}
-      #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.12);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.22)}
-      #studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{content:"";position:absolute;right:7px;top:50%;width:9px;height:9px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 42% 40%,rgba(255,255,255,.94) 0 11%,rgb(var(--aura-rgb,216,95,109)) 36%,rgba(var(--aura-rgb,216,95,109),.18) 72%,transparent 74%);box-shadow:0 0 9px rgba(var(--aura-rgb,216,95,109),.72);animation:biglwa-sidebar-aura 3.8s ease-in-out infinite}
+      #studioApp .sidebar-route-control.is-current,#studioApp .sidebar-shortcut-open.is-current,#studioApp .sidebar-navigation-open.is-current{background:rgba(var(--aura-rgb,216,95,109),.22);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.62)}
+      #studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{content:none!important;display:none!important}
       #studioApp .sidebar-shortcuts .minimized-label{display:none!important}
       #studioApp .minimized-label{display:none!important}
       #studioApp #minimizedWidgets{display:block!important;margin:0;padding:0;border:0;background:none}
@@ -223,10 +398,10 @@
       body.sidebar-collapsed #studioApp .sidebar-shortcut-save::before{content:"✓";font-size:14px}
       body.sidebar-collapsed #studioApp .sidebar-shortcut-row,body.sidebar-collapsed #studioApp .sidebar-navigation-row{grid-template-columns:0 36px 0;gap:0}
       body.sidebar-collapsed #studioApp .sidebar-shortcut-drag,body.sidebar-collapsed #studioApp .sidebar-shortcut-action{width:0;overflow:hidden;opacity:0;pointer-events:none}
-      body.sidebar-collapsed #studioApp .sidebar-route-control.is-current::after,body.sidebar-collapsed #studioApp .sidebar-shortcut-open.is-current::after,body.sidebar-collapsed #studioApp .sidebar-navigation-open.is-current::after{right:2px;top:5px;width:7px;height:7px}
+      body.sidebar-collapsed #studioApp .sidebar-route-control.is-current::after,body.sidebar-collapsed #studioApp .sidebar-shortcut-open.is-current::after,body.sidebar-collapsed #studioApp .sidebar-navigation-open.is-current::after{content:none!important;display:none!important}
       @media(prefers-reduced-motion:reduce){#studioApp .sidebar-route-control.is-current::after,#studioApp .sidebar-shortcut-open.is-current::after,#studioApp .sidebar-navigation-open.is-current::after{animation:none}}
-      @media(max-width:980px){#studioApp .topbar{grid-template-columns:126px minmax(220px,1fr) minmax(210px,280px)!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:105px!important;height:59px!important;min-width:105px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{width:98px!important;height:56px!important;flex-basis:98px!important}}
-      @media(max-width:720px){#studioApp .topbar{grid-template-columns:94px minmax(0,1fr) auto!important;gap:8px!important;padding-left:12px!important;padding-right:12px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:78px!important;height:44px!important;min-width:78px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{width:73px!important;height:42px!important;flex-basis:73px!important}}
+      @media(max-width:980px){#studioApp .topbar{grid-template-columns:70px minmax(0,1fr) minmax(210px,280px)!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:105px!important;height:59px!important;min-width:105px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{width:98px!important;height:56px!important;flex-basis:98px!important}}
+      @media(max-width:720px){#studioApp .topbar{grid-template-columns:56px minmax(0,1fr) auto!important;gap:8px!important;padding-left:12px!important;padding-right:12px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand{width:78px!important;height:44px!important;min-width:78px!important}#studioApp .studio-brand-row>a.brand.biglwa-block-brand .biglwa-topbar-crest{width:73px!important;height:42px!important;flex-basis:73px!important}}
       /* 2026-09-10 studio hero: clean two-column auto-flow grid so drag-reorder actually moves cards */
       #studioApp .hero{display:grid!important;grid-template-columns:minmax(420px,1fr) 300px!important;grid-auto-rows:auto!important;grid-auto-flow:dense!important;column-gap:18px!important;row-gap:18px!important;align-items:start!important;align-content:start!important;padding:52px 3.5% 40px 4.8%!important;min-height:0!important;height:auto!important;max-height:none!important}
       #studioApp .hero .profile-card{position:relative!important;grid-column:auto!important;grid-row:span 2!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:266px!important;max-height:none!important;margin:0!important;align-self:stretch!important}
@@ -282,7 +457,7 @@
       @media(max-width:900px){#studioApp .profile-card.profile-is-editing{min-height:460px!important}#studioApp .profile-card #wallpaperPanel{max-height:430px!important;padding-left:16px!important;padding-right:16px!important}#studioApp .profile-card #wallpaperPanel .panel-title{margin-left:-16px!important;margin-right:-16px!important;padding-left:16px!important;padding-right:16px!important}#studioApp .profile-editor-actions{margin-left:-16px!important;margin-right:-16px!important;padding-left:16px!important;padding-right:16px!important}}
       @media(max-width:620px){#studioApp .profile-card.profile-is-editing{grid-template-columns:1fr!important;min-height:610px!important}#studioApp .profile-card.profile-is-editing .profile-identity-rail{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:12px 14px!important;border-right:0!important;border-bottom:1px solid rgba(62,50,45,.13)!important}#studioApp .profile-card.profile-is-editing .profile-avatar{width:58px!important;height:58px!important}#studioApp .profile-card.profile-is-editing .profile-rail-location{text-align:center!important}#studioApp .profile-card #wallpaperPanel{grid-column:1!important;grid-row:2!important;max-height:510px!important}.profile-editor-grid{grid-template-columns:1fr!important}.profile-editor-grid label.full{grid-column:1!important}}
       /* Restored bio banner: wide profile identity surface, separate from editor mode. */
-      #studioApp:not(.profile-editor-wallpaper) .hero{grid-template-columns:1fr!important;grid-template-rows:auto auto!important;gap:16px!important}
+      #studioApp .hero{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;gap:16px!important}
       #studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){position:relative!important;grid-column:1!important;grid-row:1!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;height:348px!important;min-height:348px!important;max-height:348px!important;display:grid!important;grid-template-columns:174px minmax(0,1fr)!important;gap:22px!important;padding:14px!important;box-sizing:border-box!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-identity-rail{grid-column:1!important;grid-row:1!important;align-self:stretch!important;justify-content:flex-start!important;padding:0!important;border-right:0!important;background:transparent!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{width:120px!important;height:120px!important;margin:0!important;border-radius:18px!important;font-size:54px!important}
@@ -294,8 +469,8 @@
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .meta-row{margin:0 0 13px!important;font-size:12px!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .stats{grid-template-columns:repeat(4,minmax(0,1fr))!important;margin:0!important;padding-top:11px!important}
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:188px!important;right:30px!important;bottom:18px!important}
-      #studioApp:not(.profile-editor-wallpaper) .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
-      @media(max-width:900px){#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:auto!important;min-height:340px!important;max-height:none!important;grid-template-columns:86px minmax(0,1fr)!important;gap:18px!important;padding:22px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{width:86px!important;height:86px!important;font-size:40px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy{padding:10px 0 58px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:22px!important;right:22px!important}#studioApp:not(.profile-editor-wallpaper) .hero-widget-rail{grid-template-columns:1fr!important}}
+      #studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
+      @media(max-width:900px){#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:auto!important;min-height:340px!important;max-height:none!important;grid-template-columns:86px minmax(0,1fr)!important;gap:18px!important;padding:22px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{width:86px!important;height:86px!important;font-size:40px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy{padding:10px 0 58px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:22px!important;right:22px!important}#studioApp .hero-widget-rail{grid-template-columns:1fr!important}}
       /* Station artwork turns the Stream preview into a real broadcast booth. */
       #studioApp #stream .stream-screen{position:relative;isolation:isolate;min-height:238px;padding:18px;overflow:hidden;border:5px solid #181313;border-radius:14px;background:#120d10;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 8px 0 #2a1918}
       #studioApp #stream .stream-station-photo{position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.94) contrast(1.08) brightness(.72)}
@@ -304,12 +479,53 @@
       #studioApp #stream .stream-screen>.on-air,#studioApp #stream .stream-screen>strong,#studioApp #stream .stream-screen>span,#studioApp #stream .stream-screen>.stream-wave{position:relative;z-index:2}
       #studioApp #stream .stream-screen>strong{display:block;margin-top:102px;font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-size:24px;line-height:1;color:#fff;text-shadow:0 2px 13px rgba(0,0,0,.9)}
       #studioApp #stream .stream-screen>span{display:block;margin-top:7px;color:rgba(255,255,255,.82);font:700 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-      #studioApp #stream .stream-wave{position:absolute;left:18px;right:18px;bottom:54px;height:28px;opacity:.74}
-      #studioApp #stream .on-air{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(16,12,15,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+      #studioApp #stream .stream-wave{position:absolute;left:18px;right:18px;bottom:12px;height:18px;opacity:.67}
+      /* Keep temporary Stream/Sir Clips labels separate from the soundwave.
+         Moving the wave to a reserved lower band preserves legibility. */
+      #studioApp #stream .stream-screen{padding-bottom:27px!important}
+      #studioApp #stream .stream-screen>strong{margin-top:109px!important;position:relative!important;z-index:2!important}
+      #studioApp #stream .stream-screen>span{position:relative!important;z-index:2!important;max-width:100%!important;overflow-wrap:anywhere!important}
+      #studioApp #stream .stream-screen>.stream-wave{
+        position:absolute!important;left:20px!important;right:20px!important;top:76px!important;bottom:auto!important;
+        z-index:2!important;height:16px!important;max-height:16px!important;opacity:.54!important;pointer-events:none!important;
+      }
+      /* Single ON AIR footer: suppress the retired overlay inside the screen. */
+      #studioApp #stream .stream-screen>.on-air{display:none!important}
+
+      /* Match Room's under-preview activity footer. This is NOT a live viewer count. */
+      #studioApp #stream .stream-watching-status{
+        display:flex!important;align-items:center;gap:7px;position:relative!important;
+        margin:10px 2px 1px!important;padding:5px 0 0!important;width:auto!important;
+        border:0!important;background:none!important;box-shadow:none!important;
+        color:var(--widget-muted,#766e68)!important;
+        font:650 10px/1.4 Inter,ui-sans-serif,system-ui,sans-serif!important;
+        letter-spacing:.01em!important;text-transform:none!important;text-shadow:none!important;
+      }
+      #studioApp #stream .stream-watching-status::before{
+        content:"";display:block;flex:0 0 7px;width:7px;height:7px;
+        border-radius:50%;background:#9d9692;box-shadow:0 0 0 1px rgba(75,62,58,.15);
+      }
+      #studioApp #stream .stream-watching-status{font-weight:900!important;letter-spacing:.14em!important;color:#9d3548!important}
+      #studioApp #stream .stream-watching-status::before{background:#d74850;box-shadow:0 0 0 3px rgba(215,72,80,.14)}
+      /* Room has a green availability light beside ONLINE (not a participant count). */
+      #studioApp :is(#rooms,#room) .room-footer .room-presence-status{
+        display:inline-flex!important;align-items:center!important;gap:7px!important;
+        font:800 10px/1.35 Inter,ui-sans-serif,system-ui,sans-serif!important;
+        letter-spacing:.08em!important;text-transform:uppercase!important;
+        color:#2f7650!important;
+      }
+      #studioApp :is(#rooms,#room) .room-footer .room-presence-status::before{
+        content:"";display:inline-block;flex:0 0 8px;width:8px;height:8px;
+        border-radius:50%;background:#3da568;box-shadow:0 0 0 3px rgba(61,165,104,.16);
+      }
+      body.night-mode #studioApp :is(#rooms,#room) .room-footer .room-presence-status{
+        color:#9ed6ac!important;
+      }
+
       /* Qwiky Note keeps the stitched BIGLWA headers, but writes on a tactile sticky note. */
       #studioApp #notes .card-head h2{font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;text-transform:lowercase!important}
-      #studioApp #notes .note-paper{position:relative;isolation:isolate;min-height:210px;padding:54px 28px 28px;border:0!important;border-radius:3px 3px 17px 3px!important;background:repeating-linear-gradient(to bottom,transparent 0,transparent 28px,rgba(119,92,38,.15) 29px),linear-gradient(145deg,#fff6a5,#f1d866)!important;color:#3c3021!important;font-family:"Comic Sans MS","Bradley Hand","Segoe Print",cursive!important;font-size:20px!important;line-height:1.45!important;text-align:left!important;transform:rotate(-.55deg);box-shadow:0 12px 22px rgba(69,49,23,.18),inset 0 0 28px rgba(255,255,255,.28)!important;overflow:hidden}
-      #studioApp #notes .note-paper::before{content:"QWIKY NOTE";position:absolute;left:20px;top:16px;padding:5px 8px;border:1px solid rgba(75,55,25,.18);background:rgba(255,248,196,.76);color:#67512f;font:900 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.15em;transform:rotate(-1.5deg)}
+      #studioApp #notes .note-paper{position:relative;isolation:isolate;min-height:210px;padding:54px 28px 28px;border:0!important;border-radius:3px 3px 17px 3px!important;background:repeating-linear-gradient(to bottom,transparent 0,transparent 28px,rgba(119,92,38,.15) 29px),linear-gradient(145deg,#fff6a5,#f1d866)!important;color:#3c3021!important;font-family:"LWA Cuteness Notes","Comic Sans MS","Bradley Hand",cursive!important;font-weight:400!important;font-size:clamp(20px,2.2vw,25px)!important;line-height:1.45!important;text-align:left!important;transform:rotate(-.55deg);box-shadow:0 12px 22px rgba(69,49,23,.18),inset 0 0 28px rgba(255,255,255,.28)!important;overflow:hidden}
+      #studioApp #notes .note-paper::before{content:"SQWIBZ";position:absolute;left:20px;top:16px;padding:5px 8px;border:1px solid rgba(75,55,25,.18);background:rgba(255,248,196,.76);color:#67512f;font:900 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.15em;transform:rotate(-1.5deg)}
       #studioApp #notes .note-paper::after{content:"";position:absolute;right:0;bottom:0;width:34px;height:34px;background:linear-gradient(135deg,rgba(172,139,52,.28) 0 49%,#fff5a0 50%);filter:drop-shadow(-2px -2px 2px rgba(84,64,29,.11))}
       #studioApp #notes .note-paper span{position:absolute;right:22px;bottom:15px;margin:0!important;color:#765f35;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
       body.night-mode #studioApp #notes .note-paper{filter:saturate(.84) brightness(.82)}
@@ -325,7 +541,8 @@
     const a=document.createElement('a');
     a.className='brand biglwa-block-brand';
     a.href='/studio';
-    a.setAttribute('aria-label','BIGLWA Studio');
+    a.setAttribute('aria-label','Studio home');
+    a.title='Studio home';
     const mark=document.createElement('span');
     mark.className='biglwa-stitched-crest biglwa-topbar-crest';
     mark.setAttribute('aria-hidden','true');
@@ -396,13 +613,30 @@
   }
 
   const navigationCatalog=new Map();
+  // The masthead reads the same symbol record as shortcuts and Skeleton Key.
+  window.BigLWAWidgetSymbols=Object.freeze({
+    markup(key){
+      const known=navigationCatalog.get(key)?.symbolHTML;if(known)return known;
+      const app=$('#studioApp');if(!app)return '';
+      // Veve has a dedicated launcher; Trophies is intentionally not in the
+      // shortcut catalog. Read their existing artwork, not a fallback glyph.
+      if(key==='veve')return $('.studio-veve-mark,.skeleton-veve-mark',app)?.innerHTML||'';
+      const safe=String(key||'').replace(/[^a-z0-9_-]/g,'');
+      const widget=$('[data-widget-route="'+safe+'"]',app)||$('#'+safe,app);
+      return widget?widgetIconMarkup(widget):'';
+    },
+    keys(){return [...new Set([...navigationCatalog.keys(),...$$('[data-widget-route]',$('#studioApp')||document).map(n=>n.dataset.widgetRoute),'veve'])]}
+
+  });
   let initialNavigationShortcuts=null;
   let draggedNavigationKey='';
   function navigationKey(control){
     return String(control?.dataset?.sidebarRoute||control?.dataset?.policyRoute||control?.dataset?.open||(control?.getAttribute?.('href')||'').replace(/^.*#/,'')||'').trim().toLowerCase();
   }
   function navigationLabel(control,key){
-    if(key==='notes')return 'Qwiky Note';
+    if(key==='diary')return 'Journal';
+    if(key==='notes')return 'Sqwidz';
+    if(key==='feed')return 'myfeed';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
   function navigationSymbolMarkup(control,label){
@@ -410,12 +644,12 @@
     const clone=control.cloneNode(true);
     clone.querySelectorAll(':scope > b').forEach(node=>node.remove());
     [...clone.children].forEach(node=>{if(node.tagName==='SPAN'&&node.textContent.trim()===label)node.remove()});
-    const wrapper=clone.querySelector(':scope > .sidebar-route-icon');
-    if(wrapper&&clone.children.length===1&&!clone.textContent.trim().replace(wrapper.textContent.trim(),''))return wrapper.innerHTML||wrapper.textContent||'•';
+    const wrapper=clone.querySelector(':scope > .sidebar-route-icon,:scope > .hero-shortcut-icon');
+    if(wrapper)return wrapper.innerHTML||wrapper.textContent||'•';
     return clone.innerHTML.trim()||clone.textContent.trim()||'•';
   }
   function rememberNavigation(control,order){
-    const key=navigationKey(control);if(!key||key==='create')return '';
+    const key=navigationKey(control);if(!key||key==='create'||key==='rights')return '';
     const label=navigationLabel(control,key),existing=navigationCatalog.get(key),fromGenerated=!!control.closest?.('#studioSidebarShortcuts,#studioSidebarRest');
     const symbolHTML=navigationSymbolMarkup(control,label);
     navigationCatalog.set(key,{key,label,href:control.getAttribute?.('href')||existing?.href||'#'+key,policyRoute:control.dataset?.policyRoute||existing?.policyRoute||'',symbolHTML:(!fromGenerated&&symbolHTML)||existing?.symbolHTML||symbolHTML||'•',order:existing?.order??order});
@@ -436,30 +670,100 @@
     const link=existing||document.createElement('a');link.href=entry.href&&entry.href.startsWith('/')?entry.href:'#'+entry.key;link.dataset.shortcutRoute=entry.key;
     if(entry.policyRoute)link.dataset.policyRoute=entry.policyRoute;else delete link.dataset.policyRoute;
     link.setAttribute('aria-label',entry.label);
-    if(!existing||entry.key==='projects'||entry.key==='archive'){
-      link.innerHTML=(entry.symbolHTML||'•')+'<span></span>';
-      link.querySelector(':scope > span:last-child').textContent=entry.label;
-    }else{const label=link.querySelector(':scope > span:last-child');if(label)label.textContent=entry.label}
+    let mark=link.querySelector(':scope > .hero-shortcut-icon');
+    let label=link.querySelector(':scope > .hero-shortcut-label');
+    if(!mark||!label){mark=document.createElement('span');mark.className='hero-shortcut-icon';mark.setAttribute('aria-hidden','true');label=document.createElement('span');label.className='hero-shortcut-label';link.replaceChildren(mark,label)}
+    for(const child of [...link.children])if(child!==mark&&child!==label)child.remove();
+    const artwork=entry.symbolHTML||'•';if(mark.innerHTML!==artwork)mark.innerHTML=artwork;
+    if(label.textContent!==entry.label)label.textContent=entry.label;
     return link;
+  }
+  // The original sidebar navigation is removed after boot. On slow auth or
+  // delayed Studio hydration the hero links can also be temporarily absent.
+  // Build a reliable route catalog from real widgets and known public Studio
+  // routes *before* drawing shortcut rows. Never mutate account layout here.
+  const SIDEBAR_ROUTE_FALLBACKS=[
+    ['studio','Studio','<img src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">'],
+    ['politc','Politic','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
+    ['tools','lwazi','<img src="/assets/tools-hand-eye.svg" alt="">'],
+    ['calendar','Calendar','▦'],
+    ['map','Map','⌖'],
+    ['projects','Projects','<img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">'],
+    ['diary','Journal','▱'],
+    ['notes','Sqwidz','<img src="/assets/quick-notes-symbol-generated.png" alt="">'],
+    ['feed','myfeed','<img src="/assets/feed-symbol-generated.png" alt="">'],
+    ['archive','Archive','<span class="biglwa-archive-horizontal-symbol" aria-hidden="true"><svg viewBox="0 0 26 34" fill="none"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="25" rx="1.5"/><path d="M8 7h3M8 26h3"/><rect x="11" y="6" width="5" height="24" rx="1.5"/><path d="M16 9h3M16 27h3"/><rect x="19" y="3" width="4" height="26" rx="1.4"/></g></svg></span>'],
+    ['boards','Boards','⊞'],
+    ['library','Library','▤'],
+    ['games','Arcade','♟'],
+    ['orbit','Orbit','◎'],
+    ['connect','Connect','✣'],
+    ['veve','veve','✺'],
+    ['camera','booth','◉'],
+    ['stream','Stream','◌'],
+    ['rooms','The Lounge','♧'],
+    ['closet','Closet','♧']
+  ];
+  function seedSidebarNavigationCatalog(app){
+    for(let i=0;i<SIDEBAR_ROUTE_FALLBACKS.length;i++){
+      const [key,label,fallback]=SIDEBAR_ROUTE_FALLBACKS[i];
+      const existing=navigationCatalog.get(key);
+      const widget=$('#'+key,app)||(key==='rooms'?$('#room',app):null);
+      const icon=widgetIconMarkup(widget);
+      if(!existing){
+        navigationCatalog.set(key,{key,label,href:'#'+key,policyRoute:'',
+          symbolHTML:icon||fallback,order:SHORTCUT_LIMIT+i});
+      }else if(!existing.symbolHTML||existing.symbolHTML.trim()==='•'){
+        existing.symbolHTML=icon||fallback;
+      }
+    }
+  }
+  // Keep hover/focus targets connected through account and layout refreshes.
+  function reconcileChildren(parent,nodes){
+    const wanted=new Set(nodes);for(const child of [...parent.children])if(!wanted.has(child))child.remove();
+    nodes.forEach((node,index)=>{if(parent.children[index]!==node)parent.insertBefore(node,parent.children[index]||null)});
+  }
+  function reconcileNavigationRows(dock,keys,zone){
+    const existing=new Map([...dock.children].map(row=>[row.dataset.sidebarRouteRow,row]));
+    const nodes=keys.map(key=>{
+      const entry=navigationCatalog.get(key),row=existing.get(key)||createSidebarNavigationRow(entry,zone);
+      const mark=row.querySelector('.sidebar-route-icon');if(mark.innerHTML!==entry.symbolHTML)mark.innerHTML=entry.symbolHTML;
+      return row;
+    });reconcileChildren(dock,nodes);
   }
   function syncSidebarShortcutSystem(){
     const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
     const heroKeys=currentHeroLinks.map((link,index)=>rememberNavigation(link,index)).filter(Boolean);
+    seedSidebarNavigationCatalog(app);
+    navigationCatalog.delete('rights');
+    // Veve has a permanent top-rail and centered banner shortcut; never list it again below.
+    navigationCatalog.delete('veve');
+    $$('.sidebar a[href="/rights"],.sidebar [data-policy-route="rights"]',app).forEach(node=>node.remove());
     refreshNavigationCatalogFromWidgets(app);
     if((!initialNavigationShortcuts||!initialNavigationShortcuts.length)&&heroKeys.length)initialNavigationShortcuts=heroKeys.slice(0,SHORTCUT_LIMIT);
     if(!initialNavigationShortcuts?.length)return;
     let shortcuts=readNavigationShortcuts(initialNavigationShortcuts).filter(key=>navigationCatalog.has(key));
-    let hasSavedShortcuts=false;try{hasSavedShortcuts=localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
-    if(!hasSavedShortcuts)shortcuts=initialNavigationShortcuts.filter(key=>navigationCatalog.has(key)).slice(0,SHORTCUT_LIMIT);
-    shortcuts=writeNavigationShortcuts(shortcuts);
-    shortcutDock.replaceChildren(...shortcuts.map(key=>createSidebarNavigationRow(navigationCatalog.get(key),'shortcut')));
+    let hasSavedShortcuts=Array.isArray(scopedLayout()?.navigation);try{hasSavedShortcuts=hasSavedShortcuts||localStorage.getItem(NAV_SHORTCUT_KEY)!==null}catch{}
+    if(!hasSavedShortcuts){
+      // Default a useful accessibility-first dock once. Existing saved orders
+      // are always honored, including people who choose another arrangement.
+      const choices=['politc','tools','calendar','map','projects','diary','notes','feed','archive'];
+      shortcuts=[...choices.filter(k=>navigationCatalog.has(k)),
+        ...initialNavigationShortcuts.filter(k=>navigationCatalog.has(k))].filter((k,i,a)=>a.indexOf(k)===i).slice(0,SHORTCUT_LIMIT);
+    }
+    shortcuts=writeNavigationShortcuts(shortcuts,false);
+    reconcileNavigationRows(shortcutDock,shortcuts,'shortcut');
     const available=[...navigationCatalog.values()].filter(entry=>!shortcuts.includes(entry.key)).sort((a,b)=>a.order-b.order);
-    availableDock.replaceChildren(...available.map(entry=>createSidebarNavigationRow(entry,'available')));
+    reconcileNavigationRows(availableDock,available.map(entry=>entry.key),'available');
+    refreshWidgetRemovalIndicators(app);
     const existingByKey=new Map(currentHeroLinks.map(link=>[navigationKey(link),link]));
-    let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button';create.innerHTML='＋<span>Create</span>'}
+    let create=$('#mobileCreate',bar);if(!create){create=document.createElement('button');create.id='mobileCreate';create.type='button'}
+    create.classList.add('studio-veve-launcher');
+    if(!create.querySelector('.studio-veve-mark'))create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
+    create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
     const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
-    const split=Math.ceil(links.length/2);bar.replaceChildren(...links.slice(0,split),create,...links.slice(split));bar.style.setProperty('--studio-action-count',String(links.length+1));
+    const split=Math.ceil(links.length/2);reconcileChildren(bar,[...links.slice(0,split),create,...links.slice(split)]);bar.style.setProperty('--studio-action-count',String(links.length+1));
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
     if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
@@ -476,9 +780,10 @@
       const targetIndex=targetKey===key?Math.min(Math.max(current.indexOf(key),0),without.length):(targetKey?without.indexOf(targetKey):-1);
       without.splice(targetIndex<0?without.length:targetIndex,0,key);
     }
+    // Moving a shortcut never changes whether a widget is removed from Studio.
     writeNavigationShortcuts(without);
     syncSidebarShortcutSystem();
-    showShortcutStatus(app,connected?'Connected to shortcut bar.':'Still active in Studio · shortcut disconnected.');
+    showShortcutStatus(app,connected?'Connected to shortcut bar.':'Shortcut removed; widget state unchanged.');
     return true;
   }
 
@@ -505,14 +810,28 @@
   function widgetId(el,index){return el.dataset.widgetId||el.id||(['profile-card','music-card','aura-card'].find(c=>el.classList.contains(c))||`widget-${index+1}`).replace(/-card$/,'')}
   function widgetLabel(el,id){return el.dataset.widgetLabel||$('h1,h2,.card-kicker',el)?.textContent?.trim()||id.replace(/[-_]/g,' ')}
   function widgetRoute(el,id){return el.dataset.widgetRoute||$('.arrow-btn[data-open]',el)?.dataset.open||id}
-  const fullWidgetRoutes=new Set(['create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools']);
+  function renameJournalNavigation(){
+    // Preserve existing data-open="diary" routes/storage, change labels only.
+    document.querySelectorAll('#studioApp [data-open="diary"],#studioApp [data-sidebar-route="diary"]').forEach(control=>{
+      const children=control.querySelectorAll('b,span');
+      for(const el of children){
+        if(/^diary$/i.test(el.textContent.trim()))el.textContent='Journal';
+      }
+      if(/^open diary$/i.test(control.getAttribute('aria-label')||''))control.setAttribute('aria-label','Open Journal');
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',renameJournalNavigation,{once:true});
+  else renameJournalNavigation();
+  document.addEventListener('biglwa:module-close',renameJournalNavigation);
+
+  const fullWidgetRoutes=new Set(['veve','create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools','politc','politic']);
   function greenControlAction(route,id){
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
   }
   const greenSidebarWidgetIds=new Set(['music','aura','guest-check','music-card','aura-card']);
-  const widgetFallbackIcons={music:'♫',aura:'◌','guest-check':'✓'};
+  const widgetFallbackIcons={music:'♫',aura:'<img src="/Sunsum.webp" alt="">',avatar:'<img src="/sesa-wo-suban-medium.png" alt="">','guest-check':'✓'};
   function ensureRedWidgetDock(app){
     const rest=$('#studioSidebarRest',app);if(!rest)return null;
     let dock=$('#studioSidebarDockedWidgetDock',rest);
@@ -525,9 +844,16 @@
   function widgetIconMarkup(widget){
     if(!widget)return '';
     const id=widget.dataset.widgetId||widget.id||'',label=widget.dataset.widgetLabel||id.replace(/[-_]/g,' ');
+    // Do not derive a closed music widget's symbol from the word Now Playing.
+    if(id==='music'||widget.classList.contains('music-card'))return '♫';
+    if(id==='avatar'||widget.id==='studioAvatarCard')return '<img src="/sesa-wo-suban-medium.png" alt="" aria-hidden="true">';
+    if(id==='aura'||widget.classList.contains('aura-card'))return '<img src="/Sunsum.webp" alt="" aria-hidden="true">';
     const source=$('.card-icon,.mailbox-mark,.studio-symbol-mark',widget);
     if(source){
-      const markup=(source.matches('img,svg')?source.outerHTML:source.innerHTML).trim();
+      // Header optical geometry belongs to its header, never to copied sidebar icons.
+      const clean=(source.matches('img,svg')?source:source.querySelector('img,svg')||source).cloneNode(true);
+      [clean,...clean.querySelectorAll('[data-heading-layout]')].forEach(node=>{if(node.hasAttribute('data-heading-layout')){node.removeAttribute('style');node.removeAttribute('data-heading-layout')}});
+      const markup=(clean.matches('img,svg')?clean.outerHTML:clean.innerHTML).trim();
       if(markup)return markup;
       const text=source.textContent.trim();if(text)return text;
     }
@@ -540,8 +866,16 @@
     const spacer=document.createElement('span');spacer.setAttribute('aria-hidden','true');
     const restore=document.createElement('button');restore.type='button';restore.className='sidebar-shortcut-open';restore.dataset.restoreWidget=id;restore.title='Return '+label+' to the Studio';restore.setAttribute('aria-label','Return '+label+' to the Studio');
     const mark=document.createElement('span');mark.className='sidebar-route-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=icon;
-    const state=document.createElement('span');state.className='sidebar-minimized-state';state.setAttribute('aria-hidden','true');state.textContent='↥';
-    restore.append(mark);row.append(spacer,restore,state);return row;
+    // The visible + must itself RESTORE the widget. Previously it was an
+    // inert <span>, which left an incorrect symbol/status affordance in Skeleton Key.
+    const state=document.createElement('button');
+    state.type='button';state.className='sidebar-minimized-state sidebar-widget-plus';
+    state.dataset.restoreWidget=id;state.textContent='+';
+    state.title='Restore '+label+' to Studio';
+    state.setAttribute('aria-label','Restore '+label+' to Studio');
+    restore.append(mark);
+    row.title=label+' · removed from Studio, press + to restore';
+    row.append(spacer,restore,state);return row;
   }
   function refreshMinimizedWidgetIcons(app){
     if(!app)return;
@@ -564,34 +898,155 @@
     const archiveMarkup='<span class="biglwa-archive-horizontal-symbol" aria-hidden="true">'+libraryMarkup+'</span>';
     const archiveWidget=$('#archive',app);
     const archiveIcon=archiveWidget&&$('.card-icon,.studio-symbol-mark',archiveWidget);
-    if(archiveIcon)archiveIcon.innerHTML=archiveMarkup;
+    if(archiveIcon&&!archiveIcon.querySelector('.biglwa-archive-horizontal-symbol'))archiveIcon.innerHTML=archiveMarkup;
 
+    // The Studio shortcut and Skeleton Key always use the actual tipi,
+    // irrespective of a stale older icon in saved navigation markup.
+    const studioMarkup='<img class="studio-symbol-image biglwa-nav-tipi" src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">';
+    const studioEntry=navigationCatalog.get('studio');
+    if(studioEntry)studioEntry.symbolHTML=studioMarkup;
+    // The hero Studio shortcut is routed as "home" but is the same destination.
+    const homeEntry=navigationCatalog.get('home');
+    if(homeEntry)homeEntry.symbolHTML=studioMarkup;
+    $$('.hero-action-bar a[href="#home"],.hero-action-bar [data-shortcut-route="home"]',app).forEach(link=>{
+      const mark=$('.hero-shortcut-icon',link);
+      if(mark&&mark.innerHTML!==studioMarkup)mark.innerHTML=studioMarkup;
+    });
+    const studioWidget=$('#studio',app);
+    const studioIcon=studioWidget&&$('.card-icon,.studio-symbol-mark',studioWidget);
+    if(studioIcon)studioIcon.innerHTML=studioMarkup;
     const projectEntry=navigationCatalog.get('projects');if(projectEntry)projectEntry.symbolHTML=projectMarkup;
     const archiveEntry=navigationCatalog.get('archive');if(archiveEntry)archiveEntry.symbolHTML=archiveMarkup;
   }
   function refreshNavigationCatalogFromWidgets(app){
     if(!app)return;
+    // Politic is a first-class navigation destination even when inserted after
+    // the original Studio sidebar catalog was assembled.
+    const toolsIcon=$('#tools .card-icon',app);
+    if(toolsIcon&&!toolsIcon.querySelector('img[src="/assets/tools-hand-eye.svg"]'))toolsIcon.innerHTML='<img src="/assets/tools-hand-eye.svg" alt="">';
+    const civic=$('#politc',app);
+    if(civic&&!navigationCatalog.has('politc')){
+      navigationCatalog.set('politc',{
+        key:'politc',label:'Politic',href:'#politc',policyRoute:'',
+        symbolHTML:widgetIconMarkup(civic)||'<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">',
+        order:-1
+      });
+    }
     applyPreferredStudioSymbols(app);
     navigationCatalog.forEach((entry,key)=>{
+      // Studio/home are the one canonical tipi, never a widget's module glyph.
+      if(key==='studio'||key==='home')return;
       const widget=$('[data-widget-route="'+CSS.escape(key)+'"]',app)||$('#'+CSS.escape(key),app)||(key==='rooms'?$('#room',app):key==='room'?$('#rooms',app):null);
       const icon=widgetIconMarkup(widget);if(icon)entry.symbolHTML=icon;
     });
     applyPreferredStudioSymbols(app);
   }
+  function refreshSidebarNavigationIcons(app){
+    if(!app)return;
+    refreshNavigationCatalogFromWidgets(app);
+    $$('[data-sidebar-route-row]',app).forEach(row=>{
+      const entry=navigationCatalog.get(row.dataset.sidebarRouteRow),mark=$('.sidebar-route-icon',row);
+      if(entry?.symbolHTML&&mark&&mark.innerHTML!==entry.symbolHTML)mark.innerHTML=entry.symbolHTML;
+    });
+  }
+  // When the widget already has a shortcut, its yellow minimize state stays
+  // in that exact row; only unmatched/RED-docked widgets use lower restore trays.
+  function shortcutWidget(app,key){
+    const route=String(key||'').toLowerCase();
+    if(!route)return null;
+    return $$('[data-widget-id]',app).find(el=>
+      (el.dataset.widgetRoute||'').toLowerCase()===route||
+      (el.dataset.widgetId||'').toLowerCase()===route)||null;
+  }
+  function shortcutForWidget(app,widget){
+    if(!widget)return null;
+    const id=widget.dataset.widgetId,route=widget.dataset.widgetRoute||id;
+    return $$('[data-sidebar-route-row].is-shortcut',app).find(row=>
+      row.dataset.sidebarRouteRow===route||row.dataset.sidebarRouteRow===id)||null;
+  }
+  // This reflects the underlying red close state, not shortcut membership.
+  function refreshWidgetRemovalIndicators(app){
+    if(!app)return;
+    $$('[data-sidebar-route-row].is-available',app).forEach(row=>{
+      const key=row.dataset.sidebarRouteRow,widget=shortcutWidget(app,key);
+      let removed=!!widget?.classList.contains('widget-is-docked');
+      if(key==='avatar'&&!removed){
+        try{removed=localStorage.getItem('biglwaAvatarWidgetVisibility:v2:'+layoutUid())==='removed'}catch{}
+      }
+      const label=navigationCatalog.get(key)?.label||key;
+      row.classList.toggle('is-widget-removed',removed);
+      row.classList.remove('is-disconnected');
+      row.dataset.widgetRemoved=removed?'true':'false';
+      const action=$('[data-add-shortcut]',row);
+      if(action){
+        const message=removed?'Restore '+label+' to Studio':'Add '+label+' to shortcut bar';
+        action.title=message;action.setAttribute('aria-label',message);
+      }
+      row.title=removed?label+' · removed from Studio, press + to restore':
+        label+' · widget in Studio; + adds a shortcut';
+    });
+  }
+  function syncMinimizedShortcutRows(app){
+    $$('[data-sidebar-route-row].is-shortcut',app).forEach(row=>{
+      const widget=shortcutWidget(app,row.dataset.sidebarRouteRow);
+      // Legacy yellow tray may still show + for an in-place minimize; the red
+      // status LIGHT below remains exclusively tied to widget-is-docked.
+      const minimized=!!widget?.classList.contains('widget-is-minimized');
+      const action=$('[data-remove-shortcut]',row);
+      row.classList.toggle('is-minimized',minimized);
+      row.dataset.widgetMinimized=minimized?'true':'false';
+      if(action){
+        action.textContent=minimized?'+':'−';
+        const title=minimized?'Restore '+(widget.dataset.widgetLabel||row.dataset.sidebarRouteRow)+' to Studio':
+          'Disconnect '+row.dataset.sidebarRouteRow+' from shortcut bar';
+        action.title=title;action.setAttribute('aria-label',title);
+        action.setAttribute('aria-pressed',minimized?'true':'false');
+      }
+    });
+  }
   function syncPrimaryWidgetDock(app){
     if(!app)return;
     const primary=$('#studioSidebarPrimary',app),rest=$('#studioSidebarRest',app),greenDock=$('#minimizedWidgetDock',primary||app),redDock=ensureRedWidgetDock(app);if(!primary||!greenDock)return;
     $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+      const id=row.dataset.shortcutRow||'';
+      const linked=shortcutWidget(app,id);
+      // The top four never produce Skeleton Key restore entries for yellow.
+      // Purge old yellow-only rows from earlier clients, preserving red close.
+      if(['music','aura','avatar','guest-check'].includes(id)&&
+        linked&&!linked.classList.contains('widget-is-docked')){
+        row.remove();return;
+      }
+      // Purge any outdated duplicate restore tile from an earlier session.
+      if(linked&&shortcutForWidget(app,linked)&&linked.classList.contains('widget-is-minimized')&&!linked.classList.contains('widget-is-docked')){
+        row.remove();return;
+      }
       const target=greenSidebarWidgetIds.has(row.dataset.shortcutRow||'')?greenDock:redDock;
       if(target&&row.parentElement!==target)target.appendChild(row);
     });
+    // Distinguish yellow square (still in Studio) from red close (removed).
+    $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{
+      const widget=shortcutWidget(app,row.dataset.shortcutRow||'');
+      const removed=!!widget?.classList.contains('widget-is-docked');
+      row.classList.toggle('is-red-docked',removed);
+      row.dataset.widgetRemoved=removed?'true':'false';
+      row.title=removed?(widget?.dataset.widgetLabel||row.dataset.shortcutRow)+' · removed from Studio · + to restore':
+        (widget?.dataset.widgetLabel||row.dataset.shortcutRow)+' · minimized';
+    });
     refreshMinimizedWidgetIcons(app);
-    primary.hidden=!$('[data-shortcut-row]',greenDock);
+    syncMinimizedShortcutRows(app);
+    primary.hidden=!$('[data-shortcut-row],.sidebar-upper-compact-row',greenDock);
     if(rest)rest.hidden=!$('[data-sidebar-route-row]',rest)&&!$('[data-shortcut-row]',redDock);
   }
   function setSidebarCurrent(app,key=''){
     const normalized=String(key||'').replace(/^#/,'').toLowerCase();
     app.dataset.currentStudioRoute=normalized;
+    $$('.sidebar-navigation-row.is-shortcut',app).forEach(row=>{
+      const active=!!normalized&&(row.dataset.sidebarRouteRow===normalized||
+        (normalized==='rooms'&&row.dataset.sidebarRouteRow==='room'));
+      row.classList.toggle('is-closed',!active);
+      row.dataset.shortcutState=active?'open':'closed';
+    });
+    syncMinimizedShortcutRows(app);
     $$('.sidebar-route-control,.sidebar-shortcut-open,.sidebar-navigation-open,.hero-action-bar a,.hero-action-bar button',app).forEach(control=>{
       const controlKey=(control.dataset.sidebarWidget||control.dataset.sidebarRoute||control.dataset.shortcutRoute||control.dataset.widgetRoute||control.dataset.open||(control.getAttribute('href')||'').replace(/^#/, '')||(control.id==='mobileCreate'?'create':'')).toLowerCase();
       const current=!!normalized&&(controlKey===normalized||(normalized==='rooms'&&controlKey==='room')||(normalized==='create'&&controlKey==='desk'));
@@ -605,7 +1060,14 @@
   function openWidgetDestination(app,id,route=''){
     const widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null;
     const destination=(route||widget?.dataset.widgetRoute||id||'').toLowerCase();
-    if(destination==='home'||destination==='studio'){$('.hero-action-bar a[href="#home"]',app)?.click();setSidebarCurrent(app,'home');return}
+    if(destination==='home'||destination==='studio'){
+      const back=$('#moduleBack',app);
+      if(back&&!$('#moduleWorkspace',app)?.hidden)back.click();
+      else if(location.pathname!=='/studio')history.pushState({},'','/studio');
+      const hero=$('.hero,.profile-card',app);hero?.scrollIntoView?.({behavior:'smooth',block:'start'});
+      setSidebarCurrent(app,'studio');
+      return;
+    }
     if(destination==='guest-check'||id==='guest-check'){$('[data-open-guest="check"]',widget||app)?.click();setSidebarCurrent(app,'guest-check');return}
     if(fullWidgetRoutes.has(destination)&&typeof window.openBIGLWAModule==='function'){window.openBIGLWAModule(destination);setSidebarCurrent(app,destination);return}
     if(destination==='profile'||destination==='profile-card'||destination==='aura'||destination==='music'||widget){
@@ -621,7 +1083,7 @@
       let controls=$(':scope > .widget-window-controls',el);if(!controls){controls=document.createElement('div');el.prepend(controls)}
       controls.className='widget-window-controls';controls.dataset.canonicalControls='1';controls.setAttribute('aria-label',`${label} window controls`);
       const green=greenControlAction(route,id);
-      controls.innerHTML=`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${id}" aria-label="Minimize ${label}" title="Minimize ${label}"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to left toolbar" title="Move to left toolbar"></button>`;
+      controls.innerHTML=`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${id}" aria-label="Minimize ${label}" title="Minimize ${label}"></button><button class="window-light red" type="button" data-dock-widget="${id}" aria-label="Move ${label} to Skeleton Key" title="Move to Skeleton Key"></button>`;
       $$('.arrow-btn',el).forEach(b=>b.style.display='none');
       let handle=$('[data-studio-drag-handle]',el);
       if(!handle){
@@ -650,13 +1112,17 @@
       const id=widget.dataset.widgetId;if(!id)return;
       const {dock:greenDock}=ensureDock(app),dock=restoreDockForWidget(app,widget,greenDock);
       if(!dock||$('[data-shortcut-row="'+CSS.escape(id)+'"]',app))return true;
-      dock.appendChild(shortcutButtonMarkup(widget));saveMinimized(app);syncPrimaryWidgetDock(app);return true;
+      // Do not reconcile before the caller applies widget-is-docked.
+      // A pending RED close looked like a visible yellow widget and its
+      // restore row was incorrectly purged before the red state existed.
+      dock.appendChild(shortcutButtonMarkup(widget));saveMinimized(app);return true;
     };
     const restoreWidget=(app,id,row)=>{
       const widget=id?$('[data-widget-id="'+CSS.escape(id)+'"]',app):null;
       if(widget){widget.classList.remove('widget-is-minimized','widget-is-docked');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false')}
       if(row)row.remove();
       const {section,dock}=ensureDock(app);syncDock(dock,section);saveMinimized(app);syncPrimaryWidgetDock(app);
+      refreshWidgetRemovalIndicators(app);
     };
     const setTheme=mode=>{
       const isDark=mode==='dark';document.body.classList.toggle('night-mode',isDark);
@@ -678,13 +1144,37 @@
       if(target.id==='darkModeBtn'||target.dataset.theme==='dark'){event.preventDefault();event.stopImmediatePropagation();setTheme('dark');return}
       const app=getApp();if(!app||!app.contains(target))return;
       const sidebarWidget=target.closest('[data-sidebar-widget]');
-      if(sidebarWidget){event.preventDefault();event.stopImmediatePropagation();const id=sidebarWidget.dataset.sidebarWidget,widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(widget?.classList.contains('widget-is-minimized')){restoreWidget(app,id,$('[data-shortcut-row="'+CSS.escape(id)+'"]',app));return}openWidgetDestination(app,id,id);return}
+      if(sidebarWidget){event.preventDefault();event.stopImmediatePropagation();const id=sidebarWidget.dataset.sidebarWidget,widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(widget?.classList.contains('widget-is-minimized')){restoreWidget(app,id,$('[data-shortcut-row="'+CSS.escape(id)+'"]',app));return}openWidgetDestination(app,id,sidebarWidget.dataset.widgetRoute);return}
       const sidebarRoute=target.closest('[data-sidebar-route]');
       if(sidebarRoute&&!sidebarRoute.dataset.policyRoute){event.preventDefault();event.stopImmediatePropagation();openWidgetDestination(app,sidebarRoute.dataset.sidebarRoute,sidebarRoute.dataset.sidebarRoute);return}
       const removeShortcut=target.closest('[data-remove-shortcut]');
-      if(removeShortcut){event.preventDefault();event.stopImmediatePropagation();moveNavigationShortcut(app,removeShortcut.dataset.removeShortcut,false);return}
+      if(removeShortcut){
+        event.preventDefault();event.stopImmediatePropagation();
+        const row=removeShortcut.closest('[data-sidebar-route-row]');
+        const minimized=shortcutWidget(app,removeShortcut.dataset.removeShortcut);
+        if(row?.classList.contains('is-minimized')&&minimized){
+          restoreWidget(app,minimized.dataset.widgetId,$('[data-shortcut-row="'+CSS.escape(minimized.dataset.widgetId)+'"]',app));
+          syncMinimizedShortcutRows(app);
+          return;
+        }
+        moveNavigationShortcut(app,removeShortcut.dataset.removeShortcut,false);return
+      }
       const addShortcut=target.closest('[data-add-shortcut]');
-      if(addShortcut){event.preventDefault();event.stopImmediatePropagation();moveNavigationShortcut(app,addShortcut.dataset.addShortcut,true);return}
+      if(addShortcut){
+        event.preventDefault();event.stopImmediatePropagation();
+        const widget=shortcutWidget(app,addShortcut.dataset.addShortcut);
+        if(addShortcut.dataset.addShortcut==='avatar'){
+          const restoreAvatar=$('[data-avatar-restore]',app);
+          let state='';try{state=localStorage.getItem('biglwaAvatarWidgetVisibility:v2:'+layoutUid())||''}catch{}
+          if(state==='removed'&&restoreAvatar){restoreAvatar.click();refreshWidgetRemovalIndicators(app);return;}
+        }
+        if(widget?.classList.contains('widget-is-docked')){
+          restoreWidget(app,widget.dataset.widgetId,$('[data-shortcut-row="'+CSS.escape(widget.dataset.widgetId)+'"]',app));
+          showShortcutStatus(app,(widget.dataset.widgetLabel||'Widget')+' restored to Studio.');
+          return;
+        }
+        moveNavigationShortcut(app,addShortcut.dataset.addShortcut,true);return;
+      }
       const shortcut=target.closest('[data-widget-shortcut]');
       if(shortcut){event.preventDefault();event.stopImmediatePropagation();openWidgetDestination(app,shortcut.dataset.widgetShortcut,shortcut.dataset.widgetRoute);return}
       if(target.id==='editProfileBtn'){
@@ -708,14 +1198,22 @@
         saveMinimized(app);return;
       }
       if(control.matches('[data-minimize-widget]')){
-        widget.classList.remove('widget-is-expanded');
+        // Yellow stays in an existing shortcut instead of creating a bottom tile.
+        // Red still docks independently, and non-shortcut widgets keep their tray.
+        const inShortcut=shortcutForWidget(app,widget);
+        const added=inShortcut?true:addRestore(app,widget);if(!added)return;
+        widget.classList.remove('widget-is-expanded','widget-is-docked');
+        widget.classList.add('widget-is-minimized');
         const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');
+        const {section,dock}=ensureDock(app);syncDock(dock,section);
+        saveMinimized(app);syncPrimaryWidgetDock(app);syncMinimizedShortcutRows(app);
         return;
       }
       const {section,dock}=ensureDock(app);
       const added=addRestore(app,widget);if(!added)return;
       widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized','widget-is-docked');
       syncDock(dock,section);saveMinimized(app);syncPrimaryWidgetDock(app);
+      refreshWidgetRemovalIndicators(app);
     },true);
     try{setTheme(localStorage.getItem('biglwaTheme')==='dark'?'dark':'light')}catch{setTheme('light')}
     document.addEventListener('biglwa:module-open',event=>{const app=getApp();if(app)setSidebarCurrent(app,event.detail?.key||'')});
@@ -736,19 +1234,44 @@
     const syncDock=()=>syncPrimaryWidgetDock(app);
     const selector='.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)';
     const widgets=$$(selector,app);
-    const minimized=readWidgetShortcuts();
+    // Restore from this account's scoped snapshot, not another signed-in
+    // member's old browser-wide widget state.
+    const scoped=scopedLayout();
+    const minimized=Array.isArray(scoped?.docked)?scoped.docked:readWidgetShortcuts();
+    const redDocked=new Set(Array.isArray(scoped?.redDocked)?scoped.redDocked:[]);
+    const collapsed=new Set(Array.isArray(scoped?.collapsed)?scoped.collapsed.map(String):[]);
     const saveMinimized=()=>writeWidgetShortcuts($$(selector,app).filter(widget=>widget.classList.contains('widget-is-minimized')).map(widget=>widget.dataset.widgetId).filter(Boolean));
     const addRestore=widget=>{
       const id=widget.dataset.widgetId,targetDock=restoreDockForWidget(app,widget,dock);if(!id||!targetDock||$('[data-shortcut-row="'+CSS.escape(id)+'"]',app))return true;
-      targetDock.appendChild(shortcutButtonMarkup(widget));syncDock();saveMinimized();return true;
+      if(shortcutForWidget(app,widget)&&!widget.classList.contains('widget-is-docked'))return true;
+      targetDock.appendChild(shortcutButtonMarkup(widget));syncDock();return true;
     };
     widgets.forEach((widget,index)=>{
       if(!widget.dataset.widgetId)widget.dataset.widgetId=widgetId(widget,index);
       if(!widget.dataset.widgetLabel)widget.dataset.widgetLabel=widgetLabel(widget,widget.dataset.widgetId);
-      if(minimized.includes(widget.dataset.widgetId)){widget.classList.add('widget-is-minimized','widget-is-docked');addRestore(widget)}else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
+      if(minimized.includes(widget.dataset.widgetId)){
+        const alreadyMinimized=widget.classList.contains('widget-is-minimized');
+        widget.classList.add('widget-is-minimized');
+        const inShortcut=shortcutForWidget(app,widget);
+        // Do not rewrite an already-red-docked widget during periodic hydration.
+        if(!alreadyMinimized)widget.classList.toggle('widget-is-docked',redDocked.has(widget.dataset.widgetId)||!inShortcut);
+        if(widget.classList.contains('widget-is-docked')||!inShortcut)addRestore(widget);
+      }else{widget.classList.remove('widget-is-minimized','widget-is-docked')}
+      if(['music','aura','avatar','guest-check'].includes(widget.dataset.widgetId)){
+        const views=scoped?.upperVariants||{};
+        const id=widget.dataset.widgetId;
+        const view=views[id]==='long'?'long':views[id]==='square'?
+          'square':collapsed.has(id)?'square':id==='music'?'long':'square';
+        widget.dataset.upperWidgetView=view;
+        widget.classList.toggle('studio-upper-square',view==='square');
+        widget.classList.remove('studio-header-only');
+      }else{
+        widget.classList.toggle('studio-header-only',collapsed.has(widget.dataset.widgetId)&&!widget.classList.contains('widget-is-minimized'));
+      }
     });
     $$('.sidebar-widget-restore-row[data-shortcut-row]',app).forEach(row=>{if(!$('[data-widget-id="'+CSS.escape(row.dataset.shortcutRow||'')+'"]',app))row.remove()});
-    saveMinimized();
+    // Never save during startup or on periodic run(): restoring the local
+    // state is not a user edit and must not overwrite account settings.
     syncDock();syncPrimaryWidgetDock(app);
     if(document.documentElement.dataset.biglwaWidgetCaptureBound!=='1'){
       document.documentElement.dataset.biglwaWidgetCaptureBound='1';
@@ -769,7 +1292,7 @@
           control.setAttribute('aria-pressed',opening?'true':'false');
           return;
         }
-        if(control.matches('[data-minimize-widget]')){widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');return}
+        if(control.matches('[data-minimize-widget]')){widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');if(!shortcutForWidget(app,widget))addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
         if(control.matches('[data-rearrange-widget]')){
           const active=!app.classList.contains('biglwa-rearrange-mode');
           app.classList.toggle('biglwa-rearrange-mode',active);
@@ -790,31 +1313,45 @@
       const green=event.target.closest('[data-expand-widget]');
       if(green){event.preventDefault();event.stopPropagation();const widget=green.closest(selector);if(!widget)return;const opening=!widget.classList.contains('widget-is-expanded');$$('.widget-is-expanded',app).forEach(w=>w.classList.remove('widget-is-expanded'));widget.classList.toggle('widget-is-expanded',opening);green.setAttribute('aria-pressed',opening?'true':'false');return}
       const minimize=event.target.closest('[data-minimize-widget]');
-      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');return}
+      if(minimize){event.preventDefault();event.stopPropagation();const widget=minimize.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded','widget-is-docked');widget.classList.add('widget-is-minimized');const green=$('[data-expand-widget]',widget);if(green)green.setAttribute('aria-pressed','false');if(!shortcutForWidget(app,widget))addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
       const yellow=event.target.closest('[data-rearrange-widget]');
       if(yellow){event.preventDefault();event.stopPropagation();const active=!app.classList.contains('biglwa-rearrange-mode');app.classList.toggle('biglwa-rearrange-mode',active);$$(selector,app).forEach(w=>w.draggable=false);$$('[data-rearrange-widget]',app).forEach(b=>b.setAttribute('aria-pressed',active?'true':'false'));return}
       const red=event.target.closest('[data-dock-widget]');
       if(red){event.preventDefault();event.stopPropagation();const widget=red.closest(selector);if(!widget)return;widget.classList.remove('widget-is-expanded');widget.classList.add('widget-is-minimized','widget-is-docked');addRestore(widget);saveMinimized();syncPrimaryWidgetDock(app);return}
     });
-    const orderKey='biglwaWidgetOrder';
-    const readOrder=()=>{try{return JSON.parse(localStorage.getItem(orderKey)||'{}')}catch{return{}}};
+    studioParents(app);
+    restoreLocalStudioOrder(app);
     const writeOrder=()=>{
-      const order=readOrder();
-      $$(selector,app).forEach(w=>{
-        const p=w.parentNode;if(!p||!p.id)return;
-        const id=w.dataset.widgetId;if(!id)return;
-        if(!order[p.id])order[p.id]=[];
-        const list=order[p.id];
-        if(!list.includes(id))list.push(id);
-      });
-      Object.keys(order).forEach(k=>{if(!$('#'+CSS.escape(k),app))delete order[k]});
-      try{localStorage.setItem(orderKey,JSON.stringify(order))}catch{}
+      const snapshot=realDomOrder(app);
+      try{localStorage.setItem('biglwaWidgetOrder',JSON.stringify(snapshot))}catch{}
       syncLayoutToAccount();
     };
-    const savedOrder=readOrder();
-    Object.keys(savedOrder).forEach(key=>{
-      const parent=$('#'+CSS.escape(key),app);if(!parent)return;
-      savedOrder[key].forEach(id=>{const w=$('[data-widget-id="'+CSS.escape(id)+'"]',app);if(w&&w.parentNode===parent)parent.appendChild(w)});
+    // Handles support keyboard reordering for people who cannot drag.
+    $$('[data-studio-drag-handle]',app).forEach(handle=>{
+      handle.setAttribute('aria-keyshortcuts','Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown');
+      handle.title='Drag to reorder, or hold Alt and press an arrow key';
+    });
+    let reorderStatus=$('#biglwaStudioOrderStatus',app);
+    if(!reorderStatus){
+      reorderStatus=document.createElement('span');
+      reorderStatus.id='biglwaStudioOrderStatus';reorderStatus.setAttribute('role','status');
+      reorderStatus.setAttribute('aria-live','polite');
+      reorderStatus.className='biglwa-order-sr-status';
+      app.append(reorderStatus);
+    }
+    app.addEventListener('keydown',event=>{
+      const handle=event.target.closest?.('[data-studio-drag-handle]');
+      if(!handle||!event.altKey||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      const widget=handle.closest('[data-widget-id]'),parent=widget?.parentElement;
+      if(!widget||!parent)return;
+      const siblings=[...parent.children].filter(el=>el.dataset.widgetId);
+      const at=siblings.indexOf(widget),direction=['ArrowLeft','ArrowUp'].includes(event.key)?-1:1;
+      const other=siblings[at+direction];if(!other)return;
+      event.preventDefault();event.stopPropagation();
+      if(direction<0)parent.insertBefore(widget,other);else parent.insertBefore(other,widget);
+      writeOrder();handle.focus({preventScroll:true});
+      reorderStatus.textContent=(widget.dataset.widgetLabel||widget.dataset.widgetId)+
+        ' moved to position '+(at+direction+1)+' of '+siblings.length+'. Layout saved.';
     });
     let dragStart=null,ghost=null,dragMove=0,dragSlot=null,dragOffX=0,dragOffY=0;
     app.addEventListener('pointerdown',event=>{
@@ -855,6 +1392,7 @@
         const before=event.clientY<dragSlot.getBoundingClientRect().top+dragSlot.getBoundingClientRect().height/2;
         parent.insertBefore(widget,before?dragSlot:dragSlot.nextSibling);
         writeOrder();
+        reorderStatus.textContent=(widget.dataset.widgetLabel||widget.dataset.widgetId)+' moved. Layout saved.';
       }
       if(dragSlot)dragSlot.classList.remove('biglwa-drop-slot');
       if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
@@ -863,11 +1401,15 @@
     app.addEventListener('pointercancel',()=>{if(dragStart)dragStart.widget.classList.remove('widget-dragging');if(dragSlot)dragSlot.classList.remove('biglwa-drop-slot');if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);ghost=null;dragSlot=null;dragStart=null;dragMove=0});
   }
 
-  function renderWeeklyMood(card,text='add this week’s #mood',style='qwiky-note'){
+  function renderWeeklyMood(card,text='',style='qwiky-note'){
     if(!card)return;
     const allowed=new Set(['diary','widget','qwiky-note']);
     card.dataset.moodStyle=allowed.has(style)?style:'qwiky-note';
-    const value=$('.weekly-mood-value',card);if(value)value.textContent=text||'add this week’s #mood';
+    const raw=String(text||'').trim();
+    const actual=/^add this week['’]s #mood$/i.test(raw)?'':raw;
+    card.dataset.moodPreview=actual?'0':'1';
+    const value=$('.weekly-mood-value',card);
+    if(value){value.textContent=actual||'#keepitcute';value.setAttribute('aria-label',actual||'Example mood: #keepitcute');}
   }
 
   function renderAuraCopy(text='Focused\nbut dreaming.'){
@@ -900,6 +1442,7 @@
 
   function applyRemoteLayout(layout){
     const app=$('#studioApp');if(!app||!layout)return;
+    const collapsed=Array.isArray(layout.collapsed)?new Set(layout.collapsed.map(String)):new Set();
     const docked=Array.isArray(layout.docked)?layout.docked:[];
     const greenDock=$('#minimizedWidgetDock',app);
     $$('.profile-card,.customizable-widget,.masonry .card:not(.manifesto-card)',app).forEach(widget=>{
@@ -915,24 +1458,60 @@
         if(row)row.remove();
       }
     });
+    const upperVariants=layout.upperVariants&&typeof layout.upperVariants==='object'?layout.upperVariants:{};
+    [...app.querySelectorAll('[data-widget-id]')].forEach(widget=>{
+      const id=widget.dataset.widgetId;
+      if(['music','aura','avatar','guest-check'].includes(id)){
+        const view=upperVariants[id]==='long'?'long':upperVariants[id]==='square'?
+          'square':collapsed.has(id)?'square':id==='music'?'long':'square';
+        widget.dataset.upperWidgetView=view;
+        widget.classList.toggle('studio-upper-square',view==='square');
+        widget.classList.remove('studio-header-only');
+        return;
+      }
+      widget.classList.toggle('studio-header-only',collapsed.has(id)&&!widget.classList.contains('widget-is-minimized'));
+    });
+    window.dispatchEvent(new Event('biglwa:studio-collapse-applied'));
+    const positions=layout.positions&&typeof layout.positions==='object'?layout.positions:{};
+    $$('.masonry [data-widget-id]',app).forEach(widget=>{
+      const pos=String(positions[widget.dataset.widgetId]||'');
+      if(/^\d+:\d+$/.test(pos)){
+        const [row,col]=pos.split(':').map(Number);
+        if(row>=1&&row<=60&&col>=1&&col<=6){
+          widget.dataset.biglwaGridPosition=pos;
+          widget.style.gridRowStart=String(row);
+          widget.style.gridColumnStart=String(col);
+          return;
+        }
+      }
+      delete widget.dataset.biglwaGridPosition;
+      widget.style.removeProperty('grid-row-start');
+      widget.style.removeProperty('grid-column-start');
+    });
     const order=layout.order&&typeof layout.order==='object'?layout.order:{};
     Object.keys(order).forEach(key=>{
       const parent=$('#'+CSS.escape(key),app);if(!parent)return;
-      (Array.isArray(order[key])?order[key]:[]).forEach(id=>{
-        const widget=$('[data-widget-id="'+CSS.escape(id)+'"]',app);
-        if(widget&&widget.parentNode===parent)parent.appendChild(widget);
+      if(parent.classList.contains('masonry')&&parent.querySelector('[data-biglwa-grid-position]'))return;
+      const desired=Array.isArray(order[key])?order[key]:[];
+      const actual=[...parent.children].filter(el=>el.dataset.widgetId);
+      desired.forEach((id,index)=>{
+        const widget=actual.find(el=>el.dataset.widgetId===id);
+        if(!widget)return;
+        const current=[...parent.children].filter(el=>el.dataset.widgetId)[index];
+        if(current!==widget)parent.insertBefore(widget,current||null);
       });
     });
     syncPrimaryWidgetDock(app);
   }
 
   function applyRemoteCustomization(remote){
-    if(!remote||typeof remote!=='object')return;
+    if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
+    if(!remote||typeof remote!=='object'||!ownUid()||remote.uid!==ownUid())return;
     window.__biglwaRemoteCustomization=remote;
     const profile=remote.profile;
     if(profile&&typeof profile==='object'){
-      let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
-      try{localStorage.setItem('biglwaProfileDetails',JSON.stringify(Object.assign({},saved,profile)))}catch{}
+      let saved=readOwnProfile();
+      writeOwnProfile(Object.assign({},saved,profile));
       applyProfilePayload(profile);
       if(profile.username){
         try{
@@ -943,15 +1522,32 @@
         }catch{}
       }
     }
-    const custom=remote.customization&&typeof remote.customization==='object'?remote.customization:{};
-    if(custom.appearance&&typeof custom.appearance==='object'){try{localStorage.setItem('biglwaWidgetStyle',JSON.stringify(custom.appearance))}catch{}}
-    if(custom.wallpaper&&typeof custom.wallpaper==='object'){try{localStorage.setItem('biglwaWallpaperSettings',JSON.stringify(custom.wallpaper))}catch{}}
+    const custom=remote.customization&&typeof remote.customization==='object'?{...remote.customization}:{};
+    // A delayed account echo must not reset an open native color picker or draft.
+    if($('#studioApp .profile-card.profile-is-editing')){delete custom.appearance;delete custom.wallpaper}
+    if(custom.appearance&&typeof custom.appearance==='object'){try{localStorage.setItem('biglwaWidgetStyle:'+ownUid(),JSON.stringify(custom.appearance))}catch{}}
+    if(custom.wallpaper&&typeof custom.wallpaper==='object'){try{localStorage.setItem('biglwaWallpaperSettings:'+ownUid(),JSON.stringify(custom.wallpaper))}catch{}}
     if(custom.layout&&typeof custom.layout==='object'){
-      const layout=custom.layout;
-      if(Array.isArray(layout.docked)){try{localStorage.setItem('biglwaDockedWidgetsV3',JSON.stringify(layout.docked))}catch{}}
-      if(layout.order&&typeof layout.order==='object'){try{localStorage.setItem('biglwaWidgetOrder',JSON.stringify(layout.order))}catch{}}
-      if(Array.isArray(layout.navigation)){try{localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(layout.navigation))}catch{}}
-      applyRemoteLayout(layout);
+      const remoteLayout=custom.layout,local=scopedLayout();
+      // Never allow a delayed Firebase read to jump widgets back after the
+      // owner has reordered them on this device. Newer timestamps win.
+      const localTime=Number(local?.updatedAtMs)||0;
+      const remoteTime=Number(remoteLayout?.updatedAtMs)||0;
+      const chosen=localTime>remoteTime?local:remoteLayout;
+      if(localTime>remoteTime){pendingLayout={uid:layoutUid(),snapshot:local};setTimeout(flushLayout,600);}
+      if(chosen&&typeof chosen==='object'){
+        try{
+          localStorage.setItem(scopedLayoutKey(),JSON.stringify(chosen));
+          // Remote account layout may change which destinations were removed.
+          removedShortcutState={uid:'',keys:new Set()};
+          if(Array.isArray(chosen.docked))localStorage.setItem(DOCKED_WIDGET_KEY,JSON.stringify(chosen.docked));
+          if(chosen.order&&typeof chosen.order==='object')localStorage.setItem('biglwaWidgetOrder',JSON.stringify(chosen.order));
+          if(Array.isArray(chosen.navigation))localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(chosen.navigation));
+        }catch{}
+        applyRemoteLayout(chosen);
+        applyStudioOrder($('#studioApp'),chosen.order);
+        syncSidebarShortcutSystem();
+      }
     }
     try{window.BIGLWAStudioAppearance?.apply?.(custom)}catch{}
   }
@@ -973,17 +1569,30 @@
     let railLocation=$('.profile-rail-location',rail);
     if(!railLocation){railLocation=document.createElement('div');railLocation.className='profile-rail-location';railLocation.textContent=meta&&$('span',meta)?$('span',meta).textContent.replace(/^⌖\s*/,''):'';rail.appendChild(railLocation)}
     let moodCard=$('#weeklyMoodCard',rail);
-    if(!moodCard){moodCard=document.createElement('div');moodCard.id='weeklyMoodCard';moodCard.className='weekly-mood-card';moodCard.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">add this week’s #mood</strong>';rail.appendChild(moodCard)}
-    if(!moodCard.dataset.moodStyle)renderWeeklyMood(moodCard,$('.weekly-mood-value',moodCard)?.textContent||'add this week’s #mood','qwiky-note');
+    if(!moodCard){moodCard=document.createElement('div');moodCard.id='weeklyMoodCard';moodCard.className='weekly-mood-card';moodCard.innerHTML='<span>this week’s #mood</span><strong class="weekly-mood-value">#keepitcute</strong>';rail.appendChild(moodCard)}
+    if(!moodCard.dataset.moodStyle)renderWeeklyMood(moodCard,$('.weekly-mood-value',moodCard)?.textContent==='#keepitcute'?'':($('.weekly-mood-value',moodCard)?.textContent||''),'qwiky-note');
+    // The REAL RANK label belongs immediately LEFT of the rank title
+    // in the lower profile status row, never above the profile picture.
+    // Move the existing label node (don't duplicate it or change the metric).
+    const rankRow=$('.profile-copy > .real-rank',card)||$('.real-rank',card);
+    const rankLabel=$('.rank-label',rankRow)||$('.biglwa-rank-rail-label',rail)||$('.rank-label',card);
+    if(rankRow&&rankLabel){
+      const rankTitle=$('strong',rankRow);
+      if(rankLabel.parentElement!==rankRow||rankLabel.nextElementSibling!==rankTitle){
+        rankRow.insertBefore(rankLabel,rankTitle||rankRow.firstChild);
+      }
+      rankLabel.classList.remove('biglwa-rank-rail-label');
+      rankLabel.classList.add('biglwa-rank-inline-label');
+    }
     const stats=$('.stats',card);
     if(stats&&!$('[data-profile-stat="projects"]',stats)){
-      const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>24</b> Projects';
-      const rooms=document.createElement('span');rooms.dataset.profileStat='rooms';rooms.innerHTML='<b>3</b> Rooms';
+      const projects=document.createElement('span');projects.dataset.profileStat='projects';projects.innerHTML='<b>0</b> Projects';
+      const rooms=document.createElement('span');rooms.dataset.profileStat='rooms';rooms.innerHTML='<b>0</b> Rooms';
       stats.append(projects,rooms);
     }
     let display=$('.profile-display-name',card);
-    if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Leian Stanley';copy.prepend(display)}
-    let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
+    if(!display&&copy){display=document.createElement('h2');display.className='profile-display-name';display.textContent='Your Studio';copy.prepend(display)}
+    let saved=readOwnProfile();
     if(saved){
       const present={};
       ['name','username','bio','location','website','auraText'].forEach(key=>{if(saved[key])present[key]=saved[key]});
@@ -1000,19 +1609,39 @@
     let profileSection=$('#profileDetailsEditor',panel);
     if(!profileSection){
       profileSection=document.createElement('div');profileSection.className='customize-section profile-details-section';profileSection.id='profileDetailsEditor';
-      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="soft launch, big dreams…"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Qwiky Note</option><option value="diary">Diary</option><option value="widget">Widget</option></select></label></div>';
+      profileSection.innerHTML='<h3>Profile details</h3><p>Edit the identity and biography shown on your card.</p><div class="profile-editor-grid"><label>Display name<input id="profileNameInput" maxlength="60" autocomplete="name"></label><label>Username<input id="profileUsernameInput" maxlength="30" autocomplete="username"></label><label class="full">Bio<textarea id="profileBioEditor" rows="3" maxlength="300"></textarea></label><label>Location<input id="profileLocationInput" maxlength="80"></label><label>Website<input id="profileWebsiteInput" maxlength="160" inputmode="url"></label><label class="full">This week’s #mood<input id="profileMoodInput" maxlength="80" placeholder="#keepitcute"></label><label>Mood card style<select id="profileMoodStyle"><option value="qwiky-note">Sqwib</option><option value="diary">Journal</option><option value="widget">Widget</option></select></label></div>';
       if(panelTitle)panelTitle.insertAdjacentElement('afterend',profileSection);else panel.prepend(profileSection);
     }
     $('#profileMoodPreview',profileSection)?.remove();
     profileSection.dataset.profileEditorPane='profile';profileSection.setAttribute('role','tabpanel');
     let mediaSection=$('#profileMediaEditor',panel);
-    if(!mediaSection){mediaSection=document.createElement('div');mediaSection.id='profileMediaEditor';mediaSection.className='customize-section profile-media-section';mediaSection.dataset.profileEditorPane='media';mediaSection.setAttribute('role','tabpanel');mediaSection.innerHTML='<h3>Song &amp; Aura</h3><p>Choose the song shown on your card and write the words beneath your Aura.</p><div id="profileSongEditorMount" class="profile-song-editor-mount"><span class="profile-song-editor-wait">Song controls are connecting…</span></div><label class="profile-aura-text-label">Aura text<textarea id="profileAuraTextInput" rows="2" maxlength="100" placeholder="Focused&#10;but dreaming."></textarea></label>';panel.appendChild(mediaSection)}
+    if(!mediaSection){mediaSection=document.createElement('div');mediaSection.id='profileMediaEditor';mediaSection.className='customize-section profile-media-section';mediaSection.dataset.profileEditorPane='media';mediaSection.setAttribute('role','tabpanel');mediaSection.innerHTML='<h3>Song</h3><p>Choose the song shown on your profile.</p><div id="profileSongEditorMount" class="profile-song-editor-mount"><span class="profile-song-editor-wait">Song controls are connecting…</span></div><label class="profile-aura-text-label">Aura text<textarea id="profileAuraTextInput" rows="2" maxlength="100" placeholder="Focused&#10;but dreaming."></textarea></label>';panel.appendChild(mediaSection)}
     const sections=$$('.customize-section',panel),wallpaperSection=sections.find(section=>section!==profileSection&&section!==mediaSection&&!section.classList.contains('widget-style-section')),widgetSection=sections.find(section=>section.classList.contains('widget-style-section'));
     if(wallpaperSection){wallpaperSection.id=wallpaperSection.id||'profileWallpaperEditor';wallpaperSection.dataset.profileEditorPane='wallpaper';wallpaperSection.setAttribute('role','tabpanel')}
-    if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel')}
+    if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel');
+      const auraText=$('#profileAuraTextInput',panel)?.closest('label');
+      if(auraText&&auraText.parentElement!==widgetSection)widgetSection.append(auraText);
+      const heading=$('h3',widgetSection);if(heading)heading.textContent='Widget & Aura';
+      const intro=$('p',widgetSection);if(intro)intro.textContent='Choose widget styling, color and your Aura hue and text.';
+    }
+    const mediaHeading=$('h3',mediaSection);if(mediaHeading)mediaHeading.textContent='Song';
+    const mediaIntro=$('p',mediaSection);if(mediaIntro)mediaIntro.textContent='Choose the song shown on your profile.';
     let tabs=$('#profileEditorTabs',panel);
-    if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileMediaEditor" data-profile-editor-tab="media">Song &amp; Aura</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widgets &amp; colors</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
-    if(!tabs.querySelector('[data-profile-editor-tab="media"]')){const mediaTab=document.createElement('button');mediaTab.type='button';mediaTab.setAttribute('role','tab');mediaTab.setAttribute('aria-controls','profileMediaEditor');mediaTab.dataset.profileEditorTab='media';mediaTab.textContent='Song & Aura';tabs.querySelector('[data-profile-editor-tab="wallpaper"]')?.insertAdjacentElement('beforebegin',mediaTab)}
+    if(!tabs){tabs=document.createElement('div');tabs.id='profileEditorTabs';tabs.className='profile-editor-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Profile editor sections');tabs.innerHTML='<button type="button" role="tab" aria-controls="profileDetailsEditor" data-profile-editor-tab="profile">Profile</button><button type="button" role="tab" aria-controls="profileMediaEditor" data-profile-editor-tab="media">Song</button><button type="button" role="tab" aria-controls="profileWallpaperEditor" data-profile-editor-tab="wallpaper">Wallpaper</button><button type="button" role="tab" aria-controls="profileWidgetEditor" data-profile-editor-tab="widgets">Widget &amp; Aura</button>';if(panelTitle)panelTitle.insertAdjacentElement('afterend',tabs);else panel.prepend(tabs)}
+    // Profile Picture is first. Highlights are now managed from Archive.
+    // Reuse any tab from an older first paint instead of creating duplicates.
+    let pictureTab=tabs.querySelector('[data-profile-editor-tab="picture"]')||tabs.querySelector('[data-profile-editor-tab="highlights"]');
+    if(!pictureTab){
+      pictureTab=document.createElement('button');pictureTab.type='button';
+      pictureTab.setAttribute('role','tab');
+    }
+    pictureTab.dataset.profileEditorTab='picture';
+    pictureTab.setAttribute('aria-controls','profilePictureEditor');
+    pictureTab.textContent='Profile Picture';
+    if(tabs.firstElementChild!==pictureTab)tabs.prepend(pictureTab);
+    if(!tabs.querySelector('[data-profile-editor-tab="media"]')){const mediaTab=document.createElement('button');mediaTab.type='button';mediaTab.setAttribute('role','tab');mediaTab.setAttribute('aria-controls','profileMediaEditor');mediaTab.dataset.profileEditorTab='media';mediaTab.textContent='Song';tabs.querySelector('[data-profile-editor-tab="wallpaper"]')?.insertAdjacentElement('beforebegin',mediaTab)}
+    const mediaTabLabel=$('[data-profile-editor-tab="media"]',tabs);if(mediaTabLabel)mediaTabLabel.textContent='Song';
+    const widgetTabLabel=$('[data-profile-editor-tab="widgets"]',tabs);if(widgetTabLabel)widgetTabLabel.textContent='Widget & Aura';
     let actions=$('#profileEditorActions',panel);
     if(!actions){actions=document.createElement('div');actions.id='profileEditorActions';actions.className='profile-editor-actions';panel.appendChild(actions)}
     let saveAction=$('#saveProfileBtn',actions);if(!saveAction){saveAction=document.createElement('button');saveAction.type='button';saveAction.className='secondary-btn profile-editor-save';saveAction.id='saveProfileBtn';saveAction.textContent='Save changes';actions.appendChild(saveAction)}
@@ -1020,20 +1649,22 @@
     let updatePrivacy=$('#profileUpdatePrivacy',actions);
     if(!updatePrivacy){
       updatePrivacy=document.createElement('label');updatePrivacy.id='profileUpdatePrivacy';updatePrivacy.className='profile-update-privacy';
-      updatePrivacy.innerHTML='<input id="profileSilentUpdate" type="checkbox"><span>Do not notify followers/connections of this update</span>';
+      updatePrivacy.innerHTML='<input id="profileSilentUpdate" type="checkbox" checked><span>Do not notify followers/connections of this update</span>';
       actions.prepend(updatePrivacy);
     }
     if(actions.previousElementSibling!==tabs)tabs.insertAdjacentElement('afterend',actions);
     actions.hidden=false;saveAction.hidden=false;cancelAction.hidden=false;
     const showTab=key=>{$$('[data-profile-editor-pane]',panel).forEach(pane=>{pane.hidden=pane.dataset.profileEditorPane!==key});$$('[data-profile-editor-tab]',tabs).forEach(tab=>{const active=tab.dataset.profileEditorTab===key;tab.setAttribute('aria-selected',active?'true':'false');tab.tabIndex=active?0:-1})};
     if(tabs.dataset.biglwaTabsBound!=='1'){tabs.dataset.biglwaTabsBound='1';tabs.addEventListener('click',event=>{const tab=event.target.closest('[data-profile-editor-tab]');if(tab)showTab(tab.dataset.profileEditorTab)})}
-    const syncMoodPreview=()=>renderWeeklyMood(moodCard,$('#profileMoodInput',panel)?.value.trim()||'add this week’s #mood',$('#profileMoodStyle',panel)?.value||'qwiky-note');
+    const syncMoodPreview=()=>renderWeeklyMood(moodCard,$('#profileMoodInput',panel)?.value.trim()||'',$('#profileMoodStyle',panel)?.value||'qwiky-note');
     if(profileSection.dataset.biglwaMoodPreviewBound!=='1'){
       profileSection.dataset.biglwaMoodPreviewBound='1';
       profileSection.addEventListener('input',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
       profileSection.addEventListener('change',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
     }
     const fillEditor=()=>{
+      // Private by default for every account and every edit session; the member can opt in to notifying others.
+      const silent=$('#profileSilentUpdate',panel);if(silent)silent.checked=true;
       $('#profileNameInput',panel).value=display?display.textContent.trim():'';
       $('#profileUsernameInput',panel).value=handle?handle.textContent.trim().replace(/^@/,''):'';
       $('#profileBioEditor',panel).value=bio?bio.textContent.trim():'';
@@ -1041,15 +1672,15 @@
       $('#profileLocationInput',panel).value=loc?loc.textContent.replace(/^⌖\s*/,'').trim():'';
       $('#profileWebsiteInput',panel).value=web?web.textContent.trim():'';
       const moodValue=$('.weekly-mood-value',moodCard)?.textContent||'';
-      $('#profileMoodInput',panel).value=moodValue==='add this week’s #mood'?'':moodValue;
+      $('#profileMoodInput',panel).value=moodCard.dataset.moodPreview==='1'||moodValue==='add this week’s #mood'?'':moodValue;
       $('#profileMoodStyle',panel).value=moodCard.dataset.moodStyle||'qwiky-note';
       const aura=$('#studioApp .aura-card p');$('#profileAuraTextInput',panel).value=aura?aura.innerText.trim():'Focused\nbut dreaming.';
       syncMoodPreview();
     };
     let button=$('#editProfileBtn',card),moodBeforeEdit=null;
     const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');panel.hidden=true;button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
-    const cancelEdit=()=>{if(moodBeforeEdit){renderWeeklyMood(moodCard,moodBeforeEdit.text,moodBeforeEdit.style);moodBeforeEdit=null}fillEditor();endEdit()};
-    const startEdit=()=>{moodBeforeEdit={text:$('.weekly-mood-value',moodCard)?.textContent||'add this week’s #mood',style:moodCard.dataset.moodStyle||'qwiky-note'};fillEditor();showTab('profile');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
+    const cancelEdit=()=>{if($('#saveProfileBtn',panel)?.disabled)return;window.BIGLWAStudioAppearance?.cancelEdit?.();if(moodBeforeEdit){renderWeeklyMood(moodCard,moodBeforeEdit.isPreview?'':moodBeforeEdit.text,moodBeforeEdit.style);moodBeforeEdit=null}fillEditor();endEdit()};
+    const startEdit=()=>{window.BIGLWAStudioAppearance?.beginEdit?.();moodBeforeEdit={text:$('.weekly-mood-value',moodCard)?.textContent||'',isPreview:moodCard.dataset.moodPreview==='1',style:moodCard.dataset.moodStyle||'qwiky-note'};fillEditor();window.BIGLWAHighlightEditor?.mount?.();showTab('picture');panel.hidden=false;panel.classList.remove('panel-hidden');card.classList.add('profile-is-editing');button?.setAttribute('aria-expanded','true');if(button)button.textContent='Cancel'};
     if(button&&button.dataset.biglwaProfileBound!=='3'){
       const fresh=button.cloneNode(true);button.replaceWith(fresh);button=fresh;button.dataset.biglwaProfileBound='3';button.type='button';button.textContent='Edit profile';
       button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(card.classList.contains('profile-is-editing'))cancelEdit();else startEdit()});
@@ -1057,16 +1688,22 @@
     if(button){button.hidden=false;button.style.pointerEvents='auto';button.setAttribute('aria-controls','wallpaperPanel');rail.insertBefore(button,railLocation||null)}
     const saveButton=$('#saveProfileBtn',panel);
     if(saveButton&&saveButton.dataset.biglwaProfileBound!=='3'){
-      saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',()=>{
+      saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',async()=>{
+        if(saveButton.disabled)return;
+        saveButton.disabled=true;saveButton.textContent='Saving…';
+        try{
         const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim(),mood:$('#profileMoodInput',panel).value.trim(),moodStyle:$('#profileMoodStyle',panel).value,auraText:$('#profileAuraTextInput',panel).value.trim()};
-        try{localStorage.setItem('biglwaProfileDetails',JSON.stringify(details));if(details.username){const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];next.push({username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)});localStorage.setItem('biglwaUserDirectory',JSON.stringify(next))}}catch{} try{window.BigLWAUserDirectory?.saveProfile?.(details)}catch{}
-        try{window.BIGLWAStudioAppearance?.save?.()}catch{}
+        try{if(!writeOwnProfile(details))return;if(details.username){const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];next.push({username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)});localStorage.setItem('biglwaUserDirectory',JSON.stringify(next))}}catch{}
+        if(!await window.BigLWAUserDirectory?.saveProfile?.(details))throw Error('Profile could not be saved to your account. Please retry.');
         const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
         const savedDocked=readJson('biglwaDockedWidgetsV3'),savedOrder=readJson('biglwaWidgetOrder');
-        try{window.BigLWAUserDirectory?.saveCustomizations?.({appearance:{color:$('#widgetColor')?.value||'#faf7f1',radius:$('#widgetRadius')?.value||'16',opacity:$('#widgetOpacity')?.value||'84',blur:$('#widgetBlur')?.value||'18',aura:$('#auraColor')?.value||'#d85f6d'},wallpaper:{fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'},layout:{docked:Array.isArray(savedDocked)?savedDocked:[],order:savedOrder&&typeof savedOrder==='object'?savedOrder:{}}})}catch{}
+        const lookSaved=await window.BigLWAUserDirectory?.saveCustomizations?.({appearance:{color:$('#widgetColor')?.value||'#faf7f1',radius:$('#widgetRadius')?.value||'16',opacity:$('#widgetOpacity')?.value||'84',blur:$('#widgetBlur')?.value||'18',aura:$('#auraColor')?.value||'#d85f6d'},wallpaper:{fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'},layout:{docked:Array.isArray(savedDocked)?savedDocked:[],order:savedOrder&&typeof savedOrder==='object'?savedOrder:{}}});
+        if(!lookSaved)throw Error('Appearance could not be saved to your account. Please retry.');
+        window.BIGLWAStudioAppearance?.save?.();
         applyProfilePayload(details);moodBeforeEdit=null;$('#saveStudioMusicMeta',panel)?.click();
         window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity, mood, song, Aura, and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
         endEdit();
+        }catch(error){let status=$('#profileSaveStatus',panel);if(!status){status=document.createElement('p');status.id='profileSaveStatus';status.setAttribute('role','alert');saveButton.after(status)}status.textContent=error.message;}finally{saveButton.disabled=false;saveButton.textContent='Save changes';}
       })
     }
     const cancel=$('#cancelProfileBtn',panel);if(cancel&&cancel.dataset.biglwaProfileBound!=='3'){cancel.dataset.biglwaProfileBound='3';cancel.addEventListener('click',cancelEdit)}
@@ -1126,63 +1763,290 @@
   }
 
   function ensureProfileInitial(){
-    const card=$('#studioApp .profile-card');if(!card)return;
-    const avatar=$('.profile-avatar',card);if(!avatar||avatar.querySelector('img'))return;
-    const existing=avatar.textContent.trim();
-    if(existing){avatar.dataset.profileInitial=existing.charAt(0).toUpperCase();avatar.dataset.profilePictureLocked='1';return}
-    let saved=null;try{saved=JSON.parse(localStorage.getItem('biglwaProfileDetails')||'null')}catch{}
-    const candidates=[saved?.username,window.__biglwaProfileUsername,$('.profile-name-line h1',card)?.textContent,$('.mini-avatar')?.textContent,$('#loginUsername')?.value];
-    const username=candidates.map(value=>String(value||'').trim().replace(/^@/,'')).find(value=>value&&value!=='LS')||'B';
-    const initial=username.charAt(0).toUpperCase();
-    avatar.textContent=initial;avatar.dataset.profileInitial=initial;avatar.dataset.profilePictureLocked='1';avatar.setAttribute('aria-label',`Profile picture initial ${initial}`);
+    const app=$('#studioApp'),avatar=$('.profile-card .profile-avatar',app),mini=$('.profile-mini .mini-avatar',app);
+    if(!avatar)return;
+    const who=window.__biglwaIdentity||{};
+    const stored=readOwnProfile()||{};
+    const username=String(who.username||stored.username||'').trim().replace(/^@/,'').toLowerCase();
+    // Use the entered name only; an @handle can never be a substitute.
+    const candidate=[who.name,stored.name].map(v=>String(v||'').trim()).find(v=>v&&v.toLowerCase()!==username)||'';
+    // No generic "B" fallback: only the chosen display name owns the monogram.
+    // An unset name leaves the no-signal portrait without a letter until saved.
+    const initial=candidate?Array.from(candidate.trim())[0].toLocaleUpperCase():'';
+    const photo=String(who.avatarUrl||stored.profilePhoto?.url||stored.avatarUrl||'').trim();
+    for(const el of [avatar,mini].filter(Boolean)){
+      if(photo){
+        const bg='url("'+photo.replace(/"/g,'')+'")';
+        if(el.style.backgroundImage!==bg)el.style.backgroundImage=bg;
+        el.style.backgroundSize='cover';el.style.backgroundPosition='center';
+        el.classList.add('has-photo');el.classList.remove('lwa-default-tv-avatar');
+        if(el.textContent.trim())el.textContent='';
+      }else{
+        if(el.textContent!==initial)el.textContent=initial;
+        el.style.backgroundImage='linear-gradient(rgba(10,7,13,.12),rgba(10,7,13,.4)),url("/assets/tv-no-signal.svg")';
+        el.style.backgroundSize='cover';el.style.backgroundPosition='center';
+        el.classList.remove('has-photo');el.classList.add('lwa-default-tv-avatar');
+        el.style.fontFamily='"CS Bergamot Stitched",Georgia,serif';
+      }
+      el.dataset.profileInitial=initial;
+      el.dataset.profilePictureLocked='1';
+      el.setAttribute('aria-label',candidate?candidate+' profile picture':'Profile picture');
+    }
   }
 
   function syncRealProfileMetrics(){
     const app=$('#studioApp');if(!app)return false;
     const stats=$('.profile-card .stats',app);if(!stats)return false;
-    const source=window.__biglwaProfileMetrics&&typeof window.__biglwaProfileMetrics==='object'?window.__biglwaProfileMetrics:{};
-    const number=(key)=>Number.isFinite(Number(source[key]))?String(Math.max(0,Number(source[key]))):'0';
-    const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach']];
-    const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\\s+/g,' ').trim()]);
-    const expected=metrics.map(([key,label])=>[key,number(key)+' '+label]);
+    // A visitor (or a signed-in member previewing a friend) must only ever see the
+    // published aggregates of the profile being viewed, never the viewer's own.
+    const previewing=document.documentElement.classList.contains('biglwa-preview-mode')||!!window.__biglwaPublicStorageView;
+    const viewed=previewing?window.__biglwaViewedProfile:null;
+    const uid=String(window.__biglwaIdentity?.uid||'');
+    const source=previewing?(viewed?.publicStats||{}):(window.__biglwaProfileMetrics||{});
+    const owned=previewing?!!viewed:!!uid&&source.uid===uid;
+    const formatMetric=(kind,value)=>{
+      if(typeof window.__biglwaFormatMetric==='function')return window.__biglwaFormatMetric(kind,value);
+      if(value==null||value===''||!Number.isFinite(Number(value))||Number(value)<0)return '—';
+      const amount=Number(value),trim=v=>String(Math.round(v*10)/10).replace(/\.0$/,'');
+      if(kind==='followers')return amount>=1e6?trim(amount/1e6)+'m+':new Intl.NumberFormat().format(amount);
+      if(kind==='reach'||kind==='likes'){
+        if(amount>=1e6)return trim(amount/1e6)+'m+';
+        if(amount>=1000)return trim(amount/1000)+'k+';
+      }
+      return new Intl.NumberFormat().format(amount);
+    };
+    const number=key=>owned&&source[key]!==null&&source[key]!==undefined&&
+      Number.isFinite(Number(source[key]))?formatMetric(key,Number(source[key])):'—';
+    const followerNumber=owned?(source.followers!=null?formatMetric('followers',Number(source.followers)):String(source.followersDisplay||'—')):'—';
+    const metrics=[['followers','Followers'],['following','Following'],['connections','Connections'],['reach','Reach'],['likes','Likes']];
+    const current=[...stats.children].map(item=>[item.dataset.profileStat||'',item.textContent.replace(/\s+/g,' ').trim()]);
+    const expected=metrics.map(([key,label])=>[key,(key==='followers'?followerNumber:number(key))+' '+label]);
     const same=current.length===expected.length&&current.every((item,i)=>item[0]===expected[i][0]&&item[1]===expected[i][1]);
     if(!same){
       stats.replaceChildren(...metrics.map(([key,label])=>{
         const item=document.createElement('span');item.dataset.profileStat=key;
-        const value=document.createElement('b');value.textContent=number(key);
-        item.append(value,document.createTextNode(' '+label));return item;
+        const value=document.createElement('b');value.textContent=key==='followers'?followerNumber:number(key);
+        item.append(value,document.createTextNode(' '+label));
+        if(['followers','likes','reach','connections'].includes(key)){
+          item.classList.add('biglwa-followers-trigger');
+          item.tabIndex=0;item.setAttribute('role','button');
+          item.setAttribute('aria-label','Open Skeleton Key for verified follower counts by app');
+          item.title='Show provider counts in Skeleton Key';
+        }
+        return item;
       }));
     }
+    if(stats.dataset.biglwaAnalyticsBound!=='1'){
+      stats.dataset.biglwaAnalyticsBound='1';
+      const navigate=event=>{
+        const node=event.target.closest?.('[data-profile-stat]');
+        if(!node)return;
+        if(event.type==='keydown'&&event.key!=='Enter'&&event.key!==' ')return;
+        if(event.type==='keydown')event.preventDefault();
+        const metric=node.dataset.profileStat;
+        if(!['followers','likes','reach','connections'].includes(metric))return;
+        window.BigLWASiteGuide?.openAnalytics?.(metric);
+      };
+      stats.addEventListener('click',navigate);
+      stats.addEventListener('keydown',navigate);
+    }
+    document.getElementById('biglwaFollowersPopover')?.remove();
     stats.dataset.biglwaMetricSource='real-profile-metrics';
     return true;
   }
-
+  // Public previews rebuild the strip through the same code path as the owner,
+  // so Likes/Reach stay present without borrowing the viewer's numbers.
+  window.__biglwaSyncProfileMetrics=syncRealProfileMetrics;
   function latestStreamTitle(){
+    const current=window.BigLWAStreamGuide?.lastWatchedTitle;
+    if(current)return String(current);
+    const uid=String(window.__biglwaIdentity?.uid||'').trim();
+    if(uid){
+      try{
+        const last=JSON.parse(localStorage.getItem('biglwaStreamLastPlayedV1:'+uid)||'null');
+        if(last?.title)return String(last.title).slice(0,120);
+      }catch{}
+    }
     try{const saved=JSON.parse(localStorage.getItem('biglwaModule_stream')||'[]');const title=Array.isArray(saved)&&saved[0]?.title?String(saved[0].title).trim():'';return title||'After Hours: u up?'}catch{return 'After Hours: u up?'}
+  }
+
+  const unavailableStreamThumbs=new Set();
+  // A cached thumbnail must not destroy or obscure the live Studio media projection.
+  // Keep one image node and only change its src when the actual last selection changes.
+  function lastStreamThumbnail(){
+    const fallback='/assets/station-radio-room.webp?v=20260916-station-1';
+    const uid=String(window.__biglwaIdentity?.uid||'').trim();
+    if(!uid)return fallback;
+    let watched;
+    try{watched=JSON.parse(localStorage.getItem('biglwaStreamLastPlayedV1:'+uid)||'null')}catch{return fallback}
+    if(!watched||watched.kind==='station')return fallback;
+    const player=window.BigLWAStreamGuide;
+    if(watched.kind==='feature'){
+      const entry=(player?.featured||[]).find(item=>item.id===watched.id);
+      if(entry?.videoId&&/^[A-Za-z0-9_-]{11}$/.test(entry.videoId)){
+       const thumb='https://i.ytimg.com/vi/'+entry.videoId+'/hqdefault.jpg';
+       return unavailableStreamThumbs.has(thumb)?fallback:thumb;
+      }
+      if(entry?.provider==='archive-video'){
+       const thumb='https://archive.org/services/img/BettyBoopCartoons';
+       return unavailableStreamThumbs.has(thumb)?fallback:thumb;
+      }
+    }
+    if(watched.kind==='program')return fallback;
+    return fallback;
   }
 
   function syncStreamWidget(){
     const app=$('#studioApp');if(!app)return;
     const streamTitle=latestStreamTitle();
+    const streamThumbnail=lastStreamThumbnail();
     $$('.stream-card,.streaming-card,[data-widget-route="stream"],[data-widget-id="stream"],#stream',app).forEach(card=>{
-      const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Stream';
-      const screen=$('.stream-screen',card)||card;
+      const header=$('.card-head h2,.card-head h3',card);if(header&&header.textContent!=='Stream')header.textContent='Stream';
+      const screen=$('.stream-screen',card);
+      if(!screen)return;
+      // Top ON AIR badge was a second status; footer alone is authoritative.
+      Array.from(screen.querySelectorAll(':scope > .on-air')).forEach(badge=>badge.remove());
+      // Keep this caption outside the preview even while Stream has an active player.
+      // A zero from the former template was hardcoded, not a true watching count.
+      const oldCounts=$$(':scope > span, :scope > .stream-watching-count',screen)
+        .filter(el=>/\b(?:watching|viewers?|watchers?)\b/i.test(el.textContent||''));
+      let status=$('.stream-watching-status',card)||oldCounts.shift()||document.createElement('div');
+      oldCounts.forEach(el=>el.remove());
+      status.className='stream-watching-status';
+      if(status.textContent!=='ON AIR')status.textContent='ON AIR';
+      status.setAttribute('aria-label','On air: curated Stream playback; live viewers are not tracked');
+      if(status.previousElementSibling!==screen)screen.insertAdjacentElement('afterend',status);
+      if(screen.classList.contains('stream-preview-active'))return;
       let photo=$('.stream-station-photo',screen);
-      if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.src='/assets/station-radio-room.webp?v=20260916-station-1';photo.alt='Sticker-covered radio booth lit in red and blue with a host at a microphone';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
-      const title=$('strong',screen);if(title)title.textContent=streamTitle;
-      const counts=$$('span,.stream-watching-count',screen).filter(el=>/watching|viewers?|watchers?|streaming/i.test(el.textContent));
-      const count=counts.shift();counts.forEach(extra=>extra.remove());
-      if(count)count.textContent='0 watching';
-      else{const status=document.createElement('span');status.className='stream-watching-count';status.textContent='0 watching';screen.appendChild(status)}
+      if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
+      if(photo.getAttribute('src')!==streamThumbnail)photo.src=streamThumbnail;
+      photo.alt=streamThumbnail.includes('i.ytimg.com')?'Last watched Stream video thumbnail':streamThumbnail.includes('archive.org')?'Betty Boop Stream video thumbnail':'Radio booth Stream preview';
+      photo.hidden=false;
+      photo.onerror=()=>{
+       unavailableStreamThumbs.add(photo.getAttribute('src')||'');
+       photo.onerror=null;
+       photo.src='/assets/station-radio-room.webp?v=20260916-station-1';
+      };
+      const title=$('strong',screen);if(title&&title.textContent!==streamTitle)title.textContent=streamTitle;
+      // Audience labels live in the footer above; do not overlay the player.
     });
+  }
+
+  function syncRoomAvailability(){
+    const card=$('#studioApp #rooms')||$('#studioApp #room');
+    if(!card)return;
+    const footer=$('.room-footer',card);
+    if(!footer)return;
+    const candidates=$$('span,small,.room-online-count,.online-count',footer);
+    let status=$('.room-presence-status',footer);
+    const old=candidates.filter(node=>/\b[0-9][0-9,.]*\s*online\b|\bonline\s*[0-9][0-9,.]*/i.test(node.textContent||''));
+    if(!status)status=old.shift()||document.createElement('span');
+    old.forEach(node=>node.remove());
+    status.classList.add('room-presence-status');
+    if(status.textContent!=='ONLINE')status.textContent='ONLINE';
+    status.setAttribute('aria-label','Room available; real-time participant count is not available');
+    if(status.parentElement!==footer)footer.appendChild(status);
   }
 
   function syncQwikyNoteWidget(){
     const card=$('#studioApp #notes');if(!card)return;
-    const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Qwiky Note';
-    const sub=$('.sub',card);if(sub)sub.textContent='Pin a thought before it floats away.';
-    card.dataset.widgetLabel='Qwiky Note';card.dataset.search=(card.dataset.search||'')+' qwiky sticky note';
-    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Qwiky Note');note.title='Open Qwiky Note'}
+    const header=$('.card-head h2,.card-head h3',card);if(header)header.textContent='Sqwidz';
+    const sub=$('.sub',card);if(sub)sub.textContent='Your IG Create Mode, tweets, Tumblr notes + story builder in one place.';
+    card.dataset.widgetLabel='Sqwidz';card.dataset.search=(card.dataset.search||'')+' sqwibz instagram create mode tweets tumblr story builder';
+    const note=$('.note-paper',card);if(note){note.setAttribute('aria-label','Open Sqwib');note.title='Open Sqwib'}
+  }
+
+  function syncVeveLauncher(){
+    const app=$('#studioApp'),bar=$('.hero-action-bar',app);
+    if(!app||!bar)return;
+    // Restore discovery from the original center shortcut, which the retired
+    // sidebar-navigation renderer once re-labelled and then abandoned.
+    let button=$('#mobileCreate',bar);
+    if(!button){
+      button=document.createElement('button');button.id='mobileCreate';button.type='button';
+      const links=[...bar.children];
+      const middle=Math.floor(links.length/2);
+      if(links[middle])bar.insertBefore(button,links[middle]);
+      else bar.append(button);
+    }
+    button.classList.add('studio-veve-launcher');
+    button.type='button';
+    if(button.dataset.biglwaVeveTitle!=='1'||!button.querySelector('.studio-veve-mark')){
+      button.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
+      button.dataset.biglwaVeveTitle='1';
+    }
+    button.title='Open veve';button.setAttribute('aria-label','Open veve discovery');
+    button.dataset.shortcutRoute='veve';
+    button.dataset.open='veve';
+    // A legacy "Create" tile in the same position duplicates discovery.
+    const old=[...bar.children].filter(node=>node!==button&&/^(create)$/i.test(node.textContent?.trim()||'')&&
+      /^(#(?:desk|create)|create)$/i.test(node.getAttribute('href')||node.dataset?.open||''));
+    old.forEach(node=>node.remove());
+  }
+  function syncBoothWidget(){
+    const card=$('#studioApp #camera');
+    if(card){
+      const header=$('.card-head h2,.card-head h3',card);
+      if(header)header.textContent='booth';
+      card.dataset.widgetLabel='Booth';
+      const sub=$('.sub',card);
+      if(sub)sub.textContent='Use our booth to feel yourself or chat with other bookiniz using Big LWA.';
+      if(!String(card.dataset.search||'').includes('video booth'))card.dataset.search=(card.dataset.search||'')+' booth photo booth video booth';
+    }
+    // Rename only the visible caption, never routing/storage keys or icon markup.
+    $$('#studioApp [data-sidebar-route="camera"] .sidebar-route-label,#studioApp [data-open="camera"] .shortcut-label').forEach(label=>{
+      if(/^(photo\s*booth|photobooth|booth|bookini)$/i.test(label.textContent?.trim()||''))label.textContent='booth';
+    });
+  }
+
+  function syncSmallWidgetLabels(){
+    const connect=$('#studioApp #connect');
+    if(connect){
+      connect.querySelectorAll('button,a').forEach(control=>{
+        let changed=false;
+        for(const leaf of control.querySelectorAll('span,small,b,strong')){
+          if(!leaf.children.length&&/^invite friends(?:\s*[→↗])?$/i.test(leaf.textContent.trim())){
+            leaf.textContent='invite boo·kiniz';changed=true;
+          }
+        }
+        if(!changed&&!control.children.length&&/^invite friends(?:\s*[→↗])?$/i.test(control.textContent.trim())){
+          control.textContent='invite boo·kiniz';changed=true;
+        }
+        if(changed)control.setAttribute('aria-label','Invite boo·kiniz');
+      });
+    }
+    const tools=$('#studioApp #tools');
+    if(tools){
+      const sub=$('.sub',tools);
+      if(sub)sub.textContent="every tool you'll ever need is here. we promise.";
+      const cta=$('.card-cta',tools);
+      if(cta){cta.textContent='open tools';cta.dataset.open='tools';cta.setAttribute('aria-label','Open tools')}
+    }
+  }
+  function watchRoomStreamFooter(){
+    const app=$('#studioApp');if(!app||app.dataset.roomStreamFooterWatcher==='1')return;
+    app.dataset.roomStreamFooterWatcher='1';
+    let scheduled=false;
+    const repair=()=>{
+      if(scheduled)return;
+      scheduled=true;
+      setTimeout(()=>{scheduled=false;
+        try{syncRoomAvailability();syncStreamWidget()}catch(error){console.warn('Room/Stream status layout retry',error)}
+      },80);
+    };
+    // These widgets load their card content asynchronously; restore footer
+    // placement after re-renders without inventing people/viewer numbers.
+    for(const node of [$('#rooms',app)||$('#room',app),$('#stream',app)]){
+      if(node)new MutationObserver(mutations=>{
+        if(mutations.some(m=>m.type==='childList'&&[...m.addedNodes,...m.removedNodes].some(n=>{
+          if(n.nodeType!==1)return false;
+          return !n.matches?.('.room-presence-status,.stream-watching-status,.stream-station-photo')&&!n.closest?.('.room-presence-status,.stream-watching-status');
+        })))repair();
+      }).observe(node,{childList:true,subtree:true});
+    }
+    document.addEventListener('biglwa:stream-updated',repair);
+    document.addEventListener('biglwa:module-close',repair);
+    repair();
   }
 
   function ensureRealWorldDefaults(){
@@ -1192,7 +2056,11 @@
       feedList.replaceChildren();feedList.dataset.biglwaReset='1';
     });
     syncStreamWidget();
+    syncRoomAvailability();
+    watchRoomStreamFooter();
     syncQwikyNoteWidget();
+    syncBoothWidget();
+    syncVeveLauncher();
     if(document.documentElement.dataset.biglwaStreamSyncBound!=='1'){
       document.documentElement.dataset.biglwaStreamSyncBound='1';
       document.addEventListener('biglwa:stream-updated',syncStreamWidget);
@@ -1203,29 +2071,14 @@
     if(document.documentElement.dataset.biglwaMetricsObserver==='1')return;
     const target=$('#studioApp')||document.body;if(!target)return;
     document.documentElement.dataset.biglwaMetricsObserver='1';
-    new MutationObserver(()=>{syncRealProfileMetrics()}).observe(target,{subtree:true,childList:true,characterData:true});
+    window.addEventListener('biglwa:profile-metrics',syncRealProfileMetrics);
     syncRealProfileMetrics();
   }
 
   function ensureResetValues(){
-    const stats=$('#studioApp .profile-card .stats');
-    if(stats){
-      const items=$$('span',stats);
-      let followersFound=false;
-      items.forEach(item=>{
-        const label=item.textContent.trim().toLowerCase();
-        const value=$('b',item);
-        if(!value)return;
-        if(/\\bfollow(?:ers|ing)?\\b/.test(label)){
-          value.textContent='0';
-          followersFound=true;
-        }
-        if(/\\bprojects?\\b|\\brooms?\\b/.test(label))value.textContent='0';
-      });
-      const nums=$$('b',stats);
-      if(!followersFound&&nums.length>0)nums[0].textContent='0';
-      stats.dataset.biglwaReset='1';
-    }
+    // Followers are managed by provider-backed analytics. The old initialization
+    // handler unconditionally wrote zero on every navigation and async repaint.
+    // Never reset or invent audience totals here.
     const rank=$('#studioApp .profile-card .real-rank');
     if(rank){
       const value=$('strong',rank),track=$('.rank-track i',rank),next=$('.rank-next',rank);
@@ -1249,7 +2102,63 @@
     }
   }
 
-  function run(){ensureStyles();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncQwikyNoteWidget();ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock($('#studioApp'));ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues()}
+  function ensureArcadeMachineLink(){
+    const machine=$('#studioApp #games .games-library');
+    if(!machine||machine.dataset.arcadeWholeMachineLink==='1')return;
+    machine.dataset.arcadeWholeMachineLink='1';
+    machine.setAttribute('role','button');
+    machine.setAttribute('tabindex','0');
+    machine.setAttribute('aria-label','Open the Big LWA Arcade and game directory');
+    machine.title='Open Arcade';
+    const openArcade=()=>{
+      const launcher=$('#studioApp #games .arrow-btn[data-open="games"],#studioApp #games [data-open="games"]:not(.games-library)');
+      if(launcher)launcher.click();
+      else document.querySelector('#studioApp [data-sidebar-route="games"]')?.click();
+    };
+    machine.addEventListener('click',event=>{
+      if(event.target.closest('button,a,input,select,textarea,[contenteditable="true"]'))return;
+      openArcade();
+    });
+    machine.addEventListener('keydown',event=>{
+      if(event.target!==machine||!['Enter',' '].includes(event.key))return;
+      event.preventDefault();openArcade();
+    });
+  }
+  function synchronizeWidgetDockAnchor(){
+    const app=$('#studioApp'),header=$('.topbar',app);
+    if(!app||!header)return;
+    const sync=()=>{
+      // The fixed topbar and fixed dock must share an invariant height.
+      // getBoundingClientRect().bottom moves during elastic overscroll on
+      // Safari/Chrome; offsetHeight does not. Only resize can change this.
+      const offset=Math.max(48,Math.min(window.innerHeight-80,
+        Math.round(header.offsetHeight||header.getBoundingClientRect().height||64)));
+      const value=offset+'px';
+      if(app.style.getPropertyValue('--biglwa-dock-top')!==value)
+        app.style.setProperty('--biglwa-dock-top',value);
+    };
+    sync();
+    if(app.dataset.dockAnchorBound==='1')return;
+    app.dataset.dockAnchorBound='1';
+    window.addEventListener('resize',sync,{passive:true});
+    // No scroll listener: the dock no longer chases scroll/bounce position.
+    if(typeof ResizeObserver!=='undefined'){
+      const observer=new ResizeObserver(sync);observer.observe(header);
+      app._biglwaDockHeaderObserver=observer;
+    }
+  }
+  function run(){
+    // Restore the essential dock before optional widgets / editors can fail.
+    try{ensureStyles();synchronizeWidgetDockAnchor();ensureSidebar()}catch(error){console.warn('[BIGLWA] Early widget dock hydration',error)}
+    ensureArcadeMachineLink();ensureProfileEditor();bindStableStudioInteractions();ensureTopLogo();ensurePolicyBrands();ensureLoginSnake();syncVeveLauncher();
+    for(const update of [syncQwikyNoteWidget,syncBoothWidget,syncSmallWidgetLabels]){try{update()}catch(error){console.warn('[BIGLWA] Widget caption update',error)}}
+    // Sidebar has its own recovery boundary, so an unrelated editor or
+    // account-layout exception cannot leave its primary navigation empty.
+    try{ensureSidebar()}catch(error){console.warn('[BIGLWA] Widget dock setup retry',error)}
+    ensureControls();restoreLocalStudioOrder($('#studioApp'));syncSidebarShortcutSystem();
+    try{syncPrimaryWidgetDock($('#studioApp'))}catch(error){console.warn('[BIGLWA] Widget dock refresh retry',error)}
+    ensureWidgetActions();ensureProfileInitial();ensureStudioHeadersLowercase();ensureRealWorldDefaults();ensureRealWorldMetricsObserver();ensureTheme();ensureResetValues();
+  }
   if(document.documentElement.dataset.biglwaCustomizationSyncBound!=='1'){
     document.documentElement.dataset.biglwaCustomizationSyncBound='1';
     window.addEventListener('biglwa:customization-remote',event=>{
@@ -1259,7 +2168,7 @@
   }
   if(document.documentElement.dataset.biglwaSymbolSyncBound!=='1'){
     document.documentElement.dataset.biglwaSymbolSyncBound='1';
-    document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshNavigationCatalogFromWidgets(app);syncSidebarShortcutSystem();refreshMinimizedWidgetIcons(app)});
+    document.addEventListener('biglwa:widget-symbols-ready',()=>{const app=$('#studioApp');if(!app)return;refreshSidebarNavigationIcons(app);refreshMinimizedWidgetIcons(app);syncPrimaryWidgetDock(app)});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,0),{once:true});
@@ -1268,6 +2177,23 @@
   setTimeout(run,1600);
   setTimeout(run,2600);
   setTimeout(run,4200);
+  // Never mutate remote/customized shortcut settings during recovery.
+  // This is a read-only DOM rehydration path on route/auth changes.
+  function rescueSidebar(){
+    const app=$('#studioApp');if(!app)return;
+    const sidebar=$('.sidebar',app),top=$('.sidebar-top',sidebar||app);
+    if(!sidebar||!top)return;
+    const dock=$('#studioSidebarShortcutDock',app);
+    const saved=readNavigationShortcuts(initialNavigationShortcuts||[]);
+    const expected=readWidgetShortcuts().filter(id=>$('[data-widget-id="'+CSS.escape(id)+'"]',app)).length;
+    const restored=$$('.sidebar-widget-restore-row[data-shortcut-row]',app).length;
+    if(dock&&$$('[data-sidebar-route-row]',dock).length===saved.length&&restored>=expected)return;
+    try{ensureSidebar();ensureControls();syncSidebarShortcutSystem();ensureWidgetActions();syncPrimaryWidgetDock(app)}catch(error){console.warn('[BIGLWA] Widget dock rescue',error)}
+  }
+  document.addEventListener('biglwa:module-close',rescueSidebar);
+  window.addEventListener('pageshow',rescueSidebar);
+  setTimeout(rescueSidebar,5600);
+  setTimeout(rescueSidebar,8500);
   const topLogoTimer=setInterval(()=>{if(ensureTopLogo())clearInterval(topLogoTimer)},400);
   const policyLogoTimer=setInterval(()=>{if(ensurePolicyBrands())clearInterval(policyLogoTimer)},400);
   const resetTimer=setInterval(()=>{ensureResetValues();clearInterval(resetTimer)},500);

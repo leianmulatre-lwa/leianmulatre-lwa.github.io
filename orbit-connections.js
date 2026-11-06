@@ -15,7 +15,7 @@
  */
 import { identity, onIdentityChange, startIdentity } from "./account-identity.js";
 
-const WORKER = "https://biglwa-instagram-api.leianmulatre-284.workers.dev";
+const WORKER = "https://api.biglwa.com";
 
 const SOURCES = [
   {
@@ -40,12 +40,13 @@ const SOURCES = [
     profile: "/tiktok/profile",
     client: "__biglwaTikTokOrbit",
     read: (p) => ({
-      username: p.display_name,
+      username: p.username || '',
+      sourceUserId: p.open_id,
       name: p.display_name,
       avatarUrl: p.avatar_url,
       followers: p.follower_count,
       likes: p.likes_count,
-      link: p.display_name ? "https://www.tiktok.com/@" + encodeURIComponent(p.display_name) : "https://www.tiktok.com/"
+      link: p.username ? "https://www.tiktok.com/@" + encodeURIComponent(p.username) : "https://www.tiktok.com/"
     })
   },
   {
@@ -60,6 +61,7 @@ const SOURCES = [
       name: p.business_name || p.username,
       avatarUrl: p.profile_image,
       followers: p.follower_count,
+      monthlyViews: p.monthly_views,
       link: p.username ? "https://www.pinterest.com/" + encodeURIComponent(p.username) + "/" : "https://www.pinterest.com/"
     })
   }
@@ -69,14 +71,68 @@ const clean = (v) => String(v == null ? "" : v).trim();
 
 /* Both the other sources keep their credential in local storage, and Pinterest now does
    too, but a session left behind by an older build is still worth finding. */
-function readSession(key) {
+function readSession(key, accountUid) {
+  // The Pinterest session is bound to a Firebase UID; never read another person's
+  // credential from the previous global browser-storage slot.
+  const uid = accountUid || identity()?.uid;
+  const scoped = ["biglwaPinterestSession","biglwaTikTokSession","biglwaInstagramSession"].includes(key)
+    ? (uid ? key + ":" + uid : "")
+    : key;
+  if (!scoped) return "";
   for (const store of [localStorage, sessionStorage]) {
-    try {
-      const value = store.getItem(key);
-      if (value) return value;
-    } catch { /* storage disabled */ }
+    try { const value = store.getItem(scoped); if (value) return value; }
+    catch { /* storage disabled */ }
   }
   return "";
+}
+async function recoverInstagramSession(uid) {
+  try{
+    const {auth}=await firebase();
+    await auth.authStateReady();
+    if(!uid||auth.currentUser?.uid!==uid)return "";
+    const firebaseIdToken=await auth.currentUser.getIdToken();
+    const response=await fetch(WORKER+"/session/account",{
+      headers:{Authorization:"Bearer "+firebaseIdToken}
+    });
+    if(!response.ok)return "";
+    const body=await response.json().catch(()=>({}));
+    if(!body?.connected||!body.session)return "";
+    try{localStorage.setItem("biglwaInstagramSession:"+uid,body.session)}catch{}
+    return body.session;
+  }catch{return ""}
+}
+async function recoverTikTokSession(uid) {
+  try{
+    const {auth}=await firebase();
+    await auth.authStateReady();
+    if(!uid||auth.currentUser?.uid!==uid)return "";
+    const token=await auth.currentUser.getIdToken();
+    const response=await fetch(WORKER+"/tiktok/session/account",{headers:{Authorization:"Bearer "+token}});
+    if(!response.ok)return "";
+    const data=await response.json();
+    if(!data?.connected||!data.session)return "";
+    try{localStorage.setItem("biglwaTikTokSession:"+uid,data.session)}catch{}
+    return data.session;
+  }catch{return ""}
+}
+async function recoverPinterestSession(uid) {
+  try {
+    const { auth } = await firebase();
+    await auth.authStateReady();
+    if (!uid || auth.currentUser?.uid !== uid) return "";
+    const token = await auth.currentUser.getIdToken();
+    const result = await fetch(WORKER + "/pinterest/session/account", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (!result.ok) return "";
+    const payload = await result.json();
+    if (!payload?.connected || !payload.session) return "";
+    try { localStorage.setItem("biglwaPinterestSession:" + uid, payload.session); } catch { }
+    return payload.session;
+  } catch (error) {
+    console.warn("Pinterest account recovery:", error);
+    return "";
+  }
 }
 
 let refs;
@@ -127,15 +183,48 @@ export function connectedIds() {
    A device with no local credential never gets this far: it keeps what the account says
    and reports the connection as needing to be re-authorised here. */
 async function syncSource(source, uid) {
-  const session = readSession(source.sessionKey);
+  // The account-linked Worker is authoritative for Instagram credentials;
+  // local storage is only an optional per-device cache.
+  let session=source.id==="instagram"
+    ? await recoverInstagramSession(uid)
+    : readSession(source.sessionKey,uid);
+  if(!session && source.id==="instagram")session=readSession(source.sessionKey,uid);
+  if (!session && source.id === "pinterest") session = await recoverPinterestSession(uid);
+  if (!session && source.id === "tiktok") session = await recoverTikTokSession(uid);
   if (!session) return { outcome: "no-session" };
-  const headers = { Authorization: "Bearer " + session };
+  let headers = { Authorization: "Bearer " + session };
   let profile;
   try {
     const response = await fetch(WORKER + source.profile, { headers });
-    if (response.status === 401) return { outcome: "rejected" };
-    if (!response.ok) return { outcome: "stale" };
-    profile = await response.json();
+    if(response.status===401 && source.id==="instagram"){
+      // Recheck the account instead of deleting its public connection merely
+      // because a cached browser token or provider request expired.
+      session=await recoverInstagramSession(uid);
+      if(!session)return {outcome:"no-session"};
+      headers={Authorization:"Bearer "+session};
+      const retry=await fetch(WORKER+source.profile,{headers});
+      if(retry.status===401)return {outcome:"stale"};
+      if(!retry.ok)return {outcome:"stale"};
+      profile=await retry.json();
+    }else if (response.status === 401 && source.id === "pinterest") {
+      // A stale local credential is not proof that the account was disconnected.
+      try { localStorage.removeItem("biglwaPinterestSession:" + uid); } catch {}
+      session = await recoverPinterestSession(uid);
+      if (!session) return { outcome: "no-session" };
+      headers = { Authorization: "Bearer " + session };
+      const retry = await fetch(WORKER + source.profile, { headers });
+      if (retry.status === 401) {
+        // Pinterest grant expiry requires reconnect, not removing the account link.
+        try { localStorage.removeItem("biglwaPinterestSession:" + uid); } catch {}
+        return { outcome: "no-session" };
+      }
+      if (!retry.ok) return { outcome: "stale" };
+      profile = await retry.json();
+    } else {
+      if (response.status === 401) return { outcome: "rejected" };
+      if (!response.ok) return { outcome: "stale" };
+      profile = await response.json();
+    }
   } catch {
     /* A network blip must not delete a working connection. */
     return { outcome: "stale" };
@@ -143,12 +232,26 @@ async function syncSource(source, uid) {
   if (!profile || typeof profile !== "object") return { outcome: "stale" };
 
   const details = source.read(profile);
+  // A successful basic-profile call is not proof that a provider returned its
+  // optional follower metrics. Reuse only this *same account's* last verified
+  // value; missing fields must never become zero or erase an older count.
+  const count = value => value!==null&&value!==undefined&&value!==''&&
+    Number.isSafeInteger(Number(value))&&Number(value)>=0?Number(value):null;
+  const old=current[source.id];
+  // TikTok's stable open_id survives changes to the visible display name.
+  const sameAccount=!!old&&(
+    (details.sourceUserId&&old.sourceUserId&&clean(details.sourceUserId)===clean(old.sourceUserId))||
+    (!!details.username&&clean(old.username).toLowerCase()===clean(details.username).toLowerCase())
+  );
+  const followers=count(details.followers);
+  const preserved=sameAccount?count(old.stats?.followers):null;
   const stats = {
-    followers: details.followers ?? null,
-    mediaCount: details.mediaCount ?? null,
-    likes: details.likes ?? null,
-    boards: null,
-    pins: null
+    followers: followers ?? preserved,
+    mediaCount: count(details.mediaCount)??(sameAccount?count(old.stats?.mediaCount):null),
+    likes: count(details.likes)??(sameAccount?count(old.stats?.likes):null),
+    monthlyViews: source.id==='pinterest'?(count(details.monthlyViews)??(sameAccount?count(old.stats?.monthlyViews):null)):null,
+    boards: sameAccount?count(old.stats?.boards):null,
+    pins: sameAccount?count(old.stats?.pins):null
   };
 
   /* Pinterest does not put board or pin counts on the account, only on the boards list,
@@ -169,24 +272,32 @@ async function syncSource(source, uid) {
     id: source.id,
     label: source.label,
     username: clean(details.username),
+    sourceUserId: clean(details.sourceUserId||old?.sourceUserId),
     name: clean(details.name),
     avatarUrl: clean(details.avatarUrl),
     link: clean(details.link),
     stats,
-    connectedAt: current[source.id]?.connectedAt || new Date().toISOString(),
-    lastCheckedAt: new Date().toISOString()
+    connectedAt: sameAccount?old.connectedAt||new Date().toISOString():new Date().toISOString(),
+    // lastCheckedAt tracks the account profile request, while countCheckedAt
+    // tracks the most recent actual follower response (not a basic-only call).
+    lastCheckedAt: new Date().toISOString(),
+    countCheckedAt: followers!==null?new Date().toISOString():
+      (sameAccount?String(old.countCheckedAt||old.lastCheckedAt||''):'')
   };
-  await write(uid, source.id, record);
+  const persisted = await write(uid, source.id, record);
+  if (!persisted) window.dispatchEvent(new CustomEvent("biglwa:orbit-connection-save-error", { detail: { source: source.id } }));
   return { outcome: "updated", record };
 }
 
 async function write(uid, id, record) {
-  if (!uid) return;
+  if (!uid) return false;
   try {
     const { db, doc, setDoc, serverTimestamp } = await firebase();
     await setDoc(doc(db, "users", uid), { connections: { [id]: record }, updatedAt: serverTimestamp() }, { merge: true });
-  } catch {
-    /* Firestore being unreachable should not stop the studio working. */
+    return true;
+  } catch (error) {
+    console.warn("BIG LWA could not persist Orbit connection:", id, error);
+    return false;
   }
 }
 
@@ -213,7 +324,11 @@ async function write(uid, id, record) {
 const PUBLIC_HOSTS = {
   instagram: ["instagram.com", "www.instagram.com"],
   tiktok: ["tiktok.com", "www.tiktok.com"],
-  pinterest: ["pinterest.com", "www.pinterest.com"]
+  pinterest: ["pinterest.com", "www.pinterest.com"],
+  youtube: ["youtube.com", "www.youtube.com", "m.youtube.com"],
+  x: ["x.com", "www.x.com", "twitter.com", "www.twitter.com"],
+  snapchat: ["snapchat.com", "www.snapchat.com"],
+  tumblr: ["tumblr.com", "www.tumblr.com"]
 };
 
 function publicLink(id, record) {
@@ -221,9 +336,14 @@ function publicLink(id, record) {
   if (!raw) return null;
   let url;
   try { url = new URL(raw); } catch { return null; }
-  if (url.protocol !== "https:") return null;
+  if (url.protocol !== "https:" || url.username || url.password) return null;
   const host = url.hostname.toLowerCase();
-  if (!(PUBLIC_HOSTS[id] || []).includes(host)) return null;
+  const allowed=(PUBLIC_HOSTS[id]||[]).includes(host)
+    || ((id==='tumblr' && host.endsWith('.tumblr.com')) || (id==='snapchat' && host.endsWith('.snapchat.com')));
+  // A Tumblr subdomain's root is itself a valid public blog; other
+  // provider roots are not account profiles.
+  const tumblrBlogRoot=id==='tumblr'&&host.endsWith('.tumblr.com')&&host!=='www.tumblr.com';
+  if(!allowed || ((!url.pathname || url.pathname==='/') && !tumblrBlogRoot))return null;
   return {
     id,
     label: clean(record.label) || id,
@@ -244,6 +364,16 @@ async function mirrorPublic(uid, records) {
     if (!username) return;
 
     const socials = {};
+    // The Orbit profile tab saves manually selected links separately from OAuth.
+    // Publish only provider-host links, not tokens, counts or account IDs.
+    for (const [id, url] of Object.entries(account.data().orbitLinks || {})) {
+      const link=publicLink(id,{link:url,label:id});
+      if(link)socials[id]=link;
+    }
+    for (const [id, record] of Object.entries(account.data().orbitConnectedProfiles || {})) {
+      const link=publicLink(id,record);
+      if(link)socials[id]=link;
+    }
     for (const [id, record] of Object.entries(records || {})) {
       const link = publicLink(id, record);
       if (link) socials[id] = link;
@@ -304,6 +434,31 @@ export function refresh(uid) {
   return refreshing;
 }
 
+/* Refresh a single newly authorized source immediately rather than waiting for
+ * a full Instagram/TikTok/Pinterest pass already in progress. */
+export async function refreshSource(id, uid) {
+  const who = uid || identity()?.uid;
+  const source = SOURCES.find(entry => entry.id === id);
+  if (!who || !source) return { outcome: "no-session" };
+  const { auth } = await firebase();
+  await auth.authStateReady();
+  if (auth.currentUser?.uid !== who) return { outcome: "no-session" };
+  const result = await syncSource(source, who);
+  if (auth.currentUser?.uid !== who) return { outcome: "no-session" };
+  const next = { ...current };
+  if (result.outcome === "updated") next[id] = result.record;
+  else if (result.outcome === "rejected") {
+    delete next[id];
+    await clearStored(who, id);
+  } else if (next[id]) {
+    next[id] = { ...next[id], needsReauth: result.outcome === "no-session" };
+  }
+  current = next;
+  emit();
+  await mirrorPublic(who, next);
+  return result;
+}
+
 async function clearStored(uid, id) {
   try {
     const { db, doc, setDoc, serverTimestamp } = await firebase();
@@ -320,14 +475,21 @@ export async function forget(id) {
   const session = readSession(source.sessionKey);
   if (session) {
     try {
+      const pinterestBody = id === "pinterest"
+        ? JSON.stringify({ firebaseIdToken: await (await firebase()).auth.currentUser?.getIdToken() })
+        : null;
       await fetch(WORKER + "/" + id + "/disconnect", {
         method: "POST",
-        headers: { Authorization: "Bearer " + session }
+        headers: { Authorization: "Bearer " + session, ...(pinterestBody ? { "Content-Type": "application/json" } : {}) },
+        ...(pinterestBody ? { body: pinterestBody } : {})
       });
     } catch { /* the local copies are cleared regardless */ }
   }
   for (const store of [localStorage, sessionStorage]) {
-    try { store.removeItem(source.sessionKey); } catch { /* storage disabled */ }
+    try {
+      store.removeItem(source.sessionKey);
+      if (["pinterest","tiktok","instagram"].includes(id) && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
+    } catch { /* storage disabled */ }
   }
   const who = identity()?.uid;
   if (who) await clearStored(who, id);
@@ -352,8 +514,12 @@ export async function startConnections() {
   onIdentityChange(begin);
   /* The Orbit page is a classic script and cannot import this module, so the connected
      accounts are published on the window for it to read and to subscribe to. */
-  window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, forget };
+  window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget,
+    publishPublicLinks:()=>mirrorPublic(identity()?.uid,current) };
+  window.addEventListener('biglwa:orbit-links-synced',()=>{
+    if(identity()?.uid)mirrorPublic(identity().uid,current).catch(()=>{});
+  });
   return begin(identity());
 }
 
-export default { connections, onConnectionsChange, connectedIds, refresh, forget, startConnections };
+export default { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget, startConnections };

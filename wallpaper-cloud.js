@@ -25,7 +25,7 @@ const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const EXTENSIONS = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' };
 /* Only a confident clean pass may publish without a human. */
-const AUTO_PUBLISH_STATUS = 'general';
+const AUTO_PUBLISH_STATUS = 'allow';
 
 const clean = value => String(value == null ? '' : value).trim();
 const isVideo = type => VIDEO_TYPES.includes(String(type || '').toLowerCase());
@@ -71,11 +71,13 @@ function onAuthStateChange(handler) {
 
 function localUsername() {
   try {
-    const saved = JSON.parse(localStorage.getItem('biglwaProfileDetails') || 'null');
+    const uid=window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid;
+    if(!uid) return '';
+    const saved = JSON.parse(localStorage.getItem('biglwaOwnProfileV1:'+uid) || 'null');
     const value = clean(saved?.username).replace(/^@/, '').toLowerCase();
     if (value && /^[a-z0-9._-]{5,24}$/.test(value)) return value;
   } catch {}
-  return clean(document.getElementById('loginUsername')?.value).replace(/^@/, '').toLowerCase();
+  return clean(window.__biglwaIdentity?.username).replace(/^@/, '').toLowerCase();
 }
 
 async function isAdmin(force = false) {
@@ -83,6 +85,8 @@ async function isAdmin(force = false) {
     const user = await signedInUser();
     if (!user) return false;
     if (!force && Date.now() - adminCache.at < 30000) return adminCache.value;
+    const durable=await durableMedia();
+    if(Object.hasOwn(durable,'wallpaperMedia'))return durable.wallpaperMedia;
     const { db } = await firebase();
     const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
     const snap = await getDoc(doc(db, ADMIN_COLLECTION, user.uid));
@@ -162,6 +166,11 @@ async function writePublicMedia(username, media, ownerUid) {
   await setDoc(doc(db, PROFILE_COLLECTION, username), payload, { merge: true });
 }
 
+async function durableMedia(values){
+ const user=await signedInUser();if(!user)throw Error('Sign in to save account media.');
+ const response=await fetch(MEDIA_ENDPOINT+'/media/profile-state',{method:values?'POST':'GET',headers:{...await mediaHeaders(user),...(values?{'Content-Type':'application/json'}:{})},...(values?{body:JSON.stringify(values)}:{})});
+ const data=await response.json();if(!response.ok)throw Error(data.error||'Account media could not be saved.');return data;
+}
 async function publishToAccount(media, extra = {}) {
   const user = await signedInUser();
   if (!user) throw new Error('Sign in to save a wallpaper to your account.');
@@ -172,9 +181,9 @@ async function publishToAccount(media, extra = {}) {
     size: media.size, state: 'approved', approvedBy: extra.approvedBy || 'auto',
     approvedAt: serverTimestamp(), updatedAt: serverTimestamp()
   };
-  await setDoc(doc(db, 'users', user.uid), { wallpaper: record, updatedAt: serverTimestamp() }, { merge: true });
+  await durableMedia({wallpaperMedia:{url:media.url}});
   const username = localUsername();
-  if (username) await writePublicMedia(username, media);
+  void setDoc(doc(db, 'users', user.uid), { wallpaper: record, updatedAt: serverTimestamp() }, { merge: true }).then(()=>username?writePublicMedia(username,media):null).catch(error=>console.warn('[BIGLWA] Legacy wallpaper mirror deferred:',error.message));
   return record;
 }
 
@@ -183,9 +192,9 @@ async function clearAccountMedia() {
   if (!user) return false;
   const { db } = await firebase();
   const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
-  await setDoc(doc(db, 'users', user.uid), { wallpaper: null, updatedAt: serverTimestamp() }, { merge: true });
+  await durableMedia({wallpaperMedia:null});
   const username = localUsername();
-  if (username) await writePublicMedia(username, null);
+  void setDoc(doc(db, 'users', user.uid), { wallpaper: null, updatedAt: serverTimestamp() }, { merge: true }).then(()=>username?writePublicMedia(username,null):null).catch(error=>console.warn('[BIGLWA] Legacy wallpaper mirror deferred:',error.message));
   return true;
 }
 
@@ -193,6 +202,8 @@ async function loadAccountMedia() {
   try {
     const user = await signedInUser();
     if (!user) return null;
+    const durable=await durableMedia();
+    if(Object.hasOwn(durable,'wallpaperMedia'))return durable.wallpaperMedia;
     const { db } = await firebase();
     const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
     const snap = await getDoc(doc(db, 'users', user.uid));

@@ -26,20 +26,17 @@
      the `source` field instead of a class. The two have to agree or one account would be
      two different colours on the same board. */
   var ACCENTS = {
-    'instagram-feed-item': { accent: '#f28c28', rim:'#a52a0c', glow:'#962fbf', hot:'#fa7e1e', label: 'Instagram' },
-    'tiktok-feed-item': { accent: '#111111', rim:'#111111', glow:'#25f4ee', hot:'#fe2c55', label: 'TikTok' },
-    'pinterest-feed-item': { accent: '#e60023', rim:'#e60023', glow:'#ff3554', hot:'#9f0018', label: 'Pinterest' },
-    'facebook-feed-item': { accent: '#1877f2', rim:'#1877f2', glow:'#5aa0ff', label: 'Facebook' },
-    'youtube-feed-item': { accent: '#d0202f', rim:'#d0202f', glow:'#fff6ec', hot:'#ff0033', label: 'YouTube' },
+    'instagram-feed-item': { accent: '#f36b21', rim:'#f36b21', glow:'#ffad52', hot:'#bd430b', label: 'Instagram' },
+    'tiktok-feed-item': { accent: '#772dcc', rim:'#772dcc', glow:'#b77cff', hot:'#4a187f', label: 'TikTok' },
+    'pinterest-feed-item': { accent: '#e60023', rim:'#e60023', glow:'#ff5269', hot:'#ae0026', label: 'Pinterest' },
+    'facebook-feed-item': { accent: '#1658be', rim:'#1658be', glow:'#5aa0ff', label: 'Facebook' },
+    'youtube-feed-item': { accent: '#fff1ec', rim:'#fff1ec', glow:'#e66e7e', hot:'#d44b67', label: 'YouTube' },
     'soundcloud-feed-item': { accent: '#e2622a', rim:'#ff5500', glow:'#ffb13b', hot:'#c93f00', label: 'SoundCloud' }
   };
   var FALLBACK = { accent: '#8a7a6c', rim:'#a52a0c', glow:'#d95f6d', label: 'Source' };
   function shadowFor(look) {
-    if (look.label === 'YouTube') return '0 0 0 2px '+look.rim+',3px 3px 0 '+look.glow+',0 13px 28px -16px '+look.rim;
-    if (look.label === 'Instagram') return '3px 3px 0 '+look.rim+',-2px 9px 22px -15px '+look.glow+',8px 14px 26px -18px '+look.hot;
-    if (look.label === 'TikTok') return '3px 3px 0 '+look.rim+',-2px 8px 20px -14px '+look.glow+',8px 13px 24px -16px '+look.hot;
-    if (look.hot) return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow+',0 0 18px -12px '+look.hot;
-    return '3px 3px 0 '+look.rim+',0 12px 25px -16px '+look.glow;
+    // A single tinted source shadow, consistent with the shared Skeleton Key.
+    return '3px 3px 0 '+(look.rim||look.accent||'#eee7db');
   }
 
   var STYLE = [
@@ -97,6 +94,64 @@
     });
   }
 
+  // The individual Orbit renderers prepend complete provider batches. CSS columns
+  // then puts Instagram in the left columns and Pinterest/Facebook at the far
+  // right. Interleave the *rendered* cards deterministically so providers are
+  // distributed across the wall, preserving relative order inside each source.
+  function feedSource(card){
+    if(card.classList.contains('pinterest-feed-item')||card.classList.contains('biglwa-pinterest-card'))return 'pinterest';
+    if(card.classList.contains('facebook-feed-item')||card.classList.contains('biglwa-facebook-card'))return 'facebook';
+    if(card.classList.contains('instagram-feed-item')||card.classList.contains('biglwa-instagram-card'))return 'instagram';
+    if(card.classList.contains('tiktok-feed-item')||card.classList.contains('biglwa-tiktok-card'))return 'tiktok';
+    const key=String(card.dataset.feedSource||card.dataset.source||'').toLowerCase();
+    if(key)return key;
+    const raw=card.dataset.sendRecord||'';
+    if(raw){
+      try{const obj=JSON.parse(raw);if(obj.source)return String(obj.source).toLowerCase()}catch{}
+    }
+    return 'biglwa';
+  }
+  function mixFeedCards(cards){
+    const buckets=new Map();
+    for(const card of cards){
+      const source=feedSource(card);
+      if(!buckets.has(source))buckets.set(source,[]);
+      buckets.get(source).push(card);
+    }
+    const total=cards.length,used=new Map();
+    for(const key of buckets.keys())used.set(key,0);
+    const result=[];
+    while(result.length<total){
+      let winner=null,score=-Infinity;
+      for(const [source,group] of buckets){
+        const count=used.get(source);
+        if(count>=group.length)continue;
+        // Largest deficit from a proportional spread wins the next slot.
+        const deficit=(result.length+1)*group.length/total-count;
+        if(deficit>score+1e-9){score=deficit;winner=source}
+      }
+      if(winner===null)break;
+      result.push(buckets.get(winner)[used.get(winner)]);
+      used.set(winner,used.get(winner)+1);
+    }
+    return result;
+  }
+  function interleaveFeedSources(list){
+    if(document.activeElement&&list.contains(document.activeElement))return;
+    const children=Array.from(list.children);
+    const eligible=children.filter(node=>node.matches(
+      '.biglwa-pin-post,.instagram-feed-item,.pinterest-feed-item,.facebook-feed-item,.biglwa-facebook-card,.biglwa-tiktok-card,.tiktok-feed-item,.youtube-feed-item'
+    )&&!node.matches('.instagram-import-status,.biglwa-instagram-import-status'));
+    if(eligible.length<3)return;
+    const mixed=mixFeedCards(eligible);
+    const slots=new Set(eligible);
+    let n=0;const desired=children.map(child=>slots.has(child)?mixed[n++]:child);
+    if(desired.every((child,index)=>child===children[index]))return;
+    // Move real nodes (do not recreate cards, destroy media state or restart
+    // hover/slideshow controls). The next observer pass sees identical order.
+    list.append(...desired);
+  }
+
   function sweep() {
     queued = false;
     var list = document.getElementById('feedPageList');
@@ -116,6 +171,7 @@
       }
       if (nodes.length) paint(source, nodes);
     });
+    interleaveFeedSources(list);
   }
 
   function schedule() {

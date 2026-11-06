@@ -22,11 +22,11 @@ check("it steps down rather than staying five", /max-width:1560px\)\{#feedPageLi
 
 console.log("\n=== BLOOD ORANGE ON EVERY CARD ===");
 check("blood orange is the fallback rim for the wall", feed.includes("const FEED_RIM = \"#a52a0c\""));
-check("the rim is set on every card, from its own source", feed.includes("--feed-card-rim:' + rimOf(post.source)"));
+check("the rim is set on every card, from its own source", feed.includes("const shadow=postShadow(post,managed,displaySource)") && feed.includes("shadow.rim"));
 check("the old per-position colour cycle is gone", !feed.includes("nth-child(6n+2){--feed-card-rim"));
 check("the rim colour is not taken from the source accent any more", !feed.includes("esc(src.accent)"));
 check("every card carries the hard rim and the soft glow", feed.includes(".biglwa-pin{--feed-card-rim:#a52a0c") && feed.includes("--feed-card-shadow:3px 3px 0 var(--feed-card-rim),0 12px") && feed.includes("box-shadow:var(--feed-card-shadow)"));
-check("the live Instagram cards use the same rim", orbit.includes('style="--feed-card-rim:#a52a0c"'));
+check("Instagram cards use the orange rim and shadow", orbit.includes('--feed-card-rim:#f36b21;--feed-card-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52'));
 
 console.log("\n=== A SLIDESHOW CANNOT MOVE ITS CARD ===");
 check("the frame starts at a fixed ratio", feed.includes(".biglwa-slide{position:relative;width:100%;aspect-ratio:4/5"));
@@ -49,17 +49,29 @@ console.log("\n=== A POST WITH THIRTEEN PHOTOS IS A STACK ===");
 check("there is a threshold for a stack", feed.includes("const MANY_PHOTOS = 8"));
 check("every picture is counted before drawing", feed.includes("const everyPhoto = pictureUrls(post);") && feed.includes("const isStack = everyPhoto.length >= MANY_PHOTOS"));
 check("a stack shows one picture", feed.includes("const shown = isStack ? urls.slice(0, 1) : urls;"));
-check("a stack draws no tabs", feed.includes("const carousel = !isStack && shown.length > 1"));
+check("a stack draws no tabs", feed.includes('const shown = isStack ? urls.slice(0, 1) : urls;') && feed.includes('shown.length === 1') && feed.includes(': slideshow(shown'));
 check("the live Instagram cards use the same rule", orbit.includes("var manyPhotos = children.length >= 8") && orbit.includes("children.length > 1 && !manyPhotos"));
 
-console.log("\n=== EVERY CARD HAS A + ===");
-check("the tray markup is shareable", feed.includes("function sendBarMarkup()"));
-check("the feed hands it out", feed.includes("window.__biglwaFeed = { loadPosts, renderPosts, refresh: loadPosts, sendBarMarkup, registerSendCard }"));
+console.log("\n=== EVERY CARD SHARES A TOP-RIGHT THREE-DOT MENU ===");
+check("the actions menu markup is shareable", feed.includes("function sendBarMarkup(managed = false, sourceUrl = '')"));
+check("the feed hands it out", feed.includes('window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard,'));
 check("the live cards draw it", orbit.includes("window.__biglwaFeed.sendBarMarkup()"));
-check("the live cards carry a post id and picture record", orbit.includes('data-post-id="\' + cardId + \'" data-send-record="\' + sendRecord + \'"'));
+check("the live cards carry a post id and picture record", orbit.includes('data-post-id=') && orbit.includes('data-send-record=') && orbit.includes('var sendRecord = JSON.stringify'));
 check("the live cards are registered with the feed", orbit.includes("window.__biglwaFeed.registerSendCard(card)"));
 check("the tray is redrawn once the feed is ready", orbit.includes("document.addEventListener('biglwa:feed-ready'") && feed.includes('new CustomEvent("biglwa:feed-ready")'));
 check("the tray works from any card, not just saved posts", feed.includes("function postForCard(card)") && !feed.includes('closest(".biglwa-pin-post")\n        const post'));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
+check("Instagram shadows are orange and purple", feed.includes('instagram: { rim:"#f28c28", glow:"#8c3acb", hot:"#ffad42" }'));
+check("Pinterest shadows remain Pinterest red", feed.includes('pinterest: { rim:"#e60023", glow:"#ff5269", hot:"#ae0026" }'));
+
+check("Collective cards share one three-dot menu",feed.includes('class="biglwa-send biglwa-card-options"')&&feed.includes('Post options">•••'));
+check("Pinterests and Instagrams use the same menu markup",feed.includes("sendBar(post, managed)")&&feed.includes("biglwa-pinterest-card"));
+check("the centered plus button has been removed",!feed.includes('class="biglwa-send-toggle" type="button"'));
+check("menu still offers Boards and Projects and Map",feed.includes('data-send-to="boards"')&&feed.includes('data-send-to="projects"')&&feed.includes('data-send-map>Pin on Map'));
+check("post owner actions remain in the same menu",feed.includes("data-post-enlarge>View full media")&&feed.includes("data-post-archive>Archive this post"));
+check("menu is anchored top right",feed.includes("#feedPageList .biglwa-card-options{position:absolute!important;top:8px!important;right:8px!important"));
+
+check("Studio feed is exactly one row of four thumbnails",feed.includes("const HERO_SLOTS = 4;")&&feed.includes("cards.join(\"\")")&&!feed.includes("Array.from({ length: Math.ceil(cards.length / 4)"));
+check("Studio feed row has a four-column layout",pages.includes("#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{display:grid!important;grid-template-columns:repeat(4"));

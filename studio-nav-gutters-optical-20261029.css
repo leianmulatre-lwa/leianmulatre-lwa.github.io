@@ -1,0 +1,30 @@
+/* BIG LWA / shared Studio viewport contract — 2026-10-29
+   The same inset MUST apply before, during and after visiting a module.
+   Never alter a member's saved grid coordinates or drag handles. */
+#studioApp .main > .masonry,
+#studioApp .main > .masonry.biglwa-free-layout {
+  --biglwa-widget-edge:clamp(14px,1.05vw,20px);
+  box-sizing:border-box!important;
+  position:relative!important;
+  display:block;
+  width:calc(100% - (2 * var(--biglwa-widget-edge)))!important;
+  max-width:calc(100% - (2 * var(--biglwa-widget-edge)))!important;
+  min-width:0!important;
+  margin-left:var(--biglwa-widget-edge)!important;
+  margin-right:var(--biglwa-widget-edge)!important;
+  padding-left:0!important;
+  padding-right:0!important;
+}
+@media(max-width:720px) {
+  #studioApp .main > .masonry,
+  #studioApp .main > .masonry.biglwa-free-layout {
+    --biglwa-widget-edge:12px;
+  }
+}
+/* Honor the page router: while a page is open, Studio's grid stays hidden. */
+#studioApp .main.module-view > .masonry,
+#studioApp .main.module-view > .masonry.biglwa-free-layout {
+  display:none!important;
+}
+
+/* Masthead geometry is owned only by studio-tipi-navigation-20261026.css. */

@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+import vm from 'node:vm';
+const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
+const code=read('module-pages.js');
+const style=read('politc-poster-redesign-20261015.css');
+const html=read('index.html');
+assert.doesNotThrow(()=>new vm.Script(code),'Studio module must parse');
+const start=code.indexOf('function renderPolitc(){');
+const end=code.indexOf('function render',start+20);
+const politc=code.slice(start,end);
+assert.ok(politc.includes("liveZone.className='politc-live-zone'"),'Trackers collected at top');
+assert.ok(politc.includes("resourcePanel.classList.add('politc-resource-zone')"),'Resources above election and nominations');
+assert.ok(politc.includes('board.insertBefore(election,grid)')&&politc.includes('board.insertBefore(liveZone,grid)')&&politc.includes('board.insertBefore(resourcePanel,grid)'),'Politc order should be election, trackers, resources, collections');
+assert.ok(politc.includes('class="politc-nomination-drawer"')&&politc.includes('" hidden>'),'Nomination forms must be hidden until requested');
+assert.ok(politc.includes('data-politc-nominate')&&politc.includes('aria-expanded="false"')&&politc.includes("drawer.hidden=!opening"),'Nomination button must toggle form accessibly');
+assert.ok(politc.includes('curatedHidden')&&politc.includes("biglwaPolitcHiddenCuratedV2:")&&politc.includes('writeJSON(hiddenKey,'),'Curated cards can be removed only for their account owner');
+for(const name of ['Zendaya','Beyoncé','Rihanna','Jennifer Lawrence','Anne Hathaway','Ida B. Wells','Malcolm X','Martin Luther King Jr.','Elaine Brown','Kathleen Cleaver','Ericka Huggins','Fred Hampton','Bobby Seale','Huey P. Newton','Derek Chauvin','Jeffrey Epstein','Cornell University · Chi Phi case','Angela Davis','Fannie Lou Hamer','Shirley Chisholm','Audre Lorde','bell hooks','Toni Morrison','Nina Simone','Tarana Burke']){
+ assert.ok(politc.includes(name),'Missing curated profile: '+name);
+}
+assert.ok(politc.includes("PUBLIC RECORD · CASE FILE")&&politc.includes('Details & source ↗'),'Accountability context stays in a collapsible sourced card');
+assert.ok(politc.includes("Read source ↗"),'Seed and user supplied source links stay visible');
+assert.ok(style.includes('politc-live-zone')&&style.includes('politc-resource-zone'));
+assert.ok(style.includes('politc-vintage-panel')&&style.includes('politc-nomination-drawer')&&style.includes('politc-nominate-button'));
+assert.ok(style.includes('grid-auto-flow:column!important')&&style.includes('politc-poster-photo'),'Poster cards scroll with large portraits');
+assert.ok(read('politc-orbit-tight-20261016.css').includes('/stars-and-stripes-font/StarsAndStripes-A4XM.ttf')&&existsSync(new URL('./stars-and-stripes-font/StarsAndStripes-A4XM.ttf',import.meta.url)),'Serve actual uploaded Stars and Stripes font');
+assert.ok(style.includes('#721c2a'),'Maroon headline and type');
+assert.ok(existsSync(new URL('./assets/politc-wanted-paper.jpg',import.meta.url)),'User-supplied parchment image committed to repo');
+assert.ok(style.includes('url("/assets/politc-wanted-paper.jpg'),'Poster cards show supplied texture');
+assert.ok(html.includes('/politc-poster-redesign-20261015.css?v='),'Poster CSS is loaded');
+console.log('Politc paper desk: order, accessibility, curated profiles, imagery and restrained nomination UI PASS');

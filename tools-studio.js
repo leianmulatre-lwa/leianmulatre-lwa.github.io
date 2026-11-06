@@ -1,7 +1,9 @@
-// Tool Pages: drop a file on top, the kind of file is worked out for you, and the
-// conversions that suit it are offered straight away. Anything that cannot be done
+// Tool Pages: Workshop first, then local file intake; the kind of file is worked out
+// and the conversions that suit it are offered. Anything that cannot be done
 // inside a browser is offered as a link out instead of pretending otherwise.
 
+const MAX_LOCAL_FILE_BYTES=500*1024*1024;
+const MEMORY_HEAVY_TRANSCODE=125*1024*1024;
 const ONLINE_TOOLS = [
   {name:'CloudConvert',best:'Almost anything to almost anything',url:'https://cloudconvert.com/'},
   {name:'Zamzar',best:'One-off odd formats, including archives and documents',url:'https://www.zamzar.com/'},
@@ -10,8 +12,8 @@ const ONLINE_TOOLS = [
   {name:'HandBrake',best:'Proper video compression and encoding',url:'https://www.handbrake.fr/'},
   {name:'TinyPNG',best:'PNG and JPEG made much smaller, losslessly where possible',url:'https://tinypng.com/'},
   {name:'VectorMagic',best:'SVG, EPS and AI artwork to PNG or PDF',url:'https://vectormagic.com/'},
-  {name:'iLovePDF',best:'PDF page work: merge, split, rotate, repair',url:'https://www.ilovepdf.com/'},
-  {name:'Cobalt',best:'Media from a link you have the right to save',url:'https://cobalt.tools/'}
+  {name:'iLovePDF',best:'PDF page work: merge, split, rotate, repair',url:'https://www.ilovepdf.com/'}
+
 ];
 
 const ONLINE_BY_KIND = {
@@ -248,13 +250,26 @@ export function mountToolsStudio(root,helper){
   };
   let current=null;
   let busy=false;
+  let activeTrimmer=null;
+  let trimmerImport=null;
+  let craftApi=null;
+  async function loadTrimmer(){
+    if(!trimmerImport)trimmerImport=import('./tools-video-trim.js?v=20261014-local-trim-1').catch(error=>{trimmerImport=null;throw error});
+    return trimmerImport;
+  }
 
+  if(!document.getElementById('biglwaToolsTrimCss')){
+    const style=document.createElement('style');style.id='biglwaToolsTrimCss';
+    style.textContent='.tool-trim-area{margin:16px 0;padding:15px;border:1px solid #bdaba0;border-radius:13px;background:#faf5ec}.tool-trim-area h3{margin:0 0 8px;font:700 20px Georgia,serif}.tool-trim-timeline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}.tool-trim-timeline label{display:grid;gap:5px;min-width:0;font:700 12px system-ui}.tool-trim-timeline input{width:100%;box-sizing:border-box;padding:9px;border:1px solid #bfa99a;border-radius:7px;background:#fff}.tool-trim-area [data-trim-status]{font:600 11px/1.45 system-ui}.tool-trim-area .tool-actions{display:flex;flex-wrap:wrap;gap:8px}.tool-trim-area [data-trim-preview]:focus-visible,.tool-trim-area [data-trim-export]:focus-visible{outline:3px solid #b05769;outline-offset:2px}@media(max-width:500px){.tool-trim-timeline{grid-template-columns:1fr}}';
+    document.head.appendChild(style);
+  }
   root.innerHTML=`
+    <section class="module-card wide" id="craftSuite" aria-label="BIG LWA creative workshop"><p role="status">Opening the BIG LWA workshop…</p></section>
     <section class="tool-intake">
       <div class="tool-drop" id="toolDrop" tabindex="0" role="button" aria-label="Drop a file here or choose one">
         <strong>Drop a file here</strong>
         <span>Video, audio, images, PDFs, archives, documents, anything.</span>
-        <em>BIGLWA works out what it is and offers the conversions that suit it.</em>
+        <em>BIGLWA works out what it is and offers the conversions that suit it. Files up to 500 MB are accepted locally; large video trimming does not upload.</em>
         <button class="module-action" type="button" id="toolPick">Choose a file</button>
         <input id="toolFile" type="file" multiple hidden>
       </div>
@@ -272,14 +287,26 @@ export function mountToolsStudio(root,helper){
     </section>
     <section class="module-card wide tool-links">
       <h2>Media from a link</h2>
-      <p>For a YouTube or SoundCloud link, Cobalt is the tool that does this well. Paste the link and it opens there.</p>
+      <p>Preview supported YouTube, TikTok and SoundCloud posts here. The original creator hosts the media, and your file stays on its source site.</p>
       <form class="module-form two" id="toolLinkForm">
-        <input class="module-input" name="url" type="url" placeholder="https://youtube.com/watch?v=… or soundcloud.com/…">
-        <button class="module-action" type="submit">Open in Cobalt</button>
+        <input class="module-input" name="url" type="url" placeholder="Paste a YouTube, TikTok or SoundCloud link…">
+        <button class="module-action" type="submit">Preview media</button>
       </form>
-      <div class="module-status" id="toolLinkStatus">Nothing opened yet.</div>
+      <div class="module-status" id="toolLinkStatus">No media selected.</div>
+      <div class="tool-link-preview" id="toolLinkPreview" aria-live="polite"></div>
       <p class="tool-note">BIGLWA does not scrape or re-encode other people's posts, so it cannot strip a watermark off a TikTok or Reels someone else posted. For your own uploads, save them from the app, which gives you the clean copy without any added watermark, then convert that file here.</p>
     </section>`;
+
+  // Independently load creative editors; file conversions and video trim still
+  // work even when the external ArtCraft release build is unavailable.
+  import('./tools-craft.js?v=20261029-single-header-6&social=20261029-old-web-1&preview=20261029-combined-1')
+    .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
+    .then(api=>{craftApi=api})
+    .catch(error=>{
+      console.warn('BIG LWA Workshop integration:',error);
+      const el=root.querySelector('#craftSuite');
+      if(el)el.innerHTML='<h2>the workshop</h2><p>The creative editor could not load. <a href="https://getartcraft.com/apps" target="_blank" rel="noopener noreferrer">GetArtCraft apps ↗</a></p>';
+    });
 
   const statusEl=root.querySelector('#toolStatus');
   const resultEl=root.querySelector('#toolResult');
@@ -302,12 +329,42 @@ export function mountToolsStudio(root,helper){
   });
   root.querySelector('#toolLinkForm').addEventListener('submit',event=>{
     event.preventDefault();
-    const link=new FormData(event.target).get('url');
-    const note=root.querySelector('#toolLinkStatus');
+    const link=String(new FormData(event.target).get('url')||'').trim();
+    const note=root.querySelector('#toolLinkStatus'),preview=root.querySelector('#toolLinkPreview');
+    preview.replaceChildren();
     if(!link){note.textContent='Paste a link first.';return}
-    if(!/^https?:\/\//i.test(link)){note.textContent='That needs to be a full link starting with https://';return}
-    note.textContent='Opening Cobalt — the download happens there, not on BIGLWA.';
-    window.open('https://cobalt.tools/','_blank','noopener');
+    let url;
+    try{url=new URL(link)}catch{note.textContent='That needs to be a full link starting with https://';return}
+    if(url.protocol!=='https:'||url.username||url.password||url.port){
+      note.textContent='Use a secure https:// media link.';return
+    }
+    const host=url.hostname.toLowerCase();
+    let embed='',label='';
+    if(['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host)){
+      const id=host==='youtu.be'?url.pathname.slice(1):url.pathname.startsWith('/shorts/')?url.pathname.split('/')[2]:url.searchParams.get('v');
+      if(/^[A-Za-z0-9_-]{11}$/.test(id||'')){embed='https://www.youtube-nocookie.com/embed/'+id;label='YouTube'}
+    }else if(['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(host)){
+      const id=url.pathname.match(/^\/@[A-Za-z0-9._-]{1,80}\/video\/(\d{10,30})\/?$/)?.[1];
+      if(id){embed='https://www.tiktok.com/player/v1/'+id;label='TikTok'}
+    }else if(['soundcloud.com','www.soundcloud.com'].includes(host)){
+      if(/^\/[^/]+\/[^/]+/.test(url.pathname)){embed='https://w.soundcloud.com/player/?url='+encodeURIComponent(url.href);label='SoundCloud'}
+    }
+    if(!embed){
+      note.textContent='Preview is available for supported YouTube, TikTok and SoundCloud post links.';
+      return;
+    }
+    const frame=document.createElement('iframe');
+    frame.title=label+' media preview';frame.loading='lazy';
+    frame.referrerPolicy='strict-origin-when-cross-origin';
+    frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
+    frame.style.cssText='display:block;width:100%;height:'+ (label==='SoundCloud'?'180px':'420px')+';max-height:76vh;border:0;border-radius:12px';
+    frame.src=embed;
+    const original=document.createElement('a');
+    original.href=url.href;original.target='_blank';original.rel='noopener noreferrer';
+    original.textContent='Open original on '+label+' ↗';
+    original.className='module-action ghost';
+    preview.append(frame,original);
+    note.textContent='Previewing '+label+' · playback is provided by the original source.';
   });
 
   function setProgress(fraction,text){
@@ -353,8 +410,14 @@ export function mountToolsStudio(root,helper){
   }
 
   async function handle(file){
+    if(!file)return;
+    if(file.size>MAX_LOCAL_FILE_BYTES){
+      statusEl.textContent='File too large: '+sizeText(file.size)+'. Maximum: 500 MB per file. Nothing was uploaded.';
+      resultEl.innerHTML='';groupsEl.replaceChildren();return;
+    }
+    activeTrimmer?.dispose();activeTrimmer=null;
     current=file;
-    statusEl.textContent='Looking at '+file.name+'…';
+    statusEl.textContent='Looking at '+file.name+' ('+sizeText(file.size)+')…';
     resultEl.innerHTML='';
     const found=await sniff(file);
     const kind=found.kind;
@@ -405,11 +468,11 @@ export function mountToolsStudio(root,helper){
 
     let localHtml='';
     if(kind==='video'||kind==='audio'){
-      localHtml='<p class="tool-note">Video and audio conversions run on an FFmpeg build inside this tab. Nothing is uploaded. It is slower than a desktop encoder and long files need patience.</p>'+
+      localHtml='<p class="tool-note">Local conversion uses FFmpeg inside the browser, not an upload. Files over 125 MB may exceed available memory during full conversion. Use Trim video below or a desktop tool for large re-encoding; 500 MB is the local selection/trim limit, not a full conversion guarantee.</p>'+
         '<div class="tool-actions" data-kind="'+kind+'">'+operationButtons(local)+'</div>';
     }else if(kind==='image'){
       localHtml='<p class="tool-note">Image conversions are drawn and re-encoded in this tab, so nothing is uploaded.</p>'+
-        '<div class="tool-actions" data-kind="image">'+operationButtons(local)+'</div>';
+        '<div class="tool-actions" data-kind="image"><button class="module-action" type="button" data-lwa-edit-image>✎ Edit in BIG LWA sqwibblR</button>'+operationButtons(local)+'</div>';
     }else if(local.length){
       localHtml='<div class="tool-actions" data-kind="'+kind+'">'+operationButtons(local)+'</div>';
     }
@@ -418,9 +481,33 @@ export function mountToolsStudio(root,helper){
       '<section class="module-card wide tool-group"><h2>'+escapeHtml(file.name)+'</h2>'+
       '<div class="tool-facts">'+meta.map(fact=>'<span>'+escapeHtml(fact)+'</span>').join('')+'</div>'+
       localHtml+
+      (kind==='video'?'<section id="biglwaVideoTrim" class="tool-trim-area" aria-label="Trim selected video"><p role="status">Preparing trim…</p></section>':'')+
       '<h3>Or use a converter online</h3><p class="tool-note">'+escapeHtml(online.note)+'</p>'+
       '<div class="tool-actions">'+links.map(link=>'<a class="module-action ghost" href="'+link.url+'" target="_blank" rel="noopener nofollow">'+escapeHtml(link.name)+'</a>').join('')+'</div></section>';
 
+    if(kind==='video'){
+      try{
+        const {mountVideoTrimmer}=await loadTrimmer();
+        if(current!==file)return;
+        activeTrimmer=mountVideoTrimmer(groupsEl.querySelector('#biglwaVideoTrim'),file,{
+          download,
+          onStatus:message=>{if(statusEl)statusEl.textContent=file.name+' · '+message},
+          onProgress:value=>setProgress(value,'Trimming video…')
+        });
+      }catch(error){
+        const area=groupsEl.querySelector('#biglwaVideoTrim');
+        if(area)area.textContent='Trim tools could not load: '+(error.message||'reload and retry.');
+      }
+    }
+    const editImage=groupsEl.querySelector('[data-lwa-edit-image]');
+    if(editImage)editImage.addEventListener('click',()=>{
+      if(!craftApi?.editFile?.(file)){
+        statusEl.textContent='The Workshop is still opening. Use sqwibblR below, or select this photo again.';
+        return;
+      }
+      statusEl.textContent='Opened '+file.name+' in your BIG LWA sqwibblR. The file stays in this browser.';
+      root.querySelector('#craftSuite')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
     groupsEl.querySelectorAll('button[data-op]').forEach(button=>{
       button.addEventListener('click',()=>{
         const key=button.dataset.op;
@@ -440,6 +527,10 @@ export function mountToolsStudio(root,helper){
         const table=kindAttr==='video'?VIDEO_OPS:AUDIO_OPS;
         const op=table[key];
         if(!op)return;
+        if(file.size>MEMORY_HEAVY_TRANSCODE){
+          statusEl.textContent='This '+sizeText(file.size)+' file was accepted for preview/trim, but full FFmpeg conversion exceeds the safer 125 MB in-browser threshold and could crash the tab. Try Trim video above or HandBrake for full conversion.';
+          return;
+        }
         return run(label,progress=>runEngine(file,op,progress));
       });
     });

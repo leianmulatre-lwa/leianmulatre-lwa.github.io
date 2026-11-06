@@ -15,16 +15,6 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
-    /* The public profile doc carries a uid field, but a claim on a public document is a
-       weak owner proof: it can be missing, or left over from an earlier account, and a
-       stale value locks the real owner out with an unreadable permission error. The
-       account doc is owner-only, so the username recorded there is the trustworthy half.
-       Either proof is accepted, so docs that already match keep working untouched. */
-    function ownsUsername(name) {
-      return request.auth != null
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.usernameLower == name;
-    }
-
     // Only these two fields of a public profile may be written by a moderator, and only
     // when the media behind them has actually been approved.
     function onlyModeratedMediaChanged() {
@@ -39,22 +29,11 @@ service cloud.firestore {
 
       // A member may open their own entry, either by stamping their own uid on it or
       // because their account doc already records this username.
-      allow create: if request.auth != null
-        && (request.resource.data.uid == request.auth.uid || ownsUsername(username));
-
-      // The owner may edit their entry and may repair a stale or missing uid, but may not
-      // hand the entry to a different account. A moderator may still only publish approved
-      // media, and only into the two public fields.
-      allow update: if (request.auth != null
-        && (resource.data.uid == request.auth.uid || ownsUsername(username))
-        && (resource.data.uid == request.auth.uid
-          || request.resource.data.uid == request.auth.uid
-          || resource.data.uid == null
-          || ownsUsername(username)))
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update: if (request.auth != null && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid)
         || (isAdmin() && onlyModeratedMediaChanged());
-
-      allow delete: if request.auth != null
-        && (resource.data.uid == request.auth.uid || ownsUsername(username));
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
     // Account/profile data belongs to the signed-in account. A moderator may clear a
@@ -66,6 +45,43 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallpaper', 'updatedAt'])
           && (request.resource.data.wallpaper == null
             || request.resource.data.wallpaper.state == 'approved'));
+    }
+
+    function validStudioState() {
+      let value=request.resource.data;
+      return value.keys().hasAll(['value','revision','editId','updatedAt'])
+        && value.keys().hasOnly(['value','revision','editId','updatedAt'])
+        && (value.value == null || (value.value is string && value.value.size() <= 500000))
+        && value.revision is int && value.revision > 0
+        && value.editId is string && value.editId.size() <= 100
+        && value.updatedAt == request.time;
+    }
+    function validSharedModule(kind) {
+      let value=request.resource.data;
+      return kind in ['projects','library','closet','trophies']
+        && value.keys().hasAll(['value','visibility','updatedAt'])
+        && value.keys().hasOnly(['value','visibility','updatedAt'])
+        && value.value is string && value.value.size() <= 500000
+        && value.visibility in ['public','private'] && value.updatedAt == request.time;
+    }
+    // Private account backup records; null values are cross-device deletion tombstones.
+    match /users/{userId}/studioState/{key} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && validStudioState();
+      allow delete: if isOwner(userId);
+    }
+    // Only explicit snapshots are public, and account privacy is checked server-side.
+    match /users/{userId}/sharedModules/{kind} {
+      allow read: if isOwner(userId) || (resource.data.visibility == 'public'
+        && get(/databases/$(database)/documents/users/$(userId)).data.get('accountVisibility','public') != 'private');
+      allow create, update: if isOwner(userId) && validSharedModule(kind);
+      allow delete: if isOwner(userId);
+    }
+
+    // Private note and Journal collections never live in the public directory.
+    // Same account on multiple devices can read/write their own writing only.
+    match /users/{userId}/writingCollections/{kind} {
+      allow read, write: if isOwner(userId) && kind in ['notes','diary'];
     }
 
     // Collective posts are public only after the owner explicitly publishes them.
@@ -158,6 +174,99 @@ service cloud.firestore {
     match /moderationAdmins/{uid} {
       allow read: if isAdmin() || isOwner(uid);
       allow write: if isAdmin();
+    }
+
+    /* Veve public Sqwibs. Existing Sqwib drafts never enter Firestore:
+       only an explicit owner Publish action creates one of these documents.
+       Revocation removes text from all public queries and Veve reshares. */
+    match /sqwibs/{sqwibId} {
+      allow read: if resource.data.visibility == 'public'
+        || isOwner(resource.data.uid);
+      allow create: if isOwner(request.resource.data.uid)
+        && request.resource.data.keys().hasOnly([
+          'uid', 'text', 'visibility', 'allowResqwib', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1200
+        && request.resource.data.visibility == 'public'
+        && request.resource.data.allowResqwib is bool;
+      allow update: if isOwner(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.keys().hasOnly([
+          'uid', 'text', 'visibility', 'allowResqwib', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.text == resource.data.text
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.visibility in ['public','private']
+        && request.resource.data.allowResqwib is bool
+        && (request.resource.data.visibility == 'public'
+           || request.resource.data.allowResqwib == false);
+      allow delete: if isOwner(resource.data.uid);
+    }
+
+    /* A resqwib contains a reference only, never copied source text.
+       Publication is denied unless the original author explicitly allowed it.
+       Veve rechecks that permission every time it renders a reshare, so
+       unpublishing or disabling resqwibs immediately hides the source content. */
+    match /sqwibReshares/{reshareId} {
+      allow read: if true; // public reference metadata (uid and Sqwib id), not note content
+      allow create: if isOwner(request.resource.data.uid)
+        && reshareId == request.auth.uid + '_' + request.resource.data.sourceId
+        && request.resource.data.keys().hasOnly(['uid','sourceId','createdAt'])
+        && request.resource.data.sourceId is string
+        && exists(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId))
+        && get(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId)).data.visibility == 'public'
+        && get(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId)).data.allowResqwib == true
+        && get(/databases/$(database)/documents/sqwibs/$(request.resource.data.sourceId)).data.uid != request.auth.uid;
+      allow update: if false;
+      allow delete: if isOwner(resource.data.uid);
+    }
+
+
+    /* Public Guest Check entries stay in a dedicated collection. Public read
+       never grants anonymous write. A member's connect-only selection is
+       enforced by Firestore, not the client's button state. "Connects" means
+       the owner's existing approved archiveFriends UID list. */
+    match /guestCheckEntries/{ownerUid}/entries/{entryId} {
+      allow get, list: if resource.data.visibility == 'public'
+        || isOwner(ownerUid);
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll([
+          'ownerUid', 'authorUid', 'name', 'note', 'emoji', 'visibility', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'authorUid', 'name', 'note', 'emoji', 'visibility', 'createdAt'
+        ])
+        && request.resource.data.ownerUid == ownerUid
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.visibility == 'public'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.note is string
+        && request.resource.data.note.size() > 0
+        && request.resource.data.note.size() <= 450
+        && request.resource.data.emoji is string
+        && request.resource.data.emoji.size() <= 10
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60
+        && exists(/databases/$(database)/documents/users/$(ownerUid))
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && request.resource.data.name == (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('name','') != ''
+          ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('name','')
+          : get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('usernameLower','')
+        )
+        && (
+          request.auth.uid == ownerUid
+          || get(/databases/$(database)/documents/users/$(ownerUid)).data.get('guestCheckPermission','anyone') == 'anyone'
+          || (
+            get(/databases/$(database)/documents/users/$(ownerUid)).data.get('guestCheckPermission','anyone') == 'connects'
+            && request.auth.uid in get(/databases/$(database)/documents/users/$(ownerUid)).data.get('archiveFriends',[])
+          )
+        );
+      allow update: if false;
+      allow delete: if isOwner(ownerUid);
     }
 
     // Deny everything else by default.

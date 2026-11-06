@@ -11,8 +11,9 @@ function check(name, cond) {
   else { fail++; console.log(`  FAIL  ${name}`); }
 }
 
-console.log("=== DROP A FILE AT THE TOP, IT SORTS ITSELF OUT ===");
-check("the drop area is the first thing on the page", tools.indexOf('id="toolDrop"') < tools.indexOf('id="toolGroups"'));
+console.log("=== WORKSHOP FIRST, FILE DROP BELOW ===");
+check("workshop precedes the drop area", tools.indexOf('id="craftSuite"') < tools.indexOf('id="toolDrop"'));
+check("file selection remains ahead of conversion results", tools.indexOf('id="toolDrop"') < tools.indexOf('id="toolGroups"'));
 check("a file can be dropped on it", tools.includes("drop.addEventListener('drop'"));
 check("a file can also be chosen", tools.includes('id="toolFile" type="file" multiple hidden'));
 check("the drop area is clickable and reachable by keyboard", tools.includes("drop.addEventListener('keydown'"));
@@ -64,7 +65,8 @@ check("a named directory of converters is offered", tools.includes("const ONLINE
 check("each entry says what it is good at", tools.includes("best:'Almost anything to almost anything'"));
 check("outbound links are safe", (tools.match(/rel="noopener nofollow"/g)||[]).length >= 2);
 check("leaving the device is said plainly", tools.includes("your file leaves this device"));
-check("a YouTube or SoundCloud link is handed to Cobalt", tools.includes("cobalt.tools/"));
+check("Media from a link uses inline playback, not Cobalt", tools.includes("Preview media") && tools.includes("toolLinkPreview") && !tools.includes("cobalt.tools/"));
+check("previews only use trusted official provider embed domains",tools.includes("www.youtube-nocookie.com/embed/")&&tools.includes("www.tiktok.com/player/v1/")&&tools.includes("w.soundcloud.com/player/"));
 check("no watermark claim is faked", tools.includes("does not scrape or re-encode other people's posts") && tools.includes("save them from the app"));
 check("a link must be a real link", tools.includes("That needs to be a full link starting with https://"));
 
@@ -76,7 +78,7 @@ check("the old separate tool cards are gone", !pages.includes("id=\"pdfForm\"") 
 check("the drop area is styled as a drop area", pages.includes(".tool-drop{") && pages.includes("border:2px dashed"));
 check("the drop area reacts to a file over it", pages.includes(".tool-drop.is-over{"));
 check("progress has a bar", pages.includes(".tool-progress span{") && tools.includes("id=\"toolProgressBar\"") && tools.includes("barEl.style.width=Math.round(fraction*100)+'%'"));
-check("the card copy matches what the page now does", pages.includes("Drop any file and it is sorted out automatically"));
+check("the card copy matches a usable file intake", pages.includes("Drop any file and it is sorted out automatically"));
 check("the module description matches too", pages.includes("Drop a file and it works out what to offer"));
 
 console.log(`\n${pass} passed, ${fail} failed`);

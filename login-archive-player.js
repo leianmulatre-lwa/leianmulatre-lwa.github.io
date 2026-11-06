@@ -2,6 +2,33 @@
   const video = document.getElementById('loginArchiveVideo');
   if (!video) return;
 
+  const laptop = video.closest('.login-laptop');
+  const loginPage = document.getElementById('loginPage');
+  // The preview has a real introductory screen, not a second app-wide loader.
+  // Delay requesting video until a signed-out visitor can actually see it.
+  const INTRO_MS = 2600;
+  let previewStarted = false;
+  let introStartedAt = 0;
+  let introTimer = null;
+  let revealed = false;
+  const revealProgramming = () => {
+    if(revealed)return;
+    revealed = true;
+    laptop?.classList.remove('is-preparing');
+  };
+  const revealWhenReady = () => {
+    if(!previewStarted||revealed)return;
+    const elapsed=Date.now()-introStartedAt;
+    if(elapsed<INTRO_MS){
+      // A browser timer may fire a millisecond early. Recheck once the
+      // full intro has elapsed, rather than leaving a ready video behind
+      // the loading screen until the 8-second recovery timeout.
+      setTimeout(revealWhenReady,INTRO_MS-elapsed+12);
+      return;
+    }
+    if(video.readyState>=2)revealProgramming();
+  };
+  video.poster='/assets/tv-no-signal.svg';
   const soundButton = document.getElementById('loginVolumeToggle');
   const credit = document.querySelector('.login-archive-credit');
   const base = 'https://archive.org/download/BettyBoopCartoons/';
@@ -41,6 +68,7 @@
   };
 
   const play = () => {
+    if(!previewStarted)return;
     const playback = video.play();
     if (playback && typeof playback.catch === 'function') playback.catch(() => {});
   };
@@ -75,7 +103,9 @@
   video.addEventListener('canplay', () => {
     video.muted = muted;
     play();
+    revealWhenReady();
   });
+  video.addEventListener('playing', revealWhenReady);
 
   soundButton?.addEventListener('click', () => {
     muted = !muted;
@@ -86,5 +116,23 @@
   });
 
   updateSoundButton();
-  loadEpisode(chooseEpisode(readLastEpisode()));
+  const beginIfVisible = () => {
+    if(previewStarted||!loginPage||!laptop)return;
+    const style=getComputedStyle(loginPage);
+    // Do not show programming or start the countdown behind auth's curtain.
+    if(document.body.classList.contains('biglwa-session-pending')||
+       document.documentElement.classList.contains('biglwa-startup-protected')||
+       style.display==='none'||style.visibility==='hidden')return;
+    previewStarted=true;introStartedAt=Date.now();
+    watcher?.disconnect();
+    // Start fetching near the end of the intro so transitions feel intentional.
+    introTimer=setTimeout(()=>loadEpisode(chooseEpisode(readLastEpisode())),1800);
+    setTimeout(revealWhenReady,INTRO_MS);
+    // A provider error or autoplay restriction must not freeze the laptop.
+    setTimeout(revealProgramming,8000);
+  };
+  const watcher=new MutationObserver(beginIfVisible);
+  if(loginPage)watcher.observe(loginPage,{attributes:true,attributeFilter:['class','style','hidden']});
+  watcher.observe(document.body,{attributes:true,attributeFilter:['class','style']});
+  beginIfVisible();
 })();

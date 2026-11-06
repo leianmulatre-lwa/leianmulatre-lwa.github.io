@@ -15,7 +15,6 @@ const FIREBASE_CONFIG = {
 
 const FIRESTORE = "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 const AUTH = "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-const LEGACY_KEY = "biglwaProfileDetails";
 const CACHE_PREFIX = "biglwaProfileDetails:";
 
 let dbPromise;
@@ -89,18 +88,14 @@ export function onIdentityChange(fn) {
 }
 
 /* The username a member chose at sign-up, which is also what their public entry is keyed
- * by. Falls back through the uid cache, then the legacy device slot, so an account that
- * predates the uid cache still resolves instead of appearing nameless. */
+ * by. Only the signed-in member’s UID cache is eligible; legacy device slots are unsafe. */
 export function identityUsername() {
   if (current?.username) return current.username;
   const uid = current?.uid;
   if (!uid) return "";
   const record = cached(uid);
   if (validUsername(record.username)) return normalize(record.username);
-  try {
-    const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || "null");
-    if (validUsername(legacy?.username)) return normalize(legacy.username);
-  } catch {}
+  // Never adopt a username from another account's device-wide legacy key.
   return "";
 }
 
@@ -113,16 +108,24 @@ export function patchIdentity(patch) {
 
 export async function refreshIdentity() {
   const { db, auth } = await firebase();
+  // Provider authorization is not the BIG LWA session. An interim null while
+  // Firebase restores its saved account must never paint a signed-out user.
+  await auth.authStateReady();
   const user = auth.currentUser;
   if (!user) {
     if (current) { current = null; emit(); }
     return null;
   }
   const record = cached(user.uid);
+  // Paint only this verified UID's cached identity while the account read runs.
+  // A quota/network delay must not erase an already selected cloud photo.
+  const cachedName=clean(record.name||(clean(user.displayName).toLowerCase()!==normalize(record.username)?user.displayName:''));
+  current={uid:user.uid,username:validUsername(normalize(record.username))?normalize(record.username):'',name:cachedName,avatarUrl:clean(record.avatarUrl),email:clean(user.email),emailVerified:user.emailVerified===true};
+  emit();
   let account = {};
   try {
     const { doc, getDoc } = await import(FIRESTORE);
-    const snap = await getDoc(doc(db, "users", user.uid));
+    const snap = await Promise.race([getDoc(doc(db, "users", user.uid)),new Promise((_,reject)=>setTimeout(()=>reject(Error("Account read timed out")),8000))]);
     if (snap.exists()) account = snap.data() || {};
   } catch {}
   // An account switch or sign-out can happen while Firestore is resolving.
@@ -131,7 +134,9 @@ export async function refreshIdentity() {
   current = {
     uid: user.uid,
     username: validUsername(username) ? username : "",
-    name: clean(account.name || record.name) || (validUsername(username) ? username : ""),
+    // A handle is never a person's display name: keep this empty until a
+    // real name is supplied instead of deriving the first initial from @user.
+    name: clean(account.name || record.name || (clean(user.displayName).toLowerCase()!==username?user.displayName:"")),
     avatarUrl: clean(account.profilePhoto?.url || record.avatarUrl),
     email: clean(user.email),
     emailVerified: user.emailVerified === true
@@ -167,7 +172,7 @@ export async function claimUsername(username) {
   }
   await setDoc(doc(db, "users", user.uid), {
     usernameLower: name,
-    name: clean(current?.name) || clean(user.displayName) || name,
+    name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):""),
     updatedAt: serverTimestamp()
   }, { merge: true });
   await setDoc(doc(db, "usernames", name), {
@@ -175,12 +180,12 @@ export async function claimUsername(username) {
     username: name,
     usernameLower: name,
     url: "/" + name,
-    name: clean(current?.name) || clean(user.displayName) || name,
+    name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):""),
     look: (existing.exists() && existing.data()?.look) || {},
     updatedAt: serverTimestamp()
   }, { merge: true });
   writeCache({ ...cached(user.uid), username: name });
-  current = { ...(current || {}), uid: user.uid, username: name, name: clean(current?.name) || name };
+  current = { ...(current || {}), uid: user.uid, username: name, name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):"") };
   emit();
   return name;
 }

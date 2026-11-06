@@ -1,0 +1,463 @@
+@font-face{font-family:"BIG LWA Stitched";src:url("/assets/fonts/cs-bergamot-stitched.otf") format("opentype");font-display:swap}
+/* Big LWA Tools / ArtCraft open-source creative lab */
+#craftSuite{--craft-ink:#302524;--craft-cream:#fff7eb;--craft-edge:#b5a18d;color:var(--craft-ink);margin:20px 0;padding:0!important;overflow:hidden;border:1px solid var(--craft-edge);border-radius:16px;background:#eee2d3}
+#craftSuite *{box-sizing:border-box}
+#craftSuite .craft-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:25px clamp(14px,3vw,32px) 16px;background:linear-gradient(116deg,#e8d4c6,#fff4e6)}
+#craftSuite .craft-head h2{margin:5px 0 7px;font:400 clamp(28px,3.3vw,42px)/1.1 "CS Bergamot Stitched",Georgia,serif;text-transform:lowercase}
+#craftSuite .craft-label{font:800 10px/1.3 ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase;color:#8e4a46}
+#craftSuite .craft-head p{max-width:730px;margin:0;font:500 12px/1.55 system-ui;color:#61534c}
+#craftSuite a{color:inherit}
+#craftSuite .craft-head>a{display:inline-flex;align-items:center;text-decoration:none;border:1px solid #977b71;border-radius:8px;padding:10px 13px;font:750 11px system-ui;background:#fff7e9}
+#craftSuite .craft-directory{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:15px clamp(12px,2.5vw,25px);background:#eee2d3}
+#craftSuite .craft-tile{position:relative;min-width:0;display:flex;flex-direction:column;gap:6px;border:1px solid #c9b5a4;border-radius:11px;background:#fffaf2;padding:13px;box-shadow:3px 4px 0 rgba(100,68,59,.10)}
+#craftSuite .craft-tile .craft-monogram{display:grid;place-items:center;height:42px;width:42px;background:#342b2a;color:#fff0d9;border:1px solid #9b7d71;border-radius:10px;font:600 23px/1 Georgia,serif}
+#craftSuite .craft-tile h3{font:700 16px/1.15 Georgia,serif;margin:3px 0 0}
+#craftSuite .craft-tile p{flex:1;min-height:35px;margin:0;font:500 11px/1.45 system-ui;color:#6f5d55}
+#craftSuite .craft-tile small{font:700 10px/1.3 system-ui;color:#725f57}
+#craftSuite .craft-tile>button,#craftSuite .craft-panel-actions button,#craftSuite .craft-panel-actions a{appearance:none;display:flex;align-items:center;justify-content:center;min-height:34px;padding:8px 12px;border:1px solid #735549;border-radius:8px;background:#6e3940;color:#fffaf5;text-align:center;font:750 11px/1.2 system-ui;cursor:pointer;text-decoration:none}
+#craftSuite .craft-tile>button:disabled{cursor:not-allowed;opacity:.58;background:#9c8e85}
+#craftSuite .craft-tile>a{font:700 10px/1.4 system-ui;text-decoration:underline;text-underline-offset:2px}
+#craftSuite .craft-tile.is-selected{outline:3px solid rgba(123,55,64,.32);background:#fff2e6}
+#craftSuite .craft-panel{margin:0 18px 16px;border:1px solid #c4ab99;border-radius:12px;background:#382d2d;padding:10px;min-width:0;color:#fff5eb}
+#craftSuite .craft-panel[hidden]{display:none!important}
+#craftSuite .craft-panel-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;padding:8px 5px 12px}
+#craftSuite .craft-panel-head strong{font:650 18px/1.2 Georgia,serif}
+#craftSuite .craft-panel-actions{display:flex;gap:7px;flex-wrap:wrap}
+#craftSuite .craft-panel-actions button,#craftSuite .craft-panel-actions a{background:#fbebdc;color:#382d2d;border-color:#bd9d8a;min-height:31px}
+#craftSuite .craft-viewer{height:min(78vh,820px);min-height:420px;border-radius:7px;overflow:hidden;background:#151416;position:relative}
+#craftSuite .craft-viewer iframe{width:100%;height:100%;border:0;display:block;background:#111}
+#craftSuite .craft-panel-foot{padding:9px 7px 3px;font:500 11px/1.55 system-ui;color:#e5d3c5}
+#craftSuite .craft-smallprint{border-top:1px solid #d3bdae;padding:13px 24px 20px;background:#f7ece0;font:500 11px/1.55 system-ui;color:#6a554d}
+#craftSuite .craft-smallprint p{margin:5px 0}
+#craftSuite .craft-more{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+#craftSuite .craft-more a{display:inline-flex;border:1px solid #c4ad9b;padding:6px 9px;border-radius:7px;background:#fffcf6;text-decoration:none}
+#craftSuite .craft-status{font:700 11px/1.45 system-ui;color:#735244;padding:0 24px 8px}
+@media(max-width:700px){
+ #craftSuite .craft-directory{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #craftSuite .craft-tile{padding:9px}
+ #craftSuite .craft-panel{margin:0 7px 12px}
+ #craftSuite .craft-viewer{min-height:480px;height:70vh}
+ #craftSuite .craft-panel-actions{gap:5px}
+}
+@media(max-width:420px){#craftSuite .craft-directory{grid-template-columns:1fr}}
+
+/* BIG LWA Workshop: original creative desk and attributed advanced source engines */
+#craftSuite.craft-workshop{--craft-ink:#321f29;--craft-red:#bd4d62;--craft-gold:#dfbd74;--craft-paper:#fcefe4;--craft-green:#408963;margin-top:20px;border:2px solid #936e66;background:#f2e5da;box-shadow:5px 6px 0 rgba(120,58,63,.23)}
+#craftSuite.craft-workshop .craft-head{position:relative;display:flex;align-items:center;justify-content:space-between;padding:26px clamp(16px,3.5vw,37px);background:repeating-linear-gradient(115deg,rgba(88,27,47,.06) 0 2px,transparent 2px 24px),linear-gradient(118deg,#ffebdf,#f5d5ce 55%,#fcefe5);border-bottom:2px solid #cfa8a1}
+#craftSuite.craft-workshop .craft-head h2{font:400 clamp(35px,5vw,57px)/1 "CS Bergamot Stitched",Georgia,serif;letter-spacing:.015em;margin:8px 0 12px;color:#401e2b}
+#craftSuite.craft-workshop .craft-head p{max-width:680px;color:#503d3d;font-size:13px;line-height:1.6}
+#craftSuite .craft-head-ornament{display:flex;align-items:center;gap:6px;flex:none;padding:10px;border:1px solid #b88e82;background:#fff2e5;border-radius:12px}
+#craftSuite .craft-head-ornament i{width:13px;height:13px;border-radius:50%;background:#df5c72;box-shadow:0 1px 2px #4a18142c}
+#craftSuite .craft-head-ornament i:nth-child(2){background:#f2ca55}
+#craftSuite .craft-head-ornament i:nth-child(3){background:#54a77a}
+#craftSuite .craft-head-ornament strong{margin-left:6px;font:30px Georgia;color:#873e52}
+#craftSuite .craft-toolbar{display:flex;align-items:center;justify-content:space-around;gap:10px;flex-wrap:wrap;background:#412630;color:#ffe6d6;padding:8px;font:750 10px/1.3 system-ui;letter-spacing:.13em}
+#craftSuite .craft-toolbar span{white-space:nowrap}
+#craftSuite .craft-status{padding:12px clamp(14px,2.5vw,25px) 4px;font-weight:700}
+#craftSuite .craft-directory{grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:13px}
+#craftSuite .craft-tile{background:#fff7ee;border:1px solid #b89d90;border-radius:12px;box-shadow:3px 4px 0 #cba7a1;gap:8px;padding:15px}
+#craftSuite .craft-tile-home{background:linear-gradient(160deg,#f9e8c7,#fff5e6);border:2px solid #af6873;box-shadow:4px 5px 0 #b44c62}
+#craftSuite .craft-tile-eyebrow{font:750 9px/1.2 system-ui;letter-spacing:.12em;text-transform:uppercase;color:#a25461}
+#craftSuite .craft-tile-icon{width:51px;height:51px;display:grid;place-items:center;background:#4d3038;color:#fce5cc;border:1px solid #92716c;border-radius:12px;font:38px/1 Georgia,serif}
+#craftSuite .craft-tile-home .craft-tile-icon{background:#c45570;border-color:#92374c;color:white}
+#craftSuite .craft-tile h3{font:400 25px/1.12 "CS Bergamot Stitched",Georgia,serif;color:#4a2531}
+#craftSuite .craft-tile>p{font-size:12px;min-height:50px;color:#594543}
+#craftSuite .craft-tile .craft-engine-credits{min-height:29px;font:600 10px/1.45 system-ui;color:#806c65}
+#craftSuite .craft-tile>button{background:#b84e68;min-height:38px}
+#craftSuite .craft-tile-home>button{background:#873e53}
+#craftSuite .craft-tile.craft-unavailable{opacity:.78}
+#craftSuite .craft-tile.craft-unavailable>button{background:#aca09a}
+#craftSuite .craft-panel{border:2px solid #b28a7f;background:#311e27;padding:10px;margin-top:6px}
+#craftSuite .craft-panel-head strong{font:400 clamp(19px,2.6vw,27px)/1.1 "CS Bergamot Stitched",Georgia,serif}
+#craftSuite .craft-viewer{height:min(83vh,900px);min-height:500px;border:2px solid #1c1119}
+#craftSuite .craft-smallprint{font-size:11px;background:#f8e8db;line-height:1.6}
+#craftSuite .craft-smallprint details{margin:12px 0 0;border:1px solid #d1b6a8;border-radius:7px;padding:9px}
+#craftSuite .craft-smallprint summary{cursor:pointer;font-weight:750}
+#craftSuite .craft-smallprint .craft-more a{font-size:10px}
+@media(max-width:700px){
+ #craftSuite .craft-head-ornament{display:none}
+ #craftSuite .craft-directory{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #craftSuite .craft-viewer{min-height:460px;height:75vh}
+}
+@media(max-width:460px){#craftSuite .craft-directory{grid-template-columns:1fr}}
+
+
+/* BIG LWA stitched toy cubes — shared visual language with the original LWA logo.
+   Fabric texture, three upholstered faces, colored piping and visible sewing. */
+#craftSuite .craft-tile-icon.craft-arcade-block{
+  position:relative!important;display:block!important;isolation:isolate;
+  overflow:visible!important;flex:0 0 auto!important;
+  width:104px!important;height:104px!important;max-width:100%!important;
+  margin:0 0 7px 0!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;filter:drop-shadow(2px 4px 1px rgba(53,29,22,.18));
+  transform:rotate(-1deg);transition:transform .2s ease,filter .2s ease;
+}
+#craftSuite .craft-arcade-block .craft-block-svg{
+  width:100%!important;height:100%!important;max-width:100%!important;
+  display:block!important;overflow:visible!important;
+}
+#craftSuite .craft-block-svg .craft-block-glyph{
+  paint-order:stroke fill;font-family:"Old English Text MT","DejaVu Serif",Georgia,serif;
+}
+#craftSuite .craft-block-image-desk{transform:rotate(-2deg)}
+#craftSuite .craft-block-photocraft{transform:rotate(2deg)}
+#craftSuite .craft-block-vectorcraft{transform:rotate(-1deg)}
+#craftSuite .craft-block-effectcraft{transform:rotate(2deg)}
+#craftSuite .craft-block-pdfcraft{transform:rotate(-2deg)}
+#craftSuite .craft-tile:hover .craft-arcade-block,
+#craftSuite .craft-tile:focus-within .craft-arcade-block{
+  transform:translateY(-3px) rotate(0deg);
+  filter:drop-shadow(3px 7px 3px rgba(53,29,22,.2));
+}
+@media(prefers-reduced-motion:reduce){
+ #craftSuite .craft-arcade-block{transition:none!important}
+}
+
+/* Cuphead-inspired fabric workshop shelf; styles match each original stitched toy cube. */
+#craftSuite .craft-account-vault{border:2px solid #5b4339;border-radius:18px;margin:18px 0;padding:18px;
+ background:radial-gradient(circle at 12% 16%,rgba(255,255,255,.85),transparent 40%),linear-gradient(150deg,#fff3d9,#ebd5b3);
+ box-shadow:5px 6px 0 #6b5643;color:#3b2d2a;display:grid;gap:13px;min-width:0}
+#craftSuite .craft-account-vault h3{font-family:"BIG LWA Stitched",Georgia,serif;font-size:22px;line-height:1.15;margin:5px 0 7px}
+#craftSuite .craft-vault-eyebrow{letter-spacing:.16em;text-transform:uppercase;font-weight:750;font-size:10px}
+#craftSuite .craft-account-vault p{margin:0;font-size:12px}
+#craftSuite .craft-vault-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#craftSuite .craft-vault-file{display:inline-flex;align-items:center;border:2px solid #42302e;border-radius:10px;background:#fcf7eb;
+ padding:9px 12px;font-weight:750;cursor:pointer;font-size:11px}
+#craftSuite .craft-vault-file:has(input:disabled){opacity:.55;cursor:not-allowed}
+#craftSuite .craft-vault-file input{position:absolute;width:1px;height:1px;opacity:0}
+#craftSuite .craft-vault-status{font:550 11px/1.5 system-ui;max-width:530px}
+#craftSuite .craft-vault-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:11px}
+#craftSuite .craft-vault-card{display:grid;gap:6px;background:#fff9ee;border:1px solid #bfa18a;border-radius:12px;padding:9px;min-width:0}
+#craftSuite .craft-vault-card img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:#eee5d5;border-radius:6px}
+#craftSuite .craft-vault-card span{font:700 11px/1.2 system-ui;overflow-wrap:anywhere}
+#craftSuite .craft-vault-card button{background:#fff3e1;border:1px solid #886d56;border-radius:7px;padding:6px 7px;cursor:pointer;color:#382a23;font:650 10px/1.2 system-ui}
+#craftSuite .craft-vault-card button:hover{background:#f4d3ad}
+
+/* Workshop-native control row: the WASM canvas no longer carries a floating save overlay. */
+#craftSuite .craft-panel-head{gap:10px;min-width:0}
+#craftSuite .craft-panel-identity{min-width:0;display:flex;align-items:center;gap:10px;flex:1 1 200px}
+#craftSuite .craft-panel-identity strong{min-width:0;overflow-wrap:anywhere}
+#craftSuite .craft-panel-lights{display:inline-flex;gap:5px;align-items:center;flex:none}
+#craftSuite .craft-panel-lights i{width:10px;height:10px;display:block;border-radius:50%;background:#df605b;border:1px solid #1e1217}
+#craftSuite .craft-panel-lights i:nth-child(2){background:#f4c749}
+#craftSuite .craft-panel-lights i:nth-child(3){background:#57ac70}
+#craftSuite .craft-panel-actions{min-width:0;justify-content:flex-end;align-items:center}
+#craftSuite .craft-panel-save{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:31px;box-sizing:border-box;padding:7px 11px;background:#e4cfa9;border:1px solid #a7793b;border-radius:8px;color:#3a2920;white-space:nowrap;cursor:pointer;font:750 11px/1.2 system-ui}
+#craftSuite .craft-panel-save:hover,#craftSuite .craft-panel-save:focus-within{background:#f3dbaa;outline:2px solid #a7793b;outline-offset:1px}
+#craftSuite .craft-panel-save:has(input:disabled){opacity:.55;cursor:not-allowed}
+#craftSuite .craft-panel-save input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+@media(max-width:600px){#craftSuite .craft-panel-identity{flex-basis:100%}#craftSuite .craft-panel-actions{width:100%;justify-content:flex-start}#craftSuite .craft-panel-actions>*{flex:0 0 auto}}
+
+/* Canonical BIG LWA editor identities */
+#craftSuite .craft-tile h3 .craft-capital-r{font-family:Georgia,"Times New Roman",serif!important;font-variant:normal;font-weight:800;font-size:.88em;vertical-align:.01em;letter-spacing:-.025em;margin-left:1px}
+#craftSuite .craft-founder-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+#craftSuite .craft-founder-links a{font:750 11px/1.2 system-ui;display:inline-flex;text-decoration:none;border:1px solid #a6887b;padding:8px 11px;border-radius:8px;background:#fff7ef;color:#4c2b35}
+#craftSuite .craft-founder-links a:hover{background:#f1dccd}
+#craftSuite .craft-tile .craft-engine-credits{font-size:10px;color:#775e65}
+#craftSuite .craft-tile .craft-arcade-block{filter:drop-shadow(3px 5px 2px rgba(47,26,23,.22))!important}
+#craftSuite .craft-smallprint .craft-more span{display:inline-block;padding:7px 10px;background:#fff9ee;border-radius:6px;border:1px solid #c4ad9b}
+
+/* Studio cards mirror their native Rust editor palette without losing the cream fabric. */
+#craftSuite .craft-tile[data-craft-card="photocraft"]{--app-block:#e9ad39;--app-rim:#b87817}
+#craftSuite .craft-tile[data-craft-card="vectorcraft"]{--app-block:#4594ec;--app-rim:#1568c3}
+#craftSuite .craft-tile[data-craft-card="effectcraft"]{--app-block:#b679c5;--app-rim:#8848a2}
+#craftSuite .craft-tile[data-craft-card="pdfcraft"]{--app-block:#e88a74;--app-rim:#bb5b54}
+#craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"]){border-color:var(--app-rim);box-shadow:3px 4px 0 color-mix(in srgb,var(--app-rim),transparent 54%)}
+#craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"])>button:not(:disabled){background:var(--app-rim);border-color:var(--app-rim)}
+#craftSuite .craft-tile[data-craft-card]:not([data-craft-card="image-desk"]).is-selected{outline-color:var(--app-block)}
+
+/* Five transparent, matched blackletter app-icon crops. */
+#craftSuite .craft-arcade-block .craft-block-png{
+ display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;
+ max-width:100%!important;max-height:100%!important;image-rendering:auto;
+ filter:none!important;user-select:none;-webkit-user-drag:none;
+}
+#craftSuite .craft-tile-icon.craft-arcade-block{overflow:visible!important}
+
+/* Preserve every tool while reducing the per-card footprint. */
+#craftSuite .craft-directory{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;padding:10px clamp(10px,2vw,20px)}
+#craftSuite .craft-tile{padding:11px!important;gap:5px!important;min-height:0}
+#craftSuite .craft-tile-eyebrow{font-size:8px}
+#craftSuite .craft-tile-icon.craft-arcade-block{width:76px!important;height:76px!important;margin:0 0 3px!important}
+#craftSuite .craft-tile h3{font-size:21px!important;margin:1px 0!important}
+#craftSuite .craft-tile>p{font-size:11px;line-height:1.35;min-height:0!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#craftSuite .craft-tile .craft-engine-credits{min-height:0;font-size:9px;line-height:1.2}
+#craftSuite .craft-tile>button{min-height:32px;padding:6px 8px}
+#craftSuite .craft-tile>a{font-size:9px;line-height:1.25}
+#craftSuite .craft-head{padding:14px 18px}
+#craftSuite .craft-status{padding:6px 16px}
+#craftSuite .craft-toolbar{padding:6px}
+@media(max-width:740px){#craftSuite .craft-directory{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+@media(max-width:420px){#craftSuite .craft-directory{grid-template-columns:repeat(2,minmax(0,1fr))!important}#craftSuite .craft-tile{padding:8px!important}}
+
+/* BIG LWA: visible app-specific frame around licensed native editors */
+#craftSuite .craft-panel[data-craft-engine="image-desk"]{--craft-accent:#af3d55;--craft-light:#ffe3e4}
+#craftSuite .craft-panel[data-craft-engine="photocraft"]{--craft-accent:#d6911d;--craft-light:#fff0bd}
+#craftSuite .craft-panel[data-craft-engine="vectorcraft"]{--craft-accent:#1b68c9;--craft-light:#dcecff}
+#craftSuite .craft-panel[data-craft-engine="effectcraft"]{--craft-accent:#8d4cb3;--craft-light:#f0dcfa}
+#craftSuite .craft-panel[data-craft-engine="pdfcraft"]{--craft-accent:#ca5b55;--craft-light:#ffe0d8}
+#craftSuite .craft-panel[data-craft-engine]{border:3px solid var(--craft-accent);border-radius:16px;overflow:hidden;box-shadow:5px 6px 0 #18102044}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-head{background:linear-gradient(110deg,var(--craft-light),#fff8ed);color:#302029;border-bottom:3px solid var(--craft-accent);padding:9px 12px}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-head strong{display:flex;align-items:center;gap:8px;color:#302029;font:400 23px/1.1 "BIG LWA Stitched",Georgia,serif}
+#craftSuite .craft-panel-block{display:block;width:34px;height:34px;object-fit:contain;flex-shrink:0}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-actions :is(a,button,label){background:var(--craft-light);border-color:var(--craft-accent);color:#34242c}
+#craftSuite .craft-panel[data-craft-engine] .craft-panel-foot{background:var(--craft-light);color:#34242c;border-top:2px solid var(--craft-accent)}
+
+
+/* 2026-10-29: R/Lwazi is a FOLDER, not a generic marketing banner.
+   Rules intentionally live LAST in the dynamically loaded stylesheet. */
+#craftSuite.craft-workshop{
+ --folder-red:#b64659;--folder-outline:#39161d;--folder-paper:#ffebbd;
+ margin-top:45px!important;
+ overflow:visible!important;
+ border:5px solid var(--folder-outline)!important;
+ border-radius:0 17px 17px 17px!important;
+ background:#ebc3ad!important;
+ box-shadow:6px 7px 0 #481f28,0 15px 25px #3e1b2640!important;
+ isolation:isolate;
+}
+#craftSuite.craft-workshop .craft-head.craft-folder-cover{
+ position:relative!important;
+ display:block!important;
+ overflow:visible!important;
+ isolation:isolate;
+ margin:0!important;
+ padding:20px 13px 9px!important;
+ border:0!important;
+ border-bottom:5px solid var(--folder-outline)!important;
+ border-radius:0 10px 0 0!important;
+ background:linear-gradient(165deg,#dd6977 0%,var(--folder-red) 24%,#a3384c 100%)!important;
+ box-shadow:inset 0 3px 0 #ed9f8a,inset 0 -3px 0 #722c3a!important;
+}
+#craftSuite .craft-folder-back{
+ position:absolute;z-index:-1;
+ left:11px;right:11px;top:-13px;height:38px;
+ border:4px solid var(--folder-outline);border-bottom:0;border-radius:10px 11px 0 0;
+ background:linear-gradient(180deg,#bd6171,#e39b87);
+ box-shadow:inset 0 3px 0 #f3b4a4;
+}
+#craftSuite .craft-folder-tab{
+ position:absolute;z-index:3;
+ left:-5px;top:-41px;
+ display:flex!important;align-items:center!important;gap:13px;
+ width:min(340px,56%);height:44px;
+ padding:7px 15px!important;
+ border:5px solid var(--folder-outline);
+ border-bottom:0!important;
+ border-radius:20px 25px 0 0!important;
+ background:linear-gradient(180deg,#eb8c90 0%,#c65767 38%,#b64659 100%)!important;
+ box-shadow:inset 0 3px 0 #ffb5a6,3px 0 0 #b44959!important;
+ color:#ffebcd;
+ font:900 10px/1 system-ui,sans-serif!important;
+ text-transform:uppercase;
+ letter-spacing:.15em;
+}
+#craftSuite .craft-folder-tab::after{
+ content:"";position:absolute;left:0;right:-4px;bottom:-7px;height:11px;
+ background:#b64659;
+ pointer-events:none;
+}
+#craftSuite .craft-folder-lights{display:flex!important;align-items:center;gap:6px;position:relative;z-index:2}
+#craftSuite .craft-folder-lights i{
+ display:block;flex:none;width:15px;height:15px;
+ border:2px solid #2c1718;border-radius:50%;
+ background:radial-gradient(circle at 34% 28%,#ffd3ba 0 11%,transparent 22%),#ed6373;
+ box-shadow:inset -2px -2px 1px #7d242a66,0 1px 0 #fff6d055;
+}
+#craftSuite .craft-folder-lights i:nth-child(2){background:radial-gradient(circle at 34% 28%,#fff8c8 0 11%,transparent 22%),#eabf4a}
+#craftSuite .craft-folder-lights i:nth-child(3){background:radial-gradient(circle at 34% 28%,#e8ffe8 0 11%,transparent 22%),#57bb75}
+#craftSuite .craft-folder-tab-name{position:relative;z-index:2;font-weight:900}
+#craftSuite .craft-folder-front{
+ position:relative;z-index:1;
+ padding:9px!important;
+ border:4px solid #48212a;border-radius:9px!important;
+ background:linear-gradient(160deg,#f8d4b5,#edbb9d);
+ box-shadow:0 5px 0 #772f3b,inset 0 2px 0 #fff0cd!important;
+}
+#craftSuite .craft-folder-inner{
+ position:relative;
+ display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+ min-height:167px;padding:13px 20px 11px!important;
+ border:2px dashed #b7825b;border-radius:6px;
+ background:repeating-linear-gradient(100deg,rgba(144,87,52,.025) 0 1px,transparent 1px 15px),
+            linear-gradient(155deg,#fff5d9 0%,var(--folder-paper) 100%)!important;
+ box-shadow:inset 0 0 0 4px #fff8e9,inset 0 1px 9px #af6f4923;
+}
+#craftSuite .craft-folder-brand{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+ max-width:100%;min-width:0;
+}
+#craftSuite .craft-folder-logo{
+ display:block;width:min(420px,73vw)!important;height:117px!important;max-width:100%!important;
+ margin:0!important;
+ object-fit:contain;object-position:center;
+ filter:drop-shadow(0 3px 1px #42222c1d);
+}
+#craftSuite .craft-folder-seal{
+ align-self:center;margin-top:-4px;
+ font:900 9px/1.3 ui-monospace,monospace;letter-spacing:.19em;color:#6b2937;
+}
+#craftSuite .craft-folder-details{
+ display:flex!important;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px 14px;
+ margin-top:5px;max-width:100%;
+}
+#craftSuite .craft-folder-details p{
+ margin:0!important;max-width:75ch!important;
+ font:600 11px/1.45 system-ui!important;color:#704a38!important;text-align:center!important;
+}
+#craftSuite .craft-folder-details .craft-founder-links{
+ display:flex!important;align-items:center;gap:6px!important;
+ margin:0!important;padding:0!important;
+}
+#craftSuite .craft-folder-details .craft-founder-links a{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:25px!important;padding:4px 9px!important;
+ border:1px solid #995d51!important;border-radius:6px!important;
+ background:#fff8e9!important;color:#5b3035!important;
+ box-shadow:1px 2px 0 #9f6955!important;
+ font:750 10px/1.1 system-ui!important;text-decoration:none!important;
+}
+#craftSuite.craft-workshop .craft-toolbar{
+ margin:0!important;
+ padding:8px 12px!important;
+ border-top:0!important;border-bottom:4px solid var(--folder-outline)!important;
+ background:linear-gradient(180deg,#8c3546 0%,#4a202c 65%)!important;
+}
+#craftSuite.craft-workshop .craft-status{
+ padding:8px 18px 5px!important;background:#f5dfc9;
+ color:#775343!important;font-size:10px!important;
+}
+#craftSuite.craft-workshop .craft-directory{
+ background:linear-gradient(180deg,#f5dfc9,#e8cdb8)!important;
+}
+#craftSuite.craft-workshop .craft-folder-cover h2{display:none!important}
+@media(max-width:680px){
+ #craftSuite.craft-workshop{margin-top:41px!important}
+ #craftSuite .craft-folder-tab{width:min(250px,76%);height:40px;top:-37px;padding:5px 10px!important;gap:10px}
+ #craftSuite .craft-folder-tab-name{font-size:8px}
+ #craftSuite.craft-workshop .craft-head.craft-folder-cover{padding:12px 8px 8px!important}
+ #craftSuite .craft-folder-front{padding:6px!important}
+ #craftSuite .craft-folder-inner{min-height:140px;padding:11px 9px!important}
+ #craftSuite .craft-folder-logo{height:92px!important;width:min(320px,82vw)!important}
+ #craftSuite .craft-folder-details p{font-size:10px!important}
+ #craftSuite .craft-folder-seal{font-size:8px}
+}
+
+
+/* Lwazi 2026-10-29: red folder and three-column cover with weekly block. */
+#craftSuite.craft-workshop{--folder-red:#b73450!important;--folder-outline:#401723!important;--folder-paper:#fff1d0!important;background:#ba3853!important;border-color:#401723!important;box-shadow:6px 7px 0 #5f1a2d,0 15px 24px #360c1a40!important}
+#craftSuite.craft-workshop .craft-head.craft-folder-cover{background:linear-gradient(170deg,#ed7888 0%,#cf425e 18%,#ae2a44 100%)!important;border-color:#401723!important;box-shadow:inset 0 3px 0 #fa9da0,inset 0 -4px 0 #7e2139!important}
+#craftSuite .craft-folder-back{background:linear-gradient(180deg,#df6880,#a92d49)!important;border-color:#401723!important}
+#craftSuite .craft-folder-tab{background:linear-gradient(180deg,#f48998 0%,#ce4964 46%,#b73450 100%)!important;border-color:#401723!important}
+#craftSuite .craft-folder-tab::after{background:#b73450!important}
+#craftSuite .craft-folder-front{background:linear-gradient(160deg,#da647a,#b73450)!important;border-color:#481829!important;box-shadow:0 5px 0 #7c1d36,inset 0 2px 0 #fbb9ab!important}
+#craftSuite .craft-folder-inner.craft-folder-inner--tri{
+ display:grid!important;grid-template-columns:minmax(160px,1.12fr) minmax(180px,1.3fr) minmax(170px,.86fr)!important;
+ align-items:center!important;justify-items:stretch!important;gap:clamp(9px,1.7vw,26px)!important;
+ min-height:178px!important;padding:18px clamp(12px,2vw,32px)!important;
+ background:linear-gradient(155deg,#fff7e3,#fff0cc)!important
+}
+#craftSuite .craft-folder-brand{min-width:0;align-items:flex-start!important;justify-content:center!important}
+#craftSuite .craft-folder-logo{width:min(100%,365px)!important;height:138px!important;object-fit:contain!important;object-position:left center!important}
+#craftSuite .craft-folder-details{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:10px!important;min-width:0;margin:0!important}
+#craftSuite .craft-folder-details .craft-folder-seal{align-self:center!important;margin:0!important;font:850 10px/1.2 ui-monospace,monospace!important;letter-spacing:.16em;color:#7c2940}
+#craftSuite .craft-folder-details p{margin:0!important;max-width:39ch!important;font:600 clamp(11px,1vw,13px)/1.55 system-ui!important;color:#633a3b!important;text-align:center!important}
+#craftSuite .craft-folder-details .craft-founder-links{display:flex!important;gap:7px!important;align-items:center!important}
+#craftSuite .craft-folder-weekly{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:9px;min-width:0;margin-left:auto;width:100%;max-width:210px}
+#craftSuite .craft-weekly-eyebrow{font:850 9px/1.2 ui-monospace,monospace;letter-spacing:.12em;color:#812b44;text-transform:uppercase;text-align:center}
+#craftSuite .craft-weekly-choice{display:flex;align-items:center;gap:8px;width:100%;padding:9px!important;min-height:91px!important;text-align:left!important;border:2px solid #9e5363!important;border-radius:11px!important;background:#fff7df!important;color:#4c2534!important;box-shadow:2px 4px 0 #ac6674!important;cursor:pointer}
+#craftSuite .craft-weekly-choice:hover,#craftSuite .craft-weekly-choice:focus-visible{background:#ffe6ca!important;border-color:#6a2538!important;outline-offset:2px}
+#craftSuite .craft-weekly-choice img{display:block;width:61px;height:65px;flex:none;object-fit:contain}
+#craftSuite .craft-weekly-choice span{display:grid;gap:4px;min-width:0}
+#craftSuite .craft-weekly-choice strong{font:800 13px/1.1 system-ui;color:#4c2534;overflow-wrap:anywhere}
+#craftSuite .craft-weekly-choice small{font:600 9px/1.4 system-ui;color:#7b5760}
+#craftSuite .craft-tile-icon.craft-arcade-block{width:112px!important;height:88px!important;transform:none!important;margin:0 0 2px!important}
+#craftSuite .craft-block-pair{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;width:112px;height:88px}
+#craftSuite .craft-block-main{display:block;width:82px;height:82px;flex:none}
+#craftSuite .craft-block-main .craft-block-png{width:100%!important;height:100%!important;object-fit:contain!important}
+#craftSuite .craft-block-alt{display:block;width:34px!important;height:34px!important;flex:none;margin-left:-4px;margin-top:2px;object-fit:contain;opacity:.96}
+#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-tile-icon.craft-arcade-block{width:119px!important;height:95px!important}
+#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-pair{width:119px;height:95px}
+#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-main{width:92px;height:92px}
+#craftSuite .craft-tile[data-craft-card="visualizr"]>button{background:#7b334d!important;color:#fff8ea!important;border:2px solid #572338!important;opacity:1!important;font-weight:850!important;text-shadow:none!important;box-shadow:0 2px 0 #3d1d2c!important}
+#craftSuite .craft-tile[data-craft-card="visualizr"]>button:hover,#craftSuite .craft-tile[data-craft-card="visualizr"]>button:focus-visible{background:#9f4260!important;outline:2px solid #421e2e!important}
+#craftSuite .craft-tile h3 .craft-capital-r{font:800 .86em/1.1 Georgia,serif!important;text-transform:uppercase!important;color:inherit!important;letter-spacing:0!important;margin-left:1px}
+#craftSuite .craft-smallprint{font:500 11px/1.55 system-ui!important;background:#f3e3d8!important}
+#craftSuite .craft-smallprint details{margin-top:10px!important}
+@media(max-width:890px){
+ #craftSuite .craft-folder-inner.craft-folder-inner--tri{grid-template-columns:minmax(120px,1fr) minmax(130px,1.2fr)!important;gap:8px!important}
+ #craftSuite .craft-folder-weekly{grid-column:1/-1;justify-self:end;flex-direction:row;align-items:center;max-width:320px}
+ #craftSuite .craft-weekly-choice{min-height:70px!important}
+}
+@media(max-width:560px){
+ #craftSuite .craft-folder-inner.craft-folder-inner--tri{grid-template-columns:minmax(0,1fr)!important;padding:13px!important;gap:9px!important}
+ #craftSuite .craft-folder-brand{align-items:center!important}
+ #craftSuite .craft-folder-logo{width:min(290px,85%)!important;height:94px!important;object-position:center!important}
+ #craftSuite .craft-folder-weekly{grid-column:1;justify-self:center;max-width:270px}
+ #craftSuite .craft-folder-details p{font-size:11px!important}
+}
+
+/* R/Lwazi folder seam refinement, 2026-10-29.
+   The raised tab and folder body are ONE continuous piece. Avoid the old
+   offset under-layer and horizontal box-shadow leaking past the right side. */
+#craftSuite.craft-workshop{
+  position:relative!important;
+  border:5px solid #401723!important;
+  border-radius:0 13px 16px 16px!important;
+  box-shadow:0 7px 0 #641e33,0 15px 20px rgba(54,12,26,.22)!important;
+  background:#b73450!important;
+}
+#craftSuite.craft-workshop .craft-folder-back{
+  display:none!important;
+}
+#craftSuite.craft-workshop .craft-head.craft-folder-cover{
+  position:relative!important;
+  overflow:visible!important;
+  border-radius:0 8px 0 0!important;
+  padding-top:17px!important;
+  background:linear-gradient(180deg,#d65370 0%,#bc3855 42%,#a82b47 100%)!important;
+  box-shadow:inset 0 -3px 0 #832338!important;
+}
+#craftSuite.craft-workshop .craft-folder-tab{
+  box-sizing:border-box!important;
+  left:-5px!important;
+  top:-41px!important;
+  height:43px!important;
+  padding:6px 15px!important;
+  border:5px solid #401723!important;
+  border-bottom:0!important;
+  border-radius:21px 21px 0 0!important;
+  background:linear-gradient(180deg,#eb8695 0%,#d95772 25%,#bd3d59 100%)!important;
+  box-shadow:inset 0 3px 0 #ffb2b1!important;
+  z-index:6!important;
+}
+#craftSuite.craft-workshop .craft-folder-tab::after{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:-5px!important;
+  height:8px!important;
+  background:#bd3d59!important;
+  border:0!important;
+  box-shadow:none!important;
+  z-index:-1!important;
+}
+#craftSuite.craft-workshop .craft-folder-front{
+  margin:0!important;
+  border-radius:8px!important;
+  box-shadow:0 3px 0 #81253a,inset 0 2px 0 #f6a0a1!important;
+}
+/* Keep the right edge flush and single-thickness, including narrow screens. */
+#craftSuite.craft-workshop .craft-folder-front,
+#craftSuite.craft-workshop .craft-folder-inner{
+  max-width:100%!important;
+  min-width:0!important;
+}
+@media(max-width:680px){
+  #craftSuite.craft-workshop .craft-folder-tab{
+    top:-37px!important;height:39px!important;left:-5px!important;
+    padding:5px 10px!important;
+  }
+}

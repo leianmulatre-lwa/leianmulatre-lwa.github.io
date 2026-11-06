@@ -4,7 +4,8 @@
 
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
-  var state = { connected: false, profile: null, media: [], error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
+  var activeAccountUid = '';
+  var state = { connected: false, profile: null, media: [], hostedById: {}, error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
   /* The same figures the Orbit panel shows, readable from the console, so a silent
      zero-import can be diagnosed without guessing. */
   window.__biglwaInstagramDiagnostics = state;
@@ -22,8 +23,25 @@
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (error) { return ''; } }
-  function saveSession(value) { try { if (value) localStorage.setItem(SESSION_KEY, value); else localStorage.removeItem(SESSION_KEY); } catch (error) {} }
+  function scopedSessionKey(uid) { return uid ? SESSION_KEY + ':' + uid : ''; }
+  function session() {
+    const uid=activeAccountUid || window.__biglwaIdentity?.uid || '';
+    if(!uid)return '';
+    const key=scopedSessionKey(uid);
+    for(const store of [localStorage,sessionStorage]){
+      try{const value=store.getItem(key);if(value)return value}catch{}
+    }
+    // Legacy global tokens may be unbound to this account; do not silently
+    // use a previous member's authorization just because the device has one.
+    return '';
+  }
+  function saveSession(value) {
+    const uid=activeAccountUid || window.__biglwaIdentity?.uid || '';
+    if(!uid)return;
+    const key=scopedSessionKey(uid);
+    try{if(value)localStorage.setItem(key,value);else localStorage.removeItem(key)}catch{}
+    try{localStorage.removeItem(SESSION_KEY)}catch{}
+  }
   async function firebaseContext() {
     const app = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js');
     const authMod = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
@@ -34,12 +52,20 @@
   async function firebaseAuthToken() {
     try {
       const ctx = await firebaseContext();
+      // OAuth handoff can return before Firebase finishes restoring this login.
+      // Waiting here is essential: otherwise the Worker creates only a browser
+      // credential and cannot connect Instagram to the member's account.
+      await ctx.auth.authStateReady();
+      activeAccountUid=ctx.auth.currentUser?.uid||'';
       return ctx.auth.currentUser ? await ctx.auth.currentUser.getIdToken() : '';
     } catch (error) { return ''; }
   }
   async function accountSession() {
     var token = await firebaseAuthToken();
-    if (!token) return '';
+    if (!token) {
+      state.sessionLookupError=''; // An external connection is optional, not a Big LWA login.
+      return '';
+    }
     try {
       var result = await fetch(API + '/session/account', { headers: { Authorization: 'Bearer ' + token } });
       var body = await result.json().catch(function () { return {}; });
@@ -88,6 +114,8 @@
     state.importsSkipped = result.skipped || 0;
     state.importsPartial = result.partial || 0;
     state.importWarning = (result && result.warning) || '';
+    state.hostedById = {...state.hostedById,...((result && result.hostedById) || {})};
+    renderFeed();
     window.dispatchEvent(new CustomEvent('biglwa:orbit-imported', {
       detail: { source: 'instagram', imported: state.importsSaved }
     }));
@@ -121,31 +149,80 @@
     return fetch(API + path, settings).then(function (response) { return response.json().catch(function () { return {}; }).then(function (body) { if (!response.ok) { var failure = new Error(body.error || 'Instagram request failed.'); failure.status = response.status; throw failure; } return body; }); });
   }
   function status(message) {
-    var toast = one('#biglwaInstagramStatus');
-    if (!toast) { toast = document.createElement('div'); toast.id = 'biglwaInstagramStatus'; toast.setAttribute('role', 'status'); toast.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:12000;max-width:330px;padding:11px 14px;border:1px solid rgba(80,70,64,.2);border-radius:12px;background:rgba(250,247,241,.96);box-shadow:0 12px 34px rgba(0,0,0,.14);font:600 11px/1.4 system-ui;color:#302b28'; document.body.appendChild(toast); }
-    toast.textContent = message; clearTimeout(status.timer); status.timer = setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 6000);
+    // Provider notifications can never overlay the Big LWA sign-in screen.
+    const studio=document.getElementById('studioApp');
+    const login=document.getElementById('loginPage');
+    const active=!!activeAccountUid && !!studio?.classList.contains('is-active') && !login?.classList.contains('is-active');
+    if(!active){one('#biglwaInstagramStatus')?.remove();return}
+    var toast=one('#biglwaInstagramStatus');
+    if(!toast){
+      toast=document.createElement('div');toast.id='biglwaInstagramStatus';
+      toast.setAttribute('role','status');
+      toast.style.cssText='position:fixed;right:18px;bottom:18px;z-index:12000;max-width:330px;padding:11px 14px;border:1px solid rgba(80,70,64,.2);border-radius:12px;background:rgba(250,247,241,.96);box-shadow:0 12px 34px rgba(0,0,0,.14);font:600 11px/1.4 system-ui;color:#302b28';
+      document.body.appendChild(toast);
+    }
+    toast.textContent=message;
+    clearTimeout(status.timer);
+    status.timer=setTimeout(function(){toast.remove()},6000);
   }
   /* /studio is a stub that rebuilds the query and would drop the handoff code, so the
      return goes to the site root the app actually runs from. */
-  function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent('https://biglwa.com/?route=studio&view=orbit')); }
-  async function restore() {
-    var savedSession = session();
-    if (!savedSession) {
-      savedSession = await accountSession();
-      if (savedSession) saveSession(savedSession);
+  function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent(window.location.origin + '/studio?view=orbit&orbit_return=1')); }
+  async function restore({silent=false}={}) {
+    // The canonical connection belongs to the authenticated account on the
+    // Worker, not this device. Refresh it first on every restore.
+    var savedSession = await accountSession();
+    if(savedSession)saveSession(savedSession);
+    else if(!state.sessionLookupError){
+      // The Worker confirmed there is no authorized account connection.
+      // Keep the public profile record and saved R2 photos; only hide live import.
+      state.connected=false;
+      state.profile=null;
+      state.media=[];
+      state.error='';
+      render();
+      return false;
+    } else {
+      // A transient account-service fault should not erase an existing session.
+      savedSession=session();
     }
-    if (!savedSession) {
-      if (state.sessionLookupError) status(state.sessionLookupError);
-      return Promise.resolve();
+    if(!savedSession) {
+      if(state.sessionLookupError&&!silent)status(state.sessionLookupError);
+      return false;
     }
-    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(function (responses) {
-      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = ''; render();
+    return Promise.all([api('/instagram/profile'), api('/instagram/media')]).then(async function (responses) {
+      state.profile = responses[0]; state.media = responses[1].data || []; state.connected = true; state.error = '';
+      // Insights are optional: a missing Meta grant or an undeployed endpoint
+      // must never prevent the user's media or Archive from loading.
+      const activeSession=session();
+      api('/instagram/insights').then(report=>{
+        if(!state.connected||session()!==activeSession||!state.profile)return;
+        if(report?.period!=='month_to_date'||report.month!==new Date().toISOString().slice(0,7))return;
+        const measures=report.metrics||{},stats={...(state.profile.stats||{})};
+        if(Number.isFinite(measures.views))stats.monthlyViews=measures.views;
+        if(Number.isFinite(measures.reach))stats.monthlyReach={
+          month:report.month,metric:'reach',value:measures.reach};
+        if(Number.isFinite(measures.total_interactions))stats.monthlyInteractions=measures.total_interactions;
+        state.profile.stats=stats;
+        state.insightsCheckedAt=report.checkedAt||'';
+        state.insightsError=Array.isArray(report.unavailable)?report.unavailable.join(' · '):'';
+        window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
+      }).catch(error=>{
+        state.insightsError=String(error?.message||'Instagram insights unavailable.');
+        window.dispatchEvent(new CustomEvent('biglwa:instagram-insights-unavailable'));
+      });
+      // Saved R2 URLs survive device changes. Restore these before refreshing from Instagram.
+      try{
+        const saved=await window.__biglwaOrbitPosts?.storedOrbitImageUrls?.('instagram');
+        if(saved)state.hostedById={...state.hostedById,...saved};
+      }catch(error){console.warn('Instagram stored photos restore:',error)}
+      render();
       /* Loading and saving fail for different reasons and need different words. Sharing one
          catch made a failed save read as "Instagram could not load", so a member whose
          connection was healthy saw a broken connection and never learned the save failed. */
       return saveToFeedWithRetry().then(function (result) {
         state.importError = '';
-        if (result && result.warning) status(result.warning);
+        if (result && result.warning && !silent) status(result.warning);
         return persistAccount(state.profile, state.media);
       }).then(function () {
         render();
@@ -155,7 +232,7 @@
         state.importError = importFailure.message;
         state.error = '';
         render();
-        status('Instagram is connected, but this device could not save it to your account: ' + importFailure.message);
+        if(!silent)status('Instagram is connected, but this device could not save it to your account: ' + importFailure.message);
         window.dispatchEvent(new CustomEvent('biglwa:instagram-restored'));
         return true;
       });
@@ -163,20 +240,39 @@
       /* Only an expired credential may end the connection. A dropped connection or an
          Instagram-side fault used to discard the session, so one bad moment forced the
          member through the whole authorisation flow again. */
-      if (error.status === 401) { saveSession(''); state.connected = false; }
+      if (error.status === 401) {
+        // A browser credential can be stale even when the Firebase-linked
+        // account is healthy. Retry recovery once without disconnecting.
+        return accountSession().then(next=>{
+          if(next && next!==savedSession){saveSession(next);return restore({silent});}
+          state.error='Instagram authorization expired. Reconnect to refresh permission.';
+          state.connected=false;render();return false;
+        });
+      }
       state.error = error.message;
-      render();
+      render();return false;
     });
   }
   function consumeHandoff() {
-    var url = new URL(window.location.href); var handoff = url.searchParams.get('instagram_handoff') || RETURNED_HANDOFF; var error = url.searchParams.get('instagram_error') || RETURNED_ERROR;
+    var url=new URL(window.location.href);
+    var handoff=url.searchParams.get('instagram_handoff')||RETURNED_HANDOFF;
+    var error=url.searchParams.get('instagram_error')||RETURNED_ERROR;
+    // OAuth one-time codes must not replay after other auth state changes.
+    RETURNED_HANDOFF='';RETURNED_ERROR='';
     window.__biglwaInstagramReturnCode = handoff;
     if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); }
-    if (!handoff) return restore();
+    if (!handoff) return restore({silent:true});
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
-    return firebaseAuthToken().then(function (firebaseIdToken) { return api('/session/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handoff: handoff, firebaseIdToken: firebaseIdToken }) }); }).then(function (result) { saveSession(result.session); return restore(); }).then(function () { status('Instagram is connected to Orbit.'); }).catch(function (failure) { status(failure.message); });
+    return firebaseAuthToken().then(function (firebaseIdToken) {
+      if(!firebaseIdToken)throw new Error('Sign in to BIGLWA before linking Instagram. Connection was not saved.');
+      return api('/session/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handoff: handoff, firebaseIdToken: firebaseIdToken }) });
+    }).then(function (result) {
+      if(!result.persisted || !result.session)throw new Error('Instagram was not linked to your BIGLWA account. Please retry.');
+      saveSession(result.session);
+      return restore();
+    }).then(function () { status('Instagram is linked to your BIGLWA account.'); }).catch(function (failure) { status(failure.message); });
   }
-  function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; render(); status('Instagram disconnected from Orbit.'); }); }
+  function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; state.hostedById = {}; render(); status('Instagram disconnected from Orbit.'); }); }
   function render() {
     try {
       all('[data-orbit-app="instagram"]').forEach(function (tile) { tile.classList.toggle('orbit-connected', state.connected); tile.setAttribute('aria-label', state.connected ? 'View connected Instagram account' : 'Connect Instagram'); var small = one('small', tile); if (small) small.textContent = state.connected ? 'Connected' : 'Connect'; });
@@ -203,7 +299,7 @@
       retry = '<button type="button" class="module-action" data-instagram-resave>' +
         (state.importError ? 'Try saving again' : 'Save anything that did not make it') + '</button>';
     }
-    return '<article class="module-list-item instagram-feed-item biglwa-instagram-import-status" data-instagram-import-status><div>' +
+    return '<article class="module-list-item biglwa-instagram-import-status" data-instagram-import-status><div>' +
       '<b>Import status</b><small>' + escapeText(parts.join(' ')) + '</small>' +
       retry +
       '</div></article>';
@@ -212,10 +308,10 @@
     if (state.error) {
       return '<article class="module-list-item instagram-feed-item"><div><b>Instagram could not load</b><small>' + escapeText(state.error) + '</small></div></article>';
     }
-    if (state.importError) {
-      return '<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected but nothing was saved</b><small>' + escapeText(state.importError) + '</small>' +
-        '<button type="button" class="module-action" data-instagram-resave>Try saving again</button></div></article>';
-    }
+    var pendingCopies=state.connected&&state.media.some(item=>!(state.hostedById[String(item.id||'')]||[]).length);
+    var importWarning = state.importError||pendingCopies
+      ? '<article class="module-list-item instagram-import-status"><div><b>'+ (state.importError?'Instagram storage needs attention':'Finish saving Instagram images') +'</b><small>'+escapeText(state.importError||'Instagram source previews are visible while BIGLWA copies the originals to account storage.')+'</small><button type="button" class="module-action" data-instagram-resave>Retry saving photos</button></div></article>'
+      : '';
     if (!state.connected) return '';
     var cards = state.media.slice(0, 20).map(function (item, index) {
       var children = item.children && Array.isArray(item.children.data) ? item.children.data.filter(function (child) {
@@ -227,19 +323,32 @@
       var carousel = item.media_type === 'CAROUSEL_ALBUM' && children.length > 1 && !manyPhotos;
       var mediaItems = carousel ? children : [item];
       var first = mediaItems[0] || item;
-      var media = first.media_url || first.thumbnail_url || '';
-      /* The full-size file is often gone or blocked while the thumbnail still resolves, so
-         each picture carries its own fallback. A picture with neither is left off the wall
-         rather than offered as a card that can only show a broken icon. */
-      var fallback = first.media_type === 'VIDEO' ? '' : (first.thumbnail_url || '');
-      var visual = first.media_type === 'VIDEO'
-        ? '<video data-instagram-media preload="metadata" poster="' + escapeText(first.thumbnail_url || '') + '" src="' + escapeText(first.media_url || '') + '" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd"></video>'
-        : '<img data-instagram-media src="' + escapeText(media) + '"' +
-          (fallback && fallback !== media ? ' data-instagram-fallback="' + escapeText(fallback) + '"' : '') +
-          ' data-instagram-preview="' + escapeText(media || fallback) + '" alt="Instagram media" loading="lazy" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd">';
-      var tabs = carousel ? '<div class="biglwa-instagram-tabs" aria-label="Carousel photos">' + mediaItems.map(function (_, tabIndex) {
-        return '<button type="button" class="biglwa-instagram-tab' + (tabIndex === 0 ? ' is-active' : '') + '" data-instagram-tab="' + tabIndex + '">' + (tabIndex + 1) + '</button>';
-      }).join('') + '</div>' : '<span class="biglwa-instagram-tabs" aria-hidden="true"></span>';
+      var hosted = state.hostedById[String(item.id || '')] || [];
+      // Never show expiring CDN links as the connected card's permanent image.
+      // For video or carousel posts, the persisted picture is the R2 poster.
+      var media = hosted[0] || '';
+      // Provider pictures may be shown temporarily while the R2 copy is in
+      // progress, but only our own R2 URLs are persisted in account records.
+      var sourcePreview = String(first.thumbnail_url || first.media_url || item.thumbnail_url || item.media_url || '');
+      if(sourcePreview&&!/^https:\/\//i.test(sourcePreview))sourcePreview='';
+      var livePreview = !media && state.connected ? sourcePreview : '';
+      var shown=media||livePreview;
+      var visual = shown
+        ? '<img data-instagram-media src="' + escapeText(shown) + '" data-instagram-preview="' + escapeText(shown) + '"' +
+          (media&&sourcePreview&&sourcePreview!==media?' data-instagram-fallback="'+escapeText(sourcePreview)+'"':'') +
+          (media?' data-biglwa-hosted="true"':' data-biglwa-hosted="pending"') +
+          ' alt="Instagram media preview" loading="lazy" style="display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd">'
+        : '<div class="biglwa-unavailable-media">This Instagram image is not available yet. Choose Retry saving photos to restore its stored copy.</div>';
+      var controls=carousel
+        ? '<div class="instagram-carousel-dots" role="group" aria-label="Carousel positions">' +
+          mediaItems.map(function (_,pos){
+            return '<button type="button" class="instagram-carousel-dot'+(pos===0?' is-active':'')+
+              '" data-instagram-tab="'+pos+'" aria-label="Show photo '+(pos+1)+' of '+mediaItems.length+
+              '" aria-current="'+(pos===0?'true':'false')+'"></button>';
+          }).join('')+'</div>'+
+          '<button type="button" class="instagram-carousel-arrow is-prev" data-instagram-step="-1" aria-label="Previous photo">‹</button>'+
+          '<button type="button" class="instagram-carousel-arrow is-next" data-instagram-step="1" aria-label="Next photo">›</button>'
+        : '';
       var link = item.permalink || '#';
       var cardId = 'instagram-' + escapeText(item.id || ('item-' + index));
       /* The + tray belongs on every card on the wall, so these cards carry one too. The
@@ -250,30 +359,26 @@
         : '';
       var sendRecord = JSON.stringify({
         id: cardId,
+        source: 'instagram',
+        sourcePostId: String(item.id || ''),
         caption: item.caption || '',
         sourceUrl: item.permalink || '',
-        imageUrls: (children.length ? children : [item]).map(function (child) {
-          return child.media_type === 'VIDEO' ? (child.thumbnail_url || '') : (child.media_url || '');
-        }).filter(Boolean)
+        imageUrls: hosted.length ? hosted.filter(Boolean) : (shown ? [shown] : [])
       }).replace(/"/g, '&quot;');
-      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#a52a0c" data-instagram-index="' + index + '"' +
-        ' data-post-id="' + cardId + '" data-send-record="' + sendRecord + '">' +
+      return '<article class="module-list-item instagram-feed-item biglwa-instagram-card" style="--feed-card-rim:#f36b21;--feed-card-shadow:3px 3px 0 #f36b21,7px 7px 0 -2px #ffad52,0 14px 28px -13px #bd430b" data-instagram-index="' + index + '"' +
+        ' data-post-id="' + cardId + '" data-source-id="' + escapeText(item.id || '') + '" data-send-record="' + sendRecord + '">' +
         '<div style="width:100%;padding:0">' +
-          '<div class="biglwa-instagram-strip">' +
-            tabs +
-            '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
-              '<button type="button" data-instagram-hide aria-label="Remove from feed" title="Remove from feed"></button>' +
-              '<button type="button" data-instagram-hide aria-label="Archive" title="Archive"></button>' +
-              '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram"></a>' +
-            '</div>' +
+          '<div class="biglwa-instagram-actions" aria-label="Instagram post actions">' +
+            '<a href="' + escapeText(link) + '" target="_blank" rel="noopener noreferrer" data-instagram-open aria-label="Open on Instagram" title="Open on Instagram"></a>' +
           '</div>' +
-          visual +
+          '<div class="biglwa-unified-media'+(carousel?' instagram-carousel-frame':'')+'" data-instagram-current="0">' + visual + controls + '</div>' +
         '</div>' +
+        '<span class="biglwa-unified-source">Instagram</span>' +
         sendBar +
       '</article>';
     });
     if (!cards.length) cards.push('<article class="module-list-item instagram-feed-item"><div><b>Instagram is connected</b><small>No media was returned for this account.</small></div></article>');
-    return '<div class="biglwa-instagram-wall">' + importStatusHtml() + cards.join('') + '</div>';
+    return importWarning + importStatusHtml() + cards.join('');
   }
   /* Instagram belongs in Archive. It is connected content, not a second renderer for
      the member's Studio/profile feed.
@@ -287,9 +392,26 @@
     list = list || one('#feedPageList');
     if (!list) return;
     all('.biglwa-instagram-wall', list).forEach(function (wall) { wall.remove(); });
-    all('.instagram-feed-item', list).forEach(function (item) { item.remove(); });
+    all('.instagram-feed-item,.instagram-import-status,.biglwa-instagram-import-status', list).forEach(function (item) { item.remove(); });
     var html = feedHtml();
     if (html) list.insertAdjacentHTML('afterbegin', html);
+    // Account import health is page-level information, not a photo. Keep it
+    // above the Pinterest-style wall instead of consuming a masonry slot.
+    var module = list.closest('.module-workspace[data-module-key="feed"]');
+    var grid = module && one('.module-grid', module);
+    if(grid){
+      var statusRail=one('#biglwaFeedImportStatusRail',module);
+      if(!statusRail){
+        statusRail=document.createElement('aside');
+        statusRail.id='biglwaFeedImportStatusRail';
+        statusRail.className='biglwa-feed-import-rail';
+        statusRail.setAttribute('aria-label','Connected account import status');
+        grid.insertAdjacentElement('beforebegin',statusRail);
+      }
+      statusRail.querySelectorAll('[data-instagram-import-status],.instagram-import-status').forEach(function(n){n.remove()});
+      all('[data-instagram-import-status],.instagram-import-status',list).forEach(function(n){statusRail.appendChild(n)});
+      statusRail.hidden=!statusRail.children.length;
+    }
     /* These cards are not saved posts, so the wall is told what each one holds in order for
        their + tray to work the same way as the tray on a saved card. */
     if (window.__biglwaFeed && typeof window.__biglwaFeed.registerSendCard === 'function') {
@@ -315,7 +437,7 @@
           return;
         }
         var holder = img.closest('.biglwa-instagram-card');
-        if (holder) { holder.remove(); dropped += 1; }
+        if (holder) { const unavailable=document.createElement('div'); unavailable.className='biglwa-unavailable-media'; unavailable.textContent='Instagram image unavailable — open original source.'; img.replaceWith(unavailable); holder.classList.add('biglwa-image-unavailable'); dropped += 1; }
       });
       if (img.complete && img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
     });
@@ -351,7 +473,9 @@
     try {
       var data = JSON.parse(record);
       data.imageUrls = [url];
-      card.setAttribute('data-send-record', JSON.stringify(data).replace(/"/g, '&quot;'));
+      // setAttribute takes a value, not HTML source. Escaping quotes here makes
+      // JSON.parse(card.dataset.sendRecord) fail after thumbnail fallback.
+      card.setAttribute('data-send-record', JSON.stringify(data));
       if (window.__biglwaFeed && typeof window.__biglwaFeed.registerSendCard === 'function') {
         window.__biglwaFeed.registerSendCard(card);
       }
@@ -365,46 +489,46 @@
   document.addEventListener('biglwa:feed-ready', function () { renderFeed(); });
   if (window.BIGLWAFeedMount) window.BIGLWAFeedMount('Instagram', 'instagram-feed-item', renderFeed);
   document.addEventListener('click', function (event) {
-    var tab = event.target && event.target.closest ? event.target.closest('[data-instagram-tab]') : null;
+    var tab = event.target && event.target.closest ? event.target.closest('[data-instagram-tab],[data-instagram-step]') : null;
     if (tab) {
+      event.preventDefault();event.stopPropagation();
       var card = tab.closest('.instagram-feed-item');
       var cardIndex = card ? Number(card.getAttribute('data-instagram-index')) : -1;
       var item = state.media[cardIndex];
       var children = item && item.children && Array.isArray(item.children.data) ? item.children.data.filter(function (child) {
         return child && (child.media_url || child.thumbnail_url);
       }) : [];
-      var nextIndex = Number(tab.getAttribute('data-instagram-tab'));
+      var nextIndex = tab.hasAttribute('data-instagram-step')
+        ? (Number(card?.querySelector('[data-instagram-current]')?.dataset.instagramCurrent||0)+Number(tab.dataset.instagramStep)+children.length)%children.length
+        : Number(tab.getAttribute('data-instagram-tab'));
       var next = children[nextIndex];
       if (card && next) {
-        var media = next.media_url || next.thumbnail_url || '';
-        var old = card.querySelector('[data-instagram-media]');
-        if (old) {
-          if (next.media_type === 'VIDEO') {
-            var video = document.createElement('video');
-            video.setAttribute('data-instagram-media','');
-            video.controls = false;
-            video.preload = 'metadata';
-            video.poster = next.thumbnail_url || '';
-            video.src = next.media_url || '';
-            video.style.cssText = 'display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#efe7dd';
-            old.replaceWith(video);
-          } else if (old.tagName === 'IMG') {
-            old.src = media;
-            old.setAttribute('data-instagram-fallback', next.thumbnail_url || '');
-            old.setAttribute('data-instagram-preview', media);
-          } else {
-            var replacement = document.createElement('img');
-            replacement.setAttribute('data-instagram-media', '');
-            replacement.setAttribute('data-instagram-fallback', next.thumbnail_url || '');
-            replacement.setAttribute('data-instagram-preview', media);
-            replacement.src = media;
-            replacement.alt = 'Instagram media';
-            replacement.style.cssText = 'display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd';
-            old.replaceWith(replacement);
+        var saved = state.hostedById[String(item.id || '')] || [];
+        var media = saved[nextIndex] || (state.connected?String(next.thumbnail_url||next.media_url||''):'');
+        var old = card.querySelector('[data-instagram-media],.biglwa-unavailable-media');
+        if(old){
+          if(media){
+            var img=document.createElement('img');
+            img.setAttribute('data-instagram-media','');
+            img.setAttribute('data-instagram-preview',media);
+            img.loading='lazy';img.src=media;
+            img.alt='Instagram picture stored in BIGLWA';
+            img.style.cssText='display:block;width:100%;height:auto;object-fit:contain;background:#efe7dd';
+            old.replaceWith(img);
+          }else{
+            var placeholder=document.createElement('div');
+            placeholder.className='biglwa-unavailable-media';
+            placeholder.textContent='This carousel image has not been copied to BIGLWA yet.';
+            old.replaceWith(placeholder);
           }
         }
-        all('.biglwa-instagram-tab', card).forEach(function (button) { button.classList.remove('is-active'); });
-        tab.classList.add('is-active');
+        var frame=card.querySelector('.instagram-carousel-frame');
+        if(frame)frame.dataset.instagramCurrent=String(nextIndex);
+        all('.instagram-carousel-dot',card).forEach(function(button) {
+          var active=Number(button.dataset.instagramTab)===nextIndex;
+          button.classList.toggle('is-active',active);
+          button.setAttribute('aria-current',active?'true':'false');
+        });
       }
       return;
     }
@@ -432,7 +556,34 @@
       if (card) card.remove();
       return;
     }
- var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); connect(); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
+ var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); if(!state.connected)connect(); else window.openBIGLWAModule?.('orbit'); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
   window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { render(); consumeHandoff(); }, { once: true }); else { render(); consumeHandoff(); }
+  // Do not touch providers until a persisted Big LWA Firebase account has
+  // actually been restored. Provider errors have no right to change login.
+  function bootProvider(){
+    render();
+    firebaseContext().then(async function(ctx){
+      await ctx.auth.authStateReady();
+      var lastUid;
+      ctx.auth.onAuthStateChanged(function(user){
+        const uid=user?.uid||'';
+        if(uid===lastUid)return;
+        lastUid=uid;activeAccountUid=uid;
+        if(!uid){
+          state.connected=false;state.error='';state.sessionLookupError='';
+          one('#biglwaInstagramStatus')?.remove();
+          render();return;
+        }
+        consumeHandoff().catch(function(error){
+          console.warn('Instagram background account recovery:',error);
+        });
+      },function(error){console.warn('Instagram auth observation delayed:',error)});
+    }).catch(function(error){console.warn('Instagram awaiting Big LWA session:',error)});
+  }
+  window.addEventListener('biglwa:session-verified',function(event){
+    if(!event.detail?.signedIn)one('#biglwaInstagramStatus')?.remove();
+  });
+  if(document.readyState==='loading')
+    document.addEventListener('DOMContentLoaded',bootProvider,{once:true});
+  else bootProvider();
 }());

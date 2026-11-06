@@ -1,0 +1,39 @@
+name: Sqwip screenplay checks
+
+on:
+  pull_request:
+    paths:
+      - 'sqwip.js'
+      - 'sqwip.css'
+      - 'sqwip-test.mjs'
+      - 'module-pages.js'
+      - 'index.html'
+      - 'cloudflare-worker-instagram.js'
+      - '.github/workflows/sqwip-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'sqwip.js'
+      - 'sqwip.css'
+      - 'sqwip-test.mjs'
+      - 'module-pages.js'
+      - 'index.html'
+      - 'cloudflare-worker-instagram.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sqwip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate scripts and Worker
+        run: |
+          node --check sqwip.js
+          node --check module-pages.js
+          node --input-type=module --check < cloudflare-worker-instagram.js
+      - name: Exercise script editor and private account sync
+        run: node sqwip-test.mjs
