@@ -35,10 +35,11 @@ jobs:
         run: |
           node --check lwazi/policy.mjs
           node --check lwazi/worker.mjs
+          node --check lwazi/free-models.mjs
           node --check lwazi-client.js
           node --check functions/api/lwazi.js
           node --check user-search-results.js
       - name: Engine unit and mocked integration tests
-        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs
+        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs
       - name: Preserve existing Studio search contracts
         run: node lwazi-search-regression-test.mjs
