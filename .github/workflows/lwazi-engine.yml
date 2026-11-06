@@ -1,0 +1,45 @@
+name: Lwazi engine pilot checks
+
+on:
+  push:
+    branches:
+      - feature/lwazi-engine-v1-20261106
+    paths:
+      - 'lwazi/**'
+      - 'lwazi-client.js'
+      - 'user-search-results.js'
+      - 'index.html'
+      - 'wrangler-lwazi.toml'
+      - '.github/workflows/lwazi-engine.yml'
+  pull_request:
+    paths:
+      - 'lwazi/**'
+      - 'lwazi-client.js'
+      - 'user-search-results.js'
+      - 'index.html'
+      - 'wrangler-lwazi.toml'
+      - '.github/workflows/lwazi-engine.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check lwazi/policy.mjs
+          node --check lwazi/worker.mjs
+          node --check lwazi/free-models.mjs
+          node --check lwazi-client.js
+          node --check functions/api/lwazi.js
+          node --check user-search-results.js
+      - name: Engine unit and mocked integration tests
+        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs
+      - name: Preserve existing Studio search contracts
+        run: node lwazi-search-regression-test.mjs

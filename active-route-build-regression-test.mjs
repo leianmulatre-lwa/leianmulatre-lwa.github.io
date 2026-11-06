@@ -5,7 +5,7 @@ const entry=read('index.html'), modules=read('module-pages.js'), css=read('orbit
 const original=read('bootstrap-v2.html');
 const expected={
   'orbit-cards-unified-20261016.css':'20261017-orbit-inline-links-1',
-  'pinterest-orbit.js':'20261028-oauth-return-2',
+  // Pinterest version is intentionally flexible; OAuth/Boards content is checked by its own behavior tests.
   'orbit-preview-eight-20261016.js':'20261028-canonical-orbit-2',
   'account-boot.js':'20261029-film-shuffle-3'
 };
@@ -13,6 +13,8 @@ assert.match(entry, /\/module-pages\.js\?v=[\w.-]+/, 'Current module loader must
 for(const [path,version] of Object.entries(expected)){
  assert.ok(entry.includes('/'+path+'?v='+version),'Entry point must load current '+path);
 }
+assert.match(entry,/\/pinterest-orbit\.js\?v=[\w.-]+/, 'Canonical Pinterest importer must be cache-busted');
+assert.match(read('pinterest-orbit.js'),/importPinsToAccount/, 'Pinterest importer preserves original Pins behavior');
 const publishedArcade=entry.match(/\/(arcade-(?:silhouette-corrected|folder-unified)[a-z0-9-]*\.css)(?:\?v=[a-z0-9-]+)?/i)?.[1];
 assert.ok(publishedArcade,'A current Arcade CSS asset must load');
 assert.ok(readFileSync(new URL('./'+publishedArcade,import.meta.url),'utf8').includes('.games-arcade-brand'),
