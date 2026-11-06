@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
+const code=readFileSync(new URL('./worker/politc-live.js',import.meta.url),'utf8');
+assert.doesNotThrow(()=>new Script(code));
+const parse=new Function(code.slice(code.indexOf('function parseTracker(html){'),code.indexOf('async function tracker(){'))+'return parseTracker;')();
+const current='<div><span>141</span> Completed <b>70</b> In Progress <span>110</span> Not Started <h2>Total Objectives</h2><strong>321</strong></div>';
+assert.deepEqual(parse(current),{total:321,done:141,inProgress:70,notStarted:110,completedPct:43.9,weightedPct:55});
+assert.equal(parse(current.replace('321','322')),null,'Reject mismatched total');
+assert.equal(parse('<p>321 Total 141 Done 70 In Progress</p>').weightedPct,55,'Old source remains accepted');
+assert.equal(parse('<p>322 Total 323 Done 70 In Progress</p>'),null,'Impossible data is never reported');
+assert.equal(parse('<p>55% progress. No readable counts.</p>'),null,'Never infer counts from a percentage');
+assert.ok(code.includes("const PROJECT='https://www.project2025.observer/en'"),'Correct canonical source');
+console.log('PASS Politc Project 2025 source parser and data validation');

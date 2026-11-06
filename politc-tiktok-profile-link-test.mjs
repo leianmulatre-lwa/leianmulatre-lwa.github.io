@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
+const tik=readFileSync(new URL('./tiktok-orbit.js',import.meta.url),'utf8');
+const polit=readFileSync(new URL('./module-pages.js',import.meta.url),'utf8');
+assert.doesNotThrow(()=>new Script(tik));
+assert.doesNotThrow(()=>new Script(polit));
+assert.ok(tik.includes("String(profile.username||'').replace(/^@/,'').trim()"));
+assert.ok(tik.includes("await linked.save('tiktok',canonical)"));
+assert.ok(tik.includes("verifiedFromProvider:true"));
+assert.ok(tik.includes("else await syncTikTokDrafts()"),'Continue using provider-authorized video.list for feed publishing');
+assert.ok(polit.includes('Verify source ↗'),'Expose tracker provenance in the module');
+console.log('PASS TikTok authorized profile URL linking and Politic source link');
