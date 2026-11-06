@@ -105,7 +105,14 @@ async function testMode(mode){
   }
   const token=await u.getIdToken();
   const response=await fetch(BASE,{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({question:questions[mode],mode,provider:mode==='fast'?'deepseek':'anthropic'})});
-  if(!response.ok){const data=await response.json().catch(()=>({}));throw Error('HTTP '+response.status+' · '+(data.error||'unknown_provider_error'))}
+  if(!response.ok){
+   const data=await response.json().catch(()=>({}));
+   if(response.status===402||data.error==='provider_billing_required'){
+    const named=data.provider==='anthropic'?'Anthropic':data.provider==='deepseek'?'DeepSeek':mode==='fast'?'DeepSeek':'Anthropic';
+    throw Error(named+' API billing needs attention (provider HTTP 402). The account may need credits or updated payment details. This is not a Firebase or Cloudflare connection problem. Check the '+named+' developer-console billing page, then retry once.');
+   }
+   throw Error('HTTP '+response.status+' · '+(data.error||'unknown_provider_error')+(data.provider?' · '+data.provider:''));
+  }
   if(!response.body)throw Error('stream_unavailable');
   const reader=response.body.getReader(),decoder=new TextDecoder();let done=false;
   while(!done){
