@@ -314,7 +314,7 @@
    '</div></nav>',
    '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
-   '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>▣ Dock player · keep watching while you browse</button><button type="button" class="stream-dock-open" data-stream-no-signal>◉ No signal?</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
+   '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>Dock stream · keep watching while you browse</button><button type="button" class="stream-dock-open" data-stream-no-signal>◉ No signal?</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
    
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
