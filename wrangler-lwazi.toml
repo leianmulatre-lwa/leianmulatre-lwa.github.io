@@ -1,0 +1,10 @@
+# Isolated preview Worker. Does not replace the existing Instagram/Orbit Worker.
+name = "biglwa-lwazi-pilot"
+main = "lwazi/worker.mjs"
+compatibility_date = "2026-11-06"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "https://biglwa.com,https://www.biglwa.com"
+# Never commit secrets: DEEPSEEK_API_KEY, ANTHROPIC_API_KEY,
+# LWAZI_ALLOWED_UIDS are configured in Cloudflare Worker secrets.
