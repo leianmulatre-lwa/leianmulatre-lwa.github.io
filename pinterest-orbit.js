@@ -1213,8 +1213,9 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
    unique.add(url);photos.push(url);
   };
   previews.forEach(item=>add(item.url));
-  // A legacy Studio card may already show a saved photo before Orbit hydrates.
-  originals.forEach(img=>add(img.currentSrc||img.src));
+  // Only fall back to an existing member photo if the connected account has
+  // no pictures yet. Do not mix obsolete stock/legacy tiles into real boards.
+  if(!photos.length)originals.forEach(img=>add(img.currentSrc||img.src));
   if(!photos.length)return;
   const signature=photos.join('|');
   if(gallery?.dataset.signature===signature)return;
@@ -1260,6 +1261,7 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
   });
   card.classList.add('biglwa-studio-boards-full-preview');
  }
+ window.__biglwaRefreshBoardsThumbnail=paintStudioBoardGallery;
  let studioBoardPreviewScheduled=false;
  function scheduleStudioBoardPreview(){
   if(studioBoardPreviewScheduled)return;
