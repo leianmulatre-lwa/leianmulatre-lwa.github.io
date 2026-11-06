@@ -124,6 +124,13 @@ export async function mountCraftSuite(root){
    '</div>'+
   '</header>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
+  '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
+  '<section class="craft-account-vault" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
+   '<div><span class="craft-vault-eyebrow">03 / PRIVATE SHELF</span><h3>Your BIG LWA snapshots</h3>'+
+   '<p>Save a small preview to your signed-in account. This is a flattened image you can reopen in sqwibblR, not an editable WASM project.</p></div>'+
+   '<div class="craft-vault-actions"><label class="craft-vault-file">Save an exported image<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
+   '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
+  '<section class="craft-project-vault" id="craftProjectVault" aria-label="Private editable Workshop projects"></section>'+
   '<div class="craft-directory" role="list" aria-label="BIG LWA creative applications">'+card(LOCAL,true)+WEB_FRIENDLY.map(webAppCard).join('')+ENGINES.map(x=>card(x,false)).join('')+'</div>'+
   '<div class="craft-panel" id="craftPanel" hidden>'+
     '<div class="craft-panel-head"><div class="craft-panel-identity"><span class="craft-panel-lights" aria-hidden="true"><i></i><i></i><i></i></span><strong id="craftPanelTitle">BIG LWA editor</strong></div><div class="craft-panel-actions">'+
@@ -136,6 +143,8 @@ export async function mountCraftSuite(root){
     '<p class="craft-panel-foot" role="status" id="craftEditorStatus">Your workspace is ready.</p>'+
   '</div>'+
   '<footer class="craft-smallprint">'+
+    '<p><strong>Who made what?</strong> sqwibblR and this Workshop are original BIG LWA interfaces. lightR, paintR, keyframeR and fileR use attributed Storytold Rust/WebAssembly engines (PhotoCraft, VectorCraft, EffectCraft and PdfCraft). Original authors retain their copyrights; BIG LWA provides its own chrome, identity and account snapshot feature. No affiliation with Adobe.</p>'+
+    '<p><strong>Privacy:</strong> Editing and exports stay inside your browser. Small image snapshots are saved privately to your BIG LWA account only when you select Save; native layered projects can be exported inside the editor, then saved as original files to your private account shelf once the project-storage API is deployed. Some advanced builds require WebGPU/WebGL.</p>'+
     '<p><strong>Made for BIG LWA.</strong> Lwazi is our creative workspace: our design, our identity, and our member-facing workflows. Each block opens its own BIG LWA experience.</p>'+
     '<p><strong>Your work stays yours.</strong> Editing and exports normally run in your browser. Save an image snapshot privately to your account only when you choose to; layered projects require their own export/download. Some advanced tools need WebGL or WebGPU.</p>'+
     '<details><summary>Technology, source & copyright notices</summary><p>Some advanced editions contain or derive from separately licensed technology. Required original copyright, license and source notices remain available with each advanced editor. BIG LWA branding and product features do not transfer ownership of underlying third-party code.</p><a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/blob/main/TOOLS-WORKSHOP-SOURCES.md" target="_blank" rel="noopener noreferrer">Read workshop source information ↗</a></details>'+
@@ -335,6 +344,14 @@ export async function mountCraftSuite(root){
   );
   if(alreadyOpen)send();else iframe.addEventListener('load',send,{once:true});
   return true;
+ }
+ // Original editor files stay distinct from flattened preview images.
+ // The cloud shelf uses Firebase-authenticated R2; no browser-only impersonation.
+ const projectHost=root.querySelector('#craftProjectVault');
+ if(projectHost){
+  import('/workshop-native-files.js?v=20261024-vault-current-1')
+   .then(mod=>{if(root.isConnected)mod.mountNativeProjectVault(projectHost,{open,active:()=>current||'other'});})
+   .catch(err=>{if(projectHost.isConnected)projectHost.textContent='Private editable project shelf unavailable: '+err.message});
  }
  return {open,close,editFile,available:()=>[...ready]};
 }
