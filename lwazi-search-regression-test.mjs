@@ -29,7 +29,8 @@ assert.doesNotMatch(search, /\['videos','▶','Videos'\]/, 'Videos belongs to St
 assert.match(search, /\.bl-search-category-nav button\{[^}]*border-radius:0!important/, 'Categories must be text tabs instead of rounded pills');
 assert.match(search, /\.bl-search-category-nav button\.is-active/, 'The selected tab must be visibly underlined');
 assert.match(search, /--aura-rgb/, 'Tab indicator must honor the user aura');
-assert.match(search, /safeX=visible\?bounds\.right\+18/, 'Entire search results area must clear the expanded Skeleton Key');
+assert.match(search, /safeX=visible\?bounds\.right\+12/, 'Search results track the current Skeleton Key width');
+assert.doesNotMatch(search, /alignedX=searchBounds/, 'Collapsed Skeleton Key must reclaim the unused search-field gutter');
 assert.match(search, /\.bl-search-panel>\.bl-search-category-nav\{order:-3!important/, 'Search categories must sit directly under the header search bar');
 assert.match(search, /bl-search-tab-symbol/, 'Every search category uses a consistent icon slot');
 assert.match(search, /feed-symbol-generated\.png/, 'Images uses the actual MyFeed symbol');
@@ -47,7 +48,7 @@ assert.doesNotMatch(search, /bl-lwazi-glyph">L’/, 'The deprecated Lwazi initia
 assert.match(search, /__biglwaAskLwaziImage/, 'Image upload analysis hook is preserved');
 assert.match(search, /SpeechRecognition/, 'Microphone dictation remains available');
 assert.match(search, /bl-search-clear/, 'Search clear control remains available');
-assert.match(search, /fastLwaziResponse/, 'Simple and social questions must answer through the instant local path');
+assert.match(search, /fastLwaziResponse/, 'Only deterministic shortcuts may use the instant local path');
 assert.match(search, /__biglwaLwaziConfig/, 'Lwazi must support a secure server-side provider adapter configuration');
 
 assert.match(search, /querySelectorAll\('\.search-icon'\)\.forEach/, 'Lwazi replaces the old magnifier instead of sitting next to it');
@@ -59,3 +60,11 @@ assert.match(search, /\.bl-voice-button\{left:auto!important;right:84px!importan
 assert.match(search, /\.bl-camera-button\{position:absolute!important;left:auto!important;right:45px!important/, 'Booth image-search control is next to the mic');
 assert.match(search, /\.bl-camera-button\{[^}]*border:0!important[^}]*box-shadow:none!important[^}]*background:transparent!important/, 'Booth icon stays unboxed');
 assert.match(search, /\.bl-search-clear\{left:auto!important;right:7px!important/, 'Clear X remains at the far right');
+
+assert.doesNotMatch(search,/Coffee-level processing speed|petty-level discernment|ballroom tea spill|Anytime, bookini|go get that coin|chronically online older cousin/i,'Remove canned identity caricatures, including social greetings');
+assert.match(search,/var isSocialGreeting=/,'Do not run irrelevant public searches for simple conversational greetings');
+assert.match(search,/if\(window\.__biglwaLwaziSearchUi\)window\.__biglwaLwaziSearchUi\.bind\(panel\)/,'Search binds actual contextual card controls');
+assert.match(search,/window\.__biglwaLwaziSearchUi\.refresh\(current\)/,'Explicit user blocks apply to refreshed results');
+assert.match(search,/internalButton\('Open in Library','library'\)/,'Book results use the internal BIG LWA Library route');
+assert.match(search,/bl-search-primary-action/,'Book Library action is styled as the main Veve control');
+assert.doesNotMatch(search,/<div class="bl-lwazi-answer-body"Finding/,'Answer HTML should be valid');

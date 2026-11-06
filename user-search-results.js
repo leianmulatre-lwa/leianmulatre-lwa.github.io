@@ -29,13 +29,31 @@
     var panel=null;
     function onKey(e){if(e.key==='Escape')close()}
     // Search is part of the Studio layout: outside interactions never dismiss it.
-    close=function(){if(!panel)return;if(layoutObserver)layoutObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
-    function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
-    function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8594;</button>'}
+    close=function(){if(!panel)return;if(layoutObserver)layoutObserver.disconnect();if(layoutRailObserver)layoutRailObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
+    function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
+    function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route'+(label==='Open in Library'?' bl-search-primary-action':'')+'" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8599;</button>'}
     function bookCover(b){if(b.cover_i)return 'https://covers.openlibrary.org/b/id/'+encodeURIComponent(b.cover_i)+'-M.jpg';if(b.isbn&&b.isbn[0])return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg';return ''}
     function userCard(u){var h=Math.abs(String(u.username||u.name||'u').split('').reduce(function(n,c){return n+c.charCodeAt(0)},0)*7)%360;return '<article class="bl-search-card bl-user-card"><div class="bl-search-card-media bl-avatar"> '+esc(String(u.name||u.username||'?').split(/\s+/).map(function(p){return p[0]}).join('').slice(0,2).toUpperCase())+'</div><div class="bl-search-card-body"><span class="bl-search-kicker">BigLWA user</span><h3>'+esc(u.name||u.username)+'</h3><p class="bl-search-muted">@'+esc(u.username)+'</p>'+ (u.bio?'<p>'+esc(u.bio)+'</p>':'')+'<a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(u.username)))+'">View profile &#8594;</a></div></article>'}
-    function bookCard(b){var cover=bookCover(b),meta=(b.author_name||[]).slice(0,2).join(', ')+(b.first_publish_year?' \u00b7 '+b.first_publish_year:'');return '<article class="bl-search-card bl-media-card">'+(cover?'<img class="bl-search-card-media" src="'+esc(cover)+'" alt="'+esc(b.title||'Book cover')+'" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">Book</div>')+'<div class="bl-search-card-body"><span class="bl-search-kicker">Book</span><h3>'+esc(b.title||'Untitled')+'</h3><p class="bl-search-muted">'+esc(meta)+'</p>'+(b.key?'<a class="bl-search-go" href="https://openlibrary.org'+esc(b.key)+'" target="_blank" rel="noopener noreferrer">View book record &#8594;</a>':'')+internalButton('Open in Library','library')+'</div></article>'}
-    function songCard(s){return '<article class="bl-search-card bl-media-card">'+(s.artworkUrl100?'<img class="bl-search-card-media" src="'+esc(s.artworkUrl100)+'" loading="lazy" alt="">':'<div class="bl-search-card-media bl-media-placeholder">Song</div>')+'<div class="bl-search-card-body"><span class="bl-search-kicker">Song</span><h3>'+esc(s.trackName)+'</h3><p class="bl-search-muted">'+esc(s.artistName)+(s.collectionName?' · '+esc(s.collectionName):'')+'</p>'+(s.trackViewUrl?'<a class="bl-search-go" href="'+esc(s.trackViewUrl)+'" target="_blank" rel="noopener noreferrer">View song information &#8594;</a>':'')+'</div></article>'}
+    function bookCard(b){
+      var cover=bookCover(b),meta=(b.author_name||[]).slice(0,2).join(', ')+(b.first_publish_year?' · '+b.first_publish_year:'');
+      var path=String(b.key||'');
+      var libraryUrl=/^\/(?:works|books)\/[a-zA-Z0-9_-]+$/.test(path)?'https://openlibrary.org'+path:'';
+      return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'"'+(libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
+        (cover?'<img class="bl-search-card-media" src="'+esc(cover)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy">':'')+
+        '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Book</span><h3>'+esc(b.title||'Untitled')+'</h3>'+
+        '<p class="bl-search-muted">'+esc(meta)+'</p>'+
+        internalButton('Open in Library','library')+
+        '</div></article>';
+    }
+    function songCard(s){
+      var art=s.artworkUrl100||'';
+      return '<article class="bl-search-card bl-media-card bl-search-song">'+
+        (art?'<img class="bl-search-card-media" src="'+esc(art)+'" alt="" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">Song</div>')+
+        '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Song</span><h3>'+esc(s.trackName)+'</h3>'+
+        '<p class="bl-search-muted">'+esc(s.artistName)+(s.collectionName?' · '+esc(s.collectionName):'')+'</p>'+
+        (s.trackViewUrl?'<a class="bl-search-go bl-search-primary-action" href="'+esc(s.trackViewUrl)+'" target="_blank" rel="noopener noreferrer">View song information ↗</a>':'')+
+        '</div></article>';
+    }
     function publicSqwibCard(p,u){var username=String(u.username||'').replace(/^@/,'');return '<article class="bl-search-card bl-sqwib-card"><div class="bl-search-card-body"><span class="bl-search-kicker">Public Sqwidz · @'+esc(username)+'</span><p>'+esc(String(p.text||'').slice(0,420))+'</p><a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(username)))+'">View public profile &#8594;</a></div></article>'}
     async function publicUserPosts(users){if(!users.length||!window.BigLWASqwibs||typeof window.BigLWASqwibs.publicSqwibs!=='function')return [];var visible=users.filter(function(u){return !/private/i.test(String(u.accountVisibility||u.visibility||u.privacy||''))});if(!visible.length)return [];var posts=await window.BigLWASqwibs.publicSqwibs(90);var cards=[];posts.forEach(function(p){if(p.visibility!=='public'||!p.text)return;var u=visible.find(function(u){return (u.uid&&p.uid&&String(u.uid)===String(p.uid))||(p.username&&String(p.username).toLowerCase()===String(u.username||'').toLowerCase())});if(u&&cards.length<8)cards.push(publicSqwibCard(p,u))});return cards}
     function wikiCard(w,image,type){return '<article class="bl-search-card bl-media-card">'+(image?'<img class="bl-search-card-media" src="'+esc(image)+'" alt="'+esc(w.title)+'" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">'+esc(type==='movie'?'Cinema':'Research')+'</div>')+'<div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(type==='movie'?'Film, history & culture':'Public figure, politics & history')+'</span><h3>'+esc(w.title)+'</h3><p>'+esc(w.snippet||'')+'</p>'+'<a class="bl-search-go" href="https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))+'" target="_blank" rel="noopener noreferrer">Open free article &#8594;</a>'+internalButton(type==='movie'?'Open in Archive':'Explore in Lwazi','archive')+'</div></article>'}
@@ -67,38 +85,39 @@
       var fallback={veve:'✺',stream:'▶',connect:'✣',library:'▥',notes:'▤',music:'♫',map:'⌖',studio:'▦',archive:'▤'};
       return fallback[type]||'◉';
     }
-    var layoutObserver=null;
+    var layoutObserver=null,layoutRailObserver=null;
     function fitSearchPanel(){
-      if(!panel)return;
+      if(!panel||!panel.parentElement)return;
       var parent=panel.parentElement.getBoundingClientRect(),rail=document.querySelector('#studioApp .sidebar');
       var bounds=rail&&rail.getBoundingClientRect();
-      var visible=rail&&getComputedStyle(rail).visibility!=='hidden'&&getComputedStyle(rail).display!=='none'&&bounds.width>0;
-      var search=document.getElementById('globalSearch'),searchBounds=search&&search.getBoundingClientRect();
-      // Align the entire result canvas and tabs with the search input,
-      // always clearing the Skeleton Key (including its expanded state).
-      var safeX=visible?bounds.right+18:parent.left+18;
-      var alignedX=searchBounds?searchBounds.left+18:safeX;
-      var left=Math.max(18,Math.ceil(Math.max(safeX,alignedX)-parent.left));
-      panel.style.setProperty('--bl-search-left',left+'px');
+      var visible=!!(rail&&bounds&&getComputedStyle(rail).visibility!=='hidden'&&getComputedStyle(rail).display!=='none'&&bounds.width>0);
+      // Widget-style responsive gutter: use the *current* Skeleton Key edge,
+      // not the fixed search field position. Collapsing the rail gives space back.
+      var safeX=visible?bounds.right+12:parent.left+12;
+      var left=Math.max(12,Math.ceil(safeX-parent.left));
+      if(panel.style.getPropertyValue('--bl-search-left')!==left+'px')panel.style.setProperty('--bl-search-left',left+'px');
     }
     function observeSearchLayout(){
       fitSearchPanel();
       if(layoutObserver)layoutObserver.disconnect();
-      if(window.ResizeObserver){layoutObserver=new ResizeObserver(fitSearchPanel);layoutObserver.observe(panel.parentElement);var rail=document.querySelector('#studioApp .sidebar');if(rail)layoutObserver.observe(rail)}
+      if(layoutRailObserver)layoutRailObserver.disconnect();
+      var rail=document.querySelector('#studioApp .sidebar');
+      if(window.ResizeObserver){layoutObserver=new ResizeObserver(fitSearchPanel);layoutObserver.observe(panel.parentElement);if(rail)layoutObserver.observe(rail)}
+      if(window.MutationObserver&&rail){
+        layoutRailObserver=new MutationObserver(fitSearchPanel);
+        layoutRailObserver.observe(rail,{attributes:true,attributeFilter:['class','style','aria-expanded','data-state']});
+      }
     }
     window.addEventListener('resize',fitSearchPanel);
     new MutationObserver(fitSearchPanel).observe(document.body,{attributes:true,attributeFilter:['class']});
-    function section(title,cards,category){if(!cards||!cards.length)return '';return '<section class="bl-search-section" data-bl-category="'+esc(category||'research')+'" id="'+sectionId(title)+'"><h2><span class="bl-search-section-icon" aria-hidden="true">'+sectionSymbol(title)+'</span>'+esc(title)+'</h2><div class="bl-search-grid">'+cards.join('')+'</div></section>'}
+    function section(title,cards,category){if(!cards||!cards.length)return '';var ui=window.__biglwaLwaziSearchUi;var markup=cards.map(function(card,i){return ui&&ui.decorateCard?ui.decorateCard(card,i,title):card});return '<section class="bl-search-section" data-bl-category="'+esc(category||'research')+'" id="'+sectionId(title)+'"><h2><span class="bl-search-section-icon" aria-hidden="true">'+sectionSymbol(title)+'</span>'+esc(title)+'</h2><div class="bl-search-grid">'+markup.join('')+'</div></section>'}
     function renderAnswer(target,value){if(!target)return;var html=esc(String(value==null?'':typeof value==='object'?(value.answer||value.text||'No answer available.'):value));html=html.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[\s(])\*([^*\n]+)\*(?=\s|[.,;!?)]|$)/g,'$1<em>$2</em>');html=html.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');target.innerHTML='<p>'+html+'</p>'}
 
     var browserSessionPromise=null;
+    // Deterministic commands may be instant. Conversation and identity must
+    // come from L’wazi’s actual engine — never from scripted racialized slang.
     function fastLwaziResponse(q){
-      var text=normalizeCommand(q);
-      if(/^(?:what is\s+)?2\s*\+\s*2\s*\??$/i.test(String(q).trim()))return '4. Quick, clean, no research spiral required.';
-      if(/^(hi|hey|hello|sup|what'?s up|wassup)$/.test(text)||/^how are you(?: doing)?/.test(text))return "I’m doing good, bookini. Coffee-level processing speed, petty-level discernment, and enough patience for one more ballroom tea spill. How you doing?";
-      if(/^(who are you|what are you)$/.test(text))return 'I’m L’wazi—BigLWA’s cooler, chronically online older cousin. I help you search, research, navigate widgets, and talk through culture without pretending one mainstream center speaks for everybody.';
-      if(/^(thanks|thank you|thank u)$/.test(text))return 'Anytime, bookini. You keep me employed and fabulous.';
-      if(/^(good morning|good night)$/.test(text))return text==='good morning'?'Morning, bookini. Go get that coin.':'Night, bookini. Rest is resistance, sleep is policy.';
+      if(/^(?:what is\s+)?2\s*\+\s*2\s*\??$/i.test(String(q||'').trim()))return '4';
       return null;
     }
     async function askLwazi(q,sources,onPartial){
@@ -134,14 +153,14 @@
         }
         if(lm&&typeof lm==='object'&&typeof lm.prompt==='function'){var quick=await lm.prompt(q);if(quick)return String(quick)}
       }catch(e){console.warn('[Lwazi] Browser AI unavailable:',e)}
-      if(sources.length)return 'Here are the most relevant public discovery links for “'+q+'”: '+sources.slice(0,3).map(function(s){return s.title+' — '+String(s.snippet||'').replace(/<[^>]+>/g,' ').slice(0,180)}).join('; ')+'. I could not verify their full text.';
-      return 'I could not reach a model or verified research sources for “'+q+'”. Please try again or use the search results below.';
+      if(sources.length)return 'Here are public discovery links for “'+q+'” (not verified full texts): '+sources.slice(0,3).map(function(s){return s.title+' — '+String(s.snippet||'').replace(/<[^>]+>/g,' ').slice(0,180)}).join('; ')+'. I could not verify their full text.';
+      return 'L’wazi’s model is unavailable for this answer. Search and Studio navigation are still available.';
     }
 
     async function openPanel(raw){
       var q=String(raw==null?'':raw).trim().replace(/^@/,'').replace(/^ask lwazi\s*/i,'').trim();if(!q)return;
       var route=routeCommand(q);if(route){goRoute(route);return}
-      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();panel.innerHTML='<article class="bl-lwazi-answer" role="status" aria-live="polite"><div class="bl-lwazi-answer-body"Finding grounded sources…</div></article><div class="bl-search-head"><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
+      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();panel.innerHTML='<article class="bl-lwazi-answer" role="status" aria-live="polite"><div class="bl-lwazi-answer-body">Finding grounded sources…</div></article><div class="bl-search-head"><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
       // One delegated handler for the canonical categories and their extended searches.
       var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['widgets','Widgets']];
@@ -183,16 +202,17 @@
 
       if(/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
       var lc=clean.toLowerCase();
+      var isSocialGreeting=/^(?:hi|hello|hey|good morning|good evening|good night|how are you(?: doing)?|what(?:’|')?s up|wassup)[\s.!?]*$/i.test(clean);
       var immediate=fastLwaziResponse(clean);
       if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)instantBox.textContent=immediate}
-      var userPromise=searchUsers(lc).catch(function(){return []});
+      var userPromise=(isSocialGreeting?Promise.resolve([]):searchUsers(lc)).catch(function(){return []});
       var postPromise=userPromise.then(publicUserPosts).catch(function(){return []});
-      var songPromise=searchSongs(clean).then(function(items){return items.map(songCard)}).catch(function(){return []});
-      var bookPromise=searchBooks(clean).then(function(items){return items.map(bookCard)}).catch(function(){return []});
-      var wikiDataPromise=searchWikipedia(clean).catch(function(){return []});
+      var songPromise=(isSocialGreeting?Promise.resolve([]):searchSongs(clean)).then(function(items){return items.map(songCard)}).catch(function(){return []});
+      var bookPromise=(isSocialGreeting?Promise.resolve([]):searchBooks(clean)).then(function(items){return items.map(bookCard)}).catch(function(){return []});
+      var wikiDataPromise=(isSocialGreeting?Promise.resolve([]):searchWikipedia(clean)).catch(function(){return []});
        var wikiPromise=wikiDataPromise.then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
        // Wikipedia results are fetched once for cards, not twice to block the answer.
-      var libraryPromise=sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
+      var libraryPromise=isSocialGreeting?Promise.resolve([]):sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
        var answerPromise=immediate?Promise.resolve(immediate):Promise.all([libraryPromise,Promise.race([wikiDataPromise,new Promise(function(resolve){setTimeout(function(){resolve([])},1400)})])]).then(function(parts){var sources=parts[0].map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});parts[1].slice(0,3).forEach(function(w){sources.push({title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))})});return askLwazi(clean,sources,function(partial){if(panel!==current||!current.isConnected)return;var answerBox=current.querySelector('.bl-lwazi-answer-body');if(answerBox)renderAnswer(answerBox,partial)})});
        libraryPromise.then(function(matches){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(!immediate&&matches.length&&box)box.textContent='Found '+matches.length+' relevant sources: '+matches.slice(0,3).map(function(x){return x.title}).join('; ')+'. Preparing a fuller answer…'});
 
@@ -201,7 +221,7 @@
          var wikiCards=parts[2],politics=wikiCards.filter(function(x){return /politic|electoral|vote|government|president|law|court|parliament/i.test(x)}),films=wikiCards.filter(function(x){return /cinema|film|movie|video|episode|director/i.test(x)}),general=wikiCards.filter(function(x){return !politics.includes(x)&&!films.includes(x)});
          var html=section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard),'research herstory politics');
-        var loading=panel.querySelector('.bl-search-loading');if(loading)loading.outerHTML=html||'<p class="bl-search-empty">No public results found.</p>';
+        var loading=panel.querySelector('.bl-search-loading');if(loading)loading.outerHTML=html||(isSocialGreeting?'':'<p class="bl-search-empty">No public results found.</p>');if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
         var qType=/\b(song|music|album|artist|sing|track)\b/i.test(clean)?'songs':/\b(book|novel|author|read|library)\b/i.test(clean)?'books':/\b(politic|government|election|president|law|court|policy)\b/i.test(clean)?'politics':/\b(movie|film|cinema|director|episode)\b/i.test(clean)?'stream':/\b(user|person|people|who is|@)\b/i.test(clean)?'people':parts[3].length?'research':'all';
         var primaryName=({songs:'Songs',books:'Books',politics:'Politics & public life',stream:'Cinema & video',people:'BigLWA users',research:'Community-centered research sources',herstory:'Herstory'})[qType];
         var primary=document.getElementById(sectionId(primaryName||''));activateCategory(qType==='people'?'users':qType,false);
