@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>L’wazi · Private Pilot Diagnostics</title>
+<style>
+:root{color-scheme:dark;font:16px/1.45 system-ui,Arial,sans-serif;background:#161319;color:#faf5f4}*{box-sizing:border-box}
+body{margin:0 auto;max-width:780px;padding:36px 18px 70px}
+h1{margin:.25rem 0;font-size:2rem}p{color:#d4c7d0}header{border-bottom:2px solid #993a52;padding-bottom:16px}
+.panel{border:1px solid #654a54;border-radius:10px;margin:22px 0;padding:18px;background:#221c24}
+.buttons{display:flex;gap:10px;flex-wrap:wrap}button{cursor:pointer;font:inherit;background:#7b344c;border:1px solid #bb627c;border-radius:7px;color:white;padding:9px 14px}
+button:disabled{cursor:not-allowed;opacity:.55}
+small{color:#c3b3bc}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#100e12;padding:16px;border:1px solid #3d343e;border-radius:8px;min-height:100px}
+code{color:#ffcdde}a{color:#ffc2d2}#status{font-weight:600}#output{white-space:pre-wrap;overflow-wrap:anywhere;min-height:110px}
+</style>
+</head>
+<body>
+<header>
+<small>BIG LWA / isolated staging branch / L’wazi</small>
+<h1>Private pilot diagnostics</h1>
+<p>This page is for the founder’s staging test. Nothing below modifies production, your profile, journal, or other widgets. Model tests send only the example question to the selected external model and may incur provider usage charges.</p>
+</header>
+<section class="panel">
+<h2>1. Pilot health</h2>
+<div id="health" role="status">Checking endpoint…</div>
+<div class="buttons"><button id="healthCheck">Check again</button><a href="/">Open staging Studio to sign in</a></div>
+</section>
+<section class="panel">
+<h2>2. Firebase identity</h2>
+<p id="status" role="status">Checking signed-in session…</p>
+<p><small>No passwords, authentication tokens, API keys or full UIDs are displayed or logged. Your test account must match the UID allowlist on the Worker. If you cannot sign in to staging, add <code>biglwa-web-staging.pages.dev</code> to Firebase Authentication authorized domains.</small></p>
+<button id="refreshAccount">Check sign-in again</button>
+</section>
+<section class="panel">
+<h2>3. Real provider streaming test</h2>
+<p>Run these one at a time. These are tiny, public example prompts. <b>Code uses the more expensive Claude Opus model.</b> The backend enforces your UID allowlist on every request.</p>
+<div class="buttons">
+<button data-mode="fast">Test fast · DeepSeek</button>
+<button data-mode="research">Test research · Claude Sonnet</button>
+<button data-mode="code">Test code · Claude Opus</button>
+</div>
+<h3>Live result</h3>
+<small id="metrics">No request made yet.</small>
+<pre id="output">Choose a test after signing in.</pre>
+</section>
+<p><a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/pull/59">Review the code in draft PR #59</a>. This diagnostic is staging-only. Please share any error <em>codes</em> you see—not your account UID, authorization token or API keys.</p>
+<script type="module">
+const $=id=>document.getElementById(id);
+const btns=[...document.querySelectorAll('[data-mode]')];
+const allowed=location.hostname==='biglwa-web-staging.pages.dev'||location.hostname.endsWith('.biglwa-web-staging.pages.dev');
+if(!allowed){
+ document.body.textContent='This diagnostic is only available on the isolated BIG LWA staging domain.';
+ throw Error('Staging only');
+}
+const BASE='/api/lwazi';
+const config={apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'};
+async function user(){
+ const [{initializeApp,getApps},{getAuth}]=await Promise.all([
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+   import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')]);
+ const app=getApps().find(x=>x.options.projectId==='biglwa')||initializeApp(config);
+ const auth=getAuth(app);if(auth.authStateReady)await auth.authStateReady();
+ return auth.currentUser;
+}
+async function health(){
+ $('health').textContent='Checking…';
+ try{const r=await fetch(BASE,{cache:'no-store'});const data=await r.json();
+ $('health').textContent=r.ok?'Worker '+data.service+' · '+data.identity+' · provider keys configured: '+(data.ready?'yes':'no'):'Relay HTTP '+r.status+' · '+(data.error||'unknown');
+ }catch{$('health').textContent='Could not fetch staging relay.'}
+}
+async function authStatus(){
+ try{const u=await user();$('status').textContent=u?'Signed in (account recognized locally). Ready to test authorization.':'No signed-in staging session. Open staging Studio and sign in first.';return Boolean(u)}
+ catch{$('status').textContent='Firebase could not initialize in this browser.';return false}
+}
+$('healthCheck').onclick=health;$('refreshAccount').onclick=authStatus;
+const questions={
+ fast:'Reply with exactly one friendly sentence explaining what L’wazi helps people do.',
+ research:'In two sentences, explain why firsthand experience and public policy both matter to understanding a social issue. Do not invent citations.',
+ code:'In one sentence, identify why a flex item may overflow its container and mention a CSS fix.'
+};
+async function testMode(mode){
+ btns.forEach(x=>x.disabled=true);
+ $('output').textContent='Connecting…';
+ $('metrics').textContent='Connecting to '+mode+' model…';
+ const began=performance.now();let firstToken=null,count=0,buffer='',result='';
+ try{
+  const u=await user();if(!u)throw Error('not_signed_in');
+  if(!sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')){
+   const ok=confirm('This founder-only pilot sends an example question to DeepSeek or Anthropic. It does not include your private Studio data. Run a billable test?');
+   if(!ok)throw Error('test_cancelled');
+   sessionStorage.setItem('biglwaLwaziExternalPilotConsentV1','yes');
+  }
+  const token=await u.getIdToken();
+  const response=await fetch(BASE,{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({question:questions[mode],mode})});
+  if(!response.ok){const data=await response.json().catch(()=>({}));throw Error('HTTP '+response.status+' · '+(data.error||'unknown_provider_error'))}
+  if(!response.body)throw Error('stream_unavailable');
+  const reader=response.body.getReader(),decoder=new TextDecoder();let done=false;
+  while(!done){
+   const {value,done:ended}=await reader.read();if(ended)break;
+   buffer+=decoder.decode(value,{stream:true}).replace(/\r\n/g,'\n');
+   let end;while((end=buffer.indexOf('\n\n'))!==-1){
+    const block=buffer.slice(0,end);buffer=buffer.slice(end+2);
+    const line=block.split('\n').find(x=>x.startsWith('data:'));if(!line)continue;
+    let msg;try{msg=JSON.parse(line.slice(5).trim())}catch{continue}
+    if(msg.type==='error')throw Error(msg.code||'upstream_stream_failed');
+    if(msg.type==='delta'){if(firstToken===null)firstToken=performance.now();count++;result+=msg.text||'';$('output').textContent=result}
+    if(msg.type==='done'){done=true;break}
+   }
+  }
+  if(!result)throw Error('empty_model_response');
+  $('metrics').textContent='Success · '+mode+' · first text '+(firstToken===null?'n/a':Math.round(firstToken-began)+'ms')+' · total '+Math.round(performance.now()-began)+'ms · streamed chunks: '+count;
+ }catch(e){
+  $('output').textContent='Test not complete: '+e.message;
+  $('metrics').textContent='No model success verified. Please report only the error code/message above.';
+ }finally{btns.forEach(x=>x.disabled=false)}
+}
+btns.forEach(b=>b.onclick=()=>testMode(b.dataset.mode));
+await Promise.all([health(),authStatus()]);
+</script>
+</body></html>
