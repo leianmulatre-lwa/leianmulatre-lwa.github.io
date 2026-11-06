@@ -9,8 +9,8 @@
   const curtains=app.querySelectorAll('.lwa-curtain[data-lwa-curtain="module"]');
   curtains.forEach(curtain=>{
    if(curtain.classList.contains('lwa-pixel-curtain'))return;
-   const label=curtain.querySelector('.lwa-curtain-label');
-   if(!label)return;
+   let label=curtain.querySelector('.lwa-curtain-label');
+   if(!label){label=document.createElement('span');label.className='lwa-curtain-label';label.textContent='loading studio';curtain.appendChild(label)}
    const scene=document.createElement('div');
    scene.className='lwa-pixel-scene';scene.setAttribute('aria-hidden','true');
    const fig=(kind,src)=>{
