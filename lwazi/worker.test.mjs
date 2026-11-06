@@ -98,6 +98,18 @@ test('staging origins receive CORS but arbitrary origins are denied',async()=>{
  const evil=await worker.fetch(new Request('https://pilot.example/health',{headers:{Origin:'https://evilbiglwa-web-staging.pages.dev.attacker.com'}}),baseEnv);
  assert.equal(evil.status,403);
 });
+test('Cloudflare Gemma streaming uses the observed choices delta content format',async()=>{
+  const input='data: {"object":"chat.completion.chunk","choices":[{"delta":{"reasoning_content":null,"content":"Hello from Gemma"}}]}\\n\\n'
+    +'data: {"choices":[{"delta":{"content":"!"}}]}\\n\\n'
+    +'data: [DONE]\\n\\n';
+  const stream=new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode(input));controller.close()}});
+  const response=await new Response(normalizeStream(stream,'cloudflare','fast','@cf/google/gemma-4-26b-a4b-it')).text();
+  assert.match(response,/Hello from Gemma/);
+  assert.match(response,/"text":"!"/);
+  assert.match(response,/"provider":"cloudflare"/);
+  assert.match(response,/"type":"done"/);
+  assert.doesNotMatch(response,/reasoning_content/);
+});
 test('free-only mode never invokes paid providers even when keys exist',async()=>{
  const env={...baseEnv};
  let called=0;
