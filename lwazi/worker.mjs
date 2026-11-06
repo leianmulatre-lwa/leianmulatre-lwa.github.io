@@ -1,5 +1,6 @@
 /* L'wazi isolated inference Worker v1. Read-only conversation, no site mutations. */
 import {IDENTITY_VERSION,SYSTEM_POLICY,routeMode,publicContext,buildQuestion} from './policy.mjs';
+import {FREE_MODELS,rankedFreeModels,inferenceOptions,classifyInferenceFailure,MAX_INFERENCE_ATTEMPTS,MODEL_COOLDOWN_MS} from './free-models.mjs';
 
 const PROJECT='biglwa';
 const JWT_KEYS='https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
@@ -7,6 +8,7 @@ const encoder=new TextEncoder();
 const JSON_HEADERS={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'};
 const MAX_BODY=12000;
 const FREE_MODEL='@cf/google/gemma-4-26b-a4b-it';
+const modelCooldowns=new Map();
 const freeEnabled=env=>env.FREE_INFERENCE_ENABLED==='true' && !!env.AI?.run;
 const paidEnabled=env=>env.ALLOW_PAID_PROVIDERS==='true';
 let jwksCache=null,jwksCacheUntil=0;
@@ -136,22 +138,36 @@ export async function queryProvider(mode,question,context,env,fetcher=fetch,requ
   }
   return {error:attempted?lastCode:'no_model_configured',provider:lastProvider,upstream_status:lastUpstreamStatus};
 }
-export async function queryFreeModel(mode,question,context,env){
-  if(!env.FREE_INFERENCE_ENABLED || env.FREE_INFERENCE_ENABLED!=='true')return {error:'free_inference_not_enabled'};
+export async function queryFreeModel(mode,question,context,env,clock=()=>Date.now()){
+  if(env.FREE_INFERENCE_ENABLED!=='true')return {error:'free_inference_not_enabled'};
   if(!env.AI?.run)return {error:'free_ai_binding_missing'};
-  try{
-    const response=await env.AI.run(FREE_MODEL,{
-      messages:[{role:'system',content:SYSTEM_POLICY},{role:'user',content:buildQuestion(question,context)}],
-      stream:true,
-      max_tokens:700,
-      chat_template_kwargs:{enable_thinking:false}
-    });
-    if(!response?.pipeThrough)return {error:'free_model_stream_unavailable'};
-    return {provider:'cloudflare',model:FREE_MODEL,body:normalizeStream(response,'cloudflare',mode,FREE_MODEL)};
-  }catch{
-    return {error:'free_model_unavailable'};
+  const candidates=rankedFreeModels(mode),now=clock();
+  let attempted=0,lastError='free_model_unavailable',lastModel=null;
+  // Only temporarily unready models have cooldowns. The preferred model returns
+  // to rank #1 automatically as soon as its cooldown expires.
+  for(const model of candidates){
+    if(attempted>=MAX_INFERENCE_ATTEMPTS)break;
+    if((modelCooldowns.get(model.id)||0)>now)continue;
+    attempted++;lastModel=model;
+    const opts=inferenceOptions(model,mode);
+    opts.messages=[{role:'system',content:SYSTEM_POLICY},{role:'user',content:buildQuestion(question,context)}];
+    try{
+      const stream=await env.AI.run(model.model,opts);
+      if(!stream?.pipeThrough)throw Error('Free model stream unavailable');
+      modelCooldowns.delete(model.id);
+      return {provider:'cloudflare',model:model.model,rank:1+candidates.indexOf(model),attempts:attempted,body:normalizeStream(stream,'cloudflare',mode,model.model)};
+    }catch(error){
+      const kind=classifyInferenceFailure(error);
+      // The DAILY neuron allowance is shared by every model. More retries
+      // cannot restore account quota and only burn additional compute.
+      if(kind==='shared_quota_or_billing')return {error:'shared_free_quota_exhausted',provider:'cloudflare',attempts:attempted};
+      lastError=kind==='model_requires_paid_plan'?'free_model_requires_paid_plan':'free_model_unavailable';
+      modelCooldowns.set(model.id,now+(kind==='model_requires_paid_plan'?3600000:MODEL_COOLDOWN_MS));
+    }
   }
+  return {error:attempted===0?'free_models_cooling_down':lastError,provider:'cloudflare',model:lastModel?.model||null,attempts:attempted,retry_after_seconds:Math.ceil(Math.max(0,Math.min(...candidates.map(m=>modelCooldowns.get(m.id)||now))-now)/1000)};
 }
+export function resetModelCooldownsForTest(){modelCooldowns.clear()}
 
 export default {
   async fetch(request,env){
@@ -162,7 +178,7 @@ export default {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
     const path=new URL(request.url).pathname;
     if(request.method==='GET'&&path==='/health'){
-      return json({service:'lwazi',identity:IDENTITY_VERSION,ready:freeEnabled(env)||paidEnabled(env)&&!!(env.DEEPSEEK_API_KEY||env.ANTHROPIC_API_KEY),free_model:FREE_MODEL,free_enabled:freeEnabled(env),paid_enabled:paidEnabled(env)},200,headers);
+      return json({service:'lwazi',identity:IDENTITY_VERSION,ready:freeEnabled(env)||paidEnabled(env)&&!!(env.DEEPSEEK_API_KEY||env.ANTHROPIC_API_KEY),free_model:FREE_MODEL,free_models:rankedFreeModels('research').map(m=>({id:m.id,label:m.label,model:m.model})),free_enabled:freeEnabled(env),paid_enabled:paidEnabled(env)},200,headers);
     }
     if(request.method!=='POST'||path!=='/api/lwazi')return json({error:'not_found'},404,headers);
     // Private pilot only. No production public inference until quotas/rate-limits exist.
@@ -181,6 +197,8 @@ export default {
     if(!body||typeof body.question!=='string'||!body.question.trim()||body.question.length>1500) return json({error:'invalid_question'},400,headers);
     const mode=routeMode(body.question,body.mode);
     const context=publicContext(body.context);
+    // An explicit high-thinking request is always eligible for the free model router.
+    if(body.deep===true)body.mode='deep';
     if(body.provider!=null&&!['deepseek','anthropic','cloudflare'].includes(body.provider))return json({error:'invalid_provider'},400,headers);
     // Cost-first routing: never invoke a paid provider unless explicitly allowed
     // by a separate Worker environment setting. API keys alone cannot enable billing.
@@ -188,7 +206,7 @@ export default {
     const result=(body.provider==='deepseek'||body.provider==='anthropic')?
       await queryProvider(mode,body.question.trim(),context,env,fetch,body.provider):
       await queryFreeModel(mode,body.question.trim(),context,env);
-    if(result.error)return json({error:result.error,provider:result.provider||null,upstream_status:result.upstream_status||null},result.upstream_status===402?402:503,headers);
+    if(result.error)return json({error:result.error,provider:result.provider||null,upstream_status:result.upstream_status||null,retry_after_seconds:result.retry_after_seconds||null},result.upstream_status===402?402:result.error==='shared_free_quota_exhausted'?429:503,headers);
     return new Response(result.body,{status:200,headers:{...headers,'Content-Type':'text/event-stream; charset=utf-8','X-Accel-Buffering':'no'}});
   }
 };
