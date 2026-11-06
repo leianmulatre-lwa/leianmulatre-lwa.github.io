@@ -185,9 +185,9 @@ export default {
     // Cost-first routing: never invoke a paid provider unless explicitly allowed
     // by a separate Worker environment setting. API keys alone cannot enable billing.
     if(body.provider&&body.provider!=='cloudflare'&&!paidEnabled(env))return json({error:'paid_providers_disabled',provider:body.provider},403,headers);
-    const result=(body.provider==='cloudflare'||!paidEnabled(env))?
-      await queryFreeModel(mode,body.question.trim(),context,env):
-      await queryProvider(mode,body.question.trim(),context,env,fetch,body.provider||null);
+    const result=(body.provider==='deepseek'||body.provider==='anthropic')?
+      await queryProvider(mode,body.question.trim(),context,env,fetch,body.provider):
+      await queryFreeModel(mode,body.question.trim(),context,env);
     if(result.error)return json({error:result.error,provider:result.provider||null,upstream_status:result.upstream_status||null},result.upstream_status===402?402:503,headers);
     return new Response(result.body,{status:200,headers:{...headers,'Content-Type':'text/event-stream; charset=utf-8','X-Accel-Buffering':'no'}});
   }
