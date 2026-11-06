@@ -3964,6 +3964,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         feed.renderHero(true);
       }
     }
+    // Temporary original pin images: randomized per page load, never labeled as linked Pinterest.
+    const studioBoardsSamples=(["/boards%20temp%20thumbnail/0b6e427c1b03b0a862e18119fc5a946d.jpg","/boards%20temp%20thumbnail/15b2005e7f894079f5461a5612b8b2ec.jpg","/boards%20temp%20thumbnail/1e11bab1fe6c29fc6c0eef146f0064d7.jpg","/boards%20temp%20thumbnail/2a7294cb4c09b2b863d15a023090d019.jpg","/boards%20temp%20thumbnail/5156b0b96eb6a8248e54280d2c6ba900.jpg","/boards%20temp%20thumbnail/61ba5b5f5dd60e46f636c9cde3479eae.jpg","/boards%20temp%20thumbnail/a4d68aa776aac96bb0054c628e7d3e18.jpg","/boards%20temp%20thumbnail/b8ce4928ebccf42c9ecc749fe0b347e9.jpg","/boards%20temp%20thumbnail/e642fae88aa023fc8124ead156cff138.jpg","/boards%20temp%20thumbnail/eecc0dabc950626bd32c902f28c4e7fa.jpg","/boards%20temp%20thumbnail/fb0612c7df6af82845036d2e3e06e32a.jpg"]).slice();
+    for(let i=studioBoardsSamples.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [studioBoardsSamples[i],studioBoardsSamples[j]]=[studioBoardsSamples[j],studioBoardsSamples[i]];
+    }
     function syncStudioBoardsPreview(){
       const card=$('#boards');if(!card)return;
       card.dataset.widgetRoute='boards';
@@ -3972,34 +3978,34 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         slot=document.createElement('div');
         slot.id='biglwaStudioBoardsPreview';
         slot.className='studio-pinterest-board-preview';
-        slot.setAttribute('aria-label','Your connected Pinterest Pins');
+        slot.setAttribute('aria-label','Boards visual preview');
         const cta=$('.card-cta',card);
         if(cta)cta.before(slot);else card.appendChild(slot);
       }
       const state=window.__biglwaPinterest?.state;
       const viewer=String(window.__biglwaIdentity?.uid||'');
-      const tiles=(state?.connected&&(!viewer||state.uid===viewer))
-        ?(window.__biglwaPinterest?.getPreview?.()||[]):[];
-      const signature=tiles.slice(0,6).map(item=>item.url).join('|');
-      if(state?.connected&&(!viewer||state.uid===viewer)){
-        // After Pinterest connects, don't allow static placeholder art
-        // to remain behind the live pin grid, even while Pins are loading.
-        [...card.children].forEach(child=>{
-          if(child===slot||child.matches('.card-head,.sub,.card-cta,.widget-window-controls,.window-controls,.widget-drag-handle'))return;
-          child.remove();
-        });
-        card.classList.add('has-live-pinterest-preview');
-      }else{
-        // Do not falsely display the generic collage as a Pinterest account.
-        card.classList.remove('has-live-pinterest-preview');
-      }
+      const connected=Boolean(state?.connected&&(!viewer||state.uid===viewer));
+      const tiles=connected?(window.__biglwaPinterest?.getPreview?.()||[]):[];
+      const signature=(connected?'connected:':'demo:')+
+        (connected?tiles.slice(0,5).map(item=>item.url).join('|'):studioBoardsSamples.slice(0,5).join('|'));
+      // Remove the abandoned six-shape graphic, but preserve headers, controls and CTA.
+      [...card.children].forEach(child=>{
+        if(child===slot||child.matches('.card-head,.sub,.card-cta,.widget-window-controls,.window-controls,.widget-drag-handle'))return;
+        child.remove();
+      });
+      card.classList.toggle('has-live-pinterest-preview',connected);
+      slot.classList.toggle('is-demo-boards',!connected);
       if(slot.dataset.signature===signature)return;
       slot.dataset.signature=signature;
       slot.innerHTML=tiles.length
-        ?tiles.slice(0,6).map((item,i)=>
-          '<button type="button" data-open="boards" aria-label="Open Pinterest Boards">'+
+        ?tiles.slice(0,5).map((item,i)=>
+          '<button type="button" data-open="boards" aria-label="Open your Pinterest Boards">'+
           '<img src="'+esc(item.url)+'" loading="lazy" decoding="async" alt="Pinterest Pin '+(i+1)+'"></button>').join('')
-        :'<button type="button" class="studio-pinterest-empty" data-open="boards">'+(state?.connected?'Open Boards to load your Pins':'Connect Pinterest to preview your Pins')+'</button>';
+        :connected
+        ?'<button type="button" class="studio-pinterest-empty" data-open="boards">Open Boards to load your Pins</button>'
+        :studioBoardsSamples.slice(0,5).map((url,i)=>
+          '<button type="button" data-open="boards" aria-label="Open Boards · sample image '+(i+1)+'">'+
+          '<img src="'+esc(url)+'" loading="lazy" decoding="async" alt="Temporary Boards preview '+(i+1)+'"></button>').join('');
     }
     const feedCard=$('#feed');
     if(feedCard){
