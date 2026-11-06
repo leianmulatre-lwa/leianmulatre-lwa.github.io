@@ -113,3 +113,21 @@ console.log('PASS MyFeed four-photo analog strip, Archive new direct wallpaper, 
 assert(css.includes('#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head'),'MyFeed Studio thumbnail header is separately styled');
 assert(css.includes('background-color:#47070c!important'),'MyFeed upper strip uses the pixel-red loading texture rather than stretched photo film');
 assert(css.includes('border-bottom:1px solid #ad505b!important'),'MyFeed upper red header is separated from the lower photo strip');
+
+/* Do not let a second Studio Boards renderer, or a misplaced Stream Dock
+   control, silently return when the LLM modules are edited. */
+const boardsCss=read('pinterest-red-consistency-20261016.css');
+const pinterest=read('pinterest-orbit.js');
+const stream=read('stream-guide.js'),streamCss=read('stream-guide.css');
+const trophyCss=read('studio-trophy-versions-symbol-bounds-20261029.css');
+assert(pages.includes('window.__biglwaRefreshBoardsThumbnail?.()'),'Boards module delegates thumbnail rendering');
+assert(!pages.includes('tiles.slice(0,6).map((item,i)=>'),'Old six-tile Studio thumbnail has been retired');
+assert(pinterest.includes('window.__biglwaRefreshBoardsThumbnail=paintStudioBoardGallery'),'Pinterest owns Studio collage');
+assert(boardsCss.includes('grid-template-columns:minmax(0,1.24fr) repeat(2,minmax(0,1fr))'),'Boards uses one tall and four small photos');
+assert(boardsCss.includes('box-shadow:3px 3px 0 #cf2843!important'),'Boards portrait alone has red shadow');
+assert(stream.includes("button.className='stream-studio-dock'"),'Stream preview has its dedicated Dock button');
+assert(stream.includes('if(!dockStream())window.openBIGLWAModule'),'Dock button enters the full Stream if there is no active player');
+assert(streamCss.includes('right:9px!important;bottom:9px!important'),'Dock button is at the bottom right of the Studio thumbnail');
+assert(streamCss.includes('.stream-preview-return{display:none!important}'),'Redundant top-right Open Stream overlay is hidden');
+assert(trophyCss.includes('#studioApp #trophies #trophyPreview>.biglwa-default-trophy-image'),'Trophy thumbnail retains full uncropped Minecraft art');
+assert(trophyCss.includes('.trophy-case-version>.module-card'),'Trophies version spacing is constrained');
