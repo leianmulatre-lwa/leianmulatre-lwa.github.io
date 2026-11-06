@@ -4,6 +4,16 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>L’wazi · Private Pilot Diagnostics</title>
+<script>
+(function(){
+  // Every numbered Pages preview is a different Firebase authentication origin.
+  // Keep the entire founder pilot on a stable branch hostname across deploys.
+  const canonical='feature-lwazi-engine-v1-2026.biglwa-web-staging.pages.dev';
+  if(/^[a-f0-9]{8}\.biglwa-web-staging\.pages\.dev$/.test(location.hostname)){
+    location.replace('https://'+canonical+location.pathname+location.search+location.hash);
+  }
+})();
+</script>
 <style>
 :root{color-scheme:dark;font:16px/1.45 system-ui,Arial,sans-serif;background:#161319;color:#faf5f4}*{box-sizing:border-box}
 body{margin:0 auto;max-width:780px;padding:36px 18px 70px}
@@ -20,16 +30,17 @@ code{color:#ffcdde}a{color:#ffc2d2}#status{font-weight:600}#output{white-space:p
 <small>BIG LWA / isolated staging branch / L’wazi</small>
 <h1>Private pilot diagnostics</h1>
 <p>This page is for the founder’s staging test. Nothing below modifies production, your profile, journal, or other widgets. Model tests send only the example question to the selected external model and may incur provider usage charges.</p>
+<p id="originInfo" style="overflow-wrap:anywhere;font-size:.9rem"></p>
 </header>
 <section class="panel">
 <h2>1. Pilot health</h2>
 <div id="health" role="status">Checking endpoint…</div>
-<div class="buttons"><button id="healthCheck">Check again</button><a href="/">Open staging Studio to sign in</a></div>
+<div class="buttons"><button id="healthCheck">Check again</button><a href="/">Open this same staging Studio to sign in</a></div>
 </section>
 <section class="panel">
 <h2>2. Firebase identity</h2>
 <p id="status" role="status">Checking signed-in session…</p>
-<p><small>No passwords, authentication tokens, API keys or full UIDs are displayed or logged. Your test account must match the UID allowlist on the Worker. If you cannot sign in to staging, add <code>biglwa-web-staging.pages.dev</code> to Firebase Authentication authorized domains.</small></p>
+<p><small>Firebase sign-in is stored separately for each website address. Sign in through <a href="/">the staging Studio on this same address</a>, then return here without changing hostname. Being signed in on biglwa.com or an older numbered preview does not count. We never show passwords, tokens, API keys or account UIDs.</small></p>
 <button id="refreshAccount">Check sign-in again</button>
 </section>
 <section class="panel">
@@ -53,6 +64,7 @@ if(!allowed){
  document.body.textContent='This diagnostic is only available on the isolated BIG LWA staging domain.';
  throw Error('Staging only');
 }
+$('originInfo').textContent='Staging origin: '+location.origin;
 const BASE='https://biglwa-lwazi-pilot.leianmulatre-284.workers.dev/api/lwazi';
 const config={apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'};
 async function user(){
@@ -70,7 +82,7 @@ async function health(){
  }catch{$('health').textContent='Could not reach the isolated pilot Worker.'}
 }
 async function authStatus(){
- try{const u=await user();$('status').textContent=u?'Signed in (account recognized locally). Ready to test authorization.':'No signed-in staging session. Open staging Studio and sign in first.';return Boolean(u)}
+ try{const u=await user();$('status').textContent=u?'Signed in to Firebase on this staging address. Ready to test authorization.':'No Firebase session on '+location.hostname+'. Open the staging Studio link above, sign in there, then come back to /lwazi-pilot.html on the same domain.';return Boolean(u)}
  catch{$('status').textContent='Firebase could not initialize in this browser.';return false}
 }
 $('healthCheck').onclick=health;$('refreshAccount').onclick=authStatus;
@@ -85,7 +97,7 @@ async function testMode(mode){
  $('metrics').textContent='Connecting to '+mode+' model…';
  const began=performance.now();let firstToken=null,count=0,buffer='',result='',provider='',model='';
  try{
-  const u=await user();if(!u)throw Error('not_signed_in');
+  const u=await user();if(!u)throw Error('Not signed in on this staging address. Open the staging Studio, sign in, then return to diagnostics on the same domain.');
   if(!sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')){
    const ok=confirm('This founder-only pilot sends an example question to DeepSeek or Anthropic. It does not include your private Studio data. Run a billable test?');
    if(!ok)throw Error('test_cancelled');
