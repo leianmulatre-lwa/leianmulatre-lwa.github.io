@@ -31,7 +31,7 @@
     let consented=false;
     try{consented=sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')==='yes'}catch{}
     if(!consented){
-      const accepted=window.confirm('L’wazi’s private AI pilot sends your question and public search-source metadata to DeepSeek or Anthropic for an answer. It does not transmit your private Studio content. Continue for this browser session?');
+      const accepted=window.confirm('L’wazi’s private pilot sends your question and public discovery-source metadata to Cloudflare Workers AI. It tries free-allowance models only; paid DeepSeek and Claude are disabled. It does not include private Studio content. Continue for this session?');
       if(!accepted)throw Error('External AI was not enabled.');
       try{sessionStorage.setItem('biglwaLwaziExternalPilotConsentV1','yes')}catch{}
     }
