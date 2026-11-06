@@ -10,10 +10,10 @@ assert.doesNotThrow(()=>new Script(pages),'Module-page JavaScript stays valid');
 // Feed is an ES module with imports: Node's classic vm.Script cannot parse it.
 // Its published behavior is checked below without evaluating its dependencies.
 assert.doesNotThrow(()=>new Script(defaults),'Default-image loader stays valid');
-assert(index.includes('studio-myfeed-filmstrip-20261029.css?v=20261029-orbit-rainbow-film-3'),'Filmstrip CSS is loaded');
+assert(index.includes('studio-myfeed-filmstrip-20261029.css?v=20261106-pixel-head-v4'),'Filmstrip CSS is loaded');
 assert(index.includes('studio-default-images-20261029.js?v=20261030-visualeyez-cropped-page-2'),'Fresh Archive thumbnail JS served');
-assert(index.includes('module-pages.js?v=20261102-bookiniz-layout-2'),'Current module build served');
-assert(pages.includes('/module-pages.js?v=20261102-bookiniz-layout-2')&&route.includes('/module-pages.js?v=20261102-bookiniz-layout-2'),'Fallback URLs do not request stale builds');
+assert(index.includes('module-pages.js?v=20261106-studio-unified-v3'),'Current module build served');
+assert(pages.includes('/module-pages.js?v=20261106-studio-unified-v3')&&route.includes('/module-pages.js?v=20261106-studio-unified-v3'),'Fallback URLs do not request stale builds');
 assert(css.includes('#studioApp #biglwaFeedHero .biglwa-feed-hero-grid'),'Film effect targets Studio preview only');
 assert(css.includes('repeat(4,minmax(0,1fr))'),'Four media slots retain their row');
 assert(css.includes('background:repeating-linear-gradient(90deg,')&&css.includes('.biglwa-feed-hero-grid::before')&&css.includes('.biglwa-feed-hero-grid::after'),'Current rectangular film perforations along both edges');
@@ -109,3 +109,7 @@ assert(defaultStyle.includes('transition:filter 1100ms ease-in-out!important'),'
 assert(defaultStyle.includes('@media(prefers-reduced-motion:reduce)'),'Reduced-motion users do not receive extra animation');
 assert(!defaultStyle.includes('#studioApp #archive:hover{filter:'),'Only the photo changes, not the Archive text or buttons');
 console.log('PASS MyFeed four-photo analog strip, Archive new direct wallpaper, original feed lightbox and member data guards');
+
+assert(css.includes('#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head'),'MyFeed Studio thumbnail header is separately styled');
+assert(css.includes('background-color:#47070c!important'),'MyFeed upper strip uses the pixel-red loading texture rather than stretched photo film');
+assert(css.includes('border-bottom:1px solid #ad505b!important'),'MyFeed upper red header is separated from the lower photo strip');
