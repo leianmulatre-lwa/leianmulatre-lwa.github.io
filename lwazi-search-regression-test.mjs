@@ -48,7 +48,7 @@ assert.doesNotMatch(search, /bl-lwazi-glyph">L’/, 'The deprecated Lwazi initia
 assert.match(search, /__biglwaAskLwaziImage/, 'Image upload analysis hook is preserved');
 assert.match(search, /SpeechRecognition/, 'Microphone dictation remains available');
 assert.match(search, /bl-search-clear/, 'Search clear control remains available');
-assert.match(search, /fastLwaziResponse/, 'Simple and social questions must answer through the instant local path');
+assert.match(search, /fastLwaziResponse/, 'Only deterministic shortcuts may use the instant local path');
 assert.match(search, /__biglwaLwaziConfig/, 'Lwazi must support a secure server-side provider adapter configuration');
 
 assert.match(search, /querySelectorAll\('\.search-icon'\)\.forEach/, 'Lwazi replaces the old magnifier instead of sitting next to it');
