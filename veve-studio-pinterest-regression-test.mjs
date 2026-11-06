@@ -24,7 +24,7 @@ const checks=[
  ['Tutorial can be reopened from Settings',settings.includes('/studio?tutorial=1')],
  ['Journal initial shifted down',modules.includes('top:37%!important')],
  ['Supporter carousel uses bare PNG logos',brand.includes('.supporter-logo img')&&brand.includes('background:transparent!important')],
- ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&index.includes('pinterest-orbit.js?v=20261028-oauth-return-2')],
+ ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&/pinterest-orbit\.js\?v=[\w.-]+/.test(index)],
  ['Board styles load for private collections',pinterest.includes('pinterest-boards.css?v=')&&boardsCss.includes('pn-board-view-actions')]
 ];
 for(const [name,ok] of checks)console.log((ok?'PASS':'FAIL')+' · '+name);
