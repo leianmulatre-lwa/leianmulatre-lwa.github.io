@@ -27,5 +27,11 @@ export async function onRequestPost({request}){
   }
 }
 export async function onRequestGet(){
-  return new Response('Not found',{status:404,headers});
+  try{
+    const url=new URL(TARGET);url.pathname='/health';
+    const response=await fetch(url.href,{method:'GET',signal:AbortSignal.timeout(8000),redirect:'error'});
+    if(!response.ok)return Response.json({error:'upstream_health_failed',status:response.status},{status:502,headers});
+    const data=await response.json();
+    return Response.json({service:data.service,identity:data.identity,ready:data.ready===true},{headers});
+  }catch{return Response.json({error:'upstream_health_unavailable'},{status:502,headers})}
 }
