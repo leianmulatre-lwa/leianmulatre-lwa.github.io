@@ -135,6 +135,11 @@ body.night-mode #studioApp .bl-search-panel{background:#241f1d!important}
 }
 #studioApp #trophies:has(#trophyPreview>.biglwa-default-trophy-image) .card-cta{margin-top:13px!important}
 
+/* Keep the trophy preview and its CTA together without disturbing widget drag sizing. */
+#studioApp #trophies{justify-content:flex-start!important;align-content:start!important}
+#studioApp #trophies>.sub{margin-bottom:0!important}
+#studioApp #trophies #trophyPreview{flex:0 0 auto!important}
+#studioApp #trophies .card-cta{align-self:flex-start!important}
 /* Enforce the latest red pixel-globe curtain for Studio module transitions only. */
 #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain[data-lwa-curtain="module"].lwa-pixel-curtain{
  display:flex!important;z-index:1502!important;
