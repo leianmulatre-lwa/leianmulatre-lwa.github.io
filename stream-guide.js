@@ -262,12 +262,8 @@
   studioTarget=screen;
   screen.classList.add('stream-preview-active');
   mediaPortal.classList.add('is-studio-preview');
-  if(!mediaPortal.querySelector('[data-stream-return]')){
-   const back=document.createElement('button');
-   back.type='button';back.className='stream-preview-return';back.dataset.streamReturn='';
-   back.textContent='↗ Open Stream';back.setAttribute('aria-label','Return to Stream with playback preserved');
-   mediaPortal.appendChild(back);
-  }
+  // The Studio thumbnail now has one Dock Stream control at its bottom edge.
+  mediaPortal.querySelector('.stream-preview-return')?.remove();
   const oldPhoto=screen.querySelector('.stream-station-photo');
   if(oldPhoto)oldPhoto.hidden=true;
   state.followGuide=false;
@@ -277,6 +273,43 @@
   return true;
  }
 
+
+ // Keep the visible dock action attached to the Studio thumbnail, whether
+ // playback is inside Stream, the thumbnail, or already in its mini-window.
+ function installStudioDockControl(){
+  const preview=document.querySelector('#studioApp #stream .stream-screen');
+  if(!preview||preview.querySelector(':scope > .stream-studio-dock'))return;
+  const button=document.createElement('button');
+  button.type='button';button.className='stream-studio-dock';
+  button.textContent='Dock Stream';
+  button.setAttribute('aria-label','Dock Stream player');
+  button.title='Keep Stream playing while you browse BIG LWA';
+  preview.appendChild(button);
+ }
+ let studioDockScheduled=false;
+ function scheduleStudioDock(){
+  if(studioDockScheduled)return;studioDockScheduled=true;
+  requestAnimationFrame(()=>{studioDockScheduled=false;installStudioDockControl()});
+ }
+ document.addEventListener('click',event=>{
+  const trigger=event.target.closest?.('#studioApp #stream .stream-studio-dock');
+  if(!trigger)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  if(!dockStream())window.openBIGLWAModule?.('stream');
+ },true);
+ document.addEventListener('biglwa:studio-opened',scheduleStudioDock);
+ document.addEventListener('biglwa:stream-updated',scheduleStudioDock);
+ document.addEventListener('biglwa:module-close',scheduleStudioDock);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleStudioDock,{once:true});
+ else scheduleStudioDock();
+ if(typeof MutationObserver==='function'){
+  const dockObserver=new MutationObserver(records=>{
+   if(records.some(record=>[...record.addedNodes].some(node=>
+     node.nodeType===1&&(node.matches?.('#stream,.stream-screen')||
+     node.querySelector?.('#studioApp #stream .stream-screen')))))scheduleStudioDock();
+  });
+  dockObserver.observe(document.body,{childList:true,subtree:true});
+ }
  let mostRecentUser='';
  async function getUserToken(){
   try{
