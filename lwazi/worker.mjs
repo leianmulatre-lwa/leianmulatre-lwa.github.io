@@ -18,9 +18,19 @@ async function googleKeys(fetcher,force=false){
 }
 
 function origins(env){return new Set(String(env.ALLOWED_ORIGINS||'https://biglwa.com,https://www.biglwa.com').split(',').map(x=>x.trim()).filter(Boolean))}
+function isAllowedOrigin(origin,env){
+  if(!origin)return true;
+  if(origins(env).has(origin))return true;
+  try{
+    const parsed=new URL(origin);
+    return parsed.protocol==='https:' && !parsed.username && !parsed.password &&
+      (parsed.hostname==='biglwa-web-staging.pages.dev'||parsed.hostname.endsWith('.biglwa-web-staging.pages.dev')) &&
+      parsed.origin===origin;
+  }catch{return false}
+}
 function cors(origin,env){
   const h={'Vary':'Origin','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
-  if(origin&&origins(env).has(origin)){h['Access-Control-Allow-Origin']=origin;h['Access-Control-Allow-Headers']='Authorization, Content-Type';h['Access-Control-Allow-Methods']='POST, GET, OPTIONS';h['Access-Control-Max-Age']='600'}
+  if(origin&&isAllowedOrigin(origin,env)){h['Access-Control-Allow-Origin']=origin;h['Access-Control-Allow-Headers']='Authorization, Content-Type';h['Access-Control-Allow-Methods']='POST, GET, OPTIONS';h['Access-Control-Max-Age']='600'}
   return h;
 }
 function json(body,status=200,headers={}){return new Response(JSON.stringify(body),{status,headers:{...JSON_HEADERS,...headers}})}
@@ -121,7 +131,7 @@ export async function queryProvider(mode,question,context,env,fetcher=fetch,requ
 export default {
   async fetch(request,env){
     const origin=request.headers.get('Origin');
-    const allowed=!origin||origins(env).has(origin);
+    const allowed=isAllowedOrigin(origin,env);
     if(!allowed)return json({error:'origin_not_allowed'},403);
     const headers=cors(origin,env);
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
