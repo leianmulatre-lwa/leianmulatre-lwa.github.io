@@ -14,7 +14,7 @@
     async function wikipediaImages(items){if(!items.length)return {};var titles=items.map(function(item){return item.title}).join('|');var data=await fetchJSON('https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=thumbnail&pithumbsize=500&titles='+encodeURIComponent(titles)+'&format=json&origin=*');var pages=(data.query&&data.query.pages)||{};var out={};Object.keys(pages).forEach(function(id){if(pages[id].thumbnail)out[pages[id].title]=pages[id].thumbnail.source});return out}
 
     var widgetRoutes={
-      journal:'diary',diary:'diary',calendar:'calendar',orbit:'orbit',feed:'feed','my feed':'feed','myfeed':'feed',
+      journal:'diary',diary:'diary',stream:'stream',videos:'stream',calendar:'calendar',orbit:'orbit',feed:'feed','my feed':'feed','myfeed':'feed',
       connect:'connect',camera:'camera','photo booth':'camera',booth:'camera',archive:'archive',library:'library',
       books:'library',bookiniz:'library',games:'games','arcade':'games',closet:'closet',clothes:'closet',
       trophies:'trophies',rooms:'rooms',room:'room',boards:'boards',projects:'projects',notes:'notes',
@@ -40,7 +40,10 @@
     async function publicUserPosts(users){if(!users.length||!window.BigLWASqwibs||typeof window.BigLWASqwibs.publicSqwibs!=='function')return [];var visible=users.filter(function(u){return !/private/i.test(String(u.accountVisibility||u.visibility||u.privacy||''))});if(!visible.length)return [];var posts=await window.BigLWASqwibs.publicSqwibs(90);var cards=[];posts.forEach(function(p){if(p.visibility!=='public'||!p.text)return;var u=visible.find(function(u){return (u.uid&&p.uid&&String(u.uid)===String(p.uid))||(p.username&&String(p.username).toLowerCase()===String(u.username||'').toLowerCase())});if(u&&cards.length<8)cards.push(publicSqwibCard(p,u))});return cards}
     function wikiCard(w,image,type){return '<article class="bl-search-card bl-media-card">'+(image?'<img class="bl-search-card-media" src="'+esc(image)+'" alt="'+esc(w.title)+'" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">'+esc(type==='movie'?'Cinema':'Research')+'</div>')+'<div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(type==='movie'?'Film, history & culture':'Public figure, politics & history')+'</span><h3>'+esc(w.title)+'</h3><p>'+esc(w.snippet||'')+'</p>'+'<a class="bl-search-go" href="https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))+'" target="_blank" rel="noopener noreferrer">Open free article &#8594;</a>'+internalButton(type==='movie'?'Open in Archive':'Explore in Lwazi','archive')+'</div></article>'}
     function simpleCard(type,title,meta,body,image,route){return '<article class="bl-search-card bl-media-card">'+(image?'<img class="bl-search-card-media" src="'+esc(image)+'" alt="'+esc(title)+'" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">'+esc(type)+'</div>')+'<div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(type)+'</span><h3>'+esc(title)+'</h3>'+ (meta?'<p class="bl-search-muted">'+esc(meta)+'</p>':'')+(body?'<p>'+esc(body.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim())+'</p>':'')+internalButton('Open in '+route.replace(/^./,function(c){return c.toUpperCase()}),route)+'</div></article>'}
-    function section(title,cards){if(!cards||!cards.length)return '';return '<section class="bl-search-section"><h2>'+esc(title)+'</h2><div class="bl-search-grid">'+cards.join('')+'</div></section>'}
+    function sectionId(title){return 'bl-section-'+String(title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+    function sectionSymbol(title){var key=/song/i.test(title)?'music':/book/i.test(title)?'library':/politic/i.test(title)?'politc':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':'archive';var el=document.querySelector('#studioApp #'+key+' .card-icon');return el?.innerHTML||({'music':'♫','library':'▤','politc':'⚖','stream':'◉','notes':'✎','connect':'◎','archive':'▦'})[key]}
+    function section(title,cards){if(!cards||!cards.length)return '';return '<section class="bl-search-section" id="'+sectionId(title)+'"><h2><span class="bl-search-section-icon" aria-hidden="true">'+sectionSymbol(title)+'</span>'+esc(title)+'</h2><div class="bl-search-grid">'+cards.join('')+'</div></section>'}
+    function renderAnswer(target,value){if(!target)return;var html=esc(String(value==null?'':value));html=html.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[\s(])\*([^*\n]+)\*(?=\s|[.,;!?)]|$)/g,'$1<em>$2</em>');html=html.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');target.innerHTML='<p>'+html+'</p>'}
 
     async function askLwazi(q,sources){
       var hooks=[window.__biglwaAskLwazi,window.BigLWA&&window.BigLWA.askLwazi].filter(function(fn){return typeof fn==='function'});
@@ -59,10 +62,9 @@
     async function openPanel(raw){
       var q=String(raw==null?'':raw).trim().replace(/^@/,'').replace(/^ask lwazi\s*/i,'').trim();if(!q)return;
       var route=routeCommand(q);if(route){goRoute(route);return}
-      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();panel.innerHTML='<div class="bl-search-head"><div><span class="bl-search-assistant">Lwazi</span><h1>Search BigLWA and beyond</h1></div><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><div class="bl-search-query"><input type="search" value="'+esc(clean)+'" aria-label="Ask Lwazi or search BigLWA"><button type="button" class="bl-search-submit">Search</button></div><article class="bl-lwazi-answer"><span class="bl-search-kicker">Lwazi answer</span><div class="bl-lwazi-answer-body">Preparing an answer...</div></article><div class="bl-search-loading">Searching people, books, places, cinema, history, politics, and BigLWA notes...</div>';
+      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();panel.innerHTML='<div class="bl-search-head"><div><span class="bl-search-assistant">L’wazi</span><h1>Explore BIG LWA and beyond</h1><p class="bl-search-question">'+esc(clean)+'</p></div><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="users"><span aria-hidden="true">◎</span>People</button><button type="button" data-bl-match="sqwidz"><span aria-hidden="true">✎</span>Sqwidz</button><button type="button" data-bl-match="books"><span aria-hidden="true">▤</span>Books</button><button type="button" data-bl-match="songs"><span aria-hidden="true">♫</span>Songs</button><button type="button" data-bl-match="research"><span aria-hidden="true">⌕</span>Research</button><button type="button" data-bl-match="politics"><span aria-hidden="true">⚖</span>Politc</button><button type="button" data-bl-match="stream"><span aria-hidden="true">◉</span>Stream</button></nav><article class="bl-lwazi-answer"><span class="bl-search-kicker">L’wazi answer</span><div class="bl-lwazi-answer-body">Finding grounded sources…</div></article><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
-      var input=panel.querySelector('.bl-search-query input'),submit=panel.querySelector('.bl-search-submit');
-      submit.onclick=function(){var next=input.value.trim();if(next)openPanel(next)};input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submit.click()}});
+       panel.querySelector('.bl-search-category-nav').addEventListener('click',function(e){var b=e.target.closest('button[data-bl-match]');if(!b)return;var name=({users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Cinema & video'})[b.dataset.blMatch];var sectionEl=document.getElementById(sectionId(name));if(sectionEl)sectionEl.scrollIntoView({behavior:'smooth',block:'start'});else if(b.dataset.blMatch==='stream')goRoute('stream');else if(b.dataset.blMatch==='politics')goRoute('politic');});
 
       if(/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
       var lc=clean.toLowerCase();
@@ -71,18 +73,20 @@
       var songPromise=searchSongs(clean).then(function(items){return items.map(songCard)}).catch(function(){return []});
       var bookPromise=searchBooks(clean).then(function(items){return items.map(bookCard)}).catch(function(){return []});
       var wikiPromise=searchWikipedia(clean).then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
-      var sourcePromise=searchWikipedia(clean).catch(function(){return []});
+       // Wikipedia results are fetched once for cards, not twice to block the answer.
       var libraryPromise=sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
-      var answerPromise=Promise.all([sourcePromise,libraryPromise]).then(function(results){var sources=results[0].map(function(w){return {title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))}});results[1].forEach(function(source){sources.push({title:source.title,snippet:String(source.creator||'')+' \u00b7 '+String(source.topic||'')+' \u00b7 '+String(source.usage||source.notes||''),url:String(source.url||'')})});return askLwazi(clean,sources)});
+       var answerPromise=libraryPromise.then(function(matches){var sources=matches.map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});return askLwazi(clean,sources)});
+       libraryPromise.then(function(matches){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(matches.length&&box)box.textContent='Found '+matches.length+' relevant sources: '+matches.slice(0,3).map(function(x){return x.title}).join('; ')+'. Preparing a fuller answer…'});
 
       Promise.all([userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise]).then(function(parts){
         if(panel!==current||!current.isConnected)return;
-        var html=section('BigLWA users',parts[0].map(userCard))+section('Public Sqwidz',parts[4])+section('Books',parts[1])+section('Songs',parts[5])+section('Places, people, politics, cinema & history',parts[2]);
+         var wikiCards=parts[2],politics=wikiCards.filter(function(x){return /politic|electoral|vote|government|president|law|court|parliament/i.test(x)}),films=wikiCards.filter(function(x){return /cinema|film|movie|video|episode|director/i.test(x)}),general=wikiCards.filter(function(x){return !politics.includes(x)&&!films.includes(x)});
+         var html=section('BigLWA users',parts[0].map(userCard))+section('Public Sqwidz',parts[4])+section('Books',parts[1])+section('Songs',parts[5])+section('Politics & public life',politics)+section('Cinema & video',films)+section('People, places & history',general);
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard));
         var loading=panel.querySelector('.bl-search-loading');if(loading)loading.outerHTML=html||'<p class="bl-search-empty">No public results found.</p>';
         panel.querySelectorAll('[data-lwazi-route]').forEach(function(button){button.addEventListener('click',function(){goRoute(button.dataset.lwaziRoute)})});
       });
-      answerPromise.then(function(answer){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)box.textContent=String(answer==null?'No answer available.':answer)}).catch(function(){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)box.textContent='Search information could not be loaded. Try again.'});
+      answerPromise.then(function(answer){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,answer==null?'No answer available.':answer)}).catch(function(){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,'Search information could not be loaded. Try again.')});
     }
     window.__biglwaUserCards=openPanel;window.__biglwaUserCardsClose=close;
     function installLwaziButton(){
@@ -94,6 +98,7 @@
         var div=document.createElement('div');div.className=wrap.className;div.style.cssText=wrap.style.cssText;
         while(wrap.firstChild)div.appendChild(wrap.firstChild);wrap.replaceWith(div);wrap=div;
       }
+      wrap.classList.add('bl-search-ready');
       if(!wrap.querySelector('.bl-lwazi-button')){
         var button=document.createElement('button');button.type='button';button.className='bl-lwazi-button';
         button.setAttribute('aria-label','Ask Lwazi');button.title='Ask Lwazi';
@@ -125,6 +130,32 @@
           };
         }
         wrap.appendChild(mic);
+      }
+      if(!wrap.querySelector('.bl-camera-button')){
+        var camera=document.createElement('button');camera.type='button';camera.className='bl-camera-button';camera.title='Search by image';camera.setAttribute('aria-label','Search by image');
+        camera.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v12H4z"/><circle cx="12" cy="13" r="3.2"/></svg>';
+        var picker=document.createElement('input');picker.type='file';picker.accept='image/*';picker.hidden=true;picker.setAttribute('aria-label','Choose image to search');wrap.appendChild(picker);
+        camera.onclick=function(e){e.stopPropagation();picker.click()};
+        picker.addEventListener('change',function(){var file=picker.files&&picker.files[0];if(!file)return;
+          if(!/^image\//.test(file.type)||file.size>10*1024*1024){alert('Choose an image under 10 MB.');picker.value='';return}
+          var url=URL.createObjectURL(file);openPanel(search.value.trim()||'Search by image');var host=panel;
+          var block=document.createElement('div');block.className='bl-image-search-preview';
+          var img=document.createElement('img');img.src=url;img.alt='Image selected for search';
+          var msg=document.createElement('p');msg.textContent='Image selected. Nothing is uploaded until you choose Analyze image.';
+          var run=document.createElement('button');run.type='button';run.className='bl-search-image-run';run.textContent='Analyze image';block.append(img,msg,run);host?.querySelector('.bl-search-head')?.after(block);
+          run.onclick=async function(){var hook=window.__biglwaAskLwaziImage||window.BigLWA?.askLwaziImage;
+            if(typeof hook!=='function'){msg.textContent='Image recognition needs a connected vision-capable L’wazi service. This image stays on your device.';return}
+            run.disabled=true;msg.textContent='Analyzing image…';
+            try{var result=await hook(file,search.value.trim());if(panel===host)renderAnswer(host.querySelector('.bl-lwazi-answer-body'),result?.answer||result);msg.textContent='Image analysis finished.'}
+            catch(e){msg.textContent='Image analysis failed. Try again.'}finally{run.disabled=false}
+          };
+          host?.querySelector('.bl-search-close')?.addEventListener('click',function(){URL.revokeObjectURL(url);picker.value=''},{once:true});
+        });
+        wrap.appendChild(camera);
+      }
+      if(!wrap.querySelector('.bl-search-clear')){
+        var clear=document.createElement('button');clear.type='button';clear.className='bl-search-clear';clear.title='Clear search';clear.setAttribute('aria-label','Clear search');clear.textContent='×';
+        clear.onclick=function(e){e.stopPropagation();search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));close();search.focus()};wrap.appendChild(clear);
       }
       if(!search.__blLwaziEnterBound){
         search.__blLwaziEnterBound=true;
