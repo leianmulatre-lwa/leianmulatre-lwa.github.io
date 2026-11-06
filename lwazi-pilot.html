@@ -53,7 +53,7 @@ if(!allowed){
  document.body.textContent='This diagnostic is only available on the isolated BIG LWA staging domain.';
  throw Error('Staging only');
 }
-const BASE='/api/lwazi';
+const BASE='https://biglwa-lwazi-pilot.leianmulatre-284.workers.dev/api/lwazi';
 const config={apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',appId:'1:83232670555:web:e04927b20458390b3b507e'};
 async function user(){
  const [{initializeApp,getApps},{getAuth}]=await Promise.all([
@@ -65,9 +65,9 @@ async function user(){
 }
 async function health(){
  $('health').textContent='Checking…';
- try{const r=await fetch(BASE,{cache:'no-store'});const data=await r.json();
- $('health').textContent=r.ok?'Worker '+data.service+' · '+data.identity+' · provider keys configured: '+(data.ready?'yes':'no'):'Relay HTTP '+r.status+' · '+(data.error||'unknown');
- }catch{$('health').textContent='Could not fetch staging relay.'}
+ try{const r=await fetch(BASE.replace('/api/lwazi','/health'),{cache:'no-store'});const data=await r.json();
+ $('health').textContent=r.ok?'Worker '+data.service+' · '+data.identity+' · provider keys configured: '+(data.ready?'yes':'no'):'Worker HTTP '+r.status+' · '+(data.error||'unknown');
+ }catch{$('health').textContent='Could not reach the isolated pilot Worker.'}
 }
 async function authStatus(){
  try{const u=await user();$('status').textContent=u?'Signed in (account recognized locally). Ready to test authorization.':'No signed-in staging session. Open staging Studio and sign in first.';return Boolean(u)}
