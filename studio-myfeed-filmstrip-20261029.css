@@ -259,3 +259,43 @@
     left:4px!important;right:4px!important;bottom:2px!important;height:2px!important;
   }
 }
+
+/* Separate the caption/remaining-photo counter from the photographic film.
+   Mirror the actual pixel-red widget curtain, not a stretched half-image. */
+#studioApp #feed #biglwaFeedHero.biglwa-feed-hero{
+  overflow:hidden!important;border-radius:3px!important;background:#161213!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head{
+  position:relative!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  min-height:42px!important;padding:10px 13px!important;margin:0!important;
+  box-sizing:border-box!important;
+  background-color:#47070c!important;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0px,rgba(0,0,0,.055) 62px,
+      rgba(115,12,21,.045) 106px,transparent 162px,rgba(0,0,0,.055) 236px),
+    linear-gradient(180deg,#520b16,#3c0810)!important;
+  background-size:100% 100%!important;
+  border-bottom:1px solid #ad505b!important;
+  border-radius:0!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head h3{
+  flex:1 1 auto!important;min-width:0!important;margin:0!important;
+  color:#fff0e5!important;line-height:1.35!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head span{
+  flex:0 0 auto!important;max-width:48%!important;
+  background-color:rgba(16,4,8,.28)!important;
+  color:#f7eee0!important;white-space:normal!important;
+  text-align:right!important;line-height:1.35!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{
+  margin:0!important;border:0!important;border-radius:0!important;
+  width:100%!important;box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+@media(max-width:600px){
+  #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head{
+    padding:9px 10px!important;min-height:42px!important
+  }
+}
