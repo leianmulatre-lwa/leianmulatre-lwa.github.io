@@ -3964,42 +3964,35 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         feed.renderHero(true);
       }
     }
+    // One thumbnail renderer owns Boards. Do not recreate the legacy six-tile
+    // grid over Pinterest's one-portrait + four-squares gallery.
     function syncStudioBoardsPreview(){
       const card=$('#boards');if(!card)return;
       card.dataset.widgetRoute='boards';
-      let slot=$('#biglwaStudioBoardsPreview',card);
-      if(!slot){
-        slot=document.createElement('div');
-        slot.id='biglwaStudioBoardsPreview';
-        slot.className='studio-pinterest-board-preview';
-        slot.setAttribute('aria-label','Your connected Pinterest Pins');
-        const cta=$('.card-cta',card);
-        if(cta)cta.before(slot);else card.appendChild(slot);
-      }
-      const state=window.__biglwaPinterest?.state;
-      const viewer=String(window.__biglwaIdentity?.uid||'');
-      const tiles=(state?.connected&&(!viewer||state.uid===viewer))
-        ?(window.__biglwaPinterest?.getPreview?.()||[]):[];
-      const signature=tiles.slice(0,6).map(item=>item.url).join('|');
-      if(state?.connected&&(!viewer||state.uid===viewer)){
-        // After Pinterest connects, don't allow static placeholder art
-        // to remain behind the live pin grid, even while Pins are loading.
-        [...card.children].forEach(child=>{
-          if(child===slot||child.matches('.card-head,.sub,.card-cta,.widget-window-controls,.window-controls,.widget-drag-handle'))return;
-          child.remove();
-        });
-        card.classList.add('has-live-pinterest-preview');
-      }else{
-        // Do not falsely display the generic collage as a Pinterest account.
+      const publicView=document.documentElement.classList.contains('biglwa-preview-mode')||
+        Boolean(window.__biglwaPublicStorageView);
+      if(publicView)return; // Never substitute this member's photos into a guest view.
+      const photos=window.__biglwaPinterest?.getPreview?.()||[];
+      const old=card.querySelector('#biglwaStudioBoardsPreview');
+      if(photos.length){
+        old?.remove();
         card.classList.remove('has-live-pinterest-preview');
+        window.__biglwaRefreshBoardsThumbnail?.();
+        return;
       }
-      if(slot.dataset.signature===signature)return;
-      slot.dataset.signature=signature;
-      slot.innerHTML=tiles.length
-        ?tiles.slice(0,6).map((item,i)=>
-          '<button type="button" data-open="boards" aria-label="Open Pinterest Boards">'+
-          '<img src="'+esc(item.url)+'" loading="lazy" decoding="async" alt="Pinterest Pin '+(i+1)+'"></button>').join('')
-        :'<button type="button" class="studio-pinterest-empty" data-open="boards">'+(state?.connected?'Open Boards to load your Pins':'Connect Pinterest to preview your Pins')+'</button>';
+      // No Pinterest pictures have arrived: keep the one honest Connect/Open
+      // prompt, not blank dummy frames or a fabricated stock-photo gallery.
+      if(card.querySelector('.biglwa-studio-board-gallery'))return;
+      let slot=old;
+      if(!slot){
+        slot=document.createElement('div');slot.id='biglwaStudioBoardsPreview';
+        slot.className='studio-pinterest-board-preview';
+        card.querySelector('.card-cta')?.before(slot);
+      }
+      const linked=Boolean(window.__biglwaPinterest?.state?.connected);
+      slot.classList.add('studio-pinterest-awaiting');
+      slot.innerHTML='<button type="button" class="studio-pinterest-empty" data-open="boards">'+
+        (linked?'Open Boards to load your Pins':'Connect Pinterest to preview your Pins')+'</button>';
     }
     const feedCard=$('#feed');
     if(feedCard){
