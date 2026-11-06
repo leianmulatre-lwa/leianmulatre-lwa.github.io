@@ -27,6 +27,14 @@
     return auth.currentUser.getIdToken();
   }
   async function ask(question,sources,_charter,onDelta){
+    // Founder-only pilot: explicit session opt-in to external provider processing.
+    let consented=false;
+    try{consented=sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')==='yes'}catch{}
+    if(!consented){
+      const accepted=window.confirm('L’wazi’s private AI pilot sends your question and public search-source metadata to DeepSeek or Anthropic for an answer. It does not transmit your private Studio content. Continue for this browser session?');
+      if(!accepted)throw Error('External AI was not enabled.');
+      try{sessionStorage.setItem('biglwaLwaziExternalPilotConsentV1','yes')}catch{}
+    }
     const token=await authToken();
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),32000);
