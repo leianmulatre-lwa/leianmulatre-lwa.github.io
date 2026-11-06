@@ -25,6 +25,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Verify Lwazi, Boards, Stream and Studio syntax
+        run: |
+          node --check user-search-results.js
+          node --check studio-coherence-20261105.js
+          node --check studio-loading-pixel-20261029.js
+          node --check stream-guide.js
+          node --check module-pages.js
+          node lwazi-search-regression-test.mjs
+          node pinterest-boards-test.mjs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
