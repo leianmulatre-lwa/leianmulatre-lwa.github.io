@@ -74,6 +74,19 @@ test('provider calls are streamed and routed without leaking secrets in the mode
   assert.doesNotMatch(JSON.stringify(seen[0].body),/a-test-value/);
   assert.match(await new Response(result.body).text(),/Yes/);
 });
+test('staging origins receive CORS but arbitrary origins are denied',async()=>{
+ const origins=['https://biglwa-web-staging.pages.dev','https://34bd76dd.biglwa-web-staging.pages.dev'];
+ for(const origin of origins){
+  const response=await worker.fetch(new Request('https://pilot.example/health',{headers:{Origin:origin}}),baseEnv);
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'),origin);
+  const preflight=await worker.fetch(new Request('https://pilot.example/api/lwazi',{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'Authorization,Content-Type'}}),baseEnv);
+  assert.equal(preflight.status,204);
+  assert.match(preflight.headers.get('Access-Control-Allow-Headers'),/Authorization/);
+ }
+ const evil=await worker.fetch(new Request('https://pilot.example/health',{headers:{Origin:'https://evilbiglwa-web-staging.pages.dev.attacker.com'}}),baseEnv);
+ assert.equal(evil.status,403);
+});
 test('auth and isolated pilot are enforced, end-to-end response streams',async()=>{
   const fixture=await tokenFixture(),valid=await fixture.make();
   const original=globalThis.fetch;
