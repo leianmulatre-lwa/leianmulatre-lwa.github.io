@@ -88,37 +88,50 @@
     function section(title,cards,category){if(!cards||!cards.length)return '';return '<section class="bl-search-section" data-bl-category="'+esc(category||'research')+'" id="'+sectionId(title)+'"><h2><span class="bl-search-section-icon" aria-hidden="true">'+sectionSymbol(title)+'</span>'+esc(title)+'</h2><div class="bl-search-grid">'+cards.join('')+'</div></section>'}
     function renderAnswer(target,value){if(!target)return;var html=esc(String(value==null?'':typeof value==='object'?(value.answer||value.text||'No answer available.'):value));html=html.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[\s(])\*([^*\n]+)\*(?=\s|[.,;!?)]|$)/g,'$1<em>$2</em>');html=html.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');target.innerHTML='<p>'+html+'</p>'}
 
-    var browserSessionPromise=null,answerCache=new Map();
+    var browserSessionPromise=null;
     function fastLwaziResponse(q){
       var text=normalizeCommand(q);
-      if(/^(what is )?2\s*\+\s*2(?:\s*\?)?$/.test(text))return '4. Quick, clean, no research spiral required.';
+      if(/^(?:what is\s+)?2\s*\+\s*2\s*\??$/i.test(String(q).trim()))return '4. Quick, clean, no research spiral required.';
       if(/^(hi|hey|hello|sup|what'?s up|wassup)$/.test(text)||/^how are you(?: doing)?/.test(text))return "I’m doing good, bookini. Coffee-level processing speed, petty-level discernment, and enough patience for one more ballroom tea spill. How you doing?";
       if(/^(who are you|what are you)$/.test(text))return 'I’m L’wazi—BigLWA’s cooler, chronically online older cousin. I help you search, research, navigate widgets, and talk through culture without pretending one mainstream center speaks for everybody.';
       if(/^(thanks|thank you|thank u)$/.test(text))return 'Anytime, bookini. You keep me employed and fabulous.';
       if(/^(good morning|good night)$/.test(text))return text==='good morning'?'Morning, bookini. Go get that coin.':'Night, bookini. Rest is resistance, sleep is policy.';
       return null;
     }
-    async function askLwazi(q,sources){
-      var cacheKey=String(q||'').toLowerCase().trim();if(answerCache.has(cacheKey))return answerCache.get(cacheKey);
-      var fast=fastLwaziResponse(q);if(fast){answerCache.set(cacheKey,fast);return fast}
+    async function askLwazi(q,sources,onPartial){
+      var fast=fastLwaziResponse(q);if(fast)return fast;
       var hooks=[window.__biglwaAskLwazi,window.BigLWA&&window.BigLWA.askLwazi].filter(function(fn){return typeof fn==='function'});
-      if(hooks.length){try{var libraryForHook=await sourceLibraryPromise;var external=await hooks[0](q,sources,libraryForHook&&libraryForHook.critical_reasoning);if(external){var result=String(external.answer||external);answerCache.set(cacheKey,result);return result}}catch(e){console.warn('[Lwazi] Existing AI hook failed:',e)}}
+      if(hooks.length){
+        try{
+          var libraryForHook=await sourceLibraryPromise;
+          var hookStop,hookTimeout=new Promise(function(_,reject){hookStop=setTimeout(function(){reject(Error('Lwazi provider timed out'))},33000)});
+          var external;
+          try{external=await Promise.race([Promise.resolve().then(function(){return hooks[0](q,sources,libraryForHook&&libraryForHook.critical_reasoning,onPartial)}),hookTimeout])}
+          finally{clearTimeout(hookStop)}
+          if(external)return String(external.answer||external);
+        }catch(e){console.warn('[Lwazi] Provider hook unavailable:',e)}
+      }
       var config=window.__biglwaLwaziConfig||{};
       if(config.apiUrl){
+        var controller=new AbortController(),stop=setTimeout(function(){controller.abort()},18000);
         try{
-          var providerResponse=await fetch(config.apiUrl,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({question:q,context:sources,models:config.models||['latest-fast','opus','openai'],reasoning:{charter:'lwazi-v2',voice:'Black queer chronically online older cousin'}})});
-          if(providerResponse.ok){var providerData=await providerResponse.json();var providerAnswer=providerData.answer||providerData.message||providerData.output_text;if(providerAnswer){providerAnswer=String(providerAnswer);answerCache.set(cacheKey,providerAnswer);return providerAnswer}}
+          var providerResponse=await fetch(config.apiUrl,{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({question:q,context:sources,models:config.models||['latest-fast'],reasoning:{charter:'lwazi-v2'}})});
+          if(providerResponse.ok){var providerData=await providerResponse.json();var providerAnswer=providerData.answer||providerData.message||providerData.output_text;if(providerAnswer)return String(providerAnswer)}
         }catch(e){console.warn('[Lwazi] Secure provider endpoint unavailable:',e)}
+        finally{clearTimeout(stop)}
       }
       try{
         var lm=(window.LanguageModel)||(window.ai&&window.ai.languageModel);
         if(lm&&typeof lm.create==='function'){
-          var policyLibrary=await sourceLibraryPromise;var charter=policyLibrary&&policyLibrary.critical_reasoning;var session=await (browserSessionPromise||(browserSessionPromise=lm.create({systemPrompt:'Answer as Lwazi, BigLWA’s cool, queer, chronically online Black older cousin and critical research assistant. Keep banter warm, sharp, loving, and culturally fluent; use bookini, chopped, fish, baddie, and ballroom language only when natural. Answer 2+2 and simple greetings immediately, then add little to no ceremony. Apply individual, social, and political body perspectives when relevant. Ask who has power and what materially limits choices. Prioritize relevant work by women, researchers of color, and community-led organizations without discarding credible evidence. Check eligibility or medical matters against current official or clinical requirements. Challenge anti-Black claims with concrete data. Separate established facts, disputed interpretations, and unsupported allegations; do not encourage conspiracy spirals or collective ethnic blame. Be useful, concise, and cite only exact source URLs actually provided. If no evidence, say so.'+(charter?'\nUse this published methodology: '+JSON.stringify({three_bodies:charter.three_bodies,answer_shape:charter.answer_shape,argument_rules:charter.argument_rules,conspiracy_and_state_power:charter.conspiracy_and_state_power}):'')}).catch(function(error){browserSessionPromise=null;throw error})));var answer=await session.prompt(q+'\n\nResearch context with free source URLs:\n'+sources.map(function(s){return s.title+': '+s.snippet+(s.url?' | '+s.url:'')}).join('\n'));if(answer){answerCache.set(cacheKey,String(answer));return answer}
+          var policyLibrary=await sourceLibraryPromise;var charter=policyLibrary&&policyLibrary.critical_reasoning;
+          var session=await (browserSessionPromise||(browserSessionPromise=lm.create({systemPrompt:'You are L’wazi, a source-grounded, Black-centered and community-accountable research assistant in BIG LWA. Answer directly and humanely. Favor evidence over agreement. Apply the individual, social and political body lenses when useful, protect privacy and never invent sources. Write with warmth and natural cultural fluency, not forced slang.'+(charter?'\nUse this research method: '+JSON.stringify({three_bodies:charter.three_bodies,argument_rules:charter.argument_rules}):'')}).catch(function(error){browserSessionPromise=null;throw error})));
+          var answer=await Promise.race([session.prompt(q+'\n\nDiscovery references (not verified full text):\n'+sources.map(function(s){return s.title+': '+s.snippet+(s.url?' | '+s.url:'')}).join('\n')),new Promise(function(_,reject){setTimeout(function(){reject(Error('Browser model timed out'))},15000)})]);
+          if(answer)return String(answer);
         }
-        if(lm&&typeof lm==='object'&&typeof lm.prompt==='function'){var quick=await lm.prompt(q);if(quick){answerCache.set(cacheKey,String(quick));return quick}}
+        if(lm&&typeof lm==='object'&&typeof lm.prompt==='function'){var quick=await lm.prompt(q);if(quick)return String(quick)}
       }catch(e){console.warn('[Lwazi] Browser AI unavailable:',e)}
-      if(sources.length)return 'Here is what the grounded research sources found for “'+q+'”: '+sources.slice(0,3).map(function(s){return s.title+' — '+String(s.snippet||'').replace(/<[^>]+>/g,' ').slice(0,180)}).join('; ');
-      return 'I found no verified research sources for “'+q+'” yet. Try a person, book, place, film, historical event, or BigLWA widget.';
+      if(sources.length)return 'Here are the most relevant public discovery links for “'+q+'”: '+sources.slice(0,3).map(function(s){return s.title+' — '+String(s.snippet||'').replace(/<[^>]+>/g,' ').slice(0,180)}).join('; ')+'. I could not verify their full text.';
+      return 'I could not reach a model or verified research sources for “'+q+'”. Please try again or use the search results below.';
     }
 
     async function openPanel(raw){
@@ -175,7 +188,7 @@
        var wikiPromise=wikiDataPromise.then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
        // Wikipedia results are fetched once for cards, not twice to block the answer.
       var libraryPromise=sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
-       var answerPromise=immediate?Promise.resolve(immediate):Promise.all([libraryPromise,Promise.race([wikiDataPromise,new Promise(function(resolve){setTimeout(function(){resolve([])},1400)})])]).then(function(parts){var sources=parts[0].map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});parts[1].slice(0,3).forEach(function(w){sources.push({title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))})});return askLwazi(clean,sources)});
+       var answerPromise=immediate?Promise.resolve(immediate):Promise.all([libraryPromise,Promise.race([wikiDataPromise,new Promise(function(resolve){setTimeout(function(){resolve([])},1400)})])]).then(function(parts){var sources=parts[0].map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});parts[1].slice(0,3).forEach(function(w){sources.push({title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))})});return askLwazi(clean,sources,function(partial){if(panel!==current||!current.isConnected)return;var answerBox=current.querySelector('.bl-lwazi-answer-body');if(answerBox)renderAnswer(answerBox,partial)})});
        libraryPromise.then(function(matches){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(!immediate&&matches.length&&box)box.textContent='Found '+matches.length+' relevant sources: '+matches.slice(0,3).map(function(x){return x.title}).join('; ')+'. Preparing a fuller answer…'});
 
       Promise.all([userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise]).then(function(parts){
