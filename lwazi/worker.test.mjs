@@ -99,9 +99,9 @@ test('staging origins receive CORS but arbitrary origins are denied',async()=>{
  assert.equal(evil.status,403);
 });
 test('Cloudflare Gemma streaming uses the observed choices delta content format',async()=>{
-  const input='data: {"object":"chat.completion.chunk","choices":[{"delta":{"reasoning_content":null,"content":"Hello from Gemma"}}]}\\n\\n'
-    +'data: {"choices":[{"delta":{"content":"!"}}]}\\n\\n'
-    +'data: [DONE]\\n\\n';
+  const input='data: {"object":"chat.completion.chunk","choices":[{"delta":{"reasoning_content":null,"content":"Hello from Gemma"}}]}\n\n'
+    +'data: {"choices":[{"delta":{"content":"!"}}]}\n\n'
+    +'data: [DONE]\n\n';
   const stream=new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode(input));controller.close()}});
   const response=await new Response(normalizeStream(stream,'cloudflare','fast','@cf/google/gemma-4-26b-a4b-it')).text();
   assert.match(response,/Hello from Gemma/);
