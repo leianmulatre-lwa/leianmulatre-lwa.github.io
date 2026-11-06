@@ -1,6 +1,6 @@
 /* Search uses the same Veve card foundation, and the Studio's existing window-dot language.
  * Privacy: block preferences are strictly account-scoped in this browser, never sent
- * to the model or a remote API. A topic rule matches its explicitly entered phrase only. */
+ * to the model or a remote API. Guest-only rules vanish with the browser session. A topic rule matches its explicitly entered phrase only. */
 (function(){
 'use strict';
 const PREFIX='biglwa:lwazi-blocks:v1:';
@@ -11,14 +11,15 @@ function owner(){
   return id&&/^[\w:-]{1,130}$/.test(id)?id:'guest';
 }
 const storageKey=()=>PREFIX+owner();
+const storage=()=>owner()==='guest'?sessionStorage:localStorage;
 function rules(){
   try{
-    const data=JSON.parse(localStorage.getItem(storageKey())||'[]');
+    const data=JSON.parse(storage().getItem(storageKey())||'[]');
     return Array.isArray(data)?data.filter(r=>r&&['item','topic','source'].includes(r.scope)&&typeof r.key==='string').slice(0,LIMIT):[];
   }catch{return []}
 }
 function save(items){
-  try{localStorage.setItem(storageKey(),JSON.stringify(items.slice(-LIMIT)));return true}
+  try{storage().setItem(storageKey(),JSON.stringify(items.slice(-LIMIT)));return true}
   catch{return false}
 }
 function cardDestination(card){
