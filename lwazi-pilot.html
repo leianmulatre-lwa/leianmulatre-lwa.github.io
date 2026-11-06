@@ -44,12 +44,12 @@ code{color:#ffcdde}a{color:#ffc2d2}#status{font-weight:600}#output{white-space:p
 <button id="refreshAccount">Check sign-in again</button>
 </section>
 <section class="panel">
-<h2>3. Real provider streaming test</h2>
-<p><strong>Free-first L’wazi pilot.</strong> All three checks use Cloudflare-hosted Gemma 4 instead of DeepSeek or Claude. No provider API key is needed. Tests stay unavailable until the Cloudflare Workers plan and usage guard are confirmed; if you have a Paid plan, using Workers AI above its free daily allowance can still incur charges.</p>
+<h2>3. Free model routing & streaming test</h2>
+<p><strong>Free-first L’wazi pilot.</strong> Conversation, research and code each use a ranked set of Cloudflare-hosted open models. The router tries alternate models on transient failures, then returns to the preferred model after cooldown. All models share Cloudflare’s free daily neuron allowance; it never switches to a paid provider when that account allowance is exhausted.</p>
 <div class="buttons">
-<button data-mode="fast" disabled>Test conversation · Gemma 4</button>
-<button data-mode="research" disabled>Test research · Gemma 4</button>
-<button data-mode="code" disabled>Test code · Gemma 4</button>
+<button data-mode="fast" disabled>Test conversation · ranked free models</button>
+<button data-mode="research" disabled>Test research · ranked free models</button>
+<button data-mode="code" disabled>Test code · ranked free models</button>
 </div>
 <h3>Live result</h3>
 <small id="metrics">No request made yet.</small>
@@ -100,7 +100,7 @@ async function testMode(mode){
  try{
   const u=await user();if(!u)throw Error('Not signed in on this staging address. Open the staging Studio, sign in, then return to diagnostics on the same domain.');
   if(!sessionStorage.getItem('biglwaLwaziExternalPilotConsentV1')){
-   const ok=confirm('This private L’wazi pilot sends an example question to Cloudflare Workers AI (Gemma 4). No DeepSeek or Claude API credits are used. Cloudflare usage is still subject to your plan and limits. Continue?');
+   const ok=confirm('This private L’wazi pilot sends an example question to Cloudflare Workers AI. It uses the free-only model router (which may choose Gemma, Qwen, GPT-OSS or another free-eligible model). Your Cloudflare free allowance applies, and DeepSeek/Claude paid requests are disabled. Continue?');
    if(!ok)throw Error('test_cancelled');
    sessionStorage.setItem('biglwaLwaziExternalPilotConsentV1','yes');
   }
@@ -108,6 +108,8 @@ async function testMode(mode){
   const response=await fetch(BASE,{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({question:questions[mode],mode,provider:'cloudflare'})});
   if(!response.ok){
    const data=await response.json().catch(()=>({}));
+   if(data.error==='shared_free_quota_exhausted')throw Error('Cloudflare’s shared daily free Neuron allowance is exhausted. All hosted free models share it; please try again after it resets. No paid provider was used.');
+   if(data.error==='free_models_cooling_down')throw Error('All available free models are temporarily cooling down. Please try again shortly; the preferred one will automatically return.');
    if(data.error==='free_inference_not_enabled'||data.error==='free_ai_binding_missing')throw Error('Free model not activated. Confirm Cloudflare Workers Free plan before enabling to avoid charges.');
    if(response.status===402||data.error==='provider_billing_required'){
     const named=data.provider==='anthropic'?'Anthropic':data.provider==='deepseek'?'DeepSeek':mode==='fast'?'DeepSeek':'Anthropic';
