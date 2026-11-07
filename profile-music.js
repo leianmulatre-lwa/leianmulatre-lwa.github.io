@@ -77,7 +77,8 @@ function ensure(){
 }
 function render(){
  if(!ensure())return;
- window.BigLWAMusicDiscovery?.attachTunes(state.dialog);
+ if(state.owner)window.BigLWAMusicDiscovery?.attachTunes(state.dialog);
+ else state.dialog?.querySelector('#biglwaLinkedTunes')?.remove();
  const ownerActions=$('#profileMusicOwnerButtons');ownerActions.hidden=!state.owner;
  const list=$('#profileMusicSongList');list.replaceChildren();
  if(!state.tracks.length){
