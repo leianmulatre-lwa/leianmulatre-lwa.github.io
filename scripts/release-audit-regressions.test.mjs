@@ -20,6 +20,9 @@ assert.match(orbit,/actions\.tabIndex=0/,'Orbit action rail is keyboard accessib
 assert.match(orbit,/flex':'0 0 auto'/,'Buttons cannot shrink to zero width');
 assert.match(orbitCss,/overflow-x:auto!important/,'CSS layout agrees with JS');
 assert.match(orbitCss,/flex:0 0 auto!important/,'CSS keeps Orbit actions reachable');
+assert.match(orbit,/data-orbit-tiktok-sync/,'TikTok has an explicit account-scoped Sync now action');
+assert.match(orbit,/await client\.restore\(\)/,'TikTok Sync now refreshes the account instead of restarting OAuth');
+assert.match(tiktok,/lastCollectiveSync\}\}/,'TikTok exposes the last import result as status-only metadata');
 assert.doesNotMatch(tiktok,/data-tt-actions/,'TikTok must not inject duplicate actions into Orbit');
 assert.doesNotMatch(tiktok,/data-tiktok-video-sync-status/,'TikTok status cannot steal button width');
 assert.match(tiktok,/data-orbit-row="tiktok"/,'TikTok displays diagnostics without duplicating controls');
