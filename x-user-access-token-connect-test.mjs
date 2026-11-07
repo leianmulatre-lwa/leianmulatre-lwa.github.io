@@ -95,6 +95,37 @@ try{
  assert.equal(posted.items[0].text,'Example post');
  assert.ok(!JSON.stringify(posted).includes(token));
 
+ const refreshToken='fake-refresh-token-abcdefghijklmnopqrstuvwxyz';
+ globalThis.fetch=async(url,{headers}={})=>{
+  assert.match(url,/^https:\/\/api\.x\.com\/2\/users\/me\?/);
+  assert.equal(headers.Authorization,'Bearer '+token);
+  return Response.json({data:{id:'91823',username:'examplecreator',name:'Example Creator'}});
+ };
+ const renewed=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/token-connect',{
+  method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},
+  body:JSON.stringify({accessToken:token,refreshToken})
+ }),env,signedIn);
+ assert.equal(renewed.status,200);
+ assert.equal((await renewed.json()).refreshable,true);
+ assert.equal(kv.get('new-orbit:x:account:member-one').refreshToken,refreshToken);
+ kv.get('new-orbit:x:account:member-one').expiresAt=Date.now()-1000;
+ let didRefresh=false;
+ globalThis.fetch=async(url,opts={})=>{
+  assert.equal(url,'https://api.x.com/2/oauth2/token');
+  assert.equal(opts.body.get('grant_type'),'refresh_token');
+  assert.equal(opts.body.get('refresh_token'),refreshToken);
+  assert.match(opts.headers.Authorization,/^Basic /);
+  didRefresh=true;
+  return Response.json({access_token:'refreshed-test-token',refresh_token:'second-refresh-token',expires_in:3600});
+ };
+ const refreshed=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/session',{headers:{Origin:origin}}),env,signedIn);
+ const freshBody=await refreshed.json();
+ assert.equal(refreshed.status,200);
+ assert.equal(freshBody.needsReauth,false);
+ assert.ok(!JSON.stringify(freshBody).includes('refreshed-test-token'));
+ assert.equal(kv.get('new-orbit:x:account:member-one').accessToken,'refreshed-test-token');
+ assert.ok(didRefresh);
+
  const disconnected=await handleAdditionalOrbit(new Request('https://api.biglwa.com/x/disconnect',{
   method:'POST',headers:{Origin:origin}}),env,signedIn);
  assert.equal(disconnected.status,200);
