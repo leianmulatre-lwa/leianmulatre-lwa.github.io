@@ -60,3 +60,12 @@ test('API pilot issues display specific guidance instead of generic model unavai
   assert.equal(scope.explainModelFailure(null),'');
   assert.equal(scope.explainModelFailure(new Error('unknown')),'');
 });
+
+test('timed-out live requests are cancelled, not left running after fallback',()=>{
+  const client=readFileSync(new URL('../lwazi-client.js',import.meta.url),'utf8');
+  assert.match(source,/hookController\.abort\(\)/);
+  assert.match(source,/signal:hookController\.signal/);
+  assert.match(client,/const upstreamSignal=options\?\.signal/);
+  assert.match(client,/upstreamSignal\?\.addEventListener\?\.\('abort',abortFromCaller/);
+  assert.match(client,/options\?\.mode==='deep'\?32000:19000/);
+});
