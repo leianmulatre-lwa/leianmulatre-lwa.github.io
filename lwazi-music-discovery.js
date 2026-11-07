@@ -79,9 +79,13 @@ async function preview(form){
  const url=validateUrl(raw);
  if(!url){status.textContent='Use a public soundcloud.com artist/track link. No external links or private tokens.';return}
  const submit=form.querySelector('[type=submit]');submit.disabled=true;
- status.textContent='Checking public track details…';
+ status.textContent='Preparing SoundCloud player…';
  try{
-  const track=await resolveTrack(url);
+  // oEmbed may be inaccessible to some browsers due to cross-origin restrictions.
+  // Player/bookmarking only need the public track URL supplied by the user.
+  let track,verified=false;
+  try{track=await resolveTrack(url);verified=true}
+  catch{track={url,title:url.split('/').filter(Boolean).pop().replace(/-/g,' '),artist:'',art:''}}
   const frame=document.createElement('iframe');
   frame.title='SoundCloud player: '+(track.title||'Public track');
   frame.src='https://w.soundcloud.com/player/?url='+encodeURIComponent(url)+'&color=%238c4054&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false';
@@ -93,7 +97,7 @@ async function preview(form){
   save.addEventListener('click',()=>{try{const saved=saveTrack(track);status.textContent=saved.message;}catch(e){status.textContent=e.message}});
   const external=document.createElement('a');external.href=url;external.target='_blank';external.rel='noopener noreferrer';external.textContent='Open original on SoundCloud ↗';
   box.append(label,frame,save,external);box.hidden=false;
-  status.textContent='Public SoundCloud player ready. Playback stays with SoundCloud.';
+  status.textContent=verified?'SoundCloud details verified. Playback stays with SoundCloud.':'SoundCloud metadata could not be verified. You can try this official embed and save the link, but playback or availability may depend on its owner.';
  }catch(error){box.replaceChildren();box.hidden=true;status.textContent=error.message||'SoundCloud preview unavailable.'}
  finally{submit.disabled=false}
 }
