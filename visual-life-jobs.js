@@ -10,7 +10,7 @@ const MAX_JOBS=60;
 const $=(s,r=document)=>r.querySelector(s);
 const clean=v=>String(v==null?'':v).trim().slice(0,160);
 const esc=v=>clean(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null;
+let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null,pendingOpen=false;
 function externalUrl(raw){
  try{
   const url=new URL(raw);
@@ -126,8 +126,22 @@ function setJobs(rows){
  return {accepted:jobs.length,status:sourceStatus};
 }
 function install(){
+ const project=document.querySelector('#moduleWorkspace[data-module-key="projects"]');
+ const heading=project&&project.querySelector('.module-heading');
+ if(heading&&!heading.querySelector('.visual-life-entry')){
+  const link=document.createElement('button');link.type='button';link.className='visual-life-entry';
+  link.textContent='Visual-Life · Jobs ↗';link.title='Find work through Visual-Life in L’wazi Workshop';
+  link.addEventListener('click',()=>{
+   pendingOpen=true;
+   if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('tools');
+   else window.location.hash='tools';
+   install();
+  });
+  heading.appendChild(link);
+ }
  const root=document.querySelector('#craftSuite');if(!root)return;
  ensureCard(root);
+ if(pendingOpen){pendingOpen=false;open(root)}
  if(root.__visualLifeBound)return;
  root.__visualLifeBound=true;
  root.addEventListener('click',event=>{
