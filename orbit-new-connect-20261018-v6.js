@@ -207,16 +207,19 @@
    if(uri.protocol!=='https:'||!valid.includes(uri.hostname))throw Error('Provider returned an invalid authorization destination.');
    window.location.assign(uri.href);
  }
- async function connectWithToken(accessToken){
+ async function connectWithToken(accessToken,refreshToken=''){
    const credential=String(accessToken||'').trim();
+   const refresh=String(refreshToken||'').trim();
    if(credential.length<20||credential.length>4096||/\s/.test(credential))
      throw Error('Paste a valid OAuth 2.0 User Access Token from your X app.');
+   if(refresh&&(refresh.length<20||refresh.length>4096||/\s/.test(refresh)))
+     throw Error('Refresh token format is invalid.');
    const user=await token();
    // Send straight to the Worker; never write credentials to localStorage,
    // sessionStorage, Firestore or an HTML link.
-   const result=await query('x','token-connect','POST',user.idToken,{accessToken:credential});
+   const result=await query('x','token-connect','POST',user.idToken,{accessToken:credential,refreshToken:refresh});
    await load();
-   return result.profile;
+   return result;
  }
  async function selectAccount(provider,sourceUserId){
    if(!providerIds.includes(provider)||typeof sourceUserId!=='string'||sourceUserId.length>120)
