@@ -351,15 +351,18 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
    const provided=typeof payload?.accessToken==='string'?payload.accessToken.trim():'';
    if(provided.length<20||provided.length>4096||/\s/.test(provided))
     oaError('Paste an X OAuth 2.0 user access token (without Bearer or spaces).',422);
+   const refreshToken=payload?.refreshToken==null?'':typeof payload.refreshToken==='string'?payload.refreshToken.trim():null;
+   if(refreshToken===null||(refreshToken&& (refreshToken.length<20||refreshToken.length>4096||/\s/.test(refreshToken))))
+    oaError('Refresh token format is invalid.',422);
    // /users/me requires user context; an app-only Bearer token will be rejected.
    const profile=await oaProfile('x',provided);
-   const now=Date.now();
+   const now=Date.now(),refreshable=Boolean(refreshToken);
    await env.OAUTH_SESSIONS.put(accountKey,JSON.stringify({
     profile,scopes:'users.read',manualUserToken:true,accessToken:provided,
-    refreshToken:'',expiresAt:now+3600000,createdAt:now
-   }),{expirationTtl:3600});
+    refreshToken,expiresAt:now+3600000,createdAt:now
+   }),{expirationTtl:refreshable?7776000:3600});
    return oaReply({ok:true,provider:'x',connected:true,profile,
-    temporary:true,expiresInSeconds:3600},200,request);
+    temporary:!refreshable,refreshable,expiresInSeconds:3600},200,request);
   }
   if(action==='session'){
    const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
