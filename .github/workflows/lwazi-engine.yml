@@ -8,6 +8,12 @@ on:
       - 'lwazi/**'
       - 'lwazi-client.js'
       - 'user-search-results.js'
+      - 'lwazi-music-discovery.js'
+      - 'lwazi-music-discovery.css'
+      - 'visual-life-jobs.js'
+      - 'visual-life-jobs.css'
+      - 'profile-music.js'
+      - 'tools-craft.js'
       - 'index.html'
       - 'wrangler-lwazi.toml'
       - '.github/workflows/lwazi-engine.yml'
@@ -16,6 +22,12 @@ on:
       - 'lwazi/**'
       - 'lwazi-client.js'
       - 'user-search-results.js'
+      - 'lwazi-music-discovery.js'
+      - 'lwazi-music-discovery.css'
+      - 'visual-life-jobs.js'
+      - 'visual-life-jobs.css'
+      - 'profile-music.js'
+      - 'tools-craft.js'
       - 'index.html'
       - 'wrangler-lwazi.toml'
       - '.github/workflows/lwazi-engine.yml'
@@ -40,7 +52,11 @@ jobs:
           node --check functions/api/lwazi.js
           node --check user-search-results.js
           node --check lwazi-search-ui.js
+          node --check lwazi-music-discovery.js
+          node --check visual-life-jobs.js
+          node --check profile-music.js
+          node --check tools-craft.js
       - name: Engine unit and mocked integration tests
-        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs
+        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs
       - name: Preserve existing Studio search contracts
         run: node lwazi-search-regression-test.mjs
