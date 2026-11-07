@@ -30,7 +30,7 @@ This is an active, historically layered codebase. Some older names are retained 
 5. For the API Worker, stage versions first and inspect their secrets, `OAUTH_SESSIONS` KV and `WALLPAPER_BUCKET` R2 bindings **before** promoting one to production. Never use an unreviewed root `wrangler deploy`.
 6. Do not infer a successful social connection from an OAuth health endpoint; verify a signed-in, account-scoped connection and content import separately.
 
-**Deployment:** `main` publishes to Cloudflare Pages through GitHub Actions. The `biglwa-instagram-api` Worker and `api.biglwa.com` have a separate Cloudflare deployment history; follow `docs/runbooks/` for recovery.
+**Deployment:** `biglwa.com` is served via **GitHub Pages** (the Cloudflare DNS zone points its apex to GitHub Pages IPs and `www` to `leianmulatre-lwa.github.io`). The separate **Cloudflare Pages staging** project `biglwa-web-staging.pages.dev` builds `main` via GitHub Actions. A successful Cloudflare staging build does **not** prove the public GitHub Pages hostname has published the same commit; verify live asset freshness separately. The `biglwa-instagram-api` Worker and `api.biglwa.com` have their own deployment history; see `docs/runbooks/`.
 
 ## Current review and maintenance
 
