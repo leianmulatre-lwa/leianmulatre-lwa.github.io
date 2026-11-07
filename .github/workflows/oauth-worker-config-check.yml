@@ -1,0 +1,30 @@
+name: OAuth Worker recovery preflight (no deploy)
+
+on:
+  pull_request:
+    paths:
+      - 'wrangler.toml'
+      - 'cloudflare-worker-instagram.js'
+      - 'scripts/oauth-worker-config.test.mjs'
+      - 'docs/runbooks/cloudflare-oauth-worker-recovery.md'
+      - '.github/workflows/oauth-worker-config-check.yml'
+  push:
+    branches:
+      - 'fix/oauth-worker-recovery-preflight-20261106'
+
+permissions:
+  contents: read
+
+jobs:
+  offline-oauth-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Worker script syntax without secrets or Cloudflare access
+        run: node --check cloudflare-worker-instagram.js
+      - name: Validate OAuth Worker config and required bindings without deploying
+        run: node --test scripts/oauth-worker-config.test.mjs
