@@ -1355,7 +1355,9 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        if(!credential){say('Paste your X OAuth 2.0 user access token first.');return}
        xTokenSave.disabled=true;
        try{
-         const result=await window.BigLWAOrbitOAuth?.connectWithToken?.(credential,refreshValue);
+         const connectXToken=window.BigLWAOrbitOAuth?.connectWithToken;
+         if(typeof connectXToken!=='function')throw Error('Secure X token connection is not loaded yet. Reload BIG LWA.');
+         const result=await connectXToken(credential,refreshValue);
          if(input)input.value='';
          if(refresh)refresh.value='';
          dialog?.close?.();
