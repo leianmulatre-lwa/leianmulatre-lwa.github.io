@@ -9,11 +9,11 @@ test('general conversation skips citation-source preparation',()=>{
  assert.match(source,/var answerPromise=immediate\?Promise\.resolve\(immediate\):sourcePreparation\.then/);
  assert.doesNotMatch(source,/var answerPromise=immediate\?Promise\.resolve\(immediate\):Promise\.all/);
 });
-test('research still gathers bounded sources',()=>{
- assert.match(source,/var needsResearchSources=/);
+test('explicit research requests gather bounded sources',()=>{
+ assert.match(source,/var needsResearchSources=wantsResearchSources\(clean\)/);
  assert.match(source,/libraryPromise,Promise\.race\(\[wikiDataPromise/);
  assert.match(source,/setTimeout\(function\(\)\{resolve\(\[\]\)\},1200\)/);
 });
 test('entrypoint loads new version of optimized search code',()=>{
- assert.match(index,/user-search-results\.js\?v=20261107-shorthand-fix-v3/);
+ assert.match(index,/user-search-results\.js\?v=20261107-intent-routing-v4/);
 });

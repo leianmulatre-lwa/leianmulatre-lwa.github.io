@@ -119,6 +119,15 @@
 
     // Bounded, first-party conversational responses. Complex questions remain with the model.
     // These do not claim consciousness, racial experience, or verified outside knowledge.
+    // Evidence gathering is a choice about the requested TASK, not the grammar
+    // of the question. "why", "how", "explain", and subject nouns aren't commands.
+    function wantsResearchSources(question){
+      var q=String(question||'').toLowerCase().trim();
+      return /\b(?:citations?|cite|bibliograph(?:y|ies)|peer[- ]reviewed|fact[- ]check(?:ing)?|verify|verification)\b/.test(q)||
+        /\b(?:find|show|give|provide|list|link|look up|pull|include|use)\b.{0,70}\b(?:sources?|references?|studies|papers?|research|evidence)\b/.test(q)||
+        /\b(?:research|investigate|analy[sz]e)\s+(?:the|this|these|those|my|our|a|an|into|on|about|how|why|whether|what)\b/.test(q)||
+        /^(?:what|which|where)\b.{0,45}\b(?:sources?|citations?|references?|evidence)\b/.test(q);
+    }
     var lwaziConversationCount=0;
     function conversationIntent(q){
       var clean=String(q||'').toLowerCase().trim().replace(/’/g,"'").replace(/[?!.;,]+$/g,'').replace(/\s+/g,' ');
@@ -173,7 +182,7 @@
       if(hooks.length){
         try{
           // Keep a cold source-library download from blocking the answer.
-          var libraryForHook=await Promise.race([sourceLibraryPromise,new Promise(function(resolve){setTimeout(function(){resolve(null)},120)})]);
+          var libraryForHook=window.__biglwaLwaziDeepThinking?await Promise.race([sourceLibraryPromise,new Promise(function(resolve){setTimeout(function(){resolve(null)},120)})]):null;
           var hookController=new AbortController();
           var hookStop,hookTimeout=new Promise(function(_,reject){hookStop=setTimeout(function(){hookController.abort();reject(Error('Lwazi provider timed out'))},window.__biglwaLwaziDeepThinking?33000:20000)});
           var external;
@@ -212,7 +221,7 @@
     async function openPanel(raw){
       var q=String(raw==null?'':raw).trim().replace(/^@/,'').replace(/^ask lwazi\s*/i,'').trim();if(!q)return;
       var route=routeCommand(q);if(route){goRoute(route);return}
-      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();panel.innerHTML='<article class="bl-lwazi-answer" role="status" aria-live="polite"><div class="bl-lwazi-answer-body">Finding grounded sources…</div></article><div class="bl-search-head"><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
+      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();panel.innerHTML='<article class="bl-lwazi-answer" role="status" aria-live="polite"><div class="bl-lwazi-answer-body">L’wazi is thinking…</div></article><div class="bl-search-head"><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
       // One delegated handler for the canonical categories and their extended searches.
       var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['widgets','Widgets']];
@@ -269,11 +278,12 @@
        var wikiPromise=wikiDataPromise.then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
        // Wikipedia results are fetched once for cards, not twice to block the answer.
       var libraryPromise=isSocialGreeting?Promise.resolve([]):sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
-       var needsResearchSources=/\b(?:research|sources?|citations?|stud(?:y|ies)|history|historical|politic\w*|govern\w*|election\w*|law|legal|court|policy|evidence|compare|critique|analysis|analy[sz]e|explain|why|how does|how did)\b/i.test(clean);
-       // Fast conversation begins inference immediately. Only research questions wait for citation candidates.
+       var needsResearchSources=wantsResearchSources(clean);
+       // Normal English questions go straight to the model. Explicit evidence requests
+       // may gather citation candidates first; discovery cards load independently below.
        var sourcePreparation=needsResearchSources?Promise.all([libraryPromise,Promise.race([wikiDataPromise,new Promise(function(resolve){setTimeout(function(){resolve([])},1200)})])]):Promise.resolve([[],[]]);
        var answerPromise=immediate?Promise.resolve(immediate):sourcePreparation.then(function(parts){var sources=parts[0].map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});parts[1].slice(0,3).forEach(function(w){sources.push({title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))})});return askLwazi(clean,sources,function(partial){if(panel!==current||!current.isConnected)return;var answerBox=current.querySelector('.bl-lwazi-answer-body');if(answerBox)renderAnswer(answerBox,partial)})});
-       libraryPromise.then(function(matches){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(!immediate&&matches.length&&box)box.textContent='Found '+matches.length+' relevant sources: '+matches.slice(0,3).map(function(x){return x.title}).join('; ')+'. Preparing a fuller answer…'});
+       // Never replace a response already streaming with a late source-library status.
 
       Promise.all([userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise]).then(function(parts){
         if(panel!==current||!current.isConnected)return;

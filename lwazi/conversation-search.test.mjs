@@ -5,7 +5,7 @@ import test from 'node:test';
 import {SYSTEM_POLICY} from './policy.mjs';
 
 const source=readFileSync(new URL('../user-search-results.js',import.meta.url),'utf8');
-const start=source.indexOf('    var lwaziConversationCount=0;');
+const start=source.indexOf('    function wantsResearchSources(question){');
 const end=source.indexOf('    async function askLwazi(',start);
 assert.ok(start>0&&end>start,'Found bounded local conversation router');
 const scope={};
@@ -68,4 +68,19 @@ test('timed-out live requests are cancelled, not left running after fallback',()
   assert.match(client,/const upstreamSignal=options\?\.signal/);
   assert.match(client,/upstreamSignal\?\.addEventListener\?\.\('abort',abortFromCaller/);
   assert.match(client,/options\?\.mode==='deep'\?32000:19000/);
+});
+
+
+test('English question words do not force sourcing or a slower model',()=>{
+  for(const q of ['Why did this happen?', 'Explain it to me', 'How does it work?', 'Who made this?', 'What is a rainbow?', 'What do you think about politics?', 'What is research?']){
+    assert.equal(scope.wantsResearchSources(q),false,q);
+  }
+  for(const q of ['Cite your evidence', 'Give me sources for this', 'Find studies about this', 'Research the impact of housing policy', 'What sources support this?']){
+    assert.equal(scope.wantsResearchSources(q),true,q);
+  }
+});
+test('search no longer overwrites a streamed response with source status',()=>{
+  assert.doesNotMatch(source,/box\.textContent='Found '\+matches\.length/);
+  assert.match(source,/L’wazi is thinking…/);
+  assert.match(source,/var needsResearchSources=wantsResearchSources\(clean\)/);
 });
