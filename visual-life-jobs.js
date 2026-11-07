@@ -125,5 +125,19 @@ function setJobs(rows){
  if(panel&&!panel.hidden)render(panel);
  return {accepted:jobs.length,status:sourceStatus};
 }
+function install(){
+ const root=document.querySelector('#craftSuite');if(!root)return;
+ ensureCard(root);
+ if(root.__visualLifeBound)return;
+ root.__visualLifeBound=true;
+ root.addEventListener('click',event=>{
+  const button=event.target.closest('[data-visual-life-open]');
+  if(!button||!root.contains(button))return;
+  event.preventDefault();open(root);
+ });
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
+else install();
+new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true});
 window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,loadFeed,getStatus:()=>sourceStatus,version:'1.1.0'};
 })();
