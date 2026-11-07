@@ -1255,11 +1255,15 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        set(actions,{'grid-area':'actions','display':'flex','flex-wrap':'nowrap','align-items':'center',
          'gap':'4px','width':'100%','height':'34px','max-height':'34px',
          'min-width':'0','box-sizing':'border-box','padding':'0 33px 0 0',
-         'margin':'0','position':'static','grid-template-columns':'none'});
+         'margin':'0','position':'static','grid-template-columns':'none',
+         'overflow-x':'auto','overflow-y':'hidden','scrollbar-width':'thin',
+         'overscroll-behavior-x':'contain'});
+       if(actions){actions.tabIndex=0;actions.setAttribute('role','group');
+         actions.setAttribute('aria-label','Scrollable connection actions for '+(card.dataset.orbitRow||'this provider'))}
        for(const button of actions?.querySelectorAll(':scope > button')||[]){
          set(button,{'height':'30px','min-height':'30px','max-height':'30px',
-           'min-width':'0','max-width':'100%','width':'auto','padding':'4px 6px',
-           'margin':'0','flex':'0 1 auto','font-size':'9px','line-height':'1.15',
+           'min-width':'max-content','max-width':'none','width':'max-content','padding':'4px 6px',
+           'margin':'0','flex':'0 0 auto','font-size':'9px','line-height':'1.15',
            'white-space':'nowrap','overflow':'hidden','text-overflow':'ellipsis',
            'border-radius':'7px','box-sizing':'border-box'});
        }
