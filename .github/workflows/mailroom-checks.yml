@@ -1,0 +1,26 @@
+name: Developer Mailroom checks
+on:
+  pull_request:
+    paths:
+      - 'developer/mailroom/**'
+      - 'firestore.rules'
+      - '.github/workflows/mailroom-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mailroom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check developer/mailroom/templates.js
+          node --check developer/mailroom/app.js
+          node --check developer/mailroom/mailroom.test.mjs
+      - name: Mailroom regression and security tests
+        run: node --test developer/mailroom/mailroom.test.mjs

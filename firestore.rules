@@ -11,6 +11,15 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/moderationAdmins/$(request.auth.uid)).data.active != false;
     }
 
+    // A separate developer role: moderation staff never inherit Mailroom access.
+    // Seed developerAdmins/{uid} with {active: true} using trusted Firebase Admin tooling.
+    // Clients cannot grant themselves this role.
+    function isDeveloper() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/developerAdmins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/developerAdmins/$(request.auth.uid)).data.get('active', false) == true;
+    }
+
     function isOwner(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
@@ -267,6 +276,48 @@ service cloud.firestore {
         );
       allow update: if false;
       allow delete: if isOwner(ownerUid);
+    }
+
+    // Developer-console credentials are never stored in Firestore or browser code.
+    // Role docs are provisioned only with Firebase Admin SDK/console.
+    match /developerAdmins/{uid} {
+      allow get: if isOwner(uid);
+      allow list, create, update, delete: if false;
+    }
+
+    function validDeveloperMailDraft() {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+          'subject', 'preheader', 'greeting', 'body', 'buttonText',
+          'closing', 'signature', 'revision', 'updatedBy', 'updatedAt'
+        ])
+        && d.keys().hasOnly([
+          'subject', 'preheader', 'greeting', 'body', 'buttonText',
+          'closing', 'signature', 'revision', 'updatedBy', 'updatedAt'
+        ])
+        && d.subject is string && d.subject.size() > 0 && d.subject.size() <= 160
+        && d.preheader is string && d.preheader.size() > 0 && d.preheader.size() <= 220
+        && d.greeting is string && d.greeting.size() > 0 && d.greeting.size() <= 160
+        && d.body is string && d.body.size() > 0 && d.body.size() <= 8000
+        && d.buttonText is string && d.buttonText.size() > 0 && d.buttonText.size() <= 100
+        && d.closing is string && d.closing.size() > 0 && d.closing.size() <= 80
+        && d.signature is string && d.signature.size() > 0 && d.signature.size() <= 180
+        && d.revision is int && d.revision > 0
+        && d.updatedBy == request.auth.uid
+        && d.updatedAt == request.time;
+    }
+
+    match /developerMailTemplates/{templateId} {
+      allow get: if isDeveloper() && templateId in ['verify', 'reset', 'email-change', 'mfa'];
+      allow list: if false;
+      allow create: if isDeveloper()
+        && templateId in ['verify', 'reset', 'email-change', 'mfa']
+        && validDeveloperMailDraft() && request.resource.data.revision == 1;
+      allow update: if isDeveloper()
+        && templateId in ['verify', 'reset', 'email-change', 'mfa']
+        && validDeveloperMailDraft()
+        && request.resource.data.revision == resource.data.revision + 1;
+      allow delete: if false;
     }
 
     // Deny everything else by default.
