@@ -60,8 +60,9 @@ assert.match(search,/category==='songs'/,'SoundCloud must appear when music cate
 assert.match(musicCss,/repeating-radial-gradient/,'Vinyl is CSS, not unrelated copyrighted artwork');
 assert.match(musicCss,/bl-search-music-vinyl/);
 assert.match(tunes,/BigLWAMusicDiscovery\?\.attachTunes\(state\.dialog\)/);
-assert.match(craft,/BigLWAVisualLife\?\.ensureCard\(root\)/);
-assert.match(craft,/data-visual-life-open/);
+assert.match(jobsCode,/new MutationObserver\(install\)/,'Workshop integration works without patching ArtCraft engine');
+assert.match(jobsCode,/data-visual-life-open/);
+assert.doesNotMatch(craft,/BigLWAVisualLife/,'No changes to existing Workshop loader');
 assert.match(jobsCss,/craft-visual-life/);
 console.log('PASS: consented SoundCloud search and embedding, linked Tunes, vinyl design, Visual-Life adapter, original-source links');
 
