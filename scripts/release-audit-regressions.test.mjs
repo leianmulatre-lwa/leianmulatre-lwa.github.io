@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,readdirSync} from 'node:fs';
 import {Script} from 'node:vm';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const loading=read('studio-loading-dots-20261021.js');
@@ -32,5 +32,10 @@ assert.ok(!existsSync(new URL('../tweepy',import.meta.url)),'No top-level Tweepy
 assert.ok(existsSync(new URL('../third_party/tweepy/tweepy/__init__.py',import.meta.url)),'Vendored Tweepy preserved');
 assert.ok(existsSync(new URL('../third_party/tweepy/tests/test_client.py',import.meta.url)),'Vendored Tweepy tests preserved');
 assert.ok(existsSync(new URL('../third_party/tweepy/LICENSE',import.meta.url)),'Upstream license preserved');
+const vendorCassettes=readdirSync(new URL('../third_party/tweepy/cassettes/',import.meta.url));
+const rootFixtures=readdirSync(new URL('../',import.meta.url)).filter(x=>/^test[a-z0-9_-]+\.(json|ya?ml)$/i.test(x));
+assert.equal(rootFixtures.length,0,'Recorded Tweepy HTTP fixtures cannot occupy the BIG LWA website root');
+assert.equal(vendorCassettes.length,140,'Every upstream Tweepy HTTP cassette must be preserved after migration');
+
 assert.match(read('lwazi/policy.mjs'),/Privacy is the bare minimum|Privacy is the bare minimum, never a perk|Privacy should be the bare minimum/i,'Lwazi retains privacy ethic');
 console.log('PASS release audit: loader latching, Orbit actions, TikTok single-owner UI, vendor source and Lwazi policy');
