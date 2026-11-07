@@ -1,0 +1,34 @@
+name: X Orbit manual user-token safety (no deployment)
+on:
+  pull_request:
+    paths:
+      - 'new-orbit-oauth.js'
+      - 'cloudflare-worker-instagram.js'
+      - 'orbit-new-connect-20261018-v6.js'
+      - 'module-pages.js'
+      - 'x-user-access-token-connect-test.mjs'
+      - '.github/workflows/x-orbit-user-token-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-user-token:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax checks
+        run: |
+          node --check cloudflare-worker-instagram.js
+          node --check module-pages.js
+          node --check orbit-new-connect-20261018-v6.js
+          node --check new-orbit-oauth.js
+      - name: Verify account-bound X OAuth2 token handling
+        run: node x-user-access-token-connect-test.mjs
+      - name: Preserve existing OAuth2 PKCE and Orbit flows
+        run: |
+          node x-oauth-pkce-end-to-end-test.mjs
+          node orbit-oauth-repair-test.mjs
