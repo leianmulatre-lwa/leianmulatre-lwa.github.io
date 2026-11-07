@@ -70,3 +70,6 @@ assert.match(jobsCode,/status!=='published'/,'Never claim jobs are live before f
 assert.match(jobsCode,/96\*3600\*1000/,'Job records expire after 96h');
 assert.match(read('scripts/visual_life_feed.py'),/from jobspy import scrape_jobs/,'Manual feed reuses the installed vendored Werk-Main scraper');
 assert.match(read('scripts/visual_life_feed.py'),/raise ValueError\("No valid jobs returned/,'Never publish an empty scraped feed');
+
+assert.match(music,/let track,verified=false/,'SoundCloud accepts public track links without falsely claiming metadata was verified');
+assert.match(music,/metadata could not be verified/,'UI states when SoundCloud metadata is unavailable');
