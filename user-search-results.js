@@ -59,6 +59,9 @@
     async function publicUserPosts(users){if(!users.length||!window.BigLWASqwibs||typeof window.BigLWASqwibs.publicSqwibs!=='function')return [];var visible=users.filter(function(u){return !/private/i.test(String(u.accountVisibility||u.visibility||u.privacy||''))});if(!visible.length)return [];var posts=await window.BigLWASqwibs.publicSqwibs(90);var cards=[];posts.forEach(function(p){if(p.visibility!=='public'||!p.text)return;var u=visible.find(function(u){return (u.uid&&p.uid&&String(u.uid)===String(p.uid))||(p.username&&String(p.username).toLowerCase()===String(u.username||'').toLowerCase())});if(u&&cards.length<8)cards.push(publicSqwibCard(p,u))});return cards}
     function wikiCard(w,image,type){return '<article class="bl-search-card bl-media-card">'+(image?'<img class="bl-search-card-media" src="'+esc(image)+'" alt="'+esc(w.title)+'" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">'+esc(type==='movie'?'Cinema':'Research')+'</div>')+'<div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(type==='movie'?'Film, history & culture':'Public figure, politics & history')+'</span><h3>'+esc(w.title)+'</h3><p>'+esc(plainSnippet(w.snippet))+'</p>'+'<a class="bl-search-go" href="https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))+'" target="_blank" rel="noopener noreferrer">Open free article &#8594;</a>'+internalButton(type==='movie'?'Open in Archive':'Explore in Lwazi','archive')+'</div></article>'}
     function simpleCard(type,title,meta,body,image,route){return '<article class="bl-search-card bl-media-card">'+(image?'<img class="bl-search-card-media" src="'+esc(image)+'" alt="'+esc(title)+'" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">'+esc(type)+'</div>')+'<div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(type)+'</span><h3>'+esc(title)+'</h3>'+ (meta?'<p class="bl-search-muted">'+esc(meta)+'</p>':'')+(body?'<p>'+esc(body.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim())+'</p>':'')+internalButton('Open in '+route.replace(/^./,function(c){return c.toUpperCase()}),route)+'</div></article>'}
+    function lwaziSiteCard(title,description,url){
+      return '<article class="bl-search-card bl-source-card bl-lwazi-site-card"><div class="bl-search-card-body"><span class="bl-search-kicker">BIG LWA · Important pages</span><h3>'+esc(title)+'</h3><p>'+esc(description)+'</p><a class="bl-search-go bl-search-primary-action" href="'+esc(url)+'">Read more &#8599;</a></div></article>';
+    }
     function sectionId(title){return 'bl-section-'+String(title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
     // Use the same symbols as the Studio/Skeleton Key, not unrelated emoji or initials.
     function sectionSymbol(title){
@@ -114,10 +117,40 @@
     function section(title,cards,category){if(!cards||!cards.length)return '';var ui=window.__biglwaLwaziSearchUi;var markup=cards.map(function(card,i){return ui&&ui.decorateCard?ui.decorateCard(card,i,title):card});return '<section class="bl-search-section" data-bl-category="'+esc(category||'research')+'" id="'+sectionId(title)+'"><h2><span class="bl-search-section-icon" aria-hidden="true">'+sectionSymbol(title)+'</span>'+esc(title)+'</h2><div class="bl-search-grid">'+markup.join('')+'</div></section>'}
     function renderAnswer(target,value){if(!target)return;var html=esc(String(value==null?'':typeof value==='object'?(value.answer||value.text||'No answer available.'):value));html=html.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[\s(])\*([^*\n]+)\*(?=\s|[.,;!?)]|$)/g,'$1<em>$2</em>');html=html.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');target.innerHTML='<p>'+html+'</p>'}
 
+    // Bounded, first-party conversational responses. Complex questions remain with the model.
+    // These do not claim consciousness, racial experience, or verified outside knowledge.
+    var lwaziConversationCount=0;
+    function conversationIntent(q){
+      var clean=String(q||'').toLowerCase().trim().replace(/’/g,"'").replace(/[?!.;,]+$/g,'').replace(/\s+/g,' ');
+      if(/^(?:hi|hello|hey|hey there|yo|good morning|good afternoon|good evening|what's up|wassup)$/.test(clean)){
+        var greetings=['Hey. I’m L’wazi. What’s on your mind?','Hey, welcome in. What are we thinking about today?'];
+        return {kind:'greeting',reply:greetings[(lwaziConversationCount++)%greetings.length]};
+      }
+      if(/^(?:how are you|how are you doing|how's it going|how do you feel|you good)$/.test(clean)){
+        var checkins=['Running on code and curiosity. How are you doing?','Functioning, questioning, and resisting the urge to over-explain. You good?'];
+        return {kind:'greeting',reply:checkins[(lwaziConversationCount++)%checkins.length]};
+      }
+      if(/^(?:who (?:made|created|built|designed) (?:you|l'?wazi|this|big ?lwa|this site|this website|this app|this platform)|who is your (?:creator|founder)|who built big ?lwa)$/.test(clean)){
+        return {kind:'identity',reply:'If you mean BIG LWA and me: Leian built this world. L’wazi is a small piece of Leian’s politicized body, translated into software. If you meant a song, image, or something else, tell me which one and I’ll follow the credits.'};
+      }
+      if(/^(?:who are you|what are you|what is l'?wazi|tell me about yourself|tell me about l'?wazi)$/.test(clean)){
+        var identities=[
+          'I’m L’wazi: a bit of code, a lot of questions, and an intentionally political point of view. Leian made me for BIG LWA. I’m not a person hiding in the machine, but I can help you think, find, and make things.',
+          'A caricature of a Black man’s conscience inside a machine? That’s one way to describe the character. More precisely, I’m L’wazi—Leian’s authored AI voice for BIG LWA. Curious, critical, and definitely software.'
+        ];
+        return {kind:'identity',reply:identities[(lwaziConversationCount++)%identities.length]};
+      }
+      if(/\bonika\b.*\bburgers?\b/.test(clean)){
+        return {kind:'popculture',reply:'Onika = she. Burgers = ate. I see you brought the internet with you.'};
+      }
+      return null;
+    }
+
     var browserSessionPromise=null;
-    // Deterministic commands may be instant. Conversation and identity must
-    // come from L’wazi’s actual engine — never from scripted racialized slang.
+    // Simple identity, social, and mathematical prompts work even without inference.
     function fastLwaziResponse(q){
+      var social=conversationIntent(q);
+      if(social)return social.reply;
       if(/^(?:what is\s+)?2\s*\+\s*2\s*\??$/i.test(String(q||'').trim()))return '4';
       return null;
     }
@@ -148,7 +181,7 @@
         var lm=(window.LanguageModel)||(window.ai&&window.ai.languageModel);
         if(lm&&typeof lm.create==='function'){
           var policyLibrary=await sourceLibraryPromise;var charter=policyLibrary&&policyLibrary.critical_reasoning;
-          var session=await (browserSessionPromise||(browserSessionPromise=lm.create({systemPrompt:'You are L’wazi, a source-grounded, Black-centered and community-accountable research assistant in BIG LWA. Answer directly and humanely. Favor evidence over agreement. Apply the individual, social and political body lenses when useful, protect privacy and never invent sources. Write with warmth and natural cultural fluency, not forced slang.'+(charter?'\nUse this research method: '+JSON.stringify({three_bodies:charter.three_bodies,argument_rules:charter.argument_rules}):'')}).catch(function(error){browserSessionPromise=null;throw error})));
+          var session=await (browserSessionPromise||(browserSessionPromise=lm.create({systemPrompt:'You are L’wazi, an AI assistant authored by Leian inside BIG LWA, with a distinct, grounded voice. You are not Leian or a person and have no personal lived racial experience. Be a source-grounded, Black-centered and community-accountable research assistant. Answer directly and humanely. Favor evidence over agreement. Apply the individual, social and political body lenses when useful, protect privacy and never invent sources. Write with warmth, wit and natural cultural fluency, not forced slang. Respond to casual conversation as conversation; understand pop-culture references when recognizable. When asked who made you or this site, credit Leian and point to BIG LWA important pages. Do not force unrelated book, film or music search results.'+(charter?'\nUse this research method: '+JSON.stringify({three_bodies:charter.three_bodies,argument_rules:charter.argument_rules}):'')}).catch(function(error){browserSessionPromise=null;throw error})));
           var answer=await Promise.race([session.prompt(q+'\n\nDiscovery references (not verified full text):\n'+sources.map(function(s){return s.title+': '+s.snippet+(s.url?' | '+s.url:'')}).join('\n')),new Promise(function(_,reject){setTimeout(function(){reject(Error('Browser model timed out'))},15000)})]);
           if(answer)return String(answer);
         }
@@ -171,7 +204,9 @@
         b.innerHTML='<span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol(tab[1])+'</span>'+tab[1];
         extraNav.appendChild(b);
       });
+      var activeCategory='all';
       function activateCategory(category,fromClick){
+        activeCategory=category;
         if(panel!==current)return;
         var tab=extraNav.querySelector('[data-bl-match="'+category+'"]');
         extraNav.querySelectorAll('button[data-bl-match]').forEach(function(b){
@@ -199,12 +234,14 @@
         var b=event.target.closest('button[data-bl-match]');
         if(b&&extraNav.contains(b))activateCategory(b.dataset.blMatch,true);
       });
+      activateCategory('all',false);
 
 
       if(/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
       var lc=clean.toLowerCase();
-      var isSocialGreeting=/^(?:hi|hello|hey|good morning|good evening|good night|how are you(?: doing)?|what(?:’|')?s up|wassup)[\s.!?]*$/i.test(clean);
-      var immediate=fastLwaziResponse(clean);
+      var conversation=conversationIntent(clean);
+      var isSocialGreeting=!!(conversation&&(conversation.kind==='greeting'||conversation.kind==='identity'));
+      var immediate=conversation?conversation.reply:fastLwaziResponse(clean);
       if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)instantBox.textContent=immediate}
       var userPromise=(isSocialGreeting?Promise.resolve([]):searchUsers(lc)).catch(function(){return []});
       var postPromise=userPromise.then(publicUserPosts).catch(function(){return []});
@@ -220,12 +257,15 @@
       Promise.all([userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise]).then(function(parts){
         if(panel!==current||!current.isConnected)return;
          var wikiCards=parts[2],politics=wikiCards.filter(function(x){return /politic|electoral|vote|government|president|law|court|parliament/i.test(x)}),films=wikiCards.filter(function(x){return /cinema|film|movie|video|episode|director/i.test(x)}),general=wikiCards.filter(function(x){return !politics.includes(x)&&!films.includes(x)});
-         var html=section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(!isSocialGreeting&&window.BigLWAMusicDiscovery&&(/\b(song|music|album|artist|sing|track|soundcloud|playlist|mix|dj)\b/i.test(clean)||parts[5].length)?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'' )+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+         var firstParty=conversation&&isSocialGreeting?section('About BIG LWA',[
+           lwaziSiteCard('About BIG LWA','Meet the project, the people, and the ideas behind this Studio.','/about/'),
+           lwaziSiteCard('Privacy at BIG LWA','What privacy and agency mean here.','/privacy/')
+         ],'all studio identity'):'';
+         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(!isSocialGreeting&&window.BigLWAMusicDiscovery&&(/\b(song|music|album|artist|sing|track|soundcloud|playlist|mix|dj)\b/i.test(clean)||parts[5].length)?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'' )+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard),'research herstory politics');
         var loading=panel.querySelector('.bl-search-loading');if(loading)loading.outerHTML=html||(isSocialGreeting?'':'<p class="bl-search-empty">No public results found.</p>');if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
-        var qType=/\b(song|music|album|artist|sing|track)\b/i.test(clean)?'songs':/\b(book|novel|author|read|library)\b/i.test(clean)?'books':/\b(politic|government|election|president|law|court|policy)\b/i.test(clean)?'politics':/\b(movie|film|cinema|director|episode)\b/i.test(clean)?'stream':/\b(user|person|people|who is|@)\b/i.test(clean)?'people':parts[3].length?'research':'all';
-        var primaryName=({songs:'Songs',books:'Books',politics:'Politics & public life',stream:'Cinema & video',people:'BigLWA users',research:'Community-centered research sources',herstory:'Herstory'})[qType];
-        var primary=document.getElementById(sectionId(primaryName||''));activateCategory(qType==='people'?'users':qType,false);
+        // Search always starts in All; preserve a user's later manual tab selection.
+        activateCategory(activeCategory,false);
         panel.querySelectorAll('[data-lwazi-route]').forEach(function(button){button.addEventListener('click',function(){goRoute(button.dataset.lwaziRoute)})});
       });
       answerPromise.then(function(answer){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,answer==null?'No answer available.':answer)}).catch(function(){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,'Search information could not be loaded. Try again.')});

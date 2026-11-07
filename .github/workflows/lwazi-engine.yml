@@ -57,6 +57,6 @@ jobs:
           node --check profile-music.js
           node --check tools-craft.js
       - name: Engine unit and mocked integration tests
-        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs
+        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs
       - name: Preserve existing Studio search contracts
         run: node lwazi-search-regression-test.mjs
