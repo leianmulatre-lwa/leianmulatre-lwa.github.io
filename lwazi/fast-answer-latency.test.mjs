@@ -7,7 +7,7 @@ test('general conversation skips citation-source preparation',()=>{
  assert.match(source,/var sourcePreparation=needsResearchSources\?Promise\.all/);
  assert.match(source,/Promise\.resolve\(\[\[\],\[\]\]\)/);
  assert.match(source,/var answerPromise=immediate\?Promise\.resolve\(immediate\):sourcePreparation\.then/);
- assert.doesNotMatch(source,/Promise\.all\(\[libraryPromise,Promise\.race\(\[wikiDataPromise/);
+ assert.doesNotMatch(source,/var answerPromise=immediate\?Promise\.resolve\(immediate\):Promise\.all/);
 });
 test('research still gathers bounded sources',()=>{
  assert.match(source,/var needsResearchSources=/);
