@@ -126,7 +126,7 @@
         var greetings=['Hey. I’m L’wazi. What’s on your mind?','Hey, welcome in. What are we thinking about today?'];
         return {kind:'greeting',reply:greetings[(lwaziConversationCount++)%greetings.length]};
       }
-      if(/^(?:how are you|how are you doing|how's it going|how do you feel|you good)$/.test(clean)){
+      if(/^(?:how (?:are|r) (?:you|u|ya)(?: doing)?|how (?:you|u|ya) doing|how's it going|how is it going|how do you feel|you good|hru)$/.test(clean)){
         var checkins=['Running on code and curiosity. How are you doing?','Functioning, questioning, and resisting the urge to over-explain. You good?'];
         return {kind:'greeting',reply:checkins[(lwaziConversationCount++)%checkins.length]};
       }
@@ -146,6 +146,18 @@
       return null;
     }
 
+    function explainModelFailure(error){
+      var message=String(error&&error.message||error||'').toLowerCase();
+      if(/external ai was not enabled/.test(message))return 'External AI was not enabled for this session. Discovery and Studio navigation still work.';
+      if(/authentication_required|sign in to big lwa first|lwazi api: 401/.test(message))return 'L’wazi’s AI pilot needs a BIG LWA sign-in before it can answer. Discovery still works.';
+      if(/pilot_access_denied|lwazi api: 403/.test(message))return 'L’wazi’s AI pilot is currently restricted to approved testers. The search results below remain available.';
+      if(/pilot_access_not_configured/.test(message))return 'L’wazi’s AI pilot access hasn’t been configured yet. Discovery still works.';
+      if(/shared_free_quota_exhausted|quota|neurons|lwazi api: 429/.test(message))return 'L’wazi has reached its free AI allowance for now. Search and Studio navigation are still available.';
+      if(/free_model_unavailable|free_models_cooling_down|free_model_requires_paid_plan|free_ai_binding_missing|free_inference_not_enabled/.test(message))return 'L’wazi’s free AI model could not serve this request. Search results are still available below.';
+      if(/provider timed out|aborterror|the operation was aborted|timed out/.test(message))return 'L’wazi’s live model took too long to answer, so I stopped waiting. You can still use the search results below.';
+      return '';
+    }
+
     var browserSessionPromise=null;
     // Simple identity, social, and mathematical prompts work even without inference.
     function fastLwaziResponse(q){
@@ -157,16 +169,18 @@
     async function askLwazi(q,sources,onPartial){
       var fast=fastLwaziResponse(q);if(fast)return fast;
       var hooks=[window.__biglwaAskLwazi,window.BigLWA&&window.BigLWA.askLwazi].filter(function(fn){return typeof fn==='function'});
+      var hookIssue=null;
       if(hooks.length){
         try{
           // Keep a cold source-library download from blocking the answer.
           var libraryForHook=await Promise.race([sourceLibraryPromise,new Promise(function(resolve){setTimeout(function(){resolve(null)},120)})]);
-          var hookStop,hookTimeout=new Promise(function(_,reject){hookStop=setTimeout(function(){reject(Error('Lwazi provider timed out'))},33000)});
+          var hookController=new AbortController();
+          var hookStop,hookTimeout=new Promise(function(_,reject){hookStop=setTimeout(function(){hookController.abort();reject(Error('Lwazi provider timed out'))},window.__biglwaLwaziDeepThinking?33000:20000)});
           var external;
-          try{external=await Promise.race([Promise.resolve().then(function(){return hooks[0](q,sources,libraryForHook&&libraryForHook.critical_reasoning,onPartial,{mode:window.__biglwaLwaziDeepThinking?'deep':'auto'})}),hookTimeout])}
+          try{external=await Promise.race([Promise.resolve().then(function(){return hooks[0](q,sources,libraryForHook&&libraryForHook.critical_reasoning,onPartial,{mode:window.__biglwaLwaziDeepThinking?'deep':'auto',signal:hookController.signal})}),hookTimeout])}
           finally{clearTimeout(hookStop)}
           if(external)return String(external.answer||external);
-        }catch(e){console.warn('[Lwazi] Provider hook unavailable:',e)}
+        }catch(e){hookIssue=e;console.warn('[Lwazi] Provider hook unavailable:',e)}
       }
       var config=window.__biglwaLwaziConfig||{};
       if(config.apiUrl){
@@ -177,6 +191,10 @@
         }catch(e){console.warn('[Lwazi] Secure provider endpoint unavailable:',e)}
         finally{clearTimeout(stop)}
       }
+      // Known pilot/auth/quota/time-limit failures are actionable: do not hide them behind
+      // an additional, potentially slow browser-model attempt.
+      var knownFailure=explainModelFailure(hookIssue);
+      if(knownFailure)return knownFailure;
       try{
         var lm=(window.LanguageModel)||(window.ai&&window.ai.languageModel);
         if(lm&&typeof lm.create==='function'){
@@ -188,7 +206,7 @@
         if(lm&&typeof lm==='object'&&typeof lm.prompt==='function'){var quick=await lm.prompt(q);if(quick)return String(quick)}
       }catch(e){console.warn('[Lwazi] Browser AI unavailable:',e)}
       if(sources.length)return 'Here are public discovery links for “'+q+'” (not verified full texts): '+sources.slice(0,3).map(function(s){return s.title+' — '+String(s.snippet||'').replace(/<[^>]+>/g,' ').slice(0,180)}).join('; ')+'. I could not verify their full text.';
-      return 'L’wazi’s model is unavailable for this answer. Search and Studio navigation are still available.';
+      return hookIssue?'L’wazi could not connect to its live AI model. Search and Studio navigation are still available.':'L’wazi’s AI model is not configured for this browser yet. Search and Studio navigation are still available.';
     }
 
     async function openPanel(raw){
