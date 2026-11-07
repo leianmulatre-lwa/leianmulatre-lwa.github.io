@@ -146,7 +146,7 @@ function openManage(panel){
   document.body.appendChild(el);draw();el.showModal();
 }
 function decorateCard(html,index,title){
-  if(typeof html!=='string'||!html.includes('bl-search-card'))return html;
+  if(typeof html!=='string'||!html.includes('bl-search-card')||html.includes('bl-search-music-find'))return html;
   const controls='<div class="bl-card-window-controls" role="group" aria-label="Result controls">'+
     '<button type="button" class="bl-card-dot bl-card-block" data-bl-result-action="block" aria-label="Block result" title="Block: choose what to avoid"></button>'+
     '<button type="button" class="bl-card-dot bl-card-hide" data-bl-result-action="hide" aria-label="Hide result" title="Hide from this search"></button>'+
