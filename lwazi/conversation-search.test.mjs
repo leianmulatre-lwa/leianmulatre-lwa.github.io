@@ -44,3 +44,28 @@ test('model policy teaches identity and cultural literacy while avoiding false p
   assert.match(SYSTEM_POLICY,/not a human/);
   assert.match(SYSTEM_POLICY,/recognizable online references or memes/);
 });
+
+test('common shorthand greetings answer instantly without an AI request',()=>{
+  for(const phrase of ['how are u','how are u?','how r u','hru','how u doing','how ya doing','how are you']){
+    assert.equal(scope.conversationIntent(phrase)?.kind,'greeting',phrase);
+    assert.match(scope.fastLwaziResponse(phrase),/you|curiosity|questioning|doing/i,phrase);
+  }
+});
+
+test('API pilot issues display specific guidance instead of generic model unavailable',()=>{
+  assert.match(scope.explainModelFailure(new Error('L’wazi API: pilot_access_denied')),/restricted/i);
+  assert.match(scope.explainModelFailure(new Error('L’wazi API: authentication_required')),/sign-in/i);
+  assert.match(scope.explainModelFailure(new Error('L’wazi API: shared_free_quota_exhausted')),/free AI allowance/i);
+  assert.match(scope.explainModelFailure(new Error('Lwazi provider timed out')),/too long/i);
+  assert.equal(scope.explainModelFailure(null),'');
+  assert.equal(scope.explainModelFailure(new Error('unknown')),'');
+});
+
+test('timed-out live requests are cancelled, not left running after fallback',()=>{
+  const client=readFileSync(new URL('../lwazi-client.js',import.meta.url),'utf8');
+  assert.match(source,/hookController\.abort\(\)/);
+  assert.match(source,/signal:hookController\.signal/);
+  assert.match(client,/const upstreamSignal=options\?\.signal/);
+  assert.match(client,/upstreamSignal\?\.addEventListener\?\.\('abort',abortFromCaller/);
+  assert.match(client,/options\?\.mode==='deep'\?32000:19000/);
+});

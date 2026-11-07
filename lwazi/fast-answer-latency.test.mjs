@@ -15,5 +15,5 @@ test('research still gathers bounded sources',()=>{
  assert.match(source,/setTimeout\(function\(\)\{resolve\(\[\]\)\},1200\)/);
 });
 test('entrypoint loads new version of optimized search code',()=>{
- assert.match(index,/user-search-results\.js\?v=20261107-fast-answer-v2/);
+ assert.match(index,/user-search-results\.js\?v=20261107-shorthand-fix-v3/);
 });
