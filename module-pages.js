@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3';
+        script.src = '/module-pages.js?v=20261106-x-user-token-1';
         document.head.appendChild(script);
       }, 250);
     }
