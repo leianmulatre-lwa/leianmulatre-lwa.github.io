@@ -48,8 +48,9 @@ assert.equal(jobs.normalizeJobs([{title:'Artist',company:'Studio',source:'Job bo
 assert.equal(jobs.setJobs([]).status,'pending');
 assert.equal(jobs.searchTargets('design','Los Angeles').length,3);
 assert.ok(jobs.searchTargets('design','Los Angeles').every(x=>x.url.startsWith('https://')));
-assert.match(jobsCode,/Werk-main source not yet available/);
-assert.doesNotMatch(jobsCode,/fetch\(|XMLHttpRequest|scrapeJobs/,'Jobs module does not pretend to have live scraped data');
+assert.match(jobsCode,/vendored werk-main \/ JobSpy feed has not been published/);
+assert.match(jobsCode,/fetch\('\/data\/visual-life\/jobs.json'/,'Only read the fixed local jobs feed');
+assert.doesNotMatch(jobsCode,/fetch\('https?:|XMLHttpRequest|scrapeJobs/,'Jobs module must not scrape board APIs directly in browsers');
 
 for(const file of ['lwazi-music-discovery.js','lwazi-music-discovery.css','visual-life-jobs.js','visual-life-jobs.css'])assert.match(index,new RegExp(file.replaceAll('.','\\.')+'\\?v='),'New modules must be loaded by Studio entrypoint');
 assert.match(search,/bl-vinyl-record/);
@@ -63,3 +64,8 @@ assert.match(craft,/BigLWAVisualLife\?\.ensureCard\(root\)/);
 assert.match(craft,/data-visual-life-open/);
 assert.match(jobsCss,/craft-visual-life/);
 console.log('PASS: consented SoundCloud search and embedding, linked Tunes, vinyl design, Visual-Life adapter, original-source links');
+
+assert.match(jobsCode,/status!=='published'/,'Never claim jobs are live before feed publication');
+assert.match(jobsCode,/96\*3600\*1000/,'Job records expire after 96h');
+assert.match(read('scripts/visual_life_feed.py'),/from jobspy import scrape_jobs/,'Manual feed reuses the installed vendored Werk-Main scraper');
+assert.match(read('scripts/visual_life_feed.py'),/raise ValueError\("No valid jobs returned/,'Never publish an empty scraped feed');
