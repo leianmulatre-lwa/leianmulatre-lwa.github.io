@@ -64,5 +64,5 @@ test("Mailroom retains all controls referenced by the existing editor",()=>{
   assert.match(editor,/runTransaction/);
   assert.match(editor,/developerAdmins/);
   assert.match(mailroom,/<iframe id="emailPreview"[^>]* sandbox=""/);
-  assert.match(mailroom, /Delivery is not/ .source ? /Draft studio, not live delivery/ : /Draft studio/);
+  assert.match(mailroom, /Draft studio, not live delivery/);
 });
