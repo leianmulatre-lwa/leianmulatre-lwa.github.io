@@ -232,3 +232,44 @@ body.night-mode #bl-studio-search-results .bl-lwazi-answer{background:transparen
   #bl-studio-search-results .bl-search-category-nav button{grid-template-columns:20px max-content!important;padding:0 10px!important;min-height:42px!important;height:42px!important}
 }
 @media(prefers-reduced-motion:reduce){#bl-studio-search-results{transition:none!important}}
+
+/* Discovery retains common controls, but each source family carries its own identity. */
+#bl-studio-search-results #bl-section-politics-public-life .bl-search-card{
+  --bl-search-spine:#43372d!important;
+  background:linear-gradient(145deg,#e7d8c7,#d9c8b3)!important;
+  border-radius:5px!important;border-color:#8a755f!important;
+  box-shadow:3px 4px 0 rgba(64,49,40,.19)!important;
+}
+#bl-studio-search-results #bl-section-politics-public-life h2,
+#bl-studio-search-results #bl-section-politics-public-life h3{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-weight:700!important;letter-spacing:-.025em!important;
+}
+#bl-studio-search-results #bl-section-politics-public-life .bl-search-kicker{
+  color:#634638!important;
+}
+#bl-studio-search-results #bl-section-politics-public-life .bl-search-primary-action{
+  border-radius:3px!important;
+}
+#bl-studio-search-results #bl-section-herstory .bl-search-card{
+  --bl-search-spine:#685681!important;
+  background:#f0e7f0!important;
+  border:1px solid #ae98b2!important;
+}
+#bl-studio-search-results #bl-section-herstory h2,
+#bl-studio-search-results #bl-section-herstory h3{
+  font-family:Georgia,"Times New Roman",serif!important;
+}
+#bl-studio-search-results #bl-section-songs .bl-search-card{
+  --bl-search-spine:#7e4758!important;
+}
+#bl-studio-search-results .bl-search-card p{
+  overflow-wrap:break-word!important;
+}
+body.night-mode #bl-studio-search-results #bl-section-politics-public-life .bl-search-card{
+  background:linear-gradient(145deg,#302b29,#43372d)!important;
+  color:#f3e9df!important;
+}
+body.night-mode #bl-studio-search-results #bl-section-herstory .bl-search-card{
+  background:#342d3c!important;color:#f7ebf6!important;
+}
