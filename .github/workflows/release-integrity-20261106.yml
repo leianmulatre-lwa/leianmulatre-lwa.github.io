@@ -1,0 +1,47 @@
+name: BIG LWA release integrity checks
+on:
+  pull_request:
+    paths:
+      - 'studio-loading-dots-20261021.js'
+      - 'module-pages.js'
+      - 'orbit-cards-unified-20261016.css'
+      - 'tiktok-orbit.js'
+      - 'README.md'
+      - 'third_party/**'
+      - 'scripts/release-audit-regressions.test.mjs'
+      - '.github/workflows/release-integrity-20261106.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'studio-loading-dots-20261021.js'
+      - 'module-pages.js'
+      - 'orbit-cards-unified-20261016.css'
+      - 'tiktok-orbit.js'
+      - 'README.md'
+      - 'third_party/**'
+      - 'scripts/release-audit-regressions.test.mjs'
+permissions:
+  contents: read
+jobs:
+  reliability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Studio scripts parse
+        run: |
+          node --check studio-loading-dots-20261021.js
+          node --check module-pages.js
+          node --check tiktok-orbit.js
+      - name: Verify release regressions
+        run: node scripts/release-audit-regressions.test.mjs
+      - name: Verify existing Orbit and curtain behavior
+        run: |
+          node orbit-inline-links-regression-test.mjs
+          node tiktok-connect-test.mjs
+          node veve-curtain-regression-test.mjs
+      - name: Verify Worker configuration without credentials or deployment
+        run: node --test scripts/oauth-worker-config.test.mjs
