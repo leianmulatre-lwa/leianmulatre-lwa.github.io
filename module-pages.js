@@ -1284,6 +1284,14 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        '<div class="orbit-link-dialog-actions"><button type="button" class="module-action" data-orbit-save="'+esc(k)+'">Save link</button>'+
        '<button type="button" class="module-action ghost" data-orbit-close-link="'+esc(k)+'">Cancel</button></div></dialog>';
    }
+   function orbitXTokenEditor(){
+     return '<dialog class="orbit-link-dialog" data-orbit-x-token-dialog aria-label="Connect X using a user access token">'+
+       '<div class="orbit-link-dialog-head"><b>X access token</b><button type="button" class="orbit-link-dialog-close" data-orbit-x-token-close aria-label="Close X token editor">×</button></div>'+
+       '<p>Paste an <strong>OAuth 2.0 User Access Token</strong> for your X account. Not an app-only Bearer Token or OAuth 1.0a Access Token. BIG LWA checks your identity with X and keeps the credential server-side for this account only. Manually entered tokens must be reconnected after an hour.</p>'+
+       '<label for="orbitXUserAccessToken">X OAuth 2.0 User Access Token</label>'+
+       '<input id="orbitXUserAccessToken" class="module-input" data-orbit-x-token-value type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste access token privately" maxlength="4096">'+
+       '<div class="orbit-link-dialog-actions"><button type="button" class="module-action" data-orbit-x-token-save>Verify & connect</button><button type="button" class="module-action ghost" data-orbit-x-basic="1">Test basic X login</button><button type="button" class="module-action ghost" data-orbit-x-token-close>Cancel</button></div></dialog>';
+   }
    function renderOrbitPage(){
     // Only show a real OAuth button once its public app key, secret and callback
     // are actually available. Until then an account-linked profile URL works.
@@ -1306,8 +1314,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':row.verifiedFromProvider?'<em class="orbit-state is-on">Connected · verified</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header><div class="orbit-main">`+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}${row.verifiedFromProvider?'<small>Authenticated with '+esc(n)+' · verified just now</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':k==='snapchat'&&!links[k]?'<small>Snapchat connected. Add your public profile URL using Link to publish a quick link.</small>':k==='tumblr'&&!links[k]?'<small>Connected, but no public blog URL returned. Add your Tumblr blog link below.</small>':''}${k==='snapchat'?'<small>Spotlight imports require Snapchat Public Profile API access; Login Kit alone only shares account identity and optional Bitmoji.</small>':''}</div>`
         :'<div class="orbit-not-connected">Connect to show your account preview.</div>')+'</div>'+
-       `<div class="module-actions">${row&&['x','tumblr','snapchat'].includes(k)?'<button class="module-action ghost" type="button" data-orbit-verify="'+k+'">Verify status</button>':''}<button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='x'?'<button class="module-action ghost" type="button" data-orbit-x-basic="1" title="Diagnostic: request only X profile access, without Tweet or offline permissions">Test basic X login</button>':''}${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${links[k]||row?.link?'Edit link':(k==='snapchat'||k==='tumblr'?'Add profile link':'Link')}</button>${orbitBadge(g,t)}</div>`+
-       orbitLinkEditor(k,n,links[k]||row?.link||'')+'</div>';
+       `<div class="module-actions">${row&&['x','tumblr','snapchat'].includes(k)?'<button class="module-action ghost" type="button" data-orbit-verify="'+k+'">Verify status</button>':''}<button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='x'?'<button class="module-action ghost" type="button" data-orbit-x-token-open="1" title="Verify an OAuth 2.0 user token for your own X account">Use X token</button>':''}${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${links[k]||row?.link?'Edit link':(k==='snapchat'||k==='tumblr'?'Add profile link':'Link')}</button>${orbitBadge(g,t)}</div>`+
+       orbitLinkEditor(k,n,links[k]||row?.link||'')+(k==='x'?orbitXTokenEditor():'')+'</div>';
      }
      return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Connect by adding your profile link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-edit-link="${k}">${links[k]?'Edit link':'Connect link'}</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open</button>${orbitBadge(g,t)}</div>`+orbitLinkEditor(k,n,links[k]||'')+'</div>';
      }).join('')}</div></section></div>`;
@@ -1318,6 +1326,40 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const status=$('#orbitPageStatus',body);
     const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
     body.onclick=async e=>{
+     const xTokenOpen=e.target.closest('[data-orbit-x-token-open]');
+     if(xTokenOpen){
+       const dialog=body.querySelector('[data-orbit-x-token-dialog]');
+       if(dialog?.showModal)dialog.showModal();
+       else say('This browser cannot open the secure X token editor.');
+       return;
+     }
+     const xTokenClose=e.target.closest('[data-orbit-x-token-close]');
+     if(xTokenClose){
+       const dialog=body.querySelector('[data-orbit-x-token-dialog]');
+       const input=dialog?.querySelector('[data-orbit-x-token-value]');
+       if(input)input.value='';
+       dialog?.close?.();
+       return;
+     }
+     const xTokenSave=e.target.closest('[data-orbit-x-token-save]');
+     if(xTokenSave){
+       const dialog=body.querySelector('[data-orbit-x-token-dialog]');
+       const input=dialog?.querySelector('[data-orbit-x-token-value]');
+       const credential=input?.value.trim()||'';
+       if(!credential){say('Paste your X OAuth 2.0 user access token first.');return}
+       xTokenSave.disabled=true;
+       try{
+         await window.BigLWAOrbitOAuth?.connectWithToken?.(credential);
+         if(input)input.value='';
+         dialog?.close?.();
+         const latest=body.querySelector('#orbitPageStatus');
+         if(latest)latest.textContent='X user token verified. Your X profile is connected to this BIG LWA account. This temporary session expires within an hour.';
+       }catch(error){
+         if(input)input.value='';
+         say('X token could not be connected: '+(error?.message||'Check your X permissions and token type.'));
+       }finally{if(xTokenSave.isConnected)xTokenSave.disabled=false}
+       return;
+     }
      const editLink=e.target.closest('[data-orbit-edit-link]');
      if(editLink){
        const dialog=body.querySelector('[data-orbit-link-dialog="'+editLink.dataset.orbitEditLink+'"]');
