@@ -29,7 +29,13 @@ async function tokenFixture(){
 test('routing and identity are distinct from provider model',()=>{
   assert.equal(routeMode('hey'), 'fast');
   assert.equal(routeMode('can you refactor this CSS?'), 'code');
-  assert.equal(routeMode('What is the history of political representation?'),'research');
+  assert.equal(routeMode('What is the history of political representation?'),'fast');
+  assert.equal(routeMode('Why did that happen?'),'fast');
+  assert.equal(routeMode('Explain this to me'),'fast');
+  assert.equal(routeMode('How does a rainbow form?'),'fast');
+  assert.equal(routeMode('Can you research the history of political representation?'),'research');
+  assert.equal(routeMode('Give me sources about climate policy'),'research');
+  assert.equal(routeMode('Cite your evidence'),'research');
   assert.equal(routeMode('hello','research'),'research');
   assert.match(SYSTEM_POLICY,/privacy/i);
   assert.match(SYSTEM_POLICY,/women/i);
