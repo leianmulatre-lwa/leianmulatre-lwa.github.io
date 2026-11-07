@@ -10,6 +10,7 @@ on:
       - 'tiktok-orbit.js'
       - 'module-pages.js'
       - 'orbit-body-import-regression-test.mjs'
+      - 'x-user-access-token-connect-test.mjs'
       - '.github/workflows/orbit-body-import-checks.yml'
   workflow_dispatch:
 permissions:
@@ -34,6 +35,8 @@ jobs:
           node --check orbit-new-connect-20261018-v6.js
       - name: Exercise private provider identity and source imports
         run: node orbit-body-import-regression-test.mjs
+      - name: Verify X manually supplied OAuth2 token is account-bound and not browser-stored
+        run: node x-user-access-token-connect-test.mjs
       - name: Validate existing Orbit OAuth and TikTok flows
         run: |
           node orbit-oauth-repair-test.mjs
