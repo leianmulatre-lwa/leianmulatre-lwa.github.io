@@ -27,11 +27,15 @@ jobs:
         run: |
           node --check user-search-results.js
           node --check lwazi-search-ui.js
+          node --check lwazi-music-discovery.js
+          node --check visual-life-jobs.js
+          node --check profile-music.js
+          node --check tools-craft.js
           node --check module-pages.js
           node --check pinterest-orbit.js
           node --check stream-guide.js
           node lwazi-search-regression-test.mjs
-          node --test lwazi/search-experience.test.mjs
+          node --test lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs
           node studio-first-paint-rgb-regression-test.mjs
           node studio-myfeed-archive-filmstrip-test.mjs
       - name: Setup Pages
