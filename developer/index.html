@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#47070c">
+  <title>Developer Console · Big LWA</title>
+  <link rel="icon" href="/assets/brand/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/stitched-crest.css">
+  <link rel="stylesheet" href="./console.css">
+  <script type="module" src="./console.js"></script>
+</head>
+<body>
+  <header class="dev-topbar">
+    <a class="dev-brand" href="/" aria-label="Return to the Big LWA Studio">
+      <span class="biglwa-stitched-crest" aria-hidden="true"></span>
+      <img class="dev-brand-tipi" src="/assets/studio-tipi-symbol.svg" alt="" aria-hidden="true">
+    </a>
+    <div class="dev-search-shaped" aria-label="Current location">
+      <span class="dev-breadcrumb-icon" aria-hidden="true">✳</span>
+      <span class="dev-breadcrumb"><a href="/">BIG LWA</a><span aria-hidden="true">/</span><strong>Developer Console</strong></span>
+      <span aria-hidden="true">⌕</span>
+    </div>
+    <div class="dev-top-actions"><a href="/">Back to Studio</a><span id="sessionState" class="dev-status" role="status">Checking access…</span><span class="dev-avatar" aria-hidden="true">L</span></div>
+  </header>
+
+  <main class="dev-main">
+    <div class="dev-path">
+      <div class="dev-path-text"><strong>BIG LWA</strong> <span aria-hidden="true">›</span> Developer Console</div>
+      <nav class="dev-room-nav" aria-label="Developer Console">
+        <a href="/developer/" aria-current="page">Overview</a>
+        <a href="/developer/mailroom/">✉ Mailroom</a>
+      </nav>
+    </div>
+    <section class="dev-access" id="accessPanel" role="status" aria-live="polite">
+      <img class="dev-access-icon" src="/assets/skeleton-key-pin-32.png" alt="">
+      <h2 id="accessTitle">Checking your key…</h2>
+      <p id="accessMessage">This backstage is only available to authorized Big LWA developers.</p>
+      <a href="/" id="accessLink" hidden>Return to Big LWA to sign in</a>
+    </section>
+    <div id="developerHome" hidden>
+      <header class="dev-hero">
+        <div class="dev-hero-copy">
+          <span class="dev-eyebrow">BIG LWA / Developer / Workshop</span>
+          <h1>Your backstage pass.</h1>
+          <p>For building, tending, and protecting all the little worlds inside Big LWA. Same Studio, more keys. 🤎</p>
+        </div>
+        <div class="dev-hero-crest" aria-hidden="true"><span class="biglwa-stitched-crest"></span></div>
+      </header>
+      <section class="dev-window" aria-labelledby="roomsTitle">
+        <header class="dev-window-bar"><strong id="roomsTitle">Developer / rooms</strong><small>PRIVATE WORKSPACE</small><span class="dev-lights" aria-hidden="true"><i></i><i></i><i></i></span></header>
+        <div class="dev-window-content">
+          <p class="dev-note"><strong>Welcome in.</strong> The Mailroom is open for drafting. Sending, integrations, and system controls will appear here only after their security and delivery paths are implemented and tested.</p>
+          <div class="dev-home-rooms">
+            <article class="dev-room-card">
+              <div class="dev-room-card-head"><h2>01 / L’wazi's Mailroom</h2><span aria-label="Draft-ready">🤎</span></div>
+              <div class="dev-room-card-body">
+                <div class="dev-room-preview">
+                  <img src="/assets/composition-texture.webp" alt="Big LWA's existing textured stationery asset">
+                  <div><span>Little letters, big love.</span><p class="dev-smallnote">The letters Big LWA sends out into the world.</p></div>
+                </div>
+                <p>Edit verification, reset, and security-notice letters; preview real email HTML; and save your drafts to your developer account across devices.</p>
+                <a class="dev-action" href="/developer/mailroom/">Step inside the Mailroom</a>
+              </div>
+            </article>
+            <section class="dev-room-card" aria-labelledby="comingNextTitle">
+              <div class="dev-room-card-head"><h2 id="comingNextTitle">Still in the workshop</h2><span aria-hidden="true">✳</span></div>
+              <div class="dev-room-card-body">
+                <div class="dev-room-list">
+                  <div class="dev-room-pending"><img src="/assets/lwazi-rainbow-stitch.svg" alt=""><div><strong>Integrations</strong><small>Planned · providers and connection settings</small></div></div>
+                  <div class="dev-room-pending"><img src="/assets/projects-symbol.svg" alt=""><div><strong>Systems</strong><small>Planned · operational logs and configuration</small></div></div>
+                  <div class="dev-room-pending"><img src="/assets/skeleton-key-pin-32.png" alt=""><div><strong>Security</strong><small>Planned · administrator tools and audit controls</small></div></div>
+                </div>
+                <p class="dev-smallnote">These rooms are intentionally inactive. No fake controls and no live Firebase or SMTP changes.</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+    <footer class="dev-footer">BIG LWA · PEOPLE · IDEAS · SOUNDS · SELF <span>Privacy should be the bare minimum. 🤎</span></footer>
+  </main>
+</body>
+</html>
