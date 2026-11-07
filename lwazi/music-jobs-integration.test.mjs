@@ -12,7 +12,7 @@ function envFor(script){
    getItem:key=>storage.get(key)||null,
    setItem:(key,value)=>{calls.push(key);storage.set(key,value)}
  };
- const vmEnv={window,localStorage,sessionStorage:localStorage,location:{origin:'https://biglwa.com'},URL,console,CustomEvent:class{constructor(type){this.type=type}},document:{},fetch:()=>{throw Error('Network forbidden by test')}};
+ const vmEnv={window,localStorage,sessionStorage:localStorage,location:{origin:'https://biglwa.com'},URL,console,CustomEvent:class{constructor(type){this.type=type}},document:{querySelector:()=>null},fetch:()=>{throw Error('Network forbidden by test')}};
  window.dispatchEvent=event=>calls.push(event.type);
  vm.runInNewContext(script,vmEnv,{timeout:2500});
  return {window,calls,storage};
