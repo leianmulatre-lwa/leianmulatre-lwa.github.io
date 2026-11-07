@@ -2,7 +2,7 @@
 (function(){
   try{
     function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-    function plainSnippet(s){var el=document.createElement('div');el.innerHTML=String(s||'').replace(/<(?!\/?(?:span|b|em|strong)\b)[^>]*>/gi,' ');return (el.textContent||'').replace(/\s+/g,' ').trim()}
+    function plainSnippet(s){var el=document.createElement('textarea');el.innerHTML=String(s||'').replace(/<[^>]*>/g,' ');return el.value.replace(/\s+/g,' ').trim()}
     function localUsers(q){var out=[];try{var v=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');if(Array.isArray(v))out=out.concat(v)}catch(e){}if(Array.isArray(window.__biglwaUsers))out=out.concat(window.__biglwaUsers);var seen={};return out.filter(function(u){var key=String(u&&u.username||'').toLowerCase();if(seen[key]||!key||/private/i.test(String(u.accountVisibility||u.visibility||u.privacy||'')))return false;if(String(u.username||u.name||'').toLowerCase().indexOf(q)==-1)return false;seen[key]=1;return true}).slice(0,8)}
     async function searchUsers(q){var hits=[];try{if(window.BigLWAUserDirectory&&window.BigLWAUserDirectory.searchUsers)hits=await window.BigLWAUserDirectory.searchUsers(q)}catch(e){}if(!hits.length)hits=localUsers(q);return hits.slice(0,8)}
     async function fetchJSON(url){var controller=new AbortController(),stop=setTimeout(function(){controller.abort()},7000);try{var response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw Error('Search source unavailable');return await response.json()}finally{clearTimeout(stop)}}
