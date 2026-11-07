@@ -47,10 +47,17 @@ assert.ok(menu.includes("document.querySelectorAll('.login-public-footer nav a[h
 assert.ok(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post))")&&feed.includes("const withImage=storedPosts;"),'Studio Feed preview count uses the filtered picture list');
 console.log('Pinterest masonry, Saved, Studio and login footer regressions passed');
 
-assert.ok(pages.includes("tiles.slice(0,6).map("),'Studio Boards shows six Pins only');
-assert.ok(pages.includes("const signature=tiles.slice(0,6).map"),'Studio Boards renders exactly two rows');
-assert.ok(pages.includes("grid-template-rows:repeat(2,91px)"),'Studio Boards CSS sets two rows, not three');
+// The Studio thumbnail was intentionally redesigned from the old six-tile
+// strip to a portrait-and-four mosaic. These assertions must track the live
+// canonical Pinterest gallery rather than resurrect the obsolete renderer.
+const studioThumb=readFileSync(new URL('./pinterest-red-consistency-20261016.css',import.meta.url),'utf8');
+assert.ok(pages.includes('window.__biglwaRefreshBoardsThumbnail?.()'),'Studio delegates to the canonical Boards photo gallery');
+assert.ok(frontend.includes('photos.length>=5'),'Studio gallery never exceeds five genuine photos');
+assert.ok(frontend.includes("gallery.dataset.count=String(photos.length)"),'Studio gallery preserves actual photo count');
+assert.ok(studioThumb.includes('grid-template-columns:minmax(0,1.24fr) repeat(2,minmax(0,1fr))'),
+  'Studio Boards has the requested portrait-and-four layout');
+assert.ok(!pages.includes("tiles.slice(0,6).map((item,i)=>"),'Old six-tile Studio renderer stays removed');
 assert.ok(pages.includes("state?.connected&&(!viewer||state.uid===viewer)"),'static board placeholders are removed after connecting');
 assert.ok(pages.includes("studio-mini-map-open"),'the Studio map has an open-full-map action');
 assert.ok(pages.includes("mini.loading='eager'"),'real mini-map loads on Studio without scrolling to it');
-console.log('Studio Boards two-row preview and interactive Map checks passed');
+console.log('Studio Boards five-photo portrait mosaic and interactive Map checks passed');
