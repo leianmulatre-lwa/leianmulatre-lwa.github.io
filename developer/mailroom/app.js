@@ -39,6 +39,10 @@ function granted() {
   $("mailroom").hidden = false;
   $("sessionState").textContent = "DEVELOPER ACCESS ✓";
 }
+function lockEditor(locked) {
+  for (const control of form.querySelectorAll('input,textarea,button')) control.disabled = locked;
+  $('templateSelect').disabled = locked;
+}
 function currentData() {
   const t = {};
   for (const key of fields) t[key] = $(key).value;
@@ -71,6 +75,7 @@ async function loadTemplate(id) {
   fill(getDefaultTemplate(id));
   activeRevision = 0;
   if (!dbApi || !user) return;
+  lockEditor(true);
   try {
     const snap = await dbApi.getDoc(dbApi.doc(dbApi.db, "developerMailTemplates", id));
     if (seq !== requestId || !user) return;
@@ -86,6 +91,8 @@ async function loadTemplate(id) {
     if (seq !== requestId) return;
     message("Cloud drafts unavailable. Check the Firestore rules deployment. " +
       (error.code === "permission-denied" ? "Permission denied." : "Please retry."), true);
+  } finally {
+    if (seq === requestId) lockEditor(false);
   }
 }
 async function saveDraft(event) {
@@ -150,7 +157,7 @@ function exportData(kind) {
   }
   message("Draft exported. The action link is intentionally a placeholder.");
 }
-form.addEventListener("input", () => { dirty = true; refreshPreview(); });
+form.addEventListener("input", () => { dirty = true; refreshPreview(); message("Unsaved changes — select Save draft to keep them in Firestore."); });
 form.addEventListener("submit", saveDraft);
 $("templateSelect").addEventListener("change", event => {
   const id = event.target.value;
