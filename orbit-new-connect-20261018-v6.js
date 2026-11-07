@@ -207,6 +207,17 @@
    if(uri.protocol!=='https:'||!valid.includes(uri.hostname))throw Error('Provider returned an invalid authorization destination.');
    window.location.assign(uri.href);
  }
+ async function connectWithToken(accessToken){
+   const credential=String(accessToken||'').trim();
+   if(credential.length<20||credential.length>4096||/\s/.test(credential))
+     throw Error('Paste a valid OAuth 2.0 User Access Token from your X app.');
+   const user=await token();
+   // Send straight to the Worker; never write credentials to localStorage,
+   // sessionStorage, Firestore or an HTML link.
+   const result=await query('x','token-connect','POST',user.idToken,{accessToken:credential});
+   await load();
+   return result.profile;
+ }
  async function selectAccount(provider,sourceUserId){
    if(!providerIds.includes(provider)||typeof sourceUserId!=='string'||sourceUserId.length>120)
      throw Error('Choose a valid account.');
@@ -224,7 +235,7 @@
    await mirrorProfiles(user.uid);
    notify();
  }
- window.BigLWAOrbitOAuth=Object.freeze({load,connect,disconnect,selectAccount,get,configured,state});
+ window.BigLWAOrbitOAuth=Object.freeze({load,connect,connectWithToken,disconnect,selectAccount,get,configured,state});
  let callbackShown=false;
  const boot=()=>load().then(()=>{
    if(!callbackShown){callbackShown=callbackMessage()!==false}
