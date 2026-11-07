@@ -1287,9 +1287,11 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
    function orbitXTokenEditor(){
      return '<dialog class="orbit-link-dialog" data-orbit-x-token-dialog aria-label="Connect X using a user access token">'+
        '<div class="orbit-link-dialog-head"><b>X access token</b><button type="button" class="orbit-link-dialog-close" data-orbit-x-token-close aria-label="Close X token editor">×</button></div>'+
-       '<p>Paste an <strong>OAuth 2.0 User Access Token</strong> for your X account. Not an app-only Bearer Token or OAuth 1.0a Access Token. BIG LWA checks your identity with X and keeps the credential server-side for this account only. Manually entered tokens must be reconnected after an hour.</p>'+
+       '<p>Paste an <strong>OAuth 2.0 User Access Token</strong> for your X account. Not an app-only Bearer Token or OAuth 1.0a Access Token. BIG LWA checks your identity with X and keeps the credential server-side for this account only. Without a refresh token, the connection is temporary (up to one hour). A matching refresh token keeps it renewable while X authorizes it.</p>'+
        '<label for="orbitXUserAccessToken">X OAuth 2.0 User Access Token</label>'+
        '<input id="orbitXUserAccessToken" class="module-input" data-orbit-x-token-value type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste access token privately" maxlength="4096">'+
+       '<label for="orbitXUserRefreshToken">Refresh Token (optional)</label>'+
+       '<input id="orbitXUserRefreshToken" class="module-input" data-orbit-x-refresh-value type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste the matching refresh token, if provided" maxlength="4096">'+
        '<div class="orbit-link-dialog-actions"><button type="button" class="module-action" data-orbit-x-token-save>Verify & connect</button><button type="button" class="module-action ghost" data-orbit-x-basic="1">Test basic X login</button><button type="button" class="module-action ghost" data-orbit-x-token-close>Cancel</button></div></dialog>';
    }
    function renderOrbitPage(){
@@ -1338,6 +1340,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        const dialog=body.querySelector('[data-orbit-x-token-dialog]');
        const input=dialog?.querySelector('[data-orbit-x-token-value]');
        if(input)input.value='';
+       const refresh=dialog?.querySelector('[data-orbit-x-refresh-value]');
+       if(refresh)refresh.value='';
        dialog?.close?.();
        return;
      }
@@ -1346,16 +1350,20 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        const dialog=body.querySelector('[data-orbit-x-token-dialog]');
        const input=dialog?.querySelector('[data-orbit-x-token-value]');
        const credential=input?.value.trim()||'';
+       const refresh=dialog?.querySelector('[data-orbit-x-refresh-value]');
+       const refreshValue=refresh?.value.trim()||'';
        if(!credential){say('Paste your X OAuth 2.0 user access token first.');return}
        xTokenSave.disabled=true;
        try{
-         await window.BigLWAOrbitOAuth?.connectWithToken?.(credential);
+         const result=await window.BigLWAOrbitOAuth?.connectWithToken?.(credential,refreshValue);
          if(input)input.value='';
+         if(refresh)refresh.value='';
          dialog?.close?.();
          const latest=body.querySelector('#orbitPageStatus');
-         if(latest)latest.textContent='X user token verified. Your X profile is connected to this BIG LWA account. This temporary session expires within an hour.';
+         if(latest)latest.textContent=result?.refreshable?'X account verified and connected. Refresh token stored securely for future renewal.':'X account verified and connected. Without a refresh token, this temporary session expires within an hour.';
        }catch(error){
          if(input)input.value='';
+         if(refresh)refresh.value='';
          say('X token could not be connected: '+(error?.message||'Check your X permissions and token type.'));
        }finally{if(xTokenSave.isConnected)xTokenSave.disabled=false}
        return;
