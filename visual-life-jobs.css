@@ -21,3 +21,14 @@
 body.night-mode #craftSuite .craft-visual-life{background:#2b2426;color:#f9f0e8;border-color:#66505a}
 body.night-mode #craftSuite .visual-life-job-card{background:#372e32;color:#eee;border-color:#77595e}
 body.night-mode #craftSuite .visual-life-job-card p,body.night-mode #craftSuite .visual-life-source-note{color:#d5c3bb}
+
+#moduleWorkspace[data-module-key="projects"] .visual-life-entry{
+ display:inline-flex;align-items:center;justify-content:center;
+ margin-left:auto!important;padding:8px 12px!important;
+ border:1px solid #80576a!important;border-radius:9px!important;
+ background:#fff4e8!important;color:#6d3044!important;
+ font:750 11px/1.25 system-ui,sans-serif!important;
+ text-transform:none!important;cursor:pointer!important;
+}
+#moduleWorkspace[data-module-key="projects"] .visual-life-entry:hover{background:#f1e3e2!important}
+#moduleWorkspace[data-module-key="projects"] .visual-life-entry:focus-visible{outline:2px solid #7d354c;outline-offset:3px}
