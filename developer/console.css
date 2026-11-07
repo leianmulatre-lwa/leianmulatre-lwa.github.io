@@ -1,0 +1,78 @@
+/* BIG LWA Developer Console — uses the EXISTING Studio/landing visual vocabulary.
+   Asset references originate from the live repository; no separate admin theme. */
+@font-face{font-family:"CS Bergamot Stitched";src:url("/assets/fonts/cs-bergamot-stitched.otf?v=20260912-display-1") format("opentype");font-style:normal;font-weight:400;font-display:swap}
+:root{color-scheme:light;--bg:#f4f0e8;--paper:#fbf8f2;--ink:#171717;--muted:#6e6962;--line:#ddd6cc;--rose:#ef5f78;--peach:#e8a078;--curtain:#47070c;--stitch:#8e2837;--window:#fffaf4;--shadow:0 18px 45px rgba(38,27,22,.10)}
+*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{min-height:100vh;margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 25% 2%,#fff 0%,#f5f0e8 43%,#ece6dc 100%)}
+button,input,textarea,select{font:inherit}a{color:inherit}button{cursor:pointer}button:disabled{opacity:.6;cursor:wait}[hidden]{display:none!important}
+:focus-visible{outline:3px solid #e76b80;outline-offset:3px}
+.dev-topbar{position:relative;z-index:5;display:flex;align-items:center;gap:14px;height:60px;min-height:60px;padding:4px clamp(15px,2vw,28px);background:rgba(249,246,240,.97);border-bottom:1px solid rgba(78,59,54,.23);box-shadow:none}
+.dev-brand{display:grid;place-items:center;position:relative;flex:0 0 52px;width:52px;height:52px;color:#171514;text-decoration:none}
+.dev-brand .biglwa-stitched-crest{display:block;width:76px;height:72px;flex:0 0 auto;max-width:none;pointer-events:none}
+.dev-brand-tipi{position:absolute;inset:7px;width:38px;height:38px;object-fit:contain;opacity:0;transition:opacity .12s}
+.dev-brand:is(:hover,:focus-visible) .biglwa-stitched-crest{opacity:0}
+.dev-brand:is(:hover,:focus-visible) .dev-brand-tipi{opacity:1}
+.dev-search-shaped{display:flex;align-items:center;gap:11px;min-height:38px;max-width:700px;width:min(100%,700px);padding:0 13px;border:1px solid #e1d9d0;border-radius:999px;background:#ebe8e1;color:#443b37;font-size:12px}
+.dev-search-shaped .dev-breadcrumb{display:flex;align-items:center;min-width:0;flex:1;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dev-search-shaped a{text-decoration:none}.dev-search-shaped a:hover{text-decoration:underline}
+.dev-search-shaped .dev-breadcrumb-icon{font-size:16px;color:#8c3645}
+.dev-top-actions{margin-left:auto;display:flex;gap:13px;align-items:center;justify-content:flex-end;min-width:0}
+.dev-top-actions>a{font-size:12px;text-decoration:none;font-weight:650;white-space:nowrap}
+.dev-top-actions>a:hover{text-decoration:underline}
+.dev-avatar{display:grid;place-items:center;background:#3a2528;color:#fff4e6;border:1px solid #ba7e7f;border-radius:50%;width:36px;height:36px;font-family:Georgia,serif}
+.dev-status{font-size:10px;font-weight:700;white-space:nowrap;color:#86595a;letter-spacing:.02em}
+.dev-main{position:relative;width:min(1400px,calc(100% - 34px));margin:0 auto;padding:20px 0 48px;min-height:calc(100vh - 60px)}
+.dev-path{display:flex;justify-content:space-between;align-items:center;gap:15px;min-height:40px;margin-bottom:13px}
+.dev-path-text{font-size:11px;color:#615750;letter-spacing:.03em}
+.dev-path-text strong{font-weight:750;color:#202020}
+.dev-room-nav{display:flex;gap:8px;flex-wrap:wrap}
+.dev-room-nav a{padding:7px 13px;border:1px solid #d4c6bb;border-radius:10px;color:#443831;background:rgba(255,251,245,.85);text-decoration:none;font-size:11px;font-weight:750;transition:background .16s}
+.dev-room-nav a[aria-current="page"]{border-color:#9a4151;background:#f8e0df;color:#672c39;box-shadow:inset 0 -2px 0 #bd6775}
+.dev-room-nav a:hover{background:#fff}
+.dev-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:22px;min-height:230px;overflow:hidden;border:3px solid #41151c;border-radius:15px 15px 8px 8px;padding:30px clamp(21px,4vw,54px);color:#fff6ed;background:#30050c url("/assets/login-curtain-film-grain-v2.webp?v=20260912-verified-decode-1") center center/cover no-repeat;box-shadow:0 7px 0 #d2b8a7,0 16px 26px #2d0d182d}
+.dev-hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(24,2,8,.82) 0%,rgba(29,3,9,.58) 58%,rgba(29,2,8,.23) 100%),repeating-linear-gradient(0deg,#ffffff08 0 2px,transparent 2px 5px)}
+.dev-hero>*{position:relative;z-index:1}
+.dev-hero-copy{max-width:740px;min-width:0}
+.dev-eyebrow{font:800 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:#efc8b2;text-transform:uppercase}
+.dev-hero h1{font:400 clamp(29px,4.4vw,53px)/1.14 "CS Bergamot Stitched",Georgia,serif;letter-spacing:.015em;margin:11px 0 9px;color:#fff7ec;text-shadow:0 3px 3px #1a0310}
+.dev-hero p{font:500 clamp(12px,1.3vw,15px)/1.55 system-ui,sans-serif;color:#ffe4d8;max-width:610px;margin:0}
+.dev-hero .dev-hero-crest{display:grid;place-items:center;flex:none;width:142px;height:142px;opacity:.86;filter:drop-shadow(0 5px 2px #12040d)}
+.dev-hero .dev-hero-crest .biglwa-stitched-crest{display:block;width:140px;height:140px;background:#ffe6d0}
+.dev-pixel-scene{display:flex;align-items:center;justify-content:center;gap:8px;flex:0 0 240px;min-width:0;filter:drop-shadow(1px 3px 0 #23060b99)}
+.dev-pixel-scene img{display:block;object-fit:contain;image-rendering:pixelated;max-width:40%;max-height:112px}
+.dev-pixel-scene img:nth-child(2){max-width:50%}
+.dev-lights{display:flex;gap:5px;align-items:center}
+.dev-lights i{display:block;width:11px;height:11px;border:1px solid #171212;border-radius:50%;box-shadow:inset 0 1px 2px #fff8}
+.dev-lights i:nth-child(1){background:#e45a64}.dev-lights i:nth-child(2){background:#eed055}.dev-lights i:nth-child(3){background:#5db77a}
+.dev-window{margin-top:24px;border:3px solid #562b31;border-radius:14px 14px 9px 9px;background:#f6ede2;box-shadow:0 8px 0 #c4afa0,0 15px 24px #2711132d;overflow:hidden}
+.dev-window-bar{display:flex;gap:12px;align-items:center;min-height:42px;padding:8px 13px 8px 17px;border-bottom:3px solid #562b31;background:linear-gradient(100deg,#bc4b5d,#a73c50);color:#fff8ed}
+.dev-window-bar strong{font-family:"CS Bergamot Stitched",Georgia,serif;font-size:19px;font-weight:400;letter-spacing:.02em}
+.dev-window-bar small{margin-left:auto;font-size:10px;opacity:.9;letter-spacing:.09em}
+.dev-window-content{padding:clamp(12px,2.2vw,26px);background:linear-gradient(140deg,#faf5eb,#f7efe4)}
+.dev-note{padding:11px 14px;margin:0 0 16px;background:#fffaf3;border:1px dashed #b88083;border-radius:8px;color:#5c3b39;font-size:12px;line-height:1.5}
+.dev-note strong{color:#6e2939}
+.dev-footer{margin:28px auto 0;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;color:#7f7167;font:700 10px/1.5 system-ui;letter-spacing:.04em}
+.dev-access{max-width:560px;padding:30px 25px;margin:38px auto;background:#fffaf3;border:2px solid #a06a6a;border-radius:13px;box-shadow:4px 5px 0 #e0cabe;text-align:center}
+.dev-access .dev-access-icon{display:block;margin:0 auto 5px;width:76px;height:76px;object-fit:contain}
+.dev-access h2{font:400 28px/1.25 "CS Bergamot Stitched",Georgia,serif;color:#552431;margin:8px 0}
+.dev-access p{color:#6e6962;line-height:1.5;font-size:13px;margin:8px 0}
+.dev-access a{display:inline-block;margin-top:9px;color:#793e48;font-weight:700;font-size:13px}
+.dev-home-rooms{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(245px,.85fr);gap:16px}
+.dev-room-card{border:2px solid #a96e70;border-radius:12px;background:#fffbf5;overflow:hidden;box-shadow:3px 4px 0 #d0b9aa}
+.dev-room-card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;background:#d4a3a3;color:#4d2230;border-bottom:2px solid #a96e70}
+.dev-room-card h2{font:400 23px/1.25 "CS Bergamot Stitched",Georgia,serif;margin:0}
+.dev-room-card-body{padding:19px}
+.dev-room-card-body p{font-size:13px;color:#63564e;line-height:1.6;margin:0 0 15px}
+.dev-room-preview{display:flex;gap:18px;align-items:center;background:#f1e2d8;border:1px solid #d5b6ad;border-radius:9px;padding:13px;margin-bottom:16px}
+.dev-room-preview img{width:92px;height:76px;object-fit:cover;border:2px solid #a87171;border-radius:4px;background:#fcece1}
+.dev-room-preview span{font:400 19px/1.2 "CS Bergamot Stitched",Georgia,serif;color:#552431}
+.dev-action{display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border:2px solid #6d2e3c;border-radius:8px;background:#702f42;color:#fff9e9;font-size:12px;font-weight:800;text-decoration:none;box-shadow:2px 3px 0 #c39a94}
+.dev-action:hover{background:#88384d}
+.dev-smallnote{font-size:11px;color:#8c7770}
+.dev-room-list{display:grid;gap:12px}
+.dev-room-pending{display:flex;gap:13px;align-items:center;padding:14px;background:#f8f0e7;border:1px solid #dcc8bc;border-radius:8px}
+.dev-room-pending img{width:45px;height:45px;object-fit:contain}
+.dev-room-pending strong{display:block;font-size:13px;color:#4c3231}
+.dev-room-pending small{font-size:11px;color:#837269}
+@media(max-width:880px){.dev-hero{min-height:190px}.dev-pixel-scene{flex-basis:145px}.dev-home-rooms{grid-template-columns:1fr}}
+@media(max-width:650px){.dev-main{width:calc(100% - 24px);padding-top:10px}.dev-topbar{height:54px;min-height:54px;padding:3px 11px;gap:10px}.dev-brand{width:44px;height:44px;flex-basis:44px}.dev-brand .biglwa-stitched-crest{width:66px;height:62px}.dev-brand-tipi{inset:6px;width:32px;height:32px}.dev-search-shaped{min-height:34px;padding:0 10px;font-size:10px}.dev-top-actions>a{display:none}.dev-avatar{width:30px;height:30px}.dev-status{display:none}.dev-path{align-items:flex-start;flex-direction:column;gap:6px;margin-bottom:11px}.dev-room-nav{gap:6px}.dev-room-nav a{padding:6px 10px}.dev-hero{padding:23px 17px;min-height:165px}.dev-hero h1{margin:8px 0}.dev-hero .dev-hero-crest{display:none}.dev-pixel-scene{display:none}.dev-window{margin-top:16px}.dev-window-bar{min-height:38px}.dev-window-bar strong{font-size:16px}.dev-room-card-body{padding:14px}.dev-home-rooms{gap:12px}}
+@media(prefers-reduced-motion:reduce){.dev-brand-tipi,.dev-room-nav a{transition:none}}
