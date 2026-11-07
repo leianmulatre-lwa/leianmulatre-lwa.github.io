@@ -140,6 +140,7 @@ export async function mountCraftSuite(root){
     '<p><strong>Your work stays yours.</strong> Editing and exports normally run in your browser. Save an image snapshot privately to your account only when you choose to; layered projects require their own export/download. Some advanced tools need WebGL or WebGPU.</p>'+
     '<details><summary>Technology, source & copyright notices</summary><p>Some advanced editions contain or derive from separately licensed technology. Required original copyright, license and source notices remain available with each advanced editor. BIG LWA branding and product features do not transfer ownership of underlying third-party code.</p><a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/blob/main/TOOLS-WORKSHOP-SOURCES.md" target="_blank" rel="noopener noreferrer">Read workshop source information ↗</a></details>'+
   '</footer>';
+ window.BigLWAVisualLife?.ensureCard(root);
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
  const vaultKey='biglwaWorkshopSnapshotsV1',vaultStatus=root.querySelector('#craftVaultStatus'),vaultFile=root.querySelector('#craftVaultFile');
  const vaultGallery=root.querySelector('#craftVaultGallery'),panelSaveFile=root.querySelector('#craftPanelSaveFile');
@@ -282,6 +283,7 @@ export async function mountCraftSuite(root){
  }
  root.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button||!root.contains(button))return;
+  if(button.hasAttribute('data-visual-life-open')){window.BigLWAVisualLife?.open(root);return}
   const id=button.dataset.craftOpen;
   const weekly=button.dataset.craftWeekly;
    if(weekly){
