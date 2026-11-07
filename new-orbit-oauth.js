@@ -214,7 +214,7 @@ async function oaTextImports(provider,saved,env){
   'User-Agent':'BIGLWA/1.0 (+https://biglwa.com; Tumblr OAuth integration)'};
  let uri;
  if(provider==='x'){
-   if(saved.scopes&&!String(saved.scopes).split(/\s+/).includes('tweet.read'))
+   if(!saved.manualUserToken&&saved.scopes&&!String(saved.scopes).split(/\s+/).includes('tweet.read'))
     oaError('X is connected for profile-only diagnostics. Reconnect with full X permissions to import posts.',403);
    const id=String(saved.profile?.sourceUserId||'');
    if(!/^\d{1,28}$/.test(id))oaError('X account identifier is missing. Reconnect X.',422);
@@ -298,11 +298,12 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
    }),{expirationTtl:7776000});
    return oaRedirect(provider,'connected');
   }
-  if(!['start','session','disconnect','imports','public-post'].includes(action))return oaReply({error:'Not found'},404,request);
+  if(!['start','session','disconnect','imports','public-post','token-connect'].includes(action))return oaReply({error:'Not found'},404,request);
   if(action==='start'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
   if(action==='session'&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='imports'&&request.method!=='GET')return oaReply({error:'GET required'},405,request);
   if(action==='disconnect'&&request.method!=='POST')return oaReply({error:'POST required'},405,request);
+  if(action==='token-connect'&&(provider!=='x'||request.method!=='POST'))return oaReply({error:'POST required for X token connection'},405,request);
   const user=await getFirebaseUser(request,env);
   if(!user?.uid)oaError('Sign in to BIG LWA before connecting.',401);
   // A public post can be saved as an attributed Sqwidz import even when X
@@ -334,6 +335,32 @@ export async function handleAdditionalOrbit(request,env,getFirebaseUser){
   }
 
   const accountKey='new-orbit:'+provider+':account:'+user.uid;
+  // Manual X OAuth 2.0 *user-context* access token: validate against X before
+  // associating it with this Firebase UID. Never accept an app-only bearer token
+  // as a member identity and never fall back to one shared account for all users.
+  // Browser state contains no token: the only persisted credential is server-side KV.
+  if(action==='token-connect'){
+   if(!SAFE_SITE.has(request.headers.get('Origin')||''))
+    oaError('Open BIG LWA Studio to connect an X account.',403);
+   if(!/^application\/json(?:;|$)/i.test(request.headers.get('Content-Type')||''))
+    oaError('Send the X token as JSON.',415);
+   const raw=await request.text();
+   if(raw.length>5000)oaError('X token payload is too large.',413);
+   let payload;
+   try{payload=JSON.parse(raw)}catch{oaError('Invalid X token form.',422)}
+   const provided=typeof payload?.accessToken==='string'?payload.accessToken.trim():'';
+   if(provided.length<20||provided.length>4096||/\s/.test(provided))
+    oaError('Paste an X OAuth 2.0 user access token (without Bearer or spaces).',422);
+   // /users/me requires user context; an app-only Bearer token will be rejected.
+   const profile=await oaProfile('x',provided);
+   const now=Date.now();
+   await env.OAUTH_SESSIONS.put(accountKey,JSON.stringify({
+    profile,scopes:'users.read',manualUserToken:true,accessToken:provided,
+    refreshToken:'',expiresAt:now+3600000,createdAt:now
+   }),{expirationTtl:3600});
+   return oaReply({ok:true,provider:'x',connected:true,profile,
+    temporary:true,expiresInSeconds:3600},200,request);
+  }
   if(action==='session'){
    const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
    const fresh=Boolean(saved?.expiresAt&&saved.expiresAt>Date.now());
