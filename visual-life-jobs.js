@@ -10,7 +10,7 @@ const MAX_JOBS=60;
 const $=(s,r=document)=>r.querySelector(s);
 const clean=v=>String(v==null?'':v).trim().slice(0,160);
 const esc=v=>clean(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let jobs=[],sourceStatus='pending';
+let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null;
 function externalUrl(raw){
  try{
   const url=new URL(raw);
@@ -77,8 +77,9 @@ function render(panel){
  const note=$('.visual-life-source-note',panel),grid=$('.visual-life-job-grid',panel);
  grid.replaceChildren();
  note.textContent=jobs.length?
-   'Source adapter connected. Open each original posting to verify its details, employer and current availability.':
-   'Werk-main source not yet available to this deployment. These buttons open searches at original job platforms. No scraped listings are being represented as current.';
+   'JobSpy source snapshot'+(sourceTimestamp?' · '+sourceTimestamp:'')+'. Open each original posting to verify its details, employer and current availability.':
+   sourceStatus==='stale'?'Previously generated job listings are outdated and hidden until the next verified refresh. Use the original search platforms below.':
+   'The vendored werk-main / JobSpy feed has not been published yet. These buttons open searches at original job platforms. No scraped listings are being represented as current.';
  const all=jobs.length?jobs.filter(j=>[j.title,j.company,j.location].join(' ').toLowerCase().includes(role.toLowerCase())).slice(0,MAX_JOBS):[];
  if(all.length){
   all.forEach(job=>{
@@ -93,9 +94,29 @@ function render(panel){
   grid.appendChild(card);
  });
 }
+async function loadFeed(){
+ if(sourceLoading)return sourceLoading;
+ sourceLoading=(async()=>{
+  try{
+   const controller=new AbortController(),stop=setTimeout(()=>controller.abort(),7000);
+   let response;
+   try{response=await fetch('/data/visual-life/jobs.json',{cache:'no-store',signal:controller.signal,headers:{Accept:'application/json'}})}
+   finally{clearTimeout(stop)}
+   if(!response.ok)throw Error('Job source feed unavailable');
+   const data=await response.json();
+   if(data?.schema!==1||data?.status!=='published'||!Array.isArray(data?.jobs))return;
+   const published=Date.parse(data.generated_at||'');
+   if(!Number.isFinite(published)||Date.now()-published>96*3600*1000||published>Date.now()+3600*1000){sourceStatus='stale';jobs=[];return}
+   sourceTimestamp=new Date(published).toLocaleDateString();
+   setJobs(data.jobs);
+  }catch{sourceStatus='pending'}
+ })();
+ return sourceLoading;
+}
 function open(root){
  const panel=ensure(root);if(!panel)return;
  panel.hidden=false;ensureCard(root);render(panel);
+ loadFeed().then(()=>{if(panel.isConnected&&!panel.hidden)render(panel)});
  panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function setJobs(rows){
@@ -104,5 +125,5 @@ function setJobs(rows){
  if(panel&&!panel.hidden)render(panel);
  return {accepted:jobs.length,status:sourceStatus};
 }
-window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,getStatus:()=>sourceStatus,version:'1.0.0'};
+window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,loadFeed,getStatus:()=>sourceStatus,version:'1.1.0'};
 })();
