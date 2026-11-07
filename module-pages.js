@@ -1255,11 +1255,15 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        set(actions,{'grid-area':'actions','display':'flex','flex-wrap':'nowrap','align-items':'center',
          'gap':'4px','width':'100%','height':'34px','max-height':'34px',
          'min-width':'0','box-sizing':'border-box','padding':'0 33px 0 0',
-         'margin':'0','position':'static','grid-template-columns':'none'});
+         'margin':'0','position':'static','grid-template-columns':'none',
+         'overflow-x':'auto','overflow-y':'hidden','scrollbar-width':'thin',
+         'overscroll-behavior-x':'contain'});
+       if(actions){actions.tabIndex=0;actions.setAttribute('role','group');
+         actions.setAttribute('aria-label','Scrollable connection actions for '+(card.dataset.orbitRow||'this provider'))}
        for(const button of actions?.querySelectorAll(':scope > button')||[]){
          set(button,{'height':'30px','min-height':'30px','max-height':'30px',
-           'min-width':'0','max-width':'100%','width':'auto','padding':'4px 6px',
-           'margin':'0','flex':'0 1 auto','font-size':'9px','line-height':'1.15',
+           'min-width':'max-content','max-width':'none','width':'max-content','padding':'4px 6px',
+           'margin':'0','flex':'0 0 auto','font-size':'9px','line-height':'1.15',
            'white-space':'nowrap','overflow':'hidden','text-overflow':'ellipsis',
            'border-radius':'7px','box-sizing':'border-box'});
        }
@@ -1306,7 +1310,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':row.verifiedFromProvider?'<em class="orbit-state is-on">Connected · verified</em>':'<em class="orbit-state is-on">Connected</em>'):'<em class="orbit-state">Not connected</em>'}</header><div class="orbit-main">`+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}${row.verifiedFromProvider?'<small>Authenticated with '+esc(n)+' · verified just now</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':k==='snapchat'&&!links[k]?'<small>Snapchat connected. Add your public profile URL using Link to publish a quick link.</small>':k==='tumblr'&&!links[k]?'<small>Connected, but no public blog URL returned. Add your Tumblr blog link below.</small>':''}${k==='snapchat'?'<small>Spotlight imports require Snapchat Public Profile API access; Login Kit alone only shares account identity and optional Bitmoji.</small>':''}</div>`
         :'<div class="orbit-not-connected">Connect to show your account preview.</div>')+'</div>'+
-       `<div class="module-actions">${row&&['x','tumblr','snapchat'].includes(k)?'<button class="module-action ghost" type="button" data-orbit-verify="'+k+'">Verify status</button>':''}<button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='x'?'<button class="module-action ghost" type="button" data-orbit-x-basic="1" title="Diagnostic: request only X profile access, without Tweet or offline permissions">Test basic X login</button>':''}${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${links[k]||row?.link?'Edit link':(k==='snapchat'||k==='tumblr'?'Add profile link':'Link')}</button>${orbitBadge(g,t)}</div>`+
+       `<div class="module-actions">${row&&['x','tumblr','snapchat'].includes(k)?'<button class="module-action ghost" type="button" data-orbit-verify="'+k+'">Verify status</button>':''}<button class="module-action" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='tiktok'?'<button class="module-action ghost" type="button" data-orbit-tiktok-sync="1" title="Refresh TikTok profile and sync authorized posts without reopening Login Kit">Sync now</button>':''}${k==='x'?'<button class="module-action ghost" type="button" data-orbit-x-basic="1" title="Diagnostic: request only X profile access, without Tweet or offline permissions">Test basic X login</button>':''}${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${links[k]||row?.link?'Edit link':(k==='snapchat'||k==='tumblr'?'Add profile link':'Link')}</button>${orbitBadge(g,t)}</div>`+
        orbitLinkEditor(k,n,links[k]||row?.link||'')+'</div>';
      }
      return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Connect by adding your profile link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-edit-link="${k}">${links[k]?'Edit link':'Connect link'}</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open</button>${orbitBadge(g,t)}</div>`+orbitLinkEditor(k,n,links[k]||'')+'</div>';
@@ -1359,6 +1363,26 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
          renderOrbitPage();const status=body.querySelector('#orbitPageStatus');if(status)status.textContent=message;
        }catch(error){say('Could not verify provider session: '+(error?.message||'Please retry.'))}
        finally{if(check.isConnected)check.disabled=false}
+       return;
+     }
+     const tikTokSync=e.target.closest('[data-orbit-tiktok-sync]');
+     if(tikTokSync){
+       tikTokSync.disabled=true;
+       const client=window.__biglwaTikTokOrbit;
+       if(!client?.state?.connected){say('Connect your TikTok account first, then select Sync now.');tikTokSync.disabled=false;return;}
+       say('Refreshing TikTok account and checking authorized post imports…');
+       try{
+         if(typeof client.restore!=='function')throw Error('TikTok sync is still loading.');
+         await client.restore();
+         const state=client.state;
+         const status=body.querySelector('#orbitPageStatus');
+         const summary=!state.connected?'TikTok connection could not be restored: '+(state.lastError||'Reconnect in Orbit.')
+           :state.videoPermissionPending?'TikTok profile connected, but video.list access has not been approved. Public post link imports remain available. '+(state.lastCollectiveSync||'')
+           :state.videoLoadError?'TikTok profile connected, but video sync could not complete: '+state.videoLoadError
+           :(state.lastCollectiveSync||('TikTok connected; '+state.videoCount+' authorized video(s) returned.'));
+         if(status)status.textContent=summary;
+       }catch(error){const status=body.querySelector('#orbitPageStatus');if(status)status.textContent='TikTok sync failed: '+(error?.message||'Please reconnect.');}
+       finally{if(tikTokSync.isConnected)tikTokSync.disabled=false}
        return;
      }
      const basicX=e.target.closest('[data-orbit-x-basic]');

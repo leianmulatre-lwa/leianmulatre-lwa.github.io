@@ -176,6 +176,14 @@
  }
  const scan=()=>document.querySelectorAll('#studioApp img').forEach(bindImage);
  let moduleKey='',moduleStarted=0,avatarStarted=0,avatarChanged=0,moduleCurtain=null,avatarCurtain=null,viewAnywayFor='';
+ // Loading readiness is a one-way transition for a mounted module.
+ // A late image, tiny aria-busy pulse, or hydration mutation cannot flash the
+ // pixel curtain back over content after it has been revealed.
+ let moduleReadyCandidateAt=0,moduleRevealedFor='',moduleStableTimer=0;
+ const resetModuleReadiness=()=>{
+  moduleReadyCandidateAt=0;moduleRevealedFor='';
+  if(moduleStableTimer){clearTimeout(moduleStableTimer);moduleStableTimer=0}
+ };
  function curtain(container,label,kind){
   const el=document.createElement('div');el.className='lwa-curtain';el.dataset.lwaCurtain=kind;
   label=String(label||'loading').toLowerCase();
@@ -208,8 +216,8 @@
   const app=document.getElementById('studioApp');if(!app)return;
   const space=app.querySelector('.main.module-view>.module-workspace');const shell=space?.querySelector('.module-shell');
   const key=space?.dataset.moduleKey||'';
-  if(key&&key!==moduleKey){moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
-  if(!key){moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setModuleLoading(false)}
+  if(key&&key!==moduleKey){resetModuleReadiness();moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
+  if(!key){if(moduleKey)resetModuleReadiness();moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setModuleLoading(false)}
   if(shell&&key){
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
    moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
@@ -220,9 +228,25 @@
    const feed=veve?window.BigLWAVeve?.status?.():null;
    // The Veve API owns the data fetch lifecycle: public posts, Sqwidz, and
    // the final render. Do NOT wait for lazy photos below the landing viewport.
-   const ready=veve?Boolean(feed?.ready&&feed?.mounted):
+   const readyCandidate=veve?Boolean(feed?.ready&&feed?.mounted):
      (Date.now()-moduleStarted>=320 && !unresolvedImages(shell) && !busy);
-   const visible=!ready&&viewAnywayFor!==key;
+   // Demand a brief stable ready interval so rapid auth/render mutations do not
+   // reveal unfinished UI. Once revealed, never re-show the curtain on this
+   // module mount, even if a later widget/network request becomes busy.
+   if(moduleRevealedFor!==key){
+     if(readyCandidate){
+       if(!moduleReadyCandidateAt){
+         moduleReadyCandidateAt=Date.now();
+         if(moduleStableTimer)clearTimeout(moduleStableTimer);
+         moduleStableTimer=setTimeout(()=>{moduleStableTimer=0;schedule()},480);
+       }
+       if(Date.now()-moduleReadyCandidateAt>=450)moduleRevealedFor=key;
+     }else{
+       moduleReadyCandidateAt=0;
+       if(moduleStableTimer){clearTimeout(moduleStableTimer);moduleStableTimer=0}
+     }
+   }
+   const visible=moduleRevealedFor!==key&&viewAnywayFor!==key;
    moduleCurtain.hidden=!visible;
    // Drive the top-left dots from the very same boolean as the module curtain.
    setModuleLoading(visible);

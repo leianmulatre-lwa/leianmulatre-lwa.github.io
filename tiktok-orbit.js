@@ -378,18 +378,17 @@
     renderTikTokLinkImporter();
     renderTikTokFeedImporter();
     document.querySelectorAll('[data-orbit-app="tiktok"]').forEach(el => { el.classList.toggle('orbit-connected',connected); el.setAttribute('aria-label',connected?'Refresh TikTok':'Connect TikTok'); });
-    document.querySelectorAll('[data-orbit-path="tiktok"]').forEach(input => {
-      const actions = input.closest('.module-orbit-row')?.querySelector('.module-actions');
-      if (!actions) return;
-      let feedback=actions.querySelector('[data-tiktok-video-sync-status]');
-      if(!feedback){feedback=document.createElement('small');feedback.dataset.tiktokVideoSyncStatus='1';
-        feedback.style.cssText='display:block;flex-basis:100%;font:500 10px/1.3 system-ui;color:#735166;margin:3px 0 0';actions.append(feedback);}
-      feedback.textContent=!connected?'':videoPermissionPending?
-        (lastCollectiveSync||videoLoadError||'Checking connected public TikTok profile…'):
-        (videoLoadError||lastCollectiveSync||(videos.length?'Preparing authorized videos for Collective Feed.':'No public TikTok videos returned by the authorized account.'));
-      let area = actions.querySelector('[data-tt-actions]');
-      if (!area) { area = document.createElement('span'); area.dataset.ttActions=''; actions.prepend(area); }
-      area.innerHTML='<button type="button" class="module-action" data-tt-connect>' + (connected?'Refresh TikTok':'Connect TikTok') + '</button>' + (connected?'<button type="button" class="module-action" data-tt-disconnect>Disconnect</button>':'');
+    // Orbit renders its own Connect / Reconnect / Link controls. Do not inject
+    // a second Connect/Disconnect group or a full-width status label into the
+    // compact card's action rail; those extra nodes clipped neighboring buttons.
+    // Keep sync diagnostics available on the card and in account-scoped Logs.
+    document.querySelectorAll('.module-orbit-row[data-orbit-row="tiktok"]').forEach(row=>{
+      const detail=!connected?(lastError||'Connect TikTok to sync your profile.'):
+        (videoLoadError||lastCollectiveSync||(videoPermissionPending
+          ?'TikTok video.list is not authorized; public post links remain available.'
+          :videos.length+' authorized TikTok video(s) found.'));
+      row.title=detail;
+      row.dataset.tiktokSyncState=connected?(videoPermissionPending?'limited':'connected'):'disconnected';
     });
   }
   function renderFeedList(list){
@@ -610,6 +609,6 @@
   document.addEventListener('biglwa:new-orbit-status',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();},70));
   window.addEventListener('biglwa:external-stats-updated',renderTikTokAnalytics);
   window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,renderTikTokFeedImporter,
-    get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length}}};
+    get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length,lastCollectiveSync}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 }());

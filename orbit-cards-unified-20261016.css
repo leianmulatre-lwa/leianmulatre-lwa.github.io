@@ -81,11 +81,13 @@
   box-sizing:border-box!important;
   padding:0 33px 0 0!important;margin:0!important;position:static!important;
   grid-template-columns:none!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scrollbar-width:thin;overscroll-behavior-x:contain;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] > .module-actions > button{
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
-  flex:0 1 auto!important;min-width:0!important;
-  width:auto!important;max-width:100%!important;
+  flex:0 0 auto!important;min-width:max-content!important;
+  width:max-content!important;max-width:none!important;
   height:30px!important;min-height:30px!important;max-height:30px!important;
   margin:0!important;padding:4px 6px!important;
   border-radius:7px!important;
@@ -106,8 +108,8 @@
   display:flex!important;grid-template-columns:none!important;gap:3px!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"] > .module-actions > button{
-  width:auto!important;min-width:0!important;max-width:100%!important;
-  flex:0 1 auto!important;grid-column:auto!important;grid-row:auto!important;
+  width:max-content!important;min-width:max-content!important;max-width:none!important;
+  flex:0 0 auto!important;grid-column:auto!important;grid-row:auto!important;
   margin:0!important;padding:3px 5px!important;font-size:9px!important;
 }
 /* The profile link editor is in the browser's top layer. It cannot
