@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#481c22">
+  <title>Mailroom · Big LWA Developer Console</title>
+  <link rel="stylesheet" href="./mailroom.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Big LWA home"><span class="brand-mark">✦</span> BIG LWA</a>
+      <span class="top-context">/ DEVELOPER CONSOLE <span class="brown-heart">🤎</span></span>
+      <span class="top-status" id="sessionState">Checking access…</span>
+    </header>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Developer sections">
+        <div class="side-heading"><span class="side-eyebrow">THE BACKSTAGE</span><strong>Developer<br>Console</strong><span class="side-sub">Made with care, for the worlds we make.</span></div>
+        <nav>
+          <span class="nav-label">WORKSPACES</span>
+          <a class="nav-item active" href="./" aria-current="page"><span aria-hidden="true">✉</span> Mailroom <small>01</small></a>
+          <div class="nav-future"><span aria-hidden="true">⊞</span> Integrations <small>Later</small></div>
+          <div class="nav-future"><span aria-hidden="true">⚙</span> Systems <small>Later</small></div>
+        </nav>
+        <div class="side-footer"><span class="stitch">✳ ✳ ✳</span><p>Privacy should be<br>the bare minimum.</p><a href="/">← Back to Studio</a></div>
+      </aside>
+      <main class="workspace">
+        <section class="access-panel" id="accessPanel" role="status" aria-live="polite">
+          <div class="access-icon" aria-hidden="true">✉</div>
+          <h1 id="accessTitle">Checking your key…</h1>
+          <p id="accessMessage">The Mailroom is only available to authorized Big LWA developers.</p>
+          <a href="/" class="text-link" id="accessLink" hidden>Return to Big LWA to sign in</a>
+        </section>
+        <section class="mailroom" id="mailroom" hidden>
+          <div class="page-intro">
+            <div><div class="eyebrow">L’WAZI’S LITTLE LETTERS · VOL. 01</div><h1>Mailroom <span class="heart">🤎</span></h1><p>Every good world deserves a way to say hello.</p></div>
+            <div class="draft-chip"><span class="live-dot"></span> DRAFT STUDIO · NO EMAILS SENT</div>
+          </div>
+          <div class="notice" role="note"><strong>Delivery is not connected.</strong> These templates are editable drafts, not live Firebase authentication emails. The future SMTP service will own secure links and message delivery.</div>
+          <div class="panes">
+            <section class="editor-panel" aria-labelledby="editorTitle">
+              <div class="panel-heading"><div><span class="small-label">01 / LETTER EDITOR</span><h2 id="editorTitle">Write something lovely.</h2></div></div>
+              <label for="templateSelect">Choose a letter</label>
+              <select id="templateSelect">
+                <option value="verify">Email verification</option>
+                <option value="reset">Password reset</option>
+                <option value="email-change">Email address change</option>
+                <option value="mfa">Multi-factor notification</option>
+              </select>
+              <form id="letterForm">
+                <div class="field"><label for="subject">Subject line</label><input id="subject" name="subject" maxlength="160" required></div>
+                <div class="field"><label for="preheader">Inbox preview</label><input id="preheader" name="preheader" maxlength="220" required></div>
+                <div class="field"><label for="greeting">Greeting</label><input id="greeting" name="greeting" maxlength="160" required></div>
+                <div class="field"><label for="body">Letter</label><textarea id="body" name="body" rows="11" maxlength="8000" required></textarea><small>Plain text, with blank lines between paragraphs. Allowed examples: {{OLD_EMAIL}}, {{NEW_EMAIL}}, {{DISPLAY_NAME}}. Security action links are inserted only by the delivery backend.</small></div>
+                <div class="field"><label for="buttonText">Action button</label><input id="buttonText" name="buttonText" maxlength="100" required></div>
+                <div class="field-grid">
+                  <div class="field"><label for="closing">Closing</label><input id="closing" name="closing" maxlength="80" required></div>
+                  <div class="field"><label for="signature">Signature</label><input id="signature" name="signature" maxlength="180" required></div>
+                </div>
+                <div class="form-actions"><button class="primary-button" type="submit" id="saveButton">Save draft</button><button type="button" class="quiet-button" id="restoreButton">Restore default copy</button></div>
+              </form>
+              <p class="status-message" id="editorStatus" role="status" aria-live="polite"></p>
+            </section>
+            <section class="preview-panel" aria-labelledby="previewTitle">
+              <div class="panel-heading"><div><span class="small-label">02 / ENVELOPE PREVIEW</span><h2 id="previewTitle">From L’wazi, with love.</h2></div><span class="preview-pill">INBOX VIEW</span></div>
+              <div class="envelope-meta"><span>FROM</span><strong>L’wazi &lt;lwazi@biglwa.com&gt;</strong><span>TO</span><strong>your bookini 🤎</strong></div>
+              <iframe id="emailPreview" title="Sandboxed email preview" sandbox="" referrerpolicy="no-referrer"></iframe>
+              <div class="export-area">
+                <span class="small-label">EXPORT DRAFT</span>
+                <div class="export-actions">
+                  <button type="button" class="quiet-button" id="copyButton">Copy HTML</button>
+                  <button type="button" class="quiet-button" id="htmlButton">Download HTML</button>
+                  <button type="button" class="quiet-button" id="textButton">Download plain text</button>
+                  <button type="button" class="quiet-button" id="jsonButton">Download JSON</button>
+                </div>
+                <p>Exports contain a placeholder action URL, not a real verification or recovery link. Don't send them directly to members.</p>
+              </div>
+            </section>
+          </div>
+          <footer class="page-footer">BIG LWA · PEOPLE · IDEAS · SOUNDS · SELF <span>Build the world. Keep the keys. 🤎</span></footer>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
