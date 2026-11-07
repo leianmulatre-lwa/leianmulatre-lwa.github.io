@@ -1,0 +1,27 @@
+name: BIG LWA source and deployment inventory
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-current-tree:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inventory source payload, entrypoint assets and Worker secret names
+        run: node scripts/repository-surface-audit.mjs ./seo-audits/repository-surface-audit.json
+      - name: Verify Visual-Life job feed transforms without external requests
+        run: python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+      - name: Upload inventory report
+        uses: actions/upload-artifact@v4
+        with:
+          name: biglwa-source-tree-inventory
+          path: seo-audits/repository-surface-audit.json
+          if-no-files-found: error
