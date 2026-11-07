@@ -37,7 +37,11 @@
     }
     const token=await authToken();
     const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),32000);
+    const upstreamSignal=options?.signal;
+    const abortFromCaller=()=>controller.abort();
+    if(upstreamSignal?.aborted)controller.abort();
+    else upstreamSignal?.addEventListener?.('abort',abortFromCaller,{once:true});
+    const timeout=setTimeout(()=>controller.abort(),options?.mode==='deep'?32000:19000);
     try{
       const publicSources=Array.isArray(sources)?sources.slice(0,6).map(x=>({
         title:String(x.title||'').slice(0,140),
@@ -74,7 +78,7 @@
       }
       if(!output)throw Error('L’wazi produced an empty answer.');
       return output;
-    }finally{clearTimeout(timeout)}
+    }finally{clearTimeout(timeout);upstreamSignal?.removeEventListener?.('abort',abortFromCaller)}
   }
   window.__biglwaAskLwazi=ask;
   window.__biglwaLwaziBridge={version:'1.0.0',endpoint:endpoint.origin,enabled:true};
