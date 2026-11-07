@@ -6,9 +6,12 @@ compatibility_date = "2026-09-11"
 # a repository deploy. Secret values are never committed to GitHub.
 keep_vars = true
 
-# These bindings mirror what is already live on the Worker. A bare
-# `wrangler deploy worker.js` would have removed every one of them, which would
-# break OAuth state storage and all media storage at the same time.
+# Intended production bindings. Cloudflare's currently active deployment
+# (verified 2026-11-06) is *static-assets-only* and exposes neither these bindings
+# nor the encrypted OAuth secrets. Do not interpret this file as proof they are live.
+# A bare `wrangler deploy worker.js` or deployment without required secrets could
+# remove OAuth state and media access. Restore the real API Worker carefully;
+# see docs/runbooks/cloudflare-oauth-worker-recovery.md.
 [vars]
 INSTAGRAM_APP_ID = "1071153952301247"
 PINTEREST_APP_ID = "1610773"
