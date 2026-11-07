@@ -73,13 +73,13 @@ check("a link must be a real link", tools.includes("That needs to be a full link
 console.log("\n=== WIRED INTO THE PAGE ===");
 check("the Tools module mounts the studio", pages.includes("mod.mountToolsStudio($('#toolStudio',body)"));
 check("the download helper is passed in", pages.includes("{downloadBlob}"));
-check("a load failure is shown, not swallowed", pages.includes("Tools could not start"));
+check("a load failure is shown, not swallowed", pages.includes("lwazi could not start") && pages.includes("Give the page a refresh and it will load again."));
 check("the old separate tool cards are gone", !pages.includes("id=\"pdfForm\"") && !pages.includes("id=\"ytForm\"") && !pages.includes("id=\"vidFile\""));
 check("the drop area is styled as a drop area", pages.includes(".tool-drop{") && pages.includes("border:2px dashed"));
 check("the drop area reacts to a file over it", pages.includes(".tool-drop.is-over{"));
 check("progress has a bar", pages.includes(".tool-progress span{") && tools.includes("id=\"toolProgressBar\"") && tools.includes("barEl.style.width=Math.round(fraction*100)+'%'"));
-check("the card copy matches a usable file intake", pages.includes("Drop any file and it is sorted out automatically"));
-check("the module description matches too", pages.includes("Drop a file and it works out what to offer"));
+check("the card copy matches a usable file intake", tools.includes("Drop a file here") && tools.includes("BIGLWA works out what it is and offers the conversions that suit it."));
+check("the module description matches too", tools.includes("Video, audio, images, PDFs, archives, documents, anything.") && tools.includes("Files up to 500 MB are accepted locally"));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
