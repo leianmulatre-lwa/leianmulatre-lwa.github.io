@@ -38,6 +38,8 @@ jobs:
           node --check tiktok-orbit.js
       - name: Verify release regressions
         run: node scripts/release-audit-regressions.test.mjs
+      - name: Install JSDOM for browser-simulation curtain regression
+        run: npm install --no-save --no-package-lock --ignore-scripts jsdom@26
       - name: Verify existing Orbit and curtain behavior
         run: |
           node orbit-inline-links-regression-test.mjs
