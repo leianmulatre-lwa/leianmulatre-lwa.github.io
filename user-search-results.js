@@ -241,7 +241,7 @@
       var lc=clean.toLowerCase();
       var conversation=conversationIntent(clean);
       var isSocialGreeting=!!(conversation&&(conversation.kind==='greeting'||conversation.kind==='identity'));
-      var immediate=fastLwaziResponse(clean);
+      var immediate=conversation?conversation.reply:fastLwaziResponse(clean);
       if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)instantBox.textContent=immediate}
       var userPromise=(isSocialGreeting?Promise.resolve([]):searchUsers(lc)).catch(function(){return []});
       var postPromise=userPromise.then(publicUserPosts).catch(function(){return []});
