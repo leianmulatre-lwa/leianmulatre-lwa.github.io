@@ -1,0 +1,62 @@
+name: Visual-Life jobs · manual vetted feed
+
+on:
+  workflow_dispatch:
+    inputs:
+      search_term:
+        description: 'Job title or skill to search'
+        required: true
+        default: 'creative director'
+        type: string
+      location:
+        description: 'Location for jobs'
+        required: true
+        default: 'United States'
+        type: string
+      source:
+        description: 'Original job board'
+        type: choice
+        options:
+          - indeed
+          - zip_recruiter
+        default: indeed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: visual-life-feed
+  cancel-in-progress: false
+
+jobs:
+  reviewed-source-refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify output schema without network
+        run: python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+      - name: Install local vendored MIT library
+        run: pip install --disable-pip-version-check ./werk-main
+      - name: Run bounded job search (no proxies or API keys)
+        env:
+          JOB_TERM: ${{ inputs.search_term }}
+          JOB_LOCATION: ${{ inputs.location }}
+          JOB_SOURCE: ${{ inputs.source }}
+        run: python3 scripts/visual_life_feed.py --term "$JOB_TERM" --location "$JOB_LOCATION" --source "$JOB_SOURCE" --limit 10
+      - name: Validate feed and commit only source records
+        run: |
+          python3 -m json.tool data/visual-life/jobs.json > /dev/null
+          git add data/visual-life/jobs.json
+          if git diff --cached --quiet; then
+            echo "No changed feed"
+            exit 0
+          fi
+          git -c user.name="BIG LWA jobs feed" -c user.email="actions@users.noreply.github.com" commit -m "data(visual-life): publish verified JobSpy source results"
+          git push origin HEAD:main
