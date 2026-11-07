@@ -39,7 +39,9 @@ assert.equal(curtain.querySelector('.lwa-curtain-progress').textContent,stage.to
 ready=true;stage='Public collections ready.';
 doc.dispatchEvent(new w.CustomEvent('biglwa:veve-load-state',{detail:{stage,ready:true}}));
 await sleep(45);
-assert.equal(curtain.hidden,true,'Ready state dismisses curtain even when lazy photo is still incomplete');
+assert.equal(curtain.hidden,false,'Curtain should remain while the ready state is settling');
+await sleep(530);
+assert.equal(curtain.hidden,true,'Stable ready state dismisses curtain even when lazy photo is still incomplete');
 assert.equal(shell.classList.contains('lwa-curtain-veve-pending'),false,'Feed tiles reappear after data completes');
 ready=false;
 const workspace=doc.querySelector('.module-workspace');
