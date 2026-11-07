@@ -61,8 +61,8 @@ export function interpolatePreview(value) {
   return String(value).replace(/\{\{(DISPLAY_NAME|OLD_EMAIL|NEW_EMAIL|ACTION_URL)\}\}/g,
     (_, key) => SAMPLE[key]);
 }
-function paragraphs(text) {
-  return interpolatePreview(text).split(/\n\s*\n/).filter(Boolean).map(part =>
+function paragraphs(text, preview) {
+  return (preview ? interpolatePreview(text) : text).split(/\n\s*\n/).filter(Boolean).map(part =>
     '<p style="margin:0 0 12px;line-height:1.48;font-size:15px;color:#362924">' +
     escapeHtml(part).replace(/\n/g, "<br>") + "</p>").join("");
 }
@@ -71,11 +71,12 @@ export function renderEmailHtml(template, options = {}) {
   if (!validateTemplate(t)) throw new Error("Fill in all template fields before exporting.");
   // Never allow an editable template to set a destination; delivery backend owns the action URL.
   const target = options.preview ? "#preview-only" : "{{ACTION_URL}}";
+  const display = value => options.preview ? interpolatePreview(value) : value;
   return [
     '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>',
     '<body style="margin:0;padding:0;background:#f1ebe3;font-family:Arial,Helvetica,sans-serif;color:#362924">',
     '<div style="display:none;font-size:1px;color:#f1ebe3;max-height:0;overflow:hidden;opacity:0">',
-      escapeHtml(interpolatePreview(t.preheader)), '</div>',
+      escapeHtml(display(t.preheader)), '</div>',
     '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ebe3;padding:28px 12px"><tr><td align="center">',
     '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:580px;background:#fffaf4;border:1px solid #c9ada0">',
     '<tr><td style="height:12px;background:#7a292b"></td></tr>',
@@ -84,10 +85,10 @@ export function renderEmailHtml(template, options = {}) {
     '<div style="font-size:10px;letter-spacing:2px;color:#8b7566;padding-top:5px">PEOPLE · IDEAS · SOUNDS · SELF</div>',
     '</td></tr><tr><td style="padding:25px 28px 19px">',
     '<h1 style="font-size:21px;line-height:1.3;margin:0 0 17px;color:#5e2427">',
-      escapeHtml(interpolatePreview(t.subject)), '</h1>',
+      escapeHtml(display(t.subject)), '</h1>',
     '<p style="margin:0 0 12px;line-height:1.48;font-weight:bold;color:#362924;font-size:15px">',
-      escapeHtml(interpolatePreview(t.greeting)), '</p>',
-    paragraphs(t.body),
+      escapeHtml(display(t.greeting)), '</p>',
+    paragraphs(t.body, !!options.preview),
     '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0 21px"><tr><td style="background:#682d2b;border:1px solid #4b1f1e">',
     '<a href="', escapeHtml(target), '" style="display:inline-block;padding:11px 18px;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px">',
       escapeHtml(t.buttonText), '</a></td></tr></table>',
@@ -101,8 +102,8 @@ export function renderEmailHtml(template, options = {}) {
 }
 export function renderPlainText(template) {
   if (!validateTemplate(template)) throw new Error("Fill in all template fields before exporting.");
-  return [interpolatePreview(template.subject), "", interpolatePreview(template.greeting),
-    "", interpolatePreview(template.body), "",
+  return [template.subject, "", template.greeting,
+    "", template.body, "",
     template.buttonText + ": {{ACTION_URL}}", "",
     template.closing, template.signature, "Your friend inside the machine.",
     "", "BIG LWA · People · Ideas · Sounds · Self"].join("\n");
