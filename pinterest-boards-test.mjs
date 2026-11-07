@@ -57,7 +57,8 @@ assert.ok(frontend.includes("gallery.dataset.count=String(photos.length)"),'Stud
 assert.ok(studioThumb.includes('grid-template-columns:minmax(0,1.24fr) repeat(2,minmax(0,1fr))'),
   'Studio Boards has the requested portrait-and-four layout');
 assert.ok(!pages.includes("tiles.slice(0,6).map((item,i)=>"),'Old six-tile Studio renderer stays removed');
-assert.ok(pages.includes("state?.connected&&(!viewer||state.uid===viewer)"),'static board placeholders are removed after connecting');
+assert.ok(pages.includes("const linked=Boolean(window.__biglwaPinterest?.state?.connected)"),'the thumbnail reads verified Pinterest connection state');
+assert.ok(pages.includes('Connect Pinterest to preview your Pins'),'owner sees an honest Connect prompt when no genuine photos exist');
 assert.ok(pages.includes("studio-mini-map-open"),'the Studio map has an open-full-map action');
 assert.ok(pages.includes("mini.loading='eager'"),'real mini-map loads on Studio without scrolling to it');
 console.log('Studio Boards five-photo portrait mosaic and interactive Map checks passed');
