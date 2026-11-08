@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'developer/**'
+      - 'tools/mailroom-firebase/**'
       - 'firestore.rules'
       - '.github/workflows/mailroom-checks.yml'
   workflow_dispatch:
@@ -20,9 +21,13 @@ jobs:
       - name: Syntax checks
         run: |
           node --check developer/mailroom/templates.js
+          node --check developer/mailroom/firebase-native.js
+          node --check tools/mailroom-firebase/publish-plan.mjs
+          node --check tools/mailroom-firebase/publish.mjs
+          node --check tools/mailroom-firebase/publisher.test.mjs
           node --check developer/mailroom/app.js
           node --check developer/mailroom/mailroom.test.mjs
           node --check developer/console.js
           node --check developer/developer-shell.test.mjs
       - name: Mailroom regression and security tests
-        run: node --test developer/mailroom/mailroom.test.mjs developer/developer-shell.test.mjs
+        run: node --test developer/mailroom/mailroom.test.mjs developer/developer-shell.test.mjs tools/mailroom-firebase/publisher.test.mjs
