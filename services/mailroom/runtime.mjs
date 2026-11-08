@@ -1,6 +1,6 @@
 // Privileged runtime for an independent Node 22+ service, not GitHub Pages/Orbit Worker.
 import { createMailroomApi } from "./api.mjs";
-import { createAuthDelivery } from "./auth-delivery.mjs";
+import { createApprovedAuthDelivery } from "./approved-delivery.mjs";
 
 function requireEnv(env,key) {
   const value=String(env[key]||"").trim();
@@ -8,7 +8,7 @@ function requireEnv(env,key) {
   return value;
 }
 function smtpConfig(env) {
-  const host=requireEnv(env,"MAILROOM_SMTP_HOST");
+  const host=String(env.MAILROOM_SMTP_HOST||"smtp.titan.email").trim();
   const port=Number(env.MAILROOM_SMTP_PORT||465);
   const user=requireEnv(env,"MAILROOM_SMTP_USER");
   const pass=requireEnv(env,"MAILROOM_SMTP_PASSWORD");
@@ -73,8 +73,12 @@ export async function buildRuntime(env=process.env) {
     },
     sendMail,enabled
   });
-  const deliverAuth=createAuthDelivery({
-    auth,loadProfile,sendMail,enabled:authDeliveryEnabled
+  const loadPublishedTemplate=async id=>{
+    const snap=await db.collection("developerMailPublished").doc(id).get();
+    return snap.exists?snap.data():null;
+  };
+  const deliverAuth=createApprovedAuthDelivery({
+    auth,loadProfile,loadPublishedTemplate,sendMail,enabled:authDeliveryEnabled
   });
   return {handler,deliverAuth};
 }

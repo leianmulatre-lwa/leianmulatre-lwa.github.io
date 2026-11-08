@@ -48,13 +48,15 @@ export function startHttpServer(handler,{host="127.0.0.1",port=8789}={}) {
 }
 if (process.argv[1] && import.meta.url===new URL("file://"+process.argv[1]).href) {
   const runtime=await buildRuntime(process.env);
-  const host=process.env.MAILROOM_LISTEN_HOST || "127.0.0.1";
-  const port=Number(process.env.MAILROOM_LISTEN_PORT || 8789);
+  const cloudRun=Boolean(process.env.K_SERVICE);
+  const host=process.env.MAILROOM_LISTEN_HOST || (cloudRun ? "0.0.0.0" : "127.0.0.1");
+  const port=Number(process.env.MAILROOM_LISTEN_PORT || process.env.PORT || (cloudRun ? 8080 : 8789));
   if (!Number.isInteger(port)||port<1||port>65535)
     throw new Error("Invalid listen port.");
   // Public bind is explicitly disallowed. Use a secure reverse proxy + TLS.
-  if(!["127.0.0.1","::1"].includes(host))
-    throw new Error("Mailroom service may only bind to localhost; configure a trusted reverse proxy.");
+  if(!["127.0.0.1","::1"].includes(host) &&
+    !(cloudRun && host==="0.0.0.0" && process.env.MAILROOM_EXPOSED_STAGE==="true"))
+    throw new Error("Non-loopback bind requires an explicit Cloud Run staging gate.");
   startHttpServer(runtime.handler,{host,port});
   process.stdout.write("Big LWA Mailroom backend listening locally. Live sending is gated.\\n");
 }
