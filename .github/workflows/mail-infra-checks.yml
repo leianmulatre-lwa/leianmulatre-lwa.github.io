@@ -21,6 +21,8 @@ jobs:
           node --check infra/mail/check-dns.mjs
           node --check infra/mail/tests/mail-infra.test.mjs
       - name: Validate Docker Compose
-        run: docker compose -f infra/mail/docker-compose.yml config --quiet
+        run: |
+          docker compose -f infra/mail/docker-compose.yml config --quiet
+          docker compose -f infra/mail/docker-compose.local.yml config --quiet
       - name: Run mail safety and DNS tests
         run: node --test infra/mail/tests/mail-infra.test.mjs
