@@ -22,10 +22,14 @@ jobs:
           node --check services/mailroom/compose.mjs
           node --check services/mailroom/api.mjs
           node --check services/mailroom/auth-delivery.mjs
+          node --check services/mailroom/approved-delivery.mjs
+          node --check services/mailroom/published.mjs
+          node --check services/mailroom/publish-draft.mjs
+          node --check services/mailroom/tests/approved-delivery.test.mjs
           node --check services/mailroom/runtime.mjs
           node --check services/mailroom/server.mjs
           node --check services/mailroom/tests/backend.test.mjs
       - name: Offline backend behavior and safety tests
-        run: node --test services/mailroom/tests/backend.test.mjs
+        run: node --test services/mailroom/tests/*.test.mjs
       - name: Existing Mailroom regression suite
         run: node --test developer/mailroom/mailroom.test.mjs developer/developer-shell.test.mjs
