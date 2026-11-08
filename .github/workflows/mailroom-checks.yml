@@ -2,7 +2,7 @@ name: Developer Mailroom checks
 on:
   pull_request:
     paths:
-      - 'developer/mailroom/**'
+      - 'developer/**'
       - 'firestore.rules'
       - '.github/workflows/mailroom-checks.yml'
   workflow_dispatch:
@@ -22,5 +22,7 @@ jobs:
           node --check developer/mailroom/templates.js
           node --check developer/mailroom/app.js
           node --check developer/mailroom/mailroom.test.mjs
+          node --check developer/console.js
+          node --check developer/developer-shell.test.mjs
       - name: Mailroom regression and security tests
-        run: node --test developer/mailroom/mailroom.test.mjs
+        run: node --test developer/mailroom/mailroom.test.mjs developer/developer-shell.test.mjs

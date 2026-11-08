@@ -5,45 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="theme-color" content="#481c22">
+  <meta name="theme-color" content="#47070c">
   <title>Mailroom · Big LWA Developer Console</title>
+  <link rel="icon" href="/assets/brand/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/stitched-crest.css">
+  <link rel="stylesheet" href="/developer/console.css">
   <link rel="stylesheet" href="./mailroom.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="Big LWA home"><span class="brand-mark">✦</span> BIG LWA</a>
-      <span class="top-context">/ DEVELOPER CONSOLE <span class="brown-heart">🤎</span></span>
-      <span class="top-status" id="sessionState">Checking access…</span>
-    </header>
-    <div class="shell">
-      <aside class="sidebar" aria-label="Developer sections">
-        <div class="side-heading"><span class="side-eyebrow">THE BACKSTAGE</span><strong>Developer<br>Console</strong><span class="side-sub">Made with care, for the worlds we make.</span></div>
-        <nav>
-          <span class="nav-label">WORKSPACES</span>
-          <a class="nav-item active" href="./" aria-current="page"><span aria-hidden="true">✉</span> Mailroom <small>01</small></a>
-          <div class="nav-future"><span aria-hidden="true">⊞</span> Integrations <small>Later</small></div>
-          <div class="nav-future"><span aria-hidden="true">⚙</span> Systems <small>Later</small></div>
-        </nav>
-        <div class="side-footer"><span class="stitch">✳ ✳ ✳</span><p>Privacy should be<br>the bare minimum.</p><a href="/">← Back to Studio</a></div>
-      </aside>
-      <main class="workspace">
-        <section class="access-panel" id="accessPanel" role="status" aria-live="polite">
-          <div class="access-icon" aria-hidden="true">✉</div>
-          <h1 id="accessTitle">Checking your key…</h1>
-          <p id="accessMessage">The Mailroom is only available to authorized Big LWA developers.</p>
-          <a href="/" class="text-link" id="accessLink" hidden>Return to Big LWA to sign in</a>
-        </section>
-        <section class="mailroom" id="mailroom" hidden>
-          <div class="page-intro">
-            <div><div class="eyebrow">L’WAZI’S LITTLE LETTERS · VOL. 01</div><h1>Mailroom <span class="heart">🤎</span></h1><p>Every good world deserves a way to say hello.</p></div>
-            <div class="draft-chip"><span class="live-dot"></span> DRAFT STUDIO · NO EMAILS SENT</div>
-          </div>
-          <div class="notice" role="note"><strong>Delivery is not connected.</strong> These templates are editable drafts, not live Firebase authentication emails. The future SMTP service will own secure links and message delivery.</div>
+  <header class="dev-topbar">
+    <a class="dev-brand" href="/" aria-label="Return to the Big LWA Studio">
+      <span class="biglwa-stitched-crest" aria-hidden="true"></span>
+      <img class="dev-brand-tipi" src="/assets/studio-tipi-symbol.svg" alt="" aria-hidden="true">
+    </a>
+    <div class="dev-search-shaped" aria-label="Current location">
+      <span class="dev-breadcrumb-icon" aria-hidden="true">✳</span>
+      <span class="dev-breadcrumb"><a href="/developer/">Developer Console</a> <span aria-hidden="true">/</span> <strong>Mailroom</strong></span>
+      <span aria-hidden="true">✉</span>
+    </div>
+    <div class="dev-top-actions"><a href="/">Back to Studio</a><span id="sessionState" class="dev-status" role="status">Checking access…</span><span class="dev-avatar" aria-hidden="true">L</span></div>
+  </header>
+
+  <main class="dev-main">
+    <div class="dev-path">
+      <div class="dev-path-text"><strong>BIG LWA</strong> <span aria-hidden="true">›</span> Developer Console <span aria-hidden="true">›</span> L’wazi's Mailroom</div>
+      <nav class="dev-room-nav" aria-label="Developer Console">
+        <a href="/developer/">Overview</a>
+        <a href="/developer/mailroom/" aria-current="page">✉ Mailroom</a>
+      </nav>
+    </div>
+
+    <section class="dev-access" id="accessPanel" role="status" aria-live="polite">
+      <img class="dev-access-icon" src="/assets/skeleton-key-pin-32.png" alt="">
+      <h2 id="accessTitle">Checking your key…</h2>
+      <p id="accessMessage">The Mailroom is only available to authorized Big LWA developers.</p>
+      <a href="/" id="accessLink" hidden>Return to Big LWA to sign in</a>
+    </section>
+
+    <section id="mailroom" class="mailroom" hidden>
+      <header class="dev-hero dev-hero--mailroom">
+        <div class="dev-hero-copy">
+          <span class="dev-eyebrow">Developer Console / Room 01</span>
+          <h1>L’wazi's Mailroom 🤎</h1>
+          <p>All the little letters from our world to yours. Write them here; keep them yours.</p>
+        </div>
+        <div class="dev-pixel-scene" aria-hidden="true">
+          <img src="/assets/loading-blocks-pixel-20261029.png" alt="">
+          <span class="dev-lights"><i></i><i></i><i></i></span>
+          <img src="/assets/loading-globe-pixel-20261029.png" alt="">
+        </div>
+      </header>
+
+      <section class="dev-window" aria-label="Mailroom editor">
+        <header class="dev-window-bar">
+          <strong>Mailroom / letter editor</strong>
+          <small>BIG LWA · PRIVATE DRAFTS</small>
+          <span class="dev-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+        </header>
+        <div class="dev-window-content">
+          <p class="dev-note"><strong>Draft studio, not live delivery.</strong> Editing here does not change Firebase's authentication emails. The future mail backend will own secure action links and sending.</p>
           <div class="panes">
             <section class="editor-panel" aria-labelledby="editorTitle">
-              <div class="panel-heading"><div><span class="small-label">01 / LETTER EDITOR</span><h2 id="editorTitle">Write something lovely.</h2></div></div>
+              <header class="panel-heading"><div><span class="small-label">01 / WRITE A LETTER</span><h2 id="editorTitle">Write something lovely.</h2></div><span class="panel-symbol" aria-hidden="true">✉</span></header>
               <label for="templateSelect">Choose a letter</label>
               <select id="templateSelect">
                 <option value="verify">Email verification</option>
@@ -55,7 +79,7 @@
                 <div class="field"><label for="subject">Subject line</label><input id="subject" name="subject" maxlength="160" required></div>
                 <div class="field"><label for="preheader">Inbox preview</label><input id="preheader" name="preheader" maxlength="220" required></div>
                 <div class="field"><label for="greeting">Greeting</label><input id="greeting" name="greeting" maxlength="160" required></div>
-                <div class="field"><label for="body">Letter</label><textarea id="body" name="body" rows="11" maxlength="8000" required></textarea><small>Plain text, with blank lines between paragraphs. Allowed examples: {{OLD_EMAIL}}, {{NEW_EMAIL}}, {{DISPLAY_NAME}}. Security action links are inserted only by the delivery backend.</small></div>
+                <div class="field"><label for="body">Letter</label><textarea id="body" name="body" rows="11" maxlength="8000" required></textarea><small>Plain text, with blank lines between paragraphs. Supported preview variables: {{OLD_EMAIL}}, {{NEW_EMAIL}}, {{DISPLAY_NAME}}. Security action links are inserted by the delivery backend only.</small></div>
                 <div class="field"><label for="buttonText">Action button</label><input id="buttonText" name="buttonText" maxlength="100" required></div>
                 <div class="field-grid">
                   <div class="field"><label for="closing">Closing</label><input id="closing" name="closing" maxlength="80" required></div>
@@ -65,8 +89,9 @@
               </form>
               <p class="status-message" id="editorStatus" role="status" aria-live="polite"></p>
             </section>
+
             <section class="preview-panel" aria-labelledby="previewTitle">
-              <div class="panel-heading"><div><span class="small-label">02 / ENVELOPE PREVIEW</span><h2 id="previewTitle">From L’wazi, with love.</h2></div><span class="preview-pill">INBOX VIEW</span></div>
+              <header class="panel-heading"><div><span class="small-label">02 / ENVELOPE PREVIEW</span><h2 id="previewTitle">From L’wazi, with love.</h2></div><img class="pin-preview" src="/assets/skeleton-key-pin-32.png" alt="" aria-hidden="true"></header>
               <div class="envelope-meta"><span>FROM</span><strong>L’wazi &lt;lwazi@biglwa.com&gt;</strong><span>TO</span><strong>your bookini 🤎</strong></div>
               <iframe id="emailPreview" title="Sandboxed email preview" sandbox="" referrerpolicy="no-referrer"></iframe>
               <div class="export-area">
@@ -81,10 +106,10 @@
               </div>
             </section>
           </div>
-          <footer class="page-footer">BIG LWA · PEOPLE · IDEAS · SOUNDS · SELF <span>Build the world. Keep the keys. 🤎</span></footer>
-        </section>
-      </main>
-    </div>
-  </div>
+        </div>
+      </section>
+    </section>
+    <footer class="dev-footer">BIG LWA · PEOPLE · IDEAS · SOUNDS · SELF <span>Privacy should be the bare minimum. 🤎</span></footer>
+  </main>
 </body>
 </html>

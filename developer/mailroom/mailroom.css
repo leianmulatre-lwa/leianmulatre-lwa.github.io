@@ -1,20 +1,37 @@
-/* Big LWA Developer Console / Mailroom. Scoped to this standalone document. */
-:root{color-scheme:light;--velvet:#4a2025;--wine:#692c31;--wine-light:#8b4443;--paper:#f9f4eb;--ink:#34251f;--muted:#856f66;--line:#d7c4b9;--cream:#fffaf3}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper)}
-button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.6;cursor:wait}a{color:inherit}a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #a96144;outline-offset:2px}
-[hidden]{display:none!important}.app{min-height:100vh}.topbar{min-height:54px;display:flex;gap:22px;align-items:center;padding:8px 25px;background:#251c20;border-top:5px solid #7d292f;border-bottom:1px solid #66484c;color:#f9eae2}
-.brand{font-weight:900;letter-spacing:.12em;text-decoration:none;font-size:17px;white-space:nowrap}.brand-mark{color:#e4a45b;font-size:20px}.top-context{font-size:11px;letter-spacing:.14em;color:#dac4be}.brown-heart{margin-left:4px}.top-status{font-size:11px;margin-left:auto;color:#d5b7aa;text-align:right}.shell{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:calc(100vh - 54px)}
-.sidebar{background:var(--velvet);color:#f4e4d7;min-height:calc(100vh - 54px);display:flex;flex-direction:column;padding:26px 16px;position:relative;overflow:hidden}
-.sidebar:before{content:"";position:absolute;pointer-events:none;inset:0;opacity:.17;background:repeating-linear-gradient(90deg,transparent 0 19px,#a96765 20px,#2a1014 21px,transparent 25px);mix-blend-mode:screen}.sidebar>*{position:relative}.side-heading{padding:8px 10px 27px;border-bottom:1px dashed #a17e75}.side-eyebrow,.nav-label,.small-label,.eyebrow{display:block;font-size:10px;letter-spacing:.14em;font-weight:800}.side-eyebrow{color:#e4b4a0;margin-bottom:11px}.side-heading strong{font-size:25px;font-family:Georgia,serif;font-weight:700;line-height:1.1}.side-sub{display:block;margin-top:10px;line-height:1.45;color:#e4c6bb;font-size:12px}.sidebar nav{padding-top:25px}.nav-label{padding:0 11px 11px;color:#d8a7a3}.nav-item,.nav-future{display:flex;align-items:center;gap:12px;padding:12px 11px;border:1px solid transparent;font-size:13px;text-decoration:none;position:relative}.nav-item span,.nav-future span{font-size:18px}.nav-item.active{background:#fff0dd;color:#4c2727;border-color:#c89e92;box-shadow:3px 3px 0 #291317;font-weight:700}.nav-item small,.nav-future small{margin-left:auto;font-size:10px}.nav-future{opacity:.56;cursor:default}.side-footer{margin-top:auto;border-top:1px dashed #bb8d85;padding:20px 11px 10px}.side-footer .stitch{letter-spacing:5px;color:#efb18b}.side-footer p{font-size:12px;line-height:1.45;color:#eed3c6}.side-footer a{font-size:12px;color:#ffd9bc}
-.workspace{padding:30px clamp(15px,3.5vw,56px) 28px;background:repeating-linear-gradient(0deg,rgba(111,67,48,.025) 0 1px,transparent 1px 9px),var(--paper);min-width:0}
-.access-panel{max-width:520px;margin:12vh auto;padding:42px 32px;text-align:center;border:1px solid var(--line);background:var(--cream);box-shadow:8px 8px 0 #e4d5c9}.access-icon{font-size:36px;color:var(--wine)}.access-panel h1{font-family:Georgia,serif;font-size:28px}.access-panel p{color:var(--muted);line-height:1.6}.text-link{display:inline-block;margin-top:12px;color:var(--wine);font-weight:700}
-.page-intro{display:flex;gap:18px;align-items:flex-end;justify-content:space-between;margin-bottom:22px}.eyebrow{color:var(--wine-light)}.page-intro h1{margin:5px 0;font-family:Georgia,serif;font-size:clamp(34px,4vw,52px);font-weight:700;letter-spacing:-.035em}.heart{font-size:.55em;vertical-align:middle}.page-intro p{margin:4px 0;color:var(--muted);font-size:14px}
-.draft-chip{font-size:10px;letter-spacing:.08em;font-weight:800;border:1px solid #d8b3a6;padding:9px 11px;background:#fff8ef;color:#7a3c34;white-space:nowrap}.live-dot{display:inline-block;background:#b98464;width:7px;height:7px;border-radius:50%;margin-right:5px}
-.notice{background:#fbede0;border:1px solid #d4b49f;padding:13px 16px;font-size:12px;line-height:1.5;color:#6a4337;margin-bottom:17px}.notice strong{color:#5c322b}
-.panes{display:grid;grid-template-columns:minmax(320px,.95fr) minmax(330px,1.05fr);gap:16px;align-items:start}.editor-panel,.preview-panel{background:var(--cream);border:1px solid #cbb8ab;box-shadow:3px 3px 0 #e4d7cb;min-width:0;padding:19px}.panel-heading{display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #cdb8aa;padding-bottom:15px;margin-bottom:17px}.panel-heading h2{font-family:Georgia,serif;font-size:20px;margin:5px 0 0}.small-label{color:#a26b60}.preview-pill{font-size:10px;border:1px solid #c7a59a;padding:7px;color:#874b49}
-label{display:block;font-size:12px;font-weight:750;margin:0 0 7px}select,input,textarea{width:100%;background:#fff;border:1px solid #c4afa4;border-radius:0;padding:10px 11px;color:var(--ink);font-size:13px;min-height:39px}select{margin-bottom:17px}textarea{resize:vertical;line-height:1.55;min-height:160px}.field{margin-bottom:15px}.field small{display:block;margin-top:5px;font-size:10px;color:var(--muted);line-height:1.45}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.form-actions{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px}.primary-button,.quiet-button{border:1px solid var(--wine);padding:10px 13px;font-size:12px;font-weight:750;min-height:38px}.primary-button{color:#fff;background:var(--wine);box-shadow:2px 2px 0 #b78c80}.quiet-button{color:var(--wine);background:#fffbf6}.quiet-button:hover{background:#f5e5d8}.primary-button:hover{background:#7a3034}.status-message{font-size:12px;color:#704e41;min-height:20px;margin:13px 0 0}
-.envelope-meta{display:grid;grid-template-columns:50px 1fr;gap:7px;padding:9px 3px 16px;font-size:12px;align-items:center}.envelope-meta span{font-weight:800;color:#a18071;font-size:10px;letter-spacing:.1em}.envelope-meta strong{font-size:12px;font-weight:650}
-#emailPreview{display:block;width:100%;height:600px;background:#f1ebe3;border:1px solid #ddc9ba;box-shadow:0 2px 7px #55352112}.export-area{border-top:1px dashed #cdb8aa;margin-top:16px;padding-top:15px}.export-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.export-actions .quiet-button{font-size:11px;padding:9px}.export-area p{font-size:11px;line-height:1.5;color:var(--muted);margin:12px 0 2px}.page-footer{display:flex;justify-content:space-between;gap:20px;color:#9d786a;letter-spacing:.09em;font-size:10px;font-weight:650;margin-top:26px;padding-bottom:10px}
-@media(max-width:1050px){.panes{grid-template-columns:1fr}.preview-panel{order:-1}#emailPreview{height:490px}}@media(max-width:680px){.shell{display:block}.sidebar{min-height:auto;padding:13px}.side-heading,.side-footer,.nav-future,.nav-label{display:none!important}.sidebar nav{padding:0}.nav-item{display:inline-flex;min-width:140px}.workspace{padding:22px 14px}.topbar{padding:9px 13px;gap:11px}.top-context{font-size:9px}.top-status{font-size:10px}.page-intro{align-items:flex-start;flex-direction:column}.draft-chip{font-size:9px}.field-grid{grid-template-columns:1fr}.editor-panel,.preview-panel{padding:13px}#emailPreview{height:520px}.page-footer{flex-direction:column;gap:6px}}
-@media(prefers-reduced-motion:no-preference){.quiet-button,.primary-button{transition:background .16s ease}.mailroom{animation:fade-up .2s ease}@keyframes fade-up{from{opacity:.7;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}}
+/* Mailroom content inside the shared Big LWA Developer shell.
+   The landing curtain, stitched crest, type, and window chrome are in ../console.css. */
+.mailroom{min-width:0}
+.dev-hero--mailroom{min-height:180px}
+.dev-hero--mailroom h1{font-size:clamp(27px,3.6vw,46px)}
+.panes{display:grid;grid-template-columns:minmax(310px,1fr) minmax(320px,1.04fr);gap:15px;align-items:start}
+.editor-panel,.preview-panel{min-width:0;background:rgba(255,251,245,.88);border:1px solid #dbcbbf;border-radius:11px;box-shadow:inset 0 1px 0 #fff;padding:clamp(13px,1.5vw,20px)}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px dashed #d2beb3;padding-bottom:13px;margin:0 0 16px}
+.panel-heading h2{margin:4px 0 0;font:400 clamp(17px,1.8vw,24px)/1.2 "CS Bergamot Stitched",Georgia,serif;color:#612e37}
+.small-label{display:block;font:850 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.12em;color:#9a4753}
+.panel-symbol{display:grid;place-items:center;flex:none;width:41px;height:41px;border:1px solid #d9b5af;border-radius:9px;background:#f5e3db;color:#733a45;font-size:24px}
+.pin-preview{width:30px;height:30px;object-fit:contain}
+label{display:block;font-size:12px;font-weight:700;margin:0 0 6px;color:#37302b}
+select,input,textarea{display:block;width:100%;min-height:40px;padding:10px 12px;background:#fffefa;border:1px solid #cab9ae;border-radius:8px;color:#251d1c;font-size:13px;line-height:1.5}
+select{margin-bottom:16px;cursor:pointer}
+textarea{min-height:165px;resize:vertical}
+.field{margin-bottom:14px}
+.field small{display:block;margin-top:6px;color:#786a62;font-size:11px;line-height:1.5}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:4px}
+.primary-button,.quiet-button{min-height:37px;padding:8px 13px;font-size:12px;font-weight:750;border-radius:8px;border:1px solid #783c46}
+.primary-button{background:#713443;color:#fffaf3;box-shadow:2px 3px 0 #c59993}
+.primary-button:hover{background:#873c4d}
+.quiet-button{background:#fffaf3;color:#672e3c}
+.quiet-button:hover{background:#f8e8dc}
+.status-message{font-size:12px;line-height:1.4;margin:11px 0 0;min-height:17px;color:#714f48}
+.envelope-meta{display:grid;grid-template-columns:48px minmax(0,1fr);gap:6px 12px;align-items:center;font-size:12px;margin:0 0 13px;padding:8px 0 14px;border-bottom:1px dashed #d2beb3}
+.envelope-meta span{font:800 10px/1.4 ui-monospace,monospace;letter-spacing:.1em;color:#9a7470}
+.envelope-meta strong{font-size:12px;font-weight:650;overflow-wrap:anywhere}
+#emailPreview{display:block;width:100%;height:585px;background:#f1ebe3;border:1px solid #dcc9b7;border-radius:7px;box-shadow:0 2px 7px rgba(85,53,33,.07)}
+.export-area{margin-top:16px;padding-top:15px;border-top:1px dashed #d2beb3}
+.export-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.export-actions .quiet-button{min-height:34px;font-size:11px;padding:7px 10px}
+.export-area p{margin:11px 0 2px;font-size:11px;line-height:1.5;color:#796c65}
+@media(max-width:1050px){.panes{grid-template-columns:1fr}.preview-panel{order:-1}#emailPreview{height:485px}}
+@media(max-width:650px){.dev-hero--mailroom{min-height:165px}.editor-panel,.preview-panel{padding:12px}.field-grid{grid-template-columns:1fr}#emailPreview{height:515px}.panes{gap:11px}.dev-window-content{padding:11px}}
+@media(prefers-reduced-motion:reduce){.primary-button,.quiet-button{transition:none}}
