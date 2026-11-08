@@ -21,10 +21,10 @@ function cleanName(value) {
 // Account profile "name" is the preferred source. Firebase auth.displayName
 // may contain a username from older signup flows; do not call that a person's name.
 export function chooseDisplayName(account = {}, profile = {}) {
-  const profileName = cleanName(profile.name);
-  if (profileName) return profileName;
-  const authName = cleanName(account.displayName);
   const handle = String(profile.usernameLower || profile.username || "").replace(/^@/, "").toLowerCase();
+  const profileName = cleanName(profile.name);
+  if (profileName && profileName.toLowerCase() !== handle) return profileName;
+  const authName = cleanName(account.displayName);
   if (authName && authName.toLowerCase() !== handle) return authName;
   return "bookini";
 }
@@ -91,7 +91,6 @@ export function composeMessage({id,account,profile = {},template,mode = "test",a
   if (mode === "test") {
     html = html.replace(/<a href="\{\{ACTION_URL\}\}"[^>]*>[\s\S]*?<\/a>/,TEST_PILL);
     text = text.replace(/: \{\{ACTION_URL\}\}/,": [TEST ONLY — no action link]");
-    html = html.replace('<h1 style=', '<h1 style='); // preserve the existing envelope
     if (html.includes('href="{{ACTION_URL}}"') || text.includes("{{ACTION_URL}}"))
       throw new Error("Test message contains a live-looking action placeholder.");
   } else {
