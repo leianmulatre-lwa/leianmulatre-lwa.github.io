@@ -11,6 +11,7 @@ This separate Node 22 backend is designed to run alongside the GitHub Pages Stud
 3. Trusted internal sender: Firebase Admin generates real event-specific verification/reset links. It uses only approved published copy, with the recipient read from the user's Firebase account, and relays via Titan SMTP. Never accepts a custom recipient or externally supplied action link.
 4. Existing restricted admin test endpoint: POST /v1/admin/test-email sends a non-actionable preview only to the verified developer's own account email, when MAILROOM_ENABLE_TEST_SEND=true.
 5. A secret-free Dockerfile and Cloud Build recipe permit an isolated Google Cloud Run staging service. The listener remains localhost-only by default.
+6. A signed-in member route can request that account's own verification or password-reset letter. The browser never supplies a recipient, HTML, or link, and Firestore enforces a durable three-per-fifteen-minute action limit.
 
 ## Start with safe preview (requires a trusted machine with Firebase Admin ADC)
 
@@ -46,11 +47,15 @@ GET /health returns the service state. It does not test Titan credentials or Fir
 
 Staging test: enable MAILROOM_ENABLE_TEST_SEND=true only after configuring Titan credentials and Google Cloud workload identity; POST /v1/admin/test-email from the trusted Developer Console origin with a valid verified developer Firebase ID token and JSON {"templateId":"reset"}. Response 202 confirms SMTP acceptance, not inbox delivery. Verify the message arrives from L’wazi and includes no live security link. The test endpoint does not accept arbitrary recipient addresses.
 
+After both `verify` and `reset` drafts have approved `developerMailPublished` snapshots, enable `MAILROOM_ENABLE_AUTH_DELIVERY=true` in staging. From a signed-in Big LWA Settings page, POST `/v1/auth/email-action` with the member's Firebase ID token and JSON `{"type":"verify"}` or `{"type":"reset"}`. The service generates the one-time link with Firebase Admin, places it in the approved Mailroom HTML, and submits it through Titan. Confirm the received link completes the intended Firebase action before directing production traffic to the service.
+
+The browser bridge targets `https://mailroom.biglwa.com`. Until that hostname reaches a healthy enabled service, Settings deliberately falls back to Firebase's native sender. A 429 or account/authentication rejection never falls back, so the browser cannot bypass the Mailroom rate limit.
+
 ## Live mail is not enabled yet
 
-MAILROOM_ENABLE_AUTH_DELIVERY=false must remain false in staging until member-facing endpoints, robust distributed throttles and abuse prevention are deployed and tested. The current authentication action sender is intentionally **internal-only**, not a public URL; it cannot send account verification or reset emails just because this code is merged.
+MAILROOM_ENABLE_AUTH_DELIVERY=false must remain false until the signed-in route, published copy, Titan acceptance and full action links have been tested in staging. The signed-out Forgot password flow remains on Firebase until its separate bot challenge is ready.
 
-Before production cutover: implement authenticated verification dispatch, a Turnstile-protected enumeration-safe public reset request, durable per-account/IP rate limits and a queue, delivery outcome monitoring, on-call/rollback, and full link-expiry tests. Change the Studio login/settings callers only after the backend proves successful. Firebase's current native emails are the rollback and remain active until then.
+Before a signed-out production reset cutover: implement a Turnstile-protected enumeration-safe public reset request, durable per-account/IP limits and a queue. For the signed-in Settings route, verify delivery outcomes, rollback behavior and full link-expiry tests before removing the Firebase fallback.
 
 MFA and email-change reversals are distinct security operations and are deliberately out of scope; do not send an ordinary password-reset link to implement them.
 

@@ -25,12 +25,15 @@ const fail=(status,error,headers)=>respond(status,{error},headers);
 
 export function createMailroomApi({
   verifyToken, getUser, getAdmin, getProfile, getTemplate, sendMail,
-  enabled=false, allowedOrigin="https://biglwa.com", allowAttempt=createRateLimiter()
+  enabled=false, authDeliveryEnabled=false,
+  allowedOrigin="https://biglwa.com", allowAttempt=createRateLimiter()
 }) {
   if ([verifyToken,getUser,getAdmin,getProfile,getTemplate,sendMail].some(x=>typeof x!=="function"))
     throw new Error("Mailroom dependencies must be explicitly supplied.");
   return async function handle({method,path,origin,authorization,body}) {
-    if (method==="GET"&&path==="/health") return respond(200,{status:"ok",sendEnabled:enabled});
+    if (method==="GET"&&path==="/health") return respond(200,{
+      status:"ok",sendEnabled:enabled,authDeliveryEnabled
+    });
     const cors = origin===allowedOrigin ? {
       "Access-Control-Allow-Origin":allowedOrigin,
       "Access-Control-Allow-Headers":"authorization, content-type",
