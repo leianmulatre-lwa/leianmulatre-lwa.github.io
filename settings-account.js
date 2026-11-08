@@ -18,6 +18,7 @@
   };
 
   let authPromise = null;
+  let mailroomPromise = null;
 
   function firebase() {
     if (!authPromise) {
@@ -26,6 +27,19 @@
         .then((app) => import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js').then((auth) => auth.getAuth(app)));
     }
     return authPromise;
+  }
+
+  function mailroom() {
+    if (!mailroomPromise) mailroomPromise = import('/mailroom-auth-client.js?v=20261108-titan-auth-1');
+    return mailroomPromise;
+  }
+
+  async function sendAuthEmail(user, type, firebaseFallback) {
+    const bridge = await mailroom();
+    const result = await bridge.requestMailroomAuthEmail(user, type);
+    if (!result.fallback) return 'mailroom';
+    await firebaseFallback();
+    return 'firebase';
   }
 
   const say = (node, message, tone) => {
@@ -183,16 +197,20 @@
       if (!current) throw new Error('You are signed out.');
       if (current.emailVerified) return say(status, 'That address is already confirmed.', 'good');
       const api = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
-      await api.sendEmailVerification(current);
-      say(status, `Confirmation sent to ${current.email}. Open that email and click the link.`, 'good');
+      const channel = await sendAuthEmail(current, 'verify', () => api.sendEmailVerification(current));
+      say(status, channel === 'mailroom'
+        ? `L’wazi sent a confirmation letter to ${current.email}. Open it and click the link.`
+        : `Confirmation sent to ${current.email}. Open that email and click the link.`, 'good');
     }));
 
     el('resetPassword')?.addEventListener('click', () => guard(null, async () => {
       const current = auth.currentUser;
       if (!current || !current.email) throw new Error('You are signed out.');
       const api = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js');
-      await api.sendPasswordResetEmail(auth, current.email);
-      say(status, `Password reset sent to ${current.email}. The link expires and can be used once.`, 'good');
+      const channel = await sendAuthEmail(current, 'reset', () => api.sendPasswordResetEmail(auth, current.email));
+      say(status, channel === 'mailroom'
+        ? `L’wazi sent a password-reset letter to ${current.email}. The link expires and can be used once.`
+        : `Password reset sent to ${current.email}. The link expires and can be used once.`, 'good');
     }));
 
     el('changeEmail')?.addEventListener('click', () => guard(null, async () => {

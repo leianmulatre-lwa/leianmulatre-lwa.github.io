@@ -1,6 +1,8 @@
 // Privileged runtime for an independent Node 22+ service, not GitHub Pages/Orbit Worker.
 import { createMailroomApi } from "./api.mjs";
 import { createApprovedAuthDelivery } from "./approved-delivery.mjs";
+import { createMemberAuthApi } from "./member-api.mjs";
+import { createFirestoreRateLimiter } from "./rate-limit.mjs";
 
 function requireEnv(env,key) {
   const value=String(env[key]||"").trim();
@@ -59,7 +61,7 @@ export async function buildRuntime(env=process.env) {
     const snap=await db.collection("users").doc(uid).get();
     return snap.exists ? snap.data() : {};
   };
-  const handler=createMailroomApi({
+  const adminHandler=createMailroomApi({
     verifyToken:token=>auth.verifyIdToken(token,true),
     getUser:uid=>auth.getUser(uid),
     getAdmin:async uid=>{
@@ -71,14 +73,25 @@ export async function buildRuntime(env=process.env) {
       const snap=await db.collection("developerMailTemplates").doc(id).get();
       return snap.exists?snap.data():null;
     },
-    sendMail,enabled
+    sendMail,enabled,authDeliveryEnabled
   });
   const loadPublishedTemplate=async id=>{
     const snap=await db.collection("developerMailPublished").doc(id).get();
     return snap.exists?snap.data():null;
   };
   const deliverAuth=createApprovedAuthDelivery({
-    auth,loadProfile,loadPublishedTemplate,sendMail,enabled:authDeliveryEnabled
+    auth,loadProfile,loadPublishedTemplate,sendMail,enabled:authDeliveryEnabled,
+    onAccepted:async event=>{
+      // Store delivery metadata only. Never store the action link or SMTP result.
+      try{await db.collection("mailroomDeliveryEvents").add({...event,acceptedAt:new Date()});}
+      catch{process.stderr.write("Mailroom delivery audit write failed.\n");}
+    }
   });
+  const memberHandler=createMemberAuthApi({
+    verifyToken:token=>auth.verifyIdToken(token,true),
+    getUser:uid=>auth.getUser(uid),deliverAuth,
+    allowAttempt:createFirestoreRateLimiter({db}),enabled:authDeliveryEnabled
+  });
+  const handler=async request=>(await memberHandler(request))||adminHandler(request);
   return {handler,deliverAuth};
 }
