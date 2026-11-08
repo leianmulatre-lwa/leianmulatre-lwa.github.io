@@ -1,0 +1,22 @@
+# BIG LWA outbound-only Stalwart (staged infrastructure, NOT deployed).
+# Use on an independent VPS with outbound TCP/25 and static IP + PTR.
+# Existing Titan MX remains untouched. No inbound MX/IMAP ports published.
+# Official Stalwart image/docs: https://www.stalwart.email/docs/install/platform/docker/
+services:
+  stalwart:
+    image: stalwartlabs/stalwart:v1
+    container_name: biglwa-stalwart
+    init: true
+    restart: unless-stopped
+    ports:
+      - "465:465"                # TLS SMTP submission (Firebase / private app)
+      - "443:443"                # HTTPS / TLS certificate challenge; firewall admin path
+      - "127.0.0.1:8080:8080"  # setup wizard ONLY via SSH port forwarding
+    volumes:
+      - stalwart-etc:/etc/stalwart
+      - stalwart-data:/var/lib/stalwart
+    stop_grace_period: 60s
+
+volumes:
+  stalwart-etc:
+  stalwart-data:
