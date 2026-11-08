@@ -1,0 +1,9 @@
+# Mailroom credentials belong in the host's secrets manager, NEVER GitHub.
+.env
+.env.*
+!.env.example
+*service-account*.json
+*serviceAccount*.json
+credentials.json
+*.pem
+*.key
