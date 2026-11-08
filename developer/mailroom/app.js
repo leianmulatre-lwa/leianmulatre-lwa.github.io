@@ -57,19 +57,19 @@ function fill(t) {
   updateFirebaseBridge();
 }
 function updateFirebaseBridge() {
-  const supported = FIREBASE_READY_IDS.includes(activeId);
+  const supported = FIREBASE_READY_IDS.includes(activeId) && !!user && activeRevision > 0 && !dirty;
   for (const id of ["firebaseSubjectButton","firebaseHtmlButton","firebaseJsonButton"]) {
     const button = $(id);
     if (button) {
       button.disabled = !supported;
-      button.title = supported ? "Creates copy only; does not publish" :
-        "This security-event type needs a reviewed Firebase mapping before publication.";
+      button.title = supported ? "Uses the last saved cloud revision; does not publish" :
+        "Select Verification or Reset and save its cloud draft first. Security-event types are not yet publishable.";
     }
   }
 }
 function firebaseExport() {
-  if (dirty) {
-    message("Save your changes first so the publishing tool receives this exact cloud draft.",true);
+  if (dirty || activeRevision < 1 || !user) {
+    message("Save your changes to Firestore first so the publishing tool receives this exact cloud revision.",true);
     return null;
   }
   try {return buildFirebaseNativeTemplate(activeId,currentData());}
@@ -93,8 +93,8 @@ async function loadTemplate(id) {
     fill(item.template);
     return;
   }
-  fill(getDefaultTemplate(id));
   activeRevision = 0;
+  fill(getDefaultTemplate(id));
   if (!dbApi || !user) return;
   lockEditor(true);
   try {
@@ -145,6 +145,7 @@ async function saveDraft(event) {
     activeRevision = revision;
     cache.set(id, {template:{...template},revision});
     dirty = false;
+    updateFirebaseBridge();
     message("Saved to the private developer collection · revision " + revision +
       ". This does not change Firebase's live email templates.");
   } catch (error) {
@@ -178,7 +179,7 @@ function exportData(kind) {
   }
   message("Draft exported. The action link is intentionally a placeholder.");
 }
-form.addEventListener("input", () => { dirty = true; refreshPreview(); message("Unsaved changes — select Save draft to keep them in Firestore."); });
+form.addEventListener("input", () => { dirty = true; refreshPreview(); updateFirebaseBridge(); message("Unsaved changes — select Save draft to keep them in Firestore."); });
 form.addEventListener("submit", saveDraft);
 $("templateSelect").addEventListener("change", event => {
   const id = event.target.value;
@@ -192,6 +193,7 @@ $("restoreButton").addEventListener("click", () => {
   if (!window.confirm("Restore the default words for this letter? You can still save your changes afterward.")) return;
   fill(getDefaultTemplate(activeId));
   dirty = true;
+  updateFirebaseBridge();
   message("Default words restored in the editor. Not yet saved.");
 });
 $("copyButton").addEventListener("click", async () => {
