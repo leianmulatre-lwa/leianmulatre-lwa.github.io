@@ -69,3 +69,21 @@ test("runbook preserves Titan and Firebase and demands manual DNS",()=>{
  for(const value of ["mx1.titan.email","mx2.titan.email","_spf.firebasemail.com","manual dns","outbound tcp/25","ptr/reverse dns","ssl/tls","not yet","@biglwa.com"])
   assert.ok(doc.includes(value),value);
 });
+
+test("Windows local sandbox only publishes localhost ports and separate storage",()=>{
+ const file=readFileSync(new URL("../docker-compose.local.yml",import.meta.url),"utf8");
+ assert.match(file,/image:\s*stalwartlabs\/stalwart:v1/);
+ const mappings=[...file.matchAll(/^\s+-\s+"([^"]+)"\s*#/gm)].map(m=>m[1]);
+ assert.deepEqual(mappings.sort(),["127.0.0.1:1465:465","127.0.0.1:8080:8080","127.0.0.1:8443:443"].sort());
+ assert.ok(!file.includes('"25:25"'));
+ assert.ok(!file.includes('"465:465"'));
+ assert.match(file,/biglwa-mail-local-etc/);
+ assert.match(file,/biglwa-mail-local-data/);
+});
+test("Windows guide keeps Firebase and DNS unchanged",()=>{
+ const text=readFileSync(new URL("../LOCAL-WINDOWS.md",import.meta.url),"utf8");
+ assert.match(text,/docker compose -f infra\/mail\/docker-compose\.local\.yml up -d/);
+ assert.match(text,/http:\/\/127\.0\.0\.1:8080/);
+ assert.match(text,/Do NOT point Firebase at localhost/);
+ assert.match(text,/Titan inboxes/);
+});
