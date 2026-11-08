@@ -64,5 +64,7 @@ test("Mailroom retains all controls referenced by the existing editor",()=>{
   assert.match(editor,/runTransaction/);
   assert.match(editor,/developerAdmins/);
   assert.match(mailroom,/<iframe id="emailPreview"[^>]* sandbox=""/);
-  assert.match(mailroom, /Draft studio, not live delivery/);
+  assert.match(mailroom, /Saved drafts stay private until published/);
+  assert.match(mailroom, /Copying or downloading does <strong>not<\/strong> change live emails/);
+  assert.ok(!editor.includes("sendPasswordResetEmail("));
 });
