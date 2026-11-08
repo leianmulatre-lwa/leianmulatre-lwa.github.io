@@ -1,0 +1,6 @@
+# Build from repository root using project-owned Google Cloud credentials.
+# No credential or SMTP password ever belongs in this file.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -f, services/mailroom/Dockerfile, -t, '$_IMAGE', .]
+images: ['$_IMAGE']
