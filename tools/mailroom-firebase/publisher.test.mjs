@@ -86,7 +86,7 @@ test("page keeps HTML export separate from administrative publishing and protect
  assert.match(publisher,/firebase-admin\/firestore/);
  assert.match(publisher,/updateMask=/);
  assert.match(publisher,/--confirm-fingerprint=/);
- assert.match(publisher,/CUSTOM_SMTP/); // inherited through planning safety gate
+ assert.match(readFileSync(new URL("./publish-plan.mjs",import.meta.url),"utf8"),/CUSTOM_SMTP/);
  assert.ok(!app.includes("smtpPassword"));
  assert.ok(!page.includes('type="password"'));
 });
