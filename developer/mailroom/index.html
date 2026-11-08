@@ -64,7 +64,7 @@
           <span class="dev-lights" aria-hidden="true"><i></i><i></i><i></i></span>
         </header>
         <div class="dev-window-content">
-          <p class="dev-note"><strong>Draft studio, not live delivery.</strong> Editing here does not change Firebase's authentication emails. The future mail backend will own secure action links and sending.</p>
+          <p class="dev-note"><strong>Saved drafts stay private until published.</strong> Firebase now sends through L’wazi’s Titan SMTP. Your Mailroom copy remains separate until a reviewed template publication. Verification and reset can be prepared for Firebase here; security-event letters remain drafts.</p>
           <div class="panes">
             <section class="editor-panel" aria-labelledby="editorTitle">
               <header class="panel-heading"><div><span class="small-label">01 / WRITE A LETTER</span><h2 id="editorTitle">Write something lovely.</h2></div><span class="panel-symbol" aria-hidden="true">✉</span></header>
@@ -94,6 +94,16 @@
               <header class="panel-heading"><div><span class="small-label">02 / ENVELOPE PREVIEW</span><h2 id="previewTitle">From L’wazi, with love.</h2></div><img class="pin-preview" src="/assets/skeleton-key-pin-32.png" alt="" aria-hidden="true"></header>
               <div class="envelope-meta"><span>FROM</span><strong>L’wazi &lt;lwazi@biglwa.com&gt;</strong><span>TO</span><strong>your bookini 🤎</strong></div>
               <iframe id="emailPreview" title="Sandboxed email preview" sandbox="" referrerpolicy="no-referrer"></iframe>
+              <div class="firebase-sync-area">
+                <span class="small-label">FIREBASE · READY-TO-PUBLISH COPY</span>
+                <p>Verification and password-reset drafts can be converted to Firebase’s native HTML format. Copying or downloading does <strong>not</strong> change live emails or SMTP.</p>
+                <div class="export-actions">
+                  <button type="button" class="quiet-button" id="firebaseSubjectButton">Copy Firebase subject</button>
+                  <button type="button" class="quiet-button" id="firebaseHtmlButton">Copy Firebase HTML</button>
+                  <button type="button" class="quiet-button" id="firebaseJsonButton">Download Firebase template</button>
+                </div>
+                <p>The <a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/blob/main/tools/mailroom-firebase/README.md" target="_blank" rel="noopener noreferrer">reviewed publishing procedure</a> requires trusted Google Cloud credentials and an explicit confirmation; the Mailroom page cannot publish itself.</p>
+              </div>
               <div class="export-area">
                 <span class="small-label">EXPORT DRAFT</span>
                 <div class="export-actions">
