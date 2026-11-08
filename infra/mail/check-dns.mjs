@@ -39,7 +39,7 @@ export function assessDns(snapshot, {host=DEFAULT_HOST,ip,selector=""}={}) {
   } else warnings.push("Set MAIL_DKIM_SELECTOR after Stalwart generates a key; do not guess the selector.");
   warnings.push("Confirm mail.biglwa.com is DNS-only (gray cloud), not proxied, in Cloudflare.");
   warnings.push("Confirm SMTP TLS certificate and authenticated send, outbound TCP/25, and real inbox SPF/DKIM/DMARC results.");
-  return {ready:errors.length===0 && warnings.filter(x=>/not yet|not published|missing/i.test(x)).length===0,passed,errors,warnings};
+  return {ready:errors.length===0 && Boolean(selector) && warnings.filter(x=>/not yet|not published|missing/i.test(x)).length===0,passed,errors,warnings};
 }
 async function safe(fn) {
   try {return await fn()}catch(e){if(["ENODATA","ENOTFOUND","ENODOMAIN","ESERVFAIL"].includes(e.code))return [];throw e}
