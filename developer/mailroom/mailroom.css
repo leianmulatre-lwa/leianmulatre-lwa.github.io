@@ -35,3 +35,10 @@ textarea{min-height:165px;resize:vertical}
 @media(max-width:1050px){.panes{grid-template-columns:1fr}.preview-panel{order:-1}#emailPreview{height:485px}}
 @media(max-width:650px){.dev-hero--mailroom{min-height:165px}.editor-panel,.preview-panel{padding:12px}.field-grid{grid-template-columns:1fr}#emailPreview{height:515px}.panes{gap:11px}.dev-window-content{padding:11px}}
 @media(prefers-reduced-motion:reduce){.primary-button,.quiet-button{transition:none}}
+
+/* Firebase handoff stays in the existing paper-pane style: a small adjoining
+   section, not an unrelated console or a new modal. */
+.firebase-sync-area{border-top:1px dashed #d2beb3;margin-top:16px;padding:15px 0 4px}
+.firebase-sync-area p{font-size:11px;line-height:1.55;color:#756057;margin:8px 0 11px}
+.firebase-sync-area a{color:#692f3c;text-decoration:underline;text-underline-offset:2px}
+.firebase-sync-area .quiet-button:disabled{opacity:.46;cursor:not-allowed}

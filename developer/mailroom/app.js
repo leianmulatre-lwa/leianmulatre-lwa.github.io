@@ -3,6 +3,7 @@ import {
   TEMPLATE_IDS, FIELD_LIMITS, getDefaultTemplate, normalizeTemplate,
   validateTemplate, renderEmailHtml, renderPlainText
 } from "./templates.js";
+import {FIREBASE_READY_IDS,buildFirebaseNativeTemplate} from "./firebase-native.js";
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY",
@@ -53,6 +54,26 @@ function fill(t) {
   dirty = false;
   message("");
   refreshPreview();
+  updateFirebaseBridge();
+}
+function updateFirebaseBridge() {
+  const supported = FIREBASE_READY_IDS.includes(activeId) && !!user && activeRevision > 0 && !dirty;
+  for (const id of ["firebaseSubjectButton","firebaseHtmlButton","firebaseJsonButton"]) {
+    const button = $(id);
+    if (button) {
+      button.disabled = !supported;
+      button.title = supported ? "Uses the last saved cloud revision; does not publish" :
+        "Select Verification or Reset and save its cloud draft first. Security-event types are not yet publishable.";
+    }
+  }
+}
+function firebaseExport() {
+  if (dirty || activeRevision < 1 || !user) {
+    message("Save your changes to Firestore first so the publishing tool receives this exact cloud revision.",true);
+    return null;
+  }
+  try {return buildFirebaseNativeTemplate(activeId,currentData());}
+  catch(error) {message(error.message || "Could not prepare Firebase template.",true);return null;}
 }
 function refreshPreview() {
   const t = currentData();
@@ -72,8 +93,8 @@ async function loadTemplate(id) {
     fill(item.template);
     return;
   }
-  fill(getDefaultTemplate(id));
   activeRevision = 0;
+  fill(getDefaultTemplate(id));
   if (!dbApi || !user) return;
   lockEditor(true);
   try {
@@ -124,6 +145,7 @@ async function saveDraft(event) {
     activeRevision = revision;
     cache.set(id, {template:{...template},revision});
     dirty = false;
+    updateFirebaseBridge();
     message("Saved to the private developer collection · revision " + revision +
       ". This does not change Firebase's live email templates.");
   } catch (error) {
@@ -157,7 +179,7 @@ function exportData(kind) {
   }
   message("Draft exported. The action link is intentionally a placeholder.");
 }
-form.addEventListener("input", () => { dirty = true; refreshPreview(); message("Unsaved changes — select Save draft to keep them in Firestore."); });
+form.addEventListener("input", () => { dirty = true; refreshPreview(); updateFirebaseBridge(); message("Unsaved changes — select Save draft to keep them in Firestore."); });
 form.addEventListener("submit", saveDraft);
 $("templateSelect").addEventListener("change", event => {
   const id = event.target.value;
@@ -171,6 +193,7 @@ $("restoreButton").addEventListener("click", () => {
   if (!window.confirm("Restore the default words for this letter? You can still save your changes afterward.")) return;
   fill(getDefaultTemplate(activeId));
   dirty = true;
+  updateFirebaseBridge();
   message("Default words restored in the editor. Not yet saved.");
 });
 $("copyButton").addEventListener("click", async () => {
@@ -186,6 +209,29 @@ $("copyButton").addEventListener("click", async () => {
 $("htmlButton").addEventListener("click", () => exportData("html"));
 $("textButton").addEventListener("click", () => exportData("text"));
 $("jsonButton").addEventListener("click", () => exportData("json"));
+
+$("firebaseSubjectButton").addEventListener("click", async () => {
+  const prepared=firebaseExport();if(!prepared)return;
+  try {await navigator.clipboard.writeText(prepared.subject);
+    message("Firebase subject copied. This has not changed the live email.");}
+  catch {message("Clipboard unavailable.",true);}
+});
+$("firebaseHtmlButton").addEventListener("click", async () => {
+  const prepared=firebaseExport();if(!prepared)return;
+  try {await navigator.clipboard.writeText(prepared.body);
+    message("Firebase HTML copied with its %LINK% action placeholder. This is not yet live.");}
+  catch {message("Clipboard unavailable. Download Firebase template instead.",true);}
+});
+$("firebaseJsonButton").addEventListener("click", () => {
+  const prepared=firebaseExport();if(!prepared)return;
+  fileDownload("biglwa-"+activeId+"-firebase-preview.json","application/json;charset=utf-8",
+    JSON.stringify({id:activeId,revision:activeRevision,
+      target:prepared.target,subject:prepared.subject,
+      body:prepared.body,bodyFormat:prepared.bodyFormat,
+      delivery:"NOT_PUBLISHED",smtp:"UNMODIFIED"},null,2));
+  message("Firebase-format letter exported. Not published; live email unchanged.");
+});
+
 
 async function boot() {
   try {
