@@ -1,0 +1,26 @@
+name: Stalwart mail infrastructure checks
+on:
+  pull_request:
+    paths:
+      - 'infra/mail/**'
+      - '.github/workflows/mail-infra-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  infrastructure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check DNS audit script syntax
+        run: |
+          node --check infra/mail/check-dns.mjs
+          node --check infra/mail/tests/mail-infra.test.mjs
+      - name: Validate Docker Compose
+        run: docker compose -f infra/mail/docker-compose.yml config --quiet
+      - name: Run mail safety and DNS tests
+        run: node --test infra/mail/tests/mail-infra.test.mjs
