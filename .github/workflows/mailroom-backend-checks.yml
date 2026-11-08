@@ -1,0 +1,31 @@
+name: Mailroom backend checks
+on:
+  pull_request:
+    paths:
+      - 'services/mailroom/**'
+      - 'developer/mailroom/templates.js'
+      - '.github/workflows/mailroom-backend-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all backend syntax
+        run: |
+          node --check services/mailroom/compose.mjs
+          node --check services/mailroom/api.mjs
+          node --check services/mailroom/auth-delivery.mjs
+          node --check services/mailroom/runtime.mjs
+          node --check services/mailroom/server.mjs
+          node --check services/mailroom/tests/backend.test.mjs
+      - name: Offline backend behavior and safety tests
+        run: node --test services/mailroom/tests/backend.test.mjs
+      - name: Existing Mailroom regression suite
+        run: node --test developer/mailroom/mailroom.test.mjs developer/developer-shell.test.mjs
