@@ -102,13 +102,25 @@ test("page keeps HTML export separate from administrative publishing and protect
 test("provider diagnostics expose validation reason while redacting private values",()=>{
  const message=formatProviderFailure("PATCH",400,{error:{
   status:"INVALID_ARGUMENT",
-  message:'Invalid email template body <p>secret</p> for https://private.example/path and owner@example.com'
+  message:'Invalid email template body <p>secret</p> for https://private.example/path and owner@example.com',
+  details:[{
+   "@type":"type.googleapis.com/google.rpc.BadRequest",
+   fieldViolations:[{
+    field:"notification.sendEmail.verifyEmailTemplate.body",
+    description:'Invalid HTML <p>private copy</p> at https://secret.example for me@example.com'
+   }]
+  }]
  }});
  assert.match(message,/400; INVALID_ARGUMENT/);
  assert.match(message,/Invalid email template body/);
  assert.ok(!message.includes("secret"));
  assert.ok(!message.includes("private.example"));
  assert.ok(!message.includes("owner@example.com"));
+ assert.match(message,/type=google.rpc.BadRequest/);
+ assert.match(message,/field=notification\.sendEmail\.verifyEmailTemplate\.body/);
+ assert.ok(!message.includes("private copy"));
+ assert.ok(!message.includes("secret.example"));
+ assert.ok(!message.includes("me@example.com"));
  assert.equal(
   formatProviderFailure("PATCH",500,{error:{status:"INTERNAL",message:"opaque provider data"}}),
   "Identity Toolkit PATCH failed (500; INTERNAL). Provider response details were withheld."
