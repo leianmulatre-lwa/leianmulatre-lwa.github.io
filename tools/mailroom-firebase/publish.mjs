@@ -21,7 +21,10 @@ function flags(argv) {
     throw new Error("Specify --id=verify or --id=reset.");
   return result;
 }
-const ENDPOINT="https://identitytoolkit.googleapis.com/admin/v2/projects/biglwa/config";
+// Use the public Identity Toolkit v2 route and OAuth scope documented for
+// projects.updateConfig. The /admin/v2 compatibility route is sufficient for
+// reads but rejects this template PATCH with a generic INVALID_ARGUMENT.
+const ENDPOINT="https://identitytoolkit.googleapis.com/v2/projects/biglwa/config";
 async function execute() {
   const opts=flags(process.argv.slice(2));
   if (process.env.GOOGLE_CLOUD_PROJECT && process.env.GOOGLE_CLOUD_PROJECT!=="biglwa")
@@ -48,7 +51,7 @@ async function execute() {
       throw new Error("The saved draft was not edited by a currently active developer.");
     return d;
   };
-  const auth=new GoogleAuth({scopes:["https://www.googleapis.com/auth/identitytoolkit"]});
+  const auth=new GoogleAuth({scopes:["https://www.googleapis.com/auth/firebase"]});
   const client=await auth.getClient();
   const token=await client.getAccessToken();
   if(!token.token)throw new Error("Missing Google application credentials.");
