@@ -51,7 +51,10 @@ async function execute() {
       throw new Error("The saved draft was not edited by a currently active developer.");
     return d;
   };
-  const auth=new GoogleAuth({scopes:["https://www.googleapis.com/auth/firebase"]});
+  // cloud-platform is the documented scope shared by both getConfig and
+  // updateConfig; the narrower firebase scope is PATCH-only and makes the
+  // required preflight GET fail with ACCESS_TOKEN_SCOPE_INSUFFICIENT.
+  const auth=new GoogleAuth({scopes:["https://www.googleapis.com/auth/cloud-platform"]});
   const client=await auth.getClient();
   const token=await client.getAccessToken();
   if(!token.token)throw new Error("Missing Google application credentials.");
