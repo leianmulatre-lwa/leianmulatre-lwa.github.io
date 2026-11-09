@@ -7,6 +7,7 @@ import {mkdir,writeFile} from "node:fs/promises";
 import {homedir} from "node:os";
 import {join} from "node:path";
 import {planPublish,verifyPublishConfirmation} from "./publish-plan.mjs";
+import {formatProviderFailure} from "./provider-error.mjs";
 
 function flags(argv) {
   const result={};
@@ -59,9 +60,11 @@ async function execute() {
       body:body?JSON.stringify(body):undefined,
       signal:AbortSignal.timeout(12000)
     });
-    if(!resp.ok)
-      throw new Error("Identity Toolkit "+method+" failed ("+resp.status+
-        "). Check Google Cloud IAM permissions and template support. No private response body printed.");
+    if(!resp.ok){
+      let providerError={};
+      try { providerError=await resp.json(); } catch {}
+      throw new Error(formatProviderFailure(method,resp.status,providerError));
+    }
     return await resp.json();
   };
   const original=await request("GET",ENDPOINT);

@@ -4,6 +4,7 @@ import {readFileSync} from "node:fs";
 import {getDefaultTemplate} from "../../developer/mailroom/templates.js";
 import {FIREBASE_READY_IDS,buildFirebaseNativeTemplate} from "../../developer/mailroom/firebase-native.js";
 import {planPublish,verifyPublishConfirmation} from "./publish-plan.mjs";
+import {formatProviderFailure} from "./provider-error.mjs";
 
 const firebase={
   name:"projects/biglwa/config",
@@ -97,4 +98,19 @@ test("page keeps HTML export separate from administrative publishing and protect
  assert.match(readFileSync(new URL("./publish-plan.mjs",import.meta.url),"utf8"),/CUSTOM_SMTP/);
  assert.ok(!app.includes("smtpPassword"));
  assert.ok(!page.includes('type="password"'));
+});
+test("provider diagnostics expose validation reason while redacting private values",()=>{
+ const message=formatProviderFailure("PATCH",400,{error:{
+  status:"INVALID_ARGUMENT",
+  message:'Invalid email template body <p>secret</p> for https://private.example/path and owner@example.com'
+ }});
+ assert.match(message,/400; INVALID_ARGUMENT/);
+ assert.match(message,/Invalid email template body/);
+ assert.ok(!message.includes("secret"));
+ assert.ok(!message.includes("private.example"));
+ assert.ok(!message.includes("owner@example.com"));
+ assert.equal(
+  formatProviderFailure("PATCH",500,{error:{status:"INTERNAL",message:"opaque provider data"}}),
+  "Identity Toolkit PATCH failed (500; INTERNAL). Provider response details were withheld."
+ );
 });
