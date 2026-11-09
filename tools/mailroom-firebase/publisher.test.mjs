@@ -56,6 +56,7 @@ test("plan is exact and never includes SMTP credentials or other Auth configurat
  assert.equal(p.target,"resetPasswordTemplate");
  assert.equal(p.revision,4);
  assert.deepEqual(Object.keys(p.request.notification.sendEmail),["resetPasswordTemplate"]);
+ assert.ok(!Object.hasOwn(p.request,"name"));
  assert.deepEqual(Object.keys(p.request.notification.sendEmail.resetPasswordTemplate).sort(),["body","bodyFormat","subject"]);
  assert.equal(p.updateMask,"notification.sendEmail.resetPasswordTemplate.subject,notification.sendEmail.resetPasswordTemplate.body,notification.sendEmail.resetPasswordTemplate.bodyFormat");
  assert.ok(!JSON.stringify(p.request).includes("MUST_NOT_APPEAR"));
@@ -67,7 +68,7 @@ test("numeric Identity Toolkit resource name is accepted only for the Big LWA pr
  const d={...getDefaultTemplate("verify"),revision:3,updatedBy:"account123"};
  const numeric={...firebase,name:"projects/83232670555/config"};
  const p=planPublish("verify",d,numeric);
- assert.equal(p.request.name,"projects/83232670555/config");
+ assert.ok(!Object.hasOwn(p.request,"name"));
  assert.throws(()=>planPublish("verify",d,{...numeric,name:"projects/83232670556/config"}),/does not match/);
 });
 test("publishing refuses wrong project, missing SMTP, missing saved revision and stale fingerprint",()=>{
