@@ -63,6 +63,13 @@ test("plan is exact and never includes SMTP credentials or other Auth configurat
  assert.ok(!JSON.stringify(p).includes("MUST_NOT_APPEAR"));
  assert.match(p.fingerprint,/^[0-9a-f]{64}$/);
 });
+test("numeric Identity Toolkit resource name is accepted only for the Big LWA project",()=>{
+ const d={...getDefaultTemplate("verify"),revision:3,updatedBy:"account123"};
+ const numeric={...firebase,name:"projects/83232670555/config"};
+ const p=planPublish("verify",d,numeric);
+ assert.equal(p.request.name,"projects/83232670555/config");
+ assert.throws(()=>planPublish("verify",d,{...numeric,name:"projects/83232670556/config"}),/does not match/);
+});
 test("publishing refuses wrong project, missing SMTP, missing saved revision and stale fingerprint",()=>{
  const d={...getDefaultTemplate("verify"),revision:2};
  for(const bad of [
