@@ -31,7 +31,10 @@ export function planPublish(id,draft,config) {
     fingerprint,
     changedFields:TEMPLATE_FIELDS.filter(k=>saved[k]!==desired[k]),
     updateMask:TEMPLATE_FIELDS.map(k=>"notification.sendEmail."+target+"."+k).join(","),
-    request:{name:config.name,notification:{sendEmail:{[target]:desired}}},
+    // `name` is output-only. The GET response may canonicalize `biglwa` to the
+    // numeric project name; echoing that value into a PATCH whose path uses
+    // `biglwa` makes Identity Toolkit reject the otherwise valid request.
+    request:{notification:{sendEmail:{[target]:desired}}},
     // Deliberately omit all SMTP configuration and its password.
     previous:{subject:saved.subject??"",body:saved.body??"",bodyFormat:saved.bodyFormat??"BODY_FORMAT_UNSPECIFIED"}
   };
