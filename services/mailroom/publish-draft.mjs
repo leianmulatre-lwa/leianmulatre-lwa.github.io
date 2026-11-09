@@ -5,21 +5,9 @@
 import {getApps,initializeApp,applicationDefault} from "firebase-admin/app";
 import {getFirestore} from "firebase-admin/firestore";
 import {planPublication} from "./published.mjs";
-
-function options(argv){
-  const flags={};
-  for(const arg of argv){
-    if(arg==="--apply")flags.apply=true;
-    else if(/^--[a-z-]+=/.test(arg)){
-      const at=arg.indexOf("=");flags[arg.slice(2,at)]=arg.slice(at+1);
-    } else throw new Error("Unknown CLI argument");
-  }
-  if(!["verify","reset"].includes(flags.id))throw new Error("Expected --id=verify or --id=reset");
-  if(!flags["admin-uid"])throw new Error("Expected --admin-uid=FIREBASE_UID");
-  return flags;
-}
+import {parsePublicationOptions} from "./publish-options.mjs";
 async function run(){
-  const opts=options(process.argv.slice(2));
+  const opts=parsePublicationOptions(process.argv.slice(2));
   if(process.env.GOOGLE_CLOUD_PROJECT && process.env.GOOGLE_CLOUD_PROJECT!=="biglwa")
     throw new Error("Wrong Google Cloud project");
   const app=getApps().find(a=>a.options.projectId==="biglwa")||

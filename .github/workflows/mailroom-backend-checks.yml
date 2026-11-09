@@ -29,9 +29,11 @@ jobs:
           node --check services/mailroom/member-api.mjs
           node --check services/mailroom/rate-limit.mjs
           node --check services/mailroom/published.mjs
+          node --check services/mailroom/publish-options.mjs
           node --check services/mailroom/publish-draft.mjs
           node --check services/mailroom/tests/approved-delivery.test.mjs
           node --check services/mailroom/tests/member-api.test.mjs
+          node --check services/mailroom/tests/publish-options.test.mjs
           node --check services/mailroom/runtime.mjs
           node --check services/mailroom/server.mjs
           node --check services/mailroom/tests/backend.test.mjs
