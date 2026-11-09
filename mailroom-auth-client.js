@@ -25,7 +25,10 @@ export async function requestMailroomAuthEmail(user,type,{
   }
   // These responses indicate that the staged service is unavailable or still
   // gated. Firebase remains the deliberate rollback during deployment.
-  if([404,502,503].includes(response.status))return {fallback:true};
+  // Cloudflare reports an unavailable named tunnel as HTTP 530 with error
+  // 1033. Any server/edge 5xx is an availability failure, so use Firebase's
+  // native sender rather than stranding an account-recovery request.
+  if(response.status===404||response.status>=500)return {fallback:true};
   if(response.status===429)throw new Error("Too many email requests. Wait a little, then try again.");
   if(response.status===401||response.status===403)throw new Error("Sign in again to send this email.");
   if(response.status===400&&type==="reset")
