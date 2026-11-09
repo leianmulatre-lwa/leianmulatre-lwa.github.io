@@ -97,7 +97,8 @@ test("page keeps HTML export separate from administrative publishing and protect
  assert.match(publisher,/updateMask=/);
  assert.match(publisher,/identitytoolkit\.googleapis\.com\/v2\/projects\/biglwa\/config/);
  assert.ok(!publisher.includes("identitytoolkit.googleapis.com/admin/v2"));
- assert.match(publisher,/googleapis\.com\/auth\/firebase/);
+ assert.match(publisher,/googleapis\.com\/auth\/cloud-platform/);
+ assert.ok(!publisher.includes('googleapis.com/auth/firebase"'));
  assert.match(publisher,/--confirm-fingerprint=/);
  assert.match(readFileSync(new URL("./publish-plan.mjs",import.meta.url),"utf8"),/CUSTOM_SMTP/);
  assert.ok(!app.includes("smtpPassword"));
