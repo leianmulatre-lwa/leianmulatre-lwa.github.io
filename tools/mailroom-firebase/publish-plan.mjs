@@ -23,14 +23,15 @@ export function planPublish(id,draft,config) {
   const saved=config.notification?.sendEmail?.[target];
   if(!saved||typeof saved!=="object")throw new Error("Current Firebase template unavailable. Cannot verify before publishing.");
   const desired={subject:ready.subject,body:ready.body,bodyFormat:ready.bodyFormat};
+  const changedFields=TEMPLATE_FIELDS.filter(k=>saved[k]!==desired[k]);
   const fingerprint=createHash("sha256").update(JSON.stringify({
     id,revision:draft.revision,desired
   })).digest("hex");
   return {
     id,revision:draft.revision,target,
     fingerprint,
-    changedFields:TEMPLATE_FIELDS.filter(k=>saved[k]!==desired[k]),
-    updateMask:TEMPLATE_FIELDS.map(k=>"notification.sendEmail."+target+"."+k).join(","),
+    changedFields,
+    updateMask:changedFields.map(k=>"notification.sendEmail."+target+"."+k).join(","),
     // `name` is output-only. The GET response may canonicalize `biglwa` to the
     // numeric project name; echoing that value into a PATCH whose path uses
     // `biglwa` makes Identity Toolkit reject the otherwise valid request.

@@ -59,7 +59,8 @@ test("plan is exact and never includes SMTP credentials or other Auth configurat
  assert.deepEqual(Object.keys(p.request.notification.sendEmail),["resetPasswordTemplate"]);
  assert.ok(!Object.hasOwn(p.request,"name"));
  assert.deepEqual(Object.keys(p.request.notification.sendEmail.resetPasswordTemplate).sort(),["body","bodyFormat","subject"]);
- assert.equal(p.updateMask,"notification.sendEmail.resetPasswordTemplate.subject,notification.sendEmail.resetPasswordTemplate.body,notification.sendEmail.resetPasswordTemplate.bodyFormat");
+ assert.deepEqual(p.changedFields,["subject","body"]);
+ assert.equal(p.updateMask,"notification.sendEmail.resetPasswordTemplate.subject,notification.sendEmail.resetPasswordTemplate.body");
  assert.ok(!JSON.stringify(p.request).includes("MUST_NOT_APPEAR"));
  assert.ok(!JSON.stringify(p).includes("smtp.titan.email"));
  assert.ok(!JSON.stringify(p).includes("MUST_NOT_APPEAR"));
@@ -94,6 +95,9 @@ test("page keeps HTML export separate from administrative publishing and protect
  assert.match(page,/firebaseJsonButton/);
  assert.match(publisher,/firebase-admin\/firestore/);
  assert.match(publisher,/updateMask=/);
+ assert.match(publisher,/identitytoolkit\.googleapis\.com\/v2\/projects\/biglwa\/config/);
+ assert.ok(!publisher.includes("identitytoolkit.googleapis.com/admin/v2"));
+ assert.match(publisher,/googleapis\.com\/auth\/firebase/);
  assert.match(publisher,/--confirm-fingerprint=/);
  assert.match(readFileSync(new URL("./publish-plan.mjs",import.meta.url),"utf8"),/CUSTOM_SMTP/);
  assert.ok(!app.includes("smtpPassword"));
