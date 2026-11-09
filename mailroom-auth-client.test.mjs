@@ -15,7 +15,7 @@ test("Mailroom browser bridge sends only an authenticated action type",async()=>
   assert.deepEqual(result,{fallback:false,status:"accepted_by_smtp"});
 });
 test("Mailroom bridge falls back only while service is unavailable",async()=>{
-  for(const status of [404,502,503]){
+  for(const status of [404,500,502,503,530]){
     const result=await requestMailroomAuthEmail(user,"reset",{
       fetchImpl:async()=>({ok:false,status})
     });
