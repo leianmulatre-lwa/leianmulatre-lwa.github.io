@@ -419,3 +419,19 @@ html body #studioApp #pinterestBoards .pinterest-owned-section>header>p{display:
 #studioApp #pinterestBoards .pn-photo-controls [data-choices]:not([hidden]){display:grid!important;gap:4px!important;margin-top:6px!important}
 #studioApp #pinterestBoards .pn-photo-controls [hidden]{display:none!important}
 #studioApp #pinterestBoards .pn-photo-controls input{box-sizing:border-box;width:100%;min-width:0;font:12px system-ui}
+
+/* Fill each row in source order, using the actual available panel width. */
+html body #studioApp #pinterestBoards :is(.pinterest-pin-grid,.pinterest-owned-grid):not([hidden]){
+ display:grid!important;columns:auto!important;
+ grid-template-columns:repeat(auto-fill,minmax(min(100%,164px),1fr))!important;
+ grid-auto-flow:row!important;gap:14px!important;align-items:start!important;
+ width:100%!important;box-sizing:border-box!important;
+}
+html body #studioApp #pinterestBoards :is(.pinterest-pin-grid,.pinterest-owned-grid)>:is(.pinterest-pin,.pn-owned-pin-choice){
+ width:100%!important;min-width:0!important;margin:0!important;align-self:start!important;
+}
+@media(max-width:610px){
+ html body #studioApp #pinterestBoards :is(.pinterest-pin-grid,.pinterest-owned-grid):not([hidden]){
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important;
+ }
+}
