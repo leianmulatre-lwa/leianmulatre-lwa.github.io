@@ -8,7 +8,7 @@
   if(target.tagName==='IMG'){
    // Feed/Veve/Archive/Boards have source-aware image placeholders.
    // TV test bars belong to the Stream/player, not social photographs.
-   if(target.closest('.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,#pinterestBoards,.pn-pin-photo,.pinterest-pin'))return;
+   if(target.closest('#biglwaFeedHero,.biglwa-studio-board-gallery,.biglwa-public-boards-grid,.veve-photo-frame,.biglwa-unified-media,.biglwa-slide,.instagram-archive-piece,#pinterestBoards,.pn-pin-photo,.pinterest-pin'))return;
    const src=target.currentSrc||target.getAttribute('src')||'';
    if(!src||src.includes('tv-no-signal.svg'))return;
    target.dataset.lwaSignalFallback='1';

@@ -111,15 +111,16 @@
   card.classList.add('biglwa-public-boards-card');
   let home=$('.biglwa-public-boards-home',card);
   if(!home){home=make('section','','biglwa-public-boards-home');home.setAttribute('aria-label','Public Boards preview');card.append(home)}
-  const sig=boardImages.join('|')+'|'+String(publicProfile?.uid);
+  const photos=boardImages.length?boardImages:(window.__biglwaBoardsTemporaryPhotos?.()||[]);
+  const sig=photos.join('|')+'|'+String(publicProfile?.uid);
   if(home.dataset.signature===sig)return;
   home.dataset.signature=sig;home.replaceChildren();
   home.append(make('p','Collect. Curate. Be inspired.','biglwa-public-boards-tagline'));
   const grid=make('div','','biglwa-public-boards-grid');
-  for(let i=0;i<6;i++){
+  for(let i=0;i<Math.min(5,photos.length);i++){
    const tile=make('span','','biglwa-public-board-slot');
-   if(boardImages[i]){
-    const img=make('img');img.src=boardImages[i];img.alt='Published Pinterest preview '+(i+1);img.loading='lazy';tile.append(img);
+   if(photos[i]){
+    const img=make('img');img.src=photos[i];img.alt=(boardImages.length?'Published Pinterest preview ':'Temporary Boards preview ')+(i+1);img.loading='lazy';tile.append(img);
    }else{tile.classList.add('placeholder');tile.setAttribute('aria-label','Board artwork placeholder')}
    grid.append(tile);
   }
@@ -222,6 +223,7 @@
   publicProfile=event.detail?.profile||window.__biglwaViewedProfile||null;boardImages=[];boardOwner='';
   schedule();void boardMedia();
  });
+ document.addEventListener('biglwa:pinterest-preview-updated',schedule);
  window.addEventListener('biglwa:public-mirror-ready',schedule);
  window.addEventListener('biglwa:session-verified',schedule);
  window.addEventListener('biglwa:public-profile-ended',()=>{
@@ -240,7 +242,9 @@
  html.biglwa-preview-mode #studioApp .biglwa-public-boards-card>.biglwa-public-boards-home{display:grid!important;gap:8px;padding:3px 0 4px}
  html.biglwa-preview-mode #studioApp .biglwa-public-boards-card>:not(.card-head):not(.biglwa-public-boards-home){display:none!important}
  .biglwa-public-boards-tagline{margin:0;color:#8c817a;font:500 12px/1.4 system-ui}
- .biglwa-public-boards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .biglwa-public-boards-grid{display:grid;grid-template-columns:1.24fr 1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:8px}
+ .biglwa-public-board-slot:first-child{grid-row:span 2;aspect-ratio:auto;box-shadow:3px 3px 0 #cf2843}
+ .biglwa-public-board-slot:not(:first-child){aspect-ratio:1}
  .biglwa-public-board-slot{position:relative;overflow:hidden;aspect-ratio:1;border-radius:10px;background:linear-gradient(145deg,#d99e85,#483439)}
  .biglwa-public-board-slot img{width:100%;height:100%;object-fit:cover;display:block}
  .biglwa-public-board-slot.placeholder:nth-child(6n+2){background:#f4d6c4}
