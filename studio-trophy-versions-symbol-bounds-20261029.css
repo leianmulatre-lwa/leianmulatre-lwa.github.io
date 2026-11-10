@@ -54,13 +54,14 @@
    Minecraft achievement thumbnail in the Studio widget. */
 #studioApp #trophies.trophies-card{
   display:flex!important;flex-direction:column!important;
-  gap:7px!important;min-width:0!important;
+  gap:12px!important;min-width:0!important;
+  min-height:0!important;height:auto!important;justify-content:flex-start!important;align-self:start!important;
 }
 #studioApp #trophies #trophyPreview.trophy-preview{
   display:grid!important;align-content:start!important;gap:7px!important;
   width:100%!important;min-width:0!important;
   min-height:0!important;height:auto!important;
-  margin:7px 0 9px!important;padding:0!important;
+  margin:0!important;padding:0!important;
   overflow:visible!important;
 }
 #studioApp #trophies #trophyPreview>.biglwa-default-trophy-image{
@@ -72,7 +73,7 @@
   background:transparent!important;
 }
 #studioApp #trophies .card-cta{
-  margin-top:auto!important;flex:0 0 auto!important;
+  margin:0!important;flex:0 0 auto!important;align-self:flex-start!important;
 }
 #studioApp .module-workspace[data-module-key="trophies"] .trophy-rank-panel{
   padding:clamp(14px,2vw,24px)!important;
@@ -100,3 +101,8 @@
   grid-template-columns:minmax(0,1fr)!important;
  }
 }
+
+/* One spacing rhythm; avoid stacked paragraph and flex margins. */
+#studioApp #trophies.trophies-card>.card-head,
+#studioApp #trophies.trophies-card>.sub{margin:0!important;flex:0 0 auto!important}
+#studioApp #trophies #trophyPreview{flex:0 0 auto!important}
