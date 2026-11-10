@@ -407,3 +407,7 @@ html body #studioApp #pinterestBoards .pinterest-owned-section>header>p{display:
 #pinterestBoards .pn-inline-destination{position:absolute!important;inset:8px!important;z-index:30!important;box-sizing:border-box!important;width:auto!important;max-width:none!important;max-height:calc(100% - 16px)!important;margin:0!important;padding:10px!important;overflow:auto!important;border-radius:10px!important;background:#fff8ed!important;color:#39252c!important;font:12px/1.3 system-ui!important}
 #pinterestBoards .pn-inline-destination h2{font-size:14px!important}
 #pinterestBoards .pn-inline-original{display:block;padding:8px;color:#92243c}
+
+/* Image and title wash share one clipping face; the red shadow stays outside. */
+#studioApp #pinterestBoards .pinterest-board-face{position:absolute!important;inset:0!important;display:block!important;overflow:hidden!important;border-radius:inherit!important;clip-path:inset(0 round 14px);padding:0!important}
+#studioApp #pinterestBoards .pinterest-board-face .pinterest-board-copy{position:absolute!important;inset:auto 0 0!important;margin:0!important;width:100%!important;box-sizing:border-box!important;border-radius:0!important}

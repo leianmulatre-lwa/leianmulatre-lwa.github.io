@@ -839,8 +839,8 @@ async function connect(){await run(async()=>{
    if(!urls.length&&cover)urls.push(cover);
    const previews=urls.map((url,index)=>'<img class="pinterest-board-preview pn-cover-'+index+'" loading="lazy" src="'+esc(url)+'" alt="" aria-hidden="true">').join('');
    return '<button type="button" '+(b.local?'data-pn-saved-board':'data-pn-board')+'="'+esc(String(b.id))+'" class="pinterest-board'+(urls.length?'':' is-empty')+'" aria-label="Open '+esc(b.name)+' board">'+
-    '<span class="pinterest-board-media">'+(previews||'<span>⊞</span>')+'</span>'+
-    '<span class="pinterest-board-copy"><strong>'+esc(b.name)+'</strong><small>'+b.pin_count+' Pins · '+(b.local?'BIG LWA':'Pinterest')+'</small></span></button>';
+    '<span class="pinterest-board-face"><span class="pinterest-board-media">'+(previews||'<span>⊞</span>')+'</span>'+
+    '<span class="pinterest-board-copy"><strong>'+esc(b.name)+'</strong><small>'+b.pin_count+' Pins · '+(b.local?'BIG LWA':'Pinterest')+'</small></span></span></button>';
   });
   /* Fewer than six boards still fill the grid, so the row never looks half drawn. */
 
