@@ -41,7 +41,7 @@ console.log('PASS slower carousel resume with integer scroll, Booth recency/acco
 const fb=new JSDOM('<p id="orbitPageStatus"></p>',{url:'https://biglwa.com/studio',runScripts:'outside-only'});
 const fw=fb.window,imports=[];let feedRefreshes=0;
 const fbAuth={currentUser:{uid:'member',getIdToken:async()=> 'test-token'},authStateReady:async()=>{}};
-fw.testImport=async url=>url.endsWith('firebase-app.js')?{getApps:()=>[{}]}:{getAuth:()=>fbAuth};
+fw.testImport=async url=>url.includes('/orbit-posts.js')?fw.__biglwaOrbitPosts:url.endsWith('firebase-app.js')?{getApps:()=>[{}]}:{getAuth:()=>fbAuth};
 fw.fetch=async url=>({ok:true,json:async()=>url.endsWith('/health')?{configured:true}:url.endsWith('/session')?{connected:true,profile:{name:'Member'}}:url.endsWith('/media')?{items:[{id:'123',sourceUrl:'https://www.facebook.com/123',thumbnailUrl:'https://example.com/fresh.jpg'}]}:{}});
 fw.__biglwaOrbitPosts={saveExternalOrbitDraft:async(source,item,options)=>{imports.push({source,item,options});return {refreshed:true}}};
 fw.__biglwaFeed={refresh:async()=>{feedRefreshes++}};

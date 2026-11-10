@@ -78,7 +78,7 @@
      if(!uid)throw Error('Sign in to BIG LWA before syncing Facebook.');
      state.syncMessage='Syncing Facebook Personal…';renderSync();
      const data=await api('media','GET',await authToken());
-     const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3&widgets=20261110-2')).saveExternalOrbitDraft;
+     const writer=(await import('/orbit-posts.js?v=20261017-personal-first-import-3&widgets=20261110-2')).saveExternalOrbitDraft;
      if(typeof writer!=='function')throw Error('Feed importer is still loading. Press Sync Facebook Personal to retry.');
      let imported=0,existing=0,refreshed=0,failed=0,firstError='';
      for(const item of data.items||[]){
