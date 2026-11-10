@@ -158,12 +158,10 @@
 #studioApp #boards .biglwa-studio-board-gallery .biglwa-studio-board-tile{
   box-sizing:border-box!important;
   border:0!important;border-radius:4px!important;
-  overflow:hidden!important;box-shadow:none!important;
+  overflow:hidden!important;box-shadow:3px 3px 0 #cf2843!important;
   background:#c7b4ac!important;
 }
-#studioApp #boards .biglwa-studio-board-gallery .biglwa-studio-board-tile:first-child{
-  box-shadow:3px 3px 0 #cf2843!important;
-}
+
 #studioApp #boards .biglwa-studio-board-gallery[data-count="4"] .biglwa-studio-board-tile:last-child{grid-column:2 / -1!important}
 #studioApp #boards .biglwa-studio-board-gallery[data-count="1"]{aspect-ratio:16/9!important}
 #studioApp #boards .biglwa-studio-board-gallery[data-count="1"] .biglwa-studio-board-tile{width:100%!important}

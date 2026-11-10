@@ -103,5 +103,5 @@ html #studioApp .topbar.topbar.profile-header-repaired{grid-template-columns:76p
 }
 #studioApp#studioApp #boards .biglwa-studio-board-gallery,
 #studioApp#studioApp #boards .studio-pinterest-board-preview{
- box-shadow:0 4px 11px -3px #e6002366,0 1px 4px #e6002326!important;
+ box-shadow:none!important;
 }
