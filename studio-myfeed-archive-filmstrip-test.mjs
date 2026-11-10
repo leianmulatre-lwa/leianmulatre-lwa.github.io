@@ -122,9 +122,9 @@ assert(!pages.includes('tiles.slice(0,6).map((item,i)=>'),'Old six-tile Studio t
 assert(pinterest.includes('window.__biglwaRefreshBoardsThumbnail=paintStudioBoardGallery'),'Pinterest owns Studio collage');
 assert(boardsCss.includes('grid-template-columns:minmax(0,1.24fr) repeat(2,minmax(0,1fr))'),'Boards uses one tall and four small photos');
 assert(boardsCss.includes('box-shadow:3px 3px 0 #cf2843!important'),'Boards portrait alone has red shadow');
-assert(stream.includes("button.className='stream-studio-dock'"),'Stream preview has its dedicated Dock button');
-assert(stream.includes('if(!dockStream())window.openBIGLWAModule'),'Dock button enters the full Stream if there is no active player');
-assert(streamCss.includes('right:9px!important;bottom:9px!important'),'Dock button is at the bottom right of the Studio thumbnail');
+assert(!stream.includes("button.className='stream-studio-dock'"),'Stream preview does not recreate the removed black Dock button');
+assert(stream.includes("if(button.matches('[data-stream-dock]')){dockStream();return;}"),'Full Stream docking remains available');
+assert(read('studio-widget-details-20261110.css').includes('#studioApp #stream .stream-studio-dock{display:none!important}'),'Cached black dock controls are also hidden');
 assert(streamCss.includes('.stream-preview-return{display:none!important}'),'Redundant top-right Open Stream overlay is hidden');
 assert(trophyCss.includes('#studioApp #trophies #trophyPreview>.biglwa-default-trophy-image'),'Trophy thumbnail retains full uncropped Minecraft art');
 assert(trophyCss.includes('.trophy-case-version>.module-card'),'Trophies version spacing is constrained');

@@ -70,7 +70,7 @@
    viewport.appendChild(track);
    // Native scrolling keeps swipes, trackpad and keyboard access functional.
    // A second identical set makes continuous motion seamless.
-   let pausedUntil=0,hovered=false,visible=true,previous=0;
+   let pausedUntil=0,hovered=false,visible=true,previous=0,fraction=0;
    const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
    const cycleLength=()=>{
      const original=track.children[0],repeat=track.children[BLOCKS.length];
@@ -90,10 +90,8 @@
    });
    viewport.addEventListener('pointerenter',()=>{hovered=true;});
    viewport.addEventListener('pointerleave',()=>{hovered=false;});
-   viewport.addEventListener('focusin',()=>{hovered=true;});
-   viewport.addEventListener('focusout',event=>{
-     if(!viewport.contains(event.relatedTarget))hovered=false;
-   });
+   viewport.addEventListener('pointercancel',()=>{hovered=false;});
+   window.addEventListener('blur',()=>{hovered=false;previous=0;});
    viewport.addEventListener('scroll',()=>{
      const cycle=cycleLength();
      if(cycle>0 && viewport.scrollLeft>=cycle)viewport.scrollLeft-=cycle;
@@ -109,10 +107,13 @@
      if(!viewport.isConnected)return; // Stop on widget re-mount; no orphaned loops.
      const dt=previous?Math.min(50,now-previous):0;
      previous=now;
-     if(visible&&!hovered&&!reducedMotion?.matches&&!document.hidden&&now>pausedUntil){
+     const keyboardFocus=viewport.matches(':focus-visible')||viewport.querySelector(':focus-visible');
+     if(visible&&!hovered&&!keyboardFocus&&!reducedMotion?.matches&&!document.hidden&&now>pausedUntil){
        const cycle=cycleLength();
        if(cycle>0){
-         viewport.scrollLeft+=dt*.024; // ~24px/second, intentionally gentle.
+         fraction+=dt*.012; // 12px/second, with subpixels retained between frames.
+         const pixels=Math.floor(fraction);fraction-=pixels;
+         if(pixels)viewport.scrollLeft+=pixels;
          if(viewport.scrollLeft>=cycle)viewport.scrollLeft-=cycle;
        }
      }

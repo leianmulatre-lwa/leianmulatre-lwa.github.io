@@ -70,7 +70,7 @@
    });
    return 'Hometown added to your private map: '+home.name+'.';
  }
- async function sync(){
+ async function sync({publishToCollective=true,includeHometown=true}={}){
    if(syncing)return syncing;
    syncing=(async()=>{
      const auth=await fbFirebase();await auth.authStateReady();
@@ -78,16 +78,17 @@
      if(!uid)throw Error('Sign in to BIG LWA before syncing Facebook.');
      state.syncMessage='Syncing Facebook Personal…';renderSync();
      const data=await api('media','GET',await authToken());
-     const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3')).saveExternalOrbitDraft;
+     const writer=(window.__biglwaOrbitPosts||await import('/orbit-posts.js?v=20261017-personal-first-import-3&widgets=20261110-2')).saveExternalOrbitDraft;
      if(typeof writer!=='function')throw Error('Feed importer is still loading. Press Sync Facebook Personal to retry.');
-     let imported=0,existing=0,failed=0,firstError='';
+     let imported=0,existing=0,refreshed=0,failed=0,firstError='';
      for(const item of data.items||[]){
        if(auth.currentUser?.uid!==uid)throw Error('Account changed. Sign in again before syncing.');
-       try{const result=await writer('facebook',{...item,expectedUid:uid},{publishToCollective:true});(result.created||result.published)?imported++:existing++}
+       try{const result=await writer('facebook',{...item,expectedUid:uid},{publishToCollective});(result.created||result.published)?imported++:result.refreshed?refreshed++:existing++}
        catch(error){failed++;if(!firstError)firstError=error.message||'Save failed.'}
      }
-     const parts=[imported+' added to the Collective Feed; '+existing+' already saved.'];
-     try{parts.push(await syncHometown(uid))}catch(error){parts.push(error.message)}
+     const parts=[imported+(publishToCollective?' added to the Collective Feed; ':' saved privately; ')+refreshed+' refreshed; '+existing+' already saved.'];
+     await window.__biglwaFeed?.refresh?.();
+     if(includeHometown){try{parts.push(await syncHometown(uid))}catch(error){parts.push(error.message)}}
      if(failed)parts.push(failed+' could not be saved. '+firstError+' Retry sync.');
      if(data.missing?.length)parts.push('Grant personal content access to import '+data.missing.map(x=>x==='user_posts'?'posts':'photos').join(' and ')+'. Meta app approval may be required.');
      if(data.warnings?.length)parts.push(...data.warnings);
@@ -160,13 +161,25 @@
    else setTimeout(()=>notice(message),1000);
  }
  window.BigLWAFacebookPersonal=Object.freeze({load,connect,disconnect,sync,get,state});
+ let syncedOwner='';
+ async function restoreAndSync(){
+   await load();
+   if(!state.connected||state.needsReauth||document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return;
+   const auth=await fbFirebase(),uid=auth.currentUser?.uid;
+   if(!uid||syncedOwner===uid)return;
+   syncedOwner=uid;
+   try{await sync({publishToCollective:false,includeHometown:false})}catch(error){syncedOwner='';state.syncMessage=error.message;renderSync()}
+ }
  function boot(){
    callbackNotice();
-   load().catch(error=>console.warn('New Facebook connection check:',error));
+   restoreAndSync().catch(error=>console.warn('New Facebook connection check:',error));
  }
+ window.addEventListener('biglwa:session-verified',()=>restoreAndSync().catch(()=>{}));
+ window.addEventListener('biglwa:public-profile-ended',()=>restoreAndSync().catch(()=>{}));
+
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
  else boot();
  document.addEventListener('biglwa:module-open',()=>{
-   if(document.querySelector('#moduleWorkspace[data-module-key="orbit"]'))load();
+   if(document.querySelector('#moduleWorkspace[data-module-key="orbit"]'))restoreAndSync().catch(()=>{});
  });
 })();

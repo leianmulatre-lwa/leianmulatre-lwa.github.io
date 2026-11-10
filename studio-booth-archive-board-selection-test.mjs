@@ -29,5 +29,5 @@ check('Touch devices keep selection checkboxes available without hover',
   /@media\(hover:none\)/.test(styles));
 check('Current site loads fresh module and Pinterest assets',
   /module-pages\.js\?v=[\w.-]+/.test(home)&&
-  home.includes('pinterest-orbit.js?v=20261028-oauth-return-2')&&
+  home.includes('pinterest-orbit.js?v=20261106-board-photo-v3')&&
   /pinterest-boards\.css\?v=[\w.-]+/.test(pinterest));

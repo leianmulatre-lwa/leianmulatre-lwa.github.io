@@ -894,6 +894,25 @@ export async function saveExternalOrbitDraft(source, raw, {publishToCollective=f
   }
   if(prior.exists()){
     const present=prior.data()||{};
+    // Facebook CDN URLs expire. Refresh existing visible records on every sync,
+    // preserving their identity, creation time and visibility.
+    const freshThumbnail=https(item.thumbnailUrl||item.picture||item.imageUrl);
+    if(provider==='facebook'&&freshThumbnail&&
+       !['archived','pending_delete'].includes(present.state)&&
+       !['archived','pending_delete'].includes(present.archiveState)){
+      const promote=publishToCollective&&present.state==='draft';
+      const nextState=promote?'approved':(present.state||'draft');
+      const nextArchive=promote?'collective':(present.archiveState||'saved');
+      const updated={...present,imageUrl:freshThumbnail,thumbnailUrl:freshThumbnail,
+        imageUrls:[freshThumbnail],mediaItems:[{index:0,isPicture:true,url:freshThumbnail,thumbnailUrl:freshThumbnail,mediaType:'IMAGE'}],
+        sourceUrl:original,state:nextState,archiveState:nextArchive,updatedAt:store.serverTimestamp()};
+      if(store.auth.currentUser?.uid!==user.uid)throw Error('Account changed during import.');
+      const written=await writePostRecords(store,user.uid,postId,updated,{archiveState:nextArchive});
+      if(written.denied.includes('root'))throw Error('Could not refresh Facebook images. Retry sync.');
+      window.dispatchEvent(new CustomEvent('biglwa:orbit-imported',{detail:{source:provider,postId,state:nextState}}));
+      return {id:postId,created:false,refreshed:true,published:promote,state:nextState,source:provider};
+    }
+
     // Personal sync explicitly publishes drafts; respect removals and archived cards.
     // Autopublish only provider-authorized video.list records or public-profile
     // records whose author was verified against TikTok's OAuth username by

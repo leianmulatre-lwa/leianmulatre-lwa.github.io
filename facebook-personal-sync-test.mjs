@@ -61,3 +61,16 @@ result=await context.route(new Request('https://api.biglwa.com/facebook-personal
 context.mediaUser=async()=>({uid:'other'});
 result=await context.route(new Request('https://api.biglwa.com/facebook-personal/hometown'),env);assert.equal(result.status,401);
 console.log('PASS hometown coordinates, absent hometown and account isolation');
+// Re-sync must update expiring Facebook images on existing records, including
+// approved posts, without changing private/archived visibility or creation time.
+store.getDoc=async()=>({exists:()=>!!prior,data:()=>prior});
+prior={uid:'owner',state:'approved',archiveState:'collective',createdAt:5,imageUrl:'https://old.fbcdn.net/expired.jpg'};
+const renewed={...item,thumbnailUrl:'https://new.fbcdn.net/fresh.jpg'};
+let refreshed=await writerContext.save('facebook',renewed,{publishToCollective:false});
+assert.equal(refreshed.refreshed,true);assert.equal(writes.at(-1).imageUrl,renewed.thumbnailUrl);
+assert.equal(writes.at(-1).createdAt,5);assert.equal(writes.at(-1).state,'approved');
+prior={...prior,state:'draft',archiveState:'saved'};
+await writerContext.save('facebook',renewed,{publishToCollective:false});assert.equal(writes.at(-1).state,'draft');
+prior={...prior,state:'archived',archiveState:'archived'};const archivedWrites=writes.length;
+await writerContext.save('facebook',renewed,{publishToCollective:true});assert.equal(writes.length,archivedWrites);
+console.log('PASS Facebook image renewal preserves identity, private drafts and archived posts');

@@ -1,0 +1,28 @@
+/* Calendar inherits the viewed member's aura, including profile preview mode. */
+#studioApp .calendar-mini-weekdays .weekend,
+#studioApp .calendar-weekdays .weekend{color:rgb(var(--aura-rgb,216,95,109))!important}
+#studioApp .calendar-mini-grid .weekend,
+#studioApp .calendar-days .calendar-day.weekend{background:rgba(var(--aura-rgb,216,95,109),.26)!important}
+#studioApp .calendar-day.weekend .calendar-day-num{color:rgb(var(--aura-rgb,216,95,109))!important}
+/* Retire the oversized black widget control; full-player docking stays available. */
+#studioApp #stream .stream-studio-dock{display:none!important}
+#studioApp #camera .contact-sheet{position:relative;isolation:isolate}
+#studioApp #camera .contact-sheet .booth-recent-film{
+ position:absolute;inset:0 auto 0 0;z-index:2;width:25%;box-sizing:border-box;
+ display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:5px;
+ padding:8px 12px;background:#201d1b;box-shadow:3px 0 8px #0005;
+ border-radius:0;pointer-events:none;
+}
+#studioApp #camera .booth-recent-film::before,
+#studioApp #camera .booth-recent-film::after{
+ content:'';position:absolute;top:5px;bottom:5px;width:5px;
+ background:repeating-linear-gradient(to bottom,#b5aba0 0 5px,transparent 5px 13px);
+}
+#studioApp #camera .booth-recent-film::before{left:3px}
+#studioApp #camera .booth-recent-film::after{right:3px}
+#studioApp #camera .booth-recent-frame{display:block;overflow:hidden;min-height:0;border:1px solid #766c60;background:#302b26}
+#studioApp #camera .contact-sheet .booth-recent-frame img{
+ display:block;width:100%;height:100%;object-fit:cover;object-position:center;
+ transform:none!important;filter:none!important;border-radius:0;
+}
+html.biglwa-preview-mode #studioApp #camera .booth-recent-film{display:none!important}
