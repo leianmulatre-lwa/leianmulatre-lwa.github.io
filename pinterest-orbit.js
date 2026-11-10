@@ -743,6 +743,32 @@ async function connect(){await run(async()=>{
   dialog.addEventListener('close',()=>dialog.remove(),{once:true});
   document.body.append(dialog);dialog.showModal();
  }
+ function openPinControls(id,host){
+  document.querySelectorAll('.pn-photo-controls').forEach(el=>el.remove());
+  const pin=pinById(id);if(!pin)return;
+  const menu=document.createElement('div');menu.className='pn-photo-controls';
+  menu.style.cssText='position:absolute!important;bottom:8px!important;right:8px!important;left:auto!important;top:auto!important;width:min(230px,calc(100% - 16px))!important;max-height:calc(100% - 16px)!important;overflow:auto!important;z-index:40!important';
+  const live=publishedPinIds.has(String(id))||profilePinStates.get(String(id))==='live';
+  menu.innerHTML='<div class="pn-photo-control-row"><button type="button" data-save>Save</button><a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" aria-label="Open original on Pinterest">↗</a>'+(!live?'<button type="button" data-veve aria-label="Post to Veve" title="Post to Veve">✦</button>':'')+'<button type="button" data-close aria-label="Close options">×</button></div><div data-choices hidden></div><small role="status"></small>';
+  host.append(menu);
+  const close=()=>{menu.remove();host.querySelector('[data-pn-inline-options]')?.setAttribute('aria-expanded','false')};
+  menu.querySelector('[data-close]').onclick=close;
+  menu.querySelector('[data-veve]')?.addEventListener('click',()=>{close();publishSelection([id],'veve')});
+  const choices=menu.querySelector('[data-choices]'),status=menu.querySelector('[role=status]');
+  const save=async board=>{
+   try{status.textContent='Saving…';await saveVevePin({pinId:id,title:pin.title||pin.description,image:image(pin)||pin.image,url:'https://www.pinterest.com/pin/'+id+'/'},board);if(menu.isConnected)status.textContent='Saved'}
+   catch(error){status.textContent=error.message}
+  };
+  const paint=()=>{
+   choices.innerHTML=savedLibrary.boards.map(b=>'<button type="button" data-target="'+esc(b.id)+'">'+esc(b.title)+'</button>').join('')+'<button type="button" data-new>+ New board</button>';
+   choices.querySelectorAll('[data-target]').forEach(b=>b.onclick=()=>save(b.dataset.target));
+   choices.querySelector('[data-new]').onclick=()=>{
+    choices.innerHTML='<form><input aria-label="New board name" placeholder="Board name" maxlength="100" required><button>Create & save</button></form>';
+    choices.querySelector('form').onsubmit=async e=>{e.preventDefault();try{const b=await createVeveBoard(choices.querySelector('input').value);await save(b.id)}catch(error){status.textContent=error.message}};
+   };
+  };
+  menu.querySelector('[data-save]').onclick=async()=>{choices.hidden=!choices.hidden;if(!choices.hidden){if(savedUid!==authUid)await loadSaved();paint()}};
+ }
  function openBoardPicker(ids,host=null){
   const selected=[...new Set(ids.map(String))].filter(id=>pinById(id));
   document.querySelector('#pnBoardDestination')?.close();document.querySelector('#pnBoardDestination')?.remove();
@@ -969,8 +995,8 @@ document.addEventListener('click',e=>{
  const options=e.target.closest('[data-pn-inline-options]');
  if(options){e.preventDefault();e.stopImmediatePropagation();
   const host=options.closest('.pinterest-pin,.pn-saved-pin')||options.parentElement;
-  if(host.querySelector('.pn-inline-destination')){host.querySelector('.pn-inline-destination').close();return}
-  options.setAttribute('aria-expanded','true');openBoardPicker([options.dataset.pnInlineOptions],host);return;
+  if(host.querySelector('.pn-photo-controls')){host.querySelector('.pn-photo-controls').remove();options.setAttribute('aria-expanded','false');return}
+  options.setAttribute('aria-expanded','true');openPinControls(options.dataset.pnInlineOptions,host);return;
  }
  const savePin=e.target.closest('[data-pn-save-pin]');
  if(savePin){e.preventDefault();e.stopImmediatePropagation();openBoardPicker([savePin.dataset.pnSavePin]);return}

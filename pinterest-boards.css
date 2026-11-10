@@ -411,3 +411,11 @@ html body #studioApp #pinterestBoards .pinterest-owned-section>header>p{display:
 /* Image and title wash share one clipping face; the red shadow stays outside. */
 #studioApp #pinterestBoards .pinterest-board-face{position:absolute!important;inset:0!important;display:block!important;overflow:hidden!important;border-radius:inherit!important;clip-path:inset(0 round 14px);padding:0!important}
 #studioApp #pinterestBoards .pinterest-board-face .pinterest-board-copy{position:absolute!important;inset:auto 0 0!important;margin:0!important;width:100%!important;box-sizing:border-box!important;border-radius:0!important}
+
+#studioApp #pinterestBoards .pn-compact-actions button[data-pn-inline-options]{width:24px!important;min-width:24px!important;height:24px!important;min-height:24px!important;font-size:16px!important}
+#studioApp #pinterestBoards .pn-photo-controls{box-sizing:border-box!important;padding:7px!important;border-radius:9px!important;background:#fff8efee!important;color:#452631!important;box-shadow:0 2px 8px #0003!important;font:12px/1.3 system-ui!important}
+#studioApp #pinterestBoards .pn-photo-control-row{display:flex!important;align-items:center!important;gap:4px!important}
+#studioApp #pinterestBoards .pn-photo-controls :is(button,a){min-height:24px!important;padding:4px 7px!important;font:600 12px/1.2 system-ui!important;border:0!important;border-radius:5px!important;background:#f0dce1!important;color:#542638!important;text-decoration:none!important;cursor:pointer}
+#studioApp #pinterestBoards .pn-photo-controls [data-choices]:not([hidden]){display:grid!important;gap:4px!important;margin-top:6px!important}
+#studioApp #pinterestBoards .pn-photo-controls [hidden]{display:none!important}
+#studioApp #pinterestBoards .pn-photo-controls input{box-sizing:border-box;width:100%;min-width:0;font:12px system-ui}
