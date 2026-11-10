@@ -20,7 +20,7 @@ assert(css.includes('background:repeating-linear-gradient(90deg,')&&css.includes
 assert(css.includes('aspect-ratio:3 / 2!important'),'Four photo apertures retain consistent landscape proportions');
 assert(css.includes('pointer-events:none!important'),'Decorative perforations never block clicks');
 assert(css.includes('.biglwa-feed-hero-preview:focus-visible'),'Keyboard users can see active thumbnails');
-assert(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post))")&&feed.includes('const HERO_SLOTS = 4'),'Four photo-only slots exclude video posters');
+assert(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)))")&&feed.includes('const HERO_SLOTS = 4'),'Four photo-only slots exclude video posters');
 assert(feed.includes('openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)))'),'Filmstrip photo opens at the selected frame in the existing lightbox');
 assert(index.includes('account-boot.js?v=20261029-film-shuffle-3'),'Fresh account bootstrap on the live site');
 assert(read('account-boot.js').includes('feed-view.js?v=20261029-owned-photo-shuffle-3'),'Feed module cache version changes');
@@ -72,11 +72,8 @@ assert(feed.includes("post.state==='approved'&&heroPhotoUrl(post)"),
   'Draft, archived and pending-deletion posts never enter the shuffle');
 assert(feed.includes("anchor.hidden=!storedPosts.length&&!requiresSync"),
   'A profile with no pictures does not show fixed default photos');
-assert(feed.includes("window.setInterval(shuffleVisibleHero,HERO_SHUFFLE_MS)") &&
-  feed.includes("const HERO_SHUFFLE_MS = 45000"),
-  'Four-photo preview reshuffles periodically without changing post data');
-assert(feed.includes("document.hidden") && feed.includes("anchor.matches(':hover,:focus-within')"),
-  'Shuffling pauses for hidden tabs, hovered film or keyboard interaction');
+assert(!feed.includes('window.setInterval(shuffleVisibleHero'), 'Preview never rotates on a timer');
+assert(feed.includes('heroFailedUrls.add(heroPhotoUrl(slots[index]))'), 'Failed photos are excluded before replacement');
 const shuffleBegin=feed.indexOf('const heroPostKey = post =>');
 const shuffleEnd=feed.indexOf('\nfunction renderHero(',shuffleBegin);
 assert(shuffleBegin>=0&&shuffleEnd>shuffleBegin,'Shuffle helper is present');

@@ -742,8 +742,8 @@ const heroPhotoUrl = post => {
 let heroOn = null;
 let heroSignature = null;
 let heroSelectedKeys = [];
-let heroPoolSize = 0;
-const HERO_SHUFFLE_MS = 45000;
+let heroOwnerKey = null;
+const heroFailedUrls = new Set();
 const heroPostKey = post => String(post.id||'')+':'+heroPhotoUrl(post);
 
 /* Shuffle a copy of approved photo posts; prefer unseen pictures between
@@ -767,7 +767,7 @@ function shuffleHeroPosts(pool, previous=[]) {
   }
   return selected;
 }
-function renderHero(force,reshuffle=false) {
+function renderHero(force) {
   const anchor = document.getElementById("biglwaFeedHero");
   if (!anchor) return;
   /* The class lives on the markup in the module page, but it is asserted here as well so
@@ -778,28 +778,31 @@ function renderHero(force,reshuffle=false) {
   const isPublicProfile=Boolean(window.__biglwaPublicStorageView);
   const verifiedUid=String(window.BigLWAAccountStorage?.uid||identity()?.uid||'');
   const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
-  const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post));
+  const ownerKey=(isPublicProfile?'public:':'owner:')+(isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid);
+  if(heroOwnerKey!==ownerKey){heroOwnerKey=ownerKey;heroSelectedKeys=[];heroFailedUrls.clear();}
+  const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)));
   const requiresSync=previewPosts.some(post=>post.orbitImported&&
     ['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
   // No member-published pictures? Never display fixed sample photographs.
   // Keep the restoration prompt if the account's Orbit photos need syncing.
   anchor.hidden=!storedPosts.length&&!requiresSync;
   if(anchor.hidden){
-    heroOn=null;heroSignature=null;heroSelectedKeys=[];heroPoolSize=0;
+    heroOn=null;heroSignature=null;heroSelectedKeys=[];
     return;
   }
   const viewedUid=isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid;
   const signature=viewedUid+'|'+(isPublicProfile?'public':'owner')+'|'+
     previewPosts.map(p=>p.id+':'+p.state+':'+heroPhotoUrl(p)+':'+(p.caption||'')).join('|');
   const sameContent=anchor===heroOn&&signature===heroSignature;
-  if(sameContent&&!reshuffle)return;
-  if(!sameContent)heroSelectedKeys=[];
+  if(sameContent)return;
   heroOn=anchor;
   heroSignature=signature;
-  heroPoolSize=storedPosts.length;
 
   // Film previews change without reordering posts in MyFeed or altering storage.
-  const slots=shuffleHeroPosts(storedPosts,heroSelectedKeys);
+  const byKey=new Map(storedPosts.map(post=>[heroPostKey(post),post]));
+  const retained=heroSelectedKeys.map(key=>byKey.get(key)).filter(Boolean);
+  const retainedKeys=new Set(retained.map(heroPostKey));
+  const slots=[...retained,...shuffleHeroPosts(storedPosts.filter(post=>!retainedKeys.has(heroPostKey(post))))].slice(0,HERO_SLOTS);
   heroSelectedKeys=slots.map(heroPostKey);
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
@@ -828,30 +831,17 @@ function renderHero(force,reshuffle=false) {
     });
   });
   anchor.querySelector('.biglwa-feed-hero-grid')?.setAttribute('aria-label','Shuffle of published photographs');
-  anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach(img=>{
+  anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach((img,index)=>{
     img.addEventListener('error',()=>{
-      const slot=img.closest('a,button');
-      if(!slot)return;
-      const note=document.createElement('span');
-      note.className='biglwa-feed-hero-empty biglwa-feed-needs-sync';
-      note.textContent='Stored image unavailable — retry Sync';
-      slot.replaceWith(note);
-    });
+      if(!img.isConnected)return;
+      heroFailedUrls.add(heroPhotoUrl(slots[index]));
+      heroSignature=null;
+      renderHero(true);
+    },{once:true});
     if(img.complete&&img.naturalWidth===0)img.dispatchEvent(new Event('error'));
   });
-
 }
 
-/* Only rotate when the film is visible. Hover, focus or a background tab
-   pauses the shuffle, preserving an active user's target and accessibility. */
-function shuffleVisibleHero(){
-  const anchor=document.getElementById('biglwaFeedHero');
-  if(!anchor||anchor!==heroOn||anchor.hidden||heroPoolSize<2||document.hidden||
-     anchor.matches(':hover,:focus-within')||!anchor.getClientRects().length)return;
-  const bounds=anchor.getBoundingClientRect();
-  if(bounds.bottom<=0||bounds.top>=window.innerHeight)return;
-  renderHero(false,true);
-}
 let repairingFeedImages=false;
 document.addEventListener('click',async event=>{
   const trigger=event.target.closest('[data-feed-resync]');
@@ -1794,7 +1784,7 @@ export async function startFeed() {
      two sets of listeners fighting over the same list. */
   if (booted) return window.__biglwaFeed;
   booted = true;
-  window.setInterval(shuffleVisibleHero,HERO_SHUFFLE_MS);
+  // Keep the chosen preview until Studio reloads; failed or removed photos are replaced.
   startIdentity();
   onIdentityChange((who) => {
     watch();

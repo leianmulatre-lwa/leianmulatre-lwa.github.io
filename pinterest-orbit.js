@@ -1183,7 +1183,11 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
  }
  const veveSavedBoards=()=>authUid?savedLibrary.boards.map(b=>({id:b.id,title:b.title,count:b.pins.length})):[];
 
- // The Studio thumbnail is NOT the Boards module. Show actual board covers in
+ // The Studio thumbnail is NOT the Boards module.
+ const studioBoardsSamples=["/boards%20temp%20thumbnail/0b6e427c1b03b0a862e18119fc5a946d.jpg", "/boards%20temp%20thumbnail/15b2005e7f894079f5461a5612b8b2ec.jpg", "/boards%20temp%20thumbnail/1e11bab1fe6c29fc6c0eef146f0064d7.jpg", "/boards%20temp%20thumbnail/2a7294cb4c09b2b863d15a023090d019.jpg", "/boards%20temp%20thumbnail/5156b0b96eb6a8248e54280d2c6ba900.jpg", "/boards%20temp%20thumbnail/61ba5b5f5dd60e46f636c9cde3479eae.jpg", "/boards%20temp%20thumbnail/a4d68aa776aac96bb0054c628e7d3e18.jpg", "/boards%20temp%20thumbnail/b8ce4928ebccf42c9ecc749fe0b347e9.jpg", "/boards%20temp%20thumbnail/e642fae88aa023fc8124ead156cff138.jpg", "/boards%20temp%20thumbnail/eecc0dabc950626bd32c902f28c4e7fa.jpg", "/boards%20temp%20thumbnail/fb0612c7df6af82845036d2e3e06e32a.jpg"];
+ for(let i=studioBoardsSamples.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[studioBoardsSamples[i],studioBoardsSamples[j]]=[studioBoardsSamples[j],studioBoardsSamples[i]];}
+ window.__biglwaBoardsTemporaryPhotos=()=>studioBoardsSamples.slice();
+ // Show actual board covers in
  // the space available rather than a 190px photo marooned in a tall card.
  function paintStudioBoardGallery(){
   const card=document.querySelector('#studioApp #boards');
@@ -1199,6 +1203,7 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
   }
   const action=card.querySelector('.card-cta[data-open="boards"],.card-cta');
   if(!action)return;
+  card.querySelectorAll('.board-collage,#biglwaStudioBoardsPreview').forEach(el=>el.remove());
   let gallery=card.querySelector('.biglwa-studio-board-gallery');
   const originals=[...card.querySelectorAll('img')].filter(img=>
    !img.closest('.biglwa-studio-board-gallery')&&img.getAttribute('src')&&
@@ -1213,9 +1218,9 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
    unique.add(url);photos.push(url);
   };
   previews.forEach(item=>add(item.url));
-  // Only fall back to an existing member photo if the connected account has
-  // no pictures yet. Do not mix obsolete stock/legacy tiles into real boards.
-  if(!photos.length)originals.forEach(img=>add(img.currentSrc||img.src));
+  // Use only the owner-approved temporary collection until real Pins arrive.
+  // Never mix temporary photos into a connected preview.
+  if(!photos.length)studioBoardsSamples.forEach(add);
   if(!photos.length)return;
   const signature=photos.join('|');
   if(gallery?.dataset.signature===signature)return;

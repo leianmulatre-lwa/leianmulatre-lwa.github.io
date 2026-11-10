@@ -58,7 +58,7 @@ const ownerProfile={uid:'ownerA',username:'leian',name:'Leian',journalVisibility
 w.__biglwaViewedProfile=ownerProfile;
 w.dispatchEvent(new w.CustomEvent('biglwa:public-profile-ready',{detail:{profile:ownerProfile}}));
 await new Promise(r=>setTimeout(r,360));
-assert.equal(doc.querySelectorAll('.biglwa-public-board-slot').length,6,'Exactly two rows of three board previews');
+assert.equal(doc.querySelectorAll('.biglwa-public-board-slot').length,1,'Only available published photos appear; retired placeholder shapes are absent');
 assert.equal(doc.querySelectorAll('.biglwa-public-board-slot img').length,1,'Only approved owner Pinterest media rendered');
 assert.ok(!doc.querySelector('.biglwa-public-boards-home').textContent.includes('Connect Pinterest'));
 assert.equal(doc.querySelector('.biglwa-public-journal-initial').textContent,'L');

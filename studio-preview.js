@@ -477,8 +477,10 @@ html.biglwa-preview-mode #studioApp #diary .diary-page{position:relative!importa
 html.biglwa-preview-mode #studioApp #diary .diary-page img{display:block!important;opacity:1!important;visibility:visible!important}
 html.biglwa-preview-mode #studioApp #diary .biglwa-public-journal-initial{
  position:absolute!important;
- left:37%!important;top:36%!important;
- width:27%!important;height:31%!important;inset:auto!important;
+ inset:auto!important;left:50%!important;top:37%!important;
+ transform:translate(-50%,-50%) rotate(-2deg)!important;
+ width:64px!important;height:64px!important;max-width:20%!important;
+ padding:0!important;margin:0!important;z-index:9;
  display:grid!important;place-items:center!important;
  font:400 clamp(34px,4.4vw,60px)/1 "CS Bergamot Stitched",Georgia,serif;
  color:#171018;text-shadow:0 1px #fff8ef;pointer-events:none

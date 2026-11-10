@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&previewfix=20261110-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -3996,27 +3996,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const publicView=document.documentElement.classList.contains('biglwa-preview-mode')||
         Boolean(window.__biglwaPublicStorageView);
       if(publicView)return; // Never substitute this member's photos into a guest view.
-      const photos=window.__biglwaPinterest?.getPreview?.()||[];
-      const old=card.querySelector('#biglwaStudioBoardsPreview');
-      if(photos.length){
-        old?.remove();
-        card.classList.remove('has-live-pinterest-preview');
-        window.__biglwaRefreshBoardsThumbnail?.();
-        return;
-      }
-      // No Pinterest pictures have arrived: keep the one honest Connect/Open
-      // prompt, not blank dummy frames or a fabricated stock-photo gallery.
-      if(card.querySelector('.biglwa-studio-board-gallery'))return;
-      let slot=old;
-      if(!slot){
-        slot=document.createElement('div');slot.id='biglwaStudioBoardsPreview';
-        slot.className='studio-pinterest-board-preview';
-        card.querySelector('.card-cta')?.before(slot);
-      }
-      const linked=Boolean(window.__biglwaPinterest?.state?.connected);
-      slot.classList.add('studio-pinterest-awaiting');
-      slot.innerHTML='<button type="button" class="studio-pinterest-empty" data-open="boards">'+
-        (linked?'Open Boards to load your Pins':'Connect Pinterest to preview your Pins')+'</button>';
+      card.querySelectorAll('.board-collage,#biglwaStudioBoardsPreview').forEach(el=>el.remove());
+      window.__biglwaRefreshBoardsThumbnail?.();
     }
     const feedCard=$('#feed');
     if(feedCard){
