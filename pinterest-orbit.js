@@ -713,7 +713,7 @@ async function connect(){await run(async()=>{
      slots rather than a prompt, which shows the shape of what is coming without pretending
      there is something there. A board with no cover yet keeps its slot and waits. */
  function pinActions(id){
-  return '<div class="pn-pin-actions pn-compact-actions"><button type="button" data-pn-save-pin="'+esc(id)+'" aria-label="Save Pin to boards" title="Save to boards">⊞</button><a href="https://www.pinterest.com/pin/'+esc(id)+'/" target="_blank" rel="noopener noreferrer" aria-label="Open original Pin on Pinterest" title="Open original Pin">↗</a></div>';
+  return '<div class="pn-pin-actions pn-compact-actions"><button type="button" data-pn-inline-options="'+esc(id)+'" aria-label="Board options" aria-expanded="false" title="Board options">⊞</button></div>';
  }
  function selectionActions(original,count){
   const which=original?'original':'board';
@@ -743,10 +743,11 @@ async function connect(){await run(async()=>{
   dialog.addEventListener('close',()=>dialog.remove(),{once:true});
   document.body.append(dialog);dialog.showModal();
  }
- function openBoardPicker(ids){
+ function openBoardPicker(ids,host=null){
   const selected=[...new Set(ids.map(String))].filter(id=>pinById(id));
   document.querySelector('#pnBoardDestination')?.close();document.querySelector('#pnBoardDestination')?.remove();
-  const dialog=document.createElement('dialog');dialog.id='pnBoardDestination';dialog.className='pn-board-destination';
+  const dialog=document.createElement(host?'div':'dialog');dialog.id='pnBoardDestination';dialog.className='pn-board-destination'+(host?' pn-inline-destination':'');
+  if(host)dialog.close=()=>{dialog.remove();host.querySelector('[data-pn-inline-options]')?.setAttribute('aria-expanded','false')};
   dialog.setAttribute('aria-labelledby','pnDestinationTitle');
   dialog.innerHTML='<header><h2 id="pnDestinationTitle">'+(selected.length?'Save '+selected.length+' Pin'+(selected.length===1?'':'s')+' to boards':'Your boards')+'</h2><button type="button" data-pn-picker-close aria-label="Close board picker">×</button></header>'+
    '<p>Choose one or more BIG LWA boards. Pins stay private here.</p><div class="pn-destination-list"></div>'+
@@ -786,7 +787,8 @@ async function connect(){await run(async()=>{
    }catch(error){status.textContent=error.message}finally{button.disabled=false}
   };
   dialog.querySelectorAll('[data-pn-picker-publish]').forEach(button=>button.onclick=()=>{const to=button.dataset.pnPickerPublish;dialog.close();document.querySelector('#pnPinPreview')?.close();publishSelection(selected,to)});
-  dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);paint();dialog.showModal();
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+  if(host){host.append(dialog);dialog.insertAdjacentHTML('beforeend','<a class="pn-inline-original" href="https://www.pinterest.com/pin/'+esc(selected[0])+'/" target="_blank" rel="noopener noreferrer">↗ Open original</a>');paint()}else{document.body.append(dialog);paint();dialog.showModal()}
   if(savedUid!==authUid)loadSaved().then(()=>{if(dialog.isConnected)paint()});
  }
  async function discoveryDestination(postId,featured){
@@ -964,6 +966,12 @@ document.addEventListener('click',e=>{
  if(newBoard){e.preventDefault();e.stopImmediatePropagation();openBoardPicker([]);return;}
  const preview=e.target.closest('[data-pn-preview]');
  if(preview){e.preventDefault();e.stopImmediatePropagation();openPinPreview(preview.dataset.pnPreview);return}
+ const options=e.target.closest('[data-pn-inline-options]');
+ if(options){e.preventDefault();e.stopImmediatePropagation();
+  const host=options.closest('.pinterest-pin,.pn-saved-pin')||options.parentElement;
+  if(host.querySelector('.pn-inline-destination')){host.querySelector('.pn-inline-destination').close();return}
+  options.setAttribute('aria-expanded','true');openBoardPicker([options.dataset.pnInlineOptions],host);return;
+ }
  const savePin=e.target.closest('[data-pn-save-pin]');
  if(savePin){e.preventDefault();e.stopImmediatePropagation();openBoardPicker([savePin.dataset.pnSavePin]);return}
  const savedTile=e.target.closest('[data-pn-saved-board]');
