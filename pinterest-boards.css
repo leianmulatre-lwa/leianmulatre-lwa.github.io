@@ -403,7 +403,7 @@ html body #studioApp #pinterestBoards .pinterest-owned-section>header>p{display:
 /* Keep the title wash inside its rounded board and actions inside the photo. */
 #pinterestBoards .pinterest-board{overflow:hidden!important;isolation:isolate}
 #pinterestBoards .pinterest-board-copy{box-sizing:border-box!important;max-width:100%!important;border-radius:0 0 14px 14px!important}
-#pinterestBoards .pn-compact-actions [data-pn-inline-options]{width:28px!important;height:28px!important;min-height:28px!important;padding:3px!important;font-size:18px!important}
+#studioApp #pinterestBoards .pn-compact-actions button[data-pn-inline-options]{min-width:28px!important;width:28px!important;height:28px!important;min-height:28px!important;padding:3px!important;font-size:18px!important}
 #pinterestBoards .pn-inline-destination{position:absolute!important;inset:8px!important;z-index:30!important;box-sizing:border-box!important;width:auto!important;max-width:none!important;max-height:calc(100% - 16px)!important;margin:0!important;padding:10px!important;overflow:auto!important;border-radius:10px!important;background:#fff8ed!important;color:#39252c!important;font:12px/1.3 system-ui!important}
 #pinterestBoards .pn-inline-destination h2{font-size:14px!important}
 #pinterestBoards .pn-inline-original{display:block;padding:8px;color:#92243c}
