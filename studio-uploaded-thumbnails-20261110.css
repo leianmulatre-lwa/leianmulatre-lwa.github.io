@@ -1,0 +1,233 @@
+/* BIG LWA Studio thumbnail artwork supplied by the owner, 2026-11-10.
+ * Keep the user's approved MyFeed posts and private Booth capture logic intact.
+ * Alpha film apertures let the existing media show through beneath each image.
+ * This stylesheet intentionally loads AFTER the older Studio preview styles. */
+
+/* MYFEED: exact curtain/contact-strip silhouette; never render a solid
+ * image over the member's four existing clickable photographs. */
+#studioApp #feed #biglwaFeedHero.biglwa-feed-hero {
+  position:relative!important;
+  isolation:isolate!important;
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:1672 / 941!important;
+  padding:0!important;
+  margin:0 0 10px!important;
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#studioApp #feed #biglwaFeedHero.biglwa-feed-hero[hidden] {display:none!important}
+#studioApp #feed #biglwaFeedHero.biglwa-feed-hero::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  background:transparent url('/assets/biglwa-myfeed-filmstrip-20261110.webp') center / 100% 100% no-repeat;
+}
+/* Put the existing four media buttons exactly behind the PNG apertures
+ * x=[74..423,468..815,859..1206,1250..1599], y=[481..723]. */
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid,
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid {
+  position:absolute!important;
+  display:grid!important;
+  z-index:1!important;
+  left:4.425%!important;
+  top:51.12%!important;
+  width:91.23%!important;
+  height:25.72%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-height:none!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  grid-auto-flow:row!important;
+  gap:2.95%!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  scrollbar-width:none!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid::before,
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid::after,
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::before,
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid::after {
+  content:none!important;
+  display:none!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid > :is(button,.biglwa-feed-hero-empty,.biglwa-feed-needs-sync,span,div),
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid > :is(button,.biglwa-feed-hero-empty,.biglwa-feed-needs-sync,span,div) {
+  position:relative!important;
+  z-index:1!important;
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  background:#080605!important;
+  box-shadow:none!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid > .biglwa-feed-hero-preview img {
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  filter:none!important;
+  opacity:1!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid > .biglwa-feed-hero-preview::after,
+#studioApp #biglwaFeedHero .biglwa-feed-hero-grid > .biglwa-feed-hero-preview::after {
+  content:none!important;display:none!important; /* numbers are part of the artwork */
+}
+/* Keep the existing image count on the velvet (not on a face or film frame).
+ * Member-facing text and approved-post semantics are not deleted. */
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head,
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head {
+  position:absolute!important;
+  z-index:4!important;
+  top:19%!important;
+  left:9%!important;
+  right:9%!important;
+  width:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  pointer-events:none;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head h3,
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head h3 {
+  font-size:clamp(8px,1.1vw,13px)!important;
+  color:#f8e9dd!important;
+  text-shadow:0 1px 3px #1c0305!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head span,
+#studioApp #biglwaFeedHero .biglwa-feed-hero-head span {
+  max-width:55%!important;
+  font-size:clamp(7px,.8vw,10px)!important;
+  padding:0 0 4px!important;
+  color:#f9e8dc!important;
+  background:transparent!important;
+  text-shadow:0 1px 3px #1c0305!important;
+  white-space:nowrap!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head span::after {bottom:0!important;left:0!important;right:0!important}
+/* Do not leave the sync action hidden under the image. */
+#studioApp #feed #biglwaFeedHero .biglwa-feed-resync,
+#studioApp #feed #biglwaFeedHero .biglwa-feed-sync-note {
+  position:relative!important;
+  z-index:5!important;
+  margin:4px 8% 0!important;
+}
+
+/* BOOTH: off neon in light mode, bright red neon in night mode. The artwork's
+ * native 4:3 canvas prevents cropping the sign and transparent film slots. */
+#studioApp .photobooth-stage.has-intro {
+  aspect-ratio:1446 / 1088!important;
+  background:#080605!important;
+}
+#studioApp .photobooth-stage .photobooth-intro,
+#studioApp #camera .photobooth-reference-preview > img {
+  content:url('/assets/biglwa-booth-light-20261110.webp')!important;
+  display:block!important;
+  position:relative!important;
+  z-index:2!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  transform:none!important;
+  filter:none!important;
+  opacity:1!important;
+}
+body.night-mode #studioApp .photobooth-stage .photobooth-intro,
+body.night-mode #studioApp #camera .photobooth-reference-preview > img {
+  content:url('/assets/biglwa-booth-dark-20261110.webp')!important;
+}
+#studioApp #camera .contact-sheet.photobooth-reference-preview {
+  position:relative!important;
+  isolation:isolate!important;
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:1446 / 1088!important;
+  padding:0!important;
+  margin:12px 0 14px!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  background:#080605!important;
+  box-shadow:none!important;
+}
+/* Existing private Booth pictures stay in the DOM. Hide only the old
+ * CSS-drawn sprocket film, which is duplicated in the new transparent artwork. */
+#studioApp #camera .contact-sheet .booth-recent-film {
+  position:absolute!important;
+  z-index:1!important;
+  left:7.4%!important;
+  top:10.57%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:16.4%!important;
+  height:79.8%!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:repeat(4,minmax(0,1fr))!important;
+  gap:5.1%!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  pointer-events:none!important;
+}
+#studioApp #camera .booth-recent-film::before,
+#studioApp #camera .booth-recent-film::after {content:none!important;display:none!important}
+#studioApp #camera .contact-sheet .booth-recent-frame {
+  display:block!important;
+  min-height:0!important;
+  width:100%!important;
+  height:100%!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  background:#080605!important;
+  box-shadow:none!important;
+}
+#studioApp #camera .contact-sheet .booth-recent-frame img {
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  content:normal!important; /* photos must not inherit neon replacement from old generic img rule */
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+/* Never reveal the signed-in member's private Booth strip in profile preview. */
+html.biglwa-preview-mode #studioApp #camera .booth-recent-film {display:none!important}
+
+@media(prefers-reduced-motion:reduce){
+  #studioApp #feed #biglwaFeedHero *{transition:none!important}
+}
