@@ -3881,7 +3881,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       slot.appendChild(mini);
       const status=document.createElement('p');
       status.className='studio-mini-map-caption';
-      status.innerHTML='Drag to explore · +/- to zoom · <button type="button" class="studio-mini-map-open" data-open="map">Open full map ↗</button>';
+      status.textContent='Drag to explore · +/- to zoom';
       slot.appendChild(status);
     }
     const pins=readMapPreviewPins();
