@@ -44,7 +44,7 @@ assert.ok(worker.includes("key='pinterest/saved/'+user.uid+'/library.json'"),'Sa
 assert.ok(worker.includes("return json({ok:true,library}"),'Worker responds with persisted Saved collection');
 assert.ok(!menu.includes("document.querySelectorAll('.login-public-footer nav, .site-policy-footer nav').forEach(addFooterLink)"),'Login footer no longer adds Settings link');
 assert.ok(menu.includes("document.querySelectorAll('.login-public-footer nav a[href=\"/settings\"]').forEach(link=>link.remove())"),'old cached Settings link is removed from login footer');
-assert.ok(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post))")&&feed.includes("const withImage=storedPosts;"),'Studio Feed preview count uses the filtered picture list');
+assert.ok(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)))")&&feed.includes("const withImage=storedPosts;"),'Studio Feed preview count uses the filtered picture list');
 console.log('Pinterest masonry, Saved, Studio and login footer regressions passed');
 
 // The Studio thumbnail was intentionally redesigned from the old six-tile
@@ -57,8 +57,9 @@ assert.ok(frontend.includes("gallery.dataset.count=String(photos.length)"),'Stud
 assert.ok(studioThumb.includes('grid-template-columns:minmax(0,1.24fr) repeat(2,minmax(0,1fr))'),
   'Studio Boards has the requested portrait-and-four layout');
 assert.ok(!pages.includes("tiles.slice(0,6).map((item,i)=>"),'Old six-tile Studio renderer stays removed');
-assert.ok(pages.includes("const linked=Boolean(window.__biglwaPinterest?.state?.connected)"),'the thumbnail reads verified Pinterest connection state');
-assert.ok(pages.includes('Connect Pinterest to preview your Pins'),'owner sees an honest Connect prompt when no genuine photos exist');
+assert.ok(frontend.includes("const previews=window.__biglwaPinterest?.getPreview?.()||[]"),'the canonical thumbnail reads current Pinterest previews');
+assert.ok(frontend.includes('if(!photos.length)studioBoardsSamples.forEach(add)'),'approved temporary photos appear only until connected Pins are available');
+assert.ok(frontend.includes("card.querySelectorAll('.board-collage,#biglwaStudioBoardsPreview').forEach(el=>el.remove())"),'retired previews cannot stack above the canonical gallery');
 assert.ok(pages.includes("studio-mini-map-open"),'the Studio map has an open-full-map action');
 assert.ok(pages.includes("mini.loading='eager'"),'real mini-map loads on Studio without scrolling to it');
 console.log('Studio Boards five-photo portrait mosaic and interactive Map checks passed');
