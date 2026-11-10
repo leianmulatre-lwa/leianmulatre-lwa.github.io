@@ -857,6 +857,7 @@ async function connect(){await run(async()=>{
  });
 
  function render(){
+  scheduleStudioBoardPreview();
   document.querySelectorAll('[data-orbit-app="pinterest"]').forEach(el=>{el.classList.toggle('orbit-connected',connected);el.setAttribute('aria-label',connected?'Open Pinterest boards':'Connect Pinterest')});
   renderFeedList();
   document.querySelectorAll('[data-orbit-path="pinterest"]').forEach(input=>{
@@ -1290,6 +1291,22 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVe
     try{const parsed=new URL(url);if(parsed.protocol!=='https:')return;}catch{return}
     seen.add(url);out.push({id:String(id||''),url});
    };
+   // Recent selection belongs to this account and outranks stale Pinterest pins.
+   const recent=recentBoardIds[0];
+   const saved=savedLibrary.boards.find(board=>String(board.id)===String(recent));
+   if(saved){
+    saved.pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||pin.image||''));
+    return out;
+   }
+   if(recent&&boards.some(board=>String(board.id)===String(recent))){
+    if(String(boardId)===String(recent))pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin)||pin.image||''));
+    if(!out.length){
+     const cover=covers[recent];
+     const urls=Array.isArray(cover?.images)?cover.images:[cover?.url||cover];
+     urls.filter(Boolean).forEach(url=>include(recent,url));
+    }
+    return out;
+   }
    pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin)||pin.image||''));
    orderedBoards().forEach(board=>{
     const cover=covers[board.id];
