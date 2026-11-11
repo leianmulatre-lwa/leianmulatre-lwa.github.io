@@ -787,3 +787,20 @@ html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]::
 @media(prefers-reduced-motion:reduce){
   #studioApp #stream>.stream-screen .stream-wave i{animation:none!important}
 }
+
+
+/* Gothic frame has a taller, wider opening and lower carved controls than the wagon. */
+body.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-station-photo,
+html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-station-photo,
+body.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"].stream-preview-active>.biglwa-persistent-stream-player,
+html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"].stream-preview-active>.biglwa-persistent-stream-player{
+  inset:41.4% auto auto 19.5%!important;width:61%!important;height:43%!important;
+}
+body.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-wave,
+html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-wave{
+  left:11%!important;bottom:6.5%!important;width:14%!important;height:3%!important;
+}
+body.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-studio-dock,
+html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-studio-dock{
+  right:6.5%!important;bottom:5.6%!important;width:17%!important;height:8%!important;
+}
