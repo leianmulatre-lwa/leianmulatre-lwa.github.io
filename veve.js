@@ -6,7 +6,7 @@
   const CDN='https://www.gstatic.com/firebasejs/12.18.0/';
   const groups=['politc','photos','sqwibs','pinterest','rooms','games','books','closet','mcm','ads'];
   const names={photos:'collective photos',sqwibs:'sqwib',pinterest:'pinterest vibe',rooms:'the lounge',politc:'politc',mcm:'mcm',games:'arcade',books:'books',closet:'closet',ads:'sponsored'};
-  const route={rooms:'rooms',politc:'politc',mcm:'politc',games:'games',books:'library',closet:'closet',pinterest:'boards',photos:'feed',sqwibs:'notes'};
+  const route={rooms:'rooms',politc:'politc',mcm:'calendar',games:'games',books:'library',closet:'closet',pinterest:'boards',photos:'feed',sqwibs:'notes'};
   const e=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const safeUrl=v=>{try{const p=new URL(String(v||''));return p.protocol==='https:'?p.href:''}catch{return ''}};
   const time=x=>x?.toMillis?.()||Date.parse(x||'')||0;
@@ -347,7 +347,7 @@
     }
     if(key==='mcm'){
       const posts=rank(state.items).filter(p=>String(p.source||'').toLowerCase()==='mcm'&&picture(p)).slice(0,5);
-      return posts.map(p=>photoMarkup(p,key)).join('')||quickCard('mcm','mcm community picks','Nominations live in politc. No rankings or winners are claimed until real nominations are available.','politc');
+      return posts.map(p=>photoMarkup(p,key)).join('')||quickCard('mcm','mcm community picks','Find MCM nominations in Calendar.','calendar');
     }
     if(key==='games')return [
       {label:'2048',id:'2048',image:'/assets/arcade/2048.svg',description:'Merge matching tiles to reach 2048.'},
