@@ -21,7 +21,7 @@ assert.ok(html.includes('orbit-media-status-20261016.css?v=20261016-facebook-tik
 assert.ok(html.includes('tiktok-orbit.js?v=20261028-oauth-return-2'),'TikTok media status script deployed');
 assert.ok(/facebook-orbit\.js\?v=[\w.-]+/.test(html),'Facebook profile link script deployed');
 console.log('PASS Facebook public profile and consent-based TikTok video previews; no unauthorized auto-publishing.');
-const syncSource=tt.slice(tt.indexOf('  async function syncTikTokDrafts()'),tt.indexOf('  async function restore()'));
+const syncSource=tt.slice(tt.indexOf('  async function syncTikTokDrafts()'),tt.indexOf('  async function restore({force=false}={})'));
 let imported=[],syncNotice='';
 const syncContext=vm.createContext({videoPermissionPending:false,videos:[{id:'one',share_url:'https://www.tiktok.com/@owner/video/1'}],authUid:'owner',profile:{},window:{__biglwaOrbitPosts:{saveExternalOrbitDraft:async(...args)=>{imported.push(args);return {published:true}}}},document:{dispatchEvent:()=>{}},CustomEvent:class{constructor(name,options){this.type=name;this.detail=options.detail}},notice:text=>syncNotice=text});
 vm.runInContext(syncSource+';this.sync=syncTikTokDrafts;',syncContext);
