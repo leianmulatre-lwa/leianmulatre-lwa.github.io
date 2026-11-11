@@ -425,7 +425,7 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
   padding:48px 12px 12px!important;
 }
 #studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card>.card-kicker{
-  position:absolute!important;top:10px!important;left:11px!important;
+  position:absolute!important;top:7px!important;left:7px!important;
   display:flex!important;align-items:center!important;gap:6px!important;
   width:auto!important;max-width:calc(100% - 100px)!important;
   margin:0!important;padding:0!important;line-height:28px!important;
@@ -434,6 +434,7 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
 #studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card>.card-kicker img{
   width:24px!important;height:24px!important;flex:0 0 24px!important;
   object-fit:contain!important;margin:0!important;
+  clip-path:inset(0 1px 0 0);
 }
 #studioApp #heroWidgetRail #biglwaAuraAvatarPair>.aura-card>p{
   position:static!important;grid-column:2!important;grid-row:1!important;
