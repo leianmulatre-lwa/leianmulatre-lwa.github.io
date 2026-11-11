@@ -471,26 +471,20 @@
       #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:188px!important;right:30px!important;bottom:18px!important}
       #studioApp .hero-widget-rail{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
       @media(max-width:900px){#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){height:auto!important;min-height:340px!important;max-height:none!important;grid-template-columns:86px minmax(0,1fr)!important;gap:18px!important;padding:22px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-avatar{width:86px!important;height:86px!important;font-size:40px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .profile-copy{padding:10px 0 58px!important}#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .real-rank{left:22px!important;right:22px!important}#studioApp .hero-widget-rail{grid-template-columns:1fr!important}}
-      /* Station artwork turns the Stream preview into a real broadcast booth. */
-      #studioApp #stream .stream-screen{position:relative;isolation:isolate;min-height:238px;padding:18px;overflow:hidden;border:5px solid #181313;border-radius:14px;background:#120d10;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 8px 0 #2a1918}
-      #studioApp #stream .stream-station-photo{position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.94) contrast(1.08) brightness(.72)}
-      #studioApp #stream .stream-screen::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(8,7,12,.15),rgba(8,7,12,.34) 45%,rgba(8,7,12,.86));pointer-events:none}
-      #studioApp #stream .stream-screen::after{content:"";position:absolute;inset:0;z-index:3;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);mix-blend-mode:overlay;pointer-events:none}
-      #studioApp #stream .stream-screen>.on-air,#studioApp #stream .stream-screen>strong,#studioApp #stream .stream-screen>span,#studioApp #stream .stream-screen>.stream-wave{position:relative;z-index:2}
-      #studioApp #stream .stream-screen>strong{display:block;margin-top:102px;font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;font-size:24px;line-height:1;color:#fff;text-shadow:0 2px 13px rgba(0,0,0,.9)}
-      #studioApp #stream .stream-screen>span{display:block;margin-top:7px;color:rgba(255,255,255,.82);font:700 10px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-      #studioApp #stream .stream-wave{position:absolute;left:18px;right:18px;bottom:12px;height:18px;opacity:.67}
-      /* Keep temporary Stream/Sir Clips labels separate from the soundwave.
-         Moving the wave to a reserved lower band preserves legibility. */
-      #studioApp #stream .stream-screen{padding-bottom:27px!important}
-      #studioApp #stream .stream-screen>strong{margin-top:109px!important;position:relative!important;z-index:2!important}
-      #studioApp #stream .stream-screen>span{position:relative!important;z-index:2!important;max-width:100%!important;overflow-wrap:anywhere!important}
-      #studioApp #stream .stream-screen>.stream-wave{
-        position:absolute!important;left:20px!important;right:20px!important;top:76px!important;bottom:auto!important;
-        z-index:2!important;height:16px!important;max-height:16px!important;opacity:.54!important;pointer-events:none!important;
-      }
-      /* Single ON AIR footer: suppress the retired overlay inside the screen. */
-      #studioApp #stream .stream-screen>.on-air{display:none!important}
+      /* Studio Stream cabinet and thumbnail. */
+      #studioApp #stream>.stream-screen{position:relative;isolation:isolate;box-sizing:border-box;aspect-ratio:5/4;min-height:0;padding:0;overflow:hidden;border:5px solid #181313;border-radius:14px;background:#120d10;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 8px 0 #2a1918}
+      #studioApp #stream>.stream-screen>.stream-station-photo{position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.94) contrast(1.08) brightness(.72)}
+      #studioApp #stream>.stream-screen::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(8,7,12,.55),rgba(8,7,12,.08) 42%,rgba(8,7,12,.68));pointer-events:none}
+      #studioApp #stream>.stream-screen::after{content:"";position:absolute;inset:0;z-index:3;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);mix-blend-mode:overlay;pointer-events:none}
+      #studioApp #stream>.stream-screen>strong{position:absolute;top:12px;left:18px;right:18px;z-index:4;display:block;margin:0;font:400 24px/1.1 "CS Bergamot Stitched",Georgia,"Times New Roman",serif;color:#fff;text-shadow:0 2px 13px rgba(0,0,0,.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none}
+      #studioApp #stream>.stream-screen>.stream-wave{position:absolute;left:18px;bottom:9px;z-index:4;height:28px;margin:0;gap:4px;opacity:.7;pointer-events:none}
+      #studioApp #stream>.stream-screen>.stream-wave i{max-height:100%;animation:studio-stream-wave 860ms ease-in-out infinite alternate;animation-play-state:paused}
+      #studioApp #stream>.stream-screen>.stream-wave i:nth-child(3n+1){animation-delay:-540ms}
+      #studioApp #stream>.stream-screen>.stream-wave i:nth-child(3n+2){animation-delay:-280ms}
+      #studioApp #stream>.stream-screen.is-playing>.stream-wave i{animation-play-state:running}
+      @keyframes studio-stream-wave{from{transform:scaleY(.38)}to{transform:scaleY(1)}}
+      @media(prefers-reduced-motion:reduce){#studioApp #stream>.stream-screen>.stream-wave i{animation:none}}
+      #studioApp #stream>.stream-screen>.on-air{display:none!important}
 
       /* Match Room's under-preview activity footer. This is NOT a live viewer count. */
       #studioApp #stream .stream-watching-status{
@@ -1882,9 +1876,9 @@
     if(!watched||watched.kind==='station')return fallback;
     const player=window.BigLWAStreamGuide;
     if(watched.kind==='feature'){
-      const entry=(player?.featured||[]).find(item=>item.id===watched.id);
+      const entry=[...(player?.featured||[]),...(player?.ballroom||[])].find(item=>item.id===watched.id);
       if(entry?.videoId&&/^[A-Za-z0-9_-]{11}$/.test(entry.videoId)){
-       const thumb='https://i.ytimg.com/vi/'+entry.videoId+'/hqdefault.jpg';
+       const thumb='https://i.ytimg.com/vi/'+entry.videoId+'/mqdefault.jpg';
        return unavailableStreamThumbs.has(thumb)?fallback:thumb;
       }
       if(entry?.provider==='archive-video'){
@@ -1916,6 +1910,7 @@
       if(status.textContent!=='ON AIR')status.textContent='ON AIR';
       status.setAttribute('aria-label','On air: curated Stream playback; live viewers are not tracked');
       if(status.previousElementSibling!==screen)screen.insertAdjacentElement('afterend',status);
+      const title=$(':scope > strong',screen);if(title&&title.textContent!==streamTitle)title.textContent=streamTitle;
       if(screen.classList.contains('stream-preview-active'))return;
       let photo=$('.stream-station-photo',screen);
       if(!photo){photo=document.createElement('img');photo.className='stream-station-photo';photo.width=1920;photo.height=1080;photo.decoding='async';screen.prepend(photo)}
@@ -1927,7 +1922,6 @@
        photo.onerror=null;
        photo.src='/assets/station-radio-room.webp?v=20260916-station-1';
       };
-      const title=$('strong',screen);if(title&&title.textContent!==streamTitle)title.textContent=streamTitle;
       // Audience labels live in the footer above; do not overlay the player.
     });
   }

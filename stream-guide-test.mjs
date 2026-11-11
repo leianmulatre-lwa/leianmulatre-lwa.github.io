@@ -343,11 +343,11 @@ await check('TV includes the existing five Betty Boop episodes, without FOX, and
 });
 
 await check('Studio preview preserves a single mounted Stream media instance',async()=>{
- assert.ok(stream.includes('if(portal.parentElement!==mediaTarget)mediaTarget.appendChild(portal)'),'media portal is attached to its visible player frame');
+ assert.ok(stream.includes('mediaTarget.moveBefore(portal,null)')&&stream.includes('else mediaTarget.appendChild(portal)'),'media portal is attached to its visible player frame');
  assert.ok(stream.includes("if(!persistentPlayback&&!restoreLastPlayed())tuneCurrent()"),'reopening Stream must not recreate a playing iframe');
  assert.ok(stream.includes("targetMedia(root.querySelector('#streamMonitor'))"),'reopening Stream retargets the existing player');
  assert.ok(stream.includes("function parkInStudio()"),'Stream exposes a parking transition');
- assert.ok(stream.includes("mediaPortal.classList.add('is-studio-preview')"),'Studio shows an actual media player');
+ assert.ok(stream.includes("portal.classList.toggle('is-studio-preview',studioTarget===mediaTarget)"),'Studio shows an actual media player');
  assert.ok(stream.includes('mediaPortal.addEventListener(\'click\',onClick)'),'Studio player controls remain interactive');
  assert.ok(stream.includes('playbackKey=()=>accountUid()?LAST_PLAYED_KEY+accountUid():\'\''),'last source keyed per account');
  assert.ok(pages.includes("window.BigLWAStreamGuide?.parkInStudio?.()"),'module navigation parks the player before clearing DOM');

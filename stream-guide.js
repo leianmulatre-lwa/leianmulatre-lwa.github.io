@@ -116,6 +116,12 @@
  let mediaPortal=null,mediaTarget=null,studioTarget=null;
  let dockShell=null,dockTarget=null,docked=false;
  let guideTimer=null,lastGuideHour='';
+ let playing=false,twitchScript=null;
+ const studioScreen=()=>document.querySelector('#studioApp #stream > .stream-screen');
+ function setPlaying(value){
+  playing=value;
+  studioScreen()?.classList.toggle('is-playing',playing);
+ }
  const LAST_PLAYED_KEY='biglwaStreamLastPlayedV1:';
  const accountUid=()=>String(window.__biglwaIdentity?.uid||'').trim();
  const playbackKey=()=>accountUid()?LAST_PLAYED_KEY+accountUid():'';
@@ -161,6 +167,14 @@
   mediaPortal.addEventListener('play',()=>{
    if(state.selected)saveLastPlayed(state.selected);
   },true);
+  mediaPortal.addEventListener('playing',()=>setPlaying(true),true);
+  // TikTok's PLAYING notification is exposed as a play event.
+  mediaPortal.addEventListener('play',event=>{
+   if(event.target.matches?.('tiktok-video'))setPlaying(true);
+  },true);
+  for(const name of ['pause','ended','waiting','emptied','error']){
+   mediaPortal.addEventListener(name,()=>setPlaying(false),true);
+  }
   (mediaTarget?.isConnected?mediaTarget:document.body).appendChild(mediaPortal);
   return mediaPortal;
  }
@@ -170,7 +184,15 @@
   mediaTarget=(docked&&dockTarget?.isConnected?dockTarget:target)||null;
   if(!mediaTarget?.isConnected)return;
   const portal=ensureMediaPortal();
-  if(portal.parentElement!==mediaTarget)mediaTarget.appendChild(portal);
+  if(portal.parentElement!==mediaTarget){
+   if(portal.isConnected&&mediaTarget.moveBefore)mediaTarget.moveBefore(portal,null);
+   else mediaTarget.appendChild(portal);
+  }
+  if(studioTarget&&studioTarget!==mediaTarget){
+   studioTarget.classList.remove('stream-preview-active');
+   studioTarget=null;
+  }
+  portal.classList.toggle('is-studio-preview',studioTarget===mediaTarget);
   // Position is anchored to the card's own layout. No scroll listeners,
   // transforms, ResizeObserver or animation frames are required.
   portal.style.position='absolute';
@@ -261,11 +283,8 @@
   if(!screen)return false;
   studioTarget=screen;
   screen.classList.add('stream-preview-active');
-  mediaPortal.classList.add('is-studio-preview');
   // The Studio thumbnail now has one Dock Stream control at its bottom edge.
   mediaPortal.querySelector('.stream-preview-return')?.remove();
-  const oldPhoto=screen.querySelector('.stream-station-photo');
-  if(oldPhoto)oldPhoto.hidden=true;
   state.followGuide=false;
   targetMedia(screen);
   scheduleMediaPosition();
@@ -277,8 +296,10 @@
  // Keep the visible dock action attached to the Studio thumbnail, whether
  // playback is inside Stream, the thumbnail, or already in its mini-window.
  function installStudioDockControl(){
-  const preview=document.querySelector('#studioApp #stream .stream-screen');
-  if(!preview||preview.querySelector(':scope > .stream-studio-dock'))return;
+  const preview=studioScreen();
+  if(!preview)return;
+  preview.classList.toggle('is-playing',playing);
+  if(preview.querySelector(':scope > .stream-studio-dock'))return;
   const button=document.createElement('button');
   button.type='button';button.className='stream-studio-dock';
   button.textContent='Dock Stream';
@@ -364,12 +385,6 @@
   targetMedia(root.querySelector('#streamMonitor'));
   mediaPortal?.classList.remove('is-studio-preview');
   mediaPortal?.querySelector('[data-stream-return]')?.remove();
-  if(studioTarget){
-   studioTarget.classList.remove('stream-preview-active');
-   const photo=studioTarget.querySelector('.stream-station-photo');
-   if(photo)photo.hidden=false;
-   studioTarget=null;
-  }
   const date=root.querySelector('#streamDate');
   const now=new Date();
   date.min=localDay(new Date(now.getFullYear(),now.getMonth(),now.getDate()-7));
@@ -519,6 +534,7 @@
   }
   if(stage)stage.hidden=!active;
   if(!active){if(mediaPortal)mediaPortal.style.display='';return}
+  setPlaying(false);
   if(mediaPortal){mediaPortal.querySelectorAll('video,audio').forEach(el=>{try{el.pause()}catch{}});mediaPortal.replaceChildren();mediaPortal.style.display='none'}
   sqDraw();sqLoad();
   if(!root.dataset.sqControls){
@@ -713,6 +729,7 @@
   // not always fire iframe error. Let members explicitly report a blank screen.
   // Do not imply the creator is live or publish any failed media data.
   if(!state.selected)return false;
+  setPlaying(false);
   const portal=ensureMediaPortal();
   const title=escapeHTML(state.selected.title||'Stream');
   const url=String(state.selected.url||'');
@@ -773,9 +790,39 @@
   state.followGuide=false;showSource(source);
  }
 
+ function trackTwitchPlayback(host,channel){
+  if(!window.Twitch?.Player&&!twitchScript){
+   twitchScript=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://player.twitch.tv/js/embed/v1.js';
+    script.onload=resolve;
+    script.onerror=reject;
+    document.head.append(script);
+   }).catch(()=>{twitchScript=null;});
+  }
+  Promise.resolve(twitchScript).then(()=>{
+   const Player=window.Twitch?.Player;
+   if(!Player||!mediaPortal?.contains(host))return;
+   const fallback=host.firstElementChild;
+   let player;
+   try{
+    host.replaceChildren();
+    player=new Player(host.id,{channel,width:'100%',height:'100%',autoplay:false,muted:true});
+   }catch{
+    host.replaceChildren(fallback);
+    return;
+   }
+   player.addEventListener(Player.PLAYING,()=>{if(mediaPortal?.contains(host))setPlaying(true);});
+   for(const event of [Player.PAUSE,Player.ENDED,Player.OFFLINE,Player.PLAYBACK_BLOCKED]){
+    player.addEventListener(event,()=>{if(mediaPortal?.contains(host))setPlaying(false);});
+   }
+  });
+ }
+
  function showSource(source,options={}){
   const monitor=root?.querySelector('#streamMonitor');if(!monitor||!source)return;
   const surface=ensureMediaPortal();
+  setPlaying(false);
   const title=escapeHTML(source.title);
   const url=source.url||'';
   const label=source.source||'Original creator channel';
@@ -794,8 +841,9 @@
    // Twitch official embed requires the exact parent domain. No proxying or rehosting.
    const player='https://player.twitch.tv/?channel='+channel+'&parent='+parent+'&autoplay=false&muted=true';
    surface.innerHTML='<div class="stream-screen is-program is-twitch-player"><div class="stream-player-label">'+caption+original+'</div>'+
-    '<iframe title="'+title+' on Twitch" src="'+escapeHTML(player)+'" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>'+
+    '<div id="streamTwitchPlayer" class="stream-twitch-player"><iframe title="'+title+' on Twitch" src="'+escapeHTML(player)+'" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'+
     '<div class="stream-player-footer">TWITCH · stream availability is determined by the creator · '+original+'</div></div>';
+   trackTwitchPlayback(surface.querySelector('#streamTwitchPlayer'),source.twitchChannel);
   }else if(source.provider==='radio'){
    const stream=source.audioUrl||'';
    const playable=stream&&/^https:\/\//i.test(stream);
@@ -1014,7 +1062,8 @@
  function selectProgram(id,options={}){
   const item=state.programs.find(p=>p.id===id);
   if(!item)return;
-  state.selected=item;if(!options.silent)saveLastPlayed({...item,isProgram:true});state.category=item.category;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
+  setPlaying(false);
+  state.selected={...item,isProgram:true};if(!options.silent)saveLastPlayed({...item,isProgram:true});state.category=item.category;paintCategories();renderGrid();renderFeaturedSlots();renderCategory();
   const monitor=root.querySelector('#streamMonitor');
   ensureMediaPortal().innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+
    '<span>'+escapeHTML(categories.find(c=>c[0]===item.category)?.[2]||'CH')+' / '+escapeHTML(item.title)+'</span>'+
