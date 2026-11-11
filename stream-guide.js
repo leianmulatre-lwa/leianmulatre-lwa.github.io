@@ -1143,3 +1143,79 @@
  }
  window.BigLWAStreamGuide={mount,parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
+
+
+/* Stream border assets augment (never clone) the existing persistent video player. */
+(()=>{
+  'use strict';
+  const paths=['/assets/stream/stream-day.avif','/assets/stream/stream-night.avif'];
+  let assetsReady=false,queued=false;
+  const preload=src=>new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>img.naturalWidth?resolve():reject(new Error('Empty frame: '+src));
+    img.onerror=()=>reject(new Error('Missing frame: '+src));
+    img.src=src;
+  });
+  function sync(){
+    if(!assetsReady)return;
+    const card=document.querySelector('#studioApp #stream');
+    const screen=card?.querySelector(':scope>.stream-screen');
+    const source=card?.querySelector(':scope>.widget-window-controls');
+    if(!screen)return;
+    screen.dataset.biglwaFrameReady='1';
+    if(!source)return;
+    const originals=[...source.querySelectorAll('button')];
+    if(originals.length!==3)return;
+    let controls=screen.querySelector(':scope>.stream-frame-controls');
+    if(!controls){
+      controls=document.createElement('div');
+      controls.className='stream-frame-controls';
+      controls.setAttribute('role','group');
+      controls.setAttribute('aria-label','Stream window controls');
+      screen.appendChild(controls);
+    }
+    if(controls.children.length!==3){
+      controls.replaceChildren();
+      for(let i=0;i<3;i++){
+        const button=document.createElement('button');
+        button.type='button';
+        button.className='stream-frame-window-light '+['green','yellow','red'][i];
+        button.addEventListener('click',e=>{
+          e.stopPropagation();
+          card.querySelector(':scope>.widget-window-controls')?.querySelectorAll('button')[i]?.click();
+        });
+        controls.appendChild(button);
+      }
+    }
+    [...controls.children].forEach((button,i)=>{
+      const label=originals[i].getAttribute('aria-label')||['Expand','Minimize','Move to Skeleton Key'][i];
+      button.setAttribute('aria-label',label);
+      button.title=label;
+    });
+  }
+  function schedule(){
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(()=>{queued=false;sync()});
+  }
+  function start(){
+    Promise.all(paths.map(preload)).then(()=>{
+      assetsReady=true;
+      sync();
+      document.addEventListener('biglwa:stream-updated',schedule);
+      document.addEventListener('biglwa:studio-opened',schedule);
+      window.addEventListener('pageshow',schedule);
+      const app=document.querySelector('#studioApp');
+      if(app&&typeof MutationObserver!=='undefined'){
+        new MutationObserver(records=>{
+          if(records.some(r=>r.type==='childList'&&(
+            r.target?.closest?.('#stream')||
+            [...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('#stream')||n.querySelector?.('#stream')))
+          )))schedule();
+        }).observe(app,{childList:true,subtree:true});
+      }
+    }).catch(error=>console.warn('[BIG LWA] Stream frame unavailable; retaining existing player.',error.message));
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+})();
