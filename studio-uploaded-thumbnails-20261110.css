@@ -138,8 +138,7 @@
   margin:4px 8% 0!important;
 }
 
-/* BOOTH: off neon in light mode, bright red neon in night mode. The artwork's
- * native 4:3 canvas prevents cropping the sign and transparent film slots. */
+/* Booth uses the same artwork and film aperture geometry in both themes. */
 #studioApp .photobooth-stage.has-intro {
   aspect-ratio:1446 / 1088!important;
   background:#080605!important;
@@ -176,22 +175,25 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   background:#080605!important;
   box-shadow:none!important;
 }
-/* Existing private Booth pictures stay in the DOM. Hide only the old
- * CSS-drawn sprocket film, which is duplicated in the new transparent artwork. */
+#studioApp #camera .photobooth-reference-preview > img {
+  transform:scale(1.06,1.12)!important;
+}
+/* The fallback and saved photos share the coordinates of the zoomed apertures. */
+#studioApp #camera .contact-sheet.photobooth-reference-preview::before,
 #studioApp #camera .contact-sheet .booth-recent-film {
   position:absolute!important;
-  z-index:1!important;
-  left:7.4%!important;
-  top:10.57%!important;
+  z-index:0!important;
+  left:4.4%!important;
+  top:5.4%!important;
   right:auto!important;
   bottom:auto!important;
-  width:16.4%!important;
-  height:79.8%!important;
+  width:18.5%!important;
+  height:90.4%!important;
   box-sizing:border-box!important;
   display:grid!important;
   grid-template-columns:1fr!important;
   grid-template-rows:repeat(4,minmax(0,1fr))!important;
-  gap:5.1%!important;
+  gap:3.1%!important;
   padding:0!important;
   margin:0!important;
   background:transparent!important;
@@ -200,6 +202,16 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   box-shadow:none!important;
   pointer-events:none!important;
 }
+#studioApp #camera .contact-sheet.photobooth-reference-preview::before {
+  --booth-no-signal:url('data:image/webp;base64,UklGRq4CAABXRUJQVlA4TKICAAAvT8EzAM0oatsGUvtt+UM+NgQR/Z8AMPyl0IlARwAkR5ISUdVzWmvhaSz1juMLvAU8XPkOrLOweAmefMCp2c4IY3o6p2sksiNiAj5H66/Q+iu0/hqtf43WX6D1F5j9P/t/9v/s/9n/s/9n/8/+n/0/+3/2/+z/2f9H9evm3NzPwcY+rq39mAhXAhC5uW/eRGNfNrf736D1m9juisGCCd8HTsxLHNtl5/3zvutPTT3+a91sjT51EKMNgFMdk9wQAZhrDERtzfSQbUkEC0kPkBwwxzz6ddd5nW1J6mXZhm1LUkiWIUuhCP0UobBsALYdtkcYlm1YlkIRsZT6CBM9wpIVkm3AtiWpD8kyYFuSwl2pLqARePvWYdsDpsGi2vV/2isEefErACQqWUqptZRFqV1XF113rjt3rgNsW1ZIlqwvbFuGAa9Yq+N01p/1y+j7UK/4IaCwJFkyLADmAIECkiBZSIIAseMtrLq3YKNNvbdsALCN8ZKlXjJGmyAAAyBBDJMACGN7CYAEAAojaQAwtt3bxMWZsbtNJI2RRtoJDtGb4cqENE6DTOxZt+A95815xeBGmiYAr/MYT0BP06BxWJojAFXsTg6cOjnOExmDJQAQ4IliK4kj13uhjmudPrj+GRi7hocWd1DSO+CwLwB3zVpPYzbGfcNJPI6bGCa4Y4wd633jSThusAcMgERlqbWUrnSl6xa1nuu6cx1g2JLkgGQJsm2tkyVHYhnLvu+jl3pJIYQlWZZhGzBXCIBc43VM3UtdQfZB6nHqVuqz1PnUpdRHyN5PAPdHLN+du4hfniJ7CdkFspeRvYrsRWTvIVuRXQwdheeuA3iC9LtUnimmmGKKqePXkyk1P54pppgqKabqZDx6LqXOpa6mrqUupR6maupcCg==');
+  content:''!important;
+  background:
+    var(--booth-no-signal) center 0% / 100% 22.675% no-repeat,
+    var(--booth-no-signal) center 33.333% / 100% 22.675% no-repeat,
+    var(--booth-no-signal) center 66.667% / 100% 22.675% no-repeat,
+    var(--booth-no-signal) center 100% / 100% 22.675% no-repeat!important;
+}
+#studioApp #camera .contact-sheet .booth-recent-film {z-index:1!important}
 #studioApp #camera .booth-recent-film::before,
 #studioApp #camera .booth-recent-film::after {content:none!important;display:none!important}
 #studioApp #camera .contact-sheet .booth-recent-frame {
@@ -211,7 +223,7 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   border:0!important;
   border-radius:0!important;
   overflow:hidden!important;
-  background:#080605!important;
+  background:transparent!important;
   box-shadow:none!important;
 }
 #studioApp #camera .contact-sheet .booth-recent-frame img {
