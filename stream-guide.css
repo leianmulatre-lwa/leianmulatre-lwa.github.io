@@ -706,3 +706,84 @@ body.night-mode .biglwa-stream .stream-media-link-form input{background:#1e1b25;
   background:#151217!important;box-shadow:none!important;
 }
 .biglwa-persistent-stream-player.is-studio-preview .stream-preview-return{display:none!important}
+
+
+/* BIG LWA Stream pageant/gothic illustrated frame — 2026-11-11.
+   Only activates when both approved frame assets have loaded. */
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]{
+  position:relative!important;isolation:isolate!important;aspect-ratio:4/3!important;
+  width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  overflow:hidden!important;background:transparent!important;box-shadow:none!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]::before{display:none!important}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]::after{
+  content:""!important;display:block!important;position:absolute!important;inset:0!important;
+  background:url('/assets/stream/stream-day.avif') center / 100% 100% no-repeat!important;
+  opacity:1!important;mix-blend-mode:normal!important;z-index:15!important;pointer-events:none!important;
+}
+body.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]::after,
+html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]::after{
+  background-image:url('/assets/stream/stream-night.avif')!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-station-photo{
+  position:absolute!important;inset:35.5% auto auto 24.3%!important;
+  width:51.4%!important;height:36.4%!important;max-width:none!important;
+  object-fit:cover!important;object-position:center!important;border:0!important;
+  border-radius:0!important;filter:none!important;z-index:1!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"].stream-preview-active>.biglwa-persistent-stream-player{
+  position:absolute!important;inset:35.5% auto auto 24.3%!important;
+  width:51.4%!important;height:36.4%!important;max-width:none!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  overflow:hidden!important;z-index:8!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>strong{
+  left:26%!important;right:26%!important;top:38%!important;
+  width:auto!important;margin:0!important;z-index:9!important;
+  font-size:clamp(10px,1.2vw,16px)!important;line-height:1.1!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-wave{
+  position:absolute!important;left:18%!important;bottom:15.5%!important;
+  width:12%!important;height:3.4%!important;min-height:0!important;
+  margin:0!important;display:flex!important;justify-content:center!important;
+  align-items:center!important;gap:2px!important;opacity:.9!important;z-index:23!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-wave i{
+  width:2px!important;min-width:1px!important;max-height:100%!important;background:#fff3de!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-studio-dock{
+  position:absolute!important;inset:auto 14.3% 12.8% auto!important;
+  width:14.5%!important;height:8.5%!important;min-height:0!important;
+  padding:0!important;margin:0!important;border:0!important;border-radius:4px!important;
+  color:transparent!important;background:transparent!important;
+  box-shadow:none!important;text-shadow:none!important;font-size:0!important;
+  z-index:44!important;cursor:pointer!important;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-studio-dock:is(:hover,:focus-visible){
+  outline:2px solid #ffd48a!important;outline-offset:0!important;background:rgba(255,245,218,.12)!important;
+}
+#studioApp #stream:has(>.stream-screen[data-biglwa-frame-ready="1"])>.widget-window-controls{
+  visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+#studioApp #stream>.stream-screen .stream-frame-controls{
+  position:absolute;top:31%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;
+  z-index:45;pointer-events:auto;padding:2px 6px;border-radius:999px;background:rgba(22,17,16,.23);
+}
+#studioApp #stream>.stream-screen .stream-frame-window-light{
+  display:block!important;flex:0 0 10px;width:10px;height:10px;min-height:10px;
+  border-radius:50%!important;padding:0!important;border:1px solid #493629!important;
+  box-shadow:0 0 0 1px rgba(255,232,185,.35),inset 0 1px 1px #fff5!important;
+  cursor:pointer;pointer-events:auto;
+}
+#studioApp #stream>.stream-screen .stream-frame-window-light.green{background:#58a36d!important}
+#studioApp #stream>.stream-screen .stream-frame-window-light.yellow{background:#e5bd45!important}
+#studioApp #stream>.stream-screen .stream-frame-window-light.red{background:#df5b56!important}
+#studioApp #stream>.stream-screen .stream-frame-window-light:focus-visible{outline:2px solid #fff!important;outline-offset:3px!important}
+@media(max-width:620px){
+  #studioApp #stream>.stream-screen .stream-frame-controls{gap:3px;padding:1px 4px}
+  #studioApp #stream>.stream-screen .stream-frame-window-light{width:8px;height:8px;flex-basis:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  #studioApp #stream>.stream-screen .stream-wave i{animation:none!important}
+}
