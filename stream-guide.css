@@ -823,3 +823,14 @@ html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.
     margin-inline:0!important;
   }
 }
+
+
+/* Illustrated ink treatment — adjust only the decorative SVG/raster frame layer,
+   not the live video, captions, or functional controls. Adjustable for future art. */
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]{
+  --biglwa-stream-frame-ink-opacity:.94;
+}
+#studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]::after{
+  opacity:var(--biglwa-stream-frame-ink-opacity)!important;
+  filter:grayscale(1) contrast(.86) brightness(1.06)!important;
+}
