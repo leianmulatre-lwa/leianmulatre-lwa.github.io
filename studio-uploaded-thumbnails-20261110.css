@@ -8,11 +8,12 @@
 #studioApp #feed #biglwaFeedHero.biglwa-feed-hero {
   position:relative!important;
   isolation:isolate!important;
-  width:100%!important;
+  width:104%!important;
+  container-type:inline-size;
   height:auto!important;
   aspect-ratio:1672 / 941!important;
   padding:0!important;
-  margin:0 0 10px!important;
+  margin:0 -2% 10px!important;
   overflow:visible!important;
   border:0!important;
   border-radius:0!important;
@@ -102,8 +103,9 @@
   position:absolute!important;
   z-index:4!important;
   top:19%!important;
-  left:9%!important;
-  right:9%!important;
+  left:8%!important;
+  right:8%!important;
+  gap:4px;
   width:auto!important;
   min-height:0!important;
   padding:0!important;
@@ -115,7 +117,7 @@
 }
 #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head h3,
 #studioApp #biglwaFeedHero .biglwa-feed-hero-head h3 {
-  font-size:clamp(8px,1.1vw,13px)!important;
+  font-size:clamp(10px,4.25cqi,17px)!important;
   color:#f8e9dd!important;
   text-shadow:0 1px 3px #1c0305!important;
 }
@@ -170,9 +172,9 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   padding:0!important;
   margin:12px 0 14px!important;
   border:0!important;
-  border-radius:0!important;
+  border-radius:16px!important;
   overflow:hidden!important;
-  background:#080605!important;
+  background:transparent!important;
   box-shadow:none!important;
 }
 #studioApp #camera .photobooth-reference-preview > img {
