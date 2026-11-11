@@ -1495,12 +1495,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        say('Refreshing TikTok account and checking authorized post imports…');
        try{
          if(typeof client.restore!=='function')throw Error('TikTok sync is still loading.');
-         await client.restore();
+         await client.restore({force:true});
          const state=client.state;
          const status=body.querySelector('#orbitPageStatus');
          const summary=!state.connected?'TikTok connection could not be restored: '+(state.lastError||'Reconnect in Orbit.')
-           :state.videoPermissionPending?'TikTok profile connected, but video.list access has not been approved. Public post link imports remain available. '+(state.lastCollectiveSync||'')
-           :state.videoLoadError?'TikTok profile connected, but video sync could not complete: '+state.videoLoadError
+           :state.videoLoadError?'TikTok connected, but video sync could not complete: '+state.videoLoadError
+           :state.videoPermissionPending?'TikTok profile connected, but video.list access has not been approved. '+(state.lastCollectiveSync||'Public profile discovery may be unavailable; you can still save individual public TikTok links privately in MyFeed.')
            :(state.lastCollectiveSync||('TikTok connected; '+state.videoCount+' authorized video(s) returned.'));
          if(status)status.textContent=summary;
        }catch(error){const status=body.querySelector('#orbitPageStatus');if(status)status.textContent='TikTok sync failed: '+(error?.message||'Please reconnect.');}
