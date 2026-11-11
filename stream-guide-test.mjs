@@ -15,6 +15,9 @@ assert.equal((stream.match(/id="streamMediaLinkForm"/g)||[]).length,1,'Only one 
 assert.ok(stream.includes('data-google-orbit-connect')&&stream.includes('data-stream-youtube-status'),'YouTube Orbit connect sits beside tuner');
 assert.ok(stream.includes('syncYouTubeOrbitButton'),'YouTube button tracks actual Google Orbit connection');
 assert.ok(style.includes('.stream-nav-actions .stream-media-link-form'),'Top tuner has responsive styles');
+assert.ok(style.includes('width:112%!important')&&style.includes('margin-inline:-6%!important'),'Gothic Studio Stream frame enlarges without changing its art geometry');
+assert.ok(style.includes('@media (max-width:700px)')&&style.includes('margin-inline:0!important'),'Gothic Stream preview stays within mobile widget bounds');
+assert.ok(index.includes('stream-guide.css?v=20261111-stage-frame-enlarge-1'),'Stream enlargement stylesheet is cache-busted');
 const bucketRecords=new Map();
 const fakeR2={
  async put(key,text){bucketRecords.set(key,String(text))},

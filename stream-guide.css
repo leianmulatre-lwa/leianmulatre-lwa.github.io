@@ -804,3 +804,22 @@ body.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.
 html.night-mode #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]>.stream-studio-dock{
   right:6.5%!important;bottom:5.6%!important;width:17%!important;height:8%!important;
 }
+
+
+/* Stream preview enlargement — 2026-11-11.
+   Enlarge the illustrated frame and its live video opening as one surface;
+   preserve the asset geometry and all in-frame controls. The overhang uses
+   the card's existing inset, so neighboring widgets are not resized. */
+@media (min-width:701px){
+  #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]{
+    width:112%!important;
+    max-width:none!important;
+    margin-inline:-6%!important;
+  }
+}
+@media (max-width:700px){
+  #studioApp #stream>.stream-screen[data-biglwa-frame-ready="1"]{
+    width:100%!important;
+    margin-inline:0!important;
+  }
+}
