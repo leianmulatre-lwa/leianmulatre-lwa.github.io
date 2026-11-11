@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -58,6 +58,15 @@
   .politc-pendulum{width:100%;accent-color:#583e35}
   .politc-value{font:600 14px system-ui;text-align:center;padding:12px;border:1px dashed #8d7b69}
   .politc-note{font:12px/1.5 system-ui;opacity:.85}
+  .calendar-crushes{margin-top:24px}
+  .calendar-crush-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:12px}
+  .calendar-crushes .politc-panel{background:var(--widget-bg,#f7f3eb);color:var(--widget-ink,#28231e);border:1px solid rgba(120,120,120,.26);outline:0;border-radius:12px}
+  .calendar-crushes .politc-panel h3{font-size:19px;text-align:left;text-transform:none;letter-spacing:0;border:0;padding:0}
+  .calendar-crushes .politc-sub{text-align:left;margin:6px 0}
+  .calendar-crushes .politc-season-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+  .calendar-crushes .politc-person{color:#28231e}
+  .calendar-crushes .politc-person button{margin:4px}
+  .calendar-crushes .politc-nomination-drawer[hidden]{display:none}
   @media(max-width:720px){.politc-grid{grid-template-columns:1fr}}
 
 
@@ -1053,8 +1062,93 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   }
 
   let calendarGeneration=0;
+  const calendarCrushes=[
+    {id:'mcm',day:1,name:'MCM',title:'Man Crush Monday'},
+    {id:'tct',day:2,name:'Tea Crush Tuesday',title:'Tea Crush Tuesday'},
+    {id:'wcw',day:3,name:'WCW',title:'Woman Crush Wednesday'}
+  ];
+  const nominationOwner=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
+  // Both pages use the original account-scoped keys so saved nominations follow their category.
+  function nominationStore(){
+    const ownerUid=nominationOwner();
+    const suffix=ownerUid||'unowned-readonly';
+    const key='biglwaPolitcNominationsV2:'+suffix;
+    const hiddenKey='biglwaPolitcHiddenCuratedV2:'+suffix;
+    const array=storageKey=>{const data=readJSON(storageKey,[]);return Array.isArray(data)?data:[]};
+    return {ownerUid,key,hiddenKey,read:()=>ownerUid?array(key):[],hidden:()=>new Set(ownerUid?array(hiddenKey):[])};
+  }
+  function calendarCrushRows(key){
+    const day=new Date(key+'T12:00:00').getDay();
+    return calendarCrushes.filter(crush=>crush.day===day).map(crush=>({title:crush.title,meta:'Weekly · BIG LWA'}));
+  }
+  function renderCalendarCrushes(container){
+    const store=nominationStore();
+    const portrait=item=>'<article class="politc-person">'+
+      (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'" loading="lazy">':'')+
+      '<strong>'+esc(item.name)+'</strong>'+
+      (item.note?'<small>'+esc(item.note)+'</small>':'')+
+      (/^https?:\/\//i.test(item.source||'')?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">Profile ↗</a>':'')+
+      '<button type="button" data-politc-delete="'+esc(item.id)+'" aria-label="Remove '+esc(item.name)+'">×</button></article>';
+    const nominations=store.read();
+    container.innerHTML='<h2>Weekly crushes</h2><div class="calendar-crush-grid">'+calendarCrushes.map(crush=>
+      nominationPanel({...crush,subtitle:crush.id==='tct'?'Every Tuesday':crush.title},nominations,portrait)).join('')+'</div>';
+    bindNominationPanels(container,store,()=>renderCalendarCrushes(container));
+  }
+  function nominationPanel(cat,nominations,portrait){
+    const isPoster=cat.id==='hunting'||cat.id==='cunting';
+    const people=nominations.filter(x=>x.category===cat.id);
+    return '<section class="politc-panel politc-collection-panel'+(isPoster?' politc-vintage-panel':'')+'" data-politc-season="'+cat.id+'">'+
+      '<div class="politc-season-head"><div><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p></div>'+
+      '<div class="politc-season-tools"><span class="politc-record-count">'+people.length+' entries</span>'+
+      '<button class="politc-nominate-button" type="button" data-politc-nominate="'+cat.id+'" aria-controls="politc-nominate-'+cat.id+'" aria-expanded="false">✦ Nominate</button></div></div>'+
+      '<div class="politc-portraits">'+(people.length?people.map(portrait).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+      '<div class="politc-nomination-drawer" id="politc-nominate-'+cat.id+'" hidden>'+
+      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
+  }
+  function bindNominationPanels(container,store,refresh){
+    container.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
+      const drawer=container.querySelector('#politc-nominate-'+button.dataset.politcNominate);
+      if(!drawer)return;
+      const opening=drawer.hidden;
+      drawer.hidden=!opening;
+      button.setAttribute('aria-expanded',String(opening));
+      if(opening)drawer.querySelector('input[name="name"]')?.focus();
+    }));
+    container.querySelectorAll('[data-politc-delete]').forEach(button=>button.addEventListener('click',()=>{
+      const target=String(button.dataset.politcDelete||'');
+      try{
+        if(!store.ownerUid||store.ownerUid!==nominationOwner())throw Error();
+        if(target.startsWith('curated-')){
+          const curatedHidden=store.hidden();
+          curatedHidden.add(target);
+          writeJSON(store.hiddenKey,[...curatedHidden]);
+        }else{
+          writeJSON(store.key,store.read().filter(x=>String(x.id)!==target));
+        }
+        refresh();
+      }catch(e){alert('Unable to save changes on this device.')}
+    }));
+    container.querySelectorAll('[data-politc-form]').forEach(form=>form.addEventListener('submit',async(e)=>{
+      e.preventDefault();const fd=new FormData(form),name=String(fd.get('name')||'').trim(),note=String(fd.get('note')||'').trim(),source=String(fd.get('source')||'').trim();
+      if(!name)return;
+      const file=fd.get('photo');let photo='';
+      if(file instanceof File&&file.size){
+        if(file.size>2*1024*1024){alert('Please use an image smaller than 2 MB.');return;}
+        photo=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>resolve('');reader.readAsDataURL(file);});
+      }
+      try{if(!store.ownerUid||store.ownerUid!==nominationOwner())throw Error('Sign in before saving nominations.');
+        writeJSON(store.key,[...store.read(),{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);if(form.isConnected)refresh()}
+      catch(err){alert('This browser could not save the nomination. Try a smaller photo.');}
+    }));
+  }
+
   function renderCalendar(){
     const instance=++calendarGeneration;
+    const calendarContent=document.createElement('div');
+    const crushSection=document.createElement('section');
+    crushSection.className='calendar-crushes';
+    body.replaceChildren(calendarContent,crushSection);
+    renderCalendarCrushes(crushSection);
     const storage='biglwaCalendarEvents';
     let view=readJSON('biglwaCalendarView',null);if(!view||!Number.isInteger(view.year)||!Number.isInteger(view.month))view={year:new Date().getFullYear(),month:new Date().getMonth()};
     let selected=localStorage.getItem('biglwaCalendarSelected')||dayKey(new Date()),remote=[],syncMessage='',loaded='',requestId=0;
@@ -1064,9 +1158,9 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const googleRows=key=>remote.filter(e=>onDay(e,key)).map(e=>({title:e.summary||'Untitled Google event',meta:'Google · '+(e.start?.date?'All day':new Date(e.start.dateTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})),google:true,url:e.htmlLink||''}));
     const draw=()=>{
       const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;const unRows=key=>window.BigLWAObservances?.onDay(key)||[];
-      const days=Array.from({length:42},(_,i)=>{const d=calendarGridDate(view.year,view.month,i),key=dayKey(d),items=[...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"><span class="calendar-day-num">'+d.getDate()+'</span>'+items.slice(0,3).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+(items.length>3?'<small>+'+(items.length-3)+' more</small>':'')+'</button>'}).join('');
-      const local=all.filter(x=>x.date===selected),google=[...googleRows(selected),...unRows(selected)];
-      body.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+listHtml(local,'event')+google.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const days=Array.from({length:42},(_,i)=>{const d=calendarGridDate(view.year,view.month,i),key=dayKey(d),items=[...calendarCrushRows(key),...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"><span class="calendar-day-num">'+d.getDate()+'</span>'+items.slice(0,3).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+(items.length>3?'<small>+'+(items.length-3)+' more</small>':'')+'</button>'}).join('');
+      const local=all.filter(x=>x.date===selected),readOnlyRows=[...calendarCrushRows(selected),...googleRows(selected),...unRows(selected)];
+      calendarContent.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
       const unStatus=$('#unCalendarStatus',body),unData=window.BigLWAObservances?.data;
       if(unStatus&&unData)unStatus.textContent='Auto-updated daily · last fetched '+new Date(unData.updatedAt).toLocaleDateString()+(unData.retrievedFrom.includes('indonesia.un.org')?' · UN Indonesia mirror':'')+'. Lunar dates require checking the source.';
       const change=n=>{const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};writeJSON('biglwaCalendarView',view);remote=[];draw();load()};
@@ -2078,20 +2172,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
 
   function renderPolitc(){
     const categories=[
-      {id:'wcw',name:'WCW',subtitle:'Woman Crush Wednesday · appreciation & recognition'},
-      {id:'mcm',name:'MCM',subtitle:'Man Crush Monday · appreciation & recognition'},
       {id:'hunting',name:'Hunting Season',subtitle:'Public records, institutional power & accountability · no harassment'},
       {id:'cunting',name:'Cunting Season',subtitle:'Baddies · icons, creators & cultural standouts'}
     ];
-    // Nomination photos/context are private drafts. Never reuse the previous
-    // device-wide collection for whoever next signs into the same browser.
-    const ownerUid=String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
-    const storageKey=ownerUid?'biglwaPolitcNominationsV2:'+ownerUid:'biglwaPolitcNominationsV2:unowned-readonly';
-    const hiddenKey=ownerUid?'biglwaPolitcHiddenCuratedV2:'+ownerUid:'biglwaPolitcHiddenCuratedV2:unowned-readonly';
-    const items=readJSON(storageKey,[]);
-    const nominations=Array.isArray(items)?items:[];
-    const hiddenCurated=readJSON(hiddenKey,[]);
-    const curatedHidden=new Set(Array.isArray(hiddenCurated)?hiddenCurated:[]);
+    const store=nominationStore();
+    const nominations=store.read();
+    const curatedHidden=store.hidden();
     // Curated introductory records are examples for browsing, not verdicts on
     // anyone's character or invitations to target them.
     const curated=[{"id":"curated-1","category":"cunting","name":"Zendaya","note":"Actor and producer; screen and fashion figure.","source":"https://www.britannica.com/biography/Zendaya","photo":"","curated":true},{"id":"curated-2","category":"cunting","name":"Beyoncé","note":"Singer, songwriter and cultural innovator.","source":"https://www.britannica.com/biography/Beyonce","photo":"","curated":true},{"id":"curated-3","category":"cunting","name":"Rihanna","note":"Singer, entrepreneur and beauty industry founder.","source":"https://www.britannica.com/biography/Rihanna","photo":"","curated":true},{"id":"curated-4","category":"cunting","name":"Jennifer Lawrence","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Jennifer-Lawrence","photo":"","curated":true},{"id":"curated-5","category":"cunting","name":"Anne Hathaway","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Anne-Hathaway-American-actress","photo":"","curated":true},{"id":"curated-6","category":"cunting","name":"Ida B. Wells","note":"Journalist and anti-lynching civil rights organizer.","source":"https://www.nps.gov/people/ida-b-wells-barnett.htm","photo":"","curated":true},{"id":"curated-7","category":"cunting","name":"Malcolm X","note":"Black liberation leader and human-rights advocate.","source":"https://www.britannica.com/biography/Malcolm-X","photo":"","curated":true},{"id":"curated-8","category":"cunting","name":"Martin Luther King Jr.","note":"Civil rights organizer and Nobel Peace Prize laureate.","source":"https://www.nps.gov/malu/index.htm","photo":"","curated":true},{"id":"curated-9","category":"cunting","name":"Elaine Brown","note":"Former chair of the Black Panther Party.","source":"https://www.britannica.com/biography/Elaine-Brown","photo":"","curated":true},{"id":"curated-10","category":"cunting","name":"Kathleen Cleaver","note":"Black Panther Party leader and legal scholar.","source":"https://en.wikipedia.org/wiki/Kathleen_Cleaver","photo":"","curated":true},{"id":"curated-11","category":"cunting","name":"Ericka Huggins","note":"Black Panther Party organizer and educator.","source":"https://en.wikipedia.org/wiki/Ericka_Huggins","photo":"","curated":true},{"id":"curated-12","category":"cunting","name":"Fred Hampton","note":"Black Panther Party organizer and community leader.","source":"https://en.wikipedia.org/wiki/Fred_Hampton","photo":"","curated":true},{"id":"curated-13","category":"cunting","name":"Bobby Seale","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Bobby-Seale","photo":"","curated":true},{"id":"curated-14","category":"cunting","name":"Huey P. Newton","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Huey-P-Newton","photo":"","curated":true},{"id":"curated-15","category":"hunting","name":"Derek Chauvin","note":"Convicted in connection with George Floyd’s murder; public court record.","source":"https://www.justice.gov/opa/pr/former-minneapolis-police-officer-derek-chauvin-sentenced-more-20-years-prison-depriving","photo":"","curated":true},{"id":"curated-16","category":"hunting","name":"Jeffrey Epstein","note":"Convicted sex offender; documented institutional accountability issues.","source":"https://www.justice.gov/epstein","photo":"","curated":true},{"id":"curated-17","category":"hunting","name":"Elon Musk","note":"Billionaire technology executive; examine ownership and public influence.","source":"https://www.britannica.com/money/Elon-Musk","photo":"","curated":true},{"id":"curated-18","category":"hunting","name":"Jeff Bezos","note":"Amazon founder; examine concentrated wealth and corporate power.","source":"https://www.britannica.com/money/Jeff-Bezos","photo":"","curated":true},{"id":"curated-19","category":"hunting","name":"Peter Thiel","note":"Billionaire investor and political donor; examine public influence.","source":"https://www.britannica.com/money/Peter-Thiel","photo":"","curated":true},{"id":"curated-20","category":"hunting","name":"Cornell University · Chi Phi case","note":"2026 civil lawsuit concerning alleged sexual assault in 2024 and Cornell’s response. Investigation reopened; allegations disputed and not established in court.","source":"https://www.nbcchicago.com/news/local/cornell-7-what-happened-with-the-case-what-to-know-as-prosecutor-reopens-investigation/3995362/","photo":"","curated":true},{"id":"curated-21","category":"cunting","name":"Angela Davis","note":"Scholar and organizer for prison abolition, civil rights, and liberation.","source":"https://www.britannica.com/biography/Angela-Davis","photo":"","curated":true},{"id":"curated-22","category":"cunting","name":"Fannie Lou Hamer","note":"Voting-rights organizer and Mississippi Freedom Democratic Party leader.","source":"https://www.nps.gov/people/fannie-lou-hamer.htm","photo":"","curated":true},{"id":"curated-23","category":"cunting","name":"Shirley Chisholm","note":"First Black woman elected to the U.S. Congress.","source":"https://history.house.gov/People/Listing/C/CHISHOLM,-Shirley-Anita-(C000371)/","photo":"","curated":true},{"id":"curated-24","category":"cunting","name":"Audre Lorde","note":"Poet and activist whose writing shaped Black feminist thought.","source":"https://www.poetryfoundation.org/poets/audre-lorde","photo":"","curated":true},{"id":"curated-25","category":"cunting","name":"bell hooks","note":"Feminist theorist and writer on race, love, education, and power.","source":"https://www.britannica.com/biography/bell-hooks","photo":"","curated":true},{"id":"curated-26","category":"cunting","name":"Toni Morrison","note":"Nobel Prize–winning novelist and editor.","source":"https://www.nobelprize.org/prizes/literature/1993/morrison/facts/","photo":"","curated":true},{"id":"curated-27","category":"cunting","name":"Nina Simone","note":"Singer, pianist, and civil-rights voice.","source":"https://www.britannica.com/biography/Nina-Simone","photo":"","curated":true},{"id":"curated-28","category":"cunting","name":"Tarana Burke","note":"Organizer who founded the Me Too movement.","source":"https://metoomvmt.org/get-to-know-us/tarana-burke-founder/","photo":"","curated":true}];
@@ -2155,24 +2241,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         '<button type="button" class="politc-poster-remove" data-politc-delete="'+esc(item.id)+'" aria-label="Remove '+esc(item.name)+'">×</button>'+
       '</article>';
     };
-    const panel=(cat)=>{
-      const isPoster=cat.id==='hunting'||cat.id==='cunting';
-      const people=visibleNominations.filter(x=>x.category===cat.id);
-      return '<section class="politc-panel politc-collection-panel'+(isPoster?' politc-vintage-panel':'')+'" data-politc-season="'+cat.id+'">'+
-        '<div class="politc-season-head"><div><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p></div>'+
-        '<div class="politc-season-tools"><span class="politc-record-count">'+people.length+' entries</span>'+
-        '<button class="politc-nominate-button" type="button" data-politc-nominate="'+cat.id+'" aria-controls="politc-nominate-'+cat.id+'" aria-expanded="false">✦ Nominate</button></div></div>'+
-        '<div class="politc-portraits">'+(people.length?people.map(portrait).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
-        '<div class="politc-nomination-drawer" id="politc-nominate-'+cat.id+'" hidden>'+
-        '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="Provide grounded context"></textarea></label><label>Evidence / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device, not published. No threats, addresses, personal contact details, or harassment. Distinguish allegations from findings.</small></form></div></section>';
-    };
     const val=Math.min(100,Math.max(0,Number(localStorage.getItem('biglwaPolitcPendulum')||50)));
     const electionDate=new Date('2026-11-03T00:00:00-08:00');
     const caNominees=[['Xavier Becerra','Democratic'],['Steve Hilton','Republican']];
     const stateOptions=states.map(([code,name])=>'<option value="'+code+'" '+(savedState===code?'selected':'')+'>'+esc(name)+'</option>').join('');
     const nomineeCards=()=>savedState==='CA'?'<div class="politc-portraits">'+caNominees.map(([name,party])=>'<article class="politc-person"><div style="height:100px;display:grid;place-items:center;background:#ddd4c7;font:28px Georgia,serif" aria-hidden="true">'+esc(name.split(' ').map(x=>x[0]).join(''))+'</div><strong>'+esc(name)+'</strong><small>'+esc(party)+' · Governor</small></article>').join('')+'</div><p class="politc-note">California statewide governor nominees. District and local candidates vary by residential address. Verify against the official certified list.</p>': '<p class="politc-note">Candidates vary by state, county and voting district. Use “See my ballot & nominees” to view the applicable roster; no names are guessed from a ZIP code.</p>';
     const electionPanel='<section class="politc-panel politc-election-zone" style="grid-column:1/-1;background:var(--widget-bg,#f7f3eb);color:var(--widget-ink,#28231e);border:1px solid rgba(120,120,120,.22);outline:0;border-radius:var(--widget-radius,16px)"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><span style="font:600 11px system-ui;letter-spacing:.12em;text-transform:uppercase">Election desk · United States</span><h3 style="text-align:left;border:0;padding:5px 0;font:400 30px Georgia,serif;letter-spacing:0;text-transform:none">November 3, 2026 · General Election</h3></div><div id="politcCountdown" style="font:700 clamp(22px,4vw,44px)/1.2 Georgia,serif" aria-live="off"></div></div><p class="politc-note">Countdown to Election Day (Pacific time). Earlier state or local special elections may have different dates.</p><div class="politc-form" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end"><label>Voting state<select id="politcState"><option value="">Choose state</option>'+stateOptions+'</select></label><label>ZIP code (optional)<input id="politcZip" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" placeholder="Your voting ZIP" value="'+esc(savedZip)+'"></label><a class="politc-source" href="https://www.vote411.org/ballot" target="_blank" rel="noopener noreferrer">See my ballot & nominees ↗</a></div><p class="politc-note">Select your voting residence, not your current physical location. ZIP alone cannot identify every voting district. Your selection is stored only on this device.</p><h3 style="font:400 25px Georgia,serif;text-align:left;border:0;padding:8px 0;letter-spacing:0;text-transform:none">Nominees & candidates <span id="politcStateLabel" style="font:13px system-ui"></span></h3><div id="politcNominees">'+nomineeCards()+'</div><div class="politc-resources" id="politcElectionLinks"></div></section>';
-    body.innerHTML=heading('politc')+'<div class="politc-board"><div class="politc-grid">'+electionPanel+categories.map(panel).join('')+'</div>'+
+    body.innerHTML=heading('politc')+'<div class="politc-board"><div class="politc-grid">'+electionPanel+categories.map(cat=>nominationPanel(cat,visibleNominations,portrait)).join('')+'</div>'+
       '<section class="politc-panel"><h3>Political Pendulum · Live</h3><p class="politc-sub">Current congressional seat balance, updated from published membership data. This is not a measure of public opinion or ideology.</p><div id="politcLiveBalance" aria-live="polite" class="politc-live-state">Checking House and Senate membership…</div><p class="politc-note"><a href="https://github.com/unitedstates/congress-legislators" target="_blank" rel="noopener noreferrer">Congress Legislators data ↗</a> · Independents shown separately.</p></section>'+
       '<section class="politc-panel"><h3>Project 2025 Tracker · Live</h3><p class="politc-sub">Community-reported policy implementation status, not an endorsement.</p><div id="politcProject2025" aria-live="polite" class="politc-live-state">Checking tracked objectives…</div><p class="politc-note"><a href="https://www.project2025.observer/en" target="_blank" rel="noopener noreferrer">View Project 2025 Tracker and its underlying evidence ↗</a></p></section>'+
       '<section class="politc-panel" id="politcEpsteinObserver"><h3>Epstein Observer · Fallout Tracker</h3>'+
@@ -2346,40 +2421,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
       });
     }
-    body.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
-      const drawer=body.querySelector('#politc-nominate-'+button.dataset.politcNominate);
-      if(!drawer)return;
-      const opening=drawer.hidden;
-      drawer.hidden=!opening;
-      button.setAttribute('aria-expanded',String(opening));
-      if(opening)drawer.querySelector('input[name="name"]')?.focus();
-    }));
-    body.querySelectorAll('[data-politc-delete]').forEach(button=>button.addEventListener('click',()=>{
-      const target=String(button.dataset.politcDelete||'');
-      try{
-        if(target.startsWith('curated-')){
-          curatedHidden.add(target);
-          if(!ownerUid)throw Error('Sign in before editing private nominations.');
-          writeJSON(hiddenKey,[...curatedHidden]);
-        }else{
-          if(!ownerUid)throw Error('Sign in before editing private nominations.');
-          writeJSON(storageKey,nominations.filter(x=>String(x.id)!==target));
-        }
-        renderPolitc();
-      }catch(e){alert('Unable to save changes on this device.')}
-    }));
-    body.querySelectorAll('[data-politc-form]').forEach(form=>form.addEventListener('submit',async(e)=>{
-      e.preventDefault();const fd=new FormData(form),name=String(fd.get('name')||'').trim(),note=String(fd.get('note')||'').trim(),source=String(fd.get('source')||'').trim();
-      if(!name)return;
-      const file=fd.get('photo');let photo='';
-      if(file instanceof File&&file.size){
-        if(file.size>2*1024*1024){alert('Please use an image smaller than 2 MB.');return;}
-        photo=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>resolve('');reader.readAsDataURL(file);});
-      }
-      try{if(!ownerUid)throw Error('Sign in before saving nominations.');
-        writeJSON(storageKey,[...nominations,{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);renderPolitc()}
-      catch(err){alert('This browser could not save the nomination. Try a smaller photo.');}
-    }));
+    bindNominationPanels(body,store,renderPolitc);
   }
 
   function renderRoom(){
@@ -4054,10 +4096,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const card=document.createElement('article');
         card.id='politc';card.className='card studio-politc-card';
         card.dataset.widgetRoute='politc';
-        card.dataset.search='politc politics political pendulum votes election voting united nations un al jazeera genocide watch wcw mcm hunting season cunting season';
-        card.innerHTML='<div class="card-head"><div><span class="card-icon politc-studio-symbol" aria-hidden="true"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34"></span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Wanted posters, WCW, MCM, Hunting Season, Cunting Season, the political pendulum, and world civic resources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
+        card.dataset.search='politc politics political pendulum votes election voting united nations un al jazeera genocide watch hunting season cunting season';
+        card.innerHTML='<div class="card-head"><div><span class="card-icon politc-studio-symbol" aria-hidden="true"><img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="" width="34" height="34"></span><h2>politc</h2></div><button class="arrow-btn" type="button" data-open="politc" aria-label="Open politc">→</button></div><p class="sub">Wanted posters, Hunting Season, Cunting Season, the political pendulum, and world civic resources.</p><button class="card-cta" type="button" data-open="politc">Open politc →</button>';
         const roomsCard=$('#rooms');if(roomsCard&&roomsCard.parentElement===masonry)roomsCard.insertAdjacentElement('afterend',card);else masonry.appendChild(card);
       }
+    }
+    const calendarCard=$('#studioApp #calendar');
+    if(calendarCard&&!calendarCard.dataset.search?.includes('tea crush tuesday')){
+      calendarCard.dataset.search=[calendarCard.dataset.search,'wcw wcm woman crush wednesday mcm man crush monday tea crush tuesday'].filter(Boolean).join(' ');
     }
     // Recovered Studio cards must receive the same symbol and route as newly created cards.
     const politcCard=$('#studioApp #politc');
