@@ -250,7 +250,7 @@
   // OAuth-reported username allows publishing; user-entered links import
   // privately for review because login alone doesn't identify a public handle.
   let lastPublicLookup='',publicLookupAt=0;
-  async function syncPublicTikTokPosts(){
+  async function syncPublicTikTokPosts(force=false){
     const owner=authUid;
     if(!connected||!owner)return;
     const claimed=String(profile.username||'').replace(/^@/,'').trim();
@@ -271,7 +271,7 @@
       return;
     }
     const key=owner+':'+handle.toLowerCase();
-    if(lastPublicLookup===key&&Date.now()-publicLookupAt<900000)return;
+    if(!force&&lastPublicLookup===key&&Date.now()-publicLookupAt<900000)return;
     lastPublicLookup=key;publicLookupAt=Date.now();
     const endpoint='https://biglwa-public-tiktok-snapshots.leianmulatre-284.workers.dev/tiktok/'+encodeURIComponent(handle)+'/posts';
     const response=await fetch(endpoint,{mode:'cors',credentials:'omit',cache:'no-store'});
@@ -311,12 +311,13 @@
     document.dispatchEvent(new CustomEvent('biglwa:tiktok-draft-ready',{detail:{source:'tiktok',publicProfile:true}}));
   }
 
-  async function restore() {
-    if(restoreBusy)return;
+  async function restore({force=false}={}) {
+    if(restoreBusy)throw Error('A TikTok refresh is already in progress. Retry Sync now after it completes.');
     restoreBusy=true;
     try{
       const token=await firebaseIdToken();
       if(!token||!authUid){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
+      videoLoadError='';lastCollectiveSync='';lastError='';
       if(!getSession()){
         const response=await fetch(API+'/tiktok/session/account',{headers:{Authorization:'Bearer '+token}});
         const result=await response.json().catch(()=>({}));
@@ -353,7 +354,7 @@
         if(videoPermissionPending){
           // TikTok's Display API is not the only public-facing display surface.
           // Attempt exact-handle public discovery; never guess absent data.
-          try{await syncPublicTikTokPosts()}
+          try{await syncPublicTikTokPosts(force)}
           catch(error){videoLoadError=String(error?.message||'Public video discovery unavailable.');}
         }else await syncTikTokDrafts();
       }catch(e){
