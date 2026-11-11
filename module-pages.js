@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-1';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2';
         document.head.appendChild(script);
       }, 250);
     }
@@ -61,7 +61,6 @@
   .calendar-crushes{margin-top:24px}
   .calendar-crush-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:12px}
   .calendar-crushes .politc-panel{background:var(--widget-bg,#f7f3eb);color:var(--widget-ink,#28231e);border:1px solid rgba(120,120,120,.26);outline:0;border-radius:12px}
-  .calendar-crushes .politc-panel h3{font-size:19px;text-align:left;text-transform:none;letter-spacing:0;border:0;padding:0}
   .calendar-crushes .politc-sub{text-align:left;margin:6px 0}
   .calendar-crushes .politc-season-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
   .calendar-crushes .politc-person{color:#28231e}
@@ -695,6 +694,24 @@
     body.night-mode .module-workspace{background:linear-gradient(180deg,rgba(31,29,28,.97),rgba(25,23,22,.98));color:#f3eee8}.night-mode .module-card,.night-mode .module-list-item,.night-mode .module-orbit-row,.night-mode .module-launcher,.night-mode .module-input,.night-mode .module-textarea,.night-mode .module-select,.night-mode .module-chat,.night-mode .calendar-board,.night-mode .calendar-day,.night-mode .dyk-card,.night-mode .dyk-option,.night-mode .trophy-entry,.night-mode .trophy-empty,.night-mode .module-update-privacy{border-color:#504943;background:rgba(45,41,39,.78);color:#f4eee8}.night-mode .module-heading{background:transparent;border-color:rgba(244,238,232,.22);color:inherit}.night-mode .module-heading p,.night-mode .module-card>p,.night-mode .module-list-item small,.night-mode .module-route,.night-mode .module-status,.night-mode .module-launcher small,.night-mode .dyk-source,.night-mode .dyk-side small,.night-mode .trophy-meta,.night-mode .trophy-empty p,.night-mode .trophy-field>span{color:#b6aaa2}.night-mode .module-back,.night-mode .module-action.ghost,.night-mode .trophy-entry-actions button{background:#302c2a;border-color:#514a45;color:#eee7e0}.night-mode .trophy-result,.night-mode .trophy-proof{color:#e8dfd8}.night-mode .module-bubble{background:#3b3633}.night-mode .module-bubble.mine{background:#5a3d3e}.night-mode .calendar-event-chip{background:#594746}
     @media(max-width:850px){.module-grid,.calendar-shell,.dyk-game,.trophy-page-grid{grid-template-columns:1fr}.module-card.wide{grid-column:1}.module-launchers{grid-template-columns:repeat(2,minmax(0,1fr))}.module-form.two,.module-form.three{grid-template-columns:1fr}.module-orbit{grid-template-columns:1fr}.module-heading{grid-template-columns:1fr}.module-heading-actions{justify-items:start;max-width:none}.module-badge{justify-self:start}.calendar-day{min-height:68px}.photo-strip{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:560px){.calendar-board{padding:9px}.calendar-days,.calendar-weekdays{gap:2px}.calendar-day{min-height:52px;padding:4px}.calendar-event-chip{font-size:0;width:6px;height:6px;border-radius:50%;padding:0}.module-map{height:420px}.trophy-form-grid{grid-template-columns:1fr}.trophy-field.full{grid-column:1}.trophy-entry{grid-template-columns:1fr}.trophy-entry-actions{justify-content:flex-start}}
+    .calendar-days{grid-template-columns:repeat(7,minmax(0,1fr))}
+    :is([data-calendar-crush="mcm"],.calendar-crushes [data-politc-season="mcm"]){--crush-ink:#174b68;--crush-tint:#d7eaf7;--crush-dark-ink:#b8e6ff;--crush-dark-tint:#254359}
+    :is([data-calendar-crush="tct"],.calendar-crushes [data-politc-season="tct"]){--crush-ink:#285337;--crush-tint:#dfefce;--crush-dark-ink:#d0f2b2;--crush-dark-tint:#31492c}
+    :is([data-calendar-crush="wcw"],.calendar-crushes [data-politc-season="wcw"]){--crush-ink:#702344;--crush-tint:#f8dbe9;--crush-dark-ink:#ffd2e6;--crush-dark-tint:#5a3045}
+    :is([data-calendar-crush],.calendar-crushes [data-politc-season]){--crush-color:var(--crush-ink);--crush-bg:var(--crush-tint)}
+    body.night-mode :is([data-calendar-crush],.calendar-crushes [data-politc-season]){--crush-color:var(--crush-dark-ink);--crush-bg:var(--crush-dark-tint)}
+    .calendar-day[data-calendar-crush],.calendar-crushes [data-politc-season],.calendar-crush-agenda[data-calendar-crush]{
+      background:var(--crush-bg);color:var(--crush-color);border-color:color-mix(in srgb,var(--crush-color) 35%,var(--crush-bg))
+    }
+    .night-mode .calendar-day[data-calendar-crush],.night-mode .calendar-crush-agenda[data-calendar-crush]{background:var(--crush-bg);color:var(--crush-color)}
+    .calendar-day.selected[data-calendar-crush]{outline:2px solid currentColor;outline-offset:-2px}
+    .calendar-crush-chip{display:block;margin-top:4px;font:800 clamp(9px,1.3vw,12px)/1.15 system-ui,sans-serif;letter-spacing:.025em}
+    .calendar-crushes>h2,.calendar-crushes .politc-panel h3{
+      font:400 clamp(24px,3vw,32px)/1.1 "CS Bergamot Stitched",Georgia,serif;text-align:left;letter-spacing:0;text-transform:none;border:0;padding:0
+    }
+    .calendar-crushes .politc-nominate-button{background:var(--crush-color);color:var(--crush-bg);border:0;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
+    .calendar-crush-agenda strong{font:400 24px/1.15 "CS Bergamot Stitched",Georgia,serif}
+
 
     .module-game-stage{grid-column:1/-1}
     .module-game-stage-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:12px}
@@ -1063,9 +1080,9 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
 
   let calendarGeneration=0;
   const calendarCrushes=[
-    {id:'mcm',day:1,name:'MCM',title:'Man Crush Monday'},
-    {id:'tct',day:2,name:'Tea Crush Tuesday',title:'Tea Crush Tuesday'},
-    {id:'wcw',day:3,name:'WCW',title:'Woman Crush Wednesday'}
+    {id:'mcm',day:1,short:'MCM',name:'MCM',title:'Man Crush Monday'},
+    {id:'tct',day:2,short:'TCT',name:'Tea Crush Tuesday',title:'Tea Crush Tuesday'},
+    {id:'wcw',day:3,short:'WCW',name:'WCW',title:'Woman Crush Wednesday'}
   ];
   const nominationOwner=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
   // Both pages use the original account-scoped keys so saved nominations follow their category.
@@ -1077,9 +1094,9 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const array=storageKey=>{const data=readJSON(storageKey,[]);return Array.isArray(data)?data:[]};
     return {ownerUid,key,hiddenKey,read:()=>ownerUid?array(key):[],hidden:()=>new Set(ownerUid?array(hiddenKey):[])};
   }
-  function calendarCrushRows(key){
+  function calendarCrushOnDay(key){
     const day=new Date(key+'T12:00:00').getDay();
-    return calendarCrushes.filter(crush=>crush.day===day).map(crush=>({title:crush.title,meta:'Weekly · BIG LWA'}));
+    return calendarCrushes.find(crush=>crush.day===day);
   }
   function renderCalendarCrushes(container){
     const store=nominationStore();
@@ -1158,9 +1175,20 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const googleRows=key=>remote.filter(e=>onDay(e,key)).map(e=>({title:e.summary||'Untitled Google event',meta:'Google · '+(e.start?.date?'All day':new Date(e.start.dateTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})),google:true,url:e.htmlLink||''}));
     const draw=()=>{
       const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;const unRows=key=>window.BigLWAObservances?.onDay(key)||[];
-      const days=Array.from({length:42},(_,i)=>{const d=calendarGridDate(view.year,view.month,i),key=dayKey(d),items=[...calendarCrushRows(key),...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"><span class="calendar-day-num">'+d.getDate()+'</span>'+items.slice(0,3).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+(items.length>3?'<small>+'+(items.length-3)+' more</small>':'')+'</button>'}).join('');
-      const local=all.filter(x=>x.date===selected),readOnlyRows=[...calendarCrushRows(selected),...googleRows(selected),...unRows(selected)];
-      calendarContent.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const days=Array.from({length:42},(_,i)=>{
+        const d=calendarGridDate(view.year,view.month,i),key=dayKey(d);
+        const crush=calendarCrushOnDay(key),items=[...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];
+        const limit=crush?2:3;
+        return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"'+(crush?' data-calendar-crush="'+crush.id+'"':'')+'>'+
+          '<span class="calendar-day-num">'+d.getDate()+'</span>'+
+          (crush?'<span class="calendar-crush-chip" title="'+esc(crush.title)+'" aria-label="'+esc(crush.title)+'">'+crush.short+'</span>':'')+
+          items.slice(0,limit).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+
+          (items.length>limit?'<small>+'+(items.length-limit)+' more</small>':'')+'</button>';
+      }).join('');
+      const local=all.filter(x=>x.date===selected),readOnlyRows=[...googleRows(selected),...unRows(selected)];
+      const selectedCrush=calendarCrushOnDay(selected);
+      const crushAgenda=selectedCrush?'<div class="module-list-item calendar-crush-agenda" data-calendar-crush="'+selectedCrush.id+'"><div><strong>'+esc(selectedCrush.title)+'</strong><small>Weekly · BIG LWA</small></div></div>':'';
+      calendarContent.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+crushAgenda+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
       const unStatus=$('#unCalendarStatus',body),unData=window.BigLWAObservances?.data;
       if(unStatus&&unData)unStatus.textContent='Auto-updated daily · last fetched '+new Date(unData.updatedAt).toLocaleDateString()+(unData.retrievedFrom.includes('indonesia.un.org')?' · UN Indonesia mirror':'')+'. Lunar dates require checking the source.';
       const change=n=>{const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};writeJSON('biglwaCalendarView',view);remote=[];draw();load()};
