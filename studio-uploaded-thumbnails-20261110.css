@@ -173,6 +173,8 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   margin:12px 0 14px!important;
   border:0!important;
   border-radius:16px!important;
+  /* Trim the dark outer rows without shifting the film apertures. */
+  clip-path:inset(1.4% 0 1.4% round 16px);
   overflow:hidden!important;
   background:transparent!important;
   box-shadow:none!important;
