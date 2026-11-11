@@ -16,8 +16,10 @@ assert.ok(stream.includes('data-google-orbit-connect')&&stream.includes('data-st
 assert.ok(stream.includes('syncYouTubeOrbitButton'),'YouTube button tracks actual Google Orbit connection');
 assert.ok(style.includes('.stream-nav-actions .stream-media-link-form'),'Top tuner has responsive styles');
 assert.ok(style.includes('width:112%!important')&&style.includes('margin-inline:-6%!important'),'Gothic Studio Stream frame enlarges without changing its art geometry');
+assert.ok(style.includes('--biglwa-stream-frame-ink-opacity:.94')&&style.includes('filter:grayscale(1) contrast(.86) brightness(1.06)!important'),'Only frame overlay uses softer pencil-like ink treatment');
+assert.ok(index.includes('stream-guide.css?v=20261111-stage-frame-ink-1'),'Hand-drawn frame styling is cache-busted');
 assert.ok(style.includes('@media (max-width:700px)')&&style.includes('margin-inline:0!important'),'Gothic Stream preview stays within mobile widget bounds');
-assert.ok(index.includes('stream-guide.css?v=20261111-stage-frame-enlarge-1'),'Stream enlargement stylesheet is cache-busted');
+assert.ok(index.includes('stream-guide.css?v=20261111-stage-frame-ink-1'),'Stream illustration stylesheet is cache-busted');
 const bucketRecords=new Map();
 const fakeR2={
  async put(key,text){bucketRecords.set(key,String(text))},
