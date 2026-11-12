@@ -24,7 +24,7 @@ const cases=[
  ['iframe uses original game URL with a compact mode for own puzzles', arcade.includes('frame.src=framed.href') && arcade.includes("framed.searchParams.set('embed','1')") && !arcade.includes('frame.src=proxy')],
  ['provider restrictions are not bypassed', !arcade.includes("uri.protocol!=='https:' || restrictsEmbed(uri)") && arcade.includes('providerName(uri)')],
  ['in-cabinet web view offers browser controls', arcade.includes("makeAction('Reload view','arcadeReload'") && arcade.includes("createOpenLink(game.original?new URL(game.original):uri,'Open original ↗'") && arcade.includes("if(target.matches('[data-arcade-reload]'))")],
- ['full directory uses keyboard-accessible details and summary', arcade.includes('<details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle">') && arcade.includes('</div></details></section>')],
+ ['full directory uses keyboard-accessible details and summary', arcade.includes('<details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle">') && arcade.includes('</p></details></section>')],
  ['full directory begins collapsed by default', !arcade.includes('<details id="arcadeDirectoryDetails" open') && !arcade.includes('<details open id="arcadeDirectoryDetails"')],
  ['directory game buttons route to native or provider launcher', arcade.includes('data-directory-play>') && arcade.includes('()=>playGame(gameLibrary[Number(button.closest(')],
 
