@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2907,7 +2907,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         // Do not turn this into a generic proxy/iframe allowance for other hosts.
         if(game.launch==='embed'){
           if(target.protocol==='https:'&&target.hostname==='www.y8.com'&&
-            /^\\/embed\\/[a-z0-9_]+$/.test(target.pathname)){
+            /^\/embed\/[a-z0-9_]+$/.test(target.pathname)){
             tryEmbedded();return;
           }
           showGameLinks(game);return;
