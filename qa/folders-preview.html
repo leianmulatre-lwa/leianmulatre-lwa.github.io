@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>BIG LWA | Folder design exploration</title>
+<style>
+:root{font-family:ui-sans-serif,system-ui,sans-serif;color-scheme:dark;--bg:#201b1c;--panel:#4a393f;--ink:#fff3e8;--muted:#d5bcb9;--aura:#d95e71;--gold:#efba5e}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 78% 13%,#563b43 0%,transparent 49%),repeating-linear-gradient(90deg,#0000 0 69px,#f7d9d30b 70px 71px),var(--bg)}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #fff3c8;outline-offset:4px}
+main{max-width:1160px;margin:auto;padding:52px clamp(16px,5vw,52px) 90px}
+.top{display:flex;align-items:start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.kicker{color:var(--aura);font:800 11px/1.3 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase}
+h1,h2,h3{font-family:Georgia,'Times New Roman',serif;margin:0}h1{font-size:clamp(36px,6vw,68px);font-weight:500;letter-spacing:-.05em}h1 span{color:var(--aura);font-style:italic}p{line-height:1.55;color:var(--muted);max-width:780px}
+.switch{border:1px solid #f7ece34d;border-radius:9px;background:#fff4e116;color:var(--ink);padding:10px 13px}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;margin:28px 0 38px}
+.option{border:1px solid #f1ced056;border-radius:18px;background:linear-gradient(150deg,#7a596448,#2a25268a);padding:23px 17px;min-width:0;display:flex;flex-direction:column;align-items:center;box-shadow:0 13px 35px #0003}
+.option[aria-current="true"]{outline:2px solid var(--aura);outline-offset:0}
+.option h2{font-size:20px;align-self:start}.option small{align-self:start;color:var(--muted);font-size:12px}
+.folder-button{width:100%;display:grid;place-items:center;border:0;background:transparent;padding:24px 0 18px}
+.folder{position:relative;width:min(215px,100%);aspect-ratio:1.36;filter:drop-shadow(0 12px 7px #16090c55);transition:transform .22s ease}
+.folder-button:hover .folder,.folder-button:focus-visible .folder{transform:translateY(-4px)}
+.folder-back{position:absolute;inset:16% 5% 7% 5%;border-radius:15% 15% 12% 12%;background:var(--back);border:1px solid #42281f22}
+.folder-tab{position:absolute;top:8%;left:7%;width:44%;height:31%;border-radius:16px 17px 0 0;background:var(--tab);clip-path:polygon(0 0,68% 0,98% 45%,100% 100%,0 100%)}
+.folder-front{position:absolute;inset:31% 0 0 0;border:1px solid #fff8e074;border-radius:11% 12% 13% 13%;background:var(--front);box-shadow:inset 0 4px 0 #ffffff38,inset 0 -6px 0 #754f2d18}
+.folder-front:after{content:'';position:absolute;bottom:9px;left:15%;right:15%;border-bottom:1px dashed var(--seam);opacity:.55}
+.folder-label{position:absolute;top:58%;left:50%;transform:translate(-50%,-50%) rotate(-2deg);background:var(--label);color:var(--labelink);padding:6px 15px;border:1px solid #543d321d;border-radius:3px;font:700 13px/1.1 Georgia,serif;letter-spacing:.04em;white-space:nowrap;box-shadow:2px 3px 0 #2d23161f}
+.folder-label:before{content:'✳';margin-right:5px;font-size:10px;color:var(--mark)}
+.folder-count{position:absolute;right:10%;bottom:11%;font:800 9px ui-monospace,monospace;color:var(--count)}
+.cream{--tab:#d89d4b;--back:#e6b265;--front:linear-gradient(165deg,#ffe5a8,#eeb65a 70%,#dda24f);--seam:#855728;--label:#fff2d6;--labelink:#493124;--mark:#d95e71;--count:#6a4728}
+.aura{--tab:#793749;--back:#b65470;--front:linear-gradient(162deg,#f5a7ad,#d96a81 73%,#ba485d);--seam:#722e49;--label:#ffe9d9;--labelink:#652d3d;--mark:#9c263e;--count:#641c36}
+.archive{--tab:#2c3135;--back:#51565d;--front:linear-gradient(165deg,#808187,#464750 72%,#31333a);--seam:#d4c6b5;--label:#e7dfcb;--labelink:#262226;--mark:#882b3b;--count:#efdfce}
+.picker{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.picker button{border:1px solid #fff9;background:#ffffff20;color:var(--ink);padding:8px 12px;border-radius:8px}
+.picker button[aria-pressed="true"]{background:var(--aura);border-color:var(--aura);color:#171014}
+.window{border:2px solid #33282e;border-radius:14px;background:#f4eee2;color:#382e2a;box-shadow:7px 8px 0 #160c1170;overflow:hidden;max-width:780px}
+.window-heading{background:#c1a8ab;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid #67474e}
+.window-heading strong{font:600 23px Georgia,serif}.traffic{display:flex;gap:7px}.traffic i{width:11px;height:11px;border-radius:50%;border:1px solid #4b3834}.traffic i:nth-child(1){background:#57a66d}.traffic i:nth-child(2){background:#f0c452}.traffic i:nth-child(3){background:#e75d64}
+.crumb{display:block;padding:11px 15px;border-bottom:1px dashed #a58d87;font:650 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.07em}
+.items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:18px}
+.item{min-width:0;text-align:left;border:1px solid #bca6a0;border-radius:8px;background:#fffdf8;padding:15px 8px;color:#3a2928;display:flex;flex-direction:column;align-items:center;gap:8px}
+.item i{font-size:35px;font-style:normal}.item span{font:700 13px/1.2 Georgia,serif}.item small{font:650 9px ui-monospace,monospace;color:#927673}
+.item:disabled{opacity:.88;cursor:default}
+.note{font-size:11px;margin-top:12px;max-width:780px}
+.theme-day{--bg:#ddd0c6;--panel:#ead4c6;--ink:#2d1e21;--muted:#674e52}
+.theme-day .option{background:#ffe9dbb5}
+.theme-day .switch,.theme-day .picker button{color:var(--ink);background:#fff9f4c9;border-color:#966c73}
+.theme-day .picker button[aria-pressed=true]{background:var(--aura);color:#fff}
+@media(max-width:760px){.trio{grid-template-columns:1fr}.option{max-width:420px;width:100%;margin:auto}.items{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.folder{transition:none}.folder-button:hover .folder{transform:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><span class="kicker">BIG LWA · design studio · concept only</span><h1>your little <span>folders.</span></h1>
+  <p>For Studio, not a separate file manager. Think old desktop familiarity, the BIG LWA stitch, warm tactile surfaces, and a little Aura without overpowering the content.</p></div>
+  <button type="button" class="switch" id="themeToggle" aria-pressed="false">☼ Light / night preview</button></div>
+  <section class="trio" aria-label="Folder concept variants">
+    <article class="option" aria-current="true"><h2>01 / signature</h2><small>Warm cream-gold · recommended default</small>
+     <button class="folder-button" data-folder="cream" aria-label="Open signature folder preview">
+      <span class="folder cream"><span class="folder-back"></span><span class="folder-tab"></span><span class="folder-front"></span><span class="folder-label">my ideas</span><span class="folder-count">3 items</span></span>
+     </button><small>Subtle stitched edge. Paper-tape title.</small></article>
+    <article class="option"><h2>02 / aura</h2><small>Member-tinted · personal folders</small>
+     <button class="folder-button" data-folder="aura" aria-label="Open aura folder preview">
+      <span class="folder aura"><span class="folder-back"></span><span class="folder-tab"></span><span class="folder-front"></span><span class="folder-label">after hours</span><span class="folder-count">3 items</span></span>
+     </button><small>One aura family, not a rainbow everywhere.</small></article>
+    <article class="option"><h2>03 / archive</h2><small>Dark ink · special collections</small>
+     <button class="folder-button" data-folder="archive" aria-label="Open archive folder preview">
+      <span class="folder archive"><span class="folder-back"></span><span class="folder-tab"></span><span class="folder-front"></span><span class="folder-label">keep safe</span><span class="folder-count">3 items</span></span>
+     </button><small>Velvet ink with a soft cream label.</small></article>
+  </section>
+  <div class="picker" role="group" aria-label="Folder preview variant"><span class="kicker">Open window test</span>
+    <button data-pick="cream" aria-pressed="true">signature</button><button data-pick="aura" aria-pressed="false">aura</button><button data-pick="archive" aria-pressed="false">archive</button></div>
+  <section class="window" aria-label="Illustrative folder contents">
+    <div class="window-heading"><strong id="folderName">my ideas</strong><span class="traffic" aria-label="Existing BIG LWA window light motif"><i></i><i></i><i></i></span></div>
+    <span class="crumb" id="crumb">studio / folders / my ideas</span>
+    <div class="items">
+      <button type="button" class="item" disabled><i aria-hidden="true">✳</i><span>MyFeed</span><small>widget shortcut</small></button>
+      <button type="button" class="item" disabled><i aria-hidden="true">▤</i><span>Projects</span><small>page shortcut</small></button>
+      <button type="button" class="item" disabled><i aria-hidden="true">♫</i><span>After Hours</span><small>tune shortcut</small></button>
+    </div>
+  </section>
+  <p class="note">Exploration only: content is illustrative, buttons do not open member data, and no account information is read or changed. Proposed real behavior is documented in <code>docs/design/2026-11-11-studio-folders.md</code>.</p>
+</main>
+<script>
+(()=>{'use strict';
+const names={cream:'my ideas',aura:'after hours',archive:'keep safe'};
+const choices=[...document.querySelectorAll('[data-folder]')],picks=[...document.querySelectorAll('[data-pick]')];
+function select(theme){
+ if(!Object.hasOwn(names,theme))return;
+ document.getElementById('folderName').textContent=names[theme];
+ document.getElementById('crumb').textContent='studio / folders / '+names[theme];
+ picks.forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.pick===theme)));
+ choices.forEach(el=>el.closest('.option').setAttribute('aria-current',String(el.dataset.folder===theme)));
+ document.querySelector('.window').style.borderColor=theme==='aura'?'#a84865':theme==='archive'?'#4b4b53':'#83573b';
+}
+choices.forEach(el=>el.addEventListener('click',()=>select(el.dataset.folder)));
+picks.forEach(el=>el.addEventListener('click',()=>select(el.dataset.pick)));
+document.getElementById('themeToggle').addEventListener('click',event=>{
+ const light=document.body.classList.toggle('theme-day');
+ event.currentTarget.setAttribute('aria-pressed',String(light));
+});
+})();
+</script>
+</body></html>
