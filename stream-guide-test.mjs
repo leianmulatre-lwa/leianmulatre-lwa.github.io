@@ -15,11 +15,11 @@ assert.equal((stream.match(/id="streamMediaLinkForm"/g)||[]).length,1,'Only one 
 assert.ok(stream.includes('data-google-orbit-connect')&&stream.includes('data-stream-youtube-status'),'YouTube Orbit connect sits beside tuner');
 assert.ok(stream.includes('syncYouTubeOrbitButton'),'YouTube button tracks actual Google Orbit connection');
 assert.ok(style.includes('.stream-nav-actions .stream-media-link-form'),'Top tuner has responsive styles');
-assert.ok(style.includes('width:112%!important')&&style.includes('margin-inline:-6%!important'),'Gothic Studio Stream frame enlarges without changing its art geometry');
-assert.ok(style.includes('--biglwa-stream-frame-ink-opacity:.94')&&style.includes('filter:grayscale(1) contrast(.86) brightness(1.06)!important'),'Only frame overlay uses softer pencil-like ink treatment');
-assert.ok(index.includes('stream-guide.css?v=20261111-stage-frame-ink-1'),'Hand-drawn frame styling is cache-busted');
-assert.ok(style.includes('@media (max-width:700px)')&&style.includes('margin-inline:0!important'),'Gothic Stream preview stays within mobile widget bounds');
-assert.ok(index.includes('stream-guide.css?v=20261111-stage-frame-ink-1'),'Stream illustration stylesheet is cache-busted');
+assert.ok(!stream.includes("screen.dataset.biglwaFrameReady='1'"),'Studio thumbnail never activates the retired ornate skin');
+assert.ok(!style.includes('data-biglwa-frame-ready'),'Old Stream overlay selectors no longer resize the Studio player');
+assert.ok(style.includes('#biglwaStreamDock.stream-ornate-dock'),'Ornate frame belongs exclusively to Stream Dock');
+assert.ok(style.includes('aspect-ratio:4/3!important')&&style.includes('stream-night.avif'),'Dock artwork retains its natural proportions and dark-mode frame');
+assert.ok(index.includes('stream-guide.css?v=20261111-dock-frame-1')&&index.includes('stream-guide.js?v=20261111-dock-frame-1'),'Dock-only frame resources are cache-busted');
 const bucketRecords=new Map();
 const fakeR2={
  async put(key,text){bucketRecords.set(key,String(text))},
