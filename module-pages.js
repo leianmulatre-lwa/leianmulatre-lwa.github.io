@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2508,6 +2508,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'five nights at freddy’s',image:'/assets/arcade/five-nights-at-freddys.jpg',href:'https://store.steampowered.com/app/319510/Five_Nights_at_Freddys/'},
       {title:'swords & sandals ii',image:'/assets/arcade/swords-and-sandals.jpg',href:'https://www.y8.com/games/swords_and_sandals_2'}
     ];
+    // Only Y8's explicit "Games for your website" catalog is loaded in-frame.
+    // Other external providers retain the existing safe original-site launcher.
+    const y8Games=Array.isArray(window.BigLWAY8EmbedCatalog)?window.BigLWAY8EmbedCatalog:[];
+    gameLibrary.push(...y8Games.map(item=>({
+      title:item.title,href:item.href,original:item.original,image:item.image,
+      provider:'Y8',launch:'embed',rank:item.rank,maybeMultiplayer:item.maybeMultiplayer
+    })));
     const tile=(game,index)=>game.internal==='cultureQuiz'
       ?'<button class="module-game-tile module-game-action" type="button" data-play-culture-quiz aria-label="Play Culture Quiz"><img src="'+esc(game.image)+'" alt="" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>play ↗</small></button>'
       :'<button class="module-game-tile module-game-action" type="button" data-play-external="'+index+'" aria-label="'+(game.launch==='external'?'Open ':'Play ')+esc(game.title)+'"><img src="'+esc(game.image)+'" alt="'+esc(game.title)+'" width="320" height="180" loading="lazy" decoding="async"><span>'+esc(game.title)+'</span><small>'+(game.launch==='external'?'official site ↗':'play in cabinet ▶')+'</small></button>';
@@ -2519,11 +2526,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const complete=cycle.slice(0,Math.max(9,cycle.length));
       return complete.concat(complete).map(game=>tile(game,gameLibrary.indexOf(game))).join('');
     };
-    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>'+(game.launch==='external'?'Official game →':'Play in screen')+'</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Original site ↗</a>')+'</div></div>'};
+    const seeAlso=game=>{const href=game.internal==='cultureQuiz'?'':esc(game.original||game.href||'');return '<div class="module-game-directory-row" data-directory-index="'+gameLibrary.indexOf(game)+'"><b><img src="'+esc(game.image)+'" alt="" width="68" height="40" loading="lazy" decoding="async">'+esc(game.title)+(game.provider==='Y8'?'<small class="arcade-y8-rank">#'+game.rank+' · Y8</small>':'')+'</b><div class="module-game-directory-actions">'+(game.internal==='cultureQuiz'?'<button class="module-action ghost" type="button" data-directory-culture>Play in arcade</button>':'<button class="module-action ghost" type="button" data-directory-play>'+(game.launch==='external'?'Official game →':'Play in screen')+'</button><a class="module-action ghost" href="'+href+'" target="_blank" rel="noopener noreferrer">Original site ↗</a>')+'</div></div>'};
     body.innerHTML=heading('games')+
       '<div class="module-grid module-games-grid">'+
-        '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><span id="arcadeEmulatorTitle" hidden>choose a game</span><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Play local games or load a saved Flash file inside this cabinet. Original-site entries may restrict embedding; in-site alternatives are always available.</div></section>'+
-        '<section class="module-card module-game-directory wide"><details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle"><span>all games</span><small>'+gameLibrary.length+' titles · expand or collapse</small><span class="arcade-directory-chevron" aria-hidden="true">⌄</span></summary><p>Local games and the Flash player run here. Every game is first tried inside the cabinet. Some providers refuse embedded browsing; the original then opens in a separate tab.</p><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div></details></section>'+
+        '<section class="module-card module-game-stage wide"><div class="biglwa-arcade-player" id="biglwaArcadePlayer" aria-live="polite"><span class="biglwa-arcade-portrait" aria-hidden="true">◉</span><span><strong>playing as guest</strong><small>your avatar joins the arcade · set it in Studio</small></span></div><span id="arcadeEmulatorTitle" hidden>choose a game</span><div class="module-game-viewport" id="arcadeScreen" aria-label="Arcade game selection and player"><div class="module-game-track">'+track(gameLibrary.slice(0,5))+'</div><div class="module-game-track">'+track(gameLibrary.slice(4,10))+'</div><div class="module-game-track">'+track(gameLibrary.slice(9,34))+'</div></div><div class="module-arcade-controls" aria-hidden="true"><span class="module-arcade-joystick is-yellow"><i></i></span><span class="module-arcade-joystick is-red"><i></i></span><span class="module-arcade-joystick is-green"><i></i></span></div><div class="module-status">Play local games or load a saved Flash file inside this cabinet. Original-site entries may restrict embedding; in-site alternatives are always available.</div></section>'+
+        '<section class="module-card module-game-directory wide"><details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle"><span>all games</span><small>'+gameLibrary.length+' titles · expand or collapse</small><span class="arcade-directory-chevron" aria-hidden="true">⌄</span></summary><p>Local games and the Flash player run here. Y8 entries use their publisher-provided embed URLs inside this Arcade. Provider permissions and availability may change; the original game page always stays available.</p><div class="arcade-y8-heading"><div><strong>Y8 · popular picks</strong><small>200 publisher-listed games · sorted by Y8 popularity</small></div><small>Hosted by Y8 · no BIG LWA copies</small></div><div class="arcade-y8-search"><label>Find a game<input type="search" id="arcadeY8Search" maxlength="80" placeholder="Search titles…" autocomplete="off"></label><label>Show<select id="arcadeY8Filter"><option value="all">All games</option><option value="y8">Y8 embedded games</option><option value="multiplayer">Possible multiplayer / two-player</option><option value="local">BIG LWA and other games</option></select></label></div><div class="arcade-y8-count" id="arcadeY8Count" role="status">'+gameLibrary.length+' games</div><div class="module-game-directory-list" id="arcadeDirectory">'+gameLibrary.map(seeAlso).join('')+'</div><p class="arcade-y8-attribution">Games remain hosted and controlled by <a href="https://www.y8.com/games_for_your_website?order=popularity" target="_blank" rel="noopener noreferrer">Y8 Games ↗</a>. "Possible multiplayer" means review the individual game’s actual mode; online servers and Y8 accounts are operated by Y8, not BIG LWA.</p></details></section>'+
         '<section class="module-card module-culture-quiz wide" id="cultureQuizPanel" hidden><div class="culture-quiz-head"><div><h2>culture quiz</h2><p>Four quick questions about culture, history, and keeping its context.</p></div><button class="module-action ghost" type="button" data-close-culture-quiz>Close</button></div><div id="cultureQuizContent" aria-live="polite"></div></section>'+
         '<section class="module-card module-game-submit"><h2>want to add a game?</h2><p>Suggest a game with a link or game file and an image link or image file. Saved in this browser for review; uploads are not automatically hosted.</p><form class="module-game-form" id="gameSuggestForm">'+
           '<label><span>Game name</span><input class="module-input" name="title" required maxlength="80" placeholder="Game title"></label>'+
@@ -2533,6 +2540,28 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         '</form></section>'+
       '</div>';
 
+    // Filter the existing directory without rebuilding live iframe/widget state.
+    const directorySearch=$('#arcadeY8Search',body);
+    const directoryFilter=$('#arcadeY8Filter',body);
+    const directoryCount=$('#arcadeY8Count',body);
+    const refreshDirectory=()=>{
+      const query=String(directorySearch?.value||'').trim().toLowerCase();
+      const mode=directoryFilter?.value||'all';
+      let visible=0;
+      $$('.module-game-directory-row[data-directory-index]',body).forEach(row=>{
+        const game=gameLibrary[Number(row.dataset.directoryIndex)];
+        const isY8=game?.provider==='Y8';
+        const passesMode=mode==='all'||(mode==='y8'&&isY8)||
+          (mode==='multiplayer'&&isY8&&game.maybeMultiplayer)||
+          (mode==='local'&&!isY8);
+        const passesText=!query||String(game?.title||'').toLowerCase().includes(query);
+        row.hidden=!(passesMode&&passesText);
+        if(!row.hidden)visible++;
+      });
+      if(directoryCount)directoryCount.textContent=visible+' of '+gameLibrary.length+' games shown';
+    };
+    directorySearch?.addEventListener('input',refreshDirectory);
+    directoryFilter?.addEventListener('change',refreshDirectory);
     // The avatar belongs to a second connected Windows-style pane beside
     // the playable cabinet, not a thin banner that hides the character.
     const gameStage=$('.module-game-stage',body);
@@ -2726,7 +2755,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       const actions=document.createElement('div');
       actions.className='arcade-game-launch-actions';
       actions.append(makeAction('Local games','arcadeLocal',''),makeAction('Load Flash file','arcadeFlash','ghost'));
-      actions.append(createOpenLink(uri,steam?'Steam listing ↗':officialExternal?'Play on Miniclip ↗':'Play on original site ↗','ghost'));
+      actions.append(createOpenLink(game.original?new URL(game.original):uri,steam?'Steam listing ↗':officialExternal?'Play on Miniclip ↗':'Play on original site ↗','ghost'));
       if(!steam&&!blocked) actions.append(makeAction('Try in this screen','arcadeTryEmbed','ghost'));
       actions.append(makeAction('Copy game link','arcadeCopy','ghost'));
       const note=document.createElement('small');
@@ -2789,7 +2818,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       frame.loading='eager';
       frame.setAttribute('allow','autoplay; fullscreen; gamepad');
       frame.setAttribute('allowfullscreen','');
-      frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-pointer-lock allow-downloads allow-forms');
+      frame.setAttribute('sandbox',game.provider==='Y8'
+        ?'allow-scripts allow-same-origin allow-pointer-lock allow-forms allow-popups allow-popups-to-escape-sandbox'
+        :'allow-scripts allow-same-origin allow-pointer-lock allow-downloads allow-forms');
       frame.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
       const deck=document.createElement('div');
       deck.className='arcade-player-deck';
@@ -2823,7 +2854,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         :restrictsEmbed(uri)
           ?'Trying this website in the Arcade. It commonly blocks embeds; if the screen is blank, select Open original ↗.'
           :'Trying this website in the Arcade. If it refuses or stays blank, select Open original ↗.';
-      deck.append(help,makeAction('Reload view','arcadeReload','ghost'),createOpenLink(uri,'Open original ↗','ghost'),
+      deck.append(help,makeAction('Reload view','arcadeReload','ghost'),createOpenLink(game.original?new URL(game.original):uri,'Open original ↗','ghost'),
         makeAction('Other games','arcadeReturn','ghost'),makeAction('Fullscreen','arcadeFullscreen','ghost'));
       emulatorScreen.replaceChildren(head,frame,deck,notice);
       frame.addEventListener('error',()=>{
@@ -2872,6 +2903,15 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       selectedGame=game;
       try{
         const target=new URL(game.href,location.href);
+        // Explicitly publisher-listed Y8 games may use the Y8 embed endpoint.
+        // Do not turn this into a generic proxy/iframe allowance for other hosts.
+        if(game.launch==='embed'){
+          if(target.protocol==='https:'&&target.hostname==='www.y8.com'&&
+            /^\/embed\/[a-z0-9_]+$/.test(target.pathname)){
+            tryEmbedded();return;
+          }
+          showGameLinks(game);return;
+        }
         if(target.origin!==location.origin || game.launch==='external'){
           showGameLinks(game); // Third-party websites use the honest original-site launcher, not a blank iframe.
           return;

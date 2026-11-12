@@ -5,6 +5,11 @@ on:
     paths:
       - 'module-pages.js'
       - 'games-arcade-test.mjs'
+      - 'y8-embeds-20261112.js'
+      - 'y8-embed-catalog-test.mjs'
+      - 'arcade-y8-20261112.css'
+      - 'assets/arcade/y8-game-placeholder-20261112.svg'
+      - 'studio/index.html'
       - 'index.html'
       - 'studio-cabinets-carousel-regression-test.mjs'
       - 'studio-cabinet-thumbnails-20261026.css'
@@ -17,6 +22,11 @@ on:
     paths:
       - 'module-pages.js'
       - 'games-arcade-test.mjs'
+      - 'y8-embeds-20261112.js'
+      - 'y8-embed-catalog-test.mjs'
+      - 'arcade-y8-20261112.css'
+      - 'assets/arcade/y8-game-placeholder-20261112.svg'
+      - 'studio/index.html'
       - 'index.html'
       - 'studio-cabinets-carousel-regression-test.mjs'
       - 'studio-cabinet-thumbnails-20261026.css'
@@ -36,7 +46,9 @@ jobs:
       - name: Check Arcade JavaScript syntax
         run: node --check module-pages.js
       - name: Run Arcade regression checks
-        run: node games-arcade-test.mjs
+        run: |
+          node games-arcade-test.mjs
+          node y8-embed-catalog-test.mjs
       - name: Verify both interactive Studio carousels and cabinet PNGs
         run: |
           node --check studio-lwazi-thumbnail-20261026.js

@@ -1,0 +1,42 @@
+/* BIG LWA / Arcade: provider-approved Y8 directory, not a replacement for
+   the original Studio Games carousel or the in-cabinet game screen. */
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+ margin:13px 0 8px;padding:12px 14px;border:1px solid #89605a75;border-radius:10px;
+ background:linear-gradient(110deg,rgba(var(--aura-rgb,216,95,109),.09),rgba(248,216,170,.10));
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-heading strong{
+ font:600 18px/1.25 Georgia,serif;letter-spacing:-.02em;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-heading small{
+ font:600 10px/1.45 ui-monospace,monospace;opacity:.8;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search{
+ display:grid;grid-template-columns:minmax(0,1.8fr) minmax(150px,1fr);
+ align-items:end;gap:10px;margin:12px 0;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search label{
+ display:flex;flex-direction:column;gap:5px;min-width:0;
+ font:750 10px/1.2 ui-monospace,monospace;letter-spacing:.04em;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search input,
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search select{
+ display:block;width:100%;max-width:100%;min-height:39px;padding:8px 10px;
+ font:600 12px/1.2 system-ui,sans-serif;border-radius:7px;
+ border:1px solid #977779;background:#fff9ef;color:#362a2c;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-count{
+ margin:4px 0 10px;font:700 11px ui-monospace,monospace;color:inherit;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .module-game-directory-row[hidden]{display:none!important}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-rank{
+ font:750 9px/1 ui-monospace,monospace;white-space:nowrap;
+ color:rgb(var(--aura-rgb,216,95,109));margin-inline:6px;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-attribution{
+ margin:10px 0 0;font-size:11px;line-height:1.55;opacity:.83;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-attribution a{color:inherit;text-underline-offset:3px}
+@media(max-width:620px){
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search{grid-template-columns:1fr}
+}

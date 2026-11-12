@@ -23,8 +23,8 @@ const cases=[
  ['local games open in cabinet, external ones in launcher', arcade.includes('const playGame=game=>') && arcade.includes('target.origin!==location.origin') && arcade.includes('tryEmbedded();') && arcade.includes('showGameLinks(game)')],
  ['iframe uses original game URL with a compact mode for own puzzles', arcade.includes('frame.src=framed.href') && arcade.includes("framed.searchParams.set('embed','1')") && !arcade.includes('frame.src=proxy')],
  ['provider restrictions are not bypassed', !arcade.includes("uri.protocol!=='https:' || restrictsEmbed(uri)") && arcade.includes('providerName(uri)')],
- ['in-cabinet web view offers browser controls', arcade.includes("makeAction('Reload view','arcadeReload'") && arcade.includes("createOpenLink(uri,'Open original ↗'") && arcade.includes("if(target.matches('[data-arcade-reload]'))")],
- ['full directory uses keyboard-accessible details and summary', arcade.includes('<details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle">') && arcade.includes('</div></details></section>')],
+ ['in-cabinet web view offers browser controls', arcade.includes("makeAction('Reload view','arcadeReload'") && arcade.includes("createOpenLink(game.original?new URL(game.original):uri,'Open original ↗'") && arcade.includes("if(target.matches('[data-arcade-reload]'))")],
+ ['full directory uses keyboard-accessible details and summary', arcade.includes('<details id="arcadeDirectoryDetails"><summary class="arcade-directory-toggle">') && arcade.includes('</p></details></section>')],
  ['full directory begins collapsed by default', !arcade.includes('<details id="arcadeDirectoryDetails" open') && !arcade.includes('<details open id="arcadeDirectoryDetails"')],
  ['directory game buttons route to native or provider launcher', arcade.includes('data-directory-play>') && arcade.includes('()=>playGame(gameLibrary[Number(button.closest(')],
 
@@ -36,6 +36,11 @@ const cases=[
  ['game preview can be restored', arcade.includes("if(target.matches('[data-arcade-preview]')){if(selectedGame)showGameLinks(selectedGame)")],
  ['quit restores animated carousel', arcade.includes('emulatorScreen.innerHTML=previewMarkup')],
  ['media loads from same site', arcade.includes("cover.src=game.image")],
+ ['Y8 publisher-list embeds use only allowlisted Y8 host', arcade.includes("game.launch==='embed'") && arcade.includes("target.hostname==='www.y8.com'") && arcade.includes("target.pathname")],
+ ['Y8 retains official original game-page fallback', arcade.includes("game.original?new URL(game.original):uri")],
+ ['searchable Y8 directory preserves full native Arcade', arcade.includes('arcadeY8Search') && arcade.includes('refreshDirectory') && arcade.includes('gameLibrary.map(seeAlso)')],
+ ['Y8 publisher catalog is added to existing game library', arcade.includes('window.BigLWAY8EmbedCatalog') && arcade.includes('gameLibrary.push(...y8Games.map')],
+ ['Y8 manifest loads before original Games runtime', shell.indexOf('y8-embeds-20261112.js')>0 && shell.indexOf('y8-embeds-20261112.js')<shell.indexOf('module-pages.js?v=')],
  ['updated script version used', shell.includes('module-pages.js?v=')]
 ];
 let failed=0;
