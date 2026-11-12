@@ -12,7 +12,7 @@
  font:600 10px/1.45 ui-monospace,monospace;opacity:.8;
 }
 #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search{
- display:grid;grid-template-columns:minmax(0,1.8fr) minmax(150px,1fr);
+ display:grid;grid-template-columns:minmax(0,1.6fr) repeat(2,minmax(160px,1fr));
  align-items:end;gap:10px;margin:12px 0;
 }
 #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search label{
@@ -39,4 +39,118 @@
 #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-attribution a{color:inherit;text-underline-offset:3px}
 @media(max-width:620px){
  #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search{grid-template-columns:1fr}
+}
+
+/* November 12: the player must fit the original Y8 4:3 canvas; previously a
+   forced 665px rectangle cropped game UI and left unused side letterboxing. */
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed[data-game-ratio="4:3"]{
+ display:flex!important;flex-direction:column!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ width:calc(100% - 26px)!important;padding:0!important;
+ overflow:hidden!important;resize:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed[data-game-ratio="4:3"]>iframe{
+ display:block!important;position:relative!important;
+ flex:0 0 auto!important;width:100%!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ aspect-ratio:4/3!important;border:0!important;
+ object-fit:contain!important;overflow:hidden!important;
+ background:#08080a!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed:fullscreen{
+ width:100vw!important;height:100dvh!important;min-height:0!important;
+ margin:0!important;border:0!important;max-height:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed:fullscreen>iframe{
+ flex:1 1 auto!important;aspect-ratio:auto!important;
+ height:100%!important;min-height:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-launcher{
+ height:auto!important;min-height:420px!important;max-height:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-launcher>.arcade-game-launcher{
+ flex:1 1 auto!important;min-height:0!important;
+}
+/* Keep exactly one way back in the title bar and one concise tool row. */
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-player-deck{
+ gap:8px!important;justify-content:flex-end!important;flex-wrap:wrap!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-player-deck .arcade-browser-origin{
+ margin-right:auto!important;flex:1 1 auto!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-player-deck .module-action{
+ white-space:nowrap!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-browser-notice{
+ display:none!important;
+}
+/* Category windows use the existing retro-browser paper, not another cabinet. */
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-group{
+ display:block;min-width:0;margin:18px 0 24px;
+ border:1px solid rgba(128,101,93,.25);background:rgba(255,253,246,.25);
+ padding:10px;border-radius:9px;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-group[hidden]{
+ display:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-group>h3{
+ display:flex;justify-content:space-between;align-items:center;
+ margin:0 0 10px;padding:3px 5px 9px;
+ border-bottom:1px solid rgba(111,74,73,.23);
+ font:600 18px/1.25 Georgia,serif;text-transform:lowercase;color:inherit;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-group>h3 small{
+ font:750 10px/1 ui-monospace,monospace;opacity:.65;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items .module-game-directory-row{
+ min-width:0;gap:7px;padding:7px 9px;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items .module-game-directory-row>b{
+ white-space:normal!important;text-overflow:clip!important;min-width:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items .module-game-directory-row>b>img{
+ width:54px!important;height:40px!important;object-fit:cover!important;flex:0 0 54px;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items .module-game-directory-actions{
+ flex:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] .arcade-game-launch-actions{
+ display:flex!important;gap:9px;flex-wrap:wrap;align-items:center;
+}
+/* Images are 4:3 authentic game covers rather than narrow stretched strips. */
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen:not(.is-playing) .module-game-tile{
+ width:100%!important;height:auto!important;aspect-ratio:4/3!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen:not(.is-playing) .module-game-tile img{
+ object-fit:cover!important;object-position:center center!important;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen:not(.is-playing)>.module-game-track{
+ animation-duration:95s!important;animation-timing-function:linear!important;
+ will-change:transform;
+}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen:not(.is-playing)>.module-game-track:nth-child(2){animation-delay:-31s!important}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen:not(.is-playing)>.module-game-track:nth-child(3){animation-delay:-63s!important}
+@media(max-width:760px){
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items{grid-template-columns:1fr}
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search{grid-template-columns:1fr 1fr}
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search label:first-child{grid-column:1/-1}
+}
+@media(max-width:520px){
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search{grid-template-columns:1fr}
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-y8-search label:first-child{grid-column:auto}
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items .module-game-directory-row{
+  flex-direction:row!important;align-items:center!important;flex-wrap:wrap;
+ }
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-category-items .module-game-directory-actions{
+  margin-left:auto!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="games"] .arcade-player-deck .arcade-browser-origin{flex-basis:100%!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen>.module-game-track{
+  animation:none!important;transform:none!important;will-change:auto!important;
+ }
 }
