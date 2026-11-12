@@ -39,6 +39,8 @@ const active=doc.createElement('iframe');active.src='https://www.youtube-nocooki
 portal.append(active);
 assert.equal(x.dockStream(),true,'User can dock an active player');
 assert.ok(doc.querySelector('#biglwaStreamDock'),'Mini TV exists');
+assert.ok(!doc.querySelector('#studioApp .stream-screen').hasAttribute('data-biglwa-frame-ready'),'Studio keeps the earlier unframed screen');
+assert.match(css,/#biglwaStreamDock\.stream-ornate-dock/,'Dock has its own decorative frame styling');
 assert.equal(x.portal,portal,'Dock retains one original media surface');
 assert.equal(portal.querySelector('iframe'),active,'Same iframe keeps playing; not cloned');
 assert.equal(x.parkInStudio(),true,'Switching widgets does not detach a docked player');
