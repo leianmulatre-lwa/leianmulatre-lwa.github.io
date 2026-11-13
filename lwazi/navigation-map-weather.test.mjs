@@ -19,7 +19,7 @@ function nav(){
     addEventListener(){}
   };
   const document={readyState:'loading',addEventListener(){},
-    querySelector:sel=>sel==='#studioApp'?{querySelector:()=>({click:()=>clicked.push('skeleton')}),classList:{contains:()=>false}}:null};
+    querySelector:sel=>sel==='#studioApp'?{querySelector:()=>({click:()=>clicked.push('skeleton'),classList:{contains:()=>false}}),classList:{contains:()=>false}}:null};
   vm.runInNewContext(source,{window,document,setTimeout,console});
   return {api:window.BigLWANavigationCommands,navigated,clicked};
 }
