@@ -43,6 +43,19 @@
   tip.textContent='Street layers · OpenFreeMap when available';
   tip.setAttribute('aria-hidden','true');
   mapSide.querySelector('.map-stage')?.appendChild(tip);
+  // Studio expands with this document; only a height number is reported.
+  if(params.has('embed')&&window.parent!==window){
+    const reportHeight=()=>{
+      const height=Math.ceil(document.documentElement.scrollHeight);
+      if(height>420&&height<=4200){
+        try{window.parent.postMessage({type:'biglwa:map-height',height},location.origin);}catch{}
+      }
+    };
+    if(typeof ResizeObserver==='function')new ResizeObserver(reportHeight).observe(document.body);
+    window.addEventListener('load',reportHeight);
+    window.addEventListener('resize',reportHeight);
+    requestAnimationFrame(reportHeight);
+  }
   let mode='bicycling',fromGps=null,routeLine=null,lastPlan=null;
   const result=byId('mapTripResult'),external=byId('mapTripExternal');
   const centerOf=point=>[Number(point.lat),Number(point.lng)];
@@ -107,6 +120,7 @@
     try{
       const origin=fromGps||await resolvePlace(byId('mapTripFrom').value);
       const destination=await resolvePlace(byId('mapTripTo').value);
+      lastResolvedOrigin=origin;lastResolvedDestination=destination;
       if(lastPlan!==stamp)return;
       if(kmBetween(origin,destination)<.02)throw Error('Those points are effectively the same place.');
       external.href=navigationLink(origin,destination);external.hidden=false;
