@@ -28,9 +28,29 @@
     function goRoute(route){close();var control=document.querySelector('[data-open="'+route+'"],button[data-widget-route="'+route+'"],a[href="#'+route+'"]');if(control){control.click();return}window.location.hash=route;setTimeout(function(){var el=document.getElementById(route)||document.querySelector('[data-widget-route="'+route+'"]');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'})},80)}
 
     var panel=null;
+    var activeHistoryId=null;
+    var lwaziMode='off';
+    try{var previousMode=sessionStorage.getItem('biglwa:lwazi:mode:v1');if(['npc','deep'].includes(previousMode))lwaziMode=previousMode}catch(e){}
+    window.__biglwaLwaziMode=lwaziMode;
+    window.__biglwaLwaziDeepThinking=lwaziMode==='deep';
+    function historyService(){return window.BigLWALwaziHistory||null}
+    function syncLwaziMode(){
+      window.__biglwaLwaziMode=lwaziMode;
+      window.__biglwaLwaziDeepThinking=lwaziMode==='deep';
+      document.body.classList.toggle('bl-lwazi-deep-active',lwaziMode==='deep');
+      var icon=document.querySelector('#studioApp .bl-lwazi-button');
+      if(icon){
+        icon.setAttribute('aria-pressed',lwaziMode==='off'?'false':'true');
+        icon.setAttribute('aria-label',lwaziMode==='off'?'Choose L’wazi answer mode':'L’wazi answer mode: '+lwaziMode.toUpperCase());
+        icon.title=lwaziMode==='off'?'L’wazi · search only':'L’wazi · '+(lwaziMode==='npc'?'NPC':'Deep');
+      }
+      document.querySelectorAll('#studioApp .bl-lwazi-mode-menu [data-lwazi-mode]').forEach(function(el){
+        el.setAttribute('aria-checked',el.dataset.lwaziMode===lwaziMode?'true':'false');
+      });
+    }
     function onKey(e){if(e.key==='Escape')close()}
     // Search is part of the Studio layout: outside interactions never dismiss it.
-    close=function(){if(!panel)return;if(layoutObserver)layoutObserver.disconnect();if(layoutRailObserver)layoutRailObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
+    close=function(){document.querySelector('#studioApp .bl-lwazi-history-popover')?.setAttribute('hidden','');if(!panel)return;if(layoutObserver)layoutObserver.disconnect();if(layoutRailObserver)layoutRailObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
     function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(window.BigLWAMusicDiscovery)window.BigLWAMusicDiscovery.attachSearch(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
     function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route'+(label==='Open in Library'?' bl-search-primary-action':'')+'" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8599;</button>'}
     function bookCover(b){if(b.cover_i)return 'https://covers.openlibrary.org/b/id/'+encodeURIComponent(b.cover_i)+'-M.jpg';if(b.isbn&&b.isbn[0])return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg';return ''}
@@ -223,11 +243,82 @@
       return 'L’wazi’s AI is temporarily unavailable. Discovery and Studio navigation still work.';
     }
 
-    async function openPanel(raw){
+    async function openPanel(raw,options){
       var q=String(raw==null?'':raw).trim().replace(/^@/,'').replace(/^ask lwazi\s*/i,'').trim();if(!q)return;
+      options=options||{};
+      var history=historyService(),saved=options.historyId&&history?.read().find(function(item){return item.id===options.historyId});
+      if(saved&&saved.q!==q)saved=null;
+      if(saved&&options.restore){
+        lwaziMode=['npc','deep'].includes(saved.mode)?saved.mode:'off';syncLwaziMode();
+      }
+      var historyId=saved?.id||history?.add(q,lwaziMode)||null;
+      activeHistoryId=historyId;
+      var storedTurns=!options.modeChange&&saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
+      var submitInput=document.getElementById('globalSearch');
+      if(submitInput){submitInput.value=q;submitInput.dataset.blSubmitted='1'}
       var route=routeCommand(q);if(route){goRoute(route);return}
-      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();panel.innerHTML='<article class="bl-lwazi-answer" role="status" aria-live="polite"><div class="bl-lwazi-answer-body">L’wazi is thinking…</div></article><div class="bl-search-head"><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
+      mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
+      panel.innerHTML='<div class="bl-search-head"><article class="bl-lwazi-answer" role="status" aria-live="polite" hidden><div class="bl-lwazi-answer-body">L’wazi is thinking…</div></article><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><section class="bl-lwazi-conversation" aria-label="Continue talking with L’wazi" hidden><p class="bl-lwazi-conversation-label">Continue this conversation with L’wazi</p><div class="bl-lwazi-conversation-turns" role="log" aria-live="polite"></div><form class="bl-lwazi-continue-form"><input class="bl-lwazi-continue-input" type="text" maxlength="450" aria-label="Follow up with L’wazi" placeholder="Ask a follow-up…" autocomplete="off"><button class="bl-lwazi-continue-send" type="submit">Send ↗</button></form></section><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
+      // Only the selected NPC/Deep mode requests an answer. Search-only
+      // never calls an AI provider or fabricates an assistant response.
+      var aiActive=lwaziMode!=='off';
+      var answerArea=current.querySelector('.bl-lwazi-answer');
+      var answerBody=current.querySelector('.bl-lwazi-answer-body');
+      var threadArea=current.querySelector('.bl-lwazi-conversation');
+      var turnArea=current.querySelector('.bl-lwazi-conversation-turns');
+      var followForm=current.querySelector('.bl-lwazi-continue-form');
+      answerArea.hidden=!aiActive;threadArea.hidden=!aiActive;
+      var turns=storedTurns;
+      if(aiActive&&!turns.length)turns=[{role:'user',text:clean}];
+      function persistTurns(){
+        if(historyId)history?.update(historyId,{mode:lwaziMode,turns:turns});
+      }
+      function showTurns(){
+        if(!turnArea)return;
+        turnArea.replaceChildren();
+        // The most recent answer is the prominent one beside the close X.
+        // The conversation beneath it is the continuing transcript.
+        var past=turns.slice(0,turns.at(-1)?.role==='assistant'?-1:undefined);
+        past.forEach(function(turn){
+          var card=document.createElement('p');
+          card.className='bl-lwazi-turn';
+          card.dataset.role=turn.role;
+          card.textContent=(turn.role==='assistant'?'L’wazi · ':'You · ')+turn.text;
+          turnArea.appendChild(card);
+        });
+        if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
+      }
+      if(aiActive){
+        if(storedTurns.length)showTurns();
+        else persistTurns();
+      }
+      followForm.addEventListener('submit',async function(event){
+        event.preventDefault();
+        if(!aiActive||panel!==current)return;
+        var input=followForm.querySelector('.bl-lwazi-continue-input');
+        var send=followForm.querySelector('.bl-lwazi-continue-send');
+        var follow=String(input.value||'').trim().slice(0,450);
+        if(!follow||send.disabled)return;
+        input.value='';
+        var prior=turns.slice(-5).map(function(t){return (t.role==='user'?'User: ':'L’wazi: ')+t.text.slice(0,170)}).join('\n');
+        var fullPrompt=('Continue this conversation with a direct reply to the latest user message.\n'+prior+'\nUser: '+follow+'\nL’wazi:').slice(-1450);
+        turns.push({role:'user',text:follow});turns=turns.slice(-12);
+        showTurns();persistTurns();
+        renderAnswer(answerBody,'L’wazi is thinking…');
+        send.disabled=true;
+        try{
+          var response=await askLwazi(fullPrompt,[],function(partial){
+            if(panel===current)renderAnswer(answerBody,partial);
+          });
+          if(panel!==current)return;
+          var text=String(response||'No answer available.');
+          turns.push({role:'assistant',text:text.slice(0,1200)});
+          turns=turns.slice(-12);persistTurns();showTurns();
+        }catch(e){
+          if(panel===current)renderAnswer(answerBody,explainModelFailure(e)||'L’wazi could not finish that answer. You can ask again.');
+        }finally{send.disabled=false;}
+      });
       // One delegated handler for the canonical categories and their extended searches.
       var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['widgets','Widgets']];
       var extraNav=panel.querySelector('.bl-search-category-nav');
@@ -269,11 +360,11 @@
       activateCategory('all',false);
 
 
-      if(/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
+      if(aiActive&&/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
       var lc=clean.toLowerCase();
       var conversation=conversationIntent(clean);
-      var isSocialGreeting=!!(conversation&&(conversation.kind==='greeting'||conversation.kind==='identity'));
-      var immediate=conversation?conversation.reply:fastLwaziResponse(clean);
+      var isSocialGreeting=lwaziMode!=='off'&&!!(conversation&&(conversation.kind==='greeting'||conversation.kind==='identity'));
+      var immediate=lwaziMode==='off'?null:conversation?conversation.reply:fastLwaziResponse(clean);
       if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)instantBox.textContent=immediate}
       var userPromise=(isSocialGreeting?Promise.resolve([]):searchUsers(lc)).catch(function(){return []});
       var postPromise=userPromise.then(publicUserPosts).catch(function(){return []});
@@ -283,11 +374,11 @@
        var wikiPromise=wikiDataPromise.then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
        // Wikipedia results are fetched once for cards, not twice to block the answer.
       var libraryPromise=isSocialGreeting?Promise.resolve([]):sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
-       var needsResearchSources=wantsResearchSources(clean);
+       var needsResearchSources=lwaziMode!=='off'&&wantsResearchSources(clean);
        // Normal English questions go straight to the model. Explicit evidence requests
        // may gather citation candidates first; discovery cards load independently below.
        var sourcePreparation=needsResearchSources?Promise.all([libraryPromise,Promise.race([wikiDataPromise,new Promise(function(resolve){setTimeout(function(){resolve([])},1200)})])]):Promise.resolve([[],[]]);
-       var answerPromise=immediate?Promise.resolve(immediate):sourcePreparation.then(function(parts){var sources=parts[0].map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});parts[1].slice(0,3).forEach(function(w){sources.push({title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))})});return askLwazi(clean,sources,function(partial){if(panel!==current||!current.isConnected)return;var answerBox=current.querySelector('.bl-lwazi-answer-body');if(answerBox)renderAnswer(answerBox,partial)})});
+       var answerPromise=lwaziMode==='off'||(options.restore&&storedTurns.length)?null:immediate?Promise.resolve(immediate):sourcePreparation.then(function(parts){var sources=parts[0].map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});parts[1].slice(0,3).forEach(function(w){sources.push({title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))})});return askLwazi(clean,sources,function(partial){if(panel!==current||!current.isConnected)return;var answerBox=current.querySelector('.bl-lwazi-answer-body');if(answerBox)renderAnswer(answerBox,partial)})});
        // Never replace a response already streaming with a late source-library status.
 
       // Render each source as it becomes ready, not after the slowest
@@ -322,7 +413,16 @@
           renderDiscovery(discoveryParts);
         });
       });
-      answerPromise.then(function(answer){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,answer==null?'No answer available.':answer)}).catch(function(){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,'Search information could not be loaded. Try again.')});
+      if(answerPromise)answerPromise.then(function(answer){
+        if(panel!==current||!current.isConnected)return;
+        var text=String(answer==null?'No answer available.':answer);
+        turns.push({role:'assistant',text:text.slice(0,1200)});
+        turns=turns.slice(-12);persistTurns();showTurns();
+        if(answerBody)renderAnswer(answerBody,text);
+      }).catch(function(error){
+        if(panel!==current||!current.isConnected)return;
+        if(answerBody)renderAnswer(answerBody,explainModelFailure(error)||'L’wazi could not finish that answer. Try again.');
+      });
     }
     window.__biglwaUserCards=openPanel;window.__biglwaUserCardsClose=close;
     function boothSearchSymbol(){
@@ -349,11 +449,41 @@
       wrap.querySelectorAll('.search-icon').forEach(function(icon){icon.remove()});
       if(!wrap.querySelector('.bl-lwazi-button')){
         var button=document.createElement('button');button.type='button';button.className='bl-lwazi-button';
-        button.setAttribute('aria-label','Enable deeper Lwazi reasoning');button.setAttribute('aria-pressed','false');button.title='L’wazi thinking: standard';
+        button.setAttribute('aria-label','Choose L’wazi answer mode');button.setAttribute('aria-pressed','false');button.title='L’wazi · search only';
         button.innerHTML='<span class="bl-lwazi-stitch" aria-hidden="true"><svg class="bl-lwazi-ring" viewBox="0 0 36 36" focusable="false"><defs><linearGradient id="bl-lwazi-stitch-rainbow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d75671"/><stop offset=".2" stop-color="#e2b34c"/><stop offset=".4" stop-color="#4c9f66"/><stop offset=".6" stop-color="#398bb5"/><stop offset=".8" stop-color="#8e63b4"/><stop offset="1" stop-color="#d75671"/></linearGradient></defs><circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#bl-lwazi-stitch-rainbow)" stroke-width="2.2" stroke-dasharray="3.2 2.1" stroke-linecap="round"/></svg><img class="bl-lwazi-glyph" src="/assets/tools-hand-eye.svg" alt=""></span>';
-        button.onclick=function(e){e.stopPropagation();var active=!window.__biglwaLwaziDeepThinking;window.__biglwaLwaziDeepThinking=active;button.setAttribute('aria-pressed',active?'true':'false');button.setAttribute('aria-label',active?'Disable deeper Lwazi reasoning':'Enable deeper Lwazi reasoning');button.title=active?'L’wazi thinking: deep':'L’wazi thinking: standard';document.body.classList.toggle('bl-lwazi-deep-active',active);if(search.value.trim())openPanel(search.value.trim());else search.focus()};
+        button.onclick=function(event){
+          event.preventDefault();event.stopPropagation();
+          var menu=wrap.querySelector('.bl-lwazi-mode-menu');
+          if(!menu)return;
+          menu.hidden=!menu.hidden;
+          wrap.querySelector('.bl-lwazi-history-popover')?.setAttribute('hidden','');
+          button.setAttribute('aria-expanded',menu.hidden?'false':'true');
+        };
         wrap.appendChild(button);
       }
+      if(!wrap.querySelector('.bl-lwazi-mode-menu')){
+        var menu=document.createElement('div');menu.className='bl-lwazi-mode-menu';menu.hidden=true;
+        menu.setAttribute('role','menu');menu.setAttribute('aria-label','L’wazi answer modes');
+        menu.innerHTML='<p>L’wazi answers</p>'+
+          '<button type="button" role="menuitemradio" data-lwazi-mode="off" aria-checked="true">Search only<small>Results, no AI answer</small></button>'+
+          '<button type="button" role="menuitemradio" data-lwazi-mode="npc" aria-checked="false">NPC<small>Quick conversation and replies</small></button>'+
+          '<button type="button" role="menuitemradio" data-lwazi-mode="deep" aria-checked="false">Deep<small>More detailed reasoning</small></button>';
+        menu.addEventListener('click',function(event){
+          var option=event.target.closest('button[data-lwazi-mode]');
+          if(!option)return;
+          var selected=option.dataset.lwaziMode;
+          if(!['off','npc','deep'].includes(selected))return;
+          lwaziMode=selected;
+          try{sessionStorage.setItem('biglwa:lwazi:mode:v1',selected)}catch(e){}
+          syncLwaziMode();menu.hidden=true;
+          wrap.querySelector('.bl-lwazi-button')?.setAttribute('aria-expanded','false');
+          var query=search.value.trim();
+          if(query)openPanel(query,{historyId:activeHistoryId,modeChange:true});
+          else search.focus();
+        });
+        wrap.appendChild(menu);
+      }
+      syncLwaziMode();
       if(!wrap.querySelector('.bl-voice-button')){
         var mic=document.createElement('button');mic.type='button';mic.className='bl-voice-button';
         mic.setAttribute('aria-label','Dictate search with microphone');mic.setAttribute('aria-pressed','false');mic.title='Voice to text';
@@ -412,9 +542,80 @@
         var clear=document.createElement('button');clear.type='button';clear.className='bl-search-clear';clear.title='Clear search';clear.setAttribute('aria-label','Clear search');clear.textContent='×';
         clear.onclick=function(e){e.stopPropagation();search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));close();search.focus()};wrap.appendChild(clear);
       }
+      if(!wrap.querySelector('.bl-lwazi-history-popover')){
+        var historyBox=document.createElement('div');
+        historyBox.className='bl-lwazi-history-popover';historyBox.hidden=true;
+        historyBox.setAttribute('role','region');historyBox.setAttribute('aria-label','Recent L’wazi searches');
+        wrap.appendChild(historyBox);
+      }
+      if(!search.__blLwaziHistoryBound){
+        search.__blLwaziHistoryBound=true;
+        var historyBox=wrap.querySelector('.bl-lwazi-history-popover');
+        function showHistory(){
+          if(!historyBox)return;
+          var service=historyService();
+          var query=String(search.value||'').trim().toLowerCase();
+          var entries=(service?.read()||[]).filter(function(entry){
+            return !query||entry.q.toLowerCase().includes(query);
+          }).slice(0,14);
+          historyBox.replaceChildren();
+          var head=document.createElement('div');head.className='bl-lwazi-history-head';
+          var label=document.createElement('strong');label.textContent='Recent searches';
+          var settings=document.createElement('a');settings.href='/settings/#discoveryPreferences';
+          settings.textContent='Manage history';head.append(label,settings);historyBox.append(head);
+          var lastMonth='';
+          entries.forEach(function(entry){
+            var month=new Intl.DateTimeFormat(undefined,{month:'long',year:'numeric'}).format(new Date(entry.at));
+            if(month!==lastMonth){
+              var marker=document.createElement('p');marker.className='bl-lwazi-history-month';marker.textContent=month;
+              historyBox.append(marker);lastMonth=month;
+            }
+            var row=document.createElement('button');row.type='button';row.className='bl-lwazi-history-item';
+            var title=document.createElement('strong');title.textContent=entry.q;
+            var mode=document.createElement('small');mode.textContent=entry.mode==='deep'?'Deep':entry.mode==='npc'?'NPC':'Search';
+            row.append(title,mode);
+            row.addEventListener('click',function(){
+              historyBox.hidden=true;
+              openPanel(entry.q,{historyId:entry.id,restore:true});
+            });
+            historyBox.append(row);
+          });
+          if(!entries.length){
+            var empty=document.createElement('p');empty.className='bl-lwazi-history-empty';
+            empty.textContent=query?'No matching previous searches.':'Your recent searches will appear here.';
+            historyBox.append(empty);
+          }
+          historyBox.hidden=false;
+        }
+        search.addEventListener('pointerdown',function(){
+          if(search.dataset.blSubmitted==='1'){
+            search.value='';search.dataset.blSubmitted='0';close();
+          }
+          showHistory();
+        });
+        search.addEventListener('focus',function(){if(search.dataset.blSubmitted==='1'){
+          search.value='';search.dataset.blSubmitted='0';close();
+        }showHistory()});
+        search.addEventListener('input',showHistory);
+        search.addEventListener('keydown',function(event){
+          if(event.key==='Escape'&&historyBox&&!historyBox.hidden){
+            historyBox.hidden=true;event.stopPropagation();
+          }
+        });
+        document.addEventListener('pointerdown',function(event){
+          if(!wrap.contains(event.target)){
+            historyBox.hidden=true;
+            wrap.querySelector('.bl-lwazi-mode-menu')?.setAttribute('hidden','');
+            wrap.querySelector('.bl-lwazi-button')?.setAttribute('aria-expanded','false');
+          }
+        });
+        window.addEventListener('biglwa:lwazi-history-changed',function(){
+          if(!historyBox.hidden)showHistory();
+        });
+      }
       if(!search.__blLwaziEnterBound){
         search.__blLwaziEnterBound=true;
-        search.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();openPanel(search.value.trim())}},true);
+        search.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();var q=search.value.trim();if(q)openPanel(q);}},true);
       }
     }
     installLwaziButton();setTimeout(installLwaziButton,500);window.addEventListener('load',installLwaziButton);new MutationObserver(installLwaziButton).observe(document.documentElement,{childList:true,subtree:true});

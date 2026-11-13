@@ -36,7 +36,7 @@ test('an ambiguous work attribution query does not get mistaken for site identit
 test('site identity promotes verified first-party links, not a Wikipedia film match',()=>{
   assert.match(source,/lwaziSiteCard\('About BIG LWA'[\s\S]*?'\/about\/'\)/);
   assert.match(source,/lwaziSiteCard\('Privacy at BIG LWA'[\s\S]*?'\/privacy\/'\)/);
-  assert.match(source,/var isSocialGreeting=!!\(conversation/);
+  assert.match(source,/var isSocialGreeting=lwaziMode!=='off'&&!!\(conversation/);
 });
 
 test('model policy teaches identity and cultural literacy while avoiding false personhood',()=>{
@@ -82,5 +82,5 @@ test('English question words do not force sourcing or a slower model',()=>{
 test('search no longer overwrites a streamed response with source status',()=>{
   assert.doesNotMatch(source,/box\.textContent='Found '\+matches\.length/);
   assert.match(source,/L’wazi is thinking…/);
-  assert.match(source,/var needsResearchSources=wantsResearchSources\(clean\)/);
+  assert.match(source,/var needsResearchSources=lwaziMode!=='off'&&wantsResearchSources\(clean\)/);
 });
