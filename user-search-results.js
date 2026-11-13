@@ -252,7 +252,7 @@
       }
       var historyId=saved?.id||history?.add(q,lwaziMode)||null;
       activeHistoryId=historyId;
-      var storedTurns=saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
+      var storedTurns=!options.modeChange&&saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
       var submitInput=document.getElementById('globalSearch');
       if(submitInput){submitInput.value=q;submitInput.dataset.blSubmitted='1'}
       var route=routeCommand(q);if(route){goRoute(route);return}
@@ -448,11 +448,41 @@
       wrap.querySelectorAll('.search-icon').forEach(function(icon){icon.remove()});
       if(!wrap.querySelector('.bl-lwazi-button')){
         var button=document.createElement('button');button.type='button';button.className='bl-lwazi-button';
-        button.setAttribute('aria-label','Enable deeper Lwazi reasoning');button.setAttribute('aria-pressed','false');button.title='L’wazi thinking: standard';
+        button.setAttribute('aria-label','Choose L’wazi answer mode');button.setAttribute('aria-pressed','false');button.title='L’wazi · search only';
         button.innerHTML='<span class="bl-lwazi-stitch" aria-hidden="true"><svg class="bl-lwazi-ring" viewBox="0 0 36 36" focusable="false"><defs><linearGradient id="bl-lwazi-stitch-rainbow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d75671"/><stop offset=".2" stop-color="#e2b34c"/><stop offset=".4" stop-color="#4c9f66"/><stop offset=".6" stop-color="#398bb5"/><stop offset=".8" stop-color="#8e63b4"/><stop offset="1" stop-color="#d75671"/></linearGradient></defs><circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#bl-lwazi-stitch-rainbow)" stroke-width="2.2" stroke-dasharray="3.2 2.1" stroke-linecap="round"/></svg><img class="bl-lwazi-glyph" src="/assets/tools-hand-eye.svg" alt=""></span>';
-        button.onclick=function(e){e.stopPropagation();var active=!window.__biglwaLwaziDeepThinking;window.__biglwaLwaziDeepThinking=active;button.setAttribute('aria-pressed',active?'true':'false');button.setAttribute('aria-label',active?'Disable deeper Lwazi reasoning':'Enable deeper Lwazi reasoning');button.title=active?'L’wazi thinking: deep':'L’wazi thinking: standard';document.body.classList.toggle('bl-lwazi-deep-active',active);if(search.value.trim())openPanel(search.value.trim());else search.focus()};
+        button.onclick=function(event){
+          event.preventDefault();event.stopPropagation();
+          var menu=wrap.querySelector('.bl-lwazi-mode-menu');
+          if(!menu)return;
+          menu.hidden=!menu.hidden;
+          wrap.querySelector('.bl-lwazi-history-popover')?.setAttribute('hidden','');
+          button.setAttribute('aria-expanded',menu.hidden?'false':'true');
+        };
         wrap.appendChild(button);
       }
+      if(!wrap.querySelector('.bl-lwazi-mode-menu')){
+        var menu=document.createElement('div');menu.className='bl-lwazi-mode-menu';menu.hidden=true;
+        menu.setAttribute('role','menu');menu.setAttribute('aria-label','L’wazi answer modes');
+        menu.innerHTML='<p>L’wazi answers</p>'+
+          '<button type="button" role="menuitemradio" data-lwazi-mode="off" aria-checked="true">Search only<small>Results, no AI answer</small></button>'+
+          '<button type="button" role="menuitemradio" data-lwazi-mode="npc" aria-checked="false">NPC<small>Quick conversation and replies</small></button>'+
+          '<button type="button" role="menuitemradio" data-lwazi-mode="deep" aria-checked="false">Deep<small>More detailed reasoning</small></button>';
+        menu.addEventListener('click',function(event){
+          var option=event.target.closest('button[data-lwazi-mode]');
+          if(!option)return;
+          var selected=option.dataset.lwaziMode;
+          if(!['off','npc','deep'].includes(selected))return;
+          lwaziMode=selected;
+          try{sessionStorage.setItem('biglwa:lwazi:mode:v1',selected)}catch(e){}
+          syncLwaziMode();menu.hidden=true;
+          wrap.querySelector('.bl-lwazi-button')?.setAttribute('aria-expanded','false');
+          var query=search.value.trim();
+          if(query)openPanel(query,{historyId:activeHistoryId,modeChange:true});
+          else search.focus();
+        });
+        wrap.appendChild(menu);
+      }
+      syncLwaziMode();
       if(!wrap.querySelector('.bl-voice-button')){
         var mic=document.createElement('button');mic.type='button';mic.className='bl-voice-button';
         mic.setAttribute('aria-label','Dictate search with microphone');mic.setAttribute('aria-pressed','false');mic.title='Voice to text';
@@ -511,9 +541,80 @@
         var clear=document.createElement('button');clear.type='button';clear.className='bl-search-clear';clear.title='Clear search';clear.setAttribute('aria-label','Clear search');clear.textContent='×';
         clear.onclick=function(e){e.stopPropagation();search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));close();search.focus()};wrap.appendChild(clear);
       }
+      if(!wrap.querySelector('.bl-lwazi-history-popover')){
+        var historyBox=document.createElement('div');
+        historyBox.className='bl-lwazi-history-popover';historyBox.hidden=true;
+        historyBox.setAttribute('role','region');historyBox.setAttribute('aria-label','Recent L’wazi searches');
+        wrap.appendChild(historyBox);
+      }
+      if(!search.__blLwaziHistoryBound){
+        search.__blLwaziHistoryBound=true;
+        var historyBox=wrap.querySelector('.bl-lwazi-history-popover');
+        function showHistory(){
+          if(!historyBox)return;
+          var service=historyService();
+          var query=String(search.value||'').trim().toLowerCase();
+          var entries=(service?.read()||[]).filter(function(entry){
+            return !query||entry.q.toLowerCase().includes(query);
+          }).slice(0,14);
+          historyBox.replaceChildren();
+          var head=document.createElement('div');head.className='bl-lwazi-history-head';
+          var label=document.createElement('strong');label.textContent='Recent searches';
+          var settings=document.createElement('a');settings.href='/settings/#discoveryPreferences';
+          settings.textContent='Manage history';head.append(label,settings);historyBox.append(head);
+          var lastMonth='';
+          entries.forEach(function(entry){
+            var month=new Intl.DateTimeFormat(undefined,{month:'long',year:'numeric'}).format(new Date(entry.at));
+            if(month!==lastMonth){
+              var marker=document.createElement('p');marker.className='bl-lwazi-history-month';marker.textContent=month;
+              historyBox.append(marker);lastMonth=month;
+            }
+            var row=document.createElement('button');row.type='button';row.className='bl-lwazi-history-item';
+            var title=document.createElement('strong');title.textContent=entry.q;
+            var mode=document.createElement('small');mode.textContent=entry.mode==='deep'?'Deep':entry.mode==='npc'?'NPC':'Search';
+            row.append(title,mode);
+            row.addEventListener('click',function(){
+              historyBox.hidden=true;
+              openPanel(entry.q,{historyId:entry.id,restore:true});
+            });
+            historyBox.append(row);
+          });
+          if(!entries.length){
+            var empty=document.createElement('p');empty.className='bl-lwazi-history-empty';
+            empty.textContent=query?'No matching previous searches.':'Your recent searches will appear here.';
+            historyBox.append(empty);
+          }
+          historyBox.hidden=false;
+        }
+        search.addEventListener('pointerdown',function(){
+          if(search.dataset.blSubmitted==='1'){
+            search.value='';search.dataset.blSubmitted='0';close();
+          }
+          showHistory();
+        });
+        search.addEventListener('focus',function(){if(search.dataset.blSubmitted==='1'){
+          search.value='';search.dataset.blSubmitted='0';close();
+        }showHistory()});
+        search.addEventListener('input',showHistory);
+        search.addEventListener('keydown',function(event){
+          if(event.key==='Escape'&&historyBox&&!historyBox.hidden){
+            historyBox.hidden=true;event.stopPropagation();
+          }
+        });
+        document.addEventListener('pointerdown',function(event){
+          if(!wrap.contains(event.target)){
+            historyBox.hidden=true;
+            wrap.querySelector('.bl-lwazi-mode-menu')?.setAttribute('hidden','');
+            wrap.querySelector('.bl-lwazi-button')?.setAttribute('aria-expanded','false');
+          }
+        });
+        window.addEventListener('biglwa:lwazi-history-changed',function(){
+          if(!historyBox.hidden)showHistory();
+        });
+      }
       if(!search.__blLwaziEnterBound){
         search.__blLwaziEnterBound=true;
-        search.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();openPanel(search.value.trim())}},true);
+        search.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();var q=search.value.trim();if(q)openPanel(q);}},true);
       }
     }
     installLwaziButton();setTimeout(installLwaziButton,500);window.addEventListener('load',installLwaziButton);new MutationObserver(installLwaziButton).observe(document.documentElement,{childList:true,subtree:true});
