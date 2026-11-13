@@ -55,13 +55,15 @@
     if(!stage.contains(media))return;
     stage.replaceChildren();
     const note=document.createElement('p');note.className='highlight-media-status';
-    note.textContent='The original Highlight link expired or could not load. This import needs to be refreshed.';
+    note.textContent='This story’s source has expired. Refresh the Highlight import to restore its full photo or video.';
     note.style.cssText='color:white;padding:14px 12px;font:12px/1.5 system-ui;text-align:center';
-    const options=[item.thumbnail,group.cover].filter(v=>typeof v==='string'&&v&&v!==link);
+    // Never substitute the collection cover for an individual story. If a
+    // signed Instagram link expires, show only this item's own thumbnail.
+    const options=[item.thumbnail,item.poster].filter(v=>typeof v==='string'&&v&&v!==link);
     function nextPreview(){
      const url=options.shift();
      if(!url){stage.append(note);return}
-     const img=document.createElement('img');img.className='highlight-fallback-cover';img.alt='Highlight cover preview, not the original story';img.referrerPolicy='no-referrer';
+     const img=document.createElement('img');img.className='highlight-fallback-cover';img.alt='Thumbnail for this story; original media unavailable';img.referrerPolicy='no-referrer';
      img.onload=()=>{if(!dialog.isConnected)return;stage.replaceChildren();stage.append(img,note)};
      img.onerror=nextPreview;img.src=url;
     }
@@ -73,7 +75,9 @@
   }
   prev.onclick=()=>{index--;draw()};next.onclick=()=>{index++;draw()};dialog.onclose=()=>dialog.remove();dialog.addEventListener('keydown',e=>{if(e.key==='ArrowRight'&&!next.disabled)next.click();if(e.key==='ArrowLeft'&&!prev.disabled)prev.click()});dialog.append(layout);document.body.append(dialog);draw();dialog.showModal();close.focus();
  }
- function bubble(group){const a=document.createElement('button');a.type='button';a.className='biglwa-story-bubble';a.dataset.source=group.platform||'instagram';a.dataset.importedHighlight='1';a.title='Open '+group.title;a.setAttribute('aria-label',a.title);const ring=document.createElement('span');ring.className='biglwa-story-ring';const inner=document.createElement('span');inner.className='biglwa-story-inner';const img=document.createElement('img');img.src=group.cover||'/assets/tv-no-signal.svg';img.alt='';img.style.cssText='width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:'+(group.coverX??50)+'% '+(group.coverY??50)+'%';inner.append(img);ring.append(inner);const name=document.createElement('span');name.className='biglwa-story-name';name.textContent=group.title;a.append(ring,name);a.onclick=()=>open(group);return a}
+ function bubble(group){const a=document.createElement('button');a.type='button';a.className='biglwa-story-bubble';a.dataset.source=group.platform||'instagram';a.dataset.importedHighlight='1';a.title='Open '+group.title;a.setAttribute('aria-label',a.title);const ring=document.createElement('span');ring.className='biglwa-story-ring';const inner=document.createElement('span');inner.className='biglwa-story-inner';const img=document.createElement('img');img.src=group.cover||'/assets/tv-no-signal.svg';img.alt='';const cx=Number.isFinite(Number(group.coverX))?Number(group.coverX):50;
+ const cy=Number.isFinite(Number(group.coverY))?Number(group.coverY):50;
+ img.style.cssText='width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:'+cx+'% '+cy+'%;transform:translate('+((50-cx)*.24).toFixed(2)+'%, '+((50-cy)*.24).toFixed(2)+'%) scale(1.12)';inner.append(img);ring.append(inner);const name=document.createElement('span');name.className='biglwa-story-name';name.textContent=group.title;a.append(ring,name);a.onclick=()=>open(group);return a}
  window.BigLWAImportedHighlights={match,bubble,source:()=>data};
  fetch('/assets/highlights/leianstanley.json?v=2',{credentials:'omit'}).then(r=>{if(!r.ok)throw Error('Unavailable');return r.json()}).then(value=>{if(value.handle!=='leianstanley'||!Array.isArray(value.highlights))return;data=value;window.dispatchEvent(new Event('biglwa:highlights-imported'))}).catch(()=>{});
 })();
