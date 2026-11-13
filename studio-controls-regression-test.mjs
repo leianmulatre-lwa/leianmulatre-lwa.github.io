@@ -10,9 +10,21 @@ const pointer=(type,target,related=null)=>target.dispatchEvent(new w.MouseEvent(
 pointer('pointerover',q('#glyph'));assert(!q('#studioPersistentTooltip').hidden);
 pointer('pointerout',q('#glyph'),q('#caption'));pointer('pointerover',q('#caption'),q('#glyph'));
 await new Promise(r=>setTimeout(r,280));assert(!q('#studioPersistentTooltip').hidden,'Tooltip survives movement between symbol and label');
+const nested=w.document.createElement('span');nested.setAttribute('title','Nested label');nested.textContent='•';q('#hint').append(nested);
+pointer('pointerout',q('#glyph'),nested);pointer('pointerover',nested,q('#glyph'));
+assert(!q('#studioPersistentTooltip').hidden,'Nested child cannot interrupt a parent control hint');
+assert.equal(q('#studioPersistentTooltip').textContent,'Tools help','Hover hint belongs to the parent control');
+pointer('pointerout',q('#hint'),w.document.body);pointer('pointerover',w.document.body,q('#hint'));
+await new Promise(r=>setTimeout(r,65));
+pointer('pointerover',q('#caption'),w.document.body);
+await new Promise(r=>setTimeout(r,160));
+assert(!q('#studioPersistentTooltip').hidden,'Brief pointer gap cannot blink the same hint');
+w.dispatchEvent(new w.Event('scroll'));
+assert(!q('#studioPersistentTooltip').hidden,'Scrolling while hovering does not make the hint flash');
+
 pointer('pointerout',q('#hint'),w.document.body);
 pointer('pointerover',w.document.body,q('#hint'));
-await new Promise(r=>setTimeout(r,130));
+await new Promise(r=>setTimeout(r,210));
 assert(q('#studioPersistentTooltip').hidden,'Hint closes when the pointer leaves its control');
 assert(!q('#hint').hasAttribute('title'),'Native title may not reappear and get stuck');
 pointer('pointerover',q('#glyph'));
