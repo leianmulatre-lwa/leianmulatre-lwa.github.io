@@ -258,11 +258,23 @@
       if(submitInput){submitInput.value=q;submitInput.dataset.blSubmitted='1'}
       var route=routeCommand(q);if(route){goRoute(route);return}
       mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
+      var mathResult=window.BigLWAMath?.solve(clean)||null;
       panel.innerHTML='<div class="bl-search-head"><article class="bl-lwazi-answer" role="status" aria-live="polite" hidden><div class="bl-lwazi-answer-body">L’wazi is thinking…</div></article><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><section class="bl-lwazi-conversation" aria-label="Continue talking with L’wazi" hidden><p class="bl-lwazi-conversation-label">Continue this conversation with L’wazi</p><div class="bl-lwazi-conversation-turns" role="log" aria-live="polite"></div><form class="bl-lwazi-continue-form"><input class="bl-lwazi-continue-input" type="text" maxlength="450" aria-label="Follow up with L’wazi" placeholder="Ask a follow-up…" autocomplete="off"><button class="bl-lwazi-continue-send" type="submit">Send ↗</button></form></section><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
+      if(mathResult){
+        var mathCard=document.createElement('div');mathCard.className='bl-lwazi-math-answer';
+        mathCard.setAttribute('role','status');
+        var mathLabel=document.createElement('small');mathLabel.textContent='Instant math · '+mathResult.detail;
+        var mathValue=document.createElement('strong');mathValue.textContent=mathResult.result;
+        var mathCopy=document.createElement('button');mathCopy.type='button';mathCopy.textContent='Copy';
+        mathCopy.setAttribute('aria-label','Copy math answer');
+        mathCopy.addEventListener('click',function(){navigator.clipboard?.writeText(mathResult.result).catch(function(){})});
+        mathCard.append(mathLabel,mathValue,mathCopy);
+        current.querySelector('.bl-search-head')?.insertBefore(mathCard,current.querySelector('.bl-search-close'));
+      }
       // Only the selected NPC/Deep mode requests an answer. Search-only
       // never calls an AI provider or fabricates an assistant response.
-      var aiActive=lwaziMode!=='off';
+      var aiActive=lwaziMode!=='off'&&!mathResult&&!options.imageOnly;
       var answerArea=current.querySelector('.bl-lwazi-answer');
       var answerBody=current.querySelector('.bl-lwazi-answer-body');
       var threadArea=current.querySelector('.bl-lwazi-conversation');
@@ -319,6 +331,11 @@
           if(panel===current)renderAnswer(answerBody,explainModelFailure(e)||'L’wazi could not finish that answer. You can ask again.');
         }finally{send.disabled=false;}
       });
+      if(options.imageOnly){
+        current.querySelector('.bl-search-category-nav')?.setAttribute('hidden','');
+        current.querySelector('.bl-search-loading')?.remove();
+        return;
+      }
       // One delegated handler for the canonical categories and their extended searches.
       var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['widgets','Widgets']];
       var extraNav=panel.querySelector('.bl-search-category-nav');
@@ -518,7 +535,7 @@
         camera.onclick=function(e){e.stopPropagation();picker.click()};
         picker.addEventListener('change',function(){var file=picker.files&&picker.files[0];if(!file)return;
           if(!/^image\//.test(file.type)||file.size>10*1024*1024){alert('Choose an image under 10 MB.');picker.value='';return}
-          var url=URL.createObjectURL(file);openPanel(search.value.trim()||'Search by image');var host=panel;
+          var url=URL.createObjectURL(file);openPanel('Search by image',{imageOnly:true});var host=panel;
           var block=document.createElement('div');block.className='bl-image-search-preview';
           var img=document.createElement('img');img.src=url;img.alt='Image selected for search';
           var msg=document.createElement('p');msg.textContent='Image selected. Nothing is uploaded until you choose Analyze image.';
@@ -526,8 +543,22 @@
           run.onclick=async function(){var hook=window.__biglwaAskLwaziImage||window.BigLWA?.askLwaziImage;
             if(typeof hook!=='function'){msg.textContent='Image recognition needs a connected vision-capable L’wazi service. This image stays on your device.';return}
             run.disabled=true;msg.textContent='Analyzing image…';
-            try{var result=await hook(file,search.value.trim());if(panel===host)renderAnswer(host.querySelector('.bl-lwazi-answer-body'),result?.answer||result);msg.textContent='Image analysis finished.'}
-            catch(e){msg.textContent='Image analysis failed. Try again.'}finally{run.disabled=false}
+            try{
+              var context=search.value==='Search by image'?'Describe this image, including any visible text or figures.':search.value.trim();
+              var result=await hook(file,context);
+              if(panel===host){
+                var answer=host.querySelector('.bl-lwazi-answer');
+                if(answer)answer.hidden=false;
+                renderAnswer(host.querySelector('.bl-lwazi-answer-body'),result?.answer||result);
+              }
+              msg.textContent='Image analyzed using L’wazi’s free-allowance vision model.';
+            }catch(e){
+              var reason=String(e?.message||'');
+              msg.textContent=/cancelled/i.test(reason)?'Image analysis cancelled; your image was not sent.':
+                /quota|429/i.test(reason)?'The free vision allowance is used up for now. Try again after it resets.':
+                /401|403|Sign in/i.test(reason)?'Sign in to BIG LWA to analyze this image.':
+                'L’wazi could not analyze this image. Try a JPG or PNG image.';
+            }finally{run.disabled=false}
           };
           host?.querySelector('.bl-search-close')?.addEventListener('click',function(){URL.revokeObjectURL(url);picker.value=''},{once:true});
         });
@@ -611,6 +642,24 @@
         });
         window.addEventListener('biglwa:lwazi-history-changed',function(){
           if(!historyBox.hidden)showHistory();
+        });
+      }
+      if(!wrap.querySelector('.bl-lwazi-math-preview')){
+        var live=document.createElement('button');live.type='button';
+        live.className='bl-lwazi-math-preview';live.hidden=true;
+        live.setAttribute('aria-label','Open instant calculation');
+        live.addEventListener('click',function(){
+          if(search.value.trim())openPanel(search.value.trim());
+          live.hidden=true;
+        });
+        wrap.appendChild(live);
+        search.addEventListener('input',function(){
+          var result=window.BigLWAMath?.solve(search.value);
+          live.hidden=!result;
+          if(result){
+            live.textContent='= '+result.result+' · Instant math';
+            wrap.querySelector('.bl-lwazi-history-popover')?.setAttribute('hidden','');
+          }
         });
       }
       if(!search.__blLwaziEnterBound){
