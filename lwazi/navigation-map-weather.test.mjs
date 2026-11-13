@@ -60,7 +60,7 @@ test('weather displays explicitly chosen city and sits left of account actions',
  assert.match(weather,/String\(city\?\.name\|\|''\)\.split\(','\)\[0\]/);
  assert.match(weather,/button\.replaceChildren\(conditions\)/);
  assert.match(weather,/if\(actions\)actions\.prepend\(button\)/);
- assert.match(weather,/weather-code/);
+ assert.match(weather,/weather_code/);
  assert.match(css,/top-actions>\.studio-weather/);
  assert.match(css,/\.studio-weather-city/);
  assert.doesNotMatch(weather,/navigator\.geolocation/,'Weather never silently accesses precise location');
