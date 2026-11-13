@@ -753,6 +753,7 @@ body.embedded aside>h2,body.embedded #pinForm,body.embedded aside>.saved,body.em
 body.embedded #pinForm{grid-template-columns:1fr 1fr}
 }
 </style>
+<link rel="stylesheet" href="/map-lwa-experience-20261113.css?v=20261113-1">
 <main><section class="map-side" aria-label="Map and location controls">
 <div class="toolbar"><button id="drop" class="primary" type="button" disabled>Drop pin at center</button><button id="locate" type="button">Use my location</button><button id="fit" type="button" disabled>Show saved pins</button><button id="mapSafetyKey" type="button" aria-controls="mapSafetyOverlay" aria-expanded="false" title="Review Map safety notice"><span aria-hidden="true" class="map-safety-indicator">●</span> Map safety</button></div>
 <div class="map-stage">
@@ -768,7 +769,7 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
   </section>
 </div></div>
 <p id="mapStatus" class="status" role="status">Loading map… You can also enter coordinates below.</p><p id="tileStatus" class="status" role="status"></p>
-<p class="hint">Tap the map to choose a place. Drag the draft pin to adjust it. Pins are saved in this browser; they are not shared with other members or devices.</p>
+<p class="hint">Tap the map to choose a place. Drag the draft pin to adjust it. Pins stay private until you choose to publish. Account backup may sync your private pins when you sign in.</p>
 </section><aside><h2 id="formTitle">Add a pin</h2><form id="pinForm">
 <label>Pin name<input id="pinName" required maxlength="160" placeholder="Name this place"></label>
 <label>Notes<textarea id="pinNotes" maxlength="3000" placeholder="A memory, project, or reason to return"></textarea></label>
@@ -1034,9 +1035,62 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
     const imageryUrl='https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',labelsUrl='https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',esriAttr='Imagery &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a> and contributors';
     const satellite=watchTiles(L.tileLayer(imageryUrl,{maxZoom:19,attribution:esriAttr}),'Satellite'),hybridImagery=watchTiles(L.tileLayer(imageryUrl,{maxZoom:19,attribution:esriAttr}),'Hybrid'),hybridLabels=watchTiles(L.tileLayer(labelsUrl,{maxZoom:19,attribution:'Reference labels &copy; Esri, HERE, OpenStreetMap contributors, and the GIS community'}),'Hybrid'),hybrid=L.layerGroup([hybridImagery,hybridLabels]);
     const terrain=watchTiles(L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxNativeZoom:17,maxZoom:19,attribution:'Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors · Style &copy; <a href="https://opentopomap.org/" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA)'}),'Terrain');
-    const baseLayers={Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain};let preferred='Street';try{const savedMode=localStorage.getItem('biglwaMapMode');if(savedMode&&baseLayers[savedMode])preferred=savedMode;}catch{}baseLayers[preferred].addTo(map);
-    L.control.layers(baseLayers,null,{position:'topright',collapsed:document.body.classList.contains('preview')}).addTo(map);map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}$('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
-    map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));$('drop').disabled=false;draw();if(pins.some(valid))$('fit').click();$('mapStatus').textContent='Search for a place or tap the map. Switch map modes in the upper-right.';
+    /* OpenFreeMap vector styles are the default when WebGL/CDN are available.
+       Leaflet stays authoritative for existing markers, pin editing and storage.
+       A locally embedded raster base remains usable if vector assets fail. */
+    /* Cycling lines are OSM mapping, not live bike-lane conditions.
+       Their optional tiles load only when a person enables this overlay. */
+    const cyclingOverlay=watchTiles(L.tileLayer(
+      'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png',
+      {subdomains:'abc',maxNativeZoom:19,maxZoom:19,opacity:.85,
+       attribution:'Mapped cycling data &copy; <a href="https://www.cyclosm.org/" target="_blank" rel="noopener">CyclOSM</a> · &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}
+    ),'Cycling');
+    const baseLayers={Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain};
+    let preferred='LWA Streets';try{
+      const savedMode=localStorage.getItem('biglwaMapMode');
+      if(savedMode&&['LWA Streets','LWA Light','LWA Night','Street','Satellite','Hybrid','Terrain'].includes(savedMode))preferred=savedMode;
+    }catch{}
+    (baseLayers[preferred]||street).addTo(map);
+    const layerControl=L.control.layers(baseLayers,{'Mapped bike lanes · not live':cyclingOverlay},{position:'topright',collapsed:true}).addTo(map);
+    map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}
+      $('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
+    const loadPublicScript=(src)=>new Promise((resolve,reject)=>{
+      const script=document.createElement('script');script.src=src;script.crossOrigin='anonymous';
+      const timer=setTimeout(()=>{script.remove();reject(Error('Map rendering script timed out'));},10000);
+      script.onload=()=>{clearTimeout(timer);resolve();};
+      script.onerror=()=>{clearTimeout(timer);reject(Error('Map rendering script could not load'));};
+      document.head.appendChild(script);
+    });
+    (async()=>{
+      try{
+        if(!document.createElement('canvas').getContext('webgl2') &&
+           !document.createElement('canvas').getContext('webgl'))throw Error('WebGL is unavailable');
+        await loadPublicScript('https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.js');
+        await loadPublicScript('https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js');
+        if(!window.maplibregl||typeof L.maplibreGL!=='function')throw Error('MapLibre binding missing');
+        const styles={'LWA Streets':'liberty','LWA Light':'positron','LWA Night':'dark'};
+        const vectors={};
+        for(const [name,style] of Object.entries(styles)){
+          vectors[name]=L.maplibreGL({
+            style:'https://tiles.openfreemap.org/styles/'+style,
+            attribution:'Map © OpenFreeMap · © OpenStreetMap contributors'
+          });
+          layerControl.addBaseLayer(vectors[name],name);
+        }
+        if(styles[preferred]){
+          map.removeLayer(street);
+          vectors[preferred].addTo(map);
+        }
+        $('tileStatus').textContent='';
+      }catch(error){
+        console.info('[BIG LWA Map] OpenFreeMap vector unavailable; retaining raster map.',error);
+        $('tileStatus').textContent='OpenFreeMap unavailable here; the classic map is still available.';
+      }
+    })();
+    map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));
+    window.BigLWAMapBridge={map,L};
+    window.dispatchEvent(new Event('biglwa:map-ready-local'));
+    $('drop').disabled=false;draw();if(pins.some(valid))$('fit').click();$('mapStatus').textContent='Search for a place or tap the map. Switch map modes in the upper-right.';
     // Tell the Studio container the map is actually interactive, not merely an iframe that loaded HTML.
     try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-ready'},location.origin)}catch{}
     watchPublic();
@@ -1139,4 +1193,6 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
   if(!never.checked)open();
 })();
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css">
+<script src="/map-lwa-experience-20261113.js?v=20261113-1"></script>
 </body></html>

@@ -3770,10 +3770,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function renderMap(){
     // The map is an isolated embedded app. If its data/API fails it must never
     // redirect the signed-in Studio or trigger a sign-out/navigation fallback.
-    body.innerHTML=heading('map')+`<style>#biglwaMapApp{width:100%;height:820px;border:0;border-radius:16px;background:#f6f0e9;display:block}#biglwaMapStatus{margin:0 0 10px;font:600 12px/1.45 system-ui;color:#6b5448}@media(max-width:760px){#biglwaMapApp{height:1050px}}</style>
+    body.innerHTML=heading('map')+`<style>#biglwaMapApp{display:block;width:100%;height:1250px;border:0;border-radius:0;background:transparent;overflow:hidden}#biglwaMapStatus{margin:0 0 9px;font:600 12px/1.45 system-ui;color:#6b5448}#biglwaMapStatus[hidden],#biglwaMapRetry[hidden]{display:none!important}@media(max-width:760px){#biglwaMapApp{height:1550px}}</style>
       <section aria-label="BIG LWA map">
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
-      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261029-island-signal-1" loading="eager" referrerpolicy="same-origin"
+      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261113-openfreemap-transit-1" loading="eager" referrerpolicy="same-origin"
        title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
@@ -3784,20 +3784,34 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(!frame.isConnected||ready)return;
       status.textContent='Map is taking longer than expected. You can retry without leaving or signing out of Studio.';
     },12000);
-    frame.addEventListener('load',()=>{
-      ready=true;clearTimeout(timer);
-      if(!frame.isConnected)return;
-      status.textContent='Map opened in Studio. Your account session remains on the main page.';
-    });
-    frame.addEventListener('error',()=>{
-      clearTimeout(timer);
-      status.textContent='The map could not load. Select Reload map only; your Studio remains open.';
-    });
     const retry=$('#biglwaMapRetry',body);
+    if(retry)retry.hidden=true;
+    // Keep the map on this Studio page; its own document reports a natural
+    // height so the pin editor doesn't become a nested scrolling website.
+    const message=event=>{
+      if(!frame.isConnected||event.origin!==location.origin||event.source!==frame.contentWindow)return;
+      const data=event.data||{};
+      if(data.type==='biglwa:map-height'){
+        const height=Number(data.height);
+        if(Number.isFinite(height)&&height>=420&&height<=4200&&
+            Math.abs(frame.getBoundingClientRect().height-height)>8)frame.style.height=Math.ceil(height)+'px';
+      }else if(data.type==='biglwa:map-ready'){
+        ready=true;clearTimeout(timer);status.hidden=true;if(retry)retry.hidden=true;
+      }else if(data.type==='biglwa:map-failed'){
+        status.hidden=false;status.textContent='Map could not start. Reload just the map to retry.';
+        if(retry)retry.hidden=false;
+      }
+    };
+    window.addEventListener('message',message);
+    frame.addEventListener('error',()=>{
+      clearTimeout(timer);status.hidden=false;
+      status.textContent='The map could not load. Retry without leaving Studio.';
+      if(retry)retry.hidden=false;
+    });
     if(retry)retry.onclick=()=>{
-      ready=false;
-      status.textContent='Retrying the map without reloading Studio…';
-      frame.src='/map-app.html?embed=1&v=20261029-island-signal-1';
+      ready=false;status.hidden=false;retry.hidden=true;
+      status.textContent='Reloading the map inside Studio…';
+      frame.src='/map-app.html?embed=1&v=20261113-openfreemap-transit-1';
     };
   }
 

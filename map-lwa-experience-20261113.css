@@ -1,0 +1,87 @@
+/* BIG LWA Map · native-feeling Studio workspace, 2026-11-13.
+   The original Leaflet pin editor and account storage remain authoritative.
+   Preview mode keeps the original compact/interactive Studio map. */
+:root{--map-paper:#fffaf4;--map-ink:#30272b;--map-edge:#e0c9c5;--map-aura:#9c394c}
+body.embedded{background:transparent!important;color:var(--map-ink)}
+body.embedded main{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:16px!important;padding:0!important;max-width:none!important}
+body.embedded .map-side{min-width:0!important;width:100%!important}
+body.embedded .map-side>.toolbar{position:relative;display:flex!important;align-items:center;gap:7px!important;flex-wrap:wrap;margin:0 0 10px!important;padding:0!important}
+body.embedded .map-side>.toolbar button{font:650 12px/1.25 system-ui,sans-serif!important;padding:9px 12px!important;min-height:36px!important;border:1px solid #d6c4be!important;border-radius:10px!important;box-shadow:none!important}
+body.embedded .map-side>.toolbar button.primary{background:#392b2c!important;border-color:#392b2c!important;color:white!important}
+body.embedded #mapSafetyKey{margin-left:auto!important;background:transparent!important}
+body.embedded #fullscreenMap{width:auto!important;min-height:36px!important;border-color:#d6c4be!important;margin:0!important;background:#fffaf4!important;color:#573940!important}
+body.embedded .map-stage{position:relative;border:1px solid var(--map-edge);border-radius:17px;overflow:hidden;background:#e4eaf0;box-shadow:0 2px 11px #39272c15}
+body.embedded #map{height:clamp(350px,53vh,650px)!important;min-height:350px!important;width:100%!important;border:0!important;border-radius:0!important;margin:0!important}
+body.embedded .leaflet-control-layers{border-radius:12px!important;box-shadow:0 4px 14px #2a20202d!important}
+body.embedded .leaflet-control-layers-expanded{padding:8px 12px!important}
+body.embedded .map-side .hint{margin:8px 4px!important;font:500 11px/1.45 system-ui,sans-serif!important}
+body.embedded .map-side .status{font:600 11px/1.35 system-ui,sans-serif!important;min-height:0!important;margin:5px 4px!important}
+body.embedded .map-side #mapStatus:empty,body.embedded .map-side #tileStatus:empty{display:none}
+body.embedded aside{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;align-items:start!important;margin:0!important;padding:18px!important;background:rgba(255,251,246,.9);border:1px solid var(--map-edge);border-radius:17px}
+body.embedded aside>h2{grid-column:1!important;grid-row:auto!important;font-size:clamp(22px,2.2vw,28px)!important;margin:0!important}
+body.embedded #pinForm{grid-column:1!important;grid-row:auto!important;display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:11px 14px!important;margin:0!important}
+body.embedded #pinForm>label{grid-column:span 6;font-size:12px!important;font-weight:620;min-width:0}
+body.embedded #pinForm>label:has(#pinName),
+body.embedded #pinForm>label:has(#pinNotes),
+body.embedded #pinForm>.place-search-label,
+body.embedded #pinForm>.place-search-status,
+body.embedded #pinForm>.place-source,
+body.embedded #pinForm>.pin-public,
+body.embedded #pinForm>.toolbar{grid-column:1/-1!important}
+body.embedded #pinForm>label:has(#area),
+body.embedded #pinForm>.row{grid-column:1/-1!important}
+body.embedded #pinForm label{gap:5px!important}
+body.embedded #pinForm input,body.embedded #pinForm select,body.embedded #pinForm textarea{width:100%;padding:10px 12px!important;min-height:40px!important;border-radius:9px!important;font:500 13px/1.35 system-ui,sans-serif!important;background:#fffdfa!important;border:1px solid #d7c6c2!important;color:#30272b!important}
+body.embedded #pinForm textarea{min-height:70px!important}
+body.embedded #pinForm .row{display:grid!important;grid-template-columns:1fr 1fr!important;gap:14px}
+body.embedded #pinForm .pin-public input{width:auto!important;min-height:0!important}
+body.embedded #pinForm>.toolbar{margin:2px 0 0!important}
+body.embedded #pinForm>.toolbar button{min-height:37px!important;font:700 12px/1.35 system-ui,sans-serif!important;border-radius:9px}
+body.embedded aside>.saved{grid-column:1!important;grid-row:auto!important;margin:2px 0 0!important;padding-top:15px!important;border-top:1px solid var(--map-edge)}
+body.embedded .saved h2{font-size:clamp(20px,2vw,25px);margin-bottom:12px}
+body.embedded aside>.saved #pins{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr))!important;gap:11px!important;max-height:380px!important;overflow:auto}
+body.embedded .pin-row{min-width:0;border-radius:12px;padding:12px;background:#fffdfa}
+body.embedded .pin-row .toolbar{gap:5px}
+body.embedded .pin-row button{min-height:32px;font-size:11px;padding:5px 8px}
+body.embedded .saved .map-footer-actions{display:none!important}
+body.embedded aside>.public-strip{grid-column:1!important;grid-row:auto!important}
+body.embedded #saveStatus,body.embedded #undo{grid-column:1!important;grid-row:auto!important}
+body.embedded .map-brand-strip{display:flex;align-items:center;gap:7px;margin:0 0 11px;font:650 11px/1.4 system-ui,sans-serif;color:#70565d;letter-spacing:.015em}
+body.embedded .map-brand-strip b{font:700 14px/1.2 Georgia,serif;color:#7d3444}
+body.embedded .map-brand-strip .map-brand-tag{margin-left:auto;color:#80636b;font-size:10px}
+body.embedded .map-plan{border:1px solid #e4cfd0;border-radius:14px;padding:12px 14px 13px;margin:0 0 12px;background:linear-gradient(105deg,#fffaf5,#fceef0);color:#3d2c32}
+body.embedded .map-plan .map-plan-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 9px}
+body.embedded .map-plan h2{font:700 18px/1.2 Georgia,serif;margin:0;color:#612e40}
+body.embedded .map-plan p{font:500 11px/1.4 system-ui,sans-serif;margin:5px 0;color:#77545d}
+body.embedded .map-plan .map-trip-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+body.embedded .map-plan label{font:700 11px/1.3 system-ui,sans-serif;display:grid;gap:5px}
+body.embedded .map-plan input{min-height:36px;width:100%;font:500 12px system-ui,sans-serif;padding:7px 9px;border-radius:9px;border:1px solid #d4bfc0;background:#fffdfa;color:#352b30}
+body.embedded .map-plan button{min-height:36px;padding:7px 12px;font:700 12px system-ui,sans-serif;border-radius:9px;border:1px solid #b68f9e;background:#fffaf7;color:#612e40;cursor:pointer}
+body.embedded .map-plan .map-mode-switch{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+body.embedded .map-plan .map-mode-switch button{min-height:30px;padding:5px 11px;font-size:11px}
+body.embedded .map-plan .map-mode-switch button[aria-pressed=true]{background:#8a354b;color:white;border-color:#8a354b}
+body.embedded .map-plan .map-plan-result{min-height:0;margin:8px 0 0;font:600 11px/1.5 system-ui}
+body.embedded .map-plan .map-trip-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+body.embedded .map-plan a{display:inline-flex;align-items:center;padding:7px 10px;border:1px solid #b68f9e;border-radius:9px;text-decoration:none;font:700 11px system-ui;background:#fffdfa;color:#713248}
+body.embedded .map-plan [hidden]{display:none!important}
+body.embedded .map-layer-tip{position:absolute;left:12px;bottom:19px;z-index:480;max-width:75%;font:600 10px/1.35 system-ui;color:#322a32;background:#fffaf4e8;border-radius:7px;padding:5px 9px;pointer-events:none;box-shadow:0 2px 7px #0002}
+body.embedded .map-event-marker{font-size:22px;line-height:28px;text-align:center;background:#fffaf1;border:2px solid #a14e62;border-radius:50%;box-shadow:0 3px 9px #0003}
+body.embedded .map-plan:focus-within{border-color:#bf8394}
+body.embedded .map-plan button:focus-visible,body.embedded .map-plan a:focus-visible{outline:3px solid #bc667f;outline-offset:2px}
+body.embedded:fullscreen{background:#fff8f1;overflow:auto}
+body.embedded:fullscreen main{padding:18px!important}
+body.preview .map-plan,body.preview .map-brand-strip,body.preview .map-layer-tip{display:none!important}
+@media(max-width:760px){
+ body.embedded main{gap:10px!important}
+ body.embedded #map{height:clamp(300px,48vh,440px)!important;min-height:300px!important}
+ body.embedded .map-side>.toolbar{gap:5px!important}
+ body.embedded .map-side>.toolbar button{font-size:11px!important;padding:8px 9px!important}
+ body.embedded #mapSafetyKey{margin-left:0!important}
+ body.embedded aside{padding:13px!important}
+ body.embedded #pinForm{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ body.embedded #pinForm>label{grid-column:span 1}
+ body.embedded #pinForm>.pin-public,body.embedded #pinForm>.toolbar,body.embedded #pinForm>.place-search-label,body.embedded #pinForm>.place-source,body.embedded #pinForm>.place-search-status{grid-column:1/-1!important}
+ body.embedded .map-plan .map-trip-fields{grid-template-columns:1fr!important}
+ body.embedded .map-plan .map-trip-fields button{justify-self:start}
+ body.embedded .map-brand-strip{flex-wrap:wrap}
+}
