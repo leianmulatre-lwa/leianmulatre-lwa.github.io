@@ -36,7 +36,14 @@ function widgetCards(){
 }
 function allVideos(){
  const guide=window.BigLWAStreamGuide;
- const all=[...(guide?.featured||[]),...(guide?.ballroom||[])];
+ const known=[
+  {id:'cn-steven',title:'Cartoon Network',subtitle:'Steven Universe · Here Comes a Thought',creator:'Cartoon Network',source:'Official animation',videoId:'dHg50mdODFM',url:'https://www.youtube.com/watch?v=dHg50mdODFM'},
+  {id:'markiplier-scary',title:'Markiplier',subtitle:'3 SCARY GAMES #9',creator:'Markiplier',source:'Gaming',videoId:'abHGyg4LKn4',url:'https://www.youtube.com/watch?v=abHGyg4LKn4'},
+  {id:'cory-sss',title:'CoryxKenshin',subtitle:'Spooky Scary Sunday Is Back',creator:'CoryxKenshin',source:'Gaming',videoId:'edk2uac_x0Y',url:'https://www.youtube.com/watch?v=edk2uac_x0Y'},
+  {id:'quenlin',title:'Quenlin Blackwell',subtitle:"Feeding Starving Celebrities ft. Charli D'Amelio",creator:'Quenlin Blackwell',source:'Official YouTube episode',videoId:'XC7XiNVk_M4',url:'https://www.youtube.com/watch?v=XC7XiNVk_M4'}
+ ];
+ // Fallback is a subset of the already-curated Stream guide, not made-up IDs.
+ const all=[...(guide?.featured||known),...(guide?.ballroom||[])];
  const unique=new Set();
  return all.filter(item=>{
   if(!/^[a-zA-Z0-9_-]{11}$/.test(item.videoId||'')||!item.id||unique.has(item.videoId))return false;
@@ -110,10 +117,13 @@ function attach(panel){
   url.searchParams.set('api','1');url.searchParams.set('destination',to);
   url.searchParams.set('travelmode',mode);
   if(from)url.searchParams.set('origin',from);
-  const opened=window.open(url.href,'_blank','noopener,noreferrer');
-  if(!opened){
-   const note=form.parentElement?.querySelector('.bl-trip-note');
-   if(note){note.textContent='Pop-up blocked. Open the directions link instead.';const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open directions ↗';note.append(' ',link)}
+  window.open(url.href,'_blank','noopener,noreferrer');
+  // noopener intentionally returns null in compliant browsers: never claim
+  // the destination was blocked merely because the window is inaccessible.
+  const note=form.parentElement?.querySelector('.bl-trip-note');
+  if(note){
+   note.textContent='Directions sent to Google Maps. If it did not open, use this link: ';
+   const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open directions ↗';note.append(link);
   }
  });
 }
