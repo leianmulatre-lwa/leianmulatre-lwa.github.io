@@ -1048,11 +1048,34 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
     const baseLayers={Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain};
     let preferred='LWA Streets';try{
       const savedMode=localStorage.getItem('biglwaMapMode');
-      if(savedMode&&['LWA Streets','LWA Light','LWA Night','Street','Satellite','Hybrid','Terrain'].includes(savedMode))preferred=savedMode;
+      const valid=['LWA Streets','LWA Light','LWA Night','Street','Satellite','Hybrid','Terrain'];
+      if(localStorage.getItem('biglwaMapOpenFreeMapOnboarded')==='1'){
+        if(savedMode&&valid.includes(savedMode))preferred=savedMode;
+      }else{
+        // A legacy saved Street choice should not prevent discovering the
+        // newly installed BIG LWA OpenFreeMap style on first visit.
+        if(savedMode&&savedMode!=='Street'&&valid.includes(savedMode))preferred=savedMode;
+        localStorage.setItem('biglwaMapOpenFreeMapOnboarded','1');
+      }
     }catch{}
     (baseLayers[preferred]||street).addTo(map);
-    const layerControl=L.control.layers(baseLayers,{'Mapped bike lanes · not live':cyclingOverlay},{position:'topright',collapsed:true}).addTo(map);
+    const layerControl=L.control.layers(baseLayers,{'Mapped bike lanes · not live':cyclingOverlay},{
+      position:'topright',collapsed:document.body.classList.contains('preview')
+    }).addTo(map);
+    const providerTag=document.createElement('div');
+    providerTag.id='mapProviderIndicator';
+    providerTag.className='map-provider-indicator';
+    providerTag.setAttribute('role','status');
+    providerTag.textContent='BIG LWA · Loading OpenFreeMap…';
+    document.querySelector('.map-stage')?.appendChild(providerTag);
+    const sourceLabel=name=>{
+      providerTag.textContent=name.startsWith('LWA ')?
+        'BIG LWA · OpenFreeMap · '+name.replace('LWA ',''):
+        'BIG LWA · Classic map · '+name;
+    };
+    sourceLabel('Street');
     map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}
+      sourceLabel(event.name);
       $('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
     const loadPublicScript=(src)=>new Promise((resolve,reject)=>{
       const script=document.createElement('script');script.src=src;script.crossOrigin='anonymous';
@@ -1078,13 +1101,32 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
           layerControl.addBaseLayer(vectors[name],name);
         }
         if(styles[preferred]){
-          map.removeLayer(street);
-          vectors[preferred].addTo(map);
-        }
+          // An async vector load can fail after the JS bundle loads. Keep
+          // classic tiles until MapLibre has rendered its actual map.
+          const vector=vectors[preferred];
+          vector.addTo(map);
+          const gl=typeof vector.getMaplibreMap==='function'?vector.getMaplibreMap():null;
+          if(gl&&typeof gl.once==='function'){
+            const watchdog=setTimeout(()=>{
+              if(map.hasLayer(vector)&&map.hasLayer(street)){
+                map.removeLayer(vector);
+                providerTag.textContent='BIG LWA · Classic map fallback (OpenFreeMap unavailable)';
+              }
+            },11000);
+            gl.once('load',()=>{
+              clearTimeout(watchdog);
+              if(map.hasLayer(vector)){map.removeLayer(street);sourceLabel(preferred);}
+            });
+          }else{
+            map.removeLayer(street);
+            sourceLabel(preferred);
+          }
+        }else sourceLabel(preferred);
         $('tileStatus').textContent='';
       }catch(error){
         console.info('[BIG LWA Map] OpenFreeMap vector unavailable; retaining raster map.',error);
         $('tileStatus').textContent='OpenFreeMap unavailable here; the classic map is still available.';
+        providerTag.textContent='BIG LWA · Classic map fallback';
       }
     })();
     map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));
@@ -1194,5 +1236,6 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
 })();
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css">
-<script src="/map-lwa-experience-20261113.js?v=20261113-1"></script>
+<script src="/map-lwa-router-20261113.js?v=20261113-route-2"></script>
+<script src="/map-lwa-experience-20261113.js?v=20261113-route-2"></script>
 </body></html>
