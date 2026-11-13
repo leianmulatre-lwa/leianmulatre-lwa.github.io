@@ -1,0 +1,39 @@
+name: BIG LWA Map workspace checks
+on:
+  pull_request:
+    paths:
+      - 'map-app.html'
+      - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-experience-20261113.css'
+      - 'map-workspace-regression-test.mjs'
+      - 'module-pages.js'
+      - '.github/workflows/map-workspace-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'map-app.html'
+      - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-experience-20261113.css'
+      - 'map-workspace-regression-test.mjs'
+      - 'module-pages.js'
+      - '.github/workflows/map-workspace-checks.yml'
+permissions:
+  contents: read
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Map and Studio scripts
+        run: |
+          node --check module-pages.js
+          node --check map-lwa-experience-20261113.js
+          node --test map-workspace-regression-test.mjs
+      - name: Preserve privacy and Map search contracts
+        run: |
+          node account-storage-regression-test.mjs
+          node --test lwazi/navigation-map-weather.test.mjs
