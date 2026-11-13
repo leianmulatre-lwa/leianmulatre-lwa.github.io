@@ -101,9 +101,75 @@ async function preview(form){
  }catch(error){box.replaceChildren();box.hidden=true;status.textContent=error.message||'SoundCloud preview unavailable.'}
  finally{submit.disabled=false}
 }
+
+let playingAudio=null,playingPanel=null,playingUrl='';
+function validApplePreview(raw){
+ try{
+  const url=new URL(String(raw||''));
+  return url.protocol==='https:'&&
+    /^(?:audio(?:-ssl)?\.itunes\.apple\.com|[a-z0-9-]+\.mzstatic\.com)$/.test(url.hostname)&&
+    !url.username&&!url.password?url.href:'';
+ }catch{return ''}
+}
+function stopPreview(){
+ if(playingAudio){try{playingAudio.pause();playingAudio.removeAttribute('src');playingAudio.load()}catch{}}
+ playingAudio=null;playingPanel=null;playingUrl='';
+}
+function playSongPreview(card,panel){
+ const preview=validApplePreview(card?.dataset?.blSongPreview);
+ if(!preview)return;
+ let host=panel.querySelector('.bl-lwazi-audio-preview');
+ if(playingPanel!==panel){stopPreview()}
+ if(!host){
+  host=document.createElement('section');
+  host.className='bl-lwazi-audio-preview';host.setAttribute('aria-label','BIG LWA in-site song preview');
+  // Stable chrome stays outside discovery results, which rerender as sources resolve.
+  const nav=panel.querySelector('.bl-search-category-nav');
+  if(nav)nav.insertAdjacentElement('afterend',host);else panel.prepend(host);
+ }
+ if(playingAudio&&playingUrl===preview){
+  if(playingAudio.paused)playingAudio.play().catch(()=>{});
+  else playingAudio.pause();
+  return;
+ }
+ stopPreview();
+ const title=document.createElement('strong');title.textContent=card.dataset.blSongTitle||'Song preview';
+ const artist=document.createElement('small');artist.textContent=card.dataset.blSongArtist||'';
+ const details=document.createElement('div');details.className='bl-preview-description';details.append(title,artist);
+ const audio=document.createElement('audio');audio.controls=true;audio.preload='none';
+ audio.src=preview;audio.setAttribute('aria-label','Preview '+title.textContent);
+ audio.controlsList?.add?.('nodownload');
+ const source=card.querySelector('a.bl-vinyl-cover-link');
+ const destination=source?.href&&/^https:\/\/(?:music|itunes)\.apple\.com\//i.test(source.href)?source.href:null;
+ const original=destination?document.createElement('a'):null;
+ if(original){original.href=destination;original.target='_blank';original.rel='noopener noreferrer';original.textContent='Full track ↗'}
+ const close=document.createElement('button');close.type='button';close.textContent='×';
+ close.setAttribute('aria-label','Close song preview');
+ close.addEventListener('click',()=>{stopPreview();host.remove()});
+ const status=document.createElement('span');status.className='bl-preview-status';
+ status.textContent='Official Apple Music preview · 30 seconds where available';
+ audio.addEventListener('error',()=>{
+   status.textContent='This preview is unavailable here. The original song link remains available.';
+ });
+ host.replaceChildren(details,audio,status);
+ if(original)host.append(original);
+ host.append(close);
+ playingAudio=audio;playingPanel=panel;playingUrl=preview;
+ // Playback is only started in the user's click, never on search, hover or
+ // model inference. The upstream remains the licensed audio host.
+ audio.play().catch(()=>{status.textContent='Press play to hear the available preview.'});
+}
 function attachSearch(root){
  if(!root||root.__blSoundcloudBound)return;
  root.__blSoundcloudBound=true;
+ root.addEventListener('click',event=>{
+  const trigger=event.target.closest('.bl-search-song .bl-vinyl-cover-link');
+  if(!trigger||!root.contains(trigger))return;
+  const card=trigger.closest('.bl-search-song');
+  if(!validApplePreview(card?.dataset.blSongPreview))return;
+  event.preventDefault();event.stopPropagation();
+  playSongPreview(card,root);
+ });
  root.addEventListener('submit',e=>{
   const form=e.target.closest('.bl-search-soundcloud-form');if(!form)return;
   e.preventDefault();preview(form);

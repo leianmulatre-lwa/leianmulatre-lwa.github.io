@@ -24,6 +24,7 @@
     };
     function normalizeCommand(raw){return String(raw||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()}
     function routeCommand(raw){var text=normalizeCommand(raw);if(text==='take me to journal'||text==='open journal'||text==='go to journal'||text==='show my journal')return 'diary';var match=null;Object.keys(widgetRoutes).forEach(function(alias){if(!match&&(text==='take me to '+alias||text==='open '+alias||text==='go to '+alias||text===alias+' open'||text==='show me '+alias||text==='show '+alias))match=widgetRoutes[alias]});if(match)return match;if(/(^|\s)(journal|diary)(\s|$)/.test(text))return 'diary';return null}
+    window.__biglwaOpenSearchRoute=goRoute;
     function close(){}
     function goRoute(route){close();var control=document.querySelector('[data-open="'+route+'"],button[data-widget-route="'+route+'"],a[href="#'+route+'"]');if(control){control.click();return}window.location.hash=route;setTimeout(function(){var el=document.getElementById(route)||document.querySelector('[data-widget-route="'+route+'"]');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'})},80)}
 
@@ -51,7 +52,7 @@
     function onKey(e){if(e.key==='Escape')close()}
     // Search is part of the Studio layout: outside interactions never dismiss it.
     close=function(){document.querySelector('#studioApp .bl-lwazi-history-popover')?.setAttribute('hidden','');if(!panel)return;if(layoutObserver)layoutObserver.disconnect();if(layoutRailObserver)layoutRailObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
-    function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(window.BigLWAMusicDiscovery)window.BigLWAMusicDiscovery.attachSearch(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
+    function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(window.BigLWAMusicDiscovery)window.BigLWAMusicDiscovery.attachSearch(panel);if(window.BigLWADiscoveryExtras)window.BigLWADiscoveryExtras.attach(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
     function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route'+(label==='Open in Library'?' bl-search-primary-action':'')+'" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8599;</button>'}
     function bookCover(b){if(b.cover_i)return 'https://covers.openlibrary.org/b/id/'+encodeURIComponent(b.cover_i)+'-M.jpg';if(b.isbn&&b.isbn[0])return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg';return ''}
     function userCard(u){var h=Math.abs(String(u.username||u.name||'u').split('').reduce(function(n,c){return n+c.charCodeAt(0)},0)*7)%360;return '<article class="bl-search-card bl-user-card"><div class="bl-search-card-media bl-avatar"> '+esc(String(u.name||u.username||'?').split(/\s+/).map(function(p){return p[0]}).join('').slice(0,2).toUpperCase())+'</div><div class="bl-search-card-body"><span class="bl-search-kicker">BigLWA user</span><h3>'+esc(u.name||u.username)+'</h3><p class="bl-search-muted">@'+esc(u.username)+'</p>'+ (u.bio?'<p>'+esc(u.bio)+'</p>':'')+'<a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(u.username)))+'">View profile &#8594;</a></div></article>'}
@@ -67,19 +68,26 @@
         '</div></article>';
     }
     function songCard(s){
-      // Use the real iTunes cover at sleeve resolution. Keep original imagery,
-      // rather than creating a generic or stretched replacement thumbnail.
+      // Only Apple-provided licensed preview clips play in-site; full tracks
+      // remain on the publisher. Never cache or proxy preview audio.
       var art=String(s.artworkUrl100||'').replace(/100x100bb(?=\.(?:jpg|png|webp)(?:\?|$))/i,'600x600bb');
       var original=String(s.trackViewUrl||'');
       var songUrl=/^https:\/\/(?:music|itunes)\.apple\.com\//i.test(original)?original:'';
+      var preview=String(s.previewUrl||'');
+      var previewUrl=/^https:\/\/(?:audio(?:-ssl)?\.itunes\.apple\.com|[a-z0-9-]+\.mzstatic\.com)\//i.test(preview)?preview:'';
       var title=String(s.trackName||'Untitled');
       var artist=String(s.artistName||'Unknown artist');
-      return '<article class="bl-search-card bl-media-card bl-search-song">'+
+      var attrs=' data-bl-song-title="'+esc(title)+'" data-bl-song-artist="'+esc(artist)+'"'+
+        (previewUrl?' data-bl-song-preview="'+esc(previewUrl)+'"':'');
+      return '<article class="bl-search-card bl-media-card bl-search-song"'+attrs+'>'+
         '<span class="bl-vinyl-record" aria-hidden="true"><span class="bl-vinyl-label"'+(art?' style="background-image:url(&quot;'+esc(art)+'&quot;)"':'')+'></span></span>'+
         (art?'<img class="bl-search-card-media" src="'+esc(art)+'" alt="" loading="lazy" decoding="async">':'<div class="bl-search-card-media bl-media-placeholder" aria-hidden="true">♫</div>')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Song</span><h3>'+esc(title)+'</h3>'+
         '<p class="bl-search-muted">'+esc(artist)+(s.collectionName?' · '+esc(s.collectionName):'')+'</p></div>'+
-        (songUrl?'<a class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" href="'+esc(songUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+esc(title)+' by '+esc(artist)+' in Apple Music">View song information ↗</a>':'')+
+        (songUrl?'<a class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" href="'+esc(songUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+
+          (previewUrl?'Play preview of ':'Open ')+esc(title)+' by '+esc(artist)+(previewUrl?' in BIG LWA':' in Apple Music')+'">'+
+          (previewUrl?'Play preview ▶':'Open song ↗')+'</a>':
+          (previewUrl?'<button type="button" class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" aria-label="Play preview of '+esc(title)+' by '+esc(artist)+'">Play preview ▶</button>':''))+
         '</article>';
     }
     function publicSqwibCard(p,u){var username=String(u.username||'').replace(/^@/,'');return '<article class="bl-search-card bl-sqwib-card"><div class="bl-search-card-body"><span class="bl-search-kicker">Public Sqwidz · @'+esc(username)+'</span><p>'+esc(String(p.text||'').slice(0,420))+'</p><a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(username)))+'">View public profile &#8594;</a></div></article>'}
@@ -293,20 +301,27 @@
       function persistTurns(){
         if(historyId)history?.update(historyId,{mode:lwaziMode,turns:turns});
       }
+      // The header is the opening answer only. Once somebody replies, the
+      // conversation becomes a single chronological transcript so no answer
+      // appears in two places and a user bubble never trails the latest reply.
+      var threaded=turns.length>2;
       function showTurns(){
         if(!turnArea)return;
         turnArea.replaceChildren();
-        // The most recent answer is the prominent one beside the close X.
-        // The conversation beneath it is the continuing transcript.
-        var past=turns.slice(0,turns.at(-1)?.role==='assistant'?-1:undefined);
-        past.forEach(function(turn){
+        answerArea.hidden=!aiActive||threaded;
+        if(!threaded){
+          if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
+          return;
+        }
+        turns.forEach(function(turn,index){
           var card=document.createElement('p');
           card.className='bl-lwazi-turn';
           card.dataset.role=turn.role;
+          card.dataset.latest=String(index===turns.length-1&&turn.role==='assistant');
           card.textContent=(turn.role==='assistant'?'L’wazi · ':'You · ')+turn.text;
           turnArea.appendChild(card);
         });
-        if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
+        turnArea.scrollTop=turnArea.scrollHeight;
       }
       if(aiActive){
         if(storedTurns.length)showTurns();
@@ -320,23 +335,34 @@
         var follow=String(input.value||'').trim().slice(0,450);
         if(!follow||send.disabled)return;
         input.value='';
-        var prior=turns.slice(-5).map(function(t){return (t.role==='user'?'User: ':'L’wazi: ')+t.text.slice(0,170)}).join('\n');
-        var fullPrompt=('Continue this conversation with a direct reply to the latest user message.\n'+prior+'\nUser: '+follow+'\nL’wazi:').slice(-1450);
-        turns.push({role:'user',text:follow});turns=turns.slice(-12);
+        // Build context before appending this turn; do not repeat the newest
+        // user message twice in the model prompt.
+        var prior=turns.slice(-6).map(function(t){return (t.role==='user'?'User: ':'L’wazi: ')+t.text.slice(0,220)}).join('\n');
+        var fullPrompt=('You are L’wazi inside BIG LWA. Reply to the latest user conversationally, with wit, warmth, personality, and a little playful confidence when it fits; no corporate chatbot filler or forced slang. Be precise and acknowledge uncertainty.\n'+prior+'\nUser: '+follow+'\nL’wazi:').slice(-1850);
+        threaded=true;
+        turns.push({role:'user',text:follow},{role:'assistant',text:'Thinking…'});
+        turns=turns.slice(-12);
         showTurns();persistTurns();
-        renderAnswer(answerBody,'L’wazi is thinking…');
         send.disabled=true;
+        var liveTurn=turns.at(-1);
         try{
-          var response=await askLwazi(fullPrompt,[],function(partial){
-            if(panel===current)renderAnswer(answerBody,partial);
+          // Use our fast, authored small-talk voice for appropriate follow-ups;
+          // the same model handles substantive follow-up questions.
+          var quick=fastLwaziResponse(follow);
+          var response=quick||await askLwazi(fullPrompt,[],function(partial){
+            if(panel!==current||turns.at(-1)!==liveTurn)return;
+            liveTurn.text=String(partial||'').slice(0,1200);
+            var last=turnArea.lastElementChild;
+            if(last){last.textContent='L’wazi · '+liveTurn.text;turnArea.scrollTop=turnArea.scrollHeight}
           });
-          if(panel!==current)return;
-          var text=String(response||'No answer available.');
-          turns.push({role:'assistant',text:text.slice(0,1200)});
-          turns=turns.slice(-12);persistTurns();showTurns();
+          if(panel!==current||turns.at(-1)!==liveTurn)return;
+          liveTurn.text=String(response||'No answer available.').slice(0,1200);
         }catch(e){
-          if(panel===current)renderAnswer(answerBody,explainModelFailure(e)||'L’wazi could not finish that answer. You can ask again.');
-        }finally{send.disabled=false;}
+          if(panel!==current||turns.at(-1)!==liveTurn)return;
+          liveTurn.text=explainModelFailure(e)||'That reply did not come through. Ask me again.';
+        }finally{
+          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus()}
+        }
       });
       if(options.imageOnly||mathResult){
         // Image selection and deterministic math should never launch unrelated
@@ -363,20 +389,19 @@
           if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         });
         var sections=Array.from(current.querySelectorAll('.bl-search-section'));
-        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Cinema & video'};
+        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Stream videos',widgets:'Studio widgets',places:'Places & Maps'};
         var sectionName=named[category];
         var matches=sections.filter(function(section){
+          if(section.id===sectionId('SoundCloud'))return category==='songs';
           if(category==='all')return true;
           return category==='songs'?(' '+(section.getAttribute('data-bl-category')||'')+' ').includes(' songs '):sectionName?section.id===sectionId(sectionName):
             (' '+(section.getAttribute('data-bl-category')||'')+' ').includes(' '+category+' ');
         });
         sections.forEach(function(section){section.style.display=matches.includes(section)?'':'none'});
         if(fromClick&&matches.length)matches[0].scrollIntoView({behavior:'smooth',block:'nearest'});
-        if(fromClick&&!matches.length&&!current.querySelector('.bl-search-loading')){
-          if(category==='stream')goRoute('stream');
-          else if(category==='politics')goRoute('politic');
-          else if(category==='widgets')goRoute('library');
-          else if(category==='places')goRoute('map');
+        // Categories are real search pages, not hidden redirects to widgets.
+        if(fromClick&&['songs','widgets','places','stream'].includes(category)){
+          renderDiscovery(discoveryParts);
         }
       }
       extraNav.addEventListener('click',function(event){
@@ -417,7 +442,13 @@
            lwaziSiteCard('About BIG LWA','Meet the project, the people, and the ideas behind this Studio.','/about/'),
            lwaziSiteCard('Privacy at BIG LWA','What privacy and agency mean here.','/privacy/')
          ],'all studio identity'):'';
-         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(!isSocialGreeting&&window.BigLWAMusicDiscovery&&(/\b(song|music|album|artist|sing|track|soundcloud|playlist|mix|dj)\b/i.test(clean)||parts[5].length)?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'' )+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+        var extras=window.BigLWADiscoveryExtras;
+        if(extras){
+          html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
+          if(activeCategory==='widgets')html+=section('Studio widgets',extras.widgetCards(),'widgets studio');
+          if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
+        }
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard),'research herstory politics');
         var resultArea=current.querySelector('.bl-search-discovery');
         if(!resultArea){
