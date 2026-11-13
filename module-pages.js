@@ -2492,11 +2492,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'2048',image:'/assets/arcade/2048.svg',href:location.origin+'/arcade-puzzles.html?game=2048'},
       {title:'mini crossword',image:'/assets/arcade/crossword.svg',href:location.origin+'/arcade-puzzles.html?game=crossword'},
       {title:'8 Ball Pool',image:'/assets/arcade/miniclip-pool-20261029.svg',href:'https://8ballpool.com/en/game',launch:'external',provider:'Miniclip'},
-      {title:'Agar.io',image:'/assets/arcade/miniclip-agar-20261029.svg',href:'https://agar.io/',launch:'external',provider:'Miniclip'},
+      {title:'Agar.io',image:'https://static-prod-web.miniclip.com/assets/games/MN_Website_WebGames_Agario_PageThumbnail.png',href:'https://agar.io/',launch:'external',provider:'Miniclip'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://poki.com/en/g/sugar-sugar-html5'},
       {title:'slither.io',image:'/assets/arcade/slither-io.jpg',href:'https://slither.io/'},
-      {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://raft-wars.com/games'},
+      {title:'raft wars',image:'/assets/arcade/rat-wars.png',href:'https://raft-wars.com/raftwars'},
       {title:'sudoku',image:'/assets/arcade/sudoku.jpg',href:'https://www.coolmathgames.com/0-sudoku'},
       {title:'wordle',image:'/assets/arcade/wordle.png',href:'https://www.nytimes.com/games/wordle/index.html'},
       {title:'worldguessr',image:'/assets/arcade/worldguessr.jpg',href:'https://worldguessr.com/'},
@@ -2520,8 +2520,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const arcadeCategories=['BIG LWA & Classics','Arcade & Skill','Action & Adventure','Driving & Racing','Sports','Puzzles & Strategy','Life & Creative'];
     const categorizeOther=game=>{
       if(game.provider==='Y8')return game.category||'Arcade & Skill';
-      if(/8 Ball Pool|chess|sudoku|wordle/i.test(game.title))return 'Puzzles & Strategy';
-      if(/fancy pants|run 3|fireboy|n \\(classic\\)/i.test(game.title))return 'Action & Adventure';
+      if(/8 Ball Pool/i.test(game.title))return 'Sports';
+      if(/chess|sudoku|wordle/i.test(game.title))return 'Puzzles & Strategy';
+      if(/fancy pants|run 3|fireboy/i.test(game.title)||game.title==='n (classic)')return 'Action & Adventure';
       if(/raft wars|slither|five nights/i.test(game.title))return 'Action & Adventure';
       return 'BIG LWA & Classics';
     };
