@@ -50,8 +50,10 @@
   return result;
  };
  let state=empty(),publicState=null,stateOwner='',remoteLoaded=false,saveBusy=false;
+ let draftRevision=0;
+ const touchDraft=()=>{draftRevision++};
  const isPreview=()=>!!window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode');
- const get=()=>{if(isPreview())return publicState||empty();const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
+ const get=()=>{if(isPreview())return publicState||empty();const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;draftRevision=0;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
  const archiveSource=()=>{
   try{
    const parsed=JSON.parse(localStorage.getItem('biglwaArchiveFilters')||'null');
@@ -172,16 +174,23 @@
   return 'Posted to My Feed.';
  }
  async function remote(){
-  if(!owner()||remoteLoaded)return;
+  const who=owner(),revision=draftRevision;
+  if(!who||remoteLoaded)return;
+  let applied=false;
   try{
    const snap=await window.BigLWAUserDirectory?.loadProfile?.();
-   if(snap?.uid===owner()&&snap.customization?.session?.highlightEdits){
-    state=normalize(snap.customization.session.highlightEdits);
-    localStorage.setItem(storageKey(),JSON.stringify(state));
+   // A slow remote read must not overwrite a title/crop edited while it ran,
+   // nor switch to a different member's Highlights after account changes.
+   if(snap?.uid===who&&owner()===who){
+    if(revision===draftRevision&&snap.customization?.session?.highlightEdits){
+     state=normalize(snap.customization.session.highlightEdits);
+     localStorage.setItem(storageKey(),JSON.stringify(state));
+     applied=true;
+    }
+    remoteLoaded=true;
    }
-   if(snap?.uid===owner())remoteLoaded=true;
   }catch{}
-  refresh();render();
+  if(applied){refresh();render()}
  }
  function toImage(file){
   return new Promise((resolve,reject)=>{
@@ -262,7 +271,7 @@
    document.removeEventListener('pointercancel',endDrag,true);
   };
   const clamp=v=>Math.max(0,Math.min(100,Math.round(v)));
-  const place=(x,y)=>{data.x=clamp(x);data.y=clamp(y);applyCover(picture,data)};
+  const place=(x,y)=>{data.x=clamp(x);data.y=clamp(y);applyCover(picture,data);touchDraft()};
   const enableAdjust=on=>{
    adjusting=on;clearDrag();
    circle.classList.toggle('is-adjusting',on);
@@ -301,7 +310,7 @@
          (data.y??50)+(event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0));
   });
   const fields=make('div','highlight-edit-fields');
-  const title=input('text',data.title||group.title||'','Name',value=>{data.title=value.slice(0,48);});
+  const title=input('text',data.title||group.title||'','Name',value=>{data.title=value.slice(0,48);touchDraft()});
   const titleField=title.querySelector('input');
   titleField.maxLength=48;titleField.setAttribute('aria-label','Highlight title');
   fields.append(title);
@@ -324,15 +333,15 @@
   const advanced=make('details','highlight-cover-advanced');
   advanced.append(make('summary','','Cover image URL (optional)'));
   advanced.append(input('text',data.cover||'','Paste direct HTTPS cover URL',value=>{
-   const url=cleanUrl(value,true);if(url){data.cover=url;picture.src=url;applyCover(picture,data)}
-   else if(!value.trim()){data.cover='';picture.src=group.cover||'/assets/tv-no-signal.svg';applyCover(picture,data)}
+   const url=cleanUrl(value,true);if(url){data.cover=url;picture.src=url;applyCover(picture,data);touchDraft()}
+   else if(!value.trim()){data.cover='';picture.src=group.cover||'/assets/tv-no-signal.svg';applyCover(picture,data);touchDraft()}
   }));
   covers.append(advanced);
   const upload=make('label','highlight-upload-label','Upload circle cover');
   const file=make('input');file.type='file';file.accept='image/jpeg,image/png,image/webp,image/gif';
   file.setAttribute('aria-label','Upload highlight cover');
   file.addEventListener('change',async()=>{
-   try{status('Preparing cover…');const result=await toImage(file.files?.[0]);data.cover=result;picture.src=result;
+   try{status('Preparing cover…');const result=await toImage(file.files?.[0]);data.cover=result;picture.src=result;touchDraft();
     const field=covers.querySelector('input[type=text]');if(field)field.value='';status('Cover ready. Save Highlights to keep it.')}
    catch(e){status(e.message)}finally{file.value=''}
   });
