@@ -1056,6 +1056,7 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
         // newly installed BIG LWA OpenFreeMap style on first visit.
         if(savedMode&&savedMode!=='Street'&&valid.includes(savedMode))preferred=savedMode;
         localStorage.setItem('biglwaMapOpenFreeMapOnboarded','1');
+        if(preferred==='LWA Streets')localStorage.setItem('biglwaMapMode',preferred);
       }
     }catch{}
     (baseLayers[preferred]||street).addTo(map);
