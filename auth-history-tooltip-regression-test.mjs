@@ -17,7 +17,7 @@ for(const path of shellPaths){
  assert(beforeLiteral&&afterLiteral,path+' contains safe history replacement');
  const before=JSON.parse(beforeLiteral),after=JSON.parse(afterLiteral);
  assert.equal(before,legacyRoute,path+' targets the actual legacy handler');
- assert.match(after,/authForRoutes\.authStateReady\(\)/,path+' verifies persisted Firebase auth');
+ assert.match(after,/auth\.authStateReady\(\)/,path+' verifies persisted Firebase auth');
  assert.match(after,/event\.persisted/,path+' supports BFCache pageshow');
  assert.match(after,/__biglwaIsPublicProfilePath/,path+' preserves visitor routes');
  assert(shell.includes("html=html.replace(historyRouterBefore,historyRouterAfter)"),path+' installs the fix before writing legacy Studio');
@@ -48,7 +48,8 @@ async function simulate({path='/studio',user={uid:'signed-in'},kind='popstate',p
  const handler=events.get(kind);
  assert(handler,kind+' handler registered');
  handler(kind==='pageshow'?{persisted:true}:{});
- assert.equal(calls.length,0,'No repaint before verified auth');
+ if(path==='/privacy')assert.deepEqual(calls,[['policy','privacy']],'Policy route navigates synchronously');
+ else assert.equal(calls.length,0,'No repaint before verified auth');
  releaseAuth();
  await readiness;await Promise.resolve();await Promise.resolve();
  return calls;
