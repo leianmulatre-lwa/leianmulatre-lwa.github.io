@@ -59,7 +59,7 @@ test('AI is off until icon NPC or Deep is selected and thread is continuable',()
  assert.match(search,/if\(answerPromise\)answerPromise\.then/);
  assert.match(search,/bl-lwazi-continue-form/);
  assert.match(search,/followForm\.addEventListener\('submit'/);
- assert.match(search,/turns\.push\(\{role:'assistant'/);
+ assert.match(search,/turns\.push\(\{role:'user',text:follow\},\{role:'assistant'/);
  assert.match(search,/var fullPrompt=/);
  assert.match(search,/openPanel\(entry\.q,\{historyId:entry\.id,restore:true\}\)/);
 });
