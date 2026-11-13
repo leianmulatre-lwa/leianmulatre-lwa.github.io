@@ -1,0 +1,49 @@
+/* L'wazi / instant math and opt-in image analysis */
+#bl-studio-search-results .bl-lwazi-math-answer{
+ flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:10px;
+ margin:0;padding:7px 0;color:rgb(var(--aura-rgb,145,65,88));
+}
+#bl-studio-search-results .bl-lwazi-math-answer small{
+ color:inherit;opacity:.73;font:650 11px/1.35 system-ui,sans-serif;
+}
+#bl-studio-search-results .bl-lwazi-math-answer strong{
+ color:inherit;font:700 clamp(17px,2vw,26px)/1.3 system-ui,sans-serif;
+ overflow-wrap:anywhere;
+}
+#bl-studio-search-results .bl-lwazi-math-answer button{
+ padding:6px 9px;margin-left:4px;border:1px solid rgba(var(--aura-rgb,145,65,88),.32);
+ border-radius:7px;background:transparent;color:inherit;cursor:pointer;
+}
+#studioApp .search-wrap.bl-search-ready>.bl-lwazi-math-preview{
+ position:absolute;left:4px;right:4px;top:calc(100% + 5px);z-index:4500;
+ border:1px solid rgba(var(--aura-rgb,155,71,91),.38);border-radius:10px;
+ background:#fff9f1;color:#613d4b;box-shadow:0 12px 20px #271a1a26;
+ padding:12px 14px;text-align:left;font:650 15px/1.4 system-ui,sans-serif;cursor:pointer;
+}
+#studioApp .bl-lwazi-math-preview[hidden],
+#bl-studio-search-results .bl-search-category-nav[hidden]{display:none!important}
+#bl-studio-search-results .bl-image-search-preview{
+ display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+ margin:5px 0 12px;padding:12px;border:1px solid rgba(var(--aura-rgb,155,71,91),.24);
+ border-radius:10px;background:rgba(var(--aura-rgb,155,71,91),.05);
+}
+#bl-studio-search-results .bl-image-search-preview img{
+ width:min(170px,38vw);max-height:210px;object-fit:contain;border-radius:8px;
+}
+#bl-studio-search-results .bl-image-search-preview p{
+ flex:1 1 210px;margin:0;font:500 12px/1.6 system-ui,sans-serif;
+}
+#bl-studio-search-results .bl-search-image-run{
+ padding:10px 14px;border-radius:8px;
+ background:rgba(var(--aura-rgb,155,71,91),.13);
+ color:inherit;border:1px solid rgba(var(--aura-rgb,155,71,91),.42);
+ cursor:pointer;font-weight:750;
+}
+body.night-mode #studioApp .bl-lwazi-math-preview{
+ background:#31282b;color:#f7d9e0;
+}
+body.night-mode #bl-studio-search-results .bl-lwazi-math-answer{color:#f7cbd5}
+@media(max-width:650px){
+ #bl-studio-search-results .bl-lwazi-math-answer{flex-wrap:wrap;gap:6px}
+ #bl-studio-search-results .bl-lwazi-math-answer small{flex-basis:100%}
+}

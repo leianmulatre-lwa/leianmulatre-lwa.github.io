@@ -7,6 +7,8 @@ on:
     paths:
       - 'lwazi/**'
       - 'lwazi-client.js'
+      - 'lwazi-math.js'
+      - 'lwazi-math-vision.css'
       - 'lwazi-history.js'
       - 'lwazi-conversation-history.css'
       - 'settings/index.html'
@@ -28,6 +30,8 @@ on:
     paths:
       - 'lwazi/**'
       - 'lwazi-client.js'
+      - 'lwazi-math.js'
+      - 'lwazi-math-vision.css'
       - 'lwazi-history.js'
       - 'lwazi-conversation-history.css'
       - 'settings/index.html'
@@ -63,6 +67,7 @@ jobs:
           node --check lwazi/worker.mjs
           node --check lwazi/free-models.mjs
           node --check lwazi-client.js
+          node --check lwazi-math.js
           node --check functions/api/lwazi.js
           node --check user-search-results.js
           node --check lwazi-history.js
@@ -72,6 +77,6 @@ jobs:
           node --check profile-music.js
           node --check tools-craft.js
       - name: Engine unit and mocked integration tests
-        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs lwazi/fast-answer-latency.test.mjs lwazi/staging-bridge.test.mjs lwazi/modes-history.test.mjs
+        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs lwazi/fast-answer-latency.test.mjs lwazi/staging-bridge.test.mjs lwazi/modes-history.test.mjs lwazi/math-vision.test.mjs
       - name: Preserve existing Studio search contracts
         run: node lwazi-search-regression-test.mjs

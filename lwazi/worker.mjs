@@ -7,6 +7,8 @@ const JWT_KEYS='https://www.googleapis.com/service_accounts/v1/jwk/securetoken@s
 const encoder=new TextEncoder();
 const JSON_HEADERS={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'};
 const MAX_BODY=12000;
+const MAX_IMAGE_BODY=3000000;
+const VISION_MODELS=['@cf/google/gemma-4-26b-a4b-it','@cf/meta/llama-4-scout-17b-16e-instruct'];
 const FREE_MODEL='@cf/google/gemma-4-26b-a4b-it';
 const modelCooldowns=new Map();
 const freeEnabled=env=>env.FREE_INFERENCE_ENABLED==='true' && !!env.AI?.run;
@@ -167,6 +169,38 @@ export async function queryFreeModel(mode,question,context,env,clock=()=>Date.no
   }
   return {error:attempted===0?'free_models_cooling_down':lastError,provider:'cloudflare',model:lastModel?.model||null,attempts:attempted,retry_after_seconds:Math.ceil(Math.max(0,Math.min(...candidates.map(m=>modelCooldowns.get(m.id)||now))-now)/1000)};
 }
+export async function queryFreeVision(question,image,env){
+  if(!freeEnabled(env))return {error:'free_inference_not_enabled'};
+  if(typeof image!=='string'||image.length>2800000||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(image))
+    return {error:'invalid_image'};
+  const prompt=String(question||'Describe what is visible in this image clearly and concisely.').trim().slice(0,500);
+  let lastError='vision_unavailable';
+  for(const model of VISION_MODELS){
+    try{
+      const result=await env.AI.run(model,{
+        messages:[
+          {role:'system',content:SYSTEM_POLICY+'\nDescribe the actual uploaded image. Never invent visible details or identify people. If a chart or equation is present, state uncertainty when text is unclear. Do not claim to browse the web.'},
+          {role:'user',content:[
+            {type:'text',text:prompt},
+            {type:'image_url',image_url:{url:image}}
+          ]}
+        ],
+        max_tokens:450,temperature:0.15,stream:false
+      });
+      const answer=typeof result?.response==='string'?result.response:
+        typeof result?.choices?.[0]?.message?.content==='string'?result.choices[0].message.content:'';
+      if(!answer.trim())throw Error('empty_vision_response');
+      return {answer:answer.slice(0,2500),model,provider:'cloudflare'};
+    }catch(error){
+      const kind=classifyInferenceFailure(error);
+      if(kind==='shared_quota_or_billing')return {error:'shared_free_quota_exhausted'};
+      if(kind==='model_requires_paid_plan')continue;
+      lastError='vision_model_unavailable';
+    }
+  }
+  return {error:lastError};
+}
+
 export function resetModelCooldownsForTest(){modelCooldowns.clear()}
 
 export default {
@@ -178,9 +212,10 @@ export default {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
     const path=new URL(request.url).pathname;
     if(request.method==='GET'&&path==='/health'){
-      return json({service:'lwazi',identity:IDENTITY_VERSION,ready:freeEnabled(env)||paidEnabled(env)&&!!(env.DEEPSEEK_API_KEY||env.ANTHROPIC_API_KEY),free_model:FREE_MODEL,free_models:rankedFreeModels('research').map(m=>({id:m.id,label:m.label,model:m.model})),free_enabled:freeEnabled(env),paid_enabled:paidEnabled(env)},200,headers);
+      return json({service:'lwazi',identity:IDENTITY_VERSION,ready:freeEnabled(env)||paidEnabled(env)&&!!(env.DEEPSEEK_API_KEY||env.ANTHROPIC_API_KEY),free_model:FREE_MODEL,free_models:rankedFreeModels('research').map(m=>({id:m.id,label:m.label,model:m.model})),free_enabled:freeEnabled(env),paid_enabled:paidEnabled(env),vision_enabled:freeEnabled(env)},200,headers);
     }
-    if(request.method!=='POST'||path!=='/api/lwazi')return json({error:'not_found'},404,headers);
+    const isImageRequest=path==='/api/lwazi/image';
+    if(request.method!=='POST'||(path!=='/api/lwazi'&&!isImageRequest))return json({error:'not_found'},404,headers);
     // Private pilot only. No production public inference until quotas/rate-limits exist.
     if(!env.LWAZI_ALLOWED_UIDS)return json({error:'pilot_access_not_configured'},503,headers);
     const token=bearer(request);
@@ -188,12 +223,20 @@ export default {
     if(!identity)return json({error:'authentication_required'},401,headers);
     const allowlist=new Set(String(env.LWAZI_ALLOWED_UIDS).split(',').map(x=>x.trim()));
     if(!allowlist.has(identity.uid))return json({error:'pilot_access_denied'},403,headers);
-    if(Number(request.headers.get('Content-Length'))>MAX_BODY)return json({error:'request_too_large'},413,headers);
+    const sizeLimit=isImageRequest?MAX_IMAGE_BODY:MAX_BODY;
+    if(Number(request.headers.get('Content-Length'))>sizeLimit)return json({error:'request_too_large'},413,headers);
     let body;
     try{
-      const raw=await request.text();if(raw.length>MAX_BODY)return json({error:'request_too_large'},413,headers);
+      const raw=await request.text();if(raw.length>sizeLimit)return json({error:'request_too_large'},413,headers);
       body=JSON.parse(raw);
     }catch{return json({error:'invalid_json'},400,headers)}
+    if(isImageRequest){
+      if(!body||typeof body.image!=='string'||typeof body.question!=='string'||body.question.length>500)
+        return json({error:'invalid_image'},400,headers);
+      const result=await queryFreeVision(body.question,body.image,env);
+      if(result.error)return json({error:result.error},result.error==='invalid_image'?400:result.error==='shared_free_quota_exhausted'?429:503,headers);
+      return json(result,200,headers);
+    }
     if(!body||typeof body.question!=='string'||!body.question.trim()||body.question.length>1500) return json({error:'invalid_question'},400,headers);
     const mode=routeMode(body.question,body.mode);
     const context=publicContext(body.context);

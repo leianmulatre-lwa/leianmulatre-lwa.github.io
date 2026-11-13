@@ -80,6 +80,58 @@
       return output;
     }finally{clearTimeout(timeout);upstreamSignal?.removeEventListener?.('abort',abortFromCaller)}
   }
+  async function imageToJpeg(file){
+    if(!file||!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type)||file.size>10*1024*1024)
+      throw Error('Select a JPG, PNG, WebP or GIF image under 10 MB.');
+    let bitmap=null,objectUrl=null,img=null;
+    try{
+      if(typeof createImageBitmap==='function')bitmap=await createImageBitmap(file);
+      else{
+        objectUrl=URL.createObjectURL(file);
+        img=new Image();img.src=objectUrl;
+        await img.decode();
+      }
+      const width=bitmap?.width||img?.naturalWidth||0,height=bitmap?.height||img?.naturalHeight||0;
+      if(!width||!height)throw Error('Could not open the image.');
+      const ratio=Math.min(1,1280/Math.max(width,height));
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(width*ratio));
+      canvas.height=Math.max(1,Math.round(height*ratio));
+      const ctx=canvas.getContext('2d');
+      if(!ctx)throw Error('Image conversion unavailable.');
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(bitmap||img,0,0,canvas.width,canvas.height);
+      let data=canvas.toDataURL('image/jpeg',.82);
+      if(data.length>2700000)data=canvas.toDataURL('image/jpeg',.60);
+      if(data.length>2700000)throw Error('This image is too large to analyze. Choose a smaller image.');
+      return data;
+    }finally{try{bitmap?.close?.()}catch{}if(objectUrl)URL.revokeObjectURL(objectUrl)}
+  }
+  async function askImage(file,question){
+    if(!window.confirm('Analyze this image with L’wazi? Its resized image and your question will be sent to Cloudflare Workers AI for this request. They will not be added to your public Studio.')){
+      throw Error('Image analysis cancelled.');
+    }
+    const token=await authToken();
+    const data=await imageToJpeg(file);
+    const imageEndpoint=new URL('/api/lwazi/image',endpoint.origin);
+    const controller=new AbortController();
+    const stop=setTimeout(()=>controller.abort(),26000);
+    try{
+      const response=await fetch(imageEndpoint.href,{
+        method:'POST',signal:controller.signal,cache:'no-store',
+        headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},
+        body:JSON.stringify({
+          image:data,
+          question:String(question||'Describe what is visible in this image.').trim().slice(0,500)
+        })
+      });
+      const json=await response.json().catch(()=>({}));
+      if(!response.ok||typeof json.answer!=='string'||!json.answer.trim())
+        throw Error('L’wazi vision: '+String(json.error||response.status));
+      return {answer:json.answer,model:json.model||null};
+    }finally{clearTimeout(stop)}
+  }
+  window.__biglwaAskLwaziImage=askImage;
   window.__biglwaAskLwazi=ask;
   window.__biglwaLwaziBridge={version:'1.0.0',endpoint:endpoint.origin,enabled:true};
 })();
