@@ -25,6 +25,7 @@
     function normalizeCommand(raw){return String(raw||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()}
     function routeCommand(raw){var text=normalizeCommand(raw);if(text==='take me to journal'||text==='open journal'||text==='go to journal'||text==='show my journal')return 'diary';var match=null;Object.keys(widgetRoutes).forEach(function(alias){if(!match&&(text==='take me to '+alias||text==='open '+alias||text==='go to '+alias||text===alias+' open'||text==='show me '+alias||text==='show '+alias))match=widgetRoutes[alias]});if(match)return match;if(/(^|\s)(journal|diary)(\s|$)/.test(text))return 'diary';return null}
     window.__biglwaOpenSearchRoute=goRoute;
+    window.__biglwaOpenSearchCategory=function(category){openPanel(category,{preferredCategory:category});return true};
     function close(){}
     function goRoute(route){close();var control=document.querySelector('[data-open="'+route+'"],button[data-widget-route="'+route+'"],a[href="#'+route+'"]');if(control){control.click();return}window.location.hash=route;setTimeout(function(){var el=document.getElementById(route)||document.querySelector('[data-widget-route="'+route+'"]');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'})},80)}
 
@@ -271,6 +272,8 @@
       var storedTurns=!options.modeChange&&saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
       var submitInput=document.getElementById('globalSearch');
       if(submitInput){submitInput.value=q;submitInput.dataset.blSubmitted='1'}
+      var navCommand=window.BigLWANavigationCommands?.resolve(q);
+      if(navCommand&&window.BigLWANavigationCommands.navigate(navCommand)){close();return}
       var route=routeCommand(q);if(route){goRoute(route);return}
       mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
       var mathResult=window.BigLWAMath?.solve(clean)||null;
@@ -408,7 +411,13 @@
         var b=event.target.closest('button[data-bl-match]');
         if(b&&extraNav.contains(b))activateCategory(b.dataset.blMatch,true);
       });
-      activateCategory('all',false);
+      activateCategory(options.preferredCategory||'all',false);
+      window.__biglwaOpenSearchCategory=function(category){
+        if(panel===current){
+          activateCategory(category,true);return true;
+        }
+        openPanel(category,{preferredCategory:category});return true;
+      };
 
 
       if(aiActive&&/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
