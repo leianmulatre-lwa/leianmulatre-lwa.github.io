@@ -4,6 +4,11 @@ on:
     paths:
       - 'index.html'
       - 'session-restore.js'
+      - 'studio-interaction-stability.js'
+      - 'studio-controls-regression-test.mjs'
+      - 'auth-history-tooltip-regression-test.mjs'
+      - 'studio/index.html'
+      - '404.html'
       - 'studio-onboarding.js'
       - 'module-pages.js'
       - 'login-path-and-guide-test.mjs'
@@ -25,6 +30,7 @@ jobs:
         run: |
           node studio-layout-cache-test.mjs
           node login-path-and-guide-test.mjs
+          node auth-history-tooltip-regression-test.mjs
           node tutorial-symbol-key-test.mjs
           node feed-auth-tools-regression-test.mjs
           node veve-studio-pinterest-regression-test.mjs
