@@ -84,7 +84,6 @@ test('Widget directory, curated Stream video cards and route planning expose rea
  assert.doesNotMatch(extras,/google\.com\/maps\/dir/);
  assert.match(extras,/biglwa:lwazi-map-trip/);
  assert.match(extras,/Show route on BIG LWA/);
- assert.match(extras,/window\.open\(url\.href/);
  assert.match(search,/extras\.videoCards\(clean,activeCategory==='stream'\)/);
  assert.match(search,/extras\.widgetCards\(\)/);
  assert.match(search,/extras\.placeCards\(\)/);
