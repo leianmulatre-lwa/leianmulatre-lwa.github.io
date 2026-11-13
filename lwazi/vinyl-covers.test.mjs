@@ -61,8 +61,8 @@ test('Vinyl CSS is square and scoped only to Songs, preserving the shared dot co
 test('all entrypoints render the same actual vinyl style rather than generic Veve rectangles',()=>{
   for(const path of shells){
     const html=read(path);
-    assert.match(html,/lwazi-music-discovery\.css\?v=20261113-square-vinyl-v2/,path+' loads actual sleeve CSS');
-    assert.match(html,/lwazi-music-discovery\.js\?v=20261106-oembed-fallback-v2/,path+' retains SoundCloud');
+    assert.match(html,/lwazi-music-discovery\.css\?v=20261113-lp-preview-v3/,path+' loads actual sleeve CSS');
+    assert.match(html,/lwazi-music-discovery\.js\?v=20261113-in-site-previews-v3/,path+' retains SoundCloud');
     assert.match(html,/user-search-results\.js\?v=[^"]*&vinyl=20261113-1/,path+' clears cached renderer');
     assert.equal((html.match(/lwazi-music-discovery\.css\?v=/g)||[]).length,1,path+' loads CSS once');
     assert.equal((html.match(/lwazi-music-discovery\.js\?v=/g)||[]).length,1,path+' loads music adapter once');
