@@ -7,10 +7,14 @@ const map=read('map-app.html');
 const studio=read('module-pages.js');
 const planner=read('map-lwa-experience-20261113.js');
 const css=read('map-lwa-experience-20261113.css');
+const router=read('map-lwa-router-20261113.js');
+const extras=read('lwazi-discovery-extras.js');
 test('map source parses, preserves Leaflet marker and private pin flows',()=>{
   for(const [name,src] of [
     ['map-lwa-experience-20261113.js',planner],
-    ['module-pages.js',studio]
+    ['module-pages.js',studio],
+    ['map-lwa-router-20261113.js',router],
+    ['lwazi-discovery-extras.js',extras]
   ])assert.doesNotThrow(()=>new vm.Script(src,{filename:name}));
   const inline=[...map.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
   assert.ok(inline.length>=2,'Leaflet and app initialization preserved');
@@ -51,7 +55,14 @@ test('route interface is labeled, private, and does not pretend to have live ETA
   assert.match(planner,/straight-line distance/);
   assert.match(planner,/not a street route or ETA/);
   assert.match(planner,/BigLWAMapRouteProvider/);
-  assert.match(planner,/Google Maps/);
+  assert.doesNotMatch(planner,/google\.com\/maps/);
+  assert.doesNotMatch(extras,/window\.open\(/);
+  assert.match(extras,/biglwa:lwazi-map-trip/);
+  assert.match(router,/biglwa:lwazi-route-status/);
+  assert.match(router,/polyline6/);
+  assert.match(router,/valhalla1\.openstreetmap\.de/);
+  assert.match(map,/biglwaMapOpenFreeMapOnboarded/);
+  assert.match(css,/map-provider-indicator/);
   assert.match(planner,/Use my location for this trip/);
   assert.match(planner,/fromGps=\{lat:pos\.coords\.latitude,lng:pos\.coords\.longitude\}/);
   assert.match(planner,/event\.origin!==location\.origin\|\|event\.source!==window\.parent/);
