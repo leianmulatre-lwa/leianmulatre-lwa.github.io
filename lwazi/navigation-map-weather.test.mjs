@@ -66,7 +66,7 @@ test('weather displays explicitly chosen city and sits left of account actions',
  assert.doesNotMatch(weather,/navigator\.geolocation/,'Weather never silently accesses precise location');
 });
 test('Map uses existing interactive Leaflet preview and only asks for location on click',()=>{
- assert.match(extras,/src="\/map-app\.html\?preview=1&lwazi=1"/);
+ assert.match(extras,/src="\/map-app\.html\?preview=1&lwazi=1(?:&v=[^"]+)?"/);
  assert.match(extras,/function placePromo\(\)/);
  assert.match(extras,/data-bl-use-location/);
  assert.match(extras,/navigator\.geolocation\.getCurrentPosition\(position=>/);
