@@ -10,7 +10,7 @@ test('general conversation skips citation-source preparation',()=>{
  assert.doesNotMatch(source,/var answerPromise=immediate\?Promise\.resolve\(immediate\):Promise\.all/);
 });
 test('explicit research requests gather bounded sources',()=>{
- assert.match(source,/var needsResearchSources=wantsResearchSources\(clean\)/);
+ assert.match(source,/var needsResearchSources=lwaziMode!=='off'&&wantsResearchSources\(clean\)/);
  assert.match(source,/libraryPromise,Promise\.race\(\[wikiDataPromise/);
  assert.match(source,/setTimeout\(function\(\)\{resolve\(\[\]\)\},1200\)/);
 });
