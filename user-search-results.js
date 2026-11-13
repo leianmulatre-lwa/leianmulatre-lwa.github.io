@@ -300,20 +300,27 @@
       function persistTurns(){
         if(historyId)history?.update(historyId,{mode:lwaziMode,turns:turns});
       }
+      // The header is the opening answer only. Once somebody replies, the
+      // conversation becomes a single chronological transcript so no answer
+      // appears in two places and a user bubble never trails the latest reply.
+      var threaded=turns.length>2;
       function showTurns(){
         if(!turnArea)return;
         turnArea.replaceChildren();
-        // The most recent answer is the prominent one beside the close X.
-        // The conversation beneath it is the continuing transcript.
-        var past=turns.slice(0,turns.at(-1)?.role==='assistant'?-1:undefined);
-        past.forEach(function(turn){
+        answerArea.hidden=!aiActive||threaded;
+        if(!threaded){
+          if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
+          return;
+        }
+        turns.forEach(function(turn,index){
           var card=document.createElement('p');
           card.className='bl-lwazi-turn';
           card.dataset.role=turn.role;
+          card.dataset.latest=String(index===turns.length-1&&turn.role==='assistant');
           card.textContent=(turn.role==='assistant'?'L’wazi · ':'You · ')+turn.text;
           turnArea.appendChild(card);
         });
-        if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
+        turnArea.scrollTop=turnArea.scrollHeight;
       }
       if(aiActive){
         if(storedTurns.length)showTurns();
@@ -327,23 +334,34 @@
         var follow=String(input.value||'').trim().slice(0,450);
         if(!follow||send.disabled)return;
         input.value='';
-        var prior=turns.slice(-5).map(function(t){return (t.role==='user'?'User: ':'L’wazi: ')+t.text.slice(0,170)}).join('\n');
-        var fullPrompt=('Continue this conversation with a direct reply to the latest user message.\n'+prior+'\nUser: '+follow+'\nL’wazi:').slice(-1450);
-        turns.push({role:'user',text:follow});turns=turns.slice(-12);
+        // Build context before appending this turn; do not repeat the newest
+        // user message twice in the model prompt.
+        var prior=turns.slice(-6).map(function(t){return (t.role==='user'?'User: ':'L’wazi: ')+t.text.slice(0,220)}).join('\n');
+        var fullPrompt=('You are L’wazi inside BIG LWA. Reply to the latest user conversationally, with wit, warmth, personality, and a little playful confidence when it fits; no corporate chatbot filler or forced slang. Be precise and acknowledge uncertainty.\n'+prior+'\nUser: '+follow+'\nL’wazi:').slice(-1850);
+        threaded=true;
+        turns.push({role:'user',text:follow},{role:'assistant',text:'Thinking…'});
+        turns=turns.slice(-12);
         showTurns();persistTurns();
-        renderAnswer(answerBody,'L’wazi is thinking…');
         send.disabled=true;
+        var liveTurn=turns.at(-1);
         try{
-          var response=await askLwazi(fullPrompt,[],function(partial){
-            if(panel===current)renderAnswer(answerBody,partial);
+          // Use our fast, authored small-talk voice for appropriate follow-ups;
+          // the same model handles substantive follow-up questions.
+          var quick=fastLwaziResponse(follow);
+          var response=quick||await askLwazi(fullPrompt,[],function(partial){
+            if(panel!==current||turns.at(-1)!==liveTurn)return;
+            liveTurn.text=String(partial||'').slice(0,1200);
+            var last=turnArea.lastElementChild;
+            if(last){last.textContent='L’wazi · '+liveTurn.text;turnArea.scrollTop=turnArea.scrollHeight}
           });
-          if(panel!==current)return;
-          var text=String(response||'No answer available.');
-          turns.push({role:'assistant',text:text.slice(0,1200)});
-          turns=turns.slice(-12);persistTurns();showTurns();
+          if(panel!==current||turns.at(-1)!==liveTurn)return;
+          liveTurn.text=String(response||'No answer available.').slice(0,1200);
         }catch(e){
-          if(panel===current)renderAnswer(answerBody,explainModelFailure(e)||'L’wazi could not finish that answer. You can ask again.');
-        }finally{send.disabled=false;}
+          if(panel!==current||turns.at(-1)!==liveTurn)return;
+          liveTurn.text=explainModelFailure(e)||'That reply did not come through. Ask me again.';
+        }finally{
+          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus()}
+        }
       });
       if(options.imageOnly||mathResult){
         // Image selection and deterministic math should never launch unrelated
