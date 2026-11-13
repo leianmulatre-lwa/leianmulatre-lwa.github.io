@@ -85,10 +85,10 @@ function placeCards(){
  '<article class="bl-search-card bl-route-result bl-lwazi-map-card"><div class="bl-search-card-body">'+
  '<span class="bl-search-kicker">BIG LWA · Maps & directions</span><h3>Plan a trip</h3>'+
  '<p>Explore the interactive map. Your location is optional and is used only after you ask.</p>'+
- '<div class="bl-lwazi-map-stage"><iframe loading="lazy" src="/map-app.html?preview=1&lwazi=1" title="Interactive BIG LWA map preview" referrerpolicy="same-origin"></iframe>'+
+ '<div class="bl-lwazi-map-stage"><iframe loading="lazy" src="/map-app.html?preview=1&lwazi=1&v=20261113-stay-2" title="Interactive BIG LWA map preview" referrerpolicy="same-origin"></iframe>'+
  '<button type="button" class="bl-lwazi-use-location" data-bl-use-location>⌖ Use current location</button></div>'+
  '<form class="bl-lwazi-transit-form">'+
- '<label>From <input name="origin" type="text" maxlength="160" autocomplete="off" required placeholder="Place, city, or coordinates"></label>'+
+ '<label>From <input name="origin" type="text" maxlength="160" autocomplete="off" placeholder="Starting place or coordinates (optional)"></label>'+
  '<label>To <input name="destination" type="text" maxlength="160" required placeholder="Place or address"></label>'+
  '<label>Travel by <select name="mode"><option value="transit">Public transit</option><option value="walking">Walking</option><option value="driving">Driving</option><option value="bicycling">Cycling</option></select></label>'+
  '<button class="bl-search-go bl-search-primary-action" type="submit">Show route on BIG LWA ↗</button>'+
@@ -183,7 +183,7 @@ function attach(panel){
   const frame=stage?.querySelector('iframe');
   const note=form.parentElement?.querySelector('.bl-trip-note');
   if(!frame){if(note)note.textContent='Map preview unavailable. Open the BIG LWA Map widget instead.';return;}
-  if(!from){if(note)note.textContent='Enter a starting place or select Use current location first.';return;}
+  // A destination alone recenters the map; a starting place gives a route.
   if(note)note.textContent='Finding your route inside BIG LWA…';
   stage?.classList.add('bl-lwazi-route-active');
   const request={type:'biglwa:lwazi-map-trip',from,to,mode};
