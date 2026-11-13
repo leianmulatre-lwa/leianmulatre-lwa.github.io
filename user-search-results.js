@@ -247,6 +247,7 @@
       var q=String(raw==null?'':raw).trim().replace(/^@/,'').replace(/^ask lwazi\s*/i,'').trim();if(!q)return;
       options=options||{};
       var history=historyService(),saved=options.historyId&&history?.read().find(function(item){return item.id===options.historyId});
+      if(saved&&saved.q!==q)saved=null;
       if(saved&&options.restore){
         lwaziMode=['npc','deep'].includes(saved.mode)?saved.mode:'off';syncLwaziMode();
       }
