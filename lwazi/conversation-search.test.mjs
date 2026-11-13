@@ -82,5 +82,5 @@ test('English question words do not force sourcing or a slower model',()=>{
 test('search no longer overwrites a streamed response with source status',()=>{
   assert.doesNotMatch(source,/box\.textContent='Found '\+matches\.length/);
   assert.match(source,/L’wazi is thinking…/);
-  assert.match(source,/var needsResearchSources=wantsResearchSources\(clean\)/);
+  assert.match(source,/var needsResearchSources=lwaziMode!=='off'&&wantsResearchSources\(clean\)/);
 });
