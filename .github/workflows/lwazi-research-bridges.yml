@@ -32,6 +32,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install simulated-browser test dependency
+        run: npm install --no-save --no-package-lock --ignore-scripts jsdom@26
       - name: Syntax and interaction regressions
         run: |
           node --check lwazi-book-handoff-20261113.js
