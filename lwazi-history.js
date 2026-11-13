@@ -119,8 +119,10 @@
      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')
    ]).then(([a,b])=>{
-     const app=a.getApps().find(x=>x.options?.projectId==='biglwa');
-     if(!app){setUid('');return}
+     const app=a.getApps().find(x=>x.options?.projectId==='biglwa')||
+       a.initializeApp({apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+         authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
+         appId:'1:83232670555:web:e04927b20458390b3b507e'});
      b.onAuthStateChanged(b.getAuth(app),user=>setUid(user?.uid||''));
    }).catch(()=>{if(status)status.textContent='History will appear after account sign-in is available.'});
  }
