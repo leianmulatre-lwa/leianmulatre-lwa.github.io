@@ -280,6 +280,16 @@ export async function mountCraftSuite(root){
   panel.scrollIntoView({block:'nearest',behavior:'smooth'});
   return true;
  }
+ // Expose one guarded launch API to the Studio carousel and L'wazi commands.
+ // A disabled native engine is reported clearly; it is never impersonated.
+ window.BigLWACraftLaunch=(id)=>{
+   if(!root.isConnected)return false;
+   const known=safeId(id);
+   if(known&&ready.has(id))return open(id);
+   status.textContent=known?'That R editor is not available in this deployment. Its verified browser build must be published before it can open.':'Unknown Workshop app.';
+   return false;
+ };
+ const announce=()=>document.dispatchEvent(new CustomEvent('biglwa:craft-ready',{detail:{available:[...ready]}}));
  root.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button||!root.contains(button))return;
   const id=button.dataset.craftOpen;
@@ -324,6 +334,7 @@ export async function mountCraftSuite(root){
   button.textContent=ready.has(app.id)?'Edit inside BIG LWA →':'Browser engine unavailable';
   if(!ready.has(app.id))tile.classList.add('craft-unavailable');
  }
+ announce();
  function editFile(file){
   if(!(file instanceof File)||!/^image\/(png|jpeg|webp|gif|avif)$/.test(file.type))return false;
   const alreadyOpen=current===LOCAL.id;

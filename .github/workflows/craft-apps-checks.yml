@@ -10,6 +10,9 @@ on:
       - '.github/scripts/test-bigapps-routing.py'
       - '.github/workflows/craft-apps-checks.yml'
       - '.github/workflows/pages.yml'
+      - '.github/workflows/deploy-pages.yml'
+      - 'studio-lwazi-thumbnail-20261026.js'
+      - 'lwazi-navigation-commands.js'
   workflow_dispatch:
 
 permissions:
@@ -31,25 +34,35 @@ jobs:
           node tools-studio-test.mjs
           node --check tools-studio.js
           test -f tools/image-desk.html
-      - name: Download and verify licensed ArtCraft WASM release artifacts
+      - name: Download checksum-pinned native BIG LWA release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p "${RUNNER_TEMP}/craft-test"
-          python3 .github/scripts/stage-craft-apps.py "${RUNNER_TEMP}/craft-test"
-      - name: Check browser apps are genuinely runnable release builds
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/native-editor" "$RUNNER_TEMP/craft-test"
+          tag=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["tag"])')
+          asset=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive"])')
+          sha=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive_sha256"])')
+          gh release download "$tag" --pattern "$asset" --dir "$RUNNER_TEMP/native-editor"
+          printf '%s  %s\n' "$sha" "$RUNNER_TEMP/native-editor/$asset" | sha256sum --check --status
+          BIGLWA_NATIVE_ARCHIVE="$RUNNER_TEMP/native-editor/$asset" \
+            python3 .github/scripts/stage-craft-apps.py "$RUNNER_TEMP/craft-test"
+      - name: Validate four working public R editor URLs and notices
         run: |
           python3 - <<'PY'
           import json,os,pathlib
-          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'craft-test/craftapps'
-          manifest=json.loads((root/'manifest.json').read_text())
-          print(manifest)
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'craft-test'
+          manifest=json.loads((root/'bigapps/manifest.json').read_text())
+          names={'photocraft':'lightR','vectorcraft':'paintR','effectcraft':'keyframeR','pdfcraft':'fileR'}
           assert len(manifest['apps'])==4
           for row in manifest['apps']:
-              app=root/row['id']
-              assert row['available'],f"No verified WebAssembly build for {row['id']}"
-              assert (app/'index.html').exists(),f"No editor HTML for {row['id']}"
-              assert any(app.rglob('*.wasm')),f"No WASM editor for {row['id']}"
+              assert row['id'] in names and row['available'] and row.get('build')=='biglwa-native',row
+              app=root/'bigapps'/names[row['id']]
+              assert (app/'index.html').exists(),app
+              assert any(app.rglob('*.wasm')),app
               assert (app/'upstream-licenses/LICENSE-MIT').exists()
               assert (app/'upstream-licenses/LICENSE-APACHE').exists()
-              legacy=pathlib.Path(os.environ['RUNNER_TEMP'])/'craft-test/craftapps'/row['id']/'index.html'
-              assert legacy.exists() and ('/bigapps/'+row['id']+'/') in legacy.read_text()
+              legacy=root/'craftapps'/row['id']/'index.html'
+              assert legacy.exists() and ('/bigapps/'+names[row['id']]+'/') in legacy.read_text()
+          print('PASS: four native verified BIG LWA R apps, routes and license notices.')
           PY

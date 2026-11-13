@@ -32,7 +32,19 @@ function widgetCards(){
   '<div class="bl-widget-symbol" aria-hidden="true">'+esc(icons[id]||'◈')+'</div>'+
   '<div class="bl-search-card-body"><span class="bl-search-kicker">Skeleton Key · Widget</span>'+
   '<h3>'+esc(title)+'</h3><button type="button" class="bl-search-go bl-search-primary-action" data-lwazi-route="'+esc(id)+'">Open widget ↗</button>'+
-  '</div></article>');
+  '</div></article>').concat([
+   ['image-desk','sqwibblR','Draw, paint and edit locally'],
+   ['visualizr','visualizr','Build visual boards and slides'],
+   ['photocraft','lightR','Layered photo editor'],
+   ['vectorcraft','paintR','Vector editor'],
+   ['effectcraft','keyframeR','Timeline and effects editor'],
+   ['pdfcraft','fileR','PDF and document editor']
+  ].map(([id,title,description])=>
+   '<article class="bl-search-card bl-widget-result bl-craft-app-result" data-bl-craft-app-card="'+esc(id)+'">'+
+   '<img class="bl-craft-app-symbol" src="/assets/bigapps/icons/'+esc(title)+'.png?v=20261026-original-stitch-1" alt="">'+
+   '<div class="bl-search-card-body"><span class="bl-search-kicker">L’wazi · R Workshop</span><h3>'+esc(title)+'</h3>'+
+   '<p>'+esc(description)+'</p><button type="button" class="bl-search-go bl-search-primary-action" data-bl-craft-app="'+esc(id)+'">Open R app ↗</button></div></article>'
+  ));
 }
 function allVideos(){
  const guide=window.BigLWAStreamGuide;
@@ -115,6 +127,14 @@ function attach(panel){
  if(!panel||panel.dataset.lwaziExtrasBound)return;
  panel.dataset.lwaziExtrasBound='true';
  panel.addEventListener('click',event=>{
+  const rButton=event.target.closest('[data-bl-craft-app]');
+  if(rButton&&panel.contains(rButton)){
+    event.preventDefault();
+    const id=rButton.dataset.blCraftApp;
+    if(typeof window.BigLWAOpenCraftApp==='function')window.BigLWAOpenCraftApp(id);
+    else window.__biglwaOpenSearchRoute?.('tools');
+    return;
+  }
   const watch=event.target.closest('[data-bl-watch-stream]');
   if(watch&&panel.contains(watch)){event.preventDefault();watchOnStream(watch.dataset.blWatchStream)}
  });

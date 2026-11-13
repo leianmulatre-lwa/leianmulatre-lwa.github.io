@@ -1,0 +1,48 @@
+name: Lwazi R Workshop, Library and Politic research bridges
+on:
+  pull_request:
+    paths:
+      - 'user-search-results.js'
+      - 'lwazi-discovery-extras.js'
+      - 'lwazi-book-handoff-20261113.js'
+      - 'politc-research-desk-20261113.js'
+      - 'lwazi-library-politic-research-20261113.css'
+      - 'studio-lwazi-thumbnail-20261026.js'
+      - 'lwazi-navigation-commands.js'
+      - 'tools-craft.js'
+      - 'tools-studio.js'
+      - 'module-pages.js'
+      - 'lwazi-library-politic-reconnect-test.mjs'
+      - '.github/workflows/lwazi-research-bridges.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lwazi-book-handoff-20261113.js'
+      - 'politc-research-desk-20261113.js'
+      - 'lwazi-library-politic-research-20261113.css'
+      - 'lwazi-library-politic-reconnect-test.mjs'
+permissions:
+  contents: read
+jobs:
+  bridges:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install simulated-browser test dependency
+        run: npm install --no-save --no-package-lock --ignore-scripts jsdom@26
+      - name: Syntax and interaction regressions
+        run: |
+          node --check lwazi-book-handoff-20261113.js
+          node --check politc-research-desk-20261113.js
+          node --check studio-lwazi-thumbnail-20261026.js
+          node --check user-search-results.js
+          node --check module-pages.js
+          node --input-type=module --check < tools-craft.js
+          node --test lwazi-library-politic-reconnect-test.mjs
+          node --test lwazi/expanded-discovery.test.mjs lwazi/navigation-map-weather.test.mjs
+          node studio-lwazi-horizontal-regression-test.mjs
+          node lwazi-search-regression-test.mjs

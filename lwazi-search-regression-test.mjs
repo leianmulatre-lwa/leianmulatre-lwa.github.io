@@ -65,6 +65,7 @@ assert.doesNotMatch(search,/Coffee-level processing speed|petty-level discernmen
 assert.match(search,/var isSocialGreeting=/,'Do not run irrelevant public searches for simple conversational greetings');
 assert.match(search,/if\(window\.__biglwaLwaziSearchUi\)window\.__biglwaLwaziSearchUi\.bind\(panel\)/,'Search binds actual contextual card controls');
 assert.match(search,/window\.__biglwaLwaziSearchUi\.refresh\(current\)/,'Explicit user blocks apply to refreshed results');
-assert.match(search,/internalButton\('Open in Library','library'\)/,'Book results use the internal BIG LWA Library route');
+assert.match(search,/data-lwazi-book-open="1"/,'Books pass their selected identity through the Library handoff');
+assert.match(search,/BigLWABookHandoff\?\.openCard\(card\)/,'Book results call the exact-book Library handoff');
 assert.match(search,/bl-search-primary-action/,'Book Library action is styled as the main Veve control');
 assert.doesNotMatch(search,/<div class="bl-lwazi-answer-body"Finding/,'Answer HTML should be valid');

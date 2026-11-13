@@ -61,11 +61,16 @@
       var cover=bookCover(b),meta=(b.author_name||[]).slice(0,2).join(', ')+(b.first_publish_year?' · '+b.first_publish_year:'');
       var path=String(b.key||'');
       var libraryUrl=/^\/(?:works|books)\/[a-zA-Z0-9_-]+$/.test(path)?'https://openlibrary.org'+path:'';
-      return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'"'+(libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
+      return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'"'+
+        ' data-bl-book-key="'+esc(path)+'" data-bl-book-title="'+esc(b.title||'Untitled')+
+        '" data-bl-book-author="'+esc((b.author_name||[]).slice(0,3).join(', '))+
+        '" data-bl-book-year="'+esc(b.first_publish_year||'')+
+        '" data-bl-book-cover="'+esc(cover)+'"'+
+        (libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
         (cover?'<img class="bl-search-card-media" src="'+esc(cover)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy">':'')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Book</span><h3>'+esc(b.title||'Untitled')+'</h3>'+
         '<p class="bl-search-muted">'+esc(meta)+'</p>'+
-        internalButton('Open in Library','library')+
+        '<button type="button" class="bl-search-go bl-search-route bl-search-primary-action" data-lwazi-route="library" data-lwazi-book-open="1">Open in Library &#8599;</button>'+
         '</div></article>';
     }
     function songCard(s){
@@ -470,7 +475,13 @@
         }if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
         // Search always starts in All; preserve a user's later manual tab selection.
         activateCategory(activeCategory,false);
-        panel.querySelectorAll('[data-lwazi-route]').forEach(function(button){button.addEventListener('click',function(){goRoute(button.dataset.lwaziRoute)})});
+        panel.querySelectorAll('[data-lwazi-route]').forEach(function(button){button.addEventListener('click',function(){
+          if(button.dataset.lwaziBookOpen==='1'){
+            var card=button.closest('.bl-search-book');
+            if(window.BigLWABookHandoff?.openCard(card))return;
+          }
+          goRoute(button.dataset.lwaziRoute);
+        })});
       }
       [userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise].forEach(function(job,i){
         Promise.resolve(job).then(function(found){
