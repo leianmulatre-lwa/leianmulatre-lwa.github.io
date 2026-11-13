@@ -2938,7 +2938,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         // Do not turn this into a generic proxy/iframe allowance for other hosts.
         if(game.launch==='embed'){
           if(target.protocol==='https:'&&target.hostname==='www.y8.com'&&
-            /^\/embed\/[a-z0-9_]+$/.test(target.pathname)){
+            /^\/embed\/[a-z0-9_-]+$/.test(target.pathname)){
             tryEmbedded();return;
           }
           showGameLinks(game);return;
