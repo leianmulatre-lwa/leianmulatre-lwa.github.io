@@ -41,7 +41,7 @@
     const abortFromCaller=()=>controller.abort();
     if(upstreamSignal?.aborted)controller.abort();
     else upstreamSignal?.addEventListener?.('abort',abortFromCaller,{once:true});
-    const timeout=setTimeout(()=>controller.abort(),options?.mode==='deep'?32000:19000);
+    const timeout=setTimeout(()=>controller.abort(),options?.mode==='deep'?26000:12000);
     try{
       const publicSources=Array.isArray(sources)?sources.slice(0,6).map(x=>({
         title:String(x.title||'').slice(0,140),

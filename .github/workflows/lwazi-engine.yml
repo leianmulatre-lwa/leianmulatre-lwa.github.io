@@ -7,6 +7,10 @@ on:
     paths:
       - 'lwazi/**'
       - 'lwazi-client.js'
+      - 'studio/index.html'
+      - '404.html'
+      - 'live-studio-shell.html'
+      - 'functions/api/lwazi.js'
       - 'user-search-results.js'
       - 'lwazi-music-discovery.js'
       - 'lwazi-music-discovery.css'
@@ -21,6 +25,10 @@ on:
     paths:
       - 'lwazi/**'
       - 'lwazi-client.js'
+      - 'studio/index.html'
+      - '404.html'
+      - 'live-studio-shell.html'
+      - 'functions/api/lwazi.js'
       - 'user-search-results.js'
       - 'lwazi-music-discovery.js'
       - 'lwazi-music-discovery.css'
@@ -57,6 +65,6 @@ jobs:
           node --check profile-music.js
           node --check tools-craft.js
       - name: Engine unit and mocked integration tests
-        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs lwazi/fast-answer-latency.test.mjs
+        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs lwazi/fast-answer-latency.test.mjs lwazi/staging-bridge.test.mjs
       - name: Preserve existing Studio search contracts
         run: node lwazi-search-regression-test.mjs
