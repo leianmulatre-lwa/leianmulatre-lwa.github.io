@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -44,6 +45,28 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
+      # GitHub Pages sometimes cannot discover a freshly uploaded artifact
+      # immediately. Rerunning a failed job may produce duplicate artifacts;
+      # a new workflow run plus this guard avoids both races.
+      - name: Confirm exactly one Pages artifact is registered
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 20); do
+            count=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '[.artifacts[] | select(.name=="github-pages")] | length' || echo 0)
+            echo "Pages artifact count: ${count} (attempt ${i})"
+            if [ "${count}" = "1" ]; then
+              sleep 5
+              exit 0
+            fi
+            if [ "${count}" -gt 1 ]; then
+              echo "Refusing to deploy ambiguous duplicate Pages artifacts."
+              exit 1
+            fi
+            sleep 3
+          done
+          echo "Timed out waiting for the Pages artifact to be indexed."
+          exit 1
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
