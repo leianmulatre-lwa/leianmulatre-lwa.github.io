@@ -67,7 +67,7 @@ test('timed-out live requests are cancelled, not left running after fallback',()
   assert.match(source,/signal:hookController\.signal/);
   assert.match(client,/const upstreamSignal=options\?\.signal/);
   assert.match(client,/upstreamSignal\?\.addEventListener\?\.\('abort',abortFromCaller/);
-  assert.match(client,/options\?\.mode==='deep'\?32000:19000/);
+  assert.match(client,/options\?\.mode==='deep'\?26000:12000/);
 });
 
 
