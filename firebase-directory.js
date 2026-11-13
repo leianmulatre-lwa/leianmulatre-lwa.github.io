@@ -189,7 +189,7 @@ function sanitizeHighlightEdits(raw){
   };
   const keep=entry=>({
     title:safeText(entry?.title,48),cover:cover(entry?.cover),
-    x:Math.max(0,Math.min(100,Number(entry?.x)||50)),y:Math.max(0,Math.min(100,Number(entry?.y)||50)),
+    x:Math.max(0,Math.min(100,entry?.x==null||!Number.isFinite(Number(entry.x))?50:Number(entry.x))),y:Math.max(0,Math.min(100,entry?.y==null||!Number.isFinite(Number(entry.y))?50:Number(entry.y))),
     hidden:!!entry?.hidden,
     order:Array.isArray(entry?.order)?[...new Set(entry.order.filter(i=>Number.isInteger(i)&&i>=0&&i<100))].slice(0,50):null,
     added:Array.isArray(entry?.added)?entry.added.slice(0,12).flatMap(item=>{

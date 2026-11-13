@@ -218,3 +218,26 @@ body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-send-status{c
 
 /* Rank wording must be readable against the red curtain wallpaper. */
 #studioApp#studioApp .profile-card .profile-copy>.real-rank :is(.rank-label,strong,.rank-next){color:#000!important;opacity:1!important;text-shadow:none!important}
+
+/* The title and crop controls are two separate, real actions. The cover keeps
+   tracking the pointer outside its small circular hit target, including touch. */
+#studioApp #archiveHighlightsPanel .highlight-row-head-actions .highlight-title-edit-button{
+ min-width:78px!important;padding:8px 11px!important;
+ border-color:#a24b67!important;white-space:nowrap!important;
+}
+#studioApp #archiveHighlightsPanel .highlight-row-head-actions .highlight-title-edit-button[data-editing="1"]{
+ background:#864053!important;color:#fff!important;
+}
+#studioApp #archiveHighlightsPanel .highlight-edit-cover.is-adjusting{
+ touch-action:none!important;overscroll-behavior:contain;
+}
+#studioApp #archiveHighlightsPanel .highlight-edit-cover img{
+ -webkit-user-drag:none!important;user-select:none!important;
+ transform-origin:center center;
+}
+#studioApp #archiveHighlightsPanel input[aria-label="Highlight title"]:focus-visible{
+ outline:2px solid #ad5078!important;outline-offset:2px!important;
+}
+#studioApp #archiveHighlightsPanel .highlight-item-card[data-preview-unavailable="true"] .highlight-item-media{
+ outline:1px dashed #ae657b;
+}

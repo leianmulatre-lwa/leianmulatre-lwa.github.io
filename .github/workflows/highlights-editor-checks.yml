@@ -1,0 +1,38 @@
+name: Highlights preview and crop regression
+on:
+  pull_request:
+    paths:
+      - 'profile-highlight-editor.js'
+      - 'imported-profile-highlights.js'
+      - 'profile-highlight-editor.css'
+      - 'firebase-directory.js'
+      - 'profile-highlight-editor-test.mjs'
+      - 'imported-profile-highlights-test.mjs'
+      - 'studio-media-adjust-test.mjs'
+      - 'archive-highlights-space-regression-test.mjs'
+      - 'index.html'
+      - 'studio/index.html'
+      - '.github/workflows/highlights-editor-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  highlights:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only browser DOM
+        run: npm install --no-save --no-package-lock --ignore-scripts jsdom@26.1.0
+      - name: Verify Highlights source previews, title, crop and account preservation
+        run: |
+          node --check profile-highlight-editor.js
+          node --check imported-profile-highlights.js
+          node --check firebase-directory.js
+          node profile-highlight-editor-test.mjs
+          node imported-profile-highlights-test.mjs
+          node studio-media-adjust-test.mjs
+          node archive-highlights-space-regression-test.mjs

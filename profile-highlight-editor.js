@@ -13,6 +13,18 @@
   if(value.startsWith('/assets/highlights/')&&image&&/^\/assets\/highlights\/[a-zA-Z0-9._-]+$/.test(value))return value;
   try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&u.href.length<1300?u.href:''}catch{return ''}
  };
+ // Imported Instagram media and its image proxy URLs can carry long, signed
+ // query strings. They are displayed read-only and are NEVER persisted as a
+ // cover or uploaded to customization records without the normal cleanUrl gate.
+ const sourcePreviewUrl=raw=>{
+  const value=String(raw||'').trim();
+  if(value.startsWith('/assets/highlights/')&&/^\/assets\/highlights\/[a-zA-Z0-9._-]{1,180}$/.test(value))return value;
+  if(!value||value.length>16000)return '';
+  try{
+   const u=new URL(value);
+   return u.protocol==='https:'&&!u.username&&!u.password&&!u.port?u.href:'';
+  }catch{return ''}
+ };
  const cleanItem=(raw)=>{
   const mediaUrl=cleanUrl(raw?.mediaUrl);
   return mediaUrl?{kind:raw.kind==='video'?'video':'image',mediaUrl}:null;
@@ -38,8 +50,10 @@
   return result;
  };
  let state=empty(),publicState=null,stateOwner='',remoteLoaded=false,saveBusy=false;
+ let draftRevision=0;
+ const touchDraft=()=>{draftRevision++};
  const isPreview=()=>!!window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode');
- const get=()=>{if(isPreview())return publicState||empty();const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
+ const get=()=>{if(isPreview())return publicState||empty();const who=owner();if(!who)return empty();if(stateOwner!==who){stateOwner=who;remoteLoaded=false;draftRevision=0;try{state=normalize(JSON.parse(localStorage.getItem(storageKey())||'null'))}catch{state=empty()}}return state};
  const archiveSource=()=>{
   try{
    const parsed=JSON.parse(localStorage.getItem('biglwaArchiveFilters')||'null');
@@ -69,7 +83,11 @@
  const status=message=>{const box=el('#biglwaHighlightStatus');if(box)box.textContent=message};
  const pictureStatus=message=>{const box=el('#biglwaProfilePictureStatus');if(box)box.textContent=message};
  function applyCover(img,record){
-  img.style.objectPosition=(record.x??50)+'% '+(record.y??50)+'%';
+  const x=record.x??50,y=record.y??50;
+  img.style.objectPosition=x+'% '+y+'%';
+  // A square image naturally has no object-fit overflow to pan. Give both
+  // axes a small real framing margin, including once shown on the banner.
+  img.style.transform='translate('+((50-x)*.24).toFixed(2)+'%, '+((50-y)*.24).toFixed(2)+'%) scale(1.12)';
  }
  function customize(group,index){
   const entry=get().imported[String(index)];
@@ -156,16 +174,23 @@
   return 'Posted to My Feed.';
  }
  async function remote(){
-  if(!owner()||remoteLoaded)return;
+  const who=owner(),revision=draftRevision;
+  if(!who||remoteLoaded)return;
+  let applied=false;
   try{
    const snap=await window.BigLWAUserDirectory?.loadProfile?.();
-   if(snap?.uid===owner()&&snap.customization?.session?.highlightEdits){
-    state=normalize(snap.customization.session.highlightEdits);
-    localStorage.setItem(storageKey(),JSON.stringify(state));
+   // A slow remote read must not overwrite a title/crop edited while it ran,
+   // nor switch to a different member's Highlights after account changes.
+   if(snap?.uid===who&&owner()===who){
+    if(revision===draftRevision&&snap.customization?.session?.highlightEdits){
+     state=normalize(snap.customization.session.highlightEdits);
+     localStorage.setItem(storageKey(),JSON.stringify(state));
+     applied=true;
+    }
+    remoteLoaded=true;
    }
-   if(snap?.uid===owner())remoteLoaded=true;
   }catch{}
-  refresh();render();
+  if(applied){refresh();render()}
  }
  function toImage(file){
   return new Promise((resolve,reject)=>{
@@ -225,21 +250,30 @@
   wrap.dataset.highlightImported=isImported?'true':'false';
   const circle=make('span','highlight-edit-cover');
   const picture=document.createElement('img');picture.alt='Highlight cover preview';
+  picture.draggable=false;
   picture.src=data.cover||group.cover||'/assets/tv-no-signal.svg';applyCover(picture,data);circle.append(picture);
   const h=make('strong','',isImported?'Imported highlight '+(index+1):'Custom highlight');
   const adjustButton=make('button','highlight-cover-adjust-button','Adjust');
   adjustButton.type='button';adjustButton.setAttribute('aria-pressed','false');
   adjustButton.setAttribute('aria-label','Adjust '+(data.title||group.title||'highlight')+' circle cover by dragging');
   const headActions=make('div','highlight-row-head-actions');
-  headActions.append(h,adjustButton);
+  const editTitle=make('button','highlight-title-edit-button','Edit title');
+  editTitle.type='button';editTitle.setAttribute('aria-label','Edit '+(data.title||group.title||'Highlight')+' title');
+  headActions.append(h,editTitle,adjustButton);
   head.append(circle,headActions);wrap.append(head);
   // Explicit opt-in dragging: crop positions are persisted with the existing
   // Highlight record (x/y), without modifying the imported original image.
   let adjusting=false,drag=null;
+  const clearDrag=()=>{
+   drag=null;
+   document.removeEventListener('pointermove',moveDrag,true);
+   document.removeEventListener('pointerup',endDrag,true);
+   document.removeEventListener('pointercancel',endDrag,true);
+  };
   const clamp=v=>Math.max(0,Math.min(100,Math.round(v)));
-  const place=(x,y)=>{data.x=clamp(x);data.y=clamp(y);applyCover(picture,data)};
+  const place=(x,y)=>{data.x=clamp(x);data.y=clamp(y);applyCover(picture,data);touchDraft()};
   const enableAdjust=on=>{
-   adjusting=on;drag=null;
+   adjusting=on;clearDrag();
    circle.classList.toggle('is-adjusting',on);
    circle.style.touchAction=on?'none':'';
    circle.tabIndex=on?0:-1;
@@ -248,23 +282,26 @@
    circle.setAttribute('aria-label',on?'Drag to reposition cover. Arrow keys also work.':'Highlight cover preview');
   };
   adjustButton.addEventListener('click',()=>{enableAdjust(!adjusting);if(adjusting)circle.focus()});
-  circle.addEventListener('pointerdown',event=>{
-   if(!adjusting||event.button!==0)return;
-   event.preventDefault();
-   drag={pointer:event.pointerId,x:event.clientX,y:event.clientY,coverX:data.x??50,coverY:data.y??50};
-   try{circle.setPointerCapture(event.pointerId)}catch{}
-  });
-  circle.addEventListener('pointermove',event=>{
+  function moveDrag(event){
    if(!adjusting||!drag||drag.pointer!==event.pointerId)return;
    event.preventDefault();
    const box=circle.getBoundingClientRect();
-   const size=Math.max(1,box.width);
-   place(drag.coverX+(event.clientX-drag.x)*100/size,drag.coverY+(event.clientY-drag.y)*100/size);
+   place(drag.coverX+(event.clientX-drag.x)*100/Math.max(1,box.width),
+         drag.coverY+(event.clientY-drag.y)*100/Math.max(1,box.height));
+  }
+  function endDrag(event){if(drag&&drag.pointer===event.pointerId)clearDrag()}
+  circle.addEventListener('dragstart',event=>event.preventDefault());
+  circle.addEventListener('pointerdown',event=>{
+   if(!adjusting||event.button!==0)return;
+   event.preventDefault();
+   clearDrag();
+   drag={pointer:event.pointerId,x:event.clientX,y:event.clientY,coverX:data.x??50,coverY:data.y??50};
+   document.addEventListener('pointermove',moveDrag,true);
+   document.addEventListener('pointerup',endDrag,true);
+   document.addEventListener('pointercancel',endDrag,true);
+   try{circle.setPointerCapture(event.pointerId)}catch{}
   });
-  const endDrag=event=>{if(drag?.pointer===event.pointerId)drag=null};
-  circle.addEventListener('pointerup',endDrag);
-  circle.addEventListener('pointercancel',endDrag);
-  circle.addEventListener('lostpointercapture',()=>{drag=null});
+  circle.addEventListener('lostpointercapture',clearDrag);
   circle.addEventListener('keydown',event=>{
    if(!adjusting||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
    event.preventDefault();
@@ -273,22 +310,38 @@
          (data.y??50)+(event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0));
   });
   const fields=make('div','highlight-edit-fields');
-  const title=input('text',data.title||group.title||'','Name',value=>{data.title=value.slice(0,48);});
-  title.querySelector('input').maxLength=48;fields.append(title);
+  const title=input('text',data.title||group.title||'','Name',value=>{data.title=value.slice(0,48);touchDraft()});
+  const titleField=title.querySelector('input');
+  titleField.maxLength=48;titleField.setAttribute('aria-label','Highlight title');
+  fields.append(title);
+  editTitle.addEventListener('click',async()=>{
+   if(editTitle.dataset.editing==='1'){
+    editTitle.dataset.editing='0';editTitle.textContent='Edit title';
+    await save();
+    return;
+   }
+   editTitle.dataset.editing='1';editTitle.textContent='Save title';
+   titleField.focus();titleField.select();
+  });
+  titleField.addEventListener('keydown',event=>{
+   if(event.key==='Enter'&&editTitle.dataset.editing==='1'){
+    event.preventDefault();editTitle.click();
+   }
+  });
   const covers=make('div','highlight-cover-controls');
   covers.append(make('p','highlight-cover-adjust-hint','Select Adjust above, then drag the circle cover to reposition it.'));
   const advanced=make('details','highlight-cover-advanced');
   advanced.append(make('summary','','Cover image URL (optional)'));
   advanced.append(input('text',data.cover||'','Paste direct HTTPS cover URL',value=>{
-   const url=cleanUrl(value,true);if(url){data.cover=url;picture.src=url;applyCover(picture,data)}
-   else if(!value.trim()){data.cover='';picture.src=group.cover||'/assets/tv-no-signal.svg';applyCover(picture,data)}
+   const url=cleanUrl(value,true);if(url){data.cover=url;picture.src=url;applyCover(picture,data);touchDraft()}
+   else if(!value.trim()){data.cover='';picture.src=group.cover||'/assets/tv-no-signal.svg';applyCover(picture,data);touchDraft()}
   }));
   covers.append(advanced);
   const upload=make('label','highlight-upload-label','Upload circle cover');
   const file=make('input');file.type='file';file.accept='image/jpeg,image/png,image/webp,image/gif';
   file.setAttribute('aria-label','Upload highlight cover');
   file.addEventListener('change',async()=>{
-   try{status('Preparing cover…');const result=await toImage(file.files?.[0]);data.cover=result;picture.src=result;
+   try{status('Preparing cover…');const result=await toImage(file.files?.[0]);data.cover=result;picture.src=result;touchDraft();
     const field=covers.querySelector('input[type=text]');if(field)field.value='';status('Cover ready. Save Highlights to keep it.')}
    catch(e){status(e.message)}finally{file.value=''}
   });
@@ -309,17 +362,30 @@
     checkbox.className='highlight-item-live-input';
     checkbox.setAttribute('aria-label',(checkbox.checked?'Keep ':'Show ')+(kind==='video'?'video ':'photo ')+(i+1)+' live');
     const preview=make('span','highlight-item-media');
-    const thumb=cleanUrl(item?.thumbnail||item?.poster||item?.cover,true);
-    const photo=cleanUrl(item?.mediaUrl,true);
-    if(kind==='video'&&!thumb){
+    const thumb=sourcePreviewUrl(item?.thumbnail||item?.poster||item?.cover);
+    const photo=sourcePreviewUrl(item?.mediaUrl);
+    // Each card previews its *own* imported media, not the collection cover.
+    // For video the matching frame/poster is the image, for photos the actual
+    // photo is the first choice. Signed links may later expire.
+    const candidates=[...(kind==='image'?[photo,thumb]:[thumb]),
+      '/assets/tv-no-signal.svg'].filter(Boolean);
+    const image=make('img');image.alt=kind==='image'?'Imported highlight photo '+(i+1):'Imported video thumbnail '+(i+1);
+    image.loading='lazy';image.referrerPolicy='no-referrer';
+    image.dataset.highlightMediaIndex=String(i);
+    let attempt=0;
+    image.onerror=()=>{
+     attempt++;
+     if(attempt<candidates.length)image.src=candidates[attempt];
+     else{image.onerror=null;image.src='/assets/tv-no-signal.svg'}
+     if(attempt>=candidates.length-1)card.dataset.previewUnavailable='true';
+    };
+    if(kind==='video'&&!thumb&&photo){
      const video=make('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.preload='metadata';
-     video.poster=cleanUrl(group.cover,true)||'/assets/tv-no-signal.svg';
-     if(photo)video.src=photo;
+     video.poster='/assets/tv-no-signal.svg';video.src=photo;
+     video.onerror=()=>{video.replaceWith(image);image.src='/assets/tv-no-signal.svg';card.dataset.previewUnavailable='true'};
      preview.append(video);
     }else{
-     const image=make('img');image.alt='';image.loading='lazy';image.referrerPolicy='no-referrer';
-     image.src=thumb||(kind==='image'?photo:'')||cleanUrl(group.cover,true)||'/assets/tv-no-signal.svg';
-     image.onerror=()=>{image.onerror=null;image.src=cleanUrl(group.cover,true)||'/assets/tv-no-signal.svg'};
+     image.src=candidates[0]||'/assets/tv-no-signal.svg';
      preview.append(image);
     }
     const kindTag=make('span','highlight-item-kind',kind==='video'?'▶ Video':'Photo');
