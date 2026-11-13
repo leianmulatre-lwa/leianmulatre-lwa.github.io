@@ -67,19 +67,26 @@
         '</div></article>';
     }
     function songCard(s){
-      // Use the real iTunes cover at sleeve resolution. Keep original imagery,
-      // rather than creating a generic or stretched replacement thumbnail.
+      // Only Apple-provided licensed preview clips play in-site; full tracks
+      // remain on the publisher. Never cache or proxy preview audio.
       var art=String(s.artworkUrl100||'').replace(/100x100bb(?=\.(?:jpg|png|webp)(?:\?|$))/i,'600x600bb');
       var original=String(s.trackViewUrl||'');
       var songUrl=/^https:\/\/(?:music|itunes)\.apple\.com\//i.test(original)?original:'';
+      var preview=String(s.previewUrl||'');
+      var previewUrl=/^https:\/\/(?:audio(?:-ssl)?\.itunes\.apple\.com|[a-z0-9-]+\.mzstatic\.com)\//i.test(preview)?preview:'';
       var title=String(s.trackName||'Untitled');
       var artist=String(s.artistName||'Unknown artist');
-      return '<article class="bl-search-card bl-media-card bl-search-song">'+
+      var attrs=' data-bl-song-title="'+esc(title)+'" data-bl-song-artist="'+esc(artist)+'"'+
+        (previewUrl?' data-bl-song-preview="'+esc(previewUrl)+'"':'');
+      return '<article class="bl-search-card bl-media-card bl-search-song"'+attrs+'>'+
         '<span class="bl-vinyl-record" aria-hidden="true"><span class="bl-vinyl-label"'+(art?' style="background-image:url(&quot;'+esc(art)+'&quot;)"':'')+'></span></span>'+
         (art?'<img class="bl-search-card-media" src="'+esc(art)+'" alt="" loading="lazy" decoding="async">':'<div class="bl-search-card-media bl-media-placeholder" aria-hidden="true">♫</div>')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Song</span><h3>'+esc(title)+'</h3>'+
         '<p class="bl-search-muted">'+esc(artist)+(s.collectionName?' · '+esc(s.collectionName):'')+'</p></div>'+
-        (songUrl?'<a class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" href="'+esc(songUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+esc(title)+' by '+esc(artist)+' in Apple Music">View song information ↗</a>':'')+
+        (songUrl?'<a class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" href="'+esc(songUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+
+          (previewUrl?'Play preview of ':'Open ')+esc(title)+' by '+esc(artist)+(previewUrl?' in BIG LWA':' in Apple Music')+'">'+
+          (previewUrl?'Play preview ▶':'Open song ↗')+'</a>':
+          (previewUrl?'<button type="button" class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" aria-label="Play preview of '+esc(title)+' by '+esc(artist)+'">Play preview ▶</button>':''))+
         '</article>';
     }
     function publicSqwibCard(p,u){var username=String(u.username||'').replace(/^@/,'');return '<article class="bl-search-card bl-sqwib-card"><div class="bl-search-card-body"><span class="bl-search-kicker">Public Sqwidz · @'+esc(username)+'</span><p>'+esc(String(p.text||'').slice(0,420))+'</p><a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(username)))+'">View public profile &#8594;</a></div></article>'}
