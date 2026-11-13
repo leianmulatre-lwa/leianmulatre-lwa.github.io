@@ -1,0 +1,188 @@
+/* BIG LWA · natural language Studio commands, privacy-aware Maps and tidy vinyl chrome */
+
+/* Weather is the first element in the right-hand action row. Its city is the
+   chosen weather city, never an inferred GPS location. */
+@media(min-width:1050px){
+ #studioApp .topbar{
+  grid-template-columns:76px minmax(0,1fr) minmax(380px,490px)!important;
+ }
+}
+#studioApp .topbar .top-actions>.studio-weather{
+ display:inline-flex!important;flex:0 1 auto!important;
+ order:-1!important;grid-column:auto!important;
+ align-items:center!important;justify-content:flex-start!important;gap:7px!important;
+ min-width:0!important;max-width:185px!important;margin:0 7px 0 0!important;
+ padding:6px 4px!important;white-space:nowrap!important;
+ border:0!important;background:transparent!important;color:inherit!important;
+ font:650 11px/1.25 system-ui,sans-serif!important;
+}
+#studioApp .studio-weather-conditions{white-space:nowrap!important}
+#studioApp .studio-weather-city{
+ max-width:95px!important;min-width:0!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;
+ padding-left:7px!important;border-left:1px solid rgba(100,75,80,.23)!important;
+ white-space:nowrap!important;
+}
+@media(max-width:1050px){
+ #studioApp .topbar .top-actions>.studio-weather{max-width:115px!important;margin-right:1px!important}
+ #studioApp .studio-weather-city{max-width:57px!important}
+}
+@media(max-width:740px){
+ #studioApp .studio-weather-city{display:none!important}
+ #studioApp .topbar .top-actions>.studio-weather{font-size:10px!important}
+}
+
+/* Search bar helper is a real menu with working commands, not decorative copy. */
+#studioApp .search-wrap{position:relative!important}
+#studioApp .bl-nav-hints{
+ position:absolute!important;top:50%!important;left:35%!important;
+ transform:translateY(-50%)!important;z-index:25!important;
+ max-width:calc(65% - 100px)!important;
+}
+#studioApp .bl-nav-hints.is-typing{display:none!important}
+#studioApp .bl-nav-hints-trigger{
+ display:block!important;width:100%!important;
+ padding:6px 12px!important;border:1px solid rgba(var(--aura-rgb,210,115,145),.16)!important;
+ border-radius:99px!important;background:rgba(255,246,245,.88)!important;
+ color:#8d536a!important;box-shadow:none!important;
+ font:600 10px/1.35 system-ui,sans-serif!important;
+ text-align:left!important;white-space:nowrap!important;
+ text-overflow:ellipsis!important;overflow:hidden!important;cursor:pointer!important;
+}
+#studioApp .bl-nav-hints-menu[hidden]{display:none!important}
+#studioApp .bl-nav-hints-menu{
+ position:absolute!important;left:0!important;top:calc(100% + 9px)!important;z-index:5100!important;
+ display:grid!important;gap:3px!important;width:205px!important;max-width:80vw!important;
+ border:1px solid #d9bfc8!important;border-radius:12px!important;
+ background:#fff9f4!important;color:#442b33!important;
+ box-shadow:0 14px 38px #281b2536!important;padding:8px!important;
+}
+#studioApp .bl-nav-hints-menu button{
+ text-align:left!important;border:0!important;background:transparent!important;
+ border-radius:8px!important;padding:10px 11px!important;
+ color:inherit!important;font:650 12px/1.4 system-ui,sans-serif!important;cursor:pointer;
+}
+#studioApp .bl-nav-hints-menu button:is(:hover,:focus-visible){background:#f4e4e7!important}
+body.night-mode #studioApp .bl-nav-hints-trigger{background:#3d2a32!important;color:#f8d0df!important}
+body.night-mode #studioApp .bl-nav-hints-menu{background:#32272d!important;color:#fff3ed!important}
+@media(max-width:1190px){#studioApp .bl-nav-hints{display:none!important}}
+
+/* The album sleeve belongs within a deliberate player-window top rail.
+   Put the window lights on the rail instead of floating over the record. */
+#bl-studio-search-results #bl-section-songs .bl-search-card.bl-search-song.bl-search-veve-card{
+ background:linear-gradient(to bottom,#29212a 0 34px,#1a151c 34px 100%)!important;
+ border:1px solid #65525c!important;
+ box-shadow:2px 4px 0 rgba(91,58,67,.23),0 8px 18px rgba(22,13,19,.19)!important;
+}
+#bl-studio-search-results #bl-section-songs .bl-search-card.bl-search-song.bl-search-veve-card::after{
+ content:"♫  SONG";display:block!important;
+ position:absolute!important;left:10px!important;top:8px!important;
+ z-index:8!important;pointer-events:none!important;
+ font:750 10px/1.3 system-ui,sans-serif!important;
+ color:#f9e8eb!important;letter-spacing:.06em!important;
+}
+#bl-studio-search-results #bl-section-songs .bl-search-song .bl-card-window-controls{
+ position:absolute!important;top:8px!important;right:11px!important;
+ z-index:10!important;display:flex!important;align-items:center!important;
+ height:18px!important;padding:0!important;
+ background:#29212a!important;border-radius:9px!important;
+}
+#bl-studio-search-results #bl-section-songs .bl-search-song .bl-search-card-media{
+ top:11%!important;left:3%!important;width:78%!important;max-width:78%!important;
+ box-shadow:3px 4px 9px #0007!important;
+}
+#bl-studio-search-results #bl-section-songs .bl-search-song .bl-vinyl-record{
+ top:10%!important;left:34%!important;width:106%!important;
+}
+#bl-studio-search-results #bl-section-songs .bl-search-song .bl-search-card-body{
+ left:3%!important;bottom:3%!important;width:94%!important;
+ min-height:25%!important;max-height:40%!important;
+ padding:30px 10px 9px!important;
+ background:linear-gradient(transparent,rgba(13,9,15,.65) 38%,rgba(13,9,15,.94))!important;
+}
+#bl-studio-search-results #bl-section-songs .bl-search-song:hover .bl-vinyl-record,
+#bl-studio-search-results #bl-section-songs .bl-search-song:focus-within .bl-vinyl-record{
+ transform:translateX(8%) rotate(12deg)!important;
+}
+
+/* The ad-like Try Maps ribbon is a first-party feature teaser, not sponsorship.
+   No coordinates or third-party tiles load until Places & Maps is selected. */
+#bl-studio-search-results .bl-lwazi-map-promo[hidden]{display:none!important}
+#bl-studio-search-results .bl-lwazi-map-promo{
+ display:grid;grid-template-columns:minmax(185px,27%) minmax(0,1fr);
+ align-items:stretch;gap:17px;margin:30px 0 22px;
+ min-height:135px;padding:16px!important;border:1px solid #ead4d7!important;
+ border-radius:18px!important;box-shadow:0 4px 23px rgba(159,63,101,.09)!important;
+ background:linear-gradient(105deg,#fffaf3 0%,#fdf1f2 71%,#fdeaf0 100%)!important;
+ color:#44333a!important;
+}
+#bl-studio-search-results .bl-lwazi-promo-art{
+ position:relative!important;overflow:hidden!important;min-height:130px!important;
+ border:4px solid rgba(255,255,255,.85)!important;border-radius:16px!important;
+ background:
+  linear-gradient(135deg,transparent 44%,#97d1e2 45%,#97d1e2 49%,transparent 50%),
+  linear-gradient(60deg,transparent 44%,#fffef3 45%,#fffef3 52%,transparent 53%),
+  linear-gradient(0deg,transparent 25%,#fffdf6 26%,#fffdf6 33%,transparent 34%),
+  repeating-linear-gradient(140deg,#e7e1d4 0 28px,#f5f0e3 29px 37px,#e7e2d9 38px 58px),
+  #cfe2c1!important;
+}
+#bl-studio-search-results .bl-map-marker{
+ position:absolute;top:39%;left:48%;width:29px;height:34px;
+ display:grid;place-items:center;border-radius:99px 99px 99px 0;
+ transform:rotate(-45deg);background:#df547a;color:white;box-shadow:0 0 0 13px #e86a8d35;
+ font:750 25px/1 system-ui,sans-serif;
+}
+#bl-studio-search-results .bl-map-marker::first-letter{transform:rotate(45deg)}
+#bl-studio-search-results .bl-lwazi-promo-content{min-width:0!important;align-self:center!important}
+#bl-studio-search-results .bl-lwazi-promo-content h3{
+ margin:0 0 5px!important;font:800 15px/1.3 system-ui,sans-serif!important;
+ letter-spacing:.045em!important;text-transform:uppercase!important;
+}
+#bl-studio-search-results .bl-lwazi-promo-content h3 small{
+ display:inline-block;margin-left:6px;padding:3px 7px;border-radius:30px;
+ background:#ffe7ec;color:#c63c69;font:750 10px system-ui,sans-serif;
+}
+#bl-studio-search-results .bl-lwazi-promo-content p{
+ margin:4px 0 9px!important;font:500 12px/1.4 system-ui,sans-serif!important
+}
+#bl-studio-search-results .bl-lwazi-promo-actions{
+ display:flex;align-items:center;flex-wrap:wrap;gap:9px;
+}
+#bl-studio-search-results .bl-lwazi-promo-actions button,
+#bl-studio-search-results .bl-lwazi-use-location{
+ border:1px solid #dcccd0!important;border-radius:25px!important;
+ background:#fff9f4!important;color:#3f333a!important;
+ padding:8px 13px!important;cursor:pointer!important;
+ font:650 12px/1.3 system-ui,sans-serif!important;
+}
+#bl-studio-search-results .bl-lwazi-promo-actions [data-bl-use-location],
+#bl-studio-search-results .bl-lwazi-use-location{
+ background:#db527c!important;border-color:#db527c!important;
+ color:white!important;
+}
+#bl-studio-search-results .bl-lwazi-use-location:disabled,
+#bl-studio-search-results .bl-lwazi-promo-actions button:disabled{opacity:.5!important;cursor:wait!important}
+#bl-studio-search-results .bl-lwazi-map-card{grid-column:span 2!important;min-height:0!important}
+#bl-studio-search-results .bl-lwazi-map-stage{
+ position:relative!important;min-width:0!important;width:100%!important;
+ height:clamp(245px,32vw,365px)!important;
+ overflow:hidden!important;border:1px solid #d5c3bb!important;border-radius:12px!important;
+ background:#dceadf!important;
+}
+#bl-studio-search-results .bl-lwazi-map-stage iframe{
+ display:block!important;width:100%!important;height:100%!important;
+ border:0!important;border-radius:12px!important;
+}
+#bl-studio-search-results .bl-lwazi-map-stage>.bl-lwazi-use-location{
+ position:absolute!important;left:13px!important;bottom:14px!important;
+ z-index:5!important;box-shadow:0 4px 14px #22151b44!important;
+}
+body.night-mode #bl-studio-search-results .bl-lwazi-map-promo{
+ background:linear-gradient(105deg,#332b2f,#48303c)!important;
+ border-color:#664354!important;color:#fff0f2!important;
+}
+@media(max-width:750px){
+ #bl-studio-search-results .bl-lwazi-map-promo{grid-template-columns:1fr!important}
+ #bl-studio-search-results .bl-lwazi-promo-art{min-height:90px!important;max-height:100px!important}
+ #bl-studio-search-results .bl-lwazi-map-card{grid-column:span 1!important}
+}
