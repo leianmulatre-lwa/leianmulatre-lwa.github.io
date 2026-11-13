@@ -161,6 +161,7 @@
       if(/authentication_required|sign in to big lwa first|lwazi api: 401/.test(message))return 'L’wazi’s AI pilot needs a BIG LWA sign-in before it can answer. Discovery still works.';
       if(/pilot_access_denied|lwazi api: 403/.test(message))return 'L’wazi’s AI pilot is currently restricted to approved testers. The search results below remain available.';
       if(/pilot_access_not_configured/.test(message))return 'L’wazi’s AI pilot access hasn’t been configured yet. Discovery still works.';
+      if(/pilot_binding_missing|lwazi_pilot_unavailable|upstream_health_failed|lwazi api: 502|lwazi api: 503/.test(message))return 'L’wazi’s AI connection is temporarily unavailable. Search results and Studio navigation are still available.';
       if(/shared_free_quota_exhausted|quota|neurons|lwazi api: 429/.test(message))return 'L’wazi has reached its free AI allowance for now. Search and Studio navigation are still available.';
       if(/free_model_unavailable|free_models_cooling_down|free_model_requires_paid_plan|free_ai_binding_missing|free_inference_not_enabled/.test(message))return 'L’wazi’s free AI model could not serve this request. Search results are still available below.';
       if(/provider timed out|aborterror|the operation was aborted|timed out/.test(message))return 'L’wazi’s live model took too long to answer, so I stopped waiting. You can still use the search results below.';
