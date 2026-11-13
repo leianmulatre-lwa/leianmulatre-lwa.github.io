@@ -2491,7 +2491,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       {title:'culture quiz',image:'/assets/culture-quiz-cubes.png',internal:'cultureQuiz'},
       {title:'2048',image:'/assets/arcade/2048.svg',href:location.origin+'/arcade-puzzles.html?game=2048'},
       {title:'mini crossword',image:'/assets/arcade/crossword.svg',href:location.origin+'/arcade-puzzles.html?game=crossword'},
-      {title:'8 Ball Pool',image:'/assets/arcade/miniclip-pool-20261029.svg',href:'https://8ballpool.com/en/game',launch:'external',provider:'Miniclip'},
+      {title:'8 Ball Pool',image:'https://static-prod-web.miniclip.com/assets/games/8bp/05_StoreScreenshots/8BP_Screens_AB_PH01-No-Copy-iPhone6plus-005.jpg',href:'https://8ballpool.com/en/game',launch:'external',provider:'Miniclip'},
       {title:'Agar.io',image:'https://static-prod-web.miniclip.com/assets/games/MN_Website_WebGames_Agario_PageThumbnail.png',href:'https://agar.io/',launch:'external',provider:'Miniclip'},
       {title:'fireboy & watergirl 5',image:'/assets/arcade/fireboy-watergirl.png',href:'https://www.coolmathgames.com/0-fireboy-watergirl-5-elements'},
       {title:'sugar, sugar',image:'/assets/arcade/sugar-sugar.png',href:'https://poki.com/en/g/sugar-sugar-html5'},
