@@ -31,6 +31,10 @@ const widgets={
  'connect':'connect','logs':'logs','workshop':'tools','lwazi workshop':'tools',
  'veve':'veve'
 };
+const rApps={
+ 'sqwibblr':'image-desk','image desk':'image-desk','visualizr':'visualizr',
+ 'lightr':'photocraft','paintr':'vectorcraft','keyframer':'effectcraft','filer':'pdfcraft'
+};
 const clean=s=>String(s||'').toLowerCase().replace(/[’']/g,"").replace(/[?!.,:;]+/g,' ').replace(/\s+/g,' ').trim();
 function resolve(query){
  const text=clean(query);
@@ -46,6 +50,7 @@ function resolve(query){
  if(destination==='settings legal'||destination==='legal and settings')destination='legal';
  if(pages[destination])return {type:'page',path:pages[destination],label:destination};
  if(categories[destination])return {type:'category',category:categories[destination],label:destination};
+ if(rApps[destination])return {type:'craft',app:rApps[destination],label:destination};
  if(widgets[destination])return {type:'widget',route:widgets[destination],label:destination};
  return null;
 }
@@ -69,6 +74,11 @@ function navigate(command){
    const panel=app.querySelector('.manifesto-card');
    if(!panel?.classList.contains('is-skeleton-open'))toggle.click();
    return true;
+ }
+ if(command.type==='craft'){
+   if(typeof window.BigLWAOpenCraftApp==='function')return window.BigLWAOpenCraftApp(command.app);
+   if(typeof window.openBIGLWAModule==='function'){window.openBIGLWAModule('tools');return true;}
+   return false;
  }
  if(command.type==='widget'){
    if(typeof window.openBIGLWAModule==='function'){
