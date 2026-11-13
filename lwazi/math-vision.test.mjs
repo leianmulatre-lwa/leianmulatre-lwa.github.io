@@ -34,6 +34,8 @@ test('free Worker vision sends authenticated image messages to existing AI bindi
  const env={FREE_INFERENCE_ENABLED:'true',AI:{run:async(model,body)=>{
    called++;
    assert.equal(model,'@cf/google/gemma-4-26b-a4b-it');
+   assert.equal(body.chat_template_kwargs.enable_thinking,false,'Vision must return displayed answer, not consume tokens in hidden reasoning');
+   assert.equal(body.max_completion_tokens,550);
    const message=body.messages.find(x=>x.role==='user');
    assert.equal(message.content[1].type,'image_url');
    assert.equal(message.content[1].image_url.url,image);

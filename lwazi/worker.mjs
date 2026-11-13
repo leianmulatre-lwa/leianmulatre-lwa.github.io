@@ -185,7 +185,8 @@ export async function queryFreeVision(question,image,env){
             {type:'image_url',image_url:{url:image}}
           ]}
         ],
-        max_tokens:450,temperature:0.15,stream:false
+        max_completion_tokens:550,temperature:0.15,stream:false,
+        ...(model==='@cf/google/gemma-4-26b-a4b-it'?{chat_template_kwargs:{enable_thinking:false}}:{})
       });
       const answer=typeof result?.response==='string'?result.response:
         typeof result?.choices?.[0]?.message?.content==='string'?result.choices[0].message.content:'';
