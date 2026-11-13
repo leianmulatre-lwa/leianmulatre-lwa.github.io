@@ -11,7 +11,7 @@
     let s=String(query||'').trim().slice(0,LIMIT).toLowerCase()
       .replace(/[−–]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[π]/g,'pi');
     s=s.replace(/^(?:what(?:'s| is)|calculate|compute|evaluate|solve(?: for x)?|find the value of|how much is|how many is)\s*:?\s*/,'');
-    s=s.replace(/[?=]\s*$/g,m=>m==='?'?'':m).trim();
+    s=s.replace(/[?=]\s*$/g,'').trim();
     s=s.replace(/(\d+(?:\.\d+)?)\s*%\s+of\s+/g,'$1%*');
     return s;
   }

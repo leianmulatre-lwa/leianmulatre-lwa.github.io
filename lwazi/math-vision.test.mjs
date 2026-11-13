@@ -9,7 +9,7 @@ test('instant math parser handles arithmetic and linear equations without eval o
  vm.runInNewContext(source,ctx);
  const calc=q=>ctx.window.BigLWAMath.solve(q);
  for(const [q,expected] of [
-   ['2+2','4'],['what is (8 + 2) * 3?','30'],['20% of 150','30'],
+   ['2+2','4'],['2+2=','4'],['3x+6=15?','x = 3'],['what is (8 + 2) * 3?','30'],['20% of 150','30'],
    ['sqrt(81) + 2^3','17'],['2x+3=11','x = 4'],['6/2','3'],
    ['2^3^2','512'],['5!','120'],['20÷4','5']
  ])assert.equal(calc(q)?.result,expected,q);
