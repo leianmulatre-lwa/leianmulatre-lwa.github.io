@@ -66,21 +66,37 @@ function videoCards(q,all=false){
    '</div></article>';
  });
 }
+function placePromo(){
+ return '<aside class="bl-lwazi-map-promo" aria-label="Try Places and Maps">'+
+  '<div class="bl-lwazi-promo-art" role="img" aria-label="Stylized street map and location marker"><span class="bl-map-marker">⌖</span></div>'+
+  '<div class="bl-lwazi-promo-content"><h3>⌖ Places & Maps <small>Beta</small></h3>'+
+  '<p>Find places, get directions, and explore nearby.</p>'+
+  '<div class="bl-lwazi-promo-actions">'+
+  '<button type="button" data-bl-use-location>⌖ Use current location</button>'+
+  '<button type="button" data-bl-open-places="transit">▣ Transit</button>'+
+  '<button type="button" data-bl-open-places="walking">♙ Walk</button>'+
+  '<button type="button" data-bl-open-places="driving">▱ Drive</button>'+
+  '<button type="button" data-bl-open-places="bicycling">♧ Bike</button>'+
+  '</div><p class="bl-trip-note" role="status" aria-live="polite"></p></div>'+
+  '</aside>';
+}
 function placeCards(){
  return [
- '<article class="bl-search-card bl-route-result"><div class="bl-search-card-body">'+
+ '<article class="bl-search-card bl-route-result bl-lwazi-map-card"><div class="bl-search-card-body">'+
  '<span class="bl-search-kicker">BIG LWA · Maps & directions</span><h3>Plan a trip</h3>'+
- '<p>Choose where you’re going and a travel mode. No location is read automatically.</p>'+
+ '<p>Explore the interactive map. Your location is optional and is used only after you ask.</p>'+
+ '<div class="bl-lwazi-map-stage"><iframe loading="lazy" src="/map-app.html?preview=1&lwazi=1" title="Interactive BIG LWA map preview" referrerpolicy="same-origin"></iframe>'+
+ '<button type="button" class="bl-lwazi-use-location" data-bl-use-location>⌖ Use current location</button></div>'+
  '<form class="bl-lwazi-transit-form">'+
- '<label>From <input name="origin" type="text" maxlength="160" autocomplete="street-address" placeholder="Optional · current location"></label>'+
+ '<label>From <input name="origin" type="text" maxlength="160" autocomplete="off" placeholder="Optional · city or location"></label>'+
  '<label>To <input name="destination" type="text" maxlength="160" required placeholder="Place or address"></label>'+
  '<label>Travel by <select name="mode"><option value="transit">Public transit</option><option value="walking">Walking</option><option value="driving">Driving</option><option value="bicycling">Cycling</option></select></label>'+
  '<button class="bl-search-go bl-search-primary-action" type="submit">Get directions ↗</button>'+
- '</form><p class="bl-trip-note" role="status" aria-live="polite">Directions open in Google Maps. Live transit schedules and navigation are provided there.</p>'+
+ '</form><p class="bl-trip-note" role="status" aria-live="polite">Routes open in Google Maps. BIG LWA does not claim to provide live transit arrivals yet.</p>'+
  '</div></article>',
  '<article class="bl-search-card bl-widget-result"><div class="bl-widget-symbol" aria-hidden="true">⌖</div><div class="bl-search-card-body">'+
- '<span class="bl-search-kicker">BIG LWA · Map</span><h3>Explore the map</h3><p>Discover places, save locations, and open your Map widget.</p>'+
- '<button type="button" class="bl-search-go bl-search-primary-action" data-lwazi-route="map">Open BIG LWA Map ↗</button>'+
+ '<span class="bl-search-kicker">BIG LWA · Map</span><h3>Open the full map</h3><p>Explore places, save pins and see the complete map tools.</p>'+
+ '<button type="button" class="bl-search-go bl-search-primary-action" data-lwazi-route="map">Open Map widget ↗</button>'+
  '</div></article>'
  ];
 }
@@ -101,6 +117,50 @@ function attach(panel){
  panel.addEventListener('click',event=>{
   const watch=event.target.closest('[data-bl-watch-stream]');
   if(watch&&panel.contains(watch)){event.preventDefault();watchOnStream(watch.dataset.blWatchStream)}
+ });
+ function revealPlaces(mode){
+  window.__biglwaOpenSearchCategory?.('places');
+  const select=panel.querySelector('.bl-lwazi-transit-form select[name="mode"]');
+  if(select&&mode)select.value=mode;
+ }
+ panel.addEventListener('click',event=>{
+  const choice=event.target.closest('[data-bl-open-places]');
+  if(choice&&panel.contains(choice)){event.preventDefault();revealPlaces(choice.dataset.blOpenPlaces);return}
+  const locate=event.target.closest('[data-bl-use-location]');
+  if(!locate||!panel.contains(locate))return;
+  event.preventDefault();
+  if(!navigator.geolocation){
+   const status=locate.closest('.bl-lwazi-map-card,.bl-lwazi-map-promo')?.querySelector('.bl-trip-note');
+   if(status)status.textContent='Location unavailable. You can search for a city or landmark instead.';
+   return;
+  }
+  const wrapper=locate.closest('.bl-lwazi-map-card,.bl-lwazi-map-promo');
+  const status=wrapper?.querySelector('.bl-trip-note');
+  if(status)status.textContent='Requesting your permission to locate approximately…';
+  locate.disabled=true;
+  navigator.geolocation.getCurrentPosition(position=>{
+   // Coarse coordinates (about 1km resolution), never save or log precise GPS.
+   const lat=Math.round(position.coords.latitude*100)/100;
+   const lng=Math.round(position.coords.longitude*100)/100;
+   if(!Number.isFinite(lat)||!Number.isFinite(lng)){if(status)status.textContent='Unable to read the location.';locate.disabled=false;return}
+   if(wrapper?.classList.contains('bl-lwazi-map-promo'))revealPlaces();
+   const destinationPanel=document.getElementById('bl-studio-search-results');
+   const frame=destinationPanel?.querySelector('.bl-lwazi-map-stage iframe');
+   const input=destinationPanel?.querySelector('.bl-lwazi-transit-form input[name="origin"]');
+   const note=destinationPanel?.querySelector('.bl-lwazi-map-card .bl-trip-note');
+   if(input)input.value=lat.toFixed(2)+','+lng.toFixed(2);
+   if(note)note.textContent='Approximate location shown (about 1 km precision). No location saved.';
+   const message={type:'biglwa:lwazi-map-location',lat,lng};
+   if(frame){
+     frame.contentWindow?.postMessage(message,location.origin);
+     frame.addEventListener('load',()=>frame.contentWindow?.postMessage(message,location.origin),{once:true});
+   }
+   if(status)status.textContent='Approximate location found. View it in Places & Maps.';
+   locate.disabled=false;
+  },error=>{
+   if(status)status.textContent=error?.code===1?'Location permission denied. Search for a place instead.':'Location is unavailable. Enter a city or landmark instead.';
+   locate.disabled=false;
+  },{enableHighAccuracy:false,timeout:11000,maximumAge:300000});
  });
  panel.addEventListener('submit',event=>{
   const form=event.target.closest('.bl-lwazi-transit-form');
@@ -127,5 +187,5 @@ function attach(panel){
   }
  });
 }
-window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,attach};
+window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,placePromo,attach};
 })();
