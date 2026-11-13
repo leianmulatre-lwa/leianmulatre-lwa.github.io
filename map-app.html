@@ -1068,6 +1068,22 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
         else if(validPoints.length>1)map.fitBounds(validPoints,{padding:[22,22],maxZoom:13});
         else map.setView([25,0],2);
       }));
+      // A deliberate permission choice from L'wazi may center this preview.
+      // Use only coarse coordinates. No saved pin, tracking or reverse geocode.
+      let lwaziLocationCircle=null;
+      window.addEventListener('message',event=>{
+        if(event.origin!==location.origin||event.source!==window.parent||
+           event.data?.type!=='biglwa:lwazi-map-location')return;
+        const lat=Number(event.data.lat),lng=Number(event.data.lng);
+        if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180||
+           Math.abs(lat*100-Math.round(lat*100))>1e-8||
+           Math.abs(lng*100-Math.round(lng*100))>1e-8)return;
+        if(lwaziLocationCircle)map.removeLayer(lwaziLocationCircle);
+        lwaziLocationCircle=L.circle([lat,lng],{
+          radius:1050,color:'#d85f7d',weight:2,fillColor:'#e96b8a',fillOpacity:.16
+        }).addTo(map).bindPopup('Your approximate location · not saved');
+        map.setView([lat,lng],12);
+      });
       window.addEventListener('message',event=>{
         if(event.origin!==location.origin||event.data?.type!=='biglwa:map-preview-refresh')return;
         pins=read();draw();map.invalidateSize();

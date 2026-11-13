@@ -63,7 +63,7 @@ test('all entrypoints render the same actual vinyl style rather than generic Vev
     const html=read(path);
     assert.match(html,/lwazi-music-discovery\.css\?v=20261113-lp-preview-v3/,path+' loads actual sleeve CSS');
     assert.match(html,/lwazi-music-discovery\.js\?v=20261113-in-site-previews-v3/,path+' retains SoundCloud');
-    assert.match(html,/user-search-results\.js\?v=20261113-search-sections-chat-v1/,path+' clears cached renderer');
+    assert.match(html,/user-search-results\.js\?v=20261113-command-promo-v2/,path+' clears cached renderer');
     assert.equal((html.match(/lwazi-music-discovery\.css\?v=/g)||[]).length,1,path+' loads CSS once');
     assert.equal((html.match(/lwazi-music-discovery\.js\?v=/g)||[]).length,1,path+' loads music adapter once');
     assert(html.indexOf('lwazi-search-ui.css?v=')<html.indexOf('lwazi-music-discovery.css?v='),path+' places sleeve CSS after common Veve CSS');

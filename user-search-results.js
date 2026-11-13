@@ -25,6 +25,7 @@
     function normalizeCommand(raw){return String(raw||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()}
     function routeCommand(raw){var text=normalizeCommand(raw);if(text==='take me to journal'||text==='open journal'||text==='go to journal'||text==='show my journal')return 'diary';var match=null;Object.keys(widgetRoutes).forEach(function(alias){if(!match&&(text==='take me to '+alias||text==='open '+alias||text==='go to '+alias||text===alias+' open'||text==='show me '+alias||text==='show '+alias))match=widgetRoutes[alias]});if(match)return match;if(/(^|\s)(journal|diary)(\s|$)/.test(text))return 'diary';return null}
     window.__biglwaOpenSearchRoute=goRoute;
+    window.__biglwaOpenSearchCategory=function(category){openPanel(category,{preferredCategory:category});return true};
     function close(){}
     function goRoute(route){close();var control=document.querySelector('[data-open="'+route+'"],button[data-widget-route="'+route+'"],a[href="#'+route+'"]');if(control){control.click();return}window.location.hash=route;setTimeout(function(){var el=document.getElementById(route)||document.querySelector('[data-widget-route="'+route+'"]');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'})},80)}
 
@@ -271,6 +272,8 @@
       var storedTurns=!options.modeChange&&saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
       var submitInput=document.getElementById('globalSearch');
       if(submitInput){submitInput.value=q;submitInput.dataset.blSubmitted='1'}
+      var navCommand=window.BigLWANavigationCommands?.resolve(q);
+      if(navCommand&&window.BigLWANavigationCommands.navigate(navCommand)){close();return}
       var route=routeCommand(q);if(route){goRoute(route);return}
       mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
       var mathResult=window.BigLWAMath?.solve(clean)||null;
@@ -398,6 +401,7 @@
             (' '+(section.getAttribute('data-bl-category')||'')+' ').includes(' '+category+' ');
         });
         sections.forEach(function(section){section.style.display=matches.includes(section)?'':'none'});
+        current.querySelectorAll('.bl-lwazi-map-promo').forEach(function(promo){promo.hidden=category!=='songs'});
         if(fromClick&&matches.length)matches[0].scrollIntoView({behavior:'smooth',block:'nearest'});
         // Categories are real search pages, not hidden redirects to widgets.
         if(fromClick&&['songs','widgets','places','stream'].includes(category)){
@@ -408,7 +412,13 @@
         var b=event.target.closest('button[data-bl-match]');
         if(b&&extraNav.contains(b))activateCategory(b.dataset.blMatch,true);
       });
-      activateCategory('all',false);
+      activateCategory(options.preferredCategory||'all',false);
+      window.__biglwaOpenSearchCategory=function(category){
+        if(panel===current){
+          activateCategory(category,true);return true;
+        }
+        openPanel(category,{preferredCategory:category});return true;
+      };
 
 
       if(aiActive&&/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
@@ -442,7 +452,7 @@
            lwaziSiteCard('About BIG LWA','Meet the project, the people, and the ideas behind this Studio.','/about/'),
            lwaziSiteCard('Privacy at BIG LWA','What privacy and agency mean here.','/privacy/')
          ],'all studio identity'):'';
-         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&window.BigLWADiscoveryExtras?window.BigLWADiscoveryExtras.placePromo():'')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         var extras=window.BigLWADiscoveryExtras;
         if(extras){
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');

@@ -15,7 +15,7 @@ test('explicit research requests gather bounded sources',()=>{
  assert.match(source,/setTimeout\(function\(\)\{resolve\(\[\]\)\},1200\)/);
 });
 test('entrypoint loads new version of optimized search code',()=>{
- assert.match(index,/user-search-results\.js\?v=20261113-search-sections-chat-v1/);
+ assert.match(index,/user-search-results\.js\?v=20261113-command-promo-v2/);
 });
 
 test('search sources render independently as each category resolves',()=>{

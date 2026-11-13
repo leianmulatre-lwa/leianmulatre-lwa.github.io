@@ -4,19 +4,29 @@
 const KEY='biglwaWeatherCity:v1';let city=null,button,timer,request=0;
 try{city=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
 const emoji=(code,day)=>code===0?(day?'☀️':'🌙'):code<=3?'☁️':code<=48?'🌫️':code<=67?'🌧️':code<=77?'🌨️':code<=82?'🌦️':code<=86?'❄️':'⛈️';
+function paint(label){
+ if(!button)return;
+ const conditions=document.createElement('span');conditions.className='studio-weather-conditions';conditions.textContent=label;
+ button.replaceChildren(conditions);
+ const location=String(city?.name||'').split(',')[0].trim().slice(0,40);
+ if(location){
+  const area=document.createElement('span');area.className='studio-weather-city';
+  area.textContent=location;button.append(area);
+ }
+}
 async function refresh(){
  if(!button||!city||document.hidden)return;
- const id=++request;button.textContent='🌤️ …';
+ const id=++request;paint('🌤️ …');
  try{
   const url=new URL('https://api.open-meteo.com/v1/forecast');
   url.search=new URLSearchParams({latitude:city.latitude,longitude:city.longitude,current:'temperature_2m,weather_code,is_day',temperature_unit:'fahrenheit',timezone:'auto'});
   const response=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!response.ok)throw Error('Weather unavailable');
   const data=await response.json();if(id!==request)return;
   if(!Number.isFinite(data.current?.temperature_2m))throw Error('Weather unavailable');
-  button.textContent=emoji(data.current.weather_code,data.current.is_day)+' '+Math.round(data.current.temperature_2m)+'°F';
+  paint(emoji(data.current.weather_code,data.current.is_day)+' '+Math.round(data.current.temperature_2m)+'°F');
   button.title=city.name+' · Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · Open-Meteo · Change city';
-  button.setAttribute('aria-label',button.textContent+' in '+city.name+'. Change weather city');
- }catch{if(id===request){button.textContent='🌤️ —';button.title='Weather unavailable. Click to choose a city or retry.'}}
+  button.setAttribute('aria-label',button.textContent+' · '+city.name+'. Change weather city');
+ }catch{if(id===request){paint('🌤️ —');button.title='Weather unavailable. Click to choose a city or retry.'}}
 }
 function choose(){
  let dialog=document.getElementById('studioWeatherDialog');
@@ -39,7 +49,10 @@ function choose(){
 }
 function mount(){
  const search=document.querySelector('#studioApp .topbar .search-wrap');if(!search||document.getElementById('studioWeather'))return;
- button=document.createElement('button');button.id='studioWeather';button.type='button';button.className='studio-weather';button.textContent='🌤️ Weather';button.title='Choose a city for weather';button.onclick=choose;search.after(button);refresh();clearInterval(timer);timer=setInterval(refresh,15*60*1000);
+ button=document.createElement('button');button.id='studioWeather';button.type='button';button.className='studio-weather';button.title='Choose a city for weather';button.onclick=choose;
+ const actions=search.closest('.topbar')?.querySelector('.top-actions');
+ if(actions)actions.prepend(button);else search.after(button);
+ paint(city?'🌤️ …':'🌤️ Choose city');refresh();clearInterval(timer);timer=setInterval(refresh,15*60*1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 document.addEventListener('biglwa:account-ready',mount);setTimeout(mount,1500);setTimeout(mount,4000);

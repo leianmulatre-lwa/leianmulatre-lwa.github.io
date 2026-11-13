@@ -14,7 +14,7 @@ test('all production and staging shell variants wire the same live free-only Wor
   assert(shell.includes('location.hostname==="biglwa.com"'),name+' supports production domain');
   assert(shell.includes('window.__biglwaLwaziEndpoint="'+target+'"'),name+' uses direct healthy endpoint');
   assert(!shell.includes('window.__biglwaLwaziEndpoint=location.hostname.endsWith'),name+' does not use unhealthy relay');
-  assert.match(shell,/user-search-results\.js\?v=20261113-search-sections-chat-v1/,name+' loads optimized search');
+  assert.match(shell,/user-search-results\.js\?v=20261113-command-promo-v2/,name+' loads optimized search');
   assert.match(shell,/lwazi-client\.js\?v=20261112-staging-direct-v6/,name+' loads live model bridge');
   assert.match(shell,/lwazi-search-ui\.js\?v=/,name+' loads card actions');
   assert(shell.indexOf('window.__biglwaLwaziEndpoint=')<shell.indexOf('lwazi-client.js?v='),name+' endpoint is set before bridge');

@@ -12,7 +12,7 @@ const scope={};
 vm.runInNewContext(source.slice(start,end),scope,{timeout:1000});
 
 test('search selects All immediately, then preserves a manually selected category',()=>{
-  assert.match(source,/activateCategory\('all',false\);/);
+  assert.match(source,/activateCategory\(options\.preferredCategory\|\|'all',false\);/);
   assert.match(source,/var activeCategory='all'/);
   assert.match(source,/activeCategory=category/);
   assert.match(source,/activateCategory\(activeCategory,false\)/);
