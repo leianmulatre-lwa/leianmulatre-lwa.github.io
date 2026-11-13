@@ -24,6 +24,7 @@
     };
     function normalizeCommand(raw){return String(raw||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()}
     function routeCommand(raw){var text=normalizeCommand(raw);if(text==='take me to journal'||text==='open journal'||text==='go to journal'||text==='show my journal')return 'diary';var match=null;Object.keys(widgetRoutes).forEach(function(alias){if(!match&&(text==='take me to '+alias||text==='open '+alias||text==='go to '+alias||text===alias+' open'||text==='show me '+alias||text==='show '+alias))match=widgetRoutes[alias]});if(match)return match;if(/(^|\s)(journal|diary)(\s|$)/.test(text))return 'diary';return null}
+    window.__biglwaOpenSearchRoute=goRoute;
     function close(){}
     function goRoute(route){close();var control=document.querySelector('[data-open="'+route+'"],button[data-widget-route="'+route+'"],a[href="#'+route+'"]');if(control){control.click();return}window.location.hash=route;setTimeout(function(){var el=document.getElementById(route)||document.querySelector('[data-widget-route="'+route+'"]');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'})},80)}
 
@@ -51,7 +52,7 @@
     function onKey(e){if(e.key==='Escape')close()}
     // Search is part of the Studio layout: outside interactions never dismiss it.
     close=function(){document.querySelector('#studioApp .bl-lwazi-history-popover')?.setAttribute('hidden','');if(!panel)return;if(layoutObserver)layoutObserver.disconnect();if(layoutRailObserver)layoutRailObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
-    function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(window.BigLWAMusicDiscovery)window.BigLWAMusicDiscovery.attachSearch(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
+    function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(window.BigLWAMusicDiscovery)window.BigLWAMusicDiscovery.attachSearch(panel);if(window.BigLWADiscoveryExtras)window.BigLWADiscoveryExtras.attach(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
     function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route'+(label==='Open in Library'?' bl-search-primary-action':'')+'" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8599;</button>'}
     function bookCover(b){if(b.cover_i)return 'https://covers.openlibrary.org/b/id/'+encodeURIComponent(b.cover_i)+'-M.jpg';if(b.isbn&&b.isbn[0])return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg';return ''}
     function userCard(u){var h=Math.abs(String(u.username||u.name||'u').split('').reduce(function(n,c){return n+c.charCodeAt(0)},0)*7)%360;return '<article class="bl-search-card bl-user-card"><div class="bl-search-card-media bl-avatar"> '+esc(String(u.name||u.username||'?').split(/\s+/).map(function(p){return p[0]}).join('').slice(0,2).toUpperCase())+'</div><div class="bl-search-card-body"><span class="bl-search-kicker">BigLWA user</span><h3>'+esc(u.name||u.username)+'</h3><p class="bl-search-muted">@'+esc(u.username)+'</p>'+ (u.bio?'<p>'+esc(u.bio)+'</p>':'')+'<a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(u.username)))+'">View profile &#8594;</a></div></article>'}
@@ -388,20 +389,19 @@
           if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         });
         var sections=Array.from(current.querySelectorAll('.bl-search-section'));
-        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Cinema & video'};
+        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Stream videos',widgets:'Studio widgets',places:'Places & Maps'};
         var sectionName=named[category];
         var matches=sections.filter(function(section){
+          if(section.id===sectionId('SoundCloud'))return category==='songs';
           if(category==='all')return true;
           return category==='songs'?(' '+(section.getAttribute('data-bl-category')||'')+' ').includes(' songs '):sectionName?section.id===sectionId(sectionName):
             (' '+(section.getAttribute('data-bl-category')||'')+' ').includes(' '+category+' ');
         });
         sections.forEach(function(section){section.style.display=matches.includes(section)?'':'none'});
         if(fromClick&&matches.length)matches[0].scrollIntoView({behavior:'smooth',block:'nearest'});
-        if(fromClick&&!matches.length&&!current.querySelector('.bl-search-loading')){
-          if(category==='stream')goRoute('stream');
-          else if(category==='politics')goRoute('politic');
-          else if(category==='widgets')goRoute('library');
-          else if(category==='places')goRoute('map');
+        // Categories are real search pages, not hidden redirects to widgets.
+        if(fromClick&&['widgets','places','stream'].includes(category)){
+          renderDiscovery(discoveryParts);
         }
       }
       extraNav.addEventListener('click',function(event){
@@ -442,7 +442,13 @@
            lwaziSiteCard('About BIG LWA','Meet the project, the people, and the ideas behind this Studio.','/about/'),
            lwaziSiteCard('Privacy at BIG LWA','What privacy and agency mean here.','/privacy/')
          ],'all studio identity'):'';
-         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(!isSocialGreeting&&window.BigLWAMusicDiscovery&&(/\b(song|music|album|artist|sing|track|soundcloud|playlist|mix|dj)\b/i.test(clean)||parts[5].length)?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'' )+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+        var extras=window.BigLWADiscoveryExtras;
+        if(extras){
+          html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
+          if(activeCategory==='widgets')html+=section('Studio widgets',extras.widgetCards(),'widgets studio');
+          if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
+        }
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard),'research herstory politics');
         var resultArea=current.querySelector('.bl-search-discovery');
         if(!resultArea){
