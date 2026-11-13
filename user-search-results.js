@@ -400,7 +400,7 @@
         sections.forEach(function(section){section.style.display=matches.includes(section)?'':'none'});
         if(fromClick&&matches.length)matches[0].scrollIntoView({behavior:'smooth',block:'nearest'});
         // Categories are real search pages, not hidden redirects to widgets.
-        if(fromClick&&['widgets','places','stream'].includes(category)){
+        if(fromClick&&['songs','widgets','places','stream'].includes(category)){
           renderDiscovery(discoveryParts);
         }
       }
