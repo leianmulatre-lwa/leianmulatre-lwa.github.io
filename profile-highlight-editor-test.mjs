@@ -140,6 +140,12 @@ Object.defineProperty(circle,'getBoundingClientRect',{configurable:true,value:()
 const pointer=(type,x,y)=>{const event=new w.Event(type,{bubbles:true,cancelable:true});Object.assign(event,{button:0,pointerId:1,clientX:x,clientY:y});circle.dispatchEvent(event)};
 pointer('pointerdown',40,40);pointer('pointermove',56,56);pointer('pointerup',56,56);
 assert.equal(previewImage.style.objectPosition,'70% 73%','Dragging moves both crop coordinates immediately');
+// Pointer tracking is on document: dragging beyond the 76px crop window
+// must keep updating both axes until pointerup.
+pointer('pointerdown',40,40);
+const docPointer=(type,x,y)=>{const e=new w.Event(type,{bubbles:true,cancelable:true});Object.assign(e,{pointerId:1,clientX:x,clientY:y});doc.dispatchEvent(e)};
+docPointer('pointermove',72,20);docPointer('pointerup',72,20);
+assert.equal(previewImage.style.objectPosition,'100% 48%','Horizontal and vertical dragging continue outside the circle');
 adjustButton.click();
 assert.equal(adjustButton.getAttribute('aria-pressed'),'false','Done exits drag mode');
 assert.equal(circle.tabIndex,-1,'Preview no longer captures keyboard focus after adjusting');
@@ -152,10 +158,27 @@ assert.match(css, /margin-top:29px!important/, 'Rank progress line lowered withi
 assert.match(css, /font-size:clamp\(17px,1\.5vw,21px\)/,'Current rank status enlarged approximately 35%');
 
 assert.equal(doc.querySelectorAll('#biglwaHighlightEditorList .highlight-edit-row').length,1,'Imported highlight is editable');
+// Long signed source URLs were previously rejected by cleanUrl's short storage
+// limit, causing every Archive preview to show the collection cover.
+const longPhoto='https://example.com/photo.jpg?sig='+('a'.repeat(1500));
+const longVideoThumb='https://example.com/video-frame.jpg?sig='+('b'.repeat(1550));
+imported.highlights[0].items[0].mediaUrl=longPhoto;
+imported.highlights[0].items[1].thumbnail=longVideoThumb;
+w.BIGLWAHighlightEditor.render();
+const itemsInEditor=[...doc.querySelectorAll('#biglwaHighlightEditorList .highlight-item-media')];
+assert.equal(itemsInEditor[0]?.querySelector('img')?.src,longPhoto,'Each photo previews its original source even with a long signed URL');
+assert.equal(itemsInEditor[1]?.querySelector('img')?.src,longVideoThumb,'Each video previews its own frame, not the collection cover');
+assert.notEqual(itemsInEditor[0]?.querySelector('img')?.src,imported.highlights[0].cover,'A story does not silently become its circle cover');
 highlightButton.setAttribute('aria-expanded','true');
 const title=doc.querySelector('#biglwaHighlightEditorList .highlight-edit-row input[type="text"]');
+const editTitle=doc.querySelector('.highlight-title-edit-button');
+assert.equal(editTitle?.textContent,'Edit title');
+editTitle.click();
+assert.equal(doc.activeElement,title,'Edit title focuses the actual title field');
 title.value='New title';title.dispatchEvent(new w.Event('input',{bubbles:true}));
-await w.BIGLWAHighlightEditor.save();
+assert.equal(editTitle.textContent,'Save title');
+editTitle.click();
+await new Promise(r=>setTimeout(r,35));
 assert.equal(lastSave.session.highlightEdits.imported['0'].title,'New title','Highlight title synced through owner customizations');
 assert.equal(w.BIGLWAHighlightEditor.customize(imported.highlights[0],0).title,'New title','Edited name appears on banner');
 const newHighlightButton=doc.querySelector('#archiveHighlightsPanel > .highlight-edit-actions button');
