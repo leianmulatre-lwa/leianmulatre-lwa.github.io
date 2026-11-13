@@ -19,6 +19,11 @@ on:
       - 'user-search-results.js'
       - 'lwazi-music-discovery.js'
       - 'lwazi-discovery-extras.js'
+      - 'lwazi-navigation-commands.js'
+      - 'lwazi-navigation-map-weather.css'
+      - 'studio-weather.js'
+      - 'legal/index.html'
+      - 'map-app.html'
       - 'lwazi-results-expansion.css'
       - 'lwazi-music-discovery.css'
       - 'visual-life-jobs.js'
@@ -44,6 +49,11 @@ on:
       - 'user-search-results.js'
       - 'lwazi-music-discovery.js'
       - 'lwazi-discovery-extras.js'
+      - 'lwazi-navigation-commands.js'
+      - 'lwazi-navigation-map-weather.css'
+      - 'studio-weather.js'
+      - 'legal/index.html'
+      - 'map-app.html'
       - 'lwazi-results-expansion.css'
       - 'lwazi-music-discovery.css'
       - 'visual-life-jobs.js'
@@ -78,10 +88,12 @@ jobs:
           node --check lwazi-search-ui.js
           node --check lwazi-music-discovery.js
           node --check lwazi-discovery-extras.js
+          node --check lwazi-navigation-commands.js
+          node --check studio-weather.js
           node --check visual-life-jobs.js
           node --check profile-music.js
           node --check tools-craft.js
       - name: Engine unit and mocked integration tests
-        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs lwazi/fast-answer-latency.test.mjs lwazi/staging-bridge.test.mjs lwazi/modes-history.test.mjs lwazi/math-vision.test.mjs lwazi/vinyl-covers.test.mjs lwazi/expanded-discovery.test.mjs
+        run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs lwazi/fast-answer-latency.test.mjs lwazi/staging-bridge.test.mjs lwazi/modes-history.test.mjs lwazi/math-vision.test.mjs lwazi/vinyl-covers.test.mjs lwazi/expanded-discovery.test.mjs lwazi/navigation-map-weather.test.mjs
       - name: Preserve existing Studio search contracts
         run: node lwazi-search-regression-test.mjs
