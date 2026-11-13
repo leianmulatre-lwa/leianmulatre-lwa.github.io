@@ -80,7 +80,10 @@ test('Widget directory, curated Stream video cards and route planning expose rea
  assert.match(api.placeCards()[0],/option value="transit"/);
  assert.match(api.placeCards()[0],/option value="walking"/);
  assert.match(api.placeCards()[0],/bl-lwazi-transit-form/);
- assert.match(extras,/https:\/\/www\.google\.com\/maps\/dir\//);
+ assert.doesNotMatch(extras,/window\.open\(/);
+ assert.doesNotMatch(extras,/google\.com\/maps\/dir/);
+ assert.match(extras,/biglwa:lwazi-map-trip/);
+ assert.match(extras,/Show route on BIG LWA/);
  assert.match(extras,/window\.open\(url\.href/);
  assert.match(search,/extras\.videoCards\(clean,activeCategory==='stream'\)/);
  assert.match(search,/extras\.widgetCards\(\)/);
