@@ -6,7 +6,7 @@ const index=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 test('general conversation skips citation-source preparation',()=>{
  assert.match(source,/var sourcePreparation=needsResearchSources\?Promise\.all/);
  assert.match(source,/Promise\.resolve\(\[\[\],\[\]\]\)/);
- assert.match(source,/var answerPromise=immediate\?Promise\.resolve\(immediate\):sourcePreparation\.then/);
+ assert.match(source,/var answerPromise=lwaziMode==='off'\|\|\(options\.restore&&storedTurns\.length\)\?null:immediate\?Promise\.resolve\(immediate\):sourcePreparation\.then/);
  assert.doesNotMatch(source,/var answerPromise=immediate\?Promise\.resolve\(immediate\):Promise\.all/);
 });
 test('explicit research requests gather bounded sources',()=>{
