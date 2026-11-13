@@ -28,6 +28,8 @@ test('OpenFreeMap is progressive and keeps safe classic fallback',()=>{
   assert.match(map,/baseLayers=\{Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain\}/);
   assert.match(map,/console\.info\('\[BIG LWA Map\] OpenFreeMap vector unavailable/);
   assert.match(map,/Map © OpenFreeMap · © OpenStreetMap contributors/);
+  assert.match(map,/cyclosm-lite\/\{z\}\/\{x\}\/\{y\}\.png/);
+  assert.match(map,/Mapped bike lanes · not live/);
 });
 test('map stays in Studio, uses height messaging rather than another page',()=>{
   assert.match(studio,/src="\/map-app\.html\?embed=1/);
