@@ -20,12 +20,14 @@ for(let i=0;i<games.length;i++){
  const game=games[i],embed=new URL(game.href),original=new URL(game.original);
  assert.equal(game.rank,i+1,'Publisher popularity ranking is stable');
  assert.equal(embed.origin,'https://www.y8.com');
- assert.match(embed.pathname,/^\/embed\/[a-z0-9_]+$/);
+ assert.match(embed.pathname,/^\/embed\/[a-z0-9_-]+$/);
  assert.equal(original.origin,'https://www.y8.com');
  assert.equal(original.pathname,'/games/'+game.slug);
  assert.equal(game.launch,'embed');
  assert.equal(game.provider,'Y8');
- assert.equal(game.image,'/assets/arcade/y8-game-placeholder-20261112.svg');
+ assert.match(game.image,/^https:\/\/(?:cdn2|img)\.y8\.com\//,"Y8 matching hosted game thumbnail");
+ assert(['Driving & Racing','Sports','Action & Adventure','Puzzles & Strategy','Life & Creative','Arcade & Skill'].includes(game.category),'Category is registered');
+ assert(['online','local','solo'].includes(game.multiplayerMode),'Multiplayer mode is classified');
 }
 assert(games.some(game=>game.title==='Slope Multiplayer'&&game.maybeMultiplayer),'Multiplayer discovery is supported');
 assert(pages.includes('gameLibrary.push(...y8Games.map'),'New titles extend original Arcade library');
@@ -33,7 +35,9 @@ assert(pages.includes("target.hostname==='www.y8.com'"),'Only approved Y8 publis
 assert(pages.includes("showGameLinks(game); // Third-party websites use the honest original-site launcher"),'Other third-party sites are still launchers');
 assert(pages.includes("frame.src=framed.href"),'No mirror or proxy');
 assert(pages.includes("game.original?new URL(game.original):uri"),'Original game fallback is preserved');
-assert(pages.includes("track(gameLibrary.slice(9,34))"),'200 games do not multiply moving carousel elements');
+assert(pages.includes('track(featuredColumns[2])') && pages.includes('items.concat(items)'),'Animated carousel has a bounded featured playlist');
+assert(pages.includes('arcade-category-group'),'Full catalog renders category groups');
+assert(!pages.includes('Live website attempted'),'No yellow game-loading warning is rendered');
 for(const [name,html] of [['main',index],['Studio',studio]]){
  const manifest=html.indexOf('y8-embeds-20261112.js');
  const runtime=html.indexOf('module-pages.js?v=');
