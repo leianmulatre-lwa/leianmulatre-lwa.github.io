@@ -185,7 +185,7 @@
           // Keep a cold source-library download from blocking the answer.
           var libraryForHook=window.__biglwaLwaziDeepThinking?await Promise.race([sourceLibraryPromise,new Promise(function(resolve){setTimeout(function(){resolve(null)},120)})]):null;
           var hookController=new AbortController();
-          var hookStop,hookTimeout=new Promise(function(_,reject){hookStop=setTimeout(function(){hookController.abort();reject(Error('Lwazi provider timed out'))},window.__biglwaLwaziDeepThinking?33000:20000)});
+          var hookStop,hookTimeout=new Promise(function(_,reject){hookStop=setTimeout(function(){hookController.abort();reject(Error('Lwazi provider timed out'))},window.__biglwaLwaziDeepThinking?27000:13000)});
           var external;
           try{external=await Promise.race([Promise.resolve().then(function(){return hooks[0](q,sources,libraryForHook&&libraryForHook.critical_reasoning,onPartial,{mode:window.__biglwaLwaziDeepThinking?'deep':'auto',signal:hookController.signal})}),hookTimeout])}
           finally{clearTimeout(hookStop)}
@@ -205,10 +205,14 @@
       // an additional, potentially slow browser-model attempt.
       var knownFailure=explainModelFailure(hookIssue);
       if(knownFailure)return knownFailure;
+      if(hookIssue)return 'L’wazi could not get a response from its live model. Search results are ready below.';
+      // Browser-local inference is an explicit choice, not a second lengthy
+      // attempt when the Cloudflare request fails or a bridge is missing.
+      if(!window.__biglwaEnableBrowserLwazi)return 'L’wazi’s live AI connection is unavailable on this page. Discovery and Studio navigation still work.';
       try{
         var lm=(window.LanguageModel)||(window.ai&&window.ai.languageModel);
         if(lm&&typeof lm.create==='function'){
-          var policyLibrary=await sourceLibraryPromise;var charter=policyLibrary&&policyLibrary.critical_reasoning;
+          var policyLibrary=await Promise.race([sourceLibraryPromise,new Promise(function(resolve){setTimeout(function(){resolve(null)},180)})]);var charter=policyLibrary&&policyLibrary.critical_reasoning;
           var session=await (browserSessionPromise||(browserSessionPromise=lm.create({systemPrompt:'You are L’wazi, an AI assistant authored by Leian inside BIG LWA, with a distinct, grounded voice. You are not Leian or a person and have no personal lived racial experience. Be a source-grounded, Black-centered and community-accountable research assistant. Answer directly and humanely. Favor evidence over agreement. Apply the individual, social and political body lenses when useful, protect privacy and never invent sources. Write with warmth, wit and natural cultural fluency, not forced slang. Respond to casual conversation as conversation; understand pop-culture references when recognizable. When asked who made you or this site, credit Leian and point to BIG LWA important pages. Do not force unrelated book, film or music search results.'+(charter?'\nUse this research method: '+JSON.stringify({three_bodies:charter.three_bodies,argument_rules:charter.argument_rules}):'')}).catch(function(error){browserSessionPromise=null;throw error})));
           var answer=await Promise.race([session.prompt(q+'\n\nDiscovery references (not verified full text):\n'+sources.map(function(s){return s.title+': '+s.snippet+(s.url?' | '+s.url:'')}).join('\n')),new Promise(function(_,reject){setTimeout(function(){reject(Error('Browser model timed out'))},15000)})]);
           if(answer)return String(answer);
@@ -216,7 +220,7 @@
         if(lm&&typeof lm==='object'&&typeof lm.prompt==='function'){var quick=await lm.prompt(q);if(quick)return String(quick)}
       }catch(e){console.warn('[Lwazi] Browser AI unavailable:',e)}
       if(sources.length)return 'Here are public discovery links for “'+q+'” (not verified full texts): '+sources.slice(0,3).map(function(s){return s.title+' — '+String(s.snippet||'').replace(/<[^>]+>/g,' ').slice(0,180)}).join('; ')+'. I could not verify their full text.';
-      return hookIssue?'L’wazi could not connect to its live AI model. Search and Studio navigation are still available.':'L’wazi’s AI model is not configured for this browser yet. Search and Studio navigation are still available.';
+      return 'L’wazi’s AI is temporarily unavailable. Discovery and Studio navigation still work.';
     }
 
     async function openPanel(raw){
@@ -286,7 +290,10 @@
        var answerPromise=immediate?Promise.resolve(immediate):sourcePreparation.then(function(parts){var sources=parts[0].map(function(source){return {title:source.title,snippet:String(source.creator||'')+' · '+String(source.topic||'')+' · '+String(source.usage||source.notes||''),url:String(source.url||'')}});parts[1].slice(0,3).forEach(function(w){sources.push({title:w.title,snippet:String(w.snippet||'').replace(/<[^>]+>/g,''),url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(w.title||'').replace(/\s+/g,'_'))})});return askLwazi(clean,sources,function(partial){if(panel!==current||!current.isConnected)return;var answerBox=current.querySelector('.bl-lwazi-answer-body');if(answerBox)renderAnswer(answerBox,partial)})});
        // Never replace a response already streaming with a late source-library status.
 
-      Promise.all([userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise]).then(function(parts){
+      // Render each source as it becomes ready, not after the slowest
+      // image/people/library request. One provider cannot hold up the others.
+      var discoveryParts=[[],[],[],[],[],[]],discoveryCompleted=0;
+      function renderDiscovery(parts){
         if(panel!==current||!current.isConnected)return;
          var wikiCards=parts[2],politics=wikiCards.filter(function(x){return /politic|electoral|vote|government|president|law|court|parliament/i.test(x)}),films=wikiCards.filter(function(x){return /cinema|film|movie|video|episode|director/i.test(x)}),general=wikiCards.filter(function(x){return !politics.includes(x)&&!films.includes(x)});
          var firstParty=conversation&&isSocialGreeting?section('About BIG LWA',[
@@ -295,10 +302,25 @@
          ],'all studio identity'):'';
          var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(!isSocialGreeting&&window.BigLWAMusicDiscovery&&(/\b(song|music|album|artist|sing|track|soundcloud|playlist|mix|dj)\b/i.test(clean)||parts[5].length)?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'' )+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard),'research herstory politics');
-        var loading=panel.querySelector('.bl-search-loading');if(loading)loading.outerHTML=html||(isSocialGreeting?'':'<p class="bl-search-empty">No public results found.</p>');if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
+        var resultArea=current.querySelector('.bl-search-discovery');
+        if(!resultArea){
+          var loading=current.querySelector('.bl-search-loading');
+          if(loading){resultArea=document.createElement('div');resultArea.className='bl-search-discovery';loading.replaceWith(resultArea)}
+        }
+        if(resultArea){
+          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted===6?'<p class="bl-search-empty">No public results found.</p>':'');
+        }if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
         // Search always starts in All; preserve a user's later manual tab selection.
         activateCategory(activeCategory,false);
         panel.querySelectorAll('[data-lwazi-route]').forEach(function(button){button.addEventListener('click',function(){goRoute(button.dataset.lwaziRoute)})});
+      }
+      [userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise].forEach(function(job,i){
+        Promise.resolve(job).then(function(found){
+          discoveryParts[i]=Array.isArray(found)?found:[];
+        }).catch(function(){discoveryParts[i]=[]}).finally(function(){
+          discoveryCompleted++;
+          renderDiscovery(discoveryParts);
+        });
       });
       answerPromise.then(function(answer){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,answer==null?'No answer available.':answer)}).catch(function(){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,'Search information could not be loaded. Try again.')});
     }
