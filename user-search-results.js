@@ -259,6 +259,65 @@
       mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
       panel.innerHTML='<div class="bl-search-head"><article class="bl-lwazi-answer" role="status" aria-live="polite" hidden><div class="bl-lwazi-answer-body">L’wazi is thinking…</div></article><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><section class="bl-lwazi-conversation" aria-label="Continue talking with L’wazi" hidden><p class="bl-lwazi-conversation-label">Continue this conversation with L’wazi</p><div class="bl-lwazi-conversation-turns" role="log" aria-live="polite"></div><form class="bl-lwazi-continue-form"><input class="bl-lwazi-continue-input" type="text" maxlength="450" aria-label="Follow up with L’wazi" placeholder="Ask a follow-up…" autocomplete="off"><button class="bl-lwazi-continue-send" type="submit">Send ↗</button></form></section><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
+      // Only the selected NPC/Deep mode requests an answer. Search-only
+      // never calls an AI provider or fabricates an assistant response.
+      var aiActive=lwaziMode!=='off';
+      var answerArea=current.querySelector('.bl-lwazi-answer');
+      var answerBody=current.querySelector('.bl-lwazi-answer-body');
+      var threadArea=current.querySelector('.bl-lwazi-conversation');
+      var turnArea=current.querySelector('.bl-lwazi-conversation-turns');
+      var followForm=current.querySelector('.bl-lwazi-continue-form');
+      answerArea.hidden=!aiActive;threadArea.hidden=!aiActive;
+      var turns=storedTurns;
+      if(aiActive&&!turns.length)turns=[{role:'user',text:clean}];
+      function persistTurns(){
+        if(historyId)history?.update(historyId,{mode:lwaziMode,turns:turns});
+      }
+      function showTurns(){
+        if(!turnArea)return;
+        turnArea.replaceChildren();
+        // The most recent answer is the prominent one beside the close X.
+        // The conversation beneath it is the continuing transcript.
+        var past=turns.slice(0,turns.at(-1)?.role==='assistant'?-1:undefined);
+        past.forEach(function(turn){
+          var card=document.createElement('p');
+          card.className='bl-lwazi-turn';
+          card.dataset.role=turn.role;
+          card.textContent=(turn.role==='assistant'?'L’wazi · ':'You · ')+turn.text;
+          turnArea.appendChild(card);
+        });
+        if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
+      }
+      if(aiActive){
+        if(storedTurns.length)showTurns();
+        else persistTurns();
+      }
+      followForm.addEventListener('submit',async function(event){
+        event.preventDefault();
+        if(!aiActive||panel!==current)return;
+        var input=followForm.querySelector('.bl-lwazi-continue-input');
+        var send=followForm.querySelector('.bl-lwazi-continue-send');
+        var follow=String(input.value||'').trim().slice(0,450);
+        if(!follow||send.disabled)return;
+        input.value='';
+        var prior=turns.slice(-5).map(function(t){return (t.role==='user'?'User: ':'L’wazi: ')+t.text.slice(0,170)}).join('\n');
+        var fullPrompt=('Continue this conversation with a direct reply to the latest user message.\n'+prior+'\nUser: '+follow+'\nL’wazi:').slice(-1450);
+        turns.push({role:'user',text:follow});turns=turns.slice(-12);
+        showTurns();persistTurns();
+        renderAnswer(answerBody,'L’wazi is thinking…');
+        send.disabled=true;
+        try{
+          var response=await askLwazi(fullPrompt,[],function(partial){
+            if(panel===current)renderAnswer(answerBody,partial);
+          });
+          if(panel!==current)return;
+          var text=String(response||'No answer available.');
+          turns.push({role:'assistant',text:text.slice(0,1200)});
+          turns=turns.slice(-12);persistTurns();showTurns();
+        }catch(e){
+          if(panel===current)renderAnswer(answerBody,explainModelFailure(e)||'L’wazi could not finish that answer. You can ask again.');
+        }finally{send.disabled=false;}
+      });
       // One delegated handler for the canonical categories and their extended searches.
       var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['widgets','Widgets']];
       var extraNav=panel.querySelector('.bl-search-category-nav');
@@ -300,7 +359,7 @@
       activateCategory('all',false);
 
 
-      if(/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
+      if(aiActive&&/\b(eligib|financial aid|fafsa|medic|healthcare|medical|clinical|gender affirming|insurance|benefits)\b/i.test(clean)){var note=document.createElement('p');note.className='bl-search-guidance';note.textContent='Requirements and care guidance can change. Confirm current eligibility with the relevant agency, and medical questions with current clinical sources; community guidance adds important context.';current.querySelector('.bl-lwazi-answer').appendChild(note)}
       var lc=clean.toLowerCase();
       var conversation=conversationIntent(clean);
       var isSocialGreeting=lwaziMode!=='off'&&!!(conversation&&(conversation.kind==='greeting'||conversation.kind==='identity'));
@@ -353,7 +412,16 @@
           renderDiscovery(discoveryParts);
         });
       });
-      answerPromise.then(function(answer){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,answer==null?'No answer available.':answer)}).catch(function(){if(panel!==current||!current.isConnected)return;var box=current.querySelector('.bl-lwazi-answer-body');if(box)renderAnswer(box,'Search information could not be loaded. Try again.')});
+      if(answerPromise)answerPromise.then(function(answer){
+        if(panel!==current||!current.isConnected)return;
+        var text=String(answer==null?'No answer available.':answer);
+        turns.push({role:'assistant',text:text.slice(0,1200)});
+        turns=turns.slice(-12);persistTurns();showTurns();
+        if(answerBody)renderAnswer(answerBody,text);
+      }).catch(function(error){
+        if(panel!==current||!current.isConnected)return;
+        if(answerBody)renderAnswer(answerBody,explainModelFailure(error)||'L’wazi could not finish that answer. Try again.');
+      });
     }
     window.__biglwaUserCards=openPanel;window.__biglwaUserCardsClose=close;
     function boothSearchSymbol(){
