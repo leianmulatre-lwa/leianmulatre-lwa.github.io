@@ -81,7 +81,10 @@ function finishAuth(user){
     if(login?.classList.contains('is-active') && studio){
       login.classList.remove('is-active');
       studio.classList.add('is-active');
-      if(location.pathname==='/login')try{history.replaceState(history.state,'','/studio')}catch{}
+      // A restored member must never inherit an old /login or / history
+      // entry that paints a credential screen on the first browser Back.
+      if(location.pathname==='/login'||(location.pathname==='/'&&!location.search))
+        try{history.replaceState(history.state,'','/studio')}catch{}
     }
   }
   document.body.classList.remove("biglwa-session-pending");
@@ -123,7 +126,14 @@ function resolveVerifiedUser(user){
   const uid=user?.uid||'';
   // Multiple widgets all listen for Firebase auth. A repeated notification
   // about the same user is NOT another sign-in or a reason to repaint pages.
-  if(lastConfirmedUid===uid)return;
+  if(lastConfirmedUid===uid){
+    // BFCache can restore a *different visual route* without a Firebase auth
+    // transition. Reconcile the actual screen even when the UID is unchanged.
+    if(document.body.classList.contains('biglwa-session-pending')||
+       (uid && document.getElementById('loginPage')?.classList.contains('is-active')))
+      finishAuth(user);
+    return;
+  }
   lastConfirmedUid=uid;
   restoreScheduled=false;
   if(uid&&pendingView){const next=pendingView;pendingView='';setLastView(next)}
@@ -159,6 +169,11 @@ async function boot(){
   document.body.classList.add("biglwa-session-pending");
   guardLoginScreen();
   verifySession();
+  // The browser back/forward cache restores DOM and JS state, not necessarily
+  // an onAuthStateChanged event. Re-check Firebase on both history traversal
+  // and cached-document restoration; never treat a cached login as signed out.
+  window.addEventListener('pageshow',()=>verifySession());
+  window.addEventListener('popstate',()=>verifySession());
   window.addEventListener("biglwa:customization-remote",event=>restoreLastView(event.detail));
   document.addEventListener("biglwa:module-open",event=>setLastView(event.detail?.key||""));
   document.addEventListener("biglwa:module-close",()=>{

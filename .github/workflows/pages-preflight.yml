@@ -13,6 +13,11 @@ on:
       - 'collective-publish.js'
       - 'pinterest-orbit.js'
       - 'session-restore.js'
+      - 'studio-interaction-stability.js'
+      - 'studio-controls-regression-test.mjs'
+      - 'auth-history-tooltip-regression-test.mjs'
+      - 'studio/index.html'
+      - '404.html'
       - 'brand-policy.css'
       - 'policy-card-cohesion.js'
       - 'module-pages.js'
@@ -62,6 +67,7 @@ jobs:
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs
           node login-path-and-guide-test.mjs
+          node auth-history-tooltip-regression-test.mjs
           node tutorial-symbol-key-test.mjs
           node orbit-session-stability-test.mjs
           node veve-studio-pinterest-regression-test.mjs
