@@ -123,14 +123,22 @@
   const seq=++previewSerial;
   notice('Locating places on BIG LWA…','loading');
   try{
-   if(!from||!to)throw Error('Enter a starting point and a destination (or choose Use current location).');
+   if(!to)throw Error('Enter a destination to explore.');
    if(!['bicycling','walking','driving','transit'].includes(mode))throw Error('Unsupported travel mode.');
-   const [start,end]=await Promise.all([geocode(from),geocode(to)]);
+   const [start,end]=await Promise.all([from?geocode(from):Promise.resolve(null),geocode(to)]);
    if(seq!==previewSerial)return;
    const bridge=await bridgeReady();
    if(seq!==previewSerial)return;
    const {map,L}=bridge;
    if(activePreviewRoute){map.removeLayer(activePreviewRoute);activePreviewRoute=null;}
+   if(!start){
+     activePreviewRoute=L.circleMarker([end.lat,end.lng],{
+      color:'#a93352',radius:9,fillColor:'#f7c2ce',fillOpacity:.9
+     }).addTo(map);
+     map.setView([end.lat,end.lng],14);
+     notice('Showing '+to+' on BIG LWA. Add a starting place to draw a route.','success');
+     return;
+   }
    let info='';
    try{
     notice('Drawing your route on BIG LWA…','loading');
@@ -146,7 +154,6 @@
     info=(error?.message||'Route service is unavailable.')+
       ' Dashed line shows direction only; not a road route or ETA.';
    }
-   activePreviewRoute.addTo(map);
    map.fitBounds(activePreviewRoute.getBounds(),{padding:[32,32],maxZoom:14});
    notice(info,info.includes('Dashed line')?'warning':'success');
   }catch(error){if(seq===previewSerial)notice(error?.message||'Unable to draw this route.','error');}
