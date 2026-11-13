@@ -25,7 +25,7 @@ test('math is shown automatically regardless of NPC or Deep and never forces inf
  assert.match(source,/bl-lwazi-math-preview/);
  assert.match(source,/search\.addEventListener\('input',function\(\)/);
  assert.match(source,/openPanel\('Search by image',\{imageOnly:true\}\)/);
- assert.match(source,/if\(options\.imageOnly\)/);
+ assert.match(source,/if\(options\.imageOnly\|\|mathResult\)/);
  assert.match(source,/answer\.hidden=false/);
 });
 test('free Worker vision sends authenticated image messages to existing AI binding',async()=>{
