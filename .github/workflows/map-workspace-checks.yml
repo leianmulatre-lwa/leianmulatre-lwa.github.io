@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'map-app.html'
+      - 'lwazi-discovery-extras.js'
+      - 'map-lwa-router-20261113.js'
+      - 'map-inpage-route-test.mjs'
+      - 'lwazi-navigation-map-weather.css'
       - 'map-lwa-experience-20261113.js'
       - 'map-lwa-experience-20261113.css'
       - 'map-workspace-regression-test.mjs'
@@ -12,6 +16,10 @@ on:
     branches: [main]
     paths:
       - 'map-app.html'
+      - 'lwazi-discovery-extras.js'
+      - 'map-lwa-router-20261113.js'
+      - 'map-inpage-route-test.mjs'
+      - 'lwazi-navigation-map-weather.css'
       - 'map-lwa-experience-20261113.js'
       - 'map-lwa-experience-20261113.css'
       - 'map-workspace-regression-test.mjs'
@@ -32,7 +40,9 @@ jobs:
         run: |
           node --check module-pages.js
           node --check map-lwa-experience-20261113.js
-          node --test map-workspace-regression-test.mjs
+          node --check map-lwa-router-20261113.js
+          node --check lwazi-discovery-extras.js
+          node --test map-workspace-regression-test.mjs map-inpage-route-test.mjs
       - name: Preserve privacy and Map search contracts
         run: |
           node account-storage-regression-test.mjs
