@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2';
         document.head.appendChild(script);
       }, 250);
     }
