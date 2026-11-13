@@ -8,12 +8,15 @@
  const hintsKey=()=>HINTS_PREFIX+uid();
  const readHidden=()=>{try{return localStorage.getItem(hintsKey())==='1'}catch{return false}};
  let hintsHidden=readHidden();
- let anchor=null,hideTimer;
+ let anchor=null,hideTimer=null;
+ const HIDE_GRACE_MS=140;
+ function cancelHide(){clearTimeout(hideTimer);hideTimer=null}
+ function scheduleHide(){cancelHide();hideTimer=setTimeout(()=>{hideTimer=null;hide()},HIDE_GRACE_MS)}
  const tip=document.createElement('div');tip.id='studioPersistentTooltip';tip.role='tooltip';tip.hidden=true;document.body.append(tip);
  // A hint never accepts the pointer, and its browser-native title never
  // comes back after hiding (that was producing the stuck dark tooltip).
  function hide(){
-  clearTimeout(hideTimer);
+  cancelHide();
   anchor?.removeAttribute('aria-describedby');
   anchor=null;tip.hidden=true;
  }
@@ -34,7 +37,7 @@
   stripTitles(el);
   const text=(el?.dataset?.studioHelp||'').trim();
   if(!text){hide();return}
-  clearTimeout(hideTimer);
+  cancelHide();
   if(anchor===el&&!tip.hidden)return;
   hide();anchor=el;
   el.setAttribute('aria-describedby',tip.id);
@@ -44,7 +47,19 @@
   tip.style.left=Math.max(8,Math.min(bounds.right+8,innerWidth-tip.offsetWidth-8))+'px';
   tip.style.top=Math.max(8,Math.min(bounds.top,innerHeight-tip.offsetHeight-8))+'px';
  }
- function target(node){return node instanceof Element?node.closest('#studioApp [title],#studioApp [data-studio-help]'):null}
+ function target(node){
+  if(!(node instanceof Element))return null;
+  const hinted=node.closest('#studioApp [title],#studioApp [data-studio-help]');
+  if(!hinted)return null;
+  // A hint belongs to the whole interactive control, not its icon/text child.
+  // Moving across nested labels then never swaps the hover target each frame.
+  const control=hinted.closest('button,a,summary,[role="button"],[role="menuitem"]');
+  if(!control||!control.closest('#studioApp'))return hinted;
+  const description=control.dataset.studioHelp||control.getAttribute('title')||
+    hinted.dataset.studioHelp||hinted.getAttribute('title');
+  if(description&&!control.dataset.studioHelp)control.dataset.studioHelp=description;
+  return control;
+ }
  function applyHintsPreference(){
   hide();
   const app=q('#studioApp');if(app){
@@ -73,15 +88,16 @@
   stripTitles(q('#studioApp')||document.body);
  },{once:true});
  document.addEventListener('pointerover',event=>{
+  if(anchor?.contains(event.target)){cancelHide();return}
   const el=target(event.target);
   if(el)show(el);
-  else if(anchor&&!anchor.contains(event.target))hide();
+  else if(anchor)scheduleHide();
  });
  document.addEventListener('pointerout',event=>{
   if(!anchor||!anchor.contains(event.target))return;
   if(event.relatedTarget&&anchor.contains(event.relatedTarget))return;
   // Brief tolerance for crossing nested controls; never sticky after leaving.
-  hideTimer=setTimeout(hide,65);
+  scheduleHide();
  });
  document.addEventListener('pointerdown',hide,true);
  document.addEventListener('focusin',event=>{
@@ -93,7 +109,18 @@
  });
  document.addEventListener('visibilitychange',()=>{if(document.hidden)hide()});
  window.addEventListener('blur',hide);
- window.addEventListener('scroll',hide,true);
+ window.addEventListener('scroll',()=>{
+  if(!anchor)return;
+  if(!anchor.isConnected){hide();return}
+  const bounds=anchor.getBoundingClientRect();
+  if(bounds.bottom<0||bounds.top>innerHeight||bounds.right<0||bounds.left>innerWidth){
+   hide();return;
+  }
+  // The user did not leave the hovered control when an inner widget scrolls.
+  // Reposition the hint rather than hiding it on every scroll event.
+  tip.style.left=Math.max(8,Math.min(bounds.right+8,innerWidth-tip.offsetWidth-8))+'px';
+  tip.style.top=Math.max(8,Math.min(bounds.top,innerHeight-tip.offsetHeight-8))+'px';
+ },true);
  document.addEventListener('keydown',event=>{if(event.key==='Escape')hide()});
  let dialog=null,input=null,original='',hsv={h:0,s:0,v:1};
  const clamp=(x,min=0,max=1)=>Math.min(max,Math.max(min,Number(x)||0));
