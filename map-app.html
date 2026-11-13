@@ -1038,13 +1038,20 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
     /* OpenFreeMap vector styles are the default when WebGL/CDN are available.
        Leaflet stays authoritative for existing markers, pin editing and storage.
        A locally embedded raster base remains usable if vector assets fail. */
+    /* Cycling lines are OSM mapping, not live bike-lane conditions.
+       Their optional tiles load only when a person enables this overlay. */
+    const cyclingOverlay=watchTiles(L.tileLayer(
+      'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png',
+      {subdomains:'abc',maxNativeZoom:19,maxZoom:19,opacity:.85,
+       attribution:'Mapped cycling data &copy; <a href="https://www.cyclosm.org/" target="_blank" rel="noopener">CyclOSM</a> · &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}
+    ),'Cycling');
     const baseLayers={Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain};
     let preferred='LWA Streets';try{
       const savedMode=localStorage.getItem('biglwaMapMode');
       if(savedMode&&['LWA Streets','LWA Light','LWA Night','Street','Satellite','Hybrid','Terrain'].includes(savedMode))preferred=savedMode;
     }catch{}
     (baseLayers[preferred]||street).addTo(map);
-    const layerControl=L.control.layers(baseLayers,null,{position:'topright',collapsed:true}).addTo(map);
+    const layerControl=L.control.layers(baseLayers,{'Mapped bike lanes · not live':cyclingOverlay},{position:'topright',collapsed:true}).addTo(map);
     map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}
       $('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
     const loadPublicScript=(src)=>new Promise((resolve,reject)=>{
