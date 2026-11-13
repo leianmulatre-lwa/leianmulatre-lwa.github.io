@@ -25,7 +25,7 @@ for(let i=0;i<games.length;i++){
  assert.equal(original.pathname,'/games/'+game.slug);
  assert.equal(game.launch,'embed');
  assert.equal(game.provider,'Y8');
- assert.match(game.image,/^https:\/\/(?:cdn2|img)\.y8\.com\//,'Game thumbnail is Y8's matching hosted image');
+ assert.match(game.image,/^https:\/\/(?:cdn2|img)\.y8\.com\//,"Y8 matching hosted game thumbnail");
  assert(['Driving & Racing','Sports','Action & Adventure','Puzzles & Strategy','Life & Creative','Arcade & Skill'].includes(game.category),'Category is registered');
  assert(['online','local','solo'].includes(game.multiplayerMode),'Multiplayer mode is classified');
 }
