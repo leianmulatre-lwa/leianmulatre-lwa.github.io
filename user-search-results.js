@@ -331,7 +331,9 @@
           if(panel===current)renderAnswer(answerBody,explainModelFailure(e)||'L’wazi could not finish that answer. You can ask again.');
         }finally{send.disabled=false;}
       });
-      if(options.imageOnly){
+      if(options.imageOnly||mathResult){
+        // Image selection and deterministic math should never launch unrelated
+        // Books/Songs/Wikipedia searches, or spend a free model inference.
         current.querySelector('.bl-search-category-nav')?.setAttribute('hidden','');
         current.querySelector('.bl-search-loading')?.remove();
         return;
