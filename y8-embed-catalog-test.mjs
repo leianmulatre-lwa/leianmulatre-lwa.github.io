@@ -20,7 +20,7 @@ for(let i=0;i<games.length;i++){
  const game=games[i],embed=new URL(game.href),original=new URL(game.original);
  assert.equal(game.rank,i+1,'Publisher popularity ranking is stable');
  assert.equal(embed.origin,'https://www.y8.com');
- assert.match(embed.pathname,/^\/embed\/[a-z0-9_]+$/);
+ assert.match(embed.pathname,/^\/embed\/[a-z0-9_-]+$/);
  assert.equal(original.origin,'https://www.y8.com');
  assert.equal(original.pathname,'/games/'+game.slug);
  assert.equal(game.launch,'embed');
