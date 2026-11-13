@@ -40,11 +40,11 @@
    return await response.json();
   }finally{clearTimeout(timer);}
  };
- const stripMarkup=raw=>{
-  const holder=document.createElement('div');
-  holder.innerHTML=String(raw||'').slice(0,3000);
-  return String(holder.textContent||'').replace(/\s+/g,' ').trim().slice(0,390);
- };
+ const stripMarkup=raw=>String(raw||'').slice(0,3000)
+  .replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ')
+  .replace(/&amp;/gi,'&').replace(/&quot;/gi,'"')
+  .replace(/&lt;/gi,'<').replace(/&gt;/gi,'>')
+  .replace(/\s+/g,' ').trim().slice(0,390);
  function sourceLink(title,url){
   const a=make('a','politc-research-link',title+' ↗');a.href=url;a.target='_blank';
   a.rel='noopener noreferrer';return a;
