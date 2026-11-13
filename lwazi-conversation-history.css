@@ -1,0 +1,151 @@
+/* L’wazi response beside the close control; continuable thread below.
+   These rules extend the existing Studio visual language, not a new popup. */
+#bl-studio-search-results>.bl-search-head{
+ display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+ width:100%!important;gap:14px!important;margin:0 0 10px!important;order:-1!important;
+}
+#bl-studio-search-results>.bl-search-head .bl-lwazi-answer{
+ flex:1 1 auto!important;min-width:0!important;margin:0!important;
+ padding:3px 0 6px!important;border:0!important;box-shadow:none!important;
+ background:transparent!important;
+}
+#bl-studio-search-results .bl-lwazi-answer[hidden],
+#bl-studio-search-results .bl-lwazi-conversation[hidden],
+#studioApp .bl-lwazi-mode-menu[hidden],
+#studioApp .bl-lwazi-history-popover[hidden]{display:none!important}
+#bl-studio-search-results .bl-lwazi-answer-body{
+ color:rgb(var(--aura-rgb,151,62,84))!important;
+ font-size:14px!important;line-height:1.55!important;margin:0!important;
+}
+#bl-studio-search-results .bl-lwazi-answer-body p{margin:0 0 5px!important}
+#bl-studio-search-results .bl-lwazi-answer-body p:last-child{margin-bottom:0!important}
+#bl-studio-search-results .bl-search-close{
+ flex:0 0 34px!important;width:34px!important;height:34px!important;
+ align-self:flex-start!important;
+}
+#bl-studio-search-results>.bl-lwazi-conversation{
+ display:grid!important;gap:8px!important;order:0!important;
+ margin:0 0 12px!important;padding:0 0 12px!important;
+ border-bottom:1px solid rgba(var(--aura-rgb,155,77,94),.22)!important;
+ max-width:min(100%,1180px)!important;
+}
+#bl-studio-search-results .bl-lwazi-conversation-label{
+ margin:0;font:650 11px/1.4 system-ui,sans-serif;letter-spacing:.025em;
+ color:inherit;opacity:.7;
+}
+#bl-studio-search-results .bl-lwazi-conversation-turns{
+ display:grid;gap:6px;max-height:min(40vh,310px);overflow-y:auto;overscroll-behavior:contain;
+}
+#bl-studio-search-results .bl-lwazi-turn{
+ margin:0;padding:8px 11px;border:1px solid rgba(135,99,106,.22);border-radius:8px;
+ max-width:min(95%,770px);font:450 13px/1.5 system-ui,sans-serif;
+ overflow-wrap:anywhere;white-space:pre-wrap;
+}
+#bl-studio-search-results .bl-lwazi-turn[data-role="user"]{
+ justify-self:end;background:rgba(var(--aura-rgb,208,105,117),.10);
+}
+#bl-studio-search-results .bl-lwazi-turn[data-role="assistant"]{
+ justify-self:start;background:rgba(245,237,228,.7);
+}
+#bl-studio-search-results .bl-lwazi-continue-form{
+ display:flex;gap:8px;align-items:stretch;width:min(100%,900px)!important;
+}
+#bl-studio-search-results .bl-lwazi-continue-input{
+ flex:1;min-width:0;min-height:40px;box-sizing:border-box;
+ background:#fffdf9;color:#33292a;border:1px solid #c6b4ad;border-radius:9px;
+ padding:9px 12px;font:500 13px/1.4 system-ui,sans-serif;
+}
+#bl-studio-search-results .bl-lwazi-continue-send{
+ flex:none;min-width:66px;border:1px solid rgba(var(--aura-rgb,151,62,84),.55);
+ background:rgba(var(--aura-rgb,151,62,84),.13);color:inherit;
+ border-radius:9px;font:750 12px/1.25 system-ui,sans-serif;cursor:pointer;
+}
+#bl-studio-search-results .bl-lwazi-continue-send:disabled{opacity:.45;cursor:default}
+#studioApp .search-wrap.bl-search-ready{z-index:4000!important}
+#studioApp .bl-lwazi-mode-menu,#studioApp .bl-lwazi-history-popover{
+ position:absolute!important;top:calc(100% + 7px)!important;
+ z-index:4200!important;max-height:min(420px,55vh);overflow:auto;
+ color:#322629!important;background:#fffaf5!important;
+ border:1px solid #c9aea9!important;border-radius:11px!important;
+ box-shadow:0 14px 34px rgba(37,21,28,.22)!important;
+ font:500 12px/1.4 system-ui,sans-serif;
+}
+#studioApp .bl-lwazi-mode-menu{
+ left:0!important;right:auto!important;width:210px!important;padding:7px!important;
+}
+#studioApp .bl-lwazi-mode-menu>p{
+ margin:4px 8px 7px;color:#8f5368;font:750 10px/1.2 system-ui;
+ text-transform:uppercase;letter-spacing:.08em;
+}
+#studioApp .bl-lwazi-mode-menu button{
+ display:block;width:100%;padding:9px 10px;border:0;border-radius:7px;
+ background:transparent;color:inherit;text-align:left;cursor:pointer;
+ font:650 13px/1.4 system-ui,sans-serif;
+}
+#studioApp .bl-lwazi-mode-menu button[aria-checked="true"]{
+ background:rgba(var(--aura-rgb,175,86,109),.16)!important;
+}
+#studioApp .bl-lwazi-mode-menu small{
+ display:block;font-weight:400;line-height:1.3;opacity:.68;
+}
+#studioApp .bl-lwazi-history-popover{
+ left:0!important;right:0!important;padding:10px 12px!important;
+}
+#studioApp .bl-lwazi-history-head{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ font:750 11px/1.3 system-ui;letter-spacing:.035em;
+}
+#studioApp .bl-lwazi-history-head a{color:#8c4357;text-underline-offset:3px}
+#studioApp .bl-lwazi-history-month{margin:10px 0 5px;font-weight:750;opacity:.64}
+#studioApp .bl-lwazi-history-item{
+ display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+ padding:9px 5px;border:0;border-bottom:1px solid #e6d8d3;
+ background:none;color:inherit;cursor:pointer;
+ font:500 12px/1.3 system-ui,sans-serif;
+}
+#studioApp .bl-lwazi-history-item strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+#studioApp .bl-lwazi-history-item small{opacity:.6}
+#studioApp .bl-lwazi-history-item:hover,#studioApp .bl-lwazi-mode-menu button:hover{
+ background:rgba(var(--aura-rgb,175,86,109),.10);
+}
+#studioApp .bl-lwazi-history-empty{padding:11px 4px;color:#655557}
+#studioApp .bl-lwazi-button[aria-pressed="true"] .bl-lwazi-stitch{
+ box-shadow:0 0 0 2px rgba(var(--aura-rgb,167,73,94),.50)!important;
+}
+body.night-mode #bl-studio-search-results .bl-lwazi-answer-body{color:#f3c1cc!important}
+body.night-mode #bl-studio-search-results .bl-lwazi-turn[data-role="assistant"]{background:#382d31}
+body.night-mode #bl-studio-search-results .bl-lwazi-continue-input,
+body.night-mode #studioApp .bl-lwazi-mode-menu,
+body.night-mode #studioApp .bl-lwazi-history-popover{
+ background:#2d2528!important;color:#f6eaea!important;border-color:#72535a!important;
+}
+@media(max-width:640px){
+ #bl-studio-search-results>.bl-search-head{gap:8px!important}
+ #bl-studio-search-results .bl-lwazi-continue-form{flex-wrap:wrap}
+ #bl-studio-search-results .bl-lwazi-continue-send{min-height:36px}
+ #studioApp .bl-lwazi-history-popover{max-height:50vh}
+}
+/* Calendar-like month sections in the existing Settings discovery area. */
+#lwaziHistorySettings .lwazi-history-month{
+ padding:11px 0;margin:10px 0;border-bottom:1px solid var(--line,#d9cbc5);
+}
+#lwaziHistorySettings .lwazi-history-month-head{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+#lwaziHistorySettings .lwazi-history-month-head button,
+#lwaziHistorySettings .lwazi-history-month li button{
+ border:1px solid var(--line,#d6c3bc);border-radius:7px;
+ background:transparent;color:inherit;cursor:pointer;padding:5px 10px;
+}
+#lwaziHistorySettings .lwazi-history-month ul{
+ list-style:none;padding:0;margin:7px 0 0;
+}
+#lwaziHistorySettings .lwazi-history-month li{
+ display:flex;gap:10px;align-items:center;min-height:35px;
+}
+#lwaziHistorySettings .lwazi-history-month li a{
+ flex:1;min-width:0;overflow-wrap:anywhere;color:inherit;
+}
+#lwaziHistorySettings .lwazi-history-month time{
+ white-space:nowrap;font-size:11px;color:var(--muted,#706767);
+}
