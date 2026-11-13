@@ -52,6 +52,21 @@
           '<button class="window-light red" type="button" data-dock-widget="politc" aria-label="Move Politic to left toolbar"></button>';
         politc.prepend(dots);
       }
+      // Cover art is a preview only; keep the Politic route, page, icon, and window controls intact.
+      if(!politc.querySelector(':scope > .biglwa-politc-title-art')){
+        const cover=document.createElement('button');
+        cover.type='button';
+        cover.className='biglwa-politc-title-art';
+        cover.dataset.open='politc';
+        cover.setAttribute('aria-label','Open Politic');
+        cover.innerHTML='<img src="/assets/politc-lwa-order-thumbnail-20261112.png" alt="LWA & ORDER" width="240" height="180" loading="lazy" decoding="async">';
+        const heading=[...politc.children].find(el=>el.matches('.biglwa-card-heading-row,.card-head,.card-heading-row,.widget-heading'));
+        if(heading)heading.insertAdjacentElement('afterend',cover);
+        else{
+          const anchor=politc.querySelector(':scope > .sub,:scope > .card-cta');
+          if(anchor)anchor.before(cover);else politc.appendChild(cover);
+        }
+      }
       const badge=politc.querySelector('.card-icon');
       if(badge&&!badge.querySelector('img[src*="politc-nyame-baatanpa"]')){
         badge.classList.add('politc-studio-symbol');
@@ -64,6 +79,7 @@
   const style=document.createElement('style');
   style.textContent='#studioApp #calendar .biglwa-two-week-recovered{display:grid;gap:6px;margin:10px 0;padding:12px;border:1px solid rgba(130,100,90,.22);border-radius:12px;background:rgba(255,255,255,.12)}#studioApp #calendar .calendar-mini-head{display:flex;justify-content:space-between;font:600 11px system-ui}#studioApp #calendar .calendar-mini-weekdays,#studioApp #calendar .calendar-mini-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}#studioApp #calendar .calendar-mini-weekdays span{text-align:center;font:700 9px system-ui}#studioApp #calendar .calendar-mini-grid span{display:grid;place-items:center;min-height:25px;border-radius:5px;background:rgba(150,140,130,.08);font:12px system-ui}#studioApp #calendar .calendar-mini-grid span.today{outline:2px solid currentColor;font-weight:800}';
   style.textContent+='#studioApp #politc .politc-studio-symbol{display:inline-flex!important;width:38px!important;height:38px!important;align-items:center;justify-content:center}#studioApp #politc .politc-studio-symbol img{display:block;width:34px;height:34px;object-fit:contain}body.night-mode #studioApp #politc .politc-studio-symbol img{filter:invert(1)}';
+  style.textContent+='#studioApp #politc .biglwa-politc-title-art{display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:4/3;min-height:0;max-height:none;margin:12px auto 6px;padding:6px;border:0;border-radius:12px;overflow:hidden;cursor:pointer;background:#080509;box-shadow:none}#studioApp #politc .biglwa-politc-title-art img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;pointer-events:none}#studioApp #politc .biglwa-politc-title-art:focus-visible{outline:2px solid currentColor;outline-offset:3px}#studioApp #politc>.sub{display:none!important}';
   document.head.appendChild(style);
   let attempts=0;
   const timer=setInterval(()=>{ensure();if(++attempts>=30)clearInterval(timer)},500);
