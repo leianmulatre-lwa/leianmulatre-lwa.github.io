@@ -66,7 +66,7 @@ test('weather displays explicitly chosen city and sits left of account actions',
  assert.doesNotMatch(weather,/navigator\.geolocation/,'Weather never silently accesses precise location');
 });
 test('Map uses existing interactive Leaflet preview and only asks for location on click',()=>{
- assert.match(extras,/src="\/map-app\.html\?preview=1&lwazi=1"/);
+ assert.match(extras,/src="\/map-app\.html\?preview=1&lwazi=1(?:&v=[^"]+)?"/);
  assert.match(extras,/function placePromo\(\)/);
  assert.match(extras,/data-bl-use-location/);
  assert.match(extras,/navigator\.geolocation\.getCurrentPosition\(position=>/);
@@ -95,7 +95,7 @@ test('real legal index and all shell entrypoints are available',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
    const shell=read(path);
    assert(shell.includes('lwazi-navigation-commands.js?v=20261113-navigation-v1'),path+' loads navigation');
-   assert(shell.includes('lwazi-navigation-map-weather.css?v=20261113-navmap-v1'),path+' loads updated chrome');
+   assert(shell.includes('lwazi-navigation-map-weather.css?v=20261113-onpage-routes-v3'),path+' loads updated chrome');
    assert(shell.indexOf('lwazi-navigation-commands.js')<shell.indexOf('user-search-results.js'),path+' routes loaded first');
    assert(shell.includes('studio-weather.js?v=20261113-city-header-v2'),path+' city weather cache bust');
  }

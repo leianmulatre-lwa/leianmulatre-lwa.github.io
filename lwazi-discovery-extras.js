@@ -85,14 +85,14 @@ function placeCards(){
  '<article class="bl-search-card bl-route-result bl-lwazi-map-card"><div class="bl-search-card-body">'+
  '<span class="bl-search-kicker">BIG LWA · Maps & directions</span><h3>Plan a trip</h3>'+
  '<p>Explore the interactive map. Your location is optional and is used only after you ask.</p>'+
- '<div class="bl-lwazi-map-stage"><iframe loading="lazy" src="/map-app.html?preview=1&lwazi=1" title="Interactive BIG LWA map preview" referrerpolicy="same-origin"></iframe>'+
+ '<div class="bl-lwazi-map-stage"><iframe loading="lazy" src="/map-app.html?preview=1&lwazi=1&v=20261113-stay-2" title="Interactive BIG LWA map preview" referrerpolicy="same-origin"></iframe>'+
  '<button type="button" class="bl-lwazi-use-location" data-bl-use-location>⌖ Use current location</button></div>'+
  '<form class="bl-lwazi-transit-form">'+
- '<label>From <input name="origin" type="text" maxlength="160" autocomplete="off" placeholder="Optional · city or location"></label>'+
+ '<label>From <input name="origin" type="text" maxlength="160" autocomplete="off" placeholder="Starting place or coordinates (optional)"></label>'+
  '<label>To <input name="destination" type="text" maxlength="160" required placeholder="Place or address"></label>'+
  '<label>Travel by <select name="mode"><option value="transit">Public transit</option><option value="walking">Walking</option><option value="driving">Driving</option><option value="bicycling">Cycling</option></select></label>'+
- '<button class="bl-search-go bl-search-primary-action" type="submit">Get directions ↗</button>'+
- '</form><p class="bl-trip-note" role="status" aria-live="polite">Routes open in Google Maps. BIG LWA does not claim to provide live transit arrivals yet.</p>'+
+ '<button class="bl-search-go bl-search-primary-action" type="submit">Show route on BIG LWA ↗</button>'+
+ '</form><p class="bl-trip-note" role="status" aria-live="polite">Routes display here on BIG LWA. Live traffic and transit arrival feeds are not connected yet.</p>'+
  '</div></article>',
  '<article class="bl-search-card bl-widget-result"><div class="bl-widget-symbol" aria-hidden="true">⌖</div><div class="bl-search-card-body">'+
  '<span class="bl-search-kicker">BIG LWA · Map</span><h3>Open the full map</h3><p>Explore places, save pins and see the complete map tools.</p>'+
@@ -162,6 +162,13 @@ function attach(panel){
    locate.disabled=false;
   },{enableHighAccuracy:false,timeout:11000,maximumAge:300000});
  });
+ window.addEventListener('message',event=>{
+  if(event.origin!==location.origin||event.data?.type!=='biglwa:lwazi-route-status')return;
+  const frame=panel.querySelector('.bl-lwazi-map-card .bl-lwazi-map-stage iframe');
+  if(!frame||event.source!==frame.contentWindow)return;
+  const note=panel.querySelector('.bl-lwazi-map-card .bl-trip-note');
+  if(note)note.textContent=String(event.data.text||'').slice(0,450);
+ });
  panel.addEventListener('submit',event=>{
   const form=event.target.closest('.bl-lwazi-transit-form');
   if(!form||!panel.contains(form))return;
@@ -171,20 +178,20 @@ function attach(panel){
   const from=String(data.get('origin')||'').trim().slice(0,160);
   const mode=String(data.get('mode')||'transit');
   if(!to||!['transit','walking','driving','bicycling'].includes(mode))return;
-  // This is an explicit handoff to a real routing engine, not fabricated
-  // in-site live transit schedules. Addresses are not stored by L’wazi.
-  const url=new URL('https://www.google.com/maps/dir/');
-  url.searchParams.set('api','1');url.searchParams.set('destination',to);
-  url.searchParams.set('travelmode',mode);
-  if(from)url.searchParams.set('origin',from);
-  window.open(url.href,'_blank','noopener,noreferrer');
-  // noopener intentionally returns null in compliant browsers: never claim
-  // the destination was blocked merely because the window is inaccessible.
+  // Keep the result in L'wazi's existing map iframe. No external tab.
+  const stage=form.closest('.bl-lwazi-map-card')?.querySelector('.bl-lwazi-map-stage');
+  const frame=stage?.querySelector('iframe');
   const note=form.parentElement?.querySelector('.bl-trip-note');
-  if(note){
-   note.textContent='Directions sent to Google Maps. If it did not open, use this link: ';
-   const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open directions ↗';note.append(link);
-  }
+  if(!frame){if(note)note.textContent='Map preview unavailable. Open the BIG LWA Map widget instead.';return;}
+  // A destination alone recenters the map; a starting place gives a route.
+  if(note)note.textContent='Finding your route inside BIG LWA…';
+  stage?.classList.add('bl-lwazi-route-active');
+  const request={type:'biglwa:lwazi-map-trip',from,to,mode};
+  const send=()=>frame.contentWindow?.postMessage(request,location.origin);
+  try{
+    if(frame.contentDocument?.readyState==='complete')send();
+    else frame.addEventListener('load',send,{once:true});
+  }catch{frame.addEventListener('load',send,{once:true});}
  });
 }
 window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,placePromo,attach};

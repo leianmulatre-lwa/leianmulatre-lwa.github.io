@@ -85,3 +85,7 @@ body.preview .map-plan,body.preview .map-brand-strip,body.preview .map-layer-tip
  body.embedded .map-plan .map-trip-fields button{justify-self:start}
  body.embedded .map-brand-strip{flex-wrap:wrap}
 }
+
+/* Visible source identification on both full Map and L'wazi mini-map. */
+.map-stage .map-provider-indicator{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:750;max-width:70%;padding:6px 11px;border:1px solid #dac0c8;border-radius:99px;background:rgba(255,249,245,.94);color:#6c3141;font:700 10px/1.3 system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 9px #23121524;pointer-events:none}
+body.preview .map-stage .map-provider-indicator{font-size:9px;padding:5px 9px;max-width:80%;top:6px}
