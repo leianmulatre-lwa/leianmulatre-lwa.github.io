@@ -39,6 +39,34 @@ jobs:
           node --test lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs
           node studio-first-paint-rgb-regression-test.mjs
           node studio-myfeed-archive-filmstrip-test.mjs
+      - name: Restore verified BIG LWA native R editors into public release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          config=".github/native-release-lock.json"
+          tag=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["tag"])')
+          asset=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive"])')
+          expected=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive_sha256"])')
+          mkdir -p "$RUNNER_TEMP/native-editors"
+          gh release download "$tag" --pattern "$asset" --dir "$RUNNER_TEMP/native-editors"
+          printf '%s  %s\n' "$expected" "$RUNNER_TEMP/native-editors/$asset" | sha256sum --check --status
+          BIGLWA_NATIVE_ARCHIVE="$RUNNER_TEMP/native-editors/$asset" python3 .github/scripts/stage-craft-apps.py .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest=json.loads(Path('bigapps/manifest.json').read_text())
+          assert manifest['schema']==1
+          routes={'photocraft':'lightR','vectorcraft':'paintR','effectcraft':'keyframeR','pdfcraft':'fileR'}
+          for row in manifest['apps']:
+              assert row['id'] in routes and row['available'] is True and row.get('build')=='biglwa-native'
+              folder=Path('bigapps')/routes[row['id']]
+              assert (folder/'index.html').is_file()
+              assert any(folder.rglob('*.wasm'))
+              assert (folder/'upstream-licenses'/'SOURCE.txt').is_file()
+          print('BIG LWA four native R editor builds restored and verified for Pages.')
+          PY
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
