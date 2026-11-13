@@ -67,13 +67,20 @@
         '</div></article>';
     }
     function songCard(s){
-      var art=s.artworkUrl100||'';
-      return '<article class="bl-search-card bl-media-card bl-search-song"><span class="bl-vinyl-record" aria-hidden="true"><span class="bl-vinyl-label"'+(art?' style="background-image:url(&quot;'+esc(art)+'&quot;)"':'')+'></span></span>'+
-        (art?'<img class="bl-search-card-media" src="'+esc(art)+'" alt="" loading="lazy">':'<div class="bl-search-card-media bl-media-placeholder">Song</div>')+
-        '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Song</span><h3>'+esc(s.trackName)+'</h3>'+
-        '<p class="bl-search-muted">'+esc(s.artistName)+(s.collectionName?' · '+esc(s.collectionName):'')+'</p>'+
-        (s.trackViewUrl?'<a class="bl-search-go bl-search-primary-action" href="'+esc(s.trackViewUrl)+'" target="_blank" rel="noopener noreferrer">View song information ↗</a>':'')+
-        '</div></article>';
+      // Use the real iTunes cover at sleeve resolution. Keep original imagery,
+      // rather than creating a generic or stretched replacement thumbnail.
+      var art=String(s.artworkUrl100||'').replace(/100x100bb(?=\.(?:jpg|png|webp)(?:\?|$))/i,'600x600bb');
+      var original=String(s.trackViewUrl||'');
+      var songUrl=/^https:\/\/(?:music|itunes)\.apple\.com\//i.test(original)?original:'';
+      var title=String(s.trackName||'Untitled');
+      var artist=String(s.artistName||'Unknown artist');
+      return '<article class="bl-search-card bl-media-card bl-search-song">'+
+        '<span class="bl-vinyl-record" aria-hidden="true"><span class="bl-vinyl-label"'+(art?' style="background-image:url(&quot;'+esc(art)+'&quot;)"':'')+'></span></span>'+
+        (art?'<img class="bl-search-card-media" src="'+esc(art)+'" alt="" loading="lazy" decoding="async">':'<div class="bl-search-card-media bl-media-placeholder" aria-hidden="true">♫</div>')+
+        '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Song</span><h3>'+esc(title)+'</h3>'+
+        '<p class="bl-search-muted">'+esc(artist)+(s.collectionName?' · '+esc(s.collectionName):'')+'</p></div>'+
+        (songUrl?'<a class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" href="'+esc(songUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+esc(title)+' by '+esc(artist)+' in Apple Music">View song information ↗</a>':'')+
+        '</article>';
     }
     function publicSqwibCard(p,u){var username=String(u.username||'').replace(/^@/,'');return '<article class="bl-search-card bl-sqwib-card"><div class="bl-search-card-body"><span class="bl-search-kicker">Public Sqwidz · @'+esc(username)+'</span><p>'+esc(String(p.text||'').slice(0,420))+'</p><a class="bl-search-go" href="'+esc(u.url||('/'+encodeURIComponent(username)))+'">View public profile &#8594;</a></div></article>'}
     async function publicUserPosts(users){if(!users.length||!window.BigLWASqwibs||typeof window.BigLWASqwibs.publicSqwibs!=='function')return [];var visible=users.filter(function(u){return !/private/i.test(String(u.accountVisibility||u.visibility||u.privacy||''))});if(!visible.length)return [];var posts=await window.BigLWASqwibs.publicSqwibs(90);var cards=[];posts.forEach(function(p){if(p.visibility!=='public'||!p.text)return;var u=visible.find(function(u){return (u.uid&&p.uid&&String(u.uid)===String(p.uid))||(p.username&&String(p.username).toLowerCase()===String(u.username||'').toLowerCase())});if(u&&cards.length<8)cards.push(publicSqwibCard(p,u))});return cards}
