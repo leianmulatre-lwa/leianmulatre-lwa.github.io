@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "purpose": "Owner-reviewed, read-only public ATS boards. All source URLs were checked before adding. No accounts or API keys.",
+  "boards": [
+    {
+      "provider": "greenhouse",
+      "name": "The New York Times",
+      "token": "thenewyorktimes",
+      "limit": 14,
+      "keywords": [
+        "creative",
+        "design",
+        "production",
+        "producer",
+        "policy",
+        "legal",
+        "assistant",
+        "intern",
+        "editor",
+        "research"
+      ]
+    },
+    {
+      "provider": "lever",
+      "name": "Spotify",
+      "token": "spotify",
+      "limit": 14,
+      "keywords": [
+        "creative",
+        "artist",
+        "content",
+        "production",
+        "policy",
+        "legal",
+        "public affairs",
+        "communications",
+        "design",
+        "research",
+        "music",
+        "product"
+      ]
+    },
+    {
+      "provider": "ashby",
+      "name": "TrueShort",
+      "token": "trueshort",
+      "limit": 12,
+      "keywords": [
+        "creative",
+        "designer",
+        "production",
+        "casting",
+        "story",
+        "artist",
+        "video",
+        "film"
+      ]
+    },
+    {
+      "provider": "ashby",
+      "name": "OpenAI",
+      "token": "openai",
+      "limit": 14,
+      "keywords": [
+        "policy",
+        "legal",
+        "design",
+        "research",
+        "communications",
+        "partnerships",
+        "education",
+        "intern",
+        "creative"
+      ]
+    }
+  ]
+}
