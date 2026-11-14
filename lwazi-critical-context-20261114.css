@@ -1,0 +1,15 @@
+/* L'wazi: clearly attributed safety context in search-only and AI modes. */
+#bl-studio-search-results .bl-lwazi-critical-sources{
+ display:flex;flex-wrap:wrap;gap:6px 11px;align-items:center;
+ margin:8px 0 0;padding:9px 0 0;
+ border-top:1px solid rgba(145,73,94,.22);
+ font:600 11px/1.4 system-ui,sans-serif;
+}
+#bl-studio-search-results .bl-lwazi-critical-sources strong{color:#8d465a}
+#bl-studio-search-results .bl-lwazi-critical-sources a{
+ color:#793a58;text-decoration:underline;text-underline-offset:3px;
+ overflow-wrap:anywhere;
+}
+#bl-studio-search-results .bl-lwazi-critical-sources a:focus-visible{
+ outline:3px solid #ae506e;outline-offset:2px;
+}
