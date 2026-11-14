@@ -212,6 +212,10 @@
     var browserSessionPromise=null;
     // Simple identity, social, and mathematical prompts work even without inference.
     function fastLwaziResponse(q){
+      // Stable, evidence-backed public-interest grounding for identified
+      // harmful subcultures; independent of the selected free AI model.
+      var context=window.BigLWACriticalContext?.lookup(q);
+      if(context)return context.answer;
       var social=conversationIntent(q);
       if(social)return social.reply;
       if(/^(?:what is\s+)?2\s*\+\s*2\s*\??$/i.test(String(q||'').trim()))return '4';
@@ -298,12 +302,33 @@
       // Only the selected NPC/Deep mode requests an answer. Search-only
       // never calls an AI provider or fabricates an assistant response.
       var aiActive=lwaziMode!=='off'&&!mathResult&&!options.imageOnly;
+      var criticalContext=!options.imageOnly?window.BigLWACriticalContext?.lookup(clean):null;
       var answerArea=current.querySelector('.bl-lwazi-answer');
       var answerBody=current.querySelector('.bl-lwazi-answer-body');
       var threadArea=current.querySelector('.bl-lwazi-conversation');
       var turnArea=current.querySelector('.bl-lwazi-conversation-turns');
       var followForm=current.querySelector('.bl-lwazi-continue-form');
-      answerArea.hidden=!aiActive;threadArea.hidden=!aiActive;
+      answerArea.hidden=!aiActive&&!criticalContext;threadArea.hidden=!aiActive;
+      if(criticalContext){
+        if(!aiActive){
+          // Search-only remains provider-free; this is an authored safety
+          // context note, never a fabricated model answer.
+          answerArea.setAttribute('aria-label','Research context and safety');
+          renderAnswer(answerBody,criticalContext.answer);
+        }
+        const sources=document.createElement('nav');
+        sources.className='bl-lwazi-critical-sources';
+        sources.setAttribute('aria-label','Evidence on this topic');
+        const prefix=document.createElement('strong');
+        prefix.textContent='Research & context: ';
+        sources.append(prefix);
+        criticalContext.sources.forEach(function(source){
+          const a=document.createElement('a');
+          a.href=source.url;a.textContent=source.name;a.target='_blank';
+          a.rel='noopener noreferrer';sources.append(a);
+        });
+        answerArea.append(sources);
+      }
       var turns=storedTurns;
       if(aiActive&&!turns.length)turns=[{role:'user',text:clean}];
       function persistTurns(){
