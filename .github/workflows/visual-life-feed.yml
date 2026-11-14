@@ -29,6 +29,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: visual-life-feed
@@ -71,3 +72,11 @@ jobs:
           fi
           git -c user.name="BIG LWA jobs feed" -c user.email="actions@users.noreply.github.com" commit -m "data(visual-life): publish verified JobSpy source results"
           git push origin HEAD:main
+          echo "JOBSPY_FEED_UPDATED=1" >> "$GITHUB_ENV"
+      # A GITHUB_TOKEN git push does not trigger ordinary push workflows.
+      # Workflow dispatch is explicitly exempt, so the new jobs.json reaches Pages.
+      - name: Publish updated JobSpy snapshot to GitHub Pages
+        if: env.JOBSPY_FEED_UPDATED == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref main

@@ -119,3 +119,13 @@ test('Visual-Life only offers in-site job matches after a fresh validated feed i
  assert.equal(old.searchVerified('Policy Analyst','Los Angeles').length,0,'Expired feed hidden');
  assert.equal(old.getStatus(),'stale');
 });
+
+test('A reviewed JobSpy refresh explicitly dispatches Pages after publishing its feed',()=>{
+ const flow=read('.github/workflows/visual-life-feed.yml');
+ assert.match(flow,/actions: write/,'Pages dispatch has a scoped Actions permission');
+ assert.match(flow,/git push origin HEAD:main/,'The source snapshot is committed first');
+ assert.match(flow,/JOBSPY_FEED_UPDATED=1/,'Dispatch is gated on changed job records');
+ assert.match(flow,/if: env.JOBSPY_FEED_UPDATED == '1'/);
+ assert.match(flow,/gh workflow run deploy-pages.yml --ref main/,'GITHUB_TOKEN pushes do not themselves launch Pages');
+ assert.doesNotMatch(flow,/^\s+schedule:/m,'No unreviewed recurring scraper schedule');
+});
