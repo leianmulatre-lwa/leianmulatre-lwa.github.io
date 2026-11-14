@@ -121,7 +121,7 @@
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
       const label=link.querySelector('.hero-shortcut-label,.sidebar-route-label,.nav-label');
-      if(label&&label.textContent.trim()!==name)label.textContent=name;
+      if(label)paintMixedTitle(label,route,name);
       if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Booth',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
     }
     const widget=document.querySelector('#studioApp #'+route+' .card-head h2');
