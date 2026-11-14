@@ -1114,11 +1114,17 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function nominationPanel(cat,nominations,portrait){
     const isPoster=cat.id==='hunting'||cat.id==='cunting';
     const people=nominations.filter(x=>x.category===cat.id);
+    const firstPage=isPoster?24:people.length;
     return '<section class="politc-panel politc-collection-panel'+(isPoster?' politc-vintage-panel':'')+'" data-politc-season="'+cat.id+'">'+
       '<div class="politc-season-head"><div><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p></div>'+
       '<div class="politc-season-tools"><span class="politc-record-count">'+people.length+' entries</span>'+
       '<button class="politc-nominate-button" type="button" data-politc-nominate="'+cat.id+'" aria-controls="politc-nominate-'+cat.id+'" aria-expanded="false">✦ Nominate</button></div></div>'+
-      '<div class="politc-portraits">'+(people.length?people.map(portrait).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+      '<div class="politc-portraits">'+(people.length?people.map((person,i)=>{
+        const html=portrait(person);
+        return isPoster&&i>=firstPage?html.replace('<article class="politc-person',
+          '<article hidden data-politc-paged="true" class="politc-person'):html;
+       }).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+      (isPoster&&people.length>firstPage?'<button type="button" class="politc-poster-load-more" data-politc-show-more="'+cat.id+'">Show 24 more · '+firstPage+' of '+people.length+' shown</button>':'')+
       '<div class="politc-nomination-drawer" id="politc-nominate-'+cat.id+'" hidden>'+
       '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
   }
