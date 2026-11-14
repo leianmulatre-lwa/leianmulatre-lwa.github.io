@@ -8,6 +8,11 @@ const modulePages=read('module-pages.js'),craft=read('tools-craft.js'),editor=re
 const index=read('index.html'),projects=read('project-canvas.js');
 assert.match(css,/grid-template-columns:minmax\(0,1fr\) minmax\(0,max-content\)!important/,'Header title and versions are two grid columns');
 assert.match(css,/grid-column:2!important;grid-row:1!important/,'Switch and R badge are on TITLE row');
+assert.match(css,/font-family:"Courier Prime","Courier New",Courier,monospace!important/,'Visualize uses the same light screenplay font as Sqwip');
+assert.match(css,/\.lwa-mixed-r-title > \.lwa-title-r/,'R-series suffix has dedicated styling');
+assert.match(css,/font-family:"CS Bergamot Stitched",Georgia,serif!important/,'The /r suffix stays stitched');
+assert.match(ui,/function paintMixedTitle\(/,'Title splits into independently styled text and /r');
+
 assert.match(ui,/right\.prepend\(controls\)/,'Real mode controls move instead of being replaced with dead controls');
 assert.match(craft,/assets\/bigapps\/icons\//,'Original R-editor PNG blocks restored in Workshop');
 assert.match(editor,/assets\/bigapps\/icons\//,'Original R-editor PNG blocks restored in native editors');
@@ -30,9 +35,9 @@ assert.match(craft,/Source & notices/,'Technical notices remain available withou
 assert.doesNotMatch(craft,/>Who made what\?</,'Previous prominent attribution paragraph has been removed');
 assert.match(craft,/craft-capital-r/,'Visualizr R is rendered distinctly');
 assert.match(modulePages,/tools:'lwazi'/,'Lwazi route title');
-assert.match(modulePages,/projects:'visualizr'/,'Visualizr route title');
+assert.match(modulePages,/projects:'visualize\/r'/,'Visualize/r route title');
 assert.match(index,/lwazi-header-series-20261026\.css/,'New heading layout reaches published site');
-assert.match(projects,/\['visualz','visualizr'\]/,'Project mounting preserves legacy route names');
+assert.match(projects,/\['visualz','visualizr','visualiz\/r','visualize\/r'\]/,'Project mounting preserves legacy and new route names');
 for(const [name,letter] of [['visualizr','𝖛'],['bookini','𝖇'],['r-editor','𝖗']]){
  const svg=read('assets/bigapps/blocks/'+name+'.svg');
  assert.match(svg,/<svg /,'Stitched cube SVG is valid source for '+name);
@@ -79,7 +84,9 @@ ws.querySelector('#moduleWorkspaceBody').innerHTML='<section id="lwaProjects"><h
 doc.dispatchEvent(new win.Event('biglwa:visualz-render'));
 await settle();
 h=ws.querySelector('.lwa-project-heading');
-assert.equal(h.querySelector('h1').textContent,'visualizr');
+assert.equal(h.querySelector('h1').textContent,'visualize/r');
+assert.equal(h.querySelector('h1 .lwa-title-base')?.textContent,'visualize');
+assert.equal(h.querySelector('h1 .lwa-title-r')?.textContent,'/r');
 assert.equal(h.querySelector('.visualz-tabs').parentElement,h.querySelector('.module-heading-right'));
 assert.match(h.querySelector('.lwazi-series-badge img').src,/visualizr\.png/);
 dom.window.close();
