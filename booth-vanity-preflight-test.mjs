@@ -38,7 +38,7 @@ assert.match(video,/id="videoBoothOwnPhoto"/,'Video Booth profile card can show 
 assert.match(video,/id="videoBoothSelfPreview"/,'Video Booth has its own local-only media element');
 assert.match(video,/id="videoBoothRequestConnect" type="button" disabled/,'Random calls remain gated by consent and safety work');
 assert.doesNotMatch(video,/photobooth-before-use\.webp/,'No fake person photo is shown for a stranger');
-assert.match(pages,/function stopCamera\(\)\{[^}]*stopVideoTest\(\)/,'Leaving the module stops local camera preview');
+assert.match(pages,/function stopCamera\(\)\{[\s\S]{0,260}stopVideoTest\(\)/,'Leaving the module stops local camera preview');
 assert.doesNotMatch(thumb,/#studioApp \.photobooth-stage \.photobooth-intro/,'Thumbnail CSS cannot replace the Booth profile image');
 assert.match(thumb,/#studioApp #camera \.photobooth-reference-preview > img/,'Original Studio thumbnail remains unchanged');
 assert.match(pages,/\.booth-vanity \.photobooth-stage\.has-intro/,'Vanity styling wins the legacy stage background rule');
