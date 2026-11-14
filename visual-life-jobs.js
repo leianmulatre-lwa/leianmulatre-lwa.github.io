@@ -10,7 +10,7 @@ const MAX_JOBS=60;
 const $=(s,r=document)=>r.querySelector(s);
 const clean=v=>String(v==null?'':v).trim().slice(0,160);
 const esc=v=>clean(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null,pendingOpen=false;
+let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null,pendingOpen=false,feedVerified=false;
 function externalUrl(raw){
  try{
   const url=new URL(raw);
@@ -44,7 +44,7 @@ function searchTargets(query,where){
 /* Share only accepted, non-expired source records with Politic Werk.
  * Searches do not contact job boards or create proxy scraping requests. */
 function searchVerified(role,where){
- if(sourceStatus!=='connected')return [];
+ if(!feedVerified||sourceStatus!=='connected')return [];
  const term=clean(role).toLowerCase();
  const place=clean(where).toLowerCase();
  const wide=!place||['united states','usa','us','anywhere'].includes(place);
@@ -123,6 +123,7 @@ async function loadFeed(){
    if(!Number.isFinite(published)||Date.now()-published>96*3600*1000||published>Date.now()+3600*1000){sourceStatus='stale';jobs=[];return}
    sourceTimestamp=new Date(published).toLocaleDateString();
    setJobs(data.jobs);
+   feedVerified=jobs.length>0;
   }catch{sourceStatus='pending'}
  })();
  return sourceLoading;
