@@ -51,7 +51,7 @@ function card(item){
 }
 function render(){
  const root=$('#lwaProjects');if(!root)return;
- const pageHeading='<div class="module-heading lwa-project-heading"><div class="module-heading-copy"><h1>visualizr</h1></div><div class="module-heading-bottom"><p>Your visualeyez boards and visualslidez presentations, in one workspace.</p></div></div>';
+ const pageHeading='<div class="module-heading lwa-project-heading"><div class="module-heading-copy"><h1>visualiz/r</h1></div><div class="module-heading-bottom"><p>Your visualeyez boards and visualslidez presentations, in one workspace.</p></div></div>';
  const tabBar='<nav class="visualz-tabs" aria-label="Visualz workspaces"><button type="button" data-visualz-mode="visualeyez" aria-pressed="'+(canvasMode==='visualeyez')+'" class="'+(canvasMode==='visualeyez'?'active':'')+'">visual·eyez</button><button type="button" data-visualz-mode="visualslidez" aria-pressed="'+(canvasMode==='visualslidez')+'" class="'+(canvasMode==='visualslidez'?'active':'')+'">visual·slidez</button></nav>';
  if(canvasMode==='visualslidez'){
   root.innerHTML=pageHeading+tabBar+'<section id="lwaVisualSlides" aria-label="Slide canvas"><p>Loading visual·slidez…</p></section>';
