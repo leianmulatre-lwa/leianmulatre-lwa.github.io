@@ -104,6 +104,43 @@ test('county map shows geographic outlines only with no guessed county-level vot
  assert.match(pjs,/e\.key==='Enter'/);
  assert.match(pcss,/\.politc-county-svg path\.is-selected/);
 });
+test('Live trackers are compact and independently stacked beneath each top card',()=>{
+ assert.match(pjs,/politc-independent-deck/);
+ assert.match(pjs,/topRow\.replaceWith\(deck\)/);
+ assert.match(pjs,/trackers=\[\.\.\.live\.children\]/);
+ assert.match(pjs,/lane\.append\(topCard\)/);
+ assert.match(pjs,/lane\.append\(card\)/);
+ assert.match(pjs,/prev\.addEventListener\('click',\(\)=>rotate\(-1\)\)/);
+ assert.match(pjs,/next\.addEventListener\('click',\(\)=>rotate\(1\)\)/);
+ assert.match(pjs,/live\.remove\(\)/);
+ assert.match(pcss,/grid-template-columns:132px repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(pcss,/height:305px!important/);
+ assert.match(pcss,/overflow-y:auto!important/);
+ assert.match(pcss,/\.politc-live-rail/);
+});
+
+test('Go uses a real route with explicit GPS consent and voice controls',()=>{
+ const nav=read('map-lwa-navigate-20261113.js');
+ const router=read('map-lwa-router-20261113.js');
+ assert.doesNotThrow(()=>new vm.Script(nav));
+ assert.match(nav,/get\('mapNavGo'\)/);
+ assert.match(nav,/watchPosition\(/);
+ assert.match(nav,/clearWatch\(watchId\)/);
+ assert.match(nav,/event\.detail/);
+ assert.match(nav,/route\.maneuvers\.length>0/);
+ assert.match(nav,/biglwa:map-navigation-route/);
+ assert.match(nav,/SpeechSynthesisUtterance/);
+ assert.match(nav,/SpeechRecognition\|\|window\.webkitSpeechRecognition/);
+ assert.match(nav,/Replan from my location/);
+ assert.match(nav,/pagehide/);
+ assert.match(nav,/onPath\(planned\.points,where\)/);
+ assert.match(router,/begin_shape_index/);
+ assert.match(router,/verbal_pre_transition_instruction/);
+ assert.match(mapjs,/biglwa:map-navigation-route/);
+ assert.match(mapjs,/biglwa:map-navigation-reset/);
+ assert.match(map,/map-lwa-navigate-20261113\.js/);
+});
+
 test('main Map holds permanent canvas on left and independent right-side tabs',()=>{
  assert.match(mapjs,/map-workspace-split/);
  assert.match(mapjs,/sidebar\.replaceChildren\(deskHead,tabbar,panes\)/);
