@@ -24,7 +24,7 @@ assert.match(search, /Community and academic research/, 'Community-centered sour
 assert.match(search, /bl-search-category-nav/, 'Lwazi must provide compact widget-style result category tabs');
 assert.match(search, /data-bl-match="users"/, 'People search tab must be available');
 assert.match(search, /extraTabs/, 'Expanded images, combined places and maps, Herstory and widgets tabs must be available');
-assert.match(search, /var extraTabs=\[\['images','Images'\],\['places','Places & Maps'\],\['herstory','Herstory'\],\['widgets','Widgets'\]\]/, 'Use one combined Places & Maps tab and rename History to Herstory');
+assert.match(search, /var extraTabs=\[\['images','Images'\],\['places','Places & Maps'\],\['herstory','Herstory'\],\['jobs','Jobs'\],\['widgets','Widgets'\]\]/, 'Use one combined Places & Maps tab and rename History to Herstory');
 assert.doesNotMatch(search, /\['videos','▶','Videos'\]/, 'Videos belongs to Stream, not a separate category');
 assert.match(search, /\.bl-search-category-nav button\{[^}]*border-radius:0!important/, 'Categories must be text tabs instead of rounded pills');
 assert.match(search, /\.bl-search-category-nav button\.is-active/, 'The selected tab must be visibly underlined');

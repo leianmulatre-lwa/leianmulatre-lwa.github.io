@@ -39,8 +39,8 @@ test('Werk is loaded exactly once in each Studio shell and appears first without
   assert.equal((shell.match(/politc-werk-20261114\.js\?v=/g)||[]).length,1,name);
   assert.equal((shell.match(/politc-werk-20261114\.css\?v=/g)||[]).length,1,name);
   assert.equal((shell.match(/visual-life-jobs\.js\?v=/g)||[]).length,1,name);
-  assert.match(shell,/politc-werk-20261114\.js\?v=20261114-jobspy-inline-2/,'New Werk script must beat the previous cached external search UI');
-  assert.match(shell,/visual-life-jobs\.js\?v=20261114-jobspy-inline-2/,'Visual-Life must use the same fresh JobSpy adapter');
+  assert.match(shell,/politc-werk-20261114\.js\?v=20261114-ats-window-pop-3/,'New Werk script must beat the previous cached external search UI');
+  assert.match(shell,/visual-life-jobs\.js\?v=20261114-ats-lwazi-3/,'Visual-Life must use the same fresh JobSpy adapter');
   assert(shell.indexOf('module-pages.js?v=')<shell.indexOf('politc-werk-20261114.js?v='),name);
  }
  assert.match(werk,/moduleBody\.insertBefore\(panel,moduleBody\.querySelector\('#politcResearchDesk'\)\|\|board\)/);

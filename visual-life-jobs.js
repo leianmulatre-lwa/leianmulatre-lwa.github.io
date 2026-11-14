@@ -6,7 +6,7 @@
 (function(){
 'use strict';
 if(window.BigLWAVisualLife)return;
-const MAX_JOBS=60;
+const MAX_JOBS=120;
 const $=(s,r=document)=>r.querySelector(s);
 const clean=v=>String(v==null?'':v).trim().slice(0,160);
 const esc=v=>clean(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -57,6 +57,35 @@ function searchVerified(role,where){
     ||(place==='remote'&&loc.includes('remote'));
   return roleMatch&&locationMatch;
  }).slice(0,20).map(job=>({...job}));
+}
+function searchLwazi(query,limit=12){
+ if(!feedVerified||sourceStatus!=='connected')return [];
+ const stop=new Set(['find','show','me','all','real','actual','latest','current','open','jobs','job','postings','roles','opportunities','available','near','please','work','hiring','for','in','at','from','with','the','a','an','and','or','i','want','am','looking','search']);
+ const terms=clean(query).toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/)
+  .filter(token=>token.length>1&&!stop.has(token));
+ const scored=jobs.map(job=>{
+   const title=job.title.toLowerCase(),company=job.company.toLowerCase();
+   const location=job.location.toLowerCase(),term=job.searchTerm.toLowerCase();
+   let score=0,matches=0;
+   for(const word of terms){
+     if(title.includes(word)){score+=4;matches++;}
+     else if(company.includes(word)){score+=3;matches++;}
+     else if(location.includes(word)){score+=2;matches++;}
+     else if(term.includes(word)){score+=1;matches++;}
+   }
+   return {job,score,matches};
+ }).filter(entry=>terms.length===0||entry.matches>=Math.min(terms.length,2));
+ return scored.sort((a,b)=>b.matches-a.matches||b.score-a.score)
+  .slice(0,Math.max(0,Math.min(20,Number(limit)||12))).map(entry=>({...entry.job}));
+}
+function listVerified(){
+ if(!feedVerified||sourceStatus!=='connected')return [];
+ return jobs.map(job=>({...job}));
+}
+function getJobByUrl(url){
+ if(typeof url!=='string'||!url.startsWith('https://'))return null;
+ const match=listVerified().find(job=>job.url===url);
+ return match||null;
 }
 function getFeedInfo(){
  return {
@@ -189,5 +218,5 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
 new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true});
-window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,searchVerified,getFeedInfo,loadFeed,getStatus:()=>sourceStatus,getSourceTimestamp:()=>sourceTimestamp,version:'1.3.0'};
+window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,searchVerified,searchLwazi,listVerified,getJobByUrl,getFeedInfo,loadFeed,getStatus:()=>sourceStatus,getSourceTimestamp:()=>sourceTimestamp,version:'1.4.0'};
 })();

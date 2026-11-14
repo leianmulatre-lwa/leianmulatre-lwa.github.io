@@ -87,7 +87,7 @@ class VisualLifeFeedTest(unittest.TestCase):
                 source.write_text(json.dumps({"schema":1,"searches":[
                     {"term":"producer","location":"Los Angeles, CA","source":"indeed","limit":5}
                 ]}),encoding="utf-8")
-                with self.assertRaisesRegex(ValueError,"No valid JobSpy results"):
+                with self.assertRaisesRegex(ValueError,"No valid JobSpy or ATS results"):
                     feed.scrape_catalog(source)
                 self.assertEqual(json.loads(target.read_text()),{"preserved":True})
                 source.write_text(json.dumps({"schema":1,"searches":[
@@ -97,6 +97,35 @@ class VisualLifeFeedTest(unittest.TestCase):
                     feed.scrape_catalog(source)
                 self.assertEqual(json.loads(target.read_text()),{"preserved":True})
                 self.assertEqual(spy.scrape_jobs.call_count,1)
+
+    def test_catalog_merges_public_ats_and_jobspy_without_fake_postings(self):
+        from types import ModuleType
+        from unittest.mock import Mock
+        class Frame:
+            attrs={"errors":{}}
+            def to_dict(self,orient):
+                return [{"title":"Creative Producer","company":"Studio","site":"indeed",
+                         "location":"Los Angeles, CA","job_url":"https://indeed.com/viewjob?jk=a"}]
+        jobspy=ModuleType("jobspy")
+        jobspy.scrape_jobs=Mock(return_value=Frame())
+        ats=ModuleType("visual_life_ats")
+        ats.collect_ats=Mock(return_value=([
+            {"title":"Legal Coordinator","company":"New York Times","site":"greenhouse",
+             "location":"Los Angeles, CA","job_url":"https://job-boards.greenhouse.io/thenewyorktimes/jobs/123"}
+        ],["greenhouse"],[{"name":"The New York Times","provider":"greenhouse","count":1,"status":"ok"}]))
+        with tempfile.TemporaryDirectory() as folder:
+            catalog=Path(folder)/"searches.json"
+            catalog.write_text(json.dumps({"schema":1,"searches":[
+                {"term":"producer","location":"Los Angeles","source":"indeed","limit":3}
+            ]}),encoding="utf-8")
+            target=Path(folder)/"jobs.json"
+            with patch.object(feed,"DEST",target),patch.dict("sys.modules",{"jobspy":jobspy,"visual_life_ats":ats}):
+                result=feed.scrape_catalog(catalog,Path(folder)/"boards.json")
+            self.assertEqual(len(result["jobs"]),2)
+            self.assertEqual(result["sources"],["greenhouse","indeed"])
+            self.assertEqual(result["ats_boards"][0]["status"],"ok")
+            self.assertIn("public Greenhouse",result["source_library"])
+            self.assertEqual(ats.collect_ats.call_count,1)
 
 if __name__=="__main__":
     unittest.main()

@@ -7,6 +7,7 @@ on:
     branches: ["main"]
     paths:
       - "data/visual-life/searches.json"
+      - "data/visual-life/ats-boards.json"
   workflow_dispatch:
     inputs:
       search_term:
@@ -48,7 +49,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify output schema without network
-        run: python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+        run: |
+          python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+          python3 -m unittest discover -s scripts -p test_visual_life_ats.py
       - name: Install local vendored MIT library
         run: pip install --disable-pip-version-check ./werk-main
       - name: Run bounded JobSpy searches (no proxies or API keys)
@@ -58,7 +61,7 @@ jobs:
           JOB_SOURCE: ${{ inputs.source }}
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
-            python3 scripts/visual_life_feed.py --catalog data/visual-life/searches.json
+            python3 scripts/visual_life_feed.py --catalog data/visual-life/searches.json --ats data/visual-life/ats-boards.json
           else
             python3 scripts/visual_life_feed.py --term "$JOB_TERM" --location "$JOB_LOCATION" --source "$JOB_SOURCE" --limit 10
           fi

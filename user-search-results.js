@@ -109,7 +109,7 @@
       if(/^all$/i.test(title))return '<span class="bl-veve-symbol" aria-hidden="true">✺</span>';
       if(/^images?$/i.test(title))return '<img src="/assets/feed-symbol-generated.png" alt="" loading="lazy">';
       if(/^herstory$/i.test(title))return '<span class="bl-herstory-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>';
-      var type=/image/i.test(title)?'feed':/politic/i.test(title)?'politc':/research/i.test(title)?'research':/book/i.test(title)?'library':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':/song/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':'archive';
+      var type=/jobs?|career/i.test(title)?'tools':/image/i.test(title)?'feed':/politic/i.test(title)?'politc':/research/i.test(title)?'research':/book/i.test(title)?'library':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':/song/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':'archive';
       if(type==='politc')return '<img src="/assets/politc-nyame-baatanpa.svg" alt="" loading="lazy">';
       if(type==='research')return '<img src="/assets/tools-hand-eye.svg" alt="" loading="lazy">';
       var selectors=[
@@ -405,7 +405,7 @@
         return;
       }
       // One delegated handler for the canonical categories and their extended searches.
-      var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['widgets','Widgets']];
+      var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['jobs','Jobs'],['widgets','Widgets']];
       var extraNav=panel.querySelector('.bl-search-category-nav');
       extraTabs.forEach(function(tab){
         var b=document.createElement('button');b.type='button';b.dataset.blMatch=tab[0];
@@ -422,7 +422,7 @@
           if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         });
         var sections=Array.from(current.querySelectorAll('.bl-search-section'));
-        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Stream videos',widgets:'Studio widgets',places:'Places & Maps'};
+        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Stream videos',widgets:'Studio widgets',places:'Places & Maps',jobs:'Job postings'};
         var sectionName=named[category];
         var matches=sections.filter(function(section){
           if(section.id===sectionId('SoundCloud'))return category==='songs';
@@ -434,7 +434,7 @@
         current.querySelectorAll('.bl-lwazi-map-promo').forEach(function(promo){promo.hidden=category!=='songs'});
         if(fromClick&&matches.length)matches[0].scrollIntoView({behavior:'smooth',block:'nearest'});
         // Categories are real search pages, not hidden redirects to widgets.
-        if(fromClick&&['songs','widgets','places','stream'].includes(category)){
+        if(fromClick&&['songs','widgets','places','stream','jobs'].includes(category)){
           renderDiscovery(discoveryParts);
         }
       }
@@ -475,6 +475,20 @@
       // Render each source as it becomes ready, not after the slowest
       // image/people/library request. One provider cannot hold up the others.
       var discoveryParts=[[],[],[],[],[],[]],discoveryCompleted=0;
+      var jobCards=[];
+      function sourceJobCard(job){
+        if(!job||!/^https:\/\//i.test(String(job.url||'')))return '';
+        var original=String(job.url||'');
+        return '<article class="bl-search-card bl-search-job" data-bl-destination="'+esc(original)+'">'+
+          '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Jobs · '+esc(job.source||'Source')+'</span>'+
+          '<h3>'+esc(job.title||'Untitled role')+'</h3>'+
+          '<p>'+esc(job.company||'Employer')+' · '+esc(job.location||'Location not listed')+'</p>'+
+          (job.postedAt?'<p class="bl-search-muted">Posted '+esc(job.postedAt)+'</p>':'')+
+          '<button type="button" data-werk-preview-url="'+esc(original)+'">Preview in Werk Window</button>'+ 
+          '<a class="bl-search-go bl-search-primary-action" href="'+esc(original)+'" target="_blank" rel="noopener noreferrer">Original posting ↗</a>'+
+          '</div></article>';
+      }
+
       function renderDiscovery(parts){
         if(panel!==current||!current.isConnected)return;
          var wikiCards=parts[2],politics=wikiCards.filter(function(x){return /politic|electoral|vote|government|president|law|court|parliament/i.test(x)}),films=wikiCards.filter(function(x){return /cinema|film|movie|video|episode|director/i.test(x)}),general=wikiCards.filter(function(x){return !politics.includes(x)&&!films.includes(x)});
@@ -482,7 +496,7 @@
            lwaziSiteCard('About BIG LWA','Meet the project, the people, and the ideas behind this Studio.','/about/'),
            lwaziSiteCard('Privacy at BIG LWA','What privacy and agency mean here.','/privacy/')
          ],'all studio identity'):'';
-         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&window.BigLWADiscoveryExtras?window.BigLWADiscoveryExtras.placePromo():'')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+         var html=firstParty+section('Job postings',jobCards.map(sourceJobCard).filter(Boolean),'jobs careers work')+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&window.BigLWADiscoveryExtras?window.BigLWADiscoveryExtras.placePromo():'')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         var extras=window.BigLWADiscoveryExtras;
         if(extras){
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
@@ -490,13 +504,25 @@
           if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
         }
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard),'research herstory politics');
+        if(activeCategory==='jobs'&&!jobCards.length){
+          var api=window.BigLWAVisualLife;
+          var state=api?.getFeedInfo?.().status;
+          var note=state==='stale'?'The curated job snapshot has expired.':
+            state==='connected'?'No matching roles in the currently published JobSpy and employer-board snapshot.':
+            'No job feed is published right now.';
+          html+=section('Job search status',[
+            '<article class="bl-search-card bl-search-job-empty"><div class="bl-search-card-body"><p>'+
+              esc(note)+' Jobs are source-linked, not invented or guaranteed open.</p>'+
+              internalButton('Open Werk in Politic','politc')+'</div></article>'
+          ],'jobs work');
+        }
         var resultArea=current.querySelector('.bl-search-discovery');
         if(!resultArea){
           var loading=current.querySelector('.bl-search-loading');
           if(loading){resultArea=document.createElement('div');resultArea.className='bl-search-discovery';loading.replaceWith(resultArea)}
         }
         if(resultArea){
-          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted===6?'<p class="bl-search-empty">No public results found.</p>':'');
+          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted>=7?'<p class="bl-search-empty">No public results found.</p>':'');
         }if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
         // Search always starts in All; preserve a user's later manual tab selection.
         activateCategory(activeCategory,false);
@@ -516,6 +542,13 @@
           renderDiscovery(discoveryParts);
         });
       });
+      Promise.resolve().then(function(){
+        var api=window.BigLWAVisualLife;
+        if(!api?.loadFeed)return [];
+        return api.loadFeed().then(function(){return api.searchLwazi?.(clean,12)||[]});
+      }).then(function(found){jobCards=Array.isArray(found)?found:[];})
+        .catch(function(){jobCards=[];})
+        .finally(function(){discoveryCompleted++;renderDiscovery(discoveryParts)});
       if(answerPromise)answerPromise.then(function(answer){
         if(panel!==current||!current.isConnected)return;
         var text=String(answer==null?'No answer available.':answer);

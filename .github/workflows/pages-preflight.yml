@@ -21,6 +21,14 @@ on:
       - 'brand-policy.css'
       - 'policy-card-cohesion.js'
       - 'module-pages.js'
+      - 'pop-culture-calendar-20261114.js'
+      - 'werk-browser-window-20261114.js'
+      - 'werk-browser-window-20261114.css'
+      - 'user-search-results.js'
+      - 'werk-lwazi-popcalendar-test.mjs'
+      - 'scripts/visual_life_ats.py'
+      - 'scripts/test_visual_life_ats.py'
+      - 'data/visual-life/ats-boards.json'
       - 'geez-calendar-20261114.js'
       - 'geez-calendar-20261114.css'
       - 'geez-calendar-mode-test.mjs'
@@ -70,7 +78,12 @@ jobs:
           node --check geez-calendar-20261114.js
           node --test geez-calendar-mode-test.mjs
           node --test politc-werk-test.mjs
+          node --check user-search-results.js
+          node --check pop-culture-calendar-20261114.js
+          node --check werk-browser-window-20261114.js
+          node --test werk-lwazi-popcalendar-test.mjs
           python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+          python3 -m unittest discover -s scripts -p test_visual_life_ats.py
           node studio-layout-cache-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js
