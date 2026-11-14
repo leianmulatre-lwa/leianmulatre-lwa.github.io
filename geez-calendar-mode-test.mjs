@@ -1,0 +1,94 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
+const adapter=read('geez-calendar-20261114.js');
+const pages=read('module-pages.js');
+const header=read('module-version-header-20261026.js');
+const headerCss=read('lwazi-header-series-20261026.css');
+const calendarCss=read('geez-calendar-20261114.css');
+const navigation=read('ui-coherence.js');
+const files=['index.html','studio/index.html','404.html','live-studio-shell.html'];
+const sandbox={window:{},Intl,Date,Number,Object,Array};
+vm.runInNewContext(adapter,sandbox,{timeout:3500});
+const geez=sandbox.window.BigLWAGeezCalendar;
+const date=(y,m,d)=>new Date(y,m-1,d,12);
+const p=(y,m,d)=>geez.parts(date(y,m,d));
+test('ICU Ethiopic calendar support is detected and a real 13-month view is available',()=>{
+ assert.equal(geez.supported,true,'Node ICU must provide the Ethiopian calendar');
+ assert.equal(geez.months.length,13);
+ assert.equal(geez.weekdays.length,7);
+ assert.equal(p(2026,9,11).month,1);
+ assert.equal(p(2026,9,11).day,1);
+ assert.equal(p(2026,9,11).year,2019);
+ assert.equal(p(2026,11,14).month,3);
+ assert.equal(p(2026,11,14).day,5);
+ assert.equal(p(2026,11,14).year,2019);
+ assert.match(geez.display(date(2026,11,14)),/Hidar 5, 2019 E\.C\./);
+});
+test('Pagume 5-day and 6-day months switch to next year at correct dates',()=>{
+ const leap=geez.grid(date(2027,9,11));
+ assert.equal(leap.month.month,13);
+ assert.equal(leap.month.year,2019);
+ assert.equal(leap.days,6);
+ assert.equal(leap.dates.length,14,'Small final month fits on an intentional two-week grid');
+ const next=geez.shift(date(2027,9,11),1);
+ assert.equal(geez.parts(next).month,1);
+ assert.equal(geez.parts(next).year,2020);
+ assert.equal(next.getDate(),12);
+ assert.equal(next.getMonth(),8);
+ const common=geez.grid(date(2028,9,10));
+ assert.equal(common.month.month,13);
+ assert.equal(common.days,5);
+ assert.equal(geez.parts(geez.shift(date(2026,9,11),-1)).month,13);
+});
+test('Switching calendar system changes dates visually, not Google events or saved event keys',()=>{
+ assert.match(pages,/let calendarMode=geezSupported&&localStorage\.getItem\('biglwaCalendarSystemV1'\)/);
+ assert.match(pages,/geez\.grid\(geezAnchor\)/);
+ assert.match(pages,/geez\.shift\(geezAnchor,n\)/);
+ assert.match(pages,/const key=dayKey\(d\),gPart=/);
+ assert.match(pages,/x=>x\.date===key/);
+ assert.match(pages,/remote=\[\];loaded='';\+\+requestId;draw\(\);load\(\)/);
+ assert.match(pages,/const range=calendarGrid\(\)/);
+ assert.match(pages,/orbit\.calendarEvents\(start\.toISOString\(\),end\.toISOString\(\)\)/);
+ assert.match(pages,/new Date\(selected\+'T12:00:00'\)/);
+ assert.match(pages,/getMonth\(\),month/);
+ assert.match(pages,/calendarMode==='geez'/);
+ assert.match(pages,/const conversionNote=isGeez/);
+ assert.doesNotMatch(adapter,/year\s*[-+]\s*[78]|getFullYear\(\)\s*[-+]\s*[78]/,'No guessed 7 or 8 year offset');
+});
+test('Calendar mode buttons sit in Sqwib’s title control slot and remain functional',()=>{
+ assert.match(header,/calendar:\{title:'Calendar',selector:'\.calendar-modes'\}/);
+ assert.match(header,/dynamicTitle=key==='calendar'&&ws\.dataset\.calendarMode==='geez'\?'Ge’ez Calendar'/);
+ assert.match(header,/right\.prepend\(controls\)/);
+ assert.match(pages,/role="tab" data-calendar-mode="gregorian"/);
+ assert.match(pages,/role="tab" data-calendar-mode="geez"/);
+ assert.match(pages,/aria-selected/);
+ assert.match(pages,/\$\$\('\.calendar-modes \[data-calendar-mode\]',calendarContent\)\.forEach/);
+ assert.match(pages,/workspace\.dataset\.calendarMode=calendarMode/);
+ assert.match(headerCss,/align-items:baseline!important/);
+ assert.match(headerCss,/white-space:nowrap!important/);
+ assert.match(headerCss,/top:\.11em!important/);
+ assert.match(calendarCss,/data-calendar-mode="geez"/);
+});
+test('Sqwibbl/r cannot be reverted to Sqwidz by preview or navigation hydration',()=>{
+ assert.doesNotMatch(pages,/noteLabel\.textContent='Sqwidz'/);
+ assert.match(header,/notes:\{title:'sqwibbl\/r'/);
+ assert.match(header,/paintMixedTitle\(widget,route,name\)/);
+ assert.match(navigation,/if\(key==='notes'\)return 'sqwibbl\/r'/);
+ assert.match(headerCss,/font-family:"Subwaygraph"/);
+ assert.match(headerCss,/\.lwa-title-r/);
+});
+test('All four Studio bootstraps register Ge’ez adapter before module pages, exactly once',()=>{
+ for(const path of files){
+  const html=read(path);
+  const geezScript=html.indexOf('geez-calendar-20261114.js?v=');
+  const moduleScript=html.indexOf('module-pages.js?v=');
+  assert(geezScript>0&&geezScript<moduleScript,path+' loads conversion source first');
+  assert.equal((html.match(/geez-calendar-20261114\.js\?v=/g)||[]).length,1,path);
+  assert.equal((html.match(/geez-calendar-20261114\.css\?v=/g)||[]).length,1,path);
+  assert.match(html,/lwazi-header-series-20261026\.css\?v=[^"<>]*geez=20261114/);
+  assert.match(html,/module-version-header-20261026\.js\?v=[^"<>]*geez=20261114/);
+ }
+});
