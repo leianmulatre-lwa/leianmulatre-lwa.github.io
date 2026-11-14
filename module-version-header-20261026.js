@@ -8,11 +8,29 @@
   camera:{title:'booth',selector:'.booth-tabs',icon:'bookini'},
   stream:{title:'stream',stream:true},
   notes:{title:'sqwibbl/r',selector:'.diary-section-nav',icon:'sqwibblR'},
-  projects:{title:'visualiz/r',selector:'.visualz-tabs',icon:'visualizr'},
+  projects:{title:'visualize/r',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
   tools:{title:'lwazi',icon:'r-editor'}
  };
  const workspace=()=>$('#studioApp #moduleWorkspace');
+ // Typography belongs to the two title fragments, not a single inherited font.
+ // Preserve source text for screen readers and avoid repaint loops on mutations.
+ function paintMixedTitle(node,route,label){
+  if(!node)return;
+  const m=/^(.+)(\/r)$/.exec(label);
+  if(!m){if(node.textContent.trim()!==label)node.textContent=label;return}
+  if(node.dataset.lwaMixedTitle===route
+   &&node.textContent===label
+   &&node.querySelector(':scope > .lwa-title-base')
+   &&node.querySelector(':scope > .lwa-title-r'))return;
+  const base=document.createElement('span');
+  base.className='lwa-title-base';base.textContent=m[1];
+  const ending=document.createElement('span');
+  ending.className='lwa-title-r';ending.textContent=m[2];
+  node.replaceChildren(base,ending);
+  node.classList.add('lwa-mixed-r-title');
+  node.dataset.lwaMixedTitle=route;
+ }
  function rightSlot(heading){
   let right=$(':scope > .module-heading-right',heading);
   if(!right){
@@ -98,7 +116,7 @@
  }
  function renameNavigation(){
   const routes=[
-    ['tools','lwazi'],['projects','visualiz/r'],['camera','booth'],['notes','sqwibbl/r']
+    ['tools','lwazi'],['projects','visualize/r'],['camera','booth'],['notes','sqwibbl/r']
   ];
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
@@ -107,7 +125,7 @@
       if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Booth',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
     }
     const widget=document.querySelector('#studioApp #'+route+' .card-head h2');
-    if(widget&&widget.textContent.trim()!==name)widget.textContent=name;
+    if(widget)paintMixedTitle(widget,route,name);
   }
  }
  function install(){
@@ -122,7 +140,7 @@
    :$('#moduleWorkspaceBody > .module-heading',ws)||$('.module-heading',ws);
   if(!heading)return;
   const title=$('h1',heading);if(!title)return;
-  if(title.textContent.trim()!==item.title)title.textContent=item.title;
+  paintMixedTitle(title,key,item.title);
   const right=rightSlot(heading);
   const controls=item.selector?$(item.selector,ws):null;
   if(controls){
