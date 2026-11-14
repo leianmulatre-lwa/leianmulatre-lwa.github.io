@@ -214,7 +214,7 @@
     function fastLwaziResponse(q){
       // Stable, evidence-backed public-interest grounding for identified
       // harmful subcultures; independent of the selected free AI model.
-      var context=window.BigLWACriticalContext?.lookup(q);
+      var context=typeof window!=='undefined'?window.BigLWACriticalContext?.lookup(q):null;
       if(context)return context.answer;
       var social=conversationIntent(q);
       if(social)return social.reply;
