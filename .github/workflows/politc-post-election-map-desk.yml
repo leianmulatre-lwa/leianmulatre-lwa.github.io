@@ -6,6 +6,8 @@ on:
       - 'politc-post-election-20261113.css'
       - 'politc-post-election-map-desk-test.mjs'
       - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-navigate-20261113.js'
+      - 'map-go-navigation-test.mjs'
       - 'map-lwa-experience-20261113.css'
       - 'map-app.html'
       - 'module-pages.js'
@@ -21,6 +23,8 @@ on:
       - 'politc-post-election-20261113.css'
       - 'politc-post-election-map-desk-test.mjs'
       - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-navigate-20261113.js'
+      - 'map-go-navigation-test.mjs'
       - 'map-lwa-experience-20261113.css'
 permissions:
   contents: read
@@ -37,9 +41,10 @@ jobs:
         run: |
           node --check politc-post-election-results-20261113.js
           node --check map-lwa-experience-20261113.js
+          node --check map-lwa-navigate-20261113.js
           node --check module-pages.js
           node --check user-search-results.js
       - name: Run source integrity and desktop Map layout regressions
         run: |
-          node --test politc-post-election-map-desk-test.mjs map-workspace-regression-test.mjs
+          node --test politc-post-election-map-desk-test.mjs map-workspace-regression-test.mjs map-go-navigation-test.mjs
           node --test lwazi/navigation-map-weather.test.mjs
