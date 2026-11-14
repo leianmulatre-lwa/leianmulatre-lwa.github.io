@@ -53,7 +53,7 @@ test('community route response decodes 6-decimal road geometry without inventing
  const fetch=async(url,options)=>{
   requests.push({url:String(url),headers:options.headers});
   return {ok:true,json:async()=>({trip:{summary:{time:540,length:2.4},
-   legs:[{shape:encoded,maneuvers:[{instruction:'Turn left.'}]}]}})};
+   legs:[{shape:encoded,maneuvers:[{instruction:'Turn left.',verbal_pre_transition_instruction:'Turn left in 100 meters.',begin_shape_index:1}]}]}})};
  };
  vm.runInNewContext(router,{window,location,URL,URLSearchParams,fetch,
   AbortController,Date,Math,Map,Number,Promise,setTimeout,clearTimeout,console});
@@ -62,7 +62,9 @@ test('community route response decodes 6-decimal road geometry without inventing
  const value=await window.BigLWAMapRouteProvider.getRoute(params);
  assert.equal(value.distanceLabel,'2.4 km');assert.equal(value.durationMinutes,9);
  assert.equal(value.trafficAware,false);
- assert.equal(value.maneuvers[0],'Turn left.');
+ assert.equal(value.maneuvers[0].instruction,'Turn left.');
+ assert.equal(value.maneuvers[0].verbal,'Turn left in 100 meters.');
+ assert.equal(value.maneuvers[0].shapeIndex,1);
  value.points.forEach((p,i)=>p.forEach((v,k)=>assert.ok(Math.abs(v-points[i][k])<.000001)));
  assert.match(requests[0].url,/valhalla1\.openstreetmap\.de\/route/);
  const json=JSON.parse(new URL(requests[0].url).searchParams.get('json'));
@@ -75,6 +77,6 @@ test('Map style source visible and never silently retains legacy default',()=>{
  assert.match(map,/mapProviderIndicator/);
  assert.match(map,/OpenFreeMap vector unavailable/);
  assert.match(map,/map-lwa-router-20261113\.js/);
- assert.match(studio,/20261113-inpage-split-desk-4/);
+ assert.match(studio,/20261113-inpage-navigation-go-5/);
  assert.match(extras,/20261113-stay-2/);
 });
