@@ -30,7 +30,7 @@
     .filter(item=>item.url&&item.label);
  }
  function readSaved(uid=owner()){
-  if(!uid)return [];
+  if(!uid||uid!==owner())return [];
   try{
    const parsed=JSON.parse(localStorage.getItem(key(uid))||'[]');
    if(!Array.isArray(parsed))return [];
