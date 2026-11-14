@@ -1,0 +1,44 @@
+/* Optional Ge'ez (Ethiopian) calendar: 13-month view, same real event keys.
+   No reinterpretation of Google Calendar timestamps or UN observances. */
+#studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-board{
+  background:linear-gradient(135deg,rgba(253,245,224,.86),rgba(237,219,190,.56));
+  border-color:#c4a48f;
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-toolbar h2{
+  font:400 clamp(18px,2vw,27px)/1.25 Georgia,serif!important;
+  color:#7a3d43;
+  min-width:0;text-align:center;overflow-wrap:anywhere;
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"] .calendar-geez-note{
+  padding:8px 11px;margin:10px 0!important;
+  border-inline-start:3px solid #9c5367;
+  background:rgba(165,101,96,.09);
+  border-radius:0 7px 7px 0;
+  font:600 11px/1.5 system-ui,sans-serif!important;
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-weekdays span{
+  font-family:Georgia,serif!important;
+  font-size:11px!important;
+  letter-spacing:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-day-num{
+  font:700 13px/1.1 Georgia,serif!important
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-day.other{
+  opacity:.25!important;
+}
+body.night-mode #studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-board{
+  background:linear-gradient(145deg,#30272e,#31292d)!important;
+  border-color:#6e5258!important;
+}
+body.night-mode #studioApp #moduleWorkspace[data-module-key="calendar"] .calendar-geez-note{
+  background:#593b49;color:#f5e7d9
+}
+@media(max-width:700px){
+ #studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-day{
+  min-height:58px;padding:5px 3px;
+ }
+ #studioApp #moduleWorkspace[data-module-key="calendar"][data-calendar-mode="geez"] .calendar-weekdays span{
+  font-size:9px!important;
+ }
+}
