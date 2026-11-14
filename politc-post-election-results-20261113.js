@@ -42,16 +42,23 @@
  const sourceContests=data=>{
   const groups=data?.Election?.ContestGroups||[];
   if(!Array.isArray(groups))return [];
-  return groups.flatMap(group=>(Array.isArray(group.Contests)?group.Contests:[])
-   .map(contest=>({group:String(group.Name||'Other').slice(0,85),
-     title:String(contest.Title||'Untitled').slice(0,140),
-     scope:String(contest.AdditionalText||'').slice(0,130),
-     type:String(contest.Type||''),
-     candidates:(Array.isArray(contest.Candidates)?contest.Candidates:[])
-       .filter(c=>Number.isFinite(c.Votes)&&c.Votes>=0)
-       .slice(0,28).map(c=>({name:String(c.Name||'').slice(0,100),
-         party:String(c.Party||'').slice(0,50),votes:Math.floor(c.Votes)}))
+  return groups.flatMap(group=>{
+   const contests=Array.isArray(group.Contests)?group.Contests:[];
+   return contests.map(contest=>({
+    group:String(group.Name||'Other').slice(0,85),
+    title:String(contest.Title||'Untitled').slice(0,140),
+    scope:String(contest.AdditionalText||'').slice(0,130),
+    type:String(contest.Type||''),
+    candidates:(Array.isArray(contest.Candidates)?contest.Candidates:[])
+      .filter(c=>Number.isFinite(c.Votes)&&c.Votes>=0)
+      .slice(0,28)
+      .map(c=>({
+       name:String(c.Name||'').slice(0,100),
+       party:String(c.Party||'').slice(0,50),
+       votes:Math.floor(c.Votes)
+      }))
    })).filter(row=>row.candidates.length);
+  });
  };
  function compactElection(body){
   const zone=body.querySelector('.politc-election-zone');
