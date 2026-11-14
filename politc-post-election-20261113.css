@@ -117,8 +117,9 @@ body.night-mode .politc-result-status{color:#f0c4d0}
  display:block!important;
  border-radius:14px!important;
 }
+/* Keep all three columns fixed. Opening a card expands DOWNWARD only. */
 #moduleWorkspace[data-module-key="politc"] .politc-three-up > .politc-card-expanded{
- grid-column:1/-1!important;
+ grid-column:auto!important;
 }
 .politc-three-up > section > details{width:100%;min-width:0}
 .politc-three-up > section > details:not([open]){
@@ -241,5 +242,194 @@ body.night-mode .politc-result-status{color:#f0c4d0}
  .politc-three-up .politc-research-fold[open] > summary{
   flex-direction:column!important;
   align-items:flex-start!important;
+ }
+}
+
+
+/* Politic: independent vertically expanding research/election cards.
+   Never let an opened card take over the entire grid. */
+#moduleWorkspace[data-module-key="politc"] .politc-three-up{
+ align-items:start!important;
+ grid-auto-flow:row!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > section{
+ grid-column:auto!important;
+ align-self:start!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > section.politc-card-expanded{
+ grid-column:auto!important;
+ height:auto!important;
+ align-self:start!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > section > details[open]{
+ width:100%!important;
+ min-width:0!important;
+ height:auto!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > section > details[open] > summary{
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:stretch!important;
+ justify-content:space-between!important;
+ gap:10px!important;
+ min-height:0!important;
+ padding:15px 16px!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > section > details[open] > summary > :last-child{
+ align-self:flex-start!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-post-election-content,
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-result-panel,
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-research-fold-body{
+ box-sizing:border-box!important;
+ min-width:0!important;
+ max-width:100%!important;
+ padding:14px!important;
+ max-height:min(76vh,840px)!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ scrollbar-color:#b78f94 transparent;
+ overscroll-behavior:contain;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-research-form{
+ grid-template-columns:minmax(0,1fr)!important;
+ align-items:stretch!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-research-form>button{
+ justify-self:start!important;
+ grid-column:1!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-research-list,
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-result-race-grid{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ gap:10px!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-county-map-grid{
+ grid-template-columns:minmax(0,1fr)!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-form{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-form > *{
+ width:100%!important;
+ min-width:0!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up #politcNominees,
+#moduleWorkspace[data-module-key="politc"] .politc-three-up #politcElectionLinks{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow-wrap:anywhere;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-result-head{
+ display:block!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-result-tabs{
+ gap:5px!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-result-tabs button{
+ flex:1 1 auto;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-post-election-lead strong,
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-result-summary-label strong{
+ font-size:clamp(18px,1.65vw,24px)!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-research-head h2{
+ font-size:clamp(20px,1.8vw,26px)!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-county-svg{
+ max-width:100%!important;
+}
+/* Portraits are source-attributed and never guessed for similarly named people. */
+.politc-result-vote{
+ grid-template-columns:minmax(0,1fr) auto!important;
+ align-items:center!important;
+}
+.politc-result-person{
+ min-width:0;
+ display:inline-flex;
+ align-items:center;
+ gap:9px;
+}
+.politc-result-candidate-name{
+ min-width:0;
+ overflow-wrap:anywhere;
+ font:650 11px/1.45 system-ui,sans-serif;
+}
+.politc-candidate-portrait{
+ display:inline-flex;
+ position:relative;
+ width:44px;
+ height:54px;
+ flex:0 0 44px;
+ border:1px solid #bda7a0;
+ border-radius:7px;
+ box-shadow:1px 2px 4px #48313624;
+ overflow:hidden;
+ background:#e1d1c5;
+ vertical-align:middle;
+}
+.politc-candidate-portrait-img{
+ display:block;
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ object-position:50% 19%;
+}
+.politc-candidate-portrait-fallback{
+ display:grid;
+ place-items:center;
+ width:100%;
+ height:100%;
+ color:#6d454e;
+ font:700 16px/1.2 Georgia,serif;
+}
+.politc-candidate-portrait-credit{
+ position:absolute;
+ bottom:0;
+ right:0;
+ left:0;
+ padding:2px 1px;
+ background:rgba(57,37,45,.82);
+ color:white!important;
+ text-align:center;
+ font:600 7px/1.1 system-ui,sans-serif!important;
+ text-decoration:none;
+ opacity:.82;
+}
+.politc-candidate-portrait-credit:focus-visible,
+.politc-candidate-portrait-credit:hover{
+ opacity:1;
+ outline:2px solid #9c3f57;
+}
+.politc-person > .politc-candidate-portrait{
+ display:flex;
+ width:min(100%,128px)!important;
+ height:135px!important;
+ flex:0 0 auto;
+ margin:0 auto 6px!important;
+}
+.politc-person > .politc-candidate-portrait .politc-candidate-portrait-credit{
+ padding:4px;
+ font-size:9px!important;
+}
+.politc-person > .politc-candidate-portrait .politc-candidate-portrait-fallback{
+ font-size:27px;
+}
+@media(max-width:1120px){
+ #moduleWorkspace[data-module-key="politc"] .politc-three-up{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:760px){
+ #moduleWorkspace[data-module-key="politc"] .politc-three-up{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ #moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-post-election-content,
+ #moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-result-panel,
+ #moduleWorkspace[data-module-key="politc"] .politc-three-up .politc-research-fold-body{
+  max-height:none!important;
+  overflow:visible!important;
  }
 }
