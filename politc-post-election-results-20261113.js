@@ -219,7 +219,7 @@
     }
     deck.append(rail);
     const lanes=[...topRow.children].map((topCard,i)=>{
-     const lane=tag('div','politc-deck-lane');
+     const lane=tag('div','politc-deck-lane politc-three-up');
      lane.append(topCard);
      const card=trackers[i];
      card.classList.add('politc-deck-tracker');
@@ -234,7 +234,8 @@
      if(direction>0)cards.unshift(cards.pop());
      else cards.push(cards.shift());
      lanes.forEach((lane,i)=>lane.append(cards[i]));
-     order.textContent='Showing '+cards.map(card=>card.querySelector('h3')?.textContent?.trim()||'Tracker').join(' · ');
+     order.textContent='3 tracks';
+     order.title=cards.map(card=>card.querySelector('h3')?.textContent?.trim()||'Tracker').join(' · ');
     };
     prev.addEventListener('click',()=>rotate(-1));
     next.addEventListener('click',()=>rotate(1));
