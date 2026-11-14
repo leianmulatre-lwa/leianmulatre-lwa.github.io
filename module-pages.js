@@ -337,6 +337,39 @@
     .video-booth-checks li::before{content:"";position:absolute;left:0;top:2px;width:12px;height:12px;border-radius:4px;border:1px solid #c9bdb4;background:rgba(255,255,255,.6)}
     .video-booth-checks li[data-ready="1"]::before{background:#477650;border-color:#3d6444}
     .video-booth-checks li[data-ready="1"]::after{content:"";position:absolute;left:3px;top:5px;width:5px;height:2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg)}
+
+    /* The Studio thumbnail stays in Studio. The live Booth page is a lit mirror around
+       the actual signed-in member's profile portrait, never the uploaded film thumbnail. */
+    #moduleWorkspace[data-module-key="projects"] .module-heading h1,
+    #studioApp #projects .card-head h2{font-family:"CS Bergamot Stitched","Bergamot Stitched",Georgia,serif!important}
+    #moduleWorkspace[data-module-key="notes"] .diary-section-nav [data-diary-view] > span[aria-hidden]{display:inline-grid;place-items:center;min-width:1.1em;font-family:system-ui,sans-serif!important;font-weight:700}
+    .booth-vanity{--vanity-light:.72;position:relative;isolation:isolate;width:min(100%,750px);margin:15px auto 8px;padding:18px 23px;box-sizing:border-box;background:#251719;border:2px solid #6f4e42;border-radius:22px;box-shadow:0 12px 27px rgba(36,18,25,.22)}
+    .booth-vanity-lights{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;border-radius:20px}
+    .booth-vanity .light-bar{position:absolute;background:rgba(255,248,233,var(--vanity-light));box-shadow:0 0 10px 3px rgba(255,248,226,var(--vanity-light)),0 0 35px 10px rgba(255,237,205,var(--vanity-light));transition:background .16s,box-shadow .16s}
+    .booth-vanity .light-bar.left,.booth-vanity .light-bar.right{width:7px;top:9%;bottom:9%;border-radius:99px}
+    .booth-vanity .light-bar.left{left:9px}.booth-vanity .light-bar.right{right:9px}
+    .booth-vanity .light-bar.top,.booth-vanity .light-bar.bottom{height:6px;left:8%;right:8%;border-radius:99px}
+    .booth-vanity .light-bar.top{top:7px}.booth-vanity .light-bar.bottom{bottom:7px}
+    .booth-vanity[data-lights="off"]{--vanity-light:0!important}
+    .booth-vanity .photobooth-stage{width:100%;max-width:700px;max-height:460px;aspect-ratio:3/2;margin:0 auto;border:0;border-radius:12px;background:radial-gradient(ellipse at center,#51373b 0,#261d24 75%);color:#fff7ee}
+    .booth-avatar-prompt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:18px;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 69%)}
+    #boothProfilePhoto{display:block!important;width:clamp(94px,19vw,172px)!important;height:clamp(94px,19vw,172px)!important;min-height:0!important;max-height:none!important;flex:none;object-fit:cover!important;border:3px solid #ebc9bd;border-radius:50%;box-shadow:0 0 0 6px rgba(255,233,215,.1)}
+    #boothProfilePhoto[hidden]{display:none!important}
+    #boothProfileFallback{display:grid;place-items:center;width:clamp(94px,19vw,172px);height:clamp(94px,19vw,172px);border-radius:50%;background:#523c44;border:3px solid #c8a5a0;font:56px Georgia,serif}
+    .booth-avatar-prompt strong{font:600 clamp(16px,2.1vw,25px)/1.25 Georgia,serif;color:#fff6ee}
+    .booth-avatar-prompt small{font:600 11px/1.5 system-ui,sans-serif;opacity:.85}
+    .booth-light-controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;width:min(100%,750px);margin:10px auto 16px}
+    .booth-light-controls label{display:flex;gap:7px;align-items:center;font:650 12px system-ui,sans-serif}
+    .booth-light-controls input[type=range]{width:clamp(110px,25vw,250px);accent-color:#b83d61;cursor:pointer}
+    .booth-light-controls .module-action{margin:0;min-height:31px}
+    .booth-light-controls input:focus-visible,.booth-light-controls button:focus-visible{outline:3px solid #d75f78;outline-offset:2px}
+    .video-booth-tile.you{position:relative;overflow:hidden}
+    .video-booth-tile.you #videoBoothSelfPreview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+    #videoBoothSelfPreview[hidden]{display:none!important}
+    .video-booth-tile.you:has(video:not([hidden])) b,.video-booth-tile.you:has(video:not([hidden])) small{position:relative;z-index:2;background:#251719bf;padding:3px 6px;border-radius:6px;color:#fff}
+    .video-booth-tile.you:has(video:not([hidden])) .video-booth-profile-photo{display:none}
+    @media(max-width:620px){.booth-vanity{padding:15px 18px}.booth-vanity .light-bar.left{left:6px}.booth-vanity .light-bar.right{right:6px}.booth-vanity .light-bar.top{top:5px}.booth-vanity .light-bar.bottom{bottom:5px}}
+
     .photobooth-stage.has-intro{min-height:0;aspect-ratio:3/2;background:#c9c0bd}
     .photobooth-stage .photobooth-intro{width:100%;height:100%;max-height:none;object-fit:cover;object-position:center;filter:contrast(1.02)}
     .photobooth-stage video,.photobooth-stage canvas,.photobooth-stage img{width:100%;height:100%;max-height:100%;object-fit:cover;display:block}
@@ -962,7 +995,7 @@
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','visualz','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'booth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwidz',projects:'visualizr',project:'visualizr',visualz:'visualizr',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'lwazi',reviews:'Wallpaper Reviews',politc:'politc'};
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'booth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'sqwibbl/r',projects:'visualiz/r',project:'visualiz/r',visualz:'visualiz/r',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'lwazi',reviews:'Wallpaper Reviews',politc:'politc'};
   const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite boo·kiniz to join Big LWA.',camera:'Use our booth to feel yourself or chat with other bookiniz using Big LWA.',diary:'A private writing page that autosaves in this browser.',stream:'LWA Radio, TV, live channels and independent broadcasts.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Your wardrobe, resale links and preloved listings.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'Sqwibs, conversations, long reads and streams. Your private writing stays below.',projects:'A creative home for visualeyez boards and visualslidez presentations.',visualz:'A creative home for visualeyez boards and visualslidez presentations.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Meet the blocks of the R/Lwazi seriez · create, edit, save and share.',politc:'Politics, elections, the pendulum, public records and reporting.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2123,7 +2156,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/booth-light-20261029.webp" alt="Red curtain for photo booth" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
+    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="booth-vanity" id="boothVanity" data-lights="on" style="--vanity-light:.72"><div class="booth-vanity-lights" aria-hidden="true"><span class="light-bar left"></span><span class="light-bar right"></span><span class="light-bar top"></span><span class="light-bar bottom"></span></div><div class="photobooth-stage has-intro" id="photoStage"><div class="booth-avatar-prompt"><img id="boothProfilePhoto" alt="Your profile picture" hidden><span id="boothProfileFallback" aria-hidden="true">◉</span><strong id="boothProfileName">Your profile</strong><small>Look good, feel good, bookini.</small></div></div></div><div class="booth-light-controls"><label for="boothLightLevel">Vanity lighting <output id="boothLightValue" for="boothLightLevel">72%</output></label><input id="boothLightLevel" type="range" min="0" max="100" value="72" step="1" aria-label="Vanity screen light brightness"><button type="button" class="module-action secondary" id="boothLightToggle" aria-pressed="true">Lights on</button></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
     const photoTab=$('#boothPhotoTab',body),videoTab=$('#boothVideoTab',body);
     const photoPanel=$('#boothPhotoPanel',body),videoPanel=$('#boothVideoPanel',body);
     const selectBooth=mode=>{
@@ -2137,7 +2170,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const cameraStage=$('#photoStage',body);
         if(cameraStage?.querySelector('#boothVideo')){
           cameraStage.classList.add('has-intro');
-          cameraStage.innerHTML='<img class="photobooth-intro" src="/assets/booth-light-20261029.webp" alt="Red photo booth curtain" width="800" height="533">';
+          cameraStage.innerHTML='<div class="booth-avatar-prompt"><img id="boothProfilePhoto" alt="Your profile picture" hidden><span id="boothProfileFallback" aria-hidden="true">◉</span><strong id="boothProfileName">Your profile</strong><small>Look good, feel good, bookini.</small></div>';refreshBoothProfile();
           $('#photoCapture',body).disabled=true;$('#photoFlip',body).disabled=true;
           $('#photoStatus',body).textContent='Camera stopped when switching to Video Booth. Start camera again to take photos.';
         }
@@ -2172,17 +2205,19 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       <p>Meet the person before the call. You'll see their profile picture, display name and BIG LWA rank — never their @handle. Connect only when you both agree.</p>
       <div class="video-booth-preview" aria-label="Pre-connection profile card layout — no live matches yet">
         <div class="video-booth-tile you">
-          <span class="video-booth-profile-photo" aria-hidden="true">◉</span>
+          <span class="video-booth-profile-photo" id="videoBoothOwnPhoto" aria-hidden="true">◉</span><video id="videoBoothSelfPreview" autoplay playsinline muted hidden aria-label="Local preview only"></video>
           <b>Your profile</b><small>Your rank appears here</small>
         </div>
         <div class="video-booth-tile them" id="videoBoothCandidateCard" aria-label="Candidate's public preview before a video connection">
-          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto"><img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Video Booth sample portrait" loading="lazy"></span>
+          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto" aria-hidden="true">?</span>
           <b id="videoBoothCandidateName">Display name</b>
           <small class="video-booth-profile-rank" id="videoBoothCandidateRank">BIG LWA rank</small>
           <span class="video-booth-card-note">No @handle shown</span>
         </div>
       </div>
       <div class="module-actions">
+        <button class="module-action secondary" id="videoBoothTestCamera" type="button">Test camera locally</button>
+        <button class="module-action ghost" id="videoBoothTestMic" type="button">Check microphone</button>
         <button class="module-action" id="videoBoothRequestConnect" type="button" disabled aria-disabled="true" title="Available only after matching, moderation and consent are ready">Request connection</button>
         <button class="module-action secondary" id="videoBoothSkipCandidate" type="button" disabled aria-disabled="true">Pass</button>
       </div>
