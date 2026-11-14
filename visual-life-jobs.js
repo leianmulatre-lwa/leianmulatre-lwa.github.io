@@ -41,6 +41,20 @@ function searchTargets(query,where){
   {label:'Indeed',description:'Jobs from employers',url:'https://www.indeed.com/jobs?q='+encodeURIComponent(term)+'&l='+encodeURIComponent(place)}
  ];
 }
+/* Share only accepted, non-expired source records with Politic Werk.
+ * Searches do not contact job boards or create proxy scraping requests. */
+function searchVerified(role,where){
+ if(sourceStatus!=='connected')return [];
+ const term=clean(role).toLowerCase();
+ const place=clean(where).toLowerCase();
+ const wide=!place||['united states','usa','us','anywhere'].includes(place);
+ return jobs.filter(job=>{
+  const roleMatch=!term||[job.title,job.company].join(' ').toLowerCase().includes(term);
+  const loc=job.location.toLowerCase();
+  const locationMatch=wide||loc.includes(place)||(place==='remote'&&loc.includes('remote'));
+  return roleMatch&&locationMatch;
+ }).slice(0,20).map(job=>({...job}));
+}
 function ensure(root){
  if(!root)return null;
  const current=$('#craftVisualLifePanel',root);
@@ -153,5 +167,5 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
 new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true});
-window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,loadFeed,getStatus:()=>sourceStatus,version:'1.1.0'};
+window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,searchVerified,loadFeed,getStatus:()=>sourceStatus,getSourceTimestamp:()=>sourceTimestamp,version:'1.2.0'};
 })();
