@@ -30,6 +30,8 @@ jobs:
           node --check lwazi-search-ui.js
           node --check lwazi-music-discovery.js
           node --check visual-life-jobs.js
+          node --check politc-werk-20261114.js
+          node --test politc-werk-test.mjs
           node --check profile-music.js
           node --check tools-craft.js
           node --check module-pages.js

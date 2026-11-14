@@ -10,7 +10,7 @@ const MAX_JOBS=60;
 const $=(s,r=document)=>r.querySelector(s);
 const clean=v=>String(v==null?'':v).trim().slice(0,160);
 const esc=v=>clean(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null,pendingOpen=false;
+let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null,pendingOpen=false,feedVerified=false;
 function externalUrl(raw){
  try{
   const url=new URL(raw);
@@ -40,6 +40,20 @@ function searchTargets(query,where){
   {label:'LinkedIn Jobs',description:'Employer and network listings',url:'https://www.linkedin.com/jobs/search/?keywords='+encodeURIComponent(term)+'&location='+encodeURIComponent(place)},
   {label:'Indeed',description:'Jobs from employers',url:'https://www.indeed.com/jobs?q='+encodeURIComponent(term)+'&l='+encodeURIComponent(place)}
  ];
+}
+/* Share only accepted, non-expired source records with Politic Werk.
+ * Searches do not contact job boards or create proxy scraping requests. */
+function searchVerified(role,where){
+ if(!feedVerified||sourceStatus!=='connected')return [];
+ const term=clean(role).toLowerCase();
+ const place=clean(where).toLowerCase();
+ const wide=!place||['united states','usa','us','anywhere'].includes(place);
+ return jobs.filter(job=>{
+  const roleMatch=!term||[job.title,job.company].join(' ').toLowerCase().includes(term);
+  const loc=job.location.toLowerCase();
+  const locationMatch=wide||loc.includes(place)||(place==='remote'&&loc.includes('remote'));
+  return roleMatch&&locationMatch;
+ }).slice(0,20).map(job=>({...job}));
 }
 function ensure(root){
  if(!root)return null;
@@ -109,6 +123,7 @@ async function loadFeed(){
    if(!Number.isFinite(published)||Date.now()-published>96*3600*1000||published>Date.now()+3600*1000){sourceStatus='stale';jobs=[];return}
    sourceTimestamp=new Date(published).toLocaleDateString();
    setJobs(data.jobs);
+   feedVerified=jobs.length>0;
   }catch{sourceStatus='pending'}
  })();
  return sourceLoading;
@@ -153,5 +168,5 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
 new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true});
-window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,loadFeed,getStatus:()=>sourceStatus,version:'1.1.0'};
+window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,searchVerified,loadFeed,getStatus:()=>sourceStatus,getSourceTimestamp:()=>sourceTimestamp,version:'1.2.0'};
 })();
